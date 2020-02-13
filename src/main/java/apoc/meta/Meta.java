@@ -50,6 +50,13 @@ public class Meta {
 
     @Context public Log log;
 
+    public static class ConstraintTracker {
+        // The following maps are (label|rel-type)/constraintdefinition entries
+
+        public static Map<String, List<ConstraintDefinition>> relConstraints = new HashMap<>(20);;
+        public static Map<String, List<ConstraintDefinition>> nodeConstraints = new HashMap<>(20);;
+    }
+
     public enum Types {
         INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,ANY,MAP,LIST,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION;
 
@@ -477,16 +484,23 @@ public class Meta {
 
         Schema schema = tx.schema();
 
-        Map<String, Iterable<ConstraintDefinition>> relConstraints = new HashMap<>(20);
-
-        for (RelationshipType type : tx.getAllRelationshipTypesInUse()) {
-            List<ConstraintDefinition> tcd = new ArrayList<ConstraintDefinition>();
-            for (ConstraintDefinition cd : schema.getConstraints(type)) {
-                if (cd.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE)) {
-                    tcd.add(cd);
+        for (ConstraintDefinition cd : schema.getConstraints()) {
+            if (cd.isConstraintType(ConstraintType.NODE_PROPERTY_EXISTENCE)) {
+                List<ConstraintDefinition> tcd = new ArrayList<ConstraintDefinition>(10);
+                if (ConstraintTracker.nodeConstraints.containsKey(cd.getLabel().name())) {
+                    tcd = ConstraintTracker.nodeConstraints.get(cd.getLabel().name());
                 }
+                tcd.add(cd);
+                ConstraintTracker.nodeConstraints.put(cd.getLabel().name(), tcd);
+
+            } else if (cd.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE)) {
+                List<ConstraintDefinition> tcd = new ArrayList<ConstraintDefinition>(10);
+                if (ConstraintTracker.relConstraints.containsKey(cd.getRelationshipType().name())) {
+                    tcd = ConstraintTracker.relConstraints.get(cd.getRelationshipType().name());
+                }
+                tcd.add(cd);
+                ConstraintTracker.relConstraints.put(cd.getRelationshipType().name(), tcd);
             }
-            relConstraints.put(type.name(),tcd);
         }
 
         Map<String, Long> countStore = getLabelCountStore();
@@ -502,14 +516,6 @@ public class Meta {
 
             if (!excludes.contains(labelName) && (includeLabels.isEmpty() || includeLabels.contains(labelName))) {
                 // Skip if explicitly excluded or at least 1 include specified and not included
-
-                List<ConstraintDefinition> constraints = new ArrayList<ConstraintDefinition>();
-
-                for (ConstraintDefinition cd : schema.getConstraints(label)) {
-                    if (cd.isConstraintType(ConstraintType.NODE_PROPERTY_EXISTENCE)) {
-                        constraints.add(cd);
-                    }
-                }
 
                 for (ConstraintDefinition cd : schema.getConstraints(label)) { profile.noteConstraint(label, cd); }
                 for (IndexDefinition index : schema.getIndexes(label)) { profile.noteIndex(label, index); }
@@ -536,7 +542,7 @@ public class Meta {
                                 }
                             }
                             if (skipNode != true) {
-                                profile.observe(node, config, constraints, relConstraints);
+                                profile.observe(node, config);
                             }
                         }
                     }

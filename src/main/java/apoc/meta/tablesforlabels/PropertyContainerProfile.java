@@ -1,8 +1,8 @@
 package apoc.meta.tablesforlabels;
 
+import apoc.meta.Meta.ConstraintTracker;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
-//import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 
@@ -17,17 +17,19 @@ import java.util.Set;
  */
 public class PropertyContainerProfile {
     public long observations;
+    public boolean isNode;
     Map<String, PropertyTracker> profile;
 
     public PropertyContainerProfile() {
         observations = 0;
         profile = new HashMap<>(3);
+        isNode = false;
     }
 
     public Set<String> propertyNames() { return profile.keySet(); }
     public PropertyTracker trackerFor(String propName) { return profile.get(propName); }
 
-    public void observe(Entity n, Iterable<ConstraintDefinition> constraints, boolean isNode, Map<String, Iterable<ConstraintDefinition>> relConstraints) {
+    public void observe(Entity n, boolean isNode) {
         observations++;
 
         for (String propName : n.getPropertyKeys()) {
@@ -42,27 +44,37 @@ public class PropertyContainerProfile {
 
             tracker.addObservation(n.getProperty(propName));
 
-            if (isNode) {
+            tracker.mandatory = false;
+        }
+    }
+
+    public PropertyContainerProfile finished() {
+        PropertyTracker tracker;
+
+        for (String propName : this.propertyNames()) {
+            if (this.isNode) {
 
                 // Check for node constraints
 
-                tracker.mandatory = false;
-                for (ConstraintDefinition cd : constraints) {
-                    for (String pk : cd.getPropertyKeys()) {
-                        if (pk == propName) {
-                            tracker.mandatory = true;
+                for (Map.Entry<String,List<ConstraintDefinition>> entry : ConstraintTracker.nodeConstraints.entrySet()) {
+                    for (ConstraintDefinition cd : entry.getValue()) {
+                        for (String pk : cd.getPropertyKeys()) {
+                            if (this.profile.containsKey(pk)) {
+                                tracker = this.profile.get(pk);
+                                tracker.mandatory = true;
+                            }
                         }
                     }
                 }
             } else {
 
-                // Check for relationship constraints - NOTE: Could probably improve the efficiency here a bit. Too many nested loops.
+                // Check for relationship constraints
 
-                tracker.mandatory = false;
-                for (Map.Entry<String,Iterable<ConstraintDefinition>> entry : relConstraints.entrySet()) {
+                for (Map.Entry<String,List<ConstraintDefinition>> entry : ConstraintTracker.relConstraints.entrySet()) {
                     for (ConstraintDefinition cd : entry.getValue()) {
                         for (String pk : cd.getPropertyKeys()) {
-                            if (pk == propName) {
+                            if (this.profile.containsKey(pk)) {
+                                tracker = this.profile.get(pk);
                                 tracker.mandatory = true;
                             }
                         }
@@ -70,9 +82,7 @@ public class PropertyContainerProfile {
                 }
             }
         }
-    }
 
-    public PropertyContainerProfile finished() {
         return this;
     }
 }
