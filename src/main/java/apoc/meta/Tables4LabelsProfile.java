@@ -167,7 +167,7 @@ public class Tables4LabelsProfile {
         }
     }
 
-    public void observe(Node n, MetaConfig config, Iterable<ConstraintDefinition> constraints, Map<String, Iterable<ConstraintDefinition>> relConstraints) {
+    public void observe(Node n, MetaConfig config) {
         OrderedLabels labels = new OrderedLabels(n.getLabels());
         PropertyContainerProfile localNodeProfile = getNodeProfile(labels);
 
@@ -177,7 +177,7 @@ public class Tables4LabelsProfile {
         // Only descend and look at properties if it's in our match list.
         if (config.matches(n.getLabels())) {
             sawNode(labels);
-            localNodeProfile.observe(n, constraints, true, relConstraints);
+            localNodeProfile.observe(n, true);
         }
 
         for (RelationshipType type : n.getRelationshipTypes()) {
@@ -215,7 +215,7 @@ public class Tables4LabelsProfile {
                     continue;
                 }
 
-                localRelProfile.observe(r, constraints, isNode, relConstraints);
+                localRelProfile.observe(r, isNode);
             }
         }
     }
