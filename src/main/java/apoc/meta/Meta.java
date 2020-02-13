@@ -1,5 +1,6 @@
 package apoc.meta;
 
+import org.neo4j.logging.Log;
 import apoc.result.GraphResult;
 import apoc.result.MapResult;
 import apoc.result.VirtualNode;
@@ -41,6 +42,8 @@ public class Meta {
 
     @Context
     public KernelTransaction kernelTx;
+
+    @Context public Log log;
 
     public enum Types {
         INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,ANY,MAP,LIST,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION;
@@ -438,11 +441,10 @@ public class Meta {
         MetaConfig metaConfig = new MetaConfig(config);
         try {
             return collectTables4LabelsProfile(metaConfig).asNodeStream();
-        } catch (Exception exc) {
-            exc.printStackTrace();
+        } catch (Exception e) {
+            log.debug("meta.nodeTypeProperties(): Failed to return stream", e);
+            throw new RuntimeException(e);
         }
-
-        return null;
     }
 
     /**
@@ -456,11 +458,10 @@ public class Meta {
         MetaConfig metaConfig = new MetaConfig(config);
         try {
             return collectTables4LabelsProfile(metaConfig).asRelStream();
-        } catch (Exception exc) {
-            exc.printStackTrace();
+        } catch (Exception e) {
+            log.debug("meta.relTypeProperties(): Failed to return stream", e);
+            throw new RuntimeException(e);
         }
-
-        return null;
     }
 
     private Tables4LabelsProfile collectTables4LabelsProfile (MetaConfig config) {
@@ -491,49 +492,43 @@ public class Meta {
         for (Label label : db.getAllLabelsInUse()) {
             String labelName = label.name();
 
-            if (excludes.contains(labelName)) {
-                // Skip if explicitly excluded
-                continue;
-            } else if(!includeLabels.isEmpty() && !includeLabels.contains(labelName)) {
-                // Skip if included set is specified and this is not in it.
-                continue;
-            }
+            if (!excludes.contains(labelName) && (includeLabels.isEmpty() || includeLabels.contains(labelName))) {
+                // Skip if explicitly excluded or at least 1 include specified and not included
 
-            List<ConstraintDefinition> constraints = new ArrayList<ConstraintDefinition>();
+                List<ConstraintDefinition> constraints = new ArrayList<ConstraintDefinition>();
 
-            for (ConstraintDefinition cd : schema.getConstraints(label)) {
-                if (cd.isConstraintType(ConstraintType.NODE_PROPERTY_EXISTENCE)) {
-                    constraints.add(cd);
+                for (ConstraintDefinition cd : schema.getConstraints(label)) {
+                    if (cd.isConstraintType(ConstraintType.NODE_PROPERTY_EXISTENCE)) {
+                        constraints.add(cd);
+                    }
                 }
-            }
 
-            for (ConstraintDefinition cd : schema.getConstraints(label)) { profile.noteConstraint(label, cd); }
-            for (IndexDefinition index : schema.getIndexes(label)) { profile.noteIndex(label, index); }
+                for (ConstraintDefinition cd : schema.getConstraints(label)) { profile.noteConstraint(label, cd); }
+                for (IndexDefinition index : schema.getIndexes(label)) { profile.noteIndex(label, index); }
 
-            long labelCount = countStore.get(labelName);
-            long sample = getSampleForLabelCount(labelCount, config.getSample());
+                long labelCount = countStore.get(labelName);
+                long sample = getSampleForLabelCount(labelCount, config.getSample());
 
-            //System.out.println("Sampling " + sample + " for " + labelName);
-
-            try (ResourceIterator<Node> nodes = db.findNodes(label)) {
-                int count = 1;
-                while (nodes.hasNext()) {
-                    Node node = nodes.next();
-                    if(count++ % sample == 0) {
-						boolean skipNode = false;
-						for (RelationshipType rel : node.getRelationshipTypes()) {
-							String relName = rel.name();
-            				if (excludeRels.contains(relName)) {
-                				// Skip if explicitly excluded
-								skipNode = true;
-            				} else if (!includeRels.isEmpty() && !includeRels.contains(relName)) {
-                				// Skip if included set is specified and this is not in it.
-								skipNode = true;
-							}
-						}
-						if (skipNode != true) {
-                        	profile.observe(node, config, constraints, relConstraints);
-						}
+                try (ResourceIterator<Node> nodes = db.findNodes(label)) {
+                    int count = 1;
+                    while (nodes.hasNext()) {
+                        Node node = nodes.next();
+                        if(count++ % sample == 0) {
+						    boolean skipNode = false;
+						    for (RelationshipType rel : node.getRelationshipTypes()) {
+							    String relName = rel.name();
+            				    if (excludeRels.contains(relName)) {
+                				    // Skip if explicitly excluded
+								    skipNode = true;
+            				    } else if (!includeRels.isEmpty() && !includeRels.contains(relName)) {
+                				    // Skip if included set is specified and this is not in it.
+								    skipNode = true;
+							    }
+						    }
+						    if (skipNode != true) {
+                        	    profile.observe(node, config, constraints, relConstraints);
+						    }
+                        }
                     }
                 }
             }
