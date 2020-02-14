@@ -523,16 +523,16 @@ public class Meta {
 						    boolean skipNode = false;
 						    for (RelationshipType rel : node.getRelationshipTypes()) {
 							    String relName = rel.name();
-            				    if (excludeRels.contains(relName)) {
-                				    // Skip if explicitly excluded
-								    skipNode = true;
-            				    } else if (!includeRels.isEmpty() && !includeRels.contains(relName)) {
-                				    // Skip if included set is specified and this is not in it.
+                                if (excludeRels.contains(relName)) {
+                                    // Skip if explicitly excluded
+                                    skipNode = true;
+                                } else if (!includeRels.isEmpty() && !includeRels.contains(relName)) {
+                                    // Skip if included set is specified and this is not in it.
 								    skipNode = true;
 							    }
 						    }
 						    if (skipNode != true) {
-                        	    profile.observe(node, config);
+                                profile.observe(node, config);
 						    }
                         }
                     }
