@@ -1,11 +1,13 @@
 package apoc.meta;
 
+import org.neo4j.logging.Log;
 import apoc.result.GraphResult;
 import apoc.result.MapResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.util.MapUtil;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
@@ -40,6 +42,15 @@ public class Meta {
 
     @Context
     public KernelTransaction kernelTx;
+
+    @Context public Log log;
+
+    public static class ConstraintTracker {
+        // The following maps are (label|rel-type)/constraintdefinition entries
+
+        public static Map<String, List<ConstraintDefinition>> relConstraints = new HashMap<>(20);;
+        public static Map<String, List<ConstraintDefinition>> nodeConstraints = new HashMap<>(20);;
+    }
 
     public enum Types {
         INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,ANY,MAP,LIST,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION;
@@ -424,6 +435,112 @@ public class Meta {
 
         nodes.putAll(relationships);
         return Stream.of(new MapResult(nodes));
+    }
+
+    /**
+     * This procedure is intended to replicate what's in the core Neo4j product, but with the crucial difference that it
+     * supports flexible sampling options, and does not scan the entire database.  The result is producing a table of
+     * metadata that is useful for generating "Tables 4 Labels" schema designs for RDBMSs, but in a more performant way.
+     */
+    @Procedure
+    @Description("apoc.meta.nodeTypeProperties()")
+    public Stream<Tables4LabelsProfile.NodeTypePropertiesEntry> nodeTypeProperties(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        MetaConfig metaConfig = new MetaConfig(config);
+        try {
+            return collectTables4LabelsProfile(metaConfig).asNodeStream();
+        } catch (Exception e) {
+            log.debug("meta.nodeTypeProperties(): Failed to return stream", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * This procedure is intended to replicate what's in the core Neo4j product, but with the crucial difference that it
+     * supports flexible sampling options, and does not scan the entire database.  The result is producing a table of
+     * metadata that is useful for generating "Tables 4 Labels" schema designs for RDBMSs, but in a more performant way.
+     */
+    @Procedure
+    @Description("apoc.meta.relTypeProperties()")
+    public Stream<Tables4LabelsProfile.RelTypePropertiesEntry> relTypeProperties(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        MetaConfig metaConfig = new MetaConfig(config);
+        try {
+            return collectTables4LabelsProfile(metaConfig).asRelStream();
+        } catch (Exception e) {
+            log.debug("meta.relTypeProperties(): Failed to return stream", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Tables4LabelsProfile collectTables4LabelsProfile (MetaConfig config) {
+        Tables4LabelsProfile profile = new Tables4LabelsProfile();
+
+        Schema schema = db.schema();
+        
+        for (ConstraintDefinition cd : schema.getConstraints()) {
+            if (cd.isConstraintType(ConstraintType.NODE_PROPERTY_EXISTENCE)) {
+                List<ConstraintDefinition> tcd = new ArrayList<ConstraintDefinition>(10);
+                if (ConstraintTracker.nodeConstraints.containsKey(cd.getLabel().name())) {
+                    tcd = ConstraintTracker.nodeConstraints.get(cd.getLabel().name());
+                }
+                tcd.add(cd);
+                ConstraintTracker.nodeConstraints.put(cd.getLabel().name(), tcd);
+
+            } else if (cd.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE)) {
+                List<ConstraintDefinition> tcd = new ArrayList<ConstraintDefinition>(10);
+                if (ConstraintTracker.relConstraints.containsKey(cd.getRelationshipType().name())) {
+                    tcd = ConstraintTracker.relConstraints.get(cd.getRelationshipType().name());
+                }
+                tcd.add(cd);
+                ConstraintTracker.relConstraints.put(cd.getRelationshipType().name(), tcd);
+            }
+        }
+
+        Map<String, Long> countStore = getLabelCountStore();
+
+        Set<String> includeLabels = config.getIncludesLabels();
+        Set<String> excludes = config.getExcludes();
+
+		Set<String> includeRels = config.getIncludesRels();
+		Set<String> excludeRels = config.getExcludeRels();
+
+        for (Label label : db.getAllLabelsInUse()) {
+            String labelName = label.name();
+
+            if (!excludes.contains(labelName) && (includeLabels.isEmpty() || includeLabels.contains(labelName))) {
+                // Skip if explicitly excluded or at least 1 include specified and not included
+
+                for (ConstraintDefinition cd : schema.getConstraints(label)) { profile.noteConstraint(label, cd); }
+                for (IndexDefinition index : schema.getIndexes(label)) { profile.noteIndex(label, index); }
+
+                long labelCount = countStore.get(labelName);
+                long sample = getSampleForLabelCount(labelCount, config.getSample());
+
+                try (ResourceIterator<Node> nodes = db.findNodes(label)) {
+                    int count = 1;
+                    while (nodes.hasNext()) {
+                        Node node = nodes.next();
+                        if(count++ % sample == 0) {
+						    boolean skipNode = false;
+						    for (RelationshipType rel : node.getRelationshipTypes()) {
+							    String relName = rel.name();
+                                if (excludeRels.contains(relName)) {
+                                    // Skip if explicitly excluded
+                                    skipNode = true;
+                                } else if (!includeRels.isEmpty() && !includeRels.contains(relName)) {
+                                    // Skip if included set is specified and this is not in it.
+								    skipNode = true;
+							    }
+						    }
+						    if (skipNode != true) {
+                                profile.observe(node, config);
+						    }
+                        }
+                    }
+                }
+            }
+        }
+
+        return profile.finished();
     }
 
     private Map<String, Map<String, MetaResult>> collectMetaData (MetaConfig config) {
