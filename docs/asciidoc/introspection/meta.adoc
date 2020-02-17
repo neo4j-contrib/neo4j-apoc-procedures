@@ -14,8 +14,6 @@ image::apoc.meta.graph.jpg[scaledwidth="100%"]
 | CALL apoc.meta.data | examines a subset of the graph to provide a tabular meta information
 | CALL apoc.meta.schema | examines a subset of the graph to provide a map-like meta information
 | CALL apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats | returns the information stored in the transactional database statistics
-| CALL apoc.meta.nodeTypeProperties({includeLabels:[label,...],includeRels:[rel-type,...],excludeLabels:[label,,...],excludeRels:[rel-type,...]}) | replaces built-in function for node property schema to provide a sample-based result for high performance - used by the Neo4J BI Connector
-| CALL apoc.meta.relTypeProperties({includeLabels:[label,...],includeRels:[rel-type,...],excludeLabels:[label,...],excludeRels:[rel-type,...]}) | replaces built-in function for relationship property schema to provide a sample-based result for high performance - used by the Neo4J BI Connector
 |===
 
 .Functions
