@@ -201,7 +201,7 @@ test {
     //exclude '**/CypherProceduresClusterTest.class'//, '**/AtomicTest.class'
 
     // neo4jDockerImage system property is used in TestContainerUtil
-    systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.0.0-rc01-enterprise'
+    systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.0.0-enterprise'
 
 /*
     testLogging {
