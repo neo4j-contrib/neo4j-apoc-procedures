@@ -48,8 +48,8 @@ public class Meta {
     public static class ConstraintTracker {
         // The following maps are (label|rel-type)/constraintdefinition entries
 
-        public static Map<String, List<ConstraintDefinition>> relConstraints = new HashMap<>(20);;
-        public static Map<String, List<ConstraintDefinition>> nodeConstraints = new HashMap<>(20);;
+        public static Map<String, List<String>> relConstraints = new HashMap<>(20);;
+        public static Map<String, List<String>> nodeConstraints = new HashMap<>(20);;
     }
 
     public enum Types {
@@ -478,20 +478,21 @@ public class Meta {
         
         for (ConstraintDefinition cd : schema.getConstraints()) {
             if (cd.isConstraintType(ConstraintType.NODE_PROPERTY_EXISTENCE)) {
-                List<ConstraintDefinition> tcd = new ArrayList<ConstraintDefinition>(10);
+                List<String> props = new ArrayList<String>(10);
                 if (ConstraintTracker.nodeConstraints.containsKey(cd.getLabel().name())) {
-                    tcd = ConstraintTracker.nodeConstraints.get(cd.getLabel().name());
+                    props = ConstraintTracker.nodeConstraints.get(cd.getLabel().name());
                 }
-                tcd.add(cd);
-                ConstraintTracker.nodeConstraints.put(cd.getLabel().name(), tcd);
+                cd.getPropertyKeys().forEach(props::add);
+                ConstraintTracker.nodeConstraints.put(cd.getLabel().name(),props);
 
             } else if (cd.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE)) {
                 List<ConstraintDefinition> tcd = new ArrayList<ConstraintDefinition>(10);
+                List<String> props = new ArrayList<String>(10);
                 if (ConstraintTracker.relConstraints.containsKey(cd.getRelationshipType().name())) {
-                    tcd = ConstraintTracker.relConstraints.get(cd.getRelationshipType().name());
+                    props = ConstraintTracker.relConstraints.get(cd.getRelationshipType().name());
                 }
-                tcd.add(cd);
-                ConstraintTracker.relConstraints.put(cd.getRelationshipType().name(), tcd);
+                cd.getPropertyKeys().forEach(props::add);
+                ConstraintTracker.relConstraints.put(cd.getRelationshipType().name(), props);
             }
         }
 

@@ -44,6 +44,7 @@ public class PropertyContainerProfile {
 
             tracker.addObservation(n.getProperty(propName));
             tracker.mandatory = false;
+            this.isNode = isNode;
         }
     }
 
@@ -55,13 +56,11 @@ public class PropertyContainerProfile {
 
                 // Check for node constraints
 
-                for (Map.Entry<String,List<ConstraintDefinition>> entry : ConstraintTracker.nodeConstraints.entrySet()) {
-                    for (ConstraintDefinition cd : entry.getValue()) {
-                        for (String pk : cd.getPropertyKeys()) {
-                            if (this.profile.containsKey(pk)) {
-                                tracker = this.profile.get(pk);
-                                tracker.mandatory = true;
-                            }
+                for (Map.Entry<String,List<String>> entry : ConstraintTracker.nodeConstraints.entrySet()) {
+                    for (String pk : entry.getValue()) {
+                        if (this.profile.containsKey(pk)) {
+                            tracker = this.profile.get(pk);
+                            tracker.mandatory = true;
                         }
                     }
                 }
@@ -69,13 +68,11 @@ public class PropertyContainerProfile {
 
                 // Check for relationship constraints
 
-                for (Map.Entry<String,List<ConstraintDefinition>> entry : ConstraintTracker.relConstraints.entrySet()) {
-                    for (ConstraintDefinition cd : entry.getValue()) {
-                        for (String pk : cd.getPropertyKeys()) {
-                            if (this.profile.containsKey(pk)) {
-                                tracker = this.profile.get(pk);
-                                tracker.mandatory = true;
-                            }
+                for (Map.Entry<String,List<String>> entry : ConstraintTracker.relConstraints.entrySet()) {
+                    for (String pk : entry.getValue()) {
+                        if (this.profile.containsKey(pk)) {
+                            tracker = this.profile.get(pk);
+                            tracker.mandatory = true;
                         }
                     }
                 }
