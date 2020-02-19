@@ -54,7 +54,7 @@ public class Bolt {
         return withDriver(uri.getConfiguredUri(), uri.getToken(), driverConfig, driver ->
                 withSession(driver, sessionConfig, session -> {
                     if (addStatistics) {
-                        StatementResult statementResult = session.run(statement, params);
+                        Result statementResult = session.run(statement, params);
                         SummaryCounters counters = statementResult.consume().counters();
                         return Stream.of(new RowResult(toMap(counters)));
                     } else

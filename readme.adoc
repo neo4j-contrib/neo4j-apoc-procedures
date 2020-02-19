@@ -1,7 +1,7 @@
 :readme:
 :branch: 4.0
 :docs: https://neo4j.com/docs/labs/apoc/current
-:apoc-release: 4.0.0.3
+:apoc-release: 4.0.0.4
 :neo4j-version: 4.0.0
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/images
 
@@ -182,7 +182,8 @@ The trailing `<apoc>` part of the version number will be incremented with every 
 [opts=header]
 |===
 |apoc version | neo4j version
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.6[3.5.0.6^] | 3.5.12 (3.5.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.4[4.0.0.4^] | 4.0.0 (4.0.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.9[3.5.0.9^] | 3.5.12 (3.5.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.4[3.4.0.6^] | 3.4.12 (3.4.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.4[3.3.0.4^] | 3.3.6 (3.3.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.3.6[3.2.3.6^] | 3.2.9 (3.2.x)
