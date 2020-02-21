@@ -13,7 +13,6 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.*;
@@ -35,7 +34,7 @@ public class ExportJsonTest {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, ExportJson.class, Graphs.class);
-        db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[:KNOWS {since: 1993}]->(b:User {name:'Jim',age:42}),(c:User {age:12})");
+        db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42}),(c:User {age:12})");
     }
 
     @Test
@@ -356,7 +355,7 @@ public class ExportJsonTest {
     private void assertResults(String filename, Map<String, Object> r, final String source) {
         assertEquals(3L, r.get("nodes"));
         assertEquals(1L, r.get("relationships"));
-        assertEquals(10L, r.get("properties"));
+        assertEquals(11L, r.get("properties"));
         assertEquals(source + ": nodes(3), rels(1)", r.get("source"));
         assertEquals(filename, r.get("file"));
         assertEquals("json", r.get("format"));
@@ -371,7 +370,7 @@ public class ExportJsonTest {
     private void assertStreamResults(Map<String, Object> r, final String source) {
         assertEquals(3L, r.get("nodes"));
         assertEquals(1L, r.get("relationships"));
-        assertEquals(10L, r.get("properties"));
+        assertEquals(11L, r.get("properties"));
         assertEquals(source + ": nodes(3), rels(1)", r.get("source"));
         assertNull("file should be null", r.get("file"));
         assertNotNull("data should be not null", r.get("data"));
