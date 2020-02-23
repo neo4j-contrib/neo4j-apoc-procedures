@@ -1,0 +1,71 @@
+package apoc.load.util;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.directory.api.ldap.model.exception.LdapURLEncodingException;
+import org.apache.directory.api.ldap.model.url.LdapUrl;
+
+import java.util.Collections;
+import java.util.Map;
+
+public class LoadLdapConfig {
+    private Credentials credentials;
+    private int pageSize;
+    private LdapUrl ldapUrl;
+
+    public LoadLdapConfig(Map<String, Object> config, String url) {
+        config = (null != config) ? config : Collections.emptyMap();
+        this.credentials = config.containsKey("credentials") ? createCredentials((Map<String, String>) config.get("credentials")) : null;
+        this.pageSize = (int) config.getOrDefault("pageSize", 100);
+        try {
+            this.ldapUrl = new LdapUrl(url);
+        } catch (LdapURLEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    public int getPageSize() {
+        return this.pageSize;
+    }
+
+    public LdapUrl getLdapUrl() {
+        return this.ldapUrl;
+    }
+
+    public Credentials getCredentials() {
+        return this.credentials;
+    }
+
+    public static LoadLdapConfig.Credentials createCredentials(Map<String,String> credentials) {
+        if (!credentials.getOrDefault("user", StringUtils.EMPTY).equals(StringUtils.EMPTY) && !credentials.getOrDefault("password", StringUtils.EMPTY).equals(StringUtils.EMPTY)) {
+            return new Credentials(credentials.get("user"), credentials.get("password"));
+        } else {
+            throw new IllegalArgumentException("In config param credentials must be passed both user and password.");
+        }
+    }
+
+    public static class Credentials {
+        private String bindDn;
+        private String bindPassword;
+
+        public Credentials(String bindDn, String bindPassword) {
+            this.bindDn = bindDn;
+            this.bindPassword = bindPassword;
+        }
+
+        public String getBindDn() {
+            return bindDn;
+        }
+
+        public String getBindPassword() {
+            return bindPassword;
+        }
+    }
+
+    public boolean hasCredentials() {
+        return this.credentials != null;
+    }
+}
