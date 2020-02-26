@@ -1,5 +1,6 @@
 package apoc.load.util;
 
+import apoc.ApocConfiguration;
 import apoc.util.Util;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -15,39 +16,38 @@ import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.neo4j.logging.Log;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class LdapUtil {
-    private static final String LOAD_TYPE = "ldap";
+    public static final String LOAD_TYPE = "ldap";
     private static final String KEY_NOT_FOUND_MESSAGE = "No apoc.ldap.%s.url url specified";
 
-    public static LdapConnection getConnection(String url, LoadLdapConfig ldapConfig) {
+    public static LdapConnection getConnection(LoadLdapConfig ldapConfig) {
         LdapConnection connection;
+        LdapUrl ldapUrl = ldapConfig.getLdapUrl();
+        boolean isSecure = ldapUrl.getScheme().equals("ldaps://");
+        int port = ldapUrl.getPort();
+        if (isSecure && (port == -1)) {
+            port = LdapConnectionConfig.DEFAULT_LDAPS_PORT;
+        } else if (isSecure && !(port == -1)) {
+            port = ldapUrl.getPort();
+        } else if (!isSecure && (port == -1)) {
+            port = LdapConnectionConfig.DEFAULT_LDAP_PORT;
+        } else {
+            port = ldapUrl.getPort();
+        }
+        connection = new LdapNetworkConnection(ldapUrl.getHost(), port, isSecure);
         try {
-            LdapUrl ldapUrl = new LdapUrl(url);
-            boolean isSecure = ldapUrl.getScheme().equals("ldaps://");
-            int port = ldapUrl.getPort();
-            if (isSecure && (port == -1)) {
-                port = LdapConnectionConfig.DEFAULT_LDAPS_PORT;
-            } else if (isSecure && !(port == -1)) {
-                port = ldapUrl.getPort();
-            } else if (!isSecure && (port == -1)) {
-                port = LdapConnectionConfig.DEFAULT_LDAP_PORT;
+            if (ldapConfig.hasCredentials()) {
+                connection.bind(new Dn(ldapConfig.getCredentials().getBindDn()), ldapConfig.getCredentials().getBindPassword());
             } else {
-                port = ldapUrl.getPort();
+                connection.anonymousBind();
             }
-            connection = new LdapNetworkConnection(ldapUrl.getHost(), port, isSecure);
-            try {
-                if (ldapConfig.hasCredentials()) {
-                    connection.bind(new Dn(ldapConfig.getCredentials().getBindDn()), ldapConfig.getCredentials().getBindPassword());
-                } else {
-                    connection.anonymousBind();
-                }
-            } catch (LdapException e) {
-                throw new RuntimeException(e);
-            }
-
-        } catch (LdapURLEncodingException e) {
+        } catch (LdapException e) {
             throw new RuntimeException(e);
         }
+
         return connection;
     }
 
@@ -79,6 +79,15 @@ public class LdapUtil {
         return req;
     }
 
+    public static LoadLdapConfig getFromConfigFile(String key) {
+        Map<String, Object> temp = new HashMap<>();
+        temp.put("url", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "url"));
+        temp.put("username", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "username"));
+        temp.put("password", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "password"));
+        temp.put("pageSize", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "pageSize"));
+        return new LoadLdapConfig(temp);
+    }
+
     public static String getUrlOrKey(String urlOrKey) {
         return urlOrKey.contains(":") ? urlOrKey : Util.getLoadUrlByConfigFile(LOAD_TYPE, urlOrKey, "url").orElseThrow(() -> new RuntimeException(String.format(KEY_NOT_FOUND_MESSAGE, urlOrKey)));
     }
@@ -86,5 +95,13 @@ public class LdapUtil {
     public static int getPageSize(String urlOrKey) {
         String pageSizeStr = Util.getLoadUrlByConfigFile(LOAD_TYPE, urlOrKey, "pageSize").orElse(StringUtils.EMPTY);
         return (pageSizeStr.equals(StringUtils.EMPTY)) ? 100 : Integer.parseInt(pageSizeStr);
+    }
+
+    public static String getUsernameOrKey(String usernameOrKey) {
+        return (usernameOrKey.equals(StringUtils.EMPTY)) ? Util.getLoadUrlByConfigFile(LOAD_TYPE, usernameOrKey, "binddn").orElse(StringUtils.EMPTY) : usernameOrKey;
+    }
+
+    public static String getPasswordOrKey(String passwordOrKey) {
+        return (passwordOrKey.equals(StringUtils.EMPTY)) ? Util.getLoadUrlByConfigFile(LOAD_TYPE, passwordOrKey, "password").orElse(StringUtils.EMPTY) : passwordOrKey;
     }
 }

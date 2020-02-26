@@ -23,6 +23,19 @@ public class LoadLdapConfig {
         }
     }
 
+    public LoadLdapConfig(Map<String, Object> config) {
+        this.credentials = new Credentials(
+                (String) config.getOrDefault("user", StringUtils.EMPTY),
+                (String) config.getOrDefault("password", StringUtils.EMPTY)
+        );
+        try {
+            this.ldapUrl = new LdapUrl((String) config.getOrDefault("url", LdapUrl.EMPTY_URL));
+        } catch (LdapURLEncodingException e) {
+            throw new RuntimeException(e);
+        }
+        this.pageSize = (config.containsKey("pageSize")) ? Integer.parseInt((String) config.get("pageSize")) : 100;
+    }
+
     public void setPageSize(int pageSize) {
         this.pageSize = pageSize;
     }

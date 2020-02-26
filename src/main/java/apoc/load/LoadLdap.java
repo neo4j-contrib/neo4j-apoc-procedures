@@ -1,6 +1,7 @@
 package apoc.load;
 
 import apoc.ApocConfiguration;
+import apoc.load.util.LdapUtil;
 import apoc.load.util.LoadLdapConfig;
 import apoc.util.Util;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
@@ -38,21 +39,31 @@ public class LoadLdap {
     private static final String KEY_NOT_FOUND_MESSAGE = "No apoc.jdbc.%s.url url specified";
 
     @Procedure(name = "apoc.load.ldap", mode = Mode.READ)
-    @apoc.Description("apoc.load.ldap('url or key', config) YIELD row - run an LDAP query from an LDAP URL")
-    public Stream<LDAPResult> pagedLdapQuery(@Name("ldapURL") String urlOrKey, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        return executePagedSearch(urlOrKey, config);
+    @apoc.Description("apoc.load.ldap('url', config) YIELD row - run an LDAP query from an LDAP URL")
+    public Stream<LDAPResult> ldap(@Name("ldapURL") String url, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        return executePagedSearch(url, config);
     }
 
-    private Stream<LDAPResult> executePagedSearch(String urlOrKey, Map<String, Object> config) {
-        List<Entry> allEntries = new ArrayList<>();
+    @Procedure(name = "apoc.load.ldapfromconfig", mode = Mode.READ)
+    @apoc.Description("apoc.load.ldapfromconfig('key') YIELD row - load an LDAP config from config")
+    public Stream<LDAPResult> ldapFromConfig(@Name("key") String key) {
+        return executePagedSearch(key);
+    }
 
-        String url = getUrlOrKey(urlOrKey);
+    private Stream<LDAPResult> executePagedSearch(String key) {
+        Map<String, Object> apocConfig = ApocConfiguration.get(String.format("%s.%s", LOAD_TYPE, key));
+        if (apocConfig.isEmpty()) {
+            throw new RuntimeException(String.format("Cannot find configuration with name %s", key));
+        }
+        return executePagedSearch((String) apocConfig.get("url"), apocConfig);
+    }
+
+    private Stream<LDAPResult> executePagedSearch(String url, Map<String, Object> config) {
+        List<Entry> allEntries = new ArrayList<>();
         LoadLdapConfig ldapConfig = new LoadLdapConfig(config, url);
-        int pageSize = getPageSize(urlOrKey);
-        ldapConfig.setPageSize(pageSize);
 
         try {
-            LdapConnection connection = getConnection(url, ldapConfig);
+            LdapConnection connection = getConnection(ldapConfig);
             if (log.isDebugEnabled()) log.debug("Beginning paged LDAP search");
             boolean hasMoreResults = true;
             while (hasMoreResults) {
