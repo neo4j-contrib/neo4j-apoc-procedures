@@ -11,6 +11,7 @@ GraphML is used by other tools, like Gephi and CytoScape, to read graph data.
 This section includes:
 
 * <<import-graphml-available-procedures, Available Procedures>>
+* <<import-graphml-config, Configuration Parameters>>
 * <<import-graphml-examples, Examples>>
     ** <<import-graphml-simple, Import simple GraphML file>>
     ** <<import-graphml-apoc, Import GraphML file created by Export GraphML procedures>>
