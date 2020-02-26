@@ -1,26 +1,24 @@
 package apoc.load;
 
 import apoc.ApocConfiguration;
-import apoc.load.util.LdapUtil;
 import apoc.load.util.LoadLdapConfig;
-import apoc.util.Util;
-import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.exception.LdapException;
-import org.apache.directory.api.ldap.model.exception.LdapURLEncodingException;
-import org.apache.directory.api.ldap.model.message.*;
+import org.apache.directory.api.ldap.model.message.Response;
+import org.apache.directory.api.ldap.model.message.SearchRequest;
+import org.apache.directory.api.ldap.model.message.SearchResultDone;
+import org.apache.directory.api.ldap.model.message.SearchResultEntry;
 import org.apache.directory.api.ldap.model.message.controls.PagedResults;
-import org.apache.directory.api.ldap.model.message.controls.PagedResultsImpl;
-import org.apache.directory.api.ldap.model.schema.AttributeType;
-import org.apache.directory.api.ldap.model.url.LdapUrl;
 import org.apache.directory.ldap.client.api.LdapConnection;
-import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
 import java.io.IOException;
 import java.util.*;
@@ -65,10 +63,9 @@ public class LoadLdap {
         try {
             LdapConnection connection = getConnection(ldapConfig);
             if (log.isDebugEnabled()) log.debug("Beginning paged LDAP search");
+            SearchRequest req = buildSearch(ldapConfig, null, log);
             boolean hasMoreResults = true;
             while (hasMoreResults) {
-                SearchRequest req = buildSearch(ldapConfig, null, log);
-
                 try (SearchCursor searchCursor = connection.search(req)) {
                     while (searchCursor.next()) {
                         Response resp = searchCursor.get();
