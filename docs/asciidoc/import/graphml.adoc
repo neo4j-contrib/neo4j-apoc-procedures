@@ -106,11 +106,11 @@ If we run this query, we'll see the following output:
 |===
 
 We could also copy `simple.graphml` into Neo4j's `import` directory, and import the file from there.
-If we take that approach, we'll need to add the following entry to `neo4j.conf`:
+If we take that approach, we'll need to add the following entry to `apoc.conf`:
 
 For reading from files we'll have to enable the following config option:
 
-.neo4j.conf
+.apoc.conf
 [source,properties]
 ----
 apoc.import.file.enabled=true
