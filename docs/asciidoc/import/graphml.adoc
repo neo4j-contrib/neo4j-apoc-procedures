@@ -19,7 +19,7 @@ This section includes:
 [[import-graphml-available-procedures]]
 == Available Procedures
 
-The table below describes the available procedurestore:
+The table below describes the available procedures:
 
 [separator=¦,opts=header]
 |===
