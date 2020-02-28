@@ -43,6 +43,7 @@ ext {
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.11.0'
+    poiVersion = '4.1.2'
 }
 
 repositories {
@@ -103,10 +104,10 @@ dependencies {
     // compileOnly "org.antlr:antlr4-runtime:4.7.2"
     // testCompile "org.antlr:antlr4-runtime:4.7.2"
 
-    compileOnly "org.apache.poi:poi:3.17"
-    testCompile "org.apache.poi:poi:3.17"
-    compileOnly "org.apache.poi:poi-ooxml:3.17"
-    testCompile "org.apache.poi:poi-ooxml:3.17"
+    compileOnly group: 'org.apache.poi', name: 'poi', version: poiVersion
+    testCompile group: 'org.apache.poi', name: 'poi', version: poiVersion
+    compileOnly group: 'org.apache.poi', name: 'poi-ooxml', version: poiVersion
+    testCompile group: 'org.apache.poi', name: 'poi-ooxml', version: poiVersion
 
     compile 'org.jsoup:jsoup:1.11.3'
 
