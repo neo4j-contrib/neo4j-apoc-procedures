@@ -152,9 +152,21 @@ public class LoadLdap {
 
         private Object readValue(Attribute att) {
             if (att == null) return null;
-            if (this.log.isDebugEnabled()) this.log.debug(String.format("Processing attribute: %s", att.toString()));
+            if (this.log.isDebugEnabled()) this.log.debug(String.format("Processing attribute: %s", att.getId()));
+
+            // Handle uuid attributes separately since they're single valued anyway
+            String attrName = att.getId();
+            if (
+                    attrName.equalsIgnoreCase("objectguid")
+                    || attrName.equalsIgnoreCase("entryuuid")
+                    || attrName.equalsIgnoreCase("objectsid")
+            ) {
+                return Base64.getEncoder().encodeToString(att.get().getBytes());
+            }
+
             if (att.size() == 1) {
-                return att.get().toString();
+                if (this.log.isDebugEnabled()) this.log.debug(String.format("Attribute %s is single value", att.getId()));
+                return att.get().getString();
             } else {
                 List<String> vals = new ArrayList<>();
                 if (this.log.isDebugEnabled()) this.log.debug(String.format("Attribute %s is multivalued", att.getId()));

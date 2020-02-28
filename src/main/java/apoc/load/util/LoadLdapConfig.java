@@ -14,7 +14,8 @@ public class LoadLdapConfig {
 
     public LoadLdapConfig(Map<String, Object> config, String url) {
         config = (null != config) ? config : Collections.emptyMap();
-        this.credentials = config.containsKey("credentials") ? createCredentials((Map<String, String>) config.get("credentials")) : null;
+        // could be prettier
+        this.credentials = config.containsKey("credentials") ? createCredentials((Map<String, String>) config.get("credentials")) : new Credentials((String) config.getOrDefault("user", StringUtils.EMPTY), (String) config.getOrDefault("password", StringUtils.EMPTY));
         this.pageSize = (int) config.getOrDefault("pageSize", 100);
         try {
             this.ldapUrl = new LdapUrl(url);
