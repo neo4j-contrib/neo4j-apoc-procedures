@@ -14,6 +14,7 @@ import org.apache.directory.api.ldap.model.message.SearchResultDone;
 import org.apache.directory.api.ldap.model.message.SearchResultEntry;
 import org.apache.directory.api.ldap.model.message.controls.PagedResults;
 import org.apache.directory.ldap.client.api.LdapConnection;
+import org.apache.directory.ldap.client.api.LdapConnectionPool;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
@@ -62,7 +63,8 @@ public class LoadLdap {
         LoadLdapConfig ldapConfig = new LoadLdapConfig(config, url);
 
         try {
-            LdapConnection connection = getConnection(ldapConfig);
+            LdapConnectionPool pool = getConnectionPool(ldapConfig);
+            LdapConnection connection = pool.getConnection();
             if (log.isDebugEnabled()) log.debug("Beginning paged LDAP search");
             SearchRequest req = buildSearch(ldapConfig, null, log);
             boolean hasMoreResults = true;
@@ -86,11 +88,12 @@ public class LoadLdap {
                     }
                 }
             }
+            pool.releaseConnection(connection);
             if (log.isDebugEnabled()) log.debug(String.format("Finished paged LDAP search: %d entries", allEntries.size()));
 
             Iterator<Map<String, Object>> supplier = new EntryListIterator(allEntries.iterator(), ldapConfig.getLdapUrl().getAttributes(), log);
             Spliterator<Map<String, Object>> spliterator = Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
-            return StreamSupport.stream(spliterator, false).map(LDAPResult::new).onClose(() -> closeIt(connection));
+            return StreamSupport.stream(spliterator, false).map(LDAPResult::new).onClose(pool::close);
 
         } catch (Exception e) {
             throw new RuntimeException(e);

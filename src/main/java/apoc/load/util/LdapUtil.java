@@ -1,18 +1,19 @@
 package apoc.load.util;
 
-import apoc.ApocConfiguration;
 import apoc.util.Util;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.exception.LdapException;
-import org.apache.directory.api.ldap.model.exception.LdapURLEncodingException;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
 import org.apache.directory.api.ldap.model.message.SearchRequestImpl;
 import org.apache.directory.api.ldap.model.message.controls.PagedResults;
 import org.apache.directory.api.ldap.model.message.controls.PagedResultsImpl;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.api.ldap.model.url.LdapUrl;
+import org.apache.directory.ldap.client.api.DefaultLdapConnectionFactory;
+import org.apache.directory.ldap.client.api.DefaultPoolableLdapConnectionFactory;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionConfig;
+import org.apache.directory.ldap.client.api.LdapConnectionPool;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.neo4j.logging.Log;
 
@@ -26,6 +27,32 @@ import java.util.regex.Pattern;
 public class LdapUtil {
     public static final String LOAD_TYPE = "ldap";
     private static final String KEY_NOT_FOUND_MESSAGE = "No apoc.ldap.%s.url url specified";
+
+    public static LdapConnectionPool getConnectionPool(LoadLdapConfig ldapConfig) {
+        LdapConnectionConfig config = new LdapConnectionConfig();
+        LdapUrl ldapUrl = ldapConfig.getLdapUrl();
+        boolean isSecure = ldapUrl.getScheme().equals("ldaps://");
+        int port = ldapUrl.getPort();
+
+        if (isSecure && (port == -1)) {
+            port = LdapConnectionConfig.DEFAULT_LDAPS_PORT;
+        } else if (isSecure && !(port == -1)) {
+            port = ldapUrl.getPort();
+        } else if (!isSecure && (port == -1)) {
+            port = LdapConnectionConfig.DEFAULT_LDAP_PORT;
+        } else {
+            port = ldapUrl.getPort();
+        }
+
+        config.setLdapHost(ldapUrl.getHost());
+        config.setLdapPort(port);
+        config.setName(ldapConfig.getCredentials().getBindDn());
+        config.setCredentials(ldapConfig.getCredentials().getBindPassword());
+        config.setUseSsl(isSecure);
+
+        DefaultLdapConnectionFactory factory = new DefaultLdapConnectionFactory(config);
+        return new LdapConnectionPool(new DefaultPoolableLdapConnectionFactory(factory));
+    }
 
     public static LdapConnection getConnection(LoadLdapConfig ldapConfig) {
         LdapConnection connection;
