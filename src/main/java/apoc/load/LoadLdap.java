@@ -163,9 +163,6 @@ public class LoadLdap {
             if (attrName.equals("objectsid")) {
                 return LdapUtil.getStringFromObjectSid(att.get().getBytes());
             }
-            if (attrName.equals("entryuuid")) {
-                return LdapUtil.getUuidFromEntryUuid(att.get().getBytes());
-            }
 
             if (att.size() == 1) {
                 if (this.log.isDebugEnabled()) this.log.debug(String.format("Attribute %s is single value", att.getId()));

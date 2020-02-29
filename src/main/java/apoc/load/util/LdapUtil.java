@@ -124,7 +124,7 @@ public class LdapUtil {
         rearranged[5] = objectGuid[4];
         rearranged[6] = objectGuid[7];
         rearranged[7] = objectGuid[6];
-        System.arraycopy(rearranged, 8, objectGuid, 8, 8);
+        System.arraycopy(objectGuid, 8, rearranged, 8, 8);
         return getUuidFromEntryUuid(rearranged);
     }
 
