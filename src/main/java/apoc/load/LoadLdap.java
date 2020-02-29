@@ -1,6 +1,7 @@
 package apoc.load;
 
 import apoc.ApocConfiguration;
+import apoc.load.util.LdapUtil;
 import apoc.load.util.LoadLdapConfig;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
@@ -156,12 +157,14 @@ public class LoadLdap {
 
             // Handle uuid attributes separately since they're single valued anyway
             String attrName = att.getId();
-            if (
-                    attrName.equalsIgnoreCase("objectguid")
-                    || attrName.equalsIgnoreCase("entryuuid")
-                    || attrName.equalsIgnoreCase("objectsid")
-            ) {
-                return Base64.getEncoder().encodeToString(att.get().getBytes());
+            if (attrName.equals("objectguid")) {
+                return LdapUtil.getStringFromObjectGuid(att.get().getBytes());
+            }
+            if (attrName.equals("objectsid")) {
+                return LdapUtil.getStringFromObjectSid(att.get().getBytes());
+            }
+            if (attrName.equals("entryuuid")) {
+                return LdapUtil.getUuidFromEntryUuid(att.get().getBytes());
             }
 
             if (att.size() == 1) {

@@ -16,8 +16,10 @@ import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.neo4j.logging.Log;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class LdapUtil {
     public static final String LOAD_TYPE = "ldap";
@@ -103,5 +105,55 @@ public class LdapUtil {
 
     public static String getPasswordOrKey(String passwordOrKey) {
         return (passwordOrKey.equals(StringUtils.EMPTY)) ? Util.getLoadUrlByConfigFile(LOAD_TYPE, passwordOrKey, "password").orElse(StringUtils.EMPTY) : passwordOrKey;
+    }
+
+    public static String getUuidFromEntryUuid(byte[] entryUuid) {
+        ByteBuffer bb = ByteBuffer.wrap(entryUuid);
+        long high = bb.getLong();
+        long low = bb.getLong();
+        return new UUID(high, low).toString();
+    }
+
+    public static String getStringFromObjectGuid(byte[] objectGuid) {
+        byte[] rearranged = new byte[16];
+        rearranged[0] = objectGuid[3];
+        rearranged[1] = objectGuid[2];
+        rearranged[2] = objectGuid[1];
+        rearranged[3] = objectGuid[0];
+        rearranged[4] = objectGuid[5];
+        rearranged[5] = objectGuid[4];
+        rearranged[6] = objectGuid[7];
+        rearranged[7] = objectGuid[6];
+        System.arraycopy(rearranged, 8, objectGuid, 8, 8);
+        return getUuidFromEntryUuid(rearranged);
+    }
+
+    public static String getStringFromObjectSid(byte[] objectSid) {
+        StringBuilder strSid = new StringBuilder("S-");
+
+        int revision = objectSid[0];
+        strSid.append(revision);
+
+        int countSubAuths = objectSid[1] & 0xFF;
+
+        long authority = 0;
+        for (int i=2; i<=7;i++) {
+            authority |= ((long) objectSid[i]) << (8 * (5 - (i - 2)));
+        }
+        strSid.append("-");
+        strSid.append(Long.toHexString(authority));
+
+        int offset = 8;
+        int size = 4;
+        for (int j=0; j<countSubAuths; j++) {
+            long subAuthority = 0;
+            for (int k=0; k<size; k++) {
+                subAuthority |= (long) (objectSid[offset+k] & 0xFF) << (8 * k);
+            }
+            strSid.append("-");
+            strSid.append(subAuthority);
+            offset += size;
+        }
+        return strSid.toString();
     }
 }
