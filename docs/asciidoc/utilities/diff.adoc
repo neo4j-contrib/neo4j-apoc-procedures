@@ -1,6 +1,8 @@
 [[node-difference]]
 = Diff
 
+== `apoc.diff.nodes` function
+
 [abstract]
 --
 This section describes a function that displays the difference between two nodes.
@@ -42,3 +44,66 @@ return apoc.diff.nodes(n,m)
   }
 }
 ----
+
+== `apoc.diff.graphs` procedure
+
+[abstract]
+--
+This section describes a procedure that compares two graphs
+--
+
+The `apoc.diff.graphs` compares two graphs and returns the differences in term of:
+
+* same node count
+* same count per label
+* same relationship counter
+* same count per rel-type
+
+For each node in the `source` graph with a certain label, find the same node (in the `dest` graph) by keys or internal id in the other graph and if found:
+* compare all labels
+* compare all properties
+
+For each relationship in the `source` graph we'll get the two nodes of the relationship and look into the the `dest`
+graph if there is a relationship with the same properties and the same start/end node.
+
+=== How can you use it?
+
+You can use it for comparing a local Neo4j instance with a remote one
+by adding the BOLT remote url in the configuration map as follows:
+
+.Example
+[source,cypher]
+----
+CALL apoc.diff.graphs(
+    'MATCH (n) OPTIONAL MATCH (n)-[r]->(m) RETURN n, r, m',
+    'MATCH (n) OPTIONAL MATCH (n)-[r]->(m) RETURN n, r, m',
+    {dest: {target: {value: '<remote url>'}, params: {<query params>}}}) YIELD difference, entityType, id, sourceLabel, destLabel, source, dest
+RETURN difference, entityType, id, sourceLabel, destLabel, source, dest
+----
+
+The second query will be performed in the remote instance identified by the value inside the field `value` as shown in the query above.
+
+*N.B.* the two queries are equals just to extract the full graph from the two instances.
+
+
+=== Config Params
+
+[options="header",cols="2a,a,2m"]
+|===
+| Param | default value | description
+
+| findById | false | If no node by is found by keys, it tries to find the node by the same internal id
+| source | Map<String, Object> | A map configuration param related to the first query argument
+| dest | Map<String, Object> | A map configuration param related to the second query argument
+
+|===
+
+Following the parameters of `source/dest` map:
+[options="header",cols="2a,a,2m"]
+|===
+| Param | default value | description
+
+| target | Map<String, String> | The target map
+| params | Map<String, Object> | A list of params applied to the cypher query
+
+|===

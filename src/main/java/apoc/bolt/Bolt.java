@@ -7,9 +7,14 @@ import apoc.result.VirtualRelationship;
 import apoc.util.UriResolver;
 import apoc.util.Util;
 import org.neo4j.driver.internal.InternalEntity;
-import org.neo4j.driver.internal.InternalPath;
 import org.neo4j.driver.internal.logging.JULogging;
-import org.neo4j.driver.v1.*;
+import org.neo4j.driver.v1.Config;
+import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.summary.SummaryCounters;
 import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Path;
@@ -23,9 +28,19 @@ import org.neo4j.procedure.Procedure;
 
 import java.io.File;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Spliterators;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -41,86 +56,151 @@ public class Bolt {
     public GraphDatabaseService db;
 
     @Procedure()
-    @Description("apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read")
-    public Stream<RowResult> load(@Name("url") String url, @Name("kernelTransaction") String statement, @Name(value = "params", defaultValue = "{}") Map<String, Object> params, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws URISyntaxException {
+    @Description("apoc.bolt.load(url-or-key, statement, params, config) - access to other databases via bolt for read/write")
+    public Stream<RowResult> load(@Name("url") String url, @Name("statement") String statement, @Name(value = "params", defaultValue = "{}") Map<String, Object> params, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws URISyntaxException {
         if (params == null) params = Collections.emptyMap();
-        if (config == null) config = Collections.emptyMap();
-        boolean virtual = (boolean) config.getOrDefault("virtual", false);
-        boolean addStatistics = (boolean) config.getOrDefault("statistics", false);
-        boolean readOnly = (boolean) config.getOrDefault("readOnly", true);
+        BoltConfig boltConfig = new BoltConfig(config);
+
 
         Config driverConfig = toDriverConfig(config.getOrDefault("driverConfig", map()));
         UriResolver uri = new UriResolver(url, "bolt");
         uri.initialize();
-
-        try (Driver driver = GraphDatabase.driver(uri.getConfiguredUri(), uri.getToken(), driverConfig);
-             Session session = driver.session()) {
-            if (addStatistics)
-                return Stream.of(new RowResult(toMap(runStatement(statement, session, params, readOnly).summary().counters())));
-            else
-                return getRowResultStream(virtual, session, params, statement, readOnly);
+        try {
+            final Driver driver = GraphDatabase.driver(uri.getConfiguredUri(), uri.getToken(), driverConfig);
+            final Session session = driver.session();
+            final Stream<RowResult> result;
+            if (boltConfig.isAddStatistics()) {
+                result = Stream.of(new RowResult(toMap(runStatement(statement, session, params, boltConfig).summary().counters())));
+            } else {
+                result = getRowResultStream(session, params, statement, boltConfig);
+            }
+            return result.onClose(() -> {
+                session.close();
+                driver.close();
+            });
         } catch (Exception e) {
             throw new RuntimeException("It's not possible to create a connection due to: " + e.getMessage());
         }
     }
 
     @Procedure()
-    @Description("apoc.bolt.execute(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read")
-    public Stream<RowResult> execute(@Name("url") String url, @Name("kernelTransaction") String statement, @Name(value = "params", defaultValue = "{}") Map<String, Object> params, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws URISyntaxException {
+    @Description("apoc.bolt.execute(url-or-key, statement, params, config) - access to other databases via bolt for read")
+    public Stream<RowResult> execute(@Name("url") String url, @Name("statement") String statement, @Name(value = "params", defaultValue = "{}") Map<String, Object> params, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws URISyntaxException {
         Map<String, Object> configuration = new HashMap<>(config);
         configuration.put("readOnly", false);
         return load(url, statement, params, configuration);
     }
 
-    private StatementResult runStatement(@Name("kernelTransaction") String statement, Session session, Map<String, Object> finalParams, boolean read) {
-        if (read) return session.readTransaction((Transaction tx) -> tx.run(statement, finalParams));
-        else return session.writeTransaction((Transaction tx) -> tx.run(statement, finalParams));
+    private StatementResult runStatement(@Name("statement") String statement, Session session, Map<String, Object> finalParams, BoltConfig boltConfig) {
+        return boltConfig.isReadOnly()
+                ? session.readTransaction((Transaction tx) -> tx.run(statement, finalParams))
+                : session.writeTransaction((Transaction tx) -> tx.run(statement, finalParams));
     }
 
-    private Stream<RowResult> getRowResultStream(boolean virtual, Session session, Map<String, Object> params, String statement, boolean read) {
-        Map<Long, Object> nodesCache = new HashMap<>();
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(runStatement(statement, session, params, read), 0), true)
-                .map(record -> new RowResult(record.asMap(value -> {
-                    Object entity = value.asObject();
-                    if (entity instanceof Node) return toNode(entity, virtual, nodesCache);
-                    if (entity instanceof Relationship) return toRelationship(entity, virtual, nodesCache);
-                    if (entity instanceof Path) return toPath(entity, virtual, nodesCache);
-                    return entity;
-                })));
+    private Stream<RowResult> getRowResultStream(Session session, Map<String, Object> params, String statement, BoltConfig boltConfig) {
+        Map<Long, org.neo4j.graphdb.Node> nodesCache = new ConcurrentHashMap<>();
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(runStatement(statement, session, params, boltConfig), 0), true)
+                .map(record -> new RowResult(record.asMap(value -> convert(session, value, boltConfig, nodesCache))));
     }
 
-    private Object toNode(Object value, boolean virtual, Map<Long, Object> nodesCache) {
-        Value internalValue = ((InternalEntity) value).asValue();
-        Node node = internalValue.asNode();
-        if (virtual) {
-            List<Label> labels = new ArrayList<>();
-            node.labels().forEach(l -> labels.add(Label.label(l)));
-            VirtualNode virtualNode = new VirtualNode(node.id(), labels.toArray(new Label[0]), node.asMap(), db);
-            nodesCache.put(node.id(), virtualNode);
-            return virtualNode;
-        } else
-            return Util.map("entityType", internalValue.type().name(), "labels", node.labels(), "id", node.id(), "properties", node.asMap());
+    private Object convert(Session session, Object entity, BoltConfig boltConfig, Map<Long, org.neo4j.graphdb.Node> nodeCache) {
+        if (entity instanceof Value) return convert(session, ((Value) entity).asObject(), boltConfig, nodeCache);
+        if (entity instanceof Node) return toNode(entity, boltConfig, nodeCache);
+        if (entity instanceof Relationship) return toRelationship(session, entity, boltConfig, nodeCache);
+        if (entity instanceof Path) return toPath(session, entity, boltConfig, nodeCache);
+        if (entity instanceof Collection) return toCollection(session, (Collection) entity, boltConfig, nodeCache);
+        if (entity instanceof Map) return toMap(session, (Map<String, Object>) entity, boltConfig, nodeCache);
+        return entity;
     }
 
-    private Object toRelationship(Object value, boolean virtual, Map<Long, Object> nodesCache) {
-        Value internalValue = ((InternalEntity) value).asValue();
-        Relationship relationship = internalValue.asRelationship();
-        if (virtual) {
-            VirtualNode start = (VirtualNode) nodesCache.getOrDefault(relationship.startNodeId(), new VirtualNode(relationship.startNodeId(), db));
-            VirtualNode end = (VirtualNode) nodesCache.getOrDefault(relationship.endNodeId(), new VirtualNode(relationship.endNodeId(), db));
-            VirtualRelationship virtualRelationship = new VirtualRelationship(relationship.id(), start, end, RelationshipType.withName(relationship.type()), relationship.asMap());
-            return virtualRelationship;
-        } else
-            return Util.map("entityType", internalValue.type().name(), "type", relationship.type(), "id", relationship.id(), "start", relationship.startNodeId(), "end", relationship.endNodeId(), "properties", relationship.asMap());
+    private Object toMap(Session session, Map<String, Object> entity, BoltConfig boltConfig, Map<Long, org.neo4j.graphdb.Node> nodeCache) {
+        return entity.entrySet().stream()
+                .map(entry -> new AbstractMap.SimpleEntry(entry.getKey(), convert(session, entry.getValue(), boltConfig, nodeCache)))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }
 
-    private Object toPath(Object value, boolean virtual, Map<Long, Object> nodesCache) {
+    private Object toCollection(Session session, Collection entity, BoltConfig boltConfig, Map<Long, org.neo4j.graphdb.Node> nodeCache) {
+        return entity.stream()
+                .map(elem -> convert(session, elem, boltConfig, nodeCache))
+                .collect(Collectors.toList());
+    }
+
+    private Object toNode(Object value, BoltConfig boltConfig, Map<Long, org.neo4j.graphdb.Node> nodesCache) {
+        Node node;
+        if (value instanceof Value) {
+            node = ((InternalEntity) value).asValue().asNode();
+        } else if (value instanceof Node) {
+            node = (Node) value;
+        } else {
+            throw getUnsupportedConversionException(value);
+        }
+        if (boltConfig.isVirtual()) {
+            final Label[] labels = getLabelsAsArray(node);
+            return nodesCache.computeIfAbsent(node.id(), (id) -> new VirtualNode(id, labels, node.asMap(), db));
+        } else {
+            return Util.map("entityType", "NODE", "labels", node.labels(), "id", node.id(), "properties", node.asMap());
+        }
+    }
+
+    private Object toRelationship(Session session, Object value, BoltConfig boltConfig, Map<Long, org.neo4j.graphdb.Node> nodesCache) {
+        Relationship relationship;
+        if (value instanceof Value) {
+            relationship = ((InternalEntity) value).asValue().asRelationship();
+        } else if (value instanceof Relationship) {
+            relationship = (Relationship) value;
+        } else {
+            throw getUnsupportedConversionException(value);
+        }
+        if (boltConfig.isVirtual()) {
+            final org.neo4j.graphdb.Node start;
+            final org.neo4j.graphdb.Node end;
+            if (boltConfig.isWithRelationshipNodeProperties()) {
+                final Function<Long, org.neo4j.graphdb.Node> retrieveNode = (id) -> {
+                    final Node node = session.readTransaction(tx -> tx.run("MATCH (n) WHERE id(n) = $id RETURN n",
+                            Collections.singletonMap("id", id)))
+                            .single()
+                            .get("n")
+                            .asNode();
+                    final Label[] labels = getLabelsAsArray(node);
+                    return new VirtualNode(id, labels, node.asMap(), db);
+                };
+                start = nodesCache.computeIfAbsent(relationship.startNodeId(), retrieveNode);
+                end = nodesCache.computeIfAbsent(relationship.endNodeId(), retrieveNode);
+            } else {
+                start = nodesCache.getOrDefault(relationship.startNodeId(), new VirtualNode(relationship.startNodeId(), db));
+                end = nodesCache.getOrDefault(relationship.startNodeId(), new VirtualNode(relationship.endNodeId(), db));
+            }
+            return new VirtualRelationship(relationship.id(), start, end, RelationshipType.withName(relationship.type()), relationship.asMap());
+        } else {
+            return Util.map("entityType", "RELATIONSHIP", "type", relationship.type(), "id", relationship.id(), "start", relationship.startNodeId(), "end", relationship.endNodeId(), "properties", relationship.asMap());
+        }
+    }
+
+    private ClassCastException getUnsupportedConversionException(Object value) {
+        return new ClassCastException("Conversion from class " + value.getClass().getName() + " not supported");
+    }
+
+    private Label[] getLabelsAsArray(Node node) {
+        return StreamSupport.stream(node.labels().spliterator(), false)
+                .map(Label::label)
+                .collect(Collectors.toList())
+                .toArray(new Label[0]);
+    }
+
+    private Object toPath(Session session, Object value, BoltConfig boltConfig, Map<Long, org.neo4j.graphdb.Node> nodesCache) {
         List<Object> entityList = new LinkedList<>();
-        Value internalValue = ((InternalPath) value).asValue();
-        internalValue.asPath().forEach(p -> {
-            entityList.add(toNode(p.start(), virtual, nodesCache));
-            entityList.add(toRelationship(p.relationship(), virtual, nodesCache));
-            entityList.add(toNode(p.end(), virtual, nodesCache));
+        Path path;
+        if (value instanceof Value) {
+            path = ((InternalEntity) value).asValue().asPath();
+        } else if (value instanceof Path) {
+            path = (Path) value;
+        } else {
+            throw getUnsupportedConversionException(value);
+        }
+        path.forEach(p -> {
+            entityList.add(toNode(p.start(), boltConfig, nodesCache));
+            entityList.add(toRelationship(session, p.relationship(), boltConfig, nodesCache));
+            entityList.add(toNode(p.end(), boltConfig, nodesCache));
         });
         return entityList;
     }

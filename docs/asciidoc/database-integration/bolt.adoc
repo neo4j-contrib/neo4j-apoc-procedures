@@ -66,7 +66,9 @@ apoc.bolt.production.url=bolt://password:test@localhost:7688
 Config available are:
 
 * `statistics`: possible values are true/false, the default value is false. This config print the execution statistics;
-* `virtual`: possible values are true/false, the default value is false. This config return result in virtual format and not in map format, in apoc.bolt.load.
+* `virtual`: possible values are true/false, the default value is false. This config return result in virtual format and not in map format. *N.B.* If `withRelationshipNodeProperties=false` the `VirtualRelationship` contains only the ids about the nodes connected by the edge
+* `readOnly`: possible values are true/false, the default value is true. Defines the operation performed over the remote instance.
+* `withRelationshipNodeProperties`: possible values are true/false, the default value is false. If `virtual=true` it returns the `VirtualRelationship` with nodes that also contains properties attached to them.
 
 == Driver configuration
 
