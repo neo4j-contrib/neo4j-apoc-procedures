@@ -164,6 +164,11 @@ public class LoadLdap {
                 return LdapUtil.getStringFromObjectSid(att.get().getBytes());
             }
 
+            // Handle datetimes specifically for formatting into Neo4j expectations for datetime
+            if (attrName.equalsIgnoreCase("createtimestamp") || attrName.equalsIgnoreCase("modifytimestamp")) {
+                return LdapUtil.formatDateTime(att.get().getString());
+            }
+
             if (att.size() == 1) {
                 if (this.log.isDebugEnabled()) this.log.debug(String.format("Attribute %s is single value", att.getId()));
                 return att.get().getString();

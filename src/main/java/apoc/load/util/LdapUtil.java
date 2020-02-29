@@ -20,6 +20,8 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class LdapUtil {
     public static final String LOAD_TYPE = "ldap";
@@ -155,5 +157,21 @@ public class LdapUtil {
             offset += size;
         }
         return strSid.toString();
+    }
+
+    public static String formatDateTime(String dateTime) {
+        Pattern pattern = Pattern.compile("(\\d\\d\\d\\d)(\\d\\d)(\\d\\d)(\\d\\d)(\\d\\d)(\\d\\d)");
+        Matcher groupedDateTime = pattern.matcher(dateTime);
+        String formattedDateTime = null;
+        if (groupedDateTime.find()) {
+            formattedDateTime = String.format("%s-%s-%sT%s:%s:%sZ",
+                    groupedDateTime.group(1),
+                    groupedDateTime.group(2),
+                    groupedDateTime.group(3),
+                    groupedDateTime.group(4),
+                    groupedDateTime.group(5),
+                    groupedDateTime.group(6));
+        }
+        return formattedDateTime;
     }
 }
