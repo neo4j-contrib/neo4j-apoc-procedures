@@ -199,6 +199,9 @@ dependencies {
     // there is a compatibility problem between the Guava Library used by HDFS, Google Cloud Storage and Reflections; the only version that fits for all is the following
     testCompile group: 'com.google.guava', name: 'guava', version: '20.0'
 
+    // force last version of beanutils as transitive dependency due to CVE https://www.cvedetails.com/cve/CVE-2019-10086/
+    compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
+
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
     }
