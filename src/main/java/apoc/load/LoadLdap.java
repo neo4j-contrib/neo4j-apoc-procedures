@@ -24,6 +24,8 @@ import org.neo4j.procedure.Procedure;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -65,6 +67,9 @@ public class LoadLdap {
         try {
             LdapConnectionPool pool = getConnectionPool(ldapConfig);
             LdapConnection connection = pool.getConnection();
+            boolean hasRangeRetrieval = connection.getSupportedControls().contains("1.2.840.113556.1.4.802");
+            if (log.isDebugEnabled()) log.debug("Server has ranged retrieval control: " + hasRangeRetrieval);
+
             if (log.isDebugEnabled()) log.debug("Beginning paged LDAP search");
             SearchRequest req = buildSearch(ldapConfig, null, log);
             boolean hasMoreResults = true;
@@ -74,6 +79,27 @@ public class LoadLdap {
                         Response resp = searchCursor.get();
                         if (resp instanceof SearchResultEntry) {
                             Entry resultEntry = ((SearchResultEntry) resp).getEntry();
+                            if (hasRangeRetrieval) {
+                                for (Attribute attribute : resultEntry) {
+                                    Pattern pattern = Pattern.compile("(\\S+);range=(\\d)-(\\d+)");
+                                    Matcher matcher = pattern.matcher(attribute.getId());
+                                    if (matcher.find()) {
+                                        if (log.isDebugEnabled()) log.debug("Found ranged attribute, iterating over values");
+                                        LdapConnection extra = pool.getConnection();
+                                        Attribute realAttribute = resultEntry.get(matcher.group(1));
+                                        try {
+                                            List<Value> combined = rangedRetrievalHandler(resultEntry.getDn(), attribute, extra, log);
+                                            for (Value val : combined) {
+                                                realAttribute.add(val);
+                                            }
+                                        } catch (Exception e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                        pool.releaseConnection(extra);
+                                        if (log.isDebugEnabled()) log.debug("Found real attribute and updated values");
+                                    }
+                                }
+                            }
                             allEntries.add(resultEntry);
                         }
                     }

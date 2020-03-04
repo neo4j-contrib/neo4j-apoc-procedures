@@ -2,25 +2,21 @@ package apoc.load.util;
 
 import apoc.util.Util;
 import org.apache.commons.lang.StringUtils;
+import org.apache.directory.api.ldap.model.cursor.SearchCursor;
+import org.apache.directory.api.ldap.model.entry.Attribute;
+import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.exception.LdapException;
-import org.apache.directory.api.ldap.model.message.SearchRequest;
-import org.apache.directory.api.ldap.model.message.SearchRequestImpl;
+import org.apache.directory.api.ldap.model.message.*;
 import org.apache.directory.api.ldap.model.message.controls.PagedResults;
 import org.apache.directory.api.ldap.model.message.controls.PagedResultsImpl;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.api.ldap.model.url.LdapUrl;
-import org.apache.directory.ldap.client.api.DefaultLdapConnectionFactory;
-import org.apache.directory.ldap.client.api.DefaultPoolableLdapConnectionFactory;
-import org.apache.directory.ldap.client.api.LdapConnection;
-import org.apache.directory.ldap.client.api.LdapConnectionConfig;
-import org.apache.directory.ldap.client.api.LdapConnectionPool;
-import org.apache.directory.ldap.client.api.LdapNetworkConnection;
+import org.apache.directory.ldap.client.api.*;
 import org.neo4j.logging.Log;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -80,6 +76,69 @@ public class LdapUtil {
         }
 
         return connection;
+    }
+
+    public static Entry getRangedValues(Dn object, String attrName, int nextHigh, int nextLow, LdapConnection connection, Log log) throws LdapException {
+        Entry entry = null;
+        SearchRequest rangeRetrieval = new SearchRequestImpl();
+        String nextRange = String.format("%s;range=%d-%d", attrName, nextLow, nextHigh);
+        rangeRetrieval.addAttributes(nextRange);
+        rangeRetrieval.setScope(SearchScope.OBJECT);
+        rangeRetrieval.setBase(object);
+        rangeRetrieval.setFilter("(objectClass=*)");
+        try (SearchCursor subCursor = connection.search(rangeRetrieval)) {
+            while (subCursor.next()) {
+                Response subResp = subCursor.get();
+                if (subResp instanceof SearchResultEntry) {
+                    entry = ((SearchResultEntry) subResp).getEntry();
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return entry;
+    }
+
+    public static List<Value> rangedRetrievalHandler(Dn object, Attribute attribute, LdapConnection connection, Log log) {
+        List<Value> combinedValues = new ArrayList<>();
+
+        Pattern pattern = Pattern.compile("(\\S+);range=(\\d)-(\\d+)");
+        Matcher matcher = pattern.matcher(attribute.getId());
+        attribute.forEach(combinedValues::add);
+
+        if (matcher.find()) {
+            if (log.isDebugEnabled()) log.debug("Found match for ranged value " + matcher.group(0));
+            String attrName = matcher.group(1);
+            int low = Integer.parseInt(matcher.group(2));
+            int high = Integer.parseInt(matcher.group(3));
+            final int step = high - low;
+            int nextLow = high + 1;
+            int nextHigh = step + nextLow;
+            boolean moreResults = true;
+
+            while (moreResults) {
+                try {
+                    if (log.isDebugEnabled()) log.debug(String.format("Getting next page of values with step %d, next low %d, next high %d", step, nextLow, nextHigh));
+                    Entry nextPage = getRangedValues(object, attrName, nextHigh, nextLow, connection, log);
+                    for (Attribute page : nextPage) {
+                        page.forEach(combinedValues::add);
+                        Matcher nextPageMatcher = Pattern.compile("(\\S+);range=(\\d+)-(\\d+|\\*)").matcher(page.getId());
+                        if (nextPageMatcher.find()) {
+                            if (log.isDebugEnabled()) log.debug("Found last page of values, we are done");
+                            if (nextPageMatcher.group(3).equals("*")) {
+                                moreResults = false;
+                            } else {
+                                nextLow = Integer.parseInt(nextPageMatcher.group(3)) + 1;
+                                nextHigh = step + nextLow;
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return combinedValues;
     }
 
     /*
