@@ -24,10 +24,17 @@ public class LdapUtil {
     public static final String LOAD_TYPE = "ldap";
     private static final String KEY_NOT_FOUND_MESSAGE = "No apoc.ldap.%s.url url specified";
 
+    /**
+     * Build up an LdapConnectionPool from the configuration information received from the
+     * proc constructor or config file. It will pre-authenticate connections retrieved from the
+     * pool and will already be bound
+     * @param ldapConfig Configuration when the procedure was called
+     * @return a new LDAP connection pool
+     */
     public static LdapConnectionPool getConnectionPool(LoadLdapConfig ldapConfig) {
         LdapConnectionConfig config = new LdapConnectionConfig();
         LdapUrl ldapUrl = ldapConfig.getLdapUrl();
-        boolean isSecure = ldapUrl.getScheme().equals("ldaps://");
+        boolean isSecure = ldapUrl.getScheme().equals(LdapUrl.LDAPS_SCHEME);
         int port = ldapUrl.getPort();
 
         if (isSecure && (port == -1)) {
@@ -50,38 +57,24 @@ public class LdapUtil {
         return new LdapConnectionPool(new DefaultPoolableLdapConnectionFactory(factory));
     }
 
-    public static LdapConnection getConnection(LoadLdapConfig ldapConfig) {
-        LdapConnection connection;
-        LdapUrl ldapUrl = ldapConfig.getLdapUrl();
-        boolean isSecure = ldapUrl.getScheme().equals("ldaps://");
-        int port = ldapUrl.getPort();
-        if (isSecure && (port == -1)) {
-            port = LdapConnectionConfig.DEFAULT_LDAPS_PORT;
-        } else if (isSecure && !(port == -1)) {
-            port = ldapUrl.getPort();
-        } else if (!isSecure && (port == -1)) {
-            port = LdapConnectionConfig.DEFAULT_LDAP_PORT;
-        } else {
-            port = ldapUrl.getPort();
-        }
-        connection = new LdapNetworkConnection(ldapUrl.getHost(), port, isSecure);
-        try {
-            if (ldapConfig.hasCredentials()) {
-                connection.bind(new Dn(ldapConfig.getCredentials().getBindDn()), ldapConfig.getCredentials().getBindPassword());
-            } else {
-                connection.anonymousBind();
-            }
-        } catch (LdapException e) {
-            throw new RuntimeException(e);
-        }
-
-        return connection;
-    }
-
+    /**
+     * Do an object-level search on the range retrieved attribute to get the next page of values
+     *
+     * @param object the attribute that was returned by the server
+     * @param attrName the original attribute name
+     * @param nextHigh the max value of the next page to retrieve
+     * @param nextLow the min value of the next page to retrieve
+     * @param connection an LdapConnection to retrieve the next page
+     * @param log Neo4j logger
+     * @return the results of the next page search
+     * @throws LdapException any search/LDAP server errors returned
+     */
     public static Entry getRangedValues(Dn object, String attrName, int nextHigh, int nextLow, LdapConnection connection, Log log) throws LdapException {
         Entry entry = null;
         SearchRequest rangeRetrieval = new SearchRequestImpl();
         String nextRange = String.format("%s;range=%d-%d", attrName, nextLow, nextHigh);
+        if (log.isDebugEnabled())
+            log.debug("Getting next range retrieval page " + nextRange);
         rangeRetrieval.addAttributes(nextRange);
         rangeRetrieval.setScope(SearchScope.OBJECT);
         rangeRetrieval.setBase(object);
@@ -99,6 +92,19 @@ public class LdapUtil {
         return entry;
     }
 
+    /**
+     * Process all of the possible attribute values. AD doesn't return values attached to the
+     * queried attribute. It will return a new attribute in the form of:
+     * <attribute name>;range=<low>-<high>
+     * To return results that an other LDAP server would reply with, gather all of the values to be
+     * attached to the original attribute
+     *
+     * @param object the attribute that was returned by the server
+     * @param attribute the original attribute name
+     * @param connection an LdapConnection to retrieve the next page
+     * @param log Neo4j logger
+     * @return the complete list of values from all pages
+     */
     public static List<Value> rangedRetrievalHandler(Dn object, Attribute attribute, LdapConnection connection, Log log) {
         List<Value> combinedValues = new ArrayList<>();
 
@@ -141,13 +147,20 @@ public class LdapUtil {
         return combinedValues;
     }
 
-    /*
-     *  @param pagedSearchControl Optional paginated results with cookie
-     *  @return Serach parameters as defined by the LDAP URL with paging controls
-     *  @throws LdapException Something blew up
+
+    /**
+     * Build the paged SearchRequest where the cookie is either null for the first run or the
+     * cookie returned from the LDAP server. In the latter instance, the cookie serves as a
+     * bookmark to inform the LDAP server which results should be returned next
+     * @param ldapConfig the config received from the procedure
+     * @param cookie the cookie returned by the LDAP server
+     * @param log Neo4j logger
+     * @return a new SearchRequest for the next page of results
+     * @throws LdapException a problem with building the search was encountered
      */
     public static SearchRequest buildSearch(LoadLdapConfig ldapConfig, byte[] cookie, Log log) throws LdapException {
-        if (log.isDebugEnabled()) log.debug("Generating new SearchRequest");
+        if (log.isDebugEnabled())
+            log.debug("Generating new SearchRequest");
         SearchRequest req = new SearchRequestImpl();
         req.setScope(ldapConfig.getLdapUrl().getScope());
         req.setSizeLimit(0);
@@ -165,7 +178,8 @@ public class LdapUtil {
         }
 
         req.addControl(pr);
-        if (log.isDebugEnabled()) log.debug(String.format("Generated SearchRequest: %s", req.toString()));
+        if (log.isDebugEnabled())
+            log.debug(String.format("Generated SearchRequest: %s", req.toString()));
         return req;
     }
 
@@ -195,6 +209,12 @@ public class LdapUtil {
         return (passwordOrKey.equals(StringUtils.EMPTY)) ? Util.getLoadUrlByConfigFile(LOAD_TYPE, passwordOrKey, "password").orElse(StringUtils.EMPTY) : passwordOrKey;
     }
 
+    /**
+     * Use the upper and lower 16 bytes to generate the UUID that would match string representations
+     * commonly found elsewhere (such as Apache Directory Studio)
+     * @param entryUuid bytes returned from the server
+     * @return string representation of the UUID
+     */
     public static String getUuidFromEntryUuid(byte[] entryUuid) {
         ByteBuffer bb = ByteBuffer.wrap(entryUuid);
         long high = bb.getLong();
@@ -202,6 +222,12 @@ public class LdapUtil {
         return new UUID(high, low).toString();
     }
 
+    /**
+     * Rearrange the bytes before generating the UUID in order ot match the form shown in all of
+     * the Active Directory tools
+     * @param objectGuid bytes returned from the server for the attribute
+     * @return a string representation of the objectGUID (which isn't a true UUID)
+     */
     public static String getStringFromObjectGuid(byte[] objectGuid) {
         byte[] rearranged = new byte[16];
         rearranged[0] = objectGuid[3];
@@ -216,6 +242,13 @@ public class LdapUtil {
         return getUuidFromEntryUuid(rearranged);
     }
 
+    /**
+     * Generates a String representation of an objectSid as defined by
+     * https://docs.microsoft.com/en-us/windows/win32/secauthz/sid-components
+     * The code was adapted from https://ldapwiki.com/wiki/ObjectSID
+     * @param objectSid byte result from the LDAP server
+     * @return a String representation of the objectSid
+     */
     public static String getStringFromObjectSid(byte[] objectSid) {
         StringBuilder strSid = new StringBuilder("S-");
 
@@ -245,6 +278,12 @@ public class LdapUtil {
         return strSid.toString();
     }
 
+    /**
+     * Translate an LDAP server provided timestamp into a Neo4J DateTime. AD will return a float
+     * as the milliseconds, but it's always .0. LDAP servers leave off the float
+     * @param dateTime original timestamp from the LDAP server
+     * @return a string matching what Neo4J would expect for a DateTime object
+     */
     public static String formatDateTime(String dateTime) {
         Pattern pattern = Pattern.compile("(\\d\\d\\d\\d)(\\d\\d)(\\d\\d)(\\d\\d)(\\d\\d)(\\d\\d)");
         Matcher groupedDateTime = pattern.matcher(dateTime);

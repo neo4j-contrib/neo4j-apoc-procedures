@@ -7,7 +7,6 @@ import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Value;
-import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.message.Response;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
 import org.apache.directory.api.ldap.model.message.SearchResultDone;
@@ -22,7 +21,6 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,11 +36,10 @@ public class LoadLdap {
     @Context
     public GraphDatabaseService db;
 
-    private static final String KEY_NOT_FOUND_MESSAGE = "No apoc.jdbc.%s.url url specified";
-
     @Procedure(name = "apoc.load.ldap", mode = Mode.READ)
     @apoc.Description("apoc.load.ldap('url', config) YIELD row - run an LDAP query from an LDAP URL")
-    public Stream<LDAPResult> ldap(@Name("ldapURL") String url, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<LDAPResult> ldap(@Name("ldapURL") String url,
+                                   @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return executePagedSearch(url, config);
     }
 
@@ -60,19 +57,39 @@ public class LoadLdap {
         return executePagedSearch((String) apocConfig.get("url"), apocConfig);
     }
 
+    /**
+     * Executes a paged LDAP search with a default of 100-entry page size. All of the results are
+     * collected before being passed to the EntryListIterator which does the transformations into
+     * KV pairs.
+     * To more completely handle Active Directory servers, checking for ranged retrievals of
+     * attribute values is performed. By default, AD sets this to 1500 values. If this is the
+     * case, the attribute values are also paged before being returned to the original attribute
+     * See https://ldapwiki.com/wiki/LDAP_SERVER_RANGE_OPTION_OID for more details.
+     *
+     * @param url LDAP URL formatted according to RFC 2255
+     * @param config Parameters to pass onto the connector
+     * @return Stream of LDAPResults representing the search results
+     */
     private Stream<LDAPResult> executePagedSearch(String url, Map<String, Object> config) {
+        final String RANGE_RETRIEVAL_OID = "1.2.840.113556.1.4.802";
+        final String PAGED_SEARCH_OID = "1.2.840.113556.1.4.319";
         List<Entry> allEntries = new ArrayList<>();
         LoadLdapConfig ldapConfig = new LoadLdapConfig(config, url);
 
         try {
+            // Use connection pooling to support future possible searches with range retrievals
             LdapConnectionPool pool = getConnectionPool(ldapConfig);
             LdapConnection connection = pool.getConnection();
-            boolean hasRangeRetrieval = connection.getSupportedControls().contains("1.2.840.113556.1.4.802");
-            if (log.isDebugEnabled()) log.debug("Server has ranged retrieval control: " + hasRangeRetrieval);
+            boolean hasRangeRetrieval = connection.getSupportedControls().contains(RANGE_RETRIEVAL_OID);
+            if (log.isDebugEnabled())
+                log.debug("Server has ranged retrieval control: " + hasRangeRetrieval);
 
-            if (log.isDebugEnabled()) log.debug("Beginning paged LDAP search");
+            if (log.isDebugEnabled())
+                log.debug("Beginning paged LDAP search");
             SearchRequest req = buildSearch(ldapConfig, null, log);
             boolean hasMoreResults = true;
+
+            // TODO: reduce the complexity of this block
             while (hasMoreResults) {
                 try (SearchCursor searchCursor = connection.search(req)) {
                     while (searchCursor.next()) {
@@ -84,19 +101,17 @@ public class LoadLdap {
                                     Pattern pattern = Pattern.compile("(\\S+);range=(\\d)-(\\d+)");
                                     Matcher matcher = pattern.matcher(attribute.getId());
                                     if (matcher.find()) {
-                                        if (log.isDebugEnabled()) log.debug("Found ranged attribute, iterating over values");
+                                        if (log.isDebugEnabled())
+                                            log.debug("Found ranged attribute, iterating over values");
                                         LdapConnection extra = pool.getConnection();
                                         Attribute realAttribute = resultEntry.get(matcher.group(1));
-                                        try {
-                                            List<Value> combined = rangedRetrievalHandler(resultEntry.getDn(), attribute, extra, log);
-                                            for (Value val : combined) {
-                                                realAttribute.add(val);
-                                            }
-                                        } catch (Exception e) {
-                                            throw new RuntimeException(e);
+                                        List<Value> combined = rangedRetrievalHandler(resultEntry.getDn(), attribute, extra, log);
+                                        for (Value val : combined) {
+                                            realAttribute.add(val);
                                         }
                                         pool.releaseConnection(extra);
-                                        if (log.isDebugEnabled()) log.debug("Found real attribute and updated values");
+                                        if (log.isDebugEnabled())
+                                            log.debug("Found real attribute and updated values");
                                     }
                                 }
                             }
@@ -104,34 +119,32 @@ public class LoadLdap {
                         }
                     }
                     SearchResultDone done = searchCursor.getSearchResultDone();
-                    PagedResults hasPaged = (PagedResults) done.getControl("1.2.840.113556.1.4.319");
+                    PagedResults hasPaged = (PagedResults) done.getControl(PAGED_SEARCH_OID);
                     if ( (null != hasPaged) && (hasPaged.getCookie().length > 0) ) {
-                        if (log.isDebugEnabled()) log.debug("Iterating over the next LDAP search page");
+                        if (log.isDebugEnabled())
+                            log.debug("Iterating over the next LDAP search page");
                         req = buildSearch(ldapConfig, hasPaged.getCookie(), log);
                         hasMoreResults = true;
                     } else {
                         hasMoreResults = false;
                     }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
             }
             pool.releaseConnection(connection);
-            if (log.isDebugEnabled()) log.debug(String.format("Finished paged LDAP search: %d entries", allEntries.size()));
+            if (log.isDebugEnabled())
+                log.debug(String.format("Finished paged LDAP search: %d entries", allEntries.size()));
 
-            Iterator<Map<String, Object>> supplier = new EntryListIterator(allEntries.iterator(), ldapConfig.getLdapUrl().getAttributes(), log);
+            Iterator<Map<String, Object>> supplier = new EntryListIterator(
+                    allEntries.iterator(),
+                    ldapConfig.getLdapUrl().getAttributes(),
+                    log);
             Spliterator<Map<String, Object>> spliterator = Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
             return StreamSupport.stream(spliterator, false).map(LDAPResult::new).onClose(pool::close);
 
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    private void closeIt(LdapConnection connection) {
-        try {
-            connection.unBind();
-            connection.close();
-        } catch (LdapException | IOException e) {
-            log.warn("Error closing LDAP connection");
         }
     }
 
@@ -162,17 +175,21 @@ public class LoadLdap {
         }
 
         public Map<String, Object> get() {
-            if (this.log.isDebugEnabled()) this.log.debug("Fetching next LDAP entry");
-            if (handleEndOfResults()) return null;
+            if (this.log.isDebugEnabled())
+                this.log.debug("Fetching next LDAP entry");
+            if (handleEndOfResults())
+                return null;
             Map<String, Object> entryMap = new LinkedHashMap<>(attributes.size()+1);
             Entry ldapEntry = entries.next();
-            if (this.log.isDebugEnabled()) log.debug(String.format("Processing entry: %s", ldapEntry.toString()));
+            if (this.log.isDebugEnabled())
+                log.debug(String.format("Processing entry: %s", ldapEntry.toString()));
             entryMap.put("dn", ldapEntry.getDn().toString());
             for (Attribute attribute : ldapEntry) {
                 String attrName = attribute.getId();
                 entryMap.put(attrName, readValue(attribute));
             }
-            if (this.log.isDebugEnabled()) log.debug(String.format("entryMap: ", entryMap));
+            if (this.log.isDebugEnabled())
+                log.debug(String.format("entryMap: %s", entryMap));
             return entryMap;
         }
 
@@ -181,8 +198,10 @@ public class LoadLdap {
         }
 
         private Object readValue(Attribute att) {
-            if (att == null) return null;
-            if (this.log.isDebugEnabled()) this.log.debug(String.format("Processing attribute: %s", att.getId()));
+            if (att == null)
+                return null;
+            if (this.log.isDebugEnabled())
+                this.log.debug(String.format("Processing attribute: %s", att.getId()));
 
             // Handle uuid attributes separately since they're single valued anyway
             String attrName = att.getId();
@@ -198,14 +217,22 @@ public class LoadLdap {
                 return LdapUtil.formatDateTime(att.get().getString());
             }
 
+            /*
+                It would be nice to use the schema information to return a List for all multivalued
+                attributes, but guaranteeing that the schema is available is very difficult
+                particularly when it comes to AD which doesn't supply schema information when asked
+             */
             if (att.size() == 1) {
-                if (this.log.isDebugEnabled()) this.log.debug(String.format("Attribute %s is single value", att.getId()));
+                if (this.log.isDebugEnabled())
+                    this.log.debug(String.format("Attribute %s is single value", att.getId()));
                 return att.get().getString();
             } else {
                 List<String> vals = new ArrayList<>();
-                if (this.log.isDebugEnabled()) this.log.debug(String.format("Attribute %s is multivalued", att.getId()));
+                if (this.log.isDebugEnabled())
+                    this.log.debug(String.format("Attribute %s is multivalued", att.getId()));
                 for (Value val : att) {
-                    if (this.log.isDebugEnabled()) this.log.debug(String.format("Attribute %s: %s", att.getId(), val.getNormalized()));
+                    if (this.log.isDebugEnabled())
+                        this.log.debug(String.format("Attribute %s: %s", att.getId(), val.getNormalized()));
                     vals.add(val.getNormalized());
                 }
                 return vals;
