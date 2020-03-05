@@ -144,7 +144,7 @@ public class LoadLdap {
             return StreamSupport.stream(spliterator, false).map(LDAPResult::new).onClose(pool::close);
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error connecting to server: " + e);
         }
     }
 
@@ -183,6 +183,8 @@ public class LoadLdap {
             Entry ldapEntry = entries.next();
             if (this.log.isDebugEnabled())
                 log.debug(String.format("Processing entry: %s", ldapEntry.toString()));
+
+            // always return a distinguishedname in the result like an LDAP search would
             entryMap.put("dn", ldapEntry.getDn().toString());
             for (Attribute attribute : ldapEntry) {
                 String attrName = attribute.getId();
@@ -222,19 +224,14 @@ public class LoadLdap {
                 attributes, but guaranteeing that the schema is available is very difficult
                 particularly when it comes to AD which doesn't supply schema information when asked
              */
-            if (att.size() == 1) {
-                if (this.log.isDebugEnabled())
-                    this.log.debug(String.format("Attribute %s is single value", att.getId()));
+            int numValues = att.size();
+            if (this.log.isDebugEnabled())
+                log.debug(String.format("Attribute %s has %d values", attrName, numValues));
+            if (numValues == 1) {
                 return att.get().getString();
             } else {
                 List<String> vals = new ArrayList<>();
-                if (this.log.isDebugEnabled())
-                    this.log.debug(String.format("Attribute %s is multivalued", att.getId()));
-                for (Value val : att) {
-                    if (this.log.isDebugEnabled())
-                        this.log.debug(String.format("Attribute %s: %s", att.getId(), val.getNormalized()));
-                    vals.add(val.getNormalized());
-                }
+                att.forEach(val -> vals.add(val.getNormalized()));
                 return vals;
             }
         }

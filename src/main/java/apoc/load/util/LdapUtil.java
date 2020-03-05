@@ -87,7 +87,7 @@ public class LdapUtil {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error retrieving object: " + e);
         }
         return entry;
     }
@@ -130,8 +130,8 @@ public class LdapUtil {
                         page.forEach(combinedValues::add);
                         Matcher nextPageMatcher = Pattern.compile("(\\S+);range=(\\d+)-(\\d+|\\*)").matcher(page.getId());
                         if (nextPageMatcher.find()) {
-                            if (log.isDebugEnabled()) log.debug("Found last page of values, we are done");
                             if (nextPageMatcher.group(3).equals("*")) {
+                                if (log.isDebugEnabled()) log.debug("Found last page of values, we are done");
                                 moreResults = false;
                             } else {
                                 nextLow = Integer.parseInt(nextPageMatcher.group(3)) + 1;
