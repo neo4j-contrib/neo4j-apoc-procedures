@@ -11,10 +11,11 @@ The Neighborhood search procedures enable quick discovery of surrounding nodes b
 This section includes:
 
 * <<neighborhood-search-available-procedures, Available Procedures>>
+* <<neighborhood-search-rel-filters, Relationship Filters>>
 * <<neighborhood-search-examples, Examples>>
 ** <<neighborhood-search-specified-hop-count, Find neighbors at specified hop count>>
 ** <<neighborhood-search-specified-hop-counts, Find neighbors at specified hop counts>>
-** <<neighborhood-search-up-to-hop-count, Find neighbors up to specified hop counts>>
+** <<neighborhood-search-up-to-hop-count, Find neighbors up to specified hop count>>
 
 [[neighborhood-search-available-procedures]]
 === Available Procedures
@@ -29,10 +30,23 @@ include::../../../build/generated-documentation/apoc.neighbors.byhop.csv[lines=2
 include::../../../build/generated-documentation/apoc.neighbors.tohop.csv[lines=2]
 |===
 
-include something explaining how to specify the rel type
+[[neighborhood-search-rel-filters]]
+=== Relationship Filters
+
+The 2nd parameter in each of the neighborhood search procedures is a relationship filter.
+A relationship filter is a `|` separated list of relationship types, using the following syntax:
+
+include::relationship-filter.adoc[]
+
+[NOTE]
+====
+Relationship filters are white space sensitive, so check for trailing white spaces (and then remove them!) if you're not seeing expected results.
+====
 
 [[neighborhood-search-examples]]
 === Examples
+
+The examples in this section are based on the following sample graph:
 
 [source,cypher]
 ----
@@ -54,6 +68,10 @@ MERGE (emil)-[:FOLLOWS]->(joe)
 MERGE (praveena)-[:FOLLOWS]->(joe)
 ----
 
+The `KNOWS` relationship type is considered to be bidirectional, where if Michael knows Emil, we can imply that Emil knows Michael.
+When using the `KNOWS` relationship we will ignore the direction.
+
+The `FOLLOWS` relationship has a direction, so we will specify a direction when we use it.
 
 [[neighborhood-search-specified-hop-count]]
 ==== Find neighbors at specified hop count
