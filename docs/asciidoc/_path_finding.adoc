@@ -17,7 +17,7 @@ For more information on how to use these procedures, see:
 * <<node-functions>>
 * <<parallel-node-search>>
 
-include::path-finding/expand.adoc[leveloffset=1]
+include::path-finding/expand-overview.adoc[leveloffset=1]
 include::path-finding/expand-subgraph.adoc[leveloffset=1]
 include::path-finding/expand-spanning-tree.adoc[leveloffset=1]
 include::path-finding/neighborhood-search.adoc[leveloffset=1]
