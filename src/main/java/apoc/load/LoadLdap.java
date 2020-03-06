@@ -6,7 +6,6 @@ import apoc.load.util.LoadLdapConfig;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
-import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.message.Response;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
 import org.apache.directory.api.ldap.model.message.SearchResultDone;
@@ -21,9 +20,13 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -97,23 +100,8 @@ public class LoadLdap {
                         if (resp instanceof SearchResultEntry) {
                             Entry resultEntry = ((SearchResultEntry) resp).getEntry();
                             if (hasRangeRetrieval) {
-                                for (Attribute attribute : resultEntry) {
-                                    Pattern pattern = Pattern.compile("(\\S+);range=(\\d)-(\\d+)");
-                                    Matcher matcher = pattern.matcher(attribute.getId());
-                                    if (matcher.find()) {
-                                        if (log.isDebugEnabled())
-                                            log.debug("Found ranged attribute, iterating over values");
-                                        LdapConnection extra = pool.getConnection();
-                                        Attribute realAttribute = resultEntry.get(matcher.group(1));
-                                        List<Value> combined = rangedRetrievalHandler(resultEntry.getDn(), attribute, extra, log);
-                                        for (Value val : combined) {
-                                            realAttribute.add(val);
-                                        }
-                                        pool.releaseConnection(extra);
-                                        if (log.isDebugEnabled())
-                                            log.debug("Found real attribute and updated values");
-                                    }
-                                }
+                                LdapConnection extra = pool.getConnection();
+                                rangedRetrievalEntryHandler(resultEntry, extra, log);
                             }
                             allEntries.add(resultEntry);
                         }

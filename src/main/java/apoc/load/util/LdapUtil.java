@@ -1,28 +1,41 @@
 package apoc.load.util;
 
 import apoc.util.Util;
-import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.exception.LdapException;
-import org.apache.directory.api.ldap.model.message.*;
+import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
+import org.apache.directory.api.ldap.model.message.Response;
+import org.apache.directory.api.ldap.model.message.SearchRequest;
+import org.apache.directory.api.ldap.model.message.SearchRequestImpl;
+import org.apache.directory.api.ldap.model.message.SearchResultEntry;
+import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.api.ldap.model.message.controls.PagedResults;
 import org.apache.directory.api.ldap.model.message.controls.PagedResultsImpl;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.api.ldap.model.url.LdapUrl;
-import org.apache.directory.ldap.client.api.*;
+import org.apache.directory.ldap.client.api.DefaultLdapConnectionFactory;
+import org.apache.directory.ldap.client.api.DefaultPoolableLdapConnectionFactory;
+import org.apache.directory.ldap.client.api.LdapConnection;
+import org.apache.directory.ldap.client.api.LdapConnectionConfig;
+import org.apache.directory.ldap.client.api.LdapConnectionPool;
 import org.neo4j.logging.Log;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LdapUtil {
     public static final String LOAD_TYPE = "ldap";
-    private static final String KEY_NOT_FOUND_MESSAGE = "No apoc.ldap.%s.url url specified";
+    private static final String FIRST_RANGED_PAGE_PATTERN = "(\\S+);range=(\\d)-(\\d+)";
+    private static final String REMAINING_RANGED_PAGE_PATTERN = "(\\S+);range=(\\d+)-(\\d+|\\*)";
 
     /**
      * Build up an LdapConnectionPool from the configuration information received from the
@@ -39,7 +52,7 @@ public class LdapUtil {
 
         if (isSecure && (port == -1)) {
             port = LdapConnectionConfig.DEFAULT_LDAPS_PORT;
-        } else if (isSecure && !(port == -1)) {
+        } else if (isSecure && (port != -1)) {
             port = ldapUrl.getPort();
         } else if (!isSecure && (port == -1)) {
             port = LdapConnectionConfig.DEFAULT_LDAP_PORT;
@@ -99,52 +112,68 @@ public class LdapUtil {
      * To return results that an other LDAP server would reply with, gather all of the values to be
      * attached to the original attribute
      *
-     * @param object the attribute that was returned by the server
-     * @param attribute the original attribute name
+     * @param rangedObject the attribute that was returned by the server
+     * @param rangedAttribute the original attribute name
+     * @param matcher the original Matcher on the attribute name
      * @param connection an LdapConnection to retrieve the next page
      * @param log Neo4j logger
      * @return the complete list of values from all pages
      */
-    public static List<Value> rangedRetrievalHandler(Dn object, Attribute attribute, LdapConnection connection, Log log) {
+    public static List<Value> getAllRangedAttributeValues(Dn rangedObject,
+                                                          Attribute rangedAttribute,
+                                                          Matcher matcher,
+                                                          LdapConnection connection,
+                                                          Log log) {
         List<Value> combinedValues = new ArrayList<>();
+        rangedAttribute.forEach(combinedValues::add);
 
-        Pattern pattern = Pattern.compile("(\\S+);range=(\\d)-(\\d+)");
-        Matcher matcher = pattern.matcher(attribute.getId());
-        attribute.forEach(combinedValues::add);
+        String attrName = matcher.group(1);
+        int low = Integer.parseInt(matcher.group(2));
+        int high = Integer.parseInt(matcher.group(3));
+        final int step = high - low;
+        int nextLow = high + 1;
+        int nextHigh = nextLow + step;
+        boolean moreResults = true;
 
-        if (matcher.find()) {
-            if (log.isDebugEnabled()) log.debug("Found match for ranged value " + matcher.group(0));
-            String attrName = matcher.group(1);
-            int low = Integer.parseInt(matcher.group(2));
-            int high = Integer.parseInt(matcher.group(3));
-            final int step = high - low;
-            int nextLow = high + 1;
-            int nextHigh = step + nextLow;
-            boolean moreResults = true;
-
-            while (moreResults) {
-                try {
-                    if (log.isDebugEnabled()) log.debug(String.format("Getting next page of values with step %d, next low %d, next high %d", step, nextLow, nextHigh));
-                    Entry nextPage = getRangedValues(object, attrName, nextHigh, nextLow, connection, log);
-                    for (Attribute page : nextPage) {
-                        page.forEach(combinedValues::add);
-                        Matcher nextPageMatcher = Pattern.compile("(\\S+);range=(\\d+)-(\\d+|\\*)").matcher(page.getId());
-                        if (nextPageMatcher.find()) {
-                            if (nextPageMatcher.group(3).equals("*")) {
-                                if (log.isDebugEnabled()) log.debug("Found last page of values, we are done");
-                                moreResults = false;
-                            } else {
-                                nextLow = Integer.parseInt(nextPageMatcher.group(3)) + 1;
-                                nextHigh = step + nextLow;
-                            }
+        while (moreResults) {
+            Entry nextPage;
+            try {
+                nextPage = getRangedValues(rangedObject, attrName, nextHigh, nextLow, connection, log);
+                for (Attribute page : nextPage) {
+                    page.forEach(combinedValues::add);
+                    Matcher nextPageMatcher = Pattern.compile(REMAINING_RANGED_PAGE_PATTERN).matcher(page.getId());
+                    if (nextPageMatcher.find()) {
+                        if (nextPageMatcher.group(3).equals("*")) {
+                            if (log.isDebugEnabled()) log.debug("Found last page of values, we are done");
+                            moreResults = false;
+                        } else {
+                            nextLow = Integer.parseInt(nextPageMatcher.group(3)) + 1;
+                            nextHigh = step + nextLow;
                         }
                     }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
                 }
+            } catch (LdapException e) {
+                throw new RuntimeException(e);
             }
         }
         return combinedValues;
+    }
+
+    public static Entry rangedRetrievalEntryHandler(Entry rawEntry, LdapConnection connection, Log log) {
+        for (Attribute attribute : rawEntry) {
+            Matcher matcher = Pattern.compile(FIRST_RANGED_PAGE_PATTERN).matcher(attribute.getId());
+            if (matcher.find()) {
+                Attribute realAttribute = rawEntry.get(matcher.group(1));
+                for (Value val : getAllRangedAttributeValues(rawEntry.getDn(), attribute, matcher, connection, log)) {
+                    try {
+                        realAttribute.add(val);
+                    } catch (LdapInvalidAttributeValueException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+        return rawEntry;
     }
 
 
@@ -190,23 +219,6 @@ public class LdapUtil {
         temp.put("password", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "password"));
         temp.put("pageSize", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "pageSize"));
         return new LoadLdapConfig(temp);
-    }
-
-    public static String getUrlOrKey(String urlOrKey) {
-        return urlOrKey.contains(":") ? urlOrKey : Util.getLoadUrlByConfigFile(LOAD_TYPE, urlOrKey, "url").orElseThrow(() -> new RuntimeException(String.format(KEY_NOT_FOUND_MESSAGE, urlOrKey)));
-    }
-
-    public static int getPageSize(String urlOrKey) {
-        String pageSizeStr = Util.getLoadUrlByConfigFile(LOAD_TYPE, urlOrKey, "pageSize").orElse(StringUtils.EMPTY);
-        return (pageSizeStr.equals(StringUtils.EMPTY)) ? 100 : Integer.parseInt(pageSizeStr);
-    }
-
-    public static String getUsernameOrKey(String usernameOrKey) {
-        return (usernameOrKey.equals(StringUtils.EMPTY)) ? Util.getLoadUrlByConfigFile(LOAD_TYPE, usernameOrKey, "binddn").orElse(StringUtils.EMPTY) : usernameOrKey;
-    }
-
-    public static String getPasswordOrKey(String passwordOrKey) {
-        return (passwordOrKey.equals(StringUtils.EMPTY)) ? Util.getLoadUrlByConfigFile(LOAD_TYPE, passwordOrKey, "password").orElse(StringUtils.EMPTY) : passwordOrKey;
     }
 
     /**
