@@ -4,7 +4,9 @@ import apoc.util.TestUtil;
 import org.junit.*;
 import org.neo4j.graphdb.*;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
@@ -17,9 +19,9 @@ public class NeighborsTest {
         db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
         TestUtil.registerProcedure(db, Neighbors.class);
         db.execute("CREATE (a:First), " +
-                "(b:Neighbor), " +
-                "(c:Neighbor), " +
-                "(d:Neighbor), " +
+                "(b:Neighbor {name: 'b'}), " +
+                "(c:Neighbor {name: 'c'}), " +
+                "(d:Neighbor {name: 'd'}), " +
                 "(a)-[:KNOWS]->(b), " +
                 "(b)-[:KNOWS]->(a), " +
                 "(b)-[:KNOWS]->(c), " +
@@ -39,6 +41,9 @@ public class NeighborsTest {
                 (row) -> {
                     List<Node> neighbors = (List<Node>) row.get("neighbors");
                     assertEquals(2, neighbors.size());
+                    assertEquals(Arrays.asList("b", "c"),
+                            neighbors.stream().map(n -> n.getProperty("name")).collect(Collectors.toList()));
+
                 });
     }
 
@@ -50,6 +55,8 @@ public class NeighborsTest {
                 (row) -> {
                     List<Node> neighbors = (List<Node>) row.get("neighbors");
                     assertEquals(3, neighbors.size());
+                    assertEquals(Arrays.asList("b", "c", "d"),
+                            neighbors.stream().map(n -> n.getProperty("name")).collect(Collectors.toList()));
                 });
     }
 
@@ -77,6 +84,12 @@ public class NeighborsTest {
                 (row) -> {
                     List<List<Node>> neighbors = (List<List<Node>>) row.get("neighbors");
                     assertEquals(2, neighbors.size());
+                    assertEquals(Arrays.asList(Arrays.asList("b"), Arrays.asList("c")),
+                            neighbors.stream()
+                                    .map(l -> l.stream()
+                                            .map(n -> n.getProperty("name"))
+                                            .collect(Collectors.toList())).collect(Collectors.toList()));
+
                 });
     }
 
@@ -88,6 +101,11 @@ public class NeighborsTest {
                 (row) -> {
                     List<List<Node>> neighbors = (List<List<Node>>) row.get("neighbors");
                     assertEquals(3, neighbors.size());
+                    assertEquals(Arrays.asList(Arrays.asList("b"), Arrays.asList("c"), Arrays.asList("d")),
+                            neighbors.stream()
+                                    .map(l -> l.stream()
+                                            .map(n -> n.getProperty("name"))
+                                            .collect(Collectors.toList())).collect(Collectors.toList()));
                 });
     }
 
@@ -121,6 +139,9 @@ public class NeighborsTest {
                 (row) -> {
                     List<Node> neighbors = (List<Node>) row.get("neighbors");
                     assertEquals(1, neighbors.size());
+                    assertEquals(Arrays.asList("c"),
+                            neighbors.stream().map(n -> n.getProperty("name")).collect(Collectors.toList()));
+
                 });
     }
 
@@ -132,6 +153,8 @@ public class NeighborsTest {
                 (row) -> {
                     List<Node> neighbors = (List<Node>) row.get("neighbors");
                     assertEquals(1, neighbors.size());
+                    assertEquals(Arrays.asList("d"),
+                            neighbors.stream().map(n -> n.getProperty("name")).collect(Collectors.toList()));
                 });
     }
 
