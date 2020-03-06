@@ -6,12 +6,10 @@
 This section describes procedures that can be used to import JSON data from web APIs or files.
 --
 
-== Load JSON
-
 Web APIs are a huge opportunity to access and integrate data from any sources with your graph.
 Most of them provide the data is JSON format.
 
-With `apoc.load.json` we can retrieve data from URLs and turn it into map value(s) for Cypher to consume.
+The Load JSON procedures retrieve data from URLs or maps and turn it into map value(s) for Cypher to consume.
 Cypher has support for deconstructing nested documents with dot syntax, slices, `UNWIND` etc. so it is easy to turn nested data into graphs.
 
 Sources with multiple JSON objects (JSONL,JSON Lines) in a stream, like the https://dev.twitter.com/streaming/overview/processing[streaming Twitter format] or the Yelp Kaggle dataset, are also supported,
