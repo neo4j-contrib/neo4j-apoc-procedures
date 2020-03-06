@@ -5,6 +5,7 @@ import apoc.result.LongResult;
 import apoc.result.NodeListResult;
 import apoc.result.NodeResult;
 import org.neo4j.graphdb.*;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -24,11 +25,24 @@ public class Neighbors {
     @Context
     public Transaction tx;
 
+    private Iterable<Relationship> getRelationshipsByTypeAndDirection(Node node, Pair<RelationshipType, Direction> typesAndDirection) {
+        // as policy if both elements in the pair are null we return an empty result
+        if (typesAndDirection.first() == null) {
+            return typesAndDirection.other() == null ? Iterables.empty() : node.getRelationships(typesAndDirection.other());
+        }
+        if (typesAndDirection.other() == null) {
+            return typesAndDirection.first() == null ? Iterables.empty() : node.getRelationships(typesAndDirection.first());
+        }
+        return node.getRelationships(typesAndDirection.other(), typesAndDirection.first());
+    }
+
     @Procedure("apoc.neighbors.tohop")
     @Description("apoc.neighbors.tohop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern up to a certain distance, can use '>' or '<' for all outgoing or incoming relationships")
     public Stream<NodeResult> neighbors(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types, @Name(value="distance", defaultValue = "1") Long distance) {
         if (distance < 1) return Stream.empty();
         if (types==null || types.isEmpty()) return Stream.empty();
+
+        final long startNodeId = node.getId();
 
         // Initialize bitmaps for iteration
         Roaring64NavigableMap seen = new Roaring64NavigableMap();
@@ -42,7 +56,7 @@ public class Neighbors {
 
         // First Hop
         for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-            for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+            for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                 nextB.addLong(r.getOtherNodeId(nodeId));
             }
         }
@@ -57,7 +71,7 @@ public class Neighbors {
                 nodeId = iterator.next();
                 node = tx.getNodeById(nodeId);
                 for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-                    for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+                    for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                         nextA.add((r.getOtherNodeId(nodeId)));
                     }
                 }
@@ -74,7 +88,7 @@ public class Neighbors {
                     nodeId = iterator.next();
                     node = tx.getNodeById(nodeId);
                     for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-                        for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+                        for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                             nextB.add(r.getOtherNodeId(nodeId));
                         }
                     }
@@ -87,7 +101,7 @@ public class Neighbors {
             seen.or(nextB);
         }
         // remove starting node
-        seen.removeLong(node.getId());
+        seen.removeLong(startNodeId);
 
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(seen.iterator(), Spliterator.SORTED), false)
                 .map(x -> new NodeResult(tx.getNodeById(x)));
@@ -98,6 +112,8 @@ public class Neighbors {
     public Stream<LongResult> neighborsCount(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types, @Name(value="distance", defaultValue = "1") Long distance) {
         if (distance < 1) return Stream.empty();
         if (types==null || types.isEmpty()) return Stream.empty();
+
+        final long startNodeId = node.getId();
 
         // Initialize bitmaps for iteration
         Roaring64NavigableMap seen = new Roaring64NavigableMap();
@@ -110,7 +126,7 @@ public class Neighbors {
         List<Pair<RelationshipType, Direction>> typesAndDirections = parse(types);
         // First Hop
         for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-            for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+            for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                 nextB.add(r.getOtherNodeId(nodeId));
             }
         }
@@ -125,7 +141,7 @@ public class Neighbors {
                 nodeId = iterator.next();
                 node = tx.getNodeById(nodeId);
                 for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-                    for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+                    for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                         nextA.add(r.getOtherNodeId(nodeId));
                     }
                 }
@@ -142,7 +158,7 @@ public class Neighbors {
                     nodeId = iterator.next();
                     node = tx.getNodeById(nodeId);
                     for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-                        for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+                        for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                             nextB.add(r.getOtherNodeId(nodeId));
                         }
                     }
@@ -155,7 +171,7 @@ public class Neighbors {
             seen.or(nextB);
         }
         // remove starting node
-        seen.removeLong(node.getId());
+        seen.removeLong(startNodeId);
 
         return Stream.of(new LongResult(seen.getLongCardinality()));
     }
@@ -178,7 +194,7 @@ public class Neighbors {
         List<Pair<RelationshipType, Direction>> typesAndDirections = parse(types);
         // First Hop
         for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-            for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+            for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                 seen[0].add(r.getOtherNodeId(nodeId));
             }
         }
@@ -188,7 +204,7 @@ public class Neighbors {
             while (iterator.hasNext()) {
                 node = tx.getNodeById(iterator.next());
                 for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-                    for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+                    for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                         seen[i].add(r.getOtherNodeId(node.getId()));
                     }
                 }
@@ -223,7 +239,7 @@ public class Neighbors {
         List<Pair<RelationshipType, Direction>> typesAndDirections = parse(types);
         // First Hop
         for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-            for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+            for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                 seen[0].add(r.getOtherNodeId(nodeId));
             }
         }
@@ -233,7 +249,7 @@ public class Neighbors {
             while (iterator.hasNext()) {
                 node = tx.getNodeById(iterator.next());
                 for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-                    for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+                    for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                         seen[i].add(r.getOtherNodeId(node.getId()));
                     }
                 }
@@ -270,7 +286,7 @@ public class Neighbors {
         List<Pair<RelationshipType, Direction>> typesAndDirections = parse(types);
         // First Hop
         for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-            for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+            for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                 seen[0].add(r.getOtherNodeId(nodeId));
             }
         }
@@ -280,7 +296,7 @@ public class Neighbors {
             while (iterator.hasNext()) {
                 node = tx.getNodeById(iterator.next());
                 for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-                    for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+                    for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                         seen[i].add(r.getOtherNodeId(node.getId()));
                     }
                 }
@@ -313,7 +329,7 @@ public class Neighbors {
         List<Pair<RelationshipType, Direction>> typesAndDirections = parse(types);
         // First Hop
         for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-            for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+            for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                 seen[0].add(r.getOtherNodeId(nodeId));
             }
         }
@@ -323,7 +339,7 @@ public class Neighbors {
             while (iterator.hasNext()) {
                 node = tx.getNodeById(iterator.next());
                 for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
-                    for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
+                    for (Relationship r : getRelationshipsByTypeAndDirection(node, pair)) {
                         seen[i].add(r.getOtherNodeId(node.getId()));
                     }
                 }
