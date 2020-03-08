@@ -1,0 +1,117 @@
+[[path-expander-paths-config]]
+== Expand paths with config
+
+----
+apoc.path.expandConfig(startNode <id>Node/list, {config}) yield path expands from start nodes using the given configuration and yields the resulting paths
+----
+
+Takes an additional map parameter, `config`, to provide configuration options:
+
+.Config
+----
+{minLevel: -1|number,
+ maxLevel: -1|number,
+ relationshipFilter: '[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>], [<]RELATIONSHIP_TYPE3[>]|[<]RELATIONSHIP_TYPE4[>]',
+ labelFilter: '[+-/>]LABEL1|LABEL2|*,[+-/>]LABEL1|LABEL2|*,...',
+ uniqueness: RELATIONSHIP_PATH|NONE|NODE_GLOBAL|NODE_LEVEL|NODE_PATH|NODE_RECENT|
+             RELATIONSHIP_GLOBAL|RELATIONSHIP_LEVEL|RELATIONSHIP_RECENT,
+ bfs: true|false,
+ filterStartNode: true|false,
+ limit: -1|number,
+ optional: true|false,
+ endNodes: [nodes],
+ terminatorNodes: [nodes],
+ beginSequenceAtStart: true|false}
+----
+
+=== Start Node and label filters
+
+The config parameter `filterStartNode` defines whether or not the labelFilter (and `sequence`) applies to the start node of the expansion.
+
+Use `filterStartNode: false` when you want your label filter to only apply to all other nodes in the path, ignoring the start node.
+
+`filterStartNode` defaults for all path expander procedures:
+
+[opts=header,cols="a,a"]
+|===
+| version |  default
+| >= APOC 3.2.x.x | filterStartNode = false
+| < APOC 3.2.x.x | filterStartNode = true
+|===
+
+=== Limit
+
+You can use the `limit` config parameter to limit the number of paths returned.
+
+When using `bfs:true` (which is the default for all expand procedures), this has the effect of returning paths to the `n` nearest nodes with labels in the termination or end node filter, where `n` is the limit given.
+
+The default limit value, `-1`, means no limit.
+
+If you want to make sure multiple paths should never match to the same node, use `expandConfig()` with 'NODE_GLOBAL' uniqueness, or any expand procedure which already uses this uniqueness
+(`subgraphNodes()`, `subgraphAll()`, and `spanningTree()`).
+
+
+=== Optional
+
+When `optional` is set to true, the path expansion is optional, much like an OPTIONAL MATCH, so a `null` value is yielded whenever the expansion would normally eliminate rows due to no results.
+
+By default `optional` is false for all expansion procedures taking a config parameter.
+
+
+.Uniqueness
+
+Uniqueness of nodes and relationships guides the expansion and the results returned.
+Uniqueness is only configurable using `expandConfig()`.
+
+`subgraphNodes()`, `subgraphAll()`, and `spanningTree()` all use 'NODE_GLOBAL' uniqueness.
+
+[opts=header,cols="m,a"]
+|===
+| value | description
+| RELATIONSHIP_PATH | For each returned node there's a (relationship wise) unique path from the start node to it. This is Cypher's default expansion mode.
+| NODE_GLOBAL | A node cannot be traversed more than once. This is what the legacy traversal framework does.
+| NODE_LEVEL | Entities on the same level are guaranteed to be unique.
+| NODE_PATH | For each returned node there's a unique path from the start node to it.
+| NODE_RECENT | This is like NODE_GLOBAL, but only guarantees uniqueness among the most recent visited nodes, with a configurable count. Traversing a huge graph is quite memory intensive in that it keeps track of all the nodes it has visited.
+For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemoryError. Together with this Uniqueness you can supply a count, which is the number of most recent visited nodes. This can cause a node to be visited more than once, but scales infinitely.
+| RELATIONSHIP_GLOBAL | A relationship cannot be traversed more than once, whereas nodes can.
+| RELATIONSHIP_LEVEL | Entities on the same level are guaranteed to be unique.
+| RELATIONSHIP_RECENT | Same as for NODE_RECENT, but for relationships.
+| NONE | No restriction (the user will have to manage it)
+|===
+
+=== Node filters
+
+While label filters use labels to allow whitelisting, blacklisting, and restrictions on which kind of nodes can end or terminate expansion,
+you can also filter based upon actual nodes.
+
+Each of these config parameter accepts a list of nodes, or a list of node ids.
+
+[opts=header,cols="m,a,a"]
+|===
+| config parameter | description | added in
+| endNodes | Only these nodes can end returned paths, and expansion will continue past these nodes, if possible. | Winter 2018 APOC releases.
+| terminatorNodes | Only these nodes can end returned paths, and expansion won't continue past these nodes. | Winter 2018 APOC releases.
+| whitelistNodes | Only these nodes are allowed in the expansion (though endNodes and terminatorNodes will also be allowed, if present). | Spring 2018 APOC releases.
+| blacklistNodes | None of the paths returned will include these nodes. | Spring 2018 APOC releases.
+|===
+
+=== General Examples
+
+You can turn this cypher query:
+
+[source,cypher]
+----
+MATCH (user:User) WHERE user.id = 460
+MATCH (user)-[:RATED]->(movie)<-[:RATED]-(collab)-[:RATED]->(reco)
+RETURN count(*);
+----
+
+into this procedure call, with changed semantics for uniqueness and bfs (which is Cypher's expand mode)
+
+[source,cypher]
+----
+MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.expandConfig(user,{relationshipFilter:"RATED",minLevel:3,maxLevel:3,bfs:false,uniqueness:"NONE"}) YIELD path
+RETURN count(*);
+----

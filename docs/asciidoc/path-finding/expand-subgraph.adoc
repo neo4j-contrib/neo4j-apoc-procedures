@@ -27,3 +27,4 @@ MATCH (user:User) WHERE user.id = 460
 CALL apoc.path.subgraphAll(user, {maxLevel:4}) YIELD nodes, relationships
 RETURN nodes, relationships;
 ----
+
