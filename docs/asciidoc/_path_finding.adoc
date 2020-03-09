@@ -6,18 +6,25 @@
 This chapter describes advanced graph querying procedures in the APOC library.
 --
 
+The procedures in this chapter enable the querying of graph data when pure Cypher isn't enough.
 For more information on how to use these procedures, see:
 
 * <<path-expander>>
-* <<expand-subgraph>>
-* <<expand-spanning-tree>>
+** <<path-expander-paths>>
+** <<path-expander-paths-config>>
+** <<expand-subgraph-nodes>>
+** <<expand-subgraph>>
+** <<expand-spanning-tree>>
 * <<neighbourhood-search>>
 * <<path-functions>>
 * <<rel-functions>>
 * <<node-functions>>
 * <<parallel-node-search>>
 
+include::path-finding/expand-overview.adoc[leveloffset=1]
 include::path-finding/expand.adoc[leveloffset=1]
+include::path-finding/expand-config.adoc[leveloffset=1]
+include::path-finding/expand-subgraph-nodes.adoc[leveloffset=1]
 include::path-finding/expand-subgraph.adoc[leveloffset=1]
 include::path-finding/expand-spanning-tree.adoc[leveloffset=1]
 include::path-finding/neighborhood-search.adoc[leveloffset=1]

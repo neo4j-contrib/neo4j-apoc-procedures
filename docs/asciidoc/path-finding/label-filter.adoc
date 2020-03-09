@@ -1,0 +1,14 @@
+Syntax: `[+-/>]LABEL1|LABEL2|*|...`
+
+
+[opts=header,cols="m,a"]
+|===
+| input | result
+| -Foe | blacklist filter - No node in the path will have a label in the blacklist.
+| +Friend | whitelist filter - All nodes in the path must have a label in the whitelist (exempting termination and end nodes, if using those filters).
+If no whitelist operator is present, all labels are considered whitelisted.
+| /Friend | termination filter - Only return paths up to a node of the given labels, and stop further expansion beyond it.
+Termination nodes do not have to respect the whitelist. Termination filtering takes precedence over end node filtering.
+| >Friend | end node filter - Only return paths up to a node of the given labels, but continue expansion to match on end nodes beyond it.
+End nodes do not have to respect the whitelist to be returned, but expansion beyond them is only allowed if the node has a label in the whitelist.
+|===

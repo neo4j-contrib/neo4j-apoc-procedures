@@ -1,0 +1,35 @@
+[[expand-subgraph-nodes]]
+== Expand to nodes in a subgraph
+
+[abstract]
+--
+This section describes a procedure that expands a subgraph from a set of start nodes, and returns all nodes within the subgraph.
+--
+
+----
+apoc.path.subgraphNodes(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1, optional:false}) yield node
+----
+
+Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
+
+Accepts the same `config` values as in `expandConfig()`, though `uniqueness` is not configurable and `minLevel`, if present, must be 0 or 1 if present.
+
+.Examples
+
+Expand to all nodes of a connected subgraph:
+
+[source,cypher]
+----
+MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.subgraphNodes(user, {}) YIELD node
+RETURN node;
+----
+
+Expand to all nodes reachable by :FRIEND relationships:
+
+[source,cypher]
+----
+MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.subgraphNodes(user, {relationshipFilter:'FRIEND'}) YIELD node
+RETURN node;
+----
