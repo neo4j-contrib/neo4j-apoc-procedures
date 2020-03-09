@@ -8,9 +8,13 @@ This section describes the configuration supported by the path expander procedur
 
 === Relationship Filter
 
+The syntax for relationship filters is described below:
+
 include::relationship-filter.adoc[]
 
 === Label Filter
+
+The syntax for label filters is described below:
 
 Syntax: `[+-/>]LABEL1|LABEL2|*|...`
 
@@ -27,37 +31,40 @@ Termination nodes do not have to respect the whitelist. Termination filtering ta
 End nodes do not have to respect the whitelist to be returned, but expansion beyond them is only allowed if the node has a label in the whitelist.
 |===
 
-.Syntax Changes
-
-As of APOC 3.1.3.x multiple label filter operations are allowed.
-In prior versions, only one type of operation is allowed in the label filter (`+` or `-` or `/` or `>`, never more than one).
-
-With APOC 3.2.x.x, label filters will no longer apply to starting nodes of the expansion by default, but this can be toggled with the `filterStartNode` config parameter.
-
-With the APOC releases in January 2018, some behavior has changed in the label filters:
-
-[opts=header,cols="m,a"]
-|===
-| filter | changed behavior
-| No filter | Now indicates the label is whitelisted, same as if it were prefixed with `+`.
-Previously, a label without a filter symbol reused the previously used symbol.
-| `>` (end node filter) | The label is additionally whitelisted, so expansion will always continue beyond an end node (unless prevented by the blacklist).
-Previously, expansion would only continue if allowed by the whitelist and not disallowed by the blacklist.
-This also applies at a depth below `minLevel`, allowing expansion to continue.
-| `/` (termination filter) | When at depth below `minLevel`, expansion is allowed to continue and no pruning will take place (unless prevented by the blacklist).
-Previously, expansion would only continue if allowed by the whitelist and not disallowed by the blacklist.
-| All filters | `*` is allowed as a standin for all labels.
-Additionally, compound labels are supported (like `Person:Manager`), and only apply to nodes with all of those labels present (order agnositic).
-|===
+//.Syntax Changes
+//
+//As of APOC 3.1.3.x multiple label filter operations are allowed.
+//In prior versions, only one type of operation is allowed in the label filter (`+` or `-` or `/` or `>`, never more than one).
+//
+//With APOC 3.2.x.x, label filters will no longer apply to starting nodes of the expansion by default, but this can be toggled with the `filterStartNode` config parameter.
+//
+//With the APOC releases in January 2018, some behavior has changed in the label filters:
+//
+//[opts=header,cols="m,a"]
+//|===
+//| filter | changed behavior
+//| No filter | Now indicates the label is whitelisted, same as if it were prefixed with `+`.
+//Previously, a label without a filter symbol reused the previously used symbol.
+//| `>` (end node filter) | The label is additionally whitelisted, so expansion will always continue beyond an end node (unless prevented by the blacklist).
+//Previously, expansion would only continue if allowed by the whitelist and not disallowed by the blacklist.
+//This also applies at a depth below `minLevel`, allowing expansion to continue.
+//| `/` (termination filter) | When at depth below `minLevel`, expansion is allowed to continue and no pruning will take place (unless prevented by the blacklist).
+//Previously, expansion would only continue if allowed by the whitelist and not disallowed by the blacklist.
+//| All filters | `*` is allowed as a standin for all labels.
+//Additionally, compound labels are supported (like `Person:Manager`), and only apply to nodes with all of those labels present (order agnositic).
+//|===
 
 
 === Sequences
 
-Introduced in the February 2018 APOC releases, path expander procedures can expand on repeating sequences of labels, relationship types, or both.
+//Introduced in the February 2018 APOC releases,
+//path expander procedures can expand on repeating sequences of labels, relationship types, or both.
 
-If only using label sequences, just use the `labelFilter`, but use commas to separate the filtering for each step in the repeating sequence.
+Path expander procedures can expand on repeating sequences of labels, relationship types, or both.
 
-If only using relationship sequences, just use the `relationshipFilter`, but use commas to separate the filtering for each step of the repeating sequence.
+If only using label sequences, use the `labelFilter`, but use commas to separate the filtering for each step in the repeating sequence.
+
+If only using relationship sequences, use the `relationshipFilter`, but use commas to separate the filtering for each step of the repeating sequence.
 
 If using sequences of both relationships and labels, use the `sequence` parameter.
 
@@ -77,9 +84,8 @@ sequence:'Post\|-Blocked, NEXT>, Reply, <FROM, >Admin, POSTED>\|REPLIED>'  | Com
 
 There are some uses cases where the sequence does not begin at the start node, but at one node distant.
 
-A new config parameter, `beginSequenceAtStart`, can toggle this behavior.
-
-Default value is `true`.
+The config parameter `beginSequenceAtStart` toggles this behavior.
+Its default value is `true`.
 
 If set to `false`, this changes the expected values for `labelFilter`, `relationshipFilter`, and `sequence` as noted below:
 
@@ -99,7 +105,7 @@ beginSequenceAtStart:false, sequence:'FIRST>, Post\|-Blocked, NEXT>, Reply, <FRO
 
 Label filtering in sequences work together with the `endNodes`+`terminatorNodes`, though inclusion of a node must be unanimous.
 
-Remember that `filterStartNode` defaults to `false` for APOC 3.2.x.x and newer. If you want the start node filtered according to the first step in the sequence, you may need to set this explicitly to `true`.
+//Remember that `filterStartNode` defaults to `false` for APOC 3.2.x.x and newer. If you want the start node filtered according to the first step in the sequence, you may need to set this explicitly to `true`.
 
 If you need to limit the number of times a sequence repeats, this can be done with the `maxLevel` config param (multiply the number of iterations with the size of the nodes in the sequence).
 
@@ -146,17 +152,17 @@ Each of these config parameter accepts a list of nodes, or a list of node ids.
 | blacklistNodes | None of the paths returned will include these nodes. | Spring 2018 APOC releases.
 |===
 
-==== Updated behavior for Fall 2019 releases
-
-The node filters behavior will now more closely match those of the label filters, with respect to the `filterStartNode` and `minLevel` config options.
-
-1. None of the filters will apply to the start node in any way when `filterStartNode=false`.
-
-2. The `endNodes` and `terminatorNodes` filters will not apply when evaluating nodes below the configured `minLevel`.
-(`blacklistNodes` and `whitelistNodes` will continue to apply in all cases, excepting the above mentioned case of the start node when `filterStartNode=false`)
-
-
-
+//==== Updated behavior for Fall 2019 releases
+//
+//The node filters behavior will now more closely match those of the label filters, with respect to the `filterStartNode` and `minLevel` config options.
+//
+//1. None of the filters will apply to the start node in any way when `filterStartNode=false`.
+//
+//2. The `endNodes` and `terminatorNodes` filters will not apply when evaluating nodes below the configured `minLevel`.
+//(`blacklistNodes` and `whitelistNodes` will continue to apply in all cases, excepting the above mentioned case of the start node when `filterStartNode=false`)
+//
+//
+//
 
 
 
