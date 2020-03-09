@@ -124,6 +124,7 @@ public class LdapUtil {
                                                           Matcher matcher,
                                                           LdapConnection connection,
                                                           Log log) {
+        log.info("Processing ranged attribute: " + rangedAttribute.getId());
         List<Value> combinedValues = new ArrayList<>();
         rangedAttribute.forEach(combinedValues::add);
 
@@ -135,6 +136,8 @@ public class LdapUtil {
         int nextHigh = nextLow + step;
         boolean moreResults = true;
 
+        if (log.isDebugEnabled())
+            log.debug(String.format("Beginning first round of attribute value retrieval: %s, %d, %d", attrName, low, high));
         while (moreResults) {
             Entry nextPage;
             try {
@@ -149,6 +152,8 @@ public class LdapUtil {
                         } else {
                             nextLow = Integer.parseInt(nextPageMatcher.group(3)) + 1;
                             nextHigh = step + nextLow;
+                            if (log.isDebugEnabled())
+                                log.debug(String.format("Beginning next round of attribute value retrieval: %s, %d, %d", attrName, nextLow, nextHigh));
                         }
                     }
                 }
@@ -156,15 +161,19 @@ public class LdapUtil {
                 throw new RuntimeException(e);
             }
         }
+        log.info("Finished ranged attribute: " + rangedAttribute.getId());
         return combinedValues;
     }
 
     public static Entry rangedRetrievalEntryHandler(Entry rawEntry, LdapConnection connection, Log log) {
-        for (Attribute attribute : rawEntry) {
+        log.info("Beginning ranged retrieval handling for entry: " + rawEntry.getDn().toString());
+        Entry newEntry = rawEntry.clone();
+        for (Attribute attribute : newEntry) {
             Matcher matcher = Pattern.compile(FIRST_RANGED_PAGE_PATTERN).matcher(attribute.getId());
             if (matcher.find()) {
-                Attribute realAttribute = rawEntry.get(matcher.group(1));
-                for (Value val : getAllRangedAttributeValues(rawEntry.getDn(), attribute, matcher, connection, log)) {
+                Attribute realAttribute = newEntry.get(matcher.group(1));
+                List<Value> allAttributeValues = getAllRangedAttributeValues(newEntry.getDn(), attribute, matcher, connection, log);
+                for (Value val : allAttributeValues) {
                     try {
                         realAttribute.add(val);
                     } catch (LdapInvalidAttributeValueException e) {
@@ -173,6 +182,7 @@ public class LdapUtil {
                 }
             }
         }
+        log.info("Finished ranged retrieval handling for " + rawEntry.getDn().toString());
         return rawEntry;
     }
 

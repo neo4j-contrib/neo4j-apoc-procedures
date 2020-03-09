@@ -92,7 +92,6 @@ public class LoadLdap {
             SearchRequest req = buildSearch(ldapConfig, null, log);
             boolean hasMoreResults = true;
 
-            // TODO: reduce the complexity of this block
             while (hasMoreResults) {
                 try (SearchCursor searchCursor = connection.search(req)) {
                     while (searchCursor.next()) {
@@ -101,7 +100,8 @@ public class LoadLdap {
                             Entry resultEntry = ((SearchResultEntry) resp).getEntry();
                             if (hasRangeRetrieval) {
                                 LdapConnection extra = pool.getConnection();
-                                rangedRetrievalEntryHandler(resultEntry, extra, log);
+                                resultEntry = rangedRetrievalEntryHandler(resultEntry, extra, log);
+                                pool.releaseConnection(extra);
                             }
                             allEntries.add(resultEntry);
                         }
@@ -135,7 +135,6 @@ public class LoadLdap {
             throw new RuntimeException("Error connecting to server: " + e);
         }
     }
-
 
     private static class EntryListIterator implements Iterator<Map<String, Object>> {
         private final Iterator<Entry> entries;
