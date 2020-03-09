@@ -1,13 +1,26 @@
 [[path-expander-paths-config]]
 == Expand paths with config
 
-----
-apoc.path.expandConfig(startNode <id>Node/list, {config}) yield path expands from start nodes using the given configuration and yields the resulting paths
-----
+[abstract]
+--
+This section describes a procedure that can be used to expand the paths of variable length path traversals, while providing configuration options.
+--
+
+[[path-expander-paths-config-overview]]
+=== Procedure Overview
+
+The procedure is described below:
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.path.expandConfig.csv[]
+|===
+
+[[path-expander-paths-config-config]]
+=== Configuration
 
 Takes an additional map parameter, `config`, to provide configuration options:
 
-.Config
 ----
 {minLevel: -1|number,
  maxLevel: -1|number,
@@ -24,79 +37,69 @@ Takes an additional map parameter, `config`, to provide configuration options:
  beginSequenceAtStart: true|false}
 ----
 
-=== Start Node and label filters
+.Label filter operator precedence and behavior
+--
+include::label-filter-precedence.adoc[]
+--
 
-The config parameter `filterStartNode` defines whether or not the labelFilter (and `sequence`) applies to the start node of the expansion.
+.Sequences
+--
+include::sequences.adoc[]
+include::sequence-tips.adoc[]
+--
 
-Use `filterStartNode: false` when you want your label filter to only apply to all other nodes in the path, ignoring the start node.
+.Start node and label filters
+--
+include::start-node-label-filters.adoc[]
+--
 
-`filterStartNode` defaults for all path expander procedures:
+.Limit
+--
+include::limit-expand.adoc[]
+--
 
-[opts=header,cols="a,a"]
-|===
-| version |  default
-| >= APOC 3.2.x.x | filterStartNode = false
-| < APOC 3.2.x.x | filterStartNode = true
-|===
-
-=== Limit
-
-You can use the `limit` config parameter to limit the number of paths returned.
-
-When using `bfs:true` (which is the default for all expand procedures), this has the effect of returning paths to the `n` nearest nodes with labels in the termination or end node filter, where `n` is the limit given.
-
-The default limit value, `-1`, means no limit.
-
-If you want to make sure multiple paths should never match to the same node, use `expandConfig()` with 'NODE_GLOBAL' uniqueness, or any expand procedure which already uses this uniqueness
-(`subgraphNodes()`, `subgraphAll()`, and `spanningTree()`).
-
-
-=== Optional
-
-When `optional` is set to true, the path expansion is optional, much like an OPTIONAL MATCH, so a `null` value is yielded whenever the expansion would normally eliminate rows due to no results.
-
-By default `optional` is false for all expansion procedures taking a config parameter.
-
+.Optional
+--
+include::optional.adoc[]
+--
 
 .Uniqueness
+--
+include::uniqueness-expand.adoc[]
+--
 
-Uniqueness of nodes and relationships guides the expansion and the results returned.
-Uniqueness is only configurable using `expandConfig()`.
+.Node filters
+--
+include::node-filter.adoc[]
+--
 
-`subgraphNodes()`, `subgraphAll()`, and `spanningTree()` all use 'NODE_GLOBAL' uniqueness.
+[[path-expander-paths-config-examples]]
+=== Examples
 
-[opts=header,cols="m,a"]
-|===
-| value | description
-| RELATIONSHIP_PATH | For each returned node there's a (relationship wise) unique path from the start node to it. This is Cypher's default expansion mode.
-| NODE_GLOBAL | A node cannot be traversed more than once. This is what the legacy traversal framework does.
-| NODE_LEVEL | Entities on the same level are guaranteed to be unique.
-| NODE_PATH | For each returned node there's a unique path from the start node to it.
-| NODE_RECENT | This is like NODE_GLOBAL, but only guarantees uniqueness among the most recent visited nodes, with a configurable count. Traversing a huge graph is quite memory intensive in that it keeps track of all the nodes it has visited.
-For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemoryError. Together with this Uniqueness you can supply a count, which is the number of most recent visited nodes. This can cause a node to be visited more than once, but scales infinitely.
-| RELATIONSHIP_GLOBAL | A relationship cannot be traversed more than once, whereas nodes can.
-| RELATIONSHIP_LEVEL | Entities on the same level are guaranteed to be unique.
-| RELATIONSHIP_RECENT | Same as for NODE_RECENT, but for relationships.
-| NONE | No restriction (the user will have to manage it)
-|===
+.Termination and end node label filter example
 
-=== Node filters
+We will first set a `:Western` label on some nodes.
 
-While label filters use labels to allow whitelisting, blacklisting, and restrictions on which kind of nodes can end or terminate expansion,
-you can also filter based upon actual nodes.
+[source,cypher]
+----
+match (p:Person)
+where p.name in ['Clint Eastwood', 'Gene Hackman']
+set p:Western
+----
 
-Each of these config parameter accepts a list of nodes, or a list of node ids.
+Now expand from 'Keanu Reeves' to all `:Western` nodes with a termination filter:
 
-[opts=header,cols="m,a,a"]
-|===
-| config parameter | description | added in
-| endNodes | Only these nodes can end returned paths, and expansion will continue past these nodes, if possible. | Winter 2018 APOC releases.
-| terminatorNodes | Only these nodes can end returned paths, and expansion won't continue past these nodes. | Winter 2018 APOC releases.
-| whitelistNodes | Only these nodes are allowed in the expansion (though endNodes and terminatorNodes will also be allowed, if present). | Spring 2018 APOC releases.
-| blacklistNodes | None of the paths returned will include these nodes. | Spring 2018 APOC releases.
-|===
+[source,cypher]
+----
+match (k:Person {name:'Keanu Reeves'})
+call apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'/Western', uniqueness: 'NODE_GLOBAL'}) yield path
+return path
+----
 
-=== General Examples
+The one returned path only matches up to 'Gene Hackman'.
+While there is a path from 'Keanu Reeves' to 'Clint Eastwood' through 'Gene Hackman', no further expansion is permitted through a node in the termination filter.
+
+If you didn't want to stop expansion on reaching 'Gene Hackman', and wanted 'Clint Eastwood' returned as well, use the end node filter  instead (`>`).
 
 You can turn this cypher query:
 
@@ -112,6 +115,13 @@ into this procedure call, with changed semantics for uniqueness and bfs (which i
 [source,cypher]
 ----
 MATCH (user:User) WHERE user.id = 460
-CALL apoc.path.expandConfig(user,{relationshipFilter:"RATED",minLevel:3,maxLevel:3,bfs:false,uniqueness:"NONE"}) YIELD path
+CALL apoc.path.expandConfig(user,{
+    relationshipFilter:"RATED",
+    minLevel:3,
+    maxLevel:3,
+    bfs:false,
+    uniqueness:"NONE"
+})
+YIELD path
 RETURN count(*);
 ----

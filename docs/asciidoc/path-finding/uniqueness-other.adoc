@@ -1,0 +1,5 @@
+Uniqueness of nodes and relationships guides the expansion and the returned results.
+This procedure uses 'NODE_GLOBAL' uniqueness, which means that a node cannot be traversed more than once.
+This is what the legacy traversal framework does.
+
+See <<path-expander-paths-config>> for a path expander procedure that has fine grained control over its uniqueness strategy.

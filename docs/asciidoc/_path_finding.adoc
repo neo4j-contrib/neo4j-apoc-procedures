@@ -10,7 +10,6 @@ The procedures in this chapter enable the querying of graph data when pure Cyphe
 For more information on how to use these procedures, see:
 
 * <<path-expander>>
-** <<path-expander-all-config>>
 ** <<path-expander-paths>>
 ** <<path-expander-paths-config>>
 ** <<expand-subgraph-nodes>>
@@ -23,7 +22,6 @@ For more information on how to use these procedures, see:
 * <<parallel-node-search>>
 
 include::path-finding/expand-overview.adoc[leveloffset=1]
-include::path-finding/expand-overview-config.adoc[leveloffset=1]
 include::path-finding/expand.adoc[leveloffset=1]
 include::path-finding/expand-config.adoc[leveloffset=1]
 include::path-finding/expand-subgraph-nodes.adoc[leveloffset=1]

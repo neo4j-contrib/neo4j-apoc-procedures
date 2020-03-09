@@ -1,0 +1,21 @@
+Multiple label filter operators are allowed at the same time.
+
+In the following example, `:Person` and `:Movie` labels are whitelisted, `:SciFi` is blacklisted, with `:Western` acting as an end node label, and `:Romance` acting as a termination label.
+
+`... labelFilter:'+Person|Movie|-SciFi|>Western|/Romance' ...`
+
+The precedence of operator evaluation isn't dependent upon their location in the labelFilter but is fixed:
+
+Blacklist filter `-`, termination filter `/`, end node filter `>`, whitelist filter `+`.
+
+The consequences are as follows:
+
+* No blacklisted label `-` will ever be present in the nodes of paths returned, no matter if the same label (or another label of a node with a blacklisted label) is included in another filter list.
+* If the termination filter `/` or end node filter `>` is used, then only paths up to nodes with those labels will be returned as results. These end nodes are exempt from the whitelist filter.
+* If a node is a termination node `/`, no further expansion beyond the node will occur.
+* If a node is an end node `>`, expansion beyond that node will only occur if the end node has a label in the whitelist. This is to prevent returning paths to nodes where a node on that path violates the whitelist.
+(this no longer applies in releases after February 2018)
+* The whitelist only applies to nodes up to but not including end nodes from the termination or end node filters. If no end node or termination node operators are present, then the whitelist applies to all nodes of the path.
+* If no whitelist operators are present in the labelFilter, this is treated as if all labels are whitelisted.
+* If `filterStartNode` is false (which will be default in APOC 3.2.x.x), then the start node is exempt from the label filter.
+

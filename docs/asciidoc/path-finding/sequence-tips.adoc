@@ -1,0 +1,8 @@
+[NOTE]
+====
+.Sequence tips
+
+Label filtering in sequences work together with the `endNodes`+`terminatorNodes`, though inclusion of a node must be unanimous.
+
+If you need to limit the number of times a sequence repeats, this can be done with the `maxLevel` config param (multiply the number of iterations with the size of the nodes in the sequence).
+====

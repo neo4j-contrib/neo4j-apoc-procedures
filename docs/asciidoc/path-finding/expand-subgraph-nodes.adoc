@@ -3,7 +3,7 @@
 
 [abstract]
 --
-This section describes a procedure that expands a subgraph from a set of start nodes, and returns all nodes and relationships within the subgraph.
+This section describes a procedure that expands a subgraph from a set of start nodes, and returns all nodes within the subgraph.
 --
 
 ----

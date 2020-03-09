@@ -1,0 +1,3 @@
+When `optional` is set to true, the path expansion is optional, much like an OPTIONAL MATCH, so a `null` value is yielded whenever the expansion would normally eliminate rows due to no results.
+
+By default `optional` is false for all expansion procedures taking a config parameter.
