@@ -41,15 +41,11 @@ This procedure takes five parameters:
 
 The syntax for relationship filters is described below:
 
-
 include::relationship-filter.adoc[]
-
-
 
 *Label Filters*
 
 The syntax for label filters is described below:
-
 
 include::label-filter.adoc[]
 
