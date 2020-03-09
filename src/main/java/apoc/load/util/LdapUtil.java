@@ -165,6 +165,14 @@ public class LdapUtil {
         return combinedValues;
     }
 
+    /**
+     * Starting point for handling ranged attribute values where the initial inspection occurs
+     * before spinning out any value retrieval to getAllRangedAttributeValues
+     * @param rawEntry entry as received from the LDAP server
+     * @param connection prebound connection from the pool
+     * @param log Neo4j log
+     * @return a modified Entry with complete attribute values
+     */
     public static Entry rangedRetrievalEntryHandler(Entry rawEntry, LdapConnection connection, Log log) {
         log.info("Beginning ranged retrieval handling for entry: " + rawEntry.getDn().toString());
         Entry newEntry = rawEntry.clone();
@@ -183,7 +191,7 @@ public class LdapUtil {
             }
         }
         log.info("Finished ranged retrieval handling for " + rawEntry.getDn().toString());
-        return rawEntry;
+        return newEntry;
     }
 
 
