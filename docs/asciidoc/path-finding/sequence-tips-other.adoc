@@ -1,0 +1,11 @@
+[NOTE]
+====
+.Sequence tips
+
+Label filtering in sequences work together with the `endNodes`+`terminatorNodes`, though inclusion of a node must be unanimous.
+
+If you need to limit the number of times a sequence repeats, this can be done with the `maxLevel` config param (multiply the number of iterations with the size of the nodes in the sequence).
+
+As paths are important when expanding sequences, we recommend avoiding `apoc.path.subgraphNodes()`, `apoc.path.subgraphAll()`, and `apoc.path.spanningTree()` when using sequences,
+as the configurations that make these efficient at matching to distinct nodes may interfere with sequence pathfinding.
+====

@@ -125,10 +125,21 @@
     <d:tocentry linkend="path-finding"><?dbhtml filename="graph-querying/index.html"?>
       <d:tocentry linkend="path-expander"><?dbhtml filename="graph-querying/path-expander/index.html"?>
       </d:tocentry>
+      
       <d:tocentry linkend="neighbourhood-search"><?dbhtml filename="graph-querying/neighbourhood-search/index.html"?>
       </d:tocentry>
 
       <d:tocentry linkend="expand-subgraph"><?dbhtml filename="graph-querying/expand-subgraph/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="expand-subgraph-nodes"><?dbhtml filename="graph-querying/expand-subgraph-nodes/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="path-expander-paths"><?dbhtml filename="graph-querying/expand-paths/index.html"?>
+      </d:tocentry>
+
+
+      <d:tocentry linkend="path-expander-paths-config"><?dbhtml filename="graph-querying/expand-paths-config/index.html"?>
       </d:tocentry>
 
       <d:tocentry linkend="expand-spanning-tree"><?dbhtml filename="graph-querying/expand-spanning-tree/index.html"?>
