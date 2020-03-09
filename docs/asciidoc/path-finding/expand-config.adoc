@@ -6,6 +6,16 @@
 This section describes a procedure that can be used to expand the paths of variable length path traversals, while providing configuration options.
 --
 
+The expand paths with config procedure enables powerful variable length path traversals with fine grained control over the traversals.
+See <<path-expander-paths>> for a more basic version of the algorithm if fine grained control over traversals isn't required.
+
+This section includes:
+
+* <<path-expander-paths-config-overview>>
+* <<path-expander-paths-config-config>>
+* <<path-expander-paths-config-config-sequences>>
+* <<path-expander-paths-config-examples>>
+
 [[path-expander-paths-config-overview]]
 === Procedure Overview
 
@@ -17,60 +27,58 @@ include::../../../build/generated-documentation/apoc.path.expandConfig.csv[]
 |===
 
 [[path-expander-paths-config-config]]
-=== Configuration
+=== Configuration parameters
+The procedures support the following config parameters:
 
-Takes an additional map parameter, `config`, to provide configuration options:
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| minLevel | Long | -1 | the minimum number of hops in the traversal
+| maxLevel | Long | -1 | the maximum number of hops in the traversal
+| relationshipFilter | String | null | the relationship types and directions to traverse. See <<path-expander-paths-config-config-relationship-filters>>.
+| labelFilter | String | null | the node labels to traverse. See <<path-expander-paths-config-config-label-filters>>.
+| beginSequenceAtStart | Boolean | true | starts matching sequences of node labels and/or relationship types (defined in `relationshipFilter`, `labelFilter`, or `sequences`) one node away from the start node.
+| uniqueness | String | RELATIONSHIP_PATH | the strategy to use when expanding relationships in a traversal. See <<path-expander-paths-config-config-uniqueness>>.
+| bfs | Boolean | true | use Breadth First Search when traversing. Uses Depth First Search if set to `false`
+| filterStartNode | Boolean | false | whether the `labelFilter` and `sequence` apply to the start node of the expansion.
+| limit | Long | -1 | limit the number of paths returned. When using `bfs:true`, this has the effect of returning paths to the `n` nearest nodes with labels in the termination or end node filter, where `n` is the limit given.
+| optional | Boolean | false | is path expansion optional?
+If set to `true`, a `null` value is yielded whenever the expansion would normally eliminate rows due to no results.
+| endNodes | List<Node> | null | only these nodes can end returned paths, and expansion will continue past these nodes, if possible.
+| terminatorNodes | List<Node> | null | Only these nodes can end returned paths, and expansion won't continue past these nodes.
+| whiteListNodes | List<Node> | null | Only these nodes are allowed in the expansion (though endNodes and terminatorNodes will also be allowed, if present).
+| blackListNodes | List<Node> | null | None of the paths returned will include these nodes.
+|===
 
-----
-{minLevel: -1|number,
- maxLevel: -1|number,
- relationshipFilter: '[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>], [<]RELATIONSHIP_TYPE3[>]|[<]RELATIONSHIP_TYPE4[>]',
- labelFilter: '[+-/>]LABEL1|LABEL2|*,[+-/>]LABEL1|LABEL2|*,...',
- uniqueness: RELATIONSHIP_PATH|NONE|NODE_GLOBAL|NODE_LEVEL|NODE_PATH|NODE_RECENT|
-             RELATIONSHIP_GLOBAL|RELATIONSHIP_LEVEL|RELATIONSHIP_RECENT,
- bfs: true|false,
- filterStartNode: true|false,
- limit: -1|number,
- optional: true|false,
- endNodes: [nodes],
- terminatorNodes: [nodes],
- beginSequenceAtStart: true|false}
-----
+[[path-expander-paths-config-config-relationship-filters]]
+==== Relationship Filters
+
+The syntax for relationship filters is described below:
+
+include::relationship-filter.adoc[]
+
+[[path-expander-paths-config-config-label-filters]]
+==== Label Filters
+
+The syntax for label filters is described below:
+
+include::label-filter.adoc[]
 
 *Label filter operator precedence and behavior*
 
 include::label-filter-precedence.adoc[]
 
-*Sequences*
-
-include::sequences.adoc[]
-include::sequence-tips.adoc[]
-
-
-*Start node and label filters*
-
-include::start-node-label-filters.adoc[]
-
-
-*Limit*
-
-include::limit-expand.adoc[]
-
-
-*Optional*
-
-include::optional.adoc[]
-
-
-*Uniqueness*
+[[path-expander-paths-config-config-uniqueness]]
+==== Uniqueness
 
 include::uniqueness-expand.adoc[]
 
+[[path-expander-paths-config-config-sequences]]
+=== Specifying Sequences of node labels and relationship types
 
-*Node filters*
-
-include::node-filter.adoc[]
-
+include::sequences.adoc[]
+include::sequence-tips.adoc[]
 
 [[path-expander-paths-config-examples]]
 === Examples

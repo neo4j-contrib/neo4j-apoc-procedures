@@ -1,5 +1,0 @@
-The config parameter `filterStartNode` defines whether or not the labelFilter (and `sequence`) applies to the start node of the expansion.
-
-Use `filterStartNode: false` when you want your label filter to only apply to all other nodes in the path, ignoring the start node.
-
-`filterStartNode` defaults to `false`.
