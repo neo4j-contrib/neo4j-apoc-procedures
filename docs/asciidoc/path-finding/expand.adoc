@@ -12,9 +12,9 @@ See <<path-expander-paths-config>> if more control is required over the traversa
 
 This section includes the following:
 
-* <<path-expander-paths-procedure-overview, Procedure Overview>>
-* <<path-expander-paths-parameter-syntax, Parameter Syntax>>
-* <<path-expander-paths-examples, Examples>>
+* <<path-expander-paths-procedure-overview>>
+* <<path-expander-paths-parameter-syntax>>
+* <<path-expander-paths-examples>>
 
 [[path-expander-paths-procedure-overview]]
 === Procedure Overview
