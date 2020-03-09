@@ -125,9 +125,7 @@
     <d:tocentry linkend="path-finding"><?dbhtml filename="graph-querying/index.html"?>
       <d:tocentry linkend="path-expander"><?dbhtml filename="graph-querying/path-expander/index.html"?>
       </d:tocentry>
-
-      <d:tocentry linkend="path-expander-all-config"><?dbhtml filename="graph-querying/path-expander-configuration/index.html"?>
-      </d:tocentry>
+      
       <d:tocentry linkend="neighbourhood-search"><?dbhtml filename="graph-querying/neighbourhood-search/index.html"?>
       </d:tocentry>
 
