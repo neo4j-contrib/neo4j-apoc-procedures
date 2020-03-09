@@ -37,41 +37,40 @@ Takes an additional map parameter, `config`, to provide configuration options:
  beginSequenceAtStart: true|false}
 ----
 
-.Label filter operator precedence and behavior
---
-include::label-filter-precedence.adoc[]
---
+*Label filter operator precedence and behavior*
 
-.Sequences
---
+include::label-filter-precedence.adoc[]
+
+*Sequences*
+
 include::sequences.adoc[]
 include::sequence-tips.adoc[]
---
 
-.Start node and label filters
---
+
+*Start node and label filters*
+
 include::start-node-label-filters.adoc[]
---
 
-.Limit
---
+
+*Limit*
+
 include::limit-expand.adoc[]
---
 
-.Optional
---
+
+*Optional*
+
 include::optional.adoc[]
---
 
-.Uniqueness
---
+
+*Uniqueness*
+
 include::uniqueness-expand.adoc[]
---
 
-.Node filters
---
+
+*Node filters*
+
 include::node-filter.adoc[]
---
+
 
 [[path-expander-paths-config-examples]]
 === Examples

@@ -37,19 +37,22 @@ This procedure takes five parameters:
 * `minLevel` - the minimum number of hops in our traversal
 * `maxLevel` - the maximum number of hops in our traversal
 
-.Relationship Filters
---
+*Relationship Filters*
+
 The syntax for relationship filters is described below:
 
-include::relationship-filter.adoc[]
---
 
-.Label Filters
---
+include::relationship-filter.adoc[]
+
+
+
+*Label Filters*
+
 The syntax for label filters is described below:
 
+
 include::label-filter.adoc[]
---
+
 
 [[path-expander-paths-examples]]
 === Examples

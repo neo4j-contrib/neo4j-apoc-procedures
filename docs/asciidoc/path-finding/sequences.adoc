@@ -17,15 +17,12 @@ relationshipFilter:'NEXT>,<FROM,POSTED>\|REPLIED>' | Expansion will first expand
 sequence:'Post\|-Blocked, NEXT>, Reply, <FROM, >Admin, POSTED>\|REPLIED>'  | Combines the behaviors above.
 |===
 
-==== Starting the sequence at one-off from the start node
-
 There are some uses cases where the sequence does not begin at the start node, but at one node distant.
 
 The config parameter `beginSequenceAtStart` toggles this behavior.
 Its default value is `true`.
 
 If set to `false`, this changes the expected values for `labelFilter`, `relationshipFilter`, and `sequence` as noted below:
-
 
 [opts=header,cols="m,a,m,a"]
 |===
