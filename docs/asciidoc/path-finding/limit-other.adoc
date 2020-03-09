@@ -1,0 +1,5 @@
+We can use the `limit` config parameter to limit the number of paths returned.
+
+When using `bfs:true` (which is the default for all expand procedures), this has the effect of returning paths to the `n` nearest nodes with labels in the termination or end node filter, where `n` is the limit given.
+
+The default limit value, `-1`, means no limit.
