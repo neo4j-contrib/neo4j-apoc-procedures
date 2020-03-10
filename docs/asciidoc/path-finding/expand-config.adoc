@@ -92,10 +92,25 @@ The examples in this section are based on the following sample graph:
 
 include::expand-sample-graph.adoc[]
 
-==== Sequences of relationship types
-
-Sequences of relationship types can be specified by comma separating the values passed to `relationshipFilter`.
-
+//[[path-expander-paths-config-examples-sequence-rel-types]]
+//==== Sequences of relationship types
+//
+//Sequences of relationship types can be specified by comma separating the values passed to `relationshipFilter`.
+//This is usually used in combination with `beginSequenceAtStart: false`, which means that sequences will start one hop away from the starting node.
+//
+//[source,cypher]
+//----
+//MATCH (p:Person {name: "Joe"})
+//CALL apoc.path.expandConfig(p, {
+//	relationshipFilter: "FOLLOWS>,KNOWS",
+//	beginSequenceAtStart: false,
+//	minLevel: 1,
+//	maxLevel: 4
+//})
+//YIELD path
+//RETURN path, length(path) AS hops
+//ORDER BY hops;
+//----
 
 [[path-expander-paths-config-examples-sequence-node-labels]]
 ==== Sequences of node labels
