@@ -29,7 +29,7 @@ include::../../../build/generated-documentation/apoc.path.expand.csv[]
 [[path-expander-paths-parameter-syntax]]
 === Parameter Syntax
 
-This procedure takes five parameters:
+This procedure takes the following parameters:
 
 * `start` - a list of nodes or node ids
 * `relationshipFilter` - the relationship types to be expanded
@@ -67,7 +67,6 @@ MERGE (alicia:Person:Product {name: "Alicia"})
 MERGE (martin:Person:Engineering {name: "Martin"})
 MERGE (jake:Person:Product {name: "Jake"})
 
-
 MERGE (zhen)-[:KNOWS]-(stefan)
 MERGE (zhen)-[:KNOWS]-(lju)
 MERGE (zhen)-[:KNOWS]-(praveena)
@@ -83,6 +82,12 @@ MERGE (mark)-[:FOLLOWS]->(stefan)
 MERGE (stefan)-[:FOLLOWS]->(joe)
 MERGE (praveena)-[:FOLLOWS]->(joe)
 ----
+
+The `KNOWS` relationship type is considered to be bidirectional, where if Zhen knows Stefan, we can imply that Stefan knows Zhen.
+When using the `KNOWS` relationship we will ignore the direction.
+
+The `FOLLOWS` relationship has a direction, so we will specify a direction when we use it.
+
 
 Let's start by expanding paths from the Praveena node.
 We only want to consider the `KNOWS` relationship type, so we'll specify that as the relationship filter.
