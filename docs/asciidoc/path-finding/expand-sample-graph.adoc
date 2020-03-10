@@ -26,6 +26,10 @@ MERGE (stefan)-[:FOLLOWS]->(joe)
 MERGE (praveena)-[:FOLLOWS]->(joe)
 ----
 
+The Neo4j Browser visualization below shows the sample graph:
+
+image::apoc.path.expand.svg[]
+
 The `KNOWS` relationship type is considered to be bidirectional, where if Zhen knows Stefan, we can imply that Stefan knows Zhen.
 When using the `KNOWS` relationship we will ignore the direction.
 
