@@ -6,16 +6,77 @@
 This section describes a procedure that finds a spanning tree that starts from a set of start nodes.
 --
 
-----
-apoc.path.spanningTree(startNode <id>Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1, optional:false}) yield path
-----
-
-Expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters.
+Expands a spanning tree reachable from start node following relationships to max-level adhering to the label filters.
 The paths returned collectively form a spanning tree.
 
-Accepts the same `config` values as in `expandConfig()`, though `uniqueness` is not configurable and `minLevel`, if present, must be 0 or 1.
+* <<expand-spanning-tree-overview>>
+* <<expand-spanning-tree-config>>
+* <<expand-spanning-tree-examples>>
 
-.Example
+[[expand-spanning-tree-overview]]
+=== Procedure Overview
+
+The procedure is described below:
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.path.subgraphNodes.csv[]
+|===
+
+[[expand-spanning-tree-config]]
+=== Configuration parameters
+The procedures support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| minLevel | Long | -1 | the minimum number of hops in the traversal. Must be 0 or 1 if specified
+| maxLevel | Long | -1 | the maximum number of hops in the traversal
+| relationshipFilter | String | null | the relationship types and directions to traverse. See <<expand-spanning-tree-relationship-filters>>.
+| labelFilter | String | null | the node labels to traverse. See <<expand-spanning-tree-label-filters>>.
+| beginSequenceAtStart | Boolean | true | starts matching sequences of node labels and/or relationship types (defined in `relationshipFilter`, `labelFilter`, or `sequences`) one node away from the start node.
+| bfs | Boolean | true | use Breadth First Search when traversing. Uses Depth First Search if set to `false`
+| filterStartNode | Boolean | false | whether the `labelFilter` and `sequence` apply to the start node of the expansion.
+| limit | Long | -1 | limit the number of paths returned. When using `bfs:true`, this has the effect of returning paths to the `n` nearest nodes with labels in the termination or end node filter, where `n` is the limit given.
+If set to `true`, a `null` value is yielded whenever the expansion would normally eliminate rows due to no results.
+| endNodes | List<Node> | null | only these nodes can end returned paths, and expansion will continue past these nodes, if possible.
+| terminatorNodes | List<Node> | null | Only these nodes can end returned paths, and expansion won't continue past these nodes.
+| whiteListNodes | List<Node> | null | Only these nodes are allowed in the expansion (though endNodes and terminatorNodes will also be allowed, if present).
+| blackListNodes | List<Node> | null | None of the paths returned will include these nodes.
+|===
+
+It also has the following fixed parameter:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| uniqueness | String | NODE_GLOBAL | the strategy to use when expanding relationships in a traversal.
+`NODE_GLOBAL` means that a node cannot be traversed more than once.
+This is what the legacy traversal framework does.
+|===
+
+[[expand-spanning-tree-relationship-filters]]
+==== Relationship Filters
+
+The syntax for relationship filters is described below:
+
+include::relationship-filter.adoc[]
+
+[[expand-spanning-tree-label-filters]]
+==== Label Filters
+
+The syntax for label filters is described below:
+
+include::label-filter.adoc[]
+
+*Label filter operator precedence and behavior*
+
+include::label-filter-precedence.adoc[]
+
+[[expand-spanning-tree-examples]]
+=== Examples
 
 Expand a spanning tree of all contiguous :User nodes:
 
