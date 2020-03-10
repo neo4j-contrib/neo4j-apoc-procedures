@@ -1,0 +1,46 @@
+[source,cypher]
+----
+MERGE (mark:Person:DevRel {name: "Mark"})
+MERGE (lju:Person:DevRel {name: "Lju"})
+MERGE (praveena:Person:Engineering {name: "Praveena"})
+MERGE (zhen:Person:Engineering {name: "Zhen"})
+MERGE (martin:Person:Engineering {name: "Martin"})
+MERGE (joe:Person:Field {name: "Joe"})
+MERGE (stefan:Person:Field {name: "Stefan"})
+MERGE (alicia:Person:Product {name: "Alicia"})
+MERGE (jake:Person:Product {name: "Jake"})
+MERGE (john:Person:Product {name: "John"})
+MERGE (jonny:Person:Sales {name: "Jonny"})
+MERGE (anthony:Person:Sales {name: "Anthony"})
+MERGE (rik:Person:Sales {name: "Rik"})
+
+MERGE (zhen)-[:KNOWS]-(stefan)
+MERGE (zhen)-[:KNOWS]-(lju)
+MERGE (zhen)-[:KNOWS]-(praveena)
+MERGE (zhen)-[:KNOWS]-(martin)
+MERGE (mark)-[:KNOWS]-(jake)
+MERGE (alicia)-[:KNOWS]-(jake)
+MERGE (jonny)-[:KNOWS]-(anthony)
+MERGE (john)-[:KNOWS]-(rik)
+
+MERGE (alicia)-[:FOLLOWS]->(joe)
+MERGE (joe)-[:FOLLOWS]->(mark)
+MERGE (joe)-[:FOLLOWS]->(praveena)
+MERGE (joe)-[:FOLLOWS]->(zhen)
+MERGE (mark)-[:FOLLOWS]->(stefan)
+MERGE (stefan)-[:FOLLOWS]->(joe)
+MERGE (praveena)-[:FOLLOWS]->(joe)
+MERGE (lju)-[:FOLLOWS]->(jake)
+MERGE (alicia)-[:FOLLOWS]->(jonny)
+MERGE (zhen)-[:FOLLOWS]->(john)
+MERGE (anthony)-[:FOLLOWS]->(joe)
+----
+
+The Neo4j Browser visualization below shows the sample graph:
+
+image::apoc.path.expandConfig.svg[title="Sample Graph"]
+
+The `KNOWS` relationship type is considered to be bidirectional, where if Zhen knows Stefan, we can imply that Stefan knows Zhen.
+When using the `KNOWS` relationship we will ignore the direction.
+
+The `FOLLOWS` relationship has a direction, so we will specify a direction when we use it.
