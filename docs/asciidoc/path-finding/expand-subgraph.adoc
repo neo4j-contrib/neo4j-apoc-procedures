@@ -6,18 +6,82 @@
 This section describes a procedure that expands a subgraph from a set of start nodes, and returns all nodes and relationships within the subgraph.
 --
 
-----
-apoc.path.subgraphAll(startNode <id>Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1}) yield nodes, relationships
-----
-
-Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
+The expand to subgraph procedure expands to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
 Returns the collection of nodes in the subgraph, and the collection of relationships between all subgraph nodes.
+It allows fine grained control over the traversals that expand these subgraphs.
 
-Accepts the same `config` values as in `expandConfig()`, though `uniqueness` is not configurable and `minLevel`, if present, must be 0 or 1.
+This section includes:
 
-The `optional` config value isn't needed, as empty lists are yielded if there are no results, so rows are never eliminated.
+* <<expand-subgraph-overview>>
+* <<expand-subgraph-config>>
+* <<expand-subgraph-examples>>
 
-.Example
+[[expand-subgraph-overview]]
+=== Procedure Overview
+
+The procedure is described below:
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.path.subgraphAll.csv[]
+|===
+
+[[expand-subgraph-config]]
+=== Configuration parameters
+The procedures support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| minLevel | Long | -1 | the minimum number of hops in the traversal. Must be 0 or 1 if specified
+| maxLevel | Long | -1 | the maximum number of hops in the traversal
+| relationshipFilter | String | null | the relationship types and directions to traverse. See <<expand-subgraph-relationship-filters>>.
+| labelFilter | String | null | the node labels to traverse. See <<expand-subgraph-label-filters>>.
+| beginSequenceAtStart | Boolean | true | starts matching sequences of node labels and/or relationship types (defined in `relationshipFilter`, `labelFilter`, or `sequences`) one node away from the start node.
+| bfs | Boolean | true | use Breadth First Search when traversing. Uses Depth First Search if set to `false`
+| filterStartNode | Boolean | false | whether the `labelFilter` and `sequence` apply to the start node of the expansion.
+| limit | Long | -1 | limit the number of paths returned. When using `bfs:true`, this has the effect of returning paths to the `n` nearest nodes with labels in the termination or end node filter, where `n` is the limit given.
+If set to `true`, a `null` value is yielded whenever the expansion would normally eliminate rows due to no results.
+| endNodes | List<Node> | null | only these nodes can end returned paths, and expansion will continue past these nodes, if possible.
+| terminatorNodes | List<Node> | null | Only these nodes can end returned paths, and expansion won't continue past these nodes.
+| whiteListNodes | List<Node> | null | Only these nodes are allowed in the expansion (though endNodes and terminatorNodes will also be allowed, if present).
+| blackListNodes | List<Node> | null | None of the paths returned will include these nodes.
+|===
+
+It also has the following fixed parameter:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| uniqueness | String | NODE_GLOBAL | the strategy to use when expanding relationships in a traversal.
+`NODE_GLOBAL` means that a node cannot be traversed more than once.
+This is what the legacy traversal framework does.
+|===
+
+[[expand-subgraph-relationship-filters]]
+==== Relationship Filters
+
+The syntax for relationship filters is described below:
+
+include::relationship-filter.adoc[]
+
+[[expand-subgraph-label-filters]]
+==== Label Filters
+
+The syntax for label filters is described below:
+
+include::label-filter.adoc[]
+
+*Label filter operator precedence and behavior*
+
+include::label-filter-precedence.adoc[]
+
+
+[[expand-subgraph-examples]]
+=== Examples
+
 
 Expand to local subgraph (and all its relationships) within 4 traversals:
 
