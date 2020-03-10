@@ -1,10 +1,9 @@
 Path expander procedures can expand on repeating sequences of labels, relationship types, or both.
+Sequences can be defined as follows:
 
-If only using label sequences, use the `labelFilter`, but use commas to separate the filtering for each step in the repeating sequence.
-
-If only using relationship sequences, use the `relationshipFilter`, but use commas to separate the filtering for each step of the repeating sequence.
-
-If using sequences of both relationships and labels, use the `sequence` parameter.
+* If only using label sequences, use the `labelFilter`, but use commas to separate the filtering for each step in the repeating sequence.
+* If only using relationship sequences, use the `relationshipFilter`, but use commas to separate the filtering for each step of the repeating sequence.
+* If using sequences of both relationships and labels, use the `sequence` parameter.
 
 [opts=header,cols="a, m,a,m,a"]
 |===
@@ -21,7 +20,6 @@ There are some uses cases where the sequence does not begin at the start node, b
 
 The config parameter `beginSequenceAtStart` toggles this behavior.
 Its default value is `true`.
-
 If set to `false`, this changes the expected values for `labelFilter`, `relationshipFilter`, and `sequence` as noted below:
 
 [opts=header,cols="m,a,m,a"]
