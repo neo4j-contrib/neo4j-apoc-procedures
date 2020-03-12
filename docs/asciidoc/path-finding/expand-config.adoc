@@ -18,6 +18,7 @@ This section includes:
     ** <<path-expander-paths-config-examples-label-relationship-filters>>
     ** <<path-expander-paths-config-examples-end-nodes-terminator-nodes>>
     ** <<path-expander-paths-config-examples-whitelist-blacklist>>
+    ** <<path-expander-paths-config-examples-bfs-dfs>>
     ** <<path-expander-paths-config-examples-sequence-rel-types>>
     ** <<path-expander-paths-config-examples-sequence-node-labels>>
 
@@ -416,6 +417,102 @@ We can see a Neo4j Browser visualization of the returned paths in <<viz-apoc-pat
 
 [[viz-apoc-path-config-blacklist]]
 image::apoc.path.expandConfig.blacklist.svg[title="Paths from Alicia that don't include Joe"]
+
+[[path-expander-paths-config-examples-bfs-dfs]]
+==== Breadth First Search and Depth First Search
+
+We can control whether the traversal uses the Breadth First Search (BFS), by specifying `bfs: true`, or Depth First Search algorithm (DFS), by specifying `bfs: false`.
+This is often combined with the `limit` parameter to find the nearest nodes based on the chosen algorithm.
+
+.The following returns 10 paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, using BFS
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (joe:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 5,
+    bfs: true,
+    limit: 10
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                                   | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})                                                                                                 | 1
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})                                                                                                  | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                  | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})                                              | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                                       | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})                                                     | 2
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})                                                        | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:FOLLOWS]->(:Person:Product {name: "John"})     | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"}) | 3
+|===
+
+From these results we can see that paths are completely expanded at each level before going onto the next one.
+For example, we first expand from:
+
+* Alicia `->` Joe
+* Alicia `->` Jonny
+* Alicia `->` Jake
+
+Before then following relationships from those nodes.
+And once it's expanded everything at level 2, it will then explore level 3.
+
+[[viz-apoc-path-config-alicia-bfs]]
+image::apoc.path.expandConfig.alicia.bfs.svg[title="Paths from Alicia using Breadth First Search"]
+
+If we use the Depth First Search algorithm, the traversal will go as far as it can (up to the `maxLevel` of hops) down a particular path, before going back up and exploring other ones.
+
+.The following returns 10 paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, using DFS
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (joe:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    bfs: false,
+    limit: 10
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                                     | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                    | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})                                                | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:FOLLOWS]->(:Person:Product {name: "John"})       | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"})   | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"}) | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})           | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})         | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})      | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"}) | 3
+|===
+
+Now we have a different set of paths returned.
+We don't even see the paths from Alicia to Jonny or Alicia to Jake because our limit of 10 paths is completely taken up with paths going through Joe.
+
+We can see a Neo4j Browser visualization of the returned paths in <<viz-apoc-path-config-alicia-dfs>>.
+
+[[viz-apoc-path-config-alicia-dfs]]
+image::apoc.path.expandConfig.alicia.dfs.svg[title="Paths from Alicia using Depth First Search"]
+
 
 [[path-expander-paths-config-examples-sequence-rel-types]]
 ==== Sequences of relationship types
