@@ -78,6 +78,7 @@ public class SchemasTest {
     @Test
     public void testDropIndexWhenUsingDropExisting() throws Exception {
         db.execute("CREATE INDEX ON :Foo(bar)").close();
+        awaitIndexesOnline();
         testCall(db, "CALL apoc.schema.assert(null,null)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals("bar", r.get("key"));
@@ -93,6 +94,7 @@ public class SchemasTest {
     @Test
     public void testDropIndexAndCreateIndexWhenUsingDropExisting() throws Exception {
         db.execute("CREATE INDEX ON :Foo(bar)").close();
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Bar:['foo']},null)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -115,6 +117,7 @@ public class SchemasTest {
     @Test
     public void testRetainIndexWhenNotUsingDropExisting() throws Exception {
         db.execute("CREATE INDEX ON :Foo(bar)").close();
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Bar:['foo', 'bar']}, null, false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -143,6 +146,7 @@ public class SchemasTest {
     @Test
     public void testDropSchemaWhenUsingDropExisting() throws Exception {
         db.execute("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE").close();
+        awaitIndexesOnline();
         testCall(db, "CALL apoc.schema.assert(null,null)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals("bar", r.get("key"));
@@ -158,6 +162,7 @@ public class SchemasTest {
     @Test
     public void testDropSchemaAndCreateSchemaWhenUsingDropExisting() throws Exception {
         db.execute("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE").close();
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert(null, {Bar:['foo']})", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -180,6 +185,7 @@ public class SchemasTest {
     @Test
     public void testRetainSchemaWhenNotUsingDropExisting() throws Exception {
         db.execute("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE").close();
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert(null, {Bar:['foo', 'bar']}, false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -208,6 +214,7 @@ public class SchemasTest {
     @Test
     public void testKeepIndex() throws Exception {
         db.execute("CREATE INDEX ON :Foo(bar)").close();
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:['bar', 'foo']},null,false)", (result) -> { 
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -230,6 +237,7 @@ public class SchemasTest {
     @Test
     public void testKeepSchema() throws Exception {
         db.execute("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE").close();
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert(null,{Foo:['bar', 'foo']})", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -253,10 +261,7 @@ public class SchemasTest {
     @Test
     public void testIndexes() {
         db.execute("CREATE INDEX ON :Foo(bar)").close();
-        try (Transaction tx = db.beginTx()) {
-            db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
-            tx.success();
-        }
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             // Get the index info
             Map<String, Object> r = result.next();
@@ -275,9 +280,17 @@ public class SchemasTest {
         });
     }
 
+    private void awaitIndexesOnline() {
+        try (Transaction tx = db.beginTx()) {
+            db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
+            tx.success();
+        }
+    }
+
     @Test
     public void testIndexExists() {
         db.execute("CREATE INDEX ON :Foo(bar)").close();
+        awaitIndexesOnline();
         testResult(db, "RETURN apoc.schema.node.indexExists('Foo', ['bar'])", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals(true, r.entrySet().iterator().next().getValue());
@@ -287,6 +300,7 @@ public class SchemasTest {
     @Test
     public void testIndexNotExists() {
         db.execute("CREATE INDEX ON :Foo(bar)").close();
+        awaitIndexesOnline();
         testResult(db, "RETURN apoc.schema.node.indexExists('Bar', ['foo'])", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals(false, r.entrySet().iterator().next().getValue());
@@ -298,6 +312,7 @@ public class SchemasTest {
     @Test
     public void testUniquenessConstraintOnNode() {
         db.execute("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE").close();
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             Map<String, Object> r = result.next();
 
@@ -314,6 +329,8 @@ public class SchemasTest {
     public void testIndexAndUniquenessConstraintOnNode() {
         db.execute("CREATE INDEX ON :Foo(foo)").close();
         db.execute("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.bar IS UNIQUE").close();
+        awaitIndexesOnline();
+
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             Map<String, Object> r = result.next();
 
@@ -334,6 +351,8 @@ public class SchemasTest {
     @Test
     public void testDropCompoundIndexWhenUsingDropExisting() throws Exception {
         db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        awaitIndexesOnline();
+
         testResult(db, "CALL apoc.schema.assert(null,null,true)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -350,6 +369,7 @@ public class SchemasTest {
     @Test
     public void testDropCompoundIndexAndRecreateWithDropExisting() throws Exception {
         db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,true)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -366,6 +386,7 @@ public class SchemasTest {
     @Test
     public void testDoesntDropCompoundIndexWhenSupplyingSameCompoundIndex() throws Exception {
         db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -384,6 +405,7 @@ public class SchemasTest {
     @Test
     public void testKeepCompoundIndex() throws Exception {
         db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa'], ['foo','faa']]},null,false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -406,6 +428,7 @@ public class SchemasTest {
     @Test
     public void testDropIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
         db.execute("CREATE INDEX ON :Foo(bar)").close();
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Bar:[['foo','bar']]},null)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -428,6 +451,7 @@ public class SchemasTest {
     @Test
     public void testDropCompoundIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
         db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -458,10 +482,7 @@ public class SchemasTest {
         db.execute("CREATE INDEX ON :Bar(foo)").close();
         db.execute("CREATE INDEX ON :Person(name)").close();
         db.execute("CREATE INDEX ON :Movie(title)").close();
-        try (Transaction tx = db.beginTx()) {
-            db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
-            tx.success();
-        }
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.nodes({labels:['Foo']})", (result) -> {
             // Get the index info
             Map<String, Object> r = result.next();
@@ -486,10 +507,7 @@ public class SchemasTest {
         db.execute("CREATE INDEX ON :Bar(foo)").close();
         db.execute("CREATE INDEX ON :Person(name)").close();
         db.execute("CREATE INDEX ON :Movie(title)").close();
-        try (Transaction tx = db.beginTx()) {
-            db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
-            tx.success();
-        }
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.nodes({labels:['Foo', 'Person']})", (result) -> {
             // Get the index info
             Map<String, Object> r = result.next();
