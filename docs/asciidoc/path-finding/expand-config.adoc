@@ -17,6 +17,7 @@ This section includes:
 * <<path-expander-paths-config-examples>>
     ** <<path-expander-paths-config-examples-label-relationship-filters>>
     ** <<path-expander-paths-config-examples-end-nodes-terminator-nodes>>
+    ** <<path-expander-paths-config-examples-whitelist-blacklist>>
     ** <<path-expander-paths-config-examples-sequence-rel-types>>
     ** <<path-expander-paths-config-examples-sequence-node-labels>>
 
@@ -54,8 +55,8 @@ See <<path-expander-paths-config-config-sequences>>.
 If set to `true`, a `null` value is yielded whenever the expansion would normally eliminate rows due to no results.
 | endNodes | List<Node> | null | only these nodes can end returned paths, and expansion will continue past these nodes, if possible.
 | terminatorNodes | List<Node> | null | Only these nodes can end returned paths, and expansion won't continue past these nodes.
-| whiteListNodes | List<Node> | null | Only these nodes are allowed in the expansion (though endNodes and terminatorNodes will also be allowed, if present).
-| blackListNodes | List<Node> | null | None of the paths returned will include these nodes.
+| whitelistNodes | List<Node> | null | Only these nodes are allowed in the expansion (though endNodes and terminatorNodes will also be allowed, if present).
+| blacklistNodes | List<Node> | null | None of the paths returned will include these nodes.
 |===
 
 [[path-expander-paths-config-config-relationship-filters]]
@@ -196,7 +197,12 @@ ORDER BY hops;
 | (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})             | 3
 |===
 
-This query returns a lot of paths, Alicia is very well connected!
+This query returns 19 paths, Alicia is very well connected!
+
+We can see a Neo4j Browser visualization of the returned paths in <<viz-apoc-path-config-alicia>>.
+
+[[viz-apoc-path-config-alicia]]
+image::apoc.path.expandConfig.alicia.svg[title="Paths from Alicia"]
 
 We can also specify traversal termination criteria using label filters.
 If we wanted to terminate a traversal as soon as the traversal encounters a node containing the `Engineering` label, we can use the `/Engineering` node filter.
@@ -271,12 +277,12 @@ We want any returned paths to stop as soon as the Joe node is encountered, which
 [source,cypher]
 ----
 MATCH (p:Person {name: "Alicia"})
-MATCH (end:Person {name: "Joe"})
+MATCH (joe:Person {name: "Joe"})
 CALL apoc.path.expandConfig(p, {
     relationshipFilter: "FOLLOWS>|KNOWS",
     minLevel: 1,
     maxLevel: 3,
-    terminatorNodes: [end]
+    terminatorNodes: [joe]
 })
 YIELD path
 RETURN path, length(path) AS hops
@@ -303,12 +309,12 @@ If we use this parameter, all returned paths will end at the Joe node, but expan
 [source,cypher]
 ----
 MATCH (p:Person {name: "Alicia"})
-MATCH (end:Person {name: "Joe"})
+MATCH (joe:Person {name: "Joe"})
 CALL apoc.path.expandConfig(p, {
     relationshipFilter: "FOLLOWS>|KNOWS",
     minLevel: 1,
     maxLevel: 3,
-    endNodes: [end]
+    endNodes: [joe]
 })
 YIELD path
 RETURN path, length(path) AS hops
@@ -329,6 +335,87 @@ But we've also got an extra path that goes from Alicia to Joe to Praveena to Joe
 
 [[path-expander-paths-config-examples-whitelist-blacklist]]
 ==== Whitelist Nodes and Blacklist Nodes
+
+Whitelist and blacklist nodes can also be specified.
+
+Let's build on the previous query that found people that Alicia `KNOWS` or `FOLLOWS`.
+We want any returned paths to only include the nodes Mark, Joe, Zhen, and Praveena, which we can do by passing these nodes to the parameter `whitelistNodes`.
+
+.The following returns paths from Alicia following the `FOLLOWS` or `KNOWS` relationship types from 1 to 3 hops, only including paths that contain Mark, Joe, Zhen, and Praveena
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (whitelist:Person)
+WHERE whitelist.name IN ["Mark", "Joe", "Zhen", "Praveena"]
+WITH p, collect(whitelist) AS whitelistNodes
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    whitelistNodes: whitelistNodes
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                                     | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                    | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})                                                | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                                         | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"}) | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})      | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"}) | 3
+|===
+
+Out of the white list, the only person with a direct connection to Alicia is Joe, so all paths go through him.
+We then go from Joe to the others, and then between each other for the paths of 3 hops.
+
+We can see a Neo4j Browser visualization of the returned paths in <<viz-apoc-path-config-whitelist>>.
+
+[[viz-apoc-path-config-whitelist]]
+image::apoc.path.expandConfig.whitelist.svg[title="Paths from Alicia to Mark, Joe, Zhen, and Praveena"]
+
+A blacklist is used to exclude nodes from the returned paths.
+If we want to exclude paths that contain Joe, we can do this by passing the Joe node to the `blacklistNodes` parameter.
+
+.The following returns paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, excluding paths that include Joe
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (joe:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    blacklistNodes: [joe]
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})                                                                                       | 1
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})                                                                                        | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})                                           | 2
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})                                              | 2
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"}) | 3
+|===
+
+This returns a very small set of paths since Joe was a very pivotal node in connecting Alicia to the rest of the graph.
+
+We can see a Neo4j Browser visualization of the returned paths in <<viz-apoc-path-config-blacklist>>.
+
+[[viz-apoc-path-config-blacklist]]
+image::apoc.path.expandConfig.blacklist.svg[title="Paths from Alicia that don't include Joe"]
 
 [[path-expander-paths-config-examples-sequence-rel-types]]
 ==== Sequences of relationship types

@@ -143,7 +143,7 @@ ORDER BY hops;
 | (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})             | 3
 |===
 
-This query returns a lot of paths, Alicia is very well connected!
+This query returns 19 paths, Alicia is very well connected!
 
 We can also specify traversal termination criteria using label filters.
 If we wanted to terminate a traversal as soon as the traversal encounters a node containing the `Engineering` label, we can use the `/Engineering` node filter.
