@@ -16,6 +16,7 @@ This section includes:
 * <<path-expander-paths-config-config-sequences>>
 * <<path-expander-paths-config-examples>>
     ** <<path-expander-paths-config-examples-label-relationship-filters>>
+    ** <<path-expander-paths-config-examples-end-nodes-terminator-nodes>>
     ** <<path-expander-paths-config-examples-sequence-rel-types>>
     ** <<path-expander-paths-config-examples-sequence-node-labels>>
 
@@ -209,7 +210,6 @@ CALL apoc.path.expandConfig(p, {
     labelFilter: "/Engineering",
     minLevel: 1,
     maxLevel: 3
-
 })
 YIELD path
 RETURN path, length(path) AS hops
@@ -240,7 +240,6 @@ CALL apoc.path.expandConfig(p, {
     labelFilter: ">Engineering",
     minLevel: 1,
     maxLevel: 3
-
 })
 YIELD path
 RETURN path, length(path) AS hops
@@ -259,6 +258,77 @@ ORDER BY hops;
 |===
 
 Our query now also returns paths going through Praveena and Zhen, one going to Martin, and other others going back to Zhen and Praveena!
+
+[[path-expander-paths-config-examples-end-nodes-terminator-nodes]]
+==== Terminator Nodes and End Nodes
+
+As well as specifying terminator and end labels for traversals, we can also specify terminator and end nodes.
+
+Let's build on the previous query that found people that Alicia `KNOWS` or `FOLLOWS`.
+We want any returned paths to stop as soon as the Joe node is encountered, which we can do by passing the Joe node to the `terminatorNodes` parameter.
+
+.The following returns paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, terminating as soon as Joe is reached
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (end:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    terminatorNodes: [end]
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                         | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})-[:FOLLOWS]->(:Person:Field {name: "Joe"}) | 3
+|===
+
+Alicia `FOLLOWS` Joe, but there's also another path that goes via Jonny and Anthony.
+
+The terminator nodes approach doesn't necessarily find all the paths that exist between Alicia and Joe.
+There might be other paths that go through the Joe node twice.
+We can find these paths by passing the Joe node to the `endNodes` parameter.
+If we use this parameter, all returned paths will end at the Joe node, but expansion will continue past this node to try and find other paths that end at Joe.
+
+
+.The following returns paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, where paths end when they reach Joe
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (end:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    endNodes: [end]
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                                | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"}) | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})        | 3
+|===
+
+We've got the two paths we got with the terminator nodes approach, from Alicia to Joe, and from Alicia to Jonny to Jonny to Joe.
+But we've also got an extra path that goes from Alicia to Joe to Praveena to Joe.
+
+[[path-expander-paths-config-examples-whitelist-blacklist]]
+==== Whitelist Nodes and Blacklist Nodes
 
 [[path-expander-paths-config-examples-sequence-rel-types]]
 ==== Sequences of relationship types
