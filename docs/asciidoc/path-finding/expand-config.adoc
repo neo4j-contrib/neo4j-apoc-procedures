@@ -19,6 +19,7 @@ This section includes:
     ** <<path-expander-paths-config-examples-end-nodes-terminator-nodes>>
     ** <<path-expander-paths-config-examples-whitelist-blacklist>>
     ** <<path-expander-paths-config-examples-bfs-dfs>>
+    ** <<path-expander-paths-config-examples-uniqueness>>
     ** <<path-expander-paths-config-examples-sequence-rel-types>>
     ** <<path-expander-paths-config-examples-sequence-node-labels>>
 
@@ -42,13 +43,20 @@ The procedures support the following config parameters:
 | name | type | default | description
 | minLevel | Long | -1 | the minimum number of hops in the traversal
 | maxLevel | Long | -1 | the maximum number of hops in the traversal
-| relationshipFilter | String | null | the relationship types and directions to traverse. See <<path-expander-paths-config-config-relationship-filters>>.
-| labelFilter | String | null | the node labels to traverse. See <<path-expander-paths-config-config-label-filters>>.
+| relationshipFilter | String | null | the relationship types and directions to traverse.
+
+See <<path-expander-paths-config-config-relationship-filters>>.
+| labelFilter | String | null | the node labels to traverse.
+
+See <<path-expander-paths-config-config-label-filters>>.
 | sequence | String | null | comma-separated alternating label and relationship filters, for each step in a repeating sequence.
 If present, `labelFilter`, and `relationshipFilter` are ignored, as this takes priority.
+
 See <<path-expander-paths-config-config-sequences>>.
 | beginSequenceAtStart | Boolean | true | starts matching sequences of node labels and/or relationship types (defined in `relationshipFilter`, `labelFilter`, or `sequences`) one node away from the start node.
-| uniqueness | String | RELATIONSHIP_PATH | the strategy to use when expanding relationships in a traversal. See <<path-expander-paths-config-config-uniqueness>>.
+| uniqueness | String | RELATIONSHIP_PATH | the strategy to use when expanding relationships in a traversal.
+
+See <<path-expander-paths-config-config-uniqueness>>.
 | bfs | Boolean | true | use Breadth First Search when traversing. Uses Depth First Search if set to `false`
 | filterStartNode | Boolean | false | whether the `labelFilter` and `sequence` apply to the start node of the expansion.
 | limit | Long | -1 | limit the number of paths returned. When using `bfs:true`, this has the effect of returning paths to the `n` nearest nodes with labels in the termination or end node filter, where `n` is the limit given.
@@ -513,6 +521,75 @@ We can see a Neo4j Browser visualization of the returned paths in <<viz-apoc-pat
 [[viz-apoc-path-config-alicia-dfs]]
 image::apoc.path.expandConfig.alicia.dfs.svg[title="Paths from Alicia using Depth First Search"]
 
+[[path-expander-paths-config-examples-uniqueness]]
+==== Uniqueness
+
+We can specify the uniqueness strategy to be used by the traversal through the `uniqueness` parameter.
+See <<path-expander-paths-config-config-uniqueness>> for a list of valid strategies.
+The default value is `RELATIONSHIP_PATH`.
+
+In this section we're going to write queries that start from Joe and traverse the `FOLLOWS` relationship.
+
+.The following returns the nodes in paths starting from Joe and traversing the `FOLLOWS` relationship type from 1 to 3 hops
+[source,cypher]
+----
+MATCH (p:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>",
+    minLevel: 1,
+    maxLevel: 3,
+    uniqueness: "RELATIONSHIP_PATH" // default
+})
+YIELD path
+RETURN [node in nodes(path) | node.name] AS nodes, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | hops
+| ["Joe", "Zhen"]                    | 1
+| ["Joe", "Praveena"]                | 1
+| ["Joe", "Mark"]                    | 1
+| ["Joe", "Zhen", "John"]            | 2
+| ["Joe", "Praveena", "Joe"]         | 2
+| ["Joe", "Mark", "Stefan"]          | 2
+| ["Joe", "Praveena", "Joe", "Zhen"] | 3
+| ["Joe", "Praveena", "Joe", "Mark"] | 3
+| ["Joe", "Mark", "Stefan", "Joe"]   | 3
+|===
+
+Several of the paths returned contain the Joe node twice.
+If we want to ensure that the nodes in a path are unique, we can use the `NODE_PATH` strategy.
+
+.The following returns the nodes in paths starting from Joe and traversing the `FOLLOWS` relationship type from 1 to 3 hops, using the `NODE_PATH` strategy
+[source,cypher]
+----
+MATCH (p:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>",
+    minLevel: 1,
+    maxLevel: 3,
+    uniqueness: "NODE_PATH"
+})
+YIELD path
+RETURN [node in nodes(path) | node.name] AS nodes, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | hops
+| ["Joe", "Zhen"]           | 1
+| ["Joe", "Praveena"]       | 1
+| ["Joe", "Mark"]           | 1
+| ["Joe", "Zhen", "John"]   | 2
+| ["Joe", "Mark", "Stefan"] | 2
+|===
+
+The paths returned now have unique lists of nodes.
 
 [[path-expander-paths-config-examples-sequence-rel-types]]
 ==== Sequences of relationship types
