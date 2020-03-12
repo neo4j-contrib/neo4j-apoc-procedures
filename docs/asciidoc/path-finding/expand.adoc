@@ -82,10 +82,10 @@ ORDER BY hops;
 
 Praveena only has a direct `KNOWS` relationship to Zhen, but Zhen has `KNOWS` relationships to 3 other people, which means they're 2 hops away from Praveena.
 
-We can also provide a node filter to restrict the nodes that are returned.
+We can also provide a node label filter to restrict the nodes that are returned.
 The following query only returns paths where every node has the `Engineering` label.
 
-.The following returns paths containing only `Engineering` people that Praveena `KNOWS` from 1 to 3 hops
+.The following returns paths containing only `Engineering` people that Praveena `KNOWS` from 1 to 2 hops
 [source,cypher]
 ----
 MATCH (p:Person {name: "Praveena"})
@@ -94,7 +94,6 @@ YIELD path
 RETURN path, length(path) AS hops
 ORDER BY hops;
 ----
-
 
 .Results
 [opts="header"]
@@ -124,19 +123,23 @@ ORDER BY hops;
 |===
 | path | hops
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                                     | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})                                                                                                   | 1
 | (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})                                                                                                    | 1
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                    | 2
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})                                                | 2
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                                         | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})                                                       | 2
 | (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})                                                          | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:FOLLOWS]->(:Person:Product {name: "John"})       | 3
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"})   | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"}) | 3
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})           | 3
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})         | 3
-| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"}) | 3
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})      | 3
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"}) | 3
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})            | 3
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:KNOWS]->(:Person:Product {name: "Jake"})              | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})             | 3
 | (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})             | 3
 |===
 
