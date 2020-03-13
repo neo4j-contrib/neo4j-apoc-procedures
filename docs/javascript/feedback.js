@@ -16,7 +16,7 @@ $(document).ready(function() {
         const documentHelpful = event.target.attributes["data-helpful"].value
 
         if ("yes" === documentHelpful) {
-            $.post("https://uglfznxroe.execute-api.us-east-1.amazonaws.com/dev/Feedback", { helpful: true, , url: window.location.href });
+            $.post("https://uglfznxroe.execute-api.us-east-1.amazonaws.com/dev/Feedback", { helpful: true, url: window.location.href });
             $("div#feedback-form").html(`<h4>Thanks for your feedback. We're happy to hear that the information on this page was helpful <img style="padding-bottom:0;" src="https://s3.amazonaws.com/dev.assets.neo4j.com/wp-content/uploads/2020/feedback_happy.png" width="30px" />  </h4>`)
         } else {
             const specificFeedback = `
