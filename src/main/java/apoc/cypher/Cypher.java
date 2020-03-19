@@ -74,11 +74,12 @@ public class Cypher {
     public Stream<RowResult> runFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",10));
+        int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
         List<RowResult> result = new ArrayList<>();
         @SuppressWarnings( "unchecked" )
         Map<String,Object> parameters = (Map<String,Object>)config.getOrDefault("parameters",Collections.emptyMap());
         for (String f : fileNames) {
-            List<RowResult> rowResults = runManyStatements(readerForFile(f), parameters, false, addStatistics, timeout).collect(Collectors.toList());
+            List<RowResult> rowResults = runManyStatements(readerForFile(f), parameters, false, addStatistics, timeout, queueCapacity).collect(Collectors.toList());
             result.addAll(rowResults);
         }
         return result.stream();
@@ -95,24 +96,28 @@ public class Cypher {
     public Stream<RowResult> runSchemaFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",10));
+        int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
         List<RowResult> result = new ArrayList<>();
         for (String f : fileNames) {
-            List<RowResult> rowResults = runManyStatements(readerForFile(f), Collections.emptyMap(), true, addStatistics, timeout).collect(Collectors.toList());
+            List<RowResult> rowResults = runManyStatements(readerForFile(f), Collections.emptyMap(), true, addStatistics, timeout, queueCapacity).collect(Collectors.toList());
             result.addAll(rowResults);
         }
         return result.stream();
     }
 
-    private Stream<RowResult> runManyStatements(Reader reader, Map<String, Object> params, boolean schemaOperation, boolean addStatistics, int timeout) {
-        BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100);
+    private Stream<RowResult> runManyStatements(Reader reader, Map<String, Object> params, boolean schemaOperation, boolean addStatistics, int timeout, int queueCapacity) {
+        BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(queueCapacity);
         Util.inThread(() -> {
-            if (schemaOperation) {
-                runSchemaStatementsInTx(reader, queue, params, addStatistics,timeout);
-            } else {
-                runDataStatementsInTx(reader, queue, params, addStatistics,timeout);
+            try {
+                if (schemaOperation) {
+                    runSchemaStatementsInTx(reader, queue, params, addStatistics,timeout);
+                } else {
+                    runDataStatementsInTx(reader, queue, params, addStatistics,timeout);
+                }
+                return null;
+            } finally {
+                queue.put(RowResult.TOMBSTONE);
             }
-            queue.put(RowResult.TOMBSTONE);
-            return null;
         });
         return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, timeout), false);
     }
@@ -148,8 +153,10 @@ public class Cypher {
     public Stream<RowResult> runMany(@Name("cypher") String cypher, @Name("params") Map<String,Object> params, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",1));
+        int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
+
         StringReader stringReader = new StringReader(cypher);
-        return runManyStatements(stringReader ,params, false, addStatistics, timeout);
+        return runManyStatements(stringReader ,params, false, addStatistics, timeout, queueCapacity);
     }
 
     private final static Pattern shellControl = Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
