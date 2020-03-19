@@ -39,7 +39,7 @@ description = """neo4j-apoc-procedures"""
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "3.5.14"
+    neo4jVersion = "3.5.16"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.11.0'
