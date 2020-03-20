@@ -11,6 +11,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -213,6 +214,26 @@ public class UUIDTest {
             Node n = (Node) tx.execute("MATCH (person:Person) return person").next().get("person");
             assertTrue(n.getAllProperties().containsKey("uuid"));
             assertTrue(n.getAllProperties().get("uuid").toString().matches("^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"));
+            tx.commit();
+        }
+    }
+
+    @Test
+    public void testAddToExistingNodesBatchResult() {
+        // given
+        db.executeTransactionally("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})");
+
+        // when
+        db.executeTransactionally("CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE");
+
+        // then
+        try (Transaction tx = db.beginTx()) {
+            long total = (Long) tx.execute(
+                    "CALL apoc.uuid.install('Person') YIELD label, installed, properties, batchComputationResult " +
+                            "RETURN batchComputationResult.total as total")
+                    .next()
+                    .get("total");
+            assertEquals(1, total);
             tx.commit();
         }
     }
