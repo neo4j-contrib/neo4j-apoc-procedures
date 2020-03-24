@@ -11,13 +11,29 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -107,19 +123,37 @@ public class Cypher {
 
     private Stream<RowResult> runManyStatements(Reader reader, Map<String, Object> params, boolean schemaOperation, boolean addStatistics, int timeout, int queueCapacity) {
         BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(queueCapacity);
-        Util.inThread(() -> {
-            try {
-                if (schemaOperation) {
-                    runSchemaStatementsInTx(reader, queue, params, addStatistics,timeout);
-                } else {
-                    runDataStatementsInTx(reader, queue, params, addStatistics,timeout);
-                }
-                return null;
-            } finally {
-                queue.put(RowResult.TOMBSTONE);
+        runInSeparateThreadAndSendTombstone(() -> {
+            if (schemaOperation) {
+                runSchemaStatementsInTx(reader, queue, params, addStatistics, timeout);
+            } else {
+                runDataStatementsInTx(reader, queue, params, addStatistics, timeout);
             }
-        });
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, timeout), false);
+        }, queue, RowResult.TOMBSTONE);
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard), false);
+    }
+
+
+    private <T> void runInSeparateThreadAndSendTombstone(Runnable action, BlockingQueue<T> queue, T tombstone) {
+        /* NB: this must not be called via an existing thread pool - otherwise we could run into a deadlock
+           other jobs using the same pool might completely exhaust at and the thread sending TOMBSTONE will
+           wait in the pool's job queue.
+         */
+        new Thread(() -> {
+            try {
+                action.run();
+            } finally {
+                while (true) {  // ensure we send TOMBSTONE even if there's an InterruptedException
+                    try {
+//                        System.out.println(Thread.currentThread().getName() + " sending TOMBSTONE to queue");
+                        queue.put(tombstone);
+                        return;
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+        }).start();
     }
 
     private void runDataStatementsInTx(Reader reader, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout) {
@@ -162,15 +196,19 @@ public class Cypher {
     private final static Pattern shellControl = Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
 
     private Object executeStatement(BlockingQueue<RowResult> queue, String stmt, Map<String, Object> params, boolean addStatistics, long timeout) throws InterruptedException {
+//        System.out.println(Thread.currentThread().getName() + " running " + stmt);
         try (Result result = db.execute(stmt,params)) {
             long time = System.currentTimeMillis();
             int row = 0;
             while (result.hasNext()) {
                 terminationGuard.check();
+                if (row % 100 == 0) {
+//                    System.out.println(Thread.currentThread().getName() + " putting result " + row + " into queue");
+                }
                 queue.put(new RowResult(row++, result.next()));
             }
             if (addStatistics) {
-                queue.offer(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)), timeout,TimeUnit.SECONDS);
+                queue.put(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)));
             }
             return row;
         }
@@ -287,17 +325,17 @@ public class Cypher {
         db.execute("EXPLAIN " + statement).close();
         BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100000);
         Stream<List<Object>> parallelPartitions = Util.partitionSubList(data, (int)(partitions <= 0 ? PARTITIONS : partitions), null);
-        Util.inFuture(() -> {
-            long total = parallelPartitions
-                .map((List<Object> partition) -> {
-                    try {
-                        return executeStatement(queue, statement, parallelParams(params, "_", partition),false,timeout);
-                    } catch (Exception e) {throw new RuntimeException(e);}}
-                ).count();
-            queue.put(RowResult.TOMBSTONE);
-            return total;
-        });
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, timeout),true).map((rowResult) -> new MapResult(rowResult.result));
+
+        runInSeparateThreadAndSendTombstone(() -> {
+            parallelPartitions
+                    .map((List<Object> partition) -> {
+                        try {
+                            return executeStatement(queue, statement, parallelParams(params, "_", partition),false,timeout);
+                        } catch (Exception e) {throw new RuntimeException(e);}}
+                    ).count();
+        }, queue, RowResult.TOMBSTONE);
+
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard),true).map((rowResult) -> new MapResult(rowResult.result));
     }
 
     // todo proper Collector

@@ -11,9 +11,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.CypherResultSubGraph;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -111,7 +118,7 @@ public class ExportCypher {
             ProgressReporter reporterWithConsumer = reporter.withConsumer(
                     (pi) -> Util.put(queue,pi == ProgressInfo.EMPTY ? DataProgressInfo.EMPTY : new DataProgressInfo(pi).enrich(cypherFileManager),timeout));
             Util.inTxFuture(Pools.DEFAULT, db, () -> { doExport(graph, c, onlySchema, reporterWithConsumer, cypherFileManager); return true; });
-            QueueBasedSpliterator<DataProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, DataProgressInfo.EMPTY, terminationGuard, timeout);
+            QueueBasedSpliterator<DataProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, DataProgressInfo.EMPTY, terminationGuard);
             return StreamSupport.stream(spliterator, false);
         } else {
             doExport(graph, c, onlySchema, reporter, cypherFileManager);

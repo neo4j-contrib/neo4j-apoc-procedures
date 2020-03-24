@@ -32,7 +32,7 @@ public class ExportUtils {
             dump.accept(reporterWithConsumer);
             return true;
         });
-        QueueBasedSpliterator<ProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, ProgressInfo.EMPTY, terminationGuard, timeout);
+        QueueBasedSpliterator<ProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, ProgressInfo.EMPTY, terminationGuard);
         return StreamSupport.stream(spliterator, false);
     }
 }
