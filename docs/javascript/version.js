@@ -1,5 +1,5 @@
 window.docMeta = (function () {
-  var version = '3.5';
+  var version = '4.0';
   var name = 'APOC';
   var href = window.location.href;
   var len = href.indexOf('/' + version) != -1 ? href.indexOf('/' + version) : href.length -1;
