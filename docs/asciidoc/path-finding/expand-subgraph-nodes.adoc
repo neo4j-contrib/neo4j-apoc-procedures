@@ -18,7 +18,7 @@ This section includes:
     ** <<expand-subgraph-nodes-examples-end-nodes-terminator-nodes>>
     ** <<expand-subgraph-nodes-examples-whitelist-blacklist>>
     ** <<expand-subgraph-nodes-examples-sequence-rel-types>>
-    ** <<expand-subgraph-nodes-examples-sequence-node-labels>>
+//    ** <<expand-subgraph-nodes-examples-sequence-node-labels>>
 
 [[expand-subgraph-nodes-overview]]
 === Procedure Overview
@@ -379,36 +379,36 @@ RETURN node;
 | (:Person:Field {name: "Stefan"})
 |===
 
-[[expand-subgraph-nodes-examples-sequence-node-labels]]
-==== Sequences of node labels
-
-Sequences of node labels can be specified by comma separating values passed to `labelFilter`.
-This is usually used in combination with `beginSequenceAtStart: false`, which means that sequences will start one hop away from the starting node.
-
-For example, if we start from the Praveena node and want to return the paths that contain alternating `Field` and `DevRel` nodes, we can specify a label filter of `"+Field,+DevRel"`.
-
-.The following returns the paths of 1 to 4 hops from Praveena where the nodes alternate between having the `Field` and `DevRel` labels.
-[source,cypher]
-----
-MATCH (p:Person {name: "Praveena"})
-CALL apoc.path.subgraphNodes(p, {
-	labelFilter: "+Field,+DevRel",
-	beginSequenceAtStart: false,
-	minLevel: 1,
-	maxLevel: 4
-})
-YIELD node
-RETURN node;
-----
-
-.Results
-[opts="header"]
-|===
-| path | hops
-| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})                                                                                          | 1
-| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                          | 1
-| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                              | 2
-| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                              | 2
-| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"}) | 3
-| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"}) | 3
-|===
+//[[expand-subgraph-nodes-examples-sequence-node-labels]]
+//==== Sequences of node labels
+//
+//Sequences of node labels can be specified by comma separating values passed to `labelFilter`.
+//This is usually used in combination with `beginSequenceAtStart: false`, which means that sequences will start one hop away from the starting node.
+//
+//For example, if we start from the Praveena node and want to return the paths that contain alternating `Field` and `DevRel` nodes, we can specify a label filter of `"+Field,+DevRel"`.
+//
+//.The following returns the paths of 1 to 4 hops from Praveena where the nodes alternate between having the `Field` and `DevRel` labels.
+//[source,cypher]
+//----
+//MATCH (p:Person {name: "Praveena"})
+//CALL apoc.path.subgraphNodes(p, {
+//	labelFilter: "+Field,+DevRel",
+//	beginSequenceAtStart: false,
+//	minLevel: 1,
+//	maxLevel: 4
+//})
+//YIELD node
+//RETURN node;
+//----
+//
+//.Results
+//[opts="header"]
+//|===
+//| path | hops
+//| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})                                                                                          | 1
+//| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                          | 1
+//| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                              | 2
+//| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                              | 2
+//| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"}) | 3
+//| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"}) | 3
+//|===
