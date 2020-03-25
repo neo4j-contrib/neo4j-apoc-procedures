@@ -7,7 +7,7 @@ This section describes a procedure that can be used to expand the paths of varia
 --
 
 The expand paths with config procedure enables powerful variable length path traversals with fine grained control over the traversals.
-See <<path-expander-paths>> for a more basic version of the algorithm if fine grained control over traversals isn't required.
+For a more basic version of the algorithm where fine grained control over traversals isn't required, see <<path-expander-paths>>.
 
 This section includes:
 
