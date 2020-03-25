@@ -17,7 +17,7 @@ function versionSwitcher( $ )
   var currentVersion = window.docMeta.version;
   var currentPage = window.neo4jPageId;
 
-  // TODO re-enable loadVersions();
+  loadVersions()
 
   /**
    * Load an array of version into a div element and check if the current page actually exists in these versions.
