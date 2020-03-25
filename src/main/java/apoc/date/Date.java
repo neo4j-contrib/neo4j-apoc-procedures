@@ -77,8 +77,9 @@ public class Date {
 		node.setProperty("ttl",System.currentTimeMillis() + unit(timeUnit).toMillis(time));
 	}
 
-	@UserFunction
+	@UserFunction(deprecatedBy = "Neo4j native datetime using instant.field")
 	@Description("apoc.date.fields('2012-12-23',('yyyy-MM-dd')) - return columns and a map representation of date parsed with the given format with entries for years,months,weekdays,days,hours,minutes,seconds,zoneid")
+	@Deprecated
 	public Map<String,Object> fields(final @Name("date") String date, final @Name(value = "pattern", defaultValue = DEFAULT_FORMAT) String pattern) {
 		if (date == null) {
 			return Util.map();
@@ -94,8 +95,9 @@ public class Date {
 		return result.asMap();
 	}
 
-	@UserFunction
+	@UserFunction(deprecatedBy = "Neo4j native datetime using instant.field - e.g. datetime({epochMillis: dateInteger}).year")
 	@Description("apoc.date.field(12345,('ms|s|m|h|d|month|year'),('TZ')")
+	@Deprecated
 	public Long field(final @Name("time") Long time,  @Name(value = "unit", defaultValue = "d") String unit, @Name(value = "timezone",defaultValue = "UTC") String timezone) {
 		return (time == null)
 				? null
