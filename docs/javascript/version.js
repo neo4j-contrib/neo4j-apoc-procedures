@@ -14,7 +14,7 @@ window.docMeta = (function () {
 })();
 
 (function () {
-  var baseUri = window.docMeta.unversionedDocBaseUri; // + window.location.pathname.split(window.docMeta.name + '/')[1].split('/')[0] + '/';
+  var baseUri = window.docMeta.unversionedDocBaseUri + window.location.pathname.split(window.docMeta.name + '/')[1].split('/')[0] + '/';
   var docPath = window.location.href.replace(baseUri, '');
   window.neo4jPageId = docPath;
 })();
