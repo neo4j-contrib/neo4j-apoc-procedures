@@ -8,6 +8,7 @@ plugins {
     id "io.codearte.nexus-staging" version "0.20.0"
     id 'maven-publish'
     id 'antlr'
+    id "org.sonarqube" version "2.7"
 }
 asciidoctorj {
     version = '1.6.1'
