@@ -18,6 +18,7 @@ This section includes:
   ** <<expand-subgraph-examples-label-relationship-filters>>
   ** <<expand-subgraph-examples-end-nodes-terminator-nodes>>
   ** <<expand-subgraph-examples-whitelist-blacklist>>
+  ** <<expand-subgraph-examples-sequence-rel-types>>
 
 [[expand-subgraph-overview]]
 === Procedure Overview
