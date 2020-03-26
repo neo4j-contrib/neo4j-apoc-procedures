@@ -297,3 +297,29 @@ We can see a Neo4j Browser visualization of the returned subgraph in <<viz-apoc-
 
 [[viz-apoc-path-subgraphAll-alicia-blacklist-joe]]
 image::apoc.path.subgraphAll.alicia-blacklist-joe.svg[title="Subgraph from Alicia where paths to nodes can't go via Joe"]
+
+[[expand-subgraph-examples-sequence-rel-types]]
+==== Sequences of relationship types
+
+Sequences of relationship types can be specified by comma separating the values passed to `relationshipFilter`.
+
+For example, if we want to start from the Joe node and traverse a sequence of the `FOLLOWS` relationship in the outgoing direction and the `KNOWS` relationship in either direction, we can specify the relationship filter `FOLLOWS>,KNOWS`.
+
+.The following returns the reachable nodes by following the `FOLLOWS` and `KNOWS` relationship types alternately from Joe
+[source,cypher]
+----
+MATCH (p:Person {name: "Joe"})
+CALL apoc.path.subgraphAll(p, {
+	relationshipFilter: "FOLLOWS>,KNOWS",
+	beginSequenceAtStart: true,
+	minLevel: 1,
+	maxLevel: 4
+})
+YIELD nodes, relationships
+RETURN nodes, relationships;
+----
+
+We can see a Neo4j Browser visualization of the returned subgraph in <<viz-apoc-path-subgraphAll-joe-rel-sequence>>.
+
+[[viz-apoc-path-subgraphAll-joe-rel-sequence]]
+image::apoc.path.subgraphAll.joe-sequence.svg[title="Subgraph from Alicia via alternate `FOLLOWS` and `KNOWS` relationship types"]
