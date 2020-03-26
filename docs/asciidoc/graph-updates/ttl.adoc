@@ -3,24 +3,147 @@
 
 [abstract]
 --
-This section describes procedures that can be used to remove nodes from the database once a time limit has been reached.
+This section describes procedures that can be used to remove nodes from the database once a time or time limit has been reached.
 --
 
 Some nodes are not meant to live forever.
 That's why with APOC you can specify a time by when they are removed from the database, by utilizing a schema index and an additional label.
-A few convenience procedures help with that.
+A few procedures help with that.
 
-ifdef::backend-html5[]
-++++
-<iframe width="560" height="315" src="https://www.youtube.com/embed/e9aoQ9xOmoU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-++++
-endif::[]
+This section includes:
 
-Enable TTL with setting in `neo4j.conf` : `apoc.ttl.enabled=true`
+* <<ttl-available-procedures, Available Procedures>>
+* <<ttl-config-parameters, Configuration and Parameters>>
+//* <<ttl-handson-video, Time-To-Live Hands-On>>
+* <<ttl-examples, Examples>>
+    ** <<ttl-expireAt, Expire at Specified Time>>
+    ** <<ttl-expireIn, Expire after Amount of Time>>
+* <<ttl-process, Manual Process: How TTL Works>>
 
-There are some convenience procedures to expire nodes.
+[[ttl-available-procedures]]
+== Available Procedures
 
-You can also do it yourself by running
+The table below describes the available procedures:
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.ttl.csv[]
+|===
+
+[[ttl-config-parameters]]
+== Configuration and Parameters
+
+For configuration, you will need to enable time-to-live functionality with the following settings in `neo4j.conf`:
+
+.neo4j.conf
+[source,properties]
+----
+apoc.ttl.enabled=true
+
+# Optional: controls the repeat frequency
+# apoc.ttl.schedule=5
+----
+
+In the available procedures listed above, there are several parameters with specific values.
+The table below outlines values and formats for the valid parameters.
+
+[options="header"]
+|===
+| Parameter | Description | Possible Values | Examples
+| `node` | The entity or entities to add the label and property of time-to-live (previous selection statement needed) | Any node or group of nodes fitting desired criteria | `n`, `person`, `group`
+| `epochTime` | The datetime value of when the node(s) should expire | Any value in epoch seconds or millisecond format | `1540944000`, `1582209630000`
+| `time-unit` | Measurement of units for input value | `ms, s, m, h, d` (long forms: `millis, milliseconds, seconds, minutes, hours, days`) | `milliseconds`, `h`
+|===
+
+//[[ttl-handson-video]]
+//== Time-To-Live Hands-On
+//
+//ifdef::backend-html5[]
+//++++
+//<iframe width="560" height="315" src="https://www.youtube.com/embed/e9aoQ9xOmoU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+//++++
+//endif::[]
+
+[[ttl-examples]]
+== Examples: Time-To-Live
+
+This section includes examples showing how to use the time-to-live procedures.
+These examples are based on a movies dataset, which can be imported by running the following Cypher query:
+
+include::../export/createExportGraph.adoc[]
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::play-movies.png[title="Movies Graph Visualization"]
+
+[[ttl-expireAt]]
+=== Expire node(s) at specified time
+
+The `apoc.ttl.expireAtInstant` procedure deletes a node or group of nodes after the datetime specified.
+
+To remove a single node or set of nodes, we can use a selection query prior to calling the procedure that defines which nodes we want to apply the time-to-live label and property.
+We then call the procedure and pass in the selected node(s), the future datetime at which we want the nodes to be removed, and the specificity of the datetime (seconds, milliseconds, etc).
+
+[source,cypher]
+----
+MATCH (movie:Movie)<-[produced:PRODUCED]-(person:Person)
+CALL apoc.ttl.expireAtInstant(person,1585176720,'s')
+RETURN movie, produced, person
+----
+
+.Results
+[opts="header"]
+|===
+| "movie" | "produced" | "person"
+| {"title":"The Matrix","tagline":"Welcome to the Real World","released":1999} | {} | {"name":"Joel Silver","ttl":1585176720000,"born":1952}
+|===
+
+After the point in time specified (in this case, after `2020-03-25 17:52:00`), the node(s) will be expired and deleted from the graph.
+Running the statement below will return no results for our example graph.
+
+[source,cypher]
+----
+MATCH (movie:Movie)<-[produced:PRODUCED]-(person:Person)
+RETURN movie, produced, person
+----
+
+[[ttl-expireIn]]
+=== Expire node(s) after specified time period
+
+The `apoc.ttl.expireAfterTimeLength` procedure deletes a node or group of nodes after the length of time specified.
+//LEFT OFF HERE!
+Just as with the similar procedure above, we can use a selection query prior to calling the procedure that defines which nodes we want to apply the time-to-live label and property.
+We then call the procedure and pass in the selected node(s), the time delta from current time at which we want the nodes to be removed, and the specificity of the time amount (seconds, milliseconds, etc).
+
+[source,cypher]
+----
+MATCH (movie:Movie)<-[produced:PRODUCED]-(person:Person)
+CALL apoc.ttl.expireAfterTimeLength(person,1585176720,'s')
+RETURN movie, produced, person
+----
+
+.Results
+[opts="header"]
+|===
+| "movie" | "produced" | "person"
+| {"title":"The Matrix","tagline":"Welcome to the Real World","released":1999} | {} | {"name":"Joel Silver","ttl":120000,"born":1952}
+|===
+
+After the length of time specified has passed (in this case, after `120 seconds`), the node(s) will be expired and deleted from the graph.
+Running the statement below will return no results for our example graph.
+
+[source,cypher]
+----
+MATCH (movie:Movie)<-[produced:PRODUCED]-(person:Person)
+RETURN movie, produced, person
+----
+
+[[ttl-process]]
+== Manual Process: How TTL Works
+
+You can also do the time-to-live process manually by running the following steps:
+
+* Set the `:TTL` label and `ttl` property on the node(s) you want to expire.
 
 [source,cypher]
 ----
@@ -28,44 +151,31 @@ SET n:TTL
 SET n.ttl = timestamp() + 3600
 ----
 
-[cols="1m,5"]
-|===
-| CALL apoc.date.expire.in(node,time,'time-unit') | expire node in given time-delta by setting :TTL label and `ttl` property
-| CALL apoc.date.expire(node,time,'time-unit') | expire node at given time by setting :TTL label and `ttl` property
-|===
+The `ttl` property holds the *time when the node is expired in milliseconds since epoch*.
 
-Optionally set `apoc.ttl.schedule=5` as repeat frequency.
-
-== Process
-
-30s after startup an index is created:
+* Create an index on the time-to-live label and property.
 
 [source,cypher]
 ----
 CREATE INDEX ON :TTL(ttl)
 ----
 
-At startup a statement is scheduled to run every 60s (or configure in `neo4j.conf` -  `apoc.ttl.schedule=120`)
+When using the procedure, the index is created 30 seconds after startup.
+
+* Remove node(s) that have passed the expiration time or length of time
 
 [source,cypher]
 ----
 MATCH (t:TTL) where t.ttl < timestamp() WITH t LIMIT 1000 DETACH DELETE t
 ----
 
-The `ttl` property holds the *time when the node is expired in milliseconds since epoch*.
+When using the procedure, the deletion statement to remove nodes past expiration will run every 60 seconds.
+You can also configure the schedule by adding the following setting in `neo4j.conf`:
 
-You can expire your nodes by setting the :TTL label and the ttl property:
 
-
-[source,cypher]
+.neo4j.conf
+[source,properties]
 ----
-MATCH (n:Foo) WHERE n.bar SET n:TTL, n.ttl = timestamp() + 10000;
-----
-
-There is also a procedure that does the same:
-
-[source,cypher]
-----
-CALL apoc.date.expire(node,time,'time-unit');
-CALL apoc.date.expire(n,100,'s');
+# Optional: controls the repeat frequency
+apoc.ttl.schedule=120
 ----

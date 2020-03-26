@@ -100,7 +100,6 @@ RETURN apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z') AS output;
   }
 |===
 
-
 == Notes on formats:
 
 * the default format is `yyyy-MM-dd HH:mm:ss`
@@ -117,7 +116,6 @@ Extracts the value of one field from a datetime epoch.
 ----
 RETURN apoc.date.field(12345)
 ----
-
 
 Following fields are supported:
 
@@ -158,4 +156,3 @@ RETURN apoc.date.field(12345, 'years') AS output;
 | Output
 | 1970
 |===
-
