@@ -46,6 +46,20 @@ public class TTLLifeCycle extends LifecycleAdapter {
         }
     }
 
+    @Procedure(mode = Mode.WRITE)
+	@Description("CALL apoc.ttl.expireAtInstant(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property")
+	public void expire(@Name("node") Node node, @Name("time") long time, @Name("timeUnit") String timeUnit) {
+		node.addLabel(Label.label("TTL"));
+		node.setProperty("ttl",unit(timeUnit).toMillis(time));
+	}
+
+	@Procedure(mode = Mode.WRITE)
+	@Description("CALL apoc.ttl.expireAfterTimeLength(node,timeDelta,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property")
+	public void expireIn(@Name("node") Node node, @Name("timeDelta") long time, @Name("timeUnit") String timeUnit) {
+		node.addLabel(Label.label("TTL"));
+		node.setProperty("ttl",System.currentTimeMillis() + unit(timeUnit).toMillis(time));
+	}
+
     public void expireNodes(long limit) {
         try {
             if (!Util.isWriteableInstance(db)) return;
