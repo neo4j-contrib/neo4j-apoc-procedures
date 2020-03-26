@@ -89,8 +89,7 @@ RETURN node;
 | (:Person:Field {name: "Stefan"})
 |===
 
-4 people are in the
-
+4 people are reachable from Praveena.
 
 We can also provide a node label filter to restrict the nodes that are returned.
 If we want to only return paths where every node has the `Engineering` label, we'll provide the value `+Engineering` to the `labelFilter` parameter.
