@@ -1,14 +1,13 @@
 window.docMeta = (function () {
-  var version = '3.5';
+  var version = "3.5";
   var name = 'apoc';
   var href = window.location.href;
-  var len = href.indexOf('/' + version) != -1 ? href.indexOf('/' + version) : href.length -1;
   return {
     name: name,
     version: version,
     availableDocVersions: ["3.5", "4.0"],
-    thisPubBaseUri: href.substring(0,len) + '/' + version,
-    unversionedDocBaseUri: href.substring(0, len) + '/',
+    thisPubBaseUri: href.substring(0, href.indexOf(name) + name.length) + '/' + version,
+    unversionedDocBaseUri: href.substring(0, href.indexOf(name) + name.length) + '/',
     commonDocsBaseUri: href.substring(0, href.indexOf(name) - 1)
   }
 })();
