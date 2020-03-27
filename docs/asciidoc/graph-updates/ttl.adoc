@@ -14,7 +14,7 @@ This section includes:
 
 * <<ttl-available-procedures, Available Procedures>>
 * <<ttl-config-parameters, Configuration and Parameters>>
-* <<ttl-handson-video, Time-To-Live Hands-On>>
+//* <<ttl-handson-video, Time-To-Live Hands-On>>
 * <<ttl-examples, Examples>>
     ** <<ttl-expireAt, Expire at Specified Time>>
     ** <<ttl-expireIn, Expire after Amount of Time>>
@@ -33,15 +33,21 @@ include::../../../build/generated-documentation/apoc.ttl.csv[]
 [[ttl-config-parameters]]
 == Configuration and Parameters
 
-For configuration, you will need to enable time-to-live functionality with the following setting in `apoc.conf`:
+For configuration, you will need to enable time-to-live functionality with the following settings in `apoc.conf`:
 
-* `apoc.ttl.enabled=true`
-* _Optional:_ `apoc.ttl.schedule=5` as repeat frequency
+.apoc.conf
+[source,properties]
+----
+apoc.ttl.enabled=true
+
+# Optional: controls the repeat frequency
+# apoc.ttl.schedule=5
+----
 
 In the available procedures listed above, there are several parameters with specific values.
 The table below outlines values and formats for the valid parameters.
 
-[cols="1m,5"]
+[options="header"]
 |===
 | Parameter | Description | Possible Values | Examples
 | `node` | The entity or entities to add the label and property of time-to-live (previous selection statement needed) | Any node or group of nodes fitting desired criteria | `n`, `person`, `group`
@@ -49,19 +55,20 @@ The table below outlines values and formats for the valid parameters.
 | `time-unit` | Measurement of units for input value | `ms, s, m, h, d` (long forms: `millis, milliseconds, seconds, minutes, hours, days`) | `milliseconds`, `h`
 |===
 
-[[ttl-handson-video]]
-== Time-To-Live Hands-On
-
-ifdef::backend-html5[]
-++++
-<iframe width="560" height="315" src="https://www.youtube.com/embed/e9aoQ9xOmoU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-++++
-endif::[]
+//[[ttl-handson-video]]
+//== Time-To-Live Hands-On
+//
+//ifdef::backend-html5[]
+//++++
+//<iframe width="560" height="315" src="https://www.youtube.com/embed/e9aoQ9xOmoU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+//++++
+//endif::[]
 
 [[ttl-examples]]
 == Examples: Time-To-Live
 
 This section includes examples showing how to use the time-to-live procedures.
+These examples are based on a movies dataset, which can be imported by running the following Cypher query:
 
 include::../export/createExportGraph.adoc[]
 
@@ -87,7 +94,7 @@ RETURN movie, produced, person
 .Results
 [opts="header"]
 |===
-| "movie" │ "produced" │ "person" 
+| "movie" | "produced" | "person"
 | {"title":"The Matrix","tagline":"Welcome to the Real World","released":1999} | {} | {"name":"Joel Silver","ttl":1585176720000,"born":1952}
 |===
 
@@ -118,7 +125,7 @@ RETURN movie, produced, person
 .Results
 [opts="header"]
 |===
-| "movie" │ "produced" │ "person" 
+| "movie" | "produced" | "person"
 | {"title":"The Matrix","tagline":"Welcome to the Real World","released":1999} | {} | {"name":"Joel Silver","ttl":120000,"born":1952}
 |===
 
@@ -163,4 +170,12 @@ MATCH (t:TTL) where t.ttl < timestamp() WITH t LIMIT 1000 DETACH DELETE t
 ----
 
 When using the procedure, the deletion statement to remove nodes past expiration will run every 60 seconds. 
-You can also configure the schedule by adding the following setting in `apoc.conf`: `apoc.ttl.schedule=120`).
+You can also configure the schedule by adding the following setting in `apoc.conf`:
+
+
+.apoc.conf
+[source,properties]
+----
+# Optional: controls the repeat frequency
+apoc.ttl.schedule=120
+----
