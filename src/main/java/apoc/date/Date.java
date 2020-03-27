@@ -125,7 +125,7 @@ public class Date {
 		}
 	}
 
-	private TimeUnit unit(String unit) {
+	public static TimeUnit unit(String unit) {
 		if (unit == null) return TimeUnit.MILLISECONDS;
 
 		switch (unit.toLowerCase()) {
