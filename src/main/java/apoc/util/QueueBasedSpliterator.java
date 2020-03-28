@@ -14,7 +14,7 @@ public class QueueBasedSpliterator<T> implements Spliterator<T> {
     private final BlockingQueue<T> queue;
     private T tombstone;
     private TerminationGuard terminationGuard;
-    private int resultCounter = 0;
+    private boolean foundTombstone = false;
 
     public QueueBasedSpliterator(BlockingQueue<T> queue, T tombstone, TerminationGuard terminationGuard) {
         this.queue = queue;
@@ -24,22 +24,15 @@ public class QueueBasedSpliterator<T> implements Spliterator<T> {
 
     @Override
     public boolean tryAdvance(Consumer<? super T> action) {
-        if (Util.transactionIsTerminated(terminationGuard)) return false;
+        if (Util.transactionIsTerminated(terminationGuard) || foundTombstone) return false;
         try {
             T element = queue.take();
-            resultCounter++;
-/*
-            if (resultCounter % 100 == 0 || element.equals(tombstone)) {
-                System.out.println(Thread.currentThread().getName() + " took from queue " + resultCounter);
-            }
-*/
             if (element.equals(tombstone)) {
-                return false;
+                foundTombstone = true;
             } else {
                 action.accept(element);
-                return true;
             }
-
+            return true;
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

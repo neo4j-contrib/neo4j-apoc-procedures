@@ -145,7 +145,6 @@ public class Cypher {
             } finally {
                 while (true) {  // ensure we send TOMBSTONE even if there's an InterruptedException
                     try {
-//                        System.out.println(Thread.currentThread().getName() + " sending TOMBSTONE to queue");
                         queue.put(tombstone);
                         return;
                     } catch (InterruptedException e) {
@@ -196,15 +195,11 @@ public class Cypher {
     private final static Pattern shellControl = Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
 
     private Object executeStatement(BlockingQueue<RowResult> queue, String stmt, Map<String, Object> params, boolean addStatistics, long timeout) throws InterruptedException {
-//        System.out.println(Thread.currentThread().getName() + " running " + stmt);
         try (Result result = db.execute(stmt,params)) {
             long time = System.currentTimeMillis();
             int row = 0;
             while (result.hasNext()) {
                 terminationGuard.check();
-                if (row % 100 == 0) {
-//                    System.out.println(Thread.currentThread().getName() + " putting result " + row + " into queue");
-                }
                 queue.put(new RowResult(row++, result.next()));
             }
             if (addStatistics) {
@@ -324,15 +319,18 @@ public class Cypher {
         final String statement = withParamsAndIterator(fragment, params.keySet(), "_");
         db.execute("EXPLAIN " + statement).close();
         BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100000);
-        Stream<List<Object>> parallelPartitions = Util.partitionSubList(data, (int)(partitions <= 0 ? PARTITIONS : partitions), null);
 
         runInSeparateThreadAndSendTombstone(() -> {
+            Stream<List<Object>> parallelPartitions = Util.partitionSubList(data, (int)(partitions <= 0 ? PARTITIONS : partitions), null);
             parallelPartitions
-                    .map((List<Object> partition) -> {
+                    .forEach((List<Object> partition) -> {
                         try {
-                            return executeStatement(queue, statement, parallelParams(params, "_", partition),false,timeout);
-                        } catch (Exception e) {throw new RuntimeException(e);}}
-                    ).count();
+                            executeStatement(queue, statement, parallelParams(params, "_", partition),false,timeout);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    );
         }, queue, RowResult.TOMBSTONE);
 
         return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard),true).map((rowResult) -> new MapResult(rowResult.result));
