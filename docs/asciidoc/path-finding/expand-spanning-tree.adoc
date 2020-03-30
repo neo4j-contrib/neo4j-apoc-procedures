@@ -18,6 +18,7 @@ This procedure has the same behaviour as <<path-expander-paths-config>> with the
     ** <<expand-spanning-tree-examples-label-relationship-filters>>
     ** <<expand-spanning-tree-examples-end-nodes-terminator-nodes>>
     ** <<expand-spanning-tree-examples-whitelist-blacklist>>
+    ** <<expand-spanning-tree-examples-sequence-rel-types>>
 
 [[expand-spanning-tree-overview]]
 === Procedure Overview
