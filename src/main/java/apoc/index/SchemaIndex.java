@@ -163,7 +163,7 @@ public class SchemaIndex {
                 .collect(new QueuePoisoningCollector(queue, POISON))
         ).start();
 
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, POISON, terminationGuard),false);
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, POISON, terminationGuard, Integer.MAX_VALUE),false);
     }
 
     private Object scanIndexDefinitionForKeys(IndexDefinition indexDefinition, @Name(value = "key", defaultValue = "") String keyName, ThreadToStatementContextBridge ctx, BlockingQueue<PropertyValueCount> queue) {

@@ -14,27 +14,27 @@ public class QueueBasedSpliterator<T> implements Spliterator<T> {
     private final BlockingQueue<T> queue;
     private T tombstone;
     private TerminationGuard terminationGuard;
-    private boolean foundTombstone = false;
+    private volatile boolean foundTombstone = false;
+    private final int timeoutSeconds;
 
-    public QueueBasedSpliterator(BlockingQueue<T> queue, T tombstone, TerminationGuard terminationGuard) {
+    public QueueBasedSpliterator(BlockingQueue<T> queue, T tombstone, TerminationGuard terminationGuard, int timeoutSeconds) {
         this.queue = queue;
         this.tombstone = tombstone;
         this.terminationGuard = terminationGuard;
+        this.timeoutSeconds = timeoutSeconds;
     }
 
     @Override
     public boolean tryAdvance(Consumer<? super T> action) {
-        if (Util.transactionIsTerminated(terminationGuard) || foundTombstone) return false;
-        try {
-            T element = queue.take();
-            if (element.equals(tombstone)) {
-                foundTombstone = true;
-            } else {
-                action.accept(element);
-            }
+        if (foundTombstone) return false;
+        terminationGuard.check();
+        T element = QueueUtil.take(queue, timeoutSeconds, () -> terminationGuard.check());
+        if (element.equals(tombstone)) {
+            foundTombstone = true;
+            return false;
+        } else {
+            action.accept(element);
             return true;
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 
