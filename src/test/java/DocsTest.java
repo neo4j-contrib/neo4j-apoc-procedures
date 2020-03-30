@@ -29,7 +29,8 @@ public class DocsTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.auth_enabled, true);
+            .withSetting(GraphDatabaseSettings.auth_enabled, true)
+            .withSetting(GraphDatabaseSettings.procedure_unrestricted, Collections.singletonList("apoc.*"));
 
     @Before
     public void setUp() throws Exception {
