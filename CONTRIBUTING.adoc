@@ -53,6 +53,23 @@ If there are multiple commits, and the PR is fine to merge online, use *Squash a
 
 Using the issue id in the summary line will allow us to keep track of commits belonging together.
 
+=== Branching Policy
+
+We do have a branch for each major version of Neo4j, e.g. `3.5`, `4.0` and `4.1`. 
+As a contributor you're asked to use newest possible branch for you PR.
+
+When your PR is accepted and merged it's the responsibility of the maintainers who merged it to cherry-pick that changes to any newer branch. 
+Once cherry-picking is done, the maintainers should mark that PR with the `cherry-picked` label. 
+
+Please indicate in your PR message text if your PR needs a different behaviour - e.g.  if the feature you're fixing has been removed in a newer branch or APIs have changed too much and you have a separate PR for the newer branch.
+
+EXAMPLE: 
+
+1. You're fixing a bug being reported for 3.5.x.x. 
+2. You're choosing the 3.5 branch as base for your PR branch. 
+3. Once you're done you send a PR.
+4. When a maintainer merges that PR, they also take care to cherry-pick it to 4.0 and any more recent branches.
+
 === Handling pull requests
 
 Be polite. 
