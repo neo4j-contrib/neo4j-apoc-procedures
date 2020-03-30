@@ -40,7 +40,6 @@ public class Uuid {
         config = JsonUtil.OBJECT_MAPPER.convertValue(uuidConfig, Map.class); // return the applied configuration (with defaults if the original config was null or empty)
         if (removed != null) {
             return Stream.of(
-                    new UuidInfo(label, false),
                     new UuidInstallInfo(label, true, config, addToExistingNodesResult));
         }
         return Stream.of(new UuidInstallInfo(label, true, config, addToExistingNodesResult));
