@@ -34,7 +34,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_LABEL;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 
-public class Meta {
+public class    Meta {
 
     @Context
     public Transaction tx;
@@ -53,8 +53,8 @@ public class Meta {
     public static class ConstraintTracker {
         // The following maps are (label|rel-type)/constraintdefinition entries
 
-        public static Map<String, List<String>> relConstraints = new HashMap<>(20);;
-        public static Map<String, List<String>> nodeConstraints = new HashMap<>(20);;
+        public static final Map<String, List<String>> relConstraints = new HashMap<>(20);;
+        public static final Map<String, List<String>> nodeConstraints = new HashMap<>(20);;
     }
 
     public enum Types {

@@ -24,8 +24,8 @@ public class Cluster
     @Context
     public GraphDatabaseAPI api;
 
-    public static final String boltAddressKey = "bolt_address";
-    public static final Map<String,String> shortName = new HashMap<String,String>()
+    private static final String boltAddressKey = "bolt_address";
+    private static final Map<String,String> shortName = new HashMap<String,String>()
     {{
         put( "LEADER", "L" );
         put( "FOLLOWER", "F" );

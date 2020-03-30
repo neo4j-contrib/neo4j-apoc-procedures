@@ -97,7 +97,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
     private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
     private Set<ProcedureSignature> registeredProcedureSignatures = emptySet();
     private Set<UserFunctionSignature> registeredUserFunctionSignatures = emptySet();
-    public static Group REFRESH_GROUP = Group.STORAGE_MAINTENANCE;
+    private static Group REFRESH_GROUP = Group.STORAGE_MAINTENANCE;
     private JobHandle restoreProceduresHandle;
 
 

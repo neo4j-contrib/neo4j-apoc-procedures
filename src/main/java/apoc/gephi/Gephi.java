@@ -38,8 +38,8 @@ public class Gephi {
 
     }
 
-    public static final String[] CAPTIONS = new String[]{"name", "title", "label"};
-    public static final List<String> RESERVED = Arrays.asList("label", "TYPE", "id", "source", "target", "weight", "directed"); 
+    private static final String[] CAPTIONS = new String[]{"name", "title", "label"};
+    private static final List<String> RESERVED = Arrays.asList("label", "TYPE", "id", "source", "target", "weight", "directed");
     // http://127.0.0.1:8080/workspace0?operation=updateGraph
     // TODO configure property-filters or transfer all properties
     @Procedure

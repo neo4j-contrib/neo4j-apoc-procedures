@@ -29,16 +29,16 @@ import static apoc.ApocConfig.apocConfig;
  */
 public class FileUtils {
 
-    public static final String HTTP_PROTOCOL = "http";
-    public static final String S3_PROTOCOL = "s3";
-    public static final boolean S3_ENABLED = Util.classExists("com.amazonaws.services.s3.AmazonS3");
+    private static final String HTTP_PROTOCOL = "http";
+    static final String S3_PROTOCOL = "s3";
+    static final boolean S3_ENABLED = Util.classExists("com.amazonaws.services.s3.AmazonS3");
     public static final String GCS_PROTOCOL = "gs";
-    public static final boolean GCS_ENABLED = Util.classExists("com.google.cloud.storage.Storage");
-    public static final String HDFS_PROTOCOL = "hdfs";
-    public static final boolean HDFS_ENABLED = Util.classExists("org.apache.hadoop.fs.FileSystem");
+    static final boolean GCS_ENABLED = Util.classExists("com.google.cloud.storage.Storage");
+    static final String HDFS_PROTOCOL = "hdfs";
+    static final boolean HDFS_ENABLED = Util.classExists("org.apache.hadoop.fs.FileSystem");
     public static final Pattern HDFS_PATTERN = Pattern.compile("^(hdfs:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
 
-    public static final List<String> NON_FILE_PROTOCOLS = Arrays.asList(HTTP_PROTOCOL, S3_PROTOCOL, GCS_PROTOCOL, HDFS_PROTOCOL);
+    private static final List<String> NON_FILE_PROTOCOLS = Arrays.asList(HTTP_PROTOCOL, S3_PROTOCOL, GCS_PROTOCOL, HDFS_PROTOCOL);
 
     public static CountingReader readerFor(String fileName) throws IOException {
         apocConfig().checkReadAllowed(fileName);

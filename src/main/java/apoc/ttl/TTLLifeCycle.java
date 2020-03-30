@@ -20,7 +20,7 @@ public class TTLLifeCycle extends LifecycleAdapter {
 
     public static final int INITIAL_DELAY = 30;
     public static final int DEFAULT_SCHEDULE = 60;
-    public static Group TTL_GROUP = Group.INDEX_UPDATING;
+    private static final Group TTL_GROUP = Group.INDEX_UPDATING;
     private final JobScheduler scheduler;
     private final GraphDatabaseAPI db;
     private final ApocConfig apocConfig;

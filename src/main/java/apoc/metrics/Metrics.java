@@ -243,7 +243,7 @@ public class Metrics {
         return loadCsvForMetric(metricName, csvConfig);
     }
 
-    public static final Map<String,Object> METRIC_TYPE_MAPPINGS = new HashMap<String,Object>();
+    private static final Map<String,Object> METRIC_TYPE_MAPPINGS = new HashMap<String,Object>();
     static {
         final Map<String,String> typeFloat = new HashMap<String,String>();
         typeFloat.put("type", "float");  // "float" ends up as a double in Meta.java

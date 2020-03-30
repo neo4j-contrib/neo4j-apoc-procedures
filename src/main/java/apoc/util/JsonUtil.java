@@ -32,8 +32,8 @@ import static apoc.ApocConfig.apocConfig;
  * @since 04.05.16
  */
 public class JsonUtil {
-    public static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    public static Object TOMB = new Object();
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final Object TOMB = new Object();
     private static final Configuration JSON_PATH_CONFIG;
     static {
         OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);

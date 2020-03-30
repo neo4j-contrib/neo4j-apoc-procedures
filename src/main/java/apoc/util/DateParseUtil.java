@@ -13,9 +13,9 @@ import static apoc.util.Util.getFormat;
 
 public class DateParseUtil {
 
-    public static Map<Class<? extends TemporalAccessor>, MethodHandle> parseDateMap = new ConcurrentHashMap<>();
-    public static Map<Class<? extends TemporalAccessor>, MethodHandle> simpleParseDateMap = new ConcurrentHashMap<>();
-    public static String METHOD_NAME = "parse";
+    private static Map<Class<? extends TemporalAccessor>, MethodHandle> parseDateMap = new ConcurrentHashMap<>();
+    private static Map<Class<? extends TemporalAccessor>, MethodHandle> simpleParseDateMap = new ConcurrentHashMap<>();
+    private static String METHOD_NAME = "parse";
 
     public static TemporalAccessor dateParse(String value, Class<? extends TemporalAccessor> date, String...formats) {
         try {

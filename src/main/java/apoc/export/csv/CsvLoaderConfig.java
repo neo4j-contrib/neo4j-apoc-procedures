@@ -9,20 +9,20 @@ import java.util.Map;
 public class CsvLoaderConfig {
 
     public static final String DELIMITER = "delimiter";
-    public static final String ARRAY_DELIMITER = "arrayDelimiter";
-    public static final String QUOTATION_CHARACTER = "quotationCharacter";
-    public static final String STRING_IDS = "stringIds";
-    public static final String SKIP_LINES = "skipLines";
-    public static final String BATCH_SIZE = "batchSize";
-    public static final String IGNORE_DUPLICATE_NODES = "ignoreDuplicateNodes";
+    private static final String ARRAY_DELIMITER = "arrayDelimiter";
+    private static final String QUOTATION_CHARACTER = "quotationCharacter";
+    private static final String STRING_IDS = "stringIds";
+    private static final String SKIP_LINES = "skipLines";
+    private static final String BATCH_SIZE = "batchSize";
+    private static final String IGNORE_DUPLICATE_NODES = "ignoreDuplicateNodes";
 
-    public static char DELIMITER_DEFAULT = ',';
-    public static char ARRAY_DELIMITER_DEFAULT = ';';
-    public static char QUOTATION_CHARACTER_DEFAULT = '"';
-    public static boolean STRING_IDS_DEFAULT = true;
-    public static int SKIP_LINES_DEFAULT = 1;
-    public static int BATCH_SIZE_DEFAULT = 2000;
-    public static boolean IGNORE_DUPLICATE_NODES_DEFAULT = false;
+    private static char DELIMITER_DEFAULT = ',';
+    private static char ARRAY_DELIMITER_DEFAULT = ';';
+    private static char QUOTATION_CHARACTER_DEFAULT = '"';
+    private static boolean STRING_IDS_DEFAULT = true;
+    private static int SKIP_LINES_DEFAULT = 1;
+    private static int BATCH_SIZE_DEFAULT = 2000;
+    private static boolean IGNORE_DUPLICATE_NODES_DEFAULT = false;
 
     private final char delimiter;
     private final char arrayDelimiter;

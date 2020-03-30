@@ -39,7 +39,7 @@ public class PropertyTracker {
         return ret;
     }
 
-    public static final Map<String,String> typeMappings = new HashMap<String,String>();
+    private static final Map<String,String> typeMappings = new HashMap<String,String>();
     static {
         typeMappings.put("java.lang.String", "String");
         typeMappings.put("java.lang.String[]", "StringArray");

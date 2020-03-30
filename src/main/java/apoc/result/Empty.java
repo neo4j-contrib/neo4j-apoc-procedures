@@ -9,7 +9,7 @@ import java.util.stream.Stream;
  * @since 09.04.16
  */
 public class Empty {
-    public static Empty INSTANCE = new Empty();
+    private static final Empty INSTANCE = new Empty();
 
     public static Stream<Empty> stream(boolean value) { return value ? Stream.of(INSTANCE) : Stream.empty(); }
 }

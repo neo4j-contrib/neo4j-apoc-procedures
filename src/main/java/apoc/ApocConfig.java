@@ -59,7 +59,7 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_CONFIG_JOBS_POOL_NUM_THREADS = "apoc.jobs.pool.num_threads";
     public static final String APOC_CONFIG_INITIALIZER_CYPHER = "apoc.initializer.cypher";
 
-    public static final List<Setting> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = new ArrayList<>(Arrays.asList(
+    private static final List<Setting> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = new ArrayList<>(Arrays.asList(
             data_directory,
             load_csv_file_url_root,
             logs_directory,

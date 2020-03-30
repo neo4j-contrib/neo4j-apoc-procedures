@@ -23,7 +23,7 @@ import static apoc.util.Util.map;
  */
 public class FormatUtils {
 
-    public static DecimalFormat decimalFormat = new DecimalFormat() {
+    private static DecimalFormat decimalFormat = new DecimalFormat() {
         {
             setMaximumFractionDigits(340);
             setGroupingUsed(false);
