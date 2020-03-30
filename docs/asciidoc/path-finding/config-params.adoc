@@ -6,8 +6,12 @@ The procedures support the following config parameters:
 | name | type | default | description
 | minLevel | Long | -1 | the minimum number of hops in the traversal. Must be 0 or 1 if specified
 | maxLevel | Long | -1 | the maximum number of hops in the traversal
-| relationshipFilter | String | null | the relationship types and directions to traverse. See <<expand-subgraph-relationship-filters>>.
-| labelFilter | String | null | the node labels to traverse. See <<expand-subgraph-label-filters>>.
+| relationshipFilter | String | null | the relationship types and directions to traverse.
+
+See <<expand-subgraph-relationship-filters>>.
+| labelFilter | String | null | the node labels to traverse.
+
+See <<expand-subgraph-label-filters>>.
 | beginSequenceAtStart | Boolean | true | starts matching sequences of node labels and/or relationship types (defined in `relationshipFilter`, `labelFilter`, or `sequences`) one node away from the start node.
 | bfs | Boolean | true | use Breadth First Search when traversing. Uses Depth First Search if set to `false`
 | filterStartNode | Boolean | false | whether the `labelFilter` and `sequence` apply to the start node of the expansion.
