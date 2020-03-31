@@ -37,7 +37,7 @@ public class DocsTest {
 
         Set<Class<?>> allClasses = allClasses();
         for (Class<?> klass : allClasses) {
-            if(!klass.getName().endsWith("Test")) {
+            if(!klass.getName().endsWith("Test") && !klass.getName().endsWith("LifeCycle")) {
                 TestUtil.registerProcedure(db, klass);
             }
         }
