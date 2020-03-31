@@ -228,20 +228,20 @@ public class UUIDTest {
     @Test
     public void testAddToExistingNodesBatchResult() {
         // given
-        db.executeTransactionally("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})");
+        db.execute("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})");
 
         // when
-        db.executeTransactionally("CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE");
+        db.execute("CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE");
 
         // then
         try (Transaction tx = db.beginTx()) {
-            long total = (Long) tx.execute(
+            long total = (Long) db.execute(
                     "CALL apoc.uuid.install('Person') YIELD label, installed, properties, batchComputationResult " +
                             "RETURN batchComputationResult.total as total")
                     .next()
                     .get("total");
             assertEquals(1, total);
-            tx.commit();
+            tx.success();
         }
     }
 

@@ -103,11 +103,16 @@ public class Uuid {
     }
 
 
-    public static class UuidInstallInfo extends UuidInfo {
+    public static class UuidInstallInfo {
         public Map<String, Object> batchComputationResult;
+        public final String label;
+        public boolean installed;
+        public Map<String, Object> properties;
 
         UuidInstallInfo(String label, boolean installed, Map<String, Object> properties, Map<String, Object> batchComputationResult) {
-            super(label, installed, properties);
+            this.label = label;
+            this.installed = installed;
+            this.properties = properties;
             this.batchComputationResult = batchComputationResult;
         }
 
