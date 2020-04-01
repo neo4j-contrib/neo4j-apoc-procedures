@@ -3,8 +3,10 @@ package apoc.ai.gcp
 import apoc.ai.dto.AIMapResult
 import apoc.graph.document.builder.DocumentToGraph
 import apoc.graph.util.GraphsConfig
+import apoc.result.RelationshipResult
 import apoc.result.VirtualGraph
 import apoc.result.VirtualNode
+import apoc.util.Util
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
 import org.neo4j.graphdb.RelationshipType
@@ -60,7 +62,7 @@ class GCPProcedures {
         val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
         val relationships = (mutableGraph["relationships"] as Set<Relationship>).toMutableSet()
         if(storeGraph) {
-            createRelationships(sourceNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
+            mergeRelationships(sourceNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
             nodes.add(sourceNode)
         } else {
             val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
@@ -109,7 +111,7 @@ class GCPProcedures {
         val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
         val relationships = (mutableGraph["relationships"] as Set<Relationship>).toMutableSet()
         if(storeGraph) {
-            createRelationships(sourceNode, nodes, classifyRelationshipType(config)).forEach { rel -> relationships.add(rel) }
+            mergeRelationships(sourceNode, nodes, classifyRelationshipType(config)).forEach { rel -> relationships.add(rel) }
             nodes.add(sourceNode)
         } else {
             val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
@@ -126,12 +128,22 @@ class GCPProcedures {
                   @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
             : Stream<AIMapResult> = Stream.of(GCPClient(config["key"].toString(), log!!).sentiment(data, config))
 
-    private fun createRelationships(node: Node, nodes: MutableSet<Node>, relationshipType: RelationshipType) =
+    private fun createRelationships(node: VirtualNode, nodes: MutableSet<Node>, relationshipType: RelationshipType) =
             sequence {
                 for (n in nodes) {
                     yield(node.createRelationshipTo(n, relationshipType))
                 }
             }
+
+    private fun mergeRelationships(node: Node, nodes: MutableSet<Node>, relType: RelationshipType) : Stream<Relationship> {
+        val cypher = """WITH ${'$'}startNode as startNode, ${'$'}endNodes as endNodes
+            UNWIND endNodes AS endNode
+            MERGE (startNode)-[r:${Util.quote(relType.name())}]->(endNode)
+            RETURN r"""
+
+        val params = mapOf("startNode" to node, "endNodes" to nodes)
+        return tx!!.execute(cypher, params).columnAs<Relationship>("r").stream()
+    }
 
     private fun entities(config: Map<String, Any>, node: Node, nodeProperty: String) =
             GCPClient(config["key"].toString(), log!!).entities(node.getProperty(nodeProperty).toString(), config)
