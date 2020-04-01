@@ -122,11 +122,11 @@ class GCPProcedures {
         return Stream.of(VirtualGraph("Graph", nodes, relationships, emptyMap()))
     }
 
-    @Procedure(value = "apoc.ai.gcp.sentiment.stream", mode = Mode.READ)
-    @Description("Analyzes the sentiment of the provided text.")
-    fun sentimentStream(@Name("data") data: Any,
-                  @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
-            : Stream<AIMapResult> = Stream.of(GCPClient(config["key"].toString(), log!!).sentiment(data, config))
+//    @Procedure(value = "apoc.ai.gcp.sentiment.stream", mode = Mode.READ)
+//    @Description("Analyzes the sentiment of the provided text.")
+//    fun sentimentStream(@Name("data") data: Any,
+//                  @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
+//            : Stream<AIMapResult> = Stream.of(GCPClient(config["key"].toString(), log!!).sentiment(data, config))
 
     private fun createRelationships(node: VirtualNode, nodes: MutableSet<Node>, relationshipType: RelationshipType) =
             sequence {
