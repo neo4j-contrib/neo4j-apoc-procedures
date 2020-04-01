@@ -67,7 +67,7 @@ compileJava {
 //            "-ADocumentation.FieldDelimiter=¦",
 //            "-ADocumentation.ExportedHeaders=type¦qualified name¦description",
 //            "-ADocumentation.QuotedFields=false",
-//            "-ADocumen    tation.DelimitedFirstField=true",
+//            "-ADocumentation.DelimitedFirstField=true",
 //            "-ADocumentation.ExportGrouping=SINGLE,PACKAGE"]
 }
 

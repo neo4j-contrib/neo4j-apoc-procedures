@@ -1,0 +1,15 @@
+[[ai]]
+== Artificial Intelligence
+
+[abstract]
+--
+This chapter describes procedures that can be used for added Artificial Intelligence functionality to graph applications.
+--
+
+The procedures described in this chapter act as wrappers around cloud based Machine Learning and Natural Language APIs.
+
+This section includes:
+
+* <<ai-gcp>>
+
+include::ai/gcp.adoc[]
