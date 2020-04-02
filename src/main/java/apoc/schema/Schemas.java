@@ -22,7 +22,6 @@ import org.neo4j.internal.kernel.api.exceptions.schema.IndexNotFoundKernelExcept
 import org.neo4j.internal.schema.ConstraintDescriptor;
 import org.neo4j.internal.schema.IndexDescriptor;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.api.SilentTokenNameLookup;
 import org.neo4j.kernel.api.Statement;
 import org.neo4j.procedure.*;
 
@@ -274,7 +273,6 @@ public class Schemas {
 
         try ( Statement ignore = ktx.acquireStatement() ) {
             TokenRead tokenRead = ktx.tokenRead();
-            TokenNameLookup tokens = new SilentTokenNameLookup(tokenRead);
 
             SchemaRead schemaRead = ktx.schemaRead();
             Iterable<IndexDescriptor> indexesIterator;
@@ -326,11 +324,11 @@ public class Schemas {
 
             Stream<IndexConstraintNodeInfo> constraintNodeInfoStream = StreamSupport.stream(constraintsIterator.spliterator(), false)
                     .filter(constraintDescriptor -> constraintDescriptor.type().equals(org.neo4j.internal.schema.ConstraintType.EXISTS))
-                    .map(constraintDescriptor -> this.nodeInfoFromConstraintDescriptor(constraintDescriptor, tokens))
+                    .map(constraintDescriptor -> this.nodeInfoFromConstraintDescriptor(constraintDescriptor, tokenRead))
                     .sorted(Comparator.comparing(i -> i.label));
 
             Stream<IndexConstraintNodeInfo> indexNodeInfoStream = StreamSupport.stream(indexesIterator.spliterator(), false)
-                    .map(indexDescriptor -> this.nodeInfoFromIndexDefinition(indexDescriptor, schemaRead, tokens))
+                    .map(indexDescriptor -> this.nodeInfoFromIndexDefinition(indexDescriptor, schemaRead, tokenRead))
                     .sorted(Comparator.comparing(i -> i.label));
 
             return Stream.of(constraintNodeInfoStream, indexNodeInfoStream).flatMap(e -> e);
