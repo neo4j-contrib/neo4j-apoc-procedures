@@ -33,6 +33,7 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.UserFunction;
+import org.neo4j.storageengine.api.RelationshipSelection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -262,7 +263,7 @@ public class Nodes {
      * @return
      */
     private boolean connected(NodeCursor start, long end, int[][] typedDirections) {
-        try (RelationshipTraversalCursor relationship = ktx.cursors().allocateRelationshipTraversalCursor()) {
+        try (RelationshipTraversalCursor relationship = ktx.cursors().allocateRelationshipTraversalCursor(ktx.pageCursorTracer())) {
             start.allRelationships(relationship);
             while (relationship.next()) {
                 if (relationship.otherNodeReference() ==end) {
@@ -340,7 +341,7 @@ public class Nodes {
         }
 
         public boolean isConnected(Read read, RelationshipTraversalCursor relationship) {
-            read.relationships(node, group, relationship);
+            read.relationships(node, group, RelationshipSelection.ALL_RELATIONSHIPS, relationship);
             while (relationship.next()) {
                 if (relationship.otherNodeReference()==other) {
                     return true;
