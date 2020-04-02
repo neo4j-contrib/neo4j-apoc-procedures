@@ -14,7 +14,7 @@ java {
 }
 
 group = 'org.neo4j.procedure'
-version = '4.0.0.5'
+version = '4.1.0.0'
 archivesBaseName = 'apoc'
 description = """neo4j-apoc-procedures"""
 
@@ -26,7 +26,7 @@ jar {
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "4.0.0"
+    neo4jVersion = "4.1.0-SNAPSHOT"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.12.2'
@@ -200,7 +200,7 @@ test {
     //exclude '**/CypherProceduresClusterTest.class'//, '**/AtomicTest.class'
 
     // neo4jDockerImage system property is used in TestContainerUtil
-    systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.0.0-enterprise'
+    systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.1.0-drop01-enterprise'
 
 /*
     testLogging {
