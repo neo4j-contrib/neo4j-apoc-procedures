@@ -1,4 +1,4 @@
-package apoc.ai.gcp
+package apoc.nlp.gcp
 
 import apoc.util.TestUtil
 import org.junit.Assume.assumeTrue
@@ -37,7 +37,7 @@ class GCPProceduresTest {
         }
         neo4j.executeTransactionally("""
                     MATCH (a:Article)
-                    CALL apoc.ai.gcp.entities.stream(a, {
+                    CALL apoc.nlp.gcp.entities.stream(a, {
                       key: ${'$'}apiKey,
                       nodeProperty: "body"
                     })
@@ -56,7 +56,7 @@ class GCPProceduresTest {
         }
         neo4j.executeTransactionally("""
                     MATCH (a:Article)
-                    CALL apoc.ai.gcp.entities.graph(a, {
+                    CALL apoc.nlp.gcp.entities.graph(a, {
                       key: ${'$'}apiKey,
                       nodeProperty: "body",
                       write: false
@@ -76,7 +76,7 @@ class GCPProceduresTest {
         }
         neo4j.executeTransactionally("""
                     MATCH (a:Article)
-                    CALL apoc.ai.gcp.entities.graph(a, {
+                    CALL apoc.nlp.gcp.entities.graph(a, {
                       key: ${'$'}apiKey,
                       nodeProperty: "body",
                       write: true
@@ -96,7 +96,7 @@ class GCPProceduresTest {
         }
         neo4j.executeTransactionally("""
                     MATCH (a:Article)
-                    CALL apoc.ai.gcp.classify.graph(a, {
+                    CALL apoc.nlp.gcp.classify.graph(a, {
                       key: ${'$'}apiKey,
                       nodeProperty: "body",
                       write: false

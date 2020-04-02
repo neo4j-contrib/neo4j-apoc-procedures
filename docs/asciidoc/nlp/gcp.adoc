@@ -1,4 +1,4 @@
-[[ai-gcp]]
+[[nlp-gcp]]
 === Google Cloud Platform
 
 [abstract]
@@ -16,26 +16,26 @@ Each procedure has two modes:
 
 This section includes the following:
 
-* <<ai-gcp-overview>>
-* <<ai-gcp-api-key>>
-* <<ai-gcp-entities>>
-* <<ai-gcp-classify>>
-* <<ai-gcp-examples>>
-    ** <<ai-gcp-examples-entities>>
-    ** <<ai-gcp-examples-classify>>
+* <<nlp-gcp-overview>>
+* <<nlp-gcp-api-key>>
+* <<nlp-gcp-entities>>
+* <<nlp-gcp-classify>>
+* <<nlp-gcp-examples>>
+    ** <<nlp-gcp-examples-entities>>
+    ** <<nlp-gcp-examples-classify>>
 
-[[ai-gcp-overview]]
+[[nlp-gcp-overview]]
 ==== Procedure Overview
 
 The procedures are described below:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::../../../build/generated-documentation/apoc.ai.gcp.entities.csv[]
-include::../../../build/generated-documentation/apoc.ai.gcp.classify.csv[lines=2..3]
+include::../../../build/generated-documentation/apoc.nlp.gcp.entities.csv[]
+include::../../../build/generated-documentation/apoc.nlp.gcp.classify.csv[lines=2..3]
 |===
 
-[[ai-gcp-api-key]]
+[[nlp-gcp-api-key]]
 ==== Setting up API Key
 
 We can generate an API Key that has access to the Cloud Natural Language API by going to https://console.cloud.google.com/apis/credentials[console.cloud.google.com/apis/credentials^].
@@ -47,17 +47,17 @@ Once we've created a key, we can populate and execute the following command to c
 :param apiKey => ("<api-key-here>")
 ----
 
-[[ai-gcp-entities]]
+[[nlp-gcp-entities]]
 ==== Entity Extraction
 
-The entity extraction procedures (`apoc.ai.gcp.entities.*`) are wrappers around the https://cloud.google.com/natural-language/docs/reference/rest/v1/documents/analyzeEntities[`documents.analyzeEntities`^] method of the Google Natural Language API.
+The entity extraction procedures (`apoc.nlp.gcp.entities.*`) are wrappers around the https://cloud.google.com/natural-language/docs/reference/rest/v1/documents/analyzeEntities[`documents.analyzeEntities`^] method of the Google Natural Language API.
 This API method finds named entities (currently proper names and common nouns) in the text along with entity types, salience, mentions for each entity, and other properties.
 
 The procedures are described below:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::../../../build/generated-documentation/apoc.ai.gcp.entities.csv[]
+include::../../../build/generated-documentation/apoc.nlp.gcp.entities.csv[]
 |===
 
 The procedures support the following config parameters:
@@ -70,7 +70,7 @@ The procedures support the following config parameters:
 | nodeProperty | String | text | The property on the provided node that contains the unstructured text to be analyzed
 |===
 
-In addition, `apoc.ai.gcp.entities.graph` supports the following config parameters:
+In addition, `apoc.nlp.gcp.entities.graph` supports the following config parameters:
 
 .Config parameters
 [opts=header]
@@ -83,7 +83,7 @@ In addition, `apoc.ai.gcp.entities.graph` supports the following config paramete
 .Streaming mode
 [source,cypher]
 ----
-CALL apoc.ai.gcp.entities.stream(sourceNode:Node, {
+CALL apoc.nlp.gcp.entities.stream(sourceNode:Node, {
   key: String,
   nodeProperty: String
 })
@@ -93,7 +93,7 @@ YIELD response
 .Graph mode
 [source,cypher]
 ----
-CALL apoc.ai.gcp.entities.graph(sourceNode:Node, {
+CALL apoc.nlp.gcp.entities.graph(sourceNode:Node, {
   key: String,
   nodeProperty: String,
   relationshipType: String,
@@ -103,17 +103,17 @@ YIELD graph
 ----
 
 
-[[ai-gcp-classify]]
+[[nlp-gcp-classify]]
 ==== Classification
 
-The entity extraction procedures (`apoc.ai.gcp.classify.*`) are wrappers around the https://cloud.google.com/natural-language/docs/reference/rest/v1/documents/classifyText[`documents.classifyText`^] method of the Google Natural Language API.
+The entity extraction procedures (`apoc.nlp.gcp.classify.*`) are wrappers around the https://cloud.google.com/natural-language/docs/reference/rest/v1/documents/classifyText[`documents.classifyText`^] method of the Google Natural Language API.
 This API method classifies a document into categories.
 
 The procedures are described below:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::../../../build/generated-documentation/apoc.ai.gcp.classify.csv[]
+include::../../../build/generated-documentation/apoc.nlp.gcp.classify.csv[]
 |===
 
 The procedures support the following config parameters:
@@ -126,7 +126,7 @@ The procedures support the following config parameters:
 | nodeProperty | String | text | The property on the provided node that contains the unstructured text to be analyzed
 |===
 
-In addition, `apoc.ai.gcp.classify.graph` supports the following config parameters:
+In addition, `apoc.nlp.gcp.classify.graph` supports the following config parameters:
 
 .Config parameters
 [opts=header]
@@ -139,7 +139,7 @@ In addition, `apoc.ai.gcp.classify.graph` supports the following config paramete
 .Streaming mode
 [source,cypher]
 ----
-CALL apoc.ai.gcp.classify.stream(sourceNode:Node, {
+CALL apoc.nlp.gcp.classify.stream(sourceNode:Node, {
   key: String,
   nodeProperty: String
 })
@@ -149,7 +149,7 @@ YIELD response
 .Graph mode
 [source,cypher]
 ----
-CALL apoc.ai.gcp.classify.graph(sourceNode:Node, {
+CALL apoc.nlp.gcp.classify.graph(sourceNode:Node, {
   key: String,
   nodeProperty: String,
   relationshipType: String,
@@ -159,7 +159,7 @@ YIELD graph
 ----
 
 
-[[ai-gcp-examples]]
+[[nlp-gcp-examples]]
 ==== Examples
 
 The examples in this section are based on the following sample graph:
@@ -172,7 +172,7 @@ CREATE (:Article {
 });
 ----
 
-[[ai-gcp-examples-entities]]
+[[nlp-gcp-examples-entities]]
 ===== Entity Extraction
 
 Let's start by extracting the entities from the Article node.
@@ -182,7 +182,7 @@ The text that we want to analyze is stored in the `body` property of the node, s
 [source,cypher]
 ----
 MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
-CALL apoc.ai.gcp.entities.stream(a, {
+CALL apoc.nlp.gcp.entities.stream(a, {
   key: $apiKey,
   nodeProperty: "body"
 })
@@ -216,7 +216,7 @@ We could then apply a Cypher statement that creates one node per entity and an `
 [source,cypher]
 ----
 MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
-CALL apoc.ai.gcp.entities.stream(a, {
+CALL apoc.nlp.gcp.entities.stream(a, {
   key: $apiKey,
   nodeProperty: "body"
 })
@@ -235,7 +235,7 @@ By default a virtual graph is returned.
 [source,cypher]
 ----
 MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
-CALL apoc.ai.gcp.entities.graph(a, {
+CALL apoc.nlp.gcp.entities.graph(a, {
   key: $apiKey,
   nodeProperty: "body",
   relationshipType: "ENTITY"
@@ -244,10 +244,10 @@ YIELD graph AS g
 RETURN g;
 ----
 
-We can see a Neo4j Browser visualization of the virtual graph in <<apoc.ai.gcp.entities.graph.svg>>.
+We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.gcp.entities.graph.svg>>.
 
-[[apoc.ai.gcp.entities.graph.svg]]
-image::apoc.ai.gcp.entities.graph.svg[title="Pokemon entities graph"]
+[[apoc.nlp.gcp.entities.graph.svg]]
+image::apoc.nlp.gcp.entities.graph.svg[title="Pokemon entities graph"]
 
 If we're happy with this graph and would like to persist it in Neo4j, we can do this by specifying the `write: true` configuration.
 
@@ -255,7 +255,7 @@ If we're happy with this graph and would like to persist it in Neo4j, we can do 
 [source,cypher]
 ----
 MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
-CALL apoc.ai.gcp.entities.graph(a, {
+CALL apoc.nlp.gcp.entities.graph(a, {
   key: $apiKey,
   nodeProperty: "body",
   relationshipType: "HAS_ENTITY",
@@ -282,7 +282,7 @@ RETURN article.uri AS article,
 | "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/" | ["tournaments", "Neo4j", "Switch", "card games", "board games", "Mario Kart 8", "Nintendo", "friends", "8", "offices", "European", "role playing games"]
 |===
 
-[[ai-gcp-examples-classify]]
+[[nlp-gcp-examples-classify]]
 ===== Classification
 
 Now let's extract categories from the Article node.
@@ -292,7 +292,7 @@ The text that we want to analyze is stored in the `body` property of the node, s
 [source,cypher]
 ----
 MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
-CALL apoc.ai.gcp.classify.stream(a, {
+CALL apoc.nlp.gcp.classify.stream(a, {
   key: $apiKey,
   nodeProperty: "body"
 })
@@ -315,7 +315,7 @@ We could then apply a Cypher statement that creates one node per category and a 
 [source,cypher]
 ----
 MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
-CALL apoc.ai.gcp.classify.stream(a, {
+CALL apoc.nlp.gcp.classify.stream(a, {
   key: $apiKey,
   nodeProperty: "body"
 })
@@ -334,7 +334,7 @@ By default a virtual graph is returned.
 [source,cypher]
 ----
 MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
-CALL apoc.ai.gcp.classify.graph(a, {
+CALL apoc.nlp.gcp.classify.graph(a, {
   key: $apiKey,
   nodeProperty: "body",
   relationshipType: "CATEGORY"
@@ -343,16 +343,16 @@ YIELD graph AS g
 RETURN g;
 ----
 
-We can see a Neo4j Browser visualization of the virtual graph in <<apoc.ai.gcp.classify.graph.svg>>.
+We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.gcp.classify.graph.svg>>.
 
-[[apoc.ai.gcp.classify.graph.svg]]
-image::apoc.ai.gcp.classify.graph.svg[title="Pokemon categories graph"]
+[[apoc.nlp.gcp.classify.graph.svg]]
+image::apoc.nlp.gcp.classify.graph.svg[title="Pokemon categories graph"]
 
 .The following creates a `HAS_CATEGORY` relationship from the article to each entity
 [source,cypher]
 ----
 MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
-CALL apoc.ai.gcp.classify.graph(a, {
+CALL apoc.nlp.gcp.classify.graph(a, {
   key: $apiKey,
   nodeProperty: "body",
   relationshipType: "HAS_CATEGORY",

@@ -1,4 +1,4 @@
-package apoc.ai.gcp
+package apoc.nlp.gcp
 
 import apoc.ai.dto.AIMapResult
 import apoc.graph.document.builder.DocumentToGraph
@@ -24,7 +24,7 @@ class GCPProcedures {
     @JvmField
     var tx: Transaction? = null
 
-    @Procedure(value = "apoc.ai.gcp.entities.stream", mode = Mode.READ)
+    @Procedure(value = "apoc.nlp.gcp.entities.stream", mode = Mode.READ)
     @Description("Returns a stream of entities for provided text")
     fun entitiesStream(@Name("sourceNode") sourceNode: Node,
                        @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
@@ -36,7 +36,7 @@ class GCPProcedures {
         return Stream.of(entities(config, sourceNode, nodeProperty))
     }
 
-    @Procedure(value = "apoc.ai.gcp.entities.graph", mode = Mode.WRITE)
+    @Procedure(value = "apoc.nlp.gcp.entities.graph", mode = Mode.WRITE)
     @Description("Creates a (virtual) entity graph for provided text")
     fun entitiesGraph(@Name("sourceNode") sourceNode: Node,
                       @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
@@ -73,7 +73,7 @@ class GCPProcedures {
         return Stream.of(VirtualGraph("Graph", nodes, relationships, emptyMap()))
     }
 
-    @Procedure(value = "apoc.ai.gcp.classify.stream", mode = Mode.READ)
+    @Procedure(value = "apoc.nlp.gcp.classify.stream", mode = Mode.READ)
     @Description("Classifies a document into categories.")
     fun classifyStream(@Name("sourceNode") sourceNode: Node,
                        @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
@@ -85,7 +85,7 @@ class GCPProcedures {
         return Stream.of(classify(config, sourceNode, nodeProperty))
     }
 
-    @Procedure(value = "apoc.ai.gcp.classify.graph", mode = Mode.WRITE)
+    @Procedure(value = "apoc.nlp.gcp.classify.graph", mode = Mode.WRITE)
     @Description("Classifies a document into categories.")
     fun classifyGraph(@Name("sourceNode") sourceNode: Node,
                       @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
@@ -122,7 +122,7 @@ class GCPProcedures {
         return Stream.of(VirtualGraph("Graph", nodes, relationships, emptyMap()))
     }
 
-//    @Procedure(value = "apoc.ai.gcp.sentiment.stream", mode = Mode.READ)
+//    @Procedure(value = "apoc.nlp.gcp.sentiment.stream", mode = Mode.READ)
 //    @Description("Analyzes the sentiment of the provided text.")
 //    fun sentimentStream(@Name("data") data: Any,
 //                  @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)

@@ -1,4 +1,4 @@
-package apoc.ai.gcp
+package apoc.nlp.gcp
 
 import apoc.ai.dto.AIMapResult
 import com.fasterxml.jackson.databind.SerializationFeature

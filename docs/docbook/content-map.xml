@@ -194,8 +194,8 @@
     </d:tocentry>
   </d:tocentry>
 
-    <d:tocentry linkend="ai"><?dbhtml filename="ai/index.html"?>
-      <d:tocentry linkend="ai-gcp"><?dbhtml filename="ai/gcp/index.html"?>
+    <d:tocentry linkend="nlp"><?dbhtml filename="nlp/index.html"?>
+      <d:tocentry linkend="nlp-gcp"><?dbhtml filename="nlp/gcp/index.html"?>
       </d:tocentry>
     </d:tocentry>
 
