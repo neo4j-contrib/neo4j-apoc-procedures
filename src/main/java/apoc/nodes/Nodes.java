@@ -112,7 +112,7 @@ public class Nodes {
     public boolean hasRelationship(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types) {
         if (types == null || types.isEmpty()) return node.hasRelationship();
         long id = node.getId();
-        try ( NodeCursor nodeCursor = ktx.cursors().allocateNodeCursor()) {
+        try ( NodeCursor nodeCursor = ktx.cursors().allocateNodeCursor(ktx.pageCursorTracer())) {
 
             ktx.dataRead().singleNode(id, nodeCursor);
             nodeCursor.next();
@@ -125,13 +125,13 @@ public class Nodes {
                 int count;
                 switch (direction) {
                     case INCOMING:
-                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countIncoming(nodeCursor, ktx.cursors(), typeId);
+                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countIncoming(nodeCursor, typeId);
                         break;
                     case OUTGOING:
-                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countOutgoing(nodeCursor, ktx.cursors(), typeId);
+                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countOutgoing(nodeCursor, typeId);
                         break;
                     case BOTH:
-                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countAll(nodeCursor, ktx.cursors(), typeId);
+                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countAll(nodeCursor, typeId);
                         break;
                     default:
                         throw new UnsupportedOperationException("invalid direction " + direction);
@@ -158,20 +158,20 @@ public class Nodes {
         TokenRead tokenRead = ktx.tokenRead();
         CursorFactory cursors = ktx.cursors();
 
-        try (NodeCursor startNodeCursor = cursors.allocateNodeCursor();
-             NodeCursor endNodeCursor = cursors.allocateNodeCursor()) {
+        try (NodeCursor startNodeCursor = cursors.allocateNodeCursor(ktx.pageCursorTracer());
+             NodeCursor endNodeCursor = cursors.allocateNodeCursor(ktx.pageCursorTracer())) {
 
             dataRead.singleNode(startId, startNodeCursor);
             if (!startNodeCursor.next()) {
                 throw new IllegalArgumentException("node with id " + startId + " does not exist.");
             }
 
-            boolean startDense = startNodeCursor.isDense();
+            boolean startDense = startNodeCursor.supportsFastDegreeLookup();
             dataRead.singleNode(endId, endNodeCursor);
             if (!endNodeCursor.next()) {
                 throw new IllegalArgumentException("node with id " + endId + " does not exist.");
             }
-            boolean endDense = endNodeCursor.isDense();
+            boolean endDense = endNodeCursor.supportsFastDegreeLookup();
 
             if (!startDense) return connected(startNodeCursor, endId, typedDirections(tokenRead, pairs, true));
             if (!endDense) return connected(endNodeCursor, startId, typedDirections(tokenRead, pairs, false));
@@ -265,7 +265,7 @@ public class Nodes {
         try (RelationshipTraversalCursor relationship = ktx.cursors().allocateRelationshipTraversalCursor()) {
             start.allRelationships(relationship);
             while (relationship.next()) {
-                if (relationship.neighbourNodeReference() ==end) {
+                if (relationship.otherNodeReference() ==end) {
                     if (typedDirections==null) {
                         return true;
                     } else {
@@ -342,7 +342,7 @@ public class Nodes {
         public boolean isConnected(Read read, RelationshipTraversalCursor relationship) {
             read.relationships(node, group, relationship);
             while (relationship.next()) {
-                if (relationship.neighbourNodeReference()==other) {
+                if (relationship.otherNodeReference()==other) {
                     return true;
                 }
             }
@@ -565,7 +565,7 @@ public class Nodes {
             final long id = node.getId();
             ktx.dataRead().singleNode(id, nodeCursor);
             if (nodeCursor.next()) {
-                return nodeCursor.isDense();
+                return nodeCursor.supportsFastDegreeLookup();
             } else {
                 throw new IllegalArgumentException("node with id " + id + " does not exist.");
             }
