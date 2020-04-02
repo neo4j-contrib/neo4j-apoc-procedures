@@ -33,6 +33,8 @@ All boolean options have default value set to **false**. This means that they ar
 procedures
 | apoc.es.<key>.uri=es-url-with-credentials | store es-urls under a key to be used by elasticsearch procedures
 | apoc.export.file.enabled=false/true | Enable writing local files to disk
+| apoc.http.timeout.connect=<number> (default 10000) | Sets a specified timeout value, in milliseconds, to be used when communicating with a URI. If the timeout expires before the connection can be established, a Neo.ClientError.Procedure.ProcedureCallFailed exception is raised. A timeout of zero is interpreted as an infinite timeout.
+| apoc.http.timeout.read=<number> (default 60000) | Sets the read timeout to a specified timeout, in milliseconds. A non-zero value specifies the timeout when reading from a connection established to a resource. If the timeout expires before there is data available for read, a Neo.ClientError.Procedure.ProcedureCallFailed exception is raised. A timeout of zero is interpreted as an infinite timeout.
 | apoc.import.file.enabled=false/true | Enable reading local files from disk
 | apoc.import.file.use_neo4j_config=true/false (default `true`) | the procedures check whether file system access is allowed and possibly constrained to a specific directory by reading the two configuration parameters `dbms.security.allow_csv_import_from_file_urls` and `dbms.directories.import` respectively
 | apoc.initializer.cypher | a cypher statment to be executed once the database is started
@@ -50,6 +52,7 @@ apoc.spatial.geocode.<providerName>.<key>=<value>
 | apoc.ttl.schedule=<secs> (default `60`) | Set frequency in seconds to run ttl background task
 | apoc.ttl.limit=<number> (default 1000) | Maximum number of nodes being deleted in one background transaction
 | apoc.uuid.enabled=false/true (default false) | global switch to enable uuid handlers
+
 
 //public static final String APOC_JSON_ZIP_URL = "apoc.json.zip.url";
 //public static final String APOC_JSON_SIMPLE_JSON_URL = "apoc.json.simpleJson.url";
