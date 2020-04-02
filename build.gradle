@@ -42,7 +42,7 @@ repositories {
     maven {
         url "https://repo.gradle.org/gradle/libs-releases"
     }
-    //mavenLocal()
+    mavenLocal()
 }
 
 configurations {
