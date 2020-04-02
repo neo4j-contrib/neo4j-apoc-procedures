@@ -50,7 +50,7 @@ configurations {
 }
 
 shadowJar {
-    classifier = 'all'  
+    archiveClassifier.set('all')
 }
 
 compileJava {
@@ -368,8 +368,6 @@ task myJavadocJar(type: Jar) {
 
 
 publishing {
-
-
     repositories {
         maven {
             name = 'pipeline'
@@ -377,6 +375,11 @@ publishing {
         }
     }
     publications {
+        shadow(MavenPublication) { publication ->
+            project.shadow.component(publication)
+            artifactId = archivesBaseName
+        }
+
         full(MavenPublication) {
             pom {
                 name = "neo4j-apoc-procedure"
@@ -408,7 +411,6 @@ publishing {
                 artifact(mySourcesJar)
                 artifact(myJavadocJar)
             }
-
         }
     }
 }
