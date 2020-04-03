@@ -1,9 +1,8 @@
 package apoc.nlp.gcp
 
-import apoc.ai.dto.AIMapResult
 import apoc.graph.document.builder.DocumentToGraph
 import apoc.graph.util.GraphsConfig
-import apoc.result.RelationshipResult
+import apoc.result.MapResult
 import apoc.result.VirtualGraph
 import apoc.result.VirtualNode
 import apoc.util.Util
@@ -28,7 +27,7 @@ class GCPProcedures {
     @Description("Returns a stream of entities for provided text")
     fun entitiesStream(@Name("sourceNode") sourceNode: Node,
                        @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
-            : Stream<AIMapResult> {
+            : Stream<MapResult> {
         verifyKey(config, "key")
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(sourceNode, nodeProperty)
@@ -45,7 +44,7 @@ class GCPProcedures {
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(sourceNode, nodeProperty)
 
-        val response = entities(config, sourceNode, nodeProperty).response
+        val response = entities(config, sourceNode, nodeProperty).value
 
         val storeGraph:Boolean = config.getOrDefault("write", false) as Boolean
         val graphConfig = mapOf(
@@ -61,14 +60,15 @@ class GCPProcedures {
 
         val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
         val relationships = (mutableGraph["relationships"] as Set<Relationship>).toMutableSet()
-        if(storeGraph) {
+        val node = if(storeGraph) {
             mergeRelationships(sourceNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
-            nodes.add(sourceNode)
+            sourceNode
         } else {
             val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
             createRelationships(virtualNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
-            nodes.add(virtualNode)
+            virtualNode
         }
+        nodes.add(node)
 
         return Stream.of(VirtualGraph("Graph", nodes, relationships, emptyMap()))
     }
@@ -77,7 +77,7 @@ class GCPProcedures {
     @Description("Classifies a document into categories.")
     fun classifyStream(@Name("sourceNode") sourceNode: Node,
                        @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
-            : Stream<AIMapResult> {
+            : Stream<MapResult> {
         verifyKey(config, "key")
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(sourceNode, nodeProperty)
@@ -94,7 +94,7 @@ class GCPProcedures {
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(sourceNode, nodeProperty)
 
-        val response = classify(config, sourceNode, nodeProperty).response
+        val response = classify(config, sourceNode, nodeProperty).value
 
         val storeGraph:Boolean = config.getOrDefault("write", false) as Boolean
         val graphConfig = mapOf(
@@ -110,14 +110,15 @@ class GCPProcedures {
 
         val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
         val relationships = (mutableGraph["relationships"] as Set<Relationship>).toMutableSet()
-        if(storeGraph) {
+        val node = if(storeGraph) {
             mergeRelationships(sourceNode, nodes, classifyRelationshipType(config)).forEach { rel -> relationships.add(rel) }
-            nodes.add(sourceNode)
+            sourceNode
         } else {
             val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
             createRelationships(virtualNode, nodes, classifyRelationshipType(config)).forEach { rel -> relationships.add(rel) }
-            nodes.add(virtualNode)
+            virtualNode
         }
+        nodes.add(node)
 
         return Stream.of(VirtualGraph("Graph", nodes, relationships, emptyMap()))
     }

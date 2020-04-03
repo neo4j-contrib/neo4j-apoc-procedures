@@ -1,8 +1,7 @@
 package apoc.nlp.gcp
 
-import apoc.ai.dto.AIMapResult
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import apoc.result.MapResult
+import apoc.util.JsonUtil
 import org.neo4j.logging.Log
 import java.io.DataOutputStream
 import java.net.URL
@@ -19,16 +18,16 @@ class GCPClient( private val key: String, private val log: Log) {
     private val baseUrl = "https://language.googleapis.com/v1"
 
     companion object {
-        @JvmStatic val MAPPER = jacksonObjectMapper()
+        @JvmStatic val MAPPER = JsonUtil.OBJECT_MAPPER!!
     }
 
-    private fun postData(method: String, data: Any, config: Map<String, Any?> = emptyMap()): AIMapResult {
+    private fun postData(method: String, data: Any, config: Map<String, Any?> = emptyMap()): MapResult {
         val fullUrl = "$baseUrl$method?key=$key"
          val url = URL(fullUrl)
         return postData(url, data)
     }
 
-    private fun postData(url: URL, data: Any): AIMapResult {
+    private fun postData(url: URL, data: Any): MapResult {
         val connection = url.openConnection() as HttpsURLConnection
         connection.requestMethod = "POST"
         connection.doOutput = true
@@ -39,7 +38,7 @@ class GCPClient( private val key: String, private val log: Log) {
         return connection.inputStream
                 .use { MAPPER.readValue(it, Any::class.java) }
                 .let {result ->
-                    AIMapResult((result as Map<String, Any?>))
+                    MapResult((result as Map<String, Any?>))
                 }
     }
 
@@ -47,7 +46,7 @@ class GCPClient( private val key: String, private val log: Log) {
         return mapOf("type" to "PLAIN_TEXT", "content" to data)
     }
 
-    fun entities(data: Any, config: Map<String, Any?>): AIMapResult = postData(GCPEndpoint.ENTITIES.method, data)
-    fun classify(data: Any, config: Map<String, Any?>): AIMapResult = postData(GCPEndpoint.CLASSIFY.method, data)
-    fun sentiment(data: Any, config: Map<String, Any>): AIMapResult = postData(GCPEndpoint.SENTIMENT.method, data)
+    fun entities(data: Any, config: Map<String, Any?>): MapResult = postData(GCPEndpoint.ENTITIES.method, data)
+    fun classify(data: Any, config: Map<String, Any?>): MapResult = postData(GCPEndpoint.CLASSIFY.method, data)
+    fun sentiment(data: Any, config: Map<String, Any>): MapResult = postData(GCPEndpoint.SENTIMENT.method, data)
 }
