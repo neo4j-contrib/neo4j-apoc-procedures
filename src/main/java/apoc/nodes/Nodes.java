@@ -264,6 +264,7 @@ public class Nodes {
      */
     private boolean connected(NodeCursor start, long end, int[][] typedDirections) {
         try (RelationshipTraversalCursor relationship = ktx.cursors().allocateRelationshipTraversalCursor(ktx.pageCursorTracer())) {
+            start.relationships(relationship, RelationshipSelection.selection(types, direction));
             start.allRelationships(relationship);
             while (relationship.next()) {
                 if (relationship.otherNodeReference() ==end) {
