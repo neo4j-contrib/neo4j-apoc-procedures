@@ -41,8 +41,8 @@ class GCPProceduresTest {
                       key: ${'$'}apiKey,
                       nodeProperty: "body"
                     })
-                    YIELD response
-                    RETURN response
+                    YIELD value
+                    RETURN value
                 """.trimIndent(), mapOf("apiKey" to apiKey)) {
             println(it.resultAsString())
         }
