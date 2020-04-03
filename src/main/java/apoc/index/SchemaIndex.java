@@ -102,7 +102,7 @@ public class SchemaIndex {
             // however the index guarantees to be scanned in order unless
             // there are writes done in the same tx beforehand - which we don't do.
             IndexReadSession indexSession = read.indexReadSession( indexDescriptor );
-            read.nodeIndexScan(indexSession, cursor, IndexOrder.NONE, true);
+            read.nodeIndexScan(indexSession, cursor, IndexQueryConstraints.unconstrained());
 
             Value previousValue = null;
             long count = 0;

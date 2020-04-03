@@ -164,7 +164,7 @@ public class PeriodicTest {
         KernelTransactions kernelTransactions = dependencyResolver.resolveDependency(KernelTransactions.class);
         long numberOfKilledTransactions = kernelTransactions.activeTransactions().stream()
                 .filter(kernelTransactionHandle ->
-                        kernelTransactionHandle.executingQuery().map(query -> query.queryText().contains(pattern))
+                        kernelTransactionHandle.executingQuery().map(query -> query.rawQueryText().contains(pattern))
                                 .orElse(false)
                 )
                 .map(kernelTransactionHandle -> kernelTransactionHandle.markForTermination(Status.Transaction.Terminated))

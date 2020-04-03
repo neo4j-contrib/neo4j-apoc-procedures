@@ -165,7 +165,7 @@ public class MultiThreadedGlobalGraphOperations {
         }
 
         private void iterateForNodes(KernelTransaction ktx, Read read, CursorFactory cursors, BatchJobResult result) {
-            try (NodeCursor cursor = cursors.allocateNodeCursor()) {
+            try (NodeCursor cursor = cursors.allocateNodeCursor(ktx.pageCursorTracer())) {
                 for (long id = batchStart; id < batchStart + batchSize; id++) {
                     read.singleNode(id, cursor);
                     processAndReport(ktx, cursor::next, consumer, cursor, result);
@@ -174,7 +174,7 @@ public class MultiThreadedGlobalGraphOperations {
         }
 
         private void iterateForRelationships(KernelTransaction ktx, Read read, CursorFactory cursors, BatchJobResult result) {
-            try (RelationshipScanCursor cursor = cursors.allocateRelationshipScanCursor()) {
+            try (RelationshipScanCursor cursor = cursors.allocateRelationshipScanCursor(ktx.pageCursorTracer())) {
                 for (long id = batchStart; id < batchStart + batchSize; id++) {
                     read.singleRelationship(id, cursor);
                     processAndReport(ktx, cursor::next, consumer, cursor, result);

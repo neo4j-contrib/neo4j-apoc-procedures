@@ -5,6 +5,8 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.io.pagecache.PageCache;
 import org.neo4j.io.pagecache.PageCursor;
 import org.neo4j.io.pagecache.PagedFile;
+import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.impl.coreapi.InternalTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
@@ -64,6 +66,7 @@ public class Warmup {
     @Description("apoc.warmup.run(loadProperties=false,loadDynamicProperties=false,loadIndexes=false) - quickly loads all nodes and rels into memory by skipping one page at a time")
     public Stream<WarmupResult> run(@Name(value = "loadProperties", defaultValue = "false") boolean loadProperties, @Name(value = "loadDynamicProperties", defaultValue = "false") boolean loadDynamicProperties, @Name(value = "loadIndexes", defaultValue = "false") boolean loadIndexes) throws IOException {
         PageCache pageCache = db.getDependencyResolver().resolveDependency(PageCache.class);
+        KernelTransaction ktx = ((InternalTransaction)tx).kernelTransaction();
 
         List<PagedFile> pagedFiles = pageCache.listExistingMappings();
 
@@ -83,7 +86,7 @@ public class Warmup {
                     long start = System.currentTimeMillis();
                     try {
                         if (pagedFile.fileSize() > 0) {
-                            PageCursor cursor = pagedFile.io(0L, PagedFile.PF_READ_AHEAD | PagedFile.PF_SHARED_READ_LOCK);
+                            PageCursor cursor = pagedFile.io(0L, PagedFile.PF_READ_AHEAD | PagedFile.PF_SHARED_READ_LOCK,  ktx.pageCursorTracer());
                             while (cursor.next()) {
                                 cursor.getByte();
                                 pages++;
@@ -96,9 +99,7 @@ public class Warmup {
                     } catch (IOException e) {
                         e.printStackTrace();
                         return new PageResult(fileName, index, -1L, pages, e.getMessage(), start);
-                    } finally {
-                        pageCache.reportEvents();
-                    }
+                    } 
                 })).collect(Collectors.toMap(r -> r.file, r -> r));
 
         WarmupResult result = new WarmupResult(

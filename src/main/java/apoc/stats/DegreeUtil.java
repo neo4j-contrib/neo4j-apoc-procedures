@@ -14,21 +14,21 @@ public class DegreeUtil {
         switch (direction) {
             case INCOMING:
                 if (relType==ANY_RELATIONSHIP_TYPE) {
-                    return Nodes.countIncoming(nodeCursor, cursors);
+                    return Nodes.countIncoming(nodeCursor);
                 } else {
-                    return Nodes.countIncoming(nodeCursor, cursors, relType);
+                    return Nodes.countIncoming(nodeCursor, relType);
                 }
             case OUTGOING:
                 if (relType==ANY_RELATIONSHIP_TYPE) {
-                    return Nodes.countOutgoing(nodeCursor, cursors);
+                    return Nodes.countOutgoing(nodeCursor);
                 } else {
-                    return Nodes.countOutgoing(nodeCursor, cursors, relType);
+                    return Nodes.countOutgoing(nodeCursor, relType);
                 }
             case BOTH:
                 if (relType==ANY_RELATIONSHIP_TYPE) {
-                    return Nodes.countAll(nodeCursor, cursors);
+                    return Nodes.countAll(nodeCursor);
                 } else {
-                    return Nodes.countAll(nodeCursor, cursors, relType);
+                    return Nodes.countAll(nodeCursor, relType);
                 }
             default: throw new IllegalArgumentException("invalid direction " + direction);
         }

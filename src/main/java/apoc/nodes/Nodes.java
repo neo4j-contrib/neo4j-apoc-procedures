@@ -23,7 +23,7 @@ import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.CursorFactory;
 import org.neo4j.internal.kernel.api.NodeCursor;
 import org.neo4j.internal.kernel.api.Read;
-import org.neo4j.internal.kernel.api.RelationshipGroupCursor;
+//import org.neo4j.internal.kernel.api.RelationshipGroupCursor;
 import org.neo4j.internal.kernel.api.RelationshipTraversalCursor;
 import org.neo4j.internal.kernel.api.TokenRead;
 import org.neo4j.kernel.api.KernelTransaction;
@@ -167,16 +167,19 @@ public class Nodes {
                 throw new IllegalArgumentException("node with id " + startId + " does not exist.");
             }
 
-            boolean startDense = startNodeCursor.supportsFastDegreeLookup();
+//            boolean startDense = startNodeCursor.supportsFastDegreeLookup();
             dataRead.singleNode(endId, endNodeCursor);
             if (!endNodeCursor.next()) {
                 throw new IllegalArgumentException("node with id " + endId + " does not exist.");
             }
-            boolean endDense = endNodeCursor.supportsFastDegreeLookup();
+//            boolean endDense = endNodeCursor.supportsFastDegreeLookup();
 
-            if (!startDense) return connected(startNodeCursor, endId, typedDirections(tokenRead, pairs, true));
-            if (!endDense) return connected(endNodeCursor, startId, typedDirections(tokenRead, pairs, false));
-            return connectedDense(startNodeCursor, endNodeCursor, typedDirections(tokenRead, pairs, true));
+            return connected(startNodeCursor, endId, typedDirections(tokenRead, pairs, true));
+
+
+//            if (!startDense) return connected(startNodeCursor, endId, typedDirections(tokenRead, pairs, true));
+//            if (!endDense) return connected(endNodeCursor, startId, typedDirections(tokenRead, pairs, false));
+//            return connectedDense(startNodeCursor, endNodeCursor, typedDirections(tokenRead, pairs, true));
         }
     }
 
@@ -264,8 +267,7 @@ public class Nodes {
      */
     private boolean connected(NodeCursor start, long end, int[][] typedDirections) {
         try (RelationshipTraversalCursor relationship = ktx.cursors().allocateRelationshipTraversalCursor(ktx.pageCursorTracer())) {
-            start.relationships(relationship, RelationshipSelection.selection(types, direction));
-            start.allRelationships(relationship);
+            start.relationships(relationship, RelationshipSelection.selection(Direction.BOTH));
             while (relationship.next()) {
                 if (relationship.otherNodeReference() ==end) {
                     if (typedDirections==null) {
@@ -352,42 +354,42 @@ public class Nodes {
         }
     }
 
-    private boolean connectedDense(NodeCursor start, NodeCursor end, int[][] typedDirections) {
-        List<Degree> degrees = new ArrayList<>(32);
-
-        Read read = ktx.dataRead();
-
-        try (RelationshipGroupCursor relationshipGroup = ktx.cursors().allocateRelationshipGroupCursor()) {
-            addDegreesForNode(read, start, end, degrees, relationshipGroup, typedDirections);
-            addDegreesForNode(read, end, start, degrees, relationshipGroup, typedDirections);
-        }
-
-
-        Collections.sort(degrees);
-        try (RelationshipTraversalCursor relationship = ktx.cursors().allocateRelationshipTraversalCursor()) {
-            for (Degree degree : degrees) {
-                if (degree.isConnected(ktx.dataRead(), relationship)) return true;
-            }
-            return false;
-        }
-    }
-
-    private void addDegreesForNode(Read dataRead, NodeCursor node, NodeCursor other, List<Degree> degrees, RelationshipGroupCursor relationshipGroup, int[][] typedDirections) {
-        long nodeId = node.nodeReference();
-        long otherId = other.nodeReference();
-
-        dataRead.relationshipGroups(nodeId, node.relationshipGroupReference(), relationshipGroup);
-        while (relationshipGroup.next()) {
-            int type = relationshipGroup.type();
-            if ((typedDirections==null) || (arrayContains(typedDirections[0], type))) {
-                addDegreeWithDirection(degrees, relationshipGroup.outgoingReference(), relationshipGroup.outgoingCount(), nodeId, otherId);
-            }
-
-            if ((typedDirections==null) || (arrayContains(typedDirections[1], type))) {
-                addDegreeWithDirection(degrees, relationshipGroup.incomingReference(), relationshipGroup.incomingCount(), nodeId, otherId);
-            }
-        }
-    }
+//    private boolean connectedDense(NodeCursor start, NodeCursor end, int[][] typedDirections) {
+//        List<Degree> degrees = new ArrayList<>(32);
+//
+//        Read read = ktx.dataRead();
+//
+//        try (RelationshipGroupCursor relationshipGroup = ktx.cursors().allocateRelationshipGroupCursor()) {
+//            addDegreesForNode(read, start, end, degrees, relationshipGroup, typedDirections);
+//            addDegreesForNode(read, end, start, degrees, relationshipGroup, typedDirections);
+//        }
+//
+//
+//        Collections.sort(degrees);
+//        try (RelationshipTraversalCursor relationship = ktx.cursors().allocateRelationshipTraversalCursor()) {
+//            for (Degree degree : degrees) {
+//                if (degree.isConnected(ktx.dataRead(), relationship)) return true;
+//            }
+//            return false;
+//        }
+//    }
+//
+//    private void addDegreesForNode(Read dataRead, NodeCursor node, NodeCursor other, List<Degree> degrees, RelationshipGroupCursor relationshipGroup, int[][] typedDirections) {
+//        long nodeId = node.nodeReference();
+//        long otherId = other.nodeReference();
+//
+//        dataRead.relationshipGroups(nodeId, node.relationshipGroupReference(), relationshipGroup);
+//        while (relationshipGroup.next()) {
+//            int type = relationshipGroup.type();
+//            if ((typedDirections==null) || (arrayContains(typedDirections[0], type))) {
+//                addDegreeWithDirection(degrees, relationshipGroup.outgoingReference(), relationshipGroup.outgoingCount(), nodeId, otherId);
+//            }
+//
+//            if ((typedDirections==null) || (arrayContains(typedDirections[1], type))) {
+//                addDegreeWithDirection(degrees, relationshipGroup.incomingReference(), relationshipGroup.incomingCount(), nodeId, otherId);
+//            }
+//        }
+//    }
 
     private void addDegreeWithDirection(List<Degree> degrees, long relationshipGroup, int degree, long nodeId, long otherId) {
         if (degree > 0 ) {
@@ -563,7 +565,7 @@ public class Nodes {
     @UserFunction
     @Description("apoc.nodes.isDense(node) - returns true if it is a dense node")
     public boolean isDense(@Name("node") Node node) {
-        try (NodeCursor nodeCursor = ktx.cursors().allocateNodeCursor()) {
+        try (NodeCursor nodeCursor = ktx.cursors().allocateNodeCursor(ktx.pageCursorTracer())) {
             final long id = node.getId();
             ktx.dataRead().singleNode(id, nodeCursor);
             if (nodeCursor.next()) {

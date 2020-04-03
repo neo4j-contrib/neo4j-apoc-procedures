@@ -5,6 +5,9 @@ import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.apache.commons.lang.StringUtils;
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -13,13 +16,13 @@ import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.mockito.matcher.RootCauseMatcher;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.lang.exception.ExceptionUtils.getRootCause;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -296,5 +299,39 @@ public class SubgraphTest {
 		thrown.expect(new RootCauseMatcher<>(IllegalArgumentException.class, "minLevel can only be 0 or 1 in spanningTree()"));
 		TestUtil.singleResultFirstColumn(db, "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.spanningTree(m,{minLevel:2}) yield path return count(distinct path) as cnt");
 	}
+
+	public class RootCauseMatcher<T> extends TypeSafeMatcher<Throwable> {
+		private final Class<T> rootCause;
+		private final String message;
+		private Throwable cause;
+
+		public RootCauseMatcher(Class<T> rootCause) {
+			this(rootCause, StringUtils.EMPTY);
+		}
+
+		public RootCauseMatcher(Class<T> rootCause, String message) {
+			this.rootCause = rootCause;
+			this.message = message;
+		}
+
+		@Override
+		protected boolean matchesSafely(Throwable item) {
+			cause = getRootCause(item);
+			return rootCause.isInstance(cause) && cause.getMessage().startsWith(message);
+		}
+
+		@Override
+		public void describeTo(Description description) {
+			description.appendText("Expected root cause of ").appendValue(rootCause).appendText(" with message: ")
+					.appendValue(message).appendText(", but ");
+			if (cause != null) {
+				description.appendText("was: ").appendValue(cause.getClass())
+						.appendText(" with message: ").appendValue(cause.getMessage());
+			} else {
+				description.appendText("actual exception was never thrown.");
+			}
+		}
+	}
+
 
 }
