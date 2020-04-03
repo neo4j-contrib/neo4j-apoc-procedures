@@ -194,6 +194,11 @@
     </d:tocentry>
   </d:tocentry>
 
+    <d:tocentry linkend="nlp"><?dbhtml filename="nlp/index.html"?>
+      <d:tocentry linkend="nlp-gcp"><?dbhtml filename="nlp/gcp/index.html"?>
+      </d:tocentry>
+    </d:tocentry>
+
     <d:tocentry linkend="operational"><?dbhtml filename="operational/index.html"?>
 
       <d:tocentry linkend="init-script"><?dbhtml filename="operational/init-script/index.html"?>

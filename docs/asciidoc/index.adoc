@@ -145,6 +145,8 @@ include::_cypher_execution.adoc[]
 
 include::_virtual.adoc[]
 
+include::_nlp.adoc[]
+
 include::_job_management.adoc[]
 
 include::_database_introspection.adoc[]
