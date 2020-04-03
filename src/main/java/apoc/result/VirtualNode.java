@@ -249,6 +249,6 @@ public class VirtualNode implements Node {
 
     @Override
     public String toString() {
-        return "VirtualNode{" + "labels=" + labels + ", props=" + props + ", rels=" + rels + '}';
+        return "VirtualNode{" + "id=" + id  + ", labels=" + labels + ", props=" + props + ", rels=" + rels + '}';
     }
 }
