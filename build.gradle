@@ -387,41 +387,55 @@ publishing {
     publications {
         shadow(MavenPublication) { publication ->
             project.shadow.component(publication)
-            artifactId = archivesBaseName
-        }
+            artifact(mySourcesJar)
+            artifact(myJavadocJar)
+            artifact(jar)
 
-        full(MavenPublication) {
-            pom {
-                name = "neo4j-apoc-procedure"
-                description = "A collection of useful Neo4j Procedures"
-                groupId = groupId
-                artifactId = archivesBaseName
-                version = version
-                scm { url = "http://github.com/neo4j-contrib/neo4j-apoc-procedures" }
-                url = 'http://github.com/neo4j-contrib/neo4j-apoc-procedures'
+            pom.withXml {
+                def root = asNode()
+                root.appendNode("name", "neo4j-apoc-procedure")
+                root.appendNode("description", "A collection of useful Neo4j Procedures")
+                root.appendNode("url", "http://github.com/neo4j-contrib/neo4j-apoc-procedures")
 
-                licenses {
-                    license {
-                        name ='The Apache Software License, Version 2.0'
-                        url ='http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        comments ="""Note that this license is for the project itself, and not for its dependencies."""
-                        distribution= "repo"
+                def scmNode = root.appendNode("scm")
+                scmNode.appendNode("url", "http://github.com/neo4j-contrib/neo4j-apoc-procedures")
+
+                def licensesNode = root.appendNode("licenses")
+                def licenseNode = licensesNode.appendNode("license")
+                licenseNode.appendNode("name", 'The Apache Software License, Version 2.0')
+                licenseNode.appendNode("url", 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+                licenseNode.appendNode("comments", 'Note that this license is for the project itself, and not for its dependencies.')
+                licenseNode.appendNode("distribution", 'repo')
+
+                def developersNode = root.appendNode("developers")
+                def developerNode = developersNode.appendNode("developer")
+                developerNode.appendNode("id", 'michaelhunger')
+                developerNode.appendNode("name", 'Michael Hunger')
+                developerNode.appendNode("email", 'michael.hunger@neo4j.com')
+
+                def dependenciesNode = root.get("dependencies")[0]
+
+                configurations.implementation.allDependencies.forEach {
+                    def dependency = dependenciesNode.appendNode('dependency')
+                    dependency.appendNode('groupId', it.group)
+                    dependency.appendNode('artifactId', it.name)
+                    dependency.appendNode('version', it.version)
+                    dependency.appendNode('scope', "compile")
+
+                    // for exclusions
+                    if (it.excludeRules.size() > 0) {
+                        def exclusions = dependency.appendNode('exclusions')
+                        it.excludeRules.each { ExcludeRule ex ->
+                            def exclusion = exclusions.appendNode('exclusion')
+                            exclusion.appendNode('groupId', ex.group)
+                            exclusion.appendNode('artifactId', ex.module)
+                        }
                     }
+
                 }
 
-                developers {
-                    developer {
-                        id ='michaelhunger'
-                        name= 'Michael Hunger'
-                        email= 'michael.hunger@neo4j.com'
-                    }
-                }
-
-                from(components.java)
-                artifact(mySourcesJar)
-                artifact(myJavadocJar)
             }
+
         }
     }
 }
-
