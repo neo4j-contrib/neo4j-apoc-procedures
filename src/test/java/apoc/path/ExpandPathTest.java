@@ -2,6 +2,8 @@ package apoc.path;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -10,6 +12,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -111,14 +114,20 @@ public class ExpandPathTest {
 		TestUtil.testResult(db,
 				"MATCH (k:Person {name:'Keanu Reeves'}) " +
 						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'/Western', uniqueness: 'NODE_GLOBAL', limit: 2}) yield path " +
-						"RETURN path",
+						"RETURN nodes(path)[-1].name AS node",
 				result -> {
 					List<Map<String, Object>> maps = Iterators.asList(result);
 					assertEquals(2, maps.size());
-					Path path = (Path) maps.get(0).get("path");
-					assertEquals("Tom Cruise", path.endNode().getProperty("name"));
-					path = (Path) maps.get(1).get("path");
-					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
+
+					MatcherAssert.assertThat(maps, Matchers.hasItem(
+							MapUtil.map(
+									"node", "Tom Cruise"
+							)));
+
+					MatcherAssert.assertThat(maps, Matchers.hasItem(
+							MapUtil.map(
+									"node", "Clint Eastwood"
+							)));
 				});
 	}
 

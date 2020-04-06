@@ -3,12 +3,15 @@ package apoc.convert;
 import apoc.util.TestUtil;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -19,6 +22,7 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
 public class ConvertJsonTest {
@@ -185,54 +189,33 @@ public class ConvertJsonTest {
                     assertEquals(2L, hasPart.get("langId"));
                     List<Map> subParts = (List<Map>)hasPart.get("flag");
                     assertEquals(2,subParts.size());
+
+                    /*USER*/
+                    MatcherAssert.  assertThat(subParts, Matchers.hasItem(
+                            MapUtil.map(
+                                    "_type", "User",
+                                    "flag.Created", "2018-11-21T11:22:01",
+                                    "_id", 3L,
+                                    "id", "facebook|680594762097202",
+                                    "flag.FlagType", 4L
+                            )));
+
+                    MatcherAssert.assertThat(subParts, Matchers.hasItem(
+                            MapUtil.map(
+                                    "_type", "User",
+                                    "flag.Created", "2018-11-21T11:20:31",
+                                    "_id", 4L,
+                                    "id", "google-oauth2|106707535753175966005",
+                                    "flag.FlagType", 1L
+                            )));
+
                     Map<String, Object> mapFlag = subParts.get(0);
-
-                    /*USER*/
-
-                    assertEquals("User", mapFlag.get("_type"));
-                    assertEquals("2018-11-21T11:20:31",  mapFlag.get("flag.Created"));
-                    assertEquals(4L,  mapFlag.get("_id"));
-                    assertEquals("google-oauth2|106707535753175966005",  mapFlag.get("id"));
-                    assertEquals(1L,  mapFlag.get("flag.FlagType"));
-
-                    mapFlag = subParts.get(1);
-
-                    assertEquals("User", mapFlag.get("_type"));
-                    assertEquals("2018-11-21T11:22:01",  mapFlag.get("flag.Created"));
-                    assertEquals(3L,  mapFlag.get("_id"));
-                    assertEquals("facebook|680594762097202",  mapFlag.get("id"));
-                    assertEquals(4L,  mapFlag.get("flag.FlagType"));
-
-                    /*USER*/
-
-
                     hasPart = has.get(1);
 
                     assertEquals("Comm", hasPart.get("_type"));
                     assertEquals(1L, hasPart.get("_id"));
                     assertEquals("a34fd608-1751-0b5d-cb38-6991297fa9c9", hasPart.get("id"));
                     assertEquals(2L, hasPart.get("langId"));
-                    subParts = (List<Map>)hasPart.get("flag");
-                    assertEquals(2,subParts.size());
-                    mapFlag = subParts.get(0);
-
-                    /*USER*/
-
-                    assertEquals("User", mapFlag.get("_type"));
-                    assertEquals("2018-11-21T11:20:34",  mapFlag.get("flag.Created"));
-                    assertEquals(4L,  mapFlag.get("_id"));
-                    assertEquals("google-oauth2|106707535753175966005",  mapFlag.get("id"));
-                    assertEquals(2L,  mapFlag.get("flag.FlagType"));
-
-                    mapFlag = subParts.get(1);
-
-                    assertEquals("User", mapFlag.get("_type"));
-                    assertEquals("2018-11-21T11:22:04",  mapFlag.get("flag.Created"));
-                    assertEquals(3L,  mapFlag.get("_id"));
-                    assertEquals("facebook|680594762097202",  mapFlag.get("id"));
-                    assertEquals(5L,  mapFlag.get("flag.FlagType"));
-
-                    /*USER*/
 
                 });
     }
