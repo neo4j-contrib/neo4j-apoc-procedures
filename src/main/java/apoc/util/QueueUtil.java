@@ -24,20 +24,22 @@ public class QueueUtil {
      * @param <T>
      */
     public static <T> void put(BlockingQueue<T> queue, T item, long timeoutSeconds, boolean failWithExecption, Runnable checkDuringOffering) {
-        withHandlingInterrupted("Queue offer interrupted before " + timeoutSeconds + " seconds", () -> {
-            long started = System.currentTimeMillis();
-            while (started + timeoutSeconds * 1000 > System.currentTimeMillis()) {
+        try {
+            long timeoutTimestamp = System.currentTimeMillis() + timeoutSeconds * 1000;
+            while (true) {
+                if (System.currentTimeMillis() > timeoutTimestamp) break;
                 boolean success = queue.offer(item, WAIT, WAIT_UNIT);
                 if (success) {
-                    return null;
+                    return;
                 }
                 checkDuringOffering.run();
             }
             if (failWithExecption) {
                 throw new RuntimeException("Error queuing item before timeout of " + timeoutSeconds + " seconds");
             }
-            return null;
-        });
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -49,7 +51,7 @@ public class QueueUtil {
      * @return
      */
     public static <T> T take(BlockingQueue<T> queue, long timeoutSeconds, Runnable checkDuringPolling) {
-        return withHandlingInterrupted("Queue poll interrupted before " + timeoutSeconds + " seconds", () -> {
+        try {
             long started = System.currentTimeMillis();
             while (started + timeoutSeconds * 1000 > System.currentTimeMillis()) {
                 T polled = queue.poll(WAIT, WAIT_UNIT);
@@ -59,14 +61,8 @@ public class QueueUtil {
                 checkDuringPolling.run();
             }
             throw new RuntimeException("Error polling, timeout of " + timeoutSeconds + " seconds reached.");
-        });
-    }
-
-    public static <T> T withHandlingInterrupted(String msg, ThrowingSupplier<T, InterruptedException> consumer) {
-        try {
-            return consumer.get();
         } catch (InterruptedException e) {
-            throw new RuntimeException(msg, e);
+            throw new RuntimeException(e);
         }
     }
 
