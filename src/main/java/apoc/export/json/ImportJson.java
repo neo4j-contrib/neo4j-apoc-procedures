@@ -1,5 +1,6 @@
 package apoc.export.json;
 
+import apoc.Pools;
 import apoc.export.util.CountingReader;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
@@ -21,11 +22,14 @@ public class ImportJson {
     @Context
     public GraphDatabaseService db;
 
+    @Context
+    public Pools pools;
+
     @Procedure(value = "apoc.import.json", mode = Mode.WRITE)
     @Description("apoc.import.json(file,config) - imports the json list to the provided file")
     public Stream<ProgressInfo> all(@Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         ProgressInfo result =
-                Util.inThread(() -> {
+                Util.inThread(pools, () -> {
                     ImportJsonConfig importJsonConfig = new ImportJsonConfig(config);
                     ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, "file", "json"));
 

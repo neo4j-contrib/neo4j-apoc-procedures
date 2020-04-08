@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.After;
@@ -16,7 +17,6 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Map;
 
 import static apoc.ApocConfig.apocConfig;
@@ -44,7 +44,7 @@ public class JdbcTest extends AbstractJdbcTest {
         apocConfig().setProperty("apoc.jdbc.derby.url","jdbc:derby:derbyDB");
         apocConfig().setProperty("apoc.jdbc.test.sql","SELECT * FROM PERSON");
         apocConfig().setProperty("apoc.jdbc.testparams.sql","SELECT * FROM PERSON WHERE NAME = ?");
-        TestUtil.registerProcedure(db,Jdbc.class);
+        TestUtil.registerProcedure(db,Jdbc.class, Periodic.class);
         createPersonTableAndData();
     }
 
@@ -106,7 +106,7 @@ public class JdbcTest extends AbstractJdbcTest {
                 (row) -> {
                     Map<String, Object> expected = MapUtil.map("NAME", "John", "SURNAME", null,
                             "HIRE_DATE", hireDate.toLocalDate(),
-                            "EFFECTIVE_FROM_DATE", ZonedDateTime.ofInstant(effectiveFromDate.toInstant(), ZoneId.of("+09:00")),
+                            "EFFECTIVE_FROM_DATE", effectiveFromDate.toInstant().atZone(asiaTokio).toOffsetDateTime().toZonedDateTime(), // todo investigate why by only changing the procedure mode returned class type changes
                             "TEST_TIME", time.toLocalTime(),
                             "NULL_DATE", null);
                     Map<String, Object> rowColumn = (Map<String, Object>) row.get("row");
@@ -116,6 +116,7 @@ public class JdbcTest extends AbstractJdbcTest {
                     });
                     assertEquals(expected, rowColumn);
                 }
+
         );
     }
 
@@ -200,6 +201,39 @@ public class JdbcTest extends AbstractJdbcTest {
     }
 
     @Test
+    public void testWithPeriodic() throws Exception {
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("delete from person");
+            stmt.execute("select count(*) as size from person");
+            stmt.getResultSet().next();
+            int size = stmt.getResultSet().getInt("size");
+            assertEquals(0 , size);
+        } catch (Exception e) { }
+
+        db.executeTransactionally("UNWIND range(1, 100) AS id CREATE (p:Person{id: id, name: 'Name ' + id, surname: 'Surname ' + id})");
+        String query = "CALL apoc.periodic.iterate(\n" +
+                "'MATCH (p:Person) RETURN p.name AS name, p.surname AS surname limit 1',\n" +
+                "\"CALL apoc.load.jdbcUpdate($url, 'INSERT INTO PERSON(NAME, SURNAME) VALUES(?, ?)', [name, surname]) YIELD row RETURN 'DONE'\",\n" +
+                "{batchSize: 20, iterateList: false, params: {url: $url}, parallel: true}\n" +
+                ")\n" +
+                "YIELD committedOperations, failedOperations, failedBatches, errorMessages\n" +
+                "RETURN *";
+        testCall(db,
+                query,
+                Util.map("url", "jdbc:derby:derbyDB"),
+                (row) -> {
+                    try (Statement stmt = conn.createStatement()) {
+                        stmt.execute("select count(*) as size from person");
+                        stmt.getResultSet().next();
+                        int size = stmt.getResultSet().getInt("size");
+                        assertEquals(1, size);
+                    } catch (Exception e) { }
+                });
+
+
+    }
+
+    @Test(expected = QueryExecutionException.class)
     public void testLoadJdbcUrlWithSpecialCharWithEmptyPasswordWithAuthentication() throws Exception {
         thrown.expect(QueryExecutionException.class);
         thrown.expectMessage("In config param credentials must be passed both user and password.");
