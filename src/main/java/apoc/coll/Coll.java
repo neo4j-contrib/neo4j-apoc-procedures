@@ -6,6 +6,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.impl.util.statistics.IntCounter;
 import org.neo4j.procedure.*;
@@ -89,18 +90,20 @@ public class Coll {
     @Description("apoc.coll.min([0.5,1,2.3])")
     public Object min(@Name("values") List<Object> list) {
 		if (list == null || list.isEmpty()) return null;
-        return Collections.min((List)list, Coll::compareAsDoubles);
+        if (list.size() == 1) return list.get(0);
+        try (Result result = db.execute("cypher expressionEngine=compiled return reduce(res=null, x in $list | CASE WHEN res IS NULL OR x<res THEN x ELSE res END) as value", Collections.singletonMap("list", list))) {
+            return result.next().get("value");
+        }
     }
 
     @UserFunction
     @Description("apoc.coll.max([0.5,1,2.3])")
     public Object max(@Name("values") List<Object> list) {
-		if (list == null || list.isEmpty()) return null;
-        return Collections.max((List)list, Coll::compareAsDoubles);
-    }
-
-    private static int compareAsDoubles(Object a, Object b) {
-        return Double.compare(((Number)a).doubleValue(), ((Number)b).doubleValue());
+        if (list == null || list.isEmpty()) return null;
+        if (list.size() == 1) return list.get(0);
+        try (Result result = db.execute("cypher expressionEngine=compiled return reduce(res=null, x in $list | CASE WHEN res IS NULL OR res<x THEN x ELSE res END) as value", Collections.singletonMap("list", list))) {
+            return result.next().get("value");
+        }
     }
 
     @Procedure
@@ -397,6 +400,7 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.indexOf(coll, value) | position of value in the list")
     public long indexOf(@Name("coll") List<Object> coll, @Name("value") Object value) {
+        // return reduce(res=[0,-1], x in $list | CASE WHEN x=$value AND res[1]=-1 THEN [res[0], res[0]+1] ELSE [res[0]+1, res[1]] END)[1] as value
         if (coll == null || coll.isEmpty()) return -1;
         return  new ArrayList<>(coll).indexOf(value);
     }
