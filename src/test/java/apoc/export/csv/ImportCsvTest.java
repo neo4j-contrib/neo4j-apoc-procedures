@@ -61,6 +61,9 @@ public class ImportCsvTest {
                     new AbstractMap.SimpleEntry<>("id-idspaces", ":ID(Person)|name:STRING\n" +
                             "1|John\n" +
                             "2|Jane\n"),
+                    new AbstractMap.SimpleEntry<>("id-idspaces-with-dash", ":ID(Person-Id)|name:STRING\n" +
+                            "1|John\n" +
+                            "2|Jane\n"),
                     new AbstractMap.SimpleEntry<>("id", "id:ID|name:STRING\n" +
                             "1|John\n" +
                             "2|Jane\n"),
@@ -155,6 +158,25 @@ public class ImportCsvTest {
                 "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
                 map(
                         "file", "file:/id-idspaces.csv",
+                        "config", map("delimiter", '|')
+                ),
+                (r) -> {
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(0L, r.get("relationships"));
+                }
+        );
+
+        List<String> names = TestUtil.firstColumn(db, "MATCH (n:Person) RETURN n.name AS name ORDER BY name");
+        assertThat(names, Matchers.containsInAnyOrder("Jane", "John"));
+    }
+
+    @Test
+    public void testNodesWithIdSpacesWithDash() {
+        TestUtil.testCall(
+                db,
+                "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
+                map(
+                        "file", "file:/id-idspaces-with-dash.csv",
                         "config", map("delimiter", '|')
                 ),
                 (r) -> {
