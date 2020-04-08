@@ -96,7 +96,7 @@ public class JsonImporter implements Closeable {
                     paramList.addAll(resultList);
                 }
             });
-            tx.success();
+            tx.close();
         }
     }
 
@@ -301,7 +301,7 @@ public class JsonImporter implements Closeable {
                 throw new IllegalArgumentException("Current type not supported: " + type);
         }
         if (StringUtils.isNotBlank(query)) {
-            db.execute(query, Collections.singletonMap("rows", resultList));
+            db.executeTransactionally(query, Collections.singletonMap("rows", resultList));
         }
     }
 
@@ -323,7 +323,7 @@ public class JsonImporter implements Closeable {
             final Collection<List<Map<String, Object>>> results = chunkData();
             try (final Transaction tx = db.beginTx()) {
                 results.forEach(resultList -> write(tx, resultList));
-                tx.success();
+                tx.close();
             }
             paramList.clear();
         }
