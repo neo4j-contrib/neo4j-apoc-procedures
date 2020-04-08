@@ -195,3 +195,28 @@ You will receive the following response:
   "weight": 0.02548018842935562
 }
 ----
+
+== Import JSON
+
+If you used the `apoc.export.json.all` to export the graph, we provide the `apoc.import.json` to reimport that data.
+
+[source,cypher]
+----
+CALL apoc.import.json($file, $config)
+----
+
+The `$config` parameter is a map
+
+[opts=header,cols="m,m"]
+|===
+| name | default | description
+| unwindBatchSize | 5000 | the batch size of the unwind
+| txBatchSize | 5000 | the batch size of the transacttion
+| importIdName | neo4jImportId | the name of the "id" field into the used for the import it refers to the "id" field into the root object of the json.
+| nodePropertyMappings | {} | The mapping label/property name/property type for Custom Neo4j types (point date). I.e. { User: { born: 'Point', dateOfBirth: 'Datetime' } }
+| relPropertyMappings | {} | The mapping rel type/property name/property type for Custom Neo4j types (point date). I.e. { KNOWS: { since: 'Datetime' } }
+|===
+
+N.b. Supported Neo4j types via config mappings are:
+
+Point, Localdate, Localtime, Localdatetime, Duration, offsettime, Zoneddatetime
