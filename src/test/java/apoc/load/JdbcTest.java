@@ -233,7 +233,7 @@ public class JdbcTest extends AbstractJdbcTest {
 
     }
 
-    @Test(expected = QueryExecutionException.class)
+    @Test
     public void testLoadJdbcUrlWithSpecialCharWithEmptyPasswordWithAuthentication() throws Exception {
         thrown.expect(QueryExecutionException.class);
         thrown.expectMessage("In config param credentials must be passed both user and password.");
