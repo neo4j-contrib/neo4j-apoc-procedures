@@ -46,7 +46,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        assertEquals("Index( 1, 'index_70bffdab', GENERAL BTREE, :Foo(bar), native-btree-1.0 )", r.get("userDescription"));
+        assertEquals("Index( id=1, name='index_70bffdab', type='GENERAL BTREE', schema=(:Foo {bar}), indexProvider='native-btree-1.0' )", r.get("userDescription"));
 
         assertTrue(!result.hasNext());
     }
@@ -62,7 +62,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        assertEquals("Index( 1, 'index_70bffdab', GENERAL BTREE, :Foo(bar), native-btree-1.0 )", r.get("userDescription"));
+        assertEquals("Index( id=1, name='index_70bffdab', type='GENERAL BTREE', schema=(:Foo {bar}), indexProvider='native-btree-1.0' )", r.get("userDescription"));
 
         r = result.next();
 
@@ -74,7 +74,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        assertEquals("Index( 3, 'index_5c0607ad', GENERAL BTREE, :Person(name), native-btree-1.0 )", r.get("userDescription"));
+        assertEquals("Index( id=3, name='index_5c0607ad', type='GENERAL BTREE', schema=(:Person {name}), indexProvider='native-btree-1.0' )", r.get("userDescription"));
 
         assertTrue(!result.hasNext());
     }
@@ -309,7 +309,7 @@ public class SchemasTest {
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(100d, r.get("populationProgress"));
             assertEquals(1d, r.get("valuesSelectivity"));
-            assertEquals("Index( 1, 'index_70bffdab', GENERAL BTREE, :Foo(bar), native-btree-1.0 )", r.get("userDescription"));
+            assertEquals("Index( id=1, name='index_70bffdab', type='GENERAL BTREE', schema=(:Foo {bar}), indexProvider='native-btree-1.0' )", r.get("userDescription"));
 
             assertFalse(result.hasNext());
         });
