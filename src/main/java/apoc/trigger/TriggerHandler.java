@@ -22,6 +22,7 @@ import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
@@ -34,6 +35,8 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     private final GraphDatabaseService db;
     private final DatabaseManagementService databaseManagementService;
     private final ApocConfig apocConfig;
+
+    private final AtomicBoolean registeredWithKernel = new AtomicBoolean(false);
 
     public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
             " Set 'apoc.trigger.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
@@ -76,8 +79,31 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
 
                 }
             );
-
             tx.commit();
+        }
+
+        reconcileKernelRegistration();
+    }
+
+    /**
+     * There is substantial memory overhead to the kernel event system, so if a user has enabled apoc triggers in
+     * config, but there are no triggers set up, unregister to let the kernel bypass the event handling system.
+     *
+     * For most deployments this isn't an issue, since you can turn the config flag off, but in large fleet deployments
+     * it's nice to have uniform config, and then the memory savings on databases that don't use triggers is good.
+     */
+    private synchronized void reconcileKernelRegistration() {
+        // Register if there are triggers
+        if (activeTriggers.size() > 0) {
+            // This gets called every time triggers update; only register if we aren't already
+            if(registeredWithKernel.compareAndSet(false, true)) {
+                databaseManagementService.registerTransactionEventListener(db.databaseName(), this);
+            }
+        } else {
+            // This gets called every time triggers update; only unregister if we aren't already
+            if(registeredWithKernel.compareAndSet(true, false)) {
+                databaseManagementService.unregisterTransactionEventListener(db.databaseName(), this);
+            }
         }
     }
 
@@ -227,7 +253,6 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
             }
             Map<String, Object> selector = (Map<String, Object>) data.get("selector");
             if ((!(boolean)data.get("paused")) && when(selector, phase)) {
-
                 try {
                     params.put("trigger", name);
                     Result result = tx.execute((String) data.get("statement"), params);
@@ -250,15 +275,8 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     }
 
     @Override
-    public void start() {
-        if (isEnabled()) {
-            databaseManagementService.registerTransactionEventListener(db.databaseName(), this);
-        }
-    }
-
-    @Override
     public void stop() {
-        if (isEnabled()) {
+        if(registeredWithKernel.compareAndSet(true, false)) {
             databaseManagementService.unregisterTransactionEventListener(db.databaseName(), this);
         }
     }
