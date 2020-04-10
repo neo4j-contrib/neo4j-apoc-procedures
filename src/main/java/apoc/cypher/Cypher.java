@@ -11,13 +11,29 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -76,11 +92,12 @@ public class Cypher {
     public Stream<RowResult> runFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",10));
+        int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
         List<RowResult> result = new ArrayList<>();
         @SuppressWarnings( "unchecked" )
         Map<String,Object> parameters = (Map<String,Object>)config.getOrDefault("parameters",Collections.emptyMap());
         for (String f : fileNames) {
-            List<RowResult> rowResults = runManyStatements(readerForFile(f), parameters, false, addStatistics, timeout).collect(Collectors.toList());
+            List<RowResult> rowResults = runManyStatements(readerForFile(f), parameters, false, addStatistics, timeout, queueCapacity).collect(Collectors.toList());
             result.addAll(rowResults);
         }
         return result.stream();
@@ -97,26 +114,48 @@ public class Cypher {
     public Stream<RowResult> runSchemaFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",10));
+        int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
         List<RowResult> result = new ArrayList<>();
         for (String f : fileNames) {
-            List<RowResult> rowResults = runManyStatements(readerForFile(f), Collections.emptyMap(), true, addStatistics, timeout).collect(Collectors.toList());
+            List<RowResult> rowResults = runManyStatements(readerForFile(f), Collections.emptyMap(), true, addStatistics, timeout, queueCapacity).collect(Collectors.toList());
             result.addAll(rowResults);
         }
         return result.stream();
     }
 
-    private Stream<RowResult> runManyStatements(Reader reader, Map<String, Object> params, boolean schemaOperation, boolean addStatistics, int timeout) {
-        BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100);
-        Util.inThread(pools, () -> {
+    private Stream<RowResult> runManyStatements(Reader reader, Map<String, Object> params, boolean schemaOperation, boolean addStatistics, int timeout, int queueCapacity) {
+        BlockingQueue<RowResult> queue = runInSeparateThreadAndSendTombstone(queueCapacity, internalQueue -> {
             if (schemaOperation) {
-                runSchemaStatementsInTx(reader, queue, params, addStatistics,timeout);
+                runSchemaStatementsInTx(reader, internalQueue, params, addStatistics, timeout);
             } else {
-                runDataStatementsInTx(reader, queue, params, addStatistics,timeout);
+                runDataStatementsInTx(reader, internalQueue, params, addStatistics, timeout);
             }
-            queue.put(RowResult.TOMBSTONE);
-            return null;
-        });
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, timeout), false);
+        }, RowResult.TOMBSTONE);
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, Integer.MAX_VALUE), false);
+    }
+
+
+    private <T> BlockingQueue<T> runInSeparateThreadAndSendTombstone(int queueCapacity, Consumer<BlockingQueue<T>> action, T tombstone) {
+        /* NB: this must not be called via an existing thread pool - otherwise we could run into a deadlock
+           other jobs using the same pool might completely exhaust at and the thread sending TOMBSTONE will
+           wait in the pool's job queue.
+         */
+        BlockingQueue<T> queue = new ArrayBlockingQueue<>(queueCapacity);
+        new Thread(() -> {
+            try {
+                action.accept(queue);
+            } finally {
+                while (true) {  // ensure we send TOMBSTONE even if there's an InterruptedException
+                    try {
+                        queue.put(tombstone);
+                        return;
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+        }).start();
+        return queue;
     }
 
     private void runDataStatementsInTx(Reader reader, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout) {
@@ -130,8 +169,8 @@ public class Cypher {
                     Util.inThread(pools , () -> db.executeTransactionally(stmt, params, result -> consumeResult(result, queue, addStatistics, timeout)));
                 }
                 else {
-                    Util.inThread(pools, () -> {
-                        try (Result result = tx.execute(stmt, params)) {
+                    Util.inTx(db, pools, threadTx -> {
+                        try (Result result = threadTx.execute(stmt, params)) {
                             return consumeResult(result, queue, addStatistics, timeout);
                         }
                     });
@@ -161,8 +200,10 @@ public class Cypher {
     public Stream<RowResult> runMany(@Name("cypher") String cypher, @Name("params") Map<String,Object> params, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",1));
+        int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
+
         StringReader stringReader = new StringReader(cypher);
-        return runManyStatements(stringReader ,params, false, addStatistics, timeout);
+        return runManyStatements(stringReader ,params, false, addStatistics, timeout, queueCapacity);
     }
 
     private final static Pattern shellControl = Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
@@ -176,7 +217,7 @@ public class Cypher {
                 queue.put(new RowResult(row++, result.next()));
             }
             if (addStatistics) {
-                queue.offer(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)), timeout, TimeUnit.SECONDS);
+                queue.put(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)));
             }
             return row;
         } catch (InterruptedException e) {
@@ -307,7 +348,7 @@ public class Cypher {
             queue.put(RowResult.TOMBSTONE);
             return total;
         });
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, timeout),true).map((rowResult) -> new MapResult(rowResult.result));
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, (int)timeout),true).map((rowResult) -> new MapResult(rowResult.result));
     }
 
     public Map<String, Object> parallelParams(@Name("params") Map<String, Object> params, String key, List<Object> partition) {
