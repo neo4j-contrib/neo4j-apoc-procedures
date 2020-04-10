@@ -1,12 +1,22 @@
 package apoc.cypher;
 
+import apoc.text.Strings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.Utils;
 import org.hamcrest.Matchers;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
@@ -16,6 +26,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +35,10 @@ import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.Matchers.hasEntry;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -49,6 +63,7 @@ public class CypherTest {
         TestUtil.registerProcedure(db, Utils.class);
         TestUtil.registerProcedure(db, CypherFunctions.class);
         TestUtil.registerProcedure(db, Timeboxed.class);
+        TestUtil.registerProcedure(db, Strings.class);
     }
 
     @AfterClass
@@ -462,5 +477,21 @@ public class CypherTest {
     public void testRunFileWithEmptyFile() throws Exception {
         testResult(db, "CALL apoc.cypher.runFile('src/test/resources/empty.cypher')",
                 r -> assertFalse("should be empty", r.hasNext()));
+    }
+
+    @Test
+    public void lengthyRunManyShouldTerminate() {
+        String repetetiveStatement= "CALL apoc.cypher.runFile(\"src/test/resources/enrollment-incremental.cypher\",{parameters: {SubID: \"218598584\", Account_Number: \"\", AccountType: \"\",Source: \"VerizonMASnapshot\", MDN: \"\", Offering: \"\", Enroll_Date: \"\", Product_SKU: \"\", Device_Model: \"\", Device_Make: \"\", First_Name: \"\", Last_Name: \"\",Email1: \"\", Email2: \"\", Email3: \"\", Postal_CD: \"\", City: \"\", State: \"\", BillingStatus: \"\", ActionType: \"Drop\", Text_Date : \"2020-03-11\"}}) yield result return sum(result.total) as total;\n" +
+                "CALL apoc.cypher.runFile(\"src/test/resources/enrollment-incremental.cypher\",{parameters: {SubID: \"7898935\", Account_Number: \"\", AccountType: \"\",Source: \"VerizonNorthSnapshot\", MDN: \"\", Offering: \"\", Enroll_Date: \"\", Product_SKU: \"\", Device_Model: \"\", Device_Make: \"\", First_Name: \"\", Last_Name: \"\",Email1: \"\", Email2: \"\", Email3: \"\", Postal_CD: \"\", City: \"\", State: \"\", BillingStatus: \"\", ActionType: \"Drop\", Text_Date : \"2020-03-11\"}}) yield result return sum(result.total) as total;\n";
+
+        String cypher = String.format("CALL apoc.cypher.runMany('%s',{statistics:true,timeout:60}) yield result return sum(result.total) as total;",
+                String.join("", Collections.nCopies(25, repetetiveStatement)));
+
+        testResult(db, cypher,
+                result -> {
+                    Map<String, Object> single = Iterators.single(result);
+                    assertEquals(50l, single.get("total"));
+                });
+
     }
 }

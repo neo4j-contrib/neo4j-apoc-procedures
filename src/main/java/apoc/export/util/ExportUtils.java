@@ -4,6 +4,7 @@ import apoc.Pools;
 import apoc.export.cypher.ExportFileManager;
 import apoc.result.ProgressInfo;
 import apoc.util.QueueBasedSpliterator;
+import apoc.util.QueueUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.TerminationGuard;
@@ -26,13 +27,13 @@ public class ExportUtils {
         long timeout = exportConfig.getTimeoutSeconds();
         final ArrayBlockingQueue<ProgressInfo> queue = new ArrayBlockingQueue<>(1000);
         ProgressReporter reporterWithConsumer = reporter.withConsumer(
-                (pi) -> Util.put(queue, pi == ProgressInfo.EMPTY ? ProgressInfo.EMPTY : new ProgressInfo(pi).drain(cypherFileManager.getStringWriter(format)), timeout)
+                (pi) -> QueueUtil.put(queue, pi == ProgressInfo.EMPTY ? ProgressInfo.EMPTY : new ProgressInfo(pi).drain(cypherFileManager.getStringWriter(format)), timeout)
         );
         Util.inTxFuture(Pools.DEFAULT, db, () -> {
             dump.accept(reporterWithConsumer);
             return true;
         });
-        QueueBasedSpliterator<ProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, ProgressInfo.EMPTY, terminationGuard, timeout);
+        QueueBasedSpliterator<ProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, ProgressInfo.EMPTY, terminationGuard, (int) timeout);
         return StreamSupport.stream(spliterator, false);
     }
 }

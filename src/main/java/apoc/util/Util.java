@@ -772,16 +772,6 @@ public class Util {
         }
     }
 
-    public static <T> void put(BlockingQueue<T> queue, T item, long timeoutSeconds) {
-        try {
-            boolean success = queue.offer(item, timeoutSeconds, TimeUnit.SECONDS);
-            if (!success)
-                throw new RuntimeException("Error queuing item before timeout of " + timeoutSeconds + " seconds");
-        } catch (InterruptedException e) {
-            throw new RuntimeException("Queue offer interrupted before " + timeoutSeconds + " seconds", e);
-        }
-    }
-
     public static Optional<String> getLoadUrlByConfigFile(String loadType, String key, String suffix){
         key = Optional.ofNullable(key).map(s -> s + "." + suffix).orElse(StringUtils.EMPTY);
         Object value = ApocConfiguration.get(loadType).get(key);
