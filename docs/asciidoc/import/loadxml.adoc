@@ -6,23 +6,73 @@
 This section describes procedures that can be used to import data from XML files.
 --
 
-Many existing (enterprise) applications, endpoints and files use XML as data exchange format.
-
-We can process these files using `apoc.load.xml`.
-It takes a file or HTTP URL and parses the XML into a map data structure.
-
-NOTE: in previous releases we've had `apoc.load.xmlSimple`. This is now deprecated and hsa been superseeded by `apoc.load.xml(url, [xPath], [config], true)`.Simple XML Format
+Many existing enterprise applications, endpoints, and files use XML as data exchange format.
+The Load XML procedures allow us to process these files.
+The procedures take in a file or HTTP URL and parse the XML into a map data structure.
 
 See the following usage-examples for the procedures.
 
-== Example File
+This section includes:
 
-"How do you access XML doc attributes in children fields ?"
+* <<load-xml-available-procedures>>
+* <<load-xml-examples>>
+    ** <<load-xml-examples-simple-xml-format>>
+    ** <<load-xml-examples-simple-xml-examples>>
+    ** <<load-xml-examples-xpath>>
+    ** <<load-xml-examples-extracting-datastructures>>
+    ** <<load-xml-examples-import-xml-directly>>
 
-(Thanks Nicolas Rouyer)
+[[load-xml-available-procedures]]
+== Available Procedures
 
-For example, if my XML file is the example https://msdn.microsoft.com/en-us/library/ms762271%28v=vs.85%29.aspx[book.xml provided by Microsoft].
+The table below describes the available procedures:
 
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.load.xml.csv[]
+include::../../../build/generated-documentation/apoc.xml.import.csv[lines=2:]
+|===
+
+
+=== HTTP Headers
+
+A map of HTTP headers can be passed via the `headers` config parameter.
+
+[source,cypher]
+----
+WITH { `X-API-KEY`: 'abc123' } as headers,
+WITH "https://myapi.com/api/v1/" AS url
+CALL apoc.load.xml(url, '', { headers: headers })
+YIELD value
+UNWIND keys(value) AS key
+RETURN key, apoc.meta.type(value[key]);
+----
+
+=== `apoc.xml.parse` helper function
+
+In case your dataset contains nodes with XML as property values, they can be parsed into maps with the `apoc.xml.parse` function.
+
+.The following parses an XML string into a Cypher map
+[source,cypher]
+----
+WITH '<?xml version="1.0"?><table><tr><td><img src="pix/logo-tl.gif"></img></td></tr></table>' AS xmlString
+RETURN apoc.xml.parse(xmlString) AS value
+----
+
+.Results
+[options="header"]
+|===
+| value
+| {_type: "table", _children: [{_type: "tr", _children: [{_type: "td", _children: [{_type: "img", src: "pix/logo-tl.gif"}]}]}]}
+
+|===
+
+[[load-xml-examples]]
+== Examples
+
+The examples in this section are based on the https://msdn.microsoft.com/en-us/library/ms762271%28v=vs.85%29.aspx[book.xml^] file provided by Microsoft].
+
+.book.xml
 [source,xml]
 ----
 <?xml version="1.0"?>
@@ -46,9 +96,10 @@ For example, if my XML file is the example https://msdn.microsoft.com/en-us/libr
 ...
 ----
 
-We have the file here, https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml[on GitHub].
+This file can be downloaded from https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml[GitHub].
 
-== Simple XML Format
+[[load-xml-examples-simple-xml-format]]
+=== Simple XML Format
 
 In a simpler XML representation, each type of children gets it's own entry within the parent map.
 The element-type as key is prefixed with "_" to prevent collisions with attributes.
@@ -58,126 +109,21 @@ If there is more than one element there will be a list of values.
 
 Each child will still have its `_type` field to discern them.
 
-Here is the example file from above loaded with `apoc.load.xmlSimple`
-
+.The following loads the books.xml file
 [source,cypher,subs=attributes]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml", '', {}, true)
+CALL apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml", '', {}, true)
 ----
 
-[source,javascript]
-----
-{_type: "catalog", _book: [
-  {_type: "book", id: "bk101",
-    _author: [{_type: "author", _text: "Gambardella, Matthew"},{_type: author, _text: "Arciniegas, Fabio"}],
-    _title: {_type: "title", _text: "XML Developer's Guide"},
-    _genre: {_type: "genre", _text: "Computer"},
-    _price: {_type: "price", _text: "44.95"},
-    _publish_date: {_type: "publish_date", _text: "2000-10-01"},
-    _description: {_type: description, _text: An in-depth look at creating applications ....
-----
+.Results
+[options="header"]
+|===
+| value
+|{_type: "catalog", _catalog: [{_type: "book", _book: [{_type: "author", _text: "Gambardella, Matthew"}, {_type: "author", _text: "Arciniegas, Fabio"}, {_type: "title", _text: "XML Developer's Guide"}, {_type: "genre", _text: "Computer"}, {_type: "price", _text: "44.95"}, {_type: "publish_date", _text: "2000-10-01"}, {_type: "description", _text: "An in-depth look at creating applications with XML."}], id: "bk101"}, {_type: "book", _book: [{_type: "author", _text: "Ralls, Kim"}, {_type: "title", _text: "Midnight Rain"}, {_type: "genre", _text: "Fantasy"}, {_type: "price", _text: "5.95"}, {_type: "publish_date", _text: "2000-12-16"}, {_type: "description", _text: "A former architect battles corporate zombies, an evil sorceress, and her own childhood to become queen of the world."}], id: "bk102"}, {_type: "book", _book: [{_type: "author", _text: "Corets, Eva"}, {_type: "title", _text: "Maeve Ascendant"}, {_type: "genre", _text: "Fantasy"}, {_type: "price", _text: "5.95"}, {_type: "publish_date", _text: "2000-11-17"}, {_type: "description", _text: "After the collapse of a nanotechnology society in England, the young survivors lay the foundation for a new society."}], id: "bk103"}, {_type: "book", _book: [{_type: "author", _text: "Corets, Eva"}, {_type: "title", _text: "Oberon's Legacy"}, {_type: "genre", _text: "Fantasy"}, {_type: "price", _text: "5.95"}, {_type: "publish_date", _text: "2001-03-10"}, {_type: "description", _text: "In post-apocalypse England, the mysterious agent known only as Oberon helps to create a new life for the inhabitants of London. Sequel to Maeve Ascendant."}], id: "bk104"}, {_type: "book", _book: [{_type: "author", _text: "Corets, Eva"}, {_type: "title", _text: "The Sundered Grail"}, {_type: "genre", _text: "Fantasy"}, {_type: "price", _text: "5.95"}, {_type: "publish_date", _text: "2001-09-10"}, {_type: "description", _text: "The two daughters of Maeve, half-sisters, battle one another for control of England. Sequel to Oberon's Legacy."}], id: "bk105"}, {_type: "book", _book: [{_type: "author", _text: "Randall, Cynthia"}, {_type: "title", _text: "Lover Birds"}, {_type: "genre", _text: "Romance"}, {_type: "price", _text: "4.95"}, {_type: "publish_date", _text: "2000-09-02"}, {_type: "description", _text: "When Carla meets Paul at an ornithology conference, tempers fly as feathers get ruffled."}], id: "bk106"}, {_type: "book", _book: [{_type: "author", _text: "Thurman, Paula"}, {_type: "title", _text: "Splish Splash"}, {_type: "genre", _text: "Romance"}, {_type: "price", _text: "4.95"}, {_type: "publish_date", _text: "2000-11-02"}, {_type: "description", _text: "A deep sea diver finds true love twenty thousand leagues beneath the sea."}], id: "bk107"}, {_type: "book", _book: [{_type: "author", _text: "Knorr, Stefan"}, {_type: "title", _text: "Creepy Crawlies"}, {_type: "genre", _text: "Horror"}, {_type: "price", _text: "4.95"}, {_type: "publish_date", _text: "2000-12-06"}, {_type: "description", _text: "An anthology of horror stories about roaches, centipedes, scorpions  and other insects."}], id: "bk108"}, {_type: "book", _book: [{_type: "author", _text: "Kress, Peter"}, {_type: "title", _text: "Paradox Lost"}, {_type: "genre", _text: "Science Fiction"}, {_type: "price", _text: "6.95"}, {_type: "publish_date", _text: "2000-11-02"}, {_type: "description", _text: "After an inadvertant trip through a Heisenberg Uncertainty Device, James Salway discovers the problems of being quantum."}], id: "bk109"}, {_type: "book", _book: [{_type: "author", _text: "O'Brien, Tim"}, {_type: "title", _text: "Microsoft .NET: The Programming Bible"}, {_type: "genre", _text: "Computer"}, {_type: "price", _text: "36.95"}, {_type: "publish_date", _text: "2000-12-09"}, {_type: "description", _text: "Microsoft's .NET initiative is explored in detail in this deep programmer's reference."}], id: "bk110"}, {_type: "book", _book: [{_type: "author", _text: "O'Brien, Tim"}, {_type: "title", _text: "MSXML3: A Comprehensive Guide"}, {_type: "genre", _text: "Computer"}, {_type: "price", _text: "36.95"}, {_type: "publish_date", _text: "2000-12-01"}, {_type: "description", _text: "The Microsoft MSXML3 parser is covered in detail, with attention to XML DOM interfaces, XSLT processing, SAX and more."}], id: "bk111"}, {_type: "book", _book: [{_type: "author", _text: "Galos, Mike"}, {_type: "title", _text: "Visual Studio 7: A Comprehensive Guide"}, {_type: "genre", _text: "Computer"}, {_type: "price", _text: "49.95"}, {_type: "publish_date", _text: "2001-04-16"}, {_type: "description", _text: "Microsoft Visual Studio 7 is explored in depth, looking at how Visual Basic, Visual C++, C#, and ASP+ are integrated into a comprehensive development environment."}], id: "bk112"}]}
+|===
 
-=== Simple XML Examples
-
-.Example 1
-[source,cypher]
-----
-WITH "https://maps.googleapis.com/maps/api/directions/xml?origin=Mertens%20en%20Torfsstraat%2046,%202018%20Antwerpen&destination=Rubensstraat%2010,%202300%20Turnhout&sensor=false&mode=bicycling&alternatives=false&key=AIzaSyAPPIXGudOyHD_KAa2f_1l_QVNbsd_pMQs" AS url
-CALL apoc.load.xmlSimple(url)
-YIELD value
-RETURN value._route._leg._distance._value, keys(value), keys(value._route), keys(value._route._leg), keys(value._route._leg._distance._value)
-----
-image::apoc.load.xmlSimple.ex1.png[scaledwidth="100%"]
-
-.Example 2
-[source,cypher]
-----
-WITH "https://maps.googleapis.com/maps/api/directions/xml?origin=Mertens%20en%20Torfsstraat%2046,%202018%20Antwerpen&destination=Rubensstraat%2010,%202300%20Turnhout&sensor=false&mode=bicycling&alternatives=false&key=AIzaSyAPPIXGudOyHD_KAa2f_1l_QVNbsd_pMQs" AS url
-CALL apoc.load.xmlSimple(url)
-YIELD value
-UNWIND keys(value) AS key
-RETURN key, apoc.meta.type(value[key]);
-----
-image::apoc.load.xmlSimple.ex2.png[scaledwidth="100%"]
-
-
-
-=== HTTP Headers
-
-You can provide a map of HTTP headers to the config property.
-
-[source,cypher]
-----
-WITH { `X-API-KEY`: 'abc123' } as headers,
-WITH "https://myapi.com/api/v1/" AS url
-CALL apoc.load.xml(url, '', { headers: headers })
-YIELD value
-UNWIND keys(value) AS key
-RETURN key, apoc.meta.type(value[key]);
-----
-
-== xPath
-
-It's possible to define a xPath (optional) to selecting nodes from the XML document.
-
-=== xPath Example
-
-From the Microsoft's book.xml file we can get only the books that have as `genre` Computer
-
-[source,cypher,subs=attributes]
-----
-CALL apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml", '/catalog/book[genre=\"Computer\"]')
-YIELD value as book
-WITH book.id as id, [attr IN book._children WHERE attr._type IN ['title','price'] | attr._text] as pairs
-RETURN id, pairs[0] as title, pairs[1] as price
-----
-
-image::apoc.load.xml.xpath.png[scaledwidth="100%"]
-
-In this case we return only `id`, `title` and `prize` but we can return any other elements
-
-We can also return just a single specific element.
-For example the `author` of the book with `id = bg102`
-
-[source,cypher,subs=attributes]
-----
-call apoc.load.xml('https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml', '/catalog/book[@id="bk102"]/author')
-YIELD value as result
-WITH result._text as author
-RETURN author
-----
-
-image::apoc.load.xml.xpath2.png[scaledwidth="100%"]
-
-
-
-== Load XML and Introspect
-
-Let's just load it and see what it looks like.
-It's returned as value map with nested `_type` and `_children` fields, per group of elements.
-Attributes are turned into map-entries.
-And each element into their own little map with `_type`, attributes and `_children` if applicable.
-
-[source,cypher,subs=attributes]
-----
-CALL apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml")
-----
-
-[source,javascript]
-----
-{_type: catalog, _children: [
-  {_type: book, id: bk101, _children: [
-    {_type: author, _text: Gambardella, Matthew}, 
-    {_type: title, _text: XML Developer's Guide}, 
-    {_type: genre, _text: Computer}, 
-    {_type: price, _text: 44.95}, 
-    {_type: publish_date, _text: 2000-10-01}, 
-    {_type: description, _text: An in-depth look at creating applications ....
-----
-
-=== For each book, how do I access book id ?
-
-You can access attributes per element directly.
+For each book, how do I access book id?
+We can access attributes per element directly.
 
 [source,cypher,subs=attributes]
 ----
@@ -195,19 +141,15 @@ RETURN book.id
 | bk102
 |===
 
-
-=== For each book, how do I access book author and title ?
-
-==== Filter into collection
-
-You have to filter over the sub-elements  in the `_childrens` array in this case.
+For each book, how do I access book author and title ?
+We have to filter over the sub-elements  in the `_childrens` array to do this.
 
 [source,cypher,subs=attributes]
 ----
 CALL apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml")
 YIELD value as catalog
 UNWIND catalog._children as book
-RETURN book.id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
+RETURN book.id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs;
 ----
 
 .Results
@@ -219,8 +161,6 @@ RETURN book.id, [attr IN book._children WHERE attr._type IN ['author','title'] |
 |===
 
 
-==== How do I return collection elements?
-
 This is not too nice, we could also just have returned the values and then grabbed them out of the list, but that relies on element-order.
 
 [source,cypher,subs=attributes]
@@ -229,7 +169,7 @@ CALL apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-p
 YIELD value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | attr._text] as pairs
-RETURN id, pairs[0] as author, pairs[1] as title
+RETURN id, pairs[0] as author, pairs[1] as title;
 ----
 
 .Results
@@ -240,18 +180,113 @@ RETURN id, pairs[0] as author, pairs[1] as title
 | bk102 | Ralls, Kim          | Midnight Rain
 |===
 
-== Extracting Datastructures
 
-=== Turn Pairs into Map
+[[load-xml-examples-simple-xml-examples]]
+=== Simple XML Examples
 
-So better is to turn them into a map with `apoc.map.fromPairs`
+.Example 1
+[source,cypher]
+----
+WITH "https://maps.googleapis.com/maps/api/directions/xml?origin=Mertens%20en%20Torfsstraat%2046,%202018%20Antwerpen&destination=Rubensstraat%2010,%202300%20Turnhout&sensor=false&mode=bicycling&alternatives=false&key=AIzaSyAPPIXGudOyHD_KAa2f_1l_QVNbsd_pMQs" AS url
+CALL apoc.load.xmlSimple(url)
+YIELD value
+RETURN value._route._leg._distance._value, keys(value), keys(value._route), keys(value._route._leg), keys(value._route._leg._distance._value);
+----
+
+.Results
+[options="header"]
+|===
+| value._route._leg._distance._value | keys(value)                                          | keys(value._route)                                                                        | keys(value._route._leg)                                                                                            | keys(value._route._leg._distance._value)
+| {_type: "value", _text: "47670"}   | ["_type", "_status", "_route", "_geocoded_waypoint"] | ["_summary", "_leg", "_type", "_warning", "_overview_polyline", "_bounds", "_copyrights"] | ["_start_location", "_distance", "_start_address", "_end_location", "_type", "_end_address", "_duration", "_step"] | ["_type", "_text"]
+
+|===
+
+.Example 2
+[source,cypher]
+----
+WITH "https://maps.googleapis.com/maps/api/directions/xml?origin=Mertens%20en%20Torfsstraat%2046,%202018%20Antwerpen&destination=Rubensstraat%2010,%202300%20Turnhout&sensor=false&mode=bicycling&alternatives=false&key=AIzaSyAPPIXGudOyHD_KAa2f_1l_QVNbsd_pMQs" AS url
+CALL apoc.load.xmlSimple(url)
+YIELD value
+UNWIND keys(value) AS key
+RETURN key, apoc.meta.type(value[key]);
+----
+
+.Results
+[options="header"]
+|===
+| key                  | apoc.meta.type(value[key])
+| "_type"              | "STRING"
+| "_status"            | "MAP"
+| "_route"             | "MAP"
+| "_geocoded_waypoint" | "LIST"
+|===
+
+
+[[load-xml-examples-xpath]]
+=== xPath Example
+
+It's possible to define a xPath (optional) to selecting nodes from the XML document.
+
+From the Microsoft's book.xml file we can get only the books that have as `genre` Computer
 
 [source,cypher,subs=attributes]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml") yield value as catalog
+CALL apoc.load.xml(
+  "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml",
+  '/catalog/book[genre=\"Computer\"]'
+)
+YIELD value as book
+WITH book.id as id, [attr IN book._children WHERE attr._type IN ['title','price'] | attr._text] as pairs
+RETURN id, pairs[0] as title, pairs[1] as price;
+----
+
+.Results
+[options="header"]
+|===
+| id      | title                                    | price
+| "bk101" | "XML Developer's Guide"                  | "44.95"
+| "bk110" | "Microsoft .NET: The Programming Bible"  | "36.95"
+| "bk111" | "MSXML3: A Comprehensive Guide"          | "36.95"
+| "bk112" | "Visual Studio 7: A Comprehensive Guide" | "49.95"
+|===
+
+
+In this case we return only `id`, `title` and `prize` but we can return any other elements
+
+We can also return just a single specific element.
+For example the `author` of the book with `id = bg102`
+
+[source,cypher,subs=attributes]
+----
+CALL apoc.load.xml(
+  'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml',
+  '/catalog/book[@id="bk102"]/author'
+)
+YIELD value as result
+WITH result._text as author
+RETURN author;
+----
+
+.Results
+[options="header"]
+|===
+| author
+| "Ralls, Kim"
+|===
+
+
+[[load-xml-examples-extracting-datastructures]]
+=== Extracting data structures
+
+We can turn values into a map using the `apoc.map.fromPairs` function.
+
+[source,cypher,subs=attributes]
+----
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml")
+yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
-CALL apoc.map.fromPairs(pairs) yield value
+WITH id, apoc.map.fromPairs(pairs) AS value
 RETURN id, value
 ----
 
@@ -259,45 +294,65 @@ RETURN id, value
 [opts="header",cols="1,1"]
 |===
 | id | value
-| bk101 | {author: Gambardella, Matthew, title: XML Developer's Guide}
-| bk102 | {author: Ralls, Kim, title: Midnight Rain}
-| bk103 | {author: Corets, Eva, title: Maeve Ascendant}
+| "bk101" | {title: "XML Developer's Guide", author: "Arciniegas, Fabio"}
+| "bk102" | {title: "Midnight Rain", author: "Ralls, Kim"}
+| "bk103" | {title: "Maeve Ascendant", author: "Corets, Eva"}
+| "bk104" | {title: "Oberon's Legacy", author: "Corets, Eva"}
+| "bk105" | {title: "The Sundered Grail", author: "Corets, Eva"}
+| "bk106" | {title: "Lover Birds", author: "Randall, Cynthia"}
+| "bk107" | {title: "Splish Splash", author: "Thurman, Paula"}
+| "bk108" | {title: "Creepy Crawlies", author: "Knorr, Stefan"}
+| "bk109" | {title: "Paradox Lost", author: "Kress, Peter"}
+| "bk110" | {title: "Microsoft .NET: The Programming Bible", author: "O'Brien, Tim"}
+| "bk111" | {title: "MSXML3: A Comprehensive Guide", author: "O'Brien, Tim"}
+| "bk112" | {title: "Visual Studio 7: A Comprehensive Guide", author: "Galos, Mike"}
 |===
-
-==== Return individual Columns
 
 And now we can cleanly access the attributes from the map.
 
 [source,cypher,subs=attributes]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml") yield value as catalog
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml")
+yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
-CALL apoc.map.fromPairs(pairs) yield value
-RETURN id, value.author, value.title
+WITH id, apoc.map.fromPairs(pairs) AS value
+RETURN id, value.title, value.author
 ----
 
 .Results
 [opts="header",cols="1,1,1"]
 |===
-| id | value.author | value.title
-| bk101 | Gambardella, Matthew | XML Developer's Guide
-| bk102 | Ralls, Kim  | Midnight Rain
-| bk103 | Corets, Eva | Maeve Ascendant
+| id      | value.title                              | value.author
+| "bk101" | "XML Developer's Guide"                  | "Arciniegas, Fabio"
+| "bk102" | "Midnight Rain"                          | "Ralls, Kim"
+| "bk103" | "Maeve Ascendant"                        | "Corets, Eva"
+| "bk104" | "Oberon's Legacy"                        | "Corets, Eva"
+| "bk105" | "The Sundered Grail"                     | "Corets, Eva"
+| "bk106" | "Lover Birds"                            | "Randall, Cynthia"
+| "bk107" | "Splish Splash"                          | "Thurman, Paula"
+| "bk108" | "Creepy Crawlies"                        | "Knorr, Stefan"
+| "bk109" | "Paradox Lost"                           | "Kress, Peter"
+| "bk110" | "Microsoft .NET: The Programming Bible"  | "O'Brien, Tim"
+| "bk111" | "MSXML3: A Comprehensive Guide"          | "O'Brien, Tim"
+| "bk112" | "Visual Studio 7: A Comprehensive Guide" | "Galos, Mike"
+
 |===
 
-== import xml directly
+[[load-xml-examples-import-xml-directly]]
+=== Import XML directly
 
-In case you don't want to transform your xml (like you do with `apoc.load.xml/apoc.load.xmlSimple` before you create nodes and relationships and you want to have a 1:1 mapping of xml into the graph you can use `apoc.xml.import`.
+In case you don't want to transform your XML (like you do with `apoc.load.xml/apoc.load.xmlSimple` before you create nodes and relationships and you want to have a 1:1 mapping of xml into the graph you can use `apoc.xml.import`.
 
-=== usage
+*Usage*
 
 [source,cypher]
 ----
 CALL apoc.xml.import(<url>, <config-map>?) YIELD node
 ----
 
-The procedure will return a node representing the xml document containing nodes/rels underneath mapping to the xml structure. The following mapping rules are applied:
+The procedure will return a node representing the xml document containing nodes/rels underneath mapping to the XML structure.
+The following mapping rules are applied:
 
 [options="header"]
 |===
@@ -309,7 +364,7 @@ The procedure will return a node representing the xml document containing nodes/
 | Text | XmlWord | for each word a separate node is created
 |===
 
-The nodes for the xml document are connected:
+The nodes for the XML document are connected:
 
 [options="header"]
 |===
@@ -318,7 +373,7 @@ The nodes for the xml document are connected:
 | :FIRST_CHILD_OF | pointing to the first child
 | :NEXT_SIBLING | pointing to the next xml element on the same nesting level
 | :NEXT | produces a linear chain through the full document
-| :NEXT_WORD | only produced if config map has `createNextWordRelationships:true`. Connects words in xml to a text flow.
+| :NEXT_WORD | only produced if config map has `createNextWordRelationships:true`. Connects words in XML to a text flow.
 |===
 
 The following options are available for the `config` map:
@@ -335,29 +390,22 @@ The following options are available for the `config` map:
 |===
 
 
-=== example
-
 [source,cypher,subs=attributes]
 ----
-CALL
-apoc.xml.import("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml",{createNextWordRelationships:
-true})
+CALL apoc.xml.import(
+  "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml",
+  {relType:'NEXT_WORD', label:'XmlWord'}
+)
 YIELD node
 RETURN node;
-
-CALL apoc.xml.import('https://seafile.rlp.net/f/6282a26504cc4f079ab9/?dl=1', {connectCharacters: true, charactersForTag:{lb:' '}, filterLeadingWhitespace: true}) yield node
-return node;
-
 ----
 
-=== Helper Function `apoc.xml.parse`
+[options="header"]
+|===
+| node
+| (:XmlDocument {_xmlVersion: "1.0", _xmlEncoding: "UTF-8", url: "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/4.0/src/test/resources/xml/books.xml"})
+|===
 
-In case you have in your dataset nodes with property values XML string you can parse them into Maps
-with the `apoc.xml.parse` function.
+The Neo4j Browser visualization below shows the imported graph:
 
-Following an example of how to use it:
-
-```
-WITH '<?xml version="1.0"?><table><tr><td><img src="pix/logo-tl.gif"></img></td></tr></table>' AS xmlString
-RETURN apoc.xml.parse(xmlString) AS value
-```
+image::apoc.import.xml.svg[width="800px"]
