@@ -10,8 +10,6 @@ Many existing enterprise applications, endpoints, and files use XML as data exch
 The Load XML procedures allow us to process these files.
 The procedures take in a file or HTTP URL and parse the XML into a map data structure.
 
-See the following usage-examples for the procedures.
-
 This section includes:
 
 * <<load-xml-available-procedures>>
@@ -142,7 +140,7 @@ RETURN book.id
 |===
 
 For each book, how do I access book author and title ?
-We have to filter over the sub-elements  in the `_childrens` array to do this.
+We have to filter over the sub-elements  in the `_children` array to do this.
 
 [source,cypher,subs=attributes]
 ----
