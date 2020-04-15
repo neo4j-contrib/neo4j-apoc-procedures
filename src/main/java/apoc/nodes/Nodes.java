@@ -355,6 +355,8 @@ public class Nodes {
 
         Read read = ktx.dataRead();
 
+        // TODO: for 4.1 RelationshipGroupCursor, Read#relationshipGroups and Read#relationships will be removed
+        // Instead, relationships can be selected by type/direction criteria using the NodeCursor#relationships(RelationshipTraversalCursor,RelationshipSelection) method and degrees using NodeCursor#degrees/#degree
         try (RelationshipGroupCursor relationshipGroup = ktx.cursors().allocateRelationshipGroupCursor()) {
             addDegreesForNode(read, start, end, degrees, relationshipGroup, typedDirections);
             addDegreesForNode(read, end, start, degrees, relationshipGroup, typedDirections);
