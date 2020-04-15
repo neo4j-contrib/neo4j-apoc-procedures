@@ -45,7 +45,6 @@ public class TriggerDisabledTest
         }
     }
 
-    @Ignore
     @Test
     public void testTriggerDisabledList() throws Exception
     {

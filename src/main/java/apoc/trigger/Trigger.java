@@ -178,22 +178,21 @@ public class Trigger {
         public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
                 " Set 'apoc.trigger.enabled=true' in your neo4j.conf file located in the $NEO4J_HOME/conf/ directory.";
         private final GraphDatabaseService db;
+        private final boolean enabled;
         private final AtomicBoolean registeredWithKernel = new AtomicBoolean(false);
 
         private static TriggerHandler instance;
 
-        private TriggerHandler(GraphDatabaseAPI api, Log log) {
+        private TriggerHandler(GraphDatabaseAPI api, Log log, boolean enabled) {
             properties = api.getDependencyResolver().resolveDependency(EmbeddedProxySPI.class).newGraphPropertiesProxy();
 //            Pools.SCHEDULED.submit(() -> updateTriggers(null,null));
             this.log = log;
             this.db = api;
+            this.enabled = enabled;
         }
 
-        public static TriggerHandler initialize(GraphDatabaseAPI api, Log log) {
-            if (instance != null) {
-                throw new IllegalStateException("TriggerHandler is already initialized");
-            }
-            instance = new TriggerHandler(api, log);
+        public static TriggerHandler initialize(GraphDatabaseAPI api, Log log, boolean enabled) {
+            instance = new TriggerHandler(api, log, enabled);
             return instance;
         }
 
@@ -212,7 +211,7 @@ public class Trigger {
         }
 
         public void checkEnabled() {
-            if (properties == null) {
+            if (!enabled) {
                 throw new RuntimeException(NOT_ENABLED_ERROR);
             }
         }
@@ -418,7 +417,8 @@ public class Trigger {
         }
 
         public void start() {
-            TriggerHandler.initialize(db, log);
+            boolean enabled = Util.toBoolean(ApocConfiguration.get("trigger.enabled", null));
+            TriggerHandler.initialize(db, log, enabled);
         }
 
         public void stop() {
