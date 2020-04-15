@@ -20,7 +20,32 @@ ifdef::backend-html5[]
 ++++
 endif::[]
 
-== Json-Path
+This section includes:
+
+* <<load-json-available-procedures>>
+* <<load-json-json-path>>
+* <<load-json-examples>>
+    ** <<load-json-examples-stackoverflow>>
+    ** <<load-json-examples-twitter>>
+    ** <<load-json-examples-import-json>>
+    ** <<load-json-examples-post-json>>
+
+[[load-json-available-procedures]]
+== Available Procedures
+
+The table below describes the available procedures:
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.load.json.csv[]
+include::../../../build/generated-documentation/apoc.load.jsonParams.csv[lines=2:]
+include::../../../build/generated-documentation/apoc.load.jsonArray.csv[lines=2:]
+include::../../../build/generated-documentation/apoc.import.json.csv[lines=2:]
+|===
+
+
+[[load-json-json-path]]
+== JSON-Path
 
 Most of the `apoc.load.json` and `apoc.convert.*Json` procedures and functions now accept a json-path as last argument.
 
@@ -65,34 +90,48 @@ CALL apoc.load.json('myJson')
 
 The 3rd value in the `apoc.json.<alias>.url=` effectively defines an alias to be used in  `apoc.load.json('<alias>',....`
 
-== Load JSON StackOverflow Example
+[[load-json-examples]]
+== Examples
 
-There have been articles before about http://neo4j.com/blog/cypher-load-json-from-url/[loading JSON from Web-APIs like StackOverflow].
+[[load-json-examples-stackoverflow]]
+=== Import from StackOverflow API
 
-With `apoc.load.json` it's now very easy to load JSON data from any file or URL.
+`apoc.load.json` enables loading JSON data from any file or URL.
+If the result is a JSON object, it is returned as a singular map.
+If the result is an array, it is turned into a stream of maps.
 
-If the result is a JSON object is returned as a singular map.
-Otherwise if it was an array is turned into a stream of maps.
+StackOverflow provides several APIs, including one for retrieving recent questions and answers.
+The URL for retrieving the last questions and answers for the http://stackoverflow.com/questions/tagged/neo4j[neo4j tag^] is:
 
-The URL for retrieving the last questions and answers of the http://stackoverflow.com/questions/tagged/neo4j[neo4j tag] is this:
-
+[source,text]
+----
 https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf
+----
 
-Now it can be used from within Cypher directly, let's first introspect the data that is returned.
+Let's introspect the data that is returned from this end point.
 
-.JSON data from StackOverflow
+.The following finds the 5 most recent questions with the `neo4j` tag on StackOverflow
 [source,cypher]
 ----
 WITH "https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" AS url
 CALL apoc.load.json(url) YIELD value
 UNWIND value.items AS item
 RETURN item.title, item.owner, item.creation_date, keys(item)
+LIMIT 5;
 ----
 
-image::apoc.load.json.so.png[scaledwidth="100%"]
+.Results
+[options="header", cols="2,3,2,2"]
+|===
+| item.title                                                         | item.owner                                                                                                                                                                                                                                                                                                    | item.creation_date | keys(item)
+| "Cypher patten for getting self related nodes"                     | {profile_image: "https://lh3.googleusercontent.com/-1FWbhuaEBiQ/AAAAAAAAAAI/AAAAAAAAAIA/tLM_mEb-8MY/photo.jpg?sz=128", user_type: "registered", user_id: 5730203, link: "https://stackoverflow.com/users/5730203/asif-ali", reputation: 1148, display_name: "Asif Ali", accept_rate: 90}                      | 1586944991         | ["owner", "comment_count", "link", "last_activity_date", "creation_date", "answer_count", "title", "question_id", "tags", "share_link", "score", "down_vote_count", "body_markdown", "favorite_count", "is_answered", "delete_vote_count", "close_vote_count", "view_count", "up_vote_count"]
+| "Problem connecting .NET Client to Neo4j Desktop version 4"        | {profile_image: "https://www.gravatar.com/avatar/a3fac35d600d1d462d8fc12f3926074c?s=128&d=identicon&r=PG&f=1", user_type: "registered", user_id: 2853912, link: "https://stackoverflow.com/users/2853912/user2853912", reputation: 21, display_name: "user2853912"}                                           | 1586938954         | ["owner", "comment_count", "link", "last_activity_date", "creation_date", "answer_count", "title", "question_id", "tags", "share_link", "score", "down_vote_count", "body_markdown", "favorite_count", "is_answered", "delete_vote_count", "close_vote_count", "view_count", "up_vote_count"]
+| "What kind of graph algorithm does Neo4j use?"                     | {profile_image: "https://www.gravatar.com/avatar/736024b862a229111d4b3119875753b0?s=128&d=identicon&r=PG&f=1", user_type: "registered", user_id: 4402081, link: "https://stackoverflow.com/users/4402081/mariappan", reputation: 7, display_name: "Mariappan"}                                                | 1586901300         | ["owner", "comment_count", "answers", "link", "last_activity_date", "creation_date", "answer_count", "title", "question_id", "tags", "share_link", "score", "down_vote_count", "body_markdown", "favorite_count", "is_answered", "delete_vote_count", "close_vote_count", "view_count", "up_vote_count"]
+| "Import json file to Neo4j"                                        | {profile_image: "https://lh3.googleusercontent.com/-PWDC85Kp2ig/AAAAAAAAAAI/AAAAAAAAAAA/AB6qoq3nhmVZl-_0VDKESOG5MsyHvXnw_A/mo/photo.jpg?sz=128", user_type: "registered", user_id: 9964138, link: "https://stackoverflow.com/users/9964138/jo%c3%a3o-costa", reputation: 23, display_name: "Jo&#227;o Costa"} | 1586897574         | ["owner", "comment_count", "answers", "link", "last_activity_date", "creation_date", "answer_count", "title", "question_id", "tags", "share_link", "score", "down_vote_count", "body_markdown", "favorite_count", "is_answered", "delete_vote_count", "close_vote_count", "view_count", "up_vote_count"]
+| "Difference between Neo4j Graph Algorithms and Graph Data Science" | {profile_image: "https://i.stack.imgur.com/2rLPZ.jpg?s=128&g=1", user_type: "registered", user_id: 3297954, link: "https://stackoverflow.com/users/3297954/rotten", reputation: 1295, display_name: "rotten", accept_rate: 75}                                                                                | 1586872077         | ["owner", "comment_count", "answers", "link", "last_activity_date", "creation_date", "answer_count", "title", "question_id", "tags", "share_link", "score", "down_vote_count", "body_markdown", "favorite_count", "is_answered", "delete_vote_count", "close_vote_count", "view_count", "up_vote_count"]
+|===
 
-
-.Question authors from StackOverflow using json-path
+.The following finds StackOverflow questions and authors using JSON-path
 [source,cypher]
 ----
 WITH "https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" AS url
@@ -100,17 +139,18 @@ CALL apoc.load.json(url,'$.items.owner.name') YIELD value
 RETURN name, count(*);
 ----
 
-Combined with the cypher query from the original blog post it's easy to create the full Neo4j graph of those entities.
-We filter the original poster last, b/c deleted users have no `user_id` anymore.
+Let's now create a Neo4j graph based on those entities.
 
-.Graph data created via loading JSON from StackOverflow
+.The following creates a graph based on data from the StackOverflow API
 [source,cypher]
 ----
 WITH "https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" AS url
 CALL apoc.load.json(url) YIELD value
 UNWIND value.items AS q
-MERGE (question:Question {id:q.question_id}) ON CREATE
-  SET question.title = q.title, question.share_link = q.share_link, question.favorite_count = q.favorite_count
+MERGE (question:Question {id:q.question_id})
+ON CREATE SET question.title = q.title,
+              question.share_link = q.share_link,
+              question.favorite_count = q.favorite_count
 
 FOREACH (tagName IN q.tags | MERGE (tag:Tag {name:tagName}) MERGE (question)-[:TAGGED]->(tag))
 FOREACH (a IN q.answers |
@@ -118,19 +158,24 @@ FOREACH (a IN q.answers |
    MERGE (answerer:User {id:a.owner.user_id}) ON CREATE SET answerer.display_name = a.owner.display_name
    MERGE (answer)<-[:PROVIDED]-(answerer)
 )
+
 WITH * WHERE NOT q.owner.user_id IS NULL
 MERGE (owner:User {id:q.owner.user_id}) ON CREATE SET owner.display_name = q.owner.display_name
 MERGE (owner)-[:ASKED]->(question)
 ----
 
-image::apoc.load.json-so-result.png[scaledwidth="100%"]
+The Neo4j Browser visualization below shows the imported graph:
 
-== Load JSON from Twitter (with additional parameters)
+image::apoc-load-json-so.svg[width="1000px"]
 
-With `apoc.load.jsonParams` you can send additional headers or payload with your JSON GET request, e.g. for the Twitter API:
+[[load-json-examples-twitter]]
+=== Import from Twitter API (with additional parameters)
 
-.Configure Bearer and Twitter Search Url token in `apoc.conf`
+With `apoc.load.jsonParams` we can send additional headers or payload with our JSON GET request, e.g. for the Twitter API:
 
+Let's first configure the Bearer and Twitter Search URL token in `apoc.conf`:
+
+.apoc.conf
 ----
 apoc.static.twitter.bearer=XXXX
 apoc.static.twitter.url=https://api.twitter.com/1.1/search/tweets.json?count=100&result_type=recent&lang=en&q=
@@ -138,83 +183,103 @@ apoc.static.twitter.url=https://api.twitter.com/1.1/search/tweets.json?count=100
 
 These values can then be retrieved using the functions described in <<static-values>>.
 
-.Twitter Search via Cypher
+.The following queries the Twitter API and returns the results
 [source,cypher]
 ----
-CALL apoc.static.getAll("twitter") yield value AS twitter
-CALL apoc.load.jsonParams(twitter.url + "oscon+OR+neo4j+OR+%23oscon+OR+%40neo4j",{Authorization:"Bearer "+twitter.bearer},null) yield value
+WITH apoc.static.getAll("twitter") AS twitter
+CALL apoc.load.jsonParams(
+  twitter.url + "oscon+OR+neo4j+OR+%23oscon+OR+%40neo4j",
+  {Authorization:"Bearer "+twitter.bearer},
+  null // payload
+)
+YIELD value
 UNWIND value.statuses as status
+
 WITH status, status.user as u, status.entities as e
-RETURN status.id, status.text, u.screen_name, [t IN e.hashtags | t.text] as tags, e.symbols, [m IN e.user_mentions | m.screen_name] as mentions, [u IN e.urls | u.expanded_url] as urls
+RETURN status.id, status.text, u.screen_name,
+       [t IN e.hashtags | t.text] as tags,
+       e.symbols,
+       [m IN e.user_mentions | m.screen_name] as mentions,
+       [u IN e.urls | u.expanded_url] as urls;
 ----
 
-== GeoCoding Example
 
-Example for reverse geocoding and determining the route from one to another location.
+[[load-json-examples-import-json]]
+=== Import JSON file created by Export JSON procedures
 
-[source,cypher]
-----
-WITH
-        "21 rue Paul Bellamy 44000 NANTES FRANCE" AS fromAddr,
-        "125 rue du docteur guichard 49000 ANGERS FRANCE" AS toAddr
+The `apoc.import.json` procedure can be used to import JSON files created by the `apoc.export.json.*` procedures.
+This procedure supports the following config parameters:
 
-call apoc.load.json("http://www.yournavigation.org/transport.php?url=http://nominatim.openstreetmap.org/search&format=json&q=" + replace(fromAddr, ' ', '%20')) YIELD value AS from
-
-WITH from, toAddr  LIMIT 1
-
-call apoc.load.json("http://www.yournavigation.org/transport.php?url=http://nominatim.openstreetmap.org/search&format=json&q=" + replace(toAddr, ' ', '%20')) YIELD value AS to
-
-CALL apoc.load.json("https://router.project-osrm.org/viaroute?instructions=true&alt=true&z=17&loc=" + from.lat + "," + from.lon + "&loc=" + to.lat + "," + to.lon ) YIELD value AS doc
-
-UNWIND doc.route_instructions as instruction
-
-RETURN instruction
-----
-
-== POST JSON values
-
-You can also perform a POST request by executing a query like the following:
-
-[source,cypher]
-----
-CALL apoc.load.jsonParams("https://neo4j.com/docs/search/",
-  {method: "POST"},
-  apoc.convert.toJson({query: "pagecache", version: "3.5"}))
-----
-
-You will receive the following response:
-
-[source,json]
-----
-{
-  "description": "This section describes the Neo4j Admin tool.",
-  "title": "12.1. Neo4j Admin - Chapter 12. Tools",
-  "uri": "https://neo4j.com/docs/operations-manual/3.5/tools/neo4j-admin/",
-  "weight": 0.02548018842935562
-}
-----
-
-== Import JSON
-
-If you used the `apoc.export.json.all` to export the graph, we provide the `apoc.import.json` to reimport that data.
-
-[source,cypher]
-----
-CALL apoc.import.json($file, $config)
-----
-
-The `$config` parameter is a map
-
-[opts=header,cols="m,m"]
+.Config parameters
+[opts=header]
 |===
 | name | default | description
-| unwindBatchSize | 5000 | the batch size of the unwind
-| txBatchSize | 5000 | the batch size of the transacttion
-| importIdName | neo4jImportId | the name of the "id" field into the used for the import it refers to the "id" field into the root object of the json.
-| nodePropertyMappings | {} | The mapping label/property name/property type for Custom Neo4j types (point date). I.e. { User: { born: 'Point', dateOfBirth: 'Datetime' } }
-| relPropertyMappings | {} | The mapping rel type/property name/property type for Custom Neo4j types (point date). I.e. { KNOWS: { since: 'Datetime' } }
+| unwindBatchSize | `5000` | the batch size of the unwind
+| txBatchSize | `5000` | the batch size of the transacttion
+| importIdName | `neo4jImportId` | the name of the "id" field into the used for the import it refers to the "id" field into the root object of the json.
+| nodePropertyMappings | `{}` | The mapping label/property name/property type for Custom Neo4j types (point date). I.e. { User: { born: 'Point', dateOfBirth: 'Datetime' } }
+| relPropertyMappings | `{}` | The mapping rel type/property name/property type for Custom Neo4j types (point date). I.e. { KNOWS: { since: 'Datetime' } }
 |===
 
-N.b. Supported Neo4j types via config mappings are:
+`nodePropertyMappings` and `relPropertyMappings` support the following Neo4j types:
 
-Point, Localdate, Localtime, Localdatetime, Duration, offsettime, Zoneddatetime
+* Point
+* Localdate
+* Localtime
+* Localdatetime
+* Duration
+* offsettime
+* Zoneddatetime
+
+
+`all.json` contains a subset of Neo4j's movies graph, and was generated by the <<export-database-json,Export JSON procedure>>.
+
+.all.json
+[source,json]
+----
+include::../data/exportJSON/all.json[leveloffset]
+----
+
+We can import this file using `apoc.import.json`.
+
+[source,cypher]
+----
+CALL apoc.import.json("file:///all.json")
+----
+
+.Results
+[opts=header]
+|===
+| file               | source | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "file:///all.json" | "file" | "json" | 3     | 1             | 15         | 105  | 4    | -1        | 0       | TRUE | NULL
+|===
+
+[[load-json-examples-post-json]]
+=== POST a query to the neo4j.com search API
+
+We can perform a POST request to a JSON endpoint by setting the config parameter `method` to `POST`.
+We'll also use the `apoc.convert.toJson` function to construct a JSON payload from a Cypher map.
+
+.The following makes a POST request to neo4j's search API
+[source,cypher]
+----
+CALL apoc.load.jsonParams(
+  "https://neo4j.com/docs/search/",
+  {method: "POST"},
+  apoc.convert.toJson({query: "subquery", version: "4.0"})
+)
+----
+
+
+.Results
+[options="header"]
+|===
+| value
+| {description: "The CALL {} clause evaluates a subquery that returns some values.", weight: 0.6460227966308594, title: "3.16. CALL {} (subquery) - Chapter 3. Clauses", uri: "https://neo4j.com/docs/cypher-manual/4.0/clauses/call-subquery/"}
+| {description: "This section provides examples of queries and Cypher commands that can be used with Neo4j Fabric.", weight: 0.05099273845553398, title: "7.3. Queries - Chapter 7. Fabric", uri: "https://neo4j.com/docs/operations-manual/4.0/fabric/queries/"}
+| {description: "WHERE adds constraints to the patterns in a MATCH or OPTIONAL MATCH clause or filters the results of a WITH clause.", weight: 0.03291567042469978, title: "3.6. WHERE - Chapter 3. Clauses", uri: "https://neo4j.com/docs/cypher-manual/4.0/clauses/where/"}
+| {description: "This appendix contains the recommended style when writing Cypher queries.", weight: 0.031550146639347076, title: "Appendix A. Cypher styleguide - The Neo4j Cypher Manual v4.0", uri: "https://neo4j.com/docs/cypher-manual/4.0/styleguide/"}
+| {description: "This section contains information on all the clauses in the Cypher query language.", weight: 0.02944066934287548, title: "Chapter 3. Clauses - The Neo4j Cypher Manual v4.0", uri: "https://neo4j.com/docs/cypher-manual/4.0/clauses/"}
+| {description: "", weight: 0.01821548491716385, title: "2.3. Expressions - Chapter 2. Syntax", uri: "https://neo4j.com/docs/cypher-manual/4.0/syntax/expressions/"}
+
+|===
