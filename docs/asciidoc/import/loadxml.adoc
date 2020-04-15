@@ -28,6 +28,7 @@ The table below describes the available procedures:
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
 include::../../../build/generated-documentation/apoc.load.xml.csv[]
+include::../../../build/generated-documentation/apoc.load.xmlSimple.csv[lines=2:]
 include::../../../build/generated-documentation/apoc.xml.import.csv[lines=2:]
 |===
 
