@@ -91,7 +91,7 @@ System.out.println("call list" + db.execute(callList).resultAsString());
     }
     @Test
     public void testTerminateCommit() throws Exception {
-        testTerminatePeriodicQuery("CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (:Foo {id: id}) limit 1000', {})");
+        testTerminatePeriodicQuery("CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (:Foo {id: id})', {})");
     }
 
     @Test(expected = QueryExecutionException.class)
@@ -174,19 +174,24 @@ System.out.println("call list" + db.execute(callList).resultAsString());
     }
 
     boolean terminateQuery(String pattern) {
-        DependencyResolver dependencyResolver = ((GraphDatabaseAPI) db).getDependencyResolver();
-        EmbeddedProxySPI nodeManager = dependencyResolver.resolveDependency( EmbeddedProxySPI.class, FIRST );
-        KernelTransactions kernelTransactions = dependencyResolver.resolveDependency(KernelTransactions.class, FIRST);
+        try {
+            DependencyResolver dependencyResolver = ((GraphDatabaseAPI) db).getDependencyResolver();
+            EmbeddedProxySPI nodeManager = dependencyResolver.resolveDependency( EmbeddedProxySPI.class, FIRST );
+            KernelTransactions kernelTransactions = dependencyResolver.resolveDependency(KernelTransactions.class, FIRST);
 
-        long numberOfKilledTransactions = kernelTransactions.activeTransactions().stream()
-                .filter(kernelTransactionHandle ->
-                    kernelTransactionHandle.executingQueries().anyMatch(
-                            executingQuery -> executingQuery.queryText().contains(pattern)
+            long numberOfKilledTransactions = kernelTransactions.activeTransactions().stream()
+                    .filter(kernelTransactionHandle ->
+                            kernelTransactionHandle.executingQueries().anyMatch(
+                                    executingQuery -> executingQuery.queryText().contains(pattern)
+                            )
                     )
-                )
-                .map(kernelTransactionHandle -> kernelTransactionHandle.markForTermination(Status.Transaction.Terminated))
-                .count();
-        return numberOfKilledTransactions > 0;
+                    .map(kernelTransactionHandle -> kernelTransactionHandle.markForTermination(Status.Transaction.Terminated))
+                    .count();
+            return numberOfKilledTransactions > 0;
+        } catch (Exception e) {
+            // we silently ignore exception happening here
+            return false;
+        }
     }
 
     @Test
