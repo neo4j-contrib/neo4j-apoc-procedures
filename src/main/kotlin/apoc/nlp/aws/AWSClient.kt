@@ -1,8 +1,9 @@
-package apoc.ai.aws
+package apoc.nlp.aws
 
 import apoc.ai.azure.AzureClient
 import apoc.ai.dto.AIMapResult
 import apoc.ai.service.AI
+import apoc.result.MapResult
 import com.amazonaws.auth.AWSStaticCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.comprehend.AmazonComprehendClientBuilder
@@ -18,7 +19,7 @@ class AWSClient(apiKey: String, apiSecret: String, private val log: Log): AI {
             .withCredentials(AWSStaticCredentialsProvider(BasicAWSCredentials(apiKey, apiSecret)))
             .build()
 
-    override fun entities(data: Any, config: Map<String, Any?>): List<AIMapResult> {
+    override fun entities(data: Any, config: Map<String, Any?>): List<MapResult> {
         val convertedData = convertInput(data)
         var batch = BatchDetectEntitiesRequest().withTextList(convertedData)
         var batchDetectEntities = awsClient.batchDetectEntities(batch)
@@ -29,10 +30,10 @@ class AWSClient(apiKey: String, apiSecret: String, private val log: Log): AI {
         batchDetectEntities = awsClient.batchDetectEntities(batch)
         allData += batchDetectEntities.resultList
 
-        return allData.map { AIMapResult(AzureClient.MAPPER.convertValue(it, Map::class.java) as Map<String, Any?>) }
+        return allData.map { MapResult(AzureClient.MAPPER.convertValue(it, Map::class.java) as Map<String, Any?>) }
     }
 
-    override fun sentiment(data: Any, config: Map<String, Any?>): List<AIMapResult> {
+    override fun sentiment(data: Any, config: Map<String, Any?>): List<MapResult> {
         val convertedData = convertInput(data)
         var batch = BatchDetectSentimentRequest().withTextList(convertedData)
         var batchDetectEntities = awsClient.batchDetectSentiment(batch)
@@ -43,10 +44,10 @@ class AWSClient(apiKey: String, apiSecret: String, private val log: Log): AI {
         batchDetectEntities = awsClient.batchDetectSentiment(batch)
         allData += batchDetectEntities.resultList
 
-        return allData.map { AIMapResult(AzureClient.MAPPER.convertValue(it, Map::class.java) as Map<String, Any?>) }
+        return allData.map { MapResult(AzureClient.MAPPER.convertValue(it, Map::class.java) as Map<String, Any?>) }
     }
 
-    override fun keyPhrases(data: Any, config: Map<String, Any?>): List<AIMapResult> {
+    override fun keyPhrases(data: Any, config: Map<String, Any?>): List<MapResult> {
         val convertedData = convertInput(data)
         var batch = BatchDetectKeyPhrasesRequest().withTextList(convertedData)
         var batchDetectEntities = awsClient.batchDetectKeyPhrases(batch)
@@ -57,10 +58,10 @@ class AWSClient(apiKey: String, apiSecret: String, private val log: Log): AI {
         batchDetectEntities = awsClient.batchDetectKeyPhrases(batch)
         allData += batchDetectEntities.resultList
 
-        return allData.map { AIMapResult(AzureClient.MAPPER.convertValue(it, Map::class.java) as Map<String, Any?>) }
+        return allData.map { MapResult(AzureClient.MAPPER.convertValue(it, Map::class.java) as Map<String, Any?>) }
     }
 
-    override fun vision(data: Any, config: Map<String, Any?>): List<AIMapResult> {
+    override fun vision(data: Any, config: Map<String, Any?>): List<MapResult> {
         throw UnsupportedOperationException("Rekognition is not yet implemented")
     }
 
@@ -69,8 +70,7 @@ class AWSClient(apiKey: String, apiSecret: String, private val log: Log): AI {
             is Map<*, *> -> {
                 val map = data as Map<String, String>
                 val list = arrayOfNulls<String>(map.size)
-                map.mapKeys { it.key.toInt() }
-                        .forEach { k, v -> list[k] = v }
+                map.mapKeys { it.key.toInt() }.forEach { (k, v) -> list[k] = v }
                 list.mapNotNull { it ?: "" }.toList()
             }
             is Collection<*> -> data as List<String>
