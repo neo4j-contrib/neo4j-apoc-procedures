@@ -86,10 +86,15 @@ public class MetaEnterpriseFeaturesTest {
     public void testNodeTypePropertiesBasic() {
         session.writeTransaction(tx -> {
             tx.run("CREATE (:Foo { l: 1, s: 'foo', d: datetime(), ll: ['a', 'b'], dl: [2.0, 3.0] });");
+            tx.success();
+            return null;
+        });
+        session.writeTransaction(tx -> {
             tx.run("CREATE CONSTRAINT ON (f:Foo) ASSERT EXISTS (f.s);");
             tx.success();
             return null;
         });
+
         testResult(session, "CALL apoc.meta.nodeTypeProperties();", (r) -> {
             List<Map<String,Object>> records = gatherRecords(r);
             assertEquals(true, hasRecordMatching(records, m ->
