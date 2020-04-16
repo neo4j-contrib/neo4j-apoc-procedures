@@ -7,6 +7,7 @@ import apoc.result.MapResult;
 import apoc.result.NodeResult;
 import apoc.util.FileUtils;
 import apoc.util.Util;
+import jdk.jfr.MemoryAddress;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
@@ -538,6 +539,14 @@ public class Xml {
     }
 
     @Procedure(mode = Mode.WRITE, value = "apoc.xml.import")
+    @Deprecated
+    @Description("Deprecated by apoc.import.xml")
+    public Stream<NodeResult> importToGraphDeprecated(@Name("url") String url, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {
+        return importToGraph(url, config);
+    }
+
+    @Procedure(mode = Mode.WRITE, value = "apoc.import.xml")
+    @Description("apoc.import.xml(file,config) - imports graph from provided file")
     public Stream<NodeResult> importToGraph(@Name("url") String url, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {
         XmlImportConfig importConfig = new XmlImportConfig(config);
         //TODO: make labels, reltypes and magic properties configurable

@@ -10,7 +10,7 @@ apoc.export.file.enabled=true
 If we try to use any of the export procedures without having first set this property, we'll get the following error message:
 
 |===
-| Failed to invoke procedure `apoc.export.csv.all`: Caused by: java.lang.RuntimeException: Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf
+| Failed to invoke procedure: Caused by: java.lang.RuntimeException: Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf
 |===
 
 Export files are written to the `import` directory, which is defined by the `dbms.directories.import` property.

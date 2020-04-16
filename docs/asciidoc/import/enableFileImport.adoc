@@ -1,0 +1,35 @@
+By default importing from the file system is disabled.
+We can enable it by setting the following property in `apoc.conf`:
+
+.apoc.conf
+[source,properties]
+----
+apoc.import.file.enabled=true
+----
+
+If we try to use any of the import procedures without having first set this property, we'll get the following error message:
+
+|===
+| Failed to invoke procedure: Caused by: java.lang.RuntimeException: Import from files not enabled, please set apoc.import.file.enabled=true in your apoc.conf
+|===
+
+Import files are read from the `import` directory, which is defined by the `dbms.directories.import` property.
+This means that any file path that we provide is relative to this directory.
+If we try to read from an absolute path, such as `/tmp/filename`, we'll get an error message similar to the following one:
+
+|===
+| Failed to invoke procedure: Caused by: java.lang.RuntimeException: Can't read url or key file:/path/to/neo4j/import/tmp/filename as json: /path/to/neo4j//import/tmp/filename (No such file or directory)
+|===
+
+We can enable reading files from anywhere on the file system by setting the following property in `apoc.conf`:
+
+.apoc.conf
+[source,properties]
+----
+apoc.import.file.use_neo4j_config=false
+----
+
+[WARNING]
+====
+Neo4j will now be able to read from anywhere on the file system, so be sure that this is your intention before setting this property.
+====
