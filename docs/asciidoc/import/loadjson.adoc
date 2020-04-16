@@ -140,7 +140,7 @@ include::enableFileImport.adoc[]
 [[load-json-json-path]]
 == JSON-Path
 
-include::/jsonpath.adoc[]
+include::jsonpath.adoc[]
 
 To simplify the JSON URL syntax, you can configure aliases in `conf/apoc.conf`:
 
