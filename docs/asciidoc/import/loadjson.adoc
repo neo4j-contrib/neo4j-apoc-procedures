@@ -137,36 +137,10 @@ i.e. `{ KNOWS: { since: 'Datetime' } }`
 
 include::enableFileImport.adoc[]
 
-
 [[load-json-json-path]]
 == JSON-Path
 
-Most of the `apoc.load.json` and `apoc.convert.*Json` procedures and functions now accept a json-path as last argument.
-
-The json-path uses the https://github.com/jayway/JsonPath#operators[Java implementation by Jayway] of http://goessner.net/articles/JsonPath/[Stefan Gössners JSON-Path]
-
-Here is some syntax, there are more examples at the links above.
-
-`$.store.book[0].title`
-
-.Operators
-[options="header",cols="2m,4a"]
-|===
-| Operator                 | Description
-| $                        | The root element to query. This starts all path expressions.
-| @                        | The current node being processed by a filter predicate.
-| *                        | Wildcard. Available anywhere a name or numeric are required.
-| ..                       | Deep scan. Available anywhere a name is required.
-| .<name>                  | Dot-notated child
-| ['<name>' (,'<name>')]  | Bracket-notated child or children
-| [<number> (,<number>)]  | Array index or indexes
-| [start:end]              | Array slice operator
-| [?(<expression>)]        | Filter expression. Expression must evaluate to a boolean value.
-|===
-
-If used, this path is applied to the json and can be used to extract sub-documents and -values before handing the result to Cypher, resulting in shorter statements with complex nested JSON.
-
-There is also a direct `apoc.json.path(json,path)` function.
+include::jsonpath.adoc[]
 
 To simplify the JSON URL syntax, you can configure aliases in `conf/apoc.conf`:
 
