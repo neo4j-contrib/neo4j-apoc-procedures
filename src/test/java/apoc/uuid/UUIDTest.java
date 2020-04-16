@@ -193,15 +193,15 @@ public class UUIDTest {
     @Test
     public void testNotAddToExistingNodes() {
         // given
-        db.execute("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})").close();
+        db.execute("CREATE (d:User {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})").close();
 
         // when
-        db.execute("CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE").close();
-        db.execute("CALL apoc.uuid.install('Person', {addToExistingNodes: false}) YIELD label RETURN label").close();
+        db.execute("CREATE CONSTRAINT ON (user:User) ASSERT user.uuid IS UNIQUE").close();
+        db.execute("CALL apoc.uuid.install('User', {addToExistingNodes: false}) YIELD label RETURN label").close();
 
         // then
         try (Transaction tx = db.beginTx()) {
-            Node n = (Node) db.execute("MATCH (person:Person) return person").next().get("person");
+            Node n = (Node) db.execute("MATCH (user:User) return user").next().get("user");
             assertFalse(n.getAllProperties().containsKey("uuid"));
             tx.success();
         }
