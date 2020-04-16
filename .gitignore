@@ -39,4 +39,3 @@ hadoop
 progress.csv
 logs/
 store_lock
-import/
