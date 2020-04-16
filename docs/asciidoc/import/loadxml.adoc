@@ -24,7 +24,7 @@ This section includes:
     ** <<load-xml-examples-import-xml-directly>>
 
 [[load-xml-available-procedures]]
-== Available Procedures/Functions
+== Procedure and Function Overview
 
 The table below describes the available procedures and functions:
 
@@ -39,6 +39,12 @@ include::../../../build/generated-documentation/apoc.import.xml.csv[lines=2:]
 === `apoc.load.xml`
 
 This procedure takes a file or HTTP URL and parses the XML into a map data structure.
+
+[separator=¦,opts=header,cols="1m"]
+|===
+include::../../../build/generated-documentation/apoc.load.xml-lite.csv[]
+|===
+
 The map is created using the following rules:
 
 * in simple mode, each type of children has its own entry in the parent map.
@@ -61,6 +67,12 @@ This procedure supports the following config parameters:
 === `apoc.xml.parse`
 
 If our dataset contains nodes with XML as property values, they can be parsed into maps with the `apoc.xml.parse` function.
+
+[separator=¦,opts=header,cols="1m"]
+|===
+include::../../../build/generated-documentation/apoc.xml.parse-lite.csv[]
+|===
+
 
 This function supports the following config parameter:
 
@@ -89,6 +101,12 @@ RETURN apoc.xml.parse(xmlString) AS value
 === `apoc.import.xml`
 
 If we don't want to do any transformation of the XML before creating a graph structure, we can create a 1:1 mapping of XML into the graph using the `apoc.import.xml` procedure.
+
+[separator=¦,opts=header,cols="1m"]
+|===
+include::../../../build/generated-documentation/apoc.import.xml-lite.csv[]
+|===
+
 This procedure will return a node representing the XML document containing nodes and relationships underneath mapping to the XML structure.
 
 The following mapping rules are applied:
