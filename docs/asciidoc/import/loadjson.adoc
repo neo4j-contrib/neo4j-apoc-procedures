@@ -142,22 +142,6 @@ include::enableFileImport.adoc[]
 
 include::jsonpath.adoc[]
 
-To simplify the JSON URL syntax, you can configure aliases in `conf/apoc.conf`:
-
-----
-apoc.json.myJson.url=https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf
-----
-
-----
-CALL apoc.load.json('https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf')
-
-becomes
-
-CALL apoc.load.json('myJson')
-----
-
-The 3rd value in the `apoc.json.<alias>.url=` effectively defines an alias to be used in  `apoc.load.json('<alias>',....`
-
 [[load-json-examples]]
 == Examples
 
@@ -231,6 +215,26 @@ The URL for retrieving the last questions and answers for the http://stackoverfl
 ----
 https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf
 ----
+
+[NOTE]
+--
+Since this is a rather long url string, we can simplify the syntax by configuring aliases in the `conf/apoc.conf`:
+
+----
+apoc.json.myJson.url=https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf
+----
+
+The third value in the `apoc.json.<alias>.url=` effectively defines the variable to be used in  `apoc.load.json('<alias>',....`.
+With this, the massive JSON url string below can be aliased to a shorter string.
+
+----
+//original call with full json url string
+CALL apoc.load.json('https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf')
+
+//new call with aliased string with full string in apoc.conf
+CALL apoc.load.json('myJson')
+----
+--
 
 Let's introspect the data that is returned from this end point.
 
