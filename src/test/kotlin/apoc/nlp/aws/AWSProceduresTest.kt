@@ -1,163 +1,81 @@
 package apoc.nlp.aws
 
-import apoc.util.TestUtil
-import org.junit.Assume.assumeTrue
-import org.junit.BeforeClass
-import org.junit.ClassRule
+import com.amazonaws.services.comprehend.model.BatchDetectEntitiesItemResult
+import com.amazonaws.services.comprehend.model.BatchItemError
+import com.amazonaws.services.comprehend.model.Entity
+import junit.framework.Assert.assertEquals
 import org.junit.Test
-import org.neo4j.test.rule.ImpermanentDbmsRule
+import org.mockito.Mockito
+import org.neo4j.graphdb.Node
 
 class AWSProceduresTest {
-    companion object {
-        const val article1 = """
-            Hospitals should use spare laboratory space to test self-isolating NHS staff in England for coronavirus, Health Secretary Matt Hancock has said.
-            The government faces growing criticism over a lack of testing for frontline staff who could return to work if found clear of the virus.
-            On Tuesday, Cabinet Office minister Michael Gove admitted the UK had to go "further, faster" to increase testing.
-        """
+    @Test
+    fun `should transform result`() {
+        val node = Mockito.mock(Node::class.java)
 
-        const val article2 = """
-            Leeds United great Norman Hunter has died in hospital aged 76 after contracting coronavirus.
-            The tough-tackling centre-back, nicknamed 'Bites Yer Legs', was a key player in Leeds' most successful era.
-            He won two league titles during a 14-year first-team career at Elland Road, and was a non-playing member of England's 1966 World Cup-winning squad.
-            Hunter was admitted to hospital on 10 April after testing positive for coronavirus.
-        """
+        val result = BatchDetectEntitiesItemResult()
+        val entity = Entity()
+        entity.withText("foo").withType("bar").withScore(2.0F).withBeginOffset(0).withEndOffset(3)
+        result.withIndex(0).withEntities(listOf(entity))
+        val resultList = listOf(result)
 
-        val apiKey: String? = System.getenv("API_KEY")
-        val apiSecret: String? = System.getenv("API_SECRET")
+        val errorList = listOf<BatchItemError>()
+        val transformedResults = AWSProcedures.transformResults(0, node, resultList, errorList)
 
-        @ClassRule
-        @JvmField
-        val neo4j = ImpermanentDbmsRule()
+        assertEquals(node, transformedResults.node)
+        assertEquals(mapOf<String, Any>(), transformedResults.error)
 
-        @BeforeClass
-        @JvmStatic
-        fun beforeClass() {
-            TestUtil.registerProcedure(neo4j, AWSProcedures::class.java)
-            assumeTrue(apiKey != null)
-            assumeTrue(apiSecret != null)
-        }
+        assertEquals(0L, transformedResults.value["index"])
+        val entities = transformedResults.value["entities"] as List<Map<String, Object>>
+        assertEquals(mapOf("text" to "foo", "type" to "bar", "score" to 2.0F, "beginOffset" to 0L, "endOffset" to 3L), entities[0])
     }
 
     @Test
-    fun `should throw exception when given invalid source`() {
-        neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body})""", mapOf("body" to article1))
-        neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body})""", mapOf("body" to article2))
-        neo4j.executeTransactionally("MATCH (a:Article2) RETURN a", emptyMap()) {
-            println(it.resultAsString())
-        }
-        neo4j.executeTransactionally("""
-                    CALL apoc.nlp.aws.entities.stream("blah", {
-                      key: ${'$'}apiKey,
-                      secret: ${'$'}apiSecret,
-                      nodeProperty: "body"
-                    })
-                    YIELD node, value, error
-                    RETURN node, value, error
-                """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
-            println(it.resultAsString())
-        }
+    fun `should transform error`() {
+        val node = Mockito.mock(Node::class.java)
+
+        val result = BatchDetectEntitiesItemResult()
+        val resultList = listOf(result)
+
+        val error = BatchItemError()
+        error.withIndex(0).withErrorCode("123").withErrorMessage("broken")
+        val errorList = listOf(error)
+        val transformedResults = AWSProcedures.transformResults(0, node, resultList, errorList)
+
+        assertEquals(node, transformedResults.node)
+        assertEquals(mapOf<String, Any>(), transformedResults.value)
+
+        assertEquals(mapOf("message" to "broken", "code" to "123"), transformedResults.error)
     }
 
     @Test
-    fun `should extract entities for individual nodes`() {
-        neo4j.executeTransactionally("""CREATE (a:Article {body:${'$'}body})""", mapOf("body" to article1))
-        neo4j.executeTransactionally("""CREATE (a:Article {body:${'$'}body})""", mapOf("body" to article2))
-        neo4j.executeTransactionally("MATCH (a:Article) RETURN a", emptyMap()) {
-            println(it.resultAsString())
-        }
-        neo4j.executeTransactionally("""
-                    MATCH (a:Article)
-                    CALL apoc.nlp.aws.entities.stream(a, {
-                      key: ${'$'}apiKey,
-                      secret: ${'$'}apiSecret,
-                      nodeProperty: "body"
-                    })
-                    YIELD value
-                    RETURN value
-                """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
-            println(it.resultAsString())
-        }
+    fun `should transform mix of errors and results`() {
+        val node1 = Mockito.mock(Node::class.java)
+        val node2 = Mockito.mock(Node::class.java)
+
+        val result = BatchDetectEntitiesItemResult()
+        val entity = Entity()
+        entity.withText("foo").withType("bar").withScore(2.0F).withBeginOffset(0).withEndOffset(3)
+        result.withIndex(1).withEntities(listOf(entity))
+        val resultList = listOf(result)
+
+        val error = BatchItemError()
+        error.withIndex(0).withErrorCode("123").withErrorMessage("broken")
+        val errorList = listOf(error)
+
+        val result1 = AWSProcedures.transformResults(0, node1, resultList, errorList)
+        assertEquals(node1, result1.node)
+        assertEquals(mapOf<String, Any>(), result1.value)
+        assertEquals(mapOf("message" to "broken", "code" to "123"), result1.error)
+
+        val result2 = AWSProcedures.transformResults(1, node2, resultList, errorList)
+        assertEquals(node2, result2.node)
+        assertEquals(mapOf<String, Any>(), result2.error)
+
+        assertEquals(1L, result2.value["index"])
+        val entities = result2.value["entities"] as List<Map<String, Object>>
+        assertEquals(mapOf("text" to "foo", "type" to "bar", "score" to 2.0F, "beginOffset" to 0L, "endOffset" to 3L), entities[0])
     }
 
-    @Test
-    fun `should extract entities for collection of nodes`() {
-        neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body})""", mapOf("body" to article1))
-        neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body})""", mapOf("body" to article2))
-        neo4j.executeTransactionally("MATCH (a:Article2) RETURN a", emptyMap()) {
-            println(it.resultAsString())
-        }
-        neo4j.executeTransactionally("""
-                    MATCH (a:Article2)
-                    WITH collect(a) AS articles
-                    CALL apoc.nlp.aws.entities.stream(articles, {
-                      key: ${'$'}apiKey,
-                      secret: ${'$'}apiSecret,
-                      nodeProperty: "body"
-                    })
-                    YIELD node, value, error
-                    RETURN node, value, error
-                """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
-            println(it.resultAsString())
-        }
-    }
-
-//    @Test
-//    fun `should extract entities as virtual graph`() {
-//        neo4j.executeTransactionally("""CREATE (a:Article {id: 1234, body:${'$'}body})""", mapOf("body" to body))
-//        neo4j.executeTransactionally("MATCH (a:Article) RETURN a", emptyMap()) {
-//            println(it.resultAsString())
-//        }
-//        neo4j.executeTransactionally("""
-//                    MATCH (a:Article)
-//                    CALL apoc.nlp.aws.entities.graph(a, {
-//                      key: ${'$'}apiKey,
-//                      nodeProperty: "body",
-//                      write: false
-//                    })
-//                    YIELD graph AS g
-//                    RETURN g
-//                """.trimIndent(), mapOf("apiKey" to apiKey)) {
-//            println(it.resultAsString())
-//        }
-//    }
-//
-//    @Test
-//    fun `should extract entities as graph`() {
-//        neo4j.executeTransactionally("""CREATE (a:Article {id: 1234, body:${'$'}body})""", mapOf("body" to body))
-//        neo4j.executeTransactionally("MATCH (a:Article) RETURN a", emptyMap()) {
-//            println(it.resultAsString())
-//        }
-//        neo4j.executeTransactionally("""
-//                    MATCH (a:Article)
-//                    CALL apoc.nlp.aws.entities.graph(a, {
-//                      key: ${'$'}apiKey,
-//                      nodeProperty: "body",
-//                      write: true
-//                    })
-//                    YIELD graph AS g
-//                    RETURN g
-//                """.trimIndent(), mapOf("apiKey" to apiKey)) {
-//            println(it.resultAsString())
-//        }
-//    }
-//
-//    @Test
-//    fun `should extract categories as virtual graph`() {
-//        neo4j.executeTransactionally("""CREATE (a:Article {id: 1234, body:${'$'}body})""", mapOf("body" to body))
-//        neo4j.executeTransactionally("MATCH (a:Article) RETURN a", emptyMap()) {
-//            println(it.resultAsString())
-//        }
-//        neo4j.executeTransactionally("""
-//                    MATCH (a:Article)
-//                    CALL apoc.nlp.aws.classify.graph(a, {
-//                      key: ${'$'}apiKey,
-//                      nodeProperty: "body",
-//                      write: false
-//                    })
-//                    YIELD graph AS g
-//                    RETURN g
-//                """.trimIndent(), mapOf("apiKey" to apiKey)) {
-//            println(it.resultAsString())
-//        }
-//    }
 }
+

@@ -91,5 +91,4 @@ class AWSProceduresErrorsTest {
         }
         assertThat(exception.message, containsString("java.lang.IllegalArgumentException: Missing parameter `secret`"))
     }
-
 }
