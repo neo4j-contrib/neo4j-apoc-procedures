@@ -59,7 +59,6 @@ class AWSProceduresTest {
         }
     }
 
-
     @Test
     fun `should extract entities for collection of nodes`() {
         neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body})""", mapOf("body" to article1))
@@ -75,8 +74,8 @@ class AWSProceduresTest {
                       secret: ${'$'}apiSecret,
                       nodeProperty: "body"
                     })
-                    YIELD node, value
-                    RETURN node, value
+                    YIELD node, value, error
+                    RETURN node, value, error
                 """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
             println(it.resultAsString())
         }

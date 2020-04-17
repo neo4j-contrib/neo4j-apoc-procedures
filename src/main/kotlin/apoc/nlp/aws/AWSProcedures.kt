@@ -1,14 +1,12 @@
 package apoc.nlp.aws
 
-import apoc.result.MapResult
 import apoc.result.NodeWithMapResult
+import apoc.util.JsonUtil
+import com.amazonaws.services.comprehend.model.BatchDetectEntitiesItemResult
+import com.amazonaws.services.comprehend.model.BatchItemError
 import org.neo4j.graphdb.Node
 import org.neo4j.logging.Log
-import org.neo4j.procedure.Context
-import org.neo4j.procedure.Description
-import org.neo4j.procedure.Mode
-import org.neo4j.procedure.Name
-import org.neo4j.procedure.Procedure
+import org.neo4j.procedure.*
 import java.util.stream.Stream
 
 class AWSProcedures {
@@ -37,8 +35,21 @@ class AWSProcedures {
 
         val client = AWSClient(config, log!!)
 
-        val entities = client.entities(source, config)
-        return entities.zip(convert(source)).map { result -> NodeWithMapResult(result.second, result.first) }.stream()
+        val detectEntitiesResult = client.entities(source, config)
+        val resultList = detectEntitiesResult!!.resultList
+        val errorList = detectEntitiesResult.errorList
+
+        return convert(source).mapIndexed { index, node  -> transform(index, node, resultList, errorList) }.stream()
+    }
+
+    private fun transform(index: Int, node: Node, resultList: List<BatchDetectEntitiesItemResult>, errorList: List<BatchItemError>) : NodeWithMapResult {
+        val result = resultList.find { result -> result.index == index }
+        return if (result != null) {
+            NodeWithMapResult.withResult(node, JsonUtil.OBJECT_MAPPER!!.convertValue(result, Map::class.java) as Map<String, Any?>)
+        } else {
+            val err = errorList.find { error -> error.index == index }
+            NodeWithMapResult.withError(node, mapOf("code" to err?.errorCode, "message" to err?.errorMessage))
+        }
     }
 
     private fun convert(source: Any) : List<Node> {

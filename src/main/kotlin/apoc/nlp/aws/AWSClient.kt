@@ -7,12 +7,13 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.comprehend.AmazonComprehendClientBuilder
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesRequest
+import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
 import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesRequest
 import com.amazonaws.services.comprehend.model.BatchDetectSentimentRequest
 import org.neo4j.graphdb.Node
 import org.neo4j.logging.Log
 
-class AWSClient(config: Map<String, Any>,  private val log: Log): AI {
+class AWSClient(config: Map<String, Any>,  private val log: Log) {
     private val apiKey = config["key"].toString()
     private val apiSecret = config["secret"].toString()
     private val region = config.getOrDefault("region", "us-east-1").toString()
@@ -24,15 +25,18 @@ class AWSClient(config: Map<String, Any>,  private val log: Log): AI {
             .withRegion(region)
             .build()
 
-    override fun entities(data: Any, config: Map<String, Any?>): List<Map<String, Any?>> {
+     fun entities(data: Any, config: Map<String, Any?>): BatchDetectEntitiesResult? {
         val convertedData = convertInput(data)
         val batch = BatchDetectEntitiesRequest().withTextList(convertedData).withLanguageCode(language)
         val batchDetectEntities = awsClient.batchDetectEntities(batch)
-        val allData = batchDetectEntities.resultList
-        return allData.map { JsonUtil.OBJECT_MAPPER!!.convertValue(it, Map::class.java) as Map<String, Any?> }
+//        val resultList = batchDetectEntities.resultList
+//        val errorList = batchDetectEntities.errorList
+         return batchDetectEntities
+
+//        return allData.map { JsonUtil.OBJECT_MAPPER!!.convertValue(it, Map::class.java) as Map<String, Any?> }
     }
 
-    override fun sentiment(data: Any, config: Map<String, Any?>): List<MapResult> {
+     fun sentiment(data: Any, config: Map<String, Any?>): List<MapResult> {
         val convertedData = convertInput(data)
         var batch = BatchDetectSentimentRequest().withTextList(convertedData)
         var batchDetectEntities = awsClient.batchDetectSentiment(batch)
@@ -46,7 +50,7 @@ class AWSClient(config: Map<String, Any>,  private val log: Log): AI {
         return allData.map { MapResult(JsonUtil.OBJECT_MAPPER!!.convertValue(it, Map::class.java) as Map<String, Any?>) }
     }
 
-    override fun keyPhrases(data: Any, config: Map<String, Any?>): List<MapResult> {
+     fun keyPhrases(data: Any, config: Map<String, Any?>): List<MapResult> {
         val convertedData = convertInput(data)
         var batch = BatchDetectKeyPhrasesRequest().withTextList(convertedData)
         var batchDetectEntities = awsClient.batchDetectKeyPhrases(batch)
@@ -60,7 +64,7 @@ class AWSClient(config: Map<String, Any>,  private val log: Log): AI {
         return allData.map { MapResult(JsonUtil.OBJECT_MAPPER!!.convertValue(it, Map::class.java) as Map<String, Any?>) }
     }
 
-    override fun vision(data: Any, config: Map<String, Any?>): List<MapResult> {
+     fun vision(data: Any, config: Map<String, Any?>): List<MapResult> {
         throw UnsupportedOperationException("Rekognition is not yet implemented")
     }
 
