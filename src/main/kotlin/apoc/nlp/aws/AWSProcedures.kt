@@ -23,15 +23,16 @@ class AWSProcedures {
 //            : Stream<AIMapResult> = AWSClient(apiKey, apiSecret, log!!).sentiment(data, config).stream()
 //
     @Procedure(value = "apoc.nlp.aws.entities.stream", mode = Mode.READ)
-    @Description("Provides a entity analysis for provided text")
+    @Description("Returns a stream of entities for provided text")
     fun entities(@Name("source") source: Any,
                  @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
             : Stream<NodeWithMapResult> {
-        verifyKey(config, "key")
-        verifyKey(config, "secret")
-
+        verifySource(source)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(source, nodeProperty)
+
+        verifyKey(config, "key")
+        verifyKey(config, "secret")
 
         val client = AWSClient(config, log!!)
 
@@ -56,7 +57,17 @@ class AWSProcedures {
         return when (source) {
             is Node -> listOf(source)
             is List<*> -> source.map { item -> item as Node }
-            else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was `${source::class.java.name}`")
+            else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
+        }
+    }
+
+    private fun verifySource(source: Any) {
+        when (source) {
+            is Node -> "ok"
+            is List<*> -> source.forEach{ item -> if(item !is Node) {
+                throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
+            } }
+            else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
         }
     }
 
@@ -64,13 +75,13 @@ class AWSProcedures {
         when (source) {
             is Node -> verifyNodeProperty(source, nodeProperty)
             is List<*> -> source.forEach { node -> verifyNodeProperty(node as Node, nodeProperty) }
-            else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was `${source::class.java.name}`")
+            else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
         }
     }
 
     private fun verifyKey(config: Map<String, Any>, property: String) {
         if (!config.containsKey(property)) {
-            throw IllegalArgumentException("Missing parameter `key`. An API key for the Amazon Comprehend API can be generated from https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html")
+            throw IllegalArgumentException("Missing parameter `$property`. An API key for the Amazon Comprehend API can be generated from https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html")
         }
     }
 

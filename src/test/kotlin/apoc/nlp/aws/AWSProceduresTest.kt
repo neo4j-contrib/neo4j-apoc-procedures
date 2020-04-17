@@ -39,6 +39,26 @@ class AWSProceduresTest {
     }
 
     @Test
+    fun `should throw exception when given invalid source`() {
+        neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body})""", mapOf("body" to article1))
+        neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body})""", mapOf("body" to article2))
+        neo4j.executeTransactionally("MATCH (a:Article2) RETURN a", emptyMap()) {
+            println(it.resultAsString())
+        }
+        neo4j.executeTransactionally("""
+                    CALL apoc.nlp.aws.entities.stream("blah", {
+                      key: ${'$'}apiKey,
+                      secret: ${'$'}apiSecret,
+                      nodeProperty: "body"
+                    })
+                    YIELD node, value, error
+                    RETURN node, value, error
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
+            println(it.resultAsString())
+        }
+    }
+
+    @Test
     fun `should extract entities for individual nodes`() {
         neo4j.executeTransactionally("""CREATE (a:Article {body:${'$'}body})""", mapOf("body" to article1))
         neo4j.executeTransactionally("""CREATE (a:Article {body:${'$'}body})""", mapOf("body" to article2))

@@ -1,6 +1,5 @@
 package apoc.nlp.aws
 
-import apoc.ai.service.AI
 import apoc.result.MapResult
 import apoc.util.JsonUtil
 import com.amazonaws.auth.AWSStaticCredentialsProvider
@@ -28,12 +27,7 @@ class AWSClient(config: Map<String, Any>,  private val log: Log) {
      fun entities(data: Any, config: Map<String, Any?>): BatchDetectEntitiesResult? {
         val convertedData = convertInput(data)
         val batch = BatchDetectEntitiesRequest().withTextList(convertedData).withLanguageCode(language)
-        val batchDetectEntities = awsClient.batchDetectEntities(batch)
-//        val resultList = batchDetectEntities.resultList
-//        val errorList = batchDetectEntities.errorList
-         return batchDetectEntities
-
-//        return allData.map { JsonUtil.OBJECT_MAPPER!!.convertValue(it, Map::class.java) as Map<String, Any?> }
+         return awsClient.batchDetectEntities(batch)
     }
 
      fun sentiment(data: Any, config: Map<String, Any?>): List<MapResult> {
