@@ -22,7 +22,7 @@ include::../../../build/generated-documentation/apoc.load.csv[lines=1;12]
 |===
 |Parameter | Property | Description
 | url      | LDAP URL | See link:https://tools.ietf.org/html/rfc2255[RFC 2255] for the specifications
-|{connectionMap} | user | This is the dn of the ldap server user who has read access on the ldap server
+|{connectionMap} | username | This is the dn of the ldap server user who has read access on the ldap server
 |  | password | This is the password used by the user
 |  | pageSize | The number of results to return from the LDAP server at a time (default 100)
 |===
@@ -34,7 +34,7 @@ Hint: Use an attribute parameter of * to return all attributes, + to return oper
 .Retrieve group member information from the ldap server
 [source,cypher]
 ----
-call apoc.load.ldap("ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)", {credentials: {user: 'uid=admin,ou=system', password: 'secret'}})
+call apoc.load.ldap("ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)", {username: 'uid=admin,ou=system', password: 'secret'})
 yield entry
 return entry.dn,  entry.uniqueMember
 ----
@@ -49,7 +49,7 @@ return entry.dn,  entry.uniqueMember
 .Retrieve group member information from the ldap server and create structure in Neo4j
 [source,cypher]
 ----
-call apoc.load.ldap("ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)", {credentials: {user: 'uid=admin,ou=system', password: 'secret'}})
+call apoc.load.ldap("ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)", {username: 'uid=admin,ou=system', password: 'secret'})
 yield entry
 merge (g:Group {dn : entry.dn})
 on create set g.cn = entry.cn
@@ -66,7 +66,7 @@ To protect credentials, you can configure aliases in `conf/neo4j.conf`:
 .neo4j.conf Syntax
 ----
 apoc.ldap.localhost_auth.url=ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)
-apoc.ldap.localhost_auth.user=uid=admin,ou=system
+apoc.ldap.localhost_auth.username=uid=admin,ou=system
 apoc.ldap.localhost_auth.password=secret
 apoc.ldap.localhost_auth.pageSize=250
 ----

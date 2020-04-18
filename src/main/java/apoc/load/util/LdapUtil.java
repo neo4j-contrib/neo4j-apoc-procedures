@@ -1,6 +1,7 @@
 package apoc.load.util;
 
 import apoc.util.Util;
+import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -40,7 +41,12 @@ public class LdapUtil {
     /**
      * Build up an LdapConnectionPool from the configuration information received from the
      * proc constructor or config file. It will pre-authenticate connections retrieved from the
-     * pool and will already be bound
+     * pool and will already be bound.
+     * Note: Credentials are passed as-is to the LDAP server. There are a variety of binding
+     * mechanisms and we won't pretend to know what the user intends. For example, binds can be
+     * anonymous (no credentials), a bind DN and no password, or bind DN and a password. If the
+     * user has done something incorrect, we rely on the LDAP server to inform the user what has
+     * gone wrong.
      * @param ldapConfig Configuration when the procedure was called
      * @return a new LDAP connection pool
      */
@@ -232,10 +238,10 @@ public class LdapUtil {
 
     public static LoadLdapConfig getFromConfigFile(String key) {
         Map<String, Object> temp = new HashMap<>();
-        temp.put("url", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "url"));
-        temp.put("username", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "username"));
-        temp.put("password", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "password"));
-        temp.put("pageSize", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "pageSize"));
+        temp.put("url", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "url").orElse(StringUtils.EMPTY));
+        temp.put("username", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "username").orElse(StringUtils.EMPTY));
+        temp.put("password", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "password").orElse(StringUtils.EMPTY));
+        temp.put("pageSize", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "pageSize").orElse("100"));
         return new LoadLdapConfig(temp);
     }
 
