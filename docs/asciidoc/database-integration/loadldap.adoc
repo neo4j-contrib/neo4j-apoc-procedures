@@ -6,10 +6,10 @@
 This section describes procedures that can be used to import data from LDAP.
 --
 
-With 'apoc.load.ldap' you can execute queries on any LDAP v3 enabled directory, the results are turned into a streams of entries.
+With 'apoc.load.ldapurl' you can execute queries on any LDAP v3 enabled directory, the results are turned into a streams of entries.
 The entries can then be used to update or create graph structures.
 
-Note this utility requires to have the link:https://mvnrepository.com/artifact/org.apache.directory.api/apache-ldap-api/2.0.0[Apache LDAP API 2.0] library to be placed the plugin directory.
+Note this utility requires to have the link:https://mvnrepository.com/artifact/org.apache.directory.api/apache-ldap-api/2.0.1[Apache LDAP API 2.0] library to be placed the plugin directory.
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
@@ -20,11 +20,12 @@ include::../../../build/generated-documentation/apoc.load.csv[lines=1;12]
 
 [options="header",cols="a,3m,a"]
 |===
-|Parameter | Property | Description
-| url      | LDAP URL | See link:https://tools.ietf.org/html/rfc2255[RFC 2255] for the specifications
-|{connectionMap} | username | This is the dn of the ldap server user who has read access on the ldap server
-|  | password | This is the password used by the user
-|  | pageSize | The number of results to return from the LDAP server at a time (default 100)
+|Parameter      | Property  | Description
+| url           | URL or key| See link:https://tools.ietf.org/html/rfc2255[RFC 2255] for the specifications
+|{connectionMap}| username  | This is the dn of the ldap server user who has read access on the ldap server
+|               | password  | This is the password used by the user
+|               | pageSize  | The number of results to return from the LDAP server at a time (default 100)
+|               | url       | Optional, if overriding the URL from the on-disk configuration
 |===
 
 Hint: Use an attribute parameter of * to return all attributes, + to return operational attributes, and no attributes will always return the distinguishedName
@@ -34,7 +35,7 @@ Hint: Use an attribute parameter of * to return all attributes, + to return oper
 .Retrieve group member information from the ldap server
 [source,cypher]
 ----
-call apoc.load.ldap("ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)", {username: 'uid=admin,ou=system', password: 'secret'})
+call apoc.load.ldapurl("ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)", {username: 'uid=admin,ou=system', password: 'secret'})
 yield entry
 return entry.dn,  entry.uniqueMember
 ----
@@ -49,7 +50,7 @@ return entry.dn,  entry.uniqueMember
 .Retrieve group member information from the ldap server and create structure in Neo4j
 [source,cypher]
 ----
-call apoc.load.ldap("ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)", {username: 'uid=admin,ou=system', password: 'secret'})
+call apoc.load.ldapurl("ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)", {username: 'uid=admin,ou=system', password: 'secret'})
 yield entry
 merge (g:Group {dn : entry.dn})
 on create set g.cn = entry.cn
@@ -75,7 +76,7 @@ Then
 
 [source,cypher]
 ----
-call apoc.load.ldap("ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)", {credentials: {user: 'uid=admin,ou=system', password: 'secret'}})
+call apoc.load.ldapurl("ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)", {user: 'uid=admin,ou=system', password: 'secret'})
 yield entry
 return entry.dn,  entry
 ----
@@ -84,7 +85,16 @@ becomes
 
 [source,cypher]
 ----
-call apoc.load.ldapfromconfig("localhost_auth")
+call apoc.load.ldapurl("localhost_auth")
 yield entry
 return entry.dn,  entry
+-----------------------
+
+You can optionally override the URL from the config file by providing a different `url` value
+
+[source,cypher]
 ----
+call apoc.load.ldapurl("localhost_auth", {url: 'ldap://localhost:389/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Neo))'})
+yield entry
+return entry.dn,  entry
+-----------------------
