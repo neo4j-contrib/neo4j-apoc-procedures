@@ -121,6 +121,29 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
     }
 
     @Test
+    public void testCompatSignatureMapMap() {
+        Map<String, Object> agentSmith = new HashMap<>();
+        agentSmith.put("dn", "cn=Agent Smith,ou=Users,dc=neo4j,dc=test");
+        agentSmith.put("cn", "Agent Smith");
+        testCall(db,
+                String.format("CALL apoc.load.ldap({ldapHost: 'localhost:%d', loginDN: 'uid=admin,ou=system', loginPW: 'secret'}, ", ldapServerPort) +
+                        "{searchBase: 'dc=neo4j,dc=test', searchFilter: '(&(objectClass=person)(cn=Agent Smith))', searchScope: 'SCOPE_SUB', attributes: ['cn']})",
+                (row) -> assertEquals(row, map("entry", agentSmith)));
+    }
+
+    @Test
+    public void testCompatSignatureStringMap() {
+        ApocConfiguration.addToConfig(map("loadldap.myldap.config", String.format("localhost:%d uid=admin,ou=system secret", ldapServerPort)));
+        Map<String, Object> agentSmith = new HashMap<>();
+        agentSmith.put("dn", "cn=Agent Smith,ou=Users,dc=neo4j,dc=test");
+        agentSmith.put("cn", "Agent Smith");
+        testCall(db,
+                "CALL apoc.load.ldap('myldap', " +
+                        "{searchBase: 'dc=neo4j,dc=test', searchFilter: '(&(objectClass=person)(cn=Agent Smith))', searchScope: 'SCOPE_SUB', attributes: ['cn']})",
+                (row) -> assertEquals(row, map("entry", agentSmith)));
+    }
+
+    @Test
     public void testLoadNoAuth() {
         Map<String, Object> agentSmith = new HashMap<>();
         agentSmith.put("dn", "cn=Agent Smith,ou=Users,dc=neo4j,dc=test");
@@ -141,8 +164,8 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
         Map<String, Object> agentSmith = new HashMap<>();
         agentSmith.put("dn", "cn=Agent Smith,ou=Users,dc=neo4j,dc=test");
         agentSmith.put("cn", "Agent Smith");
-        testCall(db, String.format("CALL apoc.load.ldap('ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Agent Smith))', ", ldapServerPort) +
-                        "{credentials: {username: 'uid=admin,ou=system', password: 'secret'}})",
+        testCall(db, String.format("CALL apoc.load.ldapurl('ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Agent Smith))', ", ldapServerPort) +
+                        "{username: 'uid=admin,ou=system', password: 'secret'})",
                 (row) -> assertEquals(row, map("entry", agentSmith)));
     }
 

@@ -1,11 +1,13 @@
 package apoc.load;
 
 import apoc.ApocConfiguration;
+import apoc.Description;
 import apoc.load.util.LdapUtil;
 import apoc.load.util.LoadLdapConfig;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
 import org.apache.directory.api.ldap.model.message.Response;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
 import org.apache.directory.api.ldap.model.message.SearchResultDone;
@@ -16,7 +18,6 @@ import org.apache.directory.ldap.client.api.LdapConnectionPool;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
@@ -30,7 +31,10 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.load.util.LdapUtil.*;
+import static apoc.load.util.LdapUtil.LOAD_TYPE;
+import static apoc.load.util.LdapUtil.buildSearch;
+import static apoc.load.util.LdapUtil.getConnectionPool;
+import static apoc.load.util.LdapUtil.rangedRetrievalEntryHandler;
 
 public class LoadLdap {
     @Context
@@ -39,14 +43,30 @@ public class LoadLdap {
     @Context
     public GraphDatabaseService db;
 
-    @Procedure(name = "apoc.load.ldap", mode = Mode.READ)
-    @apoc.Description("apoc.load.ldap('url', config) YIELD row - run an LDAP query from an LDAP URL")
+    @Procedure(name = "apoc.load.ldap", deprecatedBy = "apoc.load.ldapurl")
+    @Description("apoc.load.ldap({connectionMap},{searchMap}) Load entries from an ldap source (yield entry)")
+    public Stream<LDAPResult> ldapQuery(@Name("connection") final Object conn, @Name("search") final Map<String,Object> search) throws LdapInvalidDnException {
+        LoadLdapConfig compatConfig;
+        if (conn instanceof Map) {
+            // old style config with Map of server connection parameters
+            compatConfig = LoadLdapConfig.compatConfig((Map<String, Object>) conn, search);
+        } else if (conn instanceof String) {
+            // old style config with String representing a ApocConfiguration key
+            compatConfig = LoadLdapConfig.compatConfig((String) conn, search);
+        } else {
+            throw new RuntimeException("Cannot comprehend configuration parameters");
+        }
+        return executePagedSearch(compatConfig);
+    }
+
+    @Procedure(name = "apoc.load.ldapurl")
+    @Description("apoc.load.ldap('url', config) YIELD row - run an LDAP query from an LDAP URL")
     public Stream<LDAPResult> ldap(@Name("ldapURL") String url,
                                    @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return executePagedSearch(url, config);
     }
 
-    @Procedure(name = "apoc.load.ldapfromconfig", mode = Mode.READ)
+    @Procedure(name = "apoc.load.ldapfromconfig")
     @apoc.Description("apoc.load.ldapfromconfig('key') YIELD row - load an LDAP config from config")
     public Stream<LDAPResult> ldapFromConfig(@Name("key") String key) {
         return executePagedSearch(key);
@@ -69,15 +89,13 @@ public class LoadLdap {
      * case, the attribute values are also paged before being returned to the original attribute
      * See https://ldapwiki.com/wiki/LDAP_SERVER_RANGE_OPTION_OID for more details.
      *
-     * @param url LDAP URL formatted according to RFC 2255
-     * @param config Parameters to pass onto the connector
+     * @param ldapConfig Parameters to pass onto the connector
      * @return Stream of LDAPResults representing the search results
      */
-    private Stream<LDAPResult> executePagedSearch(String url, Map<String, Object> config) {
+    private Stream<LDAPResult> executePagedSearch(LoadLdapConfig ldapConfig) {
         final String RANGE_RETRIEVAL_OID = "1.2.840.113556.1.4.802";
         final String PAGED_SEARCH_OID = "1.2.840.113556.1.4.319";
         List<Entry> allEntries = new ArrayList<>();
-        LoadLdapConfig ldapConfig = new LoadLdapConfig(config, url);
 
         try {
             // Use connection pooling to support future possible searches with range retrievals
@@ -134,6 +152,24 @@ public class LoadLdap {
         } catch (Exception e) {
             throw new RuntimeException("Error connecting to server: " + e);
         }
+    }
+
+    /**
+     * Executes a paged LDAP search with a default of 100-entry page size. All of the results are
+     * collected before being passed to the EntryListIterator which does the transformations into
+     * KV pairs.
+     * To more completely handle Active Directory servers, checking for ranged retrievals of
+     * attribute values is performed. By default, AD sets this to 1500 values. If this is the
+     * case, the attribute values are also paged before being returned to the original attribute
+     * See https://ldapwiki.com/wiki/LDAP_SERVER_RANGE_OPTION_OID for more details.
+     *
+     * @param url LDAP URL formatted according to RFC 2255
+     * @param config Parameters to pass onto the connector
+     * @return Stream of LDAPResults representing the search results
+     */
+    private Stream<LDAPResult> executePagedSearch(String url, Map<String, Object> config) {
+        LoadLdapConfig ldapConfig = new LoadLdapConfig(config, url);
+        return this.executePagedSearch(ldapConfig);
     }
 
     private static class EntryListIterator implements Iterator<Map<String, Object>> {
