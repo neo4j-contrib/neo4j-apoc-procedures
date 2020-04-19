@@ -13,6 +13,7 @@ import org.apache.directory.api.ldap.model.message.SearchRequest;
 import org.apache.directory.api.ldap.model.message.SearchResultDone;
 import org.apache.directory.api.ldap.model.message.SearchResultEntry;
 import org.apache.directory.api.ldap.model.message.controls.PagedResults;
+import org.apache.directory.api.ldap.model.url.LdapUrl;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionPool;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -63,13 +64,16 @@ public class LoadLdap {
     @Description("apoc.load.ldap('url', config) YIELD row - run an LDAP query from an LDAP URL")
     public Stream<LDAPResult> ldap(@Name("ldapURL") String url,
                                    @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        return executePagedSearch(url, config);
-    }
-
-    @Procedure(name = "apoc.load.ldapfromconfig")
-    @apoc.Description("apoc.load.ldapfromconfig('key') YIELD row - load an LDAP config from config")
-    public Stream<LDAPResult> ldapFromConfig(@Name("key") String key) {
-        return executePagedSearch(key);
+        if (url.startsWith(LdapUrl.LDAP_SCHEME) || url.startsWith(LdapUrl.LDAPS_SCHEME)) {
+            return executePagedSearch(url, config);
+        } else {
+            LoadLdapConfig ldapConfig = LdapUtil.getFromConfigFile(url);
+            // allow override of config file URL with one provided from the proc call
+            if (config.containsKey("url")) {
+                ldapConfig.setLdapUrl((String) config.get("url"));
+            }
+            return executePagedSearch(ldapConfig);
+        }
     }
 
     private Stream<LDAPResult> executePagedSearch(String key) {

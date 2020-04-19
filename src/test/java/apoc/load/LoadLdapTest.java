@@ -148,7 +148,7 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
         Map<String, Object> agentSmith = new HashMap<>();
         agentSmith.put("dn", "cn=Agent Smith,ou=Users,dc=neo4j,dc=test");
         agentSmith.put("cn", "Agent Smith");
-        testCall(db, "CALL apoc.load.ldapfromconfig('localhost_noauth')", (row) -> assertEquals(row, map("entry", agentSmith)));
+        testCall(db, "CALL apoc.load.ldapurl('localhost_noauth')", (row) -> assertEquals(row, map("entry", agentSmith)));
     }
 
     @Test
@@ -156,7 +156,7 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
         Map<String, Object> agentSmith = new HashMap<>();
         agentSmith.put("dn", "cn=Agent Smith,ou=Users,dc=neo4j,dc=test");
         agentSmith.put("cn", "Agent Smith");
-        testCall(db, "CALL apoc.load.ldapfromconfig('localhost_auth')", (row) -> assertEquals(row, map("entry", agentSmith)));
+        testCall(db, "CALL apoc.load.ldapurl('localhost_auth')", (row) -> assertEquals(row, map("entry", agentSmith)));
     }
 
     @Test
@@ -167,6 +167,26 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
         testCall(db, String.format("CALL apoc.load.ldapurl('ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Agent Smith))', ", ldapServerPort) +
                         "{username: 'uid=admin,ou=system', password: 'secret'})",
                 (row) -> assertEquals(row, map("entry", agentSmith)));
+    }
+
+    @Test
+    public void testLoadCredsFromFileUrlFromCall() {
+        Map<String, Object> neo = new HashMap<>();
+        neo.put("dn", "cn=Neo,ou=Users,dc=neo4j,dc=test");
+        neo.put("cn", "Neo");
+        testCall(db,
+                String.format("CALL apoc.load.ldapurl('localhost_noauth', {url: 'ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Neo))'})", ldapServerPort),
+                (row) -> assertEquals(row, map("entry", neo)));
+    }
+
+    @Test
+    public void testInlineConfigAnonymous() {
+        Map<String, Object> neo = new HashMap<>();
+        neo.put("dn", "cn=Neo,ou=Users,dc=neo4j,dc=test");
+        neo.put("cn", "Neo");
+        testCall(db,
+                String.format("CALL apoc.load.ldapurl('ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Neo))')", ldapServerPort),
+                (row) -> assertEquals(row, map("entry", neo)));
     }
 
     @After

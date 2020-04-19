@@ -17,7 +17,7 @@ import java.util.Map;
 public class LoadLdapConfig {
     private final Credentials credentials;
     private int pageSize;
-    private final LdapUrl ldapUrl;
+    private LdapUrl ldapUrl;
 
     public LoadLdapConfig(Map<String, Object> config, String url) {
         config = (null != config) ? config : Collections.emptyMap();
@@ -52,6 +52,14 @@ public class LoadLdapConfig {
 
     public LdapUrl getLdapUrl() {
         return this.ldapUrl;
+    }
+
+    public void setLdapUrl(String url) {
+        try {
+            this.ldapUrl = new LdapUrl(url);
+        } catch (LdapURLEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Credentials getCredentials() {
