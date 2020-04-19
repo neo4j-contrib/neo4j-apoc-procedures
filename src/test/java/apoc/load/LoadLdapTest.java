@@ -189,6 +189,16 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
                 (row) -> assertEquals(row, map("entry", neo)));
     }
 
+    @Test
+    public void testNoAttributesRequestedGotCn() {
+        Map<String, Object> neo = new HashMap<>();
+        neo.put("dn", "cn=Neo,ou=Users,dc=neo4j,dc=test");
+        neo.put("cn", "Neo");
+        testCall(db,
+                String.format("CALL apoc.load.ldapurl('ldap://localhost:%d/dc=neo4j,dc=test??sub?(&(objectClass=person)(cn=Neo))')", ldapServerPort),
+                (row) -> assertEquals(((Map) row.get("entry")).get("uid"), "neo1"));
+    }
+
     @After
     public void tearDown() {
         db.shutdown();
