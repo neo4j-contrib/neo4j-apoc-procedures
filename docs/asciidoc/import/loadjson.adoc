@@ -259,14 +259,6 @@ LIMIT 5;
 | "Difference between Neo4j Graph Algorithms and Graph Data Science" | {profile_image: "https://i.stack.imgur.com/2rLPZ.jpg?s=128&g=1", user_type: "registered", user_id: 3297954, link: "https://stackoverflow.com/users/3297954/rotten", reputation: 1295, display_name: "rotten", accept_rate: 75}                                                                                | 1586872077         | ["owner", "comment_count", "answers", "link", "last_activity_date", "creation_date", "answer_count", "title", "question_id", "tags", "share_link", "score", "down_vote_count", "body_markdown", "favorite_count", "is_answered", "delete_vote_count", "close_vote_count", "view_count", "up_vote_count"]
 |===
 
-.The following finds StackOverflow questions and authors using JSON-path
-[source,cypher]
-----
-WITH "https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" AS url
-CALL apoc.load.json(url,'$.items.owner.name') YIELD value
-RETURN name, count(*);
-----
-
 Let's now create a Neo4j graph based on those entities.
 
 .The following creates a graph based on data from the StackOverflow API
@@ -295,6 +287,51 @@ MERGE (owner)-[:ASKED]->(question)
 The Neo4j Browser visualization below shows the imported graph:
 
 image::apoc-load-json-so.svg[width="1000px"]
+
+[[load-json-path-examples-stackoverflow]]
+=== Use JSON Path and Import from StackOverflow API
+
+We can narrow down the data that we sift through and import using the JSON path syntax.
+This will allow us to specify substructures to import and ignore the rest of the data.
+For this example, we only want to import answers and the members posting those answers.
+
+.Find StackOverflow answers using JSON path (only retrieve sample of 5)
+[source,cypher]
+----
+WITH "https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" AS url
+CALL apoc.load.json(url,'$.items[?(@.answer_count>0)].answers[*]') YIELD value
+RETURN value LIMIT 5;
+----
+
+Notice that we are only looking at StackOverflow questions that have an answer count greater than 0.
+That means we are only passing along the question JSON objects that have answers, as the rest do not pertain to our use case.
+With this in mind, let us import those with this statement:
+
+[source,cypher]
+----
+WITH "https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" AS url
+CALL apoc.load.json(url,'$.items[?(@.answer_count>0)].answers[*]') YIELD value
+MERGE (a:Answer {id: value.answer_id})
+  ON CREATE SET a.accepted = value.is_accepted,
+                a.shareLink = value.share_link,
+                a.lastActivityDate = value.last_activity_date,
+                a.creationDate = value.creation_date,
+                a.title = value.title,
+                a.score = value.score
+MERGE (q:Question {id: value.question_id})
+MERGE (a)-[rel:POSTED_TO]->(q)
+WITH a as answer, value.owner as value
+MERGE (u:User {userId: value.user_id})
+  ON CREATE SET u.displayName = value.display_name,
+                u.userType = value.user_type,
+                u.reputation = value.reputation,
+                u.userLink = value.link
+MERGE (u)-[rel2:SUBMITTED]->(answer)
+RETURN count(answer)
+----
+
+This imports around 78 answers to our graph.
+We can then explore this graph to find out which users submitted the most answers, have the highest ratings, and more.
 
 [[load-json-examples-twitter]]
 === Import from Twitter API (with additional parameters)

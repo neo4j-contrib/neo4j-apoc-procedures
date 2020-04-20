@@ -12,7 +12,7 @@ There is also the `apoc.json.path(json,path)` function that takes a JSON string 
 Note: if the JSON is not already in string format, you can use the `apoc.convert.toJson` function to convert it.
 
 More examples can be found at the links provided above, but let us look at an example of the syntax for JSON paths.
-The syntax shown below pulls the `items` array from the StackOverflow API of Neo4j questions and retrieves the array of `tags` from each object in the item list.
+The syntax shown below pulls the `items` array from the StackOverflow API of Neo4j questions and retrieves the array of `tags` from the first object in the item list.
 
 `$.items[0].tags`
 
