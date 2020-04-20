@@ -6,7 +6,7 @@
 This chapter describes procedures that wrap Google Cloud Platform's Natural Language API.
 --
 
-Google Cloud Platform's Natural Language API lets users derive insights from unstructured text using Google machine learning.
+Google Cloud Platform's https://cloud.google.com/natural-language[Natural Language API^] lets users derive insights from unstructured text using Google machine learning.
 The procedures in this chapter act as a wrapper around calls to this API to extract entities, categories, or sentiment from text stored as node properties.
 
 Each procedure has two modes:

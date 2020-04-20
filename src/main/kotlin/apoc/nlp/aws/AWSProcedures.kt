@@ -30,50 +30,9 @@ class AWSProcedures {
         val resultList = detectEntitiesResult!!.resultList
         val errorList = detectEntitiesResult.errorList
 
-        return convert(source).mapIndexed { index, node  -> Companion.transformResults(index, node, resultList, errorList) }.stream()
+        return convert(source).mapIndexed { index, node -> transformResults(index, node, resultList, errorList) }.stream()
     }
 
-    private fun convert(source: Any) : List<Node> {
-        return when (source) {
-            is Node -> listOf(source)
-            is List<*> -> source.map { item -> item as Node }
-            else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
-        }
-    }
-
-    private fun verifySource(source: Any) {
-        when (source) {
-            is Node -> "ok"
-            is List<*> -> source.forEach{ item -> if(item !is Node) {
-                throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
-            } }
-            else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
-        }
-    }
-
-    private fun verifyNodeProperty(source: Any, nodeProperty: String) {
-        when (source) {
-            is Node -> verifyNodeProperty(source, nodeProperty)
-            is List<*> -> source.forEach { node -> verifyNodeProperty(node as Node, nodeProperty) }
-            else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
-        }
-    }
-
-    private fun verifyKey(config: Map<String, Any>, property: String) {
-        if (!config.containsKey(property)) {
-            throw IllegalArgumentException("Missing parameter `$property`. An API key for the Amazon Comprehend API can be generated from https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html")
-        }
-    }
-
-    private fun getNodeProperty(config: Map<String, Any>): String {
-        return config.getOrDefault("nodeProperty", "text").toString()
-    }
-
-    private fun verifyNodeProperty(node: Node, nodeProperty: String) {
-        if (!node.hasProperty(nodeProperty)) {
-            throw IllegalArgumentException("$node does not have property `$nodeProperty`. Property can be configured using parameter `nodeProperty`.")
-        }
-    }
 
 //    @Procedure(value = "apoc.ai.aws.sentiment", mode = Mode.READ)
 //    @Description("Provides a sentiment analysis for provided text")
@@ -92,20 +51,64 @@ class AWSProcedures {
 //                   @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
 //            : Stream<AIMapResult> = AWSClient(apiKey, apiSecret, log!!).keyPhrases(data, config).stream()
 
-//    @Procedure(value = "ai.aws.vision", mode = Mode.READ)
+    //    @Procedure(value = "ai.aws.vision", mode = Mode.READ)
 //    @Description("Provides a entity analysis for provided text")
 //    fun vision(@Name("apiKey") apiKey: String,
 //               @Name("apiSecret") apiSecret: String,
 //               @Name("data") data: Any,
 //               @Name(value = "config", defaultValue = "{}") config: Map<String, Any>): Stream<AIMapResult> = Stream.empty()
     companion object {
-        fun transformResults(index: Int, node: Node, resultList: List<BatchDetectEntitiesItemResult>, errorList: List<BatchItemError>) : NodeWithMapResult {
+        fun transformResults(index: Int, node: Node, resultList: List<BatchDetectEntitiesItemResult>, errorList: List<BatchItemError>): NodeWithMapResult {
             val result = resultList.find { result -> result.index == index }
             return if (result != null) {
                 NodeWithMapResult.withResult(node, JsonUtil.OBJECT_MAPPER!!.convertValue(result, Map::class.java) as Map<String, Any?>)
             } else {
                 val err = errorList.find { error -> error.index == index }
                 NodeWithMapResult.withError(node, mapOf("code" to err?.errorCode, "message" to err?.errorMessage))
+            }
+        }
+
+        private fun convert(source: Any): List<Node> {
+            return when (source) {
+                is Node -> listOf(source)
+                is List<*> -> source.map { item -> item as Node }
+                else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
+            }
+        }
+
+        private fun verifySource(source: Any) {
+            when (source) {
+                is Node -> return
+                is List<*> -> source.forEach { item ->
+                    if (item !is Node) {
+                        throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
+                    }
+                }
+                else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
+            }
+        }
+
+        private fun verifyNodeProperty(source: Any, nodeProperty: String) {
+            when (source) {
+                is Node -> verifyNodeProperty(source, nodeProperty)
+                is List<*> -> source.forEach { node -> verifyNodeProperty(node as Node, nodeProperty) }
+                else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
+            }
+        }
+
+        private fun verifyKey(config: Map<String, Any>, property: String) {
+            if (!config.containsKey(property)) {
+                throw IllegalArgumentException("Missing parameter `$property`. An API key for the Amazon Comprehend API can be generated from https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html")
+            }
+        }
+
+        private fun getNodeProperty(config: Map<String, Any>): String {
+            return config.getOrDefault("nodeProperty", "text").toString()
+        }
+
+        private fun verifyNodeProperty(node: Node, nodeProperty: String) {
+            if (!node.hasProperty(nodeProperty)) {
+                throw IllegalArgumentException("$node does not have property `$nodeProperty`. Property can be configured using parameter `nodeProperty`.")
             }
         }
     }
