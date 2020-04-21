@@ -1,5 +1,6 @@
 package apoc.nlp.aws
 
+import apoc.ai.service.AWSClient
 import apoc.graph.document.builder.DocumentToGraph
 import apoc.graph.util.GraphsConfig
 import apoc.nlp.NLPHelperFunctions.Companion.createRelationships
@@ -9,8 +10,7 @@ import apoc.result.NodeWithMapResult
 import apoc.result.VirtualGraph
 import apoc.result.VirtualNode
 import apoc.util.JsonUtil
-import com.amazonaws.services.comprehend.model.BatchDetectEntitiesItemResult
-import com.amazonaws.services.comprehend.model.BatchItemError
+import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
 import org.neo4j.graphdb.Transaction
@@ -38,12 +38,10 @@ class AWSProcedures {
         verifyKey(config, "key")
         verifyKey(config, "secret")
 
-        val client = AWSClient(config, log!!)
-        val detectEntitiesResult = client.entities(source, config)
-        val resultList = detectEntitiesResult!!.resultList
-        val errorList = detectEntitiesResult.errorList
+        val client: AWSClient = RealAWSClient(config, log!!)
+        val detectEntitiesResult = client.entities(source)
 
-        return convert(source).mapIndexed { index, node -> transformResults(index, node, resultList, errorList) }.stream()
+        return convert(source).mapIndexed { index, node -> transformResults(index, node, detectEntitiesResult!!) }.stream()
     }
 
     @Procedure(value = "apoc.nlp.aws.entities.graph", mode = Mode.WRITE)
@@ -57,10 +55,8 @@ class AWSProcedures {
         verifyKey(config, "key")
         verifyKey(config, "secret")
 
-        val client = AWSClient(config, log!!)
-        val detectEntitiesResult = client.entities(sourceNode, config)
-        val resultList = detectEntitiesResult!!.resultList
-        val errorList = detectEntitiesResult.errorList
+        val client = RealAWSClient(config, log!!)
+        val detectEntitiesResult = client.entities(sourceNode)
 
         val storeGraph:Boolean = config.getOrDefault("write", false) as Boolean
         val graphConfig = mapOf(
@@ -70,7 +66,7 @@ class AWSProcedures {
         )
 
         val documentToGraph = DocumentToGraph(tx, GraphsConfig(graphConfig))
-        val graph = documentToGraph.create(transformResults(0, sourceNode, resultList, errorList).value["entities"])
+        val graph = documentToGraph.create(transformResults(0, sourceNode, detectEntitiesResult!!).value["entities"])
 
         val mutableGraph = graph.graph.toMutableMap()
 
@@ -114,12 +110,12 @@ class AWSProcedures {
 //               @Name("data") data: Any,
 //               @Name(value = "config", defaultValue = "{}") config: Map<String, Any>): Stream<AIMapResult> = Stream.empty()
     companion object {
-        fun transformResults(index: Int, node: Node, resultList: List<BatchDetectEntitiesItemResult>, errorList: List<BatchItemError>): NodeWithMapResult {
-            val result = resultList.find { result -> result.index == index }
+        fun transformResults(index: Int, node: Node, res: BatchDetectEntitiesResult): NodeWithMapResult {
+            val result = res.resultList.find { result -> result.index == index }
             return if (result != null) {
                 NodeWithMapResult.withResult(node, JsonUtil.OBJECT_MAPPER!!.convertValue(result, Map::class.java) as Map<String, Any?>)
             } else {
-                val err = errorList.find { error -> error.index == index }
+                val err = res.errorList.find { error -> error.index == index }
                 NodeWithMapResult.withError(node, mapOf("code" to err?.errorCode, "message" to err?.errorMessage))
             }
         }

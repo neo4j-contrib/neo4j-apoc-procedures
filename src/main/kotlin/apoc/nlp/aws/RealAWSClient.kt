@@ -1,5 +1,6 @@
 package apoc.nlp.aws
 
+import apoc.ai.service.AWSClient
 import apoc.result.MapResult
 import apoc.util.JsonUtil
 import com.amazonaws.auth.AWSStaticCredentialsProvider
@@ -12,7 +13,7 @@ import com.amazonaws.services.comprehend.model.BatchDetectSentimentRequest
 import org.neo4j.graphdb.Node
 import org.neo4j.logging.Log
 
-class AWSClient(config: Map<String, Any>,  private val log: Log) {
+class RealAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient {
     private val apiKey = config["key"].toString()
     private val apiSecret = config["secret"].toString()
     private val region = config.getOrDefault("region", "us-east-1").toString()
@@ -24,7 +25,7 @@ class AWSClient(config: Map<String, Any>,  private val log: Log) {
             .withRegion(region)
             .build()
 
-     fun entities(data: Any, config: Map<String, Any?>): BatchDetectEntitiesResult? {
+     override fun entities(data: Any): BatchDetectEntitiesResult? {
          val convertedData = convertInput(data)
          val batch = BatchDetectEntitiesRequest().withTextList(convertedData).withLanguageCode(language)
          return awsClient.batchDetectEntities(batch)

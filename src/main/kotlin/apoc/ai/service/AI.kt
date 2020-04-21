@@ -9,3 +9,4 @@ interface AI {
     fun vision(data: Any, config: Map<String, Any?>): List<MapResult>
 
 }
+

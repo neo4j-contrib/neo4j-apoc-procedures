@@ -1,6 +1,7 @@
 package apoc.nlp.aws
 
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesItemResult
+import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
 import com.amazonaws.services.comprehend.model.BatchItemError
 import com.amazonaws.services.comprehend.model.Entity
 import junit.framework.Assert.assertEquals
@@ -20,7 +21,8 @@ class AWSProceduresTest {
         val resultList = listOf(result)
 
         val errorList = listOf<BatchItemError>()
-        val transformedResults = AWSProcedures.transformResults(0, node, resultList, errorList)
+        val res = BatchDetectEntitiesResult().withErrorList(errorList).withResultList(resultList)
+        val transformedResults = AWSProcedures.transformResults(0, node, res)
 
         assertEquals(node, transformedResults.node)
         assertEquals(mapOf<String, Any>(), transformedResults.error)
@@ -40,7 +42,9 @@ class AWSProceduresTest {
         val error = BatchItemError()
         error.withIndex(0).withErrorCode("123").withErrorMessage("broken")
         val errorList = listOf(error)
-        val transformedResults = AWSProcedures.transformResults(0, node, resultList, errorList)
+
+        val res = BatchDetectEntitiesResult().withErrorList(errorList).withResultList(resultList)
+        val transformedResults = AWSProcedures.transformResults(0, node, res)
 
         assertEquals(node, transformedResults.node)
         assertEquals(mapOf<String, Any>(), transformedResults.value)
@@ -63,12 +67,14 @@ class AWSProceduresTest {
         error.withIndex(0).withErrorCode("123").withErrorMessage("broken")
         val errorList = listOf(error)
 
-        val result1 = AWSProcedures.transformResults(0, node1, resultList, errorList)
+        val res = BatchDetectEntitiesResult().withErrorList(errorList).withResultList(resultList)
+        val result1 = AWSProcedures.transformResults(0, node1, res)
         assertEquals(node1, result1.node)
         assertEquals(mapOf<String, Any>(), result1.value)
         assertEquals(mapOf("message" to "broken", "code" to "123"), result1.error)
 
-        val result2 = AWSProcedures.transformResults(1, node2, resultList, errorList)
+        val res2 = BatchDetectEntitiesResult().withErrorList(errorList).withResultList(resultList)
+        val result2 = AWSProcedures.transformResults(1, node2, res2)
         assertEquals(node2, result2.node)
         assertEquals(mapOf<String, Any>(), result2.error)
 
