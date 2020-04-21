@@ -89,7 +89,7 @@ public class Coll {
 		if (list == null || list.isEmpty()) return null;
         if (list.size() == 1) return list.get(0);
 
-        try (Result result = tx.execute("cypher expressionEngine=compiled return reduce(res=null, x in $list | CASE WHEN res IS NULL OR x<res THEN x ELSE res END) as value", Collections.singletonMap("list", list))) {
+        try (Result result = tx.execute("cypher runtime=slotted return reduce(res=null, x in $list | CASE WHEN res IS NULL OR x<res THEN x ELSE res END) as value", Collections.singletonMap("list", list))) {
             return result.next().get("value");
         }
     }
@@ -99,7 +99,7 @@ public class Coll {
     public Object max(@Name("values") List<Object> list) {
         if (list == null || list.isEmpty()) return null;
         if (list.size() == 1) return list.get(0);
-        try (Result result = tx.execute("cypher expressionEngine=compiled return reduce(res=null, x in $list | CASE WHEN res IS NULL OR res<x THEN x ELSE res END) as value", Collections.singletonMap("list", list))) {
+        try (Result result = tx.execute("cypher runtime=slotted return reduce(res=null, x in $list | CASE WHEN res IS NULL OR res<x THEN x ELSE res END) as value", Collections.singletonMap("list", list))) {
             return result.next().get("value");
         }
     }
