@@ -1,11 +1,22 @@
 package apoc.nlp.aws
 
+import apoc.result.VirtualNode
 import apoc.util.TestUtil
+import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertTrue
+import org.hamcrest.Description
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.hasItem
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
+import org.neo4j.graphdb.Label
+import org.neo4j.graphdb.Node
+import org.neo4j.graphdb.Relationship
 import org.neo4j.test.rule.ImpermanentDbmsRule
+import java.util.stream.Collectors
+
 
 class AWSProceduresAPITest {
     companion object {
@@ -35,6 +46,12 @@ class AWSProceduresAPITest {
             TestUtil.registerProcedure(neo4j, AWSProcedures::class.java)
             assumeTrue(apiKey != null)
             assumeTrue(apiSecret != null)
+        }
+
+        fun nodeMatches(item: Node?, labels: List<String>?, properties: Map<String, Any>?): Boolean {
+            val labelsMatched = item?.labels!!.all { label -> labels?.contains(label.name())!! }
+            val propertiesMatches = item.allProperties.all { entry -> properties?.containsKey(entry.key)!! && properties.get(entry.key) == entry.value }
+            return labelsMatched && propertiesMatches
         }
     }
 
@@ -84,9 +101,14 @@ class AWSProceduresAPITest {
     @Test
     fun `should extract entity as virtual graph`() {
         neo4j.executeTransactionally("""CREATE (a:Article {id: 1234, body:${'$'}body})""", mapOf("body" to article1))
+
+        var sourceNode: Node? = null
+        var virtualSourceNode: Node? = null
         neo4j.executeTransactionally("MATCH (a:Article) RETURN a", emptyMap()) {
-            println(it.resultAsString())
+            sourceNode = it.next()["a"] as Node
+            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
         }
+
         neo4j.executeTransactionally("""
                     MATCH (a:Article)
                     CALL apoc.nlp.aws.entities.graph(a, {
@@ -96,11 +118,99 @@ class AWSProceduresAPITest {
                       write: false
                     })
                     YIELD graph AS g
-                    RETURN g
+                    RETURN g.nodes AS nodes, g.relationships AS relationships
                 """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
-            println(it.resultAsString())
+            assertTrue(it.hasNext())
+
+            it.forEach { row ->
+                run {
+                    val nodes: List<Node> = row["nodes"] as List<Node>
+                    val relationships = row["relationships"] as List<Relationship>
+
+                    assertEquals(8, nodes.size)
+
+                    assertThat(nodes, hasItem(sourceNode))
+
+                    val orgLabels = listOf(Label { "Organization" }, Label { "Entity" })
+                    val locationLabels = listOf(Label { "Location" }, Label { "Entity" })
+                    val personLabels = listOf(Label { "Person" }, Label { "Entity" })
+                    val dateLabels = listOf(Label { "Date" }, Label { "Entity" })
+
+                    assertThat(nodes, hasItem(NodeMatcher(orgLabels, mapOf("text" to "NHS", "type" to "ORGANIZATION"))))
+                    assertThat(nodes, hasItem(NodeMatcher(orgLabels, mapOf("text" to "UK", "type" to "ORGANIZATION"))))
+
+                    assertThat(nodes, hasItem(NodeMatcher(locationLabels, mapOf("text" to "England", "type" to "LOCATION"))))
+
+                    assertThat(nodes, hasItem(NodeMatcher(personLabels, mapOf("text" to "Health Secretary", "type" to "PERSON"))))
+                    assertThat(nodes, hasItem(NodeMatcher(personLabels, mapOf("text" to "Matt Hancock", "type" to "PERSON"))))
+                    assertThat(nodes, hasItem(NodeMatcher(personLabels, mapOf("text" to "Michael Gove", "type" to "PERSON"))))
+
+                    assertThat(nodes, hasItem(NodeMatcher(dateLabels, mapOf("text" to "Tuesday", "type" to "DATE"))))
+
+                    assertEquals(7, relationships.size)
+
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(orgLabels.toTypedArray(), mapOf("text" to "NHS", "type" to "ORGANIZATION")), "ENTITY")))
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(orgLabels.toTypedArray(), mapOf("text" to "UK", "type" to "ORGANIZATION")), "ENTITY")))
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(locationLabels.toTypedArray(), mapOf("text" to "England", "type" to "LOCATION")), "ENTITY")))
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(personLabels.toTypedArray(), mapOf("text" to "Health Secretary", "type" to "PERSON")), "ENTITY")))
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(personLabels.toTypedArray(), mapOf("text" to "Matt Hancock", "type" to "PERSON")), "ENTITY")))
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(personLabels.toTypedArray(), mapOf("text" to "Michael Gove", "type" to "PERSON")), "ENTITY")))
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dateLabels.toTypedArray(), mapOf("text" to "Tuesday", "type" to "DATE")), "ENTITY")))
+                }
+            }
         }
     }
+
+
+    class NodeMatcher(labels: List<Label>, val properties: Map<String, Any>) : org.hamcrest.TypeSafeDiagnosingMatcher<Node>() {
+        private val labelNames: List<String> = labels.stream().map { l -> l.name()}.collect(Collectors.toList())
+
+        override fun describeTo(description: Description?) {
+            description?.appendText("a node with labels ")?.appendValue(labelNames)?.appendText(" a node with properties ")?.appendValue(properties)
+        }
+
+        override fun matchesSafely(item: Node?, mismatchDescription: Description?): Boolean {
+            val nodeMatches = nodeMatches(item, labelNames, properties)
+            if(!nodeMatches) {
+                mismatchDescription!!
+                        .appendText("got ").appendText("labels: ").appendValue(item?.labels?.map { l -> l.name() })
+                        .appendText(",  properties:").appendValue(item?.allProperties)
+                return false
+            }
+            return true
+        }
+    }
+
+    class RelationshipMatcher(private val startNode: Node?, private val endNode: Node?, private val relationshipType: String) : org.hamcrest.TypeSafeDiagnosingMatcher<Relationship>() {
+        override fun describeTo(description: Description?) {
+            description?.appendText("startNode: ")
+                    ?.appendValue(startNode)?.appendText(", endNode: ")
+                    ?.appendValue(endNode)?.appendText(", relType: ")
+                    ?.appendValue(relationshipType)
+        }
+
+        override fun matchesSafely(item: Relationship?, mismatchDescription: Description?): Boolean {
+            val startNodeMatches = nodeMatches(item?.startNode, startNode)
+            val endNodeMatches = nodeMatches(item?.endNode, endNode)
+            val relationshipMatches = item?.type?.name() == relationshipType
+
+            if (startNodeMatches && endNodeMatches && relationshipMatches) {
+                return true
+            }
+
+            mismatchDescription!!
+                    .appendText("got ").appendText("{startNode: ").appendValue(item?.startNode?.labels)
+                    .appendText(", endNode: ").appendValue(item?.endNode?.labels)
+                    .appendText(", relationshipType: ").appendValue(item?.type?.name()).appendText("}")
+            return false
+
+        }
+
+        private fun nodeMatches(one: Node?, two: Node?): Boolean {
+            return nodeMatches(one, two?.labels?.map { l -> l.name()}, two?.allProperties?.toMap())
+        }
+    }
+
 //
 //    @Test
 //    fun `should extract entities as graph`() {
@@ -142,3 +252,4 @@ class AWSProceduresAPITest {
 //        }
 //    }
 }
+
