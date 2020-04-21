@@ -2,7 +2,7 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '4.0.2'
+    id 'com.github.johnrengelman.shadow' version '4.0.3'
     id "com.bmuschko.nexus" version "2.3.1"
 //    id "me.champeau.gradle.jmh" version "0.4.8"
     id 'maven-publish'
@@ -19,7 +19,7 @@ java {
 }
 
 group = 'org.neo4j.procedure'
-version = '4.0.0.7'
+version = '4.0.0.8'
 archivesBaseName = 'apoc'
 description = """neo4j-apoc-procedures"""
 
