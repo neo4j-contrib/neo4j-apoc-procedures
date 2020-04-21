@@ -25,8 +25,8 @@ class AWSClient(config: Map<String, Any>,  private val log: Log) {
             .build()
 
      fun entities(data: Any, config: Map<String, Any?>): BatchDetectEntitiesResult? {
-        val convertedData = convertInput(data)
-        val batch = BatchDetectEntitiesRequest().withTextList(convertedData).withLanguageCode(language)
+         val convertedData = convertInput(data)
+         val batch = BatchDetectEntitiesRequest().withTextList(convertedData).withLanguageCode(language)
          return awsClient.batchDetectEntities(batch)
     }
 

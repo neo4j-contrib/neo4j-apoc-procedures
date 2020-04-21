@@ -4,7 +4,6 @@ import apoc.result.VirtualNode
 import apoc.util.TestUtil
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
-import org.hamcrest.Description
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.junit.Assume.assumeTrue
@@ -15,7 +14,6 @@ import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
 import org.neo4j.test.rule.ImpermanentDbmsRule
-import java.util.stream.Collectors
 
 
 class AWSProceduresAPITest {
@@ -162,56 +160,7 @@ class AWSProceduresAPITest {
     }
 
 
-    class NodeMatcher(labels: List<Label>, val properties: Map<String, Any>) : org.hamcrest.TypeSafeDiagnosingMatcher<Node>() {
-        private val labelNames: List<String> = labels.stream().map { l -> l.name()}.collect(Collectors.toList())
-
-        override fun describeTo(description: Description?) {
-            description?.appendText("a node with labels ")?.appendValue(labelNames)?.appendText(" a node with properties ")?.appendValue(properties)
-        }
-
-        override fun matchesSafely(item: Node?, mismatchDescription: Description?): Boolean {
-            val nodeMatches = nodeMatches(item, labelNames, properties)
-            if(!nodeMatches) {
-                mismatchDescription!!
-                        .appendText("got ").appendText("labels: ").appendValue(item?.labels?.map { l -> l.name() })
-                        .appendText(",  properties:").appendValue(item?.allProperties)
-                return false
-            }
-            return true
-        }
-    }
-
-    class RelationshipMatcher(private val startNode: Node?, private val endNode: Node?, private val relationshipType: String) : org.hamcrest.TypeSafeDiagnosingMatcher<Relationship>() {
-        override fun describeTo(description: Description?) {
-            description?.appendText("startNode: ")
-                    ?.appendValue(startNode)?.appendText(", endNode: ")
-                    ?.appendValue(endNode)?.appendText(", relType: ")
-                    ?.appendValue(relationshipType)
-        }
-
-        override fun matchesSafely(item: Relationship?, mismatchDescription: Description?): Boolean {
-            val startNodeMatches = nodeMatches(item?.startNode, startNode)
-            val endNodeMatches = nodeMatches(item?.endNode, endNode)
-            val relationshipMatches = item?.type?.name() == relationshipType
-
-            if (startNodeMatches && endNodeMatches && relationshipMatches) {
-                return true
-            }
-
-            mismatchDescription!!
-                    .appendText("got ").appendText("{startNode: ").appendValue(item?.startNode?.labels)
-                    .appendText(", endNode: ").appendValue(item?.endNode?.labels)
-                    .appendText(", relationshipType: ").appendValue(item?.type?.name()).appendText("}")
-            return false
-
-        }
-
-        private fun nodeMatches(one: Node?, two: Node?): Boolean {
-            return nodeMatches(one, two?.labels?.map { l -> l.name()}, two?.allProperties?.toMap())
-        }
-    }
-
-//
+    //
 //    @Test
 //    fun `should extract entities as graph`() {
 //        neo4j.executeTransactionally("""CREATE (a:Article {id: 1234, body:${'$'}body})""", mapOf("body" to body))
