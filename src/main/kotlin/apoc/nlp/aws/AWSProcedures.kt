@@ -1,10 +1,19 @@
 package apoc.nlp.aws
 
+import apoc.graph.document.builder.DocumentToGraph
+import apoc.graph.util.GraphsConfig
+import apoc.nlp.NLPHelperFunctions.Companion.createRelationships
+import apoc.nlp.NLPHelperFunctions.Companion.entityRelationshipType
+import apoc.nlp.NLPHelperFunctions.Companion.mergeRelationships
 import apoc.result.NodeWithMapResult
+import apoc.result.VirtualGraph
+import apoc.result.VirtualNode
 import apoc.util.JsonUtil
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesItemResult
 import com.amazonaws.services.comprehend.model.BatchItemError
 import org.neo4j.graphdb.Node
+import org.neo4j.graphdb.Relationship
+import org.neo4j.graphdb.Transaction
 import org.neo4j.logging.Log
 import org.neo4j.procedure.*
 import java.util.stream.Stream
@@ -14,9 +23,13 @@ class AWSProcedures {
     @JvmField
     var log: Log? = null
 
+    @Context
+    @JvmField
+    var tx: Transaction? = null
+
     @Procedure(value = "apoc.nlp.aws.entities.stream", mode = Mode.READ)
     @Description("Returns a stream of entities for provided text")
-    fun entities(@Name("source") source: Any,
+    fun entitiesStream(@Name("source") source: Any,
                  @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
             : Stream<NodeWithMapResult> {
         verifySource(source)
@@ -31,6 +44,49 @@ class AWSProcedures {
         val errorList = detectEntitiesResult.errorList
 
         return convert(source).mapIndexed { index, node -> transformResults(index, node, resultList, errorList) }.stream()
+    }
+
+    @Procedure(value = "apoc.nlp.aws.entities.graph", mode = Mode.WRITE)
+    @Description("Creates a (virtual) entity graph for provided text")
+    fun entitiesGraph(@Name("source") sourceNode: Node,
+                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
+            : Stream<VirtualGraph> {
+        verifySource(sourceNode)
+        val nodeProperty = getNodeProperty(config)
+        verifyNodeProperty(sourceNode, nodeProperty)
+        verifyKey(config, "key")
+        verifyKey(config, "secret")
+
+        val client = AWSClient(config, log!!)
+        val detectEntitiesResult = client.entities(sourceNode, config)
+        val resultList = detectEntitiesResult!!.resultList
+        val errorList = detectEntitiesResult.errorList
+
+        val storeGraph:Boolean = config.getOrDefault("write", false) as Boolean
+        val graphConfig = mapOf(
+                "skipValidation" to true,
+                "mappings" to mapOf("$" to "Entity{!text,type,@metadata}"),
+                "write" to storeGraph
+        )
+
+        val documentToGraph = DocumentToGraph(tx, GraphsConfig(graphConfig))
+        val graph = documentToGraph.create(transformResults(0, sourceNode, resultList, errorList).value["entities"])
+
+        val mutableGraph = graph.graph.toMutableMap()
+
+        val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
+        val relationships = (mutableGraph["relationships"] as Set<Relationship>).toMutableSet()
+        val node = if(storeGraph) {
+            mergeRelationships(tx!!, sourceNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
+            sourceNode
+        } else {
+            val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
+            createRelationships(virtualNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
+            virtualNode
+        }
+        nodes.add(node)
+
+        return Stream.of(VirtualGraph("Graph", nodes, relationships, emptyMap()))
     }
 
 
