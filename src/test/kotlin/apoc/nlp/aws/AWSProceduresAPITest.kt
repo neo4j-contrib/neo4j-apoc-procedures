@@ -47,8 +47,8 @@ class AWSProceduresAPITest {
         }
 
         fun nodeMatches(item: Node?, labels: List<String>?, properties: Map<String, Any>?): Boolean {
-            val labelsMatched = item?.labels!!.all { label -> labels?.contains(label.name())!! }
-            val propertiesMatches = item.allProperties.all { entry -> properties?.containsKey(entry.key)!! && properties.get(entry.key) == entry.value }
+            val labelsMatched = item?.labels!!.count() == labels?.size  && item.labels!!.all { label -> labels?.contains(label.name())!! }
+            val propertiesMatches = item.allProperties.keys == properties?.keys && item.allProperties.all { entry -> properties?.containsKey(entry.key)!! && properties.get(entry.key) == entry.value }
             return labelsMatched && propertiesMatches
         }
     }
