@@ -1,21 +1,11 @@
 package apoc.nlp.aws
 
 import apoc.result.VirtualNode
-import apoc.util.TestUtil
-import junit.framework.Assert.*
-import org.hamcrest.Description
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.hasItem
+import junit.framework.Assert.assertFalse
+import junit.framework.Assert.assertTrue
 import org.hamcrest.StringDescription
-import org.junit.Assume.assumeTrue
-import org.junit.BeforeClass
-import org.junit.ClassRule
 import org.junit.Test
 import org.neo4j.graphdb.Label
-import org.neo4j.graphdb.Node
-import org.neo4j.graphdb.Relationship
-import org.neo4j.test.rule.ImpermanentDbmsRule
-import java.util.*
 
 
 class NodeMatcherTest {
@@ -25,9 +15,7 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, properties)
 
-        val description = StringDescription()
-        matcher.describeTo(description)
-        assertFalse(matcher.matches(VirtualNode(arrayOf(Label {"Human"}), properties)))
+        assertFalse(matcher.matches(VirtualNode(arrayOf(Label { "Human" }), properties)))
     }
 
     @Test
@@ -36,8 +24,6 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, properties)
 
-        val description = StringDescription()
-        matcher.describeTo(description)
         assertFalse(matcher.matches(VirtualNode(labels.toTypedArray(), mapOf("id" to 5678L))))
     }
 
@@ -47,9 +33,7 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, properties)
 
-        val description = StringDescription()
-        matcher.describeTo(description)
-        assertFalse(matcher.matches(VirtualNode(arrayOf(Label {"Human"}), mapOf("id" to 5678L))))
+        assertFalse(matcher.matches(VirtualNode(arrayOf(Label { "Human" }), mapOf("id" to 5678L))))
     }
 
     @Test
@@ -58,8 +42,6 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, properties)
 
-        val description = StringDescription()
-        matcher.describeTo(description)
         assertTrue(matcher.matches(VirtualNode(labels.toTypedArray(), properties)))
     }
 
@@ -69,8 +51,6 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(listOf(), properties)
 
-        val description = StringDescription()
-        matcher.describeTo(description)
         assertFalse(matcher.matches(VirtualNode(labels.toTypedArray(), properties)))
     }
 
@@ -80,8 +60,6 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, properties)
 
-        val description = StringDescription()
-        matcher.describeTo(description)
         assertFalse(matcher.matches(VirtualNode(arrayOf(), properties)))
     }
 
@@ -101,8 +79,6 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, mapOf())
 
-        val description = StringDescription()
-        matcher.describeTo(description)
         assertFalse(matcher.matches(VirtualNode(labels.toTypedArray(), properties)))
     }
 
@@ -112,8 +88,6 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, properties)
 
-        val description = StringDescription()
-        matcher.describeTo(description)
         assertFalse(matcher.matches(VirtualNode(labels.toTypedArray(), mapOf())))
     }
 
@@ -122,8 +96,6 @@ class NodeMatcherTest {
         val labels = listOf(Label { "Person" })
         val matcher = NodeMatcher(labels, mapOf())
 
-        val description = StringDescription()
-        matcher.describeTo(description)
         assertTrue(matcher.matches(VirtualNode(labels.toTypedArray(), mapOf())))
     }
 
