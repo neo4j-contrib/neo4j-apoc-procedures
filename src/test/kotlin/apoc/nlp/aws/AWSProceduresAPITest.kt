@@ -5,7 +5,7 @@ import apoc.util.TestUtil
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.hasItem
+import org.hamcrest.Matchers.*
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.ClassRule
@@ -31,8 +31,8 @@ class AWSProceduresAPITest {
             Hunter was admitted to hospital on 10 April after testing positive for coronavirus.
         """
 
-        val apiKey: String? = System.getenv("API_KEY")
-        val apiSecret: String? = System.getenv("API_SECRET")
+        val apiKey: String? = System.getenv("AWS_API_KEY")
+        val apiSecret: String? = System.getenv("AWS_API_SECRET")
 
         @ClassRule
         @JvmField
@@ -47,21 +47,22 @@ class AWSProceduresAPITest {
         }
 
         fun nodeMatches(item: Node?, labels: List<String>?, properties: Map<String, Any>?): Boolean {
-            val labelsMatched = item?.labels!!.count() == labels?.size  && item.labels!!.all { label -> labels?.contains(label.name())!! }
-            val propertiesMatches = item.allProperties.keys == properties?.keys && item.allProperties.all { entry -> properties?.containsKey(entry.key)!! && properties.get(entry.key) == entry.value }
+            val labelsMatched = item?.labels!!.count() == labels?.size  && item.labels!!.all { label -> labels?.contains(label.name()) }
+            val propertiesMatches = propertiesMatch(properties, item.allProperties)
             return labelsMatched && propertiesMatches
         }
+
+        fun propertiesMatch(expected: Map<String, Any>?, actual: Map<String, Any>?) =
+                actual?.keys == expected?.keys && actual!!.all { entry -> expected?.containsKey(entry.key)!! && expected[entry.key] == entry.value }
     }
 
     @Test
     fun `should extract entities for individual nodes`() {
-        neo4j.executeTransactionally("""CREATE (a:Article {body:${'$'}body})""", mapOf("body" to article1))
-        neo4j.executeTransactionally("""CREATE (a:Article {body:${'$'}body})""", mapOf("body" to article2))
-        neo4j.executeTransactionally("MATCH (a:Article) RETURN a", emptyMap()) {
-            println(it.resultAsString())
-        }
+        neo4j.executeTransactionally("""CREATE (a:Article {body:${'$'}body, id: 1})""", mapOf("body" to article1))
+        neo4j.executeTransactionally("""CREATE (a:Article {body:${'$'}body, id: 2})""", mapOf("body" to article2))
+
         neo4j.executeTransactionally("""
-                    MATCH (a:Article)
+                    MATCH (a:Article) WITH a ORDER BY a.id
                     CALL apoc.nlp.aws.entities.stream(a, {
                       key: ${'$'}apiKey,
                       secret: ${'$'}apiSecret,
@@ -70,19 +71,47 @@ class AWSProceduresAPITest {
                     YIELD value
                     RETURN value
                 """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
-            println(it.resultAsString())
+            val row1 = it.next()
+            val value = row1["value"] as Map<*, *>
+            val entities = value["entities"] as List<*>
+
+            assertThat(entities, hasItem(mapOf("beginOffset" to 80L, "endOffset" to 83L, "score" to 0.99441046F, "text" to  "NHS", "type" to  "ORGANIZATION")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to 93L, "endOffset" to 100L, "score" to 0.99799734F, "text" to  "England", "type" to  "LOCATION")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to 118L, "endOffset" to 134L, "score" to 0.9790507F, "text" to  "Health Secretary", "type" to  "PERSON")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to 135L, "endOffset" to 147L, "score" to 0.9745345F, "text" to  "Matt Hancock", "type" to  "PERSON")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to 321L, "endOffset" to 328L, "score" to  0.99982184F, "text" to  "Tuesday", "type" to  "DATE")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to 354L, "endOffset" to 366L, "score" to 0.9981365F, "text" to  "Michael Gove", "type" to  "PERSON")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to 380L, "endOffset" to 382L, "score" to  0.8772306F, "text" to  "UK", "type" to  "ORGANIZATION")))
+
+            assertTrue(it.hasNext())
+
+            val row2 = it.next()
+            val value2 = row2["value"] as Map<*, *>
+            val entities2 = value2["entities"] as List<*>
+
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 13L, "endOffset" to 25L, "score" to 0.9996571F, "text" to  "Leeds United", "type" to  "ORGANIZATION")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 32L, "endOffset" to 45L, "score" to 0.99996364F, "text" to  "Norman Hunter", "type" to  "PERSON")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 67L, "endOffset" to 74L, "score" to 0.90416294F, "text" to  "aged 76", "type" to  "QUANTITY")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 161L, "endOffset" to 176L, "score" to 0.9958226F, "text" to "Bites Yer Legs'", "type" to "PERSON")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 198L, "endOffset" to 204L, "score" to 0.97942513F, "text" to "Leeds'", "type" to "ORGANIZATION")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 245L, "endOffset" to 262L, "score" to 0.9205728F, "text" to "two league titles", "type" to "QUANTITY")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 272L, "endOffset" to 279L, "score" to 0.99927694F, "text" to "14-year", "type" to "QUANTITY")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 301L, "endOffset" to 312L, "score" to 0.99773335F, "text" to "Elland Road", "type" to "LOCATION")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 346L, "endOffset" to 353L, "score" to 0.8237946F, "text" to "England", "type" to "LOCATION")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 356L, "endOffset" to 370L, "score" to 0.8252391F, "text" to "1966 World Cup", "type" to "EVENT")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 398L, "endOffset" to 404L, "score" to 0.994545F, "text" to "Hunter", "type" to "PERSON")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 433L, "endOffset" to 441L, "score" to 0.99983764F, "text" to "10 April", "type" to "DATE")))
         }
     }
 
     @Test
     fun `should extract entities for collection of nodes`() {
-        neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body})""", mapOf("body" to article1))
-        neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body})""", mapOf("body" to article2))
-        neo4j.executeTransactionally("MATCH (a:Article2) RETURN a", emptyMap()) {
-            println(it.resultAsString())
-        }
+        neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body, id: 1})""", mapOf("body" to article1))
+        neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body, id: 2})""", mapOf("body" to article2))
+
         neo4j.executeTransactionally("""
                     MATCH (a:Article2)
+                    WITH a ORDER BY a.id
                     WITH collect(a) AS articles
                     CALL apoc.nlp.aws.entities.stream(articles, {
                       key: ${'$'}apiKey,
@@ -92,7 +121,38 @@ class AWSProceduresAPITest {
                     YIELD node, value, error
                     RETURN node, value, error
                 """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
-            println(it.resultAsString())
+            assertTrue(it.hasNext())
+
+            val row1 = it.next()
+            val value = row1["value"] as Map<*, *>
+            val entities = value["entities"] as List<*>
+
+            assertThat(entities, hasItem(mapOf("beginOffset" to 80L, "endOffset" to 83L, "score" to 0.99441046F, "text" to  "NHS", "type" to  "ORGANIZATION")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to 93L, "endOffset" to 100L, "score" to 0.99799734F, "text" to  "England", "type" to  "LOCATION")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to 118L, "endOffset" to 134L, "score" to 0.9790507F, "text" to  "Health Secretary", "type" to  "PERSON")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to 135L, "endOffset" to 147L, "score" to 0.9745345F, "text" to  "Matt Hancock", "type" to  "PERSON")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to 321L, "endOffset" to 328L, "score" to  0.99982184F, "text" to  "Tuesday", "type" to  "DATE")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to 354L, "endOffset" to 366L, "score" to 0.9981365F, "text" to  "Michael Gove", "type" to  "PERSON")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to 380L, "endOffset" to 382L, "score" to  0.8772306F, "text" to  "UK", "type" to  "ORGANIZATION")))
+
+            assertTrue(it.hasNext())
+
+            val row2 = it.next()
+            val value2 = row2["value"] as Map<*, *>
+            val entities2 = value2["entities"] as List<*>
+
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 13L, "endOffset" to 25L, "score" to 0.9996571F, "text" to  "Leeds United", "type" to  "ORGANIZATION")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 32L, "endOffset" to 45L, "score" to 0.99996364F, "text" to  "Norman Hunter", "type" to  "PERSON")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 67L, "endOffset" to 74L, "score" to 0.90416294F, "text" to  "aged 76", "type" to  "QUANTITY")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 161L, "endOffset" to 176L, "score" to 0.9958226F, "text" to "Bites Yer Legs'", "type" to "PERSON")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 198L, "endOffset" to 204L, "score" to 0.97942513F, "text" to "Leeds'", "type" to "ORGANIZATION")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 245L, "endOffset" to 262L, "score" to 0.9205728F, "text" to "two league titles", "type" to "QUANTITY")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 272L, "endOffset" to 279L, "score" to 0.99927694F, "text" to "14-year", "type" to "QUANTITY")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 301L, "endOffset" to 312L, "score" to 0.99773335F, "text" to "Elland Road", "type" to "LOCATION")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 346L, "endOffset" to 353L, "score" to 0.8237946F, "text" to "England", "type" to "LOCATION")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 356L, "endOffset" to 370L, "score" to 0.8252391F, "text" to "1966 World Cup", "type" to "EVENT")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 398L, "endOffset" to 404L, "score" to 0.994545F, "text" to "Hunter", "type" to "PERSON")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to 433L, "endOffset" to 441L, "score" to 0.99983764F, "text" to "10 April", "type" to "DATE")))
         }
     }
 
@@ -158,47 +218,5 @@ class AWSProceduresAPITest {
             }
         }
     }
-
-
-    //
-//    @Test
-//    fun `should extract entities as graph`() {
-//        neo4j.executeTransactionally("""CREATE (a:Article {id: 1234, body:${'$'}body})""", mapOf("body" to body))
-//        neo4j.executeTransactionally("MATCH (a:Article) RETURN a", emptyMap()) {
-//            println(it.resultAsString())
-//        }
-//        neo4j.executeTransactionally("""
-//                    MATCH (a:Article)
-//                    CALL apoc.nlp.aws.entities.graph(a, {
-//                      key: ${'$'}apiKey,
-//                      nodeProperty: "body",
-//                      write: true
-//                    })
-//                    YIELD graph AS g
-//                    RETURN g
-//                """.trimIndent(), mapOf("apiKey" to apiKey)) {
-//            println(it.resultAsString())
-//        }
-//    }
-//
-//    @Test
-//    fun `should extract categories as virtual graph`() {
-//        neo4j.executeTransactionally("""CREATE (a:Article {id: 1234, body:${'$'}body})""", mapOf("body" to body))
-//        neo4j.executeTransactionally("MATCH (a:Article) RETURN a", emptyMap()) {
-//            println(it.resultAsString())
-//        }
-//        neo4j.executeTransactionally("""
-//                    MATCH (a:Article)
-//                    CALL apoc.nlp.aws.classify.graph(a, {
-//                      key: ${'$'}apiKey,
-//                      nodeProperty: "body",
-//                      write: false
-//                    })
-//                    YIELD graph AS g
-//                    RETURN g
-//                """.trimIndent(), mapOf("apiKey" to apiKey)) {
-//            println(it.resultAsString())
-//        }
-//    }
 }
 

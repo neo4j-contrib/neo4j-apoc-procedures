@@ -9,14 +9,11 @@ import java.util.stream.Stream
 
 class NLPHelperFunctions {
     companion object {
-        fun createRelationships(node: Node, nodes: MutableSet<Node>, relationshipType: RelationshipType) =
-                sequence {
-                    for (n in nodes) {
-                        yield(node.createRelationshipTo(n, relationshipType))
-                    }
-                }
+        fun createRelationships(node: Node, nodes: Set<Node>, relationshipType: RelationshipType) =
+                nodes.map { n -> node.createRelationshipTo(n, relationshipType) }
 
-        fun mergeRelationships(transaction: Transaction, node: Node, nodes: MutableSet<Node>, relType: RelationshipType): Stream<Relationship> {
+
+        fun mergeRelationships(transaction: Transaction, node: Node, nodes: Set<Node>, relType: RelationshipType): Stream<Relationship> {
             val cypher = """WITH ${'$'}startNode as startNode, ${'$'}endNodes as endNodes
             UNWIND endNodes AS endNode
             MERGE (startNode)-[r:${Util.quote(relType.name())}]->(endNode)

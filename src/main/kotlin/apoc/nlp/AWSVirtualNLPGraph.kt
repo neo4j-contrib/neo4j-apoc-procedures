@@ -11,7 +11,7 @@ import org.neo4j.graphdb.Relationship
 import org.neo4j.graphdb.RelationshipType
 import org.neo4j.graphdb.Transaction
 
-class AWSVirtualNLPGraph(private val detectEntitiesResult: BatchDetectEntitiesResult, private val sourceNodes: List<Node>, val relationshipType: RelationshipType, val mapping: Map<String, String>) {
+data class AWSVirtualNLPGraph(private val detectEntitiesResult: BatchDetectEntitiesResult, private val sourceNodes: List<Node>, val relationshipType: RelationshipType, val mapping: Map<String, String>) {
     fun createAndStore(transaction: Transaction?): VirtualGraph {
         return createVirtualGraph(transaction)
     }
@@ -36,13 +36,12 @@ class AWSVirtualNLPGraph(private val detectEntitiesResult: BatchDetectEntitiesRe
             val documentToGraph = DocumentToGraph(transaction, GraphsConfig(graphConfig), nonSourceNodes)
             val document = AWSProcedures.transformResults(index, sourceNode, detectEntitiesResult).value["entities"]
 
-            val graph = documentToGraph.create(document)
-            val mutableGraph = graph.graph.toMutableMap()
+            val graph = documentToGraph.create(document).graph
 
-            val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
+            val nodes = (graph["nodes"] as Set<Node>)
             nonSourceNodes.addAll(nodes)
 
-            val relationships = (mutableGraph["relationships"] as Set<Relationship>).toMutableSet()
+            val relationships = (graph["relationships"] as Set<Relationship>).toMutableSet()
             val node = if (storeGraph) {
                 NLPHelperFunctions.mergeRelationships(transaction!!, sourceNode, nodes, relationshipType).forEach { rel -> relationships.add(rel) }
                 sourceNode
@@ -51,8 +50,7 @@ class AWSVirtualNLPGraph(private val detectEntitiesResult: BatchDetectEntitiesRe
                 NLPHelperFunctions.createRelationships(virtualNode, nodes, relationshipType).forEach { rel -> relationships.add(rel) }
                 virtualNode
             }
-            nodes.add(node)
-
+            allNodes.add(node)
             allNodes.addAll(nodes)
             allRelationships.addAll(relationships)
         }
