@@ -217,9 +217,12 @@ https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creatio
 ----
 
 [NOTE]
---
-Since this is a rather long url string, we can simplify the syntax by configuring aliases in the `conf/apoc.conf`:
+====
 
+Since this is a rather long URL string, we can simplify the syntax by configuring aliases in `conf/apoc.conf`:
+
+.apoc.conf
+[source,text]
 ----
 apoc.json.myJson.url=https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf
 ----
@@ -227,14 +230,18 @@ apoc.json.myJson.url=https://api.stackexchange.com/2.2/questions?pagesize=100&or
 The third value in the `apoc.json.<alias>.url=` effectively defines the variable to be used in  `apoc.load.json('<alias>',....`.
 With this, the massive JSON url string below can be aliased to a shorter string.
 
+.Original call with full json url string
+[source,cypher]
 ----
-//original call with full json url string
 CALL apoc.load.json('https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf')
+----
 
-//new call with aliased string with full string in apoc.conf
+.New call with aliased string with full string in apoc.conf
+[source,cypher]
+----
 CALL apoc.load.json('myJson')
 ----
---
+====
 
 Let's introspect the data that is returned from this end point.
 

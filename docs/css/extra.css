@@ -41,7 +41,7 @@ pre code {
     line-height: 1;
     word-wrap: normal;
     overflow-wrap: normal;
-    white-space: pre;
+    white-space: pre-wrap;
 }
 
 .tabbed-example .content > div:last-child,
