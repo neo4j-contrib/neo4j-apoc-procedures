@@ -11,17 +11,17 @@ import org.neo4j.graphdb.Relationship
 import org.neo4j.graphdb.RelationshipType
 import org.neo4j.graphdb.Transaction
 
-class VirtualNLPGraph(private val detectEntitiesResult: BatchDetectEntitiesResult, private val sourceNodes: List<Node>, val relationshipType: RelationshipType, val mapping: Map<String, String>) {
-        fun createAndStore(transaction: Transaction?): VirtualGraph {
-           return createVirtualGraph(true, transaction)
-        }
+class AWSVirtualNLPGraph(private val detectEntitiesResult: BatchDetectEntitiesResult, private val sourceNodes: List<Node>, val relationshipType: RelationshipType, val mapping: Map<String, String>) {
+    fun createAndStore(transaction: Transaction?): VirtualGraph {
+        return createVirtualGraph(transaction)
+    }
 
-        fun create(): VirtualGraph {
-            return createVirtualGraph(false, null)
-        }
+    fun create(): VirtualGraph {
+        return createVirtualGraph(null)
+    }
 
-    private fun createVirtualGraph(storeGraph: Boolean, transaction:Transaction?) : VirtualGraph
-    {
+    private fun createVirtualGraph(transaction: Transaction?): VirtualGraph {
+        val storeGraph = transaction != null
         val graphConfig = mapOf(
                 "skipValidation" to true,
                 "mappings" to mapping,
@@ -35,6 +35,7 @@ class VirtualNLPGraph(private val detectEntitiesResult: BatchDetectEntitiesResul
         sourceNodes.forEachIndexed { index, sourceNode ->
             val documentToGraph = DocumentToGraph(transaction, GraphsConfig(graphConfig), nonSourceNodes)
             val document = AWSProcedures.transformResults(index, sourceNode, detectEntitiesResult).value["entities"]
+
             val graph = documentToGraph.create(document)
             val mutableGraph = graph.graph.toMutableMap()
 
@@ -59,11 +60,7 @@ class VirtualNLPGraph(private val detectEntitiesResult: BatchDetectEntitiesResul
         return VirtualGraph("Graph", allNodes, allRelationships, emptyMap())
     }
 
-        private fun createGraphConfig(mappings: Map<String, String>, write: Boolean): Map<String, Any> {
-            return mapOf(
-                    "skipValidation" to true,
-                    "mappings" to mappings,
-                    "write" to write
-            )
-        }
+    companion object {
+        val ENTITY_MAPPING = mapOf("$" to "Entity{!text,type,@metadata}")
+    }
 }

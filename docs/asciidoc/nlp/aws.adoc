@@ -6,8 +6,8 @@
 This chapter describes procedures that wrap Amazon Web Services Comprehend Natural Language API.
 --
 
-Amazon Web Services (AWS) https://docs.aws.amazon.com/comprehend/index.html[Comprehend Natural Language API^] lets users derive insights from unstructured text using Google machine learning.
-The procedures in this chapter act as a wrapper around calls to this API to extract entities, categories, or sentiment from text stored as node properties.
+Amazon Web Services (AWS) https://docs.aws.amazon.com/comprehend/index.html[Comprehend Natural Language API^] uses machine learning to find insights and relationships in text.
+The procedures in this chapter act as a wrapper around calls to this API to extract entities from text stored as node properties.
 
 Each procedure has two modes:
 
@@ -98,7 +98,7 @@ In addition, `apoc.nlp.aws.entities.graph` supports the following config paramet
 .Streaming mode
 [source,cypher]
 ----
-CALL apoc.nlp.aws.entities.stream(sourceNode:Node, {
+CALL apoc.nlp.aws.entities.stream(source:Node or List<Node>, {
   key: String,
   secret: String,
   nodeProperty: String
@@ -109,7 +109,7 @@ YIELD value
 .Graph mode
 [source,cypher]
 ----
-CALL apoc.nlp.aws.entities.graph(sourceNode:Node, {
+CALL apoc.nlp.aws.entities.graph(source:Node or List<Node>, {
   key: String,
   secret: String,
   nodeProperty: String,
@@ -239,5 +239,5 @@ RETURN article.uri AS article,
 [opts="header"]
 |===
 | article                                           | entities
-| "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/" | ["tournaments", "Neo4j", "Switch", "card games", "board games", "Mario Kart 8", "Nintendo", "friends", "8", "offices", "European", "role playing games"]
+| "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/" | ["European", "Mario Kart 8", "twice a week", "Neo4j", "once", "at least", "Nintendo Switch"]
 |===

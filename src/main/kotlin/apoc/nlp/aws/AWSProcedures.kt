@@ -2,7 +2,8 @@ package apoc.nlp.aws
 
 import apoc.ai.service.AWSClient
 import apoc.nlp.NLPHelperFunctions
-import apoc.nlp.VirtualNLPGraph
+import apoc.nlp.AWSVirtualNLPGraph
+import apoc.nlp.AWSVirtualNLPGraph.Companion.ENTITY_MAPPING
 import apoc.result.NodeWithMapResult
 import apoc.result.VirtualGraph
 import apoc.util.JsonUtil
@@ -55,7 +56,7 @@ class AWSProcedures {
 
         val relationshipType = NLPHelperFunctions.entityRelationshipType(config)
 
-        val virtualNLPGraph = VirtualNLPGraph(detectEntitiesResult!!, convert(source), relationshipType, ENTITY_MAPPING)
+        val virtualNLPGraph = AWSVirtualNLPGraph(detectEntitiesResult!!, convert(source), relationshipType, ENTITY_MAPPING)
         return if (storeGraph) {
             Stream.of(virtualNLPGraph.createAndStore(tx))
         } else {
@@ -64,8 +65,6 @@ class AWSProcedures {
     }
 
     companion object {
-        val ENTITY_MAPPING = mapOf("$" to "Entity{!text,type,@metadata}")
-
         fun transformResults(index: Int, node: Node, res: BatchDetectEntitiesResult): NodeWithMapResult {
             val result = res.resultList.find { result -> result.index == index }
             return if (result != null) {
