@@ -56,11 +56,11 @@ class AWSProcedures {
         val client = RealAWSClient(config, log!!)
         val detectEntitiesResult = client.entities(sourceNode)
 
-        return Stream.of(virtualGraph(detectEntitiesResult, sourceNode, config, tx))
+        return Stream.of(virtualGraph(detectEntitiesResult!!, sourceNode, config, tx))
     }
 
     companion object {
-        fun virtualGraph(detectEntitiesResult: BatchDetectEntitiesResult?, sourceNode: Node, config: Map<String, Any>, transaction: Transaction?): VirtualGraph {
+        fun virtualGraph(detectEntitiesResult: BatchDetectEntitiesResult, sourceNode: Node, config: Map<String, Any>, transaction: Transaction?): VirtualGraph {
             val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
             val graphConfig = mapOf(
                     "skipValidation" to true,
@@ -69,7 +69,7 @@ class AWSProcedures {
             )
 
             val documentToGraph = DocumentToGraph(transaction, GraphsConfig(graphConfig))
-            val graph = documentToGraph.create(transformResults(0, sourceNode, detectEntitiesResult!!).value["entities"])
+            val graph = documentToGraph.create(transformResults(0, sourceNode, detectEntitiesResult).value["entities"])
             val mutableGraph = graph.graph.toMutableMap()
 
             val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
