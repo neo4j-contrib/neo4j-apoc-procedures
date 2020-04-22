@@ -30,8 +30,7 @@ class AWSProcedures {
     @Procedure(value = "apoc.nlp.aws.entities.stream", mode = Mode.READ)
     @Description("Returns a stream of entities for provided text")
     fun entitiesStream(@Name("source") source: Any,
-                 @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
-            : Stream<NodeWithMapResult> {
+                 @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<NodeWithMapResult> {
         verifySource(source)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(source, nodeProperty)
@@ -47,8 +46,7 @@ class AWSProcedures {
     @Procedure(value = "apoc.nlp.aws.entities.graph", mode = Mode.WRITE)
     @Description("Creates a (virtual) entity graph for provided text")
     fun entitiesGraph(@Name("source") sourceNode: Node,
-                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
-            : Stream<VirtualGraph> {
+                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraph> {
         verifySource(sourceNode)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(sourceNode, nodeProperty)
@@ -58,58 +56,37 @@ class AWSProcedures {
         val client = RealAWSClient(config, log!!)
         val detectEntitiesResult = client.entities(sourceNode)
 
-        val storeGraph:Boolean = config.getOrDefault("write", false) as Boolean
-        val graphConfig = mapOf(
-                "skipValidation" to true,
-                "mappings" to mapOf("$" to "Entity{!text,type,@metadata}"),
-                "write" to storeGraph
-        )
-
-        val documentToGraph = DocumentToGraph(tx, GraphsConfig(graphConfig))
-        val graph = documentToGraph.create(transformResults(0, sourceNode, detectEntitiesResult!!).value["entities"])
-
-        val mutableGraph = graph.graph.toMutableMap()
-
-        val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
-        val relationships = (mutableGraph["relationships"] as Set<Relationship>).toMutableSet()
-        val node = if(storeGraph) {
-            mergeRelationships(tx!!, sourceNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
-            sourceNode
-        } else {
-            val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
-            createRelationships(virtualNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
-            virtualNode
-        }
-        nodes.add(node)
-
-        return Stream.of(VirtualGraph("Graph", nodes, relationships, emptyMap()))
+        return Stream.of(virtualGraph(detectEntitiesResult, sourceNode, config, tx))
     }
 
-
-//    @Procedure(value = "apoc.ai.aws.sentiment", mode = Mode.READ)
-//    @Description("Provides a sentiment analysis for provided text")
-//    fun sentiment(@Name("apiKey") apiKey: String,
-//                  @Name("apiSecret") apiSecret: String,
-//                  @Name("data") data: Any,
-//                  @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
-//            : Stream<AIMapResult> = AWSClient(apiKey, apiSecret, log!!).sentiment(data, config).stream()
-//
-//
-//    @Procedure(value = "apoc.ai.aws.keyPhrases", mode = Mode.READ)
-//    @Description("Provides a entity analysis for provided text")
-//    fun keyPhrases(@Name("apiKey") apiKey: String,
-//                   @Name("apiSecret") apiSecret: String,
-//                   @Name("data") data: Any,
-//                   @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
-//            : Stream<AIMapResult> = AWSClient(apiKey, apiSecret, log!!).keyPhrases(data, config).stream()
-
-    //    @Procedure(value = "ai.aws.vision", mode = Mode.READ)
-//    @Description("Provides a entity analysis for provided text")
-//    fun vision(@Name("apiKey") apiKey: String,
-//               @Name("apiSecret") apiSecret: String,
-//               @Name("data") data: Any,
-//               @Name(value = "config", defaultValue = "{}") config: Map<String, Any>): Stream<AIMapResult> = Stream.empty()
     companion object {
+        fun virtualGraph(detectEntitiesResult: BatchDetectEntitiesResult?, sourceNode: Node, config: Map<String, Any>, transaction: Transaction?): VirtualGraph {
+            val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
+            val graphConfig = mapOf(
+                    "skipValidation" to true,
+                    "mappings" to mapOf("$" to "Entity{!text,type,@metadata}"),
+                    "write" to storeGraph
+            )
+
+            val documentToGraph = DocumentToGraph(transaction, GraphsConfig(graphConfig))
+            val graph = documentToGraph.create(transformResults(0, sourceNode, detectEntitiesResult!!).value["entities"])
+            val mutableGraph = graph.graph.toMutableMap()
+
+            val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
+            val relationships = (mutableGraph["relationships"] as Set<Relationship>).toMutableSet()
+            val node = if (storeGraph) {
+                mergeRelationships(transaction!!, sourceNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
+                sourceNode
+            } else {
+                val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
+                createRelationships(virtualNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
+                virtualNode
+            }
+            nodes.add(node)
+
+            return VirtualGraph("Graph", nodes, relationships, emptyMap())
+        }
+
         fun transformResults(index: Int, node: Node, res: BatchDetectEntitiesResult): NodeWithMapResult {
             val result = res.resultList.find { result -> result.index == index }
             return if (result != null) {

@@ -83,5 +83,10 @@ class AWSProceduresTest {
         assertEquals(mapOf("text" to "foo", "type" to "bar", "score" to 2.0F, "beginOffset" to 0L, "endOffset" to 3L), entities[0])
     }
 
+    @Test
+    fun `create virtual graph`() {
+
+    }
+
 }
 
