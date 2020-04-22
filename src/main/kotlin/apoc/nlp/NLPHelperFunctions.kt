@@ -1,6 +1,5 @@
 package apoc.nlp
 
-import apoc.result.VirtualNode
 import apoc.util.Util
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
@@ -10,7 +9,7 @@ import java.util.stream.Stream
 
 class NLPHelperFunctions {
     companion object {
-        fun createRelationships(node: VirtualNode, nodes: MutableSet<Node>, relationshipType: RelationshipType) =
+        fun createRelationships(node: Node, nodes: MutableSet<Node>, relationshipType: RelationshipType) =
                 sequence {
                     for (n in nodes) {
                         yield(node.createRelationshipTo(n, relationshipType))

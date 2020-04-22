@@ -1,18 +1,13 @@
 package apoc.nlp.aws
 
 import apoc.ai.service.AWSClient
-import apoc.graph.document.builder.DocumentToGraph
-import apoc.graph.util.GraphsConfig
-import apoc.nlp.NLPHelperFunctions.Companion.createRelationships
-import apoc.nlp.NLPHelperFunctions.Companion.entityRelationshipType
-import apoc.nlp.NLPHelperFunctions.Companion.mergeRelationships
+import apoc.nlp.NLPHelperFunctions
+import apoc.nlp.VirtualNLPGraph
 import apoc.result.NodeWithMapResult
 import apoc.result.VirtualGraph
-import apoc.result.VirtualNode
 import apoc.util.JsonUtil
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
 import org.neo4j.graphdb.Node
-import org.neo4j.graphdb.Relationship
 import org.neo4j.graphdb.Transaction
 import org.neo4j.logging.Log
 import org.neo4j.procedure.*
@@ -56,48 +51,20 @@ class AWSProcedures {
         val client = RealAWSClient(config, log!!)
         val detectEntitiesResult = client.entities(source)
 
-        return Stream.of(virtualGraph(detectEntitiesResult!!, convert(source), config, tx))
+        val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
+
+        val relationshipType = NLPHelperFunctions.entityRelationshipType(config)
+
+        val virtualNLPGraph = VirtualNLPGraph(detectEntitiesResult!!, convert(source), relationshipType, ENTITY_MAPPING)
+        return if (storeGraph) {
+            Stream.of(virtualNLPGraph.createAndStore(tx))
+        } else {
+            Stream.of(virtualNLPGraph.create())
+        }
     }
 
     companion object {
-        fun virtualGraph(detectEntitiesResult: BatchDetectEntitiesResult, sourceNodes: List<Node>, config: Map<String, Any>, transaction: Transaction?): VirtualGraph {
-            val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
-            val graphConfig = mapOf(
-                    "skipValidation" to true,
-                    "mappings" to mapOf("$" to "Entity{!text,type,@metadata}"),
-                    "write" to storeGraph
-            )
-
-            val allNodes: MutableSet<Node> = mutableSetOf()
-            val nonSourceNodes: MutableSet<Node> = mutableSetOf()
-            val allRelationships: MutableSet<Relationship> = mutableSetOf()
-
-            sourceNodes.forEachIndexed { index, sourceNode ->
-                val documentToGraph = DocumentToGraph(transaction, GraphsConfig(graphConfig), nonSourceNodes)
-                val document = transformResults(index, sourceNode, detectEntitiesResult).value["entities"]
-                val graph = documentToGraph.create(document)
-                val mutableGraph = graph.graph.toMutableMap()
-
-                val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
-                nonSourceNodes.addAll(nodes)
-
-                val relationships = (mutableGraph["relationships"] as Set<Relationship>).toMutableSet()
-                val node = if (storeGraph) {
-                    mergeRelationships(transaction!!, sourceNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
-                    sourceNode
-                } else {
-                    val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
-                    createRelationships(virtualNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
-                    virtualNode
-                }
-                nodes.add(node)
-
-                allNodes.addAll(nodes)
-                allRelationships.addAll(relationships)
-            }
-
-            return VirtualGraph("Graph", allNodes, allRelationships, emptyMap())
-        }
+        val ENTITY_MAPPING = mapOf("$" to "Entity{!text,type,@metadata}")
 
         fun transformResults(index: Int, node: Node, res: BatchDetectEntitiesResult): NodeWithMapResult {
             val result = res.resultList.find { result -> result.index == index }
