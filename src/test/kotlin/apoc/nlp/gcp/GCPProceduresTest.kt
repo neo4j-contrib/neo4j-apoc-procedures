@@ -9,7 +9,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule
 
 class GCPProceduresTest {
     companion object {
-        val body = """
+        const val body = """
             Hospitals should use spare laboratory space to test self-isolating NHS staff in England for coronavirus, Health Secretary Matt Hancock has said.
             The government faces growing criticism over a lack of testing for frontline staff who could return to work if found clear of the virus.
             On Tuesday, Cabinet Office minister Michael Gove admitted the UK had to go "further, faster" to increase testing.

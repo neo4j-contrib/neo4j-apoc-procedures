@@ -23,6 +23,7 @@ import java.util.stream.StreamSupport;
 public class DocumentToGraph {
 
     private static final String JSON_ROOT = "$";
+    private final Map<Set<String>, Set<Node>> initialNodes;
 
     private Transaction tx;
     private RelationshipBuilder documentRelationBuilder;
@@ -30,10 +31,31 @@ public class DocumentToGraph {
     private GraphsConfig config;
 
     public DocumentToGraph(Transaction tx, GraphsConfig config) {
+       this(tx, config, new HashSet<>());
+    }
+
+    public DocumentToGraph(Transaction tx, GraphsConfig config, Set<Node> initialNodes) {
         this.tx = tx;
         this.documentRelationBuilder = new RelationshipBuilder(config);
         this.documentLabelBuilder = new LabelBuilder(config);
         this.config = config;
+
+        this.initialNodes = new HashMap<>();
+        for (Node initialNode : initialNodes) {
+            Set<String> labels = StreamSupport.stream(initialNode.getLabels().spliterator(), false).map(Label::name).collect(Collectors.toSet());
+            if(this.initialNodes.containsKey(labels)) {
+                this.initialNodes.get(labels).add(initialNode);
+            } else {
+                this.initialNodes.put(labels, new HashSet<>(Arrays.asList(initialNode)));
+            }
+        }
+    }
+
+    public <T> Set<T> toSet(Iterable<T> collection) {
+        HashSet<T> set = new HashSet<T>();
+        for (T item: collection)
+            set.add(item);
+        return set;
     }
 
     private boolean hasId(Map<String, Object> map, String path) {
@@ -207,7 +229,12 @@ public class DocumentToGraph {
 
     private Node getOrCreateVirtualNode(Map<Set<String>, Set<Node>> nodes, Label[] labels, Map<String, Object> idValues) {
         Set<Node> nodesWithSameIds = getNodesWithSameLabels(nodes, labels);
-        return nodesWithSameIds
+        Set<Node> initialNodesWithSameIds = getNodesWithSameLabels(this.initialNodes, labels);
+
+        HashSet<Node> searchableNodes = new HashSet<>(nodesWithSameIds);
+        searchableNodes.addAll(initialNodesWithSameIds);
+
+        return searchableNodes
                 .stream()
                 .filter(n -> {
                     if (Stream.of(labels).anyMatch(label -> n.hasLabel(label))) {
