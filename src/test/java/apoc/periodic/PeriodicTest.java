@@ -32,7 +32,11 @@ import static apoc.util.Util.map;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class PeriodicTest {
 
@@ -563,7 +567,7 @@ public class PeriodicTest {
             testFail(query);
         } catch (QueryExecutionException e) {
             String expected = "Failed to invoke procedure `apoc.periodic.rock_n_roll_while`: Caused by: java.lang.RuntimeException: Exception for field `cypherLoop`, message: Unknown function 'coalescence' (line 1, column 16 (offset: 15))\n" +
-                    "\"return coalescence($previous, 3) - 1 as loop\"\n" +
+                    "\"EXPLAIN return coalescence($previous, 3) - 1 as loop\"\n" +
                     "                ^\n" +
                     "Exception for field `cypherIterate`, message: Variable `pp` not defined (line 1, column 33 (offset: 32))\n" +
                     "\"EXPLAIN match (p:Person) return pp\"\n" +

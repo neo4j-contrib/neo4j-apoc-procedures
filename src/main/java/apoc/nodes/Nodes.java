@@ -52,6 +52,7 @@ import static apoc.path.RelationshipTypeAndDirections.format;
 import static apoc.path.RelationshipTypeAndDirections.parse;
 import static apoc.refactor.util.RefactorUtil.copyProperties;
 import static apoc.util.Util.map;
+import static org.neo4j.internal.kernel.api.security.AccessMode.Static.READ;
 
 public class Nodes {
 
@@ -125,13 +126,13 @@ public class Nodes {
                 int count;
                 switch (direction) {
                     case INCOMING:
-                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countIncoming(nodeCursor, ktx.cursors(), typeId);
+                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countIncoming(nodeCursor, ktx.cursors(), typeId, READ);
                         break;
                     case OUTGOING:
-                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countOutgoing(nodeCursor, ktx.cursors(), typeId);
+                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countOutgoing(nodeCursor, ktx.cursors(), typeId, READ);
                         break;
                     case BOTH:
-                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countAll(nodeCursor, ktx.cursors(), typeId);
+                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countAll(nodeCursor, ktx.cursors(), typeId, READ);
                         break;
                     default:
                         throw new UnsupportedOperationException("invalid direction " + direction);
