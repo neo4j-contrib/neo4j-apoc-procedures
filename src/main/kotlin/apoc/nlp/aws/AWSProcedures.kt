@@ -45,46 +45,54 @@ class AWSProcedures {
 
     @Procedure(value = "apoc.nlp.aws.entities.graph", mode = Mode.WRITE)
     @Description("Creates a (virtual) entity graph for provided text")
-    fun entitiesGraph(@Name("source") sourceNode: Node,
+    fun entitiesGraph(@Name("source") source: Any,
                       @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraph> {
-        verifySource(sourceNode)
+        verifySource(source)
         val nodeProperty = getNodeProperty(config)
-        verifyNodeProperty(sourceNode, nodeProperty)
+        verifyNodeProperty(source, nodeProperty)
         verifyKey(config, "key")
         verifyKey(config, "secret")
 
         val client = RealAWSClient(config, log!!)
-        val detectEntitiesResult = client.entities(sourceNode)
+        val detectEntitiesResult = client.entities(source)
 
-        return Stream.of(virtualGraph(detectEntitiesResult!!, sourceNode, config, tx))
+        return Stream.of(virtualGraph(detectEntitiesResult!!, convert(source), config, tx))
     }
 
     companion object {
-        fun virtualGraph(detectEntitiesResult: BatchDetectEntitiesResult, sourceNode: Node, config: Map<String, Any>, transaction: Transaction?): VirtualGraph {
+        fun virtualGraph(detectEntitiesResult: BatchDetectEntitiesResult, sourceNodes: List<Node>, config: Map<String, Any>, transaction: Transaction?): VirtualGraph {
             val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
             val graphConfig = mapOf(
                     "skipValidation" to true,
                     "mappings" to mapOf("$" to "Entity{!text,type,@metadata}"),
                     "write" to storeGraph
             )
-
             val documentToGraph = DocumentToGraph(transaction, GraphsConfig(graphConfig))
-            val graph = documentToGraph.create(transformResults(0, sourceNode, detectEntitiesResult).value["entities"])
-            val mutableGraph = graph.graph.toMutableMap()
 
-            val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
-            val relationships = (mutableGraph["relationships"] as Set<Relationship>).toMutableSet()
-            val node = if (storeGraph) {
-                mergeRelationships(transaction!!, sourceNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
-                sourceNode
-            } else {
-                val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
-                createRelationships(virtualNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
-                virtualNode
+            val allNodes: MutableSet<Node> = mutableSetOf()
+            val allRelationships: MutableSet<Relationship> = mutableSetOf()
+
+            sourceNodes.forEachIndexed { index, sourceNode ->
+                val graph = documentToGraph.create(transformResults(index, sourceNode, detectEntitiesResult).value["entities"])
+                val mutableGraph = graph.graph.toMutableMap()
+
+                val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
+                val relationships = (mutableGraph["relationships"] as Set<Relationship>).toMutableSet()
+                val node = if (storeGraph) {
+                    mergeRelationships(transaction!!, sourceNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
+                    sourceNode
+                } else {
+                    val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
+                    createRelationships(virtualNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }
+                    virtualNode
+                }
+                nodes.add(node)
+
+                allNodes.addAll(nodes)
+                allRelationships.addAll(relationships)
             }
-            nodes.add(node)
 
-            return VirtualGraph("Graph", nodes, relationships, emptyMap())
+            return VirtualGraph("Graph", allNodes, allRelationships, emptyMap())
         }
 
         fun transformResults(index: Int, node: Node, res: BatchDetectEntitiesResult): NodeWithMapResult {
