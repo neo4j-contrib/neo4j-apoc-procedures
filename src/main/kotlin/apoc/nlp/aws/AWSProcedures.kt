@@ -67,16 +67,20 @@ class AWSProcedures {
                     "mappings" to mapOf("$" to "Entity{!text,type,@metadata}"),
                     "write" to storeGraph
             )
-            val documentToGraph = DocumentToGraph(transaction, GraphsConfig(graphConfig))
 
             val allNodes: MutableSet<Node> = mutableSetOf()
+            val nonSourceNodes: MutableSet<Node> = mutableSetOf()
             val allRelationships: MutableSet<Relationship> = mutableSetOf()
 
             sourceNodes.forEachIndexed { index, sourceNode ->
-                val graph = documentToGraph.create(transformResults(index, sourceNode, detectEntitiesResult).value["entities"])
+                val documentToGraph = DocumentToGraph(transaction, GraphsConfig(graphConfig), nonSourceNodes)
+                val document = transformResults(index, sourceNode, detectEntitiesResult).value["entities"]
+                val graph = documentToGraph.create(document)
                 val mutableGraph = graph.graph.toMutableMap()
 
                 val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
+                nonSourceNodes.addAll(nodes)
+
                 val relationships = (mutableGraph["relationships"] as Set<Relationship>).toMutableSet()
                 val node = if (storeGraph) {
                     mergeRelationships(transaction!!, sourceNode, nodes, entityRelationshipType(config)).forEach { rel -> relationships.add(rel) }

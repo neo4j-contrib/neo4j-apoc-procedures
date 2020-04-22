@@ -176,5 +176,46 @@ class AWSProceduresTest {
         assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, titanicNode, "ENTITY")))
     }
 
+    @Test
+    fun `create virtual graph from result with multiple source nodes with overlapping entities`() {
+        val itemResult1 = BatchDetectEntitiesItemResult().withEntities(
+                Entity().withText("The Matrix").withType("Movie"),
+                Entity().withText("The Notebook").withType("Movie"))
+                .withIndex(0)
+
+        val itemResult2 = BatchDetectEntitiesItemResult().withEntities(
+                Entity().withText("The Matrix").withType("Movie"),
+                Entity().withText("Titanic").withType("Movie"))
+                .withIndex(1)
+
+        val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(itemResult1, itemResult2)
+        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+
+        val virtualGraph = AWSProcedures.virtualGraph(res, listOf(sourceNode1, sourceNode2), mapOf("write" to false), null)
+
+        val nodes = virtualGraph.graph["nodes"] as Set<*>
+        assertEquals(5, nodes.size)
+        assertThat(nodes, hasItem(sourceNode1))
+        assertThat(nodes, hasItem(sourceNode2))
+
+        val matrixNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "Movie"))
+        val notebookNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Notebook", "type" to "Movie"))
+        val titanicNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "Titanic", "type" to "Movie"))
+
+        assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
+        assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
+        assertThat(nodes, hasItem(NodeMatcher(titanicNode.labels.toList(), titanicNode.allProperties)))
+
+        val relationships = virtualGraph.graph["relationships"] as Set<*>
+
+        assertEquals(4, relationships.size)
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, matrixNode, "ENTITY")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, notebookNode, "ENTITY")))
+
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, matrixNode, "ENTITY")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, titanicNode, "ENTITY")))
+    }
+
 }
 
