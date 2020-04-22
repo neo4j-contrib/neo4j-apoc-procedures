@@ -28,12 +28,12 @@ This section includes:
     ** <<load-json-available-procedures-apoc.load.jsonArray>>
     ** <<load-json-available-procedures-apoc.import.json>>
 
-
 * <<load-json-file-import>>
 * <<load-json-json-path>>
 * <<load-json-examples>>
     ** <<load-json-examples-local>>
     ** <<load-json-examples-stackoverflow>>
+    ** <<load-json-path-examples-stackoverflow>>
     ** <<load-json-examples-twitter>>
     ** <<load-json-examples-import-json>>
     ** <<load-json-examples-post-json>>
