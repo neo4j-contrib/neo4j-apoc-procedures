@@ -1,7 +1,7 @@
 package apoc.ai.azure
 
-import apoc.ai.dto.AIMapResult
 import apoc.ai.service.AI
+import apoc.result.MapResult
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.neo4j.logging.Log
 import java.io.DataOutputStream
@@ -22,7 +22,7 @@ class AzureClient(private val baseUrl: String, private val key: String, private 
         @JvmStatic val MAPPER = jacksonObjectMapper()
     }
 
-    private fun postData(method: String, subscriptionKeyValue: String, data: Any, config: Map<String, Any?> = emptyMap()): List<AIMapResult> {
+    private fun postData(method: String, subscriptionKeyValue: String, data: Any, config: Map<String, Any?> = emptyMap()): List<Map<String, Any?>> {
         val fullUrl = baseUrl + method + config.map { "${it.key}=${it.value}" }
                 .joinToString("&")
                 .also { if (it.isNullOrBlank()) it else "?$it" }
@@ -30,7 +30,7 @@ class AzureClient(private val baseUrl: String, private val key: String, private 
         return postData(url, subscriptionKeyValue, data)
     }
 
-    private fun postData(url: URL, subscriptionKeyValue: String, data: Any): List<AIMapResult> {
+    private fun postData(url: URL, subscriptionKeyValue: String, data: Any): List<Map<String, Any?>> {
         val connection = url.openConnection() as HttpsURLConnection
         connection.requestMethod = "POST"
         connection.setRequestProperty("Ocp-Apim-Subscription-Key", subscriptionKeyValue)
@@ -49,7 +49,7 @@ class AzureClient(private val baseUrl: String, private val key: String, private 
                 .use { MAPPER.readValue(it, Any::class.java) }
                 .let {result ->
                     val documents = (result as Map<String, Any?>)["documents"] as List<Map<String, Any?>>
-                    documents.map { AIMapResult(it as Map<String, Any?>) }
+                    documents.map { it as Map<String, Any?> }
                 }
     }
 
@@ -82,11 +82,11 @@ class AzureClient(private val baseUrl: String, private val key: String, private 
         return listOf(data)
     }
 
-    override fun entities(data: Any, config: Map<String, Any?>): List<AIMapResult> = postData(AzureEndpoint.ENTITIES.method, key, data)
+    override fun entities(data: Any, config: Map<String, Any?>): List<Map<String, Any?>> = postData(AzureEndpoint.ENTITIES.method, key, data)
 
-    override fun sentiment(data: Any, config: Map<String, Any?>): List<AIMapResult> = postData(AzureEndpoint.SENTIMENT.method, key, data)
+    override fun sentiment(data: Any, config: Map<String, Any?>): List<MapResult> = postData(AzureEndpoint.SENTIMENT.method, key, data).map { item -> MapResult(item)}
 
-    override fun keyPhrases(data: Any, config: Map<String, Any?>): List<AIMapResult> = postData(AzureEndpoint.KEY_PHRASES.method, key, data)
+    override fun keyPhrases(data: Any, config: Map<String, Any?>): List<MapResult> = postData(AzureEndpoint.KEY_PHRASES.method, key, data).map { item -> MapResult(item)}
 
-    override fun vision(data: Any, config: Map<String, Any?>): List<AIMapResult> = postData(AzureEndpoint.VISION.method, key, data, config)
+    override fun vision(data: Any, config: Map<String, Any?>): List<MapResult> = postData(AzureEndpoint.VISION.method, key, data, config).map { item -> MapResult(item)}
 }

@@ -1,6 +1,5 @@
 package apoc.ai.azure
 
-import apoc.ai.dto.AIMapResult
 import org.neo4j.logging.Log
 import org.neo4j.procedure.*
 import java.util.stream.Stream

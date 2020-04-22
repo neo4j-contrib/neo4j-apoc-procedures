@@ -1,0 +1,273 @@
+[[nlp-aws]]
+=== Amazon Web Services (AWS)
+
+[abstract]
+--
+This chapter describes procedures that wrap Amazon Web Services Comprehend Natural Language API.
+--
+
+Amazon Web Services (AWS) https://docs.aws.amazon.com/comprehend/index.html[Comprehend Natural Language API^] uses machine learning to find insights and relationships in text.
+The procedures in this chapter act as a wrapper around calls to this API to extract entities from text stored as node properties.
+
+Each procedure has two modes:
+
+* Stream - returns a map constructed from the JSON returned from the API
+* Graph - creates a graph or virtual graph based on the values returned by the API
+
+This section includes the following:
+
+* <<nlp-aws-overview>>
+* <<nlp-aws-java-sdk>>
+* <<nlp-aws-api-key>>
+* <<nlp-aws-entities>>
+* <<nlp-aws-examples>>
+    ** <<nlp-aws-examples-entities>>
+
+[[nlp-aws-overview]]
+==== Procedure Overview
+
+The procedures are described below:
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.nlp.aws.entities.csv[]
+|===
+
+[[nlp-aws-java-sdk]]
+==== Install AWS Java SDK For Amazon Comprehend
+
+The AWS NLP procedures are compiled against version _1.11.163_ of the https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-comprehend[AWS Java SDK For Amazon Comprehend^] library, which is not included in the APOC Library.
+To use the library we'll need to download the following jar files and place them in the `plugins` directory:
+
+* https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-comprehend/1.11.683/aws-java-sdk-comprehend-1.11.683.jar[aws-java-sdk-comprehend-1.11.683.jar^]
+* https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-core/1.11.683/aws-java-sdk-core-1.11.683.jar[aws-java-sdk-core-1.11.683.jar^]
+* https://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.9/httpclient-4.5.9.jar[httpclient-4.5.9.jar^]
+* https://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.11/httpcore-4.4.11.jar[httpcore-4.4.11.jar^]
+* https://repo1.maven.org/maven2/joda-time/joda-time/2.8.1/joda-time-2.8.1.jar[joda-time-2.8.1.jar^]
+
+Once we've done this we'll need to restart the Neo4j server.
+
+[[nlp-aws-api-key]]
+==== Setting up API Key and Secret
+
+We can generate an Access Key and Secret by following the instructions at https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html[docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html^].
+Once we've done that, we can populate and execute the following commands to create parameters that contains these details.
+
+.The following define the `apiKey` and `apiSecret` parameters
+[source,cypher]
+----
+:param apiKey => ("<api-key-here>");
+:param apiSecret => ("<api-secret-here>");
+----
+
+[[nlp-aws-entities]]
+==== Entity Extraction
+
+The entity extraction procedures (`apoc.nlp.aws.entities.*`) are wrappers around the https://docs.aws.amazon.com/comprehend/latest/dg/how-entities.html[Detect Entities^] operations of the AWS Comprehend Natural Language API.
+This API method finds entities in the text, which are defined as a textual reference to the unique name of a real-world object such as people, places, and commercial items, and to precise references to measures such as dates and quantities.
+
+The procedures are described below:
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.nlp.aws.entities.csv[]
+|===
+
+The procedures support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| key | String | null | AWS Access Control Key
+| secret | String | null | AWS Access Control Secret
+| nodeProperty | String | text | The property on the provided node that contains the unstructured text to be analyzed
+|===
+
+In addition, `apoc.nlp.aws.entities.graph` supports the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| write | Boolean | false | persist the graph of entities
+| relationshipType | String | ENTITY | relationship type for relationships from source node to entity nodes
+|===
+
+.Streaming mode
+[source,cypher]
+----
+CALL apoc.nlp.aws.entities.stream(source:Node or List<Node>, {
+  key: String,
+  secret: String,
+  nodeProperty: String
+})
+YIELD value
+----
+
+.Graph mode
+[source,cypher]
+----
+CALL apoc.nlp.aws.entities.graph(source:Node or List<Node>, {
+  key: String,
+  secret: String,
+  nodeProperty: String,
+  relationshipType: String,
+  write: Boolean
+})
+YIELD graph
+----
+
+
+[[nlp-aws-examples]]
+==== Examples
+
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (:Article {
+ uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/",
+ body: "These days I’m rarely more than a few feet away from my Nintendo Switch and I play board games, card games and role playing games with friends at least once or twice a week. I’ve even organised lunch-time Mario Kart 8 tournaments between the Neo4j European offices!"
+});
+
+CREATE (:Article {
+ uri: "https://en.wikipedia.org/wiki/Nintendo_Switch",
+ body: "The Nintendo Switch is a video game console developed by Nintendo, released worldwide in most regions on March 3, 2017. It is a hybrid console that can be used as a home console and portable device. The Nintendo Switch was unveiled on October 20, 2016. Nintendo offers a Joy-Con Wheel, a small steering wheel-like unit that a Joy-Con can slot into, allowing it to be used for racing games such as Mario Kart 8."
+});
+----
+
+[[nlp-aws-examples-entities]]
+===== Entity Extraction
+
+Let's start by extracting the entities from the Article node.
+The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
+
+.The following streams the entities for the Pokemon article
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.aws.entities.stream(a, {
+  key: $apiKey,
+  secret: $apiSecret,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.entities AS entity
+RETURN entity;
+----
+
+.Results
+[opts="header"]
+|===
+| entity
+| {score: 0.780032217502594, endOffset: 71, text: "Nintendo Switch", type: "COMMERCIAL_ITEM", beginOffset: 56}
+| {score: 0.8155304193496704, endOffset: 151, text: "at least", type: "QUANTITY", beginOffset: 143}
+| {score: 0.7507548332214355, endOffset: 156, text: "once", type: "QUANTITY", beginOffset: 152}
+| {score: 0.8760746717453003, endOffset: 172, text: "twice a week", type: "QUANTITY", beginOffset: 160}
+| {score: 0.9944096803665161, endOffset: 217, text: "Mario Kart 8", type: "TITLE", beginOffset: 205}
+| {score: 0.9946564435958862, endOffset: 247, text: "Neo4j", type: "ORGANIZATION", beginOffset: 242}
+| {score: 0.6274040937423706, endOffset: 256, text: "European", type: "LOCATION", beginOffset: 248}
+|===
+
+We get back 7 different entities.
+We could then apply a Cypher statement that creates one node per entity and an `ENTITY` relationship from each of those nodes back to the `Article` node.
+
+.The following streams the entities for the Pokemon article and then creates nodes for each entity
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.aws.entities.stream(a, {
+  key: $apiKey,
+  secret: $apiSecret,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.entities AS entity
+MERGE (e:Entity {name: entity.text})
+SET e.type = entity.type
+MERGE (a)-[:ENTITY]->(e)
+----
+
+Alternatively we can use the graph mode to automatically create the entity graph.
+As well as having the `Entity` label, each entity node will have another label based on the value of the `type` property.
+By default a virtual graph is returned.
+
+.The following returns a virtual graph of entities for the Pokemon article
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.aws.entities.graph(a, {
+  key: $apiKey,
+  secret: $apiSecret,
+  nodeProperty: "body",
+  relationshipType: "ENTITY"
+})
+YIELD graph AS g
+RETURN g;
+----
+
+We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.aws.entities.graph.svg>>.
+
+[[apoc.nlp.aws.entities.graph.svg]]
+image::apoc.nlp.aws.entities.graph.svg[title="Pokemon entities graph"]
+
+We can compute the entities for multiple nodes by passing a list of nodes to the procedure.
+
+.The following returns a virtual graph of entities for the Pokemon and Nintendo Switch articles
+[source,cypher]
+----
+MATCH (a:Article)
+WITH collect(a) AS articles
+CALL apoc.nlp.aws.entities.graph(articles, {
+  key: $apiKey,
+  secret: $apiSecret,
+  nodeProperty: "body",
+  relationshipType: "ENTITY"
+})
+YIELD graph AS g
+RETURN g
+----
+
+We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.aws.entities-multiple.graph.svg>>.
+
+[[apoc.nlp.aws.entities-multiple.graph.svg]]
+image::apoc.nlp.aws.entities-multiple.graph.svg[title="Pokemon and Nintendo Switch entities graph"]
+
+
+
+If we're happy with this graph and would like to persist it in Neo4j, we can do this by specifying the `write: true` configuration.
+
+.The following creates a `HAS_ENTITY` relationship from the article to each entity
+[source,cypher]
+----
+MATCH (a:Article)
+WITH collect(a) AS articles
+CALL apoc.nlp.aws.entities.graph(articles, {
+  key: $apiKey,
+  secret: $apiSecret,
+  nodeProperty: "body",
+  relationshipType: "HAS_ENTITY",
+  write: true
+})
+YIELD graph AS g
+RETURN g;
+----
+
+We can then write a query to return the entities that have been created.
+
+.The following returns articles and their entities
+[source,cypher]
+----
+MATCH (article:Article)
+RETURN article.uri AS article,
+       [(article)-[:HAS_ENTITY]->(e) | e.text] AS entities;
+----
+
+.Results
+[opts="header"]
+|===
+| article                                           | entities
+| "https://en.wikipedia.org/wiki/Nintendo_Switch"        | ["October 20, 2016", "Mario Kart 8", "March 3, 2017", "Nintendo Switch", "Nintendo"]
+| "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/" | ["Mario Kart 8", "European", "once", "Neo4j", "Nintendo Switch", "at least", "twice a week"]
+|===
