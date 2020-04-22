@@ -11,5 +11,7 @@ The procedures described in this chapter act as wrappers around cloud based Natu
 This section includes:
 
 * <<nlp-gcp>>
+* <<nlp-aws>>
 
 include::nlp/gcp.adoc[]
+include::nlp/aws.adoc[]

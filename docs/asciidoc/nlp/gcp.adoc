@@ -1,5 +1,5 @@
 [[nlp-gcp]]
-=== Google Cloud Platform
+=== Google Cloud Platform (GCP)
 
 [abstract]
 --
