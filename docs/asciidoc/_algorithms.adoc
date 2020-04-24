@@ -13,5 +13,7 @@ include::algorithms/deprecated.adoc[]
 
 include::algorithms/path-finding-procedures.adoc[leveloffset=2]
 include::algorithms/similarity.adoc[leveloffset=2]
-
+include::algorithms/algo.adoc[leveloffset=+1]
+include::algorithms/centrality.adoc[leveloffset=+2]
+include::algorithms/pagerank.adoc[leveloffset=2]
 

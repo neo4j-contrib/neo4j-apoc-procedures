@@ -6,6 +6,8 @@
 This section describes similarity algorithms in the APOC library.
 --
 
+include::deprecated.adoc[]
+
 [cols="3m,3"]
 |===
 | apoc.algo.cosineSimilarity([vector1], [vector2]) | Compute cosine similarity
