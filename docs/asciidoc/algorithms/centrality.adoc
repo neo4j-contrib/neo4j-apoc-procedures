@@ -1,73 +1,12 @@
 [[centrality]]
-= Deprecated: Centrality Algorithms
+= Removed: Centrality Algorithms
 
 [abstract]
 --
 This section describes centrality algorithms in the APOC library.
 --
 
-include::deprecated.adoc[]
+These algorithms have been deprecated by the https://neo4j.com/docs/graph-data-science/current/[Graph Data Science Library^], which has more performant and battle hardened versions of the algorithms.
 
-== Setup
-
-Let's create some test data to run the Centrality algorithms on.
-
-[source,cypher]
-----
-// create 100 nodes
-FOREACH (id IN range(0,1000) | CREATE (:Node {id:id}))
-
-// over the cross product (1M) create 100.000 relationships
-MATCH (n1:Node),(n2:Node) WITH n1,n2 LIMIT 1000000 WHERE rand() < 0.1
-
-CREATE (n1)-[:TYPE]->(n2)
-----
-
-== Closeness Centrality Procedure
-
-Centrality is an indicator of a node's influence in a graph. In graphs there is a natural distance metric between pairs of nodes, defined by the length of their shortest paths.  
-For both algorithms below we can measure based upon the direction of the relationship, whereby the 3rd argument represents the direction
-and can be of value BOTH, INCOMING, OUTGOING.
-
-Closeness Centrality defines the farness of a node as the sum of its distances from all other nodes, and its closeness as the reciprocal of farness.
-
-The more central a node is the lower its total distance from all other nodes.
-
-Complexity: This procedure uses a BFS shortest path algorithm. With BFS the complexes becomes `O(n * m)`
-Caution: Due to the complexity of this algorithm it is recommended to run it on only the nodes you are interested in.
-
-[source,cypher]
-----
-MATCH (node:Node)
-WHERE node.id %2 = 0
-WITH collect(node) AS nodes
-CALL apoc.algo.closeness(['TYPE'],nodes,'INCOMING') YIELD node, score
-RETURN node, score
-ORDER BY score DESC
-----
-
-
-== Betweenness Centrality Procedure
-
-The procedure will compute betweenness centrality as defined by Linton C. Freeman (1977) using the algorithm by Ulrik Brandes (2001).
-Centrality is an indicator of a node's influence in a graph.
-
-Betweenness Centrality is equal to the number of shortest paths from all nodes to all others that pass through that node.
-
-High centrality suggests a large influence on the transfer of items through the graph.
-
-Centrality is applicable to numerous domains, including: social networks, biology, transport and scientific cooperation.
-
-Complexity: This procedure uses a BFS shortest path algorithm. With BFS the complexes becomes O(n * m)
-Caution: Due to the complexity of this algorithm it is recommended to run it on only the nodes you are interested in.
-
-[source,cypher]
-----
-MATCH (node:Node)
-WHERE node.id %2 = 0
-WITH collect(node) AS nodes
-CALL apoc.algo.betweenness(['TYPE'],nodes,'BOTH') YIELD node, score
-RETURN node, score
-ORDER BY score DESC
-----
+For documentation of the Centrality algorithms, see https://neo4j.com/docs/graph-data-science/current/algorithms/centrality/
 
