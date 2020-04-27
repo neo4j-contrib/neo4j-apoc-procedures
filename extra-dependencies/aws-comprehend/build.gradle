@@ -1,0 +1,36 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '4.0.3'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+group = 'org.neo4j.contrib'
+version = '4.0.0.8'
+archivesBaseName = 'apoc-dependencies-aws-comprehend'
+description = """apoc-dependencies-aws-comprehend"""
+
+jar {
+    manifest {
+        attributes 'Implementation-Version': version
+    }
+}
+
+repositories {
+    jcenter()
+    maven {
+        url "https://repo.gradle.org/gradle/libs-releases"
+    }
+}
+
+
+dependencies {
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
+}
+
+
+
+
