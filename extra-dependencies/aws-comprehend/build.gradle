@@ -9,7 +9,7 @@ java {
 }
 
 group = 'org.neo4j.contrib'
-version = '4.0.0.8'
+version = '4.0.0.9'
 archivesBaseName = 'apoc-dependencies-aws-comprehend'
 description = """apoc-dependencies-aws-comprehend"""
 
