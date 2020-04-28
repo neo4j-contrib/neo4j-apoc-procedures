@@ -34,5 +34,5 @@ if __name__ == "__main__":
     token = os.getenv("GITHUB_TOKEN")
     tag_name = sys.argv[1]
     file_name = sys.argv[2:]
-    print("Deploying release for tag " + tag_name + "  and " + file_name)
+    print(f"Deploying release for tag {tag_name} and {file_name}")
     main(token, tag_name, file_name)
