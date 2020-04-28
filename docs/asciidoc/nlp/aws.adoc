@@ -40,7 +40,7 @@ The AWS NLP procedures are compiled against version _1.11.163_ of the https://mv
 
 To use the these procedures we'll either need to :
 
-* Download https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-dependencies-aws-comprehend-{apoc-release}.jar[apoc-dependencies-aws-comprehend-{apoc-release}.jar^], which contains the library and all its dependencies, from the releases page and place it into the `plugins` directory.
+* Download https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-dependencies-aws-comprehend-{apoc-release}.jar[apoc-dependencies-aws-comprehend-{apoc-release}.jar^], which contains the library and all its dependencies, from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^] and place it into the `plugins` directory.
 
 
 or
