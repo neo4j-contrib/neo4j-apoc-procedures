@@ -37,13 +37,20 @@ include::../../../build/generated-documentation/apoc.nlp.aws.entities.csv[]
 ==== Install AWS Java SDK For Amazon Comprehend
 
 The AWS NLP procedures are compiled against version _1.11.163_ of the https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-comprehend[AWS Java SDK For Amazon Comprehend^] library, which is not included in the APOC Library.
-To use the library we'll need to download the following jar files and place them in the `plugins` directory:
 
-* https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-comprehend/1.11.683/aws-java-sdk-comprehend-1.11.683.jar[aws-java-sdk-comprehend-1.11.683.jar^]
-* https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-core/1.11.683/aws-java-sdk-core-1.11.683.jar[aws-java-sdk-core-1.11.683.jar^]
-* https://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.9/httpclient-4.5.9.jar[httpclient-4.5.9.jar^]
-* https://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.11/httpcore-4.4.11.jar[httpcore-4.4.11.jar^]
-* https://repo1.maven.org/maven2/joda-time/joda-time/2.8.1/joda-time-2.8.1.jar[joda-time-2.8.1.jar^]
+To use the these procedures we'll either need to :
+
+* Download https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-dependencies-aws-comprehend-{apoc-release}.jar[apoc-dependencies-aws-comprehend-{apoc-release}.jar^], which contains the library and all its dependencies, from the releases page and place it into the `plugins` directory.
+
+
+or
+
+* Download the following jar files and place them in the `plugins` directory:
+    ** https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-comprehend/1.11.683/aws-java-sdk-comprehend-1.11.683.jar[aws-java-sdk-comprehend-1.11.683.jar^]
+    ** https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-core/1.11.683/aws-java-sdk-core-1.11.683.jar[aws-java-sdk-core-1.11.683.jar^]
+    ** https://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.9/httpclient-4.5.9.jar[httpclient-4.5.9.jar^]
+    ** https://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.11/httpcore-4.4.11.jar[httpcore-4.4.11.jar^]
+    ** https://repo1.maven.org/maven2/joda-time/joda-time/2.8.1/joda-time-2.8.1.jar[joda-time-2.8.1.jar^]
 
 Once we've done this we'll need to restart the Neo4j server.
 
