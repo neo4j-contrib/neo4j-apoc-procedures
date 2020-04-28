@@ -87,24 +87,22 @@ public class Coll {
     @Description("apoc.coll.min([0.5,1,2.3])")
     public Object min(@Name("values") List<Object> list) {
 		if (list == null || list.isEmpty()) return null;
-        if (list.size() == 1) return list.get(0);
-
-        try (Result result = tx.execute("cypher runtime=slotted return reduce(res=null, x in $list | CASE WHEN res IS NULL OR x<res THEN x ELSE res END) as value", Collections.singletonMap("list", list))) {
-            return result.next().get("value");
-        }
+        return Collections.min(list, Coll::compareAsDoubles);
     }
 
     @UserFunction
     @Description("apoc.coll.max([0.5,1,2.3])")
     public Object max(@Name("values") List<Object> list) {
         if (list == null || list.isEmpty()) return null;
-        if (list.size() == 1) return list.get(0);
-        try (Result result = tx.execute("cypher runtime=slotted return reduce(res=null, x in $list | CASE WHEN res IS NULL OR res<x THEN x ELSE res END) as value", Collections.singletonMap("list", list))) {
-            return result.next().get("value");
-        }
+        return Collections.max(list, Coll::compareAsDoubles);
     }
 
-    @Procedure
+    private static int compareAsDoubles(Object a, Object b) {
+        return Double.compare(((Number) a).doubleValue(), ((Number) b).doubleValue());
+    }
+
+
+        @Procedure
     @Description("apoc.coll.elements(list,limit,offset) yield _1,_2,..,_10,_1s,_2i,_3f,_4m,_5l,_6n,_7r,_8p - deconstruct subset of mixed list into identifiers of the correct type")
     public Stream<ElementsResult> elements(@Name("values") List<Object> list, @Name(value = "limit",defaultValue = "-1") long limit,@Name(value = "offset",defaultValue = "0") long offset) {
         int elements =  (limit < 0 ? list.size() : Math.min((int)(offset+limit),list.size())) - (int)offset;
