@@ -1,9 +1,9 @@
 package apoc.export.xls;
 
+import apoc.util.Util;
+
 import java.util.Collections;
 import java.util.Map;
-
-import static apoc.util.Util.toBoolean;
 
 public class XlsExportConfig {
 
@@ -18,6 +18,8 @@ public class XlsExportConfig {
     private final String arrayDelimiter;
     private final String dateTimeStyle;
     private final String dateStyle;
+    private final boolean prefixSheetWithEntityType;
+    private final boolean joinLabels;
 
     public XlsExportConfig(Map<String,Object> c) {
         config = c != null ? c : Collections.emptyMap();
@@ -28,8 +30,9 @@ public class XlsExportConfig {
         this.arrayDelimiter = (String) config.getOrDefault("arrayDelimiter", ";");
         this.dateTimeStyle = (String) config.getOrDefault("dateTimeStyle", "yyyy-mm-dd hh:mm:ss");
         this.dateStyle = (String) config.getOrDefault("dateStyle", "yyyy-mm-dd");
-
         this.batchSize = ((Number)config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE)).intValue();
+        this.prefixSheetWithEntityType = Util.toBoolean(config.getOrDefault("prefixSheetWithEntityType", false));
+        this.joinLabels = Util.toBoolean(config.getOrDefault("joinLabels", false));
     }
 
     public String getHeaderNodeId() {
@@ -64,4 +67,11 @@ public class XlsExportConfig {
         return dateStyle;
     }
 
+    public boolean isPrefixSheetWithEntityType() {
+        return prefixSheetWithEntityType;
+    }
+
+    public boolean isJoinLabels() {
+        return joinLabels;
+    }
 }

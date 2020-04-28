@@ -26,6 +26,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.util.FileUtils.getOutputStream;
 
@@ -140,13 +141,23 @@ public class ExportXls {
         Map<String, Triple<SXSSFSheet, List<String>, List<String>>> sheetAndPropsForName = new HashMap<>();
 
         for (Node node : subgraph.getNodes()) {
-            for (Label label : node.getLabels()) {
-                String labelName = label.name();
+            final List<String> labels;
+            if (config.isJoinLabels()) {
+                labels = Collections.singletonList(StreamSupport.stream(node.getLabels().spliterator(), false)
+                        .map(Label::name)
+                        .collect(Collectors.joining(",")));
+            } else {
+                labels = StreamSupport.stream(node.getLabels().spliterator(), false)
+                        .map(Label::name)
+                        .collect(Collectors.toList());
+            }
+            for (String label :labels) {
+                String labelName = (config.isPrefixSheetWithEntityType() ? "Node-" : "") + label;
                 createRowForEntity(wb, sheetAndPropsForName, node, labelName, reporter, config, styles);
             }
         }
         for (Relationship relationship: subgraph.getRelationships()) {
-            String relationshipType = relationship.getType().name();
+            String relationshipType = (config.isPrefixSheetWithEntityType() ? "Rel-" : "") + relationship.getType().name();
             createRowForEntity(wb, sheetAndPropsForName, relationship, relationshipType, reporter, config,styles);
         }
 
@@ -180,14 +191,14 @@ public class ExportXls {
         return styles;
     }
 
-    private void createRowForEntity(Workbook wb, Map<String, Triple<SXSSFSheet, List<String>, List<String>>> sheetAndPropsForName, Entity Entity, String sheetName, ProgressReporter reporter, XlsExportConfig config, Map<Class, CellStyle> styles) {
+    private void createRowForEntity(Workbook wb, Map<String, Triple<SXSSFSheet, List<String>, List<String>>> sheetAndPropsForName, Entity entity, String sheetName, ProgressReporter reporter, XlsExportConfig config, Map<Class, CellStyle> styles) {
         Triple<SXSSFSheet, List<String>, List<String>> triple = sheetAndPropsForName.computeIfAbsent(sheetName, s -> {
             SXSSFSheet sheet = (SXSSFSheet) wb.createSheet(sheetName);
             sheet.trackAllColumnsForAutoSizing();
             sheet.createRow(0); // placeholder for header line
             return Triple.of(
                     sheet,
-                    Entity instanceof Node ?
+                    entity instanceof Node ?
                             Arrays.asList(config.getHeaderNodeId()) :
                             Arrays.asList(config.getHeaderRelationshipId(), config.getHeaderStartNodeId(), config.getHeaderEndNodeId()),
                     new ArrayList<>());
@@ -198,15 +209,15 @@ public class ExportXls {
         int lastRowNum = sheet.getLastRowNum();
         Row row = sheet.createRow(lastRowNum+1);
         int cellNum = 0;
-        SortedMap<String, Object> props = new TreeMap<>(Entity.getAllProperties()); // copy props
+        SortedMap<String, Object> props = new TreeMap<>(entity.getAllProperties()); // copy props
 
-        if (Entity instanceof Node) {
-            Node node = (Node) Entity;
+        if (entity instanceof Node) {
+            Node node = (Node) entity;
             Cell idCell = row.createCell(cellNum++);
             idCell.setCellValue(((Long)(node.getId())).doubleValue());
             reporter.update(1, 0, props.size());
-        } else if (Entity instanceof Relationship) {
-            Relationship relationship = (Relationship) Entity;
+        } else if (entity instanceof Relationship) {
+            Relationship relationship = (Relationship) entity;
             Cell idCell = row.createCell(cellNum++);
             idCell.setCellValue(((Long)(relationship.getId())).doubleValue());
             Cell fromCell = row.createCell(cellNum++);

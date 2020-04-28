@@ -31,58 +31,6 @@ import static org.junit.Assert.assertTrue;
 
 public class ExportXlsTest {
 
-    private static final String EXPECTED_QUERY_NODES = String.format("\"u\"%n" +
-            "\"{\"\"id\"\":0,\"\"labels\"\":[\"\"User\"\",\"\"User1\"\"],\"\"properties\"\":{\"\"name\"\":\"\"foo\"\",\"\"age\"\":42,\"\"male\"\":true,\"\"kids\"\":[\"\"a\"\",\"\"b\"\",\"\"c\"\"]}}\"%n" +
-            "\"{\"\"id\"\":1,\"\"labels\"\":[\"\"User\"\"],\"\"properties\"\":{\"\"name\"\":\"\"bar\"\",\"\"age\"\":42}}\"%n" +
-            "\"{\"\"id\"\":2,\"\"labels\"\":[\"\"User\"\"],\"\"properties\"\":{\"\"age\"\":12}}\"");
-    private static final String EXPECTED_QUERY = String.format("\"u.age\",\"u.name\",\"u.male\",\"u.kids\",\"labels(u)\"%n" +
-            "\"42\",\"foo\",\"true\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"[\"\"User1\"\",\"\"User\"\"]\"%n" +
-            "\"42\",\"bar\",\"\",\"\",\"[\"\"User\"\"]\"%n" +
-            "\"12\",\"\",\"\",\"\",\"[\"\"User\"\"]\"");
-    private static final String EXPECTED_QUERY_WITHOUT_QUOTES = String.format("u.age,u.name,u.male,u.kids,labels(u)%n" +
-            "42,foo,true,[\"a\",\"b\",\"c\"],[\"User1\",\"User\"]%n" +
-            "42,bar,,,[\"User\"]%n" +
-            "12,,,,[\"User\"]");
-    private static final String EXPECTED_QUERY_QUOTES_NONE= String.format( "a.name,a.city,a.street,labels(a)%n" +
-            "Andrea,Milano,Via Garibaldi, 7,[\"Address1\",\"Address\"]%n" +
-            "Bar Sport,,,[\"Address\"]%n" +
-            ",,via Benni,[\"Address\"]" );
-    private static final String EXPECTED_QUERY_QUOTES_ALWAYS= String.format( "\"a.name\",\"a.city\",\"a.street\",\"labels(a)\"%n" +
-            "\"Andrea\",\"Milano\",\"Via Garibaldi, 7\",\"[\"\"Address1\"\",\"\"Address\"\"]\"%n" +
-            "\"Bar Sport\",\"\",\"\",\"[\"\"Address\"\"]\"%n" +
-            "\"\",\"\",\"via Benni\",\"[\"\"Address\"\"]\"");
-    private static final String EXPECTED_QUERY_QUOTES_NEEDED= String.format( "a.name,a.city,a.street,labels(a)%n" +
-            "Andrea,Milano,\"Via Garibaldi, 7\",\"[\"Address1\",\"Address\"]\"%n" +
-            "Bar Sport,,,\"[\"Address\"]\"%n" +
-            ",,via Benni,\"[\"Address\"]\"");
-    private static final String EXPECTED = String.format("\"_id\",\"_labels\",\"name\",\"age\",\"male\",\"kids\",\"street\",\"city\",\"_start\",\"_end\",\"_type\"%n" +
-            "\"0\",\":User:User1\",\"foo\",\"42\",\"true\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"\",\"\",,,%n" +
-            "\"1\",\":User\",\"bar\",\"42\",\"\",\"\",\"\",\"\",,,%n" +
-            "\"2\",\":User\",\"\",\"12\",\"\",\"\",\"\",\"\",,,%n" +
-            "\"20\",\":Address:Address1\",\"Andrea\",\"\",\"\",\"\",\"Via Garibaldi, 7\",\"Milano\",,,%n" +
-            "\"21\",\":Address\",\"Bar Sport\",\"\",\"\",\"\",\"\",\"\",,,%n" +
-            "\"22\",\":Address\",\"\",\"\",\"\",\"\",\"via Benni\",\"\",,,%n" +
-            ",,,,,,,,\"0\",\"1\",\"KNOWS\"%n" +
-            ",,,,,,,,\"20\",\"21\",\"NEXT_DELIVERY\"");
-    private static final String EXPECTED_NONE_QUOTES = String.format("_id,_labels,name,age,male,kids,street,city,_start,_end,_type%n" +
-            "0,:User:User1,foo,42,true,[\"a\",\"b\",\"c\"],,,,,%n" +
-            "1,:User,bar,42,,,,,,,%n" +
-            "2,:User,,12,,,,,,,%n" +
-            "20,:Address:Address1,Andrea,,,,Via Garibaldi, 7,Milano,,,%n" +
-            "21,:Address,Bar Sport,,,,,,,,%n" +
-            "22,:Address,,,,,via Benni,,,,%n" +
-            ",,,,,,,,0,1,KNOWS%n" +
-            ",,,,,,,,20,21,NEXT_DELIVERY");
-    private static final String EXPECTED_NEEDED_QUOTES = String.format("_id,_labels,name,age,male,kids,street,city,_start,_end,_type%n" +
-            "0,:User:User1,foo,42,true,\"[\"a\",\"b\",\"c\"]\",,,,,%n" +
-            "1,:User,bar,42,,,,,,,%n" +
-            "2,:User,,12,,,,,,,%n" +
-            "20,:Address:Address1,Andrea,,,,\"Via Garibaldi, 7\",Milano,,,%n" +
-            "21,:Address,Bar Sport,,,,,,,,%n" +
-            "22,:Address,,,,,via Benni,,,,%n" +
-            ",,,,,,,,0,1,KNOWS%n" +
-            ",,,,,,,,20,21,NEXT_DELIVERY");
-
     private static File directory = new File("target/import");
 
     static { //noinspection ResultOfMethodCallIgnored
@@ -138,6 +86,44 @@ public class ExportXlsTest {
         assertExcelFileForQuery(fileName);
     }
 
+    @Test
+    public void testExportQueryXlsWithSameLabelAndRelName() {
+        db.executeTransactionally("CREATE (u:User{name: 'Andrea'})-[r:COMPANY{since: 2018}]->(c:Company{name: 'Larus'})");
+        String fileName = "query.xlsx";
+        TestUtil.testCall(db, "CALL apoc.graph.fromCypher($query, {}, '', {}) YIELD graph AS exportedGraph " +
+                        "CALL apoc.export.xls.graph(exportedGraph, $file, $exportConf) YIELD file, source, format, time " +
+                        "RETURN *",
+                map("file", fileName,
+                        "exportConf", map("prefixSheetWithEntityType", true),
+                        "query", "MATCH (u:User{name: 'Andrea'})-[r:COMPANY]->(c:Company{name: 'Larus'}) return *"),
+                (r) -> {
+                    assertTrue("Should get statement",r.get("source").toString().equals("graph: nodes(2), rels(1)"));
+                    assertEquals(fileName, r.get("file"));
+                    assertEquals("xls", r.get("format"));
+                });
+        assertSheets(fileName, 3);
+        db.executeTransactionally("MATCH p = (u:User{name: 'Andrea'})-[r:COMPANY]->(c:Company{name: 'Larus'}) DELETE p");
+    }
+
+    @Test
+    public void testExportQueryXlsWithJoinedLabels() {
+        db.executeTransactionally("CREATE (u:User:Customer{name: 'Andrea'})-[r:COMPANY{since: 2018}]->(c:Company:Customer{name: 'Larus'})");
+        String fileName = "query.xlsx";
+        TestUtil.testCall(db, "CALL apoc.graph.fromCypher($query, {}, '', {}) YIELD graph AS exportedGraph " +
+                        "CALL apoc.export.xls.graph(exportedGraph, $file, $exportConf) YIELD file, source, format, time " +
+                        "RETURN *",
+                map("file", fileName,
+                        "exportConf", map("prefixSheetWithEntityType", true, "joinLabels", true),
+                        "query", "MATCH (u:User{name: 'Andrea'})-[r:COMPANY]->(c:Company{name: 'Larus'}) return *"),
+                (r) -> {
+                    assertTrue("Should get statement",r.get("source").toString().equals("graph: nodes(2), rels(1)"));
+                    assertEquals(fileName, r.get("file"));
+                    assertEquals("xls", r.get("format"));
+                });
+        assertSheets(fileName, 3);
+        db.executeTransactionally("MATCH p = (u:User{name: 'Andrea'})-[r:COMPANY]->(c:Company{name: 'Larus'}) DELETE p");
+    }
+
 
     private void assertResults(String fileName, Map<String, Object> r, final String source) {
         assertEquals(8L, r.get("nodes")); // we're exporting nodes with multiple label multiple times
@@ -154,9 +140,9 @@ public class ExportXlsTest {
             Workbook wb = WorkbookFactory.create(inp);
 
             int numberOfSheets = wb.getNumberOfSheets();
-            assertEquals(Iterables.count(tx.getAllLabels()) + Iterables.count(tx.getAllRelationshipTypes()), numberOfSheets);
+            assertEquals(Iterables.count(tx.getAllLabelsInUse()) + Iterables.count(tx.getAllRelationshipTypesInUse()), numberOfSheets);
 
-            for (Label label: tx.getAllLabels()) {
+            for (Label label: tx.getAllLabelsInUse()) {
                 long numberOfNodes = Iterators.count(tx.findNodes(label));
                 Sheet sheet = wb.getSheet(label.name());
                 assertEquals(numberOfNodes, sheet.getLastRowNum());
@@ -167,15 +153,19 @@ public class ExportXlsTest {
         }
     }
 
-    private void assertExcelFileForQuery(String fileName) {
+    private void assertSheets(String fileName, int sheets) {
         try (InputStream inp = new FileInputStream(new File(directory, fileName))) {
             Workbook wb = WorkbookFactory.create(inp);
 
             int numberOfSheets = wb.getNumberOfSheets();
-            assertEquals(1, numberOfSheets);
+            assertEquals(sheets, numberOfSheets);
 
         } catch (IOException|InvalidFormatException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void assertExcelFileForQuery(String fileName) {
+        assertSheets(fileName, 1);
     }
 }
