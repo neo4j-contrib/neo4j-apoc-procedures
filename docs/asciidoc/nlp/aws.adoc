@@ -33,6 +33,7 @@ The procedures are described below:
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
 include::../../../build/generated-documentation/apoc.nlp.aws.entities.csv[]
+include::../../../build/generated-documentation/apoc.nlp.aws.keyPhrases.csv[lines=2..]
 |===
 
 [[nlp-aws-dependencies]]
@@ -285,8 +286,6 @@ We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.aws.
 [[apoc.nlp.aws.entities-multiple.graph.svg]]
 image::apoc.nlp.aws.entities-multiple.graph.svg[title="Pokemon and Nintendo Switch entities graph"]
 
-
-
 If we're happy with this graph and would like to persist it in Neo4j, we can do this by specifying the `write: true` configuration.
 
 .The following creates a `HAS_ENTITY` relationship from the article to each entity
@@ -329,7 +328,7 @@ RETURN article.uri AS article,
 Let's now extract the key phrases from the Article node.
 The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
 
-.The following streams the entities for the Pokemon article
+.The following streams the key phrases for the Pokemon article
 [source,cypher]
 ----
 MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
@@ -346,12 +345,41 @@ RETURN keyPhrase;
 .Results
 [opts="header"]
 |===
-| entity
-| {score: 0.780032217502594, endOffset: 71, text: "Nintendo Switch", type: "COMMERCIAL_ITEM", beginOffset: 56}
-| {score: 0.8155304193496704, endOffset: 151, text: "at least", type: "QUANTITY", beginOffset: 143}
-| {score: 0.7507548332214355, endOffset: 156, text: "once", type: "QUANTITY", beginOffset: 152}
-| {score: 0.8760746717453003, endOffset: 172, text: "twice a week", type: "QUANTITY", beginOffset: 160}
-| {score: 0.9944096803665161, endOffset: 217, text: "Mario Kart 8", type: "TITLE", beginOffset: 205}
-| {score: 0.9946564435958862, endOffset: 247, text: "Neo4j", type: "ORGANIZATION", beginOffset: 242}
-| {score: 0.6274040937423706, endOffset: 256, text: "European", type: "LOCATION", beginOffset: 248}
+| keyPhrase
+| {score: 0.9999966621398926, endOffset: 10, text: "These days", beginOffset: 0}
+| {score: 0.9867414236068726, endOffset: 42, text: "more than a few feet", beginOffset: 22}
+| {score: 0.9999999403953552, endOffset: 71, text: "my Nintendo Switch", beginOffset: 53}
+| {score: 0.9999997019767761, endOffset: 94, text: "board games", beginOffset: 83}
+| {score: 0.9999964237213135, endOffset: 106, text: "card games", beginOffset: 96}
+| {score: 0.9998161792755127, endOffset: 129, text: "role playing games", beginOffset: 111}
+| {score: 1.0, endOffset: 142, text: "friends", beginOffset: 135}
+| {score: 0.8642383217811584, endOffset: 172, text: "a week", beginOffset: 166}
+| {score: 0.9999430179595947, endOffset: 215, text: "lunch-time Mario Kart", beginOffset: 194}
+| {score: 0.9983567595481873, endOffset: 229, text: "8 tournaments", beginOffset: 216}
+| {score: 0.999997615814209, endOffset: 264, text: "the Neo4j European offices", beginOffset: 238}
 |===
+
+Alternatively we can use the graph mode to automatically create a key phrase graph.
+One node with the `KeyPhrase` label will be created for each key phrase extracted.
+
+By default a virtual graph is returned, but the graph can be persisted by specifying the `write: true` configuration.
+
+.The following returns a virtual graph of entities for the Pokemon article
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.aws.keyPhrases.graph(a, {
+  key: $apiKey,
+  secret: $apiSecret,
+  nodeProperty: "body",
+  relationshipType: "KEY_PHRASE",
+  write: false
+})
+YIELD graph AS g
+RETURN g;
+----
+
+We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.aws.keyPhrases.graph.svg>>.
+
+[[apoc.nlp.aws.keyPhrases.graph.svg]]
+image::apoc.nlp.aws.keyPhrases.graph.svg[title="Pokemon key phrases graph"]
