@@ -5,7 +5,9 @@ import apoc.util.TestUtil
 import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers
 import org.hamcrest.Matchers.hasItem
+import org.hamcrest.collection.IsMapContaining
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.ClassRule
@@ -256,6 +258,80 @@ class AWSProceduresAPIWithDummyClientTest {
             Assert.assertEquals(2, relationships.size)
             assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-1-index-0-batch-1")), "KEY_PHRASE")))
             assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-2-index-0-batch-1")), "KEY_PHRASE")))
+
+        }
+    }
+
+    @Test
+    fun `should extract sentiment`() {
+        neo4j.executeTransactionally("""CREATE (a:Article6 {body:${'$'}body, id: 1})""", mapOf("body" to "dummyText"))
+        neo4j.executeTransactionally("""CREATE (a:Article6 {body:${'$'}body, id: 2})""", mapOf("body" to "dummyText"))
+
+        neo4j.executeTransactionally("""
+                    MATCH (a:Article6) WITH a ORDER BY a.id
+                    WITH collect(a) AS articles
+                    CALL apoc.nlp.aws.sentiment.stream(articles, {
+                      key: ${'$'}apiKey,
+                      secret: ${'$'}apiSecret,
+                      nodeProperty: "body",
+                      unsupportedDummyClient: true
+                    })
+                    YIELD value
+                    RETURN value
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
+            val row1 = it.next()
+            val value= row1["value"] as Map<String, Any>
+
+            assertThat(value, IsMapContaining.hasEntry("sentiment", "MIXED" as Any))
+            assertThat(value["sentimentScore"] as Map<String, Any>, Matchers.`is`(mapOf("negative" to null, "neutral" to null, "mixed" to 0.7F, "positive" to null) as Map<String, Any>))
+
+            assertTrue(it.hasNext())
+
+            val row2 = it.next()
+            val value2 = row2["value"] as Map<String, Any>
+
+            assertThat(value2, IsMapContaining.hasEntry("sentiment", "MIXED" as Any))
+            assertThat(value2["sentimentScore"] as Map<String, Any>, Matchers.`is`(mapOf("negative" to null, "neutral" to null, "mixed" to 0.7F, "positive" to null)  as Map<String, Any>))
+        }
+    }
+
+    @Test
+    fun `batches should create multiple sentiment virtual graphs`() {
+        neo4j.executeTransactionally("""CREATE (a:Article7 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
+
+        var sourceNode: Node? = null
+        var virtualSourceNode: Node? = null
+        neo4j.executeTransactionally("MATCH (a:Article7) RETURN a", emptyMap()) {
+            sourceNode = it.next()["a"] as Node
+            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
+        }
+
+        neo4j.executeTransactionally("""
+                    UNWIND range(1, 26) AS index
+                    MATCH (a:Article7) WITH a ORDER BY a.id
+                    WITH collect(a) AS articles
+                    CALL apoc.nlp.aws.sentiment.graph(articles, {
+                      key: ${'$'}apiKey,
+                      secret: ${'$'}apiSecret,
+                      nodeProperty: "body",
+                      unsupportedDummyClient: true
+                    })
+                    YIELD graph AS g
+                    RETURN g.nodes AS nodes, g.relationships AS relationships
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
+
+            assertTrue(it.hasNext())
+            val row1 = it.next()
+            Assert.assertEquals(1, (row1["nodes"] as List<Node>).size) // source node
+
+            assertTrue(it.hasNext())
+            val row2 = it.next()
+
+            val nodes: List<Node> = row2["nodes"] as List<Node>
+            Assert.assertEquals(1, nodes.size) // source node
+
+            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(NodeMatcher(listOf(Label {"Article7"}), mapOf("id" to 1234L, "body" to "test", "sentiment" to "Mixed", "sentimentScore" to 0.7F))))
 
         }
     }

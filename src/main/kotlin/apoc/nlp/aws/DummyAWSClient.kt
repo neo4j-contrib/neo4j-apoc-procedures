@@ -38,6 +38,21 @@ class DummyAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient
         return BatchDetectKeyPhrasesResult().withErrorList(BatchItemError()).withResultList(batchResults)
     }
 
+    override fun sentiment(data: List<Node>, batchId: Int): BatchDetectSentimentResult? {
+        val convertedData = convertInput(data)
+
+        val batchResults: MutableList<BatchDetectSentimentItemResult> = mutableListOf()
+
+        convertedData.mapIndexed { index, value ->
+            batchResults += BatchDetectSentimentItemResult()
+                    .withSentiment(SentimentType.MIXED)
+                    .withSentimentScore(SentimentScore().withMixed(0.7F))
+                    .withIndex(index)
+        }
+
+        return BatchDetectSentimentResult().withErrorList(BatchItemError()).withResultList(batchResults)
+    }
+
     private fun convertInput(data: List<Node>): List<String> {
         return data.map { node -> node.getProperty(nodeProperty).toString() }
     }

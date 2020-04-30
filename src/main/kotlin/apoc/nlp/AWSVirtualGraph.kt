@@ -21,7 +21,7 @@ abstract class AWSVirtualGraph(private val sourceNodes: List<Node>, val relation
     abstract fun extractDocument(index: Int, sourceNode: Node) : Any?
 
 
-    private fun createVirtualGraph(transaction: Transaction?): VirtualGraph {
+    open fun createVirtualGraph(transaction: Transaction?): VirtualGraph {
         val storeGraph = transaction != null
         val graphConfig = mapOf(
                 "skipValidation" to true,
