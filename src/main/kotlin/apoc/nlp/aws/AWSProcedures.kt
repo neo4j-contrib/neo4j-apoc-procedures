@@ -33,10 +33,11 @@ class AWSProcedures {
         verifyKey(config, "key")
         verifyKey(config, "secret")
 
-        val client: AWSClient = RealAWSClient(config, log!!)
-        val detectEntitiesResult = client.entities(source)
+        val convertedSource = convert(source)
 
-        return convert(source).mapIndexed { index, node -> transformResults(index, node, detectEntitiesResult!!) }.stream()
+        val client: AWSClient = RealAWSClient(config, log!!)
+        val detectEntitiesResult = client.entities(convertedSource)
+        return convertedSource.mapIndexed { index, node -> transformResults(index, node, detectEntitiesResult!!) }.stream()
     }
 
     @Procedure(value = "apoc.nlp.aws.entities.graph", mode = Mode.WRITE)
@@ -49,14 +50,16 @@ class AWSProcedures {
         verifyKey(config, "key")
         verifyKey(config, "secret")
 
+        val convertedSource = convert(source)
+
         val client = RealAWSClient(config, log!!)
-        val detectEntitiesResult = client.entities(source)
+        val detectEntitiesResult = client.entities(convertedSource)
 
         val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
 
         val relationshipType = NLPHelperFunctions.entityRelationshipType(config)
 
-        val virtualNLPGraph = AWSVirtualNLPGraph(detectEntitiesResult!!, convert(source), relationshipType, ENTITY_MAPPING)
+        val virtualNLPGraph = AWSVirtualNLPGraph(detectEntitiesResult!!, convertedSource, relationshipType, ENTITY_MAPPING)
         return if (storeGraph) {
             Stream.of(virtualNLPGraph.createAndStore(tx))
         } else {
