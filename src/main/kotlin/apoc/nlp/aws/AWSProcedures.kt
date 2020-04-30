@@ -8,6 +8,7 @@ import apoc.result.NodeWithMapResult
 import apoc.result.VirtualGraph
 import apoc.util.JsonUtil
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
+import com.google.common.collect.Lists
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Transaction
 import org.neo4j.logging.Log
@@ -33,11 +34,20 @@ class AWSProcedures {
         verifyKey(config, "key")
         verifyKey(config, "secret")
 
+        val client: AWSClient = awsClient(config)
+
         val convertedSource = convert(source)
 
-        val client: AWSClient = RealAWSClient(config, log!!)
-        val detectEntitiesResult = client.entities(convertedSource)
-        return convertedSource.mapIndexed { index, node -> transformResults(index, node, detectEntitiesResult!!) }.stream()
+        val batches = Lists.partition(convertedSource, 25)
+
+        return batches.mapIndexed { index, batch -> Pair(batch, client.entities(batch, index)) }.stream()
+                .flatMap { (batch, result) ->
+                    batch.mapIndexed { index, node  -> transformResults(index, node, result!!) }.stream() }
+    }
+
+    private fun awsClient(config: Map<String, Any>): AWSClient {
+        val useDummyClient  = config.getOrDefault("unsupportedDummyClient", false) as Boolean
+        return if (useDummyClient) DummyAWSClient(config, log!!) else RealAWSClient(config, log!!)
     }
 
     @Procedure(value = "apoc.nlp.aws.entities.graph", mode = Mode.WRITE)
@@ -50,10 +60,9 @@ class AWSProcedures {
         verifyKey(config, "key")
         verifyKey(config, "secret")
 
-        val convertedSource = convert(source)
-
         val client = RealAWSClient(config, log!!)
-        val detectEntitiesResult = client.entities(convertedSource)
+        val convertedSource = convert(source)
+        val detectEntitiesResult = client.entities(convertedSource, 0)
 
         val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
 
