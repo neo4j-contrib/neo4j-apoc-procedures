@@ -25,7 +25,7 @@ class RealAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient 
             .withRegion(region)
             .build()
 
-     override fun entities(data: List<Node>): BatchDetectEntitiesResult? {
+     override fun entities(data: List<Node>, batchId: Int): BatchDetectEntitiesResult? {
          val convertedData = convertInput(data)
          val batch = BatchDetectEntitiesRequest().withTextList(convertedData).withLanguageCode(language)
          return awsClient.batchDetectEntities(batch)
