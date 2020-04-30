@@ -34,6 +34,12 @@ class RealAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient 
         return awsClient.batchDetectKeyPhrases(batch)
     }
 
+    override fun sentiment(data: List<Node>, batchId: Int): BatchDetectSentimentResult? {
+        val convertedData = convertInput(data)
+        val batch = BatchDetectSentimentRequest().withTextList(convertedData).withLanguageCode(language)
+        return awsClient.batchDetectSentiment(batch)
+    }
+
     fun sentiment(data: List<Node>, config: Map<String, Any?>): List<MapResult> {
         val convertedData = convertInput(data)
         var batch = BatchDetectSentimentRequest().withTextList(convertedData)
