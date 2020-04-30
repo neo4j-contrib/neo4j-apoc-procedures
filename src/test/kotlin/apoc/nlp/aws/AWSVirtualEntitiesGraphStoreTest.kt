@@ -45,7 +45,7 @@ class AWSVirtualEntitiesGraphStoreTest {
             val sourceNode2 = it.createNode(Label {"Person"})
             sourceNode2.setProperty("id", 5678L)
 
-            val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, ENTITY_MAPPING).createAndStore(it)
+            val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }).createAndStore(it)
 
             // verify virtual graph
             val nodes = virtualGraph.graph["nodes"] as Set<*>

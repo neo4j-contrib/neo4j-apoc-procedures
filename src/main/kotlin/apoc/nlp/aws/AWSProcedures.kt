@@ -65,7 +65,7 @@ class AWSProcedures {
 
         return partition(convertedSource, 25)
                 .mapIndexed { index, batch -> Pair(batch, client.entities(batch, index))  }
-                .map { (batch, result) -> AWSVirtualEntitiesGraph(result!!, batch, relationshipType, ENTITY_MAPPING) }
+                .map { (batch, result) -> AWSVirtualEntitiesGraph(result!!, batch, relationshipType) }
                 .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
                 .stream()
     }
@@ -109,7 +109,7 @@ class AWSProcedures {
 
         return partition(convertedSource, 25)
                 .mapIndexed { index, batch -> Pair(batch, client.keyPhrases(batch, index))  }
-                .map { (batch, result) -> AWSVirtualKeyPhrasesGraph(result!!, batch, relationshipType, KEY_PHRASE_MAPPING) }
+                .map { (batch, result) -> AWSVirtualKeyPhrasesGraph(result!!, batch, relationshipType) }
                 .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
                 .stream()
     }
