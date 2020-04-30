@@ -14,25 +14,25 @@ class AWSVirtualSentimentVirtualGraphTest {
     @Test
     fun `extract sentiment`() {
         assertEquals(
-                mapOf("sentiment" to "Mixed", "score" to 0.7F),
+                Pair("Mixed", 0.7F),
                 extractSentiment(mapOf(
                         "sentiment" to "MIXED",
                         "sentimentScore" to mapOf("positive" to null, "negative" to null, "neutral" to null, "mixed" to 0.7F))))
 
         assertEquals(
-                mapOf("sentiment" to "Negative", "score" to 0.9F),
+                Pair("Negative", 0.9F),
                 extractSentiment(mapOf(
                         "sentiment" to "NEGATIVE",
                         "sentimentScore" to mapOf("positive" to null, "negative" to 0.9F, "neutral" to null, "mixed" to null))))
 
         assertEquals(
-                mapOf("sentiment" to "Neutral", "score" to 0.6F),
+                Pair("Neutral", 0.6F),
                 extractSentiment(mapOf(
                         "sentiment" to "NEUTRAL",
                         "sentimentScore" to mapOf("positive" to null, "negative" to null, "neutral" to 0.6F, "mixed" to null))))
 
         assertEquals(
-                mapOf("sentiment" to "Positive", "score" to 0.4F),
+                Pair("Positive", 0.4F),
                 extractSentiment(mapOf(
                         "sentiment" to "POSITIVE",
                         "sentimentScore" to mapOf("positive" to 0.4F, "negative" to null, "neutral" to null, "mixed" to null))))
@@ -49,7 +49,7 @@ class AWSVirtualSentimentVirtualGraphTest {
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(1, nodes.size)
         assertThat(nodes, hasItem(sourceNode))
-        assertThat(nodes, hasItem(NodeMatcher(listOf(Label { "Person" }), mapOf("sentiment" to "Mixed", "score" to 0.8F, "id" to 1234L))))
+        assertThat(nodes, hasItem(NodeMatcher(listOf(Label { "Person" }), mapOf("sentiment" to "Mixed", "sentimentScore" to 0.8F, "id" to 1234L))))
     }
 }
 
