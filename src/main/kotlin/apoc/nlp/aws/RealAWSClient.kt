@@ -25,13 +25,13 @@ class RealAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient 
             .withRegion(region)
             .build()
 
-     override fun entities(data: Any): BatchDetectEntitiesResult? {
+     override fun entities(data: List<Node>): BatchDetectEntitiesResult? {
          val convertedData = convertInput(data)
          val batch = BatchDetectEntitiesRequest().withTextList(convertedData).withLanguageCode(language)
          return awsClient.batchDetectEntities(batch)
     }
 
-     fun sentiment(data: Any, config: Map<String, Any?>): List<MapResult> {
+     fun sentiment(data: List<Node>, config: Map<String, Any?>): List<MapResult> {
         val convertedData = convertInput(data)
         var batch = BatchDetectSentimentRequest().withTextList(convertedData)
         var batchDetectEntities = awsClient.batchDetectSentiment(batch)
@@ -45,7 +45,7 @@ class RealAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient 
         return allData.map { MapResult(JsonUtil.OBJECT_MAPPER!!.convertValue(it, Map::class.java) as Map<String, Any?>) }
     }
 
-     fun keyPhrases(data: Any, config: Map<String, Any?>): List<MapResult> {
+     fun keyPhrases(data: List<Node>, config: Map<String, Any?>): List<MapResult> {
         val convertedData = convertInput(data)
         var batch = BatchDetectKeyPhrasesRequest().withTextList(convertedData)
         var batchDetectEntities = awsClient.batchDetectKeyPhrases(batch)
@@ -63,11 +63,7 @@ class RealAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient 
         throw UnsupportedOperationException("Rekognition is not yet implemented")
     }
 
-    private fun convertInput(data: Any): List<String> {
-        return when (data) {
-            is Node -> listOf(data.getProperty(nodeProperty).toString())
-            is List<*> -> data.map { node -> (node as Node).getProperty(nodeProperty).toString() }
-            else -> throw java.lang.RuntimeException("Class ${data::class.java.name} not supported")
-        }
+    private fun convertInput(data: List<Node>): List<String> {
+        return data.map { node -> node.getProperty(nodeProperty).toString() }
     }
 }
