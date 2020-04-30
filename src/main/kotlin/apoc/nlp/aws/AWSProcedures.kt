@@ -1,14 +1,13 @@
 package apoc.nlp.aws
 
 import apoc.ai.service.AWSClient
-import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.AWSVirtualNLPGraph
 import apoc.nlp.AWSVirtualNLPGraph.Companion.ENTITY_MAPPING
+import apoc.nlp.NLPHelperFunctions
 import apoc.result.NodeWithMapResult
 import apoc.result.VirtualGraph
 import apoc.util.JsonUtil
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
-import com.google.common.collect.Lists
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Transaction
 import org.neo4j.logging.Log
