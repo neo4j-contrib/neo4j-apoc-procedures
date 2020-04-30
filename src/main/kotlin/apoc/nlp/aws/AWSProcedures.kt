@@ -1,13 +1,16 @@
 package apoc.nlp.aws
 
 import apoc.ai.service.AWSClient
-import apoc.nlp.AWSVirtualNLPGraph
-import apoc.nlp.AWSVirtualNLPGraph.Companion.ENTITY_MAPPING
+import apoc.nlp.AWSVirtualEntitiesGraph
+import apoc.nlp.AWSVirtualEntitiesGraph.Companion.ENTITY_MAPPING
+import apoc.nlp.AWSVirtualKeyPhrasesGraph
+import apoc.nlp.AWSVirtualKeyPhrasesGraph.Companion.KEY_PHRASE_MAPPING
 import apoc.nlp.NLPHelperFunctions
 import apoc.result.NodeWithMapResult
 import apoc.result.VirtualGraph
 import apoc.util.JsonUtil
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
+import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesResult
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Transaction
 import org.neo4j.logging.Log
@@ -62,10 +65,55 @@ class AWSProcedures {
 
         return partition(convertedSource, 25)
                 .mapIndexed { index, batch -> Pair(batch, client.entities(batch, index))  }
-                .map { (batch, result) -> AWSVirtualNLPGraph(result!!, batch, relationshipType, ENTITY_MAPPING) }
+                .map { (batch, result) -> AWSVirtualEntitiesGraph(result!!, batch, relationshipType, ENTITY_MAPPING) }
                 .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
                 .stream()
     }
+
+    @Procedure(value = "apoc.nlp.aws.keyPhrases.stream", mode = Mode.READ)
+    @Description("Returns a stream of key phrases for provided text")
+    fun keyPhrasesStream(@Name("source") source: Any,
+                       @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<NodeWithMapResult> {
+        verifySource(source)
+        val nodeProperty = getNodeProperty(config)
+        verifyNodeProperty(source, nodeProperty)
+        verifyKey(config, "key")
+        verifyKey(config, "secret")
+
+        val client: AWSClient = awsClient(config)
+
+        val convertedSource = convert(source)
+
+        val batches = partition(convertedSource, 25)
+
+        return batches.mapIndexed { index, batch -> Pair(batch, client.keyPhrases(batch, index)) }.stream()
+                .flatMap { (batch, result) ->
+                    batch.mapIndexed { index, node  -> transformResults(index, node, result!!) }.stream() }
+    }
+
+    @Procedure(value = "apoc.nlp.aws.keyPhrases.graph", mode = Mode.WRITE)
+    @Description("Creates a (virtual) key phrases graph for provided text")
+    fun keyPhrasesGraph(@Name("source") source: Any,
+                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraph> {
+        verifySource(source)
+        val nodeProperty = getNodeProperty(config)
+        verifyNodeProperty(source, nodeProperty)
+        verifyKey(config, "key")
+        verifyKey(config, "secret")
+
+        val client = awsClient(config)
+        val relationshipType = NLPHelperFunctions.keyPhraseRelationshipType(config)
+        val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
+
+        val convertedSource = convert(source)
+
+        return partition(convertedSource, 25)
+                .mapIndexed { index, batch -> Pair(batch, client.keyPhrases(batch, index))  }
+                .map { (batch, result) -> AWSVirtualKeyPhrasesGraph(result!!, batch, relationshipType, KEY_PHRASE_MAPPING) }
+                .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
+                .stream()
+    }
+
 
     private fun awsClient(config: Map<String, Any>): AWSClient {
         val useDummyClient  = config.getOrDefault("unsupportedDummyClient", false) as Boolean
@@ -74,6 +122,16 @@ class AWSProcedures {
 
     companion object {
         fun transformResults(index: Int, node: Node, res: BatchDetectEntitiesResult): NodeWithMapResult {
+            val result = res.resultList.find { result -> result.index == index }
+            return if (result != null) {
+                NodeWithMapResult.withResult(node, JsonUtil.OBJECT_MAPPER!!.convertValue(result, Map::class.java) as Map<String, Any?>)
+            } else {
+                val err = res.errorList.find { error -> error.index == index }
+                NodeWithMapResult.withError(node, mapOf("code" to err?.errorCode, "message" to err?.errorMessage))
+            }
+        }
+
+        fun transformResults(index: Int, node: Node, res: BatchDetectKeyPhrasesResult): NodeWithMapResult {
             val result = res.resultList.find { result -> result.index == index }
             return if (result != null) {
                 NodeWithMapResult.withResult(node, JsonUtil.OBJECT_MAPPER!!.convertValue(result, Map::class.java) as Map<String, Any?>)

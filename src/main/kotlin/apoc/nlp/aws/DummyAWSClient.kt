@@ -23,6 +23,21 @@ class DummyAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient
          return BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(batchResults)
     }
 
+    override fun keyPhrases(data: List<Node>, batchId: Int): BatchDetectKeyPhrasesResult? {
+        val convertedData = convertInput(data)
+
+        val batchResults: MutableList<BatchDetectKeyPhrasesItemResult> = mutableListOf()
+
+        convertedData.mapIndexed { index, value ->
+            batchResults += BatchDetectKeyPhrasesItemResult().withKeyPhrases(
+                    KeyPhrase().withText("keyPhrase-1-index-$index-batch-$batchId"),
+                    KeyPhrase().withText("keyPhrase-2-index-$index-batch-$batchId"))
+                    .withIndex(index)
+        }
+
+        return BatchDetectKeyPhrasesResult().withErrorList(BatchItemError()).withResultList(batchResults)
+    }
+
     private fun convertInput(data: List<Node>): List<String> {
         return data.map { node -> node.getProperty(nodeProperty).toString() }
     }

@@ -1,7 +1,7 @@
 package apoc.nlp.aws
 
-import apoc.nlp.AWSVirtualNLPGraph
-import apoc.nlp.AWSVirtualNLPGraph.Companion.ENTITY_MAPPING
+import apoc.nlp.AWSVirtualEntitiesGraph
+import apoc.nlp.AWSVirtualEntitiesGraph.Companion.ENTITY_MAPPING
 import apoc.result.VirtualNode
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesItemResult
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
@@ -18,7 +18,7 @@ import org.neo4j.graphdb.RelationshipType
 import org.neo4j.test.rule.ImpermanentDbmsRule
 import java.util.stream.Collectors
 
-class AWSVirtualNLPGraphStoreTest {
+class AWSVirtualEntitiesGraphStoreTest {
     companion object {
         @ClassRule
         @JvmField
@@ -45,7 +45,7 @@ class AWSVirtualNLPGraphStoreTest {
             val sourceNode2 = it.createNode(Label {"Person"})
             sourceNode2.setProperty("id", 5678L)
 
-            val virtualGraph = AWSVirtualNLPGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, ENTITY_MAPPING).createAndStore(it)
+            val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, ENTITY_MAPPING).createAndStore(it)
 
             // verify virtual graph
             val nodes = virtualGraph.graph["nodes"] as Set<*>

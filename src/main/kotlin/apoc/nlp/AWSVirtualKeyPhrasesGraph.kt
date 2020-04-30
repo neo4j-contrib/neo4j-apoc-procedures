@@ -6,12 +6,13 @@ import apoc.nlp.aws.AWSProcedures
 import apoc.result.VirtualGraph
 import apoc.result.VirtualNode
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
+import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesResult
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
 import org.neo4j.graphdb.RelationshipType
 import org.neo4j.graphdb.Transaction
 
-data class AWSVirtualNLPGraph(private val detectEntitiesResult: BatchDetectEntitiesResult, private val sourceNodes: List<Node>, val relationshipType: RelationshipType, val mapping: Map<String, String>) {
+data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDetectKeyPhrasesResult, private val sourceNodes: List<Node>, val relationshipType: RelationshipType, val mapping: Map<String, String>) {
     fun createAndStore(transaction: Transaction?): VirtualGraph {
         return createVirtualGraph(transaction)
     }
@@ -34,7 +35,7 @@ data class AWSVirtualNLPGraph(private val detectEntitiesResult: BatchDetectEntit
 
         sourceNodes.forEachIndexed { index, sourceNode ->
             val documentToGraph = DocumentToGraph(transaction, GraphsConfig(graphConfig), nonSourceNodes)
-            val document = AWSProcedures.transformResults(index, sourceNode, detectEntitiesResult).value["entities"]
+            val document = AWSProcedures.transformResults(index, sourceNode, detectEntitiesResult).value["keyPhrases"]
 
             val graph = documentToGraph.create(document).graph
 
@@ -59,6 +60,6 @@ data class AWSVirtualNLPGraph(private val detectEntitiesResult: BatchDetectEntit
     }
 
     companion object {
-        val ENTITY_MAPPING = mapOf("$" to "Entity{!text,type,@metadata}")
+        val KEY_PHRASE_MAPPING = mapOf("$" to "KeyPhrase{!text,@metadata}")
     }
 }
