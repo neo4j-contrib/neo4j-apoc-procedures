@@ -21,9 +21,11 @@ This section includes the following:
 * <<nlp-aws-api-key>>
 * <<nlp-aws-entities>>
 * <<nlp-aws-key-phrases>>
+* <<nlp-aws-sentiment>>
 * <<nlp-aws-examples>>
     ** <<nlp-aws-examples-entities>>
     ** <<nlp-aws-examples-key-phrases>>
+    ** <<nlp-aws-examples-sentiment>>
 
 [[nlp-aws-overview]]
 ==== Procedure Overview
@@ -33,7 +35,8 @@ The procedures are described below:
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
 include::../../../build/generated-documentation/apoc.nlp.aws.entities.csv[]
-include::../../../build/generated-documentation/apoc.nlp.aws.keyPhrases.csv[lines=2..]
+include::../../../build/generated-documentation/apoc.nlp.aws.keyPhrases.csv[lines=2;3]
+include::../../../build/generated-documentation/apoc.nlp.aws.sentiment.csv[lines=2;3]
 |===
 
 [[nlp-aws-dependencies]]
@@ -142,7 +145,7 @@ In addition, `apoc.nlp.aws.keyPhrases.graph` supports the following config param
 [opts=header]
 |===
 | name | type | default | description
-| write | Boolean | false | persist the graph of entities
+| write | Boolean | false | persist the graph of key phrases
 | relationshipType | String | ENTITY | relationship type for relationships from source node to entity nodes
 |===
 
@@ -161,6 +164,63 @@ YIELD value
 [source,cypher]
 ----
 CALL apoc.nlp.aws.keyPhrases.graph(source:Node or List<Node>, {
+  key: String,
+  secret: String,
+  nodeProperty: String,
+  relationshipType: String,
+  write: Boolean
+})
+YIELD graph
+----
+
+[[nlp-aws-sentiment]]
+==== Sentiment
+
+The sentiment procedures (`apoc.nlp.aws.keyPhrases.*`) are wrappers around the https://docs.aws.amazon.com/comprehend/latest/dg/how-sentiment.html[Determine Sentiment^] operations of the AWS Comprehend Natural Language API.
+You can determine if the sentiment is positive, negative, neutral, or mixed.
+
+The procedures are described below:
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.nlp.aws.sentiment.csv[]
+|===
+
+The procedures support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| key | String | null | AWS Access Control Key
+| secret | String | null | AWS Access Control Secret
+| nodeProperty | String | text | The property on the provided node that contains the unstructured text to be analyzed
+|===
+
+In addition, `apoc.nlp.aws.keyPhrases.graph` supports the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| write | Boolean | false | persist the graph of sentiment
+|===
+
+.Streaming mode
+[source,cypher]
+----
+CALL apoc.nlp.aws.sentiment.stream(source:Node or List<Node>, {
+  key: String,
+  secret: String,
+  nodeProperty: String
+})
+YIELD value
+----
+
+.Graph mode
+[source,cypher]
+----
+CALL apoc.nlp.aws.sentiment.graph(source:Node or List<Node>, {
   key: String,
   secret: String,
   nodeProperty: String,
@@ -383,3 +443,56 @@ We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.aws.
 
 [[apoc.nlp.aws.keyPhrases.graph.svg]]
 image::apoc.nlp.aws.keyPhrases.graph.svg[title="Pokemon key phrases graph"]
+
+[[nlp-aws-examples-sentiment]]
+===== Sentiment
+
+Let's now extract the key phrases from the Article node.
+The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
+
+.The following streams the key phrases for the Pokemon article
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.aws.sentiment.stream(a, {
+  key: $apiKey,
+  secret: $apiSecret,
+  nodeProperty: "body"
+})
+YIELD value
+RETURN value;
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| {index: 0, sentiment: "POSITIVE", sentimentScore: {neutral: 0.33138760924339294, negative: 0.0026062370743602514, mixed: 3.5950531582784606E-6, positive: 0.6660025119781494}}
+|===
+
+Alternatively we can use the graph mode to automatically store the sentiment and its score.
+
+By default a virtual graph is returned, but the graph can be persisted by specifying the `write: true` configuration.
+The sentiment is stored in the `sentiment` property and the score for that sentiment in the `sentimentScore` property.
+
+.The following returns a graph with the sentiment for the Pokemon article
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.aws.sentiment.graph(a, {
+  key: $apiKey,
+  secret: $apiSecret,
+  nodeProperty: "body",
+  write: true
+})
+YIELD graph AS g
+UNWIND g.nodes AS node
+RETURN node {.uri, .sentiment, .sentimentScore} AS node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| {sentiment: "Positive", sentimentScore: 0.6660025119781494, uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"}
+|===
