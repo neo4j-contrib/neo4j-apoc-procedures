@@ -55,19 +55,16 @@ class AWSProcedures {
         verifyKey(config, "secret")
 
         val client = awsClient(config)
-        val convertedSource = convert(source)
-        val detectEntitiesResult = client.entities(convertedSource, 0)
-
+        val relationshipType = NLPHelperFunctions.entityRelationshipType(config)
         val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
 
-        val relationshipType = NLPHelperFunctions.entityRelationshipType(config)
+        val convertedSource = convert(source)
 
-        val virtualNLPGraph = AWSVirtualNLPGraph(detectEntitiesResult!!, convertedSource, relationshipType, ENTITY_MAPPING)
-        return if (storeGraph) {
-            Stream.of(virtualNLPGraph.createAndStore(tx))
-        } else {
-            Stream.of(virtualNLPGraph.create())
-        }
+        return partition(convertedSource, 25)
+                .mapIndexed { index, batch -> Pair(batch, client.entities(batch, index))  }
+                .map { (batch, result) -> AWSVirtualNLPGraph(result!!, batch, relationshipType, ENTITY_MAPPING) }
+                .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
+                .stream()
     }
 
     private fun awsClient(config: Map<String, Any>): AWSClient {

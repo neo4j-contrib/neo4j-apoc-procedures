@@ -1,6 +1,8 @@
 package apoc.nlp.aws
 
+import apoc.result.VirtualNode
 import apoc.util.TestUtil
+import org.junit.Assert
 import junit.framework.Assert.assertTrue
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
@@ -8,6 +10,9 @@ import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
+import org.neo4j.graphdb.Label
+import org.neo4j.graphdb.Node
+import org.neo4j.graphdb.Relationship
 import org.neo4j.test.rule.ImpermanentDbmsRule
 import java.util.stream.Collectors
 
@@ -91,6 +96,55 @@ class AWSProceduresAPIWithDummyClientTest {
             // assert that we have entries from the 2nd batch
             assertThat(allEntities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-1-index-0-batch-1", "type" to "Dummy")))
             assertThat(allEntities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-2-index-0-batch-1", "type" to "Dummy")))
+        }
+    }
+
+    @Test
+    fun `batches should create multiple virtual graphs`() {
+        neo4j.executeTransactionally("""CREATE (a:Article3 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
+
+        var sourceNode: Node? = null
+        var virtualSourceNode: Node? = null
+        neo4j.executeTransactionally("MATCH (a:Article3) RETURN a", emptyMap()) {
+            sourceNode = it.next()["a"] as Node
+            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
+        }
+
+        neo4j.executeTransactionally("""
+                    UNWIND range(1, 26) AS index
+                    MATCH (a:Article3) WITH a ORDER BY a.id
+                    WITH collect(a) AS articles
+                    CALL apoc.nlp.aws.entities.graph(articles, {
+                      key: ${'$'}apiKey,
+                      secret: ${'$'}apiSecret,
+                      nodeProperty: "body",
+                      unsupportedDummyClient: true
+                    })
+                    YIELD graph AS g
+                    RETURN g.nodes AS nodes, g.relationships AS relationships
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
+
+            assertTrue(it.hasNext())
+            val row1 = it.next()
+            Assert.assertEquals(51, (row1["nodes"] as List<Node>).size) // 50 dummy nodes + source node
+
+            assertTrue(it.hasNext())
+            val row2 = it.next()
+
+            val nodes: List<Node> = row2["nodes"] as List<Node>
+            val relationships = row2["relationships"] as List<Relationship>
+            Assert.assertEquals(3, nodes.size) // 2 dummy nodes + source node
+
+            val dummyLabels = listOf(Label { "Dummy"}, Label {"Entity"})
+
+            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "token-1-index-0-batch-1", "type" to "Dummy"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "token-2-index-0-batch-1", "type" to "Dummy"))))
+
+            Assert.assertEquals(2, relationships.size)
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "token-1-index-0-batch-1", "type" to "Dummy")), "ENTITY")))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "token-2-index-0-batch-1", "type" to "Dummy")), "ENTITY")))
+
         }
     }
 
