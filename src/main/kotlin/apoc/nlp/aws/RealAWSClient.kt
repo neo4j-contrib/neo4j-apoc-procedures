@@ -6,10 +6,7 @@ import apoc.util.JsonUtil
 import com.amazonaws.auth.AWSStaticCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.comprehend.AmazonComprehendClientBuilder
-import com.amazonaws.services.comprehend.model.BatchDetectEntitiesRequest
-import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
-import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesRequest
-import com.amazonaws.services.comprehend.model.BatchDetectSentimentRequest
+import com.amazonaws.services.comprehend.model.*
 import org.neo4j.graphdb.Node
 import org.neo4j.logging.Log
 
@@ -31,7 +28,13 @@ class RealAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient 
          return awsClient.batchDetectEntities(batch)
     }
 
-     fun sentiment(data: List<Node>, config: Map<String, Any?>): List<MapResult> {
+    override fun keyPhrases(data: List<Node>, batchId: Int): BatchDetectKeyPhrasesResult? {
+        val convertedData = convertInput(data)
+        val batch = BatchDetectKeyPhrasesRequest().withTextList(convertedData).withLanguageCode(language)
+        return awsClient.batchDetectKeyPhrases(batch)
+    }
+
+    fun sentiment(data: List<Node>, config: Map<String, Any?>): List<MapResult> {
         val convertedData = convertInput(data)
         var batch = BatchDetectSentimentRequest().withTextList(convertedData)
         var batchDetectEntities = awsClient.batchDetectSentiment(batch)

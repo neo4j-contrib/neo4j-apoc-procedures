@@ -1,7 +1,7 @@
 package apoc.nlp.aws
 
-import apoc.nlp.AWSVirtualNLPGraph
-import apoc.nlp.AWSVirtualNLPGraph.Companion.ENTITY_MAPPING
+import apoc.nlp.AWSVirtualEntitiesGraph
+import apoc.nlp.AWSVirtualEntitiesGraph.Companion.ENTITY_MAPPING
 import apoc.result.VirtualNode
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesItemResult
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
@@ -14,7 +14,7 @@ import org.junit.Test
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.RelationshipType
 
-class AWSVirtualNLPGraphTest {
+class AWSVirtualEntitiesGraphTest {
     @Test
     fun `create virtual graph from result with one entity`() {
         val entity = Entity().withText("foo").withType("Bar")
@@ -22,7 +22,7 @@ class AWSVirtualNLPGraphTest {
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(itemResult)
         val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
 
-        val virtualGraph = AWSVirtualNLPGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, ENTITY_MAPPING).create()
+        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, ENTITY_MAPPING).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(2, nodes.size)
@@ -48,7 +48,7 @@ class AWSVirtualNLPGraphTest {
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(result)
         val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
 
-        val virtualGraph = AWSVirtualNLPGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, ENTITY_MAPPING).create()
+        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, ENTITY_MAPPING).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(3, nodes.size)
@@ -83,7 +83,7 @@ class AWSVirtualNLPGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = AWSVirtualNLPGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, ENTITY_MAPPING).create()
+        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, ENTITY_MAPPING).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
@@ -127,7 +127,7 @@ class AWSVirtualNLPGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = AWSVirtualNLPGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, ENTITY_MAPPING).create()
+        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, ENTITY_MAPPING).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
