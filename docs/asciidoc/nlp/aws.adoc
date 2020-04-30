@@ -20,8 +20,10 @@ This section includes the following:
 * <<nlp-aws-dependencies>>
 * <<nlp-aws-api-key>>
 * <<nlp-aws-entities>>
+* <<nlp-aws-key-phrases>>
 * <<nlp-aws-examples>>
     ** <<nlp-aws-examples-entities>>
+    ** <<nlp-aws-examples-key-phrases>>
 
 [[nlp-aws-overview]]
 ==== Procedure Overview
@@ -100,6 +102,64 @@ YIELD value
 [source,cypher]
 ----
 CALL apoc.nlp.aws.entities.graph(source:Node or List<Node>, {
+  key: String,
+  secret: String,
+  nodeProperty: String,
+  relationshipType: String,
+  write: Boolean
+})
+YIELD graph
+----
+
+[[nlp-aws-key-phrases]]
+==== Key Phrases
+
+The key phrase procedures (`apoc.nlp.aws.keyPhrases.*`) are wrappers around the https://docs.aws.amazon.com/comprehend/latest/dg/how-key-phrases.html[Detect Key Phrases^] operations of the AWS Comprehend Natural Language API.
+A key phrase is a string containing a noun phrase that describes a particular thing. It generally consists of a noun and the modifiers that distinguish it.
+
+The procedures are described below:
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.nlp.aws.keyPhrases.csv[]
+|===
+
+The procedures support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| key | String | null | AWS Access Control Key
+| secret | String | null | AWS Access Control Secret
+| nodeProperty | String | text | The property on the provided node that contains the unstructured text to be analyzed
+|===
+
+In addition, `apoc.nlp.aws.keyPhrases.graph` supports the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| write | Boolean | false | persist the graph of entities
+| relationshipType | String | ENTITY | relationship type for relationships from source node to entity nodes
+|===
+
+.Streaming mode
+[source,cypher]
+----
+CALL apoc.nlp.aws.keyPhrases.stream(source:Node or List<Node>, {
+  key: String,
+  secret: String,
+  nodeProperty: String
+})
+YIELD value
+----
+
+.Graph mode
+[source,cypher]
+----
+CALL apoc.nlp.aws.keyPhrases.graph(source:Node or List<Node>, {
   key: String,
   secret: String,
   nodeProperty: String,
@@ -261,4 +321,37 @@ RETURN article.uri AS article,
 | article                                           | entities
 | "https://en.wikipedia.org/wiki/Nintendo_Switch"        | ["October 20, 2016", "Mario Kart 8", "March 3, 2017", "Nintendo Switch", "Nintendo"]
 | "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/" | ["Mario Kart 8", "European", "once", "Neo4j", "Nintendo Switch", "at least", "twice a week"]
+|===
+
+[[nlp-aws-examples-key-phrases]]
+===== Key Phrases
+
+Let's now extract the key phrases from the Article node.
+The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
+
+.The following streams the entities for the Pokemon article
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.aws.keyPhrases.stream(a, {
+  key: $apiKey,
+  secret: $apiSecret,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.keyPhrases AS keyPhrase
+RETURN keyPhrase;
+----
+
+.Results
+[opts="header"]
+|===
+| entity
+| {score: 0.780032217502594, endOffset: 71, text: "Nintendo Switch", type: "COMMERCIAL_ITEM", beginOffset: 56}
+| {score: 0.8155304193496704, endOffset: 151, text: "at least", type: "QUANTITY", beginOffset: 143}
+| {score: 0.7507548332214355, endOffset: 156, text: "once", type: "QUANTITY", beginOffset: 152}
+| {score: 0.8760746717453003, endOffset: 172, text: "twice a week", type: "QUANTITY", beginOffset: 160}
+| {score: 0.9944096803665161, endOffset: 217, text: "Mario Kart 8", type: "TITLE", beginOffset: 205}
+| {score: 0.9946564435958862, endOffset: 247, text: "Neo4j", type: "ORGANIZATION", beginOffset: 242}
+| {score: 0.6274040937423706, endOffset: 256, text: "European", type: "LOCATION", beginOffset: 248}
 |===
