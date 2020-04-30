@@ -17,6 +17,7 @@ Each procedure has two modes:
 This section includes the following:
 
 * <<nlp-gcp-overview>>
+* <<nlp-gcp-dependencies>>
 * <<nlp-gcp-api-key>>
 * <<nlp-gcp-entities>>
 * <<nlp-gcp-classify>>
@@ -34,6 +35,12 @@ The procedures are described below:
 include::../../../build/generated-documentation/apoc.nlp.gcp.entities.csv[]
 include::../../../build/generated-documentation/apoc.nlp.gcp.classify.csv[lines=2..3]
 |===
+
+[[nlp-gcp-dependencies]]
+==== Install Dependencies
+
+include::nlp-dependencies.adoc[]
+
 
 [[nlp-gcp-api-key]]
 ==== Setting up API Key
