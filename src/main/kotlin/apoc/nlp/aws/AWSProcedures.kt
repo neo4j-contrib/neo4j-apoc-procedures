@@ -38,16 +38,11 @@ class AWSProcedures {
 
         val convertedSource = convert(source)
 
-        val batches = Lists.partition(convertedSource, 25)
+        val batches = partition(convertedSource, 25)
 
         return batches.mapIndexed { index, batch -> Pair(batch, client.entities(batch, index)) }.stream()
                 .flatMap { (batch, result) ->
                     batch.mapIndexed { index, node  -> transformResults(index, node, result!!) }.stream() }
-    }
-
-    private fun awsClient(config: Map<String, Any>): AWSClient {
-        val useDummyClient  = config.getOrDefault("unsupportedDummyClient", false) as Boolean
-        return if (useDummyClient) DummyAWSClient(config, log!!) else RealAWSClient(config, log!!)
     }
 
     @Procedure(value = "apoc.nlp.aws.entities.graph", mode = Mode.WRITE)
@@ -60,7 +55,7 @@ class AWSProcedures {
         verifyKey(config, "key")
         verifyKey(config, "secret")
 
-        val client = RealAWSClient(config, log!!)
+        val client = awsClient(config)
         val convertedSource = convert(source)
         val detectEntitiesResult = client.entities(convertedSource, 0)
 
@@ -74,6 +69,11 @@ class AWSProcedures {
         } else {
             Stream.of(virtualNLPGraph.create())
         }
+    }
+
+    private fun awsClient(config: Map<String, Any>): AWSClient {
+        val useDummyClient  = config.getOrDefault("unsupportedDummyClient", false) as Boolean
+        return if (useDummyClient) DummyAWSClient(config, log!!) else RealAWSClient(config, log!!)
     }
 
     companion object {
@@ -129,6 +129,20 @@ class AWSProcedures {
             if (!node.hasProperty(nodeProperty)) {
                 throw IllegalArgumentException("$node does not have property `$nodeProperty`. Property can be configured using parameter `nodeProperty`.")
             }
+        }
+
+        fun partition(nodes: List<Node>, size: Int): List<List<Node>> {
+            if(size < 1) throw java.lang.IllegalArgumentException("size must be >= 1, but was:$size")
+
+            var count = 0
+            val result: MutableList<List<Node>> = mutableListOf()
+
+            while(count < nodes.size) {
+                result.add(nodes.subList(count, nodes.size.coerceAtMost(count + size)))
+                count += size
+            }
+
+            return result
         }
     }
 
