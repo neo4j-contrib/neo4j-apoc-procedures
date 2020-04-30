@@ -247,7 +247,7 @@ class AWSProceduresAPIWithDummyClientTest {
             val relationships = row2["relationships"] as List<Relationship>
             Assert.assertEquals(3, nodes.size) // 2 dummy nodes + source node
 
-            val dummyLabels = listOf(Label {"Keyphrase"})
+            val dummyLabels = listOf(Label {"KeyPhrase"})
 
             assertThat(nodes, hasItem(sourceNode))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-1-index-0-batch-1"))))
