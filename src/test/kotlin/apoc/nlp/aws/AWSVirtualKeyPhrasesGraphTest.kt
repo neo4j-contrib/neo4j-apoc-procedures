@@ -26,7 +26,7 @@ class AWSVirtualKeyPhrasesGraphTest {
         assertEquals(2, nodes.size)
         assertThat(nodes, hasItem(sourceNode))
 
-        val barLabels = listOf(Label { "KeyPhrase" })
+        val barLabels = listOf(Label { "Keyphrase" })
         val barProperties = mapOf("text" to "foo")
         assertThat(nodes, hasItem(NodeMatcher(barLabels, barProperties)))
 
@@ -52,8 +52,8 @@ class AWSVirtualKeyPhrasesGraphTest {
         assertEquals(3, nodes.size)
         assertThat(nodes, hasItem(sourceNode))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Matrix"))
-        val notebookNode = VirtualNode(arrayOf( Label{"KeyPhrase"}), mapOf("text" to "The Notebook"))
+        val matrixNode = VirtualNode(arrayOf(Label{"Keyphrase"}), mapOf("text" to "The Matrix"))
+        val notebookNode = VirtualNode(arrayOf( Label{"Keyphrase"}), mapOf("text" to "The Notebook"))
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
@@ -88,10 +88,10 @@ class AWSVirtualKeyPhrasesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Matrix"))
-        val notebookNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Notebook"))
-        val toyStoryNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "Toy Story"))
-        val titanicNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "Titanic"))
+        val matrixNode = VirtualNode(arrayOf(Label{"Keyphrase"}), mapOf("text" to "The Matrix"))
+        val notebookNode = VirtualNode(arrayOf(Label{"Keyphrase"}), mapOf("text" to "The Notebook"))
+        val toyStoryNode = VirtualNode(arrayOf(Label{"Keyphrase"}), mapOf("text" to "Toy Story"))
+        val titanicNode = VirtualNode(arrayOf(Label{"Keyphrase"}), mapOf("text" to "Titanic"))
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
@@ -132,10 +132,10 @@ class AWSVirtualKeyPhrasesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Matrix"))
-        val notebookNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Notebook"))
-        val titanicNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "Titanic"))
-        val topBoyNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "Top Boy"))
+        val matrixNode = VirtualNode(arrayOf(Label{"Keyphrase"}), mapOf("text" to "The Matrix"))
+        val notebookNode = VirtualNode(arrayOf(Label{"Keyphrase"}), mapOf("text" to "The Notebook"))
+        val titanicNode = VirtualNode(arrayOf(Label{"Keyphrase"}), mapOf("text" to "Titanic"))
+        val topBoyNode = VirtualNode(arrayOf(Label{"Keyphrase"}), mapOf("text" to "Top Boy"))
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
