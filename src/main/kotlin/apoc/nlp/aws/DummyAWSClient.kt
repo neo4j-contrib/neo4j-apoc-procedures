@@ -15,8 +15,8 @@ class DummyAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient
 
          convertedData.mapIndexed { index, value ->
              batchResults += BatchDetectEntitiesItemResult().withEntities(
-                     Entity().withText("token-1-index-$index-batch-$batchId").withType("Dummy"),
-                     Entity().withText("token-2-index-$index-batch-$batchId").withType("Dummy"))
+                     Entity().withText("token-1-index-$index-batch-$batchId").withType(EntityType.COMMERCIAL_ITEM),
+                     Entity().withText("token-2-index-$index-batch-$batchId").withType(EntityType.ORGANIZATION))
                      .withIndex(index)
          }
 
