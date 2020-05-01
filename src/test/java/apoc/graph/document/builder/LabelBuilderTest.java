@@ -16,12 +16,23 @@ public class LabelBuilderTest {
     @Test
     public void firstLetterOfWordCapitalised() {
         Map<String, Object> conf = new HashMap<>();
-        conf.put("mappings", MapUtil.map("$", "hello{!text,@metadata}"));
+        conf.put("mappings", MapUtil.map("$", "keyPhrase{!text,@metadata}"));
 
         LabelBuilder labelBuilder = new LabelBuilder(new GraphsConfig(conf));
         Label[] labels = labelBuilder.buildLabel(new HashMap<>(), "$");
 
-        assertThat(labels, Matchers.arrayContaining(Matchers.equalTo(Label.label("Hello"))));
+        assertThat(labels, Matchers.arrayContaining(Label.label("Keyphrase")));
+    }
+
+    @Test
+    public void firstLetterOfAllCapsWordCapitalised() {
+        Map<String, Object> conf = new HashMap<>();
+        conf.put("mappings", MapUtil.map("$", "COMMERCIAL_ITEM{!text,@metadata}"));
+
+        LabelBuilder labelBuilder = new LabelBuilder(new GraphsConfig(conf));
+        Label[] labels = labelBuilder.buildLabel(new HashMap<>(), "$");
+
+        assertThat(labels, Matchers.arrayContaining(Label.label("CommercialItem")));
     }
 
     @Test
@@ -32,17 +43,17 @@ public class LabelBuilderTest {
         LabelBuilder labelBuilder = new LabelBuilder(new GraphsConfig(conf));
         Label[] labels = labelBuilder.buildLabel(new HashMap<>(), "$");
 
-        assertThat(labels, Matchers.arrayContaining(Matchers.equalTo(Label.label("KeyPhrase"))));
+        assertThat(labels, Matchers.arrayContaining(Label.label("KeyPhrase")));
     }
 
     @Test
     public void firstLetterOfWordsCapitalised() {
-        Map<String, Object> conf = new HashMap<>();
+        Map<String, Object> conf = new HashMap< >();
         conf.put("mappings", MapUtil.map("$", "KeyPhrase{!text,@metadata}"));
 
         LabelBuilder labelBuilder = new LabelBuilder(new GraphsConfig(conf));
         Label[] labels = labelBuilder.buildLabel(new HashMap<>(), "$");
 
-        assertThat(labels, Matchers.arrayContaining(Matchers.equalTo(Label.label("KeyPhrase"))));
+        assertThat(labels, Matchers.arrayContaining(Label.label("Keyphrase")));
     }
 }

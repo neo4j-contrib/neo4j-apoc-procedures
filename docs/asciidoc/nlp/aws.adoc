@@ -119,7 +119,8 @@ YIELD graph
 ==== Key Phrases
 
 The key phrase procedures (`apoc.nlp.aws.keyPhrases.*`) are wrappers around the https://docs.aws.amazon.com/comprehend/latest/dg/how-key-phrases.html[Detect Key Phrases^] operations of the AWS Comprehend Natural Language API.
-A key phrase is a string containing a noun phrase that describes a particular thing. It generally consists of a noun and the modifiers that distinguish it.
+A key phrase is a string containing a noun phrase that describes a particular thing.
+It generally consists of a noun and the modifiers that distinguish it.
 
 The procedures are described below:
 
@@ -371,7 +372,7 @@ We can then write a query to return the entities that have been created.
 ----
 MATCH (article:Article)
 RETURN article.uri AS article,
-       [(article)-[:HAS_ENTITY]->(e) | e.text] AS entities;
+       [(article)-[:HAS_ENTITY]->(e:Entity) | e.text] AS entities;
 ----
 
 .Results
@@ -420,11 +421,11 @@ RETURN keyPhrase;
 |===
 
 Alternatively we can use the graph mode to automatically create a key phrase graph.
-One node with the `KeyPhrase` label will be created for each key phrase extracted.
+One node with the `Keyphrase` label will be created for each key phrase extracted.
 
 By default a virtual graph is returned, but the graph can be persisted by specifying the `write: true` configuration.
 
-.The following returns a virtual graph of entities for the Pokemon article
+.The following returns a graph of key phrases for the Pokemon article
 [source,cypher]
 ----
 MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
@@ -433,7 +434,7 @@ CALL apoc.nlp.aws.keyPhrases.graph(a, {
   secret: $apiSecret,
   nodeProperty: "body",
   relationshipType: "KEY_PHRASE",
-  write: false
+  write: true
 })
 YIELD graph AS g
 RETURN g;
@@ -443,6 +444,23 @@ We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.aws.
 
 [[apoc.nlp.aws.keyPhrases.graph.svg]]
 image::apoc.nlp.aws.keyPhrases.graph.svg[title="Pokemon key phrases graph"]
+
+We can then write a query to return the key phrases that have been created.
+
+.The following returns articles and their entities
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+RETURN a.uri AS article,
+       [(a)-[:KEY_PHRASE]->(k:Keyphrase) | k.text] AS keyPhrases;
+----
+
+.Results
+[opts="header"]
+|===
+| article                                                | keyPhrases
+| "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/" | ["the Neo4j European offices", "a week", "friends", "8 tournaments", "lunch-time Mario Kart", "card games", "board games", "role playing games", "my Nintendo Switch", "more than a few feet", "These days"]
+|===
 
 [[nlp-aws-examples-sentiment]]
 ===== Sentiment

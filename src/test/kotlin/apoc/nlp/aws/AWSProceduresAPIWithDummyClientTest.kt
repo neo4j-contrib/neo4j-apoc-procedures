@@ -59,8 +59,8 @@ class AWSProceduresAPIWithDummyClientTest {
             val value = row1["value"] as Map<*, *>
             val entities = value["entities"] as List<*>
 
-            assertThat(entities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-1-index-0-batch-0", "type" to "Dummy")))
-            assertThat(entities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-2-index-0-batch-0", "type" to "Dummy")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-1-index-0-batch-0", "type" to "COMMERCIAL_ITEM")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-2-index-0-batch-0", "type" to "ORGANIZATION")))
 
             assertTrue(it.hasNext())
 
@@ -68,8 +68,8 @@ class AWSProceduresAPIWithDummyClientTest {
             val value2 = row2["value"] as Map<*, *>
             val entities2 = value2["entities"] as List<*>
 
-            assertThat(entities2, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-1-index-1-batch-0", "type" to "Dummy")))
-            assertThat(entities2, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-2-index-1-batch-0", "type" to "Dummy")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-1-index-1-batch-0", "type" to "COMMERCIAL_ITEM")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-2-index-1-batch-0", "type" to "ORGANIZATION")))
         }
     }
 
@@ -96,8 +96,8 @@ class AWSProceduresAPIWithDummyClientTest {
             val allEntities = value.stream().flatMap { v -> ((v as Map<*, *>)["entities"] as List<*>).stream() }.collect(Collectors.toList())
 
             // assert that we have entries from the 2nd batch
-            assertThat(allEntities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-1-index-0-batch-1", "type" to "Dummy")))
-            assertThat(allEntities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-2-index-0-batch-1", "type" to "Dummy")))
+            assertThat(allEntities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-1-index-0-batch-1", "type" to "COMMERCIAL_ITEM")))
+            assertThat(allEntities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to null, "text" to "token-2-index-0-batch-1", "type" to "ORGANIZATION")))
         }
     }
 
@@ -137,16 +137,16 @@ class AWSProceduresAPIWithDummyClientTest {
             val relationships = row2["relationships"] as List<Relationship>
             Assert.assertEquals(3, nodes.size) // 2 dummy nodes + source node
 
-            val dummyLabels = listOf(Label { "Dummy"}, Label {"Entity"})
+            val dummyLabels1 = listOf(Label { "CommercialItem"}, Label {"Entity"})
+            val dummyLabels2 = listOf(Label { "Organization"}, Label {"Entity"})
 
             assertThat(nodes, hasItem(sourceNode))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "token-1-index-0-batch-1", "type" to "Dummy"))))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "token-2-index-0-batch-1", "type" to "Dummy"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels1, mapOf("text" to "token-1-index-0-batch-1", "type" to "COMMERCIAL_ITEM"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-1", "type" to "ORGANIZATION"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "token-1-index-0-batch-1", "type" to "Dummy")), "ENTITY")))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "token-2-index-0-batch-1", "type" to "Dummy")), "ENTITY")))
-
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels1.toTypedArray(), mapOf("text" to "token-1-index-0-batch-1", "type" to "COMMERCIAL_ITEM")), "ENTITY")))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-1", "type" to "ORGANIZATION")), "ENTITY")))
         }
     }
 
@@ -249,7 +249,7 @@ class AWSProceduresAPIWithDummyClientTest {
             val relationships = row2["relationships"] as List<Relationship>
             Assert.assertEquals(3, nodes.size) // 2 dummy nodes + source node
 
-            val dummyLabels = listOf(Label {"KeyPhrase"})
+            val dummyLabels = listOf(Label {"Keyphrase"})
 
             assertThat(nodes, hasItem(sourceNode))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-1-index-0-batch-1"))))
