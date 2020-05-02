@@ -39,39 +39,46 @@ public class Semaphores extends LifecycleAdapter {
 
     @Override
     public void init() throws Exception {
-        Iterators.stream(apocConfig.getKeys("apoc.semaphore")).forEach(key -> {
-            int permits = apocConfig.getInt(key, -1);
-            semaphoreMap.put(key, new Semaphore(permits));
-            log.debug("created semaphore %s with %d permits", key, permits);
-        });
+        Iterators.stream(apocConfig.getKeys(ApocConfig.APOC_SEMAPHORE_PREFIX))
+                .filter(key -> !key.equals(ApocConfig.APOC_SEMAPHORE_DEFAULT_NAME))
+                .forEach(key -> {
+                    int permits = apocConfig.getInt(key, -1);
+                    String semaphoreName = key.substring(ApocConfig.APOC_SEMAPHORE_PREFIX.length() + 1);
+                    semaphoreMap.put(semaphoreName, new Semaphore(permits));
+                    log.debug("created semaphore %s with %d permits", key, permits);
+                });
     }
 
     public <T> Stream<T> withSemaphore(TerminationGuard terminationGuard, String semaphoreName, Supplier<Stream<T>> supplier) {
-        Semaphore semaphore = getSemaphoreOrThrow(semaphoreName);
-        long now = System.currentTimeMillis();
-        boolean permitAcquired = false;
-        try {
+        if (semaphoreName == null) {
+            return supplier.get();
+        } else {
+            Semaphore semaphore = getSemaphoreOrThrow(semaphoreName);
+            long now = System.currentTimeMillis();
+            boolean permitAcquired = false;
+            try {
 
-            // we can't simply use semaphore.acquire() here since it blocks and doesn't give us a chance for checking termination status
-            log.debug("about to acquire semaphore %s", semaphoreName);
-            while (!semaphore.tryAcquire(100, TimeUnit.MILLISECONDS)) {
-                terminationGuard.check();
-            }
-            permitAcquired = true;
-            log.debug("acquired semaphore %s in %d millis", semaphoreName, System.currentTimeMillis()-now);
+                // we can't simply use semaphore.acquire() here since it blocks and doesn't give us a chance for checking termination status
+                log.debug("about to acquire semaphore %s", semaphoreName);
+                while (!semaphore.tryAcquire(100, TimeUnit.MILLISECONDS)) {
+                    terminationGuard.check();
+                }
+                permitAcquired = true;
+                log.debug("acquired semaphore %s in %d millis", semaphoreName, System.currentTimeMillis()-now);
 
-            return supplier.get().onClose(() -> {
-                semaphore.release();
-                log.debug("released semaphore %s after %d millis", semaphoreName, System.currentTimeMillis()-now);
-            });
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (RuntimeException e) {
-            if (permitAcquired) {
-                semaphore.release();
+                return supplier.get().onClose(() -> {
+                    semaphore.release();
+                    log.debug("released semaphore %s after %d millis", semaphoreName, System.currentTimeMillis()-now);
+                });
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (RuntimeException e) {
+                if (permitAcquired) {
+                    semaphore.release();
+                }
+                log.debug("released semaphore %s after %d millis due to %s", semaphoreName, System.currentTimeMillis()-now, e.getMessage());
+                throw e;
             }
-            log.debug("released semaphore %s after %d millis due to %s", semaphoreName, System.currentTimeMillis()-now, e.getMessage());
-            throw e;
         }
     }
 
@@ -89,6 +96,10 @@ public class Semaphores extends LifecycleAdapter {
 
     public void remove(String semaphoreName) {
         semaphoreMap.remove(semaphoreName);
+    }
+
+    public boolean hasSemaphore(String semaphoreName) {
+        return semaphoreMap.containsKey(semaphoreName);
     }
 
     private Semaphore getSemaphoreOrThrow(String semaphoreName) {
