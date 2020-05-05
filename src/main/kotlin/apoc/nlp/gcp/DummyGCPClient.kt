@@ -19,11 +19,20 @@ class DummyGCPClient(config: Map<String, Any>, private val log: Log) : GCPClient
         }
 
         return batchResults
-
     }
 
     override fun classify(nodes: List<Node>, batchId: Int): List<NodeValueErrorMapResult> {
-        TODO("Not yet implemented")
+        val batchResults: MutableList<NodeValueErrorMapResult> = mutableListOf()
+
+        nodes.mapIndexed { index, node ->
+            val value = mapOf("categories" to listOf(
+                    mapOf("name" to  "category-1-index-${index}-batch-${batchId}", "confidence" to 0.1),
+                    mapOf("name" to  "category-2-index-${index}-batch-${batchId}", "confidence" to 0.2)
+            ))
+            batchResults += NodeValueErrorMapResult.withResult(node, value)
+        }
+
+        return batchResults
     }
 
 

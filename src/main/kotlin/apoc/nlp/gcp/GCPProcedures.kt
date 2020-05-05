@@ -1,6 +1,6 @@
 package apoc.nlp.gcp
 
-import apoc.nlp.AWSVirtualEntitiesGraph
+import apoc.nlp.GCPVirtualClassificationGraph
 import apoc.nlp.GCPVirtualEntitiesGraph
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPHelperFunctions.Companion.convert
@@ -9,9 +9,8 @@ import apoc.nlp.NLPHelperFunctions.Companion.partition
 import apoc.nlp.NLPHelperFunctions.Companion.verifyKey
 import apoc.nlp.NLPHelperFunctions.Companion.verifyNodeProperty
 import apoc.nlp.NLPHelperFunctions.Companion.verifySource
-import apoc.result.*
-import org.neo4j.graphdb.Node
-import org.neo4j.graphdb.RelationshipType
+import apoc.result.NodeValueErrorMapResult
+import apoc.result.VirtualGraph
 import org.neo4j.graphdb.Transaction
 import org.neo4j.logging.Log
 import org.neo4j.procedure.*
@@ -34,7 +33,7 @@ class GCPProcedures {
         verifySource(source)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(source, nodeProperty)
-        NLPHelperFunctions.verifyKey(config, "key")
+        verifyKey(config, "key")
 
         val client = gcpClient(config)
 
@@ -52,7 +51,7 @@ class GCPProcedures {
         verifySource(source)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(source, nodeProperty)
-        NLPHelperFunctions.verifyKey(config, "key")
+        verifyKey(config, "key")
 
         val client = gcpClient(config)
         val relationshipType = NLPHelperFunctions.entityRelationshipType(config)
@@ -68,61 +67,43 @@ class GCPProcedures {
 
     @Procedure(value = "apoc.nlp.gcp.classify.stream", mode = Mode.READ)
     @Description("Classifies a document into categories.")
-    fun classifyStream(@Name("sourceNode") sourceNode: Node,
+    fun classifyStream(@Name("source") source: Any,
                        @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
-            : Stream<MapResult> {
-        verifyKey(config, "key")
+            : Stream<NodeValueErrorMapResult> {
+        verifySource(source)
         val nodeProperty = getNodeProperty(config)
-        verifyNodeProperty(sourceNode, nodeProperty)
+        verifyNodeProperty(source, nodeProperty)
+        verifyKey(config, "key")
 
-//        return Stream.of(classify(config, sourceNode, nodeProperty))
-        return Stream.of()
+        val client = gcpClient(config)
+
+        val convertedSource = convert(source)
+        val batches = partition(convertedSource, 25)
+        return batches.mapIndexed { index, batch -> Pair(batch, client.classify(batch, index)) }.stream()
+                .flatMap { (_, result) ->  result.map { it }.stream() }
     }
 
     @Procedure(value = "apoc.nlp.gcp.classify.graph", mode = Mode.WRITE)
     @Description("Classifies a document into categories.")
-    fun classifyGraph(@Name("sourceNode") sourceNode: Node,
+    fun classifyGraph(@Name("source") source: Any,
                       @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
             : Stream<VirtualGraph> {
-        verifyKey(config, "key")
+        verifySource(source)
         val nodeProperty = getNodeProperty(config)
-        verifyNodeProperty(sourceNode, nodeProperty)
+        verifyNodeProperty(source, nodeProperty)
+        verifyKey(config, "key")
 
-//        val response = classify(config, sourceNode, nodeProperty).value
-//
-//        val storeGraph:Boolean = config.getOrDefault("write", false) as Boolean
-//        val graphConfig = mapOf(
-//                "skipValidation" to true,
-//                "mappings" to mapOf("$" to "Category{!name,type,@metadata}"),
-//                "write" to storeGraph
-//        )
-//
-//        val documentToGraph = DocumentToGraph(tx, GraphsConfig(graphConfig))
-//        val graph = documentToGraph.create(response["categories"])
-//
-//        val mutableGraph = graph.graph.toMutableMap()
-//
-//        val nodes = (mutableGraph["nodes"] as Set<Node>).toMutableSet()
-//        val relationships = (mutableGraph["relationships"] as Set<Relationship>).toMutableSet()
-//        val node = if(storeGraph) {
-//            mergeRelationships(tx!!, sourceNode, nodes, classifyRelationshipType(config)).forEach { rel -> relationships.add(rel) }
-//            sourceNode
-//        } else {
-//            val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
-//            createRelationships(virtualNode, nodes, classifyRelationshipType(config)).forEach { rel -> relationships.add(rel) }
-//            virtualNode
-//        }
-//        nodes.add(node)
+        val client = gcpClient(config)
+        val relationshipType = NLPHelperFunctions.categoryRelationshipType(config)
+        val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
 
-//        return Stream.of(VirtualGraph("Graph", nodes, relationships, emptyMap()))
-        return Stream.of()
+        val convertedSource = convert(source)
+        return partition(convertedSource, 25)
+                .mapIndexed { index, batch -> Pair(batch, client.classify(batch, index))  }
+                .map { (batch, result) -> GCPVirtualClassificationGraph(result, batch, relationshipType) }
+                .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
+                .stream()
     }
-
-//    @Procedure(value = "apoc.nlp.gcp.sentiment.stream", mode = Mode.READ)
-//    @Description("Analyzes the sentiment of the provided text.")
-//    fun sentimentStream(@Name("data") data: Any,
-//                  @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
-//            : Stream<AIMapResult> = Stream.of(GCPClient(config["key"].toString(), log!!).sentiment(data, config))
 
 
     private fun gcpClient(config: Map<String, Any>): GCPClient {
@@ -130,24 +111,4 @@ class GCPProcedures {
         return if (useDummyClient) DummyGCPClient(config, log!!) else RealGCPClient(config, log!!)
     }
 
-
-    private fun classifyRelationshipType(config: Map<String, Any>) =
-            RelationshipType.withName(config.getOrDefault("relationshipType", "CATEGORY").toString())
-
-
-
-    private fun verifyNodeProperty(node: Node, nodeProperty: String) {
-        if (!node.hasProperty(nodeProperty)) {
-            throw IllegalArgumentException("$node does not have property `$nodeProperty`. Property can be configured using parameter `nodeProperty`.")
-        }
-    }
-
-    private fun verifyKey(config: Map<String, Any>, property: String) {
-        if (!config.containsKey(property)) {
-            throw IllegalArgumentException("Missing parameter `key`. An API key for the Cloud Natural Language API can be generated from https://console.cloud.google.com/apis/credentials")
-        }
-    }
-
-
 }
-
