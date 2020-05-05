@@ -1,8 +1,7 @@
 package apoc.nlp.aws
 
-import apoc.result.VirtualNode
 import com.amazonaws.services.comprehend.model.*
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito
 import org.neo4j.graphdb.Node
@@ -142,22 +141,6 @@ class AWSProceduresTest {
         assertEquals(mapOf("text" to "foo", "score" to 2.0F, "beginOffset" to 0L, "endOffset" to 3L), entities[0])
     }
 
-    @Test
-    fun `should partition sources`() {
-        assertEquals(
-                listOf(listOf(VirtualNode(1), VirtualNode(2), VirtualNode(3)), listOf(VirtualNode(4))),
-                AWSProcedures.partition(listOf( VirtualNode(1), VirtualNode(2), VirtualNode(3), VirtualNode(4)), 3)
-        )
 
-        assertEquals(
-                listOf(listOf(VirtualNode(1), VirtualNode(2), VirtualNode(3))),
-                AWSProcedures.partition(listOf( VirtualNode(1), VirtualNode(2), VirtualNode(3)), 3)
-        )
-
-        assertEquals(
-                listOf(listOf(VirtualNode(1)), listOf(VirtualNode(2)), listOf(VirtualNode(3))),
-                AWSProcedures.partition(listOf( VirtualNode(1), VirtualNode(2), VirtualNode(3)), 1)
-        )
-    }
 }
 

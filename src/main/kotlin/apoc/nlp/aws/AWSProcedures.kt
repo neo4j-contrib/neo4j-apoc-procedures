@@ -5,6 +5,12 @@ import apoc.nlp.AWSVirtualEntitiesGraph
 import apoc.nlp.AWSVirtualKeyPhrasesGraph
 import apoc.nlp.AWSVirtualSentimentVirtualGraph
 import apoc.nlp.NLPHelperFunctions
+import apoc.nlp.NLPHelperFunctions.Companion.getNodeProperty
+import apoc.nlp.NLPHelperFunctions.Companion.keyPhraseRelationshipType
+import apoc.nlp.NLPHelperFunctions.Companion.partition
+import apoc.nlp.NLPHelperFunctions.Companion.verifyKey
+import apoc.nlp.NLPHelperFunctions.Companion.verifyNodeProperty
+import apoc.nlp.NLPHelperFunctions.Companion.verifySource
 import apoc.result.NodeWithMapResult
 import apoc.result.VirtualGraph
 import apoc.util.JsonUtil
@@ -38,10 +44,8 @@ class AWSProcedures {
 
         val client: AWSClient = awsClient(config)
 
-        val convertedSource = convert(source)
-
+        val convertedSource = NLPHelperFunctions.convert(source)
         val batches = partition(convertedSource, 25)
-
         return batches.mapIndexed { index, batch -> Pair(batch, client.entities(batch, index)) }.stream()
                 .flatMap { (batch, result) ->
                     batch.mapIndexed { index, node  -> transformResults(index, node, result!!) }.stream() }
@@ -61,7 +65,7 @@ class AWSProcedures {
         val relationshipType = NLPHelperFunctions.entityRelationshipType(config)
         val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
 
-        val convertedSource = convert(source)
+        val convertedSource = NLPHelperFunctions.convert(source)
 
         return partition(convertedSource, 25)
                 .mapIndexed { index, batch -> Pair(batch, client.entities(batch, index))  }
@@ -82,7 +86,7 @@ class AWSProcedures {
 
         val client: AWSClient = awsClient(config)
 
-        val convertedSource = convert(source)
+        val convertedSource = NLPHelperFunctions.convert(source)
 
         val batches = partition(convertedSource, 25)
 
@@ -102,10 +106,10 @@ class AWSProcedures {
         verifyKey(config, "secret")
 
         val client = awsClient(config)
-        val relationshipType = NLPHelperFunctions.keyPhraseRelationshipType(config)
+        val relationshipType = keyPhraseRelationshipType(config)
         val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
 
-        val convertedSource = convert(source)
+        val convertedSource = NLPHelperFunctions.convert(source)
 
         return partition(convertedSource, 25)
                 .mapIndexed { index, batch -> Pair(batch, client.keyPhrases(batch, index))  }
@@ -126,7 +130,7 @@ class AWSProcedures {
 
         val client: AWSClient = awsClient(config)
 
-        val convertedSource = convert(source)
+        val convertedSource = NLPHelperFunctions.convert(source)
 
         val batches = partition(convertedSource, 25)
 
@@ -148,7 +152,7 @@ class AWSProcedures {
         val client = awsClient(config)
         val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
 
-        val convertedSource = convert(source)
+        val convertedSource = NLPHelperFunctions.convert(source)
 
         return partition(convertedSource, 25)
                 .mapIndexed { index, batch -> Pair(batch, client.sentiment(batch, index))  }
@@ -193,63 +197,9 @@ class AWSProcedures {
             }
         }
 
-        private fun convert(source: Any): List<Node> {
-            return when (source) {
-                is Node -> listOf(source)
-                is List<*> -> source.map { item -> item as Node }
-                else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
-            }
-        }
 
-        private fun verifySource(source: Any) {
-            when (source) {
-                is Node -> return
-                is List<*> -> source.forEach { item ->
-                    if (item !is Node) {
-                        throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
-                    }
-                }
-                else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
-            }
-        }
 
-        private fun verifyNodeProperty(source: Any, nodeProperty: String) {
-            when (source) {
-                is Node -> verifyNodeProperty(source, nodeProperty)
-                is List<*> -> source.forEach { node -> verifyNodeProperty(node as Node, nodeProperty) }
-                else -> throw java.lang.IllegalArgumentException("`source` must be a node or list of nodes, but was: `${source}`")
-            }
-        }
 
-        private fun verifyKey(config: Map<String, Any>, property: String) {
-            if (!config.containsKey(property)) {
-                throw IllegalArgumentException("Missing parameter `$property`. An API key for the Amazon Comprehend API can be generated from https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html")
-            }
-        }
-
-        private fun getNodeProperty(config: Map<String, Any>): String {
-            return config.getOrDefault("nodeProperty", "text").toString()
-        }
-
-        private fun verifyNodeProperty(node: Node, nodeProperty: String) {
-            if (!node.hasProperty(nodeProperty)) {
-                throw IllegalArgumentException("$node does not have property `$nodeProperty`. Property can be configured using parameter `nodeProperty`.")
-            }
-        }
-
-        fun partition(nodes: List<Node>, size: Int): List<List<Node>> {
-            if(size < 1) throw java.lang.IllegalArgumentException("size must be >= 1, but was:$size")
-
-            var count = 0
-            val result: MutableList<List<Node>> = mutableListOf()
-
-            while(count < nodes.size) {
-                result.add(nodes.subList(count, nodes.size.coerceAtMost(count + size)))
-                count += size
-            }
-
-            return result
-        }
     }
 
 }

@@ -9,7 +9,7 @@ import org.neo4j.graphdb.Relationship
 import org.neo4j.graphdb.RelationshipType
 import org.neo4j.graphdb.Transaction
 
-abstract class AWSVirtualGraph(private val sourceNodes: List<Node>, val relationshipType: RelationshipType, val mapping: Map<String, String>) {
+abstract class NLPVirtualGraph(private val sourceNodes: List<Node>, val relationshipType: RelationshipType, val mapping: Map<String, String>) {
     fun createAndStore(transaction: Transaction?): VirtualGraph {
         return createVirtualGraph(transaction)
     }
