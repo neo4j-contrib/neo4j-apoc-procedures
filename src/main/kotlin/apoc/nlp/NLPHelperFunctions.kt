@@ -24,6 +24,7 @@ class NLPHelperFunctions {
         }
 
         fun entityRelationshipType(config: Map<String, Any>): RelationshipType = RelationshipType.withName(config.getOrDefault("relationshipType", "ENTITY").toString())
+        fun categoryRelationshipType(config: Map<String, Any>): RelationshipType = RelationshipType.withName(config.getOrDefault("relationshipType", "CATEGORY").toString())
         fun keyPhraseRelationshipType(config: Map<String, Any>): RelationshipType = RelationshipType.withName(config.getOrDefault("relationshipType", "KEY_PHRASE").toString())
 
         fun getNodeProperty(config: Map<String, Any>): String {
