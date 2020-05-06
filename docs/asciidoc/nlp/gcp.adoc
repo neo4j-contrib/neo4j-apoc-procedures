@@ -17,10 +17,10 @@ Each procedure has two modes:
 This section includes the following:
 
 * <<nlp-gcp-overview>>
+    ** <<nlp-gcp-entities>>
+    ** <<nlp-gcp-classify>>
 * <<nlp-gcp-dependencies>>
 * <<nlp-gcp-api-key>>
-* <<nlp-gcp-entities>>
-* <<nlp-gcp-classify>>
 * <<nlp-gcp-examples>>
     ** <<nlp-gcp-examples-entities>>
     ** <<nlp-gcp-examples-classify>>
@@ -36,26 +36,8 @@ include::../../../build/generated-documentation/apoc.nlp.gcp.entities.csv[]
 include::../../../build/generated-documentation/apoc.nlp.gcp.classify.csv[lines=2..3]
 |===
 
-[[nlp-gcp-dependencies]]
-==== Install Dependencies
-
-include::nlp-dependencies.adoc[]
-
-
-[[nlp-gcp-api-key]]
-==== Setting up API Key
-
-We can generate an API Key that has access to the Cloud Natural Language API by going to https://console.cloud.google.com/apis/credentials[console.cloud.google.com/apis/credentials^].
-Once we've created a key, we can populate and execute the following command to create a parameter that contains these details.
-
-.The following defines the `apiKey` parameter
-[source,cypher]
-----
-:param apiKey => ("<api-key-here>")
-----
-
 [[nlp-gcp-entities]]
-==== Entity Extraction
+===== Entity Extraction
 
 The entity extraction procedures (`apoc.nlp.gcp.entities.*`) are wrappers around the https://cloud.google.com/natural-language/docs/reference/rest/v1/documents/analyzeEntities[`documents.analyzeEntities`^] method of the Google Natural Language API.
 This API method finds named entities (currently proper names and common nouns) in the text along with entity types, salience, mentions for each entity, and other properties.
@@ -111,7 +93,7 @@ YIELD graph
 
 
 [[nlp-gcp-classify]]
-==== Classification
+===== Classification
 
 The entity extraction procedures (`apoc.nlp.gcp.classify.*`) are wrappers around the https://cloud.google.com/natural-language/docs/reference/rest/v1/documents/classifyText[`documents.classifyText`^] method of the Google Natural Language API.
 This API method classifies a document into categories.
@@ -164,6 +146,27 @@ CALL apoc.nlp.gcp.classify.graph(sourceNode:Node, {
 })
 YIELD graph
 ----
+
+
+[[nlp-gcp-dependencies]]
+==== Install Dependencies
+
+include::nlp-dependencies.adoc[]
+
+
+[[nlp-gcp-api-key]]
+==== Setting up API Key
+
+We can generate an API Key that has access to the Cloud Natural Language API by going to https://console.cloud.google.com/apis/credentials[console.cloud.google.com/apis/credentials^].
+Once we've created a key, we can populate and execute the following command to create a parameter that contains these details.
+
+.The following defines the `apiKey` parameter
+[source,cypher]
+----
+:param apiKey => ("<api-key-here>")
+----
+
+
 
 
 [[nlp-gcp-examples]]

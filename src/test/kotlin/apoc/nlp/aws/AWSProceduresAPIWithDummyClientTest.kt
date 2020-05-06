@@ -1,5 +1,7 @@
 package apoc.nlp.aws
 
+import apoc.nlp.NodeMatcher
+import apoc.nlp.RelationshipMatcher
 import apoc.result.VirtualNode
 import apoc.util.TestUtil
 import org.junit.Assert
@@ -331,7 +333,7 @@ class AWSProceduresAPIWithDummyClientTest {
             Assert.assertEquals(1, nodes.size) // source node
 
             assertThat(nodes, hasItem(sourceNode))
-            assertThat(nodes, hasItem(NodeMatcher(listOf(Label {"Article7"}), mapOf("id" to 1234L, "body" to "test", "sentiment" to "Mixed", "sentimentScore" to 0.7F))))
+            assertThat(nodes, hasItem(NodeMatcher(listOf(Label { "Article7" }), mapOf("id" to 1234L, "body" to "test", "sentiment" to "Mixed", "sentimentScore" to 0.7F))))
 
         }
     }

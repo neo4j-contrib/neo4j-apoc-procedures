@@ -1,5 +1,6 @@
 package apoc.nlp.aws
 
+import apoc.nlp.NodeMatcher
 import apoc.nlp.aws.AWSVirtualSentimentVirtualGraph.Companion.extractSentiment
 import apoc.result.VirtualNode
 import com.amazonaws.services.comprehend.model.*

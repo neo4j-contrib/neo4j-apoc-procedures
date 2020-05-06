@@ -1,4 +1,4 @@
-package apoc.nlp.aws
+package apoc.nlp
 
 import apoc.result.VirtualNode
 import junit.framework.Assert.assertFalse

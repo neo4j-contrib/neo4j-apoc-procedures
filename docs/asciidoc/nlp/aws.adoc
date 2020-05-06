@@ -17,11 +17,11 @@ Each procedure has two modes:
 This section includes the following:
 
 * <<nlp-aws-overview>>
+    ** <<nlp-aws-entities>>
+    ** <<nlp-aws-key-phrases>>
+    ** <<nlp-aws-sentiment>>
 * <<nlp-aws-dependencies>>
 * <<nlp-aws-api-key>>
-* <<nlp-aws-entities>>
-* <<nlp-aws-key-phrases>>
-* <<nlp-aws-sentiment>>
 * <<nlp-aws-examples>>
     ** <<nlp-aws-examples-entities>>
     ** <<nlp-aws-examples-key-phrases>>
@@ -39,26 +39,8 @@ include::../../../build/generated-documentation/apoc.nlp.aws.keyPhrases.csv[line
 include::../../../build/generated-documentation/apoc.nlp.aws.sentiment.csv[lines=2;3]
 |===
 
-[[nlp-aws-dependencies]]
-==== Install Dependencies
-
-include::nlp-dependencies.adoc[]
-
-[[nlp-aws-api-key]]
-==== Setting up API Key and Secret
-
-We can generate an Access Key and Secret by following the instructions at https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html[docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html^].
-Once we've done that, we can populate and execute the following commands to create parameters that contains these details.
-
-.The following define the `apiKey` and `apiSecret` parameters
-[source,cypher]
-----
-:param apiKey => ("<api-key-here>");
-:param apiSecret => ("<api-secret-here>");
-----
-
 [[nlp-aws-entities]]
-==== Entity Extraction
+===== Entity Extraction
 
 The entity extraction procedures (`apoc.nlp.aws.entities.*`) are wrappers around the https://docs.aws.amazon.com/comprehend/latest/dg/how-entities.html[Detect Entities^] operations of the AWS Comprehend Natural Language API.
 This API method finds entities in the text, which are defined as a textual reference to the unique name of a real-world object such as people, places, and commercial items, and to precise references to measures such as dates and quantities.
@@ -116,7 +98,7 @@ YIELD graph
 ----
 
 [[nlp-aws-key-phrases]]
-==== Key Phrases
+===== Key Phrases
 
 The key phrase procedures (`apoc.nlp.aws.keyPhrases.*`) are wrappers around the https://docs.aws.amazon.com/comprehend/latest/dg/how-key-phrases.html[Detect Key Phrases^] operations of the AWS Comprehend Natural Language API.
 A key phrase is a string containing a noun phrase that describes a particular thing.
@@ -175,7 +157,7 @@ YIELD graph
 ----
 
 [[nlp-aws-sentiment]]
-==== Sentiment
+===== Sentiment
 
 The sentiment procedures (`apoc.nlp.aws.keyPhrases.*`) are wrappers around the https://docs.aws.amazon.com/comprehend/latest/dg/how-sentiment.html[Determine Sentiment^] operations of the AWS Comprehend Natural Language API.
 You can determine if the sentiment is positive, negative, neutral, or mixed.
@@ -230,6 +212,26 @@ CALL apoc.nlp.aws.sentiment.graph(source:Node or List<Node>, {
 })
 YIELD graph
 ----
+
+[[nlp-aws-dependencies]]
+==== Install Dependencies
+
+include::nlp-dependencies.adoc[]
+
+[[nlp-aws-api-key]]
+==== Setting up API Key and Secret
+
+We can generate an Access Key and Secret by following the instructions at https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html[docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html^].
+Once we've done that, we can populate and execute the following commands to create parameters that contains these details.
+
+.The following define the `apiKey` and `apiSecret` parameters
+[source,cypher]
+----
+:param apiKey => ("<api-key-here>");
+:param apiSecret => ("<api-secret-here>");
+----
+
+
 
 
 [[nlp-aws-examples]]

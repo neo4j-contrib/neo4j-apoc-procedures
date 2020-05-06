@@ -1,4 +1,4 @@
-package apoc.nlp.aws
+package apoc.nlp
 
 import org.hamcrest.Description
 

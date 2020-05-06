@@ -1,5 +1,7 @@
 package apoc.nlp.aws
 
+import apoc.nlp.NodeMatcher
+import apoc.nlp.RelationshipMatcher
 import apoc.result.VirtualNode
 import apoc.util.TestUtil
 import junit.framework.Assert.assertEquals
