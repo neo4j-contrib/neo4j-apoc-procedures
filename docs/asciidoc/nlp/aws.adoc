@@ -132,7 +132,7 @@ In addition, `apoc.nlp.aws.keyPhrases.graph` supports the following config param
 |===
 | name | type | default | description
 | write | Boolean | false | persist the graph of key phrases
-| relationshipType | String | ENTITY | relationship type for relationships from source node to entity nodes
+| writeRelationshipType | String | ENTITY | relationship type for relationships from source node to entity nodes
 |===
 
 .Streaming mode
@@ -153,7 +153,7 @@ CALL apoc.nlp.aws.keyPhrases.graph(source:Node or List<Node>, {
   key: String,
   secret: String,
   nodeProperty: String,
-  relationshipType: String,
+  writeRelationshipType: String,
   write: Boolean
 })
 YIELD graph
@@ -211,7 +211,7 @@ CALL apoc.nlp.aws.sentiment.graph(source:Node or List<Node>, {
   key: String,
   secret: String,
   nodeProperty: String,
-  relationshipType: String,
+  writeRelationshipType: String,
   write: Boolean
 })
 YIELD graph
@@ -234,6 +234,30 @@ Once we've done that, we can populate and execute the following commands to crea
 :param apiKey => ("<api-key-here>");
 :param apiSecret => ("<api-secret-here>");
 ----
+
+Alternatively we can add these credentials to `apoc.conf` and load them using the static value storage functions.
+See <<static-values>>.
+
+.apoc.conf
+[source,properties]
+----
+apoc.static.aws.apiKey=<api-key-here>
+apoc.static.aws.apiSecret=<api-secret-here>
+----
+
+
+.The following retrieves AWS credentials from `apoc.conf`
+[source,cypher]
+----
+RETURN apoc.static.getAll("aws") AS aws;
+----
+
+.Results
+[opts="header"]
+|===
+| aws
+| {apiKey: "<api-key-here>", apiSecret: "<api-secret-here>"}
+|===
 
 [[nlp-aws-examples]]
 ==== Examples

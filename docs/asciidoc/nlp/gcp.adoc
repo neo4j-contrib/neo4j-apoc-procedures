@@ -167,6 +167,29 @@ Once we've created a key, we can populate and execute the following command to c
 :param apiKey => ("<api-key-here>")
 ----
 
+Alternatively we can add these credentials to `apoc.conf` and load them using the static value storage functions.
+See <<static-values>>.
+
+.apoc.conf
+[source,properties]
+----
+apoc.static.gcp.apiKey=<api-key-here>
+----
+
+
+.The following retrieves GCP credentials from `apoc.conf`
+[source,cypher]
+----
+RETURN apoc.static.getAll("gcp") AS gcp;
+----
+
+.Results
+[opts="header"]
+|===
+| gcp
+| {apiKey: "<api-key-here>"}
+|===
+
 [[nlp-gcp-examples]]
 ==== Examples
 
