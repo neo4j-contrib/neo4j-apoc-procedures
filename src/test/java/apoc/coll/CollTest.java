@@ -105,8 +105,22 @@ public class CollTest {
     }
 
     @Test
-    public void testPartition() throws Exception {
+    public void testPartitionProcedure() throws Exception {
         testResult(db, "CALL apoc.coll.partition([1,2,3,4,5],2)",
+                (result) -> {
+                    Map<String, Object> row = result.next();
+                    assertEquals(asList(1L, 2L), row.get("value"));
+                    row = result.next();
+                    assertEquals(asList(3L, 4L), row.get("value"));
+                    row = result.next();
+                    assertEquals(asList(5L), row.get("value"));
+                    assertFalse(result.hasNext());
+                });
+    }
+
+    @Test
+    public void testPartitionFunction() throws Exception {
+        testResult(db, "UNWIND apoc.coll.partition([1,2,3,4,5],2) AS value RETURN value",
                 (result) -> {
                     Map<String, Object> row = result.next();
                     assertEquals(asList(1L, 2L), row.get("value"));
@@ -155,6 +169,7 @@ public class CollTest {
             assertFalse(r.hasNext());
         });
         testResult(db, "CALL apoc.coll.split([1,2,3],2)", r -> {
+            assertEquals(asList(1L), r.next().get("value"));
             assertEquals(asList(1L), r.next().get("value"));
             assertEquals(asList(3L), r.next().get("value"));
             assertFalse(r.hasNext());
