@@ -23,13 +23,26 @@ class NLPHelperFunctions {
             return transaction.execute(cypher, params).columnAs<Relationship>("r").stream()
         }
 
-        fun entityRelationshipType(config: Map<String, Any>): RelationshipType = RelationshipType.withName(config.getOrDefault("relationshipType", "ENTITY").toString())
-        fun categoryRelationshipType(config: Map<String, Any>): RelationshipType = RelationshipType.withName(config.getOrDefault("relationshipType", "CATEGORY").toString())
-        fun keyPhraseRelationshipType(config: Map<String, Any>): RelationshipType = RelationshipType.withName(config.getOrDefault("relationshipType", "KEY_PHRASE").toString())
+        fun entityRelationshipType(config: Map<String, Any>): RelationshipType  {
+            val selectedType = getSelectedType(config, listOf("writeRelationshipType", "relationshipType"), "ENTITY")
+            return RelationshipType.withName(selectedType.toString())
+        }
 
+        fun categoryRelationshipType(config: Map<String, Any>): RelationshipType {
+            val selectedType = getSelectedType(config, listOf("writeRelationshipType", "relationshipType"), "CATEGORY")
+            return RelationshipType.withName(selectedType.toString())
+        }
+
+        fun keyPhraseRelationshipType(config: Map<String, Any>): RelationshipType {
+            val selectedType = getSelectedType(config, listOf("writeRelationshipType", "relationshipType"), "KEY_PHRASE")
+            return RelationshipType.withName(selectedType.toString())
+        }
         fun getNodeProperty(config: Map<String, Any>): String {
             return config.getOrDefault("nodeProperty", "text").toString()
         }
+
+        private fun getSelectedType(config: Map<String, Any>, keys: List<String>, default: String) =
+                (keys.map { key -> config[key] } + default).filterNotNull().first()
 
         fun verifySource(source: Any) {
             when (source) {

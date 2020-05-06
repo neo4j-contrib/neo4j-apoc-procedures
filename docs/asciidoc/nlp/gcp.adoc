@@ -44,9 +44,10 @@ This API method finds named entities (currently proper names and common nouns) i
 
 The procedures are described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="1"]
 |===
-include::../../../build/generated-documentation/apoc.nlp.gcp.entities.csv[]
+include::../../../build/generated-documentation/apoc.nlp.gcp.entities.stream-lite.csv[]
+include::../../../build/generated-documentation/apoc.nlp.gcp.entities.graph-lite.csv[lines=2;]
 |===
 
 The procedures support the following config parameters:
@@ -66,13 +67,13 @@ In addition, `apoc.nlp.gcp.entities.graph` supports the following config paramet
 |===
 | name | type | default | description
 | write | Boolean | false | persist the graph of entities
-| relationshipType | String | ENTITY | relationship type for relationships from source node to entity nodes
+| writeRelationshipType | String | ENTITY | relationship type for relationships from source node to entity nodes
 |===
 
 .Streaming mode
 [source,cypher]
 ----
-CALL apoc.nlp.gcp.entities.stream(sourceNode:Node, {
+CALL apoc.nlp.gcp.entities.stream(source:Node or List<Node>, {
   key: String,
   nodeProperty: String
 })
@@ -82,10 +83,10 @@ YIELD value
 .Graph mode
 [source,cypher]
 ----
-CALL apoc.nlp.gcp.entities.graph(sourceNode:Node, {
+CALL apoc.nlp.gcp.entities.graph(source:Node or List<Node>, {
   key: String,
   nodeProperty: String,
-  relationshipType: String,
+  writeRelationshipType: String,
   write: Boolean
 })
 YIELD graph
@@ -100,9 +101,10 @@ This API method classifies a document into categories.
 
 The procedures are described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="1"]
 |===
-include::../../../build/generated-documentation/apoc.nlp.gcp.classify.csv[]
+include::../../../build/generated-documentation/apoc.nlp.gcp.classify.stream-lite.csv[]
+include::../../../build/generated-documentation/apoc.nlp.gcp.classify.graph-lite.csv[lines=2;]
 |===
 
 The procedures support the following config parameters:
@@ -122,13 +124,13 @@ In addition, `apoc.nlp.gcp.classify.graph` supports the following config paramet
 |===
 | name | type | default | description
 | write | Boolean | false | persist the graph of entities
-| relationshipType | String | CATEGORY | relationship type for relationships from source node to entity nodes
+| writeRelationshipType | String | CATEGORY | relationship type for relationships from source node to entity nodes
 |===
 
 .Streaming mode
 [source,cypher]
 ----
-CALL apoc.nlp.gcp.classify.stream(sourceNode:Node, {
+CALL apoc.nlp.gcp.classify.stream(source:Node or List<Node>, {
   key: String,
   nodeProperty: String
 })
@@ -138,15 +140,14 @@ YIELD value
 .Graph mode
 [source,cypher]
 ----
-CALL apoc.nlp.gcp.classify.graph(sourceNode:Node, {
+CALL apoc.nlp.gcp.classify.graph(source:Node or List<Node>, {
   key: String,
   nodeProperty: String,
-  relationshipType: String,
+  writeRelationshipType: String,
   write: Boolean
 })
 YIELD graph
 ----
-
 
 [[nlp-gcp-dependencies]]
 ==== Install Dependencies
@@ -166,9 +167,6 @@ Once we've created a key, we can populate and execute the following command to c
 :param apiKey => ("<api-key-here>")
 ----
 
-
-
-
 [[nlp-gcp-examples]]
 ==== Examples
 
@@ -176,10 +174,7 @@ The examples in this section are based on the following sample graph:
 
 [source,cypher]
 ----
-CREATE (:Article {
- uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/",
- body: "These days I’m rarely more than a few feet away from my Nintendo Switch and I play board games, card games and role playing games with friends at least once or twice a week. I’ve even organised lunch-time Mario Kart 8 tournaments between the Neo4j European offices!"
-});
+include::nlp-graph.cypher[]
 ----
 
 [[nlp-gcp-examples-entities]]
@@ -248,7 +243,7 @@ MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
 CALL apoc.nlp.gcp.entities.graph(a, {
   key: $apiKey,
   nodeProperty: "body",
-  relationshipType: "ENTITY"
+  writeRelationshipType: "ENTITY"
 })
 YIELD graph AS g
 RETURN g;
@@ -259,16 +254,38 @@ We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.gcp.
 [[apoc.nlp.gcp.entities.graph.svg]]
 image::apoc.nlp.gcp.entities.graph.svg[title="Pokemon entities graph"]
 
+We can compute the entities for multiple nodes by passing a list of nodes to the procedure.
+
+.The following returns a virtual graph of entities for the Pokemon and Nintendo Switch articles
+[source,cypher]
+----
+MATCH (a:Article)
+WITH collect(a) AS articles
+CALL apoc.nlp.gcp.entities.graph(articles, {
+  key: $apiKey,
+  nodeProperty: "body",
+  writeRelationshipType: "ENTITY"
+})
+YIELD graph AS g
+RETURN g;
+----
+
+We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.gcp.entities-multiple.graph.svg>>.
+
+[[apoc.nlp.gcp.entities-multiple.graph.svg]]
+image::apoc.nlp.gcp.entities-multiple.graph.svg[title="Pokemon and Nintendo Switch entities graph"]
+
 If we're happy with this graph and would like to persist it in Neo4j, we can do this by specifying the `write: true` configuration.
 
 .The following creates a `HAS_ENTITY` relationship from the article to each entity
 [source,cypher]
 ----
-MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
-CALL apoc.nlp.gcp.entities.graph(a, {
+MATCH (a:Article)
+WITH collect(a) AS articles
+CALL apoc.nlp.gcp.entities.graph(articles, {
   key: $apiKey,
   nodeProperty: "body",
-  relationshipType: "HAS_ENTITY",
+  writeRelationshipType: "HAS_ENTITY",
   write: true
 })
 YIELD graph AS g
@@ -289,7 +306,8 @@ RETURN article.uri AS article,
 [opts="header"]
 |===
 | article                                           | entities
-| "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/" | ["tournaments", "Neo4j", "Switch", "card games", "board games", "Mario Kart 8", "Nintendo", "friends", "8", "offices", "European", "role playing games"]
+| "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/" | ["Mario Kart 8", "offices", "tournaments", "8", "card games", "Neo4j", "board games", "friends", "Switch", "European", "role playing games", "Nintendo"]
+| "https://en.wikipedia.org/wiki/Nintendo_Switch"        | ["Nintendo Switch", "3", "Joy-Con Wheel", "20", "Nintendo", "October 20, 2016", "March 3, 2017", "steering wheel", "8", "Mario Kart 8", "2017", "regions", "games", "home console", "unit", "2016", "device"]
 |===
 
 [[nlp-gcp-examples-classify]]
@@ -347,7 +365,7 @@ MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
 CALL apoc.nlp.gcp.classify.graph(a, {
   key: $apiKey,
   nodeProperty: "body",
-  relationshipType: "CATEGORY"
+  writeRelationshipType: "CATEGORY"
 })
 YIELD graph AS g
 RETURN g;
@@ -365,7 +383,7 @@ MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
 CALL apoc.nlp.gcp.classify.graph(a, {
   key: $apiKey,
   nodeProperty: "body",
-  relationshipType: "HAS_CATEGORY",
+  writeRelationshipType: "HAS_CATEGORY",
   write: true
 })
 YIELD graph AS g
