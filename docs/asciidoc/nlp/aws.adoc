@@ -47,10 +47,12 @@ This API method finds entities in the text, which are defined as a textual refer
 
 The procedures are described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="1"]
 |===
-include::../../../build/generated-documentation/apoc.nlp.aws.entities.csv[]
+include::../../../build/generated-documentation/apoc.nlp.aws.entities.stream-lite.csv[]
+include::../../../build/generated-documentation/apoc.nlp.aws.entities.graph-lite.csv[lines=2;]
 |===
+
 
 The procedures support the following config parameters:
 
@@ -106,9 +108,10 @@ It generally consists of a noun and the modifiers that distinguish it.
 
 The procedures are described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="1"]
 |===
-include::../../../build/generated-documentation/apoc.nlp.aws.keyPhrases.csv[]
+include::../../../build/generated-documentation/apoc.nlp.aws.keyPhrases.stream-lite.csv[]
+include::../../../build/generated-documentation/apoc.nlp.aws.keyPhrases.graph-lite.csv[lines=2;]
 |===
 
 The procedures support the following config parameters:
@@ -164,9 +167,10 @@ You can determine if the sentiment is positive, negative, neutral, or mixed.
 
 The procedures are described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="1"]
 |===
-include::../../../build/generated-documentation/apoc.nlp.aws.sentiment.csv[]
+include::../../../build/generated-documentation/apoc.nlp.aws.sentiment.stream-lite.csv[]
+include::../../../build/generated-documentation/apoc.nlp.aws.sentiment.graph-lite.csv[lines=2;]
 |===
 
 The procedures support the following config parameters:
@@ -231,9 +235,6 @@ Once we've done that, we can populate and execute the following commands to crea
 :param apiSecret => ("<api-secret-here>");
 ----
 
-
-
-
 [[nlp-aws-examples]]
 ==== Examples
 
@@ -241,15 +242,7 @@ The examples in this section are based on the following sample graph:
 
 [source,cypher]
 ----
-CREATE (:Article {
- uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/",
- body: "These days I’m rarely more than a few feet away from my Nintendo Switch and I play board games, card games and role playing games with friends at least once or twice a week. I’ve even organised lunch-time Mario Kart 8 tournaments between the Neo4j European offices!"
-});
-
-CREATE (:Article {
- uri: "https://en.wikipedia.org/wiki/Nintendo_Switch",
- body: "The Nintendo Switch is a video game console developed by Nintendo, released worldwide in most regions on March 3, 2017. It is a hybrid console that can be used as a home console and portable device. The Nintendo Switch was unveiled on October 20, 2016. Nintendo offers a Joy-Con Wheel, a small steering wheel-like unit that a Joy-Con can slot into, allowing it to be used for racing games such as Mario Kart 8."
-});
+include::nlp-graph.cypher[]
 ----
 
 [[nlp-aws-examples-entities]]
@@ -316,7 +309,7 @@ CALL apoc.nlp.aws.entities.graph(a, {
   key: $apiKey,
   secret: $apiSecret,
   nodeProperty: "body",
-  relationshipType: "ENTITY"
+  writeRelationshipType: "ENTITY"
 })
 YIELD graph AS g
 RETURN g;
@@ -338,7 +331,7 @@ CALL apoc.nlp.aws.entities.graph(articles, {
   key: $apiKey,
   secret: $apiSecret,
   nodeProperty: "body",
-  relationshipType: "ENTITY"
+  writeRelationshipType: "ENTITY"
 })
 YIELD graph AS g
 RETURN g
@@ -360,7 +353,7 @@ CALL apoc.nlp.aws.entities.graph(articles, {
   key: $apiKey,
   secret: $apiSecret,
   nodeProperty: "body",
-  relationshipType: "HAS_ENTITY",
+  writeRelationshipType: "HAS_ENTITY",
   write: true
 })
 YIELD graph AS g
@@ -435,7 +428,7 @@ CALL apoc.nlp.aws.keyPhrases.graph(a, {
   key: $apiKey,
   secret: $apiSecret,
   nodeProperty: "body",
-  relationshipType: "KEY_PHRASE",
+  writeRelationshipType: "KEY_PHRASE",
   write: true
 })
 YIELD graph AS g
