@@ -1,5 +1,6 @@
-package apoc.nlp
+package apoc.nlp.gcp
 
+import apoc.nlp.NLPVirtualGraph
 import apoc.result.NodeValueErrorMapResult
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.RelationshipType

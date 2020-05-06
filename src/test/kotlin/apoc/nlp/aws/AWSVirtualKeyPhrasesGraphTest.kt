@@ -1,8 +1,5 @@
 package apoc.nlp.aws
 
-import apoc.nlp.AWSVirtualEntitiesGraph
-import apoc.nlp.AWSVirtualEntitiesGraph.Companion.ENTITY_MAPPING
-import apoc.nlp.AWSVirtualKeyPhrasesGraph
 import apoc.result.VirtualNode
 import com.amazonaws.services.comprehend.model.*
 import junit.framework.Assert.assertEquals

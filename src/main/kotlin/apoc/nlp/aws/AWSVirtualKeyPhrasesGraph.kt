@@ -1,6 +1,6 @@
-package apoc.nlp
+package apoc.nlp.aws
 
-import apoc.nlp.aws.AWSProcedures
+import apoc.nlp.NLPVirtualGraph
 import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesResult
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.RelationshipType

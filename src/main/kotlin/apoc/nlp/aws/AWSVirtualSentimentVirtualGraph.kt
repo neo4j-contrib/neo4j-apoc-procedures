@@ -1,6 +1,6 @@
-package apoc.nlp
+package apoc.nlp.aws
 
-import apoc.nlp.aws.AWSProcedures
+import apoc.nlp.NLPVirtualGraph
 import apoc.result.VirtualGraph
 import apoc.result.VirtualNode
 import com.amazonaws.services.comprehend.model.BatchDetectSentimentResult
