@@ -312,6 +312,13 @@ public class Coll {
         return partitionList(list, (int) batchSize).map(ListResult::new);
     }
 
+    @UserFunction("apoc.coll.partition")
+    @Description("apoc.coll.partition(list,batchSize)")
+    public List<Object> partitionFn(@Name("values") List<Object> list, @Name("batchSize") long batchSize) {
+        if (list==null || list.isEmpty()) return new ArrayList<>();
+        return partitionList(list, (int) batchSize).collect(Collectors.toList());
+    }
+
     @Procedure
     @Description("apoc.coll.split(list,value) | splits collection on given values rows of lists, value itself will not be part of resulting lists")
     public Stream<ListResult> split(@Name("values") List<Object> list, @Name("value") Object value) {
