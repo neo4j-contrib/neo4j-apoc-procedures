@@ -126,13 +126,13 @@ public class Nodes {
                 int count;
                 switch (direction) {
                     case INCOMING:
-                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countIncoming(nodeCursor, ktx.cursors(), typeId, READ);
+                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countIncoming(nodeCursor, ktx.cursors(), typeId);
                         break;
                     case OUTGOING:
-                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countOutgoing(nodeCursor, ktx.cursors(), typeId, READ);
+                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countOutgoing(nodeCursor, ktx.cursors(), typeId);
                         break;
                     case BOTH:
-                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countAll(nodeCursor, ktx.cursors(), typeId, READ);
+                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countAll(nodeCursor, ktx.cursors(), typeId);
                         break;
                     default:
                         throw new UnsupportedOperationException("invalid direction " + direction);

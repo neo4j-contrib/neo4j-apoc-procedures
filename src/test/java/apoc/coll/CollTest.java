@@ -170,7 +170,6 @@ public class CollTest {
         });
         testResult(db, "CALL apoc.coll.split([1,2,3],2)", r -> {
             assertEquals(asList(1L), r.next().get("value"));
-            assertEquals(asList(1L), r.next().get("value"));
             assertEquals(asList(3L), r.next().get("value"));
             assertFalse(r.hasNext());
         });

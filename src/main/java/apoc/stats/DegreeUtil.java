@@ -14,24 +14,13 @@ public class DegreeUtil {
 
         switch (direction) {
             case INCOMING:
-                if (relType==ANY_RELATIONSHIP_TYPE) {
-                    return Nodes.countIncoming(nodeCursor, cursors, READ);
-                } else {
-                    return Nodes.countIncoming(nodeCursor, cursors, relType, READ);
-                }
+                return Nodes.countIncoming(nodeCursor, cursors, relType);
             case OUTGOING:
-                if (relType==ANY_RELATIONSHIP_TYPE) {
-                    return Nodes.countOutgoing(nodeCursor, cursors, READ);
-                } else {
-                    return Nodes.countOutgoing(nodeCursor, cursors, relType, READ);
-                }
+                return Nodes.countOutgoing(nodeCursor, cursors, relType);
             case BOTH:
-                if (relType==ANY_RELATIONSHIP_TYPE) {
-                    return Nodes.countAll(nodeCursor, cursors, READ);
-                } else {
-                    return Nodes.countAll(nodeCursor, cursors, relType, READ);
-                }
-            default: throw new IllegalArgumentException("invalid direction " + direction);
+                return Nodes.countAll(nodeCursor, cursors, relType);
+            default:
+                throw new IllegalArgumentException("invalid direction " + direction);
         }
     }
 
