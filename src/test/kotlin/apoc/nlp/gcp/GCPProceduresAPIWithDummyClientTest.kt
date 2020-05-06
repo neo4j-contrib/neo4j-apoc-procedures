@@ -1,7 +1,7 @@
 package apoc.nlp.gcp
 
-import apoc.nlp.aws.NodeMatcher
-import apoc.nlp.aws.RelationshipMatcher
+import apoc.nlp.NodeMatcher
+import apoc.nlp.RelationshipMatcher
 import apoc.result.VirtualNode
 import apoc.util.TestUtil
 import org.junit.Assert

@@ -1,5 +1,6 @@
 package apoc.nlp.aws
 
+import apoc.nlp.NodeMatcher
 import apoc.result.VirtualNode
 import com.amazonaws.services.comprehend.model.*
 import junit.framework.Assert.assertEquals

@@ -1,4 +1,4 @@
-package apoc.nlp.aws
+package apoc.nlp
 
 import org.junit.Test
 import org.junit.jupiter.api.Assertions.*

@@ -1,7 +1,6 @@
 package apoc.nlp.gcp
 
-import apoc.nlp.aws.MinimalPropertiesMatcher
-import apoc.nlp.aws.MinimalPropertiesMatcher.Companion.hasAtLeast
+import apoc.nlp.MinimalPropertiesMatcher.Companion.hasAtLeast
 import apoc.util.TestUtil
 import org.hamcrest.MatcherAssert
 import org.hamcrest.Matchers

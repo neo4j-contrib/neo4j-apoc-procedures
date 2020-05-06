@@ -1,5 +1,6 @@
-package apoc.nlp.aws
+package apoc.nlp
 
+import apoc.nlp.aws.AWSProceduresAPITest
 import org.hamcrest.Description
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
