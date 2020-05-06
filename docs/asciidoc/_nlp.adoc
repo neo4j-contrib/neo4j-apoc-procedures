@@ -1,9 +1,9 @@
 [[nlp]]
-== Natural Language Processing
+== Natural Language Processing (NLP)
 
 [abstract]
 --
-This chapter describes procedures that can be used for added Natural Language Processing functionality to graph applications.
+This chapter describes procedures that can be used for added Natural Language Processing (NLP) functionality to graph applications.
 --
 
 The procedures described in this chapter act as wrappers around cloud based Natural Language APIs.
