@@ -1,9 +1,6 @@
 package apoc.nlp.aws
 
 import apoc.ai.service.AWSClient
-import apoc.nlp.AWSVirtualEntitiesGraph
-import apoc.nlp.AWSVirtualKeyPhrasesGraph
-import apoc.nlp.AWSVirtualSentimentVirtualGraph
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPHelperFunctions.Companion.getNodeProperty
 import apoc.nlp.NLPHelperFunctions.Companion.keyPhraseRelationshipType

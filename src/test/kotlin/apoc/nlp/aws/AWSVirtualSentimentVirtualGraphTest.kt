@@ -1,7 +1,6 @@
 package apoc.nlp.aws
 
-import apoc.nlp.AWSVirtualSentimentVirtualGraph
-import apoc.nlp.AWSVirtualSentimentVirtualGraph.Companion.extractSentiment
+import apoc.nlp.aws.AWSVirtualSentimentVirtualGraph.Companion.extractSentiment
 import apoc.result.VirtualNode
 import com.amazonaws.services.comprehend.model.*
 import junit.framework.Assert.assertEquals

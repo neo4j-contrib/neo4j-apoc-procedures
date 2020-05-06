@@ -1,7 +1,5 @@
 package apoc.nlp.gcp
 
-import apoc.nlp.GCPVirtualClassificationGraph
-import apoc.nlp.GCPVirtualEntitiesGraph
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPHelperFunctions.Companion.convert
 import apoc.nlp.NLPHelperFunctions.Companion.getNodeProperty
