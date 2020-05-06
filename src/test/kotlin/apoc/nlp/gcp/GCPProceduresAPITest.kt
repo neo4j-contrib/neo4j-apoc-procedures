@@ -7,7 +7,7 @@ import org.junit.ClassRule
 import org.junit.Test
 import org.neo4j.test.rule.ImpermanentDbmsRule
 
-class GCPProceduresTest {
+class GCPProceduresAPITest {
     companion object {
         const val body = """
             Hospitals should use spare laboratory space to test self-isolating NHS staff in England for coronavirus, Health Secretary Matt Hancock has said.
@@ -15,7 +15,7 @@ class GCPProceduresTest {
             On Tuesday, Cabinet Office minister Michael Gove admitted the UK had to go "further, faster" to increase testing.
         """
 
-        val apiKey: String? = System.getenv("API_KEY")
+        val apiKey: String? = System.getenv("GCP_API_KEY")
 
         @ClassRule
         @JvmField

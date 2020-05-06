@@ -158,17 +158,17 @@ class AWSProceduresAPITest {
 
     @Test
     fun `should extract entity as virtual graph`() {
-        neo4j.executeTransactionally("""CREATE (a:Article {id: 1234, body:${'$'}body})""", mapOf("body" to article1))
+        neo4j.executeTransactionally("""CREATE (a:Article3 {id: 1234, body:${'$'}body})""", mapOf("body" to article1))
 
         var sourceNode: Node? = null
         var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article) RETURN a", emptyMap()) {
+        neo4j.executeTransactionally("MATCH (a:Article3) RETURN a", emptyMap()) {
             sourceNode = it.next()["a"] as Node
             virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
         }
 
         neo4j.executeTransactionally("""
-                    MATCH (a:Article)
+                    MATCH (a:Article3)
                     CALL apoc.nlp.aws.entities.graph(a, {
                       key: ${'$'}apiKey,
                       secret: ${'$'}apiSecret,

@@ -1,6 +1,5 @@
 package apoc.nlp.gcp
 
-import apoc.result.MapResult
 import apoc.result.NodeValueErrorMapResult
 import apoc.util.JsonUtil
 import org.neo4j.graphdb.Node
