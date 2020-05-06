@@ -14,6 +14,13 @@ Each procedure has two modes:
 * Stream - returns a map constructed from the JSON returned from the API
 * Graph - creates a graph or virtual graph based on the values returned by the API
 
+[NOTE]
+====
+The procedures described in this chapter make API calls and subsequent updates to the database on the calling thread.
+
+If we want to make parallel requests to the API and avoid out of memory errors from keeping too much transaction state in memory while running procedures that write to the database, see <<nlp-gcp-examples-batching>>.
+====
+
 This section includes the following:
 
 * <<nlp-gcp-overview>>
@@ -21,6 +28,7 @@ This section includes the following:
     ** <<nlp-gcp-classify>>
 * <<nlp-gcp-dependencies>>
 * <<nlp-gcp-api-key>>
+* <<nlp-gcp-examples-batching>>
 * <<nlp-gcp-examples>>
     ** <<nlp-gcp-examples-entities>>
     ** <<nlp-gcp-examples-classify>>
@@ -189,6 +197,35 @@ RETURN apoc.static.getAll("gcp") AS gcp;
 | gcp
 | {apiKey: "<api-key-here>"}
 |===
+
+[[nlp-gcp-examples-batching]]
+==== Batching Requests
+
+Batching requests to the GCP API and the processing of results can be done using <<commit-batching>>.
+This approach is useful if we want to make parallel requests to the GCP API and reduce the amount of transaction state kept in memory while running procedures that write to the database.
+
+.The following creates an entity graph in batches of 25 nodes
+[source,cypher]
+----
+CALL apoc.periodic.iterate("
+  MATCH (n)
+  WITH collect(n) as total
+  CALL apoc.coll.partition(total, 25)
+  YIELD value as nodes
+  RETURN nodes", "
+  CALL apoc.nlp.gcp.entities.graph(nodes, {
+    key: $apiKey,
+    nodeProperty: 'body',
+    writeRelationshipType: 'GCP_ENTITY',
+    write:true
+  })
+  YIELD graph
+  RETURN distinct 'done'", {
+    batchSize: 1,
+    params: { apiKey: $apiKey }
+  }
+);
+----
 
 [[nlp-gcp-examples]]
 ==== Examples

@@ -14,6 +14,13 @@ Each procedure has two modes:
 * Stream - returns a map constructed from the JSON returned from the API
 * Graph - creates a graph or virtual graph based on the values returned by the API
 
+[NOTE]
+====
+The procedures described in this chapter make API calls and subsequent updates to the database on the calling thread.
+
+If we want to make parallel requests to the API and avoid out of memory errors from keeping too much transaction state in memory while running procedures that write to the database, see <<nlp-aws-examples-batching>>.
+====
+
 This section includes the following:
 
 * <<nlp-aws-overview>>
@@ -22,10 +29,11 @@ This section includes the following:
     ** <<nlp-aws-sentiment>>
 * <<nlp-aws-dependencies>>
 * <<nlp-aws-api-key>>
+* <<nlp-aws-examples-batching>>
 * <<nlp-aws-examples>>
     ** <<nlp-aws-examples-entities>>
     ** <<nlp-aws-examples-key-phrases>>
-    ** <<nlp-aws-examples-sentiment>>
+    ** <<nlp-aws-examples-sentiment>>s
 
 [[nlp-aws-overview]]
 ==== Procedure Overview
@@ -72,7 +80,7 @@ In addition, `apoc.nlp.aws.entities.graph` supports the following config paramet
 |===
 | name | type | default | description
 | write | Boolean | false | persist the graph of entities
-| relationshipType | String | ENTITY | relationship type for relationships from source node to entity nodes
+| writeRelationshipType | String | ENTITY | relationship type for relationships from source node to entity nodes
 |===
 
 .Streaming mode
@@ -93,7 +101,7 @@ CALL apoc.nlp.aws.entities.graph(source:Node or List<Node>, {
   key: String,
   secret: String,
   nodeProperty: String,
-  relationshipType: String,
+  writeRelationshipType: String,
   write: Boolean
 })
 YIELD graph
@@ -235,7 +243,7 @@ Once we've done that, we can populate and execute the following commands to crea
 :param apiSecret => ("<api-secret-here>");
 ----
 
-Alternatively we can add these credentials to `apoc.conf` and load them using the static value storage functions.
+Alternatively we can add these credentials to `apoc.conf` and retrieve them using the static value storage functions.
 See <<static-values>>.
 
 .apoc.conf
@@ -258,6 +266,43 @@ RETURN apoc.static.getAll("aws") AS aws;
 | aws
 | {apiKey: "<api-key-here>", apiSecret: "<api-secret-here>"}
 |===
+
+[[nlp-aws-examples-batching]]
+==== Batching Requests
+
+Batching requests to the AWS API and the processing of results can be done using <<commit-batching>>.
+This approach is useful if we want to make parallel requests to the AWS API and reduce the amount of transaction state kept in memory while running procedures that write to the database.
+
+
+[NOTE]
+====
+The AWS Comprehend API processes a maximum of 25 documents in one request, so for optimal performance we should pass in lists that are a multiple of this size.
+Keep in mind that if we pass in big lists this will result in more transaction state when writing to the database and may cause out of memory exceptions.
+====
+
+.The following creates an entity graph in batches of 25 nodes
+[source,cypher]
+----
+CALL apoc.periodic.iterate("
+  MATCH (n)
+  WITH collect(n) as total
+  CALL apoc.coll.partition(total, 25)
+  YIELD value as nodes
+  RETURN nodes", "
+  CALL apoc.nlp.aws.entities.graph(nodes, {
+    key: $apiKey,
+    secret: $apiSecret,
+    nodeProperty: 'body',
+    writeRelationshipType: 'AWS_ENTITY',
+    write:true
+  })
+  YIELD graph
+  RETURN distinct 'done'", {
+    batchSize: 1,
+    params: { apiKey: $apiKey, apiSecret: $apiSecret }
+  }
+);
+----
 
 [[nlp-aws-examples]]
 ==== Examples
