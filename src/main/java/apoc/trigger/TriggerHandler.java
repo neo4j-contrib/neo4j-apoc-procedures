@@ -6,7 +6,11 @@ import apoc.SystemPropertyKeys;
 import apoc.util.Util;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.function.ThrowingFunction;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.event.LabelEntry;
 import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
@@ -20,7 +24,12 @@ import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -66,18 +75,15 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
             tx.findNodes(SystemLabels.ApocTrigger,
                     SystemPropertyKeys.database.name(), db.databaseName()).forEachRemaining(
-                node -> {
-                    activeTriggers.put(
-                            (String) node.getProperty(SystemPropertyKeys.name.name()),
-                            MapUtil.map(
-                                    "statement", node.getProperty(SystemPropertyKeys.statement.name()),
-                                    "selector", Util.fromJson((String) node.getProperty(SystemPropertyKeys.selector.name()), Map.class),
-                                    "params", Util.fromJson((String) node.getProperty(SystemPropertyKeys.params.name()), Map.class),
-                                    "paused", node.getProperty(SystemPropertyKeys.paused.name())
-                            )
-                    );
-
-                }
+                node -> activeTriggers.put(
+                        (String) node.getProperty(SystemPropertyKeys.name.name()),
+                        MapUtil.map(
+                                "statement", node.getProperty(SystemPropertyKeys.statement.name()),
+                                "selector", Util.fromJson((String) node.getProperty(SystemPropertyKeys.selector.name()), Map.class),
+                                "params", Util.fromJson((String) node.getProperty(SystemPropertyKeys.params.name()), Map.class),
+                                "paused", node.getProperty(SystemPropertyKeys.paused.name())
+                        )
+                )
             );
             tx.commit();
         }
@@ -272,6 +278,11 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     private boolean when(Map<String, Object> selector, String phase) {
         if (selector == null) return (phase.equals("before"));
         return selector.getOrDefault("phase", "before").equals(phase);
+    }
+
+    @Override
+    public void start() throws Exception {
+        updateCache();
     }
 
     @Override
