@@ -69,62 +69,25 @@ class GCPProceduresAPITest {
     }
 
     @Test
-    fun `should extract entities as virtual graph`() {
-        neo4j.executeTransactionally("""CREATE (a:Article {id: 1234, body:${'$'}body})""", mapOf("body" to body))
-        neo4j.executeTransactionally("MATCH (a:Article) RETURN a", emptyMap()) {
-            println(it.resultAsString())
-        }
+    fun `should extract categories`() {
+        neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body})""", mapOf("body" to body))
+
         neo4j.executeTransactionally("""
-                    MATCH (a:Article)
-                    CALL apoc.nlp.gcp.entities.graph(a, {
+                    MATCH (a:Article2)
+                    CALL apoc.nlp.gcp.classify.stream(a, {
                       key: ${'$'}apiKey,
-                      nodeProperty: "body",
-                      write: false
+                      nodeProperty: "body"
                     })
-                    YIELD graph AS g
-                    RETURN g
+                    YIELD value
+                    RETURN value
                 """.trimIndent(), mapOf("apiKey" to apiKey)) {
-            println(it.resultAsString())
+            val row1 = it.next()
+            val value = row1["value"] as Map<*, *>
+            val entities = value["categories"] as List<*>
+
+            MatcherAssert.assertThat(entities, Matchers.hasItem(hasAtLeast(mapOf("name" to "/Health/Public Health"))))
+            MatcherAssert.assertThat(entities, Matchers.hasItem(hasAtLeast(mapOf("name" to "/Health/Medical Facilities & Services"))))
         }
     }
 
-    @Test
-    fun `should extract entities as graph`() {
-        neo4j.executeTransactionally("""CREATE (a:Article {id: 1234, body:${'$'}body})""", mapOf("body" to body))
-        neo4j.executeTransactionally("MATCH (a:Article) RETURN a", emptyMap()) {
-            println(it.resultAsString())
-        }
-        neo4j.executeTransactionally("""
-                    MATCH (a:Article)
-                    CALL apoc.nlp.gcp.entities.graph(a, {
-                      key: ${'$'}apiKey,
-                      nodeProperty: "body",
-                      write: true
-                    })
-                    YIELD graph AS g
-                    RETURN g
-                """.trimIndent(), mapOf("apiKey" to apiKey)) {
-            println(it.resultAsString())
-        }
-    }
-
-    @Test
-    fun `should extract categories as virtual graph`() {
-        neo4j.executeTransactionally("""CREATE (a:Article {id: 1234, body:${'$'}body})""", mapOf("body" to body))
-        neo4j.executeTransactionally("MATCH (a:Article) RETURN a", emptyMap()) {
-            println(it.resultAsString())
-        }
-        neo4j.executeTransactionally("""
-                    MATCH (a:Article)
-                    CALL apoc.nlp.gcp.classify.graph(a, {
-                      key: ${'$'}apiKey,
-                      nodeProperty: "body",
-                      write: false
-                    })
-                    YIELD graph AS g
-                    RETURN g
-                """.trimIndent(), mapOf("apiKey" to apiKey)) {
-            println(it.resultAsString())
-        }
-    }
 }
