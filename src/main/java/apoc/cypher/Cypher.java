@@ -9,6 +9,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.TransactionTerminatedException;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
@@ -384,13 +385,12 @@ public class Cypher {
         for (Object o : coll) {
             partition.add(o);
             if (partition.size() == batchSize) {
-                terminationGuard.check();
-                futures.add(submit(db, statement, params, key, partition));
+                futures.add(submit(db, statement, params, key, partition, terminationGuard));
                 partition = new ArrayList<>(batchSize);
             }
         }
         if (!partition.isEmpty()) {
-            futures.add(submit(db, statement, params, key, partition));
+            futures.add(submit(db, statement, params, key, partition, terminationGuard));
         }
         return futures.stream().flatMap(f -> {
             try {
@@ -409,9 +409,12 @@ public class Cypher {
         return with + " UNWIND " + param(iterator) + " AS " + quote(iterator) + ' ' + fragment;
     }
 
-    private Future<List<Map<String, Object>>> submit(GraphDatabaseService db, String statement, Map<String, Object> params, String key, List<Object> partition) {
+    private Future<List<Map<String, Object>>> submit(GraphDatabaseService db, String statement, Map<String, Object> params, String key, List<Object> partition, TerminationGuard terminationGuard) {
         return pools.getDefaultExecutorService().submit(
-                () -> db.executeTransactionally(statement, parallelParams(params, key, partition), result -> Iterators.asList(result))
+                () -> {
+                    terminationGuard.check();
+                    return db.executeTransactionally(statement, parallelParams(params, key, partition), result -> Iterators.asList(result));
+                }
         );
     }
 
