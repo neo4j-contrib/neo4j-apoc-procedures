@@ -170,7 +170,7 @@ YIELD graph
 [[nlp-aws-sentiment]]
 ===== Sentiment
 
-The sentiment procedures (`apoc.nlp.aws.keyPhrases.*`) are wrappers around the https://docs.aws.amazon.com/comprehend/latest/dg/how-sentiment.html[Determine Sentiment^] operations of the AWS Comprehend Natural Language API.
+The sentiment procedures (`apoc.nlp.aws.sentiment.*`) are wrappers around the https://docs.aws.amazon.com/comprehend/latest/dg/how-sentiment.html[Determine Sentiment^] operations of the AWS Comprehend Natural Language API.
 You can determine if the sentiment is positive, negative, neutral, or mixed.
 
 The procedures are described below:
@@ -192,7 +192,7 @@ The procedures support the following config parameters:
 | nodeProperty | String | text | The property on the provided node that contains the unstructured text to be analyzed
 |===
 
-In addition, `apoc.nlp.aws.keyPhrases.graph` supports the following config parameters:
+In addition, `apoc.nlp.aws.sentiment.graph` supports the following config parameters:
 
 .Config parameters
 [opts=header]
