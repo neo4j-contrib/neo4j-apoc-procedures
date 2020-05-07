@@ -182,8 +182,13 @@ The trailing `<apoc>` part of the version number will be incremented with every 
 [opts=header]
 |===
 |apoc version | neo4j version
+<<<<<<< HEAD
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.7[4.0.0.7^] | 4.0.0 (4.0.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.10[3.5.0.10^] | 3.5.16 (3.5.x)
+=======
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.11[4.0.0.11#^] | 4.0.4 (4.0.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11[3.5.0.11^] | 3.5.16 (3.5.x)
+>>>>>>> 457008c3... add docker instructions
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.4[3.4.0.6^] | 3.4.12 (3.4.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.4[3.3.0.4^] | 3.3.6 (3.3.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.3.6[3.2.3.6^] | 3.2.9 (3.2.x)
@@ -210,9 +215,33 @@ RETURN apoc.version();
 
 === Using APOC with the Neo4j Docker image
 
-The https://hub.docker.com/_/neo4j/[Neo4j Docker image] allows to supply a volume for the `/plugins` folder. 
-Download the APOC release matching your Neo4j version to local folder `plugins` and provide it as a data volume:
+APOC can be used with the https://hub.docker.com/_/neo4j/[Neo4j Docker image] via the `NEO4JLABS_PLUGINS` environment variable.
 
+.The following runs Neo4j 4.0 in a Docker container with the latest version of the APOC Library
+[source,bash]
+----
+docker run \
+    -p 7474:7474 -p 7687:7687 \
+    -v $PWD/data:/data -v $PWD/plugins:/plugins \
+    --name neo4j-apoc \
+    -e NEO4J_apoc_export_file_enabled=true \
+    -e NEO4J_apoc_import_file_enabled=true \
+    -e NEO4J_apoc_import_file_use__neo4j__config=true \
+    -e NEO4JLABS_PLUGINS=\[\"apoc\"\] \
+    neo4j:4.0
+----
+
+We should see the following two lines of output after running this command:
+
+[source,text,subs=attributes]
+----
+Fetching versions.json for Plugin 'apoc' from https://neo4j-contrib.github.io/neo4j-apoc-procedures/versions.json
+Installing Plugin 'apoc' from https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/{apoc-release}-all.jar to /plugins/apoc.jar
+----
+
+Alternatively we can download the APOC release matching our Neo4j version and, copy it to a local folder, and supply it as a data volume mounted at `/plugins`.
+
+.The following downloads the APOC Library into the `plugins` directory and then mounts that folder to the Neo4j Docker container
 [source,bash,subs=attributes]
 ----
 mkdir plugins
@@ -224,6 +253,7 @@ docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687
 
 If you want to pass custom apoc config to your Docker instance, you can use environment variables, like here:
 
+[source,bash]
 ----
 docker run \
     -p 7474:7474 -p 7687:7687 \
