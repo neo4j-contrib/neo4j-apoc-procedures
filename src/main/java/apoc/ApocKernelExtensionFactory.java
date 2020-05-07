@@ -96,6 +96,7 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
             customProcedureStorage = new CypherProcedures.CustomProcedureStorage(Pools.NEO4J_SCHEDULER, db, log.getUserLog(CypherProcedures.class));
             AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
             availabilityGuard.addListener(customProcedureStorage);
+            availabilityGuard.addListener(triggerLifeCycle);
             availabilityGuard.addListener(new CypherInitializer(db, log.getUserLog(CypherInitializer.class)));
         }
 
