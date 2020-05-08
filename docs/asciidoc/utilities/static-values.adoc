@@ -25,7 +25,7 @@ This section includes the following sub sections:
 [[api-credentials]]
 == Working with API Credentials
 
-The examples below assume that we have the following entries in the Neo4j configuration file:
+The examples below assume that we have the following entries in the APOC configuration file (`conf/apoc.conf`):
 
 ----
 apoc.static.twitter.bearer=ABCDEF
