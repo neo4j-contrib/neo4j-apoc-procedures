@@ -225,7 +225,7 @@ public class LoadCsv {
             this.nullValues = nullValues;
             this.results = results;
             this.ignoreErrors = ignoreErrors;
-            this.limit = skip + limit;
+            this.limit = Util.isSumOutOfRange(skip, limit) ? Long.MAX_VALUE : (skip + limit);
             lineNo = skip;
             while (skip-- > 0) {
                 csv.readNext();

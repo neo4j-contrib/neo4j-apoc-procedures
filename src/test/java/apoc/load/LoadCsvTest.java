@@ -108,7 +108,7 @@ RETURN m.col_1,m.col_2,m.col_3
         assertEquals(lineNo, row.get("lineNo"));
     }
 
-    @Test public void testLoadCsvSkip() throws Exception {
+    @Test public void testLoadCsvSkipLimit() throws Exception {
         URL url = getUrlFileName("test.csv");
         testResult(db, "CALL apoc.load.csv($url,{skip:1,limit:1,results:['map','list','stringMap','strings']})", map("url",url.toString()), // 'file:test.csv'
                 (r) -> {
@@ -116,6 +116,18 @@ RETURN m.col_1,m.col_2,m.col_3
                     assertEquals(false, r.hasNext());
                 });
     }
+
+    @Test public void testLoadCsvSkip() throws Exception {
+        URL url = getUrlFileName("test.csv");
+        testResult(db, "CALL apoc.load.csv($url,{skip:1,results:['map','list','stringMap','strings']})", map("url",url.toString()), // 'file:test.csv'
+                (r) -> {
+                    assertRow(r, "Rana", "11", 1L);
+                    assertEquals(true, r.hasNext());
+                    assertRow(r, "Selina", "18", 2L);
+                    assertEquals(false, r.hasNext());
+                });
+    }
+
     @Test public void testLoadCsvTabSeparator() throws Exception {
         URL url = getUrlFileName("test-tab.csv");
         testResult(db, "CALL apoc.load.csv($url,{sep:'TAB',results:['map','list','stringMap','strings']})", map("url",url.toString()), // 'file:test.csv'
