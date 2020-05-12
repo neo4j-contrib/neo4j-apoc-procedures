@@ -1,5 +1,5 @@
 [[commit-batching]]
-== apoc.periodic.iterate
+== Periodic Iterate
 
 ifdef::backend-html5[]
 ++++
@@ -8,14 +8,15 @@ ifdef::backend-html5[]
 endif::[]
 
 The `apoc.periodic.iterate` procedure is helpful when you need to handle large amounts of data for import, refactoring, and other cases that require large transactions.
-It provides a way to batch the data by dividing the workload into two parts - a data-driven statement and an operations statement.
+It provides a way to batch the data by dividing the workload into two parts:
 
-The data-driven statement is how you select what data needs handled.
+a data-driven statement:: This defines how you select what data needs handled.
 You can provide a Cypher statement to select from existing graph data, read external data from a file or API, or retrieve data from another datastore.
-The operations statement is what you want done to the selected data.
+
+an operation statement:: This defines what you want done to the selected data.
 You can do things like execute Cypher for updating or creating/deleting the data or run other procedures to manipulate and transform values before loading.
 
-To run `apoc.periodic.iterate`, the data-driven statement is provided as the *first*, outer statement that results in a stream of values to be processed.
+The data-driven statement is provided as the *first*, outer statement that results in a stream of values to be processed.
 The operations statement is provided as the *second*, inner statement to process *one* element at a time or (with `iterateList:true`) a batch at a time.
 The results of the outer statement are passed to the inner statement as parameters, so they are automatically made available with their names.
 
@@ -43,21 +44,28 @@ CALL apoc.periodic.iterate(
   {batchSize:10000, parallel:true})
 ----
 
-Our first Cypher statement selects all the `Person` nodes with an `ACTED_IN` relationship to another node and returns those persons.
+Let's break down the parameters passed to the procedure:
+
+* Our first Cypher statement selects all the `Person` nodes with an `ACTED_IN` relationship to another node and returns those persons.
 This is the data-driven portion where we select the data that we want to change.
-Our second Cypher statement sets the `:Actor` label on each of our `Person` nodes we selected.
+
+* Our second Cypher statement sets the `:Actor` label on each of our `Person` nodes we selected.
 This is the operations portion where we apply the change to the data from our first statement.
-Next, we specify any configurations we want the procedure to use.
+
+* And finally, we specify any configurations we want the procedure to use.
 We have defined a `batchSize` of 10,000 and to run the statements in parallel.
 
 Executing this procedure would take all of our `Person` nodes gathered in the first Cypher statement and update each of them with the second Cypher statement.
-It would divide the work into batches - taking 10,000 `Person` nodes from the stream and updating them in a single transaction.
+It divides the work into batches - taking 10,000 `Person` nodes from the stream and updating them in a single transaction.
 If we have 30,000 `Person` nodes in our graph with an `ACTED_IN` relationship, then it would break this down into 3 batches.
+
 Finally, it runs those in parallel, as updating node labels or properties do not conflict.
 
-NOTE:
+[NOTE]
+====
 For more complex operations like updating or removing relationships, either *do not use parallel: true* OR make sure that you batch the work in a way that each subgraph of data is updated in one operation, such as by transferring the root objects.
-If you attempt complex operations, also try to retry failed operations, e.g. with `retries:3`.
+If you attempt complex operations, also enable retrying failed operations, e.g. with `retries:3`.
+====
 
 Now let us look at a more complex example.
 
@@ -69,6 +77,8 @@ CALL apoc.periodic.iterate(
   {batchSize:100, parallel:true})
 ----
 
-In the above code, we select all the `Order` nodes that have an order date greater than `October 13, 2016` (first Cypher statement).
-Our configuration will batch those nodes into groups of 100 (`batchSize:100`) and run the batches in parallel for the second statement to process.
-The second Cypher statement takes those groups and finds the nodes that have a `HAS_ITEM` relationship to other nodes, then sums up the value of those items and sets that sum as a property (`o.value`) for the total order value.
+Let's break down the parameters passed to the procedure:
+
+* Our first Cypher statement selects all the `Order` nodes that have an order date greater than `October 13, 2016` (first Cypher statement).
+* Out second Cypher statement takes those groups and finds the nodes that have a `HAS_ITEM` relationship to other nodes, then sums up the value of those items and sets that sum as a property (`o.value`) for the total order value.
+* Our configuration will batch those nodes into groups of 100 (`batchSize:100`) and run the batches in parallel for the second statement to process.
