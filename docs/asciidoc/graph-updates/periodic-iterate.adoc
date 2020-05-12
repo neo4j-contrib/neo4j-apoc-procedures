@@ -17,27 +17,27 @@ an operation statement:: This defines what you want done to the selected data.
 You can do things like execute Cypher for updating or creating/deleting the data or run other procedures to manipulate and transform values before loading.
 
 The data-driven statement is provided as the *first*, outer statement that results in a stream of values to be processed.
-The operations statement is provided as the *second*, inner statement to process *one* element at a time or (with `batchMode: "BATCH"`) a batch at a time.
+The operation statement is provided as the *second*, inner statement to process *one* element at a time or (with `batchMode: "BATCH"`) a batch at a time.
 The results of the outer statement are passed to the inner statement as parameters, so they are automatically made available with their names.
 
 .Config
 [options=header]
 |===
 | name | type | default | description
-| batchSize | Long | 10000 | run the specified number of operations statements in a single tx - params: {_count, _batch}
-| parallel | boolean | false | run operations statements in parallel (note that statements might deadlock if conflicting)
-| retries | Long | 0 | if the operations statement fails with an error, sleep 100ms and retry until retries-count is reached - param {_retry}
+| batchSize | Long | 10000 | run the specified number of operation statements in a single tx - params: {_count, _batch}
+| parallel | boolean | false | run operation statements in parallel (note that statements might deadlock if conflicting)
+| retries | Long | 0 | if the operation statement fails with an error, sleep 100ms and retry until retries-count is reached - param {_retry}
 | batchMode | String | "BATCH" a| how data-driven statements should be processed by outer statement. Valid values are:
 
-* "BATCH" - execute operations statement once per batchSize. Operations statement is prefixed with the following for each field returned in the inner statement:
+* "BATCH" - execute operation statement once per batchSize. Operations statement is prefixed with the following for each field returned in the inner statement:
 [source,cypher]
 ----
 UNWIND $_batch AS _batch
 WITH _batch.field1 AS field1, _batch.field2 AS field2
 ----
-* "SINGLE" - execute operations statement one at a time
-* "BATCH_SINGLE" - execute operations statement once per batchSize, but leaves unpacking of batch to the operations statement.
-The operations query can access the batched values via the `$_batch` parameter.
+* "SINGLE" - execute operation statement one at a time
+* "BATCH_SINGLE" - execute operation statement once per batchSize, but leaves unpacking of batch to the operation statement.
+The operation query can access the batched values via the `$_batch` parameter.
 
 | params | Map | {} | externally pass in map of params
 | concurrency | Long | 50 | number of concurrent tasks are generated when using `parallel:true`
@@ -59,7 +59,7 @@ These config keys are treated as follows:
 [options=header]
 |===
 | param | default | description
-| iterateList | true a| execute operations statements once per batchSize (whole batchSize list is passed in as parameter {_batch})
+| iterateList | true a| execute operation statements once per batchSize (whole batchSize list is passed in as parameter {_batch})
 
 * A value of true is equivalent to `batchMode: "BATCH"`
 * A value of false is equivalent to `batchMode: "SINGLE"`
@@ -85,7 +85,7 @@ Let's break down the parameters passed to the procedure:
 This is the data-driven portion where we select the data that we want to change.
 
 * Our second Cypher statement sets the `:Actor` label on each of the `Person` nodes selected.
-This is the operations portion where we apply the change to the data from our first statement.
+This is the operation portion where we apply the change to the data from our first statement.
 
 * And finally, we specify any configuration we want the procedure to use.
 We have defined a `batchSize` of 10,000 and to run the statements in parallel.
@@ -118,8 +118,10 @@ Let's break down the parameters passed to the procedure:
 * Out second Cypher statement takes those groups and finds the nodes that have a `HAS_ITEM` relationship to other nodes, then sums up the value of those items and sets that sum as a property (`o.value`) for the total order value.
 * Our configuration will batch those nodes into groups of 100 (`batchSize:100`) and run the batches in parallel for the second statement to process.
 
-If our operations statement calls a procedure that takes in a batch of values, we can use `batchMode: "BATCH_SINGLE"` to get access to a batch of values to pass to that procedure.
-When we use `BATCH_SINGLE`, the operations statement will have access to the `$_batch` parameter, which will contain a list of the fields returned in the data-driven statement.
+==== Batch mode: BATCH_SINGLE
+
+If our operation statement calls a procedure that takes in a batch of values, we can use `batchMode: "BATCH_SINGLE"` to get access to a batch of values to pass to that procedure.
+When we use `BATCH_SINGLE`, the operation statement will have access to the `$_batch` parameter, which will contain a list of the fields returned in the data-driven statement.
 
 For example, if the data driven statement is:
 
@@ -130,7 +132,7 @@ UNION
 RETURN 'jennifer' AS a, 'andrea' AS b
 ----
 
-The contents of the `$_batch` variable passed to the operations statement would be:
+The contents of the `$_batch` variable passed to the operation statement would be:
 
 [source,text]
 ----
@@ -154,7 +156,7 @@ See <<deleting-data>>.
 
 This procedure takes in a list of nodes, which we can extract from the `$_batch` parameter.
 
-.The following query streams all the `Person` nodes and then passes them in batches of size 100 to `apoc.nodes.delete`
+.The following query streams all the `Person` nodes and deletes them in batches of 100
 [source,cypher]
 ----
 CALL apoc.periodic.iterate(
@@ -166,11 +168,15 @@ CALL apoc.periodic.iterate(
 YIELD batch, operations;
 ----
 
-The contents of the `$_batch` parameter that is used in the operations statement would be as follows:
+The contents of the `$_batch` parameter that is used in the operation statement would be as follows:
 
 [source,text]
 ----
-[{p: Node<1>}, {p: Node<2>},...]
+[
+  {p: Node<1>},
+  {p: Node<2>},
+  ...
+]
 ----
 
 We an use a https://neo4j.com/docs/cypher-manual/current/syntax/lists/#cypher-list-comprehension[list comprehension^] to extract the `p` variable from each item in the list.
