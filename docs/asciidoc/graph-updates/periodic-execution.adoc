@@ -9,18 +9,24 @@ This section describes procedures that can be used to batch transactions when ex
 Cypher is great for querying graphs and importing and updating graph structures.
 While during imports you can use `PERIODIC COMMIT` to control transaction sizes in memory, but for other graph refactorings it's not that easy to commit transactions regularly to free memory for new update state.
 
-[cols="1m,5"]
-|===
-| CALL apoc.periodic.commit(statement, params) | repeats an batch update statement until it returns 0, this procedure is blocking
-| CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total | iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g.
-| CALL apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:50,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows
-|===
-
 This section includes:
 
+* <<periodic-execution-proc-overview>>
 * <<commit-batching>>
 * <<periodic-commit>>
 * <<periodic-rock-n-roll>>
+
+[[periodic-execution-proc-overview]]
+=== Procedure Overview
+
+The table below describes the available procedures:
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.periodic.iterate.csv[]
+include::../../../build/generated-documentation/apoc.periodic.commit.csv[lines=2:]
+include::../../../build/generated-documentation/apoc.periodic.rock_n_roll.csv[lines=2:]
+|===
 
 include::periodic-iterate.adoc[leveloffset=+1]
 include::periodic-commit.adoc[leveloffset=+1]

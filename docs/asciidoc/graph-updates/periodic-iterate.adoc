@@ -17,24 +17,59 @@ an operation statement:: This defines what you want done to the selected data.
 You can do things like execute Cypher for updating or creating/deleting the data or run other procedures to manipulate and transform values before loading.
 
 The data-driven statement is provided as the *first*, outer statement that results in a stream of values to be processed.
-The operations statement is provided as the *second*, inner statement to process *one* element at a time or (with `iterateList:true`) a batch at a time.
+The operations statement is provided as the *second*, inner statement to process *one* element at a time or (with `batchMode: "BATCH"`) a batch at a time.
 The results of the outer statement are passed to the inner statement as parameters, so they are automatically made available with their names.
 
-.configuration options
+.Config
+[options=header]
+|===
+| name | type | default | description
+| batchSize | Long | 10000 | run the specified number of operations statements in a single tx - params: {_count, _batch}
+| parallel | boolean | false | run operations statements in parallel (note that statements might deadlock if conflicting)
+| retries | Long | 0 | if the operations statement fails with an error, sleep 100ms and retry until retries-count is reached - param {_retry}
+| batchMode | String | "BATCH" a| how data-driven statements should be processed by outer statement. Valid values are:
+
+* "BATCH" - execute operations statement once per batchSize. Operations statement is prefixed with the following for each field returned in the inner statement:
+[source,cypher]
+----
+UNWIND $_batch AS _batch
+WITH _batch.field1 AS field1, _batch.field2 AS field2
+----
+* "SINGLE" - execute operations statement one at a time
+* "BATCH_SINGLE" - execute operations statement once per batchSize, but leaves unpacking of batch to the operations statement.
+The operations query can access the batched values via the `$_batch` parameter.
+
+| params | Map | {} | externally pass in map of params
+| concurrency | Long | 50 | number of concurrent tasks are generated when using `parallel:true`
+| failedParams | Long |  -1 | if set to a non-negative value, each failed batch up to `failedParams` parameter sets are returned in `yield failedParams`.
+|===
+
+[NOTE]
+====
+In APOC versions 4.0.0.11 and earlier, the `iterateList` config key was used to control the batching of values returned by the data-driven statement.
+This was replaced by `batchMode` in version 4.0.0.12.
+These config keys are treated as follows:
+
+* If `batchMode` is provided, its value takes precedence over `iterateList`
+* If `batchMode` is not provided and `iterateList` is provided, the value of `iterateList` will be translated as described in the table below.
+* If neither `batchMode` nor `iterateList` are provided, `batchMode` defaults to `BATCH`, which is the same as `iterateList:true`
+====
+
+.Deprecated Config
 [options=header]
 |===
 | param | default | description
-| batchSize | 10000 | run the specified number of inner statements in a single tx - params: {_count, _batch}
-| parallel | false | run inner statements in parallel (note that statements might deadlock if conflicting)
-| retries | 0 | if the inner statement fails with an error, sleep 100ms and retry until retries-count is reached - param {_retry}
-| iterateList | true | execute inner statements once per batchSize (whole batchSize list is passed in as parameter {_batch})
-| params | {} | externally pass in map of params
-| concurrency | 50 | number of concurrent tasks are generated when using `parallel:true`
-| failedParams | -1 | if set to a non-negative value, each failed batch up to `failedParams` parameter sets are returned in `yield failedParams`.
+| iterateList | true a| execute operations statements once per batchSize (whole batchSize list is passed in as parameter {_batch})
+
+* A value of true is equivalent to `batchMode: "BATCH"`
+* A value of false is equivalent to `batchMode: "SINGLE"`
 |===
 
-.Examples
-So, if you were to add an `:Actor` label to several million `:Person` nodes, you could run the following code:
+=== Periodic Iterate Examples
+
+Let's go through some examples.
+
+If you were to add an `:Actor` label to several million `:Person` nodes, you could run the following code:
 
 [source,cypher]
 ----
@@ -49,10 +84,10 @@ Let's break down the parameters passed to the procedure:
 * Our first Cypher statement selects all the `Person` nodes with an `ACTED_IN` relationship to another node and returns those persons.
 This is the data-driven portion where we select the data that we want to change.
 
-* Our second Cypher statement sets the `:Actor` label on each of our `Person` nodes we selected.
+* Our second Cypher statement sets the `:Actor` label on each of the `Person` nodes selected.
 This is the operations portion where we apply the change to the data from our first statement.
 
-* And finally, we specify any configurations we want the procedure to use.
+* And finally, we specify any configuration we want the procedure to use.
 We have defined a `batchSize` of 10,000 and to run the statements in parallel.
 
 Executing this procedure would take all of our `Person` nodes gathered in the first Cypher statement and update each of them with the second Cypher statement.
@@ -82,3 +117,69 @@ Let's break down the parameters passed to the procedure:
 * Our first Cypher statement selects all the `Order` nodes that have an order date greater than `October 13, 2016` (first Cypher statement).
 * Out second Cypher statement takes those groups and finds the nodes that have a `HAS_ITEM` relationship to other nodes, then sums up the value of those items and sets that sum as a property (`o.value`) for the total order value.
 * Our configuration will batch those nodes into groups of 100 (`batchSize:100`) and run the batches in parallel for the second statement to process.
+
+If our operations statement calls a procedure that takes in a batch of values, we can use `batchMode: "BATCH_SINGLE"` to get access to a batch of values to pass to that procedure.
+When we use `BATCH_SINGLE`, the operations statement will have access to the `$_batch` parameter, which will contain a list of the fields returned in the data-driven statement.
+
+For example, if the data driven statement is:
+
+[source,cypher]
+----
+RETURN 'mark' AS a, 'michael' AS b
+UNION
+RETURN 'jennifer' AS a, 'andrea' AS b
+----
+
+The contents of the `$_batch` variable passed to the operations statement would be:
+
+[source,text]
+----
+[
+  {a: "mark", b: "michael"},
+  {a: "jennifer", b: "andrea"}
+]
+----
+
+Let's see an example of this in action.
+We'll start by creating some nodes:
+
+.The following query creates 100,000 nodes with the label `Person` and property `id`
+[source,cypher]
+----
+UNWIND range(1,100000) as id create (:Person {id: id})
+----
+
+We can delete these nodes using the `apoc.nodes.delete` procedure.
+See <<deleting-data>>.
+
+This procedure takes in a list of nodes, which we can extract from the `$_batch` parameter.
+
+.The following query streams all the `Person` nodes and then passes them in batches of size 100 to `apoc.nodes.delete`
+[source,cypher]
+----
+CALL apoc.periodic.iterate(
+  "MATCH (p:Person) RETURN p",
+  // Extract `p` variable using list comprehension
+  "CALL apoc.nodes.delete([item in $_batch | item.p], size($_batch))",
+  {batchMode: "BATCH_SINGLE", batchSize: 100}
+)
+YIELD batch, operations;
+----
+
+The contents of the `$_batch` parameter that is used in the operations statement would be as follows:
+
+[source,text]
+----
+[{p: Node<1>}, {p: Node<2>},...]
+----
+
+We an use a https://neo4j.com/docs/cypher-manual/current/syntax/lists/#cypher-list-comprehension[list comprehension^] to extract the `p` variable from each item in the list.
+
+If we run this query, we'll see the following output:
+
+.Results
+[options="header"]
+|===
+| batch                                                 | operations
+| {total: 1000, committed: 1000, failed: 0, errors: {}} | {total: 100000, committed: 100000, failed: 0, errors: {}}
+|===
