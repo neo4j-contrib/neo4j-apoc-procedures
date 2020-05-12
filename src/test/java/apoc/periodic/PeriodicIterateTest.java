@@ -62,9 +62,9 @@ public class PeriodicIterateTest {
     @Test
     public void passThrough$_batchWithNoUnwind() {
         BatchMode batchMode = BatchMode.BATCH_SINGLE;
-        Pair<String, Boolean> prepared = prepareInnerStatement("UNWIND _batch.x AS x SET x:Actor", batchMode, List.of("n"), "_batch");
+        Pair<String, Boolean> prepared = prepareInnerStatement("UNWIND $_batch AS batch WITH batch.x AS x SET x:Actor", batchMode, List.of("x"), "_batch");
         assertTrue(prepared.other());
-        assertEquals("WITH $_batch AS _batch UNWIND _batch.x AS x SET x:Actor", prepared.first());
+        assertEquals("UNWIND $_batch AS batch WITH batch.x AS x SET x:Actor", prepared.first());
     }
 
 }

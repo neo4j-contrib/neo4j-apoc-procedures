@@ -4,6 +4,7 @@ import apoc.util.Util;
 import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,7 @@ public class PeriodicIterate {
                 String with = Util.withMapping(columns.stream(), (c) -> Util.quote(iteratorVariableName) + "." + Util.quote(c) + " AS " + Util.quote(c));
                 return Pair.of("UNWIND "+ Util.param(iteratorVariableName)+" AS "+ Util.quote(iteratorVariableName) + with + " " + cypherAction,true);
             case BATCH_SINGLE:
-                return Pair.of("WITH " + Util.param(iteratorVariableName)+" AS "+ Util.quote(iteratorVariableName) + " " +  cypherAction, true);
+                return Pair.of(cypherAction, true);
             default:
                 throw new IllegalArgumentException("Unrecognised batch mode: [" + batchMode + "]");
         }
@@ -41,12 +42,3 @@ a batchMode variable where:
 * batch_single -> pass _batch through to 2nd statement
  */
 
-enum BatchMode {
-    BATCH,
-    BATCH_SINGLE,
-    SINGLE;
-
-   static BatchMode fromIterateList(boolean iterateList) {
-        return iterateList ? BATCH : SINGLE;
-    }
-}
