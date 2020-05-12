@@ -16,9 +16,9 @@ You can provide a Cypher statement to select from existing graph data, read exte
 an operation statement:: This defines what you want done to the selected data.
 You can do things like execute Cypher for updating or creating/deleting the data or run other procedures to manipulate and transform values before loading.
 
-The data-driven statement is provided as the *first*, outer statement that results in a stream of values to be processed.
-The operation statement is provided as the *second*, inner statement to process *one* element at a time or (with `batchMode: "BATCH"`) a batch at a time.
-The results of the outer statement are passed to the inner statement as parameters, so they are automatically made available with their names.
+The data-driven statement is provided as the *first* statement that results in a stream of values to be processed.
+The operation statement is provided as the *second* statement to process *one* element at a time or (with `batchMode: "BATCH"`) a batch at a time.
+The results of the data-driven  statement are passed to the operation statement as parameters, so they are automatically made available with their names.
 
 .Config
 [options=header]
@@ -27,9 +27,9 @@ The results of the outer statement are passed to the inner statement as paramete
 | batchSize | Long | 10000 | run the specified number of operation statements in a single tx - params: {_count, _batch}
 | parallel | boolean | false | run operation statements in parallel (note that statements might deadlock if conflicting)
 | retries | Long | 0 | if the operation statement fails with an error, sleep 100ms and retry until retries-count is reached - param {_retry}
-| batchMode | String | "BATCH" a| how data-driven statements should be processed by outer statement. Valid values are:
+| batchMode | String | "BATCH" a| how data-driven statements should be processed by operation statement. Valid values are:
 
-* "BATCH" - execute operation statement once per batchSize. Operations statement is prefixed with the following for each field returned in the inner statement:
+* "BATCH" - execute operation statement once per batchSize. Operation statement is prefixed with the following, which extracts each field returned in the data-driven statement from the `$_batch` parameter:
 [source,cypher]
 ----
 UNWIND $_batch AS _batch
@@ -115,7 +115,7 @@ CALL apoc.periodic.iterate(
 Let's break down the parameters passed to the procedure:
 
 * Our first Cypher statement selects all the `Order` nodes that have an order date greater than `October 13, 2016` (first Cypher statement).
-* Out second Cypher statement takes those groups and finds the nodes that have a `HAS_ITEM` relationship to other nodes, then sums up the value of those items and sets that sum as a property (`o.value`) for the total order value.
+* Our second Cypher statement takes those groups and finds the nodes that have a `HAS_ITEM` relationship to other nodes, then sums up the value of those items and sets that sum as a property (`o.value`) for the total order value.
 * Our configuration will batch those nodes into groups of 100 (`batchSize:100`) and run the batches in parallel for the second statement to process.
 
 ==== Batch mode: BATCH_SINGLE
@@ -179,7 +179,7 @@ The contents of the `$_batch` parameter that is used in the operation statement 
 ]
 ----
 
-We an use a https://neo4j.com/docs/cypher-manual/current/syntax/lists/#cypher-list-comprehension[list comprehension^] to extract the `p` variable from each item in the list.
+We can use a https://neo4j.com/docs/cypher-manual/current/syntax/lists/#cypher-list-comprehension[list comprehension^] to extract the `p` variable from each item in the list.
 
 If we run this query, we'll see the following output:
 
