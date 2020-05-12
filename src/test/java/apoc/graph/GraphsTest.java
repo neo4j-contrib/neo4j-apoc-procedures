@@ -6,8 +6,8 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
@@ -19,14 +19,25 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.util.MapUtil.map;
 import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.neo4j.graphdb.Label.label;
 
 /**
@@ -37,11 +48,11 @@ public class GraphsTest {
 
     private static Map<String,Object> graph = map("name","test","properties",map("answer",42L));
 
-    @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule();
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
-    @BeforeClass
-    public static void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         TestUtil.registerProcedure(db,Graphs.class);
         db.executeTransactionally("CREATE (a:Actor {name:'Tom Hanks'})-[r:ACTED_IN {roles:'Forrest'}]->(m:Movie {title:'Forrest Gump'}) RETURN [a,m] as nodes, [r] as relationships", Collections.emptyMap(),
                 result -> {
@@ -49,9 +60,6 @@ public class GraphsTest {
                     return null;
                 });
     }
-
-//    @Rule
-//    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void testFromData() throws Exception {
@@ -66,9 +74,22 @@ public class GraphsTest {
     }
 
     @Test
-    public void testFromPaths() throws Exception {
-        TestUtil.testCall(db,"MATCH path = (n)-[r]->(m) CALL apoc.graph.fromPaths([path],'test',{answer:42}) YIELD graph RETURN *",
-                r -> assertEquals(graph, r.get("graph")));
+    public void testFromPaths() {
+        // given
+        final Map<String, Object> myGraph = map("name","test","properties",map("answer",42L));
+        db.executeTransactionally("MATCH (a:Actor {name:'Tom Hanks'}) CREATE (a)-[r:ACTED_IN {roles:'Dott. Henry Goose'}]->(m:Movie {title:'Cloud Atlas'}) RETURN [m] as nodes, [r] as relationships");
+        db.executeTransactionally("MATCH p = (a:Actor {name:'Tom Hanks'})-[r:ACTED_IN]->(m:Movie) RETURN reduce(output = [], n in collect(nodes(p)) | output + n) AS nodes, reduce(output = [], r in collect(relationships(p)) | output + r) AS relationships", Collections.emptyMap(),
+                result -> {
+                    result.stream().flatMap(m -> m.entrySet().stream())
+                            .forEach(e -> myGraph.put(e.getKey(), new ArrayList<>(new HashSet<>((Collection) e.getValue()))));
+                    return null;
+                });
+        // when
+        TestUtil.testCall(db,"MATCH path = (n)-[r]->(m) WITH collect(path) AS paths CALL apoc.graph.fromPaths(paths,'test',{answer:42}) YIELD graph RETURN *",
+                // then
+                r -> assertEquals(myGraph, r.get("graph")));
+
+        db.executeTransactionally("MATCH (m:Movie {title:'Cloud Atlas'}) DETACH DELETE m");
     }
 
     @SuppressWarnings("unchecked")
