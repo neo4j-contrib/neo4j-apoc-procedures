@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -627,6 +628,21 @@ public class Util {
             errorMessages.compute(e.getMessage(),(s, i) -> i == null ? 1 : i + 1);
         }
         return errorValue;
+    }
+
+    public static boolean isSumOutOfRange(long... numbers) {
+        try {
+            sumLongs(numbers).longValueExact();
+            return false;
+        } catch (ArithmeticException ae) {
+            return true;
+        }
+    }
+
+    public static BigInteger sumLongs(long... numbers) {
+        return LongStream.of(numbers)
+                .mapToObj(BigInteger::valueOf)
+                .reduce(BigInteger.ZERO, (x, y) -> x.add(y));
     }
 
     public static void logErrors(String message, Map<String, Long> errors, Log log) {

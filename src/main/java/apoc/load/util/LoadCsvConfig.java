@@ -45,7 +45,8 @@ public class LoadCsvConfig {
         separator = parseCharFromConfig(config, "sep", DEFAULT_SEP);
         arraySep = parseCharFromConfig(config, "arraySep", DEFAULT_ARRAY_SEP);
         quoteChar = parseCharFromConfig(config,"quoteChar", DEFAULT_QUOTE_CHAR);
-        skip = (long) config.getOrDefault("skip", 0L);
+        long skip = (long) config.getOrDefault("skip", 0L);
+        this.skip = skip > -1 ? skip : 0L;
         hasHeader = (boolean) config.getOrDefault("header", true);
         limit = (long) config.getOrDefault("limit", Long.MAX_VALUE);
         failOnError = (boolean) config.getOrDefault("failOnError", true);
