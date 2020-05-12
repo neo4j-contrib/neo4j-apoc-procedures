@@ -296,7 +296,7 @@ public class Periodic {
         Map<String,Object> params = (Map<String, Object>) config.getOrDefault("params", Collections.emptyMap());
         int failedParams = Util.toInteger(config.getOrDefault("failedParams", -1));
         try (Result result = tx.execute(slottedRuntime(cypherIterate),params)) {
-            Pair<String,Boolean> prepared = prepareInnerStatement(cypherAction, iterateList, result.columns(), "_batch");
+            Pair<String,Boolean> prepared = PeriodicIterate.prepareInnerStatement(cypherAction, BatchMode.fromIterateList(iterateList), result.columns(), "_batch");
             String innerStatement = prepared.first();
             iterateList=prepared.other();
             log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
@@ -313,21 +313,7 @@ public class Periodic {
         return matcher.find() ? CYPHER_PREFIX_PATTERN.matcher(cypherIterate).replaceFirst(CYPHER_RUNTIME_SLOTTED) : CYPHER_RUNTIME_SLOTTED + cypherIterate;
     }
 
-    public Pair<String,Boolean> prepareInnerStatement(String cypherAction, boolean iterateList, List<String> columns, String iterator) {
-        String names = columns.stream().map(Util::quote).collect(Collectors.joining("|"));
-        boolean withCheck = regNoCaseMultiLine("[{$](" + names + ")\\}?\\s+AS\\s+").matcher(cypherAction).find();
-        if (withCheck) return Pair.of(cypherAction, false);
-        if (iterateList) {
-            if (regNoCaseMultiLine("UNWIND\\s+[{$]" + iterator+"\\}?\\s+AS\\s+").matcher(cypherAction).find()) return Pair.of(cypherAction, true);
-            String with = Util.withMapping(columns.stream(), (c) -> Util.quote(iterator) + "." + Util.quote(c) + " AS " + Util.quote(c));
-            return Pair.of("UNWIND "+ Util.param(iterator)+" AS "+ Util.quote(iterator) + with + " " + cypherAction,true);
-        }
-        return Pair.of(Util.withMapping(columns.stream(), (c) ->  Util.param(c) + " AS " + Util.quote(c)) + cypherAction,false);
-    }
 
-    public Pattern regNoCaseMultiLine(String pattern) {
-        return Pattern.compile(pattern,Pattern.CASE_INSENSITIVE|Pattern.MULTILINE|Pattern.DOTALL);
-    }
 
     @Deprecated
     @Procedure(mode = Mode.WRITE)
