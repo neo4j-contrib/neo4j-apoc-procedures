@@ -324,6 +324,22 @@ public class PeriodicTest {
     }
 
     @Test
+    public void testIteratePassThroughBatch() throws Exception {
+        db.executeTransactionally("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})");
+
+        testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'UNWIND $_batch AS batch WITH batch.p AS p  SET p.lastname =p.name REMOVE p.name', {batchSize:10,parallel:true, batchMode: 'BATCH_SINGLE'})", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertEquals(10L, row.get("batches"));
+            assertEquals(100L, row.get("total"));
+        });
+
+        testCall(db,
+                "MATCH (p:Person) where p.lastname is not null return count(p) as count",
+                row -> assertEquals(100L, row.get("count"))
+        );
+    }
+
+    @Test
     public void testIterateBatch() throws Exception {
         db.executeTransactionally("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})");
 
