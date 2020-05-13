@@ -193,7 +193,7 @@ html {
         'javascript/mp-nav.js',
         'javascript/versionswitcher.js',
         'javascript/version.js',
-        'javascript/feedback.js',
+        '//s3.amazonaws.com/feedback.neo4jlabs.com/feedback.js',
         '//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js',
     ].join(" ")
     def styles = [
