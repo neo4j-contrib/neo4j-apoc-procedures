@@ -8,7 +8,12 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class PeriodicIterate {
+public class PeriodicUtils {
+
+    private PeriodicUtils() {
+
+    }
+
     public static Pair<String,Boolean> prepareInnerStatement(String cypherAction, BatchMode batchMode, List<String> columns, String iteratorVariableName) {
         String names = columns.stream().map(Util::quote).collect(Collectors.joining("|"));
         boolean withCheck = regNoCaseMultiLine("[{$](" + names + ")\\}?\\s+AS\\s+").matcher(cypherAction).find();

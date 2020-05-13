@@ -5,12 +5,12 @@ import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.List;
 
-import static apoc.periodic.PeriodicIterate.prepareInnerStatement;
+import static apoc.periodic.PeriodicUtils.prepareInnerStatement;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PeriodicIterateTest {
+public class PeriodicUtilsTest {
     @Test
     public void iterateListPrefixActionStatementWithUnwind() {
         BatchMode batchMode = BatchMode.fromIterateList(true);

@@ -298,7 +298,7 @@ public class Periodic {
         Map<String,Object> params = (Map<String, Object>) config.getOrDefault("params", Collections.emptyMap());
         int failedParams = Util.toInteger(config.getOrDefault("failedParams", -1));
         try (Result result = tx.execute(slottedRuntime(cypherIterate),params)) {
-            Pair<String,Boolean> prepared = PeriodicIterate.prepareInnerStatement(cypherAction, batchMode, result.columns(), "_batch");
+            Pair<String,Boolean> prepared = PeriodicUtils.prepareInnerStatement(cypherAction, batchMode, result.columns(), "_batch");
             String innerStatement = prepared.first();
             boolean iterateList = prepared.other();
             log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
