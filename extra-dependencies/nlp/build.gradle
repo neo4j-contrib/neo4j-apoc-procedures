@@ -9,7 +9,7 @@ java {
 }
 
 group = 'org.neo4j.contrib'
-version = '4.0.0.11'
+version = '4.0.0.12'
 archivesBaseName = 'apoc-nlp-dependencies'
 description = """APOC NLP Dependencies"""
 
