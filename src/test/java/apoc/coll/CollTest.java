@@ -157,7 +157,7 @@ public class CollTest {
         testCall(db, "RETURN apoc.coll.indexOf([1,2,3],3) AS value", r -> assertEquals(2L, r.get("value")));
         testCall(db, "RETURN apoc.coll.indexOf([1,2,3],4) AS value", r -> assertEquals(-1L, r.get("value")));
         testCall(db, "RETURN apoc.coll.indexOf([1,2,3],0) AS value", r -> assertEquals(-1L, r.get("value")));
-        testCall(db, "RETURN apoc.coll.indexOf([1,2,3],null) AS value", r -> assertEquals(-1L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.indCypherProceduresHandlerexOf([1,2,3],null) AS value", r -> assertEquals(-1L, r.get("value")));
     }
 
     @Test
