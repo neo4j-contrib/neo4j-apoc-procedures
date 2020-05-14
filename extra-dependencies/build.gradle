@@ -1,0 +1,18 @@
+subprojects {
+    apply plugin: 'java'
+
+    repositories {
+        mavenCentral()
+    }
+
+    task buildDependencies {
+        subprojects.each { subproject ->
+            print("foo")
+            //println subproject.path
+            subproject.tasks.each {
+                print(subproject.path)
+                dependsOn subproject.path+":"+it
+            }
+        }
+    }
+}
