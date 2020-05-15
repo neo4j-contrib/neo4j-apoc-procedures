@@ -2,10 +2,10 @@ package apoc.load;
 
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
+import org.mockserver.client.server.MockServerClient;
+import org.mockserver.integration.ClientAndServer;
+import org.mockserver.model.Header;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -13,6 +13,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.*;
 import static apoc.util.MapUtil.map;
@@ -22,8 +23,24 @@ import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import static org.mockserver.matchers.Times.exactly;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
 
 public class LoadJsonTest {
+
+    private static ClientAndServer mockServer;
+
+    @BeforeClass
+    public static void startServer() {
+        mockServer = startClientAndServer(1080);
+    }
+
+    @AfterClass
+    public static void stopServer() {
+        mockServer.stop();
+    }
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
@@ -245,11 +262,31 @@ public class LoadJsonTest {
         }
     }
 
+
+
     @Test
     public void testLoadJsonParams() throws Exception {
+        new MockServerClient("localhost", 1080)
+                .when(
+                        request()
+                                .withMethod("POST")
+                                .withPath("/docs/search")
+                                .withHeader("\"Content-type\", \"application/json\""),
+                        exactly(1))
+                .respond(
+                        response()
+                                .withStatusCode(200)
+                                .withHeaders(
+                                        new Header("Content-Type", "application/json; charset=utf-8"),
+                                        new Header("Cache-Control", "public, max-age=86400"))
+                                .withBody("{ result: 'message' }")
+                                .withDelay(TimeUnit.SECONDS,1)
+                );
+
+
         testCall(db, "call apoc.load.jsonParams($url, $config, $json)",
                 map("json", "{\"query\":\"pagecache\",\"version\":\"3.5\"}",
-                        "url", "https://neo4j.com/docs/search/",
+                        "url", "http://localhost:1080/docs/search",
                         "config", map("method", "POST")),
                 (row) -> {
                     Map<String, Object> value = (Map<String, Object>) row.get("value");
