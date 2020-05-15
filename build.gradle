@@ -110,7 +110,7 @@ dependencies {
     compile 'org.jsoup:jsoup:1.11.3'
 
     compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
-    compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.5'
+    compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7'
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
 
     testCompile 'net.sourceforge.jexcelapi:jxl:2.6.12'
@@ -171,7 +171,7 @@ dependencies {
 
     testCompile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.3'
-    compile group: 'com.opencsv', name: 'opencsv', version: '4.2' 
+    compile group: 'com.opencsv', name: 'opencsv', version: '4.6' 
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
     compile group: 'com.github.javafaker', name: 'javafaker', version: '0.10'
 
