@@ -9,17 +9,23 @@ import java.util.stream.Stream
 
 class NLPHelperFunctions {
     companion object {
-        fun createRelationships(node: Node, nodes: Set<Node>, relationshipType: RelationshipType) =
-                nodes.map { n -> node.createRelationshipTo(n, relationshipType) }
+        fun createRelationships(node: Node, nodesAndScores: List<Pair<Node, Float>>, relationshipType: RelationshipType) =
+                nodesAndScores.map { (n, score) ->
+                    val relationship = node.createRelationshipTo(n, relationshipType)
+                    relationship.setProperty("score", score)
+                    relationship
+                }
 
 
-        fun mergeRelationships(transaction: Transaction, node: Node, nodes: Set<Node>, relType: RelationshipType): Stream<Relationship> {
+        fun mergeRelationships(transaction: Transaction, node: Node, nodesAndScores: List<Pair<Node, Float>>, relType: RelationshipType): Stream<Relationship> {
             val cypher = """WITH ${'$'}startNode as startNode, ${'$'}endNodes as endNodes
             UNWIND endNodes AS endNode
-            MERGE (startNode)-[r:${Util.quote(relType.name())}]->(endNode)
+            WITH endNode.node AS node, endNode.score AS score
+            MERGE (startNode)-[r:${Util.quote(relType.name())}]->(node)
+            SET r.score = score
             RETURN r"""
 
-            val params = mapOf("startNode" to node, "endNodes" to nodes)
+            val params = mapOf("startNode" to node, "endNodes" to nodesAndScores.map { (node, score) -> mapOf("node" to node, "score" to score)  })
             return transaction.execute(cypher, params).columnAs<Relationship>("r").stream()
         }
 

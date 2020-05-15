@@ -209,13 +209,13 @@ class AWSProceduresAPITest {
 
                     assertEquals(7, relationships.size)
 
-                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(orgLabels.toTypedArray(), mapOf("text" to "NHS", "type" to "ORGANIZATION")), "ENTITY")))
-                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(orgLabels.toTypedArray(), mapOf("text" to "UK", "type" to "ORGANIZATION")), "ENTITY")))
-                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(locationLabels.toTypedArray(), mapOf("text" to "England", "type" to "LOCATION")), "ENTITY")))
-                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(personLabels.toTypedArray(), mapOf("text" to "Health Secretary", "type" to "PERSON")), "ENTITY")))
-                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(personLabels.toTypedArray(), mapOf("text" to "Matt Hancock", "type" to "PERSON")), "ENTITY")))
-                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(personLabels.toTypedArray(), mapOf("text" to "Michael Gove", "type" to "PERSON")), "ENTITY")))
-                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dateLabels.toTypedArray(), mapOf("text" to "Tuesday", "type" to "DATE")), "ENTITY")))
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(orgLabels.toTypedArray(), mapOf("text" to "NHS", "type" to "ORGANIZATION")), "ENTITY", mapOf("score" to 0.9F))))
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(orgLabels.toTypedArray(), mapOf("text" to "UK", "type" to "ORGANIZATION")), "ENTITY", mapOf("score" to 0.9F))))
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(locationLabels.toTypedArray(), mapOf("text" to "England", "type" to "LOCATION")), "ENTITY", mapOf("score" to 0.9F))))
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(personLabels.toTypedArray(), mapOf("text" to "Health Secretary", "type" to "PERSON")), "ENTITY", mapOf("score" to 0.9F))))
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(personLabels.toTypedArray(), mapOf("text" to "Matt Hancock", "type" to "PERSON")), "ENTITY", mapOf("score" to 0.9F))))
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(personLabels.toTypedArray(), mapOf("text" to "Michael Gove", "type" to "PERSON")), "ENTITY", mapOf("score" to 0.9F))))
+                    assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dateLabels.toTypedArray(), mapOf("text" to "Tuesday", "type" to "DATE")), "ENTITY", mapOf("score" to 0.9F))))
                 }
             }
         }

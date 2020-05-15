@@ -7,6 +7,7 @@ import apoc.util.FixedSizeStringWriter;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -291,8 +293,21 @@ public class DocumentToGraph {
         return coll;
     }
 
+    public VirtualGraph createWithoutMutatingOriginal(Object documentObj) {
+        List<Map<String, Object>> original = getDocumentCollection(documentObj);
+
+        List<Map<String, Object>> coll = original.stream().map(HashMap::new).collect(Collectors.toList());
+
+        return getVirtualGraph(coll);
+    }
+
     public VirtualGraph create(Object documentObj) {
-        Collection<Map<String, Object>> coll = getDocumentCollection(documentObj);
+        List<Map<String, Object>> coll = getDocumentCollection(documentObj);
+        return getVirtualGraph(coll);
+    }
+
+    @NotNull
+    private VirtualGraph getVirtualGraph(List<Map<String, Object>> coll) {
         Map<Set<String>, Set<Node>> nodes = new LinkedHashMap<>();
         Set<Relationship> relationships = new LinkedHashSet<>();
         coll.forEach(map -> fromDocument(map, null, null, nodes, relationships, JSON_ROOT));

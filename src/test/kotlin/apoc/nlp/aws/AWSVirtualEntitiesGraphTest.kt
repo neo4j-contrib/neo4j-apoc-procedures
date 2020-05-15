@@ -17,7 +17,7 @@ import org.neo4j.graphdb.RelationshipType
 class AWSVirtualEntitiesGraphTest {
     @Test
     fun `create virtual graph from result with one entity`() {
-        val entity = Entity().withText("foo").withType("Bar")
+        val entity = Entity().withText("foo").withType("Bar").withScore(0.8F)
         val itemResult = BatchDetectEntitiesItemResult().withEntities(entity).withIndex(0)
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(itemResult)
         val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
@@ -35,14 +35,14 @@ class AWSVirtualEntitiesGraphTest {
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
         assertEquals(1, relationships.size)
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, VirtualNode(barLabels.toTypedArray(), barProperties), "ENTITY")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, VirtualNode(barLabels.toTypedArray(), barProperties), "ENTITY", mapOf("score" to 0.8F))))
     }
 
     @Test
     fun `create virtual graph from result with multiple entities`() {
         val result = BatchDetectEntitiesItemResult().withEntities(
-                Entity().withText("The Matrix").withType("Movie"),
-                Entity().withText("The Notebook").withType("Movie"))
+                Entity().withText("The Matrix").withType("Movie").withScore(0.6F),
+                Entity().withText("The Notebook").withType("Movie").withScore(0.7F))
                 .withIndex(0)
 
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(result)
@@ -63,20 +63,20 @@ class AWSVirtualEntitiesGraphTest {
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
         assertEquals(2, relationships.size)
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, matrixNode, "ENTITY")))
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, notebookNode, "ENTITY")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, matrixNode, "ENTITY", mapOf("score" to 0.6F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, notebookNode, "ENTITY", mapOf("score" to 0.7F))))
     }
 
     @Test
     fun `create virtual graph from result with multiple source nodes`() {
         val itemResult1 = BatchDetectEntitiesItemResult().withEntities(
-                Entity().withText("The Matrix").withType("Movie"),
-                Entity().withText("The Notebook").withType("Movie"))
+                Entity().withText("The Matrix").withType("Movie").withScore(0.2F),
+                Entity().withText("The Notebook").withType("Movie").withScore(0.3F))
                 .withIndex(0)
 
         val itemResult2 = BatchDetectEntitiesItemResult().withEntities(
-                Entity().withText("Toy Story").withType("Movie"),
-                Entity().withText("Titanic").withType("Movie"))
+                Entity().withText("Toy Story").withType("Movie").withScore(0.4F),
+                Entity().withText("Titanic").withType("Movie").withScore(0.5F))
                 .withIndex(1)
 
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(itemResult1, itemResult2)
@@ -103,24 +103,24 @@ class AWSVirtualEntitiesGraphTest {
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
         assertEquals(4, relationships.size)
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, matrixNode, "ENTITY")))
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, notebookNode, "ENTITY")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, matrixNode, "ENTITY", mapOf("score" to 0.2F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, notebookNode, "ENTITY", mapOf("score" to 0.3F))))
 
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, toyStoryNode, "ENTITY")))
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, titanicNode, "ENTITY")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, toyStoryNode, "ENTITY", mapOf("score" to 0.4F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, titanicNode, "ENTITY", mapOf("score" to 0.5F))))
     }
 
     @Test
     fun `create virtual graph from result with multiple source nodes with overlapping entities`() {
         val itemResult1 = BatchDetectEntitiesItemResult().withEntities(
-                Entity().withText("The Matrix").withType("Movie"),
-                Entity().withText("The Notebook").withType("Movie"))
+                Entity().withText("The Matrix").withType("Movie").withScore(0.7F),
+                Entity().withText("The Notebook").withType("Movie").withScore(0.8F))
                 .withIndex(0)
 
         val itemResult2 = BatchDetectEntitiesItemResult().withEntities(
-                Entity().withText("The Matrix").withType("Movie"),
-                Entity().withText("Titanic").withType("Movie"),
-                Entity().withText("Top Boy").withType("Television"))
+                Entity().withText("Titanic").withType("Movie").withScore(0.75F),
+                Entity().withText("The Matrix").withType("Movie").withScore(0.9F),
+                Entity().withText("Top Boy").withType("Television").withScore(0.4F))
                 .withIndex(1)
 
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(itemResult1, itemResult2)
@@ -147,12 +147,12 @@ class AWSVirtualEntitiesGraphTest {
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
         assertEquals(5, relationships.size)
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, matrixNode, "ENTITY")))
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, notebookNode, "ENTITY")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, matrixNode, "ENTITY", mapOf("score" to 0.7F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, notebookNode, "ENTITY", mapOf("score" to 0.8F))))
 
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, matrixNode, "ENTITY")))
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, titanicNode, "ENTITY")))
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, topBoyNode, "ENTITY")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, titanicNode, "ENTITY", mapOf("score" to 0.75F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, matrixNode, "ENTITY", mapOf("score" to 0.9F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, topBoyNode, "ENTITY", mapOf("score" to 0.4F))))
     }
 
 }

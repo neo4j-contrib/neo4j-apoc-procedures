@@ -32,7 +32,7 @@ class AWSVirtualKeyPhrasesGraphTest {
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
         assertEquals(1, relationships.size)
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, VirtualNode(barLabels.toTypedArray(), barProperties), "KEY_PHRASE")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, VirtualNode(barLabels.toTypedArray(), barProperties), "KEY_PHRASE", mapOf("score" to 0.9F))))
     }
 
     @Test
@@ -60,8 +60,8 @@ class AWSVirtualKeyPhrasesGraphTest {
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
         assertEquals(2, relationships.size)
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, matrixNode, "KEY_PHRASE")))
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, notebookNode, "KEY_PHRASE")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, matrixNode, "KEY_PHRASE", mapOf("score" to 0.9F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, notebookNode, "KEY_PHRASE", mapOf("score" to 0.9F))))
     }
 
     @Test
@@ -100,11 +100,11 @@ class AWSVirtualKeyPhrasesGraphTest {
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
         assertEquals(4, relationships.size)
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, matrixNode, "KEY_PHRASE")))
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, notebookNode, "KEY_PHRASE")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, matrixNode, "KEY_PHRASE", mapOf("score" to 0.9F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, notebookNode, "KEY_PHRASE", mapOf("score" to 0.9F))))
 
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, toyStoryNode, "KEY_PHRASE")))
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, titanicNode, "KEY_PHRASE")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, toyStoryNode, "KEY_PHRASE", mapOf("score" to 0.9F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, titanicNode, "KEY_PHRASE", mapOf("score" to 0.9F))))
     }
 
     @Test
@@ -144,12 +144,12 @@ class AWSVirtualKeyPhrasesGraphTest {
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
         assertEquals(5, relationships.size)
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, matrixNode, "KEY_PHRASE")))
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, notebookNode, "KEY_PHRASE")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, matrixNode, "KEY_PHRASE", mapOf("score" to 0.9F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, notebookNode, "KEY_PHRASE", mapOf("score" to 0.9F))))
 
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, matrixNode, "KEY_PHRASE")))
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, titanicNode, "KEY_PHRASE")))
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, topBoyNode, "KEY_PHRASE")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, matrixNode, "KEY_PHRASE", mapOf("score" to 0.9F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, titanicNode, "KEY_PHRASE", mapOf("score" to 0.9F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, topBoyNode, "KEY_PHRASE", mapOf("score" to 0.9F))))
     }
 
 }

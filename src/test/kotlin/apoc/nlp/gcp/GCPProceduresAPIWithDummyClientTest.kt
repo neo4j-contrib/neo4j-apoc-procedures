@@ -140,8 +140,8 @@ class GCPProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("name" to "token-2-index-0-batch-1", "type" to "LOCATION"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels1.toTypedArray(), mapOf("name" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD")), "ENTITY")))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("name" to "token-2-index-0-batch-1", "type" to "LOCATION")), "ENTITY")))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels1.toTypedArray(), mapOf("name" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD")), "ENTITY", mapOf("score" to 0.9F))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("name" to "token-2-index-0-batch-1", "type" to "LOCATION")), "ENTITY", mapOf("score" to 0.9F))))
         }
     }
 
@@ -248,8 +248,8 @@ class GCPProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("name" to "category-2-index-0-batch-1"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("name" to "category-1-index-0-batch-1")), "CATEGORY")))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("name" to "category-2-index-0-batch-1")), "CATEGORY")))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("name" to "category-1-index-0-batch-1")), "CATEGORY", mapOf("score" to 0.9F))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("name" to "category-2-index-0-batch-1")), "CATEGORY", mapOf("score" to 0.9F))))
         }
     }
 
