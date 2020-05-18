@@ -94,7 +94,7 @@ dependencies {
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.7.3'
-    compile group: 'org.apache.directory.api', name: 'api-all', version: '2.0.1'
+    compileOnly group: 'org.apache.directory.api', name: 'api-all', version: '2.0.1'
     testCompile group: 'org.apache.directory.server', name: 'apacheds-test-framework', version: '2.0.0.AM26', { exclude group: 'org.apache.directory.api', module: 'api-ldap-schema-data' }
 
     def withoutAntlr =  {
