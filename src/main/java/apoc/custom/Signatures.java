@@ -72,7 +72,7 @@ public class Signatures {
         String warning = null; // "todo warning";
         boolean eager = false;
         boolean caseInsensitive = true;
-        return new ProcedureSignature(name, inputSignatures, outputSignature, mode, admin, deprecated, allowed, description, warning, eager, caseInsensitive, false);
+        return new ProcedureSignature(name, inputSignatures, outputSignature, mode, admin, deprecated, allowed, description, warning, eager, caseInsensitive, false, false);
     }
 
     public List<String> namespace(SignatureParser.NamespaceContext namespaceContext) {
