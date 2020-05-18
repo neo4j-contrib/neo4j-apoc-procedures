@@ -138,6 +138,10 @@ dependencies {
         exclude group: 'com.google.http-client', module: 'google-http-client'
     }
 
+    testCompile 'org.mock-server:mockserver-netty:3.10.8'
+    testCompile 'org.mock-server:mockserver-client-java:3.10.8'
+
+
     def withoutServers = {
 //        exclude group: 'org.mortbay.jetty'
         exclude group: 'org.eclipse.jetty'
