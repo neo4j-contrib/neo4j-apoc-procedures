@@ -1,7 +1,6 @@
 package apoc.load;
 
 import apoc.ApocConfiguration;
-import apoc.Description;
 import apoc.load.util.LdapUtil;
 import apoc.load.util.LoadLdapConfig;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
@@ -19,6 +18,7 @@ import org.apache.directory.ldap.client.api.LdapConnectionPool;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
@@ -45,7 +45,7 @@ public class LoadLdap {
     public GraphDatabaseService db;
 
     @Procedure(name = "apoc.load.ldap", deprecatedBy = "apoc.load.ldapurl")
-    @Description("apoc.load.ldap({connectionMap},{searchMap}) Load entries from an ldap source (yield entry)")
+    @Description("deprecated - please use: apoc.load.ldap('url', config) YIELD row - run an LDAP query from an LDAP URL")
     public Stream<LDAPResult> ldapQuery(@Name("connection") final Object conn, @Name("search") final Map<String,Object> search) throws LdapInvalidDnException {
         LoadLdapConfig compatConfig;
         if (conn instanceof Map) {
