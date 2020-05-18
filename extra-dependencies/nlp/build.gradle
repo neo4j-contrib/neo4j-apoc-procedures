@@ -8,8 +8,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-group = 'org.neo4j.contrib'
-version = '4.0.0.11'
 archivesBaseName = 'apoc-nlp-dependencies'
 description = """APOC NLP Dependencies"""
 
@@ -18,14 +16,6 @@ jar {
         attributes 'Implementation-Version': version
     }
 }
-
-repositories {
-    jcenter()
-    maven {
-        url "https://repo.gradle.org/gradle/libs-releases"
-    }
-}
-
 
 dependencies {
     compile group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'

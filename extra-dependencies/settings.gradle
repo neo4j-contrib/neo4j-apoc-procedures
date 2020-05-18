@@ -1,6 +1,3 @@
 rootProject.name = 'extra-dependencies'
 include('nlp')
 include('mongodb')
-
-project(':nlp').projectDir = file('nlp')
-project(':mongodb').projectDir = file('mongodb')

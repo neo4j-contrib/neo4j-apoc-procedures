@@ -8,8 +8,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-group = 'org.neo4j.contrib'
-version = '4.0.0.12'
 archivesBaseName = 'apoc-mongodb-dependencies'
 description = """APOC MongoDB Dependencies"""
 
@@ -18,14 +16,6 @@ jar {
         attributes 'Implementation-Version': version
     }
 }
-
-repositories {
-    jcenter()
-    maven {
-        url "https://repo.gradle.org/gradle/libs-releases"
-    }
-}
-
 
 dependencies {
     compile 'org.mongodb:mongodb-driver:3.2.2'
