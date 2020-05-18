@@ -1,18 +1,14 @@
-subprojects {
-    apply plugin: 'java'
-
+allprojects {
     repositories {
-        mavenCentral()
-    }
-
-    task buildDependencies {
-        subprojects.each { subproject ->
-            print("foo")
-            //println subproject.path
-            subproject.tasks.each {
-                print(subproject.path)
-                dependsOn subproject.path+":"+it
-            }
+        jcenter()
+        maven {
+            url "https://repo.gradle.org/gradle/libs-releases"
         }
     }
+}
+
+
+subprojects {
+    version = '4.0.0.12'
+    group = 'org.neo4j.contrib'
 }
