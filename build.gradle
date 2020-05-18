@@ -109,6 +109,10 @@ dependencies {
 
     compile 'org.jsoup:jsoup:1.11.3'
 
+    compileOnly group: 'org.apache.directory.api', name: 'api-all', version: '2.0.1'
+    testImplementation group: 'org.apache.directory.api', name: 'api-all', version: '2.0.1'
+    testCompile group: 'org.apache.directory.server', name: 'apacheds-test-framework', version: '2.0.0.AM26', { exclude group: 'org.apache.directory.api', module: 'api-ldap-schema-data' }
+
     compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
     compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7'
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'

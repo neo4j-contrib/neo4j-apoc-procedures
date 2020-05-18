@@ -3,6 +3,7 @@ package apoc;
 import apoc.export.util.ExportConfig;
 import apoc.load.Jdbc;
 import apoc.util.SimpleRateLimiter;
+import apoc.util.Util;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.combined.CombinedConfigurationBuilder;
@@ -276,7 +277,7 @@ public class ApocConfig extends LifecycleAdapter {
         getConfig().setProperty(key, value);
     }
 
-    public boolean getBoolean(String key) {
+    public boolean  getBoolean(String key) {
         return getConfig().getBoolean(key);
     }
 
