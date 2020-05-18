@@ -77,10 +77,10 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
         storage.init();
 
         String unsecuredUrl = String.format("ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Agent Smith))", ldapServerPort);
-        storage.setProperty("ldap.localhost_noauth.url", unsecuredUrl);
-        storage.setProperty("ldap.localhost_auth.url", unsecuredUrl);
-        storage.setProperty("ldap.localhost_auth.username", "uid=admin,ou=system");
-        storage.setProperty("ldap.localhost_auth.password", "secret");
+        storage.setProperty("apoc.ldap.localhost_noauth.url", unsecuredUrl);
+        storage.setProperty("apoc.ldap.localhost_auth.url", unsecuredUrl);
+        storage.setProperty("apoc.ldap.localhost_auth.username", "uid=admin,ou=system");
+        storage.setProperty("apoc.ldap.localhost_auth.password", "secret");
 
 
 //        ApocConfiguration.addToConfig(map("ldap.localhost_noauth.url", unsecuredUrl));
@@ -127,7 +127,7 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
 
     @Test
     public void testBadPageSize() {
-        storage.setProperty("ldap.localhost_auth.pageSize", "lah");
+        storage.setProperty("apoc.ldap.localhost_auth.pageSize", "lah");
         LoadLdapConfig config = LdapUtil.getFromConfigFile(storage, "localhost_auth");
         assertEquals(config.getPageSize(), 100);
 
@@ -135,7 +135,7 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
 
     @Test
     public void testValidPageSize() {
-        storage.setProperty("ldap.localhost_auth.pageSize", "771");
+        storage.setProperty("apoc.ldap.localhost_auth.pageSize", "771");
         LoadLdapConfig config = LdapUtil.getFromConfigFile(storage, "localhost_auth");
         assertEquals(config.getPageSize(), 771);
 
