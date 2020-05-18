@@ -1,2 +1,3 @@
 rootProject.name = 'extra-dependencies'
 include('mongodb')
+include('ldap')
