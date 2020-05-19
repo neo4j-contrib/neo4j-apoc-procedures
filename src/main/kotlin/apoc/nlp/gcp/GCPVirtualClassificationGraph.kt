@@ -10,11 +10,10 @@ import org.apache.commons.text.WordUtils
 import org.neo4j.graphdb.*
 import java.util.LinkedHashMap
 
-data class GCPVirtualClassificationGraph(private val results: List<NodeValueErrorMapResult>, private val sourceNodes: List<Node>, val relType: RelationshipType): NLPVirtualGraph(sourceNodes, relType, ENTITY_MAPPING) {
+data class GCPVirtualClassificationGraph(private val results: List<NodeValueErrorMapResult>, private val sourceNodes: List<Node>, val relType: RelationshipType): NLPVirtualGraph() {
     override fun extractDocument(index: Int, sourceNode: Node) : Any? = results.get(index).value["categories"]
 
     companion object {
-        val ENTITY_MAPPING = mapOf("$" to "Entity{!text,type}")
         val LABEL = Label { "Category" }
         val KEY_MAPPINGS = mapOf("name" to "text")
         val ID_MAPPINGS = mapOf("name" to "text")
@@ -43,7 +42,7 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
                     entityNodes.add(entityNode)
 
                     val nodeAndScore = Pair(entityNode, item["confidence"] as Float)
-                    NLPHelperFunctions.mergeRelationship(transaction!!, sourceNode, nodeAndScore, relationshipType).forEach { rel -> relationships.add(rel) }
+                    NLPHelperFunctions.mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType).forEach { rel -> relationships.add(rel) }
 
                     sourceNode
                 } else {
@@ -53,7 +52,7 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
 
                     val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
                     val nodeAndScore = Pair(entityNode, item["confidence"] as Number)
-                    relationships.add(NLPHelperFunctions.createRelationship(virtualNode, nodeAndScore, relationshipType))
+                    relationships.add(NLPHelperFunctions.createRelationship(virtualNode, nodeAndScore, relType))
 
                     virtualNode
                 }

@@ -11,11 +11,10 @@ import org.apache.commons.text.WordUtils
 import org.neo4j.graphdb.*
 import java.util.*
 
-data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetectEntitiesResult, private val sourceNodes: List<Node>, val relType: RelationshipType): NLPVirtualGraph(sourceNodes, relType, ENTITY_MAPPING) {
+data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetectEntitiesResult, private val sourceNodes: List<Node>, val relType: RelationshipType): NLPVirtualGraph() {
     override fun extractDocument(index: Int, sourceNode: Node) : ArrayList<Map<String, Any>> = AWSProcedures.transformResults(index, sourceNode, detectEntitiesResult).value["entities"] as ArrayList<Map<String, Any>>
 
     companion object {
-        val ENTITY_MAPPING = mapOf("$" to "Entity{!text,type}")
         val KEYS = listOf("text", "type")
         val LABEL = Label { "Entity" }
         const val LABEL_KEY = "type"
@@ -45,7 +44,7 @@ data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetect
                     entityNodes.add(entityNode)
 
                     val nodeAndScore = Pair(entityNode, item["score"] as Float)
-                    mergeRelationship(transaction!!, sourceNode, nodeAndScore, relationshipType).forEach { rel -> relationships.add(rel) }
+                    mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType).forEach { rel -> relationships.add(rel) }
 
                     sourceNode
                 } else {
@@ -55,7 +54,7 @@ data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetect
 
                     val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
                     val nodeAndScore = Pair(entityNode, item["score"] as Float)
-                    relationships.add(createRelationship(virtualNode, nodeAndScore, relationshipType))
+                    relationships.add(createRelationship(virtualNode, nodeAndScore, relType))
 
                     virtualNode
                 }
