@@ -6,19 +6,32 @@
 This section describes procedures that can be used to interact with MongoDB.
 --
 
+This section includes:
+
+* <<mongodb-procedures>>
+* <<mongodb-dependencies>>
+* <<mongodb-fields>>
+* <<mongodb-examples>>
+
+[[mongodb-procedures]]
+== Available Procedures
+
 // tag::mongodb[]
 
-[cols="3m,2"]
+[separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-| CALL apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find operation on mongodb collection | perform a find operation on mongodb collection
-| CALL apoc.mongodb.count(host-or-key,db,collection,query) yield value - perform a find operation on mongodb collection | perform a find operation on mongodb collection
-| CALL apoc.mongodb.first(host-or-key,db,collection,query,[compatibleValues=false|true],[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a first operation on mongodb collection | perform a first operation on mongodb collection
-| CALL apoc.mongodb.find(host-or-key,db,collection,query,projection,sort,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find,project,sort operation on mongodb collection | perform a find,project,sort operation on mongodb collection
-| CALL apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection | inserts the given documents into the mongodb collection
-| CALL apoc.mongodb.delete(host-or-key,db,collection,query) - delete the given documents from the mongodb collection and returns the number of affected documents | deletes the given documents from the mongodb collection and returns the number of affected documents
-| CALL apoc.mongodb.update(host-or-key,db,collection,query,update) - updates the given documents from the mongodb collection and returns the number of affected documents | updates the given documents from the mongodb collection and returns the number of affected documents
+include::../../../build/generated-documentation/apoc.mongodb.csv[]
 |===
 
+[[mongodb-dependencies]]
+== Install Dependencies
+
+The Mongo procedures have dependencies on a client library that is not included in the APOC Library.
+
+This dependency is included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-mongodb-dependencies-{apoc-release}.jar[apoc-mongodb-dependencies-{apoc-release}.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
+Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
+
+[[mongodb-fields]]
 == Field description
 
  - `hostorkey`: the MongoDB host in the format `mongodb://<HOST_NAME>:<PORT>`
@@ -37,8 +50,10 @@ This section describes procedures that can be used to interact with MongoDB.
  - `documents`: the documents to insert
  - `update`: the updated params
 
+[[mongodb-examples]]
+== Examples
 
-Follwing an example that could help to understand the behaviour of `extractReferences`, `compatibleValues` and `objectIdAsMap`:
+Following an example that could help to understand the behaviour of `extractReferences`, `compatibleValues` and `objectIdAsMap`:
 
 Given the following collections:
 
