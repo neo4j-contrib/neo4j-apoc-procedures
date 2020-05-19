@@ -35,23 +35,20 @@ abstract class NLPVirtualGraph(private val sourceNodes: List<Node>, val relation
 
         sourceNodes.forEachIndexed { index, sourceNode ->
             val documentToGraph = DocumentToGraph(transaction, GraphsConfig(graphConfig), nonSourceNodes)
-            val document = extractDocument(index, sourceNode) as List<Map<String, Any>>
+            val document = extractDocument(index, sourceNode)
 
-            val graph = documentToGraph.createWithoutMutatingOriginal(document).graph
+            val graph = documentToGraph.create(document).graph
 
             val nodes = (graph["nodes"] as Set<Node>)
             nonSourceNodes.addAll(nodes)
-            val nodesAndScores = nodes.zip(document.map { map -> map["score"] as Float })
 
             val relationships = (graph["relationships"] as Set<Relationship>).toMutableSet()
             val node = if (storeGraph) {
-                NLPHelperFunctions.mergeRelationships(transaction!!, sourceNode,
-                        nodesAndScores,
-                        relationshipType).forEach { rel -> relationships.add(rel) }
+                NLPHelperFunctions.mergeRelationshipNoScore(transaction!!, sourceNode, nodes, relationshipType).forEach { rel -> relationships.add(rel) }
                 sourceNode
             } else {
                 val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
-                NLPHelperFunctions.createRelationships(virtualNode, nodesAndScores, relationshipType).forEach { rel -> relationships.add(rel) }
+                NLPHelperFunctions.createRelationshipsNoScore(virtualNode, nodes, relationshipType).forEach { rel -> relationships.add(rel) }
                 virtualNode
             }
             allNodes.add(node)

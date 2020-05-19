@@ -5,7 +5,7 @@ import org.hamcrest.Description
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
 
-data class RelationshipMatcher(private val startNode: Node?, private val endNode: Node?, private val relationshipType: String, private val properties: Map<String, Any>) : org.hamcrest.TypeSafeDiagnosingMatcher<Relationship>() {
+data class RelationshipMatcher(private val startNode: Node?, private val endNode: Node?, private val relationshipType: String, private val properties: Map<String, Any> = mapOf()) : org.hamcrest.TypeSafeDiagnosingMatcher<Relationship>() {
     override fun describeTo(description: Description?) {
         description?.appendText("startNode: ")
                 ?.appendValue(startNode)?.appendText(", endNode: ")

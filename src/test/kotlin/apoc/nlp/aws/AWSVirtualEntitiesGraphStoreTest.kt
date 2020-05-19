@@ -29,14 +29,14 @@ class AWSVirtualEntitiesGraphStoreTest {
     fun `store graph from result with multiple source nodes with overlapping entities`() {
         neo4j.beginTx().use {
             val itemResult1 = BatchDetectEntitiesItemResult().withEntities(
-                    Entity().withText("The Matrix").withType("Movie"),
-                    Entity().withText("The Notebook").withType("Movie"))
+                    Entity().withText("The Matrix").withType("Movie").withScore(0.9F),
+                    Entity().withText("The Notebook").withType("Movie").withScore(0.9F))
                     .withIndex(0)
 
             val itemResult2 = BatchDetectEntitiesItemResult().withEntities(
-                    Entity().withText("The Matrix").withType("Movie"),
-                    Entity().withText("Titanic").withType("Movie"),
-                    Entity().withText("Top Boy").withType("Television"))
+                    Entity().withText("The Matrix").withType("Movie").withScore(0.9F),
+                    Entity().withText("Titanic").withType("Movie").withScore(0.9F),
+                    Entity().withText("Top Boy").withType("Television").withScore(0.9F))
                     .withIndex(1)
 
             val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(itemResult1, itemResult2)
