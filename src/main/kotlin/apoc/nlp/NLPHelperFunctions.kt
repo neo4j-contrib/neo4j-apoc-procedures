@@ -14,14 +14,14 @@ class NLPHelperFunctions {
                     node.createRelationshipTo(n, relationshipType)
                 }
 
-        fun createRelationships(node: Node, nodesAndScores: List<Pair<Node, Float>>, relationshipType: RelationshipType) =
+        fun createRelationships(node: Node, nodesAndScores: List<Pair<Node, Number>>, relationshipType: RelationshipType) =
                 nodesAndScores.map { (n, score) ->
                     val relationship = node.createRelationshipTo(n, relationshipType)
                     relationship.setProperty("score", score)
                     relationship
                 }
 
-        fun createRelationship(node: Node, nodesAndScore: Pair<Node, Float>, relationshipType: RelationshipType): Relationship {
+        fun createRelationship(node: Node, nodesAndScore: Pair<Node, Number>, relationshipType: RelationshipType): Relationship {
             val relationship = node.createRelationshipTo(nodesAndScore.first, relationshipType)
             relationship.setProperty("score", nodesAndScore.second)
             return relationship

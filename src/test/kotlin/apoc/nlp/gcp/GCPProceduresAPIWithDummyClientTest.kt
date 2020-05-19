@@ -136,12 +136,12 @@ class GCPProceduresAPIWithDummyClientTest {
             val dummyLabels2 = listOf(Label { "Location"}, Label {"Entity"})
 
             assertThat(nodes, hasItem(sourceNode))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels1, mapOf("name" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD"))))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("name" to "token-2-index-0-batch-1", "type" to "LOCATION"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels1, mapOf("text" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels1.toTypedArray(), mapOf("name" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD")), "ENTITY", mapOf("score" to 0.9F))))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("name" to "token-2-index-0-batch-1", "type" to "LOCATION")), "ENTITY", mapOf("score" to 0.9F))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels1.toTypedArray(), mapOf("text" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD")), "ENTITY", mapOf("score" to 0.1))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION")), "ENTITY", mapOf("score" to 0.2))))
         }
     }
 
@@ -244,12 +244,12 @@ class GCPProceduresAPIWithDummyClientTest {
             val dummyLabels = listOf( Label {"Category"})
 
             assertThat(nodes, hasItem(sourceNode))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("name" to "category-1-index-0-batch-1"))))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("name" to "category-2-index-0-batch-1"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "category-1-index-0-batch-1"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "category-2-index-0-batch-1"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("name" to "category-1-index-0-batch-1")), "CATEGORY", mapOf("score" to 0.9F))))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("name" to "category-2-index-0-batch-1")), "CATEGORY", mapOf("score" to 0.9F))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "category-1-index-0-batch-1")), "CATEGORY", mapOf("score" to 0.1))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "category-2-index-0-batch-1")), "CATEGORY", mapOf("score" to 0.2))))
         }
     }
 
