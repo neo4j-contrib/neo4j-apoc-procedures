@@ -6,135 +6,22 @@
 This section describes procedures that can be used to import data from LDAP.
 --
 
-With 'apoc.load.ldapurl' you can execute queries on any LDAP v3 enabled directory, the results are turned into a streams of entries.
+
+With 'apoc.load.ldap' you can execute queries on any LDAP v3 enabled directory, the results are turned into a streams of entries.
 The entries can then be used to update or create graph structures.
 
-This section includes:
-
-* <<load-ldap-procedures>>
-* <<load-ldap-dependencies>>
-* <<load-ldap-parameters>>
-* <<load-ldap-examples>>
-
-[[load-ldap-procedures]]
-== Available Procedures
-
+Note this utility requires to have the link:https://mvnrepository.com/artifact/com.novell.ldap/jldap/2009-10-07[jldap] library to be placed the plugin directory.
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::../../../build/generated-documentation/apoc.load.ldapurl.csv[]
-include::../../../build/generated-documentation/apoc.load.ldap.csv[lines=2;]
+include::../../../build/generated-documentation/apoc.load.csv[lines=1;12]
 |===
 
-[[load-ldap-dependencies]]
-== Install Dependencies
-
-The LDAP procedures have a dependency on an LDAP client library that is included in the APOC Library.
-
-This dependency is included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-ldap-dependencies-{apoc-release}.jar[apoc-ldap-dependencies-{apoc-release}.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
-Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
-
-[[load-ldap-parameters]]
 == Parameters
 
 [options="header",cols="a,3m,a"]
 |===
-|Parameter      | Property  | Description
-| url           | URL or key| See link:https://tools.ietf.org/html/rfc2255[RFC 2255] for the specifications
-|{connectionMap}| username  | This is the dn of the ldap server user who has read access on the ldap server
-|               | password  | This is the password used by the user
-|               | pageSize  | The number of results to return from the LDAP server at a time (default 100)
-|               | url       | Optional, if overriding the URL from the on-disk configuration
-|===
-
-Hint: Use an attribute parameter of * to return all attributes, + to return operational attributes, and no attributes will always return the distinguishedName
-
-[[load-ldap-examples]]
-== Load LDAP Examples
-
-
-.Retrieve group member information from the ldap server
-[source,cypher]
-----
-call apoc.load.ldapurl("ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)", {username: 'uid=admin,ou=system', password: 'secret'})
-yield entry
-return entry.dn,  entry.uniqueMember
-----
-
-[options="header",cols="3m,a"]
-|===
-| entry.dn                                 | entry.uniqueMember                                                                               |
-| "cn=Machines,ou=Groups,dc=neo4j,dc=test" | ["cn=Agent Smith,ou=Machines,dc=neo4j,dc=test", "cn=The Architect,ou=Machines,dc=neo4j,dc=test"] |
-| "cn=Humans,ou=Groups,dc=neo4j,dc=test"   | ["cn=Neo,ou=Users,dc=neo4j,dc=test", "cn=Morpheus,ou=Users,dc=neo4j,dc=test"]                    |
-|===
-
-.Retrieve group member information from the ldap server and create structure in Neo4j
-[source,cypher]
-----
-call apoc.load.ldapurl("ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)", {username: 'uid=admin,ou=system', password: 'secret'})
-yield entry
-merge (g:Group {dn : entry.dn})
-on create set g.cn = entry.cn
-foreach (member in entry.uniqueMember |
-  merge (p:Person { dn : member })
-  merge (p)-[:IS_MEMBER]->(g)
-)
-----
-
-=== Credentials
-
-To protect credentials, you can configure aliases in `conf/neo4j.conf`:
-
-.neo4j.conf Syntax
-----
-apoc.ldap.localhost_auth.url=ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)
-apoc.ldap.localhost_auth.username=uid=admin,ou=system
-apoc.ldap.localhost_auth.password=secret
-apoc.ldap.localhost_auth.pageSize=250
-----
-
-Then
-
-[source,cypher]
-----
-CALL apoc.load.ldapurl("ldap://localhost:389/dc=neo4j,dc=test?uniqueMember,cn,objectClass?sub?(objectClass=groupOfUniqueNames)", {user: 'uid=admin,ou=system', password: 'secret'})
-yield entry
-return entry.dn,  entry
-----
-
-becomes
-
-[source,cypher]
-----
-CALL apoc.load.ldapurl("localhost_auth")
-yield entry
-return entry.dn,  entry
-----
-
-You can optionally override the URL from the config file by providing a different `url` value
-
-[source,cypher]
-----
-call apoc.load.ldapurl("localhost_auth", {url: 'ldap://localhost:389/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Neo))'})
-yield entry
-return entry.dn,  entry
-----
-
-[[load-ldap-examples-deprecated]]
-== Load LDAP Examples (Deprecated)
-
-`apoc.load.ldap` is a deprecated procedure that can be used to  execute queries on any LDAP v3 enabled directory, the results are turned into a streams of entries.
-The entries can then be used to update or create graph structures.
-
-[Note]
-====
-This utility requires to have the link:https://mvnrepository.com/artifact/com.novell.ldap/jldap/2009-10-07[jldap] library to be placed the plugin directory.
-====
-
-
-[options="header",cols="a,3m,a"]
-|===
-|Parameter | Property | Description
+|Parameter | Property | Description
 |{connectionMap} | ldapHost | the ldapserver:port if port is omitted the default port 389 will be used
 |  | loginDN | This is the dn of the ldap server user who has read access on the ldap server
 |  | loginPW | This is the password used by the loginDN
@@ -147,6 +34,7 @@ This utility requires to have the link:https://mvnrepository.com/artifact/com.no
                             When specified only the specified attributes will be returned. Regardless the attributes setting a returned entry will always have a "dn" property.
 |===
 
+=== Load LDAP Example
 
 .Retrieve group member information from the ldap server
 [source,cypher]
@@ -186,14 +74,15 @@ foreach (member in entry.uniqueMember |
 
 === Credentials
 
-To protect credentials, you can configure aliases in `conf/apoc.conf`:
+To protect credentials, you can configure aliases in `conf/neo4j.conf`:
 
-.apoc.conf Syntax
+.neo4j.conf Syntax
 ----
 apoc.loadldap.myldap.config=<host>:<port> <loginDN> <loginPW>
 ----
 
-.apoc.conf:
+
+.neo4j.conf:
 ----
 apoc.loadldap.myldap.config=ldap.forumsys.com:389 cn=read-only-admin,dc=example,dc=com password
 ----
