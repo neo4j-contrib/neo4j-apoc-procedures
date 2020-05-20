@@ -15,7 +15,7 @@ data class GCPVirtualEntitiesGraph(private val results: List<NodeValueErrorMapRe
 
     companion object {
         const val LABEL_KEY = "type"
-        const val SCORE_PROPERTY = "salient"
+        const val SCORE_PROPERTY = "salience"
         val LABEL = Label { "Entity" }
         val KEY_MAPPINGS = mapOf("name" to "text", "type" to "type")
         val ID_MAPPINGS = mapOf("name" to "text")

@@ -10,8 +10,8 @@ import org.apache.commons.text.WordUtils
 import org.neo4j.graphdb.*
 import java.util.LinkedHashMap
 
-data class GCPVirtualClassificationGraph(private val results: List<NodeValueErrorMapResult>, private val sourceNodes: List<Node>, val relType: RelationshipType): NLPVirtualGraph() {
-    override fun extractDocument(index: Int, sourceNode: Node) : Any? = results.get(index).value["categories"]
+data class GCPVirtualClassificationGraph(private val results: List<NodeValueErrorMapResult>, private val sourceNodes: List<Node>, val relType: RelationshipType, val confidenceCutoff: Number): NLPVirtualGraph() {
+    override fun extractDocument(index: Int, sourceNode: Node) : Any? = results[index].value["categories"]
 
     companion object {
         const val SCORE_PROPERTY = "confidence"
@@ -37,27 +37,30 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
                 val labels: Array<Label> = arrayOf(LABEL)
                 val idValues: Map<String, Any> = ID_MAPPINGS.map { (key, value) -> value to item[key].toString() }.toMap()
 
-                val node = if (storeGraph) {
-                    val entityNode = documentToNodes.getOrCreateRealNode(labels, idValues)
-                    setProperties(entityNode, item)
-                    entityNodes.add(entityNode)
+                val score = item[SCORE_PROPERTY] as Number
+                if (score.toDouble() >= confidenceCutoff.toDouble()) {
+                    val node = if (storeGraph) {
+                        val entityNode = documentToNodes.getOrCreateRealNode(labels, idValues)
+                        setProperties(entityNode, item)
+                        entityNodes.add(entityNode)
 
-                    val nodeAndScore = Pair(entityNode, item[SCORE_PROPERTY] as Float)
-                    NLPHelperFunctions.mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType).forEach { rel -> relationships.add(rel) }
+                        val nodeAndScore = Pair(entityNode, score)
+                        NLPHelperFunctions.mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType).forEach { rel -> relationships.add(rel) }
 
-                    sourceNode
-                } else {
-                    val entityNode = documentToNodes.getOrCreateVirtualNode(LinkedHashMap(), labels, idValues)
-                    setProperties(entityNode, item)
-                    entityNodes.add(entityNode)
+                        sourceNode
+                    } else {
+                        val entityNode = documentToNodes.getOrCreateVirtualNode(LinkedHashMap(), labels, idValues)
+                        setProperties(entityNode, item)
+                        entityNodes.add(entityNode)
 
-                    val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
-                    val nodeAndScore = Pair(entityNode, item[SCORE_PROPERTY] as Number)
-                    relationships.add(NLPHelperFunctions.createRelationship(virtualNode, nodeAndScore, relType))
+                        val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
+                        val nodeAndScore = Pair(entityNode, score)
+                        relationships.add(NLPHelperFunctions.createRelationship(virtualNode, nodeAndScore, relType))
 
-                    virtualNode
+                        virtualNode
+                    }
+                    allNodes.add(node)
                 }
-                allNodes.add(node)
             }
 
             nonSourceNodes.addAll(entityNodes)

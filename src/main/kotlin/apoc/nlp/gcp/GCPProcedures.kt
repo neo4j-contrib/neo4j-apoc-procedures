@@ -94,11 +94,12 @@ class GCPProcedures {
         val client = gcpClient(config)
         val relationshipType = NLPHelperFunctions.categoryRelationshipType(config)
         val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
+        val confidenceCutoff = config.getOrDefault("confidenceCutoff", 0.0) as Number
 
         val convertedSource = convert(source)
         return partition(convertedSource, 25)
                 .mapIndexed { index, batch -> Pair(batch, client.classify(batch, index))  }
-                .map { (batch, result) -> GCPVirtualClassificationGraph(result, batch, relationshipType) }
+                .map { (batch, result) -> GCPVirtualClassificationGraph(result, batch, relationshipType, confidenceCutoff) }
                 .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
                 .stream()
     }

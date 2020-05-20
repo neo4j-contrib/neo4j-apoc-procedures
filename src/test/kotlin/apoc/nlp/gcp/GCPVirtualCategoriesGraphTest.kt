@@ -11,8 +11,6 @@ import org.junit.Test
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.RelationshipType
 
-private val label = Label { "Category" }
-
 class GCPVirtualCategoriesGraphTest {
     companion object {
         val RELATIONSHIP_TYPE = RelationshipType { "CATEGORY" }
@@ -29,7 +27,7 @@ class GCPVirtualCategoriesGraphTest {
                 ), mapOf())
         )
 
-        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode), RELATIONSHIP_TYPE).create()
+        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode), RELATIONSHIP_TYPE, 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(2, nodes.size)
@@ -56,7 +54,7 @@ class GCPVirtualCategoriesGraphTest {
                 ), mapOf())
         )
 
-        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode), RELATIONSHIP_TYPE).create()
+        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode), RELATIONSHIP_TYPE, 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(3, nodes.size)
@@ -91,7 +89,7 @@ class GCPVirtualCategoriesGraphTest {
                 )), mapOf())
         )
 
-        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode1, sourceNode2), RELATIONSHIP_TYPE).create()
+        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode1, sourceNode2), RELATIONSHIP_TYPE, 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
@@ -135,7 +133,7 @@ class GCPVirtualCategoriesGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode1, sourceNode2), RELATIONSHIP_TYPE).create()
+        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode1, sourceNode2), RELATIONSHIP_TYPE, 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
@@ -161,6 +159,51 @@ class GCPVirtualCategoriesGraphTest {
         assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, musicNode, RELATIONSHIP_TYPE.name(), mapOf("score" to 0.75))))
         assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, outdoorsNode, RELATIONSHIP_TYPE.name(), mapOf("score" to 0.9))))
         assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, classicalNode, RELATIONSHIP_TYPE.name(), mapOf("score" to 0.4))))
+    }
+
+    @Test
+    fun `create graph based on confidence cut off`() {
+        val res = listOf(
+                NodeValueErrorMapResult(null, mapOf("categories" to listOf(
+                        mapOf("name" to "/Hobbies & Leisure/Outdoors", "confidence" to 0.7), // excluded
+                        mapOf("name" to "/Hobbies & Leisure/Paintball", "confidence" to 0.8)
+                )), mapOf()),
+                NodeValueErrorMapResult(null, mapOf("categories" to listOf(
+                        mapOf("name" to "/Arts & Entertainment/Music & Audio", "confidence" to 0.75),
+                        mapOf("name" to "/Hobbies & Leisure/Outdoors", "confidence" to 0.9),
+                        mapOf("name" to "/Arts & Entertainment/Music & Audio/Classical Music", "confidence" to 0.95),
+                        mapOf("name" to "/Internet & Telecom/Web Services", "confidence" to 0.74) // excluded
+                )), mapOf())
+        )
+
+        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+
+        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode1, sourceNode2), RELATIONSHIP_TYPE, 0.75).create()
+
+        val nodes = virtualGraph.graph["nodes"] as Set<*>
+        assertEquals(6, nodes.size)
+        assertThat(nodes, hasItem(sourceNode1))
+        assertThat(nodes, hasItem(sourceNode2))
+
+        val outdoorsNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Hobbies & Leisure/Outdoors"))
+        val paintballNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Hobbies & Leisure/Paintball"))
+        val musicNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Arts & Entertainment/Music & Audio"))
+        val classicalNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Arts & Entertainment/Music & Audio/Classical Music"))
+
+        assertThat(nodes, hasItem(NodeMatcher(outdoorsNode.labels.toList(), outdoorsNode.allProperties)))
+        assertThat(nodes, hasItem(NodeMatcher(paintballNode.labels.toList(), paintballNode.allProperties)))
+        assertThat(nodes, hasItem(NodeMatcher(musicNode.labels.toList(), musicNode.allProperties)))
+        assertThat(nodes, hasItem(NodeMatcher(classicalNode.labels.toList(), classicalNode.allProperties)))
+
+        val relationships = virtualGraph.graph["relationships"] as Set<*>
+
+        assertEquals(4, relationships.size)
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, paintballNode, RELATIONSHIP_TYPE.name(), mapOf("score" to 0.8))))
+
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, musicNode, RELATIONSHIP_TYPE.name(), mapOf("score" to 0.75))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, outdoorsNode, RELATIONSHIP_TYPE.name(), mapOf("score" to 0.9))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, classicalNode, RELATIONSHIP_TYPE.name(), mapOf("score" to 0.95))))
     }
 
 }
