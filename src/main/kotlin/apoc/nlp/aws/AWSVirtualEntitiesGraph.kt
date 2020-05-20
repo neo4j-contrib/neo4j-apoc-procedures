@@ -15,9 +15,10 @@ data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetect
     override fun extractDocument(index: Int, sourceNode: Node) : ArrayList<Map<String, Any>> = AWSProcedures.transformResults(index, sourceNode, detectEntitiesResult).value["entities"] as ArrayList<Map<String, Any>>
 
     companion object {
+        const val LABEL_KEY = "type"
+        const val SCORE_PROPERTY = "score"
         val KEYS = listOf("text", "type")
         val LABEL = Label { "Entity" }
-        const val LABEL_KEY = "type"
         val ID_KEYS = listOf("text")
     }
 
@@ -43,7 +44,7 @@ data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetect
                     setProperties(entityNode, item)
                     entityNodes.add(entityNode)
 
-                    val nodeAndScore = Pair(entityNode, item["score"] as Float)
+                    val nodeAndScore = Pair(entityNode, item[SCORE_PROPERTY] as Float)
                     mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType).forEach { rel -> relationships.add(rel) }
 
                     sourceNode
@@ -53,7 +54,7 @@ data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetect
                     entityNodes.add(entityNode)
 
                     val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
-                    val nodeAndScore = Pair(entityNode, item["score"] as Float)
+                    val nodeAndScore = Pair(entityNode, item[SCORE_PROPERTY] as Float)
                     relationships.add(createRelationship(virtualNode, nodeAndScore, relType))
 
                     virtualNode

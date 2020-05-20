@@ -15,6 +15,7 @@ data class GCPVirtualEntitiesGraph(private val results: List<NodeValueErrorMapRe
 
     companion object {
         const val LABEL_KEY = "type"
+        const val SCORE_PROPERTY = "salient"
         val LABEL = Label { "Entity" }
         val KEY_MAPPINGS = mapOf("name" to "text", "type" to "type")
         val ID_MAPPINGS = mapOf("name" to "text")
@@ -42,7 +43,7 @@ data class GCPVirtualEntitiesGraph(private val results: List<NodeValueErrorMapRe
                     setProperties(entityNode, item)
                     entityNodes.add(entityNode)
 
-                    val nodeAndScore = Pair(entityNode, item["salience"] as Number)
+                    val nodeAndScore = Pair(entityNode, item[SCORE_PROPERTY] as Number)
                     NLPHelperFunctions.mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType).forEach { rel -> relationships.add(rel) }
 
                     sourceNode
@@ -52,7 +53,7 @@ data class GCPVirtualEntitiesGraph(private val results: List<NodeValueErrorMapRe
                     entityNodes.add(entityNode)
 
                     val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
-                    val nodeAndScore = Pair(entityNode, item["salience"] as Number)
+                    val nodeAndScore = Pair(entityNode, item[SCORE_PROPERTY] as Number)
                     relationships.add(NLPHelperFunctions.createRelationship(virtualNode, nodeAndScore, relType))
 
                     virtualNode

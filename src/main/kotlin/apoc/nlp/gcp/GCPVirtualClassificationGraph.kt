@@ -14,6 +14,7 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
     override fun extractDocument(index: Int, sourceNode: Node) : Any? = results.get(index).value["categories"]
 
     companion object {
+        const val SCORE_PROPERTY = "confidence"
         val LABEL = Label { "Category" }
         val KEY_MAPPINGS = mapOf("name" to "text")
         val ID_MAPPINGS = mapOf("name" to "text")
@@ -41,7 +42,7 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
                     setProperties(entityNode, item)
                     entityNodes.add(entityNode)
 
-                    val nodeAndScore = Pair(entityNode, item["confidence"] as Float)
+                    val nodeAndScore = Pair(entityNode, item[SCORE_PROPERTY] as Float)
                     NLPHelperFunctions.mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType).forEach { rel -> relationships.add(rel) }
 
                     sourceNode
@@ -51,7 +52,7 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
                     entityNodes.add(entityNode)
 
                     val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
-                    val nodeAndScore = Pair(entityNode, item["confidence"] as Number)
+                    val nodeAndScore = Pair(entityNode, item[SCORE_PROPERTY] as Number)
                     relationships.add(NLPHelperFunctions.createRelationship(virtualNode, nodeAndScore, relType))
 
                     virtualNode

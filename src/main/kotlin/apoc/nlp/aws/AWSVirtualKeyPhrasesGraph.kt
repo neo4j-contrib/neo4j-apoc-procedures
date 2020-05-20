@@ -13,6 +13,7 @@ data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDete
     override fun extractDocument(index: Int, sourceNode: Node) : ArrayList<Map<String, Any>> = AWSProcedures.transformResults(index, sourceNode, detectEntitiesResult).value["keyPhrases"] as ArrayList<Map<String, Any>>
 
     companion object {
+        const val SCORE_PROPERTY = "score"
         val KEYS = listOf("text")
         val LABEL = Label { "KeyPhrase" }
         val ID_KEYS = listOf("text")
@@ -40,7 +41,7 @@ data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDete
                     setProperties(entityNode, item)
                     entityNodes.add(entityNode)
 
-                    val nodeAndScore = Pair(entityNode, item["score"] as Float)
+                    val nodeAndScore = Pair(entityNode, item[SCORE_PROPERTY] as Float)
                     mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType).forEach { rel -> relationships.add(rel) }
 
                     sourceNode
@@ -50,7 +51,7 @@ data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDete
                     entityNodes.add(entityNode)
 
                     val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
-                    val nodeAndScore = Pair(entityNode, item["score"] as Float)
+                    val nodeAndScore = Pair(entityNode, item[SCORE_PROPERTY] as Float)
                     relationships.add(createRelationship(virtualNode, nodeAndScore, relType))
 
                     virtualNode
