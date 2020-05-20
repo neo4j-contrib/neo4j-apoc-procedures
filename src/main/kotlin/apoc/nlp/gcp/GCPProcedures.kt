@@ -55,12 +55,12 @@ class GCPProcedures {
         val relationshipType = NLPHelperFunctions.entityRelationshipType(config)
         val relationshipProperty = config.getOrDefault("writeRelationshipProperty", "score") as String
         val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
-        val salienceCutoff = config.getOrDefault("salienceCutoff", 0.0) as Number
+        val scoreCutoff = config.getOrDefault("scoreCutoff", 0.0) as Number
 
         val convertedSource = convert(source)
         return partition(convertedSource, 25)
                 .mapIndexed { index, batch -> Pair(batch, client.entities(batch, index))  }
-                .map { (batch, result) -> GCPVirtualEntitiesGraph(result, batch, relationshipType, relationshipProperty, salienceCutoff) }
+                .map { (batch, result) -> GCPVirtualEntitiesGraph(result, batch, relationshipType, relationshipProperty, scoreCutoff) }
                 .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
                 .stream()
     }
@@ -97,12 +97,12 @@ class GCPProcedures {
         val relationshipType = NLPHelperFunctions.categoryRelationshipType(config)
         val relationshipProperty = config.getOrDefault("writeRelationshipProperty", "score") as String
         val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
-        val confidenceCutoff = config.getOrDefault("confidenceCutoff", 0.0) as Number
+        val scoreCutoff = config.getOrDefault("scoreCutoff", 0.0) as Number
 
         val convertedSource = convert(source)
         return partition(convertedSource, 25)
                 .mapIndexed { index, batch -> Pair(batch, client.classify(batch, index))  }
-                .map { (batch, result) -> GCPVirtualClassificationGraph(result, batch, relationshipType,relationshipProperty, confidenceCutoff) }
+                .map { (batch, result) -> GCPVirtualClassificationGraph(result, batch, relationshipType,relationshipProperty, scoreCutoff) }
                 .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
                 .stream()
     }

@@ -270,7 +270,7 @@ class GCPProceduresAPIWithDummyClientTest {
                       key: ${'$'}apiKey,
                       nodeProperty: "body",
                       unsupportedDummyClient: true,
-                      salienceCutoff: 0.15,
+                      scoreCutoff: 0.15,
                       writeRelationshipType: "HAS_ENTITY",
                       writeRelationshipProperty: "gcpScore"
                     })
@@ -313,7 +313,7 @@ class GCPProceduresAPIWithDummyClientTest {
                       key: ${'$'}apiKey,
                       nodeProperty: "body",
                       unsupportedDummyClient: true,
-                      confidenceCutoff: 0.15 
+                      scoreCutoff: 0.15 
                     })
                     YIELD graph AS g
                     RETURN g.nodes AS nodes, g.relationships AS relationships
