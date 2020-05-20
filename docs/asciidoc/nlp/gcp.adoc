@@ -133,6 +133,7 @@ In addition, `apoc.nlp.gcp.classify.graph` supports the following config paramet
 | name | type | default | description
 | write | Boolean | false | persist the graph of entities
 | writeRelationshipType | String | CATEGORY | relationship type for relationships from source node to entity nodes
+| confidenceCutoff | Double | 0.0 | Lower limit for the confidence score of a category to be present in the graph. Value must be between 0 and 1.
 |===
 
 .Streaming mode
