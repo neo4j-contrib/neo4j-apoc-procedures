@@ -10,7 +10,7 @@ import org.apache.commons.text.WordUtils
 import org.neo4j.graphdb.*
 import java.util.LinkedHashMap
 
-data class GCPVirtualClassificationGraph(private val results: List<NodeValueErrorMapResult>, private val sourceNodes: List<Node>, val relType: RelationshipType, val confidenceCutoff: Number): NLPVirtualGraph() {
+data class GCPVirtualClassificationGraph(private val results: List<NodeValueErrorMapResult>, private val sourceNodes: List<Node>, val relType: RelationshipType, val cutoff: Number): NLPVirtualGraph() {
     override fun extractDocument(index: Int, sourceNode: Node) : Any? = results[index].value["categories"]
 
     companion object {
@@ -38,7 +38,7 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
                 val idValues: Map<String, Any> = ID_MAPPINGS.map { (key, value) -> value to item[key].toString() }.toMap()
 
                 val score = item[SCORE_PROPERTY] as Number
-                if (score.toDouble() >= confidenceCutoff.toDouble()) {
+                if (score.toDouble() >= cutoff.toDouble()) {
                     val node = if (storeGraph) {
                         val entityNode = documentToNodes.getOrCreateRealNode(labels, idValues)
                         setProperties(entityNode, item)

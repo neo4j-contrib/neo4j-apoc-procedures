@@ -253,12 +253,53 @@ class GCPProceduresAPIWithDummyClientTest {
     }
 
     @Test
-    fun `create virtual graph based on confidence cut off`() {
+    fun `create virtual entity graph based on salience cut off`() {
         neo4j.executeTransactionally("""CREATE (a:Article7 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
 
         var sourceNode: Node? = null
         var virtualSourceNode: Node? = null
         neo4j.executeTransactionally("MATCH (a:Article7) RETURN a", emptyMap()) {
+            sourceNode = it.next()["a"] as Node
+            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
+        }
+
+        neo4j.executeTransactionally("""
+                    MATCH (a:Article7) WITH a ORDER BY a.id
+                    WITH collect(a) AS articles
+                    CALL apoc.nlp.gcp.entities.graph(articles, {
+                      key: ${'$'}apiKey,
+                      nodeProperty: "body",
+                      unsupportedDummyClient: true,
+                      salienceCutoff: 0.15 
+                    })
+                    YIELD graph AS g
+                    RETURN g.nodes AS nodes, g.relationships AS relationships
+                """.trimIndent(), mapOf("apiKey" to apiKey)) {
+
+            assertTrue(it.hasNext())
+            val row = it.next()
+
+            val nodes: List<Node> = row["nodes"] as List<Node>
+            val relationships = row["relationships"] as List<Relationship>
+            Assert.assertEquals(2, nodes.size) // 1 dummy node + source node
+
+            val dummyLabels2 = listOf(Label { "Location"}, Label {"Entity"})
+
+            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION"))))
+
+            Assert.assertEquals(1, relationships.size)
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION")), "ENTITY", mapOf("score" to 0.2))))
+        }
+    }
+
+    @Test
+    fun `create virtual category graph based on confidence cut off`() {
+        neo4j.executeTransactionally("""CREATE (a:Article8 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
+
+        var sourceNode: Node? = null
+        var virtualSourceNode: Node? = null
+        neo4j.executeTransactionally("MATCH (a:Article8) RETURN a", emptyMap()) {
             sourceNode = it.next()["a"] as Node
             virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
         }

@@ -54,11 +54,12 @@ class GCPProcedures {
         val client = gcpClient(config)
         val relationshipType = NLPHelperFunctions.entityRelationshipType(config)
         val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
+        val salienceCutoff = config.getOrDefault("salienceCutoff", 0.0) as Number
 
         val convertedSource = convert(source)
         return partition(convertedSource, 25)
                 .mapIndexed { index, batch -> Pair(batch, client.entities(batch, index))  }
-                .map { (batch, result) -> GCPVirtualEntitiesGraph(result, batch, relationshipType) }
+                .map { (batch, result) -> GCPVirtualEntitiesGraph(result, batch, relationshipType, salienceCutoff) }
                 .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
                 .stream()
     }

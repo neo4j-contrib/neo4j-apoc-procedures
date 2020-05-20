@@ -4,8 +4,8 @@ import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
 import apoc.result.NodeValueErrorMapResult
 import apoc.result.VirtualNode
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertNotNull
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.junit.ClassRule
@@ -43,7 +43,7 @@ class GCPVirtualEntitiesGraphStoreTest {
             val sourceNode2 = it.createNode(Label {"Person"})
             sourceNode2.setProperty("id", 5678L)
 
-            val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }).createAndStore(it)
+            val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, 0.0).createAndStore(it)
 
             // verify virtual graph
             val nodes = virtualGraph.graph["nodes"] as Set<*>

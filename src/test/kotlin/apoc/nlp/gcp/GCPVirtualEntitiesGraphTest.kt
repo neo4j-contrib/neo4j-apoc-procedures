@@ -4,10 +4,6 @@ import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
 import apoc.result.NodeValueErrorMapResult
 import apoc.result.VirtualNode
-import com.amazonaws.services.comprehend.model.BatchDetectEntitiesItemResult
-import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
-import com.amazonaws.services.comprehend.model.BatchItemError
-import com.amazonaws.services.comprehend.model.Entity
 import junit.framework.Assert.assertEquals
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
@@ -24,7 +20,7 @@ class GCPVirtualEntitiesGraphTest {
                 NodeValueErrorMapResult(null, mapOf("entities" to listOf(mapOf("name" to "foo", "type" to "PERSON", "salience" to 0.75))), mapOf())
         )
 
-        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }).create()
+        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(2, nodes.size)
@@ -51,7 +47,7 @@ class GCPVirtualEntitiesGraphTest {
                 )), mapOf())
         )
 
-        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }).create()
+        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(3, nodes.size)
@@ -86,7 +82,7 @@ class GCPVirtualEntitiesGraphTest {
                 )), mapOf())
         )
 
-        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }).create()
+        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
@@ -130,7 +126,7 @@ class GCPVirtualEntitiesGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }).create()
+        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
@@ -156,6 +152,47 @@ class GCPVirtualEntitiesGraphTest {
         assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, titanicNode, "ENTITY", mapOf("score" to 0.75))))
         assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, matrixNode, "ENTITY", mapOf("score" to 0.9))))
         assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, topBoyNode, "ENTITY", mapOf("score" to 0.4))))
+    }
+
+    @Test
+    fun `create graph based on confidence cut off`() {
+        val res = listOf(
+                NodeValueErrorMapResult(null, mapOf("entities" to listOf(
+                        mapOf("name" to "The Matrix", "type" to "OTHER", "salience" to 0.7),
+                        mapOf("name" to "The Notebook", "type" to "PHONE_NUMBER", "salience" to 0.8)
+                )), mapOf()),
+                NodeValueErrorMapResult(null, mapOf("entities" to listOf(
+                        mapOf("name" to "Titanic", "type" to "PRICE", "salience" to 0.75),
+                        mapOf("name" to "The Matrix", "type" to "OTHER", "salience" to 0.9),
+                        mapOf("name" to "Top Boy", "type" to "CONSUMER_GOOD", "salience" to 0.4)
+                )), mapOf())
+        )
+
+        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+
+        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, 0.75).create()
+
+        val nodes = virtualGraph.graph["nodes"] as Set<*>
+        assertEquals(5, nodes.size)
+        assertThat(nodes, hasItem(sourceNode1))
+        assertThat(nodes, hasItem(sourceNode2))
+
+        val matrixNode = VirtualNode(arrayOf(Label{"Other"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "OTHER"))
+        val notebookNode = VirtualNode(arrayOf(Label{"PhoneNumber"}, Label{"Entity"}), mapOf("text" to "The Notebook", "type" to "PHONE_NUMBER"))
+        val titanicNode = VirtualNode(arrayOf(Label{"Price"}, Label{"Entity"}), mapOf("text" to "Titanic", "type" to "PRICE"))
+
+        assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
+        assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
+        assertThat(nodes, hasItem(NodeMatcher(titanicNode.labels.toList(), titanicNode.allProperties)))
+
+        val relationships = virtualGraph.graph["relationships"] as Set<*>
+
+        assertEquals(3, relationships.size)
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode1, notebookNode, "ENTITY", mapOf("score" to 0.8))))
+
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, titanicNode, "ENTITY", mapOf("score" to 0.75))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode2, matrixNode, "ENTITY", mapOf("score" to 0.9))))
     }
 
 }
