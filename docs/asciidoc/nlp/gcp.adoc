@@ -79,6 +79,7 @@ In addition, `apoc.nlp.gcp.entities.graph` supports the following config paramet
 Salience is an indicator of the importance or centrality of that entity to the entire document text. Scores closer to 0 are less salient, while scores closer to 1.0 are highly salient.
 | write | Boolean | false | persist the graph of entities
 | writeRelationshipType | String | ENTITY | relationship type for relationships from source node to entity nodes
+| writeRelationshipProperty | String | score | relationship property for relationships from source node to entity nodes
 |===
 
 .Streaming mode
@@ -97,7 +98,9 @@ YIELD value
 CALL apoc.nlp.gcp.entities.graph(source:Node or List<Node>, {
   key: String,
   nodeProperty: String,
+  salienceCutoff: Double,
   writeRelationshipType: String,
+  writeRelationshipProperty: String,
   write: Boolean
 })
 YIELD graph
@@ -138,7 +141,8 @@ In addition, `apoc.nlp.gcp.classify.graph` supports the following config paramet
 
 Confidence is a number representing how certain the classifier is that this category represents the given text.
 | write | Boolean | false | persist the graph of entities
-| writeRelationshipType | String | CATEGORY | relationship type for relationships from source node to entity nodes
+| writeRelationshipType | String | CATEGORY | relationship type for relationships from source node to category nodes
+| writeRelationshipProperty | String | score | relationship property for relationships from source node to category nodes
 |===
 
 .Streaming mode
@@ -157,7 +161,9 @@ YIELD value
 CALL apoc.nlp.gcp.classify.graph(source:Node or List<Node>, {
   key: String,
   nodeProperty: String,
+  confidenceCutoff: Double,
   writeRelationshipType: String,
+  writeRelationshipProperty: String,
   write: Boolean
 })
 YIELD graph

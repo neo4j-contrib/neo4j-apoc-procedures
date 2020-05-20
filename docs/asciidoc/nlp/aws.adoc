@@ -84,6 +84,7 @@ In addition, `apoc.nlp.aws.entities.graph` supports the following config paramet
 Score is an indicator of the level of confidence that Amazon Comprehend has in the accuracy of the detection.
 | write | Boolean | false | persist the graph of entities
 | writeRelationshipType | String | ENTITY | relationship type for relationships from source node to entity nodes
+| writeRelationshipProperty | String | score | relationship property for relationships from source node to entity nodes
 |===
 
 .Streaming mode
@@ -104,7 +105,9 @@ CALL apoc.nlp.aws.entities.graph(source:Node or List<Node>, {
   key: String,
   secret: String,
   nodeProperty: String,
+  scoreCutoff: Double,
   writeRelationshipType: String,
+  writeRelationshipProperty: String,
   write: Boolean
 })
 YIELD graph
@@ -146,7 +149,8 @@ In addition, `apoc.nlp.aws.keyPhrases.graph` supports the following config param
 
 Score is an indicator of the level of confidence that Amazon Comprehend has in the accuracy of the detection.
 | write | Boolean | false | persist the graph of key phrases
-| writeRelationshipType | String | ENTITY | relationship type for relationships from source node to entity nodes
+| writeRelationshipType | String | ENTITY | relationship type for relationships from source node to key phrase nodes
+| writeRelationshipProperty | String | score | relationship property for relationships from source node to key phrase nodes
 |===
 
 .Streaming mode
@@ -167,7 +171,9 @@ CALL apoc.nlp.aws.keyPhrases.graph(source:Node or List<Node>, {
   key: String,
   secret: String,
   nodeProperty: String,
+  scoreCutoff: Double,
   writeRelationshipType: String,
+  writeRelationshipProperty: String,
   write: Boolean
 })
 YIELD graph
