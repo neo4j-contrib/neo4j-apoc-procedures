@@ -43,7 +43,7 @@ class GCPVirtualEntitiesGraphStoreTest {
             val sourceNode2 = it.createNode(Label {"Person"})
             sourceNode2.setProperty("id", 5678L)
 
-            val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, 0.0).createAndStore(it)
+            val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, "score", 0.0).createAndStore(it)
 
             // verify virtual graph
             val nodes = virtualGraph.graph["nodes"] as Set<*>

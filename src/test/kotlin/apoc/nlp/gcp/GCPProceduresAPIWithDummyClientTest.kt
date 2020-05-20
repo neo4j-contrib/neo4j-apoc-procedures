@@ -270,7 +270,9 @@ class GCPProceduresAPIWithDummyClientTest {
                       key: ${'$'}apiKey,
                       nodeProperty: "body",
                       unsupportedDummyClient: true,
-                      salienceCutoff: 0.15 
+                      salienceCutoff: 0.15,
+                      writeRelationshipType: "HAS_ENTITY",
+                      writeRelationshipProperty: "gcpScore"
                     })
                     YIELD graph AS g
                     RETURN g.nodes AS nodes, g.relationships AS relationships
@@ -286,10 +288,10 @@ class GCPProceduresAPIWithDummyClientTest {
             val dummyLabels2 = listOf(Label { "Location"}, Label {"Entity"})
 
             assertThat(nodes, hasItem(sourceNode))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-0", "type" to "LOCATION"))))
 
             Assert.assertEquals(1, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION")), "ENTITY", mapOf("score" to 0.2))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-0", "type" to "LOCATION")), "HAS_ENTITY", mapOf("gcpScore" to 0.2))))
         }
     }
 
@@ -305,7 +307,7 @@ class GCPProceduresAPIWithDummyClientTest {
         }
 
         neo4j.executeTransactionally("""
-                    MATCH (a:Article7) WITH a ORDER BY a.id
+                    MATCH (a:Article8) WITH a ORDER BY a.id
                     WITH collect(a) AS articles
                     CALL apoc.nlp.gcp.classify.graph(articles, {
                       key: ${'$'}apiKey,

@@ -21,16 +21,16 @@ class NLPHelperFunctions {
                     relationship
                 }
 
-        fun createRelationship(node: Node, nodesAndScore: Pair<Node, Number>, relationshipType: RelationshipType): Relationship {
+        fun createRelationship(node: Node, nodesAndScore: Pair<Node, Number>, relationshipType: RelationshipType, relProperty: String): Relationship {
             val relationship = node.createRelationshipTo(nodesAndScore.first, relationshipType)
-            relationship.setProperty("score", nodesAndScore.second)
+            relationship.setProperty(relProperty, nodesAndScore.second)
             return relationship
         }
 
-        fun mergeRelationship(transaction: Transaction, node: Node, nodeAndScores: Pair<Node, Number>, relType: RelationshipType): Stream<Relationship> {
+        fun mergeRelationship(transaction: Transaction, node: Node, nodeAndScores: Pair<Node, Number>, relType: RelationshipType, relProperty: String): Stream<Relationship> {
             val cypher = """WITH ${'$'}startNode as startNode, ${'$'}endNode as endNode, ${'$'}score as score
             MERGE (startNode)-[r:${Util.quote(relType.name())}]->(endNode)
-            SET r.score = score
+            SET r.${relProperty} = score
             RETURN r"""
 
             val params = mapOf("startNode" to node, "endNode" to nodeAndScores.first, "score" to nodeAndScores.second)

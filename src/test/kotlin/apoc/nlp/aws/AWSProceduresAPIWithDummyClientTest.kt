@@ -122,7 +122,9 @@ class AWSProceduresAPIWithDummyClientTest {
                       secret: ${'$'}apiSecret,
                       nodeProperty: "body",
                       unsupportedDummyClient: true,
-                      scoreCutoff: 0.6
+                      scoreCutoff: 0.6,
+                      writeRelationshipType: "HAS_ENTITY",
+                      writeRelationshipProperty: "myScore"
                     })
                     YIELD graph AS g
                     RETURN g.nodes AS nodes, g.relationships AS relationships
@@ -140,7 +142,7 @@ class AWSProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-0", "type" to "ORGANIZATION"))))
 
             Assert.assertEquals(1, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-0", "type" to "ORGANIZATION")), "ENTITY", mapOf("score" to 0.7F))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-0", "type" to "ORGANIZATION")), "HAS_ENTITY", mapOf("myScore" to 0.7F))))
         }
     }
 
@@ -323,7 +325,9 @@ class AWSProceduresAPIWithDummyClientTest {
                       secret: ${'$'}apiSecret,
                       nodeProperty: "body",
                       unsupportedDummyClient: true,
-                      scoreCutoff: 0.35
+                      scoreCutoff: 0.35,
+                      writeRelationshipType: "HAS_KEY_PHRASE",
+                      writeRelationshipProperty: "myScore"
                     })
                     YIELD graph AS g
                     RETURN g.nodes AS nodes, g.relationships AS relationships
@@ -342,7 +346,7 @@ class AWSProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-2-index-0-batch-0"))))
 
             Assert.assertEquals(1, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-2-index-0-batch-0")), "KEY_PHRASE", mapOf("score" to 0.4F))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-2-index-0-batch-0")), "HAS_KEY_PHRASE", mapOf("myScore" to 0.4F))))
         }
     }
 

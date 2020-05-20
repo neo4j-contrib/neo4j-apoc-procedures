@@ -14,6 +14,7 @@ import org.neo4j.graphdb.RelationshipType
 class GCPVirtualCategoriesGraphTest {
     companion object {
         val RELATIONSHIP_TYPE = RelationshipType { "CATEGORY" }
+        val RELATIONSHIP_PROPERTY = "score"
         val LABEL = Label{"Category"}
     }
 
@@ -27,7 +28,7 @@ class GCPVirtualCategoriesGraphTest {
                 ), mapOf())
         )
 
-        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode), RELATIONSHIP_TYPE, 0.0).create()
+        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode), RELATIONSHIP_TYPE, RELATIONSHIP_PROPERTY, 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(2, nodes.size)
@@ -54,7 +55,7 @@ class GCPVirtualCategoriesGraphTest {
                 ), mapOf())
         )
 
-        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode), RELATIONSHIP_TYPE, 0.0).create()
+        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode), RELATIONSHIP_TYPE,RELATIONSHIP_PROPERTY, 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(3, nodes.size)
@@ -89,7 +90,7 @@ class GCPVirtualCategoriesGraphTest {
                 )), mapOf())
         )
 
-        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode1, sourceNode2), RELATIONSHIP_TYPE, 0.0).create()
+        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode1, sourceNode2), RELATIONSHIP_TYPE,RELATIONSHIP_PROPERTY, 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
@@ -133,7 +134,7 @@ class GCPVirtualCategoriesGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode1, sourceNode2), RELATIONSHIP_TYPE, 0.0).create()
+        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode1, sourceNode2), RELATIONSHIP_TYPE,RELATIONSHIP_PROPERTY, 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
@@ -179,7 +180,7 @@ class GCPVirtualCategoriesGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode1, sourceNode2), RELATIONSHIP_TYPE, 0.75).create()
+        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode1, sourceNode2), RELATIONSHIP_TYPE,RELATIONSHIP_PROPERTY, 0.75).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)

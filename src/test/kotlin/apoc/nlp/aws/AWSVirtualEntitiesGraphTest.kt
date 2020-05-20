@@ -22,7 +22,7 @@ class AWSVirtualEntitiesGraphTest {
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(itemResult)
         val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
 
-        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, 0.0).create()
+        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, "score", 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(2, nodes.size)
@@ -48,7 +48,7 @@ class AWSVirtualEntitiesGraphTest {
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(result)
         val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
 
-        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, 0.0).create()
+        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, "score", 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(3, nodes.size)
@@ -83,7 +83,7 @@ class AWSVirtualEntitiesGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, 0.0).create()
+        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, "score", 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
@@ -127,7 +127,7 @@ class AWSVirtualEntitiesGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, 0.0).create()
+        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, "score", 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
@@ -172,7 +172,7 @@ class AWSVirtualEntitiesGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, 0.75).create()
+        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, "score", 0.75).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(5, nodes.size)

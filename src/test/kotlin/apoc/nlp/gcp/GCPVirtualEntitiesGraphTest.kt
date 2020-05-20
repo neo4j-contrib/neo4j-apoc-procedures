@@ -20,7 +20,7 @@ class GCPVirtualEntitiesGraphTest {
                 NodeValueErrorMapResult(null, mapOf("entities" to listOf(mapOf("name" to "foo", "type" to "PERSON", "salience" to 0.75))), mapOf())
         )
 
-        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, 0.0).create()
+        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, "score", 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(2, nodes.size)
@@ -47,7 +47,7 @@ class GCPVirtualEntitiesGraphTest {
                 )), mapOf())
         )
 
-        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, 0.0).create()
+        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" },"score", 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(3, nodes.size)
@@ -82,7 +82,7 @@ class GCPVirtualEntitiesGraphTest {
                 )), mapOf())
         )
 
-        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, 0.0).create()
+        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" },"score", 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
@@ -126,7 +126,7 @@ class GCPVirtualEntitiesGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, 0.0).create()
+        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" },"score", 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
@@ -171,7 +171,7 @@ class GCPVirtualEntitiesGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, 0.75).create()
+        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" },"score", 0.75).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(5, nodes.size)

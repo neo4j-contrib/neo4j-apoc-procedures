@@ -19,7 +19,7 @@ class AWSVirtualKeyPhrasesGraphTest {
         val res = BatchDetectKeyPhrasesResult().withErrorList(BatchItemError()).withResultList(itemResult)
         val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
 
-        val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode), RelationshipType { "KEY_PHRASE" }, 0.0).create()
+        val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode), RelationshipType { "KEY_PHRASE" }, "score", 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(2, nodes.size)
@@ -45,7 +45,7 @@ class AWSVirtualKeyPhrasesGraphTest {
         val res = BatchDetectKeyPhrasesResult().withErrorList(BatchItemError()).withResultList(result)
         val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
 
-        val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode), RelationshipType { "KEY_PHRASE" }, 0.0).create()
+        val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode), RelationshipType { "KEY_PHRASE" }, "score", 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(3, nodes.size)
@@ -80,7 +80,7 @@ class AWSVirtualKeyPhrasesGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "KEY_PHRASE" }, 0.0).create()
+        val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "KEY_PHRASE" }, "score", 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
@@ -124,7 +124,7 @@ class AWSVirtualKeyPhrasesGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "KEY_PHRASE" }, 0.0).create()
+        val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "KEY_PHRASE" }, "score", 0.0).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)
@@ -169,7 +169,7 @@ class AWSVirtualKeyPhrasesGraphTest {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
-        val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "KEY_PHRASE" }, 0.2).create()
+        val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "KEY_PHRASE" }, "score", 0.2).create()
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(6, nodes.size)

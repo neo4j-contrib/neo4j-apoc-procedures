@@ -10,7 +10,7 @@ import org.apache.commons.text.WordUtils
 import org.neo4j.graphdb.*
 import java.util.LinkedHashMap
 
-data class GCPVirtualClassificationGraph(private val results: List<NodeValueErrorMapResult>, private val sourceNodes: List<Node>, val relType: RelationshipType, val cutoff: Number): NLPVirtualGraph() {
+data class GCPVirtualClassificationGraph(private val results: List<NodeValueErrorMapResult>, private val sourceNodes: List<Node>, val relType: RelationshipType, val relProperty: String, val cutoff: Number): NLPVirtualGraph() {
     override fun extractDocument(index: Int, sourceNode: Node) : Any? = results[index].value["categories"]
 
     companion object {
@@ -45,7 +45,7 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
                         entityNodes.add(entityNode)
 
                         val nodeAndScore = Pair(entityNode, score)
-                        NLPHelperFunctions.mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType).forEach { rel -> relationships.add(rel) }
+                        NLPHelperFunctions.mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType, relProperty).forEach { rel -> relationships.add(rel) }
 
                         sourceNode
                     } else {
@@ -55,7 +55,7 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
 
                         val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
                         val nodeAndScore = Pair(entityNode, score)
-                        relationships.add(NLPHelperFunctions.createRelationship(virtualNode, nodeAndScore, relType))
+                        relationships.add(NLPHelperFunctions.createRelationship(virtualNode, nodeAndScore, relType, relProperty))
 
                         virtualNode
                     }
