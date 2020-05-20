@@ -75,6 +75,7 @@ In addition, `apoc.nlp.gcp.entities.graph` supports the following config paramet
 |===
 | name | type | default | description
 | salienceCutoff | Double | 0.0 | Lower limit for the salience score of an entity to be present in the graph. Value must be between 0 and 1.
+
 Salience is an indicator of the importance or centrality of that entity to the entire document text. Scores closer to 0 are less salient, while scores closer to 1.0 are highly salient.
 | write | Boolean | false | persist the graph of entities
 | writeRelationshipType | String | ENTITY | relationship type for relationships from source node to entity nodes

@@ -104,6 +104,47 @@ class AWSProceduresAPIWithDummyClientTest {
     }
 
     @Test
+    fun `create virtual entity graph based on score cut off`() {
+        neo4j.executeTransactionally("""CREATE (a:Article10 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
+
+        var sourceNode: Node? = null
+        var virtualSourceNode: Node? = null
+        neo4j.executeTransactionally("MATCH (a:Article10) RETURN a", emptyMap()) {
+            sourceNode = it.next()["a"] as Node
+            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
+        }
+
+        neo4j.executeTransactionally("""
+                    MATCH (a:Article10) WITH a ORDER BY a.id
+                    WITH collect(a) AS articles
+                    CALL apoc.nlp.aws.entities.graph(articles, {
+                      key: ${'$'}apiKey,
+                      secret: ${'$'}apiSecret,
+                      nodeProperty: "body",
+                      unsupportedDummyClient: true,
+                      scoreCutoff: 0.6
+                    })
+                    YIELD graph AS g
+                    RETURN g.nodes AS nodes, g.relationships AS relationships
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
+            assertTrue(it.hasNext())
+            val row2 = it.next()
+
+            val nodes: List<Node> = row2["nodes"] as List<Node>
+            val relationships = row2["relationships"] as List<Relationship>
+            Assert.assertEquals(2, nodes.size) // 2 dummy nodes + source node
+
+            val dummyLabels2 = listOf(Label { "Organization"}, Label {"Entity"})
+
+            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-0", "type" to "ORGANIZATION"))))
+
+            Assert.assertEquals(1, relationships.size)
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-0", "type" to "ORGANIZATION")), "ENTITY", mapOf("score" to 0.7F))))
+        }
+    }
+
+    @Test
     fun `batches should create multiple virtual graphs`() {
         neo4j.executeTransactionally("""CREATE (a:Article3 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
 
@@ -333,7 +374,6 @@ class AWSProceduresAPIWithDummyClientTest {
 
             assertThat(nodes, hasItem(sourceNode))
             assertThat(nodes, hasItem(NodeMatcher(listOf(Label { "Article7" }), mapOf("id" to 1234L, "body" to "test", "sentiment" to "Mixed", "sentimentScore" to 0.7F))))
-
         }
     }
 

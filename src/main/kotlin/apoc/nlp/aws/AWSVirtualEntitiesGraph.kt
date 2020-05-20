@@ -11,7 +11,7 @@ import org.apache.commons.text.WordUtils
 import org.neo4j.graphdb.*
 import java.util.*
 
-data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetectEntitiesResult, private val sourceNodes: List<Node>, val relType: RelationshipType): NLPVirtualGraph() {
+data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetectEntitiesResult, private val sourceNodes: List<Node>, val relType: RelationshipType, val cutoff: Number): NLPVirtualGraph() {
     override fun extractDocument(index: Int, sourceNode: Node) : ArrayList<Map<String, Any>> = AWSProcedures.transformResults(index, sourceNode, detectEntitiesResult).value["entities"] as ArrayList<Map<String, Any>>
 
     companion object {
@@ -39,27 +39,30 @@ data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetect
                 val labels: Array<Label> = arrayOf(LABEL, Label { asLabel(item[LABEL_KEY].toString()) })
                 val idValues: Map<String, Any> = ID_KEYS.map { it to item[it].toString() }.toMap()
 
-                val node = if (storeGraph) {
-                    val entityNode = documentToNodes.getOrCreateRealNode(labels, idValues)
-                    setProperties(entityNode, item)
-                    entityNodes.add(entityNode)
+                val score = item[SCORE_PROPERTY] as Number
+                if(score.toDouble() >= cutoff.toDouble()) {
+                    val node = if (storeGraph) {
+                        val entityNode = documentToNodes.getOrCreateRealNode(labels, idValues)
+                        setProperties(entityNode, item)
+                        entityNodes.add(entityNode)
 
-                    val nodeAndScore = Pair(entityNode, item[SCORE_PROPERTY] as Float)
-                    mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType).forEach { rel -> relationships.add(rel) }
+                        val nodeAndScore = Pair(entityNode, score)
+                        mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType).forEach { rel -> relationships.add(rel) }
 
-                    sourceNode
-                } else {
-                    val entityNode = documentToNodes.getOrCreateVirtualNode(LinkedHashMap(), labels, idValues)
-                    setProperties(entityNode, item)
-                    entityNodes.add(entityNode)
+                        sourceNode
+                    } else {
+                        val entityNode = documentToNodes.getOrCreateVirtualNode(LinkedHashMap(), labels, idValues)
+                        setProperties(entityNode, item)
+                        entityNodes.add(entityNode)
 
-                    val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
-                    val nodeAndScore = Pair(entityNode, item[SCORE_PROPERTY] as Float)
-                    relationships.add(createRelationship(virtualNode, nodeAndScore, relType))
+                        val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
+                        val nodeAndScore = Pair(entityNode, score)
+                        relationships.add(createRelationship(virtualNode, nodeAndScore, relType))
 
-                    virtualNode
+                        virtualNode
+                    }
+                    allNodes.add(node)
                 }
-                allNodes.add(node)
             }
 
             nonSourceNodes.addAll(entityNodes)
