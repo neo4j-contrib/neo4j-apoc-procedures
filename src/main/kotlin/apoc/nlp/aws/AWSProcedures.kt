@@ -106,12 +106,13 @@ class AWSProcedures {
         val client = awsClient(config)
         val relationshipType = keyPhraseRelationshipType(config)
         val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
+        val scoreCutoff = config.getOrDefault("scoreCutoff", 0.0) as Number
 
         val convertedSource = NLPHelperFunctions.convert(source)
 
         return partition(convertedSource, 25)
                 .mapIndexed { index, batch -> Pair(batch, client.keyPhrases(batch, index))  }
-                .map { (batch, result) -> AWSVirtualKeyPhrasesGraph(result!!, batch, relationshipType) }
+                .map { (batch, result) -> AWSVirtualKeyPhrasesGraph(result!!, batch, relationshipType, scoreCutoff) }
                 .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
                 .stream()
     }
