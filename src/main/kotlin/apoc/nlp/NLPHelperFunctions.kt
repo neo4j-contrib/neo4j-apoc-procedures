@@ -27,7 +27,7 @@ class NLPHelperFunctions {
             return relationship
         }
 
-        fun mergeRelationship(transaction: Transaction, node: Node, nodeAndScores: Pair<Node, Float>, relType: RelationshipType): Stream<Relationship> {
+        fun mergeRelationship(transaction: Transaction, node: Node, nodeAndScores: Pair<Node, Number>, relType: RelationshipType): Stream<Relationship> {
             val cypher = """WITH ${'$'}startNode as startNode, ${'$'}endNode as endNode, ${'$'}score as score
             MERGE (startNode)-[r:${Util.quote(relType.name())}]->(endNode)
             SET r.score = score

@@ -42,7 +42,7 @@ data class GCPVirtualEntitiesGraph(private val results: List<NodeValueErrorMapRe
                     setProperties(entityNode, item)
                     entityNodes.add(entityNode)
 
-                    val nodeAndScore = Pair(entityNode, item["salience"] as Float)
+                    val nodeAndScore = Pair(entityNode, item["salience"] as Number)
                     NLPHelperFunctions.mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType).forEach { rel -> relationships.add(rel) }
 
                     sourceNode
