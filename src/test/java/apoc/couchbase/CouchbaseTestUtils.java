@@ -61,7 +61,7 @@ public class CouchbaseTestUtils {
     }
 
     public static String getUrl(CouchbaseContainer couchbaseContainer) {
-        return String.format("couchbase://%s:%s@localhost:%s", USERNAME, PASSWORD, couchbaseContainer.getMappedPort(8091));
+        return String.format("couchbase://%s:%s@%s:%s", USERNAME, PASSWORD, couchbaseContainer.getContainerIpAddress(), couchbaseContainer.getMappedPort(8091));
     }
     
     @SuppressWarnings("unchecked")

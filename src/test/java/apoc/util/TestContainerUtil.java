@@ -2,6 +2,7 @@ package apoc.util;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.neo4j.driver.Record;
@@ -79,6 +80,7 @@ public class TestContainerUtil {
                         p.destroy();
                         cmd.withUser(s);
                     } catch (Exception e) {
+                        System.out.println("Exception while assign cmd user to docker container:\n" + ExceptionUtils.getStackTrace(e));
                         // ignore since it may fail depending on operating system
                     }
                 });
