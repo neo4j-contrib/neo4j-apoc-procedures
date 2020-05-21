@@ -1,8 +1,7 @@
 package apoc.nlp.aws
 
 import apoc.graph.document.builder.DocumentToGraph
-import apoc.nlp.NLPHelperFunctions.Companion.createRelationship
-import apoc.nlp.NLPHelperFunctions.Companion.mergeRelationship
+import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPVirtualGraph
 import apoc.result.VirtualGraph
 import apoc.result.VirtualNode
@@ -47,7 +46,7 @@ data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetect
                         entityNodes.add(entityNode)
 
                         val nodeAndScore = Pair(entityNode, score)
-                        mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType, relProperty).forEach { rel -> relationships.add(rel) }
+                        NLPHelperFunctions.mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType, relProperty).forEach { rel -> relationships.add(rel) }
 
                         sourceNode
                     } else {
@@ -57,7 +56,7 @@ data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetect
 
                         val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
                         val nodeAndScore = Pair(entityNode, score)
-                        relationships.add(createRelationship(virtualNode, nodeAndScore, relType, relProperty))
+                        relationships.add(NLPHelperFunctions.mergeRelationship(virtualNode, nodeAndScore, relType, relProperty))
 
                         virtualNode
                     }

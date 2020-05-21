@@ -7,7 +7,7 @@ import kotlin.streams.asStream
 
 class NLPHelperFunctions {
     companion object {
-        fun createRelationship(node: Node, nodesAndScore: Pair<Node, Number>, relationshipType: RelationshipType, relProperty: String): Relationship {
+        fun mergeRelationship(node: Node, nodesAndScore: Pair<Node, Number>, relationshipType: RelationshipType, relProperty: String): Relationship {
             val existingRelationships = node.getRelationships(Direction.OUTGOING, relationshipType).asSequence().asStream()
             val potentialRelationship = existingRelationships.filter { r -> r.endNode == nodesAndScore.first }.findFirst()
 

@@ -55,7 +55,7 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
 
                         val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
                         val nodeAndScore = Pair(entityNode, score)
-                        relationships.add(NLPHelperFunctions.createRelationship(virtualNode, nodeAndScore, relType, relProperty))
+                        relationships.add(NLPHelperFunctions.mergeRelationship(virtualNode, nodeAndScore, relType, relProperty))
 
                         virtualNode
                     }

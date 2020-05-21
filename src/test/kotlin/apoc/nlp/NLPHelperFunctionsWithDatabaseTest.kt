@@ -24,7 +24,7 @@ class NLPHelperFunctionsWithDatabaseTest {
             val targetNode = VirtualNode(arrayOf(Label { "Target" }), mapOf("name" to "Michael"))
             val targetNodeAndScore = Pair(targetNode, 0.75)
 
-            val rel = NLPHelperFunctions.createRelationship(sourceNode, targetNodeAndScore, RelationshipType { "ENTITY" }, "score")
+            val rel = NLPHelperFunctions.mergeRelationship(sourceNode, targetNodeAndScore, RelationshipType { "ENTITY" }, "score")
 
             MatcherAssert.assertThat(rel, RelationshipMatcher(sourceNode, targetNode, "ENTITY", mapOf("score" to 0.75)))
         }
@@ -37,8 +37,8 @@ class NLPHelperFunctionsWithDatabaseTest {
             val sourceNode = VirtualNode(arrayOf(Label {"Source"}), mapOf("name" to "Mark"))
             val targetNode = VirtualNode(arrayOf(Label {"Target"}), mapOf("name" to "Michael"))
 
-            NLPHelperFunctions.createRelationship(sourceNode, Pair(targetNode, 0.75), RelationshipType { "ENTITY" }, "score")
-            val rel = NLPHelperFunctions.createRelationship(sourceNode, Pair(targetNode, 0.72), RelationshipType { "ENTITY" }, "score")
+            NLPHelperFunctions.mergeRelationship(sourceNode, Pair(targetNode, 0.75), RelationshipType { "ENTITY" }, "score")
+            val rel = NLPHelperFunctions.mergeRelationship(sourceNode, Pair(targetNode, 0.72), RelationshipType { "ENTITY" }, "score")
 
             MatcherAssert.assertThat(rel, RelationshipMatcher(sourceNode, targetNode, "ENTITY", mapOf("score" to 0.75)))
         }

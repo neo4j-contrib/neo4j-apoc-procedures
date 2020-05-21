@@ -56,7 +56,7 @@ data class GCPVirtualEntitiesGraph(private val results: List<NodeValueErrorMapRe
 
                         val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
                         val nodeAndScore = Pair(entityNode, score)
-                        relationships.add(NLPHelperFunctions.createRelationship(virtualNode, nodeAndScore, relType, relProperty))
+                        relationships.add(NLPHelperFunctions.mergeRelationship(virtualNode, nodeAndScore, relType, relProperty))
 
                         virtualNode
                     }
