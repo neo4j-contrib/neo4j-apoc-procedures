@@ -3,6 +3,7 @@ package apoc.nlp.gcp
 import apoc.graph.document.builder.DocumentToGraph
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPVirtualGraph
+import apoc.nlp.aws.AWSVirtualEntitiesGraph
 import apoc.result.NodeValueErrorMapResult
 import apoc.result.VirtualGraph
 import apoc.result.VirtualNode
@@ -37,8 +38,8 @@ data class GCPVirtualEntitiesGraph(private val results: List<NodeValueErrorMapRe
             val entityNodes = mutableSetOf<Node>()
             val relationships = mutableSetOf<Relationship>()
             for (item in document) {
-                val labels: Array<Label> = arrayOf(LABEL, Label { asLabel(item[LABEL_KEY].toString()) })
-                val idValues: Map<String, Any> = ID_MAPPINGS.map { (key, value) -> value to item[key].toString() }.toMap()
+                val labels: Array<Label> = labels(item)
+                val idValues: Map<String, Any> = idValues(item)
 
                 val score = item[SCORE_PROPERTY] as Number
                 if (score.toDouble() >= cutoff.toDouble()) {
@@ -74,6 +75,10 @@ data class GCPVirtualEntitiesGraph(private val results: List<NodeValueErrorMapRe
 
         return VirtualGraph("Graph", allNodes, allRelationships, emptyMap())
     }
+
+    private fun idValues(item: Map<String, Any>) = ID_MAPPINGS.map { (key, value) -> value to item[key].toString() }.toMap()
+
+    private fun labels(item: Map<String, Any>) = arrayOf(LABEL, Label { asLabel(item[LABEL_KEY].toString()) })
 
     private fun asLabel(value: String) : String {
         return WordUtils.capitalizeFully(value, '_', ' ')

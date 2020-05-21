@@ -34,8 +34,8 @@ data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDete
             val entityNodes = mutableSetOf<Node>()
             val relationships = mutableSetOf<Relationship>()
             for (item in document) {
-                val labels: Array<Label> = arrayOf(LABEL)
-                val idValues: Map<String, Any> = ID_KEYS.map { it to item[it].toString() }.toMap()
+                val labels: Array<Label> = labels(item)
+                val idValues: Map<String, Any> = idValues(item)
 
                 val score = item[SCORE_PROPERTY] as Number
                 if(score.toDouble() >= cutoff.toDouble()) {
@@ -71,6 +71,10 @@ data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDete
 
         return VirtualGraph("Graph", allNodes, allRelationships, emptyMap())
     }
+
+    private fun idValues(item: Map<String, Any>) = ID_KEYS.map { it to item[it].toString() }.toMap()
+
+    private fun labels(item: Map<String, Any>) = arrayOf(LABEL)
 
     private fun setProperties(entityNode: Node, item: Map<String, Any>) {
         KEYS.forEach { key -> entityNode.setProperty(key, item[key].toString()) }

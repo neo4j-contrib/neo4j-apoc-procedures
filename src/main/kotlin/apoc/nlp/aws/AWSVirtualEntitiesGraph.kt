@@ -37,8 +37,8 @@ data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetect
             val entityNodes = mutableSetOf<Node>()
             val relationships = mutableSetOf<Relationship>()
             for (item in document) {
-                val labels: Array<Label> = arrayOf(LABEL, Label { asLabel(item[LABEL_KEY].toString()) })
-                val idValues: Map<String, Any> = ID_KEYS.map { it to item[it].toString() }.toMap()
+                val labels: Array<Label> = labels(item)
+                val idValues: Map<String, Any> = idValues(item)
 
                 val score = item[SCORE_PROPERTY] as Number
                 if(score.toDouble() >= cutoff.toDouble()) {
@@ -74,6 +74,10 @@ data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetect
 
         return VirtualGraph("Graph", allNodes, allRelationships, emptyMap())
     }
+
+    private fun idValues(item: Map<String, Any>) = ID_KEYS.map { it to item[it].toString() }.toMap()
+
+    private fun labels(item: Map<String, Any>) = arrayOf(LABEL, Label { asLabel(item[LABEL_KEY].toString()) })
 
     private fun asLabel(value: String) : String {
         return WordUtils.capitalizeFully(value, '_', ' ')
