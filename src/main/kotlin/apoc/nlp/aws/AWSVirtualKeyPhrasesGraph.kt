@@ -27,7 +27,7 @@ data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDete
 
         sourceNodes.forEachIndexed { index, sourceNode ->
             val document = extractDocument(index, sourceNode) as List<Map<String, Any>>
-            val virtualNodes = java.util.LinkedHashMap<MutableSet<String>, MutableSet<Node>>()
+            val virtualNodes = LinkedHashMap<MutableSet<String>, MutableSet<Node>>()
             val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
 
             val documentToNodes = DocumentToGraph.DocumentToNodes(nonSourceNodes, transaction)

@@ -97,7 +97,7 @@ class GCPVirtualCategoriesGraphTest {
 
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
-        assertEquals(2, relationships.size)
+        assertEquals(1, relationships.size)
         assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, publicHealthNode, RELATIONSHIP_TYPE.name(), mapOf("score" to 0.85))))
     }
 
