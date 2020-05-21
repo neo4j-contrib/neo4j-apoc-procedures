@@ -39,6 +39,32 @@ class AWSVirtualEntitiesGraphTest {
     }
 
     @Test
+    fun `create virtual graph from result with duplicate entities`() {
+        val result = BatchDetectEntitiesItemResult().withEntities(
+                Entity().withText("The Matrix").withType("Movie").withScore(0.6F),
+                Entity().withText("The Matrix").withType("Movie").withScore(0.7F))
+                .withIndex(0)
+
+        val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(result)
+        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+
+        val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, "score", 0.0).create()
+
+        val nodes = virtualGraph.graph["nodes"] as Set<*>
+        assertEquals(2, nodes.size)
+        assertThat(nodes, hasItem(sourceNode))
+
+        val matrixNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "Movie"))
+
+        assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
+
+        val relationships = virtualGraph.graph["relationships"] as Set<*>
+
+        assertEquals(1, relationships.size)
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, matrixNode, "ENTITY", mapOf("score" to 0.7F))))
+    }
+
+    @Test
     fun `create virtual graph from result with multiple entities`() {
         val result = BatchDetectEntitiesItemResult().withEntities(
                 Entity().withText("The Matrix").withType("Movie").withScore(0.6F),

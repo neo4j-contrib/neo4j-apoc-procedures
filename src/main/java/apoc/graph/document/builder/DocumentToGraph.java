@@ -212,7 +212,7 @@ public class DocumentToGraph {
         return idMap;
     }
 
-    private Set<Node> getNodesWithSameLabels(Map<Set<String>, Set<Node>> nodes, Label[] labels) {
+    public static Set<Node> getNodesWithSameLabels(Map<Set<String>, Set<Node>> nodes, Label[] labels) {
         Set<String> set = Stream.of(labels).map(Label::name).collect(Collectors.toSet());
         return nodes.computeIfAbsent(set, (k) -> new LinkedHashSet<>());
     }
