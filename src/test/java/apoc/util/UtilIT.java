@@ -70,6 +70,6 @@ public class UtilIT {
 
     @NotNull
     private String getServerUrl() {
-        return "http://localhost:" + httpServer.getMappedPort(8000);
+        return String.format("http://%s:%s", httpServer.getContainerIpAddress(), httpServer.getMappedPort(8000));
     }
 }

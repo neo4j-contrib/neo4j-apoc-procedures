@@ -35,7 +35,7 @@ public class ExportCypherEnterpriseFeaturesTest {
     public static void beforeAll() {
         assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
-            executeGradleTasks("shadow");
+            // We build the project, the artifact will be placed into ./build/libs
             neo4jContainer = createEnterpriseDB(!TestUtil.isTravis())
                     .withInitScript("init_neo4j_export_csv.cypher");
             neo4jContainer.start();
