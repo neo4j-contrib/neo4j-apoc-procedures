@@ -44,8 +44,7 @@ public class TestContainerUtil {
                 .withAdminPassword("apoc")
                 .withNeo4jConfig("apoc.export.file.enabled", "true")
                 .withNeo4jConfig("dbms.security.procedures.unrestricted", "apoc.*")
-//                .withEnv("NEO4J_wrapper_java_additional","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -Xdebug-Xnoagent-Djava.compiler=NONE-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005")
-                .withFileSystemBind("./target/import", "/import") // map the "target/import" dir as the Neo4j's import dir
+                .withFileSystemBind("./target/import", "/var/lib/neo4j/import") // map the "target/import" dir as the Neo4j's import dir
                 .withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
                 // set uid if possible - export tests do write to "/import"
                 .withCreateContainerCmdModifier(cmd -> {
