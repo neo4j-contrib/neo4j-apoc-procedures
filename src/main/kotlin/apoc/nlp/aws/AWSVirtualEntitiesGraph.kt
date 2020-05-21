@@ -56,8 +56,7 @@ data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetect
                         setProperties(entityNode, item)
                         entityNodes.add(entityNode)
 
-                        val nodesWithSameIds = DocumentToGraph.getNodesWithSameLabels(virtualNodes, labels)
-                        nodesWithSameIds.add(entityNode)
+                        DocumentToGraph.getNodesWithSameLabels(virtualNodes, labels).add(entityNode)
 
                         val nodeAndScore = Pair(entityNode, score)
                         relationships.add(mergeRelationship(virtualNode, nodeAndScore, relType, relProperty))

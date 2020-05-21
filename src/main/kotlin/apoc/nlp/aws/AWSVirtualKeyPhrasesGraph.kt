@@ -53,9 +53,7 @@ data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDete
                         setProperties(keyPhraseNode, item)
                         entityNodes.add(keyPhraseNode)
 
-                        val nodesWithSameIds = DocumentToGraph.getNodesWithSameLabels(virtualNodes, labels)
-                        nodesWithSameIds.add(keyPhraseNode)
-
+                        DocumentToGraph.getNodesWithSameLabels(virtualNodes, labels).add(keyPhraseNode)
 
                         val nodeAndScore = Pair(keyPhraseNode, score)
                         relationships.add(NLPHelperFunctions.mergeRelationship(virtualNode, nodeAndScore, relType, relProperty))

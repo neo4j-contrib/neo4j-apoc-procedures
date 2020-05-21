@@ -2,11 +2,17 @@ package apoc.nlp.gcp
 
 import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
+import apoc.nlp.aws.AWSVirtualKeyPhrasesGraph
 import apoc.result.NodeValueErrorMapResult
 import apoc.result.VirtualNode
+import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesItemResult
+import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesResult
+import com.amazonaws.services.comprehend.model.BatchItemError
+import com.amazonaws.services.comprehend.model.KeyPhrase
 import junit.framework.Assert.assertEquals
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
+import org.junit.Assert
 import org.junit.Test
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.RelationshipType
@@ -64,6 +70,33 @@ class GCPVirtualEntitiesGraphTest {
         assertEquals(2, relationships.size)
         assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, matrixNode, "ENTITY", mapOf("score" to 0.6))))
         assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, notebookNode, "ENTITY", mapOf("score" to 0.7))))
+    }
+
+    @Test
+    fun `create virtual graph from result with duplicate entities`() {
+        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+
+        val res = listOf(
+                NodeValueErrorMapResult(null, mapOf("entities" to listOf(
+                        mapOf("name" to "The Matrix", "type" to "OTHER", "salience" to 0.6),
+                        mapOf("name" to "The Matrix", "type" to "OTHER", "salience" to 0.7)
+                )), mapOf())
+        )
+
+        val virtualGraph = GCPVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" },"score", 0.0).create()
+
+        val nodes = virtualGraph.graph["nodes"] as Set<*>
+        assertEquals(2, nodes.size)
+        assertThat(nodes, hasItem(sourceNode))
+
+        val matrixNode = VirtualNode(arrayOf(Label{"Other"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "OTHER"))
+
+        assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
+
+        val relationships = virtualGraph.graph["relationships"] as Set<*>
+
+        assertEquals(1, relationships.size)
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, matrixNode, "ENTITY", mapOf("score" to 0.7))))
     }
 
     @Test

@@ -75,6 +75,33 @@ class GCPVirtualCategoriesGraphTest {
     }
 
     @Test
+    fun `create virtual graph from result with duplicate entities`() {
+        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+
+        val res = listOf(
+                NodeValueErrorMapResult(null, mapOf("categories" to listOf(
+                        mapOf("name" to "/Health/Public Health", "confidence" to 0.75),
+                        mapOf("name" to "/Health/Public Health", "confidence" to 0.85))
+                ), mapOf())
+        )
+
+        val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode), RELATIONSHIP_TYPE,RELATIONSHIP_PROPERTY, 0.0).create()
+
+        val nodes = virtualGraph.graph["nodes"] as Set<*>
+        assertEquals(2, nodes.size)
+        assertThat(nodes, hasItem(sourceNode))
+
+        val publicHealthNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Health/Public Health"))
+
+        assertThat(nodes, hasItem(NodeMatcher(publicHealthNode.labels.toList(), publicHealthNode.allProperties)))
+
+        val relationships = virtualGraph.graph["relationships"] as Set<*>
+
+        assertEquals(2, relationships.size)
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, publicHealthNode, RELATIONSHIP_TYPE.name(), mapOf("score" to 0.85))))
+    }
+
+    @Test
     fun `create virtual graph from result with multiple source nodes`() {
         val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))

@@ -29,6 +29,8 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
 
         sourceNodes.forEachIndexed { index, sourceNode ->
             val document = extractDocument(index, sourceNode) as List<Map<String, Any>>
+            val virtualNodes = LinkedHashMap<MutableSet<String>, MutableSet<Node>>()
+            val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
 
             val documentToNodes = DocumentToGraph.DocumentToNodes(nonSourceNodes, transaction)
             val entityNodes = mutableSetOf<Node>()
@@ -49,9 +51,11 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
 
                         sourceNode
                     } else {
-                        val entityNode = documentToNodes.getOrCreateVirtualNode(LinkedHashMap(), labels, idValues)
+                        val entityNode = documentToNodes.getOrCreateVirtualNode(virtualNodes, labels, idValues)
                         setProperties(entityNode, item)
                         entityNodes.add(entityNode)
+
+                        DocumentToGraph.getNodesWithSameLabels(virtualNodes, labels).add(entityNode)
 
                         val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
                         val nodeAndScore = Pair(entityNode, score)
