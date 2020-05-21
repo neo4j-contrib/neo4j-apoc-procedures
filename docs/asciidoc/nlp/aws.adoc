@@ -33,7 +33,7 @@ This section includes the following:
 * <<nlp-aws-examples>>
     ** <<nlp-aws-examples-entities>>
     ** <<nlp-aws-examples-key-phrases>>
-    ** <<nlp-aws-examples-sentiment>>s
+    ** <<nlp-aws-examples-sentiment>>
 
 [[nlp-aws-overview]]
 ==== Procedure Overview
@@ -423,8 +423,8 @@ We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.aws.
 [[apoc.nlp.aws.entities-multiple.graph.svg]]
 image::apoc.nlp.aws.entities-multiple.graph.svg[title="Pokemon and Nintendo Switch entities graph"]
 
-On this visualisation we can also see the score for each entity node.
-This score represents the level of confidence that the API has in its detection of the entiy.
+On this visualization we can also see the score for each entity node.
+This score represents the level of confidence that the API has in its detection of the entity.
 We can specify a minimum cut off value for the score using the `scoreCutoff` property.
 
 .The following returns a virtual graph of entities with a score >= 0.7 for the Pokemon and Nintendo Switch articles
@@ -526,7 +526,7 @@ RETURN keyPhrase;
 Alternatively we can use the graph mode to automatically create a key phrase graph.
 One node with the `KeyPhrase` label will be created for each key phrase extracted.
 
-By default a virtual graph is returned, but the graph can be persisted by specifying the `write: true` configuration.
+By default, a virtual graph is returned, but the graph can be persisted by specifying the `write: true` configuration.
 
 .The following returns a graph of key phrases for the Pokemon article
 [source,cypher]
@@ -593,7 +593,7 @@ RETURN value;
 
 Alternatively we can use the graph mode to automatically store the sentiment and its score.
 
-By default a virtual graph is returned, but the graph can be persisted by specifying the `write: true` configuration.
+By default, a virtual graph is returned, but the graph can be persisted by specifying the `write: true` configuration.
 The sentiment is stored in the `sentiment` property and the score for that sentiment in the `sentimentScore` property.
 
 .The following returns a graph with the sentiment for the Pokemon article
