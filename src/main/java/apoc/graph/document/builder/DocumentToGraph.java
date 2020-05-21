@@ -42,7 +42,6 @@ public class DocumentToGraph {
         this.documentRelationBuilder = new RelationshipBuilder(config);
         this.documentLabelBuilder = new LabelBuilder(config);
         this.config = config;
-
         this.documentToNodes = new DocumentToNodes(initialNodes, tx);
     }
 
@@ -361,7 +360,7 @@ public class DocumentToGraph {
 
     public static class DocumentToNodes {
         private final Map<Set<String>, Set<Node>> initialNodes;
-        private Transaction tx;
+        private final Transaction tx;
 
         public DocumentToNodes(Set<Node> initialNodes, Transaction tx) {
             this.tx = tx;
