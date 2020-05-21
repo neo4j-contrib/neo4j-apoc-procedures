@@ -27,6 +27,8 @@ data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDete
 
         sourceNodes.forEachIndexed { index, sourceNode ->
             val document = extractDocument(index, sourceNode) as List<Map<String, Any>>
+            val virtualNodes = java.util.LinkedHashMap<MutableSet<String>, MutableSet<Node>>()
+            val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
 
             val documentToNodes = DocumentToGraph.DocumentToNodes(nonSourceNodes, transaction)
             val entityNodes = mutableSetOf<Node>()
@@ -38,21 +40,24 @@ data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDete
                 val score = item[SCORE_PROPERTY] as Number
                 if(score.toDouble() >= cutoff.toDouble()) {
                     val node = if (storeGraph) {
-                        val entityNode = documentToNodes.getOrCreateRealNode(labels, idValues)
-                        setProperties(entityNode, item)
-                        entityNodes.add(entityNode)
+                        val keyPhraseNode = documentToNodes.getOrCreateRealNode(labels, idValues)
+                        setProperties(keyPhraseNode, item)
+                        entityNodes.add(keyPhraseNode)
 
-                        val nodeAndScore = Pair(entityNode, score)
+                        val nodeAndScore = Pair(keyPhraseNode, score)
                         NLPHelperFunctions.mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType, relProperty).forEach { rel -> relationships.add(rel) }
 
                         sourceNode
                     } else {
-                        val entityNode = documentToNodes.getOrCreateVirtualNode(LinkedHashMap(), labels, idValues)
-                        setProperties(entityNode, item)
-                        entityNodes.add(entityNode)
+                        val keyPhraseNode = documentToNodes.getOrCreateVirtualNode(virtualNodes, labels, idValues)
+                        setProperties(keyPhraseNode, item)
+                        entityNodes.add(keyPhraseNode)
 
-                        val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
-                        val nodeAndScore = Pair(entityNode, score)
+                        val nodesWithSameIds = DocumentToGraph.getNodesWithSameLabels(virtualNodes, labels)
+                        nodesWithSameIds.add(keyPhraseNode)
+
+
+                        val nodeAndScore = Pair(keyPhraseNode, score)
                         relationships.add(NLPHelperFunctions.mergeRelationship(virtualNode, nodeAndScore, relType, relProperty))
 
                         virtualNode

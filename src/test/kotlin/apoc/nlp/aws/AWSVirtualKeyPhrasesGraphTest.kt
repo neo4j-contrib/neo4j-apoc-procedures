@@ -4,7 +4,7 @@ import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
 import apoc.result.VirtualNode
 import com.amazonaws.services.comprehend.model.*
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.junit.Test
@@ -62,6 +62,32 @@ class AWSVirtualKeyPhrasesGraphTest {
         assertEquals(2, relationships.size)
         assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, matrixNode, "KEY_PHRASE", mapOf("score" to 0.4F))))
         assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, notebookNode, "KEY_PHRASE", mapOf("score" to 0.6F))))
+    }
+
+    @Test
+    fun `create virtual graph from result with duplicate entities`() {
+        val result = BatchDetectKeyPhrasesItemResult().withKeyPhrases(
+                KeyPhrase().withText("The Matrix").withScore(0.4F),
+                KeyPhrase().withText("The Matrix").withScore(0.6F))
+                .withIndex(0)
+
+        val res = BatchDetectKeyPhrasesResult().withErrorList(BatchItemError()).withResultList(result)
+        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+
+        val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode), RelationshipType { "KEY_PHRASE" }, "score", 0.0).create()
+
+        val nodes = virtualGraph.graph["nodes"] as Set<*>
+        assertEquals(2, nodes.size)
+        assertThat(nodes, hasItem(sourceNode))
+
+        val matrixNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Matrix"))
+
+        assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
+
+        val relationships = virtualGraph.graph["relationships"] as Set<*>
+
+        assertEquals(1, relationships.size)
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, matrixNode, "KEY_PHRASE", mapOf("score" to 0.6F))))
     }
 
     @Test
