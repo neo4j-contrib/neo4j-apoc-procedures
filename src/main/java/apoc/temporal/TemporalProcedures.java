@@ -79,5 +79,11 @@ public class TemporalProcedures
         }
     }
 
+    @UserFunction
+	@Description("apoc.temporal.toZonedTemporal('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') parse date string using the specified format to specified timezone")
+	public ZonedDateTime toZonedTemporal(@Name("time") String time, @Name(value = "format", defaultValue = DEFAULT_FORMAT) String format, final @Name(value = "timezone", defaultValue = "UTC") String timezone) {
+		Long value = parseOrThrow(time, getFormat(format, timezone));
+		return value == null ? null : Instant.ofEpochMilli(value).atZone(ZoneId.of(timezone));
+	}
 
 }
