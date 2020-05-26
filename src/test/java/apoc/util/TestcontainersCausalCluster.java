@@ -69,6 +69,11 @@ public class TestcontainersCausalCluster {
         List<Neo4jContainerExtension> members = getClusterMembers(numberOfCoreMembers, ClusterInstanceType.CORE, sidecars, network, initialDiscoveryMembers, neo4jConfig, envSettings, timeout);
         members.addAll(getClusterMembers(numberOfReadReplica, ClusterInstanceType.READ_REPLICA, sidecars, network, initialDiscoveryMembers, neo4jConfig, envSettings, timeout));
 
+        System.out.println("members:");
+        for (Neo4jContainerExtension member : members) {
+            System.out.println(member.getEnv());
+        }
+
         // Start all of them in parallel
         final CountDownLatch latch = new CountDownLatch(numberOfCoreMembers);
         members.forEach(instance -> CompletableFuture.runAsync(() -> {
