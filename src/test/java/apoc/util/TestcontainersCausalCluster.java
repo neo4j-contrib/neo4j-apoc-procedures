@@ -135,8 +135,8 @@ public class TestcontainersCausalCluster {
                 .withCreateContainerCmdModifier(cmd -> {cmd.withHostName(name); cmd.withMemory(512 * 1024 * 1024l   );})
                 .withoutDriver()
                 .withNeo4jConfig("dbms.mode", instanceType.toString())
-                .withNeo4jConfig("dbms.connectors.default_listen_address", "0.0.0.0")
-                .withNeo4jConfig("dbms.connectors.default_advertised_address", name)
+                .withNeo4jConfig("dbms.default_listen_address", "0.0.0.0")
+                .withNeo4jConfig("dbms.default_advertised_address", name)
                 .withNeo4jConfig("dbms.connector.bolt.advertised_address", getProxyUrl.apply(sidecars.get(name)))
                 .withNeo4jConfig("causal_clustering.initial_discovery_members", initialDiscoveryMembers)
                 .waitingFor(waitForBolt);
