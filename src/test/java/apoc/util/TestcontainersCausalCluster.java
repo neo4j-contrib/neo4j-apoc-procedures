@@ -83,11 +83,10 @@ public class TestcontainersCausalCluster {
 
         try {
             latch.await(5, TimeUnit.MINUTES);
+            return new TestcontainersCausalCluster(members, sidecars.values().stream().collect(toList()));
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-
-        return new TestcontainersCausalCluster(members, sidecars.values().stream().collect(toList()));
     }
 
     @NotNull
