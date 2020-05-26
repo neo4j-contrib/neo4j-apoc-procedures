@@ -78,6 +78,12 @@ public class JdbcTest extends AbstractJdbcTest {
     }
 
     @Test
+    public void testLoadJdbcWithFetchSize() throws Exception {
+        testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON', null, {fetchSize: 100})",
+                (row) -> assertResult(row));
+    }
+
+    @Test
     public void testLoadJdbcSelect() throws Exception {
         testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON')",
                 (row) -> assertResult(row));
