@@ -10,7 +10,6 @@ import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.AbstractMap;
 import java.util.List;
@@ -33,10 +32,11 @@ import static java.util.stream.Collectors.toList;
  */
 
 public class TestcontainersCausalCluster {
+    private static int MINUTES_TO_WAIT = 8;
     private static final int DEFAULT_BOLT_PORT = 7687;
     private static final WaitStrategy WAIT_FOR_BOLT = new LogMessageWaitStrategy()
             .withRegEx(String.format(".*Bolt enabled on 0\\.0\\.0\\.0:%d\\.\n", DEFAULT_BOLT_PORT))
-            .withStartupTimeout(Duration.ofMinutes(4));
+            .withStartupTimeout(Duration.ofMinutes(MINUTES_TO_WAIT));
 
     public enum ClusterInstanceType {
         CORE(DEFAULT_BOLT_PORT), READ_REPLICA(DEFAULT_BOLT_PORT + 1000);
@@ -100,7 +100,7 @@ public class TestcontainersCausalCluster {
         }));
 
         try {
-            latch.await(5, TimeUnit.MINUTES);
+            latch.await(MINUTES_TO_WAIT, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -155,13 +155,7 @@ public class TestcontainersCausalCluster {
         return Optional.of(this.sidecar)
                 .map(instance -> String.format("neo4j://%s:%d", instance.getContainerIpAddress(),
                         instance.getMappedPort(DEFAULT_BOLT_PORT)))
-                .map(uri -> {
-                    try {
-                        return new URI(uri);
-                    } catch (URISyntaxException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
+                .map(URI::create)
                 .orElseThrow(() -> new IllegalStateException("No sidecar as entrypoint into the cluster available."));
     }
 
