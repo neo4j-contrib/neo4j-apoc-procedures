@@ -6,8 +6,6 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.SocatContainer;
-import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
-import org.testcontainers.containers.wait.strategy.WaitStrategy;
 
 import java.net.URI;
 import java.time.Duration;
@@ -34,9 +32,9 @@ import static java.util.stream.Collectors.toList;
 public class TestcontainersCausalCluster {
     private static int MINUTES_TO_WAIT = 8;
     private static final int DEFAULT_BOLT_PORT = 7687;
-    private static final WaitStrategy WAIT_FOR_BOLT = new LogMessageWaitStrategy()
-            .withRegEx(String.format(".*Bolt enabled on 0\\.0\\.0\\.0:%d\\.\n", DEFAULT_BOLT_PORT))
-            .withStartupTimeout(Duration.ofMinutes(MINUTES_TO_WAIT));
+//    private static final WaitStrategy WAIT_FOR_BOLT = new LogMessageWaitStrategy()
+//            .withRegEx(String.format(".*Bolt enabled on 0\\.0\\.0\\.0:%d\\.\n", DEFAULT_BOLT_PORT))
+//            .withStartupTimeout(Duration.ofMinutes(MINUTES_TO_WAIT));
 
     public enum ClusterInstanceType {
         CORE(DEFAULT_BOLT_PORT), READ_REPLICA(DEFAULT_BOLT_PORT + 1000);
@@ -123,7 +121,8 @@ public class TestcontainersCausalCluster {
                 .withNeo4jConfig("dbms.mode", instanceType.toString())
                 .withNeo4jConfig("dbms.default_listen_address", "0.0.0.0")
                 .withNeo4jConfig("causal_clustering.initial_discovery_members", initialDiscoveryMembers)
-                .waitingFor(WAIT_FOR_BOLT);
+                //.waitingFor(WAIT_FOR_BOLT)
+                .withStartupTimeout(Duration.ofMinutes(MINUTES_TO_WAIT));
         neo4jConfig.forEach((conf, value) -> container.withNeo4jConfig(conf, String.valueOf(value)));
         container.withEnv(envSettings);
         return container;
