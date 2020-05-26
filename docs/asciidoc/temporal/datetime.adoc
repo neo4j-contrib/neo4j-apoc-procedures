@@ -11,10 +11,11 @@ The APOC date functions allow users to take these Long or String values and mani
 
 [NOTE]
 ====
-If you need to manipulate Date object types into other formats, please see the APOC section for https://neo4j.com/docs/labs/apoc/current/temporal/temporal-conversions/[temporal funtions].
+If you need to manipulate Date object types into other formats, see <<temporal-conversions>>.
 ====
 
 This section includes:
+
 * <<datetime-format-notes>>
 * <<datetime-available-procedures>>
     ** <<datetime-available-procedures-apoc.date.add>>
@@ -151,9 +152,11 @@ include::../../../build/generated-documentation/apoc.date.field-lite.csv[]
 
 [NOTE]
 ====
-With Neo4j v3.4+, the database supports temporal data types.
-While this APOC is still operational, we recommend storing dates using the Neo4j native date types and retrieving a field with Cypher's instant.field - e.g. datetime({epochMillis: dateInteger}).year (https://neo4j.com/docs/cypher-manual/current/syntax/temporal/#cypher-temporal-accessing-components-temporal-instants[Cypher documentation] shows this syntax).
-However, if you still need to convert timestamp formats, this procedure will provide that.
+In version 3.4 Neo4j introduced temporal data types, which are the recommended way of representing dates in Neo4j.
+Fields of a temporal type can be retrieved using Cypher's `instance.field` function. (e.g. `datetime({epochMillis: dateInteger}).year`)
+See the https://neo4j.com/docs/cypher-manual/current/syntax/temporal/#cypher-temporal-accessing-components-temporal-instants[Cypher documentation] for more details on the syntax.
+
+If, however, you still need to convert timestamp formats, this procedure provides that functionality.
 ====
 
 It accepts the following parameters:
@@ -179,9 +182,11 @@ include::../../../build/generated-documentation/apoc.date.fields-lite.csv[]
 
 [NOTE]
 ====
-With Neo4j v3.4+, the database supports temporal data types.
-While this APOC is still operational, we recommend storing dates using the Neo4j native date types and retrieving a field with Cypher's instant.field - e.g. datetime({epochMillis: dateInteger}).year (https://neo4j.com/docs/cypher-manual/current/syntax/temporal/#cypher-temporal-accessing-components-temporal-instants[Cypher documentation] shows this syntax).
-However, if you still need to convert timestamp formats, this procedure will provide that.
+In version 3.4 Neo4j introduced temporal data types, which are the recommended way of representing dates in Neo4j.
+Fields of a temporal type can be retrieved using Cypher's `instance.field` function. (e.g. `datetime({epochMillis: dateInteger}).year`)
+See the https://neo4j.com/docs/cypher-manual/current/syntax/temporal/#cypher-temporal-accessing-components-temporal-instants[Cypher documentation] for more details on the syntax.
+
+If, however, you still need to convert timestamp formats, this procedure provides that functionality.
 ====
 
 It accepts the following parameters:
@@ -237,7 +242,7 @@ It accepts the following parameters:
 
 [NOTE]
 ====
-The date string timezone expects only a GMT+00:00 format of `Z` as the timezone specifier. Other timezone specifications are not supported in this procedure.
+The date string timezone expects only a GMT+00:00 format of `Z` as the timezone specifier. Other timezone specifications are not supported by this procedure.
 ====
 
 [[datetime-available-procedures-apoc.date.parse]]
@@ -269,7 +274,8 @@ This function parses a date string in a specified format and converts it to a Ne
 
 [NOTE]
 ====
-This function has been moved to the temporal section and renamed to `apoc.temporal.toZonedDateTime`.
+This function has been renamed to `apoc.temporal.toZonedDateTime` and moved to the temporal section.
+See <<temporal-conversions>>.
 ====
 
 [[datetime-available-procedures-apoc.date.systemTimezone]]

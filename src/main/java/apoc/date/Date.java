@@ -228,7 +228,7 @@ public class Date {
 		return getFormat(pattern, timezone).format(new java.util.Date(millis));
 	}
 
-	private static DateFormat getFormat(final String pattern, final String timezone) {
+	public static DateFormat getFormat(final String pattern, final String timezone) {
 		String actualPattern = getPattern(pattern);
 		SimpleDateFormat format = null;
 		try {
@@ -265,7 +265,7 @@ public class Date {
 		}
 	}
 
-	private static Long parseOrThrow(final String date, final DateFormat format) {
+	public  static Long parseOrThrow(final String date, final DateFormat format) {
 		if (date == null) return null;
 		try {
 			return format.parse(date).getTime();
