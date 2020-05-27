@@ -7,6 +7,7 @@ import apoc.util.FixedSizeStringWriter;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -16,14 +17,16 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+
 public class DocumentToGraph {
 
     private static final String JSON_ROOT = "$";
-    private final Map<Set<String>, Set<Node>> initialNodes;
+    private final DocumentToNodes documentToNodes;
 
     private Transaction tx;
     private RelationshipBuilder documentRelationBuilder;
@@ -39,16 +42,7 @@ public class DocumentToGraph {
         this.documentRelationBuilder = new RelationshipBuilder(config);
         this.documentLabelBuilder = new LabelBuilder(config);
         this.config = config;
-
-        this.initialNodes = new HashMap<>();
-        for (Node initialNode : initialNodes) {
-            Set<String> labels = StreamSupport.stream(initialNode.getLabels().spliterator(), false).map(Label::name).collect(Collectors.toSet());
-            if(this.initialNodes.containsKey(labels)) {
-                this.initialNodes.get(labels).add(initialNode);
-            } else {
-                this.initialNodes.put(labels, new HashSet<>(Arrays.asList(initialNode)));
-            }
-        }
+        this.documentToNodes = new DocumentToNodes(initialNodes, tx);
     }
 
     public <T> Set<T> toSet(Iterable<T> collection) {
@@ -131,9 +125,9 @@ public class DocumentToGraph {
         // retrieve the current node
         final Node node;
         if (this.config.isWrite()) {
-            node = getOrCreateRealNode(labels, idValues);
+            node = documentToNodes.getOrCreateRealNode(labels, idValues);
         } else {
-            node = getOrCreateVirtualNode(nodes, labels, idValues);
+            node = documentToNodes.getOrCreateVirtualNode(nodes, labels, idValues);
         }
 
         // write node properties
@@ -218,48 +212,11 @@ public class DocumentToGraph {
         return idMap;
     }
 
-    private Map<String, Object> filterNodeIdProperties(Node n, Map<String, Object> idMap) {
-        return n.getProperties(idMap.keySet().toArray(new String[idMap.keySet().size()]));
-    }
-
-    private Set<Node> getNodesWithSameLabels(Map<Set<String>, Set<Node>> nodes, Label[] labels) {
+    public static Set<Node> getNodesWithSameLabels(Map<Set<String>, Set<Node>> nodes, Label[] labels) {
         Set<String> set = Stream.of(labels).map(Label::name).collect(Collectors.toSet());
         return nodes.computeIfAbsent(set, (k) -> new LinkedHashSet<>());
     }
 
-    private Node getOrCreateVirtualNode(Map<Set<String>, Set<Node>> nodes, Label[] labels, Map<String, Object> idValues) {
-        Set<Node> nodesWithSameIds = getNodesWithSameLabels(nodes, labels);
-        Set<Node> initialNodesWithSameIds = getNodesWithSameLabels(this.initialNodes, labels);
-
-        HashSet<Node> searchableNodes = new HashSet<>(nodesWithSameIds);
-        searchableNodes.addAll(initialNodesWithSameIds);
-
-        return searchableNodes
-                .stream()
-                .filter(n -> {
-                    if (Stream.of(labels).anyMatch(label -> n.hasLabel(label))) {
-                        Map<String, Object> ids = filterNodeIdProperties(n, idValues);
-                        return idValues.equals(ids);
-                    }
-                    return StreamSupport.stream(n.getRelationships().spliterator(), false)
-                            .anyMatch(r -> {
-                                Node otherNode = r.getOtherNode(n);
-                                Map<String, Object> ids = filterNodeIdProperties(otherNode, idValues);
-                                return Stream.of(labels).anyMatch(label -> otherNode.hasLabel(label)) && idValues.equals(ids);
-                            });
-                })
-                .findFirst()
-                .orElseGet(() -> new VirtualNode(labels, Collections.emptyMap()));
-    }
-
-    private Node getOrCreateRealNode(Label[] labels, Map<String, Object> idValues) {
-        return Stream.of(labels)
-                .map(label -> tx.findNodes(label, idValues))
-                .filter(it -> it.hasNext())
-                .map(it -> it.next())
-                .findFirst()
-                .orElseGet(() -> tx.createNode(labels));
-    }
 
     private boolean isSimpleType(Map.Entry<String, Object> e, String path) {
         List<String> valueObjects = config.valueObjectForPath(path);
@@ -291,8 +248,21 @@ public class DocumentToGraph {
         return coll;
     }
 
+    public VirtualGraph createWithoutMutatingOriginal(Object documentObj) {
+        List<Map<String, Object>> original = getDocumentCollection(documentObj);
+
+        List<Map<String, Object>> coll = original.stream().map(HashMap::new).collect(Collectors.toList());
+
+        return getVirtualGraph(coll);
+    }
+
     public VirtualGraph create(Object documentObj) {
-        Collection<Map<String, Object>> coll = getDocumentCollection(documentObj);
+        List<Map<String, Object>> coll = getDocumentCollection(documentObj);
+        return getVirtualGraph(coll);
+    }
+
+    @NotNull
+    private VirtualGraph getVirtualGraph(List<Map<String, Object>> coll) {
         Map<Set<String>, Set<Node>> nodes = new LinkedHashMap<>();
         Set<Relationship> relationships = new LinkedHashSet<>();
         coll.forEach(map -> fromDocument(map, null, null, nodes, relationships, JSON_ROOT));
@@ -387,4 +357,67 @@ public class DocumentToGraph {
         }
         return dups;
     }
+
+    public static class DocumentToNodes {
+        private final Map<Set<String>, Set<Node>> initialNodes;
+        private final Transaction tx;
+
+        public DocumentToNodes(Set<Node> initialNodes, Transaction tx) {
+            this.tx = tx;
+            this.initialNodes = new HashMap<>();
+            for (Node initialNode : initialNodes) {
+                Set<String> labels = StreamSupport.stream(initialNode.getLabels().spliterator(), false).map(Label::name).collect(Collectors.toSet());
+                if(this.initialNodes.containsKey(labels)) {
+                    this.initialNodes.get(labels).add(initialNode);
+                } else {
+                    this.initialNodes.put(labels, new HashSet<>(Arrays.asList(initialNode)));
+                }
+            }
+        }
+
+        public Node getOrCreateRealNode(Label[] labels, Map<String, Object> idValues) {
+            return Stream.of(labels)
+                    .map(label -> tx.findNodes(label, idValues))
+                    .filter(it -> it.hasNext())
+                    .map(it -> it.next())
+                    .findFirst()
+                    .orElseGet(() -> tx.createNode(labels));
+        }
+
+        public Node getOrCreateVirtualNode(Map<Set<String>, Set<Node>> nodes, Label[] labels, Map<String, Object> idValues) {
+            Set<Node> nodesWithSameIds = getNodesWithSameLabels(nodes, labels);
+            Set<Node> initialNodesWithSameIds = getNodesWithSameLabels(this.initialNodes, labels);
+
+            HashSet<Node> searchableNodes = new HashSet<>(nodesWithSameIds);
+            searchableNodes.addAll(initialNodesWithSameIds);
+
+            return searchableNodes
+                    .stream()
+                    .filter(n -> {
+                        if (Stream.of(labels).anyMatch(label -> n.hasLabel(label))) {
+                            Map<String, Object> ids = filterNodeIdProperties(n, idValues);
+                            return idValues.equals(ids);
+                        }
+                        return StreamSupport.stream(n.getRelationships().spliterator(), false)
+                                .anyMatch(r -> {
+                                    Node otherNode = r.getOtherNode(n);
+                                    Map<String, Object> ids = filterNodeIdProperties(otherNode, idValues);
+                                    return Stream.of(labels).anyMatch(label -> otherNode.hasLabel(label)) && idValues.equals(ids);
+                                });
+                    })
+                    .findFirst()
+                    .orElseGet(() -> new VirtualNode(labels, Collections.emptyMap()));
+        }
+
+        private Map<String, Object> filterNodeIdProperties(Node n, Map<String, Object> idMap) {
+            return n.getProperties(idMap.keySet().toArray(new String[idMap.keySet().size()]));
+        }
+
+        private Set<Node> getNodesWithSameLabels(Map<Set<String>, Set<Node>> nodes, Label[] labels) {
+            Set<String> set = Stream.of(labels).map(Label::name).collect(Collectors.toSet());
+            return nodes.computeIfAbsent(set, (k) -> new LinkedHashSet<>());
+        }
+
+    }
+
 }

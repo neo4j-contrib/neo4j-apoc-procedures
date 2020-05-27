@@ -1,25 +1,40 @@
 package apoc.nlp
 
 import apoc.util.Util
-import org.neo4j.graphdb.Node
-import org.neo4j.graphdb.Relationship
-import org.neo4j.graphdb.RelationshipType
-import org.neo4j.graphdb.Transaction
+import org.neo4j.graphdb.*
 import java.util.stream.Stream
+import kotlin.streams.asStream
 
 class NLPHelperFunctions {
     companion object {
-        fun createRelationships(node: Node, nodes: Set<Node>, relationshipType: RelationshipType) =
-                nodes.map { n -> node.createRelationshipTo(n, relationshipType) }
+        fun mergeRelationship(node: Node, nodesAndScore: Pair<Node, Number>, relationshipType: RelationshipType, relProperty: String): Relationship {
+            val existingRelationships = node.getRelationships(Direction.OUTGOING, relationshipType).asSequence().asStream()
+            val potentialRelationship = existingRelationships.filter { r -> r.endNode == nodesAndScore.first }.findFirst()
 
+            return if(potentialRelationship.isPresent) {
+                val relationship = potentialRelationship.get()
+                if(nodesAndScore.second.toDouble() > (relationship.getProperty(relProperty) as Number).toDouble()) {
+                    relationship.setProperty(relProperty, nodesAndScore.second)
+                }
+                relationship
+            } else {
+                val relationship = node.createRelationshipTo(nodesAndScore.first, relationshipType)
+                relationship.setProperty(relProperty, nodesAndScore.second)
+                relationship
+            }
+        }
 
-        fun mergeRelationships(transaction: Transaction, node: Node, nodes: Set<Node>, relType: RelationshipType): Stream<Relationship> {
-            val cypher = """WITH ${'$'}startNode as startNode, ${'$'}endNodes as endNodes
-            UNWIND endNodes AS endNode
+        fun mergeRelationship(transaction: Transaction, node: Node, nodeAndScores: Pair<Node, Number>, relType: RelationshipType, relProperty: String): Stream<Relationship> {
+            val cypher = """WITH ${'$'}startNode as startNode, ${'$'}endNode as endNode, ${'$'}score as score
             MERGE (startNode)-[r:${Util.quote(relType.name())}]->(endNode)
+            
+            FOREACH(ignoreMe In CASE WHEN score > coalesce(r.${relProperty}, 0.0) THEN [1] ELSE [] END | 
+                SET r.${relProperty} = score
+            )
+   
             RETURN r"""
 
-            val params = mapOf("startNode" to node, "endNodes" to nodes)
+            val params = mapOf("startNode" to node, "endNode" to nodeAndScores.first, "score" to nodeAndScores.second)
             return transaction.execute(cypher, params).columnAs<Relationship>("r").stream()
         }
 
