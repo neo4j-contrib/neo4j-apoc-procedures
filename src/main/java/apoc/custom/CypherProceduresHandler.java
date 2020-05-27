@@ -25,6 +25,7 @@ import org.neo4j.kernel.api.ResourceTracker;
 import org.neo4j.kernel.api.procedure.CallableProcedure;
 import org.neo4j.kernel.api.procedure.CallableUserFunction;
 import org.neo4j.kernel.api.procedure.Context;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.impl.util.ValueUtils;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -91,7 +92,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
     private final GraphDatabaseAPI api;
     private final Log log;
     private final GraphDatabaseService systemDb;
-    private final GlobalProceduresRegistry globalProceduresRegistry;
+    private final GlobalProcedures globalProceduresRegistry;
     private final JobScheduler jobScheduler;
     private long lastUpdate;
     private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
@@ -101,13 +102,13 @@ public class CypherProceduresHandler implements AvailabilityListener {
     private JobHandle restoreProceduresHandle;
 
 
-    public CypherProceduresHandler(GraphDatabaseAPI db, JobScheduler jobScheduler, ApocConfig apocConfig, Log userLog, GlobalProceduresRegistry globalProceduresRegistry) {
+    public CypherProceduresHandler(GraphDatabaseAPI db, JobScheduler jobScheduler, ApocConfig apocConfig, Log userLog, GlobalProcedures globalProceduresRegistry) {
         this.api = db;
         this.log = userLog;
         this.jobScheduler = jobScheduler;
         this.systemDb = apocConfig.getSystemDb();
         this.globalProceduresRegistry = globalProceduresRegistry;
-        transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
+        transactionComponentFunction = ((GlobalProceduresRegistry)globalProceduresRegistry).lookupComponentProvider(Transaction.class, true);
 
     }
 

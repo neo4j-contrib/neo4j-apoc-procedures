@@ -16,11 +16,11 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.config.Setting;
 import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.NullLog;
 import org.neo4j.logging.internal.LogService;
-import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
 import java.lang.reflect.Field;
 import java.net.URL;
@@ -73,7 +73,7 @@ public class ApocConfig extends LifecycleAdapter {
 
     private final Config neo4jConfig;
     private final Log log;
-    private final GlobalProceduresRegistry globalProceduresRegistry;
+    private final GlobalProcedures globalProceduresRegistry;
     private final DatabaseManagementService databaseManagementService;
 
     private Configuration config;
@@ -83,7 +83,7 @@ public class ApocConfig extends LifecycleAdapter {
     private SimpleRateLimiter rateLimiter;
     private GraphDatabaseService systemDb;
 
-    public ApocConfig(Config neo4jConfig, LogService log, GlobalProceduresRegistry globalProceduresRegistry, DatabaseManagementService databaseManagementService) {
+    public ApocConfig(Config neo4jConfig, LogService log, GlobalProcedures globalProceduresRegistry, DatabaseManagementService databaseManagementService) {
         this.neo4jConfig = neo4jConfig;
         this.log = log.getInternalLog(ApocConfig.class);
         this.globalProceduresRegistry = globalProceduresRegistry;

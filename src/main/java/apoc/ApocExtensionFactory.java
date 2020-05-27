@@ -12,6 +12,7 @@ import apoc.uuid.UuidHandler;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.internal.kernel.api.Procedures;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.availability.AvailabilityGuard;
 import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
@@ -21,7 +22,6 @@ import org.neo4j.kernel.lifecycle.Lifecycle;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
-import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 import org.neo4j.scheduler.JobScheduler;
 
 import java.net.URL;
@@ -56,7 +56,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         AvailabilityGuard availabilityGuard();
         DatabaseManagementService databaseManagementService();
         ApocConfig apocConfig();
-        GlobalProceduresRegistry globalProceduresRegistry();
+        GlobalProcedures globalProceduresRegistry();
         RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle();
     }
 

@@ -3,6 +3,7 @@ package apoc;
 import apoc.custom.CypherProceduresHandler;
 import apoc.trigger.TriggerHandler;
 import apoc.uuid.UuidHandler;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
 import org.neo4j.kernel.extension.context.ExtensionContext;
@@ -17,7 +18,7 @@ import java.util.Map;
 public class RegisterComponentFactory extends ExtensionFactory<RegisterComponentFactory.Dependencies> {
 
     private Log log;
-    private GlobalProceduresRegistry globalProceduresRegistry;
+    private GlobalProcedures globalProceduresRegistry;
 
     public RegisterComponentFactory() {
         super(ExtensionType.GLOBAL,
@@ -33,7 +34,7 @@ public class RegisterComponentFactory extends ExtensionFactory<RegisterComponent
 
     public interface Dependencies {
         LogService log();
-        GlobalProceduresRegistry globalProceduresRegistry();
+        GlobalProcedures globalProceduresRegistry();
     }
 
     public class RegisterComponentLifecycle implements Lifecycle {

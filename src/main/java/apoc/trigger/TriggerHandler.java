@@ -20,6 +20,7 @@ import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
 import org.neo4j.kernel.api.procedure.Context;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
@@ -52,12 +53,12 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
 
     public TriggerHandler(GraphDatabaseService db, DatabaseManagementService databaseManagementService,
-                          ApocConfig apocConfig, Log log, GlobalProceduresRegistry globalProceduresRegistry) {
+                          ApocConfig apocConfig, Log log, GlobalProcedures globalProceduresRegistry) {
         this.db = db;
         this.databaseManagementService = databaseManagementService;
         this.apocConfig = apocConfig;
         this.log = log;
-        transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
+        transactionComponentFunction = ((GlobalProceduresRegistry)globalProceduresRegistry).lookupComponentProvider(Transaction.class, true);
     }
 
     private boolean isEnabled() {

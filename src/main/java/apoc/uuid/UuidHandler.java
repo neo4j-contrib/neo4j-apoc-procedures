@@ -15,10 +15,10 @@ import org.neo4j.graphdb.event.TransactionEventListener;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +41,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     private static final String NOT_ENABLED_ERROR = "UUID have not been enabled." +
             " Set 'apoc.uuid.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
 
-    public UuidHandler(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, Log log, ApocConfig apocConfig, GlobalProceduresRegistry globalProceduresRegistry) {
+    public UuidHandler(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, Log log, ApocConfig apocConfig, GlobalProcedures globalProceduresRegistry) {
         this.db = db;
         this.databaseManagementService = databaseManagementService;
         this.log = log;

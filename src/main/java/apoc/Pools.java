@@ -3,10 +3,10 @@ package apoc;
 import apoc.periodic.Periodic;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
-import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
 import java.util.Iterator;
 import java.util.List;
@@ -20,7 +20,7 @@ public class Pools extends LifecycleAdapter {
     public final static int DEFAULT_SCHEDULED_THREADS = Runtime.getRuntime().availableProcessors() / 4;
     public final static int DEFAULT_POOL_THREADS = Runtime.getRuntime().availableProcessors() * 2;
     private final Log log;
-    private final GlobalProceduresRegistry globalProceduresRegistry;
+    private final GlobalProcedures globalProceduresRegistry;
     private final ApocConfig apocConfig;
 
     private ExecutorService singleExecutorService = Executors.newSingleThreadExecutor();
@@ -29,7 +29,7 @@ public class Pools extends LifecycleAdapter {
 
     private final Map<Periodic.JobInfo,Future> jobList = new ConcurrentHashMap<>();
 
-    public Pools(LogService log, GlobalProceduresRegistry globalProceduresRegistry, ApocConfig apocConfig) {
+    public Pools(LogService log, GlobalProcedures globalProceduresRegistry, ApocConfig apocConfig) {
 
         this.log = log.getInternalLog(Pools.class);
         this.globalProceduresRegistry = globalProceduresRegistry;
