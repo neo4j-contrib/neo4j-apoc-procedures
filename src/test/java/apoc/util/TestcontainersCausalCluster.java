@@ -30,7 +30,7 @@ import static java.util.stream.Collectors.toList;
  */
 
 public class TestcontainersCausalCluster {
-    private static int MINUTES_TO_WAIT = 12;
+    private static int MINUTES_TO_WAIT = 20;
     private static final int DEFAULT_BOLT_PORT = 7687;
 
     public enum ClusterInstanceType {
@@ -66,7 +66,8 @@ public class TestcontainersCausalCluster {
         Network network = Network.newNetwork();
 
         // Prepare proxy as sidecar
-        final SocatContainer proxy = new SocatContainer().withNetwork(network);
+        final SocatContainer proxy = new SocatContainer()
+                .withNetwork(network);
         iterateMembers(numberOfCoreMembers, ClusterInstanceType.CORE)
                 .forEach(member -> proxy.withTarget(ClusterInstanceType.CORE.port + member.getKey(), member.getValue(), DEFAULT_BOLT_PORT));
         iterateMembers(numberOfReadReplica, ClusterInstanceType.READ_REPLICA)
@@ -113,16 +114,12 @@ public class TestcontainersCausalCluster {
                 .withLabel("memberType", instanceType.toString())
                 .withNetwork(network)
                 .withNetworkAliases(name)
-                .withCreateContainerCmdModifier(cmd -> {
-                    cmd.withHostName(name);
-                    cmd.withMemory(512 * 1024 * 1024l);
-                })
+                .withCreateContainerCmdModifier(cmd -> cmd.withHostName(name))
                 .withoutDriver()
                 .withNeo4jConfig("dbms.mode", instanceType.toString())
                 .withNeo4jConfig("dbms.logs.debug.level", "DEBUG")
                 .withNeo4jConfig("dbms.default_listen_address", "0.0.0.0")
                 .withNeo4jConfig("causal_clustering.initial_discovery_members", initialDiscoveryMembers)
-                //.waitingFor(WAIT_FOR_BOLT)
                 .withStartupTimeout(Duration.ofMinutes(MINUTES_TO_WAIT));
         neo4jConfig.forEach((conf, value) -> container.withNeo4jConfig(conf, String.valueOf(value)));
         container.withEnv(envSettings);
