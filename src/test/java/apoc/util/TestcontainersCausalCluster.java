@@ -30,7 +30,7 @@ import static java.util.stream.Collectors.toList;
  */
 
 public class TestcontainersCausalCluster {
-    private static int MINUTES_TO_WAIT = 8;
+    private static int MINUTES_TO_WAIT = 12;
     private static final int DEFAULT_BOLT_PORT = 7687;
 
     public enum ClusterInstanceType {
@@ -63,7 +63,7 @@ public class TestcontainersCausalCluster {
                 .collect(joining(","));
 
         // Prepare one shared network for those containers
-        Network network = Network.builder().driver("host").build();
+        Network network = Network.SHARED;
 
         // Prepare proxy as sidecar
         final SocatContainer proxy = new SocatContainer().withNetwork(network);
