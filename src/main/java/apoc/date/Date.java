@@ -52,7 +52,7 @@ public class Date {
 	);
 
 	@UserFunction
-	@Description("toYears(timestap) or toYears(date[,format]) converts timestamp into floating point years")
+	@Description("toYears(timestamp) or toYears(date[,format]) converts timestamp into floating point years")
 	public double toYears(@Name("value") Object value, @Name(value = "format", defaultValue = DEFAULT_FORMAT) String format) {
 		if (value instanceof Number) {
 			long time = ((Number) value).longValue();
@@ -79,9 +79,8 @@ public class Date {
 		node.setProperty("ttl",System.currentTimeMillis() + unit(timeUnit).toMillis(time));
 	}
 
-	@UserFunction(deprecatedBy = "Neo4j native datetime using instant.field")
+	@UserFunction
 	@Description("apoc.date.fields('2012-12-23',('yyyy-MM-dd')) - return columns and a map representation of date parsed with the given format with entries for years,months,weekdays,days,hours,minutes,seconds,zoneid")
-	@Deprecated
 	public Map<String,Object> fields(final @Name("date") String date, final @Name(value = "pattern", defaultValue = DEFAULT_FORMAT) String pattern) {
 		if (date == null) {
 			return Util.map();
@@ -97,9 +96,8 @@ public class Date {
 		return result.asMap();
 	}
 
-	@UserFunction(deprecatedBy = "Neo4j native datetime using instant.field - e.g. datetime({epochMillis: dateInteger}).year")
+	@UserFunction
 	@Description("apoc.date.field(12345,('ms|s|m|h|d|month|year'),('TZ')")
-	@Deprecated
 	public Long field(final @Name("time") Long time,  @Name(value = "unit", defaultValue = "d") String unit, @Name(value = "timezone",defaultValue = "UTC") String timezone) {
 		return (time == null)
 				? null
@@ -184,8 +182,9 @@ public class Date {
 		return value == null ? null : unit(unit).convert(value, TimeUnit.MILLISECONDS);
 	}
 
-	@UserFunction
-	@Description("apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC') parse date string using the specified format at the specified timezone")
+	@UserFunction(deprecatedBy = "apoc.temporal.toZonedTemporal")
+	@Description("apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') parse date string using the specified format to specified timezone")
+	@Deprecated
 	public ZonedDateTime parseAsZonedDateTime(@Name("time") String time, @Name(value = "format", defaultValue = DEFAULT_FORMAT) String format, final @Name(value = "timezone", defaultValue = "UTC") String timezone) {
 		Long value = parseOrThrow(time, getFormat(format, timezone));
 		return value == null ? null : Instant.ofEpochMilli(value).atZone(ZoneId.of(timezone));
@@ -229,7 +228,7 @@ public class Date {
 		return getFormat(pattern, timezone).format(new java.util.Date(millis));
 	}
 
-	private static DateFormat getFormat(final String pattern, final String timezone) {
+	public static DateFormat getFormat(final String pattern, final String timezone) {
 		String actualPattern = getPattern(pattern);
 		SimpleDateFormat format = null;
 		try {
@@ -266,7 +265,7 @@ public class Date {
 		}
 	}
 
-	private static Long parseOrThrow(final String date, final DateFormat format) {
+	public  static Long parseOrThrow(final String date, final DateFormat format) {
 		if (date == null) return null;
 		try {
 			return format.parse(date).getTime();
