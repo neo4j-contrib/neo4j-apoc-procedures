@@ -7,12 +7,14 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.containers.SocatContainer;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -36,10 +38,16 @@ public class TestcontainersCausalCluster {
 
     public enum ClusterInstanceType {CORE, READ_REPLICA}
 
-    private static Stream<String> iterateMembers(int numOfMembers, ClusterInstanceType instanceType) {
+    private static Stream<AbstractMap.SimpleEntry<Integer, String>> iterateMembers(int numOfMembers, ClusterInstanceType instanceType) {
         final IntFunction<String> generateInstanceName = i -> String.format("neo4j-%s-%d", instanceType.toString(), i);
 
-        return IntStream.rangeClosed(1, numOfMembers).mapToObj(generateInstanceName);
+        return IntStream.rangeClosed(1, numOfMembers).mapToObj(i -> new AbstractMap.SimpleEntry<>(i - 1, generateInstanceName.apply(i)));
+    }
+
+    private static Stream<AbstractMap.SimpleEntry<Integer, String>> iterateReplicaMembers(int numOfMembers, int numCoreMembers, ClusterInstanceType instanceType) {
+        final IntFunction<String> generateInstanceName = i -> String.format("neo4j-%s-%d", instanceType.toString(), i);
+
+        return IntStream.rangeClosed(numCoreMembers + 1, numOfMembers).mapToObj(i -> new AbstractMap.SimpleEntry<>(i - 1, generateInstanceName.apply(i)));
     }
 
     public static TestcontainersCausalCluster create(int numberOfCoreMembers, int numberOfReadReplica, Duration timeout, Map<String, Object> neo4jConfig, Map<String, String> envSettings) {
@@ -52,27 +60,31 @@ public class TestcontainersCausalCluster {
 
         // Setup a naming strategy and the initial discovery members
         final String initialDiscoveryMembers = iterateMembers(numberOfCoreMembers, ClusterInstanceType.CORE)
-                .map(n -> String.format("%s:5000", n))
+                .map(n -> String.format("%s:5000", n.getValue()))
                 .collect(joining(","));
 
         // Prepare one shared network for those containers
         Network network = Network.newNetwork();
 
-        // Prepare proxys as sidecars
-        Map<String, GenericContainer> sidecars = createSidecars(numberOfCoreMembers, network, ClusterInstanceType.CORE);
-        sidecars.putAll(createSidecars(numberOfReadReplica, network, ClusterInstanceType.READ_REPLICA));
+        // Prepare proxy to enter the cluster
+        final SocatContainer proxy = new SocatContainer().withNetwork(network);
+        iterateMembers(numberOfCoreMembers, ClusterInstanceType.CORE)
+                .forEach(member -> proxy.withTarget(DEFAULT_BOLT_PORT + member.getKey(), member.getValue(), DEFAULT_BOLT_PORT));
 
-        // Start the sidecars so that the exposed ports are available
-        sidecars.values().forEach(GenericContainer::start);
+        // Start the proxy so that the exposed ports are available and we can get the mapped ones
+        proxy.start();
 
         // Build the core/read_replica
-        List<Neo4jContainerExtension> members = getClusterMembers(numberOfCoreMembers, ClusterInstanceType.CORE, sidecars, network, initialDiscoveryMembers, neo4jConfig, envSettings, timeout);
-        members.addAll(getClusterMembers(numberOfReadReplica, ClusterInstanceType.READ_REPLICA, sidecars, network, initialDiscoveryMembers, neo4jConfig, envSettings, timeout));
+        List<Neo4jContainerExtension> members = getClusterMembers(numberOfCoreMembers, ClusterInstanceType.CORE, proxy, network, initialDiscoveryMembers, neo4jConfig, envSettings, timeout);
 
-        System.out.println("members:");
-        for (Neo4jContainerExtension member : members) {
-            System.out.println(member.getEnv());
-        }
+        ClusterInstanceType instanceType = ClusterInstanceType.READ_REPLICA;
+        WaitStrategy waitForBolt = new LogMessageWaitStrategy()
+                .withRegEx(String.format(".*Bolt enabled on 0\\.0\\.0\\.0:%d\\.\n", DEFAULT_BOLT_PORT))
+                .withStartupTimeout(timeout);
+        Function<GenericContainer, String> getProxyUrl = instance -> String.format("%s:%d", instance.getContainerIpAddress(), instance.getMappedPort(DEFAULT_BOLT_PORT));
+        members.addAll(iterateReplicaMembers(numberOfReadReplica, numberOfCoreMembers, instanceType)
+                .map(member -> getNeo4jContainerExtension(waitForBolt, network, initialDiscoveryMembers, proxy, getProxyUrl, instanceType, neo4jConfig, envSettings, member))
+                .collect(toList()));
 
         // Start all of them in parallel
         final CountDownLatch latch = new CountDownLatch(numberOfCoreMembers);
@@ -87,13 +99,13 @@ public class TestcontainersCausalCluster {
             e.printStackTrace();
         }
 
-        return new TestcontainersCausalCluster(members, sidecars.values().stream().collect(toList()));
+        return new TestcontainersCausalCluster(members, proxy);
     }
 
     @NotNull
     private static List<Neo4jContainerExtension> getClusterMembers(int numberOfCoreMembers,
                                                                    ClusterInstanceType instanceType,
-                                                                   Map<String, GenericContainer> sidecars,
+                                                                   SocatContainer proxy,
                                                                    Network network,
                                                                    String initialDiscoveryMembers,
                                                                    Map<String, Object> neo4jConfig,
@@ -105,44 +117,44 @@ public class TestcontainersCausalCluster {
         Function<GenericContainer, String> getProxyUrl = instance ->
                 String.format("%s:%d", instance.getContainerIpAddress(), instance.getMappedPort(DEFAULT_BOLT_PORT));
         return iterateMembers(numberOfCoreMembers, instanceType)
-                .map(name -> getNeo4jContainerExtension(waitForBolt, network, initialDiscoveryMembers, sidecars, getProxyUrl, instanceType, neo4jConfig, envSettings, name))
+                .map(member -> getNeo4jContainerExtension(waitForBolt, network, initialDiscoveryMembers, proxy, getProxyUrl, instanceType, neo4jConfig, envSettings, member))
                 .collect(toList());
     }
 
-    @NotNull
-    private static Map<String, GenericContainer> createSidecars(int numOfMembers, Network network, ClusterInstanceType instanceType) {
-        return iterateMembers(numOfMembers, instanceType)
-                .collect(toMap(
-                        Function.identity(),
-                        name -> new GenericContainer("alpine/socat")
-                                .withNetwork(network)
-                                .withLabel("memberType", instanceType.toString())
-                                // Expose the default bolt port on the sidecar
-                                .withExposedPorts(DEFAULT_BOLT_PORT)
-                                // And redirect that port to the corresponding Neo4j instance
-                                .withCommand(String
-                                        .format("tcp-listen:%d,fork,reuseaddr tcp-connect:%s:%1$d", DEFAULT_BOLT_PORT, name))
-                ));
-    }
+//    @NotNull
+//    private static Map<String, GenericContainer> createSidecars(int numOfMembers, Network network, ClusterInstanceType instanceType) {
+//        return iterateMembers(numOfMembers, instanceType)
+//                .collect(toMap(
+//                        Function.identity(),
+//                        name -> new GenericContainer("alpine/socat")
+//                                .withNetwork(network)
+//                                .withLabel("memberType", instanceType.toString())
+//                                // Expose the default bolt port on the sidecar
+//                                .withExposedPorts(DEFAULT_BOLT_PORT)
+//                                // And redirect that port to the corresponding Neo4j instance
+//                                .withCommand(String
+//                                        .format("tcp-listen:%d,fork,reuseaddr tcp-connect:%s:%1$d", DEFAULT_BOLT_PORT, name))
+//                ));
+//    }
 
     private static Neo4jContainerExtension getNeo4jContainerExtension(WaitStrategy waitForBolt,
                                                                       Network network,
                                                                       String initialDiscoveryMembers,
-                                                                      Map<String, GenericContainer> sidecars,
+                                                                      SocatContainer proxy,
                                                                       Function<GenericContainer, String> getProxyUrl,
                                                                       ClusterInstanceType instanceType,
                                                                       Map<String, Object> neo4jConfig,
-                                                                      Map<String, String> envSettings, String name) {
+                                                                      Map<String, String> envSettings, AbstractMap.SimpleEntry<Integer, String> member) {
         Neo4jContainerExtension container =  TestContainerUtil.createEnterpriseDB(!TestUtil.isTravis())
                 .withLabel("memberType", instanceType.toString())
                 .withNetwork(network)
-                .withNetworkAliases(name)
-                .withCreateContainerCmdModifier(cmd -> {cmd.withHostName(name); cmd.withMemory(512 * 1024 * 1024l   );})
+                .withNetworkAliases(member.getValue())
+                .withCreateContainerCmdModifier(cmd -> {cmd.withHostName(member.getValue()); cmd.withMemory(512 * 1024 * 1024l   );})
                 .withoutDriver()
                 .withNeo4jConfig("dbms.mode", instanceType.toString())
                 .withNeo4jConfig("dbms.default_listen_address", "0.0.0.0")
-                .withNeo4jConfig("dbms.default_advertised_address", name)
-                .withNeo4jConfig("dbms.connector.bolt.advertised_address", getProxyUrl.apply(sidecars.get(name)))
+                .withNeo4jConfig("dbms.default_advertised_address", member.getValue())
+                .withNeo4jConfig("dbms.connector.bolt.advertised_address", String.format("%s:%d", proxy.getContainerIpAddress(), proxy.getMappedPort(DEFAULT_BOLT_PORT + member.getKey())))
                 .withNeo4jConfig("causal_clustering.initial_discovery_members", initialDiscoveryMembers)
                 .waitingFor(waitForBolt);
         neo4jConfig.forEach((conf, value) -> container.withNeo4jConfig(conf, String.valueOf(value)));
@@ -151,15 +163,16 @@ public class TestcontainersCausalCluster {
     }
 
     private final List<Neo4jContainerExtension> clusterMembers;
-    private final List<GenericContainer> sidecars;
+//    private final List<GenericContainer> sidecars;
 
     private Driver driver;
     private Session session;
+    private SocatContainer proxy;
 
     public TestcontainersCausalCluster(List<Neo4jContainerExtension> clusterMembers,
-                                       List<GenericContainer> sidecars) {
+                                       SocatContainer proxy) {
         this.clusterMembers = clusterMembers;
-        this.sidecars = sidecars;
+        this.proxy = proxy;
         this.driver = GraphDatabase.driver(getURI(), AuthTokens.basic("neo4j", "apoc"));
         this.session = driver.session();
     }
@@ -173,23 +186,14 @@ public class TestcontainersCausalCluster {
     }
 
     public URI getURI() {
-        return this.sidecars.stream().findAny()
-                .map(instance -> String.format("neo4j://%s:%d", instance.getContainerIpAddress(),
-                        instance.getMappedPort(DEFAULT_BOLT_PORT)))
-                .map(uri -> {
-                    try {
-                        return new URI(uri);
-                    } catch (URISyntaxException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .orElseThrow(() -> new IllegalStateException("No sidecar as entrypoint into the cluster available."));
+        return URI.create(String.format("neo4j://%s:%d", proxy.getContainerIpAddress(), proxy.getMappedPort(DEFAULT_BOLT_PORT)));
     }
+
 
     public void close() {
         getSession().close();
         getDriver().close();
-        sidecars.forEach(GenericContainer::stop);
+        proxy.stop();
         clusterMembers.forEach(Neo4jContainerExtension::stop);
     }
 }
