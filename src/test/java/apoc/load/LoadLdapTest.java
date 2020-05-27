@@ -99,7 +99,6 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
 
     @Test
     public void testLoadFromApocConfig() throws LdapURLEncodingException {
-        //LoadLdapConfig config = LdapUtil.getFromConfigFile("localhost_auth");
         LoadLdapConfig config = new LoadLdapConfig(apocStatics.getAll("localhost_auth"));
         assertEquals(config.getLdapUrl(), new LdapUrl(String.format("ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Agent Smith))", ldapServerPort)));
         assertEquals(config.getCredentials().getBindDn(), "uid=admin,ou=system");
@@ -108,8 +107,6 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
 
     @Test
     public void testBadPageSize() {
-        //ApocConfiguration.addToConfig(map("ldap.localhost_auth.pageSize", "lah"));
-        //LoadLdapConfig config = LdapUtil.getFromConfigFile("localhost_auth");
         LoadLdapConfig config = new LoadLdapConfig(apocStatics.getAll("localhost_auth"));
         assertEquals(config.getPageSize(), 100);
 
@@ -117,8 +114,6 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
 
     @Test
     public void testValidPageSize() {
-        //ApocConfiguration.addToConfig(map("ldap.localhost_auth.pageSize", "771"));
-        //LoadLdapConfig config = LdapUtil.getFromConfigFile("localhost_auth");
         apocStatics.set("localhost_auth.pageSize", "771");
         LoadLdapConfig config = new LoadLdapConfig(apocStatics.getAll("localhost_auth"));
         assertEquals(config.getPageSize(), 771);
