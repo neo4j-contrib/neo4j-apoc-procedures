@@ -63,7 +63,7 @@ public class TestcontainersCausalCluster {
                 .collect(joining(","));
 
         // Prepare one shared network for those containers
-        Network network = Network.SHARED;
+        Network network = Network.newNetwork();
 
         // Prepare proxy as sidecar
         final SocatContainer proxy = new SocatContainer().withNetwork(network);
