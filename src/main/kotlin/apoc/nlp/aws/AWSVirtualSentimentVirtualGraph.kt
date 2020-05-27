@@ -10,7 +10,7 @@ import org.neo4j.graphdb.Relationship
 import org.neo4j.graphdb.RelationshipType
 import org.neo4j.graphdb.Transaction
 
-data class AWSVirtualSentimentVirtualGraph(private val detectEntitiesResult: BatchDetectSentimentResult, private val sourceNodes: List<Node>): NLPVirtualGraph(sourceNodes, RelationshipType { "DUMMY" }, mapOf()) {
+data class AWSVirtualSentimentVirtualGraph(private val detectEntitiesResult: BatchDetectSentimentResult, private val sourceNodes: List<Node>): NLPVirtualGraph() {
     override fun extractDocument(index: Int, sourceNode: Node) : Any? = AWSProcedures.transformResults(index, sourceNode, detectEntitiesResult).value
 
     override fun createVirtualGraph(transaction: Transaction?): VirtualGraph {

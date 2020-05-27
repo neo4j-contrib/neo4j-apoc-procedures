@@ -33,7 +33,6 @@ class GCPProceduresAPIWithDummyClientTest {
             TestUtil.registerProcedure(neo4j, GCPProcedures::class.java)
             assumeTrue(apiKey != null)
         }
-
     }
 
     @Test
@@ -136,12 +135,12 @@ class GCPProceduresAPIWithDummyClientTest {
             val dummyLabels2 = listOf(Label { "Location"}, Label {"Entity"})
 
             assertThat(nodes, hasItem(sourceNode))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels1, mapOf("name" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD"))))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("name" to "token-2-index-0-batch-1", "type" to "LOCATION"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels1, mapOf("text" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels1.toTypedArray(), mapOf("name" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD")), "ENTITY")))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("name" to "token-2-index-0-batch-1", "type" to "LOCATION")), "ENTITY")))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels1.toTypedArray(), mapOf("text" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD")), "ENTITY", mapOf("score" to 0.1))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION")), "ENTITY", mapOf("score" to 0.2))))
         }
     }
 
@@ -244,12 +243,96 @@ class GCPProceduresAPIWithDummyClientTest {
             val dummyLabels = listOf( Label {"Category"})
 
             assertThat(nodes, hasItem(sourceNode))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("name" to "category-1-index-0-batch-1"))))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("name" to "category-2-index-0-batch-1"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "category-1-index-0-batch-1"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "category-2-index-0-batch-1"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("name" to "category-1-index-0-batch-1")), "CATEGORY")))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("name" to "category-2-index-0-batch-1")), "CATEGORY")))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "category-1-index-0-batch-1")), "CATEGORY", mapOf("score" to 0.1))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "category-2-index-0-batch-1")), "CATEGORY", mapOf("score" to 0.2))))
+        }
+    }
+
+    @Test
+    fun `create virtual entity graph based on salience cut off`() {
+        neo4j.executeTransactionally("""CREATE (a:Article7 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
+
+        var sourceNode: Node? = null
+        var virtualSourceNode: Node? = null
+        neo4j.executeTransactionally("MATCH (a:Article7) RETURN a", emptyMap()) {
+            sourceNode = it.next()["a"] as Node
+            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
+        }
+
+        neo4j.executeTransactionally("""
+                    MATCH (a:Article7) WITH a ORDER BY a.id
+                    WITH collect(a) AS articles
+                    CALL apoc.nlp.gcp.entities.graph(articles, {
+                      key: ${'$'}apiKey,
+                      nodeProperty: "body",
+                      unsupportedDummyClient: true,
+                      scoreCutoff: 0.15,
+                      writeRelationshipType: "HAS_ENTITY",
+                      writeRelationshipProperty: "gcpScore"
+                    })
+                    YIELD graph AS g
+                    RETURN g.nodes AS nodes, g.relationships AS relationships
+                """.trimIndent(), mapOf("apiKey" to apiKey)) {
+
+            assertTrue(it.hasNext())
+            val row = it.next()
+
+            val nodes: List<Node> = row["nodes"] as List<Node>
+            val relationships = row["relationships"] as List<Relationship>
+            Assert.assertEquals(2, nodes.size) // 1 dummy node + source node
+
+            val dummyLabels2 = listOf(Label { "Location"}, Label {"Entity"})
+
+            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-0", "type" to "LOCATION"))))
+
+            Assert.assertEquals(1, relationships.size)
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-0", "type" to "LOCATION")), "HAS_ENTITY", mapOf("gcpScore" to 0.2))))
+        }
+    }
+
+    @Test
+    fun `create virtual category graph based on confidence cut off`() {
+        neo4j.executeTransactionally("""CREATE (a:Article8 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
+
+        var sourceNode: Node? = null
+        var virtualSourceNode: Node? = null
+        neo4j.executeTransactionally("MATCH (a:Article8) RETURN a", emptyMap()) {
+            sourceNode = it.next()["a"] as Node
+            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
+        }
+
+        neo4j.executeTransactionally("""
+                    MATCH (a:Article8) WITH a ORDER BY a.id
+                    WITH collect(a) AS articles
+                    CALL apoc.nlp.gcp.classify.graph(articles, {
+                      key: ${'$'}apiKey,
+                      nodeProperty: "body",
+                      unsupportedDummyClient: true,
+                      scoreCutoff: 0.15 
+                    })
+                    YIELD graph AS g
+                    RETURN g.nodes AS nodes, g.relationships AS relationships
+                """.trimIndent(), mapOf("apiKey" to apiKey)) {
+
+            assertTrue(it.hasNext())
+            val row = it.next()
+
+            val nodes: List<Node> = row["nodes"] as List<Node>
+            val relationships = row["relationships"] as List<Relationship>
+            Assert.assertEquals(2, nodes.size) // 1 dummy nodes + source node
+
+            val dummyLabels = listOf( Label {"Category"})
+
+            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "category-2-index-0-batch-0"))))
+
+            Assert.assertEquals(1, relationships.size)
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "category-2-index-0-batch-0")), "CATEGORY", mapOf("score" to 0.2))))
         }
     }
 

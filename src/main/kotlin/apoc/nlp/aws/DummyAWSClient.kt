@@ -15,8 +15,8 @@ class DummyAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient
 
          convertedData.mapIndexed { index, _ ->
              batchResults += BatchDetectEntitiesItemResult().withEntities(
-                     Entity().withText("token-1-index-$index-batch-$batchId").withType(EntityType.COMMERCIAL_ITEM),
-                     Entity().withText("token-2-index-$index-batch-$batchId").withType(EntityType.ORGANIZATION))
+                     Entity().withText("token-1-index-$index-batch-$batchId").withType(EntityType.COMMERCIAL_ITEM).withScore(0.5F),
+                     Entity().withText("token-2-index-$index-batch-$batchId").withType(EntityType.ORGANIZATION).withScore(0.7F))
                      .withIndex(index)
          }
 
@@ -30,8 +30,8 @@ class DummyAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient
 
         convertedData.mapIndexed { index, value ->
             batchResults += BatchDetectKeyPhrasesItemResult().withKeyPhrases(
-                    KeyPhrase().withText("keyPhrase-1-index-$index-batch-$batchId"),
-                    KeyPhrase().withText("keyPhrase-2-index-$index-batch-$batchId"))
+                    KeyPhrase().withText("keyPhrase-1-index-$index-batch-$batchId").withScore(0.3F),
+                    KeyPhrase().withText("keyPhrase-2-index-$index-batch-$batchId").withScore(0.4F))
                     .withIndex(index)
         }
 

@@ -7,6 +7,7 @@ This chapter describes procedures that can be used for added Natural Language Pr
 --
 
 The procedures described in this chapter act as wrappers around cloud based Natural Language APIs.
+These procedures extract entities, key phrases, categories, and sentiment from text stored as node properties.
 
 This section includes:
 
