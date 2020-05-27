@@ -32,9 +32,6 @@ import static java.util.stream.Collectors.toList;
 public class TestcontainersCausalCluster {
     private static int MINUTES_TO_WAIT = 8;
     private static final int DEFAULT_BOLT_PORT = 7687;
-//    private static final WaitStrategy WAIT_FOR_BOLT = new LogMessageWaitStrategy()
-//            .withRegEx(String.format(".*Bolt enabled on 0\\.0\\.0\\.0:%d\\.\n", DEFAULT_BOLT_PORT))
-//            .withStartupTimeout(Duration.ofMinutes(MINUTES_TO_WAIT));
 
     public enum ClusterInstanceType {
         CORE(DEFAULT_BOLT_PORT), READ_REPLICA(DEFAULT_BOLT_PORT + 1000);
@@ -66,7 +63,7 @@ public class TestcontainersCausalCluster {
                 .collect(joining(","));
 
         // Prepare one shared network for those containers
-        Network network = Network.newNetwork();
+        Network network = Network.builder().driver("host").build();
 
         // Prepare proxy as sidecar
         final SocatContainer proxy = new SocatContainer().withNetwork(network);
@@ -91,7 +88,7 @@ public class TestcontainersCausalCluster {
                 .collect(toList()));
 
         // Start all of them in parallel
-        final CountDownLatch latch = new CountDownLatch(numberOfCoreMembers);
+        final CountDownLatch latch = new CountDownLatch(numberOfCoreMembers + numberOfReadReplica);
         members.forEach(instance -> CompletableFuture.runAsync(() -> {
             instance.start();
             latch.countDown();
@@ -116,9 +113,13 @@ public class TestcontainersCausalCluster {
                 .withLabel("memberType", instanceType.toString())
                 .withNetwork(network)
                 .withNetworkAliases(name)
-                .withCreateContainerCmdModifier(cmd -> {cmd.withHostName(name); cmd.withMemory(512 * 1024 * 1024l);})
+                .withCreateContainerCmdModifier(cmd -> {
+                    cmd.withHostName(name);
+                    cmd.withMemory(512 * 1024 * 1024l);
+                })
                 .withoutDriver()
                 .withNeo4jConfig("dbms.mode", instanceType.toString())
+                .withNeo4jConfig("dbms.logs.debug.level", "DEBUG")
                 .withNeo4jConfig("dbms.default_listen_address", "0.0.0.0")
                 .withNeo4jConfig("causal_clustering.initial_discovery_members", initialDiscoveryMembers)
                 //.waitingFor(WAIT_FOR_BOLT)
