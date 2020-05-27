@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.load.util.LdapUtil;
 import apoc.load.util.LoadLdapConfig;
@@ -13,7 +12,6 @@ import org.apache.directory.api.ldap.model.message.SearchRequest;
 import org.apache.directory.api.ldap.model.message.SearchResultDone;
 import org.apache.directory.api.ldap.model.message.SearchResultEntry;
 import org.apache.directory.api.ldap.model.message.controls.PagedResults;
-import org.apache.directory.api.ldap.model.url.LdapUrl;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapConnectionPool;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -32,7 +30,6 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.load.util.LdapUtil.LOAD_TYPE;
 import static apoc.load.util.LdapUtil.buildSearch;
 import static apoc.load.util.LdapUtil.getConnectionPool;
 import static apoc.load.util.LdapUtil.rangedRetrievalEntryHandler;
@@ -61,27 +58,10 @@ public class LoadLdap {
     }
 
     @Procedure(name = "apoc.load.ldapurl")
-    @Description("apoc.load.ldap('url', config) YIELD row - run an LDAP query from an LDAP URL")
-    public Stream<LDAPResult> ldap(@Name("ldapURL") String url,
-                                   @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        if (url.startsWith(LdapUrl.LDAP_SCHEME) || url.startsWith(LdapUrl.LDAPS_SCHEME)) {
-            return executePagedSearch(url, config);
-        } else {
-            LoadLdapConfig ldapConfig = new LoadLdapConfig(config, url);
-            // allow override of config file URL with one provided from the proc call
-            if (config.containsKey("url")) {
-                ldapConfig.setLdapUrl((String) config.get("url"));
-            }
-            return executePagedSearch(ldapConfig);
-        }
-    }
-
-    private Stream<LDAPResult> executePagedSearch(String key) {
-        Map<String, Object> apocConfig = ApocConfiguration.get(String.format("%s.%s", LOAD_TYPE, key));
-        if (apocConfig.isEmpty()) {
-            throw new RuntimeException(String.format("Cannot find configuration with name %s", key));
-        }
-        return executePagedSearch((String) apocConfig.get("url"), apocConfig);
+    @Description("apoc.load.ldap(config) YIELD row - run an LDAP query from an LDAP URL")
+    public Stream<LDAPResult> ldap(@Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        LoadLdapConfig ldapConfig = new LoadLdapConfig(config);
+        return executePagedSearch(ldapConfig);
     }
 
     /**

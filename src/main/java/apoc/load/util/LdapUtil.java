@@ -1,7 +1,5 @@
 package apoc.load.util;
 
-import apoc.util.Util;
-import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -26,9 +24,7 @@ import org.neo4j.logging.Log;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -235,15 +231,6 @@ public class LdapUtil {
             log.debug(String.format("Generated SearchRequest: %s", req.toString()));
         return req;
     }
-
-    /*public static LoadLdapConfig getFromConfigFile(String key) {
-        Map<String, Object> temp = new HashMap<>();
-        temp.put("url", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "url").orElse(StringUtils.EMPTY));
-        temp.put("username", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "username").orElse(StringUtils.EMPTY));
-        temp.put("password", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "password").orElse(StringUtils.EMPTY));
-        temp.put("pageSize", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "pageSize").orElse("100"));
-        return new LoadLdapConfig(temp);
-    }*/
 
     /**
      * Use the upper and lower 16 bytes to generate the UUID that would match string representations
