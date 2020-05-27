@@ -14,7 +14,7 @@ This section includes:
 * <<path-functions-examples>>
 
 [[path-functions-function-overview]]
-=== Function Overview
+==== Function Overview
 
 The available functions are described below:
 
@@ -27,7 +27,7 @@ include::../../../build/generated-documentation/apoc.path.elements.csv[lines=2:]
 |===
 
 [[path-functions-examples]]
-=== Examples
+==== Examples
 
 The examples in this section are based on the following sample graph:
 
