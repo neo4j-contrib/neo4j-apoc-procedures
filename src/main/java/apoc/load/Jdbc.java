@@ -60,6 +60,7 @@ public class Jdbc {
     @Description("apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement")
     public Stream<RowResult> jdbc(@Name("jdbc") String urlOrKey, @Name("tableOrSql") String tableOrSelect, @Name
             (value = "params", defaultValue = "[]") List<Object> params, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+        params = params != null ? params : Collections.emptyList();
         return executeQuery(urlOrKey, tableOrSelect, config, params.toArray(new Object[params.size()]));
     }
 
@@ -67,6 +68,7 @@ public class Jdbc {
     @Deprecated
     @Description("deprecated - please use: apoc.load.jdbc('key or url','',[params]) YIELD row - load from relational database, from a sql statement with parameters")
     public Stream<RowResult> jdbcParams(@Name("jdbc") String urlOrKey, @Name("sql") String select, @Name("params") List<Object> params, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+        params = params != null ? params : Collections.emptyList();
         return executeQuery(urlOrKey, select, config, params.toArray(new Object[params.size()]));
     }
 
@@ -77,10 +79,10 @@ public class Jdbc {
         try {
             Connection connection = getConnection(url,loadJdbcConfig);
             // see https://jdbc.postgresql.org/documentation/91/query.html#query-with-cursors
-            connection.setAutoCommit(false);
+            connection.setAutoCommit(loadJdbcConfig.isAutoCommit());
             try {
                 PreparedStatement stmt = connection.prepareStatement(query,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-                stmt.setFetchSize(5000);
+                stmt.setFetchSize(loadJdbcConfig.getFetchSize().intValue());
                 try {
                     for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
                     ResultSet rs = stmt.executeQuery();

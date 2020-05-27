@@ -1,5 +1,6 @@
 package apoc.load.util;
 
+import apoc.util.Util;
 import org.apache.commons.lang.StringUtils;
 
 import java.time.DateTimeException;
@@ -17,6 +18,10 @@ public class LoadJdbcConfig {
 
     private Credentials credentials;
 
+    private final Long fetchSize;
+
+    private final boolean autoCommit;
+
     public LoadJdbcConfig(Map<String,Object> config) {
         config = config != null ? config : Collections.emptyMap();
         try {
@@ -26,6 +31,8 @@ public class LoadJdbcConfig {
             throw new IllegalArgumentException(String.format("The timezone field contains an error: %s", e.getMessage()));
         }
         this.credentials = config.containsKey("credentials") ? createCredentials((Map<String, String>) config.get("credentials")) : null;
+        this.fetchSize = Util.toLong(config.getOrDefault("fetchSize", 5000L));
+        this.autoCommit = Util.toBoolean(config.getOrDefault("autoCommit", false));
     }
 
     public ZoneId getZoneId(){
@@ -68,4 +75,11 @@ public class LoadJdbcConfig {
         return this.credentials != null;
     }
 
+    public Long getFetchSize() {
+        return fetchSize;
+    }
+
+    public boolean isAutoCommit() {
+        return autoCommit;
+    }
 }
