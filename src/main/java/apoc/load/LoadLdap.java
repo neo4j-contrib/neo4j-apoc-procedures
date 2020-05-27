@@ -67,7 +67,7 @@ public class LoadLdap {
         if (url.startsWith(LdapUrl.LDAP_SCHEME) || url.startsWith(LdapUrl.LDAPS_SCHEME)) {
             return executePagedSearch(url, config);
         } else {
-            LoadLdapConfig ldapConfig = LdapUtil.getFromConfigFile(url);
+            LoadLdapConfig ldapConfig = new LoadLdapConfig(config, url);
             // allow override of config file URL with one provided from the proc call
             if (config.containsKey("url")) {
                 ldapConfig.setLdapUrl((String) config.get("url"));

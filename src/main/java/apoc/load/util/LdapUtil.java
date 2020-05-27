@@ -236,14 +236,14 @@ public class LdapUtil {
         return req;
     }
 
-    public static LoadLdapConfig getFromConfigFile(String key) {
+    /*public static LoadLdapConfig getFromConfigFile(String key) {
         Map<String, Object> temp = new HashMap<>();
         temp.put("url", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "url").orElse(StringUtils.EMPTY));
         temp.put("username", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "username").orElse(StringUtils.EMPTY));
         temp.put("password", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "password").orElse(StringUtils.EMPTY));
         temp.put("pageSize", Util.getLoadUrlByConfigFile(LOAD_TYPE, key, "pageSize").orElse("100"));
         return new LoadLdapConfig(temp);
-    }
+    }*/
 
     /**
      * Use the upper and lower 16 bytes to generate the UUID that would match string representations

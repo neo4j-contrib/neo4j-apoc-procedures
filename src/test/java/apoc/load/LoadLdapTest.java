@@ -1,6 +1,7 @@
 package apoc.load;
 
 import apoc.ApocConfiguration;
+import apoc.cache.Static;
 import apoc.load.util.LdapUtil;
 import apoc.load.util.LoadLdapConfig;
 import apoc.util.TestUtil;
@@ -30,8 +31,7 @@ import java.util.Map;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.*;
 
 @RunWith(FrameworkRunner.class)
 @CreateDS(name = "testDS",
@@ -49,6 +49,8 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
     private GraphDatabaseService db;
     private int ldapServerPort = ldapServer.getPort();
 
+    private final Static apocStatics = new Static();
+
     private List<Map<String, Object>> consumeResults(Result rows) {
         List<Map<String, Object>> results = new ArrayList<>();
         while (rows.hasNext()) {
@@ -63,20 +65,20 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
         db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
         ApocConfiguration.initialize((GraphDatabaseAPI) db);
         String unsecuredUrl = String.format("ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Agent Smith))", ldapServerPort);
-        ApocConfiguration.addToConfig(map("ldap.localhost_noauth.url", unsecuredUrl));
-        ApocConfiguration.addToConfig(map("ldap.localhost_auth.url", unsecuredUrl));
-        ApocConfiguration.addToConfig(map("ldap.localhost_auth.username", "uid=admin,ou=system"));
-        ApocConfiguration.addToConfig(map("ldap.localhost_auth.password", "secret"));
+        apocStatics.set("localhost_noauth.url", unsecuredUrl);
+        apocStatics.set("localhost_auth.url", unsecuredUrl);
+        apocStatics.set("localhost_auth.username", "uid=admin,ou=system");
+        apocStatics.set("localhost_auth.password", "secret");
         TestUtil.registerProcedure(db, LoadLdap.class);
+        TestUtil.registerProcedure(db, Static.class);
     }
 
     @Test
     public void testConfigLoadingMap() throws LdapURLEncodingException {
-        HashMap<String, Object> config = new HashMap<>();
-        config.put("username", "TheArchitect");
-        config.put("password", "TheOracle");
-        config.put("url", String.format("ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Agent Smith))", ldapServerPort));
-        LoadLdapConfig ldapConfig = new LoadLdapConfig(config);
+        apocStatics.set("thematrix.url", String.format("ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Agent Smith))", ldapServerPort));
+        apocStatics.set("thematrix.username", "TheArchitect");
+        apocStatics.set("thematrix.password", "TheOracle");
+        LoadLdapConfig ldapConfig = new LoadLdapConfig(apocStatics.getAll("thematrix"));
         assertEquals(ldapConfig.getCredentials().getBindDn(), "TheArchitect");
         assertEquals(ldapConfig.getCredentials().getBindPassword(), "TheOracle");
         assertEquals(ldapConfig.getPageSize(), 100);
@@ -85,11 +87,11 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
 
     @Test
     public void testConfigLoadingMapAndURL() throws LdapURLEncodingException {
-        HashMap<String, Object> config = new HashMap<>();
-        config.put("username", "TheArchitect");
-        config.put("password", "TheOracle");
         String url = String.format("ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Agent Smith))", ldapServerPort);
-        LoadLdapConfig ldapConfig = new LoadLdapConfig(config, url);
+        apocStatics.set("thematrix.url", url);
+        apocStatics.set("thematrix.username", "TheArchitect");
+        apocStatics.set("thematrix.password", "TheOracle");
+        LoadLdapConfig ldapConfig = new LoadLdapConfig(apocStatics.getAll("thematrix"), url);
         assertEquals(ldapConfig.getCredentials().getBindDn(), "TheArchitect");
         assertEquals(ldapConfig.getCredentials().getBindPassword(), "TheOracle");
         assertEquals(ldapConfig.getPageSize(), 100);
@@ -98,7 +100,8 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
 
     @Test
     public void testLoadFromApocConfig() throws LdapURLEncodingException {
-        LoadLdapConfig config = LdapUtil.getFromConfigFile("localhost_auth");
+        //LoadLdapConfig config = LdapUtil.getFromConfigFile("localhost_auth");
+        LoadLdapConfig config = new LoadLdapConfig(apocStatics.getAll("localhost_auth"));
         assertEquals(config.getLdapUrl(), new LdapUrl(String.format("ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Agent Smith))", ldapServerPort)));
         assertEquals(config.getCredentials().getBindDn(), "uid=admin,ou=system");
         assertEquals(config.getCredentials().getBindPassword(), "secret");
@@ -106,16 +109,19 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
 
     @Test
     public void testBadPageSize() {
-        ApocConfiguration.addToConfig(map("ldap.localhost_auth.pageSize", "lah"));
-        LoadLdapConfig config = LdapUtil.getFromConfigFile("localhost_auth");
+        //ApocConfiguration.addToConfig(map("ldap.localhost_auth.pageSize", "lah"));
+        //LoadLdapConfig config = LdapUtil.getFromConfigFile("localhost_auth");
+        LoadLdapConfig config = new LoadLdapConfig(apocStatics.getAll("localhost_auth"));
         assertEquals(config.getPageSize(), 100);
 
     }
 
     @Test
     public void testValidPageSize() {
-        ApocConfiguration.addToConfig(map("ldap.localhost_auth.pageSize", "771"));
-        LoadLdapConfig config = LdapUtil.getFromConfigFile("localhost_auth");
+        //ApocConfiguration.addToConfig(map("ldap.localhost_auth.pageSize", "771"));
+        //LoadLdapConfig config = LdapUtil.getFromConfigFile("localhost_auth");
+        apocStatics.set("localhost_auth.pageSize", "771");
+        LoadLdapConfig config = new LoadLdapConfig(apocStatics.getAll("localhost_auth"));
         assertEquals(config.getPageSize(), 771);
 
     }
@@ -148,7 +154,9 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
         Map<String, Object> agentSmith = new HashMap<>();
         agentSmith.put("dn", "cn=Agent Smith,ou=Users,dc=neo4j,dc=test");
         agentSmith.put("cn", "Agent Smith");
-        testCall(db, "CALL apoc.load.ldapurl('localhost_noauth')", (row) -> assertEquals(row, map("entry", agentSmith)));
+        String url = String.format("ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Agent Smith))", ldapServerPort);
+        testCall(db, String.format("CALL apoc.static.set('localhost_auth.url', '%s')", url), r -> assertEquals(url, r.get("value")));
+        testCall(db, "CALL apoc.load.ldapurl('', apoc.static.getAll('localhost_auth'))", (row) -> assertEquals(row, map("entry", agentSmith)));
     }
 
     @Test
@@ -156,7 +164,9 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
         Map<String, Object> agentSmith = new HashMap<>();
         agentSmith.put("dn", "cn=Agent Smith,ou=Users,dc=neo4j,dc=test");
         agentSmith.put("cn", "Agent Smith");
-        testCall(db, "CALL apoc.load.ldapurl('localhost_auth')", (row) -> assertEquals(row, map("entry", agentSmith)));
+        String url = String.format("ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Agent Smith))", ldapServerPort);
+        testCall(db, String.format("CALL apoc.static.set('localhost_auth.url', '%s')", url), r -> assertEquals(url, r.get("value")));
+        testCall(db, "CALL apoc.load.ldapurl('', apoc.static.getAll('localhost_auth'))", (row) -> assertEquals(row, map("entry", agentSmith)));
     }
 
     @Test
@@ -169,15 +179,17 @@ public class LoadLdapTest extends AbstractLdapTestUnit {
                 (row) -> assertEquals(row, map("entry", agentSmith)));
     }
 
+    /*
+    TODO: Rip out the aliases and rely solely on a map being present all the time. Rely on the apoc.static methods for overrides
     @Test
     public void testLoadCredsFromFileUrlFromCall() {
         Map<String, Object> neo = new HashMap<>();
         neo.put("dn", "cn=Neo,ou=Users,dc=neo4j,dc=test");
         neo.put("cn", "Neo");
         testCall(db,
-                String.format("CALL apoc.load.ldapurl('localhost_noauth', {url: 'ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Neo))'})", ldapServerPort),
+                String.format("CALL apoc.load.ldapurl(apoc.static.getAll('localhost_auth'), {url: 'ldap://localhost:%d/dc=neo4j,dc=test?cn?sub?(&(objectClass=person)(cn=Neo))'})", ldapServerPort),
                 (row) -> assertEquals(row, map("entry", neo)));
-    }
+    }*/
 
     @Test
     public void testInlineConfigAnonymous() {
