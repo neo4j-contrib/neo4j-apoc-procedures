@@ -108,7 +108,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
         this.jobScheduler = jobScheduler;
         this.systemDb = apocConfig.getSystemDb();
         this.globalProceduresRegistry = globalProceduresRegistry;
-        transactionComponentFunction = ((GlobalProceduresRegistry)globalProceduresRegistry).lookupComponentProvider(Transaction.class, true);
+        transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
 
     }
 

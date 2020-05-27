@@ -104,8 +104,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
                 services.put("trigger", new TriggerHandler(db,
                         dependencies.databaseManagementService(),
                         dependencies.apocConfig(),
-                        log.getUserLog(Trigger.class),
-                        dependencies.globalProceduresRegistry())
+                        log.getUserLog(Trigger.class))
                 );
 
                 RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = dependencies.registerComponentLifecycle();
