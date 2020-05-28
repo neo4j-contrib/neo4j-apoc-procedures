@@ -56,7 +56,7 @@ public class Jdbc {
         }
     }
 
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.READ)
     @Description("apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement")
     public Stream<RowResult> jdbc(@Name("jdbc") String urlOrKey, @Name("tableOrSql") String tableOrSelect, @Name
             (value = "params", defaultValue = "[]") List<Object> params, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
