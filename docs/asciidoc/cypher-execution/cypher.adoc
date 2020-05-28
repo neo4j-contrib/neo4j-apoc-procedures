@@ -7,7 +7,12 @@
 This section describes procedures for running Cypher fragments.
 --
 
-We can use Cypher as safe, graph-aware, partially compiled scripting language within APOC.
+We can use Cypher as a safe, graph-aware, partially compiled scripting language within APOC.
+
+This section includes:
+
+* <<running-cypher-overview>>
+* <<cypher-fast-node-count-by-label>>
 
 // include::overview.adoc[tags=cypher,labeloffset=-1]
 
@@ -30,28 +35,20 @@ include::../../../build/generated-documentation/apoc.cypher.runFirstColumnMany.c
 include::../../../build/generated-documentation/apoc.cypher.runFirstColumnSingle.csv[lines=2:]
 |===
 
-This section includes:
 
-* <<cypher-fast-node-count-by-label>>
 
 [[cypher-fast-node-count-by-label]]
 == Example: Fast Node-Counts by Label
 
-Counts by label are quickly provided by the counts-store, but only if they are the the single thing in the query, like
+We can quickly compute the number of nodes for a specific label using the `count` function, but only if that's the only single thing in the query.
+For example:
 
 [source,cypher]
 ----
 MATCH (:Person) RETURN count(*);
 ----
 
-It also works to combine several with `UNION ALL`, but not via `WITH`
-
-.Doesn't work
-[source,cypher]
-----
-MATCH (:Person) WITH count(*) as people
-MATCH (:Movie) RETURN people, count(*) as movies;
-----
+We can also combine several with `UNION ALL`:
 
 .Works
 [source,cypher]
@@ -61,13 +58,24 @@ UNION ALL
 MATCH (:Movie) RETURN count(*);
 ----
 
+But we can't do the same thing using the `WITH` clause:
 
-But with `apoc.cypher.run` we can construct the statement and run each of them individually, so it completes in a few ms.
+.Doesn't work
+[source,cypher]
+----
+MATCH (:Person)
+WITH count(*) as people
+MATCH (:Movie) RETURN people, count(*) as movies;
+----
+
+This query will work out the count by iterating over all nodes, which is a very slow operation
+
+We can use `apoc.cypher.run` to construct the `COUNT()` statements and run each of them individually, so it completes in a few ms.
 
 [source,cypher]
 ----
-call db.labels() yield label
-call apoc.cypher.run("match (:`"+label+"`) return count(*) as count", null) yield value
+CALL db.labels() yield label
+CALL apoc.cypher.run("match (:`"+label+"`) return count(*) as count", null) yield value
 return label, value.count as count
 ----
 
@@ -76,7 +84,7 @@ You can use a similar approach to get the property-keys per label:
 [source,cypher]
 ----
 CALL db.labels() yield label
-call apoc.cypher.run("MATCH (n:`"+label+"`) RETURN keys(n) as keys LIMIT 1",null) yield value
+CALL apoc.cypher.run("MATCH (n:`"+label+"`) RETURN keys(n) as keys LIMIT 1",null) yield value
 RETURN label, value.keys as keys
 ----
 

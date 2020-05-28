@@ -1,5 +1,5 @@
 [[cypher-timeboxed]]
-= Timeboxing Cypher statements
+= Timeboxed Cypher statements
 
 [abstract]
 --
@@ -10,9 +10,14 @@ There's a way to terminate a cypher statement if it takes longer than a given th
 
 [source,cypher]
 ----
-call apoc.cypher.runTimeboxed("match (n),(m) match p=shortestPath((n)-[*]-(m)) return p", null, 10000)
-yield value
-return value.p
+CALL apoc.cypher.runTimeboxed(
+  "match (n),(m) match p=shortestPath((n)-[*]-(m)) return p",
+  null,
+  10000
+)
+YIELD value
+RETURN value.p
 ----
 
-This will return all results being returned within 10000 milliseconds. The expensive statement will be terminated after that period.
+This will return all results computed within 10000 milliseconds.
+The statement will be terminated after that period.
