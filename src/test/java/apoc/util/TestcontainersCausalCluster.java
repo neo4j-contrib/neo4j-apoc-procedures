@@ -30,7 +30,7 @@ import static java.util.stream.Collectors.toList;
  */
 
 public class TestcontainersCausalCluster {
-    private static int MINUTES_TO_WAIT = 20;
+    private static int MINUTES_TO_WAIT = 5;
     private static final int DEFAULT_BOLT_PORT = 7687;
 
     public enum ClusterInstanceType {
@@ -117,7 +117,6 @@ public class TestcontainersCausalCluster {
                 .withCreateContainerCmdModifier(cmd -> cmd.withHostName(name))
                 .withoutDriver()
                 .withNeo4jConfig("dbms.mode", instanceType.toString())
-                .withNeo4jConfig("dbms.logs.debug.level", "DEBUG")
                 .withNeo4jConfig("dbms.default_listen_address", "0.0.0.0")
                 .withNeo4jConfig("causal_clustering.initial_discovery_members", initialDiscoveryMembers)
                 .withStartupTimeout(Duration.ofMinutes(MINUTES_TO_WAIT));
