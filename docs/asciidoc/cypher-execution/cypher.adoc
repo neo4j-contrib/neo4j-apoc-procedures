@@ -25,7 +25,6 @@ The supported procedures are described in the table below:
 |===
 include::../../../build/generated-documentation/apoc.cypher.doIt.csv[]
 include::../../../build/generated-documentation/apoc.cypher.run.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.cypher.runMany.csv[lines=2:]
 include::../../../build/generated-documentation/apoc.cypher.parallel.csv[lines=2:]
 include::../../../build/generated-documentation/apoc.cypher.parallel2.csv[lines=2:]
 include::../../../build/generated-documentation/apoc.cypher.mapParallel.csv[lines=2:]
