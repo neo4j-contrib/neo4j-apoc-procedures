@@ -26,17 +26,19 @@ This chapter describes Cypher Execution procedures in the APOC library.
 This section includes:
 
 * <<running-cypher>>
+* <<cypher-multiple-statements>>
 * <<conditionals>>
 * <<cypher-timeboxed>>
-* <<cypher-multiple-statements>>
+* <<parallel-cypher-execution>>
 * <<run-cypher-scripts>>
 * <<cypher-based-procedures-functions>>
 
 // TODO runFile: begin/commit/schema await/constraints/indexes
 
 include::cypher-execution/cypher.adoc[leveloffset=2]
+include::cypher-execution/multi-statements.adoc[leveloffset=2]
 include::cypher-execution/conditional.adoc[leveloffset=2]
 include::cypher-execution/timebox.adoc[leveloffset=2]
-include::cypher-execution/multi-statements.adoc[leveloffset=2]
+include::cypher-execution/parallel-cypher.adoc[leveloffset=2]
 include::cypher-execution/cypher-scripts.adoc[leveloffset=2]
 include::cypher-execution/custom.adoc[leveloffset=+1]

@@ -75,6 +75,13 @@ public class Cypher {
     @Context
     public Pools pools;
 
+    @Procedure(mode = WRITE)
+    @Description("apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with the given parameters")
+    public Stream<MapResult> doIt(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
+        if (params == null) params = Collections.emptyMap();
+        return tx.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
+    }
+
     @Procedure
     @Description("apoc.cypher.run(fragment, params) yield value - executes reading fragment with the given parameters")
     public Stream<MapResult> run(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
@@ -416,13 +423,6 @@ public class Cypher {
                     return db.executeTransactionally(statement, parallelParams(params, key, partition), result -> Iterators.asList(result));
                 }
         );
-    }
-
-    @Procedure(mode = WRITE)
-    @Description("apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with the given parameters")
-    public Stream<MapResult> doIt(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
-        if (params == null) params = Collections.emptyMap();
-        return tx.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
     }
 
     @Procedure("apoc.when")

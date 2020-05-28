@@ -13,8 +13,19 @@ This section includes:
 
 * <<running-cypher-overview>>
 * <<cypher-fast-node-count-by-label>>
+* <<cypher-apoc-cypher-doIt>>
+* <<cypher-apoc-runColumn>>
 
-// include::overview.adoc[tags=cypher,labeloffset=-1]
+[NOTE]
+====
+The procedures in this section are for single threaded execution of Cypher statements.
+There are also sections describing other ways of executing Cypher statements:
+
+* <<cypher-multiple-statements>>
+* <<cypher-timeboxed>>
+* <<parallel-cypher-execution>>
+* <<run-cypher-scripts>>
+====
 
 [[running-cypher-overview]]
 == Procedure Overview
@@ -25,69 +36,158 @@ The supported procedures are described in the table below:
 |===
 include::../../../build/generated-documentation/apoc.cypher.doIt.csv[]
 include::../../../build/generated-documentation/apoc.cypher.run.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.cypher.runMany.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.cypher.parallel.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.cypher.parallel2.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.cypher.mapParallel.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.cypher.mapParallel2.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.cypher.runFirstColumn.csv[lines=2:]
 include::../../../build/generated-documentation/apoc.cypher.runFirstColumnMany.csv[lines=2:]
 include::../../../build/generated-documentation/apoc.cypher.runFirstColumnSingle.csv[lines=2:]
 |===
 
-
-
 [[cypher-fast-node-count-by-label]]
-== Example: Fast Node-Counts by Label
+== Executing read-only statements
 
-We can quickly compute the number of nodes for a specific label using the `count` function, but only if that's the only single thing in the query.
-For example:
+We can use the `count` function to quickly return a count of the number of nodes for a specific label.
 
+.The following returns the number of nodes with the `Person` label
 [source,cypher]
 ----
 MATCH (:Person) RETURN count(*);
 ----
 
-We can also combine several with `UNION ALL`:
+What if we want to get a count of all the labels in our database?
+We can get a stream of all the labels using `db.labels()`, but to compute a count of nodes we'd need to iterate over all nodes and check if it has that label.
 
-.Works
-[source,cypher]
-----
-MATCH (:Person) RETURN count(*)
-UNION ALL
-MATCH (:Movie) RETURN count(*);
-----
-
-But we can't do the same thing using the `WITH` clause:
-
-.Doesn't work
-[source,cypher]
-----
-MATCH (:Person)
-WITH count(*) as people
-MATCH (:Movie) RETURN people, count(*) as movies;
-----
-
-This query will work out the count by iterating over all nodes, which is a very slow operation
-
-We can use `apoc.cypher.run` to construct the `COUNT()` statements and run each of them individually, so it completes in a few ms.
-
+.The following returns the node count for all labels
 [source,cypher]
 ----
 CALL db.labels() yield label
-CALL apoc.cypher.run("match (:`"+label+"`) return count(*) as count", null) yield value
-return label, value.count as count
+MATCH (n)
+WHERE label in labels(n)
+return label, count(*);
 ----
 
-You can use a similar approach to get the property-keys per label:
+This query works, but if we prefix it with the `PROFILE` clause, we'll see output similar to the following:
 
+.Profile overview
+[options="header"]
+|===
+| Plan      | Statement   | Version      | Planner | Runtime     | Time | DbHits | Rows
+| "PROFILE" | "READ_ONLY" | "CYPHER 4.0" | "COST"  | "PIPELINED" | 108  | 686    | 2
+|===
+
+.Query plan
+[options="header"]
+|===
+| Operator          | Estimated Rows | Rows | DB Hits | Time (ms) | Identifiers     | Other
+| +ProduceResults   |           1132 |    2 |       0 |     0.024 | count(*), label | 24433
+| +EagerAggregation |           1132 |    2 |       0 |     0.027 | count(*), label | label; 26840
+| +Filter           |        1282500 |  171 |     342 |           | label, n        | label IN labels(n)
+| +Apply            |        1282500 |  342 |       0 |           | label, n        |
+| \| +AllNodesScan   |        1710000 |  342 |     344 |           | label, n        |
+| +ProcedureCall    |          10000 |    2 |         |     1.118 | label           | 1117943; db.labels() :: (label :: String)
+|===
+
+The presence of the `AllNodesScan` operator indicates that every node in the database was scanned to compute the count.
+Instead of doing this, we can use `apoc.cypher.run` to construct statements with the label defined inside the node and then run each of them individually, so it completes in a few ms.
+
+.The following returns the node count for all labels
 [source,cypher]
 ----
-CALL db.labels() yield label
-CALL apoc.cypher.run("MATCH (n:`"+label+"`) RETURN keys(n) as keys LIMIT 1",null) yield value
-RETURN label, value.keys as keys
+CALL db.labels()
+YIELD label
+CALL apoc.cypher.run(
+  "match (:`"+label+"`) return count(*) as count",
+  {}
+)
+YIELD value
+RETURN label, value.count as count
 ----
 
+We can also use this approach to compute counts of relationship types:
 
+.The following returns the relationship count for all relationship types
+[source,cypher]
+----
+CALL db.relationshipTypes()
+YIELD relationshipType
+CALL apoc.cypher.run(
+  "MATCH ()-[`"+relationshipType+"`]->() RETURN count(*) AS count",
+  {}
+)
+YIELD value
+RETURN relationshipType, value.count as count
+----
 
+[[cypher-apoc-cypher-doIt]]
+== Executing write statements
 
+The `apoc.cypher.run` procedure is _read only_.
+This means that an error will occur if a query executed by `apoc.cypher.run` creates nodes/relationships or sets properties.
+
+To execute write queries use the procedure `apoc.cypher.doIt`.
+
+Usage of `apoc.cypher.doIt` is identical to `apoc.cypher.run`, except it is allowed to perform writes.
+
+.The following creates a node with the `Node` label and sets the `prop` property
+[source,cypher]
+----
+CALL apoc.cypher.doIt(
+  "CREATE (n:Node) SET n.prop = 1 RETURN n",
+    {}
+)
+YIELD value
+RETURN value;
+----
+
+.Results
+[options="header"]
+|===
+| value
+| {n: (:Node {prop: 1})}
+|===
+
+This procedure is often used inside complex data import scripts.
+
+[[cypher-apoc-runColumn]]
+== Returning a single column
+
+The `apoc.cypher.apoc.cypher.runFirstColumnSingle` and `apoc.cypher.runFirstColumnMany` functions return the first column from the results of a Cypher query.
+These procedures are extensively used in the https://github.com/neo4j-graphql/neo4j-graphql-js[neo4j-graphql-js^] library.
+
+The examples in this section use the graph created by the `:play movies` Neo4j Browser guide.
+
+.The following returns the node count for all labels
+[source,cypher]
+----
+CALL db.labels()
+YIELD label
+WITH label, "MATCH (:`"+label+"`) RETURN count(*)" AS query
+RETURN label, apoc.cypher.runFirstColumnSingle(query, {}) AS count;
+----
+
+.Results
+[options="header"]
+|===
+| label    | count
+| "Person" | 133
+| "Movie"  | 38
+
+|===
+
+.The following returns the unique sets of property keys used on nodes grouped by label
+[source,cypher]
+----
+CALL db.labels()
+YIELD label
+RETURN label, apoc.cypher.runFirstColumnMany(
+  "MATCH (n:`"+label+"`)
+   WITH DISTINCT keys(n) AS keys
+   RETURN DISTINCT apoc.coll.sort(keys)",
+  {}
+) AS count
+----
+
+.Results
+[options="header"]
+|===
+| label    | count
+| "Person" | [["born", "name"], ["name"]]
+| "Movie"  | [["released", "tagline", "title"], ["released", "title"]]
+|===
