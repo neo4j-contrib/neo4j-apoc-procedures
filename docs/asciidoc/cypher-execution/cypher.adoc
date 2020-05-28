@@ -11,20 +11,28 @@ We can use Cypher as safe, graph-aware, partially compiled scripting language wi
 
 // include::overview.adoc[tags=cypher,labeloffset=-1]
 
+[[running-cypher-overview]]
+== Procedure Overview
+
 The supported procedures are described in the table below:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::../../../build/generated-documentation/apoc.cypher.csv[]
+include::../../../build/generated-documentation/apoc.cypher.doIt.csv[]
+include::../../../build/generated-documentation/apoc.cypher.run.csv[lines=2:]
+include::../../../build/generated-documentation/apoc.cypher.runMany.csv[lines=2:]
+include::../../../build/generated-documentation/apoc.cypher.parallel.csv[lines=2:]
+include::../../../build/generated-documentation/apoc.cypher.parallel2.csv[lines=2:]
+include::../../../build/generated-documentation/apoc.cypher.mapParallel.csv[lines=2:]
+include::../../../build/generated-documentation/apoc.cypher.mapParallel2.csv[lines=2:]
+include::../../../build/generated-documentation/apoc.cypher.runFirstColumn.csv[lines=2:]
+include::../../../build/generated-documentation/apoc.cypher.runFirstColumnMany.csv[lines=2:]
+include::../../../build/generated-documentation/apoc.cypher.runFirstColumnSingle.csv[lines=2:]
 |===
 
 This section includes:
 
 * <<cypher-fast-node-count-by-label>>
-* <<cypher-timeboxed>>
-* <<cypher-multiple-statements>>
-* <<run-cypher-scripts>>
-* <<conditionals>>
 
 [[cypher-fast-node-count-by-label]]
 == Example: Fast Node-Counts by Label
