@@ -1,0 +1,9 @@
+[[cypher-multiple-statements]]
+= Run multiple Statements
+
+This procedure runs each semicolon separated statement and returns summary - currently no schema operations.
+
+[source,cypher]
+----
+CALL apoc.cypher.runMany('cypher;\nstatements;',{params},[{statistics:true,timeout:10}])
+----

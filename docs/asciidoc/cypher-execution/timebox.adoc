@@ -1,0 +1,18 @@
+[[cypher-timeboxed]]
+= Timeboxing Cypher statements
+
+[abstract]
+--
+This chapter describes a procedure in the APOC library that can be used to timebox Cypher statements.
+--
+
+There's a way to terminate a cypher statement if it takes longer than a given threshold. Consider an expensive statement calculating cross product of shortestpaths for each pair of nodes:
+
+[source,cypher]
+----
+call apoc.cypher.runTimeboxed("match (n),(m) match p=shortestPath((n)-[*]-(m)) return p", null, 10000)
+yield value
+return value.p
+----
+
+This will return all results being returned within 10000 milliseconds. The expensive statement will be terminated after that period.
