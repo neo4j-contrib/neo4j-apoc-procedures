@@ -172,8 +172,6 @@
       </d:tocentry>
       <d:tocentry linkend="cypher-multiple-statements"><?dbhtml filename="cypher-execution/cypher-multiple-statements/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="cypher-fast-node-count-by-label"><?dbhtml filename="cypher-execution/cypher-fast-node-count-by-label/index.html"?>
-      </d:tocentry>
   </d:tocentry>
 
     <d:tocentry linkend="job-management"><?dbhtml filename="background-operations/index.html"?>

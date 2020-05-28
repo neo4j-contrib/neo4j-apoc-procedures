@@ -6,28 +6,37 @@
 This chapter describes Cypher Execution procedures in the APOC library.
 --
 
-[cols="1m,5"]
-|===
-| CALL apoc.cypher.run(fragment, params) yield value | executes reading fragment with the given parameters
-| apoc.cypher.runFirstColumnSingle(statement, params) | function that executes statement with given parameters returning first column only, will return first/single row or null
-| apoc.cypher.runFirstColumnMany(statement, params) | function that executes statement with given parameters returning first column only, will collect all rows into a list
-| CALL apoc.cypher.runFile(file or url,{config}) yield row, result | runs each statement in the file, all semicolon separated - currently no schema operations
-| CALL apoc.cypher.runFiles([files or urls],{config}) yield row, result | runs each statement in the files, all semicolon separated
-| CALL apoc.cypher.runSchemaFile(file or url,{config}) - allows only schema operations, runs each schema statement in the file, all semicolon separated
-| CALL apoc.cypher.runSchemaFiles([files or urls],{config}) - allows only schema operations, runs each schema statement in the files, all semicolon separated
-| CALL apoc.cypher.runMany('cypher;\nstatements;',{params},{config}) | runs each semicolon separated statement and returns summary - currently no schema operations
-| CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value | executes fragment in parallel batches with the list segments being assigned to _
-| CALL apoc.cypher.doIt(fragment, params) yield value | executes writing fragment with the given parameters
-| CALL apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) | abort statement after timeout millis if not finished
-|===
+//[cols="1m,5"]
+//|===
+//| CALL apoc.cypher.run(fragment, params) yield value | executes reading fragment with the given parameters
+//| apoc.cypher.runFirstColumnSingle(statement, params) | function that executes statement with given parameters returning first column only, will return first/single row or null
+//| apoc.cypher.runFirstColumnMany(statement, params) | function that executes statement with given parameters returning first column only, will collect all rows into a list
+//| CALL apoc.cypher.runFile(file or url,{config}) yield row, result | runs each statement in the file, all semicolon separated - currently no schema operations
+//| CALL apoc.cypher.runFiles([files or urls],{config}) yield row, result | runs each statement in the files, all semicolon separated
+//| CALL apoc.cypher.runSchemaFile(file or url,{config}) - allows only schema operations, runs each schema statement in the file, all semicolon separated
+//| CALL apoc.cypher.runSchemaFiles([files or urls],{config}) - allows only schema operations, runs each schema statement in the files, all semicolon separated
+//| CALL apoc.cypher.runMany('cypher;\nstatements;',{params},{config}) | runs each semicolon separated statement and returns summary - currently no schema operations
+//| CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value | executes fragment in parallel batches with the list segments being assigned to _
+//| CALL apoc.cypher.doIt(fragment, params) yield value | executes writing fragment with the given parameters
+//| CALL apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) | abort statement after timeout millis if not finished
+//|===
 
-For more information on how to use these procedures, see:
+
+
+This section includes:
 
 * <<running-cypher>>
+* <<conditionals>>
+* <<cypher-timeboxed>>
+* <<cypher-multiple-statements>>
+* <<run-cypher-scripts>>
 * <<cypher-based-procedures-functions>>
 
 // TODO runFile: begin/commit/schema await/constraints/indexes
 
 include::cypher-execution/cypher.adoc[leveloffset=2]
-
+include::cypher-execution/conditional.adoc[leveloffset=2]
+include::cypher-execution/timebox.adoc[leveloffset=2]
+include::cypher-execution/multi-statements.adoc[leveloffset=2]
+include::cypher-execution/cypher-scripts.adoc[leveloffset=2]
 include::cypher-execution/custom.adoc[leveloffset=+1]
