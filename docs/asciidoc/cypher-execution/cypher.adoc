@@ -25,62 +25,81 @@ The supported procedures are described in the table below:
 |===
 include::../../../build/generated-documentation/apoc.cypher.doIt.csv[]
 include::../../../build/generated-documentation/apoc.cypher.run.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.cypher.runFirstColumn.csv[lines=2:]
 include::../../../build/generated-documentation/apoc.cypher.runFirstColumnMany.csv[lines=2:]
 include::../../../build/generated-documentation/apoc.cypher.runFirstColumnSingle.csv[lines=2:]
 |===
 
-
-
 [[cypher-fast-node-count-by-label]]
-== Example: Fast Node-Counts by Label
+== Fast Node-Counts by Label
 
-We can quickly compute the number of nodes for a specific label using the `count` function, but only if that's the only single thing in the query.
-For example:
+We can use the `count` function to quickly return a count of the number of nodes for a specific label.
 
+.The following returns the number of nodes with the `Person` label
 [source,cypher]
 ----
 MATCH (:Person) RETURN count(*);
 ----
 
-We can also combine several with `UNION ALL`:
+What if we want to get a count of all the labels in our database?
+We can get a stream of all the labels using `db.labels()`, but to compute a count of nodes we'd need to iterate over all nodes and check if it has that label.
 
-.Works
-[source,cypher]
-----
-MATCH (:Person) RETURN count(*)
-UNION ALL
-MATCH (:Movie) RETURN count(*);
-----
-
-But we can't do the same thing using the `WITH` clause:
-
-.Doesn't work
-[source,cypher]
-----
-MATCH (:Person)
-WITH count(*) as people
-MATCH (:Movie) RETURN people, count(*) as movies;
-----
-
-This query will work out the count by iterating over all nodes, which is a very slow operation
-
-We can use `apoc.cypher.run` to construct the `COUNT()` statements and run each of them individually, so it completes in a few ms.
-
+.The following returns the number of nodes for all labels
 [source,cypher]
 ----
 CALL db.labels() yield label
-CALL apoc.cypher.run("match (:`"+label+"`) return count(*) as count", null) yield value
-return label, value.count as count
+MATCH (n)
+WHERE label in labels(n)
+return label, count(*);
 ----
 
-You can use a similar approach to get the property-keys per label:
+This query works, but if we prefix it with the `PROFILE` clause, we'll see output similar to the following:
+
+.Profile overview
+[options="header"]
+|===
+| Plan      | Statement   | Version      | Planner | Runtime     | Time | DbHits | Rows
+| "PROFILE" | "READ_ONLY" | "CYPHER 4.0" | "COST"  | "PIPELINED" | 108  | 686    | 2
+|===
+
+.Query plan
+[options="header"]
+|===
+| Operator          | Estimated Rows | Rows | DB Hits | Time (ms) | Identifiers     | Other
+| +ProduceResults   |           1132 |    2 |       0 |     0.024 | count(*), label | 24433
+| +EagerAggregation |           1132 |    2 |       0 |     0.027 | count(*), label | label; 26840
+| +Filter           |        1282500 |  171 |     342 |           | label, n        | label IN labels(n)
+| +Apply            |        1282500 |  342 |       0 |           | label, n        |
+| \| +AllNodesScan   |        1710000 |  342 |     344 |           | label, n        |
+| +ProcedureCall    |          10000 |    2 |         |     1.118 | label           | 1117943; db.labels() :: (label :: String)
+|===
+
+The presence of the `AllNodesScan` operator indicates that every node in the database was scanned to compute the count.
+Instead of doing this, we can use `apoc.cypher.run` to construct statements with the label defined inside the node and then run each of them individually, so it completes in a few ms.
 
 [source,cypher]
 ----
-CALL db.labels() yield label
-CALL apoc.cypher.run("MATCH (n:`"+label+"`) RETURN keys(n) as keys LIMIT 1",null) yield value
-RETURN label, value.keys as keys
+CALL db.labels()
+YIELD label
+CALL apoc.cypher.run(
+  "match (:`"+label+"`) return count(*) as count",
+  {}
+)
+YIELD value
+RETURN label, value.count as count
+----
+
+We can also use this approach to compute counts of relationship types:
+
+[source,cypher]
+----
+CALL db.relationshipTypes()
+YIELD relationshipType
+CALL apoc.cypher.run(
+  "MATCH ()-[`"+relationshipType+"`]->() RETURN count(*) AS count",
+  {}
+)
+YIELD value
+RETURN relationshipType, value.count as count
 ----
 
 
