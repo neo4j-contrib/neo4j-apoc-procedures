@@ -172,6 +172,11 @@
       </d:tocentry>
       <d:tocentry linkend="cypher-multiple-statements"><?dbhtml filename="cypher-execution/cypher-multiple-statements/index.html"?>
       </d:tocentry>
+      <d:tocentry linkend="parallel-cypher-execution"><?dbhtml filename="cypher-execution/parallel/index.html"?>
+      </d:tocentry>
+
+
+
   </d:tocentry>
 
     <d:tocentry linkend="job-management"><?dbhtml filename="background-operations/index.html"?>
