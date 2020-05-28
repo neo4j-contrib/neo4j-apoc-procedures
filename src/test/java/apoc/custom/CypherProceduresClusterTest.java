@@ -9,7 +9,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.v1.exceptions.DatabaseException;
+import org.neo4j.helpers.collection.MapUtil;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -31,9 +33,8 @@ public class CypherProceduresClusterTest {
     @BeforeClass
     public static void setupCluster() {
         assumeFalse(isTravis());
-        executeGradleTasks("clean", "shadow");
         TestUtil.ignoreException(() ->  cluster = TestContainerUtil
-                .createEnterpriseCluster(3, 1, Util.map("apoc.custom.procedures.refresh", 100)),
+                        .createEnterpriseCluster(3, 1, Collections.emptyMap(), MapUtil.stringMap("apoc.custom.procedures.refresh", "100")),
                 Exception.class);
         assumeNotNull(cluster);
     }
