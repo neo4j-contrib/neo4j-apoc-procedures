@@ -25,6 +25,11 @@ generateGrammarSource {
     arguments += ["-package", "apoc.custom"]
 }
 
+javadoc {
+    failOnError = false
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
 dependencies {
     compile project(":core")
     testCompile project(':test-utils')
@@ -88,11 +93,6 @@ dependencies {
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
 
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.5', withoutServers
-    testCompile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.5', withoutServers
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.7.5', withoutServers
-    testCompile group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.7.5', withoutServers
-    testCompile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '2.7.5', withoutServers
 
     compileOnly 'org.mongodb:mongodb-driver:3.2.2'
     testCompile 'org.mongodb:mongodb-driver:3.2.2'
