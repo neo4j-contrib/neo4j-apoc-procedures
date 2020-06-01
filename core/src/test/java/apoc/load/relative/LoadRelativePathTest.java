@@ -24,10 +24,7 @@ public class LoadRelativePathTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_import_file_enabled, true)
-            .withSetting(GraphDatabaseSettings.allow_file_urls, true)
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, Path.of(RESOURCE.toURI()).getParent());
-
-    public static final URL RESOURCE = LoadRelativePathTest.class.getClassLoader().getResource("test.csv");
+            .withSetting(GraphDatabaseSettings.allow_file_urls, true);
 
     public LoadRelativePathTest() throws URISyntaxException {
     }
