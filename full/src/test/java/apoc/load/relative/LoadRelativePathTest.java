@@ -45,7 +45,7 @@ public class LoadRelativePathTest {
     }
 
     @Before public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class, Xml.class);
+        TestUtil.registerProcedure(db, LoadCsv.class, Xml.class);
     }
 
     //CSV
@@ -73,20 +73,13 @@ public class LoadRelativePathTest {
         assertEquals(lineNo, row.get("lineNo"));
     }
 
-    //JSON
-    @Test public void testLoadRelativePathJson() {
-        String url = "file:/map.json";
-        testCall(db, "CALL apoc.load.json($url)",map("url",url), // 'file:map.json' YIELD value RETURN value
-                (row) -> assertEquals(map("foo",asList(1L,2L,3L)), row.get("value")));
-    }
-
     //XML
     @Test
     public void testLoadRelativePathXml() {
         testCall(db, "CALL apoc.load.xml('file:///xml/databases.xml')", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
-                    Assert.assertEquals(LoadXmlResult.StringXmlNestedMap(), value);
+                    assertEquals(StringXmlNestedMap(), value);
                 });
     }
 
@@ -95,7 +88,7 @@ public class LoadRelativePathTest {
         testCall(db, "CALL apoc.load.xmlSimple('/xml/databases.xml')", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
-                    Assert.assertEquals(LoadXmlResult.StringXmlNestedSimpleMap(), value);
+                    assertEquals(StringXmlNestedSimpleMap(), value);
                 });
     }
 
