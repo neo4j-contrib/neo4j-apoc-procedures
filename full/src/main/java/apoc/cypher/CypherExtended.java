@@ -11,29 +11,20 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Mode;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
-import org.neo4j.procedure.TerminationGuard;
+import org.neo4j.procedure.*;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -42,6 +33,7 @@ import static apoc.util.Util.param;
 import static apoc.util.Util.quote;
 import static java.lang.String.format;
 import static java.lang.String.join;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.neo4j.procedure.Mode.WRITE;
 
@@ -49,7 +41,7 @@ import static org.neo4j.procedure.Mode.WRITE;
  * @author mh
  * @since 08.05.16
  */
-public class Cypher {
+public class CypherExtended {
 
     public static final String COMPILED_PREFIX = "CYPHER runtime="+ Util.COMPILED;
     public static final int PARTITIONS = 100 * Runtime.getRuntime().availableProcessors();
@@ -70,17 +62,47 @@ public class Cypher {
     @Context
     public Pools pools;
 
-    @Procedure
-    @Description("apoc.cypher.run(fragment, params) yield value - executes reading fragment with the given parameters")
-    public Stream<MapResult> run(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
-        return runCypherQuery(tx, statement, params);
+    @Procedure(mode = WRITE)
+    @Description("apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations")
+    public Stream<RowResult> runFile(@Name("file") String fileName, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        return runFiles(singletonList(fileName),config);
     }
 
-    public static Stream<MapResult> runCypherQuery(Transaction tx, @Name("cypher") String statement, @Name("params") Map<String, Object> params) {
-        if (params == null) params = Collections.emptyMap();
-        return tx.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
+    @Procedure(mode = WRITE)
+    @Description("apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each statement in the files, all semicolon separated")
+    public Stream<RowResult> runFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
+        int timeout = Util.toInteger(config.getOrDefault("timeout",10));
+        int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
+        List<RowResult> result = new ArrayList<>();
+        @SuppressWarnings( "unchecked" )
+        Map<String,Object> parameters = (Map<String,Object>)config.getOrDefault("parameters",Collections.emptyMap());
+        for (String f : fileNames) {
+            List<RowResult> rowResults = runManyStatements(readerForFile(f), parameters, false, addStatistics, timeout, queueCapacity).collect(Collectors.toList());
+            result.addAll(rowResults);
+        }
+        return result.stream();
     }
 
+    @Procedure(mode=Mode.SCHEMA)
+    @Description("apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated")
+    public Stream<RowResult> runSchemaFile(@Name("file") String fileName, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        return runSchemaFiles(singletonList(fileName),config);
+    }
+
+    @Procedure(mode=Mode.SCHEMA)
+    @Description("apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema statement in the files, all semicolon separated")
+    public Stream<RowResult> runSchemaFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
+        int timeout = Util.toInteger(config.getOrDefault("timeout",10));
+        int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
+        List<RowResult> result = new ArrayList<>();
+        for (String f : fileNames) {
+            List<RowResult> rowResults = runManyStatements(readerForFile(f), Collections.emptyMap(), true, addStatistics, timeout, queueCapacity).collect(Collectors.toList());
+            result.addAll(rowResults);
+        }
+        return result.stream();
+    }
 
     private Stream<RowResult> runManyStatements(Reader reader, Map<String, Object> params, boolean schemaOperation, boolean addStatistics, int timeout, int queueCapacity) {
         BlockingQueue<RowResult> queue = runInSeparateThreadAndSendTombstone(queueCapacity, internalQueue -> {
@@ -249,7 +271,7 @@ public class Cypher {
 
     @Procedure
     public Stream<MapResult> parallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        if (params == null) return run(fragment, params);
+        if (params == null) return Cypher.runCypherQuery(tx, fragment, params);
         if (key == null || !params.containsKey(key))
             throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet());
         Object value = params.get(key);
@@ -278,7 +300,37 @@ public class Cypher {
         */
     }
 
-
+    @Procedure
+    @Description("apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _")
+    public Stream<MapResult> mapParallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data) {
+        final String statement = withParamsAndIterator(fragment, params.keySet(), "_");
+        tx.execute("EXPLAIN " + statement).close();
+        return Util.partitionSubList(data, PARTITIONS,null)
+                .flatMap((partition) -> Iterators.addToCollection(tx.execute(statement, parallelParams(params, "_", partition)),
+                        new ArrayList<>(partition.size())).stream())
+                .map(MapResult::new);
+    }
+    @Procedure
+    @Description("apoc.cypher.mapParallel2(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _")
+    public Stream<MapResult> mapParallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data, @Name("partitions") long partitions,@Name(value = "timeout",defaultValue = "10") long timeout) {
+        final String statement = withParamsAndIterator(fragment, params.keySet(), "_");
+        tx.execute("EXPLAIN " + statement).close();
+        BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100000);
+        Stream<List<Object>> parallelPartitions = Util.partitionSubList(data, (int)(partitions <= 0 ? PARTITIONS : partitions), null);
+        Util.inFuture(pools, () -> {
+            long total = parallelPartitions
+                .map((List<Object> partition) -> {
+                    try {
+                        try (Result result = tx.execute(statement, parallelParams(params, "_", partition))) {
+                            return consumeResult(result, queue, false, timeout);
+                        }
+                    } catch (Exception e) {throw new RuntimeException(e);}}
+                ).count();
+            queue.put(RowResult.TOMBSTONE);
+            return total;
+        });
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, (int)timeout),true).map((rowResult) -> new MapResult(rowResult.result));
+    }
 
     public Map<String, Object> parallelParams(@Name("params") Map<String, Object> params, String key, List<Object> partition) {
         if (params.isEmpty()) return Collections.singletonMap(key, partition);
@@ -288,6 +340,46 @@ public class Cypher {
         return parallelParams;
     }
 
+    @Procedure
+    public Stream<MapResult> parallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
+        if (params == null) return Cypher.runCypherQuery(tx, fragment, params);
+        if (key == null || !params.containsKey(key))
+            throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet());
+        Object value = params.get(key);
+        if (!(value instanceof Collection))
+            throw new RuntimeException("Can't parallelize a non collection " + key + " : " + value);
+
+        final String statement = withParamsAndIterator(fragment, params.keySet(), key);
+        tx.execute("EXPLAIN " + statement).close();
+        Collection<Object> coll = (Collection<Object>) value;
+        int total = coll.size();
+        int partitions = PARTITIONS;
+        int batchSize = Math.max(total / partitions, 1);
+        if (batchSize > MAX_BATCH) {
+            batchSize = MAX_BATCH;
+            partitions = (total / batchSize) + 1;
+        }
+
+        List<Future<List<Map<String, Object>>>> futures = new ArrayList<>(partitions);
+        List<Object> partition = new ArrayList<>(batchSize);
+        for (Object o : coll) {
+            partition.add(o);
+            if (partition.size() == batchSize) {
+                futures.add(submit(db, statement, params, key, partition, terminationGuard));
+                partition = new ArrayList<>(batchSize);
+            }
+        }
+        if (!partition.isEmpty()) {
+            futures.add(submit(db, statement, params, key, partition, terminationGuard));
+        }
+        return futures.stream().flatMap(f -> {
+            try {
+                return f.get().stream().map(MapResult::new);
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException("Error executing in parallel " + statement, e);
+            }
+        });
+    }
 
     public static String withParamsAndIterator(String fragment, Collection<String> params, String iterator) {
         boolean noIterator = iterator == null || iterator.isEmpty();
@@ -304,63 +396,5 @@ public class Cypher {
                     return db.executeTransactionally(statement, parallelParams(params, key, partition), result -> Iterators.asList(result));
                 }
         );
-    }
-
-    @Procedure(mode = WRITE)
-    @Description("apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with the given parameters")
-    public Stream<MapResult> doIt(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
-        return runCypherQuery(tx, statement, params);
-    }
-
-    @Procedure("apoc.when")
-    @Description("apoc.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes read-only ifQuery or elseQuery with the given parameters")
-    public Stream<MapResult> when(@Name("condition") boolean condition, @Name("ifQuery") String ifQuery, @Name(value="elseQuery", defaultValue = "") String elseQuery, @Name(value="params", defaultValue = "{}") Map<String, Object> params) {
-        if (params == null) params = Collections.emptyMap();
-        String targetQuery = condition ? ifQuery : elseQuery;
-
-        if (targetQuery.isEmpty()) {
-            return Stream.of(new MapResult(Collections.emptyMap()));
-        } else {
-            return tx.execute(withParamMapping(targetQuery, params.keySet()), params).stream().map(MapResult::new);
-        }
-    }
-
-    @Procedure(value="apoc.do.when", mode = Mode.WRITE)
-    @Description("apoc.do.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes writing ifQuery or elseQuery with the given parameters")
-    public Stream<MapResult> doWhen(@Name("condition") boolean condition, @Name("ifQuery") String ifQuery, @Name(value="elseQuery", defaultValue = "") String elseQuery, @Name(value="params", defaultValue = "{}") Map<String, Object> params) {
-        return when(condition, ifQuery, elseQuery, params);
-    }
-
-    @Procedure("apoc.case")
-    @Description("apoc.case([condition, query, condition, query, ...], elseQuery:'', params:{}) yield value - given a list of conditional / read-only query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters")
-    public Stream<MapResult> whenCase(@Name("conditionals") List<Object> conditionals, @Name(value="elseQuery", defaultValue = "") String elseQuery, @Name(value="params", defaultValue = "{}") Map<String, Object> params) {
-        if (params == null) params = Collections.emptyMap();
-
-        if (conditionals.size() % 2 != 0) {
-            throw new IllegalArgumentException("Conditionals must be an even-sized collection of boolean, query entries");
-        }
-
-        Iterator caseItr = conditionals.iterator();
-
-        while (caseItr.hasNext()) {
-            boolean condition = (Boolean) caseItr.next();
-            String ifQuery = (String) caseItr.next();
-
-            if (condition) {
-                return tx.execute(withParamMapping(ifQuery, params.keySet()), params).stream().map(MapResult::new);
-            }
-        }
-
-        if (elseQuery.isEmpty()) {
-            return Stream.of(new MapResult(Collections.emptyMap()));
-        } else {
-            return tx.execute(withParamMapping(elseQuery, params.keySet()), params).stream().map(MapResult::new);
-        }
-    }
-
-    @Procedure(value="apoc.do.case", mode = Mode.WRITE)
-    @Description("apoc.do.case([condition, query, condition, query, ...], elseQuery:'', params:{}) yield value - given a list of conditional / writing query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters")
-    public Stream<MapResult> doWhenCase(@Name("conditionals") List<Object> conditionals, @Name(value="elseQuery", defaultValue = "") String elseQuery, @Name(value="params", defaultValue = "{}") Map<String, Object> params) {
-        return whenCase(conditionals, elseQuery, params);
     }
 }

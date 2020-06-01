@@ -5,6 +5,7 @@ import apoc.load.LoadCsv;
 import apoc.load.LoadJson;
 import apoc.load.Xml;
 import apoc.util.TestUtil;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -85,7 +86,7 @@ public class LoadRelativePathTest {
         testCall(db, "CALL apoc.load.xml('file:///xml/databases.xml')", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
-                    assertEquals(StringXmlNestedMap(), value);
+                    Assert.assertEquals(LoadXmlResult.StringXmlNestedMap(), value);
                 });
     }
 
@@ -94,7 +95,7 @@ public class LoadRelativePathTest {
         testCall(db, "CALL apoc.load.xmlSimple('/xml/databases.xml')", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
-                    assertEquals(StringXmlNestedSimpleMap(), value);
+                    Assert.assertEquals(LoadXmlResult.StringXmlNestedSimpleMap(), value);
                 });
     }
 
