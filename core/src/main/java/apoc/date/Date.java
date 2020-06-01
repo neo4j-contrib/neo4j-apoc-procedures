@@ -63,22 +63,6 @@ public class Date {
 		}
 	}
 
-	@Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.ttl.expireAtInstant")
-	@Description("CALL apoc.date.expire(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property")
-	@Deprecated
-	public void expire(@Name("node") Node node, @Name("time") long time, @Name("timeUnit") String timeUnit) {
-		node.addLabel(Label.label("TTL"));
-		node.setProperty("ttl",unit(timeUnit).toMillis(time));
-	}
-
-	@Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.ttl.expireAfterTimeLength")
-	@Description("CALL apoc.date.expire.in(node,time,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property")
-	@Deprecated
-	public void expireIn(@Name("node") Node node, @Name("timeDelta") long time, @Name("timeUnit") String timeUnit) {
-		node.addLabel(Label.label("TTL"));
-		node.setProperty("ttl",System.currentTimeMillis() + unit(timeUnit).toMillis(time));
-	}
-
 	@UserFunction
 	@Description("apoc.date.fields('2012-12-23',('yyyy-MM-dd')) - return columns and a map representation of date parsed with the given format with entries for years,months,weekdays,days,hours,minutes,seconds,zoneid")
 	public Map<String,Object> fields(final @Name("date") String date, final @Name(value = "pattern", defaultValue = DEFAULT_FORMAT) String pattern) {
