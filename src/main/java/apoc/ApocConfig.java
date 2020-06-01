@@ -35,7 +35,7 @@ import static apoc.util.FileUtils.isFile;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.data_directory;
 import static org.neo4j.configuration.GraphDatabaseSettings.load_csv_file_url_root;
-import static org.neo4j.configuration.GraphDatabaseSettings.logical_logs_location;
+import static org.neo4j.configuration.GraphDatabaseInternalSettings.logical_logs_location;
 import static org.neo4j.configuration.GraphDatabaseSettings.logs_directory;
 import static org.neo4j.configuration.GraphDatabaseSettings.neo4j_home;
 import static org.neo4j.configuration.GraphDatabaseSettings.plugin_dir;
