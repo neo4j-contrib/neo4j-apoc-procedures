@@ -34,7 +34,7 @@ public class TTLTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        TestUtil.registerProcedure(db, Date.class);
+        TestUtil.registerProcedure(db, DateExpiry.class);
         db.executeTransactionally("CREATE (n:Foo:TTL) SET n.ttl = timestamp() + 100");
         db.executeTransactionally("CREATE (n:Bar) WITH n CALL apoc.date.expireIn(n,500,'ms') RETURN count(*)");
         testNodes(1,1);

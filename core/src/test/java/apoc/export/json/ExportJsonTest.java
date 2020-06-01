@@ -20,7 +20,7 @@ import static org.junit.Assert.*;
 public class ExportJsonTest {
 
     private static File directory = new File("target/import");
-    private static File directoryExpected = new File("docs/asciidoc/data/exportJSON");
+    private static File directoryExpected = new File("../docs/asciidoc/data/exportJSON");
 
     static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
