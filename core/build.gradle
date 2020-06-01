@@ -113,10 +113,6 @@ dependencies {
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
 
-    // schemacrawler
-    compile group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'
-    testCompile group: 'us.fatehi', name: 'schemacrawler-mysql', version: '15.04.01'
-
     testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
