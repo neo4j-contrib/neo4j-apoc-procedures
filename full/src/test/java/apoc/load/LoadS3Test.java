@@ -9,7 +9,6 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static apoc.load.LoadCsvTest.assertRow;
-import static apoc.load.XmlTest.XML_XPATH_AS_NESTED_MAP;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -75,7 +74,7 @@ public class LoadS3Test {
 
         testCall(db, "CALL apoc.load.xml($url,'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", Util.map("url", url), (r) -> {
             Object value = Iterables.single(r.values());
-            assertEquals(XML_XPATH_AS_NESTED_MAP, value);
+            Assert.assertEquals(XmlTest.XML_XPATH_AS_NESTED_MAP, value);
         });
     }
 

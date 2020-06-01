@@ -3,8 +3,9 @@ package apoc.export.csv;
 import apoc.export.util.BatchTransaction;
 import apoc.export.util.CountingReader;
 import apoc.export.util.ProgressReporter;
-import apoc.load.LoadCsv;
-import apoc.load.util.LoadCsvConfig;
+import apoc.load.CSVResult;
+import apoc.load.Mapping;
+import apoc.load.util.Results;
 import apoc.util.FileUtils;
 import com.opencsv.CSVReader;
 import org.neo4j.graphdb.*;
@@ -56,7 +57,7 @@ public class CsvEntityLoader {
         idMapping.putIfAbsent(idSpace, new HashMap<>());
         final Map<String, Long> idspaceIdMapping = idMapping.get(idSpace);
 
-        final Map<String, LoadCsv.Mapping> mapping = fields.stream().collect(
+        final Map<String, Mapping> mapping = fields.stream().collect(
                 Collectors.toMap(
                         CsvHeaderField::getName,
                         f -> {
@@ -65,7 +66,7 @@ public class CsvEntityLoader {
                                             new AbstractMap.SimpleEntry<>("type", f.getType()),
                                             new AbstractMap.SimpleEntry<>("array", f.isArray())
                                     ).collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue)));
-                            return new LoadCsv.Mapping(f.getName(), mappingMap, clc.getArrayDelimiter(), false);
+                            return new Mapping(f.getName(), mappingMap, clc.getArrayDelimiter(), false);
                         }
                 )
         );
@@ -78,8 +79,8 @@ public class CsvEntityLoader {
             for (String[] line : csv.readAll()) {
                 lineNo++;
 
-                final EnumSet<LoadCsvConfig.Results> results = EnumSet.of(LoadCsvConfig.Results.map);
-                final LoadCsv.CSVResult result = new LoadCsv.CSVResult(
+                final EnumSet<Results> results = EnumSet.of(Results.map);
+                final CSVResult result = new CSVResult(
                         loadCsvCompatibleHeader, line, lineNo, false, mapping, Collections.emptyList(), results
                 );
 
@@ -168,7 +169,7 @@ public class CsvEntityLoader {
                 .filter(field -> !CsvLoaderConstants.END_ID_FIELD.equals(field.getType()))
                 .collect(Collectors.toList());
 
-        final Map<String, LoadCsv.Mapping> mapping = fields.stream().collect(
+        final Map<String, Mapping> mapping = fields.stream().collect(
                 Collectors.toMap(
                         CsvHeaderField::getName,
                         f -> {
@@ -178,7 +179,7 @@ public class CsvEntityLoader {
                                             new AbstractMap.SimpleEntry<>("array", f.isArray())
                                     ).collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue)));
 
-                            return new LoadCsv.Mapping(f.getName(), mappingMap, clc.getArrayDelimiter(), false);
+                            return new Mapping(f.getName(), mappingMap, clc.getArrayDelimiter(), false);
                         }
                 )
         );
@@ -191,8 +192,8 @@ public class CsvEntityLoader {
             for (String[] line : csv.readAll()) {
                 lineNo++;
 
-                final EnumSet<LoadCsvConfig.Results> results = EnumSet.of(LoadCsvConfig.Results.map);
-                final LoadCsv.CSVResult result = new LoadCsv.CSVResult(
+                final EnumSet<Results> results = EnumSet.of(Results.map);
+                final CSVResult result = new CSVResult(
                         loadCsvCompatibleHeader, line, lineNo, false, mapping, Collections.emptyList(), results
                 );
 

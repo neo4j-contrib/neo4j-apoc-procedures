@@ -7,8 +7,6 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.util.concurrent.TimeUnit;
-
 import static apoc.date.Date.unit;
 
 

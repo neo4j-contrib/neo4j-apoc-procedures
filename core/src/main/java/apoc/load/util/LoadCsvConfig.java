@@ -1,6 +1,6 @@
 package apoc.load.util;
 
-import apoc.load.LoadCsv;
+import apoc.load.Mapping;
 import apoc.util.Util;
 
 import java.util.*;
@@ -28,14 +28,10 @@ public class LoadCsvConfig {
 
     private EnumSet<Results> results;
 
-    public enum Results {
-        map, list, strings, stringMap
-    }
-
     private List<String> ignore;
     private List<String> nullValues;
     private Map<String, Map<String, Object>> mapping;
-    private Map<String, LoadCsv.Mapping> mappings;
+    private Map<String, Mapping> mappings;
 
     public LoadCsvConfig(Map<String, Object> config) {
         if (config == null) {
@@ -64,12 +60,12 @@ public class LoadCsvConfig {
         mappings = createMapping(mapping, arraySep, ignore);
     }
 
-    private Map<String, LoadCsv.Mapping> createMapping(Map<String, Map<String, Object>> mapping, char arraySep, List<String> ignore) {
+    private Map<String, Mapping> createMapping(Map<String, Map<String, Object>> mapping, char arraySep, List<String> ignore) {
         if (mapping.isEmpty()) return Collections.emptyMap();
-        HashMap<String, LoadCsv.Mapping> result = new HashMap<>(mapping.size());
+        HashMap<String, Mapping> result = new HashMap<>(mapping.size());
         for (Map.Entry<String, Map<String, Object>> entry : mapping.entrySet()) {
             String name = entry.getKey();
-            result.put(name, new LoadCsv.Mapping(name, entry.getValue(), arraySep, ignore.contains(name)));
+            result.put(name, new Mapping(name, entry.getValue(), arraySep, ignore.contains(name)));
         }
         return result;
     }
@@ -114,7 +110,7 @@ public class LoadCsvConfig {
         return mapping;
     }
 
-    public Map<String, LoadCsv.Mapping> getMappings() {
+    public Map<String, Mapping> getMappings() {
         return mappings;
     }
 
