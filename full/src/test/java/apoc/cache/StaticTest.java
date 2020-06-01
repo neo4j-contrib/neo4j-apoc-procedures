@@ -12,7 +12,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.util.Collections;
 
 import static apoc.util.MapUtil.map;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * @author mh
@@ -39,24 +39,24 @@ public class StaticTest {
     @Test
     public void testGetAllFromConfig() throws Exception {
         TestUtil.testCall(db, "return apoc.static.getAll('all') as value", r -> assertEquals(map("test",VALUE),r.get("value")));
-        TestUtil.testCall(db, "call apoc.static.set('all.test2',42)", r -> assertEquals(null,r.get("value")));
+        TestUtil.testCall(db, "call apoc.static.set('all.test2',42)", r -> assertNull(r.get("value")));
         TestUtil.testCall(db, "return apoc.static.getAll('all') as value", r -> assertEquals(map("test",VALUE,"test2",42L),r.get("value")));
         TestUtil.testCall(db, "return apoc.static.getAll('') as value", r -> assertEquals(map("test",VALUE,"all.test",VALUE,"all.test2",42L),r.get("value")));
     }
 
     @Test
     public void testListFromConfig() throws Exception {
-        TestUtil.testCall(db, "call apoc.static.set('all.test2',42)", r -> assertEquals(null,r.get("value")));
+        TestUtil.testCall(db, "call apoc.static.set('all.test2',42)", r -> assertNull(r.get("value")));
         TestUtil.testResult(db, "call apoc.static.list('all') yield key, value return * order by key", r -> {
             assertEquals(map("key","test","value",VALUE),r.next());
             assertEquals(map("key","test2","value",42L),r.next());
-            assertEquals(false, r.hasNext());
+            assertFalse(r.hasNext());
         });
         TestUtil.testResult(db, "call apoc.static.list('') yield key, value return * order by key", r -> {
             assertEquals(map("key","all.test","value",VALUE),r.next());
             assertEquals(map("key","all.test2","value",42L),r.next());
             assertEquals(map("key","test","value",VALUE),r.next());
-            assertEquals(false, r.hasNext());
+            assertFalse(r.hasNext());
         });
     }
 
@@ -74,10 +74,10 @@ public class StaticTest {
 
     @Test
     public void testSet() throws Exception {
-        TestUtil.testCall(db, "call apoc.static.get('test2')", r -> assertEquals(null,r.get("value")));
-        TestUtil.testCall(db, "call apoc.static.set('test2',42)", r -> assertEquals(null,r.get("value")));
+        TestUtil.testCall(db, "call apoc.static.get('test2')", r -> assertNull(r.get("value")));
+        TestUtil.testCall(db, "call apoc.static.set('test2',42)", r -> assertNull(r.get("value")));
         TestUtil.testCall(db, "call apoc.static.get('test2')", r -> assertEquals(42L,r.get("value")));
         TestUtil.testCall(db, "call apoc.static.set('test2',null)", r -> assertEquals(42L,r.get("value")));
-        TestUtil.testCall(db, "call apoc.static.get('test2')", r -> assertEquals(null,r.get("value")));
+        TestUtil.testCall(db, "call apoc.static.get('test2')", r -> assertNull(r.get("value")));
     }
 }
