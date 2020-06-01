@@ -18,6 +18,7 @@ import org.neo4j.values.storable.PointValue;
 import org.neo4j.values.storable.Values;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -29,8 +30,11 @@ public class ImportJsonTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath())
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getCanonicalFile().toPath())
             .withSetting(ApocSettings.apoc_import_file_enabled, true);
+
+    public ImportJsonTest() throws IOException {
+    }
 
     @Before
     public void setUp() throws Exception {
