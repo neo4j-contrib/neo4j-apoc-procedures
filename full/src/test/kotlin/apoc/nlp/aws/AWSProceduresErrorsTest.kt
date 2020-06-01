@@ -3,15 +3,12 @@ package apoc.nlp.aws
 import apoc.util.TestUtil
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertThat
-import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
 import org.junit.jupiter.api.Assertions
 import org.neo4j.graphdb.QueryExecutionException
-import org.neo4j.internal.kernel.api.exceptions.ProcedureException
 import org.neo4j.test.rule.ImpermanentDbmsRule
-import java.lang.IllegalArgumentException
 
 class AWSProceduresErrorsTest {
     companion object {

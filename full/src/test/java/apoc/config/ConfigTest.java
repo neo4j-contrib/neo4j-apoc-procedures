@@ -1,6 +1,7 @@
 package apoc.config;
 
 import apoc.util.TestUtil;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,7 +31,7 @@ public class ConfigTest {
 
     @Test
     public void listTest(){
-        TestUtil.testCall(db, "CALL apoc.config.list() yield key with * where key STARTS WITH 'foo' RETURN *",(row) -> assertEquals("foo",row.get("key")));
+        TestUtil.testCall(db, "CALL apoc.config.list() yield key with * where key STARTS WITH 'foo' RETURN *",(row) -> Assert.assertEquals("foo",row.get("key")));
     }
 
 }

@@ -7,7 +7,6 @@ import apoc.util.FixedSizeStringWriter;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -261,7 +260,6 @@ public class DocumentToGraph {
         return getVirtualGraph(coll);
     }
 
-    @NotNull
     private VirtualGraph getVirtualGraph(List<Map<String, Object>> coll) {
         Map<Set<String>, Set<Node>> nodes = new LinkedHashMap<>();
         Set<Relationship> relationships = new LinkedHashSet<>();

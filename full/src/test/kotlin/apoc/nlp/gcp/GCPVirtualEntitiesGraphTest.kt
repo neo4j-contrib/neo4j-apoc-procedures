@@ -5,14 +5,9 @@ import apoc.nlp.RelationshipMatcher
 import apoc.nlp.aws.AWSVirtualKeyPhrasesGraph
 import apoc.result.NodeValueErrorMapResult
 import apoc.result.VirtualNode
-import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesItemResult
-import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesResult
-import com.amazonaws.services.comprehend.model.BatchItemError
-import com.amazonaws.services.comprehend.model.KeyPhrase
 import junit.framework.Assert.assertEquals
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
-import org.junit.Assert
 import org.junit.Test
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.RelationshipType
