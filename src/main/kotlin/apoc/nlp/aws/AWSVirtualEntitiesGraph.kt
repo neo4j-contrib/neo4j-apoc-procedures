@@ -1,14 +1,19 @@
 package apoc.nlp.aws
 
 import apoc.graph.document.builder.DocumentToGraph
-import apoc.nlp.NLPHelperFunctions.Companion.mergeRelationship
+import apoc.nlp.NLPHelperFunctions.mergeRelationship
 import apoc.nlp.NLPVirtualGraph
 import apoc.result.VirtualGraph
 import apoc.result.VirtualNode
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
 import org.apache.commons.text.WordUtils
-import org.neo4j.graphdb.*
-import java.util.*
+import org.neo4j.graphdb.Label
+import org.neo4j.graphdb.Node
+import org.neo4j.graphdb.Relationship
+import org.neo4j.graphdb.RelationshipType
+import org.neo4j.graphdb.Transaction
+import java.util.ArrayList
+import java.util.LinkedHashMap
 
 data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetectEntitiesResult, private val sourceNodes: List<Node>, val relType: RelationshipType, val relProperty: String, val cutoff: Number): NLPVirtualGraph() {
     override fun extractDocument(index: Int, sourceNode: Node) : ArrayList<Map<String, Any>> = AWSProcedures.transformResults(index, sourceNode, detectEntitiesResult).value["entities"] as ArrayList<Map<String, Any>>
@@ -48,7 +53,7 @@ data class AWSVirtualEntitiesGraph(private val detectEntitiesResult: BatchDetect
                         entityNodes.add(entityNode)
 
                         val nodeAndScore = Pair(entityNode, score)
-                        mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType, relProperty).forEach { rel -> relationships.add(rel) }
+                        relationships.add(mergeRelationship(sourceNode, nodeAndScore, relType, relProperty))
 
                         sourceNode
                     } else {

@@ -1,12 +1,12 @@
 package apoc.nlp.gcp
 
 import apoc.nlp.NLPHelperFunctions
-import apoc.nlp.NLPHelperFunctions.Companion.convert
-import apoc.nlp.NLPHelperFunctions.Companion.getNodeProperty
-import apoc.nlp.NLPHelperFunctions.Companion.partition
-import apoc.nlp.NLPHelperFunctions.Companion.verifyKey
-import apoc.nlp.NLPHelperFunctions.Companion.verifyNodeProperty
-import apoc.nlp.NLPHelperFunctions.Companion.verifySource
+import apoc.nlp.NLPHelperFunctions.convert
+import apoc.nlp.NLPHelperFunctions.getNodeProperty
+import apoc.nlp.NLPHelperFunctions.partition
+import apoc.nlp.NLPHelperFunctions.verifyKey
+import apoc.nlp.NLPHelperFunctions.verifyNodeProperty
+import apoc.nlp.NLPHelperFunctions.verifySource
 import apoc.result.NodeValueErrorMapResult
 import apoc.result.VirtualGraph
 import org.neo4j.graphdb.Transaction

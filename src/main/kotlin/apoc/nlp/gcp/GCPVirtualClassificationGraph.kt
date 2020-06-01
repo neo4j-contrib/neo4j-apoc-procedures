@@ -7,7 +7,11 @@ import apoc.result.NodeValueErrorMapResult
 import apoc.result.VirtualGraph
 import apoc.result.VirtualNode
 import org.apache.commons.text.WordUtils
-import org.neo4j.graphdb.*
+import org.neo4j.graphdb.Label
+import org.neo4j.graphdb.Node
+import org.neo4j.graphdb.Relationship
+import org.neo4j.graphdb.RelationshipType
+import org.neo4j.graphdb.Transaction
 import java.util.LinkedHashMap
 
 data class GCPVirtualClassificationGraph(private val results: List<NodeValueErrorMapResult>, private val sourceNodes: List<Node>, val relType: RelationshipType, val relProperty: String, val cutoff: Number): NLPVirtualGraph() {
@@ -47,7 +51,7 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
                         entityNodes.add(entityNode)
 
                         val nodeAndScore = Pair(entityNode, score)
-                        NLPHelperFunctions.mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType, relProperty).forEach { rel -> relationships.add(rel) }
+                        relationships.add(NLPHelperFunctions.mergeRelationship(sourceNode, nodeAndScore, relType, relProperty))
 
                         sourceNode
                     } else {
