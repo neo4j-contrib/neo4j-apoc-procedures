@@ -18,14 +18,14 @@ import static org.junit.Assert.assertEquals;
  * @author mh
  * @since 16.04.16
  */
-public class GetTest {
+public class GetProceduresTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db,Get.class);
+        TestUtil.registerProcedure(db, GetProcedures.class);
     }
 
     @Test

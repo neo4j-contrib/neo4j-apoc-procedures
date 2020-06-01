@@ -11,20 +11,21 @@ import org.neo4j.procedure.Procedure;
 
 import java.util.stream.Stream;
 
-public class Get {
+public class GetProcedures {
 
+    @Context
     public Transaction tx;
 
-    public Get(Transaction tx) {
-        this.tx = tx;
-    }
-
+    @Procedure
+    @Description("apoc.get.nodes(node|id|[ids]) - quickly returns all nodes with these id's")
     public Stream<NodeResult> nodes(@Name("nodes") Object ids) {
-        return Util.nodeStream(tx, ids).map(NodeResult::new);
+        return new Get(tx).nodes(ids);
     }
 
+    @Procedure
+    @Description("apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these id's")
     public Stream<RelationshipResult> rels(@Name("relationships") Object ids) {
-        return Util.relsStream(tx, ids).map(RelationshipResult::new);
+        return new Get(tx).rels(ids);
     }
 
 }
