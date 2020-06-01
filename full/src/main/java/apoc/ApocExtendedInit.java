@@ -1,6 +1,7 @@
 package apoc;
 
 import apoc.export.util.ExportConfig;
+import apoc.load.Jdbc;
 import apoc.util.SimpleRateLimiter;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
@@ -31,16 +32,10 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static apoc.util.FileUtils.isFile;
-import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
-import static org.neo4j.configuration.GraphDatabaseSettings.data_directory;
-import static org.neo4j.configuration.GraphDatabaseSettings.load_csv_file_url_root;
 import static org.neo4j.configuration.GraphDatabaseInternalSettings.logical_logs_location;
-import static org.neo4j.configuration.GraphDatabaseSettings.logs_directory;
-import static org.neo4j.configuration.GraphDatabaseSettings.neo4j_home;
-import static org.neo4j.configuration.GraphDatabaseSettings.plugin_dir;
-import static org.neo4j.configuration.GraphDatabaseSettings.transaction_logs_root_path;
+import static org.neo4j.configuration.GraphDatabaseSettings.*;
 
-public class ApocConfig extends LifecycleAdapter {
+public class ApocExtendedInit extends LifecycleAdapter {
 
     public static final String SUN_JAVA_COMMAND = "sun.java.command";
     public static final String APOC_IMPORT_FILE_ENABLED = "apoc.import.file.enabled";
@@ -77,25 +72,25 @@ public class ApocConfig extends LifecycleAdapter {
 
     private Configuration config;
 
-    private static ApocConfig theInstance;
+    private static ApocExtendedInit theInstance;
     private LoggingType loggingType;
     private SimpleRateLimiter rateLimiter;
     private GraphDatabaseService systemDb;
 
-    public ApocConfig(Config neo4jConfig, LogService log, GlobalProcedures globalProceduresRegistry, DatabaseManagementService databaseManagementService) {
+    public ApocExtendedInit(Config neo4jConfig, LogService log, GlobalProcedures globalProceduresRegistry, DatabaseManagementService databaseManagementService) {
         this.neo4jConfig = neo4jConfig;
-        this.log = log.getInternalLog(ApocConfig.class);
+        this.log = log.getInternalLog(ApocExtendedInit.class);
         this.globalProceduresRegistry = globalProceduresRegistry;
         this.databaseManagementService = databaseManagementService;
         theInstance = this;
 
         // expose this config instance via `@Context ApocConfig config`
-        globalProceduresRegistry.registerComponent((Class<ApocConfig>) getClass(), ctx -> this, true);
+        globalProceduresRegistry.registerComponent((Class<ApocExtendedInit>) getClass(), ctx -> this, true);
         this.log.info("successfully registered ApocConfig for @Context");
     }
 
     // use only for unit tests
-    public ApocConfig() {
+    public ApocExtendedInit() {
         this.neo4jConfig = null;
         this.log = NullLog.getInstance();
         this.globalProceduresRegistry = null;
@@ -172,6 +167,8 @@ public class ApocConfig extends LifecycleAdapter {
             boolean allowFileUrls = neo4jConfig.get(GraphDatabaseSettings.allow_file_urls);
             config.setProperty(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, allowFileUrls);
 
+            loadJdbcDrivers();
+
             initLogging();
         } catch (ConfigurationException e) {
             throw new RuntimeException(e);
@@ -223,6 +220,12 @@ public class ApocConfig extends LifecycleAdapter {
         rateLimiter = new SimpleRateLimiter(getInt( "apoc.user.log.window.time", 10000), getInt("apoc.user.log.window.ops", 10));
     }
 
+    private void loadJdbcDrivers() {
+        Iterators.stream(config.getKeys("apoc.jdbc"))
+                .filter(k -> k.endsWith("driver"))
+                .forEach(k -> Jdbc.loadDriver(k));
+    }
+
     public void checkReadAllowed(String url) {
         if (isFile(url) && !config.getBoolean(APOC_IMPORT_FILE_ENABLED)) {
             throw new RuntimeException("Import from files not enabled," +
@@ -238,7 +241,7 @@ public class ApocConfig extends LifecycleAdapter {
         }
     }
 
-    public static ApocConfig apocConfig() {
+    public static ApocExtendedInit apocConfig() {
         return theInstance;
     }
 

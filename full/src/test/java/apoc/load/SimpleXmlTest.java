@@ -1,5 +1,7 @@
 package apoc.load;
 
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -36,6 +38,6 @@ public class SimpleXmlTest {
         Xml cut = new Xml();
         List<String> result = cut.parseTextIntoPartsAndDelimiters(input, Pattern.compile("\\s"));
 
-        assertThat(result, equalTo(expected));
+        MatcherAssert.assertThat(result, Matchers.equalTo(expected));
     }
 }

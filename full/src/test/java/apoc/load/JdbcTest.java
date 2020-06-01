@@ -3,10 +3,7 @@ package apoc.load;
 import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.QueryExecutionException;
@@ -91,7 +88,7 @@ public class JdbcTest extends AbstractJdbcTest {
     @Test
     public void testLoadJdbcSelectColumnNames() throws Exception {
         testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT NAME, HIRE_DATE AS DATE FROM PERSON')",
-                (row) -> assertEquals(Util.map("NAME", "John", "DATE", hireDate.toLocalDate()), row.get("row")));
+                (row) -> assertEquals(Util.map("NAME", "John", "DATE", AbstractJdbcTest.hireDate.toLocalDate()), row.get("row")));
     }
 
     @Test
@@ -111,9 +108,9 @@ public class JdbcTest extends AbstractJdbcTest {
                 map("config", map("timezone", asiaTokio.toString())),
                 (row) -> {
                     Map<String, Object> expected = MapUtil.map("NAME", "John", "SURNAME", null,
-                            "HIRE_DATE", hireDate.toLocalDate(),
-                            "EFFECTIVE_FROM_DATE", effectiveFromDate.toInstant().atZone(asiaTokio).toOffsetDateTime().toZonedDateTime(), // todo investigate why by only changing the procedure mode returned class type changes
-                            "TEST_TIME", time.toLocalTime(),
+                            "HIRE_DATE", AbstractJdbcTest.hireDate.toLocalDate(),
+                            "EFFECTIVE_FROM_DATE", AbstractJdbcTest.effectiveFromDate.toInstant().atZone(asiaTokio).toOffsetDateTime().toZonedDateTime(), // todo investigate why by only changing the procedure mode returned class type changes
+                            "TEST_TIME", AbstractJdbcTest.time.toLocalTime(),
                             "NULL_DATE", null);
                     Map<String, Object> rowColumn = (Map<String, Object>) row.get("row");
 
@@ -266,18 +263,18 @@ public class JdbcTest extends AbstractJdbcTest {
         conn.createStatement().execute("CREATE TABLE PERSON (NAME varchar(50), SURNAME varchar(50), HIRE_DATE DATE, EFFECTIVE_FROM_DATE TIMESTAMP, TEST_TIME TIME, NULL_DATE DATE)");
         PreparedStatement ps = conn.prepareStatement("INSERT INTO PERSON values(?,null,?,?,?,?)");
         ps.setString(1, "John");
-        ps.setDate(2, hireDate);
-        ps.setTimestamp(3, effectiveFromDate);
-        ps.setTime(4, time);
+        ps.setDate(2, AbstractJdbcTest.hireDate);
+        ps.setTimestamp(3, AbstractJdbcTest.effectiveFromDate);
+        ps.setTime(4, AbstractJdbcTest.time);
         ps.setNull(5, Types.DATE);
         int rows = ps.executeUpdate();
         assertEquals(1, rows);
         ResultSet rs = conn.createStatement().executeQuery("SELECT NAME, HIRE_DATE, EFFECTIVE_FROM_DATE, TEST_TIME FROM PERSON");
         assertEquals(true, rs.next());
         assertEquals("John", rs.getString("NAME"));
-        assertEquals(hireDate.toLocalDate(), rs.getDate("HIRE_DATE").toLocalDate());
-        assertEquals(effectiveFromDate, rs.getTimestamp("EFFECTIVE_FROM_DATE"));
-        assertEquals(time, rs.getTime("TEST_TIME"));
+        Assert.assertEquals(AbstractJdbcTest.hireDate.toLocalDate(), rs.getDate("HIRE_DATE").toLocalDate());
+        Assert.assertEquals(AbstractJdbcTest.effectiveFromDate, rs.getTimestamp("EFFECTIVE_FROM_DATE"));
+        Assert.assertEquals(AbstractJdbcTest.time, rs.getTime("TEST_TIME"));
         assertEquals(false, rs.next());
         rs.close();
     }

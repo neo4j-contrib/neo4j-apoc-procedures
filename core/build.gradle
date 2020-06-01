@@ -87,7 +87,6 @@ dependencies {
     testCompile group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
 
-    testCompile group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
     testCompile group: 'io.minio', name: 'minio', version: '3.0.11', {
         exclude group: 'com.google.http-client', module: 'google-http-client'
     }
@@ -97,18 +96,6 @@ dependencies {
         exclude group: 'org.eclipse.jetty.aggregate'
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
-
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.5', withoutServers
-    testCompile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.5', withoutServers
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.7.5', withoutServers
-    testCompile group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.7.5', withoutServers
-    testCompile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '2.7.5', withoutServers
-
-    compileOnly 'org.mongodb:mongodb-driver:3.2.2'
-    testCompile 'org.mongodb:mongodb-driver:3.2.2'
-
-    compileOnly group: 'com.couchbase.client', name: 'java-client', version: '2.7.2'
-    testCompile group: 'com.couchbase.client', name: 'java-client', version: '2.7.2'
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compileOnly group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'

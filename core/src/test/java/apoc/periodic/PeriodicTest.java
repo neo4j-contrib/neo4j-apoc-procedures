@@ -1,6 +1,5 @@
 package apoc.periodic;
 
-import apoc.load.Jdbc;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import org.junit.Before;
@@ -12,7 +11,6 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.TransientTransactionFailureException;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.KernelTransactionHandle;
-import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.impl.api.KernelTransactions;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.rule.DbmsRule;
@@ -44,7 +42,7 @@ public class PeriodicTest {
 
     @Before
     public void initDb() throws Exception {
-        TestUtil.registerProcedure(db, Periodic.class, Jdbc.class);
+        TestUtil.registerProcedure(db, Periodic.class);
         db.executeTransactionally("call apoc.periodic.list() yield name call apoc.periodic.cancel(name) yield name as name2 return count(*)");
     }
 
@@ -83,7 +81,7 @@ public class PeriodicTest {
     }
     @Test
     public void testTerminateCommit() throws Exception {
-        testTerminatePeriodicQuery("CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (:Foo {id: id}) limit 1000', {})");
+        PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (:Foo {id: id}) limit 1000', {})");
     }
 
     @Test(expected = QueryExecutionException.class)
@@ -125,52 +123,13 @@ public class PeriodicTest {
 
     @Test
     public void testTerminateRockNRoll() throws Exception {
-        testTerminatePeriodicQuery("CALL apoc.periodic.rock_n_roll('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: $id})', 10)");
-    }
-
-    public void testTerminatePeriodicQuery(String periodicQuery) {
-        killPeriodicQueryAsync();
-        try {
-            testResult(db, periodicQuery, result -> {
-                Map<String, Object> row = Iterators.single(result);
-                assertEquals( periodicQuery + " result: " + row.toString(), true, row.get("wasTerminated"));
-            });
-            fail("Should have terminated");
-        } catch(Exception tfe) {
-            assertEquals(tfe.getMessage(),true, tfe.getMessage().contains("terminated"));
-        }
+        PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.rock_n_roll('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: $id})', 10)");
     }
 
     private final static String KILL_PERIODIC_QUERY = "call dbms.listQueries() yield queryId, query, status\n" +
             "with * where query contains ('apoc.' + 'periodic')\n" +
             "call dbms.killQuery(queryId) yield queryId as killedId\n" +
             "return killedId";
-
-    public void killPeriodicQueryAsync() {
-        new Thread(() -> {
-            int retries = 10;
-            try {
-                while (retries-- > 0 && !terminateQuery("apoc.periodic")) {
-                    Thread.sleep(10);
-                }
-            } catch (InterruptedException e) {
-                // ignore
-            }
-        }).start();
-    }
-
-    boolean terminateQuery(String pattern) {
-        DependencyResolver dependencyResolver = ((GraphDatabaseAPI) db).getDependencyResolver();
-        KernelTransactions kernelTransactions = dependencyResolver.resolveDependency(KernelTransactions.class);
-        long numberOfKilledTransactions = kernelTransactions.activeTransactions().stream()
-                .filter(kernelTransactionHandle ->
-                        kernelTransactionHandle.executingQuery().map(query -> query.rawQueryText().contains(pattern))
-                                .orElse(false)
-                )
-                .map(kernelTransactionHandle -> kernelTransactionHandle.markForTermination(Status.Transaction.Terminated))
-                .count();
-        return numberOfKilledTransactions > 0;
-    }
 
     @Test
     public void testIterateErrors() throws Exception {
@@ -211,9 +170,9 @@ public class PeriodicTest {
 
     @Test
     public void testTerminateIterate() throws Exception {
-        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:1,parallel:true})");
-        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:true})");
-        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:false})");
+        PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:1,parallel:true})");
+        PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:true})");
+        PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:false})");
     }
 
     /**
@@ -258,7 +217,7 @@ public class PeriodicTest {
             Thread.sleep(200);
         }
 
-        killPeriodicQueryAsync();
+        PeriodicTestUtils.killPeriodicQueryAsync(db);
         thread.join();
     }
 
@@ -411,22 +370,6 @@ public class PeriodicTest {
                 "MATCH (p:Person) where p.lastname is not null return count(p) as count",
                 row -> assertEquals(0L, row.get("count"))
         );
-    }
-
-    @Test
-    public void testIterateJDBC() throws Exception {
-        TestUtil.ignoreException(() -> {
-            testResult(db, "CALL apoc.periodic.iterate('call apoc.load.jdbc(\"jdbc:mysql://localhost:3306/northwind?user=root\",\"customers\")', 'create (c:Customer) SET c += $row', {batchSize:10,parallel:true})", result -> {
-                Map<String, Object> row = Iterators.single(result);
-                assertEquals(3L, row.get("batches"));
-                assertEquals(29L, row.get("total"));
-            });
-
-            testCall(db,
-                    "MATCH (p:Customer) return count(p) as count",
-                    row -> assertEquals(29L, row.get("count"))
-            );
-        }, SQLException.class);
     }
 
     @Test
