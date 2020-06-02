@@ -4,6 +4,7 @@ import apoc.ApocConfig;
 import apoc.util.SimpleRateLimiter;
 import apoc.util.TestUtil;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.exceptions.KernelException;
@@ -37,9 +38,9 @@ public class LoggingTest {
         String stringWithWhitespacesAndTabsAndNewLine = logging.format("Test %s \t\nNewLine", asList(1));
 
         // then
-        assertEquals("test_1_", stringWithWhitespaces);
-        assertEquals("test_1__", stringWithWhitespacesAndTabs);
-        assertEquals("test_1__\nnewline", stringWithWhitespacesAndTabsAndNewLine);
+        Assert.assertEquals("test_1_", stringWithWhitespaces);
+        Assert.assertEquals("test_1__", stringWithWhitespacesAndTabs);
+        Assert.assertEquals("test_1__\nnewline", stringWithWhitespacesAndTabsAndNewLine);
     }
 
     @NotNull
@@ -62,9 +63,9 @@ public class LoggingTest {
         String stringWithWhitespacesAndTabsAndNewLine = logging.format("Test %s \t\nNewLine", asList(1));
 
         // then
-        assertEquals("Test 1 ", stringWithWhitespaces);
-        assertEquals("Test 1 \t", stringWithWhitespacesAndTabs);
-        assertEquals("Test 1 \t\nNewLine", stringWithWhitespacesAndTabsAndNewLine);
+        Assert.assertEquals("Test 1 ", stringWithWhitespaces);
+        Assert.assertEquals("Test 1 \t", stringWithWhitespacesAndTabs);
+        Assert.assertEquals("Test 1 \t\nNewLine", stringWithWhitespacesAndTabsAndNewLine);
     }
 
     @Test
@@ -78,9 +79,9 @@ public class LoggingTest {
         String stringWithWhitespacesAndTabsAndNewLine = logging.format("Test %s \t\nNewLine", asList(1));
 
         // then
-        assertNull(stringWithWhitespaces);
-        assertNull(stringWithWhitespacesAndTabs);
-        assertNull(stringWithWhitespacesAndTabsAndNewLine);
+        Assert.assertNull(stringWithWhitespaces);
+        Assert.assertNull(stringWithWhitespacesAndTabs);
+        Assert.assertNull(stringWithWhitespacesAndTabsAndNewLine);
     }
 
     @Test
@@ -101,7 +102,7 @@ public class LoggingTest {
                 String msg = logging.format("Test %s ", asList(i));
 
                 // then
-                assertEquals("test_" + i + "_", msg);
+                Assert.assertEquals("test_" + i + "_", msg);
                 all.remove(msg);
                 return;
             }
@@ -110,7 +111,7 @@ public class LoggingTest {
                 String msg = logging.format("Test %s ", asList(i));
 
                 // then
-                assertNull(msg);
+                Assert.assertNull(msg);
                 return;
             }
             if (i == 50) {
@@ -125,7 +126,7 @@ public class LoggingTest {
                 String msg = logging.format("Test %s ", asList(i));
 
                 // then
-                assertEquals("test_" + i + "_", msg);
+                Assert.assertEquals("test_" + i + "_", msg);
                 all.remove(msg);
                 return;
             }
@@ -134,12 +135,12 @@ public class LoggingTest {
                 String msg = logging.format("Test %s ", asList(i));
 
                 // then
-                assertNull(msg);
+                Assert.assertNull(msg);
             }
         });
 
         // then
-        assertTrue(all.isEmpty());
+        Assert.assertTrue(all.isEmpty());
     }
 
     @Test
@@ -160,7 +161,7 @@ public class LoggingTest {
                 String msg = logging.format("Test %s ", asList(i));
 
                 // then
-                assertEquals("test_" + i + "_", msg);
+                Assert.assertEquals("test_" + i + "_", msg);
                 all.remove(msg);
                 return;
             }
@@ -169,7 +170,7 @@ public class LoggingTest {
                 String msg = logging.format("Test %s ", asList(i));
 
                 // then
-                assertNull(msg); // then
+                Assert.assertNull(msg); // then
                 return;
             }
             if (i == 50) {
@@ -184,7 +185,7 @@ public class LoggingTest {
                 String msg = logging.format("Test %s ", asList(i));
 
                 // then
-                assertEquals("test_" + i + "_", msg);
+                Assert.assertEquals("test_" + i + "_", msg);
                 all.remove(msg);
                 return;
             }
@@ -193,12 +194,12 @@ public class LoggingTest {
                 String msg = logging.format("Test %s ", asList(i));
 
                 // then
-                assertNull(msg);
+                Assert.assertNull(msg);
             }
         });
 
         // then
-        assertTrue(all.isEmpty());
+        Assert.assertTrue(all.isEmpty());
     }
 
     @Test
