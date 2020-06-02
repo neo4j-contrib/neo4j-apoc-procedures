@@ -116,10 +116,7 @@ dependencies {
     testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
     compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.5', withoutServers
-    testCompile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.5', withoutServers
     compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.7.5', withoutServers
-    testCompile group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.7.5', withoutServers
-    testCompile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '2.7.5', withoutServers
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     //compileOnly group: 'org.apache.commons', name: 'commons-text', version: '1.7'

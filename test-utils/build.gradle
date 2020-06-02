@@ -17,6 +17,17 @@ dependencies {
 
     compile group: 'org.gradle', name: 'gradle-tooling-api', version: '6.0.1'
 
+    def withoutServers = {
+        exclude group: 'org.eclipse.jetty'
+        exclude group: 'org.eclipse.jetty.aggregate'
+        exclude group: 'org.apache.hive', module: 'hive-service'
+    }
+
+    compile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.5', withoutServers
+    compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.7.5', withoutServers
+    compile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '2.7.5', withoutServers
+
+
     // Test Containers
     compile group: 'org.testcontainers', name: 'testcontainers', version: testContainersVersion
     compile group: 'org.testcontainers', name: 'neo4j', version: testContainersVersion
