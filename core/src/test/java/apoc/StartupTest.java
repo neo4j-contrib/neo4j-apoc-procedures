@@ -3,6 +3,9 @@ package apoc;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.junit.Test;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Value;
+import org.testcontainers.containers.Container;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static org.junit.Assert.assertTrue;
@@ -19,8 +22,19 @@ public class StartupTest {
         try {
             Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isTravis())
                     .withNeo4jConfig("dbms.transaction.timeout", "5s");
+
+
             neo4jContainer.start();
+
             assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+
+            Session session = neo4jContainer.getSession();
+            int procedureCount = session.run("CALL dbms.procedures() YIELD name WHERE name STARTS WITH 'apoc' RETURN count(*) AS count").peek().get("count").asInt();
+            int functionCount = session.run("CALL dbms.functions() YIELD name WHERE name STARTS WITH 'apoc' RETURN count(*) AS count").peek().get("count").asInt();
+
+            assertTrue(procedureCount > 0);
+            assertTrue(functionCount > 0);
+
             neo4jContainer.close();
         } catch (Exception ex) {
             ex.printStackTrace();
