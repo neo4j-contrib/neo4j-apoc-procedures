@@ -65,6 +65,8 @@ subprojects {
         filter {
             setFailOnNoMatchingTests(false)
         }
+
+        ignoreFailures(true)
     }
 
     configurations {
