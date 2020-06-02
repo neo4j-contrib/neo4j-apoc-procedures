@@ -27,6 +27,7 @@ import static org.junit.Assert.assertFalse;
  */
 public class DocsTest {
 
+    public static final String GENERATED_DOCUMENTATION_DIR = "../build/generated-documentation";
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.auth_enabled, true)
@@ -45,7 +46,7 @@ public class DocsTest {
             }
         }
 
-        new File("build/generated-documentation").mkdirs();
+        new File(GENERATED_DOCUMENTATION_DIR).mkdirs();
     }
 
     static class Row {
@@ -86,7 +87,7 @@ public class DocsTest {
 
         rows.addAll(functionRows);
 
-        try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File("build/generated-documentation/documentation.csv")), StandardCharsets.UTF_8 ))
+        try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, "documentation.csv")), StandardCharsets.UTF_8 ))
         {
             writer.write("¦type¦qualified name¦signature¦description\n");
             for (Row row : rows) {
@@ -107,7 +108,7 @@ public class DocsTest {
 
 
         for (Map.Entry<String, List<Row>> record : collect.entrySet()) {
-            try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(String.format("build/generated-documentation/%s.csv", record.getKey()))), StandardCharsets.UTF_8 ))
+            try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, String.format("%s.csv", record.getKey()))), StandardCharsets.UTF_8 ))
             {
                 writer.write("¦type¦qualified name¦signature¦description\n");
                 for (Row row : record.getValue()) {
@@ -122,7 +123,7 @@ public class DocsTest {
         }
 
         for (Row row : rows) {
-            try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(String.format("build/generated-documentation/%s.csv", row.name))), StandardCharsets.UTF_8)) {
+            try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(GENERATED_DOCUMENTATION_DIR, String.format("%s.csv", row.name))), StandardCharsets.UTF_8)) {
                 writer.write("¦type¦qualified name¦signature¦description\n");
 
                 writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, row.description));
@@ -132,7 +133,7 @@ public class DocsTest {
         }
 
         for (Map.Entry<String, List<Row>> record : collect.entrySet()) {
-            try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(String.format("build/generated-documentation/%s-lite.csv", record.getKey()))), StandardCharsets.UTF_8 ))
+            try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, String.format("%s-lite.csv", record.getKey()))), StandardCharsets.UTF_8 ))
             {
                 writer.write("¦signature\n");
                 for (Row row : record.getValue()) {
@@ -148,7 +149,7 @@ public class DocsTest {
 
 
         for (Row row : rows) {
-            try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(String.format("build/generated-documentation/%s-lite.csv", row.name))), StandardCharsets.UTF_8)) {
+            try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(GENERATED_DOCUMENTATION_DIR, String.format("%s-lite.csv", row.name))), StandardCharsets.UTF_8)) {
                 writer.write("¦signature\n");
 
                 writer.write(String.format("¦%s\n",row.signature));

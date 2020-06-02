@@ -7,6 +7,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
+
 archivesBaseName = 'apoc-nlp-dependencies'
 description = """APOC NLP Dependencies"""
 
