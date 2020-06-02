@@ -48,7 +48,6 @@ dependencies {
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
-    compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
 
     antlr "org.antlr:antlr4:4.7.2", {
         exclude group: 'org.glassfish'
@@ -57,8 +56,6 @@ dependencies {
     }
     // compileOnly "org.antlr:antlr4-runtime:4.7.2"
     // testCompile "org.antlr:antlr4-runtime:4.7.2"
-
-    compile 'org.jsoup:jsoup:1.11.3'
 
     compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
     compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.5'
