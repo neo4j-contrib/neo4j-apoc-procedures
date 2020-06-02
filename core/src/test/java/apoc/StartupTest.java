@@ -23,6 +23,7 @@ public class StartupTest {
             assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
             neo4jContainer.close();
         } catch (Exception ex) {
+            ex.printStackTrace();
             fail("Should not have thrown exception when trying to start Neo4j: " + ex);
         }
     }
