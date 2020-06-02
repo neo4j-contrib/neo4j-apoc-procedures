@@ -220,7 +220,13 @@ public class Util {
         }
     }
 
-    public static <T> Future<T> inTxFuture(Log log, ExecutorService pool, GraphDatabaseService db, Function<Transaction, T> function, long maxRetries, Consumer<Long> callbackForRetry, Consumer<Void> callbackAction) {
+    public static <T> Future<T> inTxFuture(Log log,
+                                           ExecutorService pool,
+                                           GraphDatabaseService db,
+                                           Function<Transaction, T> function,
+                                           long maxRetries,
+                                           Consumer<Long> callbackForRetry,
+                                           Consumer<Void> callbackAction) {
         try {
             return pool.submit(() -> {
                 try {

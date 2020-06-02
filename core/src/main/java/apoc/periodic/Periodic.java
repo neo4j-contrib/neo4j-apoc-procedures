@@ -83,7 +83,7 @@ public class Periodic {
         return Stream.of(new RundownResult(total,executions, timeTaken, batches.get(),failedBatches.get(),batchErrors, failedCommits.get(), commitErrors, wasTerminated));
     }
 
-    private void recordError(Map<String, Long> executionErrors, Exception e) {
+    private static void recordError(Map<String, Long> executionErrors, Exception e) {
         String msg = ExceptionUtils.getRootCause(e).getMessage();
         // String msg = ExceptionUtils.getThrowableList(e).stream().map(Throwable::getMessage).collect(Collectors.joining(","))
         executionErrors.compute(msg, (s, i) -> i == null ? 1 : i + 1);
@@ -255,6 +255,7 @@ public class Periodic {
     private Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, boolean parallel, boolean iterateList, long retries,
                   Iterator<Map<String, Object>> iterator, BiConsumer<Transaction, Map<String, Object>> consumer, int concurrency, int failedParams) {
 
+
         ExecutorService pool = parallel ? pools.getDefaultExecutorService() : pools.getSingleExecutorService();
         List<Future<Long>> futures = new ArrayList<>(concurrency);
         BatchAndTotalCollector collector = new BatchAndTotalCollector(terminationGuard, failedParams);
@@ -263,29 +264,21 @@ public class Periodic {
             if (log.isDebugEnabled()) log.debug("execute in batch no %d batch size ", batchsize);
             List<Map<String,Object>> batch = Util.take(iterator, batchsize);
             final long currentBatchSize = batch.size();
-            Function<Transaction, Long> task;
-            if (iterateList) {
-                task = txInThread -> {
-                    if (Util.transactionIsTerminated(terminationGuard)) return 0L;
-                    Map<String, Object> params = Util.map("_count", collector.getCount(), "_batch", batch);
-                    long successes = executeAndReportErrors(txInThread, consumer, params, batch, batch.size(), null, collector);
-                    return successes;
-                };
-            } else {
-                task = txInThread -> {
-                    if (Util.transactionIsTerminated(terminationGuard)) return 0L;
-                    AtomicLong localCount = new AtomicLong(collector.getCount());
-                    return batch.stream().map(
-                            p -> {
-                                if (localCount.get() % 1000 == 0 && Util.transactionIsTerminated(terminationGuard)) {
-                                    return 0;
-                                }
-                                Map<String, Object> params = merge(p, Util.map("_count", localCount.get(), "_batch", batch));
-                                return executeAndReportErrors(txInThread, consumer, params, batch, 1, localCount, collector);
-                            }).mapToLong(n -> (Long) n).sum();
-                };
-            }
-            futures.add(Util.inTxFuture(log, pool, db, task, retries, aLong -> collector.incrementRetried(), _ignored -> collector.incrementBatches()));
+            ExecuteBatch executeBatch =
+                    iterateList ?
+                            new ListExecuteBatch(terminationGuard, collector, batch, consumer) :
+                            new OneByOneExecuteBatch(terminationGuard, collector, batch, consumer);
+
+            futures.add(Util.inTxFuture(log,
+                                        pool,
+                                        db,
+                                        executeBatch,
+                                        retries,
+                                        retryCount -> collector.incrementRetried(),
+                                        onComplete -> {
+                                            collector.incrementBatches();
+                                            executeBatch.release();
+                                        }));
             /*  TODO: not sure if the block below is required
             if (futures.size() > concurrency) {
                 while (futures.stream().noneMatch(Future::isDone)) { // none done yet, block for a bit
@@ -314,7 +307,73 @@ public class Periodic {
         return Stream.of(collector.getResult());
     }
 
-    private long executeAndReportErrors(Transaction tx, BiConsumer<Transaction, Map<String, Object>> consumer, Map<String, Object> params,
+    private static abstract class ExecuteBatch implements Function<Transaction, Long> {
+
+        protected TerminationGuard terminationGuard;
+        protected BatchAndTotalCollector collector;
+        protected List<Map<String,Object>> batch;
+        protected BiConsumer<Transaction, Map<String, Object>> consumer;
+
+        ExecuteBatch(TerminationGuard terminationGuard,
+                     BatchAndTotalCollector collector,
+                     List<Map<String, Object>> batch,
+                     BiConsumer<Transaction, Map<String, Object>> consumer) {
+            this.terminationGuard = terminationGuard;
+            this.collector = collector;
+            this.batch = batch;
+            this.consumer = consumer;
+        }
+
+        public void release() {
+            terminationGuard = null;
+            collector = null;
+            batch = null;
+            consumer = null;
+        }
+    }
+
+    private static class ListExecuteBatch extends ExecuteBatch {
+
+        ListExecuteBatch(TerminationGuard terminationGuard,
+                         BatchAndTotalCollector collector,
+                         List<Map<String, Object>> batch,
+                         BiConsumer<Transaction, Map<String, Object>> consumer) {
+            super(terminationGuard, collector, batch, consumer);
+        }
+
+        @Override
+        public final Long apply(Transaction txInThread) {
+            if (Util.transactionIsTerminated(terminationGuard)) return 0L;
+            Map<String, Object> params = Util.map("_count", collector.getCount(), "_batch", batch);
+            return executeAndReportErrors(txInThread, consumer, params, batch, batch.size(), null, collector);
+        }
+    }
+
+    private static class OneByOneExecuteBatch extends ExecuteBatch {
+
+        OneByOneExecuteBatch(TerminationGuard terminationGuard,
+                             BatchAndTotalCollector collector,
+                             List<Map<String, Object>> batch,
+                             BiConsumer<Transaction, Map<String, Object>> consumer) {
+            super(terminationGuard, collector, batch, consumer);
+        }
+
+        @Override
+        public final Long apply(Transaction txInThread) {
+            if (Util.transactionIsTerminated(terminationGuard)) return 0L;
+            AtomicLong localCount = new AtomicLong(collector.getCount());
+            return batch.stream().mapToLong(
+                    p -> {
+                        if (localCount.get() % 1000 == 0 && Util.transactionIsTerminated(terminationGuard)) {
+                            return 0;
+                        }
+                        Map<String, Object> params = merge(p, Util.map("_count", localCount.get(), "_batch", batch));
+                        return executeAndReportErrors(txInThread, consumer, params, batch, 1, localCount, collector);
+                    }).sum();
+        }
+    }
+
+    private static long executeAndReportErrors(Transaction tx, BiConsumer<Transaction, Map<String, Object>> consumer, Map<String, Object> params,
                                         List<Map<String, Object>> batch, int returnValue, AtomicLong localCount, BatchAndTotalCollector collector) {
         try {
             consumer.accept(tx, params);
