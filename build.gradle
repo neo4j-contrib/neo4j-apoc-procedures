@@ -61,6 +61,10 @@ subprojects {
             minHeapSize = "128m"
             maxHeapSize = "512m"
         }
+
+        filter {
+            setFailOnNoMatchingTests(false)
+        }
     }
 
     configurations {

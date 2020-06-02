@@ -123,8 +123,6 @@ dependencies {
 //    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
 //    jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
 
-    testCompile group: 'org.gradle', name: 'gradle-tooling-api', version: '6.0.1'
-
     testCompile group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
     testCompile group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
 
