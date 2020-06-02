@@ -8,6 +8,8 @@ plugins {
     id "org.sonarqube"
 }
 
+archivesBaseName = "apoc"
+
 apply plugin: 'com.github.johnrengelman.shadow'
 
 jar {
@@ -22,7 +24,7 @@ configurations {
 }
 
 shadowJar {
-    archiveClassifier.set('all')
+    archiveClassifier.set('core')
 }
 
 javadoc {

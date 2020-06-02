@@ -10,6 +10,8 @@ plugins {
     id "org.jetbrains.kotlin.jvm" version "1.3.71"
 }
 
+archivesBaseName = "apoc"
+
 
 jar {
     manifest {
@@ -28,6 +30,10 @@ generateGrammarSource {
 javadoc {
     failOnError = false
     options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+shadowJar {
+    archiveClassifier.set('all')
 }
 
 dependencies {
