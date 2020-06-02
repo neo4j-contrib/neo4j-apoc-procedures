@@ -15,6 +15,8 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
@@ -36,10 +38,12 @@ public class SystemDbTest {
             List<Node> nodes = (List<Node>) map.get("nodes");
             List<Relationship> relationships = (List<Relationship>) map.get("relationships");
 
-            assertEquals(2, nodes.size());
-            assertTrue( nodes.stream().allMatch( node -> "Database".equals(Iterables.single(node.getLabels()).name())));
-            List<String> names = nodes.stream().map(node -> (String)node.getProperty("name")).collect(Collectors.toList());
-            assertThat( names, Matchers.containsInAnyOrder("neo4j", "system"));
+            assertEquals(4, nodes.size());
+            assertEquals( 2, nodes.stream().filter( node -> "Database".equals(Iterables.single(node.getLabels()).name())).count());
+            assertEquals( 1, nodes.stream().filter( node -> "User".equals(Iterables.single(node.getLabels()).name())).count());
+            assertEquals( 1, nodes.stream().filter( node -> "Version".equals(Iterables.single(node.getLabels()).name())).count());
+            Set<String> names = nodes.stream().map(node -> (String)node.getProperty("name")).filter(Objects::nonNull).collect(Collectors.toSet());
+            org.hamcrest.MatcherAssert.assertThat( names, Matchers.containsInAnyOrder("neo4j", "system"));
 
             assertTrue(relationships.isEmpty());
         });
@@ -49,7 +53,7 @@ public class SystemDbTest {
     public void testExecute() {
         TestUtil.testResult(db, "CALL apoc.systemdb.execute('SHOW DATABASES') YIELD row RETURN row", result -> {
             List<Map<String, Object>> rows = Iterators.asList(result.columnAs("row"));
-            assertThat(rows, Matchers.containsInAnyOrder(
+            org.hamcrest.MatcherAssert.assertThat(rows, Matchers.containsInAnyOrder(
                     MapUtil.map("name", "system", "default", false, "currentStatus", "online", "role", "standalone", "requestedStatus", "online", "error", "", "address", "localhost:7687"),
                     MapUtil.map("name", "neo4j", "default", true, "currentStatus", "online", "role", "standalone", "requestedStatus", "online", "error", "", "address", "localhost:7687")
             ));
