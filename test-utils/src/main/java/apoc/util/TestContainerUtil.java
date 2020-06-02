@@ -3,6 +3,7 @@ package apoc.util;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.neo4j.driver.Record;
@@ -15,10 +16,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -50,7 +48,7 @@ public class TestContainerUtil {
         File pluginsFolder = new File("build/plugins");
         pluginsFolder.mkdirs();
 
-        Collection<File> files = FileUtils.listFiles(new File("build/libs"), new WildcardFileFilter("*-all.jar"), null);
+        Collection<File> files = FileUtils.listFiles(new File("build/libs"), new WildcardFileFilter(Arrays.asList("*-all.jar", "*-core.jar")), null);
         for (File file: files) {
             try {
                 FileUtils.copyFileToDirectory(file, pluginsFolder);
@@ -91,17 +89,19 @@ public class TestContainerUtil {
     }
 
     public static void executeGradleTasks(String... tasks) {
-        ProjectConnection connection = GradleConnector.newConnector()
+        try (ProjectConnection connection = GradleConnector.newConnector()
                 .forProjectDirectory(baseDir)
                 .useBuildDistribution()
-                .connect();
-        try {
+                .connect()) {
 //            String version = connection.getModel(ProjectPublications.class).getPublications().getAt(0).getId().getVersion();
-            connection.newBuild()
-                    .forTasks(tasks)
-                    .run();
-        } finally {
-            connection.close();
+
+            BuildLauncher buildLauncher = connection.newBuild().forTasks(tasks);
+            String neo4jVersionOverride = System.getenv("NEO4JVERSION");
+            if(neo4jVersionOverride != null) {
+                buildLauncher= buildLauncher.addArguments("-P", "neo4jVersionOverride=" + neo4jVersionOverride);
+            }
+
+            buildLauncher.run();
         }
     }
 
