@@ -57,6 +57,7 @@ public class TestContainerUtil {
             }
         }
 
+        System.out.println("neo4jDockerImageVersion = " + neo4jDockerImageVersion);
         Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(neo4jDockerImageVersion)
                 .withPlugins(MountableFile.forHostPath(pluginsFolder.toPath()))
                 .withAdminPassword("apoc")
