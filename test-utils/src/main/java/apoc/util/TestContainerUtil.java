@@ -96,9 +96,15 @@ public class TestContainerUtil {
 //            String version = connection.getModel(ProjectPublications.class).getPublications().getAt(0).getId().getVersion();
 
             BuildLauncher buildLauncher = connection.newBuild().forTasks(tasks);
+
             String neo4jVersionOverride = System.getenv("NEO4JVERSION");
-            if(neo4jVersionOverride != null) {
-                buildLauncher= buildLauncher.addArguments("-P", "neo4jVersionOverride=" + neo4jVersionOverride);
+            if (neo4jVersionOverride != null) {
+                buildLauncher = buildLauncher.addArguments("-P", "neo4jVersionOverride=" + neo4jVersionOverride);
+            }
+
+            String localMaven = System.getenv("LOCAL_MAVEN");
+            if (localMaven != null) {
+                buildLauncher = buildLauncher.addArguments("-D", "maven.repo.local=" + localMaven);
             }
 
             buildLauncher.run();
