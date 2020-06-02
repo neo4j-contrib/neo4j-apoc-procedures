@@ -1,4 +1,3 @@
-apoc.RegisterComponentFactory
 apoc.ApocConfigExtensionFactory
-apoc.PoolExtensionFactory
 apoc.ApocExtensionFactory
+apoc.PoolExtensionFactory

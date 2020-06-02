@@ -1,1 +1,3 @@
+apoc.RegisterComponentFactory
+apoc.ApocExtendedExtensionFactory
 apoc.ApocExtendedInitFactory

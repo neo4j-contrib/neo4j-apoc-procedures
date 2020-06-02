@@ -35,7 +35,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
  * @author mh
  * @since 14.05.16
  */
-public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.Dependencies> {
+public class ApocExtendedExtensionFactory extends ExtensionFactory<ApocExtendedExtensionFactory.Dependencies> {
 
     static {
         try {
@@ -44,7 +44,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
             System.err.println("APOC couln't set a URLStreamHandlerFactory since some other tool already did this (e.g. tomcat). This means you cannot use s3:// or hdfs:// style URLs in APOC. This is caused by a limitation of the JVM which we cannot fix. ");
         }
     }
-    public ApocExtensionFactory() {
+    public ApocExtendedExtensionFactory() {
         super(ExtensionType.DATABASE, "APOC");
     }
 
@@ -81,7 +81,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
             this.log = log;
             this.db = db;
             this.dependencies = dependencies;
-            userLog = log.getUserLog(ApocExtensionFactory.class);
+            userLog = log.getUserLog(ApocExtendedExtensionFactory.class);
         }
 
         public static void withNonSystemDatabase(GraphDatabaseService db, Consumer<Void> consumer) {
@@ -138,7 +138,6 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
 
                 AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
                 availabilityGuard.addListener(cypherProceduresHandler);
-                availabilityGuard.addListener(new CypherInitializer(db, log.getUserLog(CypherInitializer.class)));
 
             });
         }
