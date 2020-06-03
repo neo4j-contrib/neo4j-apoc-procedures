@@ -4,12 +4,9 @@ import apoc.text.Strings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.Utils;
-import org.hamcrest.Matchers;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
@@ -18,15 +15,16 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonMap;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.*;
 
@@ -47,7 +45,7 @@ public class CypherExtendedTest {
     @BeforeClass
     public static void setUp() {
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        TestUtil.registerProcedure(db, CypherExtended.class, Utils.class, CypherFunctions.class, Timeboxed.class, Strings.class);
+        TestUtil.registerProcedure(db, Cypher.class, CypherExtended.class, Utils.class, CypherFunctions.class, Timeboxed.class, Strings.class);
     }
 
     @After
