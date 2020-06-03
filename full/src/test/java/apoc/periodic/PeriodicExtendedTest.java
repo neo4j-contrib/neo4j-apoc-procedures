@@ -44,8 +44,7 @@ public class PeriodicExtendedTest {
 
     @Before
     public void initDb() throws Exception {
-        TestUtil.registerProcedure(db, Periodic.class, Jdbc.class);
-        db.executeTransactionally("call apoc.periodic.list() yield name call apoc.periodic.cancel(name) yield name as name2 return count(*)");
+        TestUtil.registerProcedure(db, Periodic.class, PeriodicExtended.class, Jdbc.class);
     }
 
     @Test
