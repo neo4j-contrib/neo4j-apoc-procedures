@@ -51,11 +51,12 @@ subprojects {
         //exclude '**/CypherProceduresClusterTest.class'//, '**/AtomicTest.class'
 
         // neo4jDockerImage system property is used in TestContainerUtil
-        systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.1.0-enterprise'
+        systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.1.0-enterprise', 'neo4jCommunityDockerImage': 'neo4j:4.1.0'
 
         maxHeapSize = "8G"
         forkEvery = 50
-        maxParallelForks = 1 //Runtime.runtime.availableProcessors().intdiv(2) + 1
+        maxParallelForks = 1 //Runtime.runtime.availableProcessors().intdi
+        // v(2) + 1
 
         if (System.env.TRAVIS !=null) {
             minHeapSize = "128m"

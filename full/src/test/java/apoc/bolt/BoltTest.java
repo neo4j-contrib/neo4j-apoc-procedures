@@ -42,8 +42,9 @@ public class BoltTest {
     @BeforeClass
     public static void setUp() throws Exception {
         assumeFalse(isTravis());
+        String neo4jDockerImageVersion = System.getProperty("neo4jCommunityDockerImage", "neo4j:4.1.0");
         TestUtil.ignoreException(() -> {
-            neo4jContainer = new Neo4jContainerExtension()
+            neo4jContainer = new Neo4jContainerExtension("neo4j:4.1.0")
                     .withInitScript("init_neo4j_bolt.cypher")
                     .withLogging()
                     .withoutAuthentication();
@@ -107,7 +108,7 @@ public class BoltTest {
 
     @Test
     public void testLoadPathVirtual() throws Exception {
-            TestUtil.testCall(db, "call apoc.bolt.load(" + BOLT_URL + ",'START neo=node($idNode)  MATCH path= (neo)-[r:KNOWS*..3]->(other) return path', {idNode:1}, {virtual:true})", r -> {
+            TestUtil.testCall(db, "call apoc.bolt.load(" + BOLT_URL + ",'MATCH (neo) WHERE id(neo) = $idNode  MATCH path= (neo)-[r:KNOWS*..3]->(other) return path', {idNode:1}, {virtual:true})", r -> {
                 assertNotNull(r);
                 Map<String, Object> row = (Map<String, Object>) r.get("row");
                 List<Object> path = (List<Object>) row.get("path");
