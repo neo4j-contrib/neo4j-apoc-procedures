@@ -47,7 +47,6 @@ dependencies {
     testCompile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
-    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
 
     antlr "org.antlr:antlr4:4.7.2", {
         exclude group: 'org.glassfish'

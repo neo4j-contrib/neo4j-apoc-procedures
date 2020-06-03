@@ -44,7 +44,7 @@ public class BoltTest {
         assumeFalse(isTravis());
         String neo4jDockerImageVersion = System.getProperty("neo4jCommunityDockerImage", "neo4j:4.1.0");
         TestUtil.ignoreException(() -> {
-            neo4jContainer = new Neo4jContainerExtension("neo4j:4.1.0")
+            neo4jContainer = new Neo4jContainerExtension(neo4jDockerImageVersion)
                     .withInitScript("init_neo4j_bolt.cypher")
                     .withLogging()
                     .withoutAuthentication();
