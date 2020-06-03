@@ -1,3 +1,6 @@
+apoc.ApocConfigExtensionFactory
+apoc.ApocExtensionFactory
+apoc.PoolExtensionFactory
 apoc.RegisterComponentFactory
 apoc.ApocExtendedExtensionFactory
 apoc.ApocExtendedInitFactory

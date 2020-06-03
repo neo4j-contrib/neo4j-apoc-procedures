@@ -176,17 +176,6 @@ public class CypherExtended {
         }
     }
 
-    @Procedure(mode = WRITE)
-    @Description("apoc.cypher.runMany('cypher;\\nstatements;',{params},[{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations")
-    public Stream<RowResult> runMany(@Name("cypher") String cypher, @Name("params") Map<String,Object> params, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
-        boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
-        int timeout = Util.toInteger(config.getOrDefault("timeout",1));
-        int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
-
-        StringReader stringReader = new StringReader(cypher);
-        return runManyStatements(stringReader ,params, false, addStatistics, timeout, queueCapacity);
-    }
-
     private final static Pattern shellControl = Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
 
     private Object consumeResult(Result result, BlockingQueue<RowResult> queue, boolean addStatistics, long timeout) {

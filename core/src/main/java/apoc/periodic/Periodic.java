@@ -213,69 +213,6 @@ public class Periodic {
     }
 
     /**
-     * as long as cypherLoop does not return 0, null, false, or the empty string as 'value' do:
-     *
-     * invoke cypherAction in batched transactions being feeded from cypherIteration running in main thread
-     *
-     * @param cypherLoop
-     * @param cypherIterate
-     * @param cypherAction
-     * @param batchSize
-     */
-    @Procedure(mode = Mode.WRITE)
-    @Deprecated
-    @Description("apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
-    public Stream<LoopingBatchAndTotalResult> rock_n_roll_while(
-            @Name("cypherLoop") String cypherLoop,
-            @Name("cypherIterate") String cypherIterate,
-            @Name("cypherAction") String cypherAction,
-            @Name("batchSize") long batchSize) {
-        Map<String, String> fieldStatement = Util.map(
-                "cypherLoop", cypherLoop,
-                "cypherIterate", cypherIterate);
-        validateQueries(fieldStatement);
-        Stream<LoopingBatchAndTotalResult> allResults = Stream.empty();
-
-        Map<String,Object> loopParams = new HashMap<>(1);
-        Object value = null;
-
-        while (true) {
-            loopParams.put("previous", value);
-
-            try (Result result = tx.execute(cypherLoop, loopParams)) {
-                value = result.next().get("loop");
-                if (!Util.toBoolean(value)) return allResults;
-            }
-
-            log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
-            try (Result result = tx.execute(cypherIterate)) {
-                Stream<BatchAndTotalResult> oneResult =
-                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, false, false,0, result, (tx, params) -> tx.execute(cypherAction, params), 50, -1);
-                final Object loopParam = value;
-                allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
-            }
-        }
-    }
-
-    private void validateQueries(Map<String, String> fieldStatement) {
-        String error = fieldStatement.entrySet()
-                .stream()
-                .map(e -> {
-                    try {
-                        validateQuery(e.getValue());
-                        return null;
-                    } catch (Exception exception) {
-                        return String.format("Exception for field `%s`, message: %s", e.getKey(), exception.getMessage());
-                    }
-                })
-                .filter(e -> e != null)
-                .collect(Collectors.joining("\n"));
-        if (!error.isEmpty()) {
-            throw new RuntimeException(error);
-        }
-    }
-
-    /**
      * invoke cypherAction in batched transactions being feeded from cypherIteration running in main thread
      * @param cypherIterate
      * @param cypherAction
@@ -313,26 +250,6 @@ public class Periodic {
         }
         Matcher matcher = CYPHER_PREFIX_PATTERN.matcher(cypherIterate.substring(0, Math.min(15,cypherIterate.length())));
         return matcher.find() ? CYPHER_PREFIX_PATTERN.matcher(cypherIterate).replaceFirst(CYPHER_RUNTIME_SLOTTED) : CYPHER_RUNTIME_SLOTTED + cypherIterate;
-    }
-
-
-
-    @Deprecated
-    @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
-    public Stream<BatchAndTotalResult> rock_n_roll(
-            @Name("cypherIterate") String cypherIterate,
-            @Name("cypherAction") String cypherAction,
-            @Name("batchSize") long batchSize) {
-        Map<String, String> fieldStatement = Util.map(
-                "cypherIterate", cypherIterate,
-                "cypherAction", cypherAction);
-        validateQueries(fieldStatement);
-
-        log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
-        try (Result result = tx.execute(cypherIterate)) {
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, (tx, p) -> tx.execute(cypherAction, p), 50, -1);
-        }
     }
 
     private Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, boolean parallel, boolean iterateList, long retries,

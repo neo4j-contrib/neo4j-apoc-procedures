@@ -229,81 +229,11 @@ public class Cypher {
             this.result = result;
         }
     }
-    private Reader readerForFile(@Name("file") String fileName) {
-        try {
-            return FileUtils.readerFor(fileName);
-        } catch (IOException ioe) {
-            throw new RuntimeException("Error accessing file "+fileName,ioe);
-        }
-    }
 
     public static String withParamMapping(String fragment, Collection<String> keys) {
         if (keys.isEmpty()) return fragment;
         String declaration = " WITH " + join(", ", keys.stream().map(s -> format(" $`%s` as `%s` ", s, s)).collect(toList()));
         return declaration + fragment;
-    }
-
-    public static String compiled(String fragment) {
-        return fragment.substring(0,6).equalsIgnoreCase("cypher") ? fragment : COMPILED_PREFIX + fragment;
-    }
-
-    @Procedure
-    public Stream<MapResult> parallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        if (params == null) return run(fragment, params);
-        if (key == null || !params.containsKey(key))
-            throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet());
-        Object value = params.get(key);
-        if (!(value instanceof Collection))
-            throw new RuntimeException("Can't parallelize a non collection " + key + " : " + value);
-
-        final String statement = withParamMapping(fragment, params.keySet());
-        Collection<Object> coll = (Collection<Object>) value;
-        return coll.parallelStream().flatMap((v) -> {
-            terminationGuard.check();
-            Map<String, Object> parallelParams = new HashMap<>(params);
-            parallelParams.replace(key, v);
-            return tx.execute(statement, parallelParams).stream().map(MapResult::new);
-        });
-
-        /*
-        params.entrySet().stream()
-                .filter( e -> asCollection(e.getValue()).size() > 100)
-                .map( (e) -> (Map.Entry<String,Collection>)(Map.Entry)e )
-                .max( (max,e) -> e.getValue().size() )
-                .map( (e) -> e.getValue().parallelStream().map( (v) -> {
-                    Map map = new HashMap<>(params);
-                    map.put(e.getKey(),as)
-                }));
-        return db.execute(statement,params).stream().map(MapResult::new);
-        */
-    }
-
-
-
-    public Map<String, Object> parallelParams(@Name("params") Map<String, Object> params, String key, List<Object> partition) {
-        if (params.isEmpty()) return Collections.singletonMap(key, partition);
-
-        Map<String, Object> parallelParams = new HashMap<>(params);
-        parallelParams.put(key, partition);
-        return parallelParams;
-    }
-
-
-    public static String withParamsAndIterator(String fragment, Collection<String> params, String iterator) {
-        boolean noIterator = iterator == null || iterator.isEmpty();
-        if (params.isEmpty() && noIterator) return fragment;
-        String with = Util.withMapping(params.stream().filter((c) -> noIterator || !c.equals(iterator)), (c) -> param(c) + " AS " + quote(c));
-        if (noIterator) return with + fragment;
-        return with + " UNWIND " + param(iterator) + " AS " + quote(iterator) + ' ' + fragment;
-    }
-
-    private Future<List<Map<String, Object>>> submit(GraphDatabaseService db, String statement, Map<String, Object> params, String key, List<Object> partition, TerminationGuard terminationGuard) {
-        return pools.getDefaultExecutorService().submit(
-                () -> {
-                    terminationGuard.check();
-                    return db.executeTransactionally(statement, parallelParams(params, key, partition), result -> Iterators.asList(result));
-                }
-        );
     }
 
     @Procedure(mode = WRITE)
