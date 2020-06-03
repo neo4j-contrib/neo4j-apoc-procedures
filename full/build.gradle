@@ -136,11 +136,6 @@ dependencies {
     testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
-    //compileOnly group: 'org.apache.commons', name: 'commons-text', version: '1.7'
-//    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
-//    jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
-
-
 
     testCompile group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
     testCompile group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
@@ -180,11 +175,12 @@ publishing {
     repositories {
         maven {
             name = 'pipeline'
-            url = "file://${rootProject.buildDir}/repo"
+            url = "file://${project(':full').buildDir}/repo"
         }
     }
     publications {
         shadow(MavenPublication) { publication ->
+            artifactId("apoc")
             project.shadow.component(publication)
             artifact(mySourcesJar)
             artifact(myJavadocJar)
@@ -214,7 +210,7 @@ publishing {
 
                 def dependenciesNode = root.get("dependencies")[0]
 
-                configurations.default.allDependencies.forEach {
+                configurations.default.allDependencies.findAll {dependency -> dependency.group != "org.neo4j.procedure"}.forEach {
                     def dependency = dependenciesNode.appendNode('dependency')
                     dependency.appendNode('groupId', it.group)
                     dependency.appendNode('artifactId', it.name)
