@@ -73,6 +73,11 @@ public class SchemasEnterpriseFeaturesTest {
         session.readTransaction(tx -> {
             List<Record> result = tx.run("CALL db.constraints").list();
             assertEquals(1, result.size());
+            tx.commit();
+            return null;
+        });
+
+        session.writeTransaction(tx -> {
             tx.run("DROP CONSTRAINT ON (f:Foo) ASSERT (f.bar,f.foo) IS NODE KEY").list();
             tx.commit();
             return null;
@@ -148,8 +153,13 @@ public class SchemasEnterpriseFeaturesTest {
 
     @Test
     public void testIndexOnMultipleProperties() {
-        String indexName = session.writeTransaction(tx -> {
+        session.writeTransaction(tx -> {
             tx.run("CREATE INDEX ON :Foo(bar, foo)");
+            tx.commit();
+            return null;
+        });
+
+        String indexName = session.readTransaction(tx -> {
             String name = tx.run("CALL db.indexes() YIELD name RETURN name").single().get("name").asString();
             tx.commit();
             return name;
