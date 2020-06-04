@@ -1,9 +1,11 @@
 package apoc.custom;
 
+import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import apoc.util.TestcontainersCausalCluster;
 import org.junit.*;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.internal.helpers.collection.MapUtil;
 
@@ -42,15 +44,23 @@ public class CypherProceduresClusterTest {
     @Test
     public void shouldRecreateCustomFunctionsOnOtherClusterMembers() throws InterruptedException {
         // given
-        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.asFunction('answer1', 'RETURN 42 as answer')")); // we create a function
+        
+        try(Session session = cluster.getDriver().session()) {
+            session.writeTransaction(tx -> tx.run("call apoc.custom.asFunction('answer1', 'RETURN 42 as answer')")); // we create a function
+        }
 
         // whencypher procedures
-        TestContainerUtil.testCall(cluster.getSession(), "return custom.answer1() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        try(Session session = cluster.getDriver().session()) {
+            TestContainerUtil.testCall(session, "return custom.answer1() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        }
+
         Thread.sleep(1000);
 
         // then
         // we use the readTransaction in order to route the execution to the READ_REPLICA
-        TestContainerUtil.testCallInReadTransaction(cluster.getSession(), "return custom.answer1() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        try(Session session = cluster.getDriver().session()) {
+            TestContainerUtil.testCallInReadTransaction(session, "return custom.answer1() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        }
     }
 
     @Test
