@@ -47,11 +47,11 @@ public class BoltTest {
             neo4jContainer = new Neo4jContainerExtension(neo4jDockerImageVersion)
                     .withInitScript("init_neo4j_bolt.cypher")
                     .withLogging()
-                    .withoutAuthentication();
+                    .withAdminPassword("neo4j2020");
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
-        BOLT_URL = "'" + neo4jContainer.getBoltUrl() + "'";
+        BOLT_URL = "'" + "bolt://neo4j:neo4j2020@" + neo4jContainer.getContainerIpAddress() + ":" + neo4jContainer.getMappedPort(7687) + "'";
 
         TestUtil.registerProcedure(db, Bolt.class);
     }
