@@ -119,6 +119,7 @@ public class TestcontainersCausalCluster {
                 .withoutDriver()
                 .withNeo4jConfig("dbms.mode", instanceType.toString())
                 .withNeo4jConfig("dbms.default_listen_address", "0.0.0.0")
+                .withNeo4jConfig("causal_clustering.leadership_balancing", "NO_BALANCING")
                 .withNeo4jConfig("causal_clustering.initial_discovery_members", initialDiscoveryMembers)
                 .withStartupTimeout(Duration.ofMinutes(MINUTES_TO_WAIT));
         neo4jConfig.forEach((conf, value) -> container.withNeo4jConfig(conf, String.valueOf(value)));
