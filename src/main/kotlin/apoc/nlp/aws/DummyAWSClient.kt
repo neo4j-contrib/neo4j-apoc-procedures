@@ -1,6 +1,5 @@
 package apoc.nlp.aws
 
-import apoc.ai.service.AWSClient
 import com.amazonaws.services.comprehend.model.*
 import org.neo4j.graphdb.Node
 import org.neo4j.logging.Log
