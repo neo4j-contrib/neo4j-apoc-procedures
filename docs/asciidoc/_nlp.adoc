@@ -13,6 +13,8 @@ This section includes:
 
 * <<nlp-gcp>>
 * <<nlp-aws>>
+* <<nlp-azure>>
 
 include::nlp/gcp.adoc[]
 include::nlp/aws.adoc[]
+include::nlp/azure.adoc[]

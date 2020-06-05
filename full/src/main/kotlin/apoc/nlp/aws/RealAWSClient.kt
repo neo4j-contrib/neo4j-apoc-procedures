@@ -1,12 +1,16 @@
 package apoc.nlp.aws
 
-import apoc.ai.service.AWSClient
 import apoc.result.MapResult
 import apoc.util.JsonUtil
 import com.amazonaws.auth.AWSStaticCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.comprehend.AmazonComprehendClientBuilder
-import com.amazonaws.services.comprehend.model.*
+import com.amazonaws.services.comprehend.model.BatchDetectEntitiesRequest
+import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
+import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesRequest
+import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesResult
+import com.amazonaws.services.comprehend.model.BatchDetectSentimentRequest
+import com.amazonaws.services.comprehend.model.BatchDetectSentimentResult
 import org.neo4j.graphdb.Node
 import org.neo4j.logging.Log
 

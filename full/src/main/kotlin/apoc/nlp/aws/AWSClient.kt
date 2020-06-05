@@ -1,4 +1,4 @@
-package apoc.ai.service
+package apoc.nlp.aws
 
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
 import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesResult

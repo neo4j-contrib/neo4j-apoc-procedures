@@ -49,7 +49,7 @@ data class GCPVirtualEntitiesGraph(private val results: List<NodeValueErrorMapRe
                         entityNodes.add(entityNode)
 
                         val nodeAndScore = Pair(entityNode, score)
-                        NLPHelperFunctions.mergeRelationship(transaction!!, sourceNode, nodeAndScore, relType, relProperty).forEach { rel -> relationships.add(rel) }
+                        relationships.add(NLPHelperFunctions.mergeRelationship(sourceNode, nodeAndScore, relType, relProperty))
 
                         sourceNode
                     } else {
