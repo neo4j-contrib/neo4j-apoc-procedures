@@ -41,4 +41,11 @@ public class HelpTest {
         });
     }
 
+    @Test
+    public void indicateCore() {
+        TestUtil.testCall(db,"CALL apoc.help($text)",map("text","coll.zipToRows"), (row) -> {
+            assertEquals(true, row.get("core"));
+        });
+    }
+
 }

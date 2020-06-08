@@ -1,5 +1,6 @@
 package apoc.es;
 
+import apoc.Extended;
 import apoc.load.LoadJson;
 import apoc.result.MapResult;
 import apoc.util.UrlResolver;
@@ -21,6 +22,7 @@ import static apoc.util.MapUtil.map;
  * @author mh
  * @since 21.05.16
  */
+@Extended
 public class ElasticSearch {
 
     private final static String fullQueryTemplate = "/%s/%s/%s?%s";

@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.MapUtil;
 import apoc.util.Util;
@@ -18,6 +19,7 @@ import org.neo4j.procedure.Procedure;
 import java.util.*;
 import java.util.stream.Stream;
 
+@Extended
 public class LoadHtml {
 
     @Context

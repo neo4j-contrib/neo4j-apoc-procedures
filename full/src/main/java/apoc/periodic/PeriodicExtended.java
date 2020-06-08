@@ -1,5 +1,6 @@
 package apoc.periodic;
 
+import apoc.Extended;
 import apoc.Pools;
 import apoc.util.Util;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -21,6 +22,7 @@ import java.util.stream.Stream;
 
 import static apoc.util.Util.merge;
 
+@Extended
 public class PeriodicExtended {
     @Context public GraphDatabaseService db;
     @Context public TerminationGuard terminationGuard;

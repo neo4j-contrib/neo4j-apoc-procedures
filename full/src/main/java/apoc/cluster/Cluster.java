@@ -1,6 +1,7 @@
 package apoc.cluster;
 
 import apoc.Description;
+import apoc.Extended;
 import apoc.result.GraphResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
@@ -17,6 +18,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonMap;
 
+@Extended
 public class Cluster
 {
     @Context

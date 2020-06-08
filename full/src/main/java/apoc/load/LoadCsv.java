@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.Extended;
 import apoc.export.util.CountingReader;
 import apoc.load.util.LoadCsvConfig;
 import apoc.util.FileUtils;
@@ -24,6 +25,7 @@ import static apoc.util.FileUtils.closeReaderSafely;
 import static apoc.util.Util.cleanUrl;
 import static java.util.Collections.emptyList;
 
+@Extended
 public class LoadCsv {
 
     @Context

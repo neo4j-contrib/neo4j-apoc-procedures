@@ -1,5 +1,6 @@
 package apoc.nlp.gcp
 
+import apoc.Extended
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPHelperFunctions.Companion.convert
 import apoc.nlp.NLPHelperFunctions.Companion.getNodeProperty
@@ -14,6 +15,7 @@ import org.neo4j.logging.Log
 import org.neo4j.procedure.*
 import java.util.stream.Stream
 
+@Extended
 class GCPProcedures {
     @Context
     @JvmField

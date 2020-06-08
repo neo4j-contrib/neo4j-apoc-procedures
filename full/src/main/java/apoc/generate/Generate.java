@@ -1,5 +1,6 @@
 package apoc.generate;
 
+import apoc.Extended;
 import org.neo4j.procedure.*;
 import apoc.generate.config.*;
 import apoc.generate.node.DefaultNodeCreator;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Extended
 public class Generate {
 
     @Context

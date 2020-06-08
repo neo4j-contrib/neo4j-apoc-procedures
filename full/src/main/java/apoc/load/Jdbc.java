@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.Extended;
 import apoc.load.util.LoadJdbcConfig;
 import apoc.result.RowResult;
 import apoc.util.MapUtil;
@@ -26,6 +27,7 @@ import static apoc.load.util.JdbcUtil.*;
  * @author mh
  * @since 26.02.16
  */
+@Extended
 public class Jdbc {
 
 /*

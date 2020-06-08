@@ -1,6 +1,7 @@
 package apoc.systemdb;
 
 import apoc.ApocConfig;
+import apoc.Extended;
 import apoc.result.RowResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
@@ -20,6 +21,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Extended
 public class SystemDb {
 
     @Context

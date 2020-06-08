@@ -7,6 +7,7 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
+import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ConfigurationBuilder;
 
 import java.io.File;
@@ -163,7 +164,7 @@ public class DocsTest {
     private Set<Class<?>> allClasses() {
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .forPackages("apoc")
-                .setScanners(new SubTypesScanner(false))
+                .setScanners(new SubTypesScanner(false), new TypeAnnotationsScanner())
                 .filterInputsBy(input -> !input.endsWith("Test.class") && !input.endsWith("Result.class") && !input.contains("$"))
         );
 

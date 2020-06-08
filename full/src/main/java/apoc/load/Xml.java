@@ -1,6 +1,7 @@
 package apoc.load;
 
 import apoc.ApocConfig;
+import apoc.Extended;
 import apoc.export.util.CountingInputStream;
 import apoc.generate.config.InvalidConfigException;
 import apoc.result.MapResult;
@@ -42,6 +43,7 @@ import java.util.stream.Stream;
 import static apoc.util.Util.cleanUrl;
 import static javax.xml.stream.XMLStreamConstants.*;
 
+@Extended
 public class Xml {
 
     private static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();

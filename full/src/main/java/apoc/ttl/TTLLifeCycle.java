@@ -1,6 +1,7 @@
 package apoc.ttl;
 
 import apoc.ApocConfig;
+import apoc.Extended;
 import apoc.util.Util;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;

@@ -1,5 +1,6 @@
 package apoc.ttl;
 
+import apoc.Extended;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.procedure.Description;
@@ -9,6 +10,7 @@ import org.neo4j.procedure.Procedure;
 
 import static apoc.date.Date.unit;
 
+@Extended
 public class TTL {
 
     @Procedure(mode = Mode.WRITE)

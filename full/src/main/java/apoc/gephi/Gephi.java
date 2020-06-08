@@ -1,5 +1,6 @@
 package apoc.gephi;
 
+import apoc.Extended;
 import apoc.graph.Graphs;
 import apoc.result.ProgressInfo;
 import apoc.util.JsonUtil;
@@ -24,6 +25,7 @@ import static apoc.util.MapUtil.map;
  */
 // https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master
 // https://marketplace.gephi.org/plugin/graph-streaming/
+@Extended
 public class Gephi {
 
     public static final int WIDTH = 1000;

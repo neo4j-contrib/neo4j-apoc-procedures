@@ -1,5 +1,6 @@
 package apoc.cypher;
 
+import apoc.Extended;
 import apoc.Pools;
 import apoc.result.MapResult;
 import apoc.util.FileUtils;
@@ -41,6 +42,7 @@ import static org.neo4j.procedure.Mode.WRITE;
  * @author mh
  * @since 08.05.16
  */
+@Extended
 public class CypherExtended {
 
     public static final String COMPILED_PREFIX = "CYPHER runtime="+ Util.COMPILED;

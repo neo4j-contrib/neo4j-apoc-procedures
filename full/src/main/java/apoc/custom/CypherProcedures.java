@@ -1,5 +1,6 @@
 package apoc.custom;
 
+import apoc.Extended;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
 import org.neo4j.internal.kernel.api.procs.FieldSignature;
@@ -23,6 +24,7 @@ import static apoc.custom.CypherProceduresHandler.*;
  * @author mh
  * @since 18.08.18
  */
+@Extended
 public class CypherProcedures {
 
     @Context

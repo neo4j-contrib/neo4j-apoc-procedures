@@ -1,5 +1,6 @@
 package apoc.model;
 
+import apoc.Extended;
 import apoc.load.util.LoadJdbcConfig;
 import apoc.result.VirtualNode;
 import org.neo4j.graphdb.*;
@@ -21,6 +22,7 @@ import static apoc.load.util.JdbcUtil.getConnection;
 import static apoc.load.util.JdbcUtil.getUrlOrKey;
 import static apoc.util.Util.map;
 
+@Extended
 public class Model {
 
     @Context

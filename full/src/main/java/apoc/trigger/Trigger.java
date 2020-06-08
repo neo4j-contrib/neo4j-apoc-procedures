@@ -1,6 +1,7 @@
 package apoc.trigger;
 
 import apoc.Description;
+import apoc.Extended;
 import apoc.coll.SetBackedList;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -14,6 +15,7 @@ import java.util.stream.Stream;
  * @author mh
  * @since 20.09.16
  */
+@Extended
 public class Trigger {
     public static class TriggerInfo {
         public String name;

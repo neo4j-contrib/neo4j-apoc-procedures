@@ -2,6 +2,7 @@ package apoc.export.xls;
 
 import apoc.ApocConfig;
 import apoc.Description;
+import apoc.Extended;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
@@ -30,6 +31,7 @@ import java.util.stream.StreamSupport;
 
 import static apoc.util.FileUtils.getOutputStream;
 
+@Extended
 public class ExportXls {
     @Context
     public Transaction tx;

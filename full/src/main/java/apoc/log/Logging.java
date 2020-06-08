@@ -1,6 +1,7 @@
 package apoc.log;
 
 import apoc.ApocConfig;
+import apoc.Extended;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -14,6 +15,7 @@ import java.util.function.Consumer;
  * @author bradnussbaum
  * @since 2017.07.28
  */
+@Extended
 public class Logging {
 
     @Context

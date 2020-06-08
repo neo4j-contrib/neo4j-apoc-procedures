@@ -1,6 +1,7 @@
 package apoc.config;
 
 import apoc.ApocConfig;
+import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.Util;
 import org.apache.commons.configuration2.Configuration;
@@ -19,6 +20,7 @@ import java.util.stream.Stream;
  * @author mh
  * @since 28.10.16
  */
+@Extended
 public class Config {
 
     public static class ConfigResult {

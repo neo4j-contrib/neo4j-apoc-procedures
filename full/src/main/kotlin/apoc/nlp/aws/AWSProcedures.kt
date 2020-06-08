@@ -1,5 +1,6 @@
 package apoc.nlp.aws
 
+import apoc.Extended
 import apoc.ai.service.AWSClient
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPHelperFunctions.Companion.getNodeProperty
@@ -20,6 +21,7 @@ import org.neo4j.logging.Log
 import org.neo4j.procedure.*
 import java.util.stream.Stream
 
+@Extended
 class AWSProcedures {
     @Context
     @JvmField

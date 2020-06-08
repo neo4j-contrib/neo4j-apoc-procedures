@@ -1,6 +1,7 @@
 package apoc.uuid;
 
 import apoc.Description;
+import apoc.Extended;
 import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -14,6 +15,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
+@Extended
 public class Uuid {
 
     @Context

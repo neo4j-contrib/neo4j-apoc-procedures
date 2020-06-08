@@ -1,5 +1,6 @@
 package apoc.mongodb;
 
+import apoc.Extended;
 import apoc.result.LongResult;
 import apoc.result.MapResult;
 import apoc.util.MissingDependencyException;
@@ -45,6 +46,7 @@ MERGE (c)-[:OFFERED_BY]->(u)
 
 
  */
+@Extended
 public class MongoDB {
 
     @Context

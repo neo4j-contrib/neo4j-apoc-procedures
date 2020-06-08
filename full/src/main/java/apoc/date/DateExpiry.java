@@ -1,5 +1,6 @@
 package apoc.date;
 
+import apoc.Extended;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.procedure.Description;
@@ -14,6 +15,7 @@ import static apoc.date.Date.unit;
  * @author tkroman
  * @since 9.04.2016
  */
+@Extended
 public class DateExpiry {
 	@Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.ttl.expireAtInstant")
 	@Description("CALL apoc.date.expire(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property")

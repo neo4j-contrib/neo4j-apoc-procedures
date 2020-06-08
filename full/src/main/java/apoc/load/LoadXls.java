@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.Extended;
 import apoc.export.util.CountingInputStream;
 import apoc.meta.Meta;
 import apoc.util.FileUtils;
@@ -30,6 +31,7 @@ import static apoc.util.Util.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
+@Extended
 public class LoadXls {
 
     public static final char DEFAULT_ARRAY_SEP = ';';

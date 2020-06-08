@@ -1,5 +1,6 @@
 package apoc.metrics;
 
+import apoc.Extended;
 import apoc.export.util.CountingReader;
 import apoc.load.CSVResult;
 import apoc.load.LoadCsv;
@@ -24,6 +25,7 @@ import static apoc.util.FileUtils.closeReaderSafely;
  * @author moxious
  * @since 27.02.19
  */
+@Extended
 public class Metrics {
     @Context
     public Log log;

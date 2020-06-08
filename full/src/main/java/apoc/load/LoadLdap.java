@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.Extended;
 import com.novell.ldap.*;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Mode;
@@ -13,6 +14,7 @@ import java.util.stream.StreamSupport;
 
 import static apoc.ApocConfig.apocConfig;
 
+@Extended
 public class LoadLdap {
 
     @Procedure(name = "apoc.load.ldap", mode = Mode.READ)

@@ -1,5 +1,6 @@
 package apoc.couchbase;
 
+import apoc.Extended;
 import apoc.couchbase.document.CouchbaseJsonDocument;
 import apoc.couchbase.document.CouchbaseQueryResult;
 import apoc.couchbase.document.CouchbaseUtils;
@@ -73,6 +74,7 @@ import java.util.stream.Stream;
  * @author inserpio
  * @since 15.8.2016
  */
+@Extended
 public class Couchbase {
 
     /**

@@ -1,6 +1,7 @@
 package apoc.cache;
 
 import apoc.ApocConfig;
+import apoc.Extended;
 import apoc.result.KeyValueResult;
 import apoc.result.ObjectResult;
 import apoc.util.Util;
@@ -16,6 +17,7 @@ import java.util.stream.Stream;
  * @author mh
  * @since 22.05.16
  */
+@Extended
 public class Static {
 
     @Context
