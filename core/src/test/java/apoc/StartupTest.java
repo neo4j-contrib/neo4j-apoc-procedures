@@ -31,9 +31,11 @@ public class StartupTest {
             Session session = neo4jContainer.getSession();
             int procedureCount = session.run("CALL dbms.procedures() YIELD name WHERE name STARTS WITH 'apoc' RETURN count(*) AS count").peek().get("count").asInt();
             int functionCount = session.run("CALL dbms.functions() YIELD name WHERE name STARTS WITH 'apoc' RETURN count(*) AS count").peek().get("count").asInt();
+            int coreCount = session.run("CALL apoc.help('') YIELD core WHERE core = true RETURN count(*) AS count").peek().get("count").asInt();
 
             assertTrue(procedureCount > 0);
             assertTrue(functionCount > 0);
+            assertTrue(coreCount > 0);
 
             neo4jContainer.close();
         } catch (Exception ex) {
