@@ -45,7 +45,7 @@ public class LoadHtml {
             query.keySet().stream().forEach(key -> {
                 Elements elements = document.select(query.get(key));
 
-                getElements(elements, key, output);
+                output.put(key, getElements(elements, config));
             });
 
             return Stream.of( new MapResult(output) );
@@ -54,7 +54,7 @@ public class LoadHtml {
         }
     }
 
-    private void getElements(Elements elements, String key, Map<String, Object> output) {
+    private List<Map<String, Object>> getElements(Elements elements, Map<String, Object> config) {
         List<Map<String, Object>> elementList = new ArrayList<>();
 
         for (Element element : elements) {
@@ -65,10 +65,14 @@ public class LoadHtml {
             if(!element.val().isEmpty()) result.put("value", element.val());
             if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
 
+            if ( Util.toBoolean( config.get("children") ) ) {
+                result.put("children", getElements(element.children(), config));
+            }
+
             elementList.add(result);
         }
 
-        output.put(key, elementList);
+        return elementList;
     }
 
     private Map<String, String> getAttributes(Element element) {
