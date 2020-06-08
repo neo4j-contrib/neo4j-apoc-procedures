@@ -16,7 +16,8 @@ import java.util.stream.Stream;
  * @since 20.09.16
  */
 @Extended
-public class TriggerExtended {
+public class
+TriggerExtended {
     public static class TriggerInfo {
         public String name;
         public String query;

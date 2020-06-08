@@ -26,7 +26,7 @@ import static org.junit.Assume.assumeNotNull;
  */
 public class ExportCypherEnterpriseFeaturesTest {
 
-    private static File directory = new File("target/import"); // it's the directory bounded to the /import dir inside the Neo4jContainer
+    private static File directory = new File("import"); // it's the directory bounded to the /import dir inside the Neo4jContainer
 
     private static Neo4jContainerExtension neo4jContainer;
     private static Session session;
