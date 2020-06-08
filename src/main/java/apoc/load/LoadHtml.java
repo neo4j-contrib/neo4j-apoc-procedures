@@ -60,13 +60,17 @@ public class LoadHtml {
         for (Element element : elements) {
             Map<String, Object> result = new HashMap<>();
             if(element.attributes().size() > 0) result.put("attributes", getAttributes(element));
-            if(!element.data().isEmpty())result.put("data", element.data());
-            if(element.hasText()) result.put("text", element.text());
+            if(!element.data().isEmpty()) result.put("data", element.data());
             if(!element.val().isEmpty()) result.put("value", element.val());
             if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
 
             if ( Util.toBoolean( config.get("children") ) ) {
+                if(element.hasText())  result.put("text", element.ownText());
+
                 result.put("children", getElements(element.children(), config));
+            }
+            else {
+                if(element.hasText()) result.put("text", element.text());
             }
 
             elementList.add(result);
