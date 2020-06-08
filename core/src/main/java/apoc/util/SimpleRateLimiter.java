@@ -16,7 +16,7 @@ public class SimpleRateLimiter {
         this.operationPerWindow = operationPerWindow;
     }
 
-    public boolean canExecute() {
+    public synchronized boolean canExecute() {
         long now = System.currentTimeMillis();
         if ((now - lastUpdate.get()) > timeWindow) {
             lastUpdate.set(now);

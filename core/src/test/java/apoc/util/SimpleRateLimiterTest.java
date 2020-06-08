@@ -45,11 +45,10 @@ public class SimpleRateLimiterTest {
 
         // then
         int count = map
-                .entrySet()
+                .values()
                 .stream()
-                .map(Map.Entry::getValue)
                 .map(AtomicInteger::get)
-                .reduce(0, (x, y) -> x + y);
+                .reduce(0, Integer::sum);
         assertEquals(10, count);
     }
 
