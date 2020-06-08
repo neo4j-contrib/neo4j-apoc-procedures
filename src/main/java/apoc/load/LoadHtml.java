@@ -16,6 +16,7 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class LoadHtml {
@@ -41,19 +42,26 @@ public class LoadHtml {
 
             Document document = Jsoup.parse(Util.openInputStream(url, null, null), charset, baseUri);
 
-            return query.keySet().stream().map(key -> {
-                Elements elements = document.select(query.get(key));
-                List<Map<String, Object>> resultList = new ArrayList<>();
-                getElements(elements, resultList);
+            Map<String, Object> output = new HashMap<>();
 
-                return new MapResult(MapUtil.map(key, resultList));
+            query.keySet().stream().forEach(key -> {
+                Elements elements = document.select(query.get(key));
+
+                getElements(elements, key, output);
             });
+
+            return Stream.of( new MapResult(output) );
+
+
         } catch(Exception e){
             throw new RuntimeException("Can't read the HTML from: "+ url);
         }
     }
 
-    private void getElements(Elements elements, List<Map<String, Object>> resultList) {
+    private void getElements(Elements elements, String key, Map<String, Object> output) {
+
+        List<Map<String, Object>> elementList = new ArrayList<>();
+
         for (Element element : elements) {
             Map<String, Object> result = new HashMap<>();
             if(element.attributes().size() > 0) result.put("attributes", getAttributes(element));
@@ -62,8 +70,10 @@ public class LoadHtml {
             if(!element.val().isEmpty()) result.put("value", element.val());
             if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
 
-            resultList.add(result);
+            elementList.add(result);
         }
+
+        output.put(key, elementList);
     }
 
     private Map<String, String> getAttributes(Element element) {

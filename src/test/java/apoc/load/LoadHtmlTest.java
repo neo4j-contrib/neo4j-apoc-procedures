@@ -9,6 +9,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
@@ -19,20 +20,20 @@ import static org.junit.Assert.assertFalse;
 
 public class LoadHtmlTest {
 
-    private static final String RESULT_QUERY_METADATA = ("{attributes={charset=UTF-8}, tagName=meta}, " +
+    private static final String RESULT_QUERY_METADATA = ("[{attributes={charset=UTF-8}, tagName=meta}, " +
             "{attributes={name=ResourceLoaderDynamicStyles}, tagName=meta}, " +
             "{attributes={name=generator, content=MediaWiki 1.32.0-wmf.18}, tagName=meta}, " +
             "{attributes={name=referrer, content=origin}, tagName=meta}, " +
             "{attributes={name=referrer, content=origin-when-crossorigin}, tagName=meta}, " +
             "{attributes={name=referrer, content=origin-when-cross-origin}, tagName=meta}, " +
-            "{attributes={property=og:image, content=https://upload.wikimedia.org/wikipedia/en/e/ea/Aap_Kaa_Hak_titles.jpg}, tagName=meta}");
+            "{attributes={property=og:image, content=https://upload.wikimedia.org/wikipedia/en/e/ea/Aap_Kaa_Hak_titles.jpg}, tagName=meta}]");
 
-    private static final String RESULT_QUERY_H2 = ("{text=Contents, tagName=h2}, " +
+    private static final String RESULT_QUERY_H2 = ("[{text=Contents, tagName=h2}, " +
             "{text=Origins[edit], tagName=h2}, " +
             "{text=Content[edit], tagName=h2}, " +
             "{text=Legacy[edit], tagName=h2}, " +
             "{text=References[edit], tagName=h2}, " +
-            "{text=Navigation menu, tagName=h2}");
+            "{text=Navigation menu, tagName=h2}]");
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
@@ -44,16 +45,19 @@ public class LoadHtmlTest {
 
     @Test
     public void testQueryAll(){
-
+        System.out.println(new File("src/test/resources/wikipedia.html").toURI().toString());
         Map<String, Object> query = map("metadata", "meta", "h2", "h2");
 
         testResult(db, "CALL apoc.load.html($url,$query, $config)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", Collections.emptyMap()),
                 result -> {
                     Map<String, Object> row = result.next();
-                    assertEquals(map("metadata",asList(RESULT_QUERY_METADATA)).toString().trim(), row.get("value").toString().trim());
-                    row = result.next();
-                    assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
-                    assertFalse(result.hasNext());
+                    Map<String, Object> value = (Map<String, Object>) row.get("value");
+
+                    List<Map<String, Object>> metadata = (List<Map<String, Object>>) value.get("metadata");
+                    List<Map<String, Object>> h2 = (List<Map<String, Object>>) value.get("h2");
+
+                    assertEquals(RESULT_QUERY_METADATA, metadata.toString().trim());
+                    assertEquals(RESULT_QUERY_H2, h2.toString().trim());
                 });
     }
 
