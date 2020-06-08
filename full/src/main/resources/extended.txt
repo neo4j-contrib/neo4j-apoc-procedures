@@ -50,7 +50,6 @@ apoc.generate.ws
 apoc.gephi.add
 apoc.get.nodes
 apoc.get.rels
-apoc.help
 apoc.load.csv
 apoc.load.driver
 apoc.load.html
@@ -91,12 +90,6 @@ apoc.static.list
 apoc.static.set
 apoc.systemdb.execute
 apoc.systemdb.graph
-apoc.trigger.add
-apoc.trigger.list
-apoc.trigger.pause
-apoc.trigger.remove
-apoc.trigger.removeAll
-apoc.trigger.resume
 apoc.ttl.expire
 apoc.ttl.expireIn
 apoc.uuid.install

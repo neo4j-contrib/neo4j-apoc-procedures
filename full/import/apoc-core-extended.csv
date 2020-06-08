@@ -256,7 +256,7 @@ apoc.lock.nodes,CORE
 apoc.lock.read.nodes,CORE
 apoc.lock.read.rels,CORE
 apoc.lock.rels,CORE
-apoc.log.debug,CORE
+apoc.log.debug,EXTENDED
 apoc.log.error,EXTENDED
 apoc.log.info,EXTENDED
 apoc.log.stream,CORE

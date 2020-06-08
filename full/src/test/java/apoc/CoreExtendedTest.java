@@ -75,9 +75,9 @@ public class CoreExtendedTest {
                 actual.put(record.get("name").toString(), record.get("core").asBoolean() ? "CORE" : "EXTENDED");
             }
 
-            List<Map.Entry<String, String>> different = actual.entrySet().stream().filter(entry -> spreadsheet.containsKey(entry.getKey()) && !spreadsheet.get(entry.getKey()).equals(entry.getValue())).collect(Collectors.toList());
+            List<Map.Entry<String, String>> different = spreadsheet.entrySet().stream().filter(entry -> actual.containsKey(entry.getKey()) && !actual.get(entry.getKey()).equals(entry.getValue())).collect(Collectors.toList());
 
-            assertEquals(different.toString(), 9, different.size());
+            assertEquals(different.toString(), 0, different.size());
 
             neo4jContainer.close();
         } catch (Exception ex) {
