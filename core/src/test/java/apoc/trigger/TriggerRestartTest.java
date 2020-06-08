@@ -1,7 +1,6 @@
 package apoc.trigger;
 
 import apoc.ApocConfig;
-import apoc.custom.CypherProcedures;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -31,9 +30,8 @@ public class TriggerRestartTest {
     public void setUp() {
         databaseManagementService = new TestDatabaseManagementServiceBuilder(store_dir.getRoot()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
-        TestUtil.registerProcedure(db, CypherProcedures.class);
         ApocConfig.apocConfig().setProperty("apoc.trigger.enabled", "true");
-        TestUtil.registerProcedure(db, TriggerExtended.class);
+        TestUtil.registerProcedure(db, Trigger.class);
     }
 
     @After

@@ -2,10 +2,8 @@ package apoc.load.relative;
 
 import apoc.ApocSettings;
 import apoc.load.LoadCsv;
-import apoc.load.LoadJson;
 import apoc.load.Xml;
 import apoc.util.TestUtil;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,12 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.load.relative.LoadXmlResult.StringXmlNestedMap;
-import static apoc.load.relative.LoadXmlResult.StringXmlNestedSimpleMap;
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -71,25 +65,6 @@ public class LoadRelativePathTest {
         assertEquals(values, row.get("strings"));
         assertEquals(stringMap, row.get("stringMap"));
         assertEquals(lineNo, row.get("lineNo"));
-    }
-
-    //XML
-    @Test
-    public void testLoadRelativePathXml() {
-        testCall(db, "CALL apoc.load.xml('file:///xml/databases.xml')", //  YIELD value RETURN value
-                (row) -> {
-                    Object value = row.get("value");
-                    assertEquals(StringXmlNestedMap(), value);
-                });
-    }
-
-    @Test
-    public void testLoadRelativePathSimple() {
-        testCall(db, "CALL apoc.load.xmlSimple('/xml/databases.xml')", //  YIELD value RETURN value
-                (row) -> {
-                    Object value = row.get("value");
-                    assertEquals(StringXmlNestedSimpleMap(), value);
-                });
     }
 
 }
