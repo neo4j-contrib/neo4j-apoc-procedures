@@ -1,6 +1,7 @@
 package apoc.bolt;
 
 import apoc.Description;
+import apoc.Extended;
 import apoc.result.RowResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
@@ -35,6 +36,7 @@ import static apoc.util.MapUtil.map;
  * @author AgileLARUS
  * @since 29.08.17
  */
+@Extended
 public class Bolt {
 
     @Procedure()

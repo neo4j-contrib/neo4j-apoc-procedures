@@ -64,7 +64,19 @@ public class HelpExtendedTest {
         FileOutputStream fos = new FileOutputStream(extendedFile);
 
         try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos))) {
-            db.executeTransactionally("CALL dbms.procedures() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'procedure' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
+            db.executeTransactionally("CALL dbms.procedures() YIELD name WHERE name STARTS WITH 'apoc' RETURN name", Collections.emptyMap(),
+                    result -> {
+                        result.stream().forEach(record -> {
+                            try {
+                                bw.write(record.get("name").toString());
+                                bw.newLine();
+                            } catch (IOException ignored) {
+                            }
+                        });
+                        return null;
+                    });
+
+            db.executeTransactionally("CALL dbms.functions() YIELD name WHERE name STARTS WITH 'apoc' RETURN name", Collections.emptyMap(),
                     result -> {
                         result.stream().forEach(record -> {
                             try {

@@ -7,6 +7,7 @@ import org.neo4j.driver.Session;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.SocatContainer;
 
+import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.AbstractMap;
@@ -109,7 +110,7 @@ public class TestcontainersCausalCluster {
                                                           Network network,
                                                           String initialDiscoveryMembers,
                                                           Map<String, Object> neo4jConfig,
-                                                          Map<String, String> envSettings) {
+                                                          Map<String, String> envSettings)  {
         Neo4jContainerExtension container =  TestContainerUtil.createEnterpriseDB(!TestUtil.isTravis())
                 .withLabel("memberType", instanceType.toString())
                 .withNetwork(network)

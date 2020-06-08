@@ -1,3 +1,5 @@
+apoc.bolt.execute
+apoc.bolt.load
 apoc.cluster.graph
 apoc.config.list
 apoc.config.map
@@ -49,7 +51,6 @@ apoc.gephi.add
 apoc.get.nodes
 apoc.get.rels
 apoc.help
-apoc.import.xml
 apoc.load.csv
 apoc.load.driver
 apoc.load.html
@@ -58,8 +59,6 @@ apoc.load.jdbcParams
 apoc.load.jdbcUpdate
 apoc.load.ldap
 apoc.load.xls
-apoc.load.xml
-apoc.load.xmlSimple
 apoc.log.debug
 apoc.log.error
 apoc.log.info
@@ -104,4 +103,7 @@ apoc.uuid.install
 apoc.uuid.list
 apoc.uuid.remove
 apoc.uuid.removeAll
-apoc.xml.import
+apoc.static.get
+apoc.static.getAll
+apoc.trigger.nodesByLabel
+apoc.trigger.propertiesByKey

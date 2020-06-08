@@ -35,7 +35,7 @@ public class TestContainerUtil {
         return TestcontainersCausalCluster.create(numOfCoreInstances, numberOfReadReplica, Duration.ofMinutes(4), neo4jConfig, envSettings);
     }
 
-    public static Neo4jContainerExtension createEnterpriseDB(boolean withLogging) {
+    public static Neo4jContainerExtension createEnterpriseDB(boolean withLogging)  {
         executeGradleTasks("shadowJar");
         // We define the container with external volumes
         File importFolder = new File("import");
@@ -56,6 +56,12 @@ public class TestContainerUtil {
                 throw new RuntimeException(e);
             }
         }
+        String canonicalPath = null;
+        try {
+            canonicalPath = importFolder.getCanonicalPath();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         System.out.println("neo4jDockerImageVersion = " + neo4jDockerImageVersion);
         Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(neo4jDockerImageVersion)
@@ -64,7 +70,7 @@ public class TestContainerUtil {
                 .withEnv("NEO4J_dbms_memory_heap_max__size", "1G")
                 .withEnv("apoc.export.file.enabled", "true")
                 .withNeo4jConfig("dbms.security.procedures.unrestricted", "apoc.*")
-                .withFileSystemBind("./target/import", "/var/lib/neo4j/import") // map the "target/import" dir as the Neo4j's import dir
+                .withFileSystemBind(canonicalPath, "/var/lib/neo4j/import") // map the "target/import" dir as the Neo4j's import dir
                 .withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 //                .withDebugger()  // uncomment this line for remote debbuging inside docker's neo4j instance
                 .withCreateContainerCmdModifier(cmd -> cmd.withMemory(1024 * 1024 * 1024l))

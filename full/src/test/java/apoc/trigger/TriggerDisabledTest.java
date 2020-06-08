@@ -35,7 +35,7 @@ public class TriggerDisabledTest {
         apocConfig().setProperty(APOC_TRIGGER_ENABLED, false);
         exceptionRule.expect(RuntimeException.class);
         exceptionRule.expectMessage(TriggerHandler.NOT_ENABLED_ERROR);
-        TestUtil.registerProcedure(db, Trigger.class);
+        TestUtil.registerProcedure(db, TriggerExtended.class);
     }
 
     @Test

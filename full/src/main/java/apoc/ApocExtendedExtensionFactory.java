@@ -2,9 +2,6 @@ package apoc;
 
 import apoc.custom.CypherProcedures;
 import apoc.custom.CypherProceduresHandler;
-import apoc.cypher.CypherInitializer;
-import apoc.trigger.Trigger;
-import apoc.trigger.TriggerHandler;
 import apoc.ttl.TTLLifeCycle;
 import apoc.util.ApocUrlStreamHandlerFactory;
 import apoc.uuid.Uuid;
@@ -57,7 +54,7 @@ public class ApocExtendedExtensionFactory extends ExtensionFactory<ApocExtendedE
         DatabaseManagementService databaseManagementService();
         ApocConfig apocConfig();
         GlobalProcedures globalProceduresRegistry();
-        RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle();
+        ExtendedRegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle();
     }
 
     @Override
@@ -72,7 +69,7 @@ public class ApocExtendedExtensionFactory extends ExtensionFactory<ApocExtendedE
         private final LogService log;
         private final GraphDatabaseAPI db;
         private final Dependencies dependencies;
-        private Log userLog;
+        private final Log userLog;
 
         private final Map<String, Lifecycle> services = new HashMap<>();
         private CypherProceduresHandler cypherProceduresHandler;
@@ -101,13 +98,8 @@ public class ApocExtendedExtensionFactory extends ExtensionFactory<ApocExtendedE
                         dependencies.apocConfig(),
                         dependencies.globalProceduresRegistry())
                 );
-                services.put("trigger", new TriggerHandler(db,
-                        dependencies.databaseManagementService(),
-                        dependencies.apocConfig(),
-                        log.getUserLog(Trigger.class))
-                );
 
-                RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = dependencies.registerComponentLifecycle();
+                ExtendedRegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = dependencies.registerComponentLifecycle();
                 String databaseNamme = db.databaseName();
                 services.values().forEach(lifecycle -> registerComponentLifecycle.addResolver(
                         databaseNamme,

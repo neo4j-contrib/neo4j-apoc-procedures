@@ -2,6 +2,7 @@ package apoc.load;
 
 import apoc.ApocSettings;
 import apoc.util.TestUtil;
+import apoc.xml.XmlTestUtils;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -15,7 +16,6 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -28,68 +28,6 @@ import static org.junit.Assert.*;
 import static org.neo4j.internal.helpers.collection.MapUtil.map;
 
 public class XmlTest {
-
-    private static final Map<String, Object> XML_AS_NESTED_MAP = map(
-            "_type", "parent",
-            "name", "databases",
-            "_children", asList(
-                    map("_type", "child", "name", "Neo4j", "_text", "Neo4j is a graph database"),
-                    map("_type", "child", "name", "relational", "_children", asList(
-                            map("_type", "grandchild", "name", "MySQL", "_text", "MySQL is a database & relational"),
-                            map("_type", "grandchild", "name", "Postgres", "_text", "Postgres is a relational database")
-                    ))
-            )
-    );
-
-    private static final Map<String, Object> XML_AS_NESTED_SIMPLE_MAP = map(
-        "_type", "parent",
-        "name", "databases",
-        "_child", asList(
-                    map("_type", "child", "name", "Neo4j", "_text", "Neo4j is a graph database"),
-                    map("_type", "child", "name", "relational", "_grandchild", asList(
-                            map("_type", "grandchild", "name", "MySQL", "_text", "MySQL is a database & relational"),
-                            map("_type", "grandchild", "name", "Postgres", "_text", "Postgres is a relational database")
-                    ))
-            )
-    );
-
-    public static final Map<String, Object> XML_XPATH_AS_NESTED_MAP = map("_type", "book", "id", "bk103", "_children",
-            Arrays.asList(map("_type", "author", "_text", "Corets, Eva"),
-                    map("_type", "title", "_text", "Maeve Ascendant"),
-                    map("_type", "genre", "_text", "Fantasy"),
-                    map("_type", "price", "_text", "5.95"),
-                    map("_type", "publish_date", "_text", "2000-11-17"),
-                    map("_type", "description", "_text", "After the collapse of a nanotechnology society in England, the young survivors lay the foundation for a new society.")
-            ));
-
-    private static final Map<String, Object> XML_AS_SINGLE_LINE = map(
-            "_type", "table",
-            "_children", asList( map(
-                    "_type", "tr",
-                    "_children", asList(map(
-                        "_type", "td",
-                        "_children", asList(map(
-                                "_type", "img",
-                                    "src", "pix/logo-tl.gif"
-                            ))
-                    ))
-            ))
-    );
-
-
-    private static final Map<String, Object> XML_AS_SINGLE_LINE_SIMPLE = map(
-            "_type", "table",
-            "_table", asList(map(
-                    "_type", "tr",
-                    "_tr", asList(map(
-                            "_type", "td",
-                            "_td", asList(map(
-                                    "_type", "img",
-                                    "src", "pix/logo-tl.gif"
-                            ))
-                    ))))
-    );
-
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_import_file_enabled, true)
@@ -107,7 +45,7 @@ public class XmlTest {
     public void testLoadXml() {
         testCall(db, "CALL apoc.load.xml('file:databases.xml')", //  YIELD value RETURN value
                 (row) -> {
-                    assertEquals(XML_AS_NESTED_MAP, row.get("value"));
+                    assertEquals(XmlTestUtils.XML_AS_NESTED_MAP, row.get("value"));
                 });
     }
 
@@ -115,7 +53,7 @@ public class XmlTest {
     public void testLoadXmlSimple() {
         testCall(db, "CALL apoc.load.xmlSimple('file:databases.xml')", //  YIELD value RETURN value
                 (row) -> {
-                    assertEquals(XML_AS_NESTED_SIMPLE_MAP, row.get("value"));
+                    assertEquals(XmlTestUtils.XML_AS_NESTED_SIMPLE_MAP, row.get("value"));
                 });
     }
 
@@ -222,7 +160,7 @@ public class XmlTest {
         testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[title=\"Maeve Ascendant\"]/.') yield value as result",
                 (r) -> {
                     Object value = Iterables.single(r.values());
-                    assertEquals(XML_XPATH_AS_NESTED_MAP, value);
+                    assertEquals(XmlTestUtils.XML_XPATH_AS_NESTED_MAP, value);
                 });
     }
 
@@ -445,7 +383,7 @@ public class XmlTest {
     public void testLoadXmlSingleLineSimple() {
         testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml', '/', null, true)", //  YIELD value RETURN value
                 (row) -> {
-                    assertEquals(XML_AS_SINGLE_LINE_SIMPLE, row.get("value"));
+                    assertEquals(XmlTestUtils.XML_AS_SINGLE_LINE_SIMPLE, row.get("value"));
                 });
     }
 
@@ -453,14 +391,14 @@ public class XmlTest {
     public void testLoadXmlSingleLine() {
         testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml')", //  YIELD value RETURN value
                 (row) -> {
-                    assertEquals(XML_AS_SINGLE_LINE, row.get("value"));
+                    assertEquals(XmlTestUtils.XML_AS_SINGLE_LINE, row.get("value"));
                 });
     }
 
     @Test
     public void testParse() {
         testCall(db, "WITH '<?xml version=\"1.0\"?><table><tr><td><img src=\"pix/logo-tl.gif\"></img></td></tr></table>' AS xmlString RETURN apoc.xml.parse(xmlString) AS value",
-                (row) -> assertEquals(XML_AS_SINGLE_LINE, row.get("value")));
+                (row) -> assertEquals(XmlTestUtils.XML_AS_SINGLE_LINE, row.get("value")));
     }
 
     @Test
@@ -468,6 +406,6 @@ public class XmlTest {
         String xmlString = FileUtils.readFileToString(new File("src/test/resources/xml/books.xml"), Charset.forName("UTF-8"));
         testCall(db, "RETURN apoc.xml.parse($xmlString, '/catalog/book[title=\"Maeve Ascendant\"]/.') AS result",
                 map("xmlString", xmlString),
-                (r) -> assertEquals(XML_XPATH_AS_NESTED_MAP, r.get("result")));
+                (r) -> assertEquals(XmlTestUtils.XML_XPATH_AS_NESTED_MAP, r.get("result")));
     }
 }

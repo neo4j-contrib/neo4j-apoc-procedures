@@ -10,25 +10,24 @@ import org.neo4j.kernel.extension.context.ExtensionContext;
 import org.neo4j.kernel.lifecycle.Lifecycle;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
-import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
-public class RegisterComponentFactory extends ExtensionFactory<RegisterComponentFactory.Dependencies> {
+public class ExtendedRegisterComponentFactory extends ExtensionFactory<ExtendedRegisterComponentFactory.Dependencies> {
 
     private Log log;
     private GlobalProcedures globalProceduresRegistry;
 
-    public RegisterComponentFactory() {
+    public ExtendedRegisterComponentFactory() {
         super(ExtensionType.GLOBAL,
-                "ApocRegisterComponent");
+                "ApocExtendedRegisterComponent");
     }
 
     @Override
     public Lifecycle newInstance(ExtensionContext context, Dependencies dependencies) {
         globalProceduresRegistry = dependencies.globalProceduresRegistry();
-        log = dependencies.log().getUserLog(RegisterComponentFactory.class);
+        log = dependencies.log().getUserLog(ExtendedRegisterComponentFactory.class);
         return new RegisterComponentLifecycle();
     }
 
@@ -54,7 +53,6 @@ public class RegisterComponentFactory extends ExtensionFactory<RegisterComponent
         public void init() throws Exception {
             // FIXME: after lifecycle issue has been resolved upstream
             resolvers.put(UuidHandler.class, new ConcurrentHashMap<>());
-            resolvers.put(TriggerHandler.class, new ConcurrentHashMap<>());
             resolvers.put(CypherProceduresHandler.class, new ConcurrentHashMap<>());
             resolvers.forEach(
                     (clazz, dbFunctionMap) -> globalProceduresRegistry.registerComponent(clazz, context -> {

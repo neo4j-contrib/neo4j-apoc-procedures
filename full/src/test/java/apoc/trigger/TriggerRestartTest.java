@@ -33,7 +33,7 @@ public class TriggerRestartTest {
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         TestUtil.registerProcedure(db, CypherProcedures.class);
         ApocConfig.apocConfig().setProperty("apoc.trigger.enabled", "true");
-        TestUtil.registerProcedure(db, Trigger.class);
+        TestUtil.registerProcedure(db, TriggerExtended.class);
     }
 
     @After

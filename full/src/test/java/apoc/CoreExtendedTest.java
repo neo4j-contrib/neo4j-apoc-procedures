@@ -3,11 +3,20 @@ package apoc;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.junit.Test;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.neo4j.internal.helpers.collection.MapUtil;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static apoc.ApocConfig.*;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /*
  This test is just to verify if the APOC are correctly deployed
@@ -16,10 +25,11 @@ import static org.junit.Assert.fail;
  */
 public class CoreExtendedTest {
     @Test
-    public void test() {
+    public void checkForCoreAndExtended() {
         try {
             Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isTravis())
-                    .withNeo4jConfig("dbms.transaction.timeout", "5s");
+                    .withNeo4jConfig("dbms.transaction.timeout", "60s")
+                    .withNeo4jConfig(APOC_IMPORT_FILE_ENABLED, "true");
 
             neo4jContainer.start();
 
@@ -31,6 +41,43 @@ public class CoreExtendedTest {
 
             assertTrue(coreCount > 0);
             assertTrue(extendedCount > 0);
+
+            neo4jContainer.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+        }
+    }
+
+    @Test
+    public void matchesSpreadsheet() {
+        try {
+            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isTravis())
+                    .withNeo4jConfig("dbms.transaction.timeout", "5s");
+
+            neo4jContainer.start();
+
+            assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+
+            Session session = neo4jContainer.getSession();
+
+            Result result = session.run("load csv with headers from 'file:///apoc-core-extended.csv' AS row RETURN row.Name as Name, row.Decision AS Decision");
+
+            Map<String, String> spreadsheet = new HashMap<>();
+            List<Record> list = result.list();
+            for (Record record : list) {
+                spreadsheet.put(record.get("Name").asString(), record.get("Decision").asString());
+            }
+
+            Map<String, String> actual = new HashMap<>();
+            Result apocHelpResult = session.run("CALL apoc.help('')");
+            for (Record record : apocHelpResult.list()) {
+                actual.put(record.get("name").toString(), record.get("core").asBoolean() ? "CORE" : "EXTENDED");
+            }
+
+            List<Map.Entry<String, String>> different = actual.entrySet().stream().filter(entry -> spreadsheet.containsKey(entry.getKey()) && !spreadsheet.get(entry.getKey()).equals(entry.getValue())).collect(Collectors.toList());
+
+            assertEquals(different.toString(), 9, different.size());
 
             neo4jContainer.close();
         } catch (Exception ex) {
