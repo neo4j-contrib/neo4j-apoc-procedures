@@ -1,7 +1,6 @@
 package apoc.load;
 
 import apoc.result.MapResult;
-import apoc.util.MapUtil;
 import apoc.util.Util;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
@@ -16,7 +15,6 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class LoadHtml {
@@ -51,15 +49,12 @@ public class LoadHtml {
             });
 
             return Stream.of( new MapResult(output) );
-
-
         } catch(Exception e){
             throw new RuntimeException("Can't read the HTML from: "+ url);
         }
     }
 
     private void getElements(Elements elements, String key, Map<String, Object> output) {
-
         List<Map<String, Object>> elementList = new ArrayList<>();
 
         for (Element element : elements) {
