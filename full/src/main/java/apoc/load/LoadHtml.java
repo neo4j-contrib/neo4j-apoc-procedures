@@ -66,7 +66,7 @@ public class LoadHtml {
             if(!element.val().isEmpty()) result.put("value", element.val());
             if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
 
-            if ( Util.toBoolean( config.get("children") ) ) {
+            if ( Util.toBoolean( config.getOrDefault("children", false) ) ) {
                 if(element.hasText())  result.put("text", element.ownText());
 
                 result.put("children", getElements(element.children(), config));
