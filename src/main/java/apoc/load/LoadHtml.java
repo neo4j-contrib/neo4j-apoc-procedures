@@ -1,7 +1,6 @@
 package apoc.load;
 
 import apoc.result.MapResult;
-import apoc.util.MapUtil;
 import apoc.util.Util;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
@@ -41,29 +40,43 @@ public class LoadHtml {
 
             Document document = Jsoup.parse(Util.openInputStream(url, null, null), charset, baseUri);
 
-            return query.keySet().stream().map(key -> {
-                Elements elements = document.select(query.get(key));
-                List<Map<String, Object>> resultList = new ArrayList<>();
-                getElements(elements, resultList);
+            Map<String, Object> output = new HashMap<>();
 
-                return new MapResult(MapUtil.map(key, resultList));
+            query.keySet().stream().forEach(key -> {
+                Elements elements = document.select(query.get(key));
+
+                output.put(key, getElements(elements, config));
             });
+
+            return Stream.of( new MapResult(output) );
         } catch(Exception e){
             throw new RuntimeException("Can't read the HTML from: "+ url);
         }
     }
 
-    private void getElements(Elements elements, List<Map<String, Object>> resultList) {
+    private List<Map<String, Object>> getElements(Elements elements, Map<String, Object> config) {
+        List<Map<String, Object>> elementList = new ArrayList<>();
+
         for (Element element : elements) {
             Map<String, Object> result = new HashMap<>();
             if(element.attributes().size() > 0) result.put("attributes", getAttributes(element));
-            if(!element.data().isEmpty())result.put("data", element.data());
-            if(element.hasText()) result.put("text", element.text());
+            if(!element.data().isEmpty()) result.put("data", element.data());
             if(!element.val().isEmpty()) result.put("value", element.val());
             if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
 
-            resultList.add(result);
+            if ( Util.toBoolean( config.get("children") ) ) {
+                if(element.hasText())  result.put("text", element.ownText());
+
+                result.put("children", getElements(element.children(), config));
+            }
+            else {
+                if(element.hasText()) result.put("text", element.text());
+            }
+
+            elementList.add(result);
         }
+
+        return elementList;
     }
 
     private Map<String, String> getAttributes(Element element) {
