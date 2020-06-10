@@ -7,18 +7,26 @@ import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.lang.reflect.InvocationTargetException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.time.ZoneId;
 import java.util.Map;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 
 public class JdbcTest extends AbstractJdbcTest {
@@ -232,8 +240,6 @@ public class JdbcTest extends AbstractJdbcTest {
                         assertEquals(1, size);
                     } catch (Exception e) { }
                 });
-
-
     }
 
     @Test
@@ -248,6 +254,23 @@ public class JdbcTest extends AbstractJdbcTest {
         thrown.expect(QueryExecutionException.class);
         thrown.expectMessage("In config param credentials must be passed both user and password.");
         TestUtil.singleResultFirstColumn(db, "CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{user:'apoc'}})", Util.map("url","jdbc:derby:derbyDB"));
+    }
+
+    @Test
+    public void testIterateJDBC() throws Exception {
+        final String jdbc = "CALL apoc.load.jdbc($url, 'PERSON',[]) YIELD row RETURN row";
+        final String create = "CREATE (p:Person) SET p += row";
+        testResult(db, "CALL apoc.periodic.iterate($jdbcQuery, $createQuery, {params: $params})",
+                Util.map("params", Util.map("url", "jdbc:derby:derbyDB"), "jdbcQuery", jdbc, "createQuery", create), result -> {
+                    Map<String, Object> row = Iterators.single(result);
+                    assertEquals(1L, row.get("batches"));
+                    assertEquals(1L, row.get("total"));
+                });
+
+        testCall(db,
+                "MATCH (p:Person) return count(p) as count",
+                row -> assertEquals(1L, row.get("count"))
+        );
     }
 
     private void createPersonTableAndData() throws ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
