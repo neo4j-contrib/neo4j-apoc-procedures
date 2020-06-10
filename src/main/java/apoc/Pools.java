@@ -23,7 +23,7 @@ public class Pools extends LifecycleAdapter {
     private final GlobalProceduresRegistry globalProceduresRegistry;
     private final ApocConfig apocConfig;
 
-    private ExecutorService singleExecutorService = Executors.newSingleThreadExecutor();
+    private ExecutorService singleExecutorService;
     private ScheduledExecutorService scheduledExecutorService;
     private ExecutorService defaultExecutorService;
 
@@ -46,6 +46,8 @@ public class Pools extends LifecycleAdapter {
         int threads = Math.max(1, apocConfig.getInt(ApocConfig.APOC_CONFIG_JOBS_POOL_NUM_THREADS, DEFAULT_POOL_THREADS));
 
         int queueSize = Math.max(1, apocConfig.getInt(ApocConfig.APOC_CONFIG_JOBS_QUEUE_SIZE, threads * 5));
+        this.singleExecutorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(queueSize),
+                new CallerBlocksPolicy());
 
         this.defaultExecutorService = new ThreadPoolExecutor(threads / 2, threads, 30L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(queueSize),
                 new CallerBlocksPolicy());
