@@ -230,8 +230,11 @@ public class GraphRefactoring {
 
             if (newStart != null && newEnd != null) {
                 Relationship newrel = newStart.createRelationshipTo(newEnd, rel.getType());
-                copyProperties(rel, newrel);
-            }
+                Map<String, Object> properties = rel.getAllProperties();
+                if (skipProperties != null && !skipProperties.isEmpty()) {
+                    for (String skip : skipProperties) properties.remove(skip);
+                }
+                copyProperties(properties, newrel);            }
         }
 
         return resultStream.stream();
