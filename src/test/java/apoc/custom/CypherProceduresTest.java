@@ -101,6 +101,12 @@ public class CypherProceduresTest  {
     }
 
     @Test
+    public void testStatementReturningNode() throws Exception {
+        db.executeTransactionally("call apoc.custom.asProcedure('answer','create path=(node)-[relationship:FOO]->() return node, relationship, path','write', [['node','Node'], ['relationship','RELATIONSHIP'], ['path','PATH']], [])");
+        TestUtil.testCall(db, "call custom.answer()", (row) -> {});
+    }
+
+    @Test
     public void registerSimpleStatementFunction() throws Exception {
         db.executeTransactionally("call apoc.custom.asFunction('answer','RETURN 42 as answer')");
         TestUtil.testCall(db, "return custom.answer() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));

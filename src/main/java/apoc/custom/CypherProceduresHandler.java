@@ -7,8 +7,10 @@ import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.collection.RawIterator;
 import org.neo4j.function.ThrowingFunction;
+import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
@@ -571,6 +573,8 @@ public class CypherProceduresHandler implements AvailabilityListener {
                         builder.add(e.getKey(), convertToValueRecursive(e.getValue()));
                     });
                     return builder.build();
+                } else if (toConvert instanceof Entity || toConvert instanceof Path){
+                    return ValueUtils.asAnyValue(toConvert);
                 } else {
                     return Values.of(toConvert);
                 }
