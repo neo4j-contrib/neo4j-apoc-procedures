@@ -48,11 +48,11 @@ public class CloneSubgraphTest {
                 "(n10:Node{name:'node10', id:10}),\n" +
                 "(n11:Node{name:'node11', id:11}),\n" +
                 "(n12:Node{name:'node12', id:12})\n" + // 12 on its own
-                "CREATE (rA)-[:LINK]->(n1)-[:LINK]->(n2)-[:LINK]->(n3)-[:LINK]->(n4)\n" +
-                "CREATE               (n1)-[:LINK]->(n5)-[:LINK]->(n6)<-[:LINK]-(n7)\n" +
-                "CREATE                             (n5)-[:LINK]->(n8)\n" +
-                "CREATE                             (n5)-[:LINK]->(n9)-[:DIFFERENT_LINK]->(n10)\n" +
-                "CREATE (rB)-[:LINK]->(n11)");
+                "CREATE (rA)-[:LINK{id:'rA->n1'}]->(n1)-[:LINK{id:'n1->n2'}]->(n2)-[:LINK{id:'n2->n3'}]->(n3)-[:LINK{id:'n3->n4'}]->(n4)\n" +
+                "CREATE               (n1)-[:LINK{id:'n1->n5'}]->(n5)-[:LINK{id:'n5->n6'}]->(n6)<-[:LINK{id:'n6->n7'}]-(n7)\n" +
+                "CREATE                             (n5)-[:LINK{id:'n5->n8'}]->(n8)\n" +
+                "CREATE                             (n5)-[:LINK{id:'n5->n9'}]->(n9)-[:DIFFERENT_LINK{id:'n9->n10'}]->(n10)\n" +
+                "CREATE (rB)-[:LINK{id:'rB->n11'}]->(n11)");
     }
 
     @After
@@ -290,6 +290,15 @@ public class CloneSubgraphTest {
                         "RETURN count(node) as nodesWithId",
                 (row) -> {
                     assertThat(row.get("nodesWithId"), is(12L)); // 12 original nodes + 10 clones
+                }
+        );
+
+        TestUtil.testCall(db,
+                "MATCH ()-[r]->() " +
+                        "WHERE not exists(r.id)" +
+                        "RETURN count(r) as relsWithNoId",
+                (row) -> {
+                    assertThat(row.get("relsWithNoId"), is(10L)); // 10 cloned rels with skipped id property
                 }
         );
     }
