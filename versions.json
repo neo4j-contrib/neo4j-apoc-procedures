@@ -1,5 +1,11 @@
 [
     {
+        "neo4j": "4.0.6",
+        "apoc": "4.0.0.14",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.14",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.14/apoc-4.0.0.14-all.jar"
+    },
+    {
         "neo4j": "4.0.5",
         "apoc": "4.0.0.14",
         "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.14",
