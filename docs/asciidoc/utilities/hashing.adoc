@@ -23,7 +23,21 @@ This is useful if you store properties (like `created=timestamp()`) that should 
 |===
 | function name | description
 | `apoc.hashing.fingerprint(object, <list_of_props_to_ignore>)` | calculates a md5 hashsum over the object. It deals gracefully with ordering (in case of maps), scalars, arrays.
+| `apoc.hashing.fingerprinting(object, {conf})` | calculates a md5 hashsum over the object. It deals gracefully with ordering (in case of maps), scalars, arrays. Please check the `Fingerprinting configuration params` table for details
 | `apoc.hashing.graph(<list_of_props_to_ignore>)` | calculates a md5 hashsum over the full graph.
 |===
 
+.Fingerprinting configuration params
+[opts=header,cols="4"]
+|===
+| prop name | type | default | description
+| `digestAlgorithm` | ENUM | MD5 | the digest algorithm used to create the fingerprint, we only support MD5 right now
+| `nodeWhiteList` | Map<K,V> | empty | a whitelist map where the key is the node Label and the value is a lists properties
+| `relWhiteList` | Map<K,V> | empty | a whitelist map where the key is the rel type and the value is a lists properties
+| `nodeBlackList` | Map<K,V> | empty | a blacklist map where the key is the node Label and the value is a lists properties
+| `relBlackList` | Map<K,V> | empty | a blacklist map where the key is the rel type and the value is a lists properties
+| `mapWhiteList` | Map<K,V> | empty | a whitelist used in case the input to the procedure is a map
+| `mapBlackList` | Map<K,V> | empty | a blacklist used in case the input to the procedure is a map
+|===
 
+.n.b you cannot combine white & black list for the same entity type, this means that for nodes/rels/maps you can specify black or with lists
