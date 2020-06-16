@@ -6,39 +6,39 @@ import java.util.Map;
 
 public class FingerprintingConfig {
     private final String digestAlgorithm;
-    private final Map<String, List<String>> nodeWhiteList;
-    private final Map<String, List<String>> relWhiteList;
+    private final Map<String, List<String>> nodeAllowMap;
+    private final Map<String, List<String>> relAllowMap;
 
-    private final Map<String, List<String>> nodeBlackList;
-    private final Map<String, List<String>> relBlackList;
+    private final Map<String, List<String>> nodeDisallowMap;
+    private final Map<String, List<String>> relDisallowMap;
 
-    private final List<String> mapWhiteList;
-    private final List<String> mapBlackList;
+    private final List<String> mapAllowList;
+    private final List<String> mapDisallowList;
 
 
     public FingerprintingConfig(Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
         this.digestAlgorithm = (String) config.getOrDefault("digestAlgorithm", "MD5");
 
-        this.nodeWhiteList = (Map<String, List<String>>) config.getOrDefault("nodeWhiteList", Collections.emptyMap());
-        this.relWhiteList = (Map<String, List<String>>) config.getOrDefault("relWhiteList", Collections.emptyMap());
-        this.nodeBlackList = (Map<String, List<String>>) config.getOrDefault("nodeBlackList", Collections.emptyMap());
-        this.relBlackList = (Map<String, List<String>>) config.getOrDefault("relBlackList", Collections.emptyMap());
-        this.mapWhiteList = (List<String>) config.getOrDefault("mapWhiteList", Collections.emptyList());
-        this.mapBlackList = (List<String>) config.getOrDefault("mapBlackList", config.getOrDefault("propertyExcludes", Collections.emptyList()));
+        this.nodeAllowMap = (Map<String, List<String>>) config.getOrDefault("nodeAllowMap", Collections.emptyMap());
+        this.relAllowMap = (Map<String, List<String>>) config.getOrDefault("relAllowMap", Collections.emptyMap());
+        this.nodeDisallowMap = (Map<String, List<String>>) config.getOrDefault("nodeDisallowMap", Collections.emptyMap());
+        this.relDisallowMap = (Map<String, List<String>>) config.getOrDefault("relDisallowMap", Collections.emptyMap());
+        this.mapAllowList = (List<String>) config.getOrDefault("mapAllowList", Collections.emptyList());
+        this.mapDisallowList = (List<String>) config.getOrDefault("mapDisallowList", config.getOrDefault("propertyExcludes", Collections.emptyList()));
 
         validateConfig();
     }
 
     private void validateConfig() {
-        final String message = "You can't set black and white lists for ";
-        if (!nodeWhiteList.isEmpty() && !nodeBlackList.isEmpty()) {
+        final String message = "You can't set allow and disallow lists for ";
+        if (!nodeAllowMap.isEmpty() && !nodeDisallowMap.isEmpty()) {
             throw new RuntimeException(message + "nodes");
         }
-        if (!relWhiteList.isEmpty() && !relBlackList.isEmpty()) {
+        if (!relAllowMap.isEmpty() && !relDisallowMap.isEmpty()) {
             throw new RuntimeException(message + "rels");
         }
-        if (!mapWhiteList.isEmpty() && !mapBlackList.isEmpty()) {
+        if (!mapAllowList.isEmpty() && !mapDisallowList.isEmpty()) {
             throw new RuntimeException(message + "maps");
         }
     }
@@ -47,27 +47,27 @@ public class FingerprintingConfig {
         return digestAlgorithm;
     }
 
-    public Map<String, List<String>> getNodeWhiteList() {
-        return nodeWhiteList;
+    public Map<String, List<String>> getNodeAllowMap() {
+        return nodeAllowMap;
     }
 
-    public Map<String, List<String>> getRelWhiteList() {
-        return relWhiteList;
+    public Map<String, List<String>> getRelAllowMap() {
+        return relAllowMap;
     }
 
-    public Map<String, List<String>> getNodeBlackList() {
-        return nodeBlackList;
+    public Map<String, List<String>> getNodeDisallowMap() {
+        return nodeDisallowMap;
     }
 
-    public Map<String, List<String>> getRelBlackList() {
-        return relBlackList;
+    public Map<String, List<String>> getRelDisallowMap() {
+        return relDisallowMap;
     }
 
-    public List<String> getMapWhiteList() {
-        return mapWhiteList;
+    public List<String> getMapAllowList() {
+        return mapAllowList;
     }
 
-    public List<String> getMapBlackList() {
-        return mapBlackList;
+    public List<String> getMapDisallowList() {
+        return mapDisallowList;
     }
 }

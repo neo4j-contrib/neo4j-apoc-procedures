@@ -60,17 +60,17 @@ public class Fingerprinting {
             Map<String, Object> map = (Map<String, Object>) thing;
             map.entrySet().stream()
                     .filter(e -> {
-                        if (!conf.getMapWhiteList().isEmpty()) {
-                            return conf.getMapWhiteList().contains(e.getKey());
+                        if (!conf.getMapAllowList().isEmpty()) {
+                            return conf.getMapAllowList().contains(e.getKey());
                         } else {
-                            return !conf.getMapBlackList().contains(e.getKey());
+                            return !conf.getMapDisallowList().contains(e.getKey());
                         }
                     })
                     .sorted(Map.Entry.comparingByKey())
                     .forEachOrdered(entry -> {
-                md.update(entry.getKey().getBytes());
-                md.update(fingerprint(entry.getValue(), conf).getBytes());
-            });
+                        md.update(entry.getKey().getBytes());
+                        md.update(fingerprint(entry.getValue(), conf).getBytes());
+                    });
         } else if (thing instanceof List) {
             List list = (List) thing;
             list.stream().forEach(o -> fingerprint(md, o, conf));
@@ -179,22 +179,22 @@ public class Fingerprinting {
                 .map(String::getBytes)
                 .forEach(md::update);
         final Map<String, Object> allProperties;
-        if (!config.getNodeWhiteList().isEmpty()) {
+        if (!config.getNodeAllowMap().isEmpty()) {
             final String[] keys = StreamSupport.stream(node.getLabels().spliterator(), false)
                     .map(Label::name)
-                    .flatMap(label -> config.getNodeWhiteList().getOrDefault(label, Collections.emptyList()).stream())
+                    .flatMap(label -> config.getNodeAllowMap().getOrDefault(label, Collections.emptyList()).stream())
                     .toArray(String[]::new);
             allProperties = node.getProperties(keys);
-        } else if (!config.getNodeBlackList().isEmpty()) {
+        } else if (!config.getNodeDisallowMap().isEmpty()) {
             allProperties = node.getAllProperties();
             final Set<String> keysToRemove = StreamSupport.stream(node.getLabels().spliterator(), false)
                     .map(Label::name)
-                    .flatMap(label -> config.getNodeBlackList().getOrDefault(label, Collections.emptyList()).stream())
+                    .flatMap(label -> config.getNodeDisallowMap().getOrDefault(label, Collections.emptyList()).stream())
                     .collect(Collectors.toSet());
             allProperties.keySet().removeAll(keysToRemove);
-        } else if (!config.getMapBlackList().isEmpty()) {
+        } else if (!config.getMapDisallowList().isEmpty()) {
             allProperties = node.getAllProperties();
-            allProperties.keySet().removeAll(config.getMapBlackList());
+            allProperties.keySet().removeAll(config.getMapDisallowList());
         } else {
             allProperties = node.getAllProperties();
         }
@@ -207,19 +207,19 @@ public class Fingerprinting {
         md.update(fingerprint(rel.getEndNode(), config).getBytes());
 
         final Map<String, Object> allProperties;
-        if (!config.getRelWhiteList().isEmpty()) {
-            final String[] keys = config.getRelWhiteList()
+        if (!config.getRelAllowMap().isEmpty()) {
+            final String[] keys = config.getRelAllowMap()
                     .getOrDefault(rel.getType().name(), Collections.emptyList())
                     .toArray(String[]::new);
             allProperties = rel.getProperties(keys);
-        } else if (!config.getRelBlackList().isEmpty()) {
+        } else if (!config.getRelDisallowMap().isEmpty()) {
             allProperties = rel.getAllProperties();
-            final List<String> keysToRemove = config.getRelBlackList()
+            final List<String> keysToRemove = config.getRelDisallowMap()
                     .getOrDefault(rel.getType().name(), Collections.emptyList());
             allProperties.keySet().removeAll(keysToRemove);
-        } else if (!config.getMapBlackList().isEmpty()) {
+        } else if (!config.getMapDisallowList().isEmpty()) {
             allProperties = rel.getAllProperties();
-            allProperties.keySet().removeAll(config.getMapBlackList());
+            allProperties.keySet().removeAll(config.getMapDisallowList());
         } else {
             allProperties = rel.getAllProperties();
         }

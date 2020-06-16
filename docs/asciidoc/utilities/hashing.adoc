@@ -32,12 +32,12 @@ This is useful if you store properties (like `created=timestamp()`) that should 
 |===
 | prop name | type | default | description
 | `digestAlgorithm` | ENUM | MD5 | the digest algorithm used to create the fingerprint, we only support MD5 right now
-| `nodeWhiteList` | Map<K,V> | empty | a whitelist map where the key is the node Label and the value is a lists properties
-| `relWhiteList` | Map<K,V> | empty | a whitelist map where the key is the rel type and the value is a lists properties
-| `nodeBlackList` | Map<K,V> | empty | a blacklist map where the key is the node Label and the value is a lists properties
-| `relBlackList` | Map<K,V> | empty | a blacklist map where the key is the rel type and the value is a lists properties
-| `mapWhiteList` | Map<K,V> | empty | a whitelist used in case the input to the procedure is a map
-| `mapBlackList` | Map<K,V> | empty | a blacklist used in case the input to the procedure is a map
+| `nodeAllowMap` | Map<K,V> | empty | a map where the key is the node Label and the value is a lists properties allowed
+| `relAllowMap` | Map<K,V> | empty | a map where the key is the rel type and the value is a lists properties allowed
+| `nodeDisallowMap` | Map<K,V> | empty | a DisallowMap map where the key is the node Label and the value is a lists properties disallowed
+| `relDisallowMap` | Map<K,V> | empty | a DisallowMap map where the key is the rel type and the value is a lists properties disallowed
+| `mapAllowList` | List | empty | a Map used in case the input to the procedure is a map allowed
+| `mapDisallowList` | List | empty | a used in case the input to the procedure is a map disallowed
 |===
 
-.n.b you cannot combine white & black list for the same entity type, this means that for nodes/rels/maps you can specify black or with lists
+.n.b you cannot combine allow & disallow list for the same entity type, this means that for nodes/rels/maps you can specify allow or disallow with lists

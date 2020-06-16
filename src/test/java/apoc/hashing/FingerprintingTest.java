@@ -99,13 +99,13 @@ public class FingerprintingTest  {
         String all = TestUtil.singleResultFirstColumn(db, "MATCH (p:Person) return apoc.hashing.fingerprinting(p, $conf) as hash",
                 Collections.singletonMap("conf", Collections.emptyMap()));
         String emails = TestUtil.singleResultFirstColumn(db, "MATCH (p:Person) return apoc.hashing.fingerprinting(p, $conf) as hash",
-                Collections.singletonMap("conf", Util.map("nodeWhiteList", Util.map("Person", Collections.singletonList("emails")))));
-        String emailsByBlackList = TestUtil.singleResultFirstColumn(db, "MATCH (p:Person) return apoc.hashing.fingerprinting(p, $conf) as hash",
-                Collections.singletonMap("conf", Util.map("nodeBlackList", Util.map("Person", Arrays.asList("name", "integers", "floats")))));
+                Collections.singletonMap("conf", Util.map("nodeAllowMap", Util.map("Person", Collections.singletonList("emails")))));
+        String emailsByDisallowMap = TestUtil.singleResultFirstColumn(db, "MATCH (p:Person) return apoc.hashing.fingerprinting(p, $conf) as hash",
+                Collections.singletonMap("conf", Util.map("nodeDisallowMap", Util.map("Person", Arrays.asList("name", "integers", "floats")))));
         String floats = TestUtil.singleResultFirstColumn(db, "MATCH (p:Person) return apoc.hashing.fingerprinting(p, $conf) as hash",
-                Collections.singletonMap("conf", Util.map("nodeBlackList", Util.map("Person", Arrays.asList("name", "emails", "integers")))));
-        Set<String> hashes = new HashSet<>(Arrays.asList(all, emails, emailsByBlackList, floats));
-        assertEquals(3, hashes.size()); // 3 because emails = emailsByBlackList
+                Collections.singletonMap("conf", Util.map("nodeDisallowMap", Util.map("Person", Arrays.asList("name", "emails", "integers")))));
+        Set<String> hashes = new HashSet<>(Arrays.asList(all, emails, emailsByDisallowMap, floats));
+        assertEquals(3, hashes.size()); // 3 because emails = emailsByDisallowMap
     }
 
     @Test
@@ -115,9 +115,9 @@ public class FingerprintingTest  {
         String all = TestUtil.singleResultFirstColumn(db, "MATCH (n)-[r]->(m) RETURN apoc.hashing.fingerprinting(r, $conf) as hash",
                 Collections.singletonMap("conf", Collections.emptyMap()));
         String since = TestUtil.singleResultFirstColumn(db, "MATCH (n)-[r]->(m) RETURN apoc.hashing.fingerprinting(r, $conf) as hash",
-                Collections.singletonMap("conf", Util.map("relWhiteList", Util.map("KNOWS", Collections.singletonList("since")))));
+                Collections.singletonMap("conf", Util.map("relAllowMap", Util.map("KNOWS", Collections.singletonList("since")))));
         String where = TestUtil.singleResultFirstColumn(db, "MATCH (n)-[r]->(m) RETURN apoc.hashing.fingerprinting(r, $conf) as hash",
-                Collections.singletonMap("conf", Util.map("relBlackList", Util.map("KNOWS", Arrays.asList("since")))));
+                Collections.singletonMap("conf", Util.map("relDisallowMap", Util.map("KNOWS", Arrays.asList("since")))));
         Set<String> hashes = new HashSet<>(Arrays.asList(all, since, where));
         assertEquals(3, hashes.size());
     }
@@ -138,23 +138,23 @@ public class FingerprintingTest  {
                         "WITH {nodes: apoc.coll.toSet(g.nodes), rels: apoc.coll.toSet(g.relationships)} AS map " +
                         "RETURN apoc.hashing.fingerprinting(map, $conf) as hash ",
                 Collections.singletonMap("conf",
-                        Util.map("nodeWhiteList", Util.map("Person", Arrays.asList("name")))));
-        String personNameByBlackList = TestUtil.singleResultFirstColumn(db, "MATCH p = (n)-[r]->(m) " +
+                        Util.map("nodeAllowMap", Util.map("Person", Arrays.asList("name")))));
+        String personNameByDisallowMap = TestUtil.singleResultFirstColumn(db, "MATCH p = (n)-[r]->(m) " +
                         "WITH collect(p) AS paths " +
                         "CALL apoc.graph.fromPaths(paths, '', {}) yield graph AS g " +
                         "WITH {nodes: apoc.coll.toSet(g.nodes), rels: apoc.coll.toSet(g.relationships)} AS map " +
                         "RETURN apoc.hashing.fingerprinting(map, $conf) as hash ",
                 Collections.singletonMap("conf",
-                        Util.map("nodeBlackList", Util.map("Person", Arrays.asList("surname")))));
+                        Util.map("nodeDisallowMap", Util.map("Person", Arrays.asList("surname")))));
         String rel = TestUtil.singleResultFirstColumn(db, "MATCH p = (n)-[r]->(m) " +
                         "WITH collect(p) AS paths " +
                         "CALL apoc.graph.fromPaths(paths, '', {}) yield graph AS g " +
                         "WITH {nodes: apoc.coll.toSet(g.nodes), rels: apoc.coll.toSet(g.relationships)} AS map " +
                         "RETURN apoc.hashing.fingerprinting(map, $conf) as hash ",
                 Collections.singletonMap("conf",
-                        Util.map("relBlackList", Util.map("KNOWS", Arrays.asList("since")))));
-        Set<String> hashes = new HashSet<>(Arrays.asList(all, personName, personNameByBlackList, rel));
-        assertEquals(3, hashes.size()); // 3 because personName = personNameByBlackList
+                        Util.map("relDisallowMap", Util.map("KNOWS", Arrays.asList("since")))));
+        Set<String> hashes = new HashSet<>(Arrays.asList(all, personName, personNameByDisallowMap, rel));
+        assertEquals(3, hashes.size()); // 3 because personName = personNameByDisallowMap
     }
 
     private void compareGraph(String cypher, List<String> excludes, boolean shouldBeEqual) {
