@@ -12,3 +12,15 @@ The procedures in this chapter act as a wrapper around calls to this API to extr
 Each procedure has two modes:
 
 * Stream - returns a map constructed from the JSON returned from the API
+
+[[nlp-azure-overview]]
+==== Procedure Overview
+
+The procedures are described below:
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.nlp.azure.entities.csv[]
+include::../../../build/generated-documentation/apoc.nlp.azure.keyPhrases.csv[lines=2;3]
+include::../../../build/generated-documentation/apoc.nlp.azure.sentiment.csv[lines=2;3]
+|===
