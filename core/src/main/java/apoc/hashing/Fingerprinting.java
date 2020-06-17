@@ -1,6 +1,10 @@
 package apoc.hashing;
 
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -9,9 +13,11 @@ import org.neo4j.procedure.UserFunction;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -30,26 +36,44 @@ public class Fingerprinting {
     @UserFunction
     @Description("calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.")
     public String fingerprint(@Name("some object") Object thing, @Name(value = "propertyExcludes", defaultValue = "[]") List<String> excludedPropertyKeys) {
-        return withMessageDigest(md -> fingerprint(md, thing, excludedPropertyKeys));
+        FingerprintingConfig config = new FingerprintingConfig(Collections.singletonMap("propertyExcludes", excludedPropertyKeys));
+        return fingerprint(thing, config);
     }
 
-    private void fingerprint(DiagnosingMessageDigestDecorator md, Object thing, List<String> excludedPropertyKeys) {
+    @UserFunction
+    @Description("calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.")
+    public String fingerprinting(@Name("some object") Object thing, @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) {
+        FingerprintingConfig config = new FingerprintingConfig(conf);
+        return fingerprint(thing, config);
+    }
+
+    private String fingerprint(Object thing, FingerprintingConfig config) {
+        return withMessageDigest(config, md -> fingerprint(md, thing, config));
+    }
+
+    private void fingerprint(DiagnosingMessageDigestDecorator md, Object thing, FingerprintingConfig conf) {
         if (thing instanceof Node) {
-            fingerprintNode(md, (Node) thing, excludedPropertyKeys);
+            fingerprintNode(md, (Node) thing, conf);
         } else if (thing instanceof Relationship) {
-            fingerprintRelationship(md, (Relationship) thing, excludedPropertyKeys);
+            fingerprintRelationship(md, (Relationship) thing, conf);
         } else if (thing instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) thing;
             map.entrySet().stream()
-                    .filter(e -> !excludedPropertyKeys.contains(e.getKey()))
+                    .filter(e -> {
+                        if (!conf.getMapAllowList().isEmpty()) {
+                            return conf.getMapAllowList().contains(e.getKey());
+                        } else {
+                            return !conf.getMapDisallowList().contains(e.getKey());
+                        }
+                    })
                     .sorted(Map.Entry.comparingByKey())
                     .forEachOrdered(entry -> {
-                md.update(entry.getKey().getBytes());
-                md.update(fingerprint(entry.getValue(), excludedPropertyKeys).getBytes());
-            });
+                        md.update(entry.getKey().getBytes());
+                        md.update(fingerprint(entry.getValue(), conf).getBytes());
+                    });
         } else if (thing instanceof List) {
             List list = (List) thing;
-            list.stream().forEach(o -> fingerprint(md, o, excludedPropertyKeys));
+            list.stream().forEach(o -> fingerprint(md, o, conf));
         } else {
             md.update(convertValueToString(thing).getBytes());
         }
@@ -58,12 +82,12 @@ public class Fingerprinting {
     @UserFunction
     @Description("calculate a checksum (md5) over a the full graph. Be aware that this function does use in-memomry datastructures depending on the size of your graph.")
     public String fingerprintGraph(@Name(value = "propertyExcludes", defaultValue = "[]") List<String> excludedPropertyKeys) {
-
-        return withMessageDigest(messageDigest -> {
+        FingerprintingConfig config = new FingerprintingConfig(Collections.singletonMap("propertyExcludes", excludedPropertyKeys));
+        return withMessageDigest(config, messageDigest -> {
             // step 1: load all nodes, calc their hash and map them to id
             Map<Long, String> idToNodeHash = tx.getAllNodes().stream().collect(Collectors.toMap(
                     Node::getId,
-                    node -> fingerprint(node, excludedPropertyKeys),
+                    node -> fingerprint(node, config),
                     (aLong, aLong2) -> {
                         throw new RuntimeException();
                     },
@@ -148,23 +172,63 @@ public class Fingerprinting {
         }
     }
 
-    private void fingerprintNode(DiagnosingMessageDigestDecorator md, Node node, List<String> excludedPropertyKeys) {
+    private void fingerprintNode(DiagnosingMessageDigestDecorator md, Node node, FingerprintingConfig config) {
         StreamSupport.stream(node.getLabels().spliterator(), false)
                 .map(Label::name)
                 .sorted()
                 .map(String::getBytes)
                 .forEach(md::update);
-        fingerprint(md, node.getAllProperties(), excludedPropertyKeys);
+        final Map<String, Object> allProperties;
+        if (!config.getNodeAllowMap().isEmpty()) {
+            final String[] keys = StreamSupport.stream(node.getLabels().spliterator(), false)
+                    .map(Label::name)
+                    .flatMap(label -> config.getNodeAllowMap().getOrDefault(label, Collections.emptyList()).stream())
+                    .toArray(String[]::new);
+            allProperties = node.getProperties(keys);
+        } else if (!config.getNodeDisallowMap().isEmpty()) {
+            allProperties = node.getAllProperties();
+            final Set<String> keysToRemove = StreamSupport.stream(node.getLabels().spliterator(), false)
+                    .map(Label::name)
+                    .flatMap(label -> config.getNodeDisallowMap().getOrDefault(label, Collections.emptyList()).stream())
+                    .collect(Collectors.toSet());
+            allProperties.keySet().removeAll(keysToRemove);
+        } else if (!config.getMapDisallowList().isEmpty()) {
+            allProperties = node.getAllProperties();
+            allProperties.keySet().removeAll(config.getMapDisallowList());
+        } else {
+            allProperties = node.getAllProperties();
+        }
+        fingerprint(md, allProperties, config);
     }
 
-    private void fingerprintRelationship(DiagnosingMessageDigestDecorator md, Relationship rel, List<String> excludedPropertyKeys) {
+    private void fingerprintRelationship(DiagnosingMessageDigestDecorator md, Relationship rel, FingerprintingConfig config) {
         md.update(rel.getType().name().getBytes());
-        fingerprint(md, rel.getAllProperties(), excludedPropertyKeys);
+        md.update(fingerprint(rel.getStartNode(), config).getBytes());
+        md.update(fingerprint(rel.getEndNode(), config).getBytes());
+
+        final Map<String, Object> allProperties;
+        if (!config.getRelAllowMap().isEmpty()) {
+            final String[] keys = config.getRelAllowMap()
+                    .getOrDefault(rel.getType().name(), Collections.emptyList())
+                    .toArray(String[]::new);
+            allProperties = rel.getProperties(keys);
+        } else if (!config.getRelDisallowMap().isEmpty()) {
+            allProperties = rel.getAllProperties();
+            final List<String> keysToRemove = config.getRelDisallowMap()
+                    .getOrDefault(rel.getType().name(), Collections.emptyList());
+            allProperties.keySet().removeAll(keysToRemove);
+        } else if (!config.getMapDisallowList().isEmpty()) {
+            allProperties = rel.getAllProperties();
+            allProperties.keySet().removeAll(config.getMapDisallowList());
+        } else {
+            allProperties = rel.getAllProperties();
+        }
+        fingerprint(md, allProperties, config);
     }
 
-    private String withMessageDigest(Consumer<DiagnosingMessageDigestDecorator> consumer) {
+    private String withMessageDigest(FingerprintingConfig conf, Consumer<DiagnosingMessageDigestDecorator> consumer) {
         try {
-            MessageDigest md = MessageDigest.getInstance(DIGEST_ALGORITHM);
+            MessageDigest md = MessageDigest.getInstance(conf.getDigestAlgorithm());
             DiagnosingMessageDigestDecorator dmd = new DiagnosingMessageDigestDecorator(md);
             consumer.accept(dmd);
             return renderAsHex(md.digest());

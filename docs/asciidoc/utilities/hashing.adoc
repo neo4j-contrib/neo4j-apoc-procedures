@@ -23,7 +23,21 @@ This is useful if you store properties (like `created=timestamp()`) that should 
 |===
 | function name | description
 | `apoc.hashing.fingerprint(object, <list_of_props_to_ignore>)` | calculates a md5 hashsum over the object. It deals gracefully with ordering (in case of maps), scalars, arrays.
+| `apoc.hashing.fingerprinting(object, {conf})` | calculates a md5 hashsum over the object. It deals gracefully with ordering (in case of maps), scalars, arrays. Please check the `Fingerprinting configuration params` table for details
 | `apoc.hashing.graph(<list_of_props_to_ignore>)` | calculates a md5 hashsum over the full graph.
 |===
 
+.Fingerprinting configuration params
+[opts=header,cols="4"]
+|===
+| prop name | type | default | description
+| `digestAlgorithm` | ENUM | MD5 | the digest algorithm used to create the fingerprint, we only support MD5 right now
+| `nodeAllowMap` | Map<K,V> | empty | a map where the key is the node Label and the value is a lists properties allowed
+| `relAllowMap` | Map<K,V> | empty | a map where the key is the rel type and the value is a lists properties allowed
+| `nodeDisallowMap` | Map<K,V> | empty | a DisallowMap map where the key is the node Label and the value is a lists properties disallowed
+| `relDisallowMap` | Map<K,V> | empty | a DisallowMap map where the key is the rel type and the value is a lists properties disallowed
+| `mapAllowList` | List | empty | a Map used in case the input to the procedure is a map allowed
+| `mapDisallowList` | List | empty | a used in case the input to the procedure is a map disallowed
+|===
 
+.n.b you cannot combine allow & disallow list for the same entity type, this means that for nodes/rels/maps you can specify allow or disallow with lists
