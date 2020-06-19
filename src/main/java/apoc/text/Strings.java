@@ -18,7 +18,16 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.Normalizer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -316,7 +325,7 @@ public class Strings {
     public String slug(@Name("text") String text, @Name(value = "delim", defaultValue = "-") String delim) {
         if (text == null) return null;
         if (delim == null) return null;
-        return text.trim().replaceAll("[\\W\\s]+", delim);
+        return text.trim().replaceAll("[^\\p{L}0-9_]+", delim);
     }
 
 
@@ -391,7 +400,7 @@ public class Strings {
     @UserFunction
     @Description("apoc.text.camelCase(text) YIELD value - Convert a string to camelCase")
     public String camelCase(@Name("text") String text) {
-        text = text.replaceAll("\\W|_+", " ");
+        text = text.replaceAll("[^\\p{L}0-9]|_", " ");
 
         String[] parts = text.split("(\\s+)");
         StringBuilder output = new StringBuilder();
@@ -417,11 +426,11 @@ public class Strings {
     @Description("apoc.text.snakeCase(text) YIELD value - Convert a string to snake-case")
     public String snakeCase(@Name("text") String text) {
         // Convert Snake Case
-        if ( text.matches("^([A-Z0-9_]+)$") ) {
+        if ( text.matches("^([\\p{Lu}0-9_]+)$") ) {
             text = text.toLowerCase().replace("_", " ");
         }
 
-        String[] parts = text.split("(?=[^a-z0-9])");
+        String[] parts = text.split("(?=[^\\p{Ll}0-9])");
         StringBuilder output = new StringBuilder();
 
         for (String part : parts) {
@@ -432,7 +441,7 @@ public class Strings {
                     output.append("-");
                 }
 
-                output.append( part.toLowerCase().trim().replace("(^[a-z0-9]+)", "-") );
+                output.append( part.toLowerCase().trim().replace("(^[\\p{Ll}0-9]+)", "-") );
             }
         }
 
