@@ -892,5 +892,13 @@ public class CollTest {
                 });
     }
 
+    @Test
+    public void testSortText() throws Exception {
+        testCall(db, "RETURN apoc.coll.sortText(['b', 'a']) as value",
+                (row) -> assertEquals(asList("a", "b"), row.get("value")));
+        testCall(db, "RETURN apoc.coll.sortText(['Єльська', 'Гусак'], {locale: 'ru'}) as value",
+                (row) -> assertEquals(asList("Гусак", "Єльська"), row.get("value")));
+    }
+
 }
 
