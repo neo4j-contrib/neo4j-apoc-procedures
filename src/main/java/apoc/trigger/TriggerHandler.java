@@ -1,6 +1,7 @@
 package apoc.trigger;
 
 import apoc.ApocConfig;
+import apoc.Pools;
 import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
@@ -39,11 +40,14 @@ import static apoc.util.Util.map;
 
 public class TriggerHandler extends LifecycleAdapter implements TransactionEventListener<Void> {
 
+    private enum Phase {before, after, rollback, afterAsync}
+
     private final ConcurrentHashMap<String, Map<String,Object>> activeTriggers = new ConcurrentHashMap();
     private final Log log;
     private final GraphDatabaseService db;
     private final DatabaseManagementService databaseManagementService;
     private final ApocConfig apocConfig;
+    private final Pools pools;
 
     private final AtomicBoolean registeredWithKernel = new AtomicBoolean(false);
 
@@ -52,12 +56,14 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
 
     public TriggerHandler(GraphDatabaseService db, DatabaseManagementService databaseManagementService,
-                          ApocConfig apocConfig, Log log, GlobalProceduresRegistry globalProceduresRegistry) {
+                          ApocConfig apocConfig, Log log, GlobalProceduresRegistry globalProceduresRegistry,
+                          Pools pools) {
         this.db = db;
         this.databaseManagementService = databaseManagementService;
         this.apocConfig = apocConfig;
         this.log = log;
         transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
+        this.pools = pools;
     }
 
     private boolean isEnabled() {
@@ -184,23 +190,40 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
 
     @Override
     public Void beforeCommit(TransactionData txData, Transaction transaction, GraphDatabaseService databaseService) {
-        executeTriggers(transaction, txData, "before");
+        if (hasPhase(Phase.before)) {
+            executeTriggers(transaction, txData, Phase.before);
+        }
         return null;
     }
 
     @Override
     public void afterCommit(TransactionData txData, Void state, GraphDatabaseService databaseService) {
-        try (Transaction tx = db.beginTx()) {
-            executeTriggers(tx, txData, "after");
-            tx.commit();
+        if (hasPhase(Phase.after)) {
+            try (Transaction tx = db.beginTx()) {
+                executeTriggers(tx, txData, Phase.after);
+                tx.commit();
+            }
+        }
+        afterAsync(txData);
+    }
+
+    private void afterAsync(TransactionData txData) {
+        if (hasPhase(Phase.afterAsync)) {
+            Map<String, Object> params = txDataParams(txData, Phase.afterAsync);
+            Util.inTxFuture(pools.getDefaultExecutorService(), db, (inner) -> {
+                executeTriggers(inner, params, Phase.afterAsync);
+                return null;
+            });
         }
     }
 
     @Override
     public void afterRollback(TransactionData txData, Void state, GraphDatabaseService databaseService) {
-        try (Transaction tx = db.beginTx()) {
-            executeTriggers(tx, txData, "rollback");
-            tx.commit();
+        if (hasPhase(Phase.rollback)) {
+            try (Transaction tx = db.beginTx()) {
+                executeTriggers(tx, txData, Phase.rollback);
+                tx.commit();
+            }
         }
     }
 
@@ -235,9 +258,20 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         return result;
     }
 
-    private Map<String, Object> txDataParams(TransactionData txData, String phase) {
-        return map("transactionId", phase.equals("after") ? txData.getTransactionId() : -1,
-                "commitTime", phase.equals("after") ? txData.getCommitTime() : -1,
+    private Map<String, Object> txDataParams(TransactionData txData, Phase phase) {
+        final long txId, commitTime;
+        switch (phase) {
+            case after:
+            case afterAsync:
+                txId = txData.getTransactionId();
+                commitTime = txData.getCommitTime();
+                break;
+            default:
+                txId = -1;
+                commitTime = -1;
+        }
+        return map("transactionId", txId,
+                "commitTime", commitTime,
                 "createdNodes", txData.createdNodes(),
                 "createdRelationships", txData.createdRelationships(),
                 "deletedNodes", txData.deletedNodes(),
@@ -250,9 +284,18 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
                 "assignedRelationshipProperties",aggregatePropertyKeys(txData.assignedRelationshipProperties(),false,false));
     }
 
-    private void executeTriggers(Transaction tx, TransactionData txData, String phase) {
+    private boolean hasPhase(Phase phase) {
+        return activeTriggers.values().stream()
+                .map(data -> (Map<String, Object>) data.get("selector"))
+                .anyMatch(selector -> when(selector, phase));
+    }
+
+    private void executeTriggers(Transaction tx, TransactionData txData, Phase phase) {
+        executeTriggers(tx, txDataParams(txData, phase), phase);
+    }
+
+    private void executeTriggers(Transaction tx, Map<String, Object> params, Phase phase) {
         Map<String,String> exceptions = new LinkedHashMap<>();
-        Map<String, Object> params = txDataParams(txData, phase);
         activeTriggers.forEach((name, data) -> {
             if (data.get("params") != null) {
                 params.putAll((Map<String, Object>) data.get("params"));
@@ -275,9 +318,9 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         }
     }
 
-    private boolean when(Map<String, Object> selector, String phase) {
-        if (selector == null) return (phase.equals("before"));
-        return selector.getOrDefault("phase", "before").equals(phase);
+    private boolean when(Map<String, Object> selector, Phase phase) {
+        if (selector == null) return phase == Phase.before;
+        return Phase.valueOf(selector.getOrDefault("phase", "before").toString()) == phase;
     }
 
     @Override

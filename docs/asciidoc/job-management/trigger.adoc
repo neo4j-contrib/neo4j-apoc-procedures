@@ -15,7 +15,9 @@ Enable `apoc.trigger.enabled=true` in `$NEO4J_HOME/conf/apoc.conf` first.
 
 [cols="1m,5"]
 |===
-| CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed | add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information
+| CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed | add a trigger statement under a name,
+in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback/afterAsync'}
+returns previous and new trigger information, please check **Trigger Phase Table** for more details
 | CALL apoc.trigger.remove(name) yield name, statement, installed | remove previously added trigger, returns trigger information
 | CALL apoc.trigger.removeAll() yield name, statement, installed | removes all previously added triggers , returns trigger information
 | CALL apoc.trigger.list() yield name, statement, installed | update and list all installed triggers
@@ -202,3 +204,16 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 ----
 
 // end::trigger[]
+
+.Trigger Phase Table
+.Helper Functions
+[cols="1m,5"]
+|===
+| Phase | Description
+| before | The trigger will be activate right `before` the commit. If no phase is specified, it's the default.
+| rollback | The trigger will be activate right after the  `rollback`
+| after | The trigger will be activate right `after` the commit
+| afterAsync | The trigger will be activate right `after` the commit and inside a new transaction that will not
+impact the original one.
+Heavy operations should be processed in this phase without blocking the original transaction.
+|===

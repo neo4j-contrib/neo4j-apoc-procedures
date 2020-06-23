@@ -58,6 +58,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         ApocConfig apocConfig();
         GlobalProceduresRegistry globalProceduresRegistry();
         RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle();
+        Pools pools();
     }
 
     @Override
@@ -105,7 +106,8 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
                         dependencies.databaseManagementService(),
                         dependencies.apocConfig(),
                         log.getUserLog(Trigger.class),
-                        dependencies.globalProceduresRegistry())
+                        dependencies.globalProceduresRegistry(),
+                        dependencies.pools())
                 );
 
                 RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = dependencies.registerComponentLifecycle();
