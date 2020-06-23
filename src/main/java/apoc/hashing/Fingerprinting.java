@@ -3,6 +3,7 @@ package apoc.hashing;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
@@ -56,6 +57,11 @@ public class Fingerprinting {
             fingerprintNode(md, (Node) thing, conf);
         } else if (thing instanceof Relationship) {
             fingerprintRelationship(md, (Relationship) thing, conf);
+        } else if (thing instanceof Path) {
+            StreamSupport.stream(((Path) thing).nodes().spliterator(), false)
+                    .forEach(o -> fingerprint(md, o, conf));
+            StreamSupport.stream(((Path) thing).relationships().spliterator(), false)
+                    .forEach(o -> fingerprint(md, o, conf));
         } else if (thing instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) thing;
             map.entrySet().stream()
@@ -184,7 +190,7 @@ public class Fingerprinting {
                     .map(Label::name)
                     .flatMap(label -> config.getNodeAllowMap().getOrDefault(label, Collections.emptyList()).stream())
                     .toArray(String[]::new);
-            allProperties = node.getProperties(keys);
+            allProperties = keys.length > 0 ? node.getProperties(keys) : node.getAllProperties();
         } else if (!config.getNodeDisallowMap().isEmpty()) {
             allProperties = node.getAllProperties();
             final Set<String> keysToRemove = StreamSupport.stream(node.getLabels().spliterator(), false)
@@ -197,6 +203,12 @@ public class Fingerprinting {
             allProperties.keySet().removeAll(config.getMapDisallowList());
         } else {
             allProperties = node.getAllProperties();
+        }
+        if (!config.getAllNodesAllowList().isEmpty()) {
+            allProperties.keySet().retainAll(config.getAllNodesAllowList());
+        }
+        if (!config.getAllNodesDisallowList().isEmpty()) {
+            allProperties.keySet().removeAll(config.getAllNodesDisallowList());
         }
         fingerprint(md, allProperties, config);
     }
@@ -211,7 +223,7 @@ public class Fingerprinting {
             final String[] keys = config.getRelAllowMap()
                     .getOrDefault(rel.getType().name(), Collections.emptyList())
                     .toArray(String[]::new);
-            allProperties = rel.getProperties(keys);
+            allProperties = keys.length > 0 ? rel.getProperties(keys) : rel.getAllProperties();
         } else if (!config.getRelDisallowMap().isEmpty()) {
             allProperties = rel.getAllProperties();
             final List<String> keysToRemove = config.getRelDisallowMap()
@@ -222,6 +234,12 @@ public class Fingerprinting {
             allProperties.keySet().removeAll(config.getMapDisallowList());
         } else {
             allProperties = rel.getAllProperties();
+        }
+        if (!config.getAllRelsAllowList().isEmpty()) {
+            allProperties.keySet().retainAll(config.getAllRelsAllowList());
+        }
+        if (!config.getAllRelsDisallowList().isEmpty()) {
+            allProperties.keySet().removeAll(config.getAllRelsAllowList());
         }
         fingerprint(md, allProperties, config);
     }
