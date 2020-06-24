@@ -14,6 +14,10 @@ public class FingerprintingConfig {
 
     private final List<String> mapAllowList;
     private final List<String> mapDisallowList;
+    private final List<String> allNodesAllowList;
+    private final List<String> allRelsAllowList;
+    private final List<String> allNodesDisallowList;
+    private final List<String> allRelsDisallowList;
 
 
     public FingerprintingConfig(Map<String, Object> config) {
@@ -26,6 +30,10 @@ public class FingerprintingConfig {
         this.relDisallowMap = (Map<String, List<String>>) config.getOrDefault("relDisallowMap", Collections.emptyMap());
         this.mapAllowList = (List<String>) config.getOrDefault("mapAllowList", Collections.emptyList());
         this.mapDisallowList = (List<String>) config.getOrDefault("mapDisallowList", config.getOrDefault("propertyExcludes", Collections.emptyList()));
+        this.allNodesAllowList = (List<String>) config.getOrDefault("allNodesAllowList", Collections.emptyList());
+        this.allRelsAllowList = (List<String>) config.getOrDefault("allRelsAllowList", Collections.emptyList());
+        this.allNodesDisallowList = (List<String>) config.getOrDefault("allNodesDisallowList", Collections.emptyList());
+        this.allRelsDisallowList = (List<String>) config.getOrDefault("allRelsDisallowList", Collections.emptyList());
 
         validateConfig();
     }
@@ -40,6 +48,12 @@ public class FingerprintingConfig {
         }
         if (!mapAllowList.isEmpty() && !mapDisallowList.isEmpty()) {
             throw new RuntimeException(message + "maps");
+        }
+        if (!allNodesAllowList.isEmpty() && !allNodesDisallowList.isEmpty()) {
+            throw new RuntimeException(message + "all nodes");
+        }
+        if (!allRelsAllowList.isEmpty() && !allRelsDisallowList.isEmpty()) {
+            throw new RuntimeException(message + "all rels");
         }
     }
 
@@ -69,5 +83,21 @@ public class FingerprintingConfig {
 
     public List<String> getMapDisallowList() {
         return mapDisallowList;
+    }
+
+    public List<String> getAllNodesAllowList() {
+        return allNodesAllowList;
+    }
+
+    public List<String> getAllRelsAllowList() {
+        return allRelsAllowList;
+    }
+
+    public List<String> getAllNodesDisallowList() {
+        return allNodesDisallowList;
+    }
+
+    public List<String> getAllRelsDisallowList() {
+        return allRelsDisallowList;
     }
 }
