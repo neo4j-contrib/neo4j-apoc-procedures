@@ -36,8 +36,12 @@ This is useful if you store properties (like `created=timestamp()`) that should 
 | `relAllowMap` | Map<K,V> | empty | a map where the key is the rel type and the value is a lists properties allowed
 | `nodeDisallowMap` | Map<K,V> | empty | a DisallowMap map where the key is the node Label and the value is a lists properties disallowed
 | `relDisallowMap` | Map<K,V> | empty | a DisallowMap map where the key is the rel type and the value is a lists properties disallowed
-| `mapAllowList` | List | empty | a Map used in case the input to the procedure is a map allowed
-| `mapDisallowList` | List | empty | a used in case the input to the procedure is a map disallowed
+| `mapAllowList` | List | empty | a List used in case the input to the procedure is a map allowed
+| `mapDisallowList` | List | empty | a List used in case the input to the procedure is a map disallowed
+| `allNodesAllowList` | List | empty | a List used for properties common to all Nodes that you need to include in the fingerprint
+| `allRelsAllowList` | List | empty | a List used for properties common to all Relationships that you need to include in the fingerprint
+| `allNodesDisallowList` | List | empty | a List used for properties common to all Nodes that you need to exclude from the fingerprint
+| `allRelsDisallowList` | List | empty | a List used for properties common to all Relationships that you need to exclude from the fingerprint
 |===
 
 .n.b you cannot combine allow & disallow list for the same entity type, this means that for nodes/rels/maps you can specify allow or disallow with lists

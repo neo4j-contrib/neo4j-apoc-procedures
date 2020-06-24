@@ -146,6 +146,18 @@ public class FingerprintingTest  {
                         "RETURN apoc.hashing.fingerprinting(map, $conf) as hash ",
                 Collections.singletonMap("conf",
                         Util.map("nodeDisallowMap", Util.map("Person", Arrays.asList("surname")))));
+        String personNameByAllNodesAllowList = TestUtil.singleResultFirstColumn(db, "MATCH p = (n)-[r]->(m) " +
+                        "WITH collect(p) AS paths " +
+                        "CALL apoc.graph.fromPaths(paths, '', {}) yield graph AS g " +
+                        "WITH {nodes: apoc.coll.toSet(g.nodes), rels: apoc.coll.toSet(g.relationships)} AS map " +
+                        "RETURN apoc.hashing.fingerprinting(map, $conf) as hash ",
+                Collections.singletonMap("conf", Util.map("allNodesAllowList", Arrays.asList("name"))));
+        String personNameByAllNodesDisallowList = TestUtil.singleResultFirstColumn(db, "MATCH p = (n)-[r]->(m) " +
+                        "WITH collect(p) AS paths " +
+                        "CALL apoc.graph.fromPaths(paths, '', {}) yield graph AS g " +
+                        "WITH {nodes: apoc.coll.toSet(g.nodes), rels: apoc.coll.toSet(g.relationships)} AS map " +
+                        "RETURN apoc.hashing.fingerprinting(map, $conf) as hash ",
+                Collections.singletonMap("conf", Util.map("allNodesDisallowList", Arrays.asList("surname"))));
         String rel = TestUtil.singleResultFirstColumn(db, "MATCH p = (n)-[r]->(m) " +
                         "WITH collect(p) AS paths " +
                         "CALL apoc.graph.fromPaths(paths, '', {}) yield graph AS g " +
@@ -153,8 +165,10 @@ public class FingerprintingTest  {
                         "RETURN apoc.hashing.fingerprinting(map, $conf) as hash ",
                 Collections.singletonMap("conf",
                         Util.map("relDisallowMap", Util.map("KNOWS", Arrays.asList("since")))));
-        Set<String> hashes = new HashSet<>(Arrays.asList(all, personName, personNameByDisallowMap, rel));
-        assertEquals(3, hashes.size()); // 3 because personName = personNameByDisallowMap
+        Set<String> hashes = new HashSet<>(Arrays.asList(all, personName,
+                personNameByDisallowMap, personNameByAllNodesAllowList,
+                personNameByAllNodesDisallowList, rel));
+        assertEquals(3, hashes.size()); // 3 because personName = personNameByDisallowMap = personNameByAllNodesAllowMap = personNameByAllNodesDisallowMap
     }
 
     private void compareGraph(String cypher, List<String> excludes, boolean shouldBeEqual) {
