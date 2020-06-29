@@ -106,7 +106,7 @@ public class DocsTest {
         docs.put("apoc.import.graphml", "graphml-import");
         docs.put("apoc.coll.*", "collection-list-functions");
         docs.put("apoc.convert.*", "conversion-functions");
-        docs.put("apoc.create.v*|apoc.create.virtual.*", "virtual-nodes-rels");
+        docs.put("apoc.create.v.*|apoc.create.virtual.*", "virtual-nodes-rels");
         docs.put("apoc.map.*", "map-functions");
         docs.put("apoc.math.*|apoc.number.romanToArabic|apoc.number.arabicToRoman", "math-functions");
         docs.put("apoc.meta.*", "meta-graph");
@@ -137,6 +137,15 @@ public class DocsTest {
         docs.put("apoc.search.node.*", "parallel-node-search");
         docs.put("apoc.trigger.*", "triggers");
         docs.put("apoc.ttl.*", "ttl");
+        docs.put("apoc.create.uuid", "auto-uuid");
+        docs.put("apoc.cypher.*", "cypher-execution");
+        docs.put("apoc.date.*", "datetime-conversions");
+        docs.put("apoc.hashing.*", "fingerprinting");
+        docs.put("apoc.temporal.*", "temporal-conversions");
+        docs.put("apoc.uuid.*", "auto-uuid");
+        docs.put("apoc.systemdb.*", "systemdb");
+        docs.put("apoc.periodic.submit|apoc.periodic.schedule|apoc.periodic.list|apoc.periodic.countdown", "periodic-background");
+        docs.put("apoc.model.jdbc", "database-modeling");
 
         try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, "documentation.csv")), StandardCharsets.UTF_8 ))
         {
