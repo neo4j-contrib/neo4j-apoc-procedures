@@ -1,7 +1,6 @@
 package apoc.export.xls;
 
 import apoc.ApocConfig;
-import apoc.Description;
 import apoc.Extended;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.NodesAndRelsSubGraph;
@@ -17,6 +16,7 @@ import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 

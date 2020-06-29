@@ -1,6 +1,5 @@
 package apoc.trigger;
 
-import apoc.Description;
 import apoc.coll.SetBackedList;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
