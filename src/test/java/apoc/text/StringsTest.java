@@ -476,6 +476,7 @@ public class StringsTest {
         testCall(db, "RETURN apoc.text.slug('a- b c', '.') AS value", row -> assertEquals("a.b.c", row.get("value")));
         testCall(db, "RETURN apoc.text.slug('a- b','-') AS value", row -> assertEquals("a-b", row.get("value")));
         testCall(db, "RETURN apoc.text.slug('a b c') AS value", row -> assertEquals("a-b-c", row.get("value")));
+        testCall(db, "RETURN apoc.text.slug('a b c d é') AS value", row -> assertEquals("a-b-c-d-é", row.get("value")));
     }
 
     @Test
@@ -557,6 +558,7 @@ public class StringsTest {
         testCall(db, "RETURN apoc.text.camelCase($text) as value", map("text", "foo-bar"), row -> assertEquals("fooBar", row.get("value").toString()));
         testCall(db, "RETURN apoc.text.camelCase($text) as value", map("text", "Foobar"), row -> assertEquals("foobar", row.get("value").toString()));
         testCall(db, "RETURN apoc.text.camelCase($text) as value", map("text", "Foo$$Bar"), row -> assertEquals("fooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase($text) as value", map("text", "doc vidéo"), row -> assertEquals("docVidéo", row.get("value").toString()));
     }
 
     @Test
@@ -567,6 +569,7 @@ public class StringsTest {
         testCall(db, "RETURN apoc.text.upperCamelCase($text) as value", map("text", "foo-bar"), row -> assertEquals("FooBar", row.get("value").toString()));
         testCall(db, "RETURN apoc.text.upperCamelCase($text) as value", map("text", "Foobar"), row -> assertEquals("Foobar", row.get("value").toString()));
         testCall(db, "RETURN apoc.text.upperCamelCase($text) as value", map("text", "Foo$$Bar"), row -> assertEquals("FooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase($text) as value", map("text", "doc vidéo"), row -> assertEquals("DocVidéo", row.get("value").toString()));
     }
 
     @Test
@@ -578,6 +581,7 @@ public class StringsTest {
         testCall(db, "RETURN apoc.text.snakeCase($text) as value", map("text", "foo-bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
         testCall(db, "RETURN apoc.text.snakeCase($text) as value", map("text", "Foo bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
         testCall(db, "RETURN apoc.text.snakeCase($text) as value", map("text", "Foo  bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase($text) as value", map("text", "rédacteur-en-chef"), row -> assertEquals("rédacteur-en-chef", row.get("value").toString()));
     }
 
     @Test
