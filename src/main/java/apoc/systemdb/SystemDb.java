@@ -4,11 +4,13 @@ import apoc.ApocConfig;
 import apoc.result.RowResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
+import apoc.util.Util;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -24,6 +26,9 @@ public class SystemDb {
 
     @Context
     public ApocConfig apocConfig;
+    
+    @Context
+    public SecurityContext securityContext;
 
     public static class NodesAndRelationshipsResult {
         public List<Node> nodes;
@@ -37,6 +42,7 @@ public class SystemDb {
 
     @Procedure
     public Stream<NodesAndRelationshipsResult> graph() {
+        Util.checkAdmin(securityContext,"apoc.systemdb.graph");
         return withSystemDbTransaction(tx -> {
             Map<Long, Node> virtualNodes = new HashMap<>();
             for (Node node: tx.getAllNodes())  {
@@ -56,6 +62,7 @@ public class SystemDb {
 
     @Procedure
     public Stream<RowResult> execute(@Name("DDL command") String command, @Name(value="params", defaultValue = "{}") Map<String ,Object> params) {
+        Util.checkAdmin(securityContext,"apoc.systemdb.execute");
         return withSystemDbTransaction(tx -> tx.execute(command, params).stream().map(map -> new RowResult(map)));
     }
 
