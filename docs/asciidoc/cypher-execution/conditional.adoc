@@ -123,7 +123,7 @@ YIELD value
 .Write
 [source,cypher]
 ----
-CALL apoc.do.when(
+CALL apoc.do.case(
   conditionals: List of alternating Boolean/String,
   elseQuery: String,
   params: Map)
@@ -134,11 +134,30 @@ If we wanted to MATCH to selection nodes in a column, we could use entirely diff
 
 [source,cypher]
 ----
- MATCH (me:User{id:{myId}})
- CALL apoc.case(
-  [{selection} = 'friends', "RETURN [(me)-[:FRIENDS]-(friend) | friend] as selection",
-   {selection} = 'coworkers', "RETURN [(me)-[:WORKS_AT*2]-(coworker) | coworker] as selection",
-   {selection} = 'all', "RETURN apoc.coll.union([(me)-[:FRIENDS]-(friend) | friend], [(me)-[:WORKS_AT*2]-(coworker) | coworker]) as selection"],
-   'RETURN [] as selection', {me:me}) YIELD value
- RETURN value.selection as selection
+MATCH (me:User {id:$myId})
+CALL apoc.case([
+  $selection = 'friends', "RETURN [(me)-[:FRIENDS]-(friend) | friend] as selection",
+  $selection = 'coworkers', "RETURN [(me)-[:WORKS_AT*2]-(coworker) | coworker] as selection",
+  $selection = 'all', "RETURN apoc.coll.union([(me)-[:FRIENDS]-(friend) | friend], [(me)-[:WORKS_AT*2]-(coworker) | coworker]) as selection"],
+  'RETURN [] as selection',
+  {me:me}
+)
+YIELD value
+RETURN value.selection as selection;
+----
+
+Or if we want to create different relationship types between two nodes based on the value
+
+[source,cypher]
+----
+MATCH (me:User {id:$myId})
+MATCH (friend:User {id:$friendId})
+CALL apoc.do.case([
+  $selection = 'friends', "MERGE (me)-[rel:FRIENDS]->(friend) RETURN rel",
+  $selection = 'coworkers', "MERGE (me)-[rel:CO_WORKER]->(friend) RETURN rel"],
+  'MERGE (me)-[rel:CONNECTED]->(friend) RETURN rel',
+  {me:me, friend:friend}
+)
+YIELD value
+RETURN value.rel as rel;
 ----
