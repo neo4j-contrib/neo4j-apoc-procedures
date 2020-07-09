@@ -1,10 +1,17 @@
 package apoc.hashing;
 
+import apoc.util.Util;
+
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class FingerprintingConfig {
+
+    enum FingerprintStrategy {EAGER, LAZY}
+
     private final String digestAlgorithm;
     private final Map<String, List<String>> nodeAllowMap;
     private final Map<String, List<String>> relAllowMap;
@@ -18,6 +25,9 @@ public class FingerprintingConfig {
     private final List<String> allRelsAllowList;
     private final List<String> allNodesDisallowList;
     private final List<String> allRelsDisallowList;
+    private final FingerprintStrategy strategy;
+    private final Set<String> allLabels;
+    private final Set<String> allTypes;
 
 
     public FingerprintingConfig(Map<String, Object> config) {
@@ -29,31 +39,37 @@ public class FingerprintingConfig {
         this.nodeDisallowMap = (Map<String, List<String>>) config.getOrDefault("nodeDisallowMap", Collections.emptyMap());
         this.relDisallowMap = (Map<String, List<String>>) config.getOrDefault("relDisallowMap", Collections.emptyMap());
         this.mapAllowList = (List<String>) config.getOrDefault("mapAllowList", Collections.emptyList());
-        this.mapDisallowList = (List<String>) config.getOrDefault("mapDisallowList", config.getOrDefault("propertyExcludes", Collections.emptyList()));
+        this.mapDisallowList = (List<String>) config.getOrDefault("mapDisallowList", Collections.emptyList());
         this.allNodesAllowList = (List<String>) config.getOrDefault("allNodesAllowList", Collections.emptyList());
         this.allRelsAllowList = (List<String>) config.getOrDefault("allRelsAllowList", Collections.emptyList());
         this.allNodesDisallowList = (List<String>) config.getOrDefault("allNodesDisallowList", Collections.emptyList());
         this.allRelsDisallowList = (List<String>) config.getOrDefault("allRelsDisallowList", Collections.emptyList());
+        this.strategy = FingerprintStrategy.valueOf((String) config.getOrDefault("strategy", FingerprintStrategy.LAZY.toString()));
 
         validateConfig();
+
+        allLabels = new HashSet<>(nodeAllowMap.keySet());
+        allLabels.addAll(nodeDisallowMap.keySet());
+        allTypes = new HashSet<>(relAllowMap.keySet());
+        allTypes.addAll(relDisallowMap.keySet());
     }
 
     private void validateConfig() {
-        final String message = "You can't set allow and disallow lists for ";
-        if (!nodeAllowMap.isEmpty() && !nodeDisallowMap.isEmpty()) {
-            throw new RuntimeException(message + "nodes");
+        final String message = "You can't set the same %s for allow and disallow lists for %s";
+        if (!Util.intersection(nodeAllowMap.keySet(), nodeDisallowMap.keySet()).isEmpty()) {
+            throw new RuntimeException(String.format(message, "labels", "nodes"));
         }
-        if (!relAllowMap.isEmpty() && !relDisallowMap.isEmpty()) {
-            throw new RuntimeException(message + "rels");
+        if (!Util.intersection(relAllowMap.keySet(), relDisallowMap.keySet()).isEmpty()) {
+            throw new RuntimeException(String.format(message, "types", "rels"));
         }
-        if (!mapAllowList.isEmpty() && !mapDisallowList.isEmpty()) {
-            throw new RuntimeException(message + "maps");
+        if (!Util.intersection(mapAllowList, mapDisallowList).isEmpty()) {
+            throw new RuntimeException(String.format(message, "properties", "maps"));
         }
-        if (!allNodesAllowList.isEmpty() && !allNodesDisallowList.isEmpty()) {
-            throw new RuntimeException(message + "all nodes");
+        if (!Util.intersection(allNodesAllowList, allNodesDisallowList).isEmpty()) {
+            throw new RuntimeException(String.format(message, "properties", "all nodes"));
         }
-        if (!allRelsAllowList.isEmpty() && !allRelsDisallowList.isEmpty()) {
-            throw new RuntimeException(message + "all rels");
+        if (!Util.intersection(allRelsAllowList, allRelsDisallowList).isEmpty()) {
+            throw new RuntimeException(String.format(message, "properties", "all rels"));
         }
     }
 
@@ -99,5 +115,17 @@ public class FingerprintingConfig {
 
     public List<String> getAllRelsDisallowList() {
         return allRelsDisallowList;
+    }
+
+    public FingerprintStrategy getStrategy() {
+        return strategy;
+    }
+
+    public Set<String> getAllLabels() {
+        return allLabels;
+    }
+
+    public Set<String> getAllTypes() {
+        return allTypes;
     }
 }

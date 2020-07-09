@@ -42,6 +42,15 @@ This is useful if you store properties (like `created=timestamp()`) that should 
 | `allRelsAllowList` | List | empty | a List used for properties common to all Relationships that you need to include in the fingerprint
 | `allNodesDisallowList` | List | empty | a List used for properties common to all Nodes that you need to exclude from the fingerprint
 | `allRelsDisallowList` | List | empty | a List used for properties common to all Relationships that you need to exclude from the fingerprint
+| `strategy` | Enum[EAGER, LAZY] | LAZY | define the behaviour in case the properties are not present for the specific node/relationship, see the `Fingerprinting strategy` paragraph
 |===
 
 .n.b you cannot combine allow & disallow list for the same entity type, this means that for nodes/rels/maps you can specify allow or disallow with lists
+
+== Fingerprinting strategy
+
+In case the properties defined in the configuration are not present in the node and/or relationship you can define how
+the fingerprinting procedure must proceed with the process:
+
+* `EAGER`: it evaluates the whole node properties in order to create the fingerprint of the node/relationship
+* `LAZY`: it evaluates only the nodes/relationships provided in the configuration
