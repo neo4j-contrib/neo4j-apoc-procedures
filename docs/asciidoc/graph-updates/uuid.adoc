@@ -7,6 +7,9 @@ This section describes procedures that can be used to add UUID properties to nod
 --
 
 The library supports manual and automation generation of UUIDs, which can be stored as properties on nodes.
+
+UUIDs are generated using the https://docs.oracle.com/javase/7/docs/api/java/util/UUID.html#randomUUID()[java randomUUID utility method], which generates a https://www.ietf.org/rfc/rfc4122.txt[v4UUID].
+
 This section includes:
 
 * <<manual-uuids>>
