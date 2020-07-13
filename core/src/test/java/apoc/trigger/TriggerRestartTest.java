@@ -28,7 +28,7 @@ public class TriggerRestartTest {
 
     @Before
     public void setUp() {
-        databaseManagementService = new TestDatabaseManagementServiceBuilder(store_dir.getRoot()).build();
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(store_dir.getRoot().toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         ApocConfig.apocConfig().setProperty("apoc.trigger.enabled", "true");
         TestUtil.registerProcedure(db, Trigger.class);
@@ -41,7 +41,7 @@ public class TriggerRestartTest {
 
     private void restartDb() {
         databaseManagementService.shutdown();
-        databaseManagementService = new TestDatabaseManagementServiceBuilder(store_dir.getRoot()).build();
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(store_dir.getRoot().toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         assertTrue(db.isAvailable(1000));
     }
