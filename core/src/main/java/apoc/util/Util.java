@@ -16,7 +16,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.TransactionGuardException;
 import org.neo4j.graphdb.TransactionTerminatedException;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.Pair;
@@ -662,7 +661,7 @@ public class Util {
     }
 
     public static void checkAdmin(SecurityContext securityContext, String procedureName) {
-        if (!securityContext.isAdmin()) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
+        if (!securityContext.allowExecuteAdminProcedure()) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
     }
 
     public static void sleep(int millis) {
@@ -720,7 +719,7 @@ public class Util {
         try {
             db.check();
             return false;
-        } catch (TransactionGuardException | TransactionTerminatedException | NotInTransactionException tge) {
+        } catch (TransactionTerminatedException | NotInTransactionException tge) {
             return true;
         }
     }
