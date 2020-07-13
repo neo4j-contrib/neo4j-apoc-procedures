@@ -72,14 +72,14 @@ public class Warmup {
 
         Map<String, PageResult> records = pagedFiles.parallelStream()
                 .filter(pF -> {
-                    String name = pF.file().getName();
-                    if (isSchema(pF.file()) && !loadIndexes) return false;
+                    String name = pF.path().toFile().getName();
+                    if (isSchema(pF.path().toFile()) && !loadIndexes) return false;
                     if ((name.endsWith("propertystore.db.strings") || name.endsWith("propertystore.db.arrays")) && !loadDynamicProperties) return false;
                     if ((name.startsWith("propertystore.db")) && !loadProperties) return false;
                     return true;
                 })
                 .map((pagedFile -> {
-                    File file = pagedFile.file();
+                    File file = pagedFile.path().toFile();
                     boolean index = isSchema(file);
                     String fileName = index ? subPath(file, "schema") : file.getName();
                     long pages = 0;
