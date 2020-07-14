@@ -18,6 +18,8 @@ This is the user guide for Neo4j APOC {docs-version}, authored by the Neo4j Labs
 The guide covers the following areas:
 
 * <<introduction>> -- An Introduction to the APOC library.
+* <<installation>> -- Installation instructions for the library.
+* <<usage>> -- A usage example.
 * <<help>> -- In-built help in the library.
 * <<overview>> -- A list of all APOC procedures and functions.
 * <<config>> -- Configuration options used by the library.
@@ -65,28 +67,17 @@ include::../../readme.adoc[tags=intro-text]
 include::../../readme.adoc[tags=name-history-text]
 ====
 
+Starting from Neo4j 4.1.1, there are two available versions of the APOC Library:
 
-[[installation]]
-=== Installation
+_APOC Core_ :: battle hardened procedures and functions that don't have external dependencies or require configuration.
+_APOC Full_ :: contains everything in APOC core, as well as additional procedures and functions.
 
-include::../../readme.adoc[tags=install-desktop,leveloffset=2]
-image::desktop-apoc.jpg[width=800]
+A list of functions and procedures in _APOC Core_ and _APOC Full_ can be found in <<overview>>.
 
-include::../../readme.adoc[tags=install,leveloffset=2]
 
-include::../../readme.adoc[tags=warnings,leveloffset=1]
+include::_installation.adoc[]
 
-include::../../readme.adoc[tags=docker,leveloffset=1]
-
-[[usage]]
-=== Usage
-
-include::../../readme.adoc[tags=usage]
-
-[[feedback]]
-=== Feedback
-include::../../readme.adoc[tags=feedback]
-
+include::_usage.adoc[]
 
 include::help.adoc[]
 

@@ -10,10 +10,7 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ConfigurationBuilder;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -147,9 +144,22 @@ public class DocsTest {
         docs.put("apoc.periodic.submit|apoc.periodic.schedule|apoc.periodic.list|apoc.periodic.countdown", "periodic-background");
         docs.put("apoc.model.jdbc", "database-modeling");
 
+        Set<String> extended = new HashSet<>();
+        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("extended.txt")) {
+            if (stream != null) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+                String name;
+                while ((name = reader.readLine()) != null) {
+                    extended.add(name);
+                }
+            }
+        } catch (IOException e) {
+            // Failed to load extended file
+        }
+
         try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, "documentation.csv")), StandardCharsets.UTF_8 ))
         {
-            writer.write("¦type¦qualified name¦signature¦description¦documentation\n");
+            writer.write("¦type¦qualified name¦signature¦description¦core¦documentation\n");
             for (Row row : rows) {
 
                 Optional<String> documentation = docs.keySet().stream()
@@ -157,7 +167,13 @@ public class DocsTest {
                         .map(value -> String.format("<<%s>>", docs.get(value)))
                         .findFirst();
 
-                writer.write(String.format("¦%s¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, row.description, documentation.orElse("")));
+                writer.write(String.format("¦%s¦%s¦%s¦%s¦%s¦%s\n",
+                        row.type,
+                        row.name,
+                        row.signature,
+                        row.description,
+                        !extended.contains(row.name),
+                        documentation.orElse("")));
             }
 
         }

@@ -1,0 +1,4 @@
+[[usage]]
+== Usage
+
+include::../../readme.adoc[tags=usage]
