@@ -213,7 +213,7 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel($as
 | before | The trigger will be activate right `before` the commit. If no phase is specified, it's the default.
 | rollback | The trigger will be activate right after the  `rollback`
 | after | The trigger will be activate right `after` the commit
-| afterAsync | The trigger will be activate right `after` the commit and inside a new transaction that will not
+| afterAsync | The trigger will be activate right `after` the commit and inside a new transaction and thread that will not
 impact the original one.
 Heavy operations should be processed in this phase without blocking the original transaction.
 |===
