@@ -31,14 +31,14 @@ public class CypherProceduresStorageTest {
 
     @Before
     public void setUp() throws Exception {
-        databaseManagementService = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot()).build();
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot().toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         TestUtil.registerProcedure(db, CypherProcedures.class);
     }
 
     private void restartDb() throws IOException {
         databaseManagementService.shutdown();
-        databaseManagementService = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot()).build();
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot().toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         assertTrue(db.isAvailable(1000));
     }
