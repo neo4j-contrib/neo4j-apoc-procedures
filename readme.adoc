@@ -1,8 +1,8 @@
 :readme:
-:branch: 4.1
+:branch: 4.2
 :docs: https://neo4j.com/docs/labs/apoc/current
-:apoc-release: 4.1.0.0
-:neo4j-version: 4.1.0
+:apoc-release: 4.2.0-rc02
+:neo4j-version: 4.2.0
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/images
 
 = Awesome Procedures for Neo4j {branch}.x
