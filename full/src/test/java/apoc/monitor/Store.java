@@ -25,13 +25,13 @@ public class Store  {
         Database database = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(Database.class);
         DatabaseLayout databaseLayout = database.getDatabaseLayout();
         return Stream.of(new StoreInfoResult(
-                getDirectorySize(databaseLayout.getTransactionLogsDirectory()),
-                databaseLayout.propertyStringStore().length(),
-                databaseLayout.propertyArrayStore().length(),
-                databaseLayout.relationshipStore().length(),
-                databaseLayout.propertyStore().length(),
-                getDirectorySize(databaseLayout.databaseDirectory()), //databaseLayout.storeFiles().stream().mapToLong(File::length).sum(),
-                databaseLayout.nodeStore().length()
+                getDirectorySize(databaseLayout.getTransactionLogsDirectory().toFile()),
+                databaseLayout.propertyStringStore().toFile().length(),
+                databaseLayout.propertyArrayStore().toFile().length(),
+                databaseLayout.relationshipStore().toFile().length(),
+                databaseLayout.propertyStore().toFile().length(),
+                getDirectorySize(databaseLayout.databaseDirectory().toFile()), //databaseLayout.storeFiles().stream().mapToLong(File::length).sum(),
+                databaseLayout.nodeStore().toFile().length()
         ));
     }
 
