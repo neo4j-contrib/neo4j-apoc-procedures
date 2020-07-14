@@ -1,0 +1,12 @@
+== Manual Installation: Download latest release
+
+// tag::install[]
+
+Since APOC relies on Neo4j's internal APIs you need to use the *matching APOC version* for your Neo4j installaton.
+Make sure that the *first two version numbers match between Neo4j and APOC*.
+
+Go to http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/{apoc-release}[the latest release] for *Neo4j version {branch}* and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
+
+You can find http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/[all releases here].
+
+// end::install[]

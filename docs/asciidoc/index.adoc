@@ -64,13 +64,16 @@ include::../../readme.adoc[tags=intro-text]
 [NOTE]
 ====
 .APOC Name History
-include::../../readme.adoc[tags=name-history-text]
+
+http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board of the Nebuchadnezzar in the Matrix movie. He was killed by Cypher.
+
+*APOC* was also the first bundled http://neo4j.com/blog/convenient-package-neo4j-apoc-0-1-released/[A Package Of Component^] for Neo4j in 2009.
+
+*APOC* also stands for "Awesome Procedures On Cypher"
 ====
 
-Starting from Neo4j 4.1.1, there are two available versions of the APOC Library:
+include::../../readme.adoc[tags=full-core]
 
-_APOC Core_ :: battle hardened procedures and functions that don't have external dependencies or require configuration.
-_APOC Full_ :: contains everything in APOC core, as well as additional procedures and functions.
 
 A list of functions and procedures in _APOC Core_ and _APOC Full_ can be found in <<overview>>.
 
@@ -92,7 +95,46 @@ ifdef::backend-html5[]
 ++++
 endif::[]
 
-include::../../readme.adoc[tags=signature,leveloffset=1]
+// tag::signature[]
+
+== Procedure & Function Signatures
+
+To call procedures correctly, you need to know their parameter names, types and positions.
+And for YIELDing their results, you have to know the output column names and types.
+
+INFO:The signatures are shown in error messages, if you use a procedure incorrectly.
+
+You can see the procedures signature in the output of `CALL apoc.help("name")`
+
+[source,cypher]
+----
+CALL apoc.help("dijkstra")
+----
+
+The signature is always `name : : TYPE`, so in this case:
+
+----
+apoc.algo.dijkstra
+ (startNode :: NODE?, endNode :: NODE?,
+   relationshipTypesAndDirections :: STRING?, weightPropertyName :: STRING?)
+:: (path :: PATH?, weight :: FLOAT?)
+----
+
+.Parameter Explanation
+[opts=header,cols="m,m"]
+|===
+| Name | Type
+h| Procedure Parameters |
+| startNode | Node
+| endNode | Node
+| relationshipTypesAndDirections | String
+| weightPropertyName | String
+h| Output Return Columns |
+| path  |  Path
+| weight | Float
+|===
+
+// end::signature[]
 
 [[overview]]
 == Procedures & Functions
