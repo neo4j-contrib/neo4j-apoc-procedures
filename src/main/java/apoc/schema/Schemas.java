@@ -2,26 +2,43 @@ package apoc.schema;
 
 import apoc.result.AssertSchemaResult;
 import apoc.result.ConstraintRelationshipInfo;
-import apoc.result.GraphResult;
 import apoc.result.IndexConstraintNodeInfo;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.internal.kernel.api.*;
+import org.neo4j.internal.kernel.api.IndexReference;
+import org.neo4j.internal.kernel.api.InternalIndexState;
+import org.neo4j.internal.kernel.api.SchemaRead;
+import org.neo4j.internal.kernel.api.TokenNameLookup;
+import org.neo4j.internal.kernel.api.TokenRead;
 import org.neo4j.internal.kernel.api.exceptions.LabelNotFoundKernelException;
 import org.neo4j.internal.kernel.api.exceptions.schema.IndexNotFoundKernelException;
 import org.neo4j.internal.kernel.api.schema.constraints.ConstraintDescriptor;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.SilentTokenNameLookup;
 import org.neo4j.kernel.api.Statement;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.UserFunction;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -417,6 +434,12 @@ public class Schemas {
         List<String> properties = new ArrayList<>();
         Arrays.stream(indexReference.properties()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
         try {
+            float populationProgressValue = db.execute("CALL db.indexes() YIELD tokenNames, properties, progress " +
+                    "WHERE $label IN tokenNames AND $properties = properties " +
+                    "RETURN progress", Util.map("label", labelName, "properties", properties))
+                    .<Double>columnAs("progress")
+                    .next()
+                    .floatValue();
             return new IndexConstraintNodeInfo(
                     // Pretty print for index name
                     String.format(":%s(%s)", labelName, StringUtils.join(properties, ",")),
@@ -425,7 +448,7 @@ public class Schemas {
                     schemaRead.indexGetState(indexReference).toString(),
                     !indexReference.isUnique() ? "INDEX" : "UNIQUENESS",
                     schemaRead.indexGetState(indexReference).equals(InternalIndexState.FAILED) ? schemaRead.indexGetFailure(indexReference) : "NO FAILURE",
-                    schemaRead.indexGetPopulationProgress(indexReference).getCompleted() / schemaRead.indexGetPopulationProgress(indexReference).getTotal() * 100,
+                    populationProgressValue,
                     schemaRead.indexSize(indexReference),
                     schemaRead.indexUniqueValuesSelectivity(indexReference),
                     indexReference.userDescription(tokens)
