@@ -6,6 +6,12 @@
     <d:tocentry linkend="introduction"><?dbhtml filename="introduction/index.html"?>
     </d:tocentry>
 
+    <d:tocentry linkend="installation"><?dbhtml filename="installation/index.html"?>
+    </d:tocentry>
+
+    <d:tocentry linkend="usage"><?dbhtml filename="usage/index.html"?>
+    </d:tocentry>
+
 	<d:tocentry linkend="help"><?dbhtml filename="help/index.html"?>
     </d:tocentry>
 
