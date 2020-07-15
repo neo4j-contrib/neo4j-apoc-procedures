@@ -13,6 +13,23 @@ Each procedure has two modes:
 
 * Stream - returns a map constructed from the JSON returned from the API
 
+This section includes the following:
+
+* <<nlp-azure-overview>>
+** <<nlp-azure-entities>>
+** <<nlp-azure-key-phrases>>
+** <<nlp-azure-sentiment>>
+
+* <<nlp-azure-dependencies>>
+* <<nlp-azure-api-key>>
+//* <<nlp-aws-examples-batching>>
+
+* <<nlp-azure-examples>>
+** <<nlp-azure-examples-entities>>
+** <<nlp-azure-examples-key-phrases>>
+** <<nlp-azure-examples-sentiment>>
+
+
 [[nlp-azure-overview]]
 ==== Procedure Overview
 
@@ -23,4 +40,288 @@ The procedures are described below:
 include::../../../build/generated-documentation/apoc.nlp.azure.entities.csv[]
 include::../../../build/generated-documentation/apoc.nlp.azure.keyPhrases.csv[lines=2;3]
 include::../../../build/generated-documentation/apoc.nlp.azure.sentiment.csv[lines=2;3]
+|===
+
+[[nlp-azure-entities]]
+===== Entity Extraction
+
+The entity extraction procedures (`apoc.nlp.azure.entities.*`) are wrappers around the https://westcentralus.dev.cognitive.microsoft.com/docs/services/TextAnalytics-v2-1/operations/5ac4251d5b4ccd1554da7634[Entities^] end point of the Azure Text Analytics API.
+This API method returns a list of known entities and general named entities ("Person", "Location", "Organization" etc) in a given document.
+
+The procedures are described below:
+
+[separator=¦,opts=header,cols="1"]
+|===
+include::../../../build/generated-documentation/apoc.nlp.azure.entities.stream-lite.csv[]
+|===
+
+The procedure supports the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| key | String | null | Microsoft.CognitiveServicesTextAnalytics API Key
+| url | String | null | Microsoft.CognitiveServicesTextAnalytics Endpoint
+| nodeProperty | String | text | The property on the provided node that contains the unstructured text to be analyzed
+|===
+
+.Streaming mode
+[source,cypher]
+----
+CALL apoc.nlp.azure.entities.stream(source:Node or List<Node>, {
+  key: String,
+  url: String,
+  nodeProperty: String
+})
+YIELD value
+----
+
+[[nlp-azure-key-phrases]]
+===== Key Phrases
+
+The key phrase procedures (`apoc.nlp.azure.keyPhrases.*`) are wrappers around the https://westcentralus.dev.cognitive.microsoft.com/docs/services/TextAnalytics-v2-1/operations/56f30ceeeda5650db055a3c6[Key Phrases^] end point of the Azure Text Analytics API.
+A key phrase is a key talking point in the input text.
+
+The procedure is described below:
+
+[separator=¦,opts=header,cols="1"]
+|===
+include::../../../build/generated-documentation/apoc.nlp.azure.keyPhrases.stream-lite.csv[]
+|===
+
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| key | String | null | Microsoft.CognitiveServicesTextAnalytics API Key
+| url | String | null | Microsoft.CognitiveServicesTextAnalytics Endpoint
+| nodeProperty | String | text | The property on the provided node that contains the unstructured text to be analyzed
+|===
+
+.Streaming mode
+[source,cypher]
+----
+CALL apoc.nlp.azure.keyPhrases.stream(source:Node or List<Node>, {
+  key: String,
+  url: String,
+  nodeProperty: String
+})
+YIELD value
+----
+
+[[nlp-azure-sentiment]]
+===== Sentiment
+
+The sentiment procedures (`apoc.nlp.azure.sentiment.*`) are wrappers around the https://westcentralus.dev.cognitive.microsoft.com/docs/services/TextAnalytics-v2-1/operations/56f30ceeeda5650db055a3c9[Sentiment^] end point of the Azure Text Analytics API.
+The API returns a numeric score between 0 and 1.
+Scores close to 1 indicate positive sentiment, while scores close to 0 indicate negative sentiment.
+A score of 0.5 indicates the lack of sentiment (e.g. a factoid statement).
+
+The procedures are described below:
+
+[separator=¦,opts=header,cols="1"]
+|===
+include::../../../build/generated-documentation/apoc.nlp.azure.sentiment.stream-lite.csv[]
+|===
+
+The procedures support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| key | String | null | Microsoft.CognitiveServicesTextAnalytics API Key
+| url | String | null | Microsoft.CognitiveServicesTextAnalytics Endpoint
+| nodeProperty | String | text | The property on the provided node that contains the unstructured text to be analyzed
+|===
+
+.Streaming mode
+[source,cypher]
+----
+CALL apoc.nlp.azure.sentiment.stream(source:Node or List<Node>, {
+  key: String,
+  url: String,
+  nodeProperty: String
+})
+YIELD value
+----
+
+[[nlp-azure-dependencies]]
+==== Install Dependencies
+
+include::nlp-dependencies.adoc[]
+
+[[nlp-azure-api-key]]
+==== Setting up API Key and URL
+
+We can generate an API key and URL by following the instructions in the  https://docs.microsoft.com/en-us/azure/cognitive-services/text-analytics/quickstarts/text-analytics-sdk[Quickstart: Use the Text Analytics client library^] article.
+Once we've done that, we should be able to see a page listing our credentials, similar to the screenshot below:
+
+image::azure-text-analytics-keys.png[title="Azure Text Analytics credentials"]
+
+In this case our API URL is `https://neo4j-nlp-text-analytics.cognitiveservices.azure.com/`, and we can use either of the hidden keys.
+
+Let's populate and execute the following commands to create parameters that contains these details.
+
+.The following define the `apiKey` and `apiSecret` parameters
+[source,cypher]
+----
+:param apiKey => ("<api-key-here>");
+:param apiUrl => ("<api-url-here>");
+----
+
+Alternatively we can add these credentials to `apoc.conf` and retrieve them using the static value storage functions.
+See <<static-values>>.
+
+.apoc.conf
+[source,properties]
+----
+apoc.static.azure.apiKey=<api-key-here>
+apoc.static.azure.apiUrl=<api-url-here>
+----
+
+
+.The following retrieves AWS credentials from `apoc.conf`
+[source,cypher]
+----
+RETURN apoc.static.getAll("azure") AS azure;
+----
+
+.Results
+[opts="header"]
+|===
+| azure
+| {apiKey: "<api-key-here>", apiUrl: "<api-url-here>"}
+|===
+
+[[nlp-azure-examples]]
+==== Examples
+
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+include::nlp-graph.cypher[]
+----
+
+[[nlp-azure-examples-entities]]
+===== Entity Extraction
+
+Let's start by extracting the entities from one of the `Article` nodes.
+The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
+
+.The following streams the entities for the Pokemon article
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.azure.entities.stream(a, {
+  key: $apiKey,
+  url: $apiUrl,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.entities AS entity
+RETURN entity;
+----
+
+.Results
+[opts="header"]
+|===
+| entity
+| {name: "Nintendo Switch", wikipediaId: "Nintendo Switch", type: "Other", matches: [{length: 15, text: "Nintendo Switch", wikipediaScore: 0.8339868065025469, offset: 56}], bingId: "b3d617ef-81fc-4188-9a2b-a5cf1f8534b5", wikipediaLanguage: "en", wikipediaUrl: "https://en.wikipedia.org/wiki/Nintendo_Switch"}
+| {name: "Nintendo Switch", type: "Organization", matches: [{length: 15, entityTypeScore: 0.94, text: "Nintendo Switch", offset: 56}]}
+| {name: "Oberon Media", wikipediaId: "Oberon Media", type: "Organization", matches: [{length: 6, text: "I play", wikipediaScore: 0.032446316016667254, offset: 76}], bingId: "166f6e0f-33b7-8707-bb8b-5a932c498333", wikipediaLanguage: "en", wikipediaUrl: "https://en.wikipedia.org/wiki/Oberon_Media"}
+| {name: "a week", subType: "Duration", type: "DateTime", matches: [{length: 6, entityTypeScore: 0.8, text: "a week", offset: 166}]}
+| {name: "Mario Kart 8", wikipediaId: "Mario Kart 8", type: "Other", matches: [{length: 12, text: "Mario Kart 8", wikipediaScore: 0.7802000593632747, offset: 205}], bingId: "ce6f55ec-d3d7-032a-0bf8-15ad3e8df3f4", wikipediaLanguage: "en", wikipediaUrl: "https://en.wikipedia.org/wiki/Mario_Kart_8"}
+| {name: "Mario Kart", type: "Organization", matches: [{length: 10, entityTypeScore: 0.72, text: "Mario Kart", offset: 205}]}
+| {name: "8", subType: "Number", type: "Quantity", matches: [{length: 1, entityTypeScore: 0.8, text: "8", offset: 216}]}
+| {name: "Neo4j", wikipediaId: "Neo4j", type: "Other", matches: [{length: 5, text: "Neo4j", wikipediaScore: 0.8150388253887939, offset: 242}], bingId: "bc2f436b-8edd-6ba6-b2d3-69901348d653", wikipediaLanguage: "en", wikipediaUrl: "https://en.wikipedia.org/wiki/Neo4j"}
+| {name: "Europe", wikipediaId: "Europe", type: "Location", matches: [{length: 8, text: "European", wikipediaScore: 0.00591759926701263, offset: 248}], bingId: "501457aa-5b70-cfba-cfd8-be882b4bac1e", wikipediaLanguage: "en", wikipediaUrl: "https://en.wikipedia.org/wiki/Europe"}
+|===
+
+
+We get back 9 different entities, although we can see that some of them are referring to the same things, albeit with different `type` values.
+We could then apply a Cypher statement that creates one node per entity and an `ENTITY` relationship from each of those nodes back to the `Article` node.
+
+.The following streams the entities for the Pokemon article and then creates nodes for each entity
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.azure.entities.stream(a, {
+  key: $apiKey,
+  url: $apiUrl,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.entities AS entity
+WITH a, entity.name AS entity, collect(entity.type) AS types
+MERGE (e:Entity {name: entity})
+SET e.type = types
+MERGE (a)-[:ENTITY]->(e);
+----
+
+[[nlp-azure-examples-key-phrases]]
+===== Key Phrases
+
+Let's now extract the key phrases from the Article node.
+The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
+
+.The following streams the key phrases for the Pokemon article
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.azure.keyPhrases.stream(a, {
+  key: $apiKey,
+  url: $apiUrl,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.keyPhrases AS keyPhrase
+RETURN keyPhrase;
+----
+
+.Results
+[opts="header"]
+|===
+| keyPhrase
+| "board games"
+| "card games"
+| "tournaments"
+| "role"
+| "organised lunch-time Mario Kart"
+| "Neo4j European offices"
+| "Nintendo Switch"
+| "friends"
+| "feet"
+| "days"
+
+|===
+
+[[nlp-azure-examples-sentiment]]
+===== Sentiment
+
+Let's now extract the sentiment for the Article node.
+The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
+
+.The following streams the key phrases for the Pokemon article
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.azure.sentiment.stream(a, {
+  key: $apiKey,
+  url: $apiUrl,
+  nodeProperty: "body"
+})
+YIELD value
+RETURN value;
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| {score: 0.5, id: "0"}
 |===
