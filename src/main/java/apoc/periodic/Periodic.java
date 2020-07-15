@@ -159,7 +159,7 @@ public class Periodic {
     }
 
     private void validateQuery(String statement) {
-        db.executeTransactionally("EXPLAIN " + statement);
+        Util.validateQuery(db, statement);
     }
 
     @Procedure(mode = Mode.WRITE)
