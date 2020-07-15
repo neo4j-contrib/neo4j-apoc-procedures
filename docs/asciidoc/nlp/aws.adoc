@@ -61,7 +61,6 @@ include::../../../build/generated-documentation/apoc.nlp.aws.entities.stream-lit
 include::../../../build/generated-documentation/apoc.nlp.aws.entities.graph-lite.csv[lines=2;]
 |===
 
-
 The procedures support the following config parameters:
 
 .Config parameters
@@ -380,7 +379,7 @@ MERGE (a)-[:ENTITY]->(e)
 
 Alternatively we can use the graph mode to automatically create the entity graph.
 As well as having the `Entity` label, each entity node will have another label based on the value of the `type` property.
-By default a virtual graph is returned.
+By default, a virtual graph is returned.
 
 .The following returns a virtual graph of entities for the Pokemon article
 [source,cypher]
@@ -568,7 +567,7 @@ RETURN a.uri AS article,
 [[nlp-aws-examples-sentiment]]
 ===== Sentiment
 
-Let's now extract the key phrases from the Article node.
+Let's now extract the sentiment for the Article node.
 The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
 
 .The following streams the key phrases for the Pokemon article
