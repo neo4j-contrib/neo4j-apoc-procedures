@@ -8,6 +8,7 @@ import apoc.nlp.NLPHelperFunctions.verifyKeys
 import apoc.nlp.NLPHelperFunctions.verifyNodeProperty
 import apoc.nlp.NLPHelperFunctions.verifySource
 import apoc.result.NodeWithMapResult
+import apoc.result.VirtualGraph
 import org.neo4j.graphdb.Transaction
 import org.neo4j.logging.Log
 import org.neo4j.procedure.*
@@ -65,35 +66,29 @@ class AzureProcedures {
 
     }
 
-//    @Procedure(value = "apoc.nlp.azure.entities.graph", mode = Mode.WRITE)
-//    @Description("Creates a (virtual) entity graph for provided text")
-//    fun entitiesGraph(@Name("source") source: Any,
-//                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraph> {
-//        verifySource(source)
-//        val nodeProperty = getNodeProperty(config)
-//        verifyNodeProperty(source, nodeProperty)
-//        NLPHelperFunctions.verifyKey(config, "key")
-//        NLPHelperFunctions.verifyKey(config, "secret")
-//
-//        val client = azureClient(config)
-//        val relationshipType = NLPHelperFunctions.entityRelationshipType(config)
-//        val relationshipProperty = config.getOrDefault("writeRelationshipProperty", "score") as String
-//        val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
-//        val scoreCutoff = config.getOrDefault("scoreCutoff", 0.0) as Number
-//
-//        val convertedSource = NLPHelperFunctions.convert(source)
-//
-//        return NLPHelperFunctions.partition(convertedSource, 25)
-//                .mapIndexed { index, batch -> Pair(batch, client.entities(batch))  }
-//                .map { (batch, result) -> AWSVirtualEntitiesGraph(result!!, batch, relationshipType, relationshipProperty, scoreCutoff) }
-//                .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
-//                .stream()
-//    }
+    @Procedure(value = "apoc.nlp.azure.entities.graph", mode = Mode.WRITE)
+    @Description("Creates a (virtual) entity graph for provided text")
+    fun entitiesGraph(@Name("source") source: Any,
+                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraph> {
+        verifySource(source)
+        val nodeProperty = getNodeProperty(config)
+        verifyNodeProperty(source, nodeProperty)
+        NLPHelperFunctions.verifyKey(config, "key")
+        NLPHelperFunctions.verifyKey(config, "secret")
 
-    private fun azureClient(config: Map<String, Any>): AzureClient {
-        val useDummyClient  = config.getOrDefault("unsupportedDummyClient", false) as Boolean
-        return if (useDummyClient) DummyAzureClient(config, log!!)
-        else RealAzureClient(config.getValue("url").toString(), config.getValue("key").toString(), log!!, config)
+        val client = azureClient(config)
+        val relationshipType = NLPHelperFunctions.entityRelationshipType(config)
+        val relationshipProperty = config.getOrDefault("writeRelationshipProperty", "score") as String
+        val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
+        val scoreCutoff = config.getOrDefault("scoreCutoff", 0.0) as Number
+
+        val convertedSource = NLPHelperFunctions.convert(source)
+
+        return NLPHelperFunctions.partition(convertedSource, 25)
+                .mapIndexed { index, batch -> Pair(batch, client.entities(batch, index))  }
+                .map { (batch, result) -> AzureVirtualEntitiesGraph(result, batch, relationshipType, relationshipProperty, scoreCutoff) }
+                .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
+                .stream()
     }
 
     @Procedure(value = "apoc.nlp.azure.keyPhrases.stream", mode = Mode.READ)
@@ -112,6 +107,12 @@ class AzureProcedures {
 
         return batches.mapIndexed { index, batch -> client.keyPhrases(batch, index) }.stream()
                 .flatMap { result -> result.map { RealAzureClient.responseToNodeWithMapResult(it, convertedSource) }.stream() }
+    }
+
+    private fun azureClient(config: Map<String, Any>): AzureClient {
+        val useDummyClient  = config.getOrDefault("unsupportedDummyClient", false) as Boolean
+        return if (useDummyClient) DummyAzureClient(config, log!!)
+        else RealAzureClient(config.getValue("url").toString(), config.getValue("key").toString(), log!!, config)
     }
 
 //    @Procedure(value = "apoc.nlp.azure.vision.stream", mode = Mode.READ)
