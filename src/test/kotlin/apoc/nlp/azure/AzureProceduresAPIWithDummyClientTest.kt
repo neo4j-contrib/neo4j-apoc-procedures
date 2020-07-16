@@ -2,6 +2,7 @@ package apoc.nlp.azure
 
 import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
+import apoc.nlp.aws.AWSProceduresAPIWithDummyClientTest
 import apoc.result.VirtualNode
 import apoc.util.TestUtil
 import org.junit.Assert.assertTrue
@@ -61,8 +62,8 @@ class AzureProceduresAPIWithDummyClientTest {
             val value = row1["value"] as Map<*, *>
             val entities = value["entities"] as List<*>
 
-            assertThat(entities, hasItem(mapOf("name" to "token-1-node-${node1}-batch-0", "type" to "Location")))
-            assertThat(entities, hasItem(mapOf("name" to "token-2-node-${node1}-batch-0", "type" to "DateTime")))
+            assertThat(entities, hasItem(mapOf("name" to "token-1-node-${node1}-batch-0", "type" to "Location", "matches" to listOf(mapOf("entityTypeScore" to 0.2)))))
+            assertThat(entities, hasItem(mapOf("name" to "token-2-node-${node1}-batch-0", "type" to "DateTime", "matches" to listOf(mapOf("entityTypeScore" to 0.1)))))
 
             assertTrue(it.hasNext())
 
@@ -70,8 +71,8 @@ class AzureProceduresAPIWithDummyClientTest {
             val value2 = row2["value"] as Map<*, *>
             val entities2 = value2["entities"] as List<*>
 
-            assertThat(entities2, hasItem(mapOf("name" to "token-1-node-${node2}-batch-0", "type" to "Location")))
-            assertThat(entities2, hasItem(mapOf("name" to "token-2-node-${node2}-batch-0", "type" to "DateTime")))
+            assertThat(entities2, hasItem(mapOf("name" to "token-1-node-${node2}-batch-0", "type" to "Location", "matches" to listOf(mapOf("entityTypeScore" to 0.2)))))
+            assertThat(entities2, hasItem(mapOf("name" to "token-2-node-${node2}-batch-0", "type" to "DateTime", "matches" to listOf(mapOf("entityTypeScore" to 0.1)))))
         }
     }
 
@@ -101,38 +102,40 @@ class AzureProceduresAPIWithDummyClientTest {
             val allEntities = value.stream().flatMap { v -> ((v as Map<*, *>)["entities"] as List<*>).stream() }.collect(Collectors.toList())
 
             // assert that we have entries from the 2nd batch
-            assertThat(allEntities, hasItem(mapOf("name" to "token-1-node-${node1}-batch-1", "type" to "Location")))
-            assertThat(allEntities, hasItem(mapOf("name" to "token-2-node-${node1}-batch-1", "type" to "DateTime")))
+            assertThat(allEntities, hasItem(mapOf("name" to "token-1-node-${node1}-batch-1", "type" to "Location", "matches" to listOf(mapOf("entityTypeScore" to 0.2)))))
+            assertThat(allEntities, hasItem(mapOf("name" to "token-2-node-${node1}-batch-1", "type" to "DateTime", "matches" to listOf(mapOf("entityTypeScore" to 0.1)))))
         }
     }
 
     @Test
     fun `batches should create multiple virtual graphs`() {
-        neo4j.executeTransactionally("""CREATE (a:Article3 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
+        neo4j.executeTransactionally("""UNWIND range(1,26) AS index CREATE (a:Article3 {id: index, body:${'$'}body})""", mapOf("body" to "test"))
 
         var sourceNode: Node? = null
+        var sourceNodeId: Long? = null
         var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article3) RETURN a", emptyMap()) {
+        neo4j.executeTransactionally("MATCH (a:Article3) RETURN a SKIP 25", emptyMap()) {
             sourceNode = it.next()["a"] as Node
+            sourceNodeId = sourceNode!!.id
             virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
         }
 
         neo4j.executeTransactionally("""
-                    UNWIND range(1, 26) AS index
                     MATCH (a:Article3) WITH a ORDER BY a.id
                     WITH collect(a) AS articles
                     CALL apoc.nlp.azure.entities.graph(articles, {
                       key: ${'$'}apiKey,
+                      url: ${'$'}apiUrl,
                       nodeProperty: "body",
                       unsupportedDummyClient: true
                     })
                     YIELD graph AS g
                     RETURN g.nodes AS nodes, g.relationships AS relationships
-                """.trimIndent(), mapOf("apiKey" to apiKey)) {
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiUrl" to apiUrl)) {
 
             assertTrue(it.hasNext())
             val row1 = it.next()
-            Assert.assertEquals(51, (row1["nodes"] as List<Node>).size) // 50 dummy nodes + source node
+            Assert.assertEquals(75, (row1["nodes"] as List<Node>).size) // 50 dummy nodes + 25 source nodes
 
             assertTrue(it.hasNext())
             val row2 = it.next()
@@ -141,16 +144,16 @@ class AzureProceduresAPIWithDummyClientTest {
             val relationships = row2["relationships"] as List<Relationship>
             Assert.assertEquals(3, nodes.size) // 2 dummy nodes + source node
 
-            val dummyLabels1 = listOf(Label { "ConsumerGood"}, Label {"Entity"})
-            val dummyLabels2 = listOf(Label { "Location"}, Label {"Entity"})
+            val dummyLabels1 = listOf(Label { "Location"}, Label {"Entity"})
+            val dummyLabels2 = listOf(Label { "DateTime"}, Label {"Entity"})
 
             assertThat(nodes, hasItem(sourceNode))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels1, mapOf("text" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD"))))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels1, mapOf("text" to "token-1-node-${sourceNodeId}-batch-1", "type" to "Location"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-node-${sourceNodeId}-batch-1", "type" to "DateTime"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels1.toTypedArray(), mapOf("text" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD")), "ENTITY", mapOf("score" to 0.1))))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION")), "ENTITY", mapOf("score" to 0.2))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels1.toTypedArray(), mapOf("text" to "token-1-node-${sourceNodeId}-batch-1", "type" to "Location")), "ENTITY", mapOf("score" to 0.2))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-node-${sourceNodeId}-batch-1", "type" to "DateTime")), "ENTITY", mapOf("score" to 0.1))))
         }
     }
 
@@ -227,32 +230,34 @@ class AzureProceduresAPIWithDummyClientTest {
     }
 
     @Test
-    fun `classify batches should create multiple virtual graphs`() {
-        neo4j.executeTransactionally("""CREATE (a:Article6 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
+    fun `key phrases should create multiple virtual graphs`() {
+        neo4j.executeTransactionally("""UNWIND range(1, 26) AS index CREATE (a:Article6 {id: index, body:${'$'}body})""", mapOf("body" to "test"))
 
         var sourceNode: Node? = null
+        var sourceNodeId: Long? = null
         var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article6) RETURN a", emptyMap()) {
+        neo4j.executeTransactionally("MATCH (a:Article6) RETURN a SKIP 25", emptyMap()) {
             sourceNode = it.next()["a"] as Node
+            sourceNodeId = sourceNode!!.id
             virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
         }
 
         neo4j.executeTransactionally("""
-                    UNWIND range(1, 26) AS index
                     MATCH (a:Article6) WITH a ORDER BY a.id
                     WITH collect(a) AS articles
                     CALL apoc.nlp.azure.keyPhrases.graph(articles, {
                       key: ${'$'}apiKey,
+                      url: ${'$'}apiUrl,
                       nodeProperty: "body",
                       unsupportedDummyClient: true
                     })
                     YIELD graph AS g
                     RETURN g.nodes AS nodes, g.relationships AS relationships
-                """.trimIndent(), mapOf("apiKey" to apiKey)) {
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiUrl" to apiUrl)) {
 
             assertTrue(it.hasNext())
             val row1 = it.next()
-            Assert.assertEquals(51, (row1["nodes"] as List<Node>).size) // 50 dummy nodes + source node
+            Assert.assertEquals(75, (row1["nodes"] as List<Node>).size) // 50 dummy nodes + 25 source nodes
 
             assertTrue(it.hasNext())
             val row2 = it.next()
@@ -261,15 +266,15 @@ class AzureProceduresAPIWithDummyClientTest {
             val relationships = row2["relationships"] as List<Relationship>
             Assert.assertEquals(3, nodes.size) // 2 dummy nodes + source node
 
-            val dummyLabels = listOf( Label {"Category"})
+            val dummyLabels = listOf( Label {"KeyPhrase"})
 
             assertThat(nodes, hasItem(sourceNode))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "category-1-index-0-batch-1"))))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "category-2-index-0-batch-1"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-1-node-${sourceNodeId}-batch-1"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-2-node-${sourceNodeId}-batch-1"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "category-1-index-0-batch-1")), "CATEGORY", mapOf("score" to 0.1))))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "category-2-index-0-batch-1")), "CATEGORY", mapOf("score" to 0.2))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-1-node-${sourceNodeId}-batch-1")), "KEY_PHRASE")))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-2-node-${sourceNodeId}-batch-1")), "KEY_PHRASE")))
         }
     }
 
@@ -278,9 +283,11 @@ class AzureProceduresAPIWithDummyClientTest {
         neo4j.executeTransactionally("""CREATE (a:Article7 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
 
         var sourceNode: Node? = null
+        var sourceNodeId: Long? = null
         var virtualSourceNode: Node? = null
         neo4j.executeTransactionally("MATCH (a:Article7) RETURN a", emptyMap()) {
             sourceNode = it.next()["a"] as Node
+            sourceNodeId = sourceNode!!.id
             virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
         }
 
@@ -289,15 +296,16 @@ class AzureProceduresAPIWithDummyClientTest {
                     WITH collect(a) AS articles
                     CALL apoc.nlp.azure.entities.graph(articles, {
                       key: ${'$'}apiKey,
+                      url: ${'$'}apiUrl,
                       nodeProperty: "body",
                       unsupportedDummyClient: true,
                       scoreCutoff: 0.15,
                       writeRelationshipType: "HAS_ENTITY",
-                      writeRelationshipProperty: "gcpScore"
+                      writeRelationshipProperty: "azureScore"
                     })
                     YIELD graph AS g
                     RETURN g.nodes AS nodes, g.relationships AS relationships
-                """.trimIndent(), mapOf("apiKey" to apiKey)) {
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiUrl" to apiUrl)) {
 
             assertTrue(it.hasNext())
             val row = it.next()
@@ -309,54 +317,12 @@ class AzureProceduresAPIWithDummyClientTest {
             val dummyLabels2 = listOf(Label { "Location"}, Label {"Entity"})
 
             assertThat(nodes, hasItem(sourceNode))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-0", "type" to "LOCATION"))))
+            assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-1-node-${sourceNodeId}-batch-0", "type" to "Location"))))
 
             Assert.assertEquals(1, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-0", "type" to "LOCATION")), "HAS_ENTITY", mapOf("gcpScore" to 0.2))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-1-node-${sourceNodeId}-batch-0", "type" to "Location")), "HAS_ENTITY", mapOf("azureScore" to 0.2))))
         }
     }
-
-    @Test
-    fun `create virtual category graph based on confidence cut off`() {
-        neo4j.executeTransactionally("""CREATE (a:Article8 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
-
-        var sourceNode: Node? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article8) RETURN a", emptyMap()) {
-            sourceNode = it.next()["a"] as Node
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
-
-        neo4j.executeTransactionally("""
-                    MATCH (a:Article8) WITH a ORDER BY a.id
-                    WITH collect(a) AS articles
-                    CALL apoc.nlp.azure.keyPhrases.graph(articles, {
-                      key: ${'$'}apiKey,
-                      nodeProperty: "body",
-                      unsupportedDummyClient: true,
-                      scoreCutoff: 0.15 
-                    })
-                    YIELD graph AS g
-                    RETURN g.nodes AS nodes, g.relationships AS relationships
-                """.trimIndent(), mapOf("apiKey" to apiKey)) {
-
-            assertTrue(it.hasNext())
-            val row = it.next()
-
-            val nodes: List<Node> = row["nodes"] as List<Node>
-            val relationships = row["relationships"] as List<Relationship>
-            Assert.assertEquals(2, nodes.size) // 1 dummy nodes + source node
-
-            val dummyLabels = listOf( Label {"Category"})
-
-            assertThat(nodes, hasItem(sourceNode))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "category-2-index-0-batch-0"))))
-
-            Assert.assertEquals(1, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "category-2-index-0-batch-0")), "CATEGORY", mapOf("score" to 0.2))))
-        }
-    }
-
 
 }
 

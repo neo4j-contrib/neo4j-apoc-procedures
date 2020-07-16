@@ -69,7 +69,8 @@ class RealAzureClient(private val baseUrl: String, private val key: String, priv
 
     override fun sentiment(nodes: List<Node>, batchId: Int): List<Map<String, Any>>  {
         val data = nodes.map { node -> mapOf("id" to node.id, "text" to node.getProperty(nodeProperty)) }
-        return postData(AzureEndpoint.SENTIMENT.method, key, data)
+        val result = postData(AzureEndpoint.SENTIMENT.method, key, data)
+        return result
     }
 
     override fun keyPhrases(nodes: List<Node>, batchId: Int): List<Map<String, Any>> {

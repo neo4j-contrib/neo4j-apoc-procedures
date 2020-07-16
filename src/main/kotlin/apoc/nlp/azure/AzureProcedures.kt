@@ -56,8 +56,6 @@ class AzureProcedures {
         verifyKeys(config, *CONFIG_PROPS.toTypedArray())
 
         val client = azureClient(config)
-
-//        val batches = RealAzureClient.convertToBatch(convertedSource, nodeProperty)
         val convertedSource = convert(source)
         val batches = NLPHelperFunctions.partition(convertedSource, 25)
 
@@ -73,8 +71,7 @@ class AzureProcedures {
         verifySource(source)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(source, nodeProperty)
-        NLPHelperFunctions.verifyKey(config, "key")
-        NLPHelperFunctions.verifyKey(config, "secret")
+        verifyKeys(config, *CONFIG_PROPS.toTypedArray())
 
         val client = azureClient(config)
         val relationshipType = NLPHelperFunctions.entityRelationshipType(config)
@@ -107,6 +104,28 @@ class AzureProcedures {
 
         return batches.mapIndexed { index, batch -> client.keyPhrases(batch, index) }.stream()
                 .flatMap { result -> result.map { RealAzureClient.responseToNodeWithMapResult(it, convertedSource) }.stream() }
+    }
+
+    @Procedure(value = "apoc.nlp.azure.keyPhrases.graph", mode = Mode.WRITE)
+    @Description("Creates a (virtual) key phrase graph for provided text")
+    fun keyPhrasesGraph(@Name("source") source: Any,
+                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraph> {
+        verifySource(source)
+        val nodeProperty = getNodeProperty(config)
+        verifyNodeProperty(source, nodeProperty)
+        verifyKeys(config, *CONFIG_PROPS.toTypedArray())
+
+        val client = azureClient(config)
+        val relationshipType = NLPHelperFunctions.keyPhraseRelationshipType(config)
+        val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
+
+        val convertedSource = NLPHelperFunctions.convert(source)
+
+        return NLPHelperFunctions.partition(convertedSource, 25)
+                .mapIndexed { index, batch -> Pair(batch, client.keyPhrases(batch, index))  }
+                .map { (batch, result) -> AzureVirtualKeyPhrasesGraph(result, batch, relationshipType) }
+                .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
+                .stream()
     }
 
     private fun azureClient(config: Map<String, Any>): AzureClient {

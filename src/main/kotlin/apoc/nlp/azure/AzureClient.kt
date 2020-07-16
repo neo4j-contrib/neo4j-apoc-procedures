@@ -7,5 +7,6 @@ interface AzureClient {
 
     fun sentiment(nodes: List<Node>, batchId: Int): List<Map<String, Any>>
 
+
     fun keyPhrases(nodes: List<Node>, batchId: Int): List<Map<String, Any>>
 }
