@@ -45,6 +45,28 @@ class AzureProcedures {
                 .flatMap { result -> result.map { RealAzureClient.responseToNodeWithMapResult(it, convertedSource) }.stream() }
     }
 
+    @Procedure(value = "apoc.nlp.azure.sentiment.graph", mode = Mode.WRITE)
+    @Description("Creates a (virtual) sentiment graph for provided text")
+    fun sentimentGraph(@Name("source") source: Any,
+                        @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraph> {
+        verifySource(source)
+        val nodeProperty = getNodeProperty(config)
+        verifyNodeProperty(source, nodeProperty)
+        verifyKeys(config, *CONFIG_PROPS.toTypedArray())
+
+        val client = azureClient(config)
+        val relationshipType = NLPHelperFunctions.keyPhraseRelationshipType(config)
+        val storeGraph: Boolean = config.getOrDefault("write", false) as Boolean
+
+        val convertedSource = NLPHelperFunctions.convert(source)
+
+        return NLPHelperFunctions.partition(convertedSource, 25)
+                .mapIndexed { index, batch -> Pair(batch, client.sentiment(batch, index))  }
+                .map { (batch, result) -> AzureVirtualSentimentVirtualGraph(result, batch) }
+                .map { graph -> if(storeGraph) graph.createAndStore(tx) else graph.create() }
+                .stream()
+    }
+
     @Procedure(value = "apoc.nlp.azure.entities.stream", mode = Mode.READ)
     @Description("Provides a entity analysis for provided text")
     fun entities(@Name("source") source: Any,
