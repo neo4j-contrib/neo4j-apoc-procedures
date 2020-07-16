@@ -10,15 +10,15 @@ class DummyAzureClient(config: Map<String, Any>, private val log: Log) : AzureCl
         return data.map { node -> node.getProperty(nodeProperty).toString() }
     }
 
-    override fun entities(data: List<List<Map<String, Any>>>): List<Map<String, Any>> {
+    override fun entities(nodes: List<Node>): List<Map<String, Any>> {
         TODO("Not yet implemented")
     }
 
-    override fun sentiment(data: List<List<Map<String, Any>>>): List<Map<String, Any>> {
+    override fun sentiment(nodes: List<Node>): List<Map<String, Any>> {
         TODO("Not yet implemented")
     }
 
-    override fun keyPhrases(data: List<List<Map<String, Any>>>): List<Map<String, Any>> {
+    override fun keyPhrases(nodes: List<Node>): List<Map<String, Any>> {
         TODO("Not yet implemented")
     }
 }

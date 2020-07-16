@@ -1,6 +1,7 @@
 package apoc.nlp.azure
 
 
+import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPHelperFunctions.convert
 import apoc.nlp.NLPHelperFunctions.getNodeProperty
 import apoc.nlp.NLPHelperFunctions.verifyKeys
@@ -35,13 +36,12 @@ class AzureProcedures {
         verifyNodeProperty(source, nodeProperty)
         verifyKeys(config, *CONFIG_PROPS.toTypedArray())
 
+        val client = azureClient(config)
         val convertedSource = convert(source)
-        val batches = RealAzureClient.convertToBatch(convertedSource, nodeProperty)
+        val batches = NLPHelperFunctions.partition(convertedSource, 25)
 
-        return azureClient(config)
-                .sentiment(batches)
-                .map { RealAzureClient.responseToNodeWithMapResult(it, convertedSource) }
-                .stream()
+        return batches.map {batch -> client.sentiment(batch) }.stream()
+                .flatMap { result -> result.map { RealAzureClient.responseToNodeWithMapResult(it, convertedSource) }.stream() }
     }
 
     @Procedure(value = "apoc.nlp.azure.entities.stream", mode = Mode.READ)
@@ -56,13 +56,13 @@ class AzureProcedures {
 
         val client = azureClient(config)
 
+//        val batches = RealAzureClient.convertToBatch(convertedSource, nodeProperty)
         val convertedSource = convert(source)
-        val batches = RealAzureClient.convertToBatch(convertedSource, nodeProperty)
+        val batches = NLPHelperFunctions.partition(convertedSource, 25)
 
-        return client
-                .entities(batches)
-                .map { RealAzureClient.responseToNodeWithMapResult(it, convertedSource) }
-                .stream()
+        return batches.map {batch -> client.entities(batch) }.stream()
+                .flatMap { result -> result.map { RealAzureClient.responseToNodeWithMapResult(it, convertedSource) }.stream() }
+
     }
 
 //    @Procedure(value = "apoc.nlp.azure.entities.graph", mode = Mode.WRITE)
@@ -92,7 +92,8 @@ class AzureProcedures {
 
     private fun azureClient(config: Map<String, Any>): AzureClient {
         val useDummyClient  = config.getOrDefault("unsupportedDummyClient", false) as Boolean
-        return if (useDummyClient) DummyAzureClient(config, log!!) else RealAzureClient(config.getValue("url").toString(), config.getValue("key").toString(), log!!)
+        return if (useDummyClient) DummyAzureClient(config, log!!)
+        else RealAzureClient(config.getValue("url").toString(), config.getValue("key").toString(), log!!, config)
     }
 
     @Procedure(value = "apoc.nlp.azure.keyPhrases.stream", mode = Mode.READ)
@@ -105,13 +106,12 @@ class AzureProcedures {
         verifyNodeProperty(source, nodeProperty)
         verifyKeys(config, *CONFIG_PROPS.toTypedArray())
 
+        val client = azureClient(config)
         val convertedSource = convert(source)
-        val batches = RealAzureClient.convertToBatch(convertedSource, nodeProperty)
+        val batches = NLPHelperFunctions.partition(convertedSource, 25)
 
-        return azureClient(config)
-                .keyPhrases(batches)
-                .map { RealAzureClient.responseToNodeWithMapResult(it, convertedSource) }
-                .stream()
+        return batches.map {batch -> client.keyPhrases(batch) }.stream()
+                .flatMap { result -> result.map { RealAzureClient.responseToNodeWithMapResult(it, convertedSource) }.stream() }
     }
 
 //    @Procedure(value = "apoc.nlp.azure.vision.stream", mode = Mode.READ)

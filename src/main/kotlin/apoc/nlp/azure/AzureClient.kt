@@ -1,9 +1,11 @@
 package apoc.nlp.azure
 
+import org.neo4j.graphdb.Node
+
 interface AzureClient {
-    fun entities(data: List<List<Map<String, Any>>>): List<Map<String, Any>>
+    fun entities(nodes: List<Node>): List<Map<String, Any>>
 
-    fun sentiment(data: List<List<Map<String, Any>>>): List<Map<String, Any>>
+    fun sentiment(nodes: List<Node>): List<Map<String, Any>>
 
-    fun keyPhrases(data: List<List<Map<String, Any>>>): List<Map<String, Any>>
+    fun keyPhrases(nodes: List<Node>): List<Map<String, Any>>
 }

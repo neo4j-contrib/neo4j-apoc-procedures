@@ -17,7 +17,9 @@ enum class AzureEndpoint(val method: String) {
     ENTITIES("/text/analytics/v2.1/entities")
 }
 
-class RealAzureClient(private val baseUrl: String, private val key: String, private val log: Log) : AzureClient {
+class RealAzureClient(private val baseUrl: String, private val key: String, private val log: Log, val config: Map<String, Any>) : AzureClient {
+
+    private val nodeProperty = config.getOrDefault("nodeProperty", "text").toString()
 
     companion object {
         fun convertToBatch(nodes: List<Node>, nodeProperty: String): List<List<Map<String, Any>>> = NLPHelperFunctions
@@ -32,7 +34,7 @@ class RealAzureClient(private val baseUrl: String, private val key: String, priv
         }
     }
 
-    private fun postData(method: String, subscriptionKeyValue: String, data: List<List<Map<String, Any>>>, config: Map<String, Any> = emptyMap()): List<Map<String, Any>> {
+    private fun postData(method: String, subscriptionKeyValue: String, data: List<Map<String, Any>>, config: Map<String, Any> = emptyMap()): List<Map<String, Any>> {
         val fullUrl = baseUrl + method + config.map { "${it.key}=${it.value}" }
                 .joinToString("&")
                 .also { if (it.isNullOrBlank()) it else "?$it" }
@@ -40,21 +42,15 @@ class RealAzureClient(private val baseUrl: String, private val key: String, priv
         return postData(url, subscriptionKeyValue, data)
     }
 
-    private fun postData(url: URL, subscriptionKeyValue: String, data: Any): List<Map<String, Any>> {
+    private fun postData(url: URL, subscriptionKeyValue: String, data: List<Map<String, Any>>): List<Map<String, Any>> {
         val connection = url.openConnection() as HttpsURLConnection
         connection.requestMethod = "POST"
         connection.setRequestProperty("Ocp-Apim-Subscription-Key", subscriptionKeyValue)
         connection.doOutput = true
-        when (data) {
-            is ByteArray -> {
-                connection.setRequestProperty("Content-Type", "application/octet-stream")
-                DataOutputStream(connection.outputStream).use { it.write(data) }
-            }
-            else -> {
-                connection.setRequestProperty("Content-Type", "text/json")
-                DataOutputStream(connection.outputStream).use { it.write(JsonUtil.writeValueAsBytes(mapOf("documents" to convertInput(data)))) }
-            }
-        }
+
+        connection.setRequestProperty("Content-Type", "text/json")
+        DataOutputStream(connection.outputStream).use { it.write(JsonUtil.writeValueAsBytes(mapOf("documents" to convertInput(data)))) }
+
         return connection.inputStream
                 .use { JsonUtil.OBJECT_MAPPER.readValue(it, Any::class.java) }
                 .let { result ->
@@ -72,9 +68,20 @@ class RealAzureClient(private val baseUrl: String, private val key: String, priv
         }
     }
 
-    override fun entities(data: List<List<Map<String, Any>>>): List<Map<String, Any>> = postData(AzureEndpoint.ENTITIES.method, key, data)
+    override fun entities(nodes: List<Node>): List<Map<String, Any>> {
+        val data = nodes.map { node -> mapOf("id" to node.id, "text" to node.getProperty(nodeProperty)) }
+        return postData(AzureEndpoint.ENTITIES.method, key, data)
+    }
 
-    override fun sentiment(data: List<List<Map<String, Any>>>): List<Map<String, Any>> = postData(AzureEndpoint.SENTIMENT.method, key, data)//.map { item -> MapResult(item)}
+    override fun sentiment(nodes: List<Node>): List<Map<String, Any>>  {
+        val data = nodes.map { node -> mapOf("id" to node.id, "text" to node.getProperty(nodeProperty)) }
+        return postData(AzureEndpoint.SENTIMENT.method, key, data)
+    }//.map { item -> MapResult(item)}
 
-    override fun keyPhrases(data: List<List<Map<String, Any>>>): List<Map<String, Any>> = postData(AzureEndpoint.KEY_PHRASES.method, key, data)// .map { item -> MapResult(item)}
+    override fun keyPhrases(nodes: List<Node>): List<Map<String, Any>> {
+        val data = nodes.map { node -> mapOf("id" to node.id, "text" to node.getProperty(nodeProperty)) }
+        return postData(AzureEndpoint.KEY_PHRASES.method, key, data)
+    }
+    // .map { item -> MapResult(item)}
+
 }

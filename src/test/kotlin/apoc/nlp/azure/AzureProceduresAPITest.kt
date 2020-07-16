@@ -9,7 +9,7 @@ import org.junit.Test
 import org.neo4j.graphdb.Node
 import org.neo4j.test.rule.ImpermanentDbmsRule
 
-class AzureProceduresTest {
+class AzureProceduresAPITest {
     companion object {
         @JvmStatic val TEXT_URL = System.getenv("AZURE_TEXT_URL")
         @JvmStatic val TEXT_KEY = System.getenv("AZURE_TEXT_KEY")
