@@ -7,8 +7,8 @@ import org.neo4j.graphdb.RelationshipType
 import kotlin.streams.asStream
 
 object NLPHelperFunctions {
-    fun mergeRelationship(node: Node, nodesAndScore: Pair<Node, Number>, relationshipType: RelationshipType, relProperty: String): Relationship {
-        val existingRelationships = node.getRelationships(Direction.OUTGOING, relationshipType).asSequence().asStream()
+    fun mergeRelationship(sourceNode: Node, nodesAndScore: Pair<Node, Number>, relationshipType: RelationshipType, relProperty: String): Relationship {
+        val existingRelationships = sourceNode.getRelationships(Direction.OUTGOING, relationshipType).asSequence().asStream()
         val potentialRelationship = existingRelationships.filter { r -> r.endNode == nodesAndScore.first }.findFirst()
 
         return if(potentialRelationship.isPresent) {
@@ -18,8 +18,21 @@ object NLPHelperFunctions {
             }
             relationship
         } else {
-            val relationship = node.createRelationshipTo(nodesAndScore.first, relationshipType)
+            val relationship = sourceNode.createRelationshipTo(nodesAndScore.first, relationshipType)
             relationship.setProperty(relProperty, nodesAndScore.second)
+            relationship
+        }
+    }
+
+    fun mergeRelationship(sourceNode: Node, targetNode: Node, relationshipType: RelationshipType): Relationship {
+        val existingRelationships = sourceNode.getRelationships(Direction.OUTGOING, relationshipType).asSequence().asStream()
+        val potentialRelationship = existingRelationships.filter { r -> r.endNode == targetNode }.findFirst()
+
+        return if (potentialRelationship.isPresent) {
+            val relationship = potentialRelationship.get()
+            relationship
+        } else {
+            val relationship = sourceNode.createRelationshipTo(targetNode, relationshipType)
             relationship
         }
     }
@@ -67,7 +80,7 @@ object NLPHelperFunctions {
 
     fun verifyKey(config: Map<String, Any>, property: String) {
         if (!config.containsKey(property)) {
-            throw IllegalArgumentException("Missing parameter `$property`. An API key for the Amazon Comprehend API can be generated from https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html")
+            throw IllegalArgumentException("Missing parameter `$property`.")
         }
     }
 
