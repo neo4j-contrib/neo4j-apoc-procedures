@@ -12,7 +12,7 @@ import java.util.LinkedHashMap
 
 data class AzureVirtualKeyPhrasesGraph(private val results: List<Map<String, Any>>, private val sourceNodes: List<Node>, val relType: RelationshipType): NLPVirtualGraph() {
     override fun extractDocument(index: Int, sourceNode: Node) : Any? = extractDocument(-1, sourceNode)
-    private fun extractDocument(sourceNode: Node) : Any? = results.find { result -> result["id"] == sourceNode.id  }!!["keyPhrases"]
+    private fun extractDocument(sourceNode: Node) : Any? = results.find { result -> result["id"] == sourceNode.id.toString()  }!!["keyPhrases"]
 
     companion object {
         val LABEL = Label { "KeyPhrase" }

@@ -16,7 +16,7 @@ class AzureVirtualKeyPhrasesGraphTest {
         val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
 
         val res = listOf(
-                mapOf("id" to sourceNode.id, "keyPhrases" to listOf("foo")
+                mapOf("id" to sourceNode.id.toString(), "keyPhrases" to listOf("foo")
         ))
 
         val virtualGraph = AzureVirtualKeyPhrasesGraph(res, listOf(sourceNode), RelationshipType { "KEY_PHRASE" }).create()
@@ -40,7 +40,7 @@ class AzureVirtualKeyPhrasesGraphTest {
         val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
 
         val res = listOf(
-                mapOf("id" to sourceNode.id, "keyPhrases" to listOf("The Matrix", "The Notebook"))
+                mapOf("id" to sourceNode.id.toString(), "keyPhrases" to listOf("The Matrix", "The Notebook"))
         )
 
         val virtualGraph = AzureVirtualKeyPhrasesGraph(res, listOf(sourceNode), RelationshipType { "KEY_PHRASE" }).create()
@@ -67,7 +67,7 @@ class AzureVirtualKeyPhrasesGraphTest {
         val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
 
         val res = listOf(
-                mapOf("id" to sourceNode.id, "keyPhrases" to listOf("The Matrix", "The Matrix"))
+                mapOf("id" to sourceNode.id.toString(), "keyPhrases" to listOf("The Matrix", "The Matrix"))
         )
 
         val virtualGraph = AzureVirtualKeyPhrasesGraph(res, listOf(sourceNode), RelationshipType { "KEY_PHRASE" }).create()
@@ -92,8 +92,8 @@ class AzureVirtualKeyPhrasesGraphTest {
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
         val res = listOf(
-                mapOf("id" to sourceNode1.id, "keyPhrases" to listOf("The Matrix", "The Notebook")),
-                mapOf("id" to sourceNode2.id, "keyPhrases" to listOf("Toy Story", "Titanic"))
+                mapOf("id" to sourceNode1.id.toString(), "keyPhrases" to listOf("The Matrix", "The Notebook")),
+                mapOf("id" to sourceNode2.id.toString(), "keyPhrases" to listOf("Toy Story", "Titanic"))
         )
 
         val virtualGraph = AzureVirtualKeyPhrasesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "KEY_PHRASE" }).create()
@@ -129,8 +129,8 @@ class AzureVirtualKeyPhrasesGraphTest {
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
         val res = listOf(
-                mapOf("id" to sourceNode1.id, "keyPhrases" to listOf("The Matrix", "The Notebook")),
-                mapOf("id" to sourceNode2.id, "keyPhrases" to listOf("Titanic", "The Matrix", "Top Boy")))
+                mapOf("id" to sourceNode1.id.toString(), "keyPhrases" to listOf("The Matrix", "The Notebook")),
+                mapOf("id" to sourceNode2.id.toString(), "keyPhrases" to listOf("Titanic", "The Matrix", "Top Boy")))
 
         val virtualGraph = AzureVirtualKeyPhrasesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "KEY_PHRASE" }).create()
 

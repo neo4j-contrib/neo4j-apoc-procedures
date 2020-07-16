@@ -25,7 +25,7 @@ class AzureVirtualSentimentGraphStoreTest {
             val sourceNode = VirtualNode(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
             val res = listOf(
-                    mapOf("id" to sourceNode.id, "score" to 0.75)
+                    mapOf("id" to sourceNode.id.toString(), "score" to 0.75)
             )
 
             val virtualGraph = AzureVirtualSentimentVirtualGraph(res, listOf(sourceNode)).createAndStore(it)

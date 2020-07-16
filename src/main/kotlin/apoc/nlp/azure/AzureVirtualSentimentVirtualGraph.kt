@@ -12,7 +12,7 @@ import org.neo4j.graphdb.Transaction
 
 data class AzureVirtualSentimentVirtualGraph(private val results: List<Map<String, Any>>, private val sourceNodes: List<Node>): NLPVirtualGraph() {
     override fun extractDocument(index: Int, sourceNode: Node) : Any? = extractDocument(-1, sourceNode)
-    private fun extractDocument(sourceNode: Node) : Any? = results.find { result -> result["id"] == sourceNode.id  }
+    private fun extractDocument(sourceNode: Node) : Any? = results.find { result -> result["id"] == sourceNode.id.toString()  }
 
     override fun createVirtualGraph(transaction: Transaction?): VirtualGraph {
         val storeGraph = transaction != null
@@ -37,14 +37,5 @@ data class AzureVirtualSentimentVirtualGraph(private val results: List<Map<Strin
         }
 
         return VirtualGraph("Graph", allNodes, allRelationships, emptyMap())
-    }
-
-    companion object {
-        fun extractSentiment(value: Map<String, Any>) : Pair<String, Float> {
-            val sentiment = WordUtils.capitalizeFully(value["sentiment"] as String)
-            val sentimentScore = value["sentimentScore"] as Map<String, Any>
-
-            return Pair(sentiment, sentimentScore[sentiment.toLowerCase()] as Float)
-        }
     }
 }

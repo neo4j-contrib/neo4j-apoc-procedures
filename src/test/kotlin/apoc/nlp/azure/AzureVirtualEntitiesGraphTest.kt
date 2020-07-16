@@ -16,7 +16,7 @@ class AzureVirtualEntitiesGraphTest {
         val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
 
         val res = listOf(
-                mapOf("id" to sourceNode.id, "entities" to listOf(mapOf(
+                mapOf("id" to sourceNode.id.toString(), "entities" to listOf(mapOf(
                         "name" to "foo",
                         "type" to "Person",
                         "matches" to listOf(
@@ -47,7 +47,7 @@ class AzureVirtualEntitiesGraphTest {
         val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
 
         val res = listOf(
-                mapOf("id" to sourceNode.id, "entities" to listOf(
+                mapOf("id" to sourceNode.id.toString(), "entities" to listOf(
                         mapOf(
                                 "name" to "The Matrix",
                                 "type" to "Other",
@@ -90,7 +90,7 @@ class AzureVirtualEntitiesGraphTest {
         val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
 
         val res = listOf(
-                mapOf("id" to sourceNode.id, "entities" to listOf(
+                mapOf("id" to sourceNode.id.toString(), "entities" to listOf(
                         mapOf(
                                 "name" to "The Matrix",
                                 "type" to "Other",
@@ -131,7 +131,7 @@ class AzureVirtualEntitiesGraphTest {
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
         val res = listOf(
-                mapOf("id" to sourceNode1.id, "entities" to listOf(
+                mapOf("id" to sourceNode1.id.toString(), "entities" to listOf(
                         mapOf(
                                 "name" to "The Matrix",
                                 "type" to "Other",
@@ -146,7 +146,7 @@ class AzureVirtualEntitiesGraphTest {
                                         mapOf("entityTypeScore" to 0.3)
                                 )
                         ))),
-                mapOf("id" to sourceNode2.id, "entities" to listOf(
+                mapOf("id" to sourceNode2.id.toString(), "entities" to listOf(
                         mapOf(
                                 "name" to "Toy Story",
                                 "type" to "Other",
@@ -197,7 +197,7 @@ class AzureVirtualEntitiesGraphTest {
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
         val res = listOf(
-                mapOf("id" to sourceNode1.id, "entities" to listOf(
+                mapOf("id" to sourceNode1.id.toString(), "entities" to listOf(
                         mapOf(
                                 "name" to "The Matrix",
                                 "type" to "Other",
@@ -212,7 +212,7 @@ class AzureVirtualEntitiesGraphTest {
                                         mapOf("entityTypeScore" to 0.8)
                                 )
                         ))),
-                mapOf("id" to sourceNode2.id, "entities" to listOf(
+                mapOf("id" to sourceNode2.id.toString(), "entities" to listOf(
                         mapOf(
                                 "name" to "Titanic",
                                 "type" to "Skill",
@@ -272,7 +272,7 @@ class AzureVirtualEntitiesGraphTest {
         val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
 
         val res = listOf(
-                mapOf("id" to sourceNode1.id, "entities" to listOf(
+                mapOf("id" to sourceNode1.id.toString(), "entities" to listOf(
                         mapOf(
                                 "name" to "The Matrix",
                                 "type" to "Other",
@@ -284,15 +284,15 @@ class AzureVirtualEntitiesGraphTest {
                                 "name" to "The Notebook",
                                 "type" to "PhoneNumber",
                                 "matches" to listOf(
-                                        mapOf("entityTypeScore" to 0.8)
+                                        mapOf("wikipediaScore" to 0.8)
                                 )
                         ))),
-                mapOf("id" to sourceNode2.id, "entities" to listOf(
+                mapOf("id" to sourceNode2.id.toString(), "entities" to listOf(
                         mapOf(
                                 "name" to "Titanic",
                                 "type" to "Skill",
                                 "matches" to listOf(
-                                        mapOf("entityTypeScore" to 0.75)
+                                        mapOf("wikipediaScore" to 0.75)
                                 )
                         ),
                         mapOf(
@@ -306,7 +306,7 @@ class AzureVirtualEntitiesGraphTest {
                                 "name" to "Top Boy",
                                 "type" to "Email",
                                 "matches" to listOf(
-                                        mapOf("entityTypeScore" to 0.4)
+                                        mapOf("wikipediaScore" to 0.4)
                                 )
                         )
                 ))

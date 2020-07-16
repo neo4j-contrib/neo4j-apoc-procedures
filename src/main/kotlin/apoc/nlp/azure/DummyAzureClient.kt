@@ -11,7 +11,7 @@ class DummyAzureClient(config: Map<String, Any>, private val log: Log) : AzureCl
 
         nodes.map { node ->
             val nodeId = node.id
-            val value = mapOf("id" to nodeId, "entities" to listOf(
+            val value = mapOf("id" to nodeId.toString(), "entities" to listOf(
                     mapOf(
                             "name" to  "token-1-node-${nodeId}-batch-${batchId}",
                             "type" to "Location",
@@ -33,7 +33,7 @@ class DummyAzureClient(config: Map<String, Any>, private val log: Log) : AzureCl
 
         nodes.map { node ->
             val nodeId = node.id
-            val value = mapOf("id" to nodeId, "score" to 0.75)
+            val value = mapOf("id" to nodeId.toString(), "score" to 0.75)
             batchResults += value
         }
         return batchResults
@@ -44,7 +44,7 @@ class DummyAzureClient(config: Map<String, Any>, private val log: Log) : AzureCl
 
         nodes.map { node ->
             val nodeId = node.id
-            val value = mapOf("id" to nodeId, "keyPhrases" to listOf(
+            val value = mapOf("id" to nodeId.toString(), "keyPhrases" to listOf(
                     "keyPhrase-1-node-${nodeId}-batch-${batchId}",
                     "keyPhrase-2-node-${nodeId}-batch-${batchId}"
             ))

@@ -12,7 +12,7 @@ import java.util.LinkedHashMap
 
 data class AzureVirtualEntitiesGraph(private val results: List<Map<String, Any>>, private val sourceNodes: List<Node>, val relType: RelationshipType, val relProperty: String, val cutoff: Number): NLPVirtualGraph() {
     override fun extractDocument(index: Int, sourceNode: Node) : Any? = extractDocument(-1, sourceNode)
-    private fun extractDocument(sourceNode: Node) : Any? = results.find { result -> result["id"] == sourceNode.id  }!!["entities"]
+    private fun extractDocument(sourceNode: Node) : Any? = results.find { result -> result["id"] == sourceNode.id.toString()  }!!["entities"]
 
     companion object {
         const val LABEL_KEY = "type"
@@ -41,7 +41,8 @@ data class AzureVirtualEntitiesGraph(private val results: List<Map<String, Any>>
                 val labels: Array<Label> = labels(item)
                 val idValues: Map<String, Any> = idValues(item)
 
-                val score = (item["matches"] as List<Map<String, Any>>)[0][SCORE_PROPERTY] as Number
+                val topMatch = (item["matches"] as List<Map<String, Any>>)[0]
+                val score = listOf(topMatch[SCORE_PROPERTY], topMatch["wikipediaScore"]).filterNotNull().first() as Number
 
                 if (score.toDouble() >= cutoff.toDouble()) {
                     val node = if (storeGraph) {
