@@ -1,6 +1,5 @@
 package apoc.nlp.azure
 
-import apoc.nlp.NLPHelperFunctions
 import apoc.result.NodeWithMapResult
 import apoc.util.JsonUtil
 import org.neo4j.graphdb.Node
@@ -22,11 +21,6 @@ class RealAzureClient(private val baseUrl: String, private val key: String, priv
     private val nodeProperty = config.getOrDefault("nodeProperty", "text").toString()
 
     companion object {
-        fun convertToBatch(nodes: List<Node>, nodeProperty: String): List<List<Map<String, Any>>> = NLPHelperFunctions
-                .partition(nodes, 25)
-                .map { nodeList -> nodeList
-                        .map { node -> mapOf("id" to node.id, "text" to node.getProperty(nodeProperty)) } }
-
         fun responseToNodeWithMapResult(resp: Map<String, Any>, source: List<Node>): NodeWithMapResult {
             val nodeId = resp.getValue("id").toString().toLong()
             val node = source.find { it.id == nodeId }
@@ -68,20 +62,20 @@ class RealAzureClient(private val baseUrl: String, private val key: String, priv
         }
     }
 
-    override fun entities(nodes: List<Node>): List<Map<String, Any>> {
+    override fun entities(nodes: List<Node>, batchId: Int): List<Map<String, Any>> {
         val data = nodes.map { node -> mapOf("id" to node.id, "text" to node.getProperty(nodeProperty)) }
         return postData(AzureEndpoint.ENTITIES.method, key, data)
     }
 
-    override fun sentiment(nodes: List<Node>): List<Map<String, Any>>  {
+    override fun sentiment(nodes: List<Node>, batchId: Int): List<Map<String, Any>>  {
         val data = nodes.map { node -> mapOf("id" to node.id, "text" to node.getProperty(nodeProperty)) }
         return postData(AzureEndpoint.SENTIMENT.method, key, data)
-    }//.map { item -> MapResult(item)}
-
-    override fun keyPhrases(nodes: List<Node>): List<Map<String, Any>> {
-        val data = nodes.map { node -> mapOf("id" to node.id, "text" to node.getProperty(nodeProperty)) }
-        return postData(AzureEndpoint.KEY_PHRASES.method, key, data)
     }
-    // .map { item -> MapResult(item)}
+
+    override fun keyPhrases(nodes: List<Node>, batchId: Int): List<Map<String, Any>> {
+        val data = nodes.map { node -> mapOf("id" to node.id, "text" to node.getProperty(nodeProperty)) }
+        val result = postData(AzureEndpoint.KEY_PHRASES.method, key, data)
+        return result
+    }
 
 }

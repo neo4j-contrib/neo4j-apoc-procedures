@@ -4,17 +4,15 @@ import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
 import apoc.result.VirtualNode
 import apoc.util.TestUtil
-import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
+import org.junit.*
 import org.junit.Assume.assumeTrue
-import org.junit.BeforeClass
-import org.junit.ClassRule
-import org.junit.Test
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
+import org.neo4j.graphdb.ResultTransformer
 import org.neo4j.test.rule.ImpermanentDbmsRule
 import java.util.stream.Collectors
 
@@ -38,8 +36,14 @@ class AzureProceduresAPIWithDummyClientTest {
 
     @Test
     fun `should extract entities`() {
-        neo4j.executeTransactionally("""CREATE (a:Article {body:${'$'}body, id: 1})""", mapOf("body" to "dummyText"))
-        neo4j.executeTransactionally("""CREATE (a:Article {body:${'$'}body, id: 2})""", mapOf("body" to "dummyText"))
+        var node1: Long? = null
+        var node2: Long? = null
+        neo4j.executeTransactionally("""CREATE (a:Article {body:${'$'}body, id: 1}) RETURN id(a) AS nodeId""", mapOf("body" to "dummyText")) {
+            node1 = it.next()["nodeId"] as Long
+        }
+        neo4j.executeTransactionally("""CREATE (a:Article {body:${'$'}body, id: 2}) RETURN id(a) AS nodeId""", mapOf("body" to "dummyText")) {
+            node2 = it.next()["nodeId"] as Long
+        }
 
         neo4j.executeTransactionally("""
                     MATCH (a:Article) WITH a ORDER BY a.id
@@ -57,8 +61,8 @@ class AzureProceduresAPIWithDummyClientTest {
             val value = row1["value"] as Map<*, *>
             val entities = value["entities"] as List<*>
 
-            assertThat(entities, hasItem(mapOf("salience" to 0.1, "name" to "token-1-index-0-batch-0", "type" to "CONSUMER_GOOD")))
-            assertThat(entities, hasItem(mapOf("salience" to 0.2, "name" to "token-2-index-0-batch-0", "type" to "LOCATION")))
+            assertThat(entities, hasItem(mapOf("name" to "token-1-node-${node1}-batch-0", "type" to "Location")))
+            assertThat(entities, hasItem(mapOf("name" to "token-2-node-${node1}-batch-0", "type" to "DateTime")))
 
             assertTrue(it.hasNext())
 
@@ -66,35 +70,39 @@ class AzureProceduresAPIWithDummyClientTest {
             val value2 = row2["value"] as Map<*, *>
             val entities2 = value2["entities"] as List<*>
 
-            assertThat(entities2, hasItem(mapOf("salience" to 0.1, "name" to "token-1-index-1-batch-0", "type" to "CONSUMER_GOOD")))
-            assertThat(entities2, hasItem(mapOf("salience" to 0.2, "name" to "token-2-index-1-batch-0", "type" to "LOCATION")))
+            assertThat(entities2, hasItem(mapOf("name" to "token-1-node-${node2}-batch-0", "type" to "Location")))
+            assertThat(entities2, hasItem(mapOf("name" to "token-2-node-${node2}-batch-0", "type" to "DateTime")))
         }
     }
 
     @Test
     fun `should extract in batches`() {
-        neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body, id: 1})""", mapOf("body" to "dummyText"))
+        var node1: Long? = null
+        neo4j.executeTransactionally("""CREATE (a:Article2 {body:${'$'}body, id: 1}) RETURN id(a) AS nodeId""", mapOf("body" to "dummyText")) {
+            node1 = it.next()["nodeId"] as Long
+        }
 
         neo4j.executeTransactionally("""
                     UNWIND range(1, 26) AS index
                     MATCH (a:Article2) WITH a ORDER BY a.id
                     WITH collect(a) AS articles
-                    CALL apoc.nlp.gcp.entities.stream(articles, {
+                    CALL apoc.nlp.azure.entities.stream(articles, {
                       key: ${'$'}apiKey,
+                      url: ${'$'}apiUrl,
                       nodeProperty: "body",
                       unsupportedDummyClient: true
                     })
                     YIELD value
                     RETURN collect(value) AS values
-                """.trimIndent(), mapOf("apiKey" to apiKey)) {
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiUrl" to apiUrl)) {
             val row = it.next()
             val value = row["values"] as List<*>
 
             val allEntities = value.stream().flatMap { v -> ((v as Map<*, *>)["entities"] as List<*>).stream() }.collect(Collectors.toList())
 
             // assert that we have entries from the 2nd batch
-            assertThat(allEntities, hasItem(mapOf("salience" to 0.1, "name" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD")))
-            assertThat(allEntities, hasItem(mapOf("salience" to 0.2, "name" to "token-2-index-0-batch-1", "type" to "LOCATION")))
+            assertThat(allEntities, hasItem(mapOf("name" to "token-1-node-${node1}-batch-1", "type" to "Location")))
+            assertThat(allEntities, hasItem(mapOf("name" to "token-2-node-${node1}-batch-1", "type" to "DateTime")))
         }
     }
 
@@ -113,7 +121,7 @@ class AzureProceduresAPIWithDummyClientTest {
                     UNWIND range(1, 26) AS index
                     MATCH (a:Article3) WITH a ORDER BY a.id
                     WITH collect(a) AS articles
-                    CALL apoc.nlp.gcp.entities.graph(articles, {
+                    CALL apoc.nlp.azure.entities.graph(articles, {
                       key: ${'$'}apiKey,
                       nodeProperty: "body",
                       unsupportedDummyClient: true
@@ -147,63 +155,74 @@ class AzureProceduresAPIWithDummyClientTest {
     }
 
     @Test
-    fun `should extract categories`() {
-        neo4j.executeTransactionally("""CREATE (a:Article4 {body:${'$'}body, id: 1})""", mapOf("body" to "dummyText"))
-        neo4j.executeTransactionally("""CREATE (a:Article4 {body:${'$'}body, id: 2})""", mapOf("body" to "dummyText"))
+    fun `should extract key phrases`() {
+        var node1: Long? = null
+        var node2: Long? = null
+        neo4j.executeTransactionally("""CREATE (a:Article4 {body:${'$'}body, id: 1}) RETURN id(a) AS nodeId""", mapOf("body" to "dummyText")) {
+            node1 = it.next()["nodeId"] as Long
+        }
+        neo4j.executeTransactionally("""CREATE (a:Article4 {body:${'$'}body, id: 2}) RETURN id(a) AS nodeId""", mapOf("body" to "dummyText")) {
+            node2 = it.next()["nodeId"] as Long
+        }
 
         neo4j.executeTransactionally("""
                     MATCH (a:Article4) WITH a ORDER BY a.id
                     WITH collect(a) AS articles
-                    CALL apoc.nlp.gcp.classify.stream(articles, {
+                    CALL apoc.nlp.azure.keyPhrases.stream(articles, {
                       key: ${'$'}apiKey,
+                      url: ${'$'}apiUrl,
                       nodeProperty: "body",
                       unsupportedDummyClient: true
                     })
                     YIELD value
                     RETURN value
-                """.trimIndent(), mapOf("apiKey" to apiKey)) {
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiUrl" to apiUrl)) {
             val row1 = it.next()
             val value = row1["value"] as Map<*, *>
-            val categories = value["categories"] as List<*>
+            val keyPhrases = value["keyPhrases"] as List<*>
 
-            assertThat(categories, hasItem(mapOf("confidence" to 0.1, "name" to "category-1-index-0-batch-0")))
-            assertThat(categories, hasItem(mapOf("confidence" to 0.2, "name" to "category-2-index-0-batch-0")))
+            assertThat(keyPhrases, hasItem("keyPhrase-1-node-${node1}-batch-0"))
+            assertThat(keyPhrases, hasItem("keyPhrase-2-node-${node1}-batch-0"))
 
             assertTrue(it.hasNext())
 
             val row2 = it.next()
             val value2 = row2["value"] as Map<*, *>
-            val entities2 = value2["categories"] as List<*>
+            val keyPhrases2 = value2["keyPhrases"] as List<*>
 
-            assertThat(entities2, hasItem(mapOf("confidence" to 0.1, "name" to "category-1-index-1-batch-0")))
-            assertThat(entities2, hasItem(mapOf("confidence" to 0.2, "name" to "category-2-index-1-batch-0")))
+            assertThat(keyPhrases2, hasItem("keyPhrase-1-node-${node2}-batch-0"))
+            assertThat(keyPhrases2, hasItem("keyPhrase-2-node-${node2}-batch-0"))
         }
     }
 
     @Test
-    fun `should extract categories in batches`() {
-        neo4j.executeTransactionally("""CREATE (a:Article5 {body:${'$'}body, id: 1})""", mapOf("body" to "dummyText"))
+    fun `should extract key phrases in batches`() {
+        var node1: Long? = null
+        neo4j.executeTransactionally("""CREATE (a:Article5 {body:${'$'}body, id: 1}) RETURN id(a) AS nodeId""", mapOf("body" to "dummyText")) {
+            node1 = it.next()["nodeId"] as Long
+        }
 
         neo4j.executeTransactionally("""
                     UNWIND range(1, 26) AS index
                     MATCH (a:Article5) WITH a ORDER BY a.id
                     WITH collect(a) AS articles
-                    CALL apoc.nlp.gcp.classify.stream(articles, {
+                    CALL apoc.nlp.azure.keyPhrases.stream(articles, {
                       key: ${'$'}apiKey,
+                      url: ${'$'}apiUrl,
                       nodeProperty: "body",
                       unsupportedDummyClient: true
                     })
                     YIELD value
                     RETURN collect(value) AS values
-                """.trimIndent(), mapOf("apiKey" to apiKey)) {
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiUrl" to apiUrl)) {
             val row = it.next()
             val value = row["values"] as List<*>
 
-            val allEntities = value.stream().flatMap { v -> ((v as Map<*, *>)["categories"] as List<*>).stream() }.collect(Collectors.toList())
+            val allKeyPhrases = value.stream().flatMap { v -> ((v as Map<*, *>)["keyPhrases"] as List<*>).stream() }.collect(Collectors.toList())
 
             // assert that we have entries from the 2nd batch
-            assertThat(allEntities, hasItem(mapOf("confidence" to 0.1, "name" to "category-1-index-0-batch-1")))
-            assertThat(allEntities, hasItem(mapOf("confidence" to 0.2, "name" to "category-2-index-0-batch-1")))
+            assertThat(allKeyPhrases, hasItem("keyPhrase-1-node-${node1}-batch-1"))
+            assertThat(allKeyPhrases, hasItem("keyPhrase-2-node-${node1}-batch-1"))
         }
     }
 
@@ -222,7 +241,7 @@ class AzureProceduresAPIWithDummyClientTest {
                     UNWIND range(1, 26) AS index
                     MATCH (a:Article6) WITH a ORDER BY a.id
                     WITH collect(a) AS articles
-                    CALL apoc.nlp.gcp.classify.graph(articles, {
+                    CALL apoc.nlp.azure.keyPhrases.graph(articles, {
                       key: ${'$'}apiKey,
                       nodeProperty: "body",
                       unsupportedDummyClient: true
@@ -268,7 +287,7 @@ class AzureProceduresAPIWithDummyClientTest {
         neo4j.executeTransactionally("""
                     MATCH (a:Article7) WITH a ORDER BY a.id
                     WITH collect(a) AS articles
-                    CALL apoc.nlp.gcp.entities.graph(articles, {
+                    CALL apoc.nlp.azure.entities.graph(articles, {
                       key: ${'$'}apiKey,
                       nodeProperty: "body",
                       unsupportedDummyClient: true,
@@ -311,7 +330,7 @@ class AzureProceduresAPIWithDummyClientTest {
         neo4j.executeTransactionally("""
                     MATCH (a:Article8) WITH a ORDER BY a.id
                     WITH collect(a) AS articles
-                    CALL apoc.nlp.gcp.classify.graph(articles, {
+                    CALL apoc.nlp.azure.keyPhrases.graph(articles, {
                       key: ${'$'}apiKey,
                       nodeProperty: "body",
                       unsupportedDummyClient: true,

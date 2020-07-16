@@ -40,7 +40,7 @@ class AzureProcedures {
         val convertedSource = convert(source)
         val batches = NLPHelperFunctions.partition(convertedSource, 25)
 
-        return batches.map {batch -> client.sentiment(batch) }.stream()
+        return batches.mapIndexed {index, batch -> client.sentiment(batch, index) }.stream()
                 .flatMap { result -> result.map { RealAzureClient.responseToNodeWithMapResult(it, convertedSource) }.stream() }
     }
 
@@ -60,7 +60,7 @@ class AzureProcedures {
         val convertedSource = convert(source)
         val batches = NLPHelperFunctions.partition(convertedSource, 25)
 
-        return batches.map {batch -> client.entities(batch) }.stream()
+        return batches.mapIndexed {index, batch -> client.entities(batch, index) }.stream()
                 .flatMap { result -> result.map { RealAzureClient.responseToNodeWithMapResult(it, convertedSource) }.stream() }
 
     }
@@ -110,7 +110,7 @@ class AzureProcedures {
         val convertedSource = convert(source)
         val batches = NLPHelperFunctions.partition(convertedSource, 25)
 
-        return batches.map {batch -> client.keyPhrases(batch) }.stream()
+        return batches.mapIndexed { index, batch -> client.keyPhrases(batch, index) }.stream()
                 .flatMap { result -> result.map { RealAzureClient.responseToNodeWithMapResult(it, convertedSource) }.stream() }
     }
 
