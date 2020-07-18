@@ -15,7 +15,7 @@ Enable `apoc.trigger.enabled=true` in `$NEO4J_HOME/conf/apoc.conf` first.
 
 [cols="1m,5"]
 |===
-| CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed | add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information
+| CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed | add a trigger statement under a name, in the statement you can use $createdNodes, $deletedNodes etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information
 | CALL apoc.trigger.remove(name) yield name, statement, installed | remove previously added trigger, returns trigger information
 | CALL apoc.trigger.removeAll() yield name, statement, installed | removes all previously added triggers , returns trigger information
 | CALL apoc.trigger.list() yield name, statement, installed | update and list all installed triggers
@@ -49,8 +49,8 @@ You can use these helper functions to extract nodes or relationships by label/re
 .Helper Functions
 [cols="1m,5"]
 |===
-| apoc.trigger.nodesByLabel({assignedLabels/assignedNodeProperties},'Label') | function to filter labelEntries by label, to be used within a trigger statement with {assignedLabels} and {removedLabels} {phase:'before/after/rollback'} returns previous and new trigger information
-| apoc.trigger.propertiesByKey({assignedNodeProperties},'key') | function to filter propertyEntries by property-key, to be used within a trigger statement with {assignedNode/RelationshipProperties} and {removedNode/RelationshipProperties}. Returns [{old,[new],key,node,relationship}]
+| apoc.trigger.nodesByLabel($assignedLabels/assignedNodeProperties,'Label') | function to filter labelEntries by label, to be used within a trigger statement with $assignedLabels and $removedLabels {phase:'before/after/rollback'} returns previous and new trigger information
+| apoc.trigger.propertiesByKey($assignedNodeProperties,'key') | function to filter propertyEntries by property-key, to be used within a trigger statement with $assignedNode/RelationshipProperties and $removedNode/RelationshipProperties. Returns [{old,[new],key,node,relationship}]
 |===
 
 
@@ -84,7 +84,7 @@ Now we add the trigger using `apoc.trigger.propertiesByKey` on the `surname` pro
 
 [source,cypher]
 ----
-CALL apoc.trigger.add('setAllConnectedNodes','UNWIND apoc.trigger.propertiesByKey({assignedNodeProperties},"surname") as prop
+CALL apoc.trigger.add('setAllConnectedNodes','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties,"surname") as prop
 WITH prop.node as n
 MATCH(n)-[]-(a)
 SET a.surname = n.surname', {phase:'after'});
@@ -123,7 +123,7 @@ We add a trigger using `apoc.trigger.nodesByLabel` that when the label `Actor` o
 
 [source,cypher]
 ----
-CALL apoc.trigger.add('updateLabels',"UNWIND apoc.trigger.nodesByLabel({removedLabels},'Actor') AS node
+CALL apoc.trigger.add('updateLabels',"UNWIND apoc.trigger.nodesByLabel($removedLabels,'Actor') AS node
 MATCH (n:Actor)
 REMOVE n:Actor SET n:Person SET node:Person", {phase:'before'})
 ----
@@ -143,7 +143,7 @@ We can add a trigger that connect every new node with label `Actor` and as  `nam
 
 [source,cypher]
 ----
-CALL apoc.trigger.add('create-rel-new-node',"UNWIND {createdNodes} AS n
+CALL apoc.trigger.add('create-rel-new-node',"UNWIND $createdNodes AS n
 MATCH (m:Movie {title:'Matrix'})
 WHERE n:Actor AND n.name IN ['Keanu Reeves','Laurence Fishburne','Carrie-Anne Moss']
 CREATE (n)-[:ACT_IN]->(m)", {phase:'before'})
@@ -180,7 +180,7 @@ For this example, we would like that all the `reference` node properties are of 
 [source,cypher]
 ----
 CALL apoc.trigger.add("forceStringType",
-"UNWIND apoc.trigger.propertiesByKey({assignedNodeProperties}, 'reference') AS prop
+"UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, 'reference') AS prop
 CALL apoc.util.validate(apoc.meta.type(prop) <> 'STRING', 'expected string property type, got %s', [apoc.meta.type(prop)]) RETURN null", {phase:'before'})
 ----
 
@@ -194,11 +194,11 @@ Neo.ClientError.Transaction.TransactionHookFailed
 .Other examples
 [source,cypher]
 ----
-CALL apoc.trigger.add('timestamp','UNWIND {createdNodes} AS n SET n.ts = timestamp()');
-CALL apoc.trigger.add('lowercase','UNWIND {createdNodes} AS n SET n.id = toLower(n.name)');
-CALL apoc.trigger.add('txInfo',   'UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}', {phase:'after'});
-CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN {deletedRelationships} WHERE type(r) = "X"])')
-CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n.id = toLower(n.name)')
+CALL apoc.trigger.add('timestamp','UNWIND $createdNodes AS n SET n.ts = timestamp()');
+CALL apoc.trigger.add('lowercase','UNWIND $createdNodes AS n SET n.id = toLower(n.name)');
+CALL apoc.trigger.add('txInfo',   'UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime', {phase:'after'});
+CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN $deletedRelationships WHERE type(r) = "X"])')
+CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel($assignedLabels,'Person') AS n SET n.id = toLower(n.name)')
 ----
 
 // end::trigger[]
