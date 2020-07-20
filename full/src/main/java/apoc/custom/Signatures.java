@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.*;
 import org.neo4j.internal.kernel.api.procs.*;
 import org.neo4j.procedure.Mode;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -72,7 +73,7 @@ public class Signatures {
         String warning = null; // "todo warning";
         boolean eager = false;
         boolean caseInsensitive = true;
-        return new ProcedureSignature(name, inputSignatures, outputSignature, mode, admin, deprecated, allowed, description, warning, eager, caseInsensitive, false, false);
+        return createProcedureSignature(name, inputSignatures, outputSignature, mode, admin, deprecated, allowed, description, warning, eager, caseInsensitive, false, false);
     }
 
     public List<String> namespace(SignatureParser.NamespaceContext namespaceContext) {
@@ -212,5 +213,63 @@ public class Signatures {
     public ProcedureSignature asProcedureSignature(String signature, String description, Mode mode) {
         SignatureParser.ProcedureContext ctx = parseProcedure(signature);
         return toProcedureSignature(ctx, description, mode);
+    }
+
+    public static ProcedureSignature createProcedureSignature(QualifiedName name,
+                                                              List<FieldSignature> inputSignature,
+                                                              List<FieldSignature> outputSignature,
+                                                              Mode mode,
+                                                              boolean admin,
+                                                              String deprecated,
+                                                              String[] allowed,
+                                                              String description,
+                                                              String warning,
+                                                              boolean eager,
+                                                              boolean caseInsensitive,
+                                                              boolean systemProcedure,
+                                                              boolean internal) {
+        try {
+            // in Neo4j 4.0.5 org.neo4j.internal.kernel.api.procs.ProcedureSignature
+            // changed the signature adding a boolean at the end and without leaving the old signature
+            // in order to maintain the backwards compatibility with version prior to 4.0.5 we use the
+            // reflection to create a new instance of the class
+            final Class<?> clazz = Class.forName("org.neo4j.internal.kernel.api.procs.ProcedureSignature");
+            final Constructor<?>[] constructors = clazz.getConstructors();
+            for (int i = 0; i < constructors.length; i++) {
+                final Constructor<?> constructor = constructors[i];
+                switch (constructor.getParameterCount()) {
+                    case 13:
+                        return (ProcedureSignature) constructor.newInstance(name,
+                                inputSignature,
+                                outputSignature,
+                                mode,
+                                admin,
+                                deprecated,
+                                allowed,
+                                description,
+                                warning,
+                                eager,
+                                caseInsensitive,
+                                systemProcedure,
+                                internal);
+                    case 12:
+                        return (ProcedureSignature) constructor.newInstance(name,
+                                inputSignature,
+                                outputSignature,
+                                mode,
+                                admin,
+                                deprecated,
+                                allowed,
+                                description,
+                                warning,
+                                eager,
+                                caseInsensitive,
+                                systemProcedure);
+                }
+            }
+            throw new RuntimeException("Constructor of org.neo4j.internal.kernel.api.procs.ProcedureSignature not found");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

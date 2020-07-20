@@ -163,7 +163,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
         List<FieldSignature> inputs = deserializeSignatures(property);
 
         List<FieldSignature> outputSignature = deserializeSignatures((String) node.getProperty(SystemPropertyKeys.outputs.name()));
-        return new ProcedureDescriptor(new ProcedureSignature(
+        return new ProcedureDescriptor(Signatures.createProcedureSignature(
                 new QualifiedName(new String[]{PREFIX}, name),
                 inputs,
                 outputSignature,
