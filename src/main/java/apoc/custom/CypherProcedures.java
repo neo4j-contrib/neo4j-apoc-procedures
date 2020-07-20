@@ -175,8 +175,8 @@ public class CypherProcedures {
 
         public boolean registerProcedure(String name, String statement, String mode, List<List<String>> outputs, List<List<String>> inputs, String description) {
             boolean admin = false; // TODO
-            ProcedureSignature signature = new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
-                    mode(mode), admin, null, new String[0], description, null, false, true
+            ProcedureSignature signature = Signatures.createProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
+                    mode(mode), admin, null, new String[0], description, null, false, true, false
             );
             return registerProcedure(signature, statement);
 
@@ -214,8 +214,8 @@ public class CypherProcedures {
 
         public boolean removeProcedure(String name, List<List<String>> inputs, List<List<String>> outputs, String description, String mode) {
             boolean admin = false; // TODO
-            ProcedureSignature signature = new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
-                    mode(mode), admin, null, new String[0], description, null, false, true
+            ProcedureSignature signature = Signatures.createProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
+                    mode(mode), admin, null, new String[0], description, null, false, true, false
             );
             return removeProcedure(signature);
         }
