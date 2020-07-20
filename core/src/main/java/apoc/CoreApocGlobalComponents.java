@@ -19,7 +19,9 @@ public class CoreApocGlobalComponents implements ApocGlobalComponents {
         return Collections.singletonMap("trigger", new TriggerHandler(db,
                 dependencies.databaseManagementService(),
                 dependencies.apocConfig(),
-                dependencies.log().getUserLog(TriggerHandler.class))
+                dependencies.log().getUserLog(TriggerHandler.class),
+                dependencies.globalProceduresRegistry(),
+                dependencies.pools())
         );
     }
 

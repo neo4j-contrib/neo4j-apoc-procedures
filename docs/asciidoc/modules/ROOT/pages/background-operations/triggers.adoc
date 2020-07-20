@@ -206,7 +206,7 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel($as
 
 .Trigger Phase Table
 .Helper Functions
-[cols="5m,5"]
+[cols="1m,5"]
 |===
 | Phase | Description
 | before | The trigger will be activate right `before` the commit. If no phase is specified, it's the default.
