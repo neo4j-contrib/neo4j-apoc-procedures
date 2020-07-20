@@ -162,7 +162,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
         List<FieldSignature> inputs = deserializeSignatures(property);
 
         List<FieldSignature> outputSignature = deserializeSignatures((String) node.getProperty(SystemPropertyKeys.outputs.name()));
-        return new ProcedureDescriptor(new ProcedureSignature(
+        return new ProcedureDescriptor(Signatures.createProcedureSignature(
                 new QualifiedName(new String[]{PREFIX}, name),
                 inputs,
                 outputSignature,
@@ -172,6 +172,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
                 new String[0],
                 description,
                 null,
+                false,
                 false,
                 false,
                 false
@@ -317,7 +318,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
     public ProcedureSignature procedureSignature(String name, String mode, List<List<String>> outputs, List<List<String>> inputs, String description) {
         boolean admin = false; // TODO
         return new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
-                Mode.valueOf(mode.toUpperCase()), admin, null, new String[0], description, null, false, false, true
+                Mode.valueOf(mode.toUpperCase()), admin, null, new String[0], description, null, false, false, true, false
         );
     }
 

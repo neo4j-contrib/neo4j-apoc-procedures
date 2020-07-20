@@ -7,7 +7,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+
 import org.neo4j.test.assertion.Assert;
+
+import org.neo4j.graphdb.QueryExecutionException;
+
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -227,6 +231,7 @@ public class TriggerTest {
         });
     }
 
+
     @Test
     public void testTxIdAfterAsync() throws Exception {
         db.executeTransactionally("CALL apoc.trigger.add('triggerTest','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, \"_executed\") as prop " +
@@ -240,4 +245,11 @@ public class TriggerTest {
                 Collections.emptyMap(), (r) -> r.<Long>columnAs("count").next()),
                 Matchers.is(2L), 30, TimeUnit.SECONDS);
     }
+
+    @Test(expected = QueryExecutionException.class)
+    public void showThrowAnException() throws Exception {
+        db.executeTransactionally("CALL apoc.trigger.add('test','UNWIND $createdNodes AS n SET n.txId = , n.txTime = $commitTime',{})");
+    }
+
+
 }

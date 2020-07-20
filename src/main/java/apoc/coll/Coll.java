@@ -3,12 +3,35 @@ package apoc.coll;
 import apoc.result.ListResult;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.math3.util.Combinations;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Pair;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.UserFunction;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+import java.util.RandomAccess;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -901,5 +924,18 @@ public class Coll {
     @Description("apoc.coll.fill(item, count) - returns a list with the given count of items")
     public List<Object> fill(@Name("item") String item, @Name("count") long count) {
         return Collections.nCopies((int) count, item);
+    }
+
+    @UserFunction
+    @Description("apoc.coll.sortText(coll) sort on string based collections")
+    public List<String> sortText(@Name("coll") List<String> coll, @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) {
+        if (conf == null) conf = Collections.emptyMap();
+        if (coll == null || coll.isEmpty()) return Collections.emptyList();
+        List<String> sorted = new ArrayList<>(coll);
+        String localeAsStr = conf.getOrDefault("locale", "").toString();
+        final Locale locale = !localeAsStr.isBlank() ? Locale.forLanguageTag(localeAsStr) : null;
+        Collator collator = locale != null ? Collator.getInstance(locale) : Collator.getInstance();
+        Collections.sort(sorted, collator);
+        return sorted;
     }
 }

@@ -29,10 +29,10 @@ import java.util.stream.Stream;
 
 public class JsonImporter implements Closeable {
     private static final String CREATE_NODE = "UNWIND $rows AS row " +
-            "CREATE (n:%s {%s: row.id}) SET n += row.properties";
+            "CREATE (n%s {%s: row.id}) SET n += row.properties";
     private static final String CREATE_RELS = "UNWIND $rows AS row " +
-            "MATCH (s:%s {%s: row.start.id}) " +
-            "MATCH (e:%s {%2$s: row.end.id}) " +
+            "MATCH (s%s {%s: row.start.id}) " +
+            "MATCH (e%s {%2$s: row.end.id}) " +
             "CREATE (s)-[r:%s]->(e) SET r += row.properties";
 
     private final List<Map<String, Object>> paramList;
@@ -282,6 +282,11 @@ public class JsonImporter implements Closeable {
                 .collect(Collectors.toList());
     }
 
+    private String getLabelString(List<String> labels) {
+        labels = labels == null ? Collections.emptyList() : labels;
+        final String join = StringUtils.join(labels, ":");
+        return join.isBlank() ? join : (":" + join);
+    }
 
     private void write(Transaction tx, List<Map<String, Object>> resultList) {
         if (resultList.isEmpty()) return;
@@ -289,13 +294,14 @@ public class JsonImporter implements Closeable {
         String query = null;
         switch (type) {
             case "node":
-                query = String.format(CREATE_NODE, StringUtils.join(lastLabels, ":"), importJsonConfig.getImportIdName());
+                query = String.format(CREATE_NODE, getLabelString(lastLabels), importJsonConfig.getImportIdName());
                 break;
             case "relationship":
-                String startLabels = StringUtils.join((List<String>) lastRelTypes.get("start"), ":");
-                String endLabels = StringUtils.join((List<String>) lastRelTypes.get("end"), ":");
                 String rel = (String) lastRelTypes.get("label");
-                query = String.format(CREATE_RELS, startLabels, importJsonConfig.getImportIdName(), endLabels, rel);
+                query = String.format(CREATE_RELS, getLabelString((List<String>) lastRelTypes.get("start")),
+                        importJsonConfig.getImportIdName(),
+                        getLabelString((List<String>) lastRelTypes.get("end")),
+                        rel);
                 break;
             default:
                 throw new IllegalArgumentException("Current type not supported: " + type);
@@ -323,7 +329,6 @@ public class JsonImporter implements Closeable {
             final Collection<List<Map<String, Object>>> results = chunkData();
             try (final Transaction tx = db.beginTx()) {
                 results.forEach(resultList -> write(tx, resultList));
-                tx.close();
             }
             paramList.clear();
         }

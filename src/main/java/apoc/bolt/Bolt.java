@@ -1,6 +1,5 @@
 package apoc.bolt;
 
-import apoc.Description;
 import apoc.result.RowResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
@@ -17,6 +16,7 @@ import org.neo4j.driver.types.Relationship;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 

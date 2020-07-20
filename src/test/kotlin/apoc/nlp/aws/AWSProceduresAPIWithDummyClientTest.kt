@@ -158,7 +158,7 @@ class AWSProceduresAPIWithDummyClientTest {
         }
 
         neo4j.executeTransactionally("""
-                    UNWIND range(1, 26) AS index
+                    UNWIND range(1,26) AS id
                     MATCH (a:Article3) WITH a ORDER BY a.id
                     WITH collect(a) AS articles
                     CALL apoc.nlp.aws.entities.graph(articles, {

@@ -49,6 +49,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -885,5 +886,18 @@ public class Util {
             }
         }
         return node;
+    }
+
+    public static <T> Set<T> intersection(Collection<T> a, Collection<T> b) {
+        if (a == null || b == null) {
+            return Collections.emptySet();
+        }
+        Set<T> intersection = new HashSet<>(a);
+        intersection.retainAll(b);
+        return intersection;
+    }
+
+    public static void validateQuery(GraphDatabaseService db, String statement) {
+        db.executeTransactionally("EXPLAIN " + statement);
     }
 }

@@ -1,15 +1,22 @@
 package apoc.nlp.azure
 
+import apoc.nlp.NodeMatcher
+import apoc.nlp.RelationshipMatcher
+import apoc.result.VirtualNode
 import apoc.util.TestUtil
+import org.hamcrest.MatcherAssert
+import org.hamcrest.Matchers
 import org.junit.Assert
 import org.junit.Assume
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
+import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
+import org.neo4j.graphdb.Relationship
 import org.neo4j.test.rule.ImpermanentDbmsRule
 
-class AzureProceduresTest {
+class AzureProceduresAPITest {
     companion object {
         @JvmStatic val TEXT_URL = System.getenv("AZURE_TEXT_URL")
         @JvmStatic val TEXT_KEY = System.getenv("AZURE_TEXT_KEY")
@@ -44,7 +51,7 @@ class AzureProceduresTest {
             val row1 = it.next()
             val row1Value = row1.getValue("value") as Map<String, Any>
             Assert.assertTrue(row1Value.getValue("score").toString().toDouble() < 0.5)
-            val row1Node = row1.getValue("node") as Node
+            val row1Node = row1.getValue(   "node") as Node
             Assert.assertEquals("a", row1Node.getProperty("id"))
 
             val row2 = it.next()
@@ -107,6 +114,50 @@ class AzureProceduresTest {
             Assert.assertEquals(expected, resultEntities)
         }
     }
+
+    @Test
+    fun `should create entity graph`() {
+        // given
+        val text = "I had a wonderful trip to Seattle last week."
+
+        var sourceNode: Node? = null
+        var virtualSourceNode: Node? = null
+        neo4j.executeTransactionally("CREATE (a:Entity2{id: 'a', text: ${'$'}data}) RETURN a",
+                mapOf("data" to text))  {
+            sourceNode = it.next()["a"] as Node
+            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
+        }
+
+        // when
+        neo4j.executeTransactionally("""MATCH (s:Entity2)
+            |CALL apoc.nlp.azure.entities.graph(s, ${'$'}conf) YIELD graph AS g
+            |RETURN g.nodes AS nodes, g.relationships AS relationships""".trimMargin(),
+                mapOf("conf" to mapOf("url" to TEXT_URL, "key" to TEXT_KEY))) {
+
+            // then
+            Assert.assertTrue(it.hasNext())
+            val row = it.next()
+            val nodes: List<Node> = row["nodes"] as List<Node>
+
+            Assert.assertEquals(3, nodes.size)
+
+            MatcherAssert.assertThat(nodes, Matchers.hasItem(sourceNode))
+
+            val dateTimeLabels = listOf(Label { "DateTime" }, Label { "Entity" })
+            val locationLabels = listOf(Label { "Location" }, Label { "Entity" })
+
+            MatcherAssert.assertThat(nodes, Matchers.hasItem(NodeMatcher(locationLabels, mapOf("text" to "Seattle", "type" to "Location"))))
+            MatcherAssert.assertThat(nodes, Matchers.hasItem(NodeMatcher(dateTimeLabels, mapOf("text" to "last week", "type" to "DateTime"))))
+
+            val relationships = row["relationships"] as List<Relationship>
+
+            Assert.assertEquals(2, relationships.size)
+
+            MatcherAssert.assertThat(relationships, Matchers.hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(locationLabels.toTypedArray(), mapOf("text" to "Seattle", "type" to "Location")), "ENTITY", mapOf("score" to 0.81))))
+            MatcherAssert.assertThat(relationships, Matchers.hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dateTimeLabels.toTypedArray(), mapOf("text" to "last week", "type" to "DateTime")), "ENTITY", mapOf("score" to 0.8))))
+        }
+    }
+
 
 //    @Test
 //    fun `should provide computer vision analysis`() {

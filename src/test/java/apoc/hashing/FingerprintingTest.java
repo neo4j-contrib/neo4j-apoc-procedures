@@ -4,9 +4,11 @@ import apoc.coll.Coll;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -48,6 +50,9 @@ public class FingerprintingTest  {
 
         String hashOfABoolean = TestUtil.singleResultFirstColumn(db, "return apoc.hashing.fingerprint(true);");
         assertEquals("B326B5062B2F0E69046810717534CB09", hashOfABoolean);
+
+        String hashOfNull = TestUtil.singleResultFirstColumn(db, "return apoc.hashing.fingerprint(null);");
+        assertEquals("D41D8CD98F00B204E9800998ECF8427E", hashOfNull);
     }
 
     @Test
@@ -125,36 +130,55 @@ public class FingerprintingTest  {
     @Test
     public void testFingerprintingMapConf() {
         db.executeTransactionally("CREATE (p1:Person{name:'Andrea', surname:'Santurbano'}), (p2:Person{name:'Stefan', surname:'Armbruster'}), " +
-                "(p1)-[:KNOWS{since: 2014}]->(p2), (p2)-[:KNOWS{since: 2018}]->(p1)");
+                "(pr:Product{sku: 'Nintendo Switch'}), " +
+                "(p1)-[:KNOWS{since: 2014}]->(p2), (p2)-[:KNOWS{since: 2018}]->(p1), " +
+                "(p1)-[:BOUGHT{when: 2017}]->(pr)");
         String all = TestUtil.singleResultFirstColumn(db, "MATCH p = (n)-[r]->(m) " +
                         "WITH collect(p) AS paths " +
                         "CALL apoc.graph.fromPaths(paths, '', {}) yield graph AS g " +
                         "WITH {nodes: apoc.coll.toSet(g.nodes), rels: apoc.coll.toSet(g.relationships)} AS map " +
                         "RETURN apoc.hashing.fingerprinting(map, $conf) as hash ",
                 Collections.singletonMap("conf", Collections.emptyMap()));
-        String personName = TestUtil.singleResultFirstColumn(db, "MATCH p = (n)-[r]->(m) " +
+    }
+
+    @Test
+    public void testFingerprintingWithLazyEvaluation() {
+        db.executeTransactionally("CREATE (p1:Person{name:'Andrea', surname:'Santurbano'}), (p2:Person{name:'Stefan', surname:'Armbruster'}), " +
+                "(pr:Product{sku: 'Nintendo Switch'}), " +
+                "(p1)-[:KNOWS{since: 2014}]->(p2), (p2)-[:KNOWS{since: 2018}]->(p1), " +
+                "(p1)-[:BOUGHT{when: 2017}]->(pr)");
+        String all = TestUtil.singleResultFirstColumn(db, "MATCH p = (n)-[r]->(m) " +
                         "WITH collect(p) AS paths " +
                         "CALL apoc.graph.fromPaths(paths, '', {}) yield graph AS g " +
                         "WITH {nodes: apoc.coll.toSet(g.nodes), rels: apoc.coll.toSet(g.relationships)} AS map " +
                         "RETURN apoc.hashing.fingerprinting(map, $conf) as hash ",
-                Collections.singletonMap("conf",
-                        Util.map("nodeAllowMap", Util.map("Person", Arrays.asList("name")))));
-        String personNameByDisallowMap = TestUtil.singleResultFirstColumn(db, "MATCH p = (n)-[r]->(m) " +
-                        "WITH collect(p) AS paths " +
-                        "CALL apoc.graph.fromPaths(paths, '', {}) yield graph AS g " +
-                        "WITH {nodes: apoc.coll.toSet(g.nodes), rels: apoc.coll.toSet(g.relationships)} AS map " +
-                        "RETURN apoc.hashing.fingerprinting(map, $conf) as hash ",
-                Collections.singletonMap("conf",
-                        Util.map("nodeDisallowMap", Util.map("Person", Arrays.asList("surname")))));
-        String rel = TestUtil.singleResultFirstColumn(db, "MATCH p = (n)-[r]->(m) " +
-                        "WITH collect(p) AS paths " +
-                        "CALL apoc.graph.fromPaths(paths, '', {}) yield graph AS g " +
-                        "WITH {nodes: apoc.coll.toSet(g.nodes), rels: apoc.coll.toSet(g.relationships)} AS map " +
-                        "RETURN apoc.hashing.fingerprinting(map, $conf) as hash ",
-                Collections.singletonMap("conf",
-                        Util.map("relDisallowMap", Util.map("KNOWS", Arrays.asList("since")))));
-        Set<String> hashes = new HashSet<>(Arrays.asList(all, personName, personNameByDisallowMap, rel));
-        assertEquals(3, hashes.size()); // 3 because personName = personNameByDisallowMap
+                Collections.singletonMap("conf", Util.map("nodeAllowMap", Util.map("Person", Collections.singletonList("name")))));
+        String filtered = TestUtil.singleResultFirstColumn(db, "MATCH (p:Person) " +
+                        "RETURN apoc.hashing.fingerprinting({nodes: collect(p), rels: []}, $conf) as hash ",
+                Collections.singletonMap("conf", Util.map("nodeAllowMap", Util.map("Person", Collections.singletonList("name")))));
+        assertEquals(all, filtered);
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testConfigExceptionOnTheSameLabels() {
+        db.executeTransactionally("CREATE (p1:Person{name:'Andrea', surname:'Santurbano'}), (p2:Person{name:'Stefan', surname:'Armbruster'}), " +
+                "(pr:Product{sku: 'Nintendo Switch'}), " +
+                "(p1)-[:KNOWS{since: 2014}]->(p2), (p2)-[:KNOWS{since: 2018}]->(p1), " +
+                "(p1)-[:BOUGHT{when: 2017}]->(pr)");
+        final Map<String, Object> conf = Util.map("nodeAllowMap", Util.map("Person", Arrays.asList("name")),
+                "nodeDisallowMap", Util.map("Person", Arrays.asList("surname")));
+        try {
+            TestUtil.singleResultFirstColumn(db, "MATCH p = (n)-[r]->(m) " +
+                            "WITH collect(p) AS paths " +
+                            "CALL apoc.graph.fromPaths(paths, '', {}) yield graph AS g " +
+                            "WITH {nodes: apoc.coll.toSet(g.nodes), rels: apoc.coll.toSet(g.relationships)} AS map " +
+                            "RETURN apoc.hashing.fingerprinting(map, $conf) as hash ",
+                    Collections.singletonMap("conf", conf));
+        } catch (Exception e) {
+            String expected = "You can't set the same labels for allow and disallow lists for nodes";
+            assertEquals(expected, ExceptionUtils.getRootCause(e).getMessage());
+            throw e;
+        }
     }
 
     private void compareGraph(String cypher, List<String> excludes, boolean shouldBeEqual) {
