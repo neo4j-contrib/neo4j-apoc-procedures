@@ -11,7 +11,7 @@
 
     <groupId>org.neo4j.procedure</groupId>
     <artifactId>apoc-docs</artifactId>
-    <version>3.5.0.12</version>
+    <version>3.5.0.13</version>
 
     <name>apoc-docs</name>
     <description>Awesome Procedures for Cypher - Documentation</description>
