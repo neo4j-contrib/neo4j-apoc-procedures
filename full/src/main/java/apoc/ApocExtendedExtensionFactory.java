@@ -2,6 +2,8 @@ package apoc;
 
 import apoc.custom.CypherProcedures;
 import apoc.custom.CypherProceduresHandler;
+import apoc.trigger.Trigger;
+import apoc.trigger.TriggerHandler;
 import apoc.ttl.TTLLifeCycle;
 import apoc.util.ApocUrlStreamHandlerFactory;
 import apoc.uuid.Uuid;
@@ -19,6 +21,7 @@ import org.neo4j.kernel.lifecycle.Lifecycle;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
+import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 import org.neo4j.scheduler.JobScheduler;
 
 import java.net.URL;
@@ -53,8 +56,9 @@ public class ApocExtendedExtensionFactory extends ExtensionFactory<ApocExtendedE
         AvailabilityGuard availabilityGuard();
         DatabaseManagementService databaseManagementService();
         ApocConfig apocConfig();
-        GlobalProcedures globalProceduresRegistry();
+        GlobalProceduresRegistry globalProceduresRegistry();
         ExtendedRegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle();
+        Pools pools();
     }
 
     @Override
@@ -97,6 +101,13 @@ public class ApocExtendedExtensionFactory extends ExtensionFactory<ApocExtendedE
                         log.getUserLog(Uuid.class),
                         dependencies.apocConfig(),
                         dependencies.globalProceduresRegistry())
+                );
+                services.put("trigger", new TriggerHandler(db,
+                        dependencies.databaseManagementService(),
+                        dependencies.apocConfig(),
+                        log.getUserLog(Trigger.class),
+                        dependencies.globalProceduresRegistry(),
+                        dependencies.pools())
                 );
 
                 ExtendedRegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = dependencies.registerComponentLifecycle();
