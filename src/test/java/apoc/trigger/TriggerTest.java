@@ -6,6 +6,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -219,6 +220,9 @@ public class TriggerTest {
         });
     }
 
-
+    @Test(expected = QueryExecutionException.class)
+    public void showThrowAnException() throws Exception {
+        db.executeTransactionally("CALL apoc.trigger.add('test','UNWIND $createdNodes AS n SET n.txId = , n.txTime = $commitTime',{})");
+    }
 
 }

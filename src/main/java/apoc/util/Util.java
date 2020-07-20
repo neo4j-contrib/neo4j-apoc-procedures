@@ -896,4 +896,8 @@ public class Util {
         intersection.retainAll(b);
         return intersection;
     }
+
+    public static void validateQuery(GraphDatabaseService db, String statement) {
+        db.executeTransactionally("EXPLAIN " + statement);
+    }
 }
