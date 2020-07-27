@@ -102,14 +102,7 @@ public class ApocExtendedExtensionFactory extends ExtensionFactory<ApocExtendedE
                         dependencies.apocConfig(),
                         dependencies.globalProceduresRegistry())
                 );
-                services.put("trigger", new TriggerHandler(db,
-                        dependencies.databaseManagementService(),
-                        dependencies.apocConfig(),
-                        log.getUserLog(Trigger.class),
-                        dependencies.globalProceduresRegistry(),
-                        dependencies.pools())
-                );
-
+                
                 ExtendedRegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = dependencies.registerComponentLifecycle();
                 String databaseNamme = db.databaseName();
                 services.values().forEach(lifecycle -> registerComponentLifecycle.addResolver(
