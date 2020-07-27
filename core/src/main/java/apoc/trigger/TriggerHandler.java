@@ -57,7 +57,7 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
 
     public TriggerHandler(GraphDatabaseService db, DatabaseManagementService databaseManagementService,
-                          ApocConfig apocConfig, Log log, GlobalProceduresRegistry globalProceduresRegistry,
+                          ApocConfig apocConfig, Log log, GlobalProcedures globalProceduresRegistry,
                           Pools pools) {
         this.db = db;
         this.databaseManagementService = databaseManagementService;
