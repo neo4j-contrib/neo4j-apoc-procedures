@@ -133,9 +133,7 @@ public class TriggerTest {
         });
     }
 
-<<<<<<< HEAD:core/src/test/java/apoc/trigger/TriggerTest.java
 
-=======
     @Test
     public void testTimeStampTriggerForUpdatedProperties() throws Exception {
         db.executeTransactionally("CALL apoc.trigger.add('timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
