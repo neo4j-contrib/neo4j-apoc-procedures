@@ -700,7 +700,7 @@ public class Util {
                 /* ignore */
             }
 
-            String role = db.executeTransactionally("CALL dbms.cluster.role()", Collections.emptyMap(),
+            String role = db.executeTransactionally("CALL dbms.cluster.role($dbname)", MapUtil.map("dbname", db.databaseName()),
                     result -> Iterators.single(result.columnAs("role")));
             return role.equalsIgnoreCase("LEADER");
         } catch(QueryExecutionException e) {
