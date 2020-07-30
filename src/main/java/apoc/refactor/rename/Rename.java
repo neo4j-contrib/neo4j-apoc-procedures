@@ -5,13 +5,24 @@ import apoc.periodic.Periodic;
 import apoc.periodic.Periodic.BatchAndTotalResult;
 import apoc.util.MapUtil;
 import apoc.util.Util;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -60,28 +71,55 @@ public class Rename {
 	 * Rename the Relationship Type by creating a new one and deleting the old.
 	 */
 	@Procedure(mode = Mode.WRITE)
-	@Description("apoc.refactor.rename.type(oldType, newType, [rels]) | rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only")
-	public Stream<BatchAndTotalResultWithInfo> type(@Name("oldType") String oldType, @Name("newType") String newType, @Name(value = "rels", defaultValue = "[]") List<Relationship> rels) {
+	@Description("apoc.refactor.rename.type(oldType, newType, [rels], {config}) | rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only")
+	public Stream<BatchAndTotalResultWithInfo> type(@Name("oldType") String oldType,
+													@Name("newType") String newType,
+													@Name(value = "rels", defaultValue = "[]") List<Relationship> rels,
+													@Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 		rels = rels.stream().map(r -> Util.rebind(tx, r)).collect(Collectors.toList());
-		List<Long> relIds = rels.stream().map(r -> r.getId()).collect(Collectors.toList());
 		String cypherIterate = rels != null && ! rels.isEmpty() ?
 				"UNWIND $rels AS oldRel WITH oldRel WHERE type(oldRel)=\""+oldType+"\" RETURN oldRel,startNode(oldRel) as a,endNode(oldRel) as b" :
 				"MATCH (a)-[oldRel:`"+oldType+"`]->(b) RETURN oldRel,a,b";
 		String cypherAction = "CREATE(a)-[newRel:`"+newType+"`]->(b)"+ "SET newRel+=oldRel DELETE oldRel";
-		Map<String, Object> parameters = MapUtil.map("batchSize", 100000, "parallel", true, "iterateList", true, "params", MapUtil.map("rels", rels));
+		final Map<String, Object> params = MapUtil.map("rels", rels);
+		Map<String, Object> parameters = getPeriodicConfig(config, params);
 		return getResultOfBatchAndTotalWithInfo(newPeriodic().iterate(cypherIterate, cypherAction, parameters), db, null, oldType, null);
+	}
+
+	private Map<String, Object> getPeriodicConfig(Map<String, Object> config, Map<String, Object> params) {
+		if (config == null) {
+			config = Collections.emptyMap();
+		}
+		if (params == null) {
+			params = Collections.emptyMap();
+		}
+		final int batchSize = Util.toInteger(config.getOrDefault("batchSize", 100000));
+		final int concurrency = Util.toInteger(config.getOrDefault("concurrency", 50));
+		final int retries = Util.toInteger(config.getOrDefault("retries", 0));
+		final boolean parallel = Util.toBoolean(config.getOrDefault("parallel", true));
+		final String batchMode = config.getOrDefault("batchMode", "BATCH").toString();
+		return MapUtil.map("batchSize", batchSize,
+				"retries", retries,
+				"parallel", parallel,
+				"batchMode", batchMode,
+				"concurrency", concurrency,
+				"params", params);
 	}
 
 	/**
 	 * Rename property of a node by creating a new one and deleting the old.
 	 */
 	@Procedure(mode = Mode.WRITE)
-	@Description("apoc.refactor.rename.nodeProperty(oldName, newName, [nodes]) | rename all node's property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only")
-	public Stream<BatchAndTotalResultWithInfo> nodeProperty(@Name("oldName") String oldName, @Name("newName") String newName, @Name(value="nodes", defaultValue = "[]") List<Node> nodes) {
-		nodes = nodes.stream().map(n -> Util.rebind(tx, n)).collect(Collectors.toList());;
+	@Description("apoc.refactor.rename.nodeProperty(oldName, newName, [nodes], {config}) | rename all node's property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only")
+	public Stream<BatchAndTotalResultWithInfo> nodeProperty(@Name("oldName") String oldName,
+															@Name("newName") String newName,
+															@Name(value="nodes", defaultValue = "[]") List<Node> nodes,
+															@Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+		nodes = nodes.stream().map(n -> Util.rebind(tx, n)).collect(Collectors.toList());
 		String cypherIterate = nodes != null && ! nodes.isEmpty() ? "UNWIND $nodes AS n WITH n WHERE exists (n."+oldName+") return n" : "match (n) where exists (n."+oldName+") return n";
 		String cypherAction = "set n."+newName+"= n."+oldName+" remove n."+oldName;
-		Map<String, Object> parameters = MapUtil.map("batchSize", 100000, "parallel", true, "iterateList", true, "params", MapUtil.map("nodes", nodes));
+		final Map<String, Object> params = MapUtil.map("nodes", nodes);
+		Map<String, Object> parameters = getPeriodicConfig(config, params);
 		return getResultOfBatchAndTotalWithInfo(newPeriodic().iterate(cypherIterate, cypherAction, parameters), db, null, null, oldName);
 	}
 
@@ -89,12 +127,16 @@ public class Rename {
 	 * Rename property of a relationship by creating a new one and deleting the old.
 	 */
 	@Procedure(mode = Mode.WRITE)
-	@Description("apoc.refactor.rename.typeProperty(oldName, newName, [rels]) | rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only")
-	public Stream<BatchAndTotalResultWithInfo> typeProperty(@Name("oldName") String oldName, @Name("newName") String newName, @Name(value="rels", defaultValue = "[]") List<Relationship> rels) {
+	@Description("apoc.refactor.rename.typeProperty(oldName, newName, [rels], {config}) | rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only")
+	public Stream<BatchAndTotalResultWithInfo> typeProperty(@Name("oldName") String oldName,
+															@Name("newName") String newName,
+															@Name(value="rels", defaultValue = "[]") List<Relationship> rels,
+															@Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 		rels = rels.stream().map(r -> Util.rebind(tx, r)).collect(Collectors.toList());
 		String cypherIterate = rels != null && ! rels.isEmpty() ? "UNWIND $rels AS r WITH r WHERE exists (r."+oldName+") return r" : "match ()-[r]->() where exists (r."+oldName+") return r";
 		String cypherAction = "set r."+newName+"= r."+oldName+" remove r."+oldName;
-		Map<String, Object> parameters = MapUtil.map("batchSize", 100000, "parallel", true, "iterateList", true, "params", MapUtil.map("rels", rels));
+		final Map<String, Object> params = MapUtil.map("rels", rels);
+		Map<String, Object> parameters = getPeriodicConfig(config, params);
 		return getResultOfBatchAndTotalWithInfo(newPeriodic().iterate(cypherIterate, cypherAction, parameters), db, null, null, oldName);
 	}
 
@@ -152,7 +194,7 @@ public class Rename {
                 });
             });
 		}
-        Optional<BatchAndTotalResult> targetLongList = Optional.of(iterate.findFirst().orElse(null));
+        Optional<BatchAndTotalResult> targetLongList = iterate.findFirst();
         BatchAndTotalResultWithInfo result = new BatchAndTotalResultWithInfo(targetLongList,constraints,indexes);
         return Stream.of(result);
     }
@@ -180,9 +222,9 @@ public class Rename {
                 this.failedOperations = a.failedOperations;
                 this.failedBatches = a.failedBatches;
                 this.retries = a.retries;
-                this.errorMessages = (Map<String, Long>) a.operations.get("errors");
-                this.batch = (Map<String, Object>) a.operations.get("errors");
-                this.operations = Util.map("total", total, "failed", failedOperations, "committed", committedOperations, "errors", a.operations.get("errors"));
+                this.errorMessages = a.errorMessages;
+                this.batch = a.batch;
+                this.operations = a.operations;
             });
             this.constraints = constraints;
             this.indexes = indexes;
