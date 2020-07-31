@@ -17,7 +17,7 @@ Apart from the number of nodes you would like to generate, `null` can be passed 
 
 [cols="1m,5"]
 |===
-apoc.generate.er(noNodes, noEdges, 'label', 'type') | generates a graph according to Erdos-Renyi model (uniform)
+| apoc.generate.er(noNodes, noEdges, 'label', 'type') | generates a graph according to Erdos-Renyi model (uniform)
 | apoc.generate.ws(noNodes, degree, beta, 'label', 'type') | generates a graph according to Watts-Strogatz model (clusters)
 | apoc.generate.ba(noNodes, edgesPerNode, 'label', 'type') | generates a graph according to Barabasi-Albert model (preferential attachment)
 | apoc.generate.complete(noNodes, 'label', 'type') | generates a complete graph (all nodes connected to all other nodes)

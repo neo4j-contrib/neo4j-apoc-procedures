@@ -1,0 +1,32 @@
+[[introduction]]
+== Introduction
+
+[abstract]
+--
+This chapter provides an introduction to the APOC library, and instructions for installation and use.
+--
+
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/V1DTBjetIfk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+include::../../../readme.adoc[tags=intro-text]
+
+[NOTE]
+====
+.APOC Name History
+
+http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board of the Nebuchadnezzar in the Matrix movie. He was killed by Cypher.
+
+*APOC* was also the first bundled http://neo4j.com/blog/convenient-package-neo4j-apoc-0-1-released/[A Package Of Component^] for Neo4j in 2009.
+
+*APOC* also stands for "Awesome Procedures On Cypher"
+====
+
+include::../../../readme.adoc[tags=full-core]
+
+
+A list of functions and procedures in _APOC Core_ and _APOC Full_ can be found in <<overview>>.

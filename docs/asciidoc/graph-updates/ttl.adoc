@@ -70,7 +70,7 @@ The table below outlines values and formats for the valid parameters.
 This section includes examples showing how to use the time-to-live procedures.
 These examples are based on a movies dataset, which can be imported by running the following Cypher query:
 
-include::../export/createExportGraph.adoc[]
+include::../export/includes/createExportGraph.adoc[]
 
 The Neo4j Browser visualization below shows the imported graph:
 

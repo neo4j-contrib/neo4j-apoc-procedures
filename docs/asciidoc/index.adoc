@@ -43,155 +43,53 @@ The guide covers the following areas:
 * <<indexes>> -- A detailed guide to indexing procedures.
 * <<algorithms>> -- A detailed guide to Graph Algorithms.
 
+include::introduction/index.adoc[]
 
-[[introduction]]
-== Introduction
+include::installation/index.adoc[]
 
-[abstract]
---
-This chapter provides an introduction to the APOC library, and instructions for installation and use.
---
+include::usage/index.adoc[]
 
+include::help/index.adoc[]
 
-ifdef::backend-html5[]
-++++
-<iframe width="560" height="315" src="https://www.youtube.com/embed/V1DTBjetIfk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-++++
-endif::[]
+include::overview/index.adoc[]
 
-include::../../readme.adoc[tags=intro-text]
+include::config/index.adoc[]
 
-[NOTE]
-====
-.APOC Name History
+include::import/index.adoc[]
 
-http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board of the Nebuchadnezzar in the Matrix movie. He was killed by Cypher.
+include::export/index.adoc[]
 
-*APOC* was also the first bundled http://neo4j.com/blog/convenient-package-neo4j-apoc-0-1-released/[A Package Of Component^] for Neo4j in 2009.
+include::database-integration/index.adoc[]
 
-*APOC* also stands for "Awesome Procedures On Cypher"
-====
+include::graph-updates/index.adoc[]
 
-include::../../readme.adoc[tags=full-core]
+include::data-structures/index.adoc[]
 
+include::temporal/index.adoc[]
 
-A list of functions and procedures in _APOC Core_ and _APOC Full_ can be found in <<overview>>.
+include::mathematical/index.adoc[]
 
+include::graph-querying/index.adoc[]
 
-include::_installation.adoc[]
+include::comparing-graphs/index.adoc[]
 
-include::_usage.adoc[]
+include::cypher-execution/index.adoc[]
 
-include::help.adoc[]
+include::virtual/index.adoc[]
 
-[NOTE]
-====
-To generate the help output, this procedure uses the built in `dbms.procedures()` and `dbms.functions()` procedures.
-====
+include::nlp/index.adoc[]
 
-ifdef::backend-html5[]
-++++
-<iframe width="560" height="315" src="https://www.youtube.com/embed/b1Yr2nHNS4M" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-++++
-endif::[]
+include::job-management/index.adoc[]
 
-// tag::signature[]
+include::database-introspection/index.adoc[]
 
-== Procedure & Function Signatures
+include::operational/index.adoc[]
 
-To call procedures correctly, you need to know their parameter names, types and positions.
-And for YIELDing their results, you have to know the output column names and types.
+include::misc/index.adoc[]
 
-INFO:The signatures are shown in error messages, if you use a procedure incorrectly.
+include::indexes/index.adoc[]
 
-You can see the procedures signature in the output of `CALL apoc.help("name")`
-
-[source,cypher]
-----
-CALL apoc.help("dijkstra")
-----
-
-The signature is always `name : : TYPE`, so in this case:
-
-----
-apoc.algo.dijkstra
- (startNode :: NODE?, endNode :: NODE?,
-   relationshipTypesAndDirections :: STRING?, weightPropertyName :: STRING?)
-:: (path :: PATH?, weight :: FLOAT?)
-----
-
-.Parameter Explanation
-[opts=header,cols="m,m"]
-|===
-| Name | Type
-h| Procedure Parameters |
-| startNode | Node
-| endNode | Node
-| relationshipTypesAndDirections | String
-| weightPropertyName | String
-h| Output Return Columns |
-| path  |  Path
-| weight | Float
-|===
-
-// end::signature[]
-
-[[overview]]
-== Procedures & Functions
-
-[abstract]
---
-This chapter provides a reference of all the procedures and functions in the APOC library.
---
-
-
-[[table-all]]
-[separator=¦,opts=header]
-|===
-include::../../build/generated-documentation/documentation.csv[]
-|===
-
-include::config.adoc[]
-
-//include::functions.adoc[leveloffset=+1]
-
-include::_import.adoc[]
-
-include::_export.adoc[]
-
-include::_database_integration.adoc[]
-
-include::_graph_updates.adoc[]
-
-
-include::_data_structures.adoc[]
-
-include::_temporal.adoc[]
-
-include::_mathematical.adoc[]
-
-include::_path_finding.adoc[]
-
-include::_comparing_graphs.adoc[]
-
-
-include::_cypher_execution.adoc[]
-
-include::_virtual.adoc[]
-
-include::_nlp.adoc[]
-
-include::_job_management.adoc[]
-
-include::_database_introspection.adoc[]
-
-include::_operational.adoc[]
-
-include::_misc.adoc[]
-
-include::_indexes.adoc[]
-
-include::_algorithms.adoc[]
+include::algorithms/index.adoc[]
 
 ////
 [[algorithms]]

@@ -21,10 +21,6 @@
     <d:tocentry linkend="overview"><?dbhtml filename="overview/index.html"?>
     </d:tocentry>
 
-    <d:tocentry linkend="user-defined-functions"><?dbhtml filename="user-defined-functions/index.html"?>
-    </d:tocentry>
-
-
     <d:tocentry linkend="import"><?dbhtml filename="import/index.html"?>
       <d:tocentry linkend="web-apis"><?dbhtml filename="import/web-apis/index.html"?>
       </d:tocentry>
@@ -101,9 +97,6 @@
       <d:tocentry linkend="text-functions"><?dbhtml filename="misc/text-functions/index.html"?>
       </d:tocentry>
 
-      <d:tocentry linkend="data-extraction-functions"><?dbhtml filename="misc/data-extraction-functions/index.html"?>
-      </d:tocentry>
-
       <d:tocentry linkend="spatial"><?dbhtml filename="misc/spatial/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="static-values"><?dbhtml filename="misc/static-values/index.html"?>
@@ -112,7 +105,6 @@
       </d:tocentry>
 
   </d:tocentry>
-
 
     <d:tocentry linkend="data-structures"><?dbhtml filename="data-structures/index.html"?>
       <d:tocentry linkend="conversion-functions"><?dbhtml filename="data-structures/conversion-functions/index.html"?>
@@ -229,17 +221,17 @@
       <d:tocentry linkend="meta-graph"><?dbhtml filename="database-introspection/meta/index.html"?>
       </d:tocentry>
 
+      <d:tocentry linkend="systemdb"><?dbhtml filename="database-introspection/systemdb/index.html"?>
+      </d:tocentry>
+
     </d:tocentry>
 
     <d:tocentry linkend="indexes"><?dbhtml filename="indexes/index.html"?>
       <d:tocentry linkend="schema-index-operations"><?dbhtml filename="indexes/schema-index-operations/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="manual-indexes"><?dbhtml filename="indexes/manual-indexes/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="fulltext-index"><?dbhtml filename="indexes/fulltext-index/index.html"?>
-      </d:tocentry>
-    </d:tocentry>
 
+
+    </d:tocentry>
 
     <d:tocentry linkend="algorithms"><?dbhtml filename="algorithms/index.html"?>
       <d:tocentry linkend="similarity"><?dbhtml filename="algorithms/similarity/index.html"?>
