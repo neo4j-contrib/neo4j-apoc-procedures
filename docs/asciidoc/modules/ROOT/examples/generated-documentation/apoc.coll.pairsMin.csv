@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.pairsMin¦apoc.coll.pairsMin(list :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.pairsMin([1,2,3]) returns [1,2],[2,3]

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.convert.toJson(value :: ANY?) :: (STRING?)

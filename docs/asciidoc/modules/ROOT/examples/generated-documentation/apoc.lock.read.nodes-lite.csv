@@ -1,0 +1,2 @@
+¦signature
+¦apoc.lock.read.nodes(nodes :: LIST? OF NODE?) :: VOID

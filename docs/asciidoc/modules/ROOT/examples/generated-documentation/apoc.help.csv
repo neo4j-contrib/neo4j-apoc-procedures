@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.help¦apoc.help(proc :: STRING?) :: (type :: STRING?, name :: STRING?, text :: STRING?, signature :: STRING?, roles :: LIST? OF STRING?, writes :: BOOLEAN?, core :: BOOLEAN?)¦Provides descriptions of available procedures. To narrow the results, supply a search string. To also search in the description text, append + to the end of the search string.

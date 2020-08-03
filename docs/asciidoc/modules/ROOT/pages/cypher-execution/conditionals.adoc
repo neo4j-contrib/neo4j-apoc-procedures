@@ -22,10 +22,10 @@ The available procedures and functions are described below:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::../../../build/generated-documentation/apoc.when.csv[]
-include::../../../build/generated-documentation/apoc.do.when.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.case.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.do.case.csv[lines=2:]
+include::generated-documentation/apoc.when.csv[]
+include::generated-documentation/apoc.do.when.csv[lines=2:]
+include::generated-documentation/apoc.case.csv[lines=2:]
+include::generated-documentation/apoc.do.case.csv[lines=2:]
 |===
 
 [[conditionals-when]]
@@ -36,8 +36,8 @@ If the conditional is true, the ifQuery will be run, and if not the elseQuery wi
 
 [separator=¦,opts=header]
 |===
-include::../../../build/generated-documentation/apoc.when-lite.csv[]
-include::../../../build/generated-documentation/apoc.do.when-lite.csv[lines=2:]
+include::generated-documentation/apoc.when-lite.csv[]
+include::generated-documentation/apoc.do.when-lite.csv[lines=2:]
 |===
 
 .Read only
@@ -106,8 +106,8 @@ For more complex conditional logic, case procedures allow for a variable-length 
 
 [separator=¦,opts=header]
 |===
-include::../../../build/generated-documentation/apoc.case-lite.csv[]
-include::../../../build/generated-documentation/apoc.do.case-lite.csv[lines=2:]
+include::generated-documentation/apoc.case-lite.csv[]
+include::generated-documentation/apoc.do.case-lite.csv[lines=2:]
 |===
 
 .Read only

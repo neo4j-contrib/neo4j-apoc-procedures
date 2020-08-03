@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.couchbase.query¦apoc.couchbase.query(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?) :: (queryResult :: LIST? OF MAP?)¦apoc.couchbase.query(hostOrKey, bucket, statement) yield queryResult - executes a plain un-parameterized N1QL statement.

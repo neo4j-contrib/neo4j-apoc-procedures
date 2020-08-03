@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.generate.er¦apoc.generate.er(noNodes :: INTEGER?, noEdges :: INTEGER?, label :: STRING?, type :: STRING?) :: VOID¦apoc.generate.er(noNodes, noEdges, label, type) - generates a random graph according to the Erdos-Renyi model

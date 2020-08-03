@@ -1,0 +1,2 @@
+¦signature
+¦apoc.help(proc :: STRING?) :: (type :: STRING?, name :: STRING?, text :: STRING?, signature :: STRING?, roles :: LIST? OF STRING?, writes :: BOOLEAN?, core :: BOOLEAN?)

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.generate.ws(noNodes :: INTEGER?, degree :: INTEGER?, beta :: FLOAT?, label :: STRING?, type :: STRING?) :: VOID

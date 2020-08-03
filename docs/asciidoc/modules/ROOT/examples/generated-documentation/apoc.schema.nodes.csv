@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.schema.nodes¦apoc.schema.nodes(config = {} :: MAP?) :: (name :: STRING?, label :: STRING?, properties :: LIST? OF STRING?, status :: STRING?, type :: STRING?, failure :: STRING?, populationProgress :: FLOAT?, size :: INTEGER?, valuesSelectivity :: FLOAT?, userDescription :: STRING?)¦CALL apoc.schema.nodes([config]) yield name, label, properties, status, type

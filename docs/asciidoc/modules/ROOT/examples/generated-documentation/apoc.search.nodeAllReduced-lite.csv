@@ -1,0 +1,2 @@
+¦signature
+¦apoc.search.nodeAllReduced(LabelPropertyMap :: ANY?, operator :: STRING?, value :: ANY?) :: (id :: INTEGER?, labels :: LIST? OF STRING?, values :: MAP?)

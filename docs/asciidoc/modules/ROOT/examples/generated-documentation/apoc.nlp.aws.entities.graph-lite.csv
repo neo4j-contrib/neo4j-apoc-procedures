@@ -1,0 +1,2 @@
+¦signature
+¦apoc.nlp.aws.entities.graph(source :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)

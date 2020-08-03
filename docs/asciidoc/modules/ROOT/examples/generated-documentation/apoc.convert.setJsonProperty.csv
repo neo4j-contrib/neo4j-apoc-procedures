@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.convert.setJsonProperty¦apoc.convert.setJsonProperty(node :: NODE?, key :: STRING?, value :: ANY?) :: VOID¦apoc.convert.setJsonProperty(node,key,complexValue) - sets value serialized to JSON as property with the given name on the node

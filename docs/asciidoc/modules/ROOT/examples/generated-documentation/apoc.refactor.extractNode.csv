@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.refactor.extractNode¦apoc.refactor.extractNode(relationships :: ANY?, labels :: LIST? OF STRING?, outType :: STRING?, inType :: STRING?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)¦apoc.refactor.extractNode([rel1,rel2,...], [labels],'OUT','IN') extract node from relationships

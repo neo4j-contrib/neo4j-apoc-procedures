@@ -1,0 +1,2 @@
+¦signature
+¦apoc.number.format(number :: ANY?, pattern =  :: STRING?, lang =  :: STRING?) :: (STRING?)

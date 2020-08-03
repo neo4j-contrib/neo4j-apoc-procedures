@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.base64UrlEncode¦apoc.text.base64UrlEncode(url :: STRING?) :: (STRING?)¦apoc.text.base64UrlEncode(text) YIELD value - Encode a url with Base64

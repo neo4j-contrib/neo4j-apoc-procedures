@@ -1,0 +1,2 @@
+¦signature
+¦apoc.static.get(key :: STRING?) :: (ANY?)

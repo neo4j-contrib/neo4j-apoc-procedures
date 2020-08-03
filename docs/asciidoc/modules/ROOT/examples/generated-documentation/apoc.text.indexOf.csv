@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.indexOf¦apoc.text.indexOf(text :: STRING?, lookup :: STRING?, from = 0 :: INTEGER?, to = -1 :: INTEGER?) :: (INTEGER?)¦apoc.text.indexOf(text, lookup, from=0, to=-1==len) - find the first occurence of the lookup string in the text, from inclusive, to exclusive, -1 if not found, null if text is null.

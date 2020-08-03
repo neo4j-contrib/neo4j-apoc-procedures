@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.convert.toRelationship¦apoc.convert.toRelationship(relationship :: ANY?) :: (RELATIONSHIP?)¦apoc.convert.toRelationship(value) | tries it's best to convert the value to a relationship

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.create.removeProperties¦apoc.create.removeProperties(nodes :: ANY?, keys :: LIST? OF STRING?) :: (node :: NODE?)¦apoc.create.removeProperties( [node,id,ids,nodes], [keys]) - removes the given properties from the nodes(s)

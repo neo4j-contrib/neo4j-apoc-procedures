@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.log.error¦apoc.log.error(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID¦apoc.log.error(message, params) - logs error message

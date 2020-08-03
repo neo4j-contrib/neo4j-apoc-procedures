@@ -1,0 +1,2 @@
+¦signature
+¦apoc.custom.asProcedure(name :: STRING?, statement :: STRING?, mode = read :: STRING?, outputs = null :: LIST? OF LIST? OF STRING?, inputs = null :: LIST? OF LIST? OF STRING?, description =  :: STRING?) :: VOID

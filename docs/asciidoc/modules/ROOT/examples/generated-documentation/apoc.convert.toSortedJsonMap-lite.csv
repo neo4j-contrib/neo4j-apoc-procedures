@@ -1,0 +1,2 @@
+¦signature
+¦apoc.convert.toSortedJsonMap(value :: ANY?, ignoreCase = true :: BOOLEAN?) :: (STRING?)

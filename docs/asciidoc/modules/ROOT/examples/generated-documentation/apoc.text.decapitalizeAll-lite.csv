@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.decapitalizeAll(text :: STRING?) :: (STRING?)

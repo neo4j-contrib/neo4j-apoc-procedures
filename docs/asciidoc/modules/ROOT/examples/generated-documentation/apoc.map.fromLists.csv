@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.map.fromLists¦apoc.map.fromLists(keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :: (MAP?)¦apoc.map.fromLists([keys],[values])

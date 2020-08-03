@@ -1,0 +1,2 @@
+¦signature
+¦apoc.nodes.rels(relationships :: ANY?) :: (rel :: RELATIONSHIP?)

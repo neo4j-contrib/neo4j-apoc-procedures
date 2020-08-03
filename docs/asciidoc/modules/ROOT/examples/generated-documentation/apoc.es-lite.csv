@@ -1,0 +1,8 @@
+¦signature
+¦apoc.es.get(host :: STRING?, index :: STRING?, type :: STRING?, id :: STRING?, query :: ANY?, payload :: ANY?) :: (value :: MAP?)
+¦apoc.es.getRaw(host :: STRING?, path :: STRING?, payload :: ANY?) :: (value :: MAP?)
+¦apoc.es.post(host :: STRING?, index :: STRING?, type :: STRING?, query :: ANY?, payload = {} :: MAP?) :: (value :: MAP?)
+¦apoc.es.postRaw(host :: STRING?, path :: STRING?, payload :: ANY?) :: (value :: MAP?)
+¦apoc.es.put(host :: STRING?, index :: STRING?, type :: STRING?, id :: STRING?, query :: ANY?, payload = {} :: MAP?) :: (value :: MAP?)
+¦apoc.es.query(host :: STRING?, index :: STRING?, type :: STRING?, query :: ANY?, payload :: ANY?) :: (value :: MAP?)
+¦apoc.es.stats(host :: STRING?) :: (value :: MAP?)

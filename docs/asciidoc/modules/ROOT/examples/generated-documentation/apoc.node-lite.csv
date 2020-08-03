@@ -1,0 +1,4 @@
+¦signature
+¦apoc.node.degree(node :: NODE?, types =  :: STRING?) :: (INTEGER?)
+¦apoc.node.id(node :: NODE?) :: (INTEGER?)
+¦apoc.node.labels(node :: NODE?) :: (LIST? OF ANY?)

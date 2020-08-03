@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.sortNodes(coll :: LIST? OF NODE?, prop :: STRING?) :: (LIST? OF ANY?)

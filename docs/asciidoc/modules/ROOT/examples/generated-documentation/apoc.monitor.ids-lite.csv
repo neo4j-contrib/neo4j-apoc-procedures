@@ -1,0 +1,2 @@
+¦signature
+¦apoc.monitor.ids() :: (nodeIds :: INTEGER?, relIds :: INTEGER?, propIds :: INTEGER?, relTypeIds :: INTEGER?)

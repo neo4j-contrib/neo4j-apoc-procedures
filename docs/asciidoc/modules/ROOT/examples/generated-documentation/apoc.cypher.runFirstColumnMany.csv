@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.cypher.runFirstColumnMany¦apoc.cypher.runFirstColumnMany(cypher :: STRING?, params :: MAP?) :: (LIST? OF ANY?)¦apoc.cypher.runFirstColumnMany(statement, params) - executes statement with given parameters, returns first column only collected into a list, params are available as identifiers

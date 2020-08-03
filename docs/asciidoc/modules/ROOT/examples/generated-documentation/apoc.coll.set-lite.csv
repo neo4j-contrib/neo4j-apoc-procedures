@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.set(coll :: LIST? OF ANY?, index :: INTEGER?, value :: ANY?) :: (LIST? OF ANY?)

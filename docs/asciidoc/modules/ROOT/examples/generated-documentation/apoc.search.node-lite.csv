@@ -1,0 +1,2 @@
+¦signature
+¦apoc.search.node(LabelPropertyMap :: ANY?, operator :: STRING?, value :: STRING?) :: (node :: NODE?)

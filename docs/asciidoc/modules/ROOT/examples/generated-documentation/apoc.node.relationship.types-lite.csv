@@ -1,0 +1,2 @@
+¦signature
+¦apoc.node.relationship.types(node :: NODE?, types =  :: STRING?) :: (LIST? OF ANY?)

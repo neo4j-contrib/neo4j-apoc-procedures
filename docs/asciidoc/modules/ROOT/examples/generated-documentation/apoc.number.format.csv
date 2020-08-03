@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.number.format¦apoc.number.format(number :: ANY?, pattern =  :: STRING?, lang =  :: STRING?) :: (STRING?)¦apoc.number.format(number)  | format a long or double using the default system pattern and language to produce a string

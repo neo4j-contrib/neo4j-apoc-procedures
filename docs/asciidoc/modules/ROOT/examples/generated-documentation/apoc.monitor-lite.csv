@@ -1,0 +1,5 @@
+¦signature
+¦apoc.monitor.ids() :: (nodeIds :: INTEGER?, relIds :: INTEGER?, propIds :: INTEGER?, relTypeIds :: INTEGER?)
+¦apoc.monitor.kernel() :: (readOnly :: BOOLEAN?, kernelVersion :: STRING?, storeId :: STRING?, kernelStartTime :: STRING?, databaseName :: STRING?, storeLogVersion :: INTEGER?, storeCreationDate :: STRING?)
+¦apoc.monitor.store() :: (logSize :: INTEGER?, stringStoreSize :: INTEGER?, arrayStoreSize :: INTEGER?, relStoreSize :: INTEGER?, propStoreSize :: INTEGER?, totalStoreSize :: INTEGER?, nodeStoreSize :: INTEGER?)
+¦apoc.monitor.tx() :: (rolledBackTx :: INTEGER?, peakTx :: INTEGER?, lastTxId :: INTEGER?, currentOpenedTx :: INTEGER?, totalOpenedTx :: INTEGER?, totalTx :: INTEGER?)

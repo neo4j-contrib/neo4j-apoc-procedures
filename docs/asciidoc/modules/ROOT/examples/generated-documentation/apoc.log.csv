@@ -1,0 +1,6 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.log.debug¦apoc.log.debug(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID¦apoc.log.debug(message, params) - logs debug message
+¦procedure¦apoc.log.error¦apoc.log.error(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID¦apoc.log.error(message, params) - logs error message
+¦procedure¦apoc.log.info¦apoc.log.info(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID¦apoc.log.info(message, params) - logs info message
+¦procedure¦apoc.log.stream¦apoc.log.stream(path :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, line :: STRING?, path :: STRING?)¦apoc.log.stream('neo4j.log', { last: n }) - retrieve log file contents, optionally return only the last n lines
+¦procedure¦apoc.log.warn¦apoc.log.warn(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID¦apoc.log.warn(message, params) - logs warn message

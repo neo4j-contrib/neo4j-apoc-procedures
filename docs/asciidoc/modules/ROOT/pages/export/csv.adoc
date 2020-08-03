@@ -40,7 +40,7 @@ The table below describes the available procedures:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::../../../build/generated-documentation/apoc.export.csv.csv[]
+include::generated-documentation/apoc.export.csv.csv[]
 |===
 
 [[export-csv-file-export]]

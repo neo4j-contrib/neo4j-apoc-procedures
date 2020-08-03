@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.frequenciesAsMap¦apoc.coll.frequenciesAsMap(coll :: LIST? OF ANY?) :: (MAP?)¦apoc.coll.frequenciesAsMap(coll) - return a map of frequencies of the items in the collection, key `item`, value `count` (e.g., `{1:2, 2:1}`)

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.levenshteinDistance(text1 :: STRING?, text2 :: STRING?) :: (INTEGER?)

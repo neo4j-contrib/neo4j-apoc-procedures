@@ -1,0 +1,2 @@
+¦signature
+¦apoc.uuid.install(label :: STRING?, config = {} :: MAP?) :: (batchComputationResult :: MAP?, label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)

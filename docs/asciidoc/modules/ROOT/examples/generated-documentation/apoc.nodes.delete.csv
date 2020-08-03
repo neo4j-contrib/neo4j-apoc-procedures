@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.nodes.delete¦apoc.nodes.delete(nodes :: ANY?, batchSize :: INTEGER?) :: (value :: INTEGER?)¦apoc.nodes.delete(node|nodes|id|[ids]) - quickly delete all nodes with these ids

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.neighbors.tohop(node :: NODE?, types =  :: STRING?, distance = 1 :: INTEGER?) :: (node :: NODE?)

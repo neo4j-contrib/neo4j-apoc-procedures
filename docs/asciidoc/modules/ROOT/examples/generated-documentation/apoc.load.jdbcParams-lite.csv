@@ -1,0 +1,2 @@
+¦signature
+¦apoc.load.jdbcParams(jdbc :: STRING?, sql :: STRING?, params :: LIST? OF ANY?, config = {} :: MAP?) :: (row :: MAP?)

@@ -1,0 +1,5 @@
+¦signature
+¦apoc.spatial.geocode(location :: STRING?, maxResults = 100 :: INTEGER?, quotaException = false :: BOOLEAN?) :: (location :: MAP?, data :: MAP?, latitude :: FLOAT?, longitude :: FLOAT?, description :: STRING?)
+¦apoc.spatial.geocodeOnce(location :: STRING?) :: (location :: MAP?, data :: MAP?, latitude :: FLOAT?, longitude :: FLOAT?, description :: STRING?)
+¦apoc.spatial.reverseGeocode(latitude :: FLOAT?, longitude :: FLOAT?, quotaException = false :: BOOLEAN?) :: (location :: MAP?, data :: MAP?, latitude :: FLOAT?, longitude :: FLOAT?, description :: STRING?)
+¦apoc.spatial.sortByDistance(paths :: LIST? OF PATH?) :: (path :: PATH?, distance :: FLOAT?)

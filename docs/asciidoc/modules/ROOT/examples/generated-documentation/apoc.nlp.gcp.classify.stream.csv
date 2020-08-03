@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.nlp.gcp.classify.stream¦apoc.nlp.gcp.classify.stream(source :: ANY?, config = {} :: MAP?) :: (node :: NODE?, value :: MAP?, error :: MAP?)¦Classifies a document into categories.

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.get.nodes¦apoc.get.nodes(nodes :: ANY?) :: (node :: NODE?)¦apoc.get.nodes(node|id|[ids]) - quickly returns all nodes with these id's

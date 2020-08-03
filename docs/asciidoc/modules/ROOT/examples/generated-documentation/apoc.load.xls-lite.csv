@@ -1,0 +1,2 @@
+¦signature
+¦apoc.load.xls(url :: STRING?, selector :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, list :: LIST? OF ANY?, map :: MAP?)

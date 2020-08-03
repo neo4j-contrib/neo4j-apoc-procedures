@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.neighbors.tohop.count¦apoc.neighbors.tohop.count(node :: NODE?, types =  :: STRING?, distance = 1 :: INTEGER?) :: (value :: INTEGER?)¦apoc.neighbors.tohop.count(node, rel-direction-pattern, distance) - returns distinct count of nodes of the given relationships in the pattern up to a certain distance, can use '>' or '<' for all outgoing or incoming relationships

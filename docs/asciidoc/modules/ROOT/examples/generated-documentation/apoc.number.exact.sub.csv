@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.number.exact.sub¦apoc.number.exact.sub(stringA :: STRING?, stringB :: STRING?) :: (STRING?)¦apoc.number.exact.sub(stringA,stringB) - return the substraction's of two large numbers

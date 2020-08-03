@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.version¦apoc.version() :: (STRING?)¦RETURN apoc.version() | return the current APOC installed version

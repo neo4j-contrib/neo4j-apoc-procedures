@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.coll.zipToRows¦apoc.coll.zipToRows(list1 :: LIST? OF ANY?, list2 :: LIST? OF ANY?) :: (value :: LIST? OF ANY?)¦apoc.coll.zipToRows(list1,list2) - creates pairs like zip but emits one row per pair

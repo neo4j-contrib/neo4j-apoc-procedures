@@ -1,0 +1,2 @@
+¦signature
+¦apoc.create.virtual.fromNode(node :: NODE?, propertyNames :: LIST? OF STRING?) :: (NODE?)

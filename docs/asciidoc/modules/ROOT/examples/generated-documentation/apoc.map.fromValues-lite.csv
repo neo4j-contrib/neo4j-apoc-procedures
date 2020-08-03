@@ -1,0 +1,2 @@
+¦signature
+¦apoc.map.fromValues(values :: LIST? OF ANY?) :: (MAP?)

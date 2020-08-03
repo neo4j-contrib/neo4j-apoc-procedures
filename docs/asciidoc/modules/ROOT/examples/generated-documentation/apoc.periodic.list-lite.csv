@@ -1,0 +1,2 @@
+¦signature
+¦apoc.periodic.list() :: (name :: STRING?, delay :: INTEGER?, rate :: INTEGER?, done :: BOOLEAN?, cancelled :: BOOLEAN?)

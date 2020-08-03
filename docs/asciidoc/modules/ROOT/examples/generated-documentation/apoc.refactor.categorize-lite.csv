@@ -1,0 +1,2 @@
+¦signature
+¦apoc.refactor.categorize(sourceKey :: STRING?, type :: STRING?, outgoing :: BOOLEAN?, label :: STRING?, targetKey :: STRING?, copiedKeys :: LIST? OF STRING?, batchSize :: INTEGER?) :: VOID

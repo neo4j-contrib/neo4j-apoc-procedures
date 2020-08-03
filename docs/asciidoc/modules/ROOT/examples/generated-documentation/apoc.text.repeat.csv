@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.repeat¦apoc.text.repeat(item :: STRING?, count :: INTEGER?) :: (STRING?)¦apoc.text.repeat(item, count) - string multiplication

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.levenshteinSimilarity¦apoc.text.levenshteinSimilarity(text1 :: STRING?, text2 :: STRING?) :: (FLOAT?)¦apoc.text.levenshteinSimilarity(text1, text2) - calculate the similarity (a value within 0 and 1) between two texts.

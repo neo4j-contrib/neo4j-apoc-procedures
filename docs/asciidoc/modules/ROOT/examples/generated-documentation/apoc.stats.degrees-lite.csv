@@ -1,0 +1,2 @@
+¦signature
+¦apoc.stats.degrees(types =  :: STRING?) :: (type :: STRING?, direction :: STRING?, total :: INTEGER?, p50 :: INTEGER?, p75 :: INTEGER?, p90 :: INTEGER?, p95 :: INTEGER?, p99 :: INTEGER?, p999 :: INTEGER?, max :: INTEGER?, min :: INTEGER?, mean :: FLOAT?)

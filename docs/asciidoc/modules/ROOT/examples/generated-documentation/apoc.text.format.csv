@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.format¦apoc.text.format(text :: STRING?, params :: LIST? OF ANY?, language = en :: STRING?) :: (STRING?)¦apoc.text.format(text,[params],language) - sprintf format the string with the params given

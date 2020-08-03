@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.number.exact.add¦apoc.number.exact.add(stringA :: STRING?, stringB :: STRING?) :: (STRING?)¦apoc.number.exact.add(stringA,stringB) - return the sum's result of two large numbers

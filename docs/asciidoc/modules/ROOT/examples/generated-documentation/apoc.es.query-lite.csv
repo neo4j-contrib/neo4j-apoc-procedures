@@ -1,0 +1,2 @@
+¦signature
+¦apoc.es.query(host :: STRING?, index :: STRING?, type :: STRING?, query :: ANY?, payload :: ANY?) :: (value :: MAP?)

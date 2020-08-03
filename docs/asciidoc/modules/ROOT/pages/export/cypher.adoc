@@ -46,7 +46,7 @@ The table below describes the available procedures:
 // tag::export.cypher[]
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::../../../build/generated-documentation/apoc.export.cypher.csv[]
+include::generated-documentation/apoc.export.cypher.csv[]
 |===
 // end::export.cypher[]
 

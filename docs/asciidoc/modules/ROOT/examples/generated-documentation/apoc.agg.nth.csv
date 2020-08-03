@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.agg.nth¦apoc.agg.nth(value :: ANY?, value :: INTEGER?) :: (ANY?)¦apoc.agg.nth(value,offset) - returns value of nth row (or -1 for last)

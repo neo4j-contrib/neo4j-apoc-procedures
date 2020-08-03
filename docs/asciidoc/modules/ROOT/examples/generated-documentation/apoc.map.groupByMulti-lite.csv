@@ -1,0 +1,2 @@
+¦signature
+¦apoc.map.groupByMulti(values :: LIST? OF ANY?, key :: STRING?) :: (MAP?)

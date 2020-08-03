@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.cypher.runFile¦apoc.cypher.runFile(file :: STRING?, config = {} :: MAP?) :: (row :: INTEGER?, result :: MAP?)¦apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations

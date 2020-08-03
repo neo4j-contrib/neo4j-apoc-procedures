@@ -1,0 +1,2 @@
+¦signature
+¦apoc.merge.relationship(startNode :: NODE?, relationshipType :: STRING?, identProps :: MAP?, props :: MAP?, endNode :: NODE?, onMatchProps = {} :: MAP?) :: (rel :: RELATIONSHIP?)

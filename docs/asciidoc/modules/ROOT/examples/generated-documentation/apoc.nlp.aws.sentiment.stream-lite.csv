@@ -1,0 +1,2 @@
+¦signature
+¦apoc.nlp.aws.sentiment.stream(source :: ANY?, config = {} :: MAP?) :: (node :: NODE?, value :: MAP?, error :: MAP?)

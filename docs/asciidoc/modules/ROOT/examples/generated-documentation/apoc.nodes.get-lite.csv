@@ -1,0 +1,2 @@
+¦signature
+¦apoc.nodes.get(nodes :: ANY?) :: (node :: NODE?)

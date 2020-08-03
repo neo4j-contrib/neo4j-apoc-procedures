@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.es.stats¦apoc.es.stats(host :: STRING?) :: (value :: MAP?)¦apoc.es.stats(host-url-Key) - elastic search statistics

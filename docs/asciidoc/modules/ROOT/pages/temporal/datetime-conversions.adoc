@@ -48,19 +48,19 @@ The table below describes the available procedures:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::../../../build/generated-documentation/apoc.date.add.csv[]
-include::../../../build/generated-documentation/apoc.date.convert.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.date.convertFormat.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.date.currentTimestamp.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.date.field.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.date.fields.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.date.format.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.date.fromISO8601.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.date.parse.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.date.parseAsZonedDateTime.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.date.systemTimezone.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.date.toISO8601.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.date.toYears.csv[lines=2:]
+include::generated-documentation/apoc.date.add.csv[]
+include::generated-documentation/apoc.date.convert.csv[lines=2:]
+include::generated-documentation/apoc.date.convertFormat.csv[lines=2:]
+include::generated-documentation/apoc.date.currentTimestamp.csv[lines=2:]
+include::generated-documentation/apoc.date.field.csv[lines=2:]
+include::generated-documentation/apoc.date.fields.csv[lines=2:]
+include::generated-documentation/apoc.date.format.csv[lines=2:]
+include::generated-documentation/apoc.date.fromISO8601.csv[lines=2:]
+include::generated-documentation/apoc.date.parse.csv[lines=2:]
+include::generated-documentation/apoc.date.parseAsZonedDateTime.csv[lines=2:]
+include::generated-documentation/apoc.date.systemTimezone.csv[lines=2:]
+include::generated-documentation/apoc.date.toISO8601.csv[lines=2:]
+include::generated-documentation/apoc.date.toYears.csv[lines=2:]
 |===
 
 [[datetime-available-procedures-apoc.date.add]]
@@ -70,7 +70,7 @@ This function can add or subtract time unit values to or from dates in the epoch
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::../../../build/generated-documentation/apoc.date.add-lite.csv[]
+include::generated-documentation/apoc.date.add-lite.csv[]
 |===
 
 It accepts the following parameters:
@@ -92,7 +92,7 @@ This function converts date values of one time unit to date values of a differen
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::../../../build/generated-documentation/apoc.date.convert-lite.csv[]
+include::generated-documentation/apoc.date.convert-lite.csv[]
 |===
 
 It accepts the following parameters:
@@ -113,7 +113,7 @@ This function converts date strings of one format to date strings of a different
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::../../../build/generated-documentation/apoc.date.convertFormat-lite.csv[]
+include::generated-documentation/apoc.date.convertFormat-lite.csv[]
 |===
 
 It accepts the following parameters:
@@ -135,7 +135,7 @@ It provides the `System.currentTimeMillis()`, which is current throughout transa
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::../../../build/generated-documentation/apoc.date.currentTimestamp-lite.csv[]
+include::generated-documentation/apoc.date.currentTimestamp-lite.csv[]
 |===
 
 It accepts no parameters.
@@ -147,7 +147,7 @@ This function extracts the value of one field from a date in epoch format.
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::../../../build/generated-documentation/apoc.date.field-lite.csv[]
+include::generated-documentation/apoc.date.field-lite.csv[]
 |===
 
 [NOTE]
@@ -177,7 +177,7 @@ This function extracts values of all fields from a date in epoch format and retu
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::../../../build/generated-documentation/apoc.date.fields-lite.csv[]
+include::generated-documentation/apoc.date.fields-lite.csv[]
 |===
 
 [NOTE]
@@ -206,7 +206,7 @@ This function converts dates in epoch format to date strings with a specified fo
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::../../../build/generated-documentation/apoc.date.format-lite.csv[]
+include::generated-documentation/apoc.date.format-lite.csv[]
 |===
 
 It accepts the following parameters:
@@ -228,7 +228,7 @@ This function converts date strings in an ISO8601 standard format to dates in ep
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::../../../build/generated-documentation/apoc.date.format-lite.csv[]
+include::generated-documentation/apoc.date.format-lite.csv[]
 |===
 
 It accepts the following parameters:
@@ -252,7 +252,7 @@ This function parses a date string in one format and converts it to a date of th
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::../../../build/generated-documentation/apoc.date.parse-lite.csv[]
+include::generated-documentation/apoc.date.parse-lite.csv[]
 |===
 
 It accepts the following parameters:
@@ -285,7 +285,7 @@ This function returns the timezone display name of the system.
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::../../../build/generated-documentation/apoc.date.systemTimezone-lite.csv[]
+include::generated-documentation/apoc.date.systemTimezone-lite.csv[]
 |===
 
 It accepts no parameters.
@@ -297,7 +297,7 @@ This function converts dates in epoch format to date strings in ISO8601 standard
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::../../../build/generated-documentation/apoc.date.toISO8601-lite.csv[]
+include::generated-documentation/apoc.date.toISO8601-lite.csv[]
 |===
 
 It accepts the following parameters:
@@ -320,7 +320,7 @@ This function can make a couple of different conversions.
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::../../../build/generated-documentation/apoc.date.toISO8601-lite.csv[]
+include::generated-documentation/apoc.date.toISO8601-lite.csv[]
 |===
 
 It accepts the following parameters for each conversion:

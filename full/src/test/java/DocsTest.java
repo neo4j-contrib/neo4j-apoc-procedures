@@ -27,7 +27,7 @@ import static org.junit.Assert.assertFalse;
  */
 public class DocsTest {
 
-    public static final String GENERATED_DOCUMENTATION_DIR = "../build/generated-documentation";
+    public static final String GENERATED_DOCUMENTATION_DIR = "../docs/asciidoc/modules/ROOT/examples/generated-documentation";
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.auth_enabled, true)

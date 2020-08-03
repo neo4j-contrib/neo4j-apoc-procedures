@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.number.parseInt¦apoc.number.parseInt(text :: STRING?, pattern =  :: STRING?, lang =  :: STRING?) :: (INTEGER?)¦apoc.number.parseInt(text)  | parse a text using the default system pattern and language to produce a long

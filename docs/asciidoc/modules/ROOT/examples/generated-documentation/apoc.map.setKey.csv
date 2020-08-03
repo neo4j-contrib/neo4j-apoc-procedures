@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.map.setKey¦apoc.map.setKey(map :: MAP?, key :: STRING?, value :: ANY?) :: (MAP?)¦apoc.map.setKey(map,key,value)

@@ -1,0 +1,5 @@
+¦signature
+¦apoc.case(conditionals :: LIST? OF ANY?, elseQuery =  :: STRING?, params = {} :: MAP?) :: (value :: MAP?)
+¦apoc.help(proc :: STRING?) :: (type :: STRING?, name :: STRING?, text :: STRING?, signature :: STRING?, roles :: LIST? OF STRING?, writes :: BOOLEAN?, core :: BOOLEAN?)
+¦apoc.when(condition :: BOOLEAN?, ifQuery :: STRING?, elseQuery =  :: STRING?, params = {} :: MAP?) :: (value :: MAP?)
+¦apoc.version() :: (STRING?)

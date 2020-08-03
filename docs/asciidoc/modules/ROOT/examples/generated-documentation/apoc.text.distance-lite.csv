@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.distance(text1 :: STRING?, text2 :: STRING?) :: (INTEGER?)

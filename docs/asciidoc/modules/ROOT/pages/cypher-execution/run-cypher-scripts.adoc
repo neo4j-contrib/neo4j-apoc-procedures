@@ -26,10 +26,10 @@ The available procedures and functions are described in the following table:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::../../../build/generated-documentation/apoc.cypher.runFile.csv[]
-include::../../../build/generated-documentation/apoc.cypher.runFiles.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.cypher.runSchemaFile.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.cypher.runSchemaFiles.csv[lines=2:]
+include::generated-documentation/apoc.cypher.runFile.csv[]
+include::generated-documentation/apoc.cypher.runFiles.csv[lines=2:]
+include::generated-documentation/apoc.cypher.runSchemaFile.csv[lines=2:]
+include::generated-documentation/apoc.cypher.runSchemaFiles.csv[lines=2:]
 |===
 
 

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.create.removeRelProperties¦apoc.create.removeRelProperties(rels :: ANY?, keys :: LIST? OF STRING?) :: (rel :: RELATIONSHIP?)¦apoc.create.removeRelProperties( [rel,id,ids,rels], [keys]) - removes the given properties from the relationship(s)

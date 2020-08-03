@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.date.systemTimezone¦apoc.date.systemTimezone() :: (STRING?)¦apoc.date.systemTimezone() returns the system timezone display name

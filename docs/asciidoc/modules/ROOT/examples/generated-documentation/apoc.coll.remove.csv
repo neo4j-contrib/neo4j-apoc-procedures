@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.remove¦apoc.coll.remove(coll :: LIST? OF ANY?, index :: INTEGER?, length = 1 :: INTEGER?) :: (LIST? OF ANY?)¦apoc.coll.remove(coll, index, [length=1]) | remove range of values from index to length

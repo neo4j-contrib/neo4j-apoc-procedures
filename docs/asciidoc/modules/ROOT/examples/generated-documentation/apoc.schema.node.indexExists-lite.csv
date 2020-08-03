@@ -1,0 +1,2 @@
+¦signature
+¦apoc.schema.node.indexExists(labelName :: STRING?, propertyName :: LIST? OF STRING?) :: (BOOLEAN?)

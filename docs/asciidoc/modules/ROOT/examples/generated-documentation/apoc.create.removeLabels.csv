@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.create.removeLabels¦apoc.create.removeLabels(nodes :: ANY?, label :: LIST? OF STRING?) :: (node :: NODE?)¦apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...]) - removes the given labels from the node or nodes

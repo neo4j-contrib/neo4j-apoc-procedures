@@ -1,0 +1,2 @@
+¦signature
+¦apoc.spatial.geocodeOnce(location :: STRING?) :: (location :: MAP?, data :: MAP?, latitude :: FLOAT?, longitude :: FLOAT?, description :: STRING?)

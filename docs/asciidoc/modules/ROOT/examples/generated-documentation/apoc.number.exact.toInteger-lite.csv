@@ -1,0 +1,2 @@
+¦signature
+¦apoc.number.exact.toInteger(stringA :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (INTEGER?)

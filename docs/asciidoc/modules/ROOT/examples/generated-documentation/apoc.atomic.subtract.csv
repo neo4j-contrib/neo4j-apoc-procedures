@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.atomic.subtract¦apoc.atomic.subtract(container :: ANY?, propertyName :: STRING?, number :: NUMBER?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)¦apoc.atomic.subtract(node/relatonship,propertyName,number) Subtracts the 'number' value to the property's value

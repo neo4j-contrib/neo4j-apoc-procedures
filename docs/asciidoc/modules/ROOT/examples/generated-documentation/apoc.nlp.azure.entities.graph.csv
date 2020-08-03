@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.nlp.azure.entities.graph¦apoc.nlp.azure.entities.graph(source :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)¦Creates a (virtual) entity graph for provided text

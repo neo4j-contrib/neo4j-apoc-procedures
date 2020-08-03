@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.path.expand¦apoc.path.expand(start :: ANY?, relationshipFilter :: STRING?, labelFilter :: STRING?, minLevel :: INTEGER?, maxLevel :: INTEGER?) :: (path :: PATH?)¦apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path - expand from start node following the given relationships from min to max-level adhering to the label filters

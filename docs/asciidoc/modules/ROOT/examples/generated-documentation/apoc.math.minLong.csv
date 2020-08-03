@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.math.minLong¦apoc.math.minLong() :: (INTEGER?)¦apoc.math.minLong() | return the minimum value a long can have

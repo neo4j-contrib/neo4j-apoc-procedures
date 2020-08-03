@@ -24,10 +24,10 @@ The table below describes the available procedures:
 
 [separator=¦,opts=header]
 |===
-include::../../../build/generated-documentation/apoc.neighbors.csv[]
-include::../../../build/generated-documentation/apoc.neighbors.athop.csv[lines=2]
-include::../../../build/generated-documentation/apoc.neighbors.byhop.csv[lines=2]
-include::../../../build/generated-documentation/apoc.neighbors.tohop.csv[lines=2]
+include::generated-documentation/apoc.neighbors.csv[]
+include::generated-documentation/apoc.neighbors.athop.csv[lines=2]
+include::generated-documentation/apoc.neighbors.byhop.csv[lines=2]
+include::generated-documentation/apoc.neighbors.tohop.csv[lines=2]
 |===
 
 [[neighborhood-search-rel-filters]]

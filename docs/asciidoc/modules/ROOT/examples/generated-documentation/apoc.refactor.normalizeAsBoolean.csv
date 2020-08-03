@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.refactor.normalizeAsBoolean¦apoc.refactor.normalizeAsBoolean(entity :: ANY?, propertyKey :: STRING?, true_values :: LIST? OF ANY?, false_values :: LIST? OF ANY?) :: VOID¦apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) normalize/convert a property to be boolean

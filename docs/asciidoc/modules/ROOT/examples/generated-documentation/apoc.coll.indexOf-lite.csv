@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.indexOf(coll :: LIST? OF ANY?, value :: ANY?) :: (INTEGER?)

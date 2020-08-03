@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.custom.removeProcedure¦apoc.custom.removeProcedure(name :: STRING?) :: VOID¦apoc.custom.removeProcedure(name) - remove the targeted custom procedure

@@ -23,9 +23,9 @@ The table below describes the available procedures:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::../../../build/generated-documentation/apoc.periodic.iterate.csv[]
-include::../../../build/generated-documentation/apoc.periodic.commit.csv[lines=2:]
-include::../../../build/generated-documentation/apoc.periodic.rock_n_roll.csv[lines=2:]
+include::generated-documentation/apoc.periodic.iterate.csv[]
+include::generated-documentation/apoc.periodic.commit.csv[lines=2:]
+include::generated-documentation/apoc.periodic.rock_n_roll.csv[lines=2:]
 |===
 
 include::periodic-iterate.adoc[leveloffset=+1]

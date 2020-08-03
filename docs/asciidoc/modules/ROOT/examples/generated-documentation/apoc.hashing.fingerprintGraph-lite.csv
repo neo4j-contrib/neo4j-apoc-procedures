@@ -1,0 +1,2 @@
+¦signature
+¦apoc.hashing.fingerprintGraph(propertyExcludes = [] :: LIST? OF STRING?) :: (STRING?)

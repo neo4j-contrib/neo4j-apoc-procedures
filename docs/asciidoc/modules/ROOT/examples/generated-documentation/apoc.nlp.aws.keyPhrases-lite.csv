@@ -1,0 +1,3 @@
+¦signature
+¦apoc.nlp.aws.keyPhrases.graph(source :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)
+¦apoc.nlp.aws.keyPhrases.stream(source :: ANY?, config = {} :: MAP?) :: (node :: NODE?, value :: MAP?, error :: MAP?)

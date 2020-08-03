@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.es.put¦apoc.es.put(host :: STRING?, index :: STRING?, type :: STRING?, id :: STRING?, query :: ANY?, payload = {} :: MAP?) :: (value :: MAP?)¦apoc.es.put(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a PUT operation on elastic search

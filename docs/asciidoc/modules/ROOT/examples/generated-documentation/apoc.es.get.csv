@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.es.get¦apoc.es.get(host :: STRING?, index :: STRING?, type :: STRING?, id :: STRING?, query :: ANY?, payload :: ANY?) :: (value :: MAP?)¦apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a GET operation on elastic search

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.urldecode¦apoc.text.urldecode(text :: STRING?) :: (STRING?)¦apoc.text.urldecode(text) - return the urldecoded text

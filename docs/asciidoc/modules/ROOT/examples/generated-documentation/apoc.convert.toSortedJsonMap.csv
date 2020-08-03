@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.convert.toSortedJsonMap¦apoc.convert.toSortedJsonMap(value :: ANY?, ignoreCase = true :: BOOLEAN?) :: (STRING?)¦apoc.convert.toSortedJsonMap(node|map, ignoreCase:true) - returns a JSON map with keys sorted alphabetically, with optional case sensitivity

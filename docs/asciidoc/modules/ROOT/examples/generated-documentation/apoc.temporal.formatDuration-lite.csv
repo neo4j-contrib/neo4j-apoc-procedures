@@ -1,0 +1,2 @@
+¦signature
+¦apoc.temporal.formatDuration(input :: ANY?, format :: STRING?) :: (STRING?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.log.warn¦apoc.log.warn(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID¦apoc.log.warn(message, params) - logs warn message

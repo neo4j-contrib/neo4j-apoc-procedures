@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.randomItems¦apoc.coll.randomItems(coll :: LIST? OF ANY?, itemCount :: INTEGER?, allowRepick = false :: BOOLEAN?) :: (LIST? OF ANY?)¦apoc.coll.randomItems(coll, itemCount, allowRepick: false) - returns a list of itemCount random items from the original list, optionally allowing picked elements to be picked again

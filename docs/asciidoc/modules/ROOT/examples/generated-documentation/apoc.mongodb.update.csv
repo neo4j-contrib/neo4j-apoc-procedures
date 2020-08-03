@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.mongodb.update¦apoc.mongodb.update(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, update :: MAP?) :: (value :: INTEGER?)¦apoc.mongodb.update(host-or-key,db,collection,query,update) - updates the given documents from the mongodb collection and returns the number of affected documents

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.number.arabicToRoman¦apoc.number.arabicToRoman(number :: ANY?) :: (STRING?)¦apoc.number.arabicToRoman(number)  | convert arabic numbers to roman

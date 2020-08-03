@@ -1,0 +1,2 @@
+¦signature
+¦apoc.xml.import(url :: STRING?, config = {} :: MAP?) :: (node :: NODE?)

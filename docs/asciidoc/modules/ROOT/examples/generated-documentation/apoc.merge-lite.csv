@@ -1,0 +1,3 @@
+¦signature
+¦apoc.merge.node(label :: LIST? OF STRING?, identProps :: MAP?, props = {} :: MAP?, onMatchProps = {} :: MAP?) :: (node :: NODE?)
+¦apoc.merge.relationship(startNode :: NODE?, relationshipType :: STRING?, identProps :: MAP?, props :: MAP?, endNode :: NODE?, onMatchProps = {} :: MAP?) :: (rel :: RELATIONSHIP?)

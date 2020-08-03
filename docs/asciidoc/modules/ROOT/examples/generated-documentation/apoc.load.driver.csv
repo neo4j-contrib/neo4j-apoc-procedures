@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.load.driver¦apoc.load.driver(driverClass :: STRING?) :: VOID¦apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.es.getRaw¦apoc.es.getRaw(host :: STRING?, path :: STRING?, payload :: ANY?) :: (value :: MAP?)¦apoc.es.getRaw(host-or-port,path,payload-or-null) yield value - perform a raw GET operation on elastic search

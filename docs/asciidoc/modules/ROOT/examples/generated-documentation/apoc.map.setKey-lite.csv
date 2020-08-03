@@ -1,0 +1,2 @@
+¦signature
+¦apoc.map.setKey(map :: MAP?, key :: STRING?, value :: ANY?) :: (MAP?)

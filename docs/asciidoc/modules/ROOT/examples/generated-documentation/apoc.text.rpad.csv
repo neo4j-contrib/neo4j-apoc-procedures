@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.rpad¦apoc.text.rpad(text :: STRING?, count :: INTEGER?, delim =   :: STRING?) :: (STRING?)¦apoc.text.rpad(text,count,delim) YIELD value - right pad the string to the given width

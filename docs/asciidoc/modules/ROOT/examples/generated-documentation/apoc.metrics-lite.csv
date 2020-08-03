@@ -1,0 +1,4 @@
+¦signature
+¦apoc.metrics.get(metricName :: STRING?, config = {} :: MAP?) :: (timestamp :: INTEGER?, metric :: STRING?, map :: MAP?)
+¦apoc.metrics.list() :: (name :: STRING?, lastUpdated :: INTEGER?)
+¦apoc.metrics.storage(directorySetting :: STRING?) :: (setting :: STRING?, freeSpaceBytes :: INTEGER?, totalSpaceBytes :: INTEGER?, usableSpaceBytes :: INTEGER?, percentFree :: FLOAT?)

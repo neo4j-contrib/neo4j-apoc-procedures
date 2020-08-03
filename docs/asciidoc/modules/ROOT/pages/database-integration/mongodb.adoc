@@ -20,7 +20,7 @@ This section includes:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::../../../build/generated-documentation/apoc.mongodb.csv[]
+include::generated-documentation/apoc.mongodb.csv[]
 |===
 
 [[mongodb-dependencies]]

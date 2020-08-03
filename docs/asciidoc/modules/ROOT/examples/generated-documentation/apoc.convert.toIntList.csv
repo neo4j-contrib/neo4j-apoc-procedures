@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.convert.toIntList¦apoc.convert.toIntList(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toIntList(value) | tries it's best to convert the value to a list of integers

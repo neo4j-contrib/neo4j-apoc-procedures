@@ -1,0 +1,2 @@
+¦signature
+¦apoc.map.fromNodes(label :: STRING?, property :: STRING?) :: (MAP?)
