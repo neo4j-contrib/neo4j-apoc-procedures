@@ -1,5 +1,5 @@
 [[commit-batching]]
-== Periodic Iterate
+= Periodic Iterate
 
 ifdef::backend-html5[]
 ++++
@@ -65,7 +65,7 @@ These config keys are treated as follows:
 * A value of false is equivalent to `batchMode: "SINGLE"`
 |===
 
-=== Periodic Iterate Examples
+== Periodic Iterate Examples
 
 Let's go through some examples.
 
@@ -118,7 +118,7 @@ Let's break down the parameters passed to the procedure:
 * Our second Cypher statement takes those groups and finds the nodes that have a `HAS_ITEM` relationship to other nodes, then sums up the value of those items and sets that sum as a property (`o.value`) for the total order value.
 * Our configuration will batch those nodes into groups of 100 (`batchSize:100`) and run the batches in parallel for the second statement to process.
 
-==== Batch mode: BATCH_SINGLE
+=== Batch mode: BATCH_SINGLE
 
 If our operation statement calls a procedure that takes in a batch of values, we can use `batchMode: "BATCH_SINGLE"` to get access to a batch of values to pass to that procedure.
 When we use `BATCH_SINGLE`, the operation statement will have access to the `$_batch` parameter, which will contain a list of the fields returned in the data-driven statement.
@@ -152,7 +152,7 @@ UNWIND range(1,100000) as id create (:Person {id: id})
 ----
 
 We can delete these nodes using the `apoc.nodes.delete` procedure.
-See <<deleting-data>>.
+See xref::graph-updates/data-deletion.adoc[].
 
 This procedure takes in a list of nodes, which we can extract from the `$_batch` parameter.
 

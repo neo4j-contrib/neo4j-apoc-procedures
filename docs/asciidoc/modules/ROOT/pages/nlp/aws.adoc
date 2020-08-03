@@ -1,5 +1,5 @@
 [[nlp-aws]]
-=== Amazon Web Services (AWS)
+= Amazon Web Services (AWS)
 
 [abstract]
 --
@@ -21,6 +21,7 @@ The procedures described in this chapter make API calls and subsequent updates t
 If we want to make parallel requests to the API and avoid out of memory errors from keeping too much transaction state in memory while running procedures that write to the database, see <<nlp-aws-examples-batching>>.
 ====
 
+ifdef::docbook[]
 This section includes the following:
 
 * <<nlp-aws-overview>>
@@ -34,9 +35,10 @@ This section includes the following:
     ** <<nlp-aws-examples-entities>>
     ** <<nlp-aws-examples-key-phrases>>
     ** <<nlp-aws-examples-sentiment>>
+endif::[]
 
 [[nlp-aws-overview]]
-==== Procedure Overview
+== Procedure Overview
 
 The procedures are described below:
 
@@ -48,7 +50,7 @@ include::../../../build/generated-documentation/apoc.nlp.aws.sentiment.csv[lines
 |===
 
 [[nlp-aws-entities]]
-===== Entity Extraction
+=== Entity Extraction
 
 The entity extraction procedures (`apoc.nlp.aws.entities.*`) are wrappers around the https://docs.aws.amazon.com/comprehend/latest/dg/how-entities.html[Detect Entities^] operations of the AWS Comprehend Natural Language API.
 This API method finds entities in the text, which are defined as a textual reference to the unique name of a real-world object such as people, places, and commercial items, and to precise references to measures such as dates and quantities.
@@ -113,7 +115,7 @@ YIELD graph
 ----
 
 [[nlp-aws-key-phrases]]
-===== Key Phrases
+=== Key Phrases
 
 The key phrase procedures (`apoc.nlp.aws.keyPhrases.*`) are wrappers around the https://docs.aws.amazon.com/comprehend/latest/dg/how-key-phrases.html[Detect Key Phrases^] operations of the AWS Comprehend Natural Language API.
 A key phrase is a string containing a noun phrase that describes a particular thing.
@@ -179,7 +181,7 @@ YIELD graph
 ----
 
 [[nlp-aws-sentiment]]
-===== Sentiment
+=== Sentiment
 
 The sentiment procedures (`apoc.nlp.aws.sentiment.*`) are wrappers around the https://docs.aws.amazon.com/comprehend/latest/dg/how-sentiment.html[Determine Sentiment^] operations of the AWS Comprehend Natural Language API.
 You can determine if the sentiment is positive, negative, neutral, or mixed.
@@ -237,12 +239,12 @@ YIELD graph
 ----
 
 [[nlp-aws-dependencies]]
-==== Install Dependencies
+== Install Dependencies
 
 include::nlp-dependencies.adoc[]
 
 [[nlp-aws-api-key]]
-==== Setting up API Key and Secret
+== Setting up API Key and Secret
 
 We can generate an Access Key and Secret by following the instructions at https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html[docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html^].
 Once we've done that, we can populate and execute the following commands to create parameters that contains these details.
@@ -279,7 +281,7 @@ RETURN apoc.static.getAll("aws") AS aws;
 |===
 
 [[nlp-aws-examples-batching]]
-==== Batching Requests
+== Batching Requests
 
 Batching requests to the AWS API and the processing of results can be done using <<commit-batching>>.
 This approach is useful if we want to make parallel requests to the AWS API and reduce the amount of transaction state kept in memory while running procedures that write to the database.
@@ -316,7 +318,7 @@ CALL apoc.periodic.iterate("
 ----
 
 [[nlp-aws-examples]]
-==== Examples
+== Examples
 
 The examples in this section are based on the following sample graph:
 
@@ -326,7 +328,7 @@ include::nlp-graph.cypher[]
 ----
 
 [[nlp-aws-examples-entities]]
-===== Entity Extraction
+=== Entity Extraction
 
 Let's start by extracting the entities from the Article node.
 The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
@@ -486,7 +488,7 @@ RETURN article.uri AS article,
 |===
 
 [[nlp-aws-examples-key-phrases]]
-===== Key Phrases
+=== Key Phrases
 
 Let's now extract the key phrases from the Article node.
 The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
@@ -565,7 +567,7 @@ RETURN a.uri AS article,
 |===
 
 [[nlp-aws-examples-sentiment]]
-===== Sentiment
+=== Sentiment
 
 Let's now extract the sentiment for the Article node.
 The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.

@@ -15,7 +15,6 @@
 	<d:tocentry linkend="help"><?dbhtml filename="help/index.html"?>
     </d:tocentry>
 
-
     <d:tocentry linkend="config"><?dbhtml filename="config/index.html"?>
     </d:tocentry>
     <d:tocentry linkend="overview"><?dbhtml filename="overview/index.html"?>
@@ -29,6 +28,7 @@
       </d:tocentry>
       <d:tocentry linkend="load-csv"><?dbhtml filename="import/load-csv/index.html"?>
       </d:tocentry>
+
       <d:tocentry linkend="import-csv"><?dbhtml filename="import/import-csv/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="load-xls"><?dbhtml filename="import/xls/index.html"?>

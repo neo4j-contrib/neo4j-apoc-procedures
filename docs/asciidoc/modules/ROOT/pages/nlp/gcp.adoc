@@ -1,5 +1,5 @@
 [[nlp-gcp]]
-=== Google Cloud Platform (GCP)
+= Google Cloud Platform (GCP)
 
 [abstract]
 --
@@ -17,10 +17,10 @@ Each procedure has two modes:
 [NOTE]
 ====
 The procedures described in this chapter make API calls and subsequent updates to the database on the calling thread.
-
 If we want to make parallel requests to the API and avoid out of memory errors from keeping too much transaction state in memory while running procedures that write to the database, see <<nlp-gcp-examples-batching>>.
 ====
 
+ifdef::docbook[]
 This section includes the following:
 
 * <<nlp-gcp-overview>>
@@ -32,9 +32,10 @@ This section includes the following:
 * <<nlp-gcp-examples>>
     ** <<nlp-gcp-examples-entities>>
     ** <<nlp-gcp-examples-classify>>
+endif::[]
 
 [[nlp-gcp-overview]]
-==== Procedure Overview
+== Procedure Overview
 
 The procedures are described below:
 
@@ -45,7 +46,7 @@ include::../../../build/generated-documentation/apoc.nlp.gcp.classify.csv[lines=
 |===
 
 [[nlp-gcp-entities]]
-===== Entity Extraction
+=== Entity Extraction
 
 The entity extraction procedures (`apoc.nlp.gcp.entities.*`) are wrappers around the https://cloud.google.com/natural-language/docs/reference/rest/v1/documents/analyzeEntities[`documents.analyzeEntities`^] method of the Google Natural Language API.
 This API method finds named entities (currently proper names and common nouns) in the text along with entity types, salience, mentions for each entity, and other properties.
@@ -108,7 +109,7 @@ YIELD graph
 
 
 [[nlp-gcp-classify]]
-===== Classification
+=== Classification
 
 The entity extraction procedures (`apoc.nlp.gcp.classify.*`) are wrappers around the https://cloud.google.com/natural-language/docs/reference/rest/v1/documents/classifyText[`documents.classifyText`^] method of the Google Natural Language API.
 This API method classifies a document into categories.
@@ -170,13 +171,13 @@ YIELD graph
 ----
 
 [[nlp-gcp-dependencies]]
-==== Install Dependencies
+== Install Dependencies
 
 include::nlp-dependencies.adoc[]
 
 
 [[nlp-gcp-api-key]]
-==== Setting up API Key
+== Setting up API Key
 
 We can generate an API Key that has access to the Cloud Natural Language API by going to https://console.cloud.google.com/apis/credentials[console.cloud.google.com/apis/credentials^].
 Once we've created a key, we can populate and execute the following command to create a parameter that contains these details.
@@ -211,9 +212,9 @@ RETURN apoc.static.getAll("gcp") AS gcp;
 |===
 
 [[nlp-gcp-examples-batching]]
-==== Batching Requests
+== Batching Requests
 
-Batching requests to the GCP API and the processing of results can be done using <<commit-batching>>.
+Batching requests to the GCP API and the processing of results can be done using xref:graph-updates/periodic-iterate.adoc[].
 This approach is useful if we want to make parallel requests to the GCP API and reduce the amount of transaction state kept in memory while running procedures that write to the database.
 
 .The following creates an entity graph in batches of 25 nodes
@@ -240,7 +241,7 @@ CALL apoc.periodic.iterate("
 ----
 
 [[nlp-gcp-examples]]
-==== Examples
+== Examples
 
 The examples in this section are based on the following sample graph:
 
@@ -250,7 +251,7 @@ include::nlp-graph.cypher[]
 ----
 
 [[nlp-gcp-examples-entities]]
-===== Entity Extraction
+=== Entity Extraction
 
 Let's start by extracting the entities from the Article node.
 The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
@@ -409,7 +410,7 @@ RETURN article.uri AS article,
 |===
 
 [[nlp-gcp-examples-classify]]
-===== Classification
+=== Classification
 
 Now let's extract categories from the Article node.
 The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.

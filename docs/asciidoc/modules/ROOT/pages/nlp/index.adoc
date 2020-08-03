@@ -1,5 +1,5 @@
 [[nlp]]
-== Natural Language Processing (NLP)
+= Natural Language Processing (NLP)
 
 [abstract]
 --
@@ -11,10 +11,14 @@ These procedures extract entities, key phrases, categories, and sentiment from t
 
 This section includes:
 
-* <<nlp-gcp>>
-* <<nlp-aws>>
-* <<nlp-azure>>
+//* <<nlp-gcp>>
+//* <<nlp-aws>>
+//* <<nlp-azure>>
 
-include::gcp.adoc[]
-include::aws.adoc[]
-include::azure.adoc[]
+* xref::nlp/gcp.adoc[]
+* xref::nlp/aws.adoc[]
+* xref::nlp/azure.adoc[]
+
+//include::gcp.adoc[]
+//include::aws.adoc[]
+//include::azure.adoc[]
