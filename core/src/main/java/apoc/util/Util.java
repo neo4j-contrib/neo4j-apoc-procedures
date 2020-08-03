@@ -662,7 +662,7 @@ public class Util {
     }
 
     public static void checkAdmin(SecurityContext securityContext, String procedureName) {
-        if (!securityContext.isAdmin()) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
+        if (!securityContext.allowExecuteAdminProcedure()) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
     }
 
     public static void sleep(int millis) {
