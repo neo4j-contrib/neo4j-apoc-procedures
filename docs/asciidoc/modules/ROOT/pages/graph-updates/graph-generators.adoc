@@ -10,7 +10,7 @@ Generate undirected (random direction) graphs with semi-real random distribution
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::generated-documentation/apoc.generate.csv[]
+include::example$generated-documentation/apoc.generate.csv[]
 |===
 
 Example

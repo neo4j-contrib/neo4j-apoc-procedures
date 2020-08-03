@@ -27,7 +27,7 @@ The table below describes the available procedures:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::generated-documentation/apoc.ttl.csv[]
+include::example$generated-documentation/apoc.ttl.csv[]
 |===
 
 [[ttl-config-parameters]]

@@ -1,5 +1,5 @@
 name: apoc
 version: 4.1
 title: APOC
-#nav:
-#  - modules/ROOT/nav.adoc
+nav:
+  - modules/ROOT/nav.adoc

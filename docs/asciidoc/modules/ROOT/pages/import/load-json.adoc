@@ -20,23 +20,6 @@ ifdef::backend-html5[]
 ++++
 endif::[]
 
-This section includes:
-
-* <<load-json-available-procedures>>
-    ** <<load-json-available-procedures-apoc.load.json>>
-    ** <<load-json-available-procedures-apoc.load.jsonParams>>
-    ** <<load-json-available-procedures-apoc.load.jsonArray>>
-    ** <<load-json-available-procedures-apoc.import.json>>
-
-* <<load-json-file-import>>
-* <<load-json-json-path>>
-* <<load-json-examples>>
-    ** <<load-json-examples-local>>
-    ** <<load-json-examples-stackoverflow>>
-    ** <<load-json-path-examples-stackoverflow>>
-    ** <<load-json-examples-twitter>>
-    ** <<load-json-examples-import-json>>
-    ** <<load-json-examples-post-json>>
 
 [[load-json-available-procedures]]
 == Procedure Overview
@@ -45,10 +28,10 @@ The table below describes the available procedures:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::generated-documentation/apoc.load.json.csv[]
-include::generated-documentation/apoc.load.jsonParams.csv[lines=2:]
-include::generated-documentation/apoc.load.jsonArray.csv[lines=2:]
-include::generated-documentation/apoc.import.json.csv[lines=2:]
+include::example$generated-documentation/apoc.load.json.csv[]
+include::example$generated-documentation/apoc.load.jsonParams.csv[lines=2:]
+include::example$generated-documentation/apoc.load.jsonArray.csv[lines=2:]
+include::example$generated-documentation/apoc.import.json.csv[lines=2:]
 |===
 
 [[load-json-available-procedures-apoc.load.json]]
@@ -58,7 +41,7 @@ This procedure takes a file or HTTP URL and parses the JSON into a map data stru
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::generated-documentation/apoc.load.json-lite.csv[]
+include::example$generated-documentation/apoc.load.json-lite.csv[]
 |===
 
 It supports the following config parameter:
@@ -78,7 +61,7 @@ It is a more configurable version of <<load-json-available-procedures-apoc.load.
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::generated-documentation/apoc.load.jsonParams-lite.csv[]
+include::example$generated-documentation/apoc.load.jsonParams-lite.csv[]
 |===
 
 It supports the following config parameter:
@@ -97,7 +80,7 @@ This procedure takes a file or HTTP URL containing a JSON array, and parses it i
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::generated-documentation/apoc.load.jsonArray-lite.csv[]
+include::example$generated-documentation/apoc.load.jsonArray-lite.csv[]
 |===
 
 [[load-json-available-procedures-apoc.import.json]]
@@ -107,7 +90,7 @@ This procedure can be used to import JSON files created by the <<export-json, Ex
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::generated-documentation/apoc.import.json-lite.csv[]
+include::example$generated-documentation/apoc.import.json-lite.csv[]
 |===
 
 It supports the following config parameters:
@@ -411,7 +394,7 @@ This procedure supports the following config parameters:
 .all.json
 [source,json]
 ----
-include::../data/exportJSON/all.json[leveloffset]
+include::example$data/exportJSON/all.json[leveloffset]
 ----
 
 We can import this file using `apoc.import.json`.

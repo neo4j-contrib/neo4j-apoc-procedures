@@ -20,10 +20,10 @@ The available functions are described below:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::generated-documentation/apoc.path.create.csv[]
-include::generated-documentation/apoc.path.combine.csv[lines=2:]
-include::generated-documentation/apoc.path.slice.csv[lines=2:]
-include::generated-documentation/apoc.path.elements.csv[lines=2:]
+include::example$generated-documentation/apoc.path.create.csv[]
+include::example$generated-documentation/apoc.path.combine.csv[lines=2:]
+include::example$generated-documentation/apoc.path.slice.csv[lines=2:]
+include::example$generated-documentation/apoc.path.elements.csv[lines=2:]
 |===
 
 [[path-functions-examples]]

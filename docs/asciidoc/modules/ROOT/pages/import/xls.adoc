@@ -1,12 +1,12 @@
 [[load-xls]]
-== Loading Excel (XLS)
+= Loading Excel (XLS)
 
 [abstract]
 --
 This section describes procedures that can be used to import data from Excel files.
 --
 
-=== Library Requirements
+== Library Requirements
 
 For loading XLS we're using the Apache POI library, which works well with old and new Excel formats, but is quite large.
 That's why we decided not to include it into the apoc jar, but make it an optional dependency.
@@ -23,7 +23,7 @@ Please download these jars and put them into your `plugins` directory:
 * http://repo1.maven.org/maven2/org/apache/xmlbeans/xmlbeans/2.6.0/xmlbeans-2.6.0.jar[xmlbeans-2.6.0.jar^]
 * http://repo1.maven.org/maven2/com/github/virtuald/curvesapi/1.04/curvesapi-1.04.jar[curvesapi-1.04.jar^]
 
-=== Usage
+== Usage
 
 The usage of `apoc.load.xls` is similar to `apoc.load.csv` with the main difference the ability to select a worksheet or a range from a sheet to load.
 
@@ -49,7 +49,7 @@ In dateParse the first format matched return the date formatted, otherwise it wi
 
 In `format` config you can use the pattern describe as the Temporal functions: <<temporal-conversions,temporal functions>>
 
-=== Examples for `apoc.load.xls`
+== Examples for `apoc.load.xls`
 
 [source,cypher]
 ----

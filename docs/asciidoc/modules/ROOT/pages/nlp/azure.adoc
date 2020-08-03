@@ -37,9 +37,9 @@ The procedures are described below:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::generated-documentation/apoc.nlp.azure.entities.csv[]
-include::generated-documentation/apoc.nlp.azure.keyPhrases.csv[lines=2;3]
-include::generated-documentation/apoc.nlp.azure.sentiment.csv[lines=2;3]
+include::example$generated-documentation/apoc.nlp.azure.entities.csv[]
+include::example$generated-documentation/apoc.nlp.azure.keyPhrases.csv[lines=2;3]
+include::example$generated-documentation/apoc.nlp.azure.sentiment.csv[lines=2;3]
 |===
 
 [[nlp-azure-entities]]
@@ -52,8 +52,8 @@ The procedures are described below:
 
 [separator=¦,opts=header,cols="1"]
 |===
-include::generated-documentation/apoc.nlp.azure.entities.graph-lite.csv[]
-include::generated-documentation/apoc.nlp.azure.entities.stream-lite.csv[lines=2;]
+include::example$generated-documentation/apoc.nlp.azure.entities.graph-lite.csv[]
+include::example$generated-documentation/apoc.nlp.azure.entities.stream-lite.csv[lines=2;]
 |===
 
 The procedure supports the following config parameters:
@@ -117,8 +117,8 @@ The procedure is described below:
 
 [separator=¦,opts=header,cols="1"]
 |===
-include::generated-documentation/apoc.nlp.azure.keyPhrases.graph-lite.csv[]
-include::generated-documentation/apoc.nlp.azure.keyPhrases.stream-lite.csv[lines=2;]
+include::example$generated-documentation/apoc.nlp.azure.keyPhrases.graph-lite.csv[]
+include::example$generated-documentation/apoc.nlp.azure.keyPhrases.stream-lite.csv[lines=2;]
 |===
 
 The procedure support the following config parameters:
@@ -179,8 +179,8 @@ The procedures are described below:
 
 [separator=¦,opts=header,cols="1"]
 |===
-include::generated-documentation/apoc.nlp.azure.sentiment.graph-lite.csv[]
-include::generated-documentation/apoc.nlp.azure.sentiment.stream-lite.csv[lines=2;]
+include::example$generated-documentation/apoc.nlp.azure.sentiment.graph-lite.csv[]
+include::example$generated-documentation/apoc.nlp.azure.sentiment.stream-lite.csv[lines=2;]
 |===
 
 The procedures support the following config parameters:

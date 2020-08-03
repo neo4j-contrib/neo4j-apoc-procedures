@@ -10,17 +10,6 @@ The export JSON procedures export data into a format that's supported by JavaScr
 We may also want to export data into JSON format for importing into other tools or for general sharing of query results.
 The procedures described in this section support exporting to a file or as a stream.
 
-This section includes:
-
-* <<export-json-available-procedures, Available Procedures>>
-* <<export-json-file-export, Exporting to a file>>
-* <<export-json-stream-export, Exporting a stream>>
-* <<export-json-examples, Examples>>
-    ** <<export-database-json, Export whole database>>
-    ** <<export-nodes-relationships-json, Export specified nodes and relationships>>
-    ** <<export-graph-json, Export virtual graph>>    
-    ** <<export-cypher-query-json, Export results of Cypher query>>
-
 [[export-json-available-procedures]]
 == Available Procedures
 
@@ -29,7 +18,7 @@ The table below describes the available procedures:
 // tag::export.json[]
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::generated-documentation/apoc.export.json.csv[]
+include::example$generated-documentation/apoc.export.json.csv[]
 |===
 // end::export.json[]
 
@@ -106,7 +95,7 @@ The contents of `all.json` are shown below:
 .all.json
 [source,json]
 ----
-include::../data/exportJSON/all.json[leveloffset]
+include::example$data/exportJSON/all.json[leveloffset]
 ----
 
 .The following query returns a stream of the whole database in the `data` column
@@ -156,7 +145,7 @@ The contents of `knows.json` are shown below:
 .knows.json
 [source,json]
 ----
-include::../data/exportJSON/data.json[leveloffset]
+include::example$data/exportJSON/data.json[leveloffset]
 ----
 
 
@@ -230,7 +219,7 @@ The contents of `graph.json` are shown below:
 .graph.json
 [source,json]
 ----
-include::../data/exportJSON/graph.json[leveloffset]
+include::example$data/exportJSON/graph.json[leveloffset]
 ----
 
 .The following query returns a streams of the virtual graph from static value storage to the `data` column
@@ -279,7 +268,7 @@ The contents of `users-age.json` are shown below:
 .users-age.json
 [source,json]
 ----
-include::../data/exportJSON/query_nodes_param.json[leveloffset]
+include::example$data/exportJSON/query_nodes_param.json[leveloffset]
 ----
 
 .The following query returns a stream of `User` nodes with an `age` property greater than `10` to the `data` column
@@ -336,7 +325,7 @@ The contents of `complex-cypher-structure.json` are shown below:
 .complex-cypher-structure.json
 [source,json]
 ----
-include::../data/exportJSON/MapComplex.json[leveloffset]
+include::example$data/exportJSON/MapComplex.json[leveloffset]
 ----
 
 .The following query exports a list of `User` nodes with an `age` property is greater than `10` to the file `users-list.json`
@@ -361,7 +350,7 @@ The contents of `users-list.json` are shown below:
 .users-list.json
 [source,json]
 ----
-include::../data/exportJSON/listNode.json[leveloffset]
+include::example$data/exportJSON/listNode.json[leveloffset]
 ----
 
 .The following query exports the map representation of `User` nodes connected by a `KNOWS` relationship to the file `users-map.json`
@@ -386,7 +375,7 @@ The contents of `users-map.json` are shown below:
 .users-map.json
 [source,json]
 ----
-include::../data/exportJSON/MapNode.json[leveloffset]
+include::example$data/exportJSON/MapNode.json[leveloffset]
 ----
 
 In this example we use the `{.*}` syntax when returning graph entities in the Cypher statement.
@@ -414,7 +403,7 @@ The contents of `knows-with-node-properties.json` are shown below:
 .knows-with-node-properties.json
 [source,json]
 ----
-include::../data/exportJSON/writeNodeProperties.json[leveloffset]
+include::example$data/exportJSON/writeNodeProperties.json[leveloffset]
 ----
 
 

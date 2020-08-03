@@ -1,5 +1,5 @@
 [[import-csv]]
-== Import CSV
+= Import CSV
 
 [abstract]
 --
@@ -10,7 +10,7 @@ CSV files that comply with the https://neo4j.com/docs/operations-manual/current/
 This procedure can be used to load small- to medium-sized data sets in an online database.
 For importing larger data sets, it is recommended to perform a batch import using the (https://neo4j.com/docs/operations-manual/current/tools/import/[import tool], which loads data in bulk to an offline (initially empty) database.
 
-=== Usage
+== Usage
 
 The parameters of the `apoc.import.csv(<nodes>, <relationships>, <config>)` procedure are as follows.
 
@@ -45,9 +45,9 @@ The `<config>` parameter is a map
 | skipLines | lines to skip (incl. header) | 1 | N/A
 |===
 
-=== Examples for apoc.import.csv
+== Examples for apoc.import.csv
 
-==== Loading nodes
+=== Loading nodes
 
 Given the following CSV file and procedure call, the database loads two `Person` nodes with their `name` properties set:
 
@@ -64,7 +64,7 @@ Jane
 CALL apoc.import.csv([{fileName: 'file:/persons.csv', labels: ['Person']}], [], {})
 ----
 
-==== Loading nodes and relationships
+=== Loading nodes and relationships
 
 Given the following CSV files and procedure call, the database loads two `Person` nodes and a `KNOWS` relationship between them (with the value of the `since` property set). Note that both the field terminators and the array delimiters are changed from the default value, and the CSVs use numeric ids.
 

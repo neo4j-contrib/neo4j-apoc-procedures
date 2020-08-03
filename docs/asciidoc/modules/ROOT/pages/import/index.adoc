@@ -1,5 +1,5 @@
 [[import]]
-== Import
+= Import
 
 [abstract]
 --
@@ -10,27 +10,11 @@ The APOC library adds support for importing data from various data formats, incl
 
 For more information on these procedures, see:
 
-* <<web-apis>>
-* <<load-json>>
-* <<load-csv>>
-* <<import-csv>>
-* <<load-xls>>
-* <<load-xml>>
-* <<load-html>>
-* <<graphml-import>>
-
-include::web-apis.adoc[leveloffset=2]
-
-include::load-json.adoc[leveloffset=2]
-
-include::load-csv.adoc[leveloffset=+1]
-
-include::import-csv.adoc[leveloffset=+1]
-
-include::xls.adoc[leveloffset=+1]
-
-include::xml.adoc[leveloffset=2]
-
-include::html.adoc[leveloffset=2]
-
-include::graphml.adoc[leveloffset=2]
+* xref::import/web-apis.adoc[]
+* xref::import/load-json.adoc[]
+* xref::import/load-csv.adoc[]
+* xref::import/import-csv.adoc[]
+* xref::import/xls.adoc[]
+* xref::import/xml.adoc[]
+* xref::import/html.adoc[]
+* xref::import/graphml.adoc[]

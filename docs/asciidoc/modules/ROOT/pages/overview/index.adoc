@@ -10,5 +10,5 @@ This chapter provides a reference of all the procedures and functions in the APO
 [[table-all]]
 [separator=¦,opts=header]
 |===
-include::generated-documentation/documentation.csv[]
+include::example$generated-documentation/documentation.csv[]
 |===

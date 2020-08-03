@@ -1,5 +1,5 @@
 [[load-csv]]
-== Load CSV
+= Load CSV
 
 [abstract]
 --
@@ -39,7 +39,7 @@ By default file paths are global, for paths relative to the `import` directory s
 apoc.import.file.use_neo4j_config=true
 ----
 
-=== Examples for apoc.load.csv
+== Examples for apoc.load.csv
 
 .test.csv
 ----
@@ -66,7 +66,7 @@ RETURN *;
 |===
 
 
-=== Configuration Options
+== Configuration Options
 
 Besides the file you can pass in a config map:
 
@@ -116,7 +116,7 @@ RETURN *;
 | 1 | [12,["Tea","Milk"]] | {"age":12,"drinks":["Tea","Milk"]}
 |===
 
-=== Transaction Batching
+== Transaction Batching
 
 To handle large files, `USING PERIODIC COMMIT` can be prepended to `LOAD CSV`, you'll have to watch  out though for *Eager* operations which might break that behavior.
 

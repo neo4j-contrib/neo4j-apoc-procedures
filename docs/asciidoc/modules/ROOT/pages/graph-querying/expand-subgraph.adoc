@@ -27,7 +27,7 @@ The procedure is described below:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::generated-documentation/apoc.path.subgraphAll.csv[]
+include::example$generated-documentation/apoc.path.subgraphAll.csv[]
 |===
 
 [[expand-subgraph-config]]

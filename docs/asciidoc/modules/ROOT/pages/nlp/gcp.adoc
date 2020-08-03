@@ -41,8 +41,8 @@ The procedures are described below:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::generated-documentation/apoc.nlp.gcp.entities.csv[]
-include::generated-documentation/apoc.nlp.gcp.classify.csv[lines=2..3]
+include::example$generated-documentation/apoc.nlp.gcp.entities.csv[]
+include::example$generated-documentation/apoc.nlp.gcp.classify.csv[lines=2..3]
 |===
 
 [[nlp-gcp-entities]]
@@ -55,8 +55,8 @@ The procedures are described below:
 
 [separator=¦,opts=header,cols="1"]
 |===
-include::generated-documentation/apoc.nlp.gcp.entities.stream-lite.csv[]
-include::generated-documentation/apoc.nlp.gcp.entities.graph-lite.csv[lines=2;]
+include::example$generated-documentation/apoc.nlp.gcp.entities.stream-lite.csv[]
+include::example$generated-documentation/apoc.nlp.gcp.entities.graph-lite.csv[lines=2;]
 |===
 
 The procedures support the following config parameters:
@@ -118,8 +118,8 @@ The procedures are described below:
 
 [separator=¦,opts=header,cols="1"]
 |===
-include::generated-documentation/apoc.nlp.gcp.classify.stream-lite.csv[]
-include::generated-documentation/apoc.nlp.gcp.classify.graph-lite.csv[lines=2;]
+include::example$generated-documentation/apoc.nlp.gcp.classify.stream-lite.csv[]
+include::example$generated-documentation/apoc.nlp.gcp.classify.graph-lite.csv[lines=2;]
 |===
 
 The procedures support the following config parameters:

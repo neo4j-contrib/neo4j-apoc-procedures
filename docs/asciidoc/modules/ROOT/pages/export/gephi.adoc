@@ -52,7 +52,7 @@ The table below describes the available procedure:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::generated-documentation/apoc.gephi.csv[]
+include::example$generated-documentation/apoc.gephi.csv[]
 |===
 
 // end::gephi[]

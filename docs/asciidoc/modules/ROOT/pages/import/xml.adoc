@@ -9,20 +9,6 @@ This section describes procedures that can be used to import data from XML files
 Many existing enterprise applications, endpoints, and files use XML as data exchange format.
 The Load XML procedures allow us to process these files.
 
-This section includes:
-
-* <<load-xml-available-procedures>>
-   ** <<load-xml-available-procedures-apoc.load.xml>>
-   ** <<load-xml-available-procedures-apoc.xml.parse>>
-   ** <<load-xml-available-procedures-apoc.import.xml>>
-* <<load-xml-file-import>>
-* <<load-xml-examples>>
-    ** <<load-xml-examples-local-file>>
-    ** <<load-xml-examples-simple-xml-format>>
-    ** <<load-xml-examples-xpath>>
-    ** <<load-xml-examples-extracting-datastructures>>
-    ** <<load-xml-examples-import-xml-directly>>
-
 [[load-xml-available-procedures]]
 == Procedure and Function Overview
 
@@ -30,9 +16,9 @@ The table below describes the available procedures and functions:
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
-include::generated-documentation/apoc.load.xml.csv[]
-include::generated-documentation/apoc.xml.parse.csv[lines=2:]
-include::generated-documentation/apoc.import.xml.csv[lines=2:]
+include::example$generated-documentation/apoc.load.xml.csv[]
+include::example$generated-documentation/apoc.xml.parse.csv[lines=2:]
+include::example$generated-documentation/apoc.import.xml.csv[lines=2:]
 |===
 
 [[load-xml-available-procedures-apoc.load.xml]]
@@ -42,7 +28,7 @@ This procedure takes a file or HTTP URL and parses the XML into a map data struc
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::generated-documentation/apoc.load.xml-lite.csv[]
+include::example$generated-documentation/apoc.load.xml-lite.csv[]
 |===
 
 The map is created using the following rules:
@@ -70,7 +56,7 @@ If our dataset contains nodes with XML as property values, they can be parsed in
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::generated-documentation/apoc.xml.parse-lite.csv[]
+include::example$generated-documentation/apoc.xml.parse-lite.csv[]
 |===
 
 
@@ -104,7 +90,7 @@ If we don't want to do any transformation of the XML before creating a graph str
 
 [separator=¦,opts=header,cols="1m"]
 |===
-include::generated-documentation/apoc.import.xml-lite.csv[]
+include::example$generated-documentation/apoc.import.xml-lite.csv[]
 |===
 
 This procedure will return a node representing the XML document containing nodes and relationships underneath mapping to the XML structure.
