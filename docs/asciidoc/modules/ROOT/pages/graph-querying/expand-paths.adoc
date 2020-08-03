@@ -1,5 +1,5 @@
 [[path-expander-paths]]
-== Expand paths
+= Expand paths
 
 [abstract]
 --
@@ -17,7 +17,7 @@ This section includes the following:
 * <<path-expander-paths-examples>>
 
 [[path-expander-paths-procedure-overview]]
-=== Procedure Overview
+== Procedure Overview
 
 The procedure is described below:
 
@@ -27,7 +27,7 @@ include::example$generated-documentation/apoc.path.expand.csv[]
 |===
 
 [[path-expander-paths-parameter-syntax]]
-=== Parameter Syntax
+== Parameter Syntax
 
 This procedure takes the following parameters:
 
@@ -41,21 +41,21 @@ This procedure takes the following parameters:
 
 The syntax for relationship filters is described below:
 
-include::relationship-filter.adoc[]
+include::partial$relationship-filter.adoc[]
 
 *Label Filters*
 
 The syntax for label filters is described below:
 
-include::label-filter.adoc[]
+include::partial$label-filter.adoc[]
 
 
 [[path-expander-paths-examples]]
-=== Examples
+== Examples
 
 The examples in this section are based on the following sample graph:
 
-include::expand-sample-graph.adoc[]
+include::partial$expand-sample-graph.adoc[]
 
 Let's start by expanding paths from the Praveena node.
 We only want to consider the `KNOWS` relationship type, so we'll specify that as the relationship filter.

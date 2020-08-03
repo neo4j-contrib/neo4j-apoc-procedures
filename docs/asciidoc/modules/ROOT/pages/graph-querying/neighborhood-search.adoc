@@ -1,5 +1,5 @@
 [[neighbourhood-search]]
-== Neighbor Functions
+= Neighbor Functions
 
 [abstract]
 --
@@ -8,17 +8,8 @@ This section describes procedures that can be used to find the nodes in the neig
 
 The Neighborhood search procedures enable quick discovery of surrounding nodes based on a specific relationship type and number of hops.
 
-This section includes:
-
-* <<neighborhood-search-available-procedures, Available Procedures>>
-* <<neighborhood-search-rel-filters, Relationship Filters>>
-* <<neighborhood-search-examples, Examples>>
-** <<neighborhood-search-specified-hop-count, Find neighbors at specified hop count>>
-** <<neighborhood-search-specified-hop-counts, Find neighbors at specified hop counts>>
-** <<neighborhood-search-up-to-hop-count, Find neighbors up to specified hop count>>
-
 [[neighborhood-search-available-procedures]]
-=== Available Procedures
+== Available Procedures
 
 The table below describes the available procedures:
 
@@ -31,12 +22,12 @@ include::example$generated-documentation/apoc.neighbors.tohop.csv[lines=2]
 |===
 
 [[neighborhood-search-rel-filters]]
-=== Relationship Filters
+== Relationship Filters
 
 The 2nd parameter in each of the neighborhood search procedures is a relationship filter.
 A relationship filter is a `|` separated list of relationship types, using the following syntax:
 
-include::relationship-filter.adoc[]
+include::partial$relationship-filter.adoc[]
 
 [NOTE]
 ====
@@ -44,7 +35,7 @@ Relationship filters are white space sensitive, so check for trailing white spac
 ====
 
 [[neighborhood-search-examples]]
-=== Examples
+== Examples
 
 The examples in this section are based on the following sample graph:
 
@@ -74,7 +65,7 @@ When using the `KNOWS` relationship we will ignore the direction.
 The `FOLLOWS` relationship has a direction, so we will specify a direction when we use it.
 
 [[neighborhood-search-specified-hop-count]]
-==== Find neighbors at specified hop count
+=== Find neighbors at specified hop count
 
 The `apoc.neighbors.athop` procedures compute a node's neighborhood at a specific hop count.
 
@@ -135,7 +126,7 @@ RETURN value
 As expected we get a count of 2, those people being Praveena and Lju!
 
 [[neighborhood-search-specified-hop-counts]]
-==== Find neighbors at specified hop counts
+=== Find neighbors at specified hop counts
 
 The `apoc.neighbors.byhop` procedures compute a node's neighborhood at multiple hop counts.
 
@@ -248,7 +239,7 @@ RETURN apoc.map.fromLists(
 |===
 
 [[neighborhood-search-up-to-hop-count]]
-==== Find neighbors up to specified hop count
+=== Find neighbors up to specified hop count
 
 The `apoc.neighbors.tohop` procedures compute a node's neighborhood up to a specified hop count.
 

@@ -46,12 +46,12 @@ include::example$generated-documentation/apoc.export.csv.csv[]
 [[export-csv-file-export]]
 == Exporting to a file
 
-include::enableFileExport.adoc[]
+include::partial$enableFileExport.adoc[]
 
 [[export-csv-stream-export]]
 == Exporting a stream
 
-include::streamExport.adoc[]
+include::partial$streamExport.adoc[]
 
 [[export-csv-examples]]
 == Examples

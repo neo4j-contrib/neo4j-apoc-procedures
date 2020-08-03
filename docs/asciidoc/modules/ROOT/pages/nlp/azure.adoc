@@ -1,5 +1,5 @@
 [[nlp-azure]]
-=== Microsoft Azure Cognitive Services
+= Microsoft Azure Cognitive Services
 
 [abstract]
 --
@@ -13,25 +13,9 @@ Each procedure has two modes:
 
 * Stream - returns a map constructed from the JSON returned from the API
 
-This section includes the following:
-
-* <<nlp-azure-overview>>
-** <<nlp-azure-entities>>
-** <<nlp-azure-key-phrases>>
-** <<nlp-azure-sentiment>>
-
-* <<nlp-azure-dependencies>>
-* <<nlp-azure-api-key>>
-//* <<nlp-aws-examples-batching>>
-
-* <<nlp-azure-examples>>
-** <<nlp-azure-examples-entities>>
-** <<nlp-azure-examples-key-phrases>>
-** <<nlp-azure-examples-sentiment>>
-
 
 [[nlp-azure-overview]]
-==== Procedure Overview
+== Procedure Overview
 
 The procedures are described below:
 
@@ -43,7 +27,7 @@ include::example$generated-documentation/apoc.nlp.azure.sentiment.csv[lines=2;3]
 |===
 
 [[nlp-azure-entities]]
-===== Entity Extraction
+=== Entity Extraction
 
 The entity extraction procedures (`apoc.nlp.azure.entities.*`) are wrappers around the https://westcentralus.dev.cognitive.microsoft.com/docs/services/TextAnalytics-v2-1/operations/5ac4251d5b4ccd1554da7634[Entities^] end point of the Azure Text Analytics API.
 This API method returns a list of known entities and general named entities ("Person", "Location", "Organization" etc) in a given document.
@@ -108,7 +92,7 @@ YIELD graph
 ----
 
 [[nlp-azure-key-phrases]]
-===== Key Phrases
+=== Key Phrases
 
 The key phrase procedures (`apoc.nlp.azure.keyPhrases.*`) are wrappers around the https://westcentralus.dev.cognitive.microsoft.com/docs/services/TextAnalytics-v2-1/operations/56f30ceeeda5650db055a3c6[Key Phrases^] end point of the Azure Text Analytics API.
 A key phrase is a key talking point in the input text.
@@ -168,7 +152,7 @@ YIELD graph
 
 
 [[nlp-azure-sentiment]]
-===== Sentiment
+=== Sentiment
 
 The sentiment procedures (`apoc.nlp.azure.sentiment.*`) are wrappers around the https://westcentralus.dev.cognitive.microsoft.com/docs/services/TextAnalytics-v2-1/operations/56f30ceeeda5650db055a3c9[Sentiment^] end point of the Azure Text Analytics API.
 The API returns a numeric score between 0 and 1.
@@ -227,12 +211,12 @@ YIELD graph
 ----
 
 [[nlp-azure-dependencies]]
-==== Install Dependencies
+== Install Dependencies
 
-include::nlp-dependencies.adoc[]
+include::partial$nlp-dependencies.adoc[]
 
 [[nlp-azure-api-key]]
-==== Setting up API Key and URL
+== Setting up API Key and URL
 
 We can generate an API key and URL by following the instructions in the  https://docs.microsoft.com/en-us/azure/cognitive-services/text-analytics/quickstarts/text-analytics-sdk[Quickstart: Use the Text Analytics client library^] article.
 Once we've done that, we should be able to see a page listing our credentials, similar to the screenshot below:
@@ -251,7 +235,7 @@ Let's populate and execute the following commands to create parameters that cont
 ----
 
 Alternatively we can add these credentials to `apoc.conf` and retrieve them using the static value storage functions.
-See <<static-values>>.
+See xref::misc/static-values.adoc[]
 
 .apoc.conf
 [source,properties]
@@ -275,17 +259,17 @@ RETURN apoc.static.getAll("azure") AS azure;
 |===
 
 [[nlp-azure-examples]]
-==== Examples
+== Examples
 
 The examples in this section are based on the following sample graph:
 
 [source,cypher]
 ----
-include::nlp-graph.cypher[]
+include::example$nlp-graph.cypher[]
 ----
 
 [[nlp-azure-examples-entities]]
-===== Entity Extraction
+=== Entity Extraction
 
 Let's start by extracting the entities from one of the `Article` nodes.
 The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
@@ -428,7 +412,7 @@ RETURN article.uri AS article,
 |===
 
 [[nlp-azure-examples-key-phrases]]
-===== Key Phrases
+=== Key Phrases
 
 Let's now extract the key phrases from the Article node.
 The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
@@ -506,7 +490,7 @@ RETURN a.uri AS article,
 |===
 
 [[nlp-azure-examples-sentiment]]
-===== Sentiment
+=== Sentiment
 
 Let's now extract the sentiment for the Article node.
 The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.

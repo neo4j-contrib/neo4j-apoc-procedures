@@ -1,12 +1,12 @@
 [[config]]
-== Configuration Options
+= Configuration Options
 
 [abstract]
 --
 This chapter gives an overview of all the configuration options used by the APOC library.
 --
 
-=== Location of config options
+== Location of config options
 
 APOC for 4.0 introduces new configuration management. All config options from <<config-reference>> can be provided either in:
 
@@ -21,7 +21,7 @@ The order of this table matches their config option precedence. E.g. any env set
 NOTE:: internally APOC relies on Apache commons-config for resolving config settings, the meta-configuration is located in `src/main/resources/apoc-config.xml`.
 
 [[config-reference]]
-=== Reference of config options
+== Reference of config options
 
 Set these config options in `$NEO4J_HOME/conf/apoc.conf`, via system properties or environment variables.
 

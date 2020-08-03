@@ -9,15 +9,9 @@ This section describes procedures that can be used to batch transactions when ex
 Cypher is great for querying graphs and importing and updating graph structures.
 While during imports you can use `PERIODIC COMMIT` to control transaction sizes in memory, but for other graph refactorings it's not that easy to commit transactions regularly to free memory for new update state.
 
-This section includes:
-
-* <<periodic-execution-proc-overview>>
-* <<commit-batching>>
-* <<periodic-commit>>
-* <<periodic-rock-n-roll>>
 
 [[periodic-execution-proc-overview]]
-=== Procedure Overview
+== Procedure Overview
 
 The table below describes the available procedures:
 
@@ -28,8 +22,8 @@ include::example$generated-documentation/apoc.periodic.commit.csv[lines=2:]
 include::example$generated-documentation/apoc.periodic.rock_n_roll.csv[lines=2:]
 |===
 
-include::periodic-iterate.adoc[leveloffset=+1]
-include::periodic-commit.adoc[leveloffset=+1]
+include::partial$periodic-iterate.adoc[leveloffset=+1]
+include::partial$periodic-commit.adoc[leveloffset=+1]
 
 [[periodic-rock-n-roll]]
 === Periodic Rock 'n' Roll

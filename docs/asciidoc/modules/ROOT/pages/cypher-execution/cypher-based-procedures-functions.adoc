@@ -1,5 +1,5 @@
 [[cypher-based-procedures-functions]]
-== Custom, Cypher Based Procedures and Functions
+= Custom, Cypher Based Procedures and Functions
 
 [abstract]
 --
@@ -37,7 +37,7 @@ CALL apoc.custom.asFunction('answer','RETURN 42')
 
 NOTE: If you override procedures or functions you might need to call `call dbms.clearQueryCaches()` as lookups to internal id's are kept in compiled query plans.
 
-=== Custom Procedures with `apoc.custom.asProcedure`
+== Custom Procedures with `apoc.custom.asProcedure`
 
 Given statement will be registered as a procedure, the results will be turned into a stream of records.
 
@@ -81,7 +81,7 @@ CALL custom.neighbours('Keanu Reeves') YIELD neighbour;
 ----
 
 
-=== Custom Functions with `apoc.custom.asFunction`
+== Custom Functions with `apoc.custom.asFunction`
 
 Given statement will be registered as a statement, the results into a single value.
 If the given output type is a list, results will be collected into a list, otherwise the first row will be used.
@@ -107,7 +107,7 @@ The type names are what you would expect and see in outputs of `dbms.procedures`
 The default values are parsed as JSON.
 
 
-=== List of registered procedures/function with `apoc.custom.list`
+== List of registered procedures/function with `apoc.custom.list`
 
 The procedure `apoc.custom.list` provide a list of all registered procedures/function via
 `apoc.custom.asProcedure` and `apoc.custom.asFunction`
@@ -129,7 +129,7 @@ The the output will look like the following table:
 |===
 
 
-=== Remove a procedure `apoc.custom.removeProcedure`
+== Remove a procedure `apoc.custom.removeProcedure`
 
 The procedure `apoc.custom.removeProcedure` allows to delete the targeted custom procedure.
 
@@ -150,7 +150,7 @@ Fields:
 |===
 
 
-=== Remove a procedure `apoc.custom.removeFunction`
+== Remove a procedure `apoc.custom.removeFunction`
 
 The procedure `apoc.custom.removeFunction` allows to delete the targeted custom function.
 
@@ -171,7 +171,7 @@ Fields:
 |===
 
 
-=== How to manage procedure/function replication in a Causal Cluster
+== How to manage procedure/function replication in a Causal Cluster
 
 In order to replicate the procedure/function in a cluster environment you can tune the following parameters:
 

@@ -1,5 +1,5 @@
 [[path-expander-paths-config]]
-== Expand paths with config
+= Expand paths with config
 
 [abstract]
 --
@@ -9,22 +9,8 @@ This section describes a procedure that can be used to expand the paths of varia
 The expand paths with config procedure enables powerful variable length path traversals with fine grained control over the traversals.
 For a more basic version of the algorithm where fine grained control over traversals isn't required, see <<path-expander-paths>>.
 
-This section includes:
-
-* <<path-expander-paths-config-overview>>
-* <<path-expander-paths-config-config>>
-* <<path-expander-paths-config-config-sequences>>
-* <<path-expander-paths-config-examples>>
-    ** <<path-expander-paths-config-examples-label-relationship-filters>>
-    ** <<path-expander-paths-config-examples-end-nodes-terminator-nodes>>
-    ** <<path-expander-paths-config-examples-whitelist-blacklist>>
-    ** <<path-expander-paths-config-examples-bfs-dfs>>
-    ** <<path-expander-paths-config-examples-uniqueness>>
-    ** <<path-expander-paths-config-examples-sequence-rel-types>>
-    ** <<path-expander-paths-config-examples-sequence-node-labels>>
-
 [[path-expander-paths-config-overview]]
-=== Procedure Overview
+== Procedure Overview
 
 The procedure is described below:
 
@@ -34,7 +20,7 @@ include::example$generated-documentation/apoc.path.expandConfig.csv[]
 |===
 
 [[path-expander-paths-config-config]]
-=== Configuration parameters
+== Configuration parameters
 The procedures support the following config parameters:
 
 .Config parameters
@@ -69,43 +55,43 @@ If set to `true`, a `null` value is yielded whenever the expansion would normall
 |===
 
 [[path-expander-paths-config-config-relationship-filters]]
-==== Relationship Filters
+=== Relationship Filters
 
 The syntax for relationship filters is described below:
 
-include::relationship-filter.adoc[]
+include::partial$relationship-filter.adoc[]
 
 [[path-expander-paths-config-config-label-filters]]
-==== Label Filters
+=== Label Filters
 
 The syntax for label filters is described below:
 
-include::label-filter.adoc[]
+include::partial$label-filter.adoc[]
 
 *Label filter operator precedence and behavior*
 
-include::label-filter-precedence.adoc[]
+include::partial$label-filter-precedence.adoc[]
 
 [[path-expander-paths-config-config-uniqueness]]
-==== Uniqueness
+=== Uniqueness
 
-include::uniqueness-expand.adoc[]
+include::partial$uniqueness-expand.adoc[]
 
 [[path-expander-paths-config-config-sequences]]
-=== Specifying Sequences of node labels and relationship types
+== Specifying Sequences of node labels and relationship types
 
-include::sequences.adoc[]
-include::sequence-tips.adoc[]
+include::partial$sequences.adoc[]
+include::partial$sequence-tips.adoc[]
 
 [[path-expander-paths-config-examples]]
-=== Examples
+== Examples
 
 The examples in this section are based on the following sample graph:
 
-include::expand-config-sample-graph.adoc[]
+include::partial$expand-config-sample-graph.adoc[]
 
 [[path-expander-paths-config-examples-label-relationship-filters]]
-==== Relationship Type and Node Label filters
+=== Relationship Type and Node Label filters
 
 Let's start by expanding paths from the Praveena node.
 We only want to consider the `KNOWS` relationship type, so we'll specify that as the `relationshipFilter` parameter.
@@ -275,7 +261,7 @@ ORDER BY hops;
 Our query now also returns paths going through Praveena and Zhen, one going to Martin, and other others going back to Zhen and Praveena!
 
 [[path-expander-paths-config-examples-end-nodes-terminator-nodes]]
-==== Terminator Nodes and End Nodes
+=== Terminator Nodes and End Nodes
 
 As well as specifying terminator and end labels for traversals, we can also specify terminator and end nodes.
 
@@ -343,7 +329,7 @@ We've got the two paths we got with the terminator nodes approach, from Alicia t
 But we've also got an extra path that goes from Alicia to Joe to Praveena to Joe.
 
 [[path-expander-paths-config-examples-whitelist-blacklist]]
-==== Whitelist Nodes and Blacklist Nodes
+=== Whitelist Nodes and Blacklist Nodes
 
 Whitelist and blacklist nodes can also be specified.
 
@@ -427,7 +413,7 @@ We can see a Neo4j Browser visualization of the returned paths in <<viz-apoc-pat
 image::apoc.path.expandConfig.blacklist.svg[title="Paths from Alicia that don't include Joe"]
 
 [[path-expander-paths-config-examples-bfs-dfs]]
-==== Breadth First Search and Depth First Search
+=== Breadth First Search and Depth First Search
 
 We can control whether the traversal uses the Breadth First Search (BFS), by specifying `bfs: true`, or Depth First Search algorithm (DFS), by specifying `bfs: false`.
 This is often combined with the `limit` parameter to find the nearest nodes based on the chosen algorithm.
@@ -522,7 +508,7 @@ We can see a Neo4j Browser visualization of the returned paths in <<viz-apoc-pat
 image::apoc.path.expandConfig.alicia.dfs.svg[title="Paths from Alicia using Depth First Search"]
 
 [[path-expander-paths-config-examples-uniqueness]]
-==== Uniqueness
+=== Uniqueness
 
 We can specify the uniqueness strategy to be used by the traversal through the `uniqueness` parameter.
 See <<path-expander-paths-config-config-uniqueness>> for a list of valid strategies.
@@ -592,7 +578,7 @@ ORDER BY hops;
 The paths returned now have unique lists of nodes.
 
 [[path-expander-paths-config-examples-sequence-rel-types]]
-==== Sequences of relationship types
+=== Sequences of relationship types
 
 Sequences of relationship types can be specified by comma separating the values passed to `relationshipFilter`.
 
@@ -703,7 +689,7 @@ ORDER BY hops;
 |===
 
 [[path-expander-paths-config-examples-sequence-node-labels]]
-==== Sequences of node labels
+=== Sequences of node labels
 
 Sequences of node labels can be specified by comma separating values passed to `labelFilter`.
 This is usually used in combination with `beginSequenceAtStart: false`, which means that sequences will start one hop away from the starting node.

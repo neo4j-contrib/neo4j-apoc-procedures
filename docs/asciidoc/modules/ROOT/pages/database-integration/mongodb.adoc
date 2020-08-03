@@ -6,13 +6,6 @@
 This section describes procedures that can be used to interact with MongoDB.
 --
 
-This section includes:
-
-* <<mongodb-procedures>>
-* <<mongodb-dependencies>>
-* <<mongodb-fields>>
-* <<mongodb-examples>>
-
 [[mongodb-procedures]]
 == Available Procedures
 

@@ -1,5 +1,5 @@
 [[path-functions]]
-=== Path Manipulation
+= Path Manipulation
 
 [abstract]
 --
@@ -8,13 +8,8 @@ This section describes functions that can be used to do path operations.
 
 The functions in this section can be used to create, combine and split paths.
 
-This section includes:
-
-* <<path-functions-function-overview>>
-* <<path-functions-examples>>
-
 [[path-functions-function-overview]]
-==== Function Overview
+== Function Overview
 
 The available functions are described below:
 
@@ -27,7 +22,7 @@ include::example$generated-documentation/apoc.path.elements.csv[lines=2:]
 |===
 
 [[path-functions-examples]]
-==== Examples
+== Examples
 
 The examples in this section are based on the following sample graph:
 

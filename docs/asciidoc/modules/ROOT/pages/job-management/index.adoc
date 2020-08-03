@@ -1,5 +1,5 @@
 [[job-management]]
-== Background Operations
+= Background Operations
 
 [abstract]
 --
@@ -12,14 +12,8 @@ This can also be useful in cloud environments that limit the runtime of statemen
 The `apoc.periodic.*` procedures provide such capabilities.
 
 
-* <<periodic-background>>
-* <<triggers>>
-
-
-include::periodic-background.adoc[leveloffset=2]
-include::triggers.adoc[leveloffset=2]
-
-
+* xref::job-management/periodic-background.adoc[]
+* xref::job-management/triggers.adoc[]
 
 
 

@@ -241,7 +241,7 @@ YIELD graph
 [[nlp-aws-dependencies]]
 == Install Dependencies
 
-include::nlp-dependencies.adoc[]
+include::partial$nlp-dependencies.adoc[]
 
 [[nlp-aws-api-key]]
 == Setting up API Key and Secret
@@ -324,7 +324,7 @@ The examples in this section are based on the following sample graph:
 
 [source,cypher]
 ----
-include::nlp-graph.cypher[]
+include::example$nlp-graph.cypher[]
 ----
 
 [[nlp-aws-examples-entities]]

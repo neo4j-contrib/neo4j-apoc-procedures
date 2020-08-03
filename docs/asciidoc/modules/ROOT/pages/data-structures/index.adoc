@@ -1,5 +1,5 @@
 [[data-structures]]
-== Data Structures
+= Data Structures
 
 [abstract]
 --
@@ -8,11 +8,6 @@ This chapter describes functions and procedures in the APOC library that can be 
 
 Cypher brings along some basic functions for math, text, collections and maps.
 
-* <<conversion-functions>>
-* <<map-functions>> 
-* <<collection-list-functions>>
-
-include::conversion-functions.adoc[leveloffset=2]
-include::map-functions.adoc[leveloffset=2]
-include::collection-list-functions.adoc[leveloffset=2]
-
+* xref::data-structures/conversion-functions.adoc[]
+* xref::data-structures/map-functions.adoc[] 
+* xref::data-structures/collection-list-functions.adoc[]

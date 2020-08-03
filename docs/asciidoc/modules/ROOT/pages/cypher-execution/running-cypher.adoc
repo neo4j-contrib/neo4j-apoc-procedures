@@ -9,11 +9,6 @@ This section describes procedures for running Cypher fragments.
 
 We can use Cypher as a safe, graph-aware, partially compiled scripting language within APOC.
 
-This section includes:
-
-* <<running-cypher-overview>>
-* <<cypher-fast-node-count-by-label>>
-
 // include::overview.adoc[tags=cypher,labeloffset=-1]
 
 [[running-cypher-overview]]

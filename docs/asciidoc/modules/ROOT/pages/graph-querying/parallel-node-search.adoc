@@ -1,5 +1,5 @@
 [[parallel-node-search]]
-== Parallel Node Search
+= Parallel Node Search
 
 [abstract]
 --

@@ -1,5 +1,5 @@
 [[database-introspection]]
-== Database Introspection
+= Database Introspection
 
 [abstract]
 --
@@ -10,15 +10,7 @@ The APOC library adds extra tools for introspecting the database.
 
 For more on these procedures, see:
 
-* <<meta-graph>>
-* <<neo4j-config>>
-* <<monitoring>>
-* <<systemdb>>
-
-include::meta.adoc[leveloffset=2]
-
-include::config.adoc[leveloffset=2]
-
-include::monitoring.adoc[leveloffset=2]
-
-include::systemdb.adoc[leveloffset=2]
+* xref::database-introspection/meta.adoc[]
+* xref::database-introspection/config.adoc[]
+* xref::database-introspection/monitoring.adoc[]
+* xref::database-introspection/systemdb.adoc[]

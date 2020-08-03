@@ -1,5 +1,5 @@
 [[indexes]]
-== Text and Lookup Indexes
+= Text and Lookup Indexes
 
 [abstract]
 --
@@ -8,10 +8,10 @@ This chapter describes indexing procedures in the APOC library.
 
 These procedures complement the indexing functionality that comes out of the box.
 
-* <<schema-index-operations>>
+* xref::indexes/schema-index-operations.adoc[]
 
 [[schema-index-operations]]
-=== Schema Index Procedures
+== Schema Index Procedures
 
 [abstract]
 --
@@ -26,5 +26,3 @@ This section describes procedures that can be used to create and query schema in
 | apoc.schema.node.constraintExists(labelName, properties) | return the constraints existence on node
 | apoc.schema.relationship.constraintExists(type, properties) | return the constraints existence on relationship
 |===
-
-include::schema-index-operations.adoc[leveloffset=4]

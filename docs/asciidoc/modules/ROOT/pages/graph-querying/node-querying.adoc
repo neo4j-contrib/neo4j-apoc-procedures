@@ -1,5 +1,5 @@
 [[node-functions]]
-== Node Querying
+= Node Querying
 
 [abstract]
 --

@@ -75,25 +75,25 @@ This is what the legacy traversal framework does.
 
 The syntax for relationship filters is described below:
 
-include::relationship-filter.adoc[]
+include::partial$relationship-filter.adoc[]
 
 [[expand-spanning-tree-label-filters]]
 ==== Label Filters
 
 The syntax for label filters is described below:
 
-include::label-filter.adoc[]
+include::partial$label-filter.adoc[]
 
 *Label filter operator precedence and behavior*
 
-include::label-filter-precedence.adoc[]
+include::partial$label-filter-precedence.adoc[]
 
 [[expand-spanning-tree-examples]]
 === Examples
 
 The examples in this section are based on the following sample graph:
 
-include::expand-config-sample-graph.adoc[]
+include::partial$expand-config-sample-graph.adoc[]
 
 [[expand-spanning-tree-examples-label-relationship-filters]]
 ==== Relationship Type and Node Label filters

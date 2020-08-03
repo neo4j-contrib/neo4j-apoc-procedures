@@ -1,5 +1,5 @@
 [[comparing-graphs]]
-== Comparing Graphs
+= Comparing Graphs
 
 [abstract]
 --
@@ -8,13 +8,8 @@ This chapter describes procedures that can be used to compare graphs against eac
 
 For more information on how to use these procedures, see:
 
-* <<node-difference>>
-* <<fingerprinting>>
-
-include::node-difference.adoc[leveloffset=2]
-include::fingerprinting.adoc[leveloffset=+2]
-
-
+* xref::comparing-graphs/node-difference.adoc[]
+* xref::comparing-graphs/fingerprinting.adoc[]
 
 
 

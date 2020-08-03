@@ -1,5 +1,5 @@
 [[mathematical]]
-== Mathematical
+= Mathematical
 
 [abstract]
 --
@@ -8,12 +8,7 @@ This chapter describes procedures and functions that can be used for mathematica
 
 For more information on how to use these procedures, see:
 
-* <<math-functions>>
-* <<exact-math-functions>>
-* <<number-conversions>>
-* <<bitwise-operations>>
-
-include::math-functions.adoc[leveloffset=2]
-include::exact-math-functions.adoc[leveloffset=2]
-include::number-conversions.adoc[leveloffset=2]
-include::bitwise-operations.adoc[leveloffset=2]
+* xref::mathematical/math-functions.adoc[]
+* xref::mathematical/exact-math-functions.adoc[]
+* xref::mathematical/number-conversions.adoc[]
+* xref::mathematical/bitwise-operations.adoc[]

@@ -1,5 +1,5 @@
 [[rel-functions]]
-== Relationship Querying
+= Relationship Querying
 
 [abstract]
 --

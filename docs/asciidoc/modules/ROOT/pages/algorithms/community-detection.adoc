@@ -1,5 +1,5 @@
 [[community-detection]]
-== Removed: Community Detection via Label Propagation
+= Removed: Community Detection via Label Propagation
 
 [abstract]
 --

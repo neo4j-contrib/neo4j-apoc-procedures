@@ -1,5 +1,5 @@
 [[data-creation]]
-=== Creating Data
+= Creating Data
 
 [abstract]
 --
@@ -34,15 +34,8 @@ endif::[]
 |===
 
 
-This section includes:
-
-* <<delete-labels>>
-* <<set-properties>>
-* <<delete-properties>>
-* <<linked-lists>>
-
 [[delete-labels]]
-==== Remove Node Labels
+== Remove Node Labels
 
 Cypher supports deleting of labels as long as the labels are hard coded.
 If the labels are dynamically specified we can use the `apoc.create.removeLabels` procedure.
@@ -78,7 +71,7 @@ RETURN node, labels(node) AS labels
 |===
 
 [[set-properties]]
-==== Set Node and Relationship Properties
+== Set Node and Relationship Properties
 Cypher supports setting of properties as long as the property names are hard coded.
 If the property names are dynamically specified we can use the `apoc.create.setProperties` and `apoc.create.setRelProperties` procedures.
 
@@ -164,7 +157,7 @@ RETURN startNode(rel) AS start, rel, endNode(rel) AS end
 |===
 
 [[delete-properties]]
-==== Remove Node and Relationship Properties
+== Remove Node and Relationship Properties
 
 Cypher supports deleting of properties as long as the property names are hard coded.
 If the property names are dynamically specified we can use the `apoc.create.removeProperties` and `apoc.create.removeRelProperties` procedures.
@@ -223,7 +216,7 @@ RETURN startNode(rel) AS start, rel, endNode(rel) AS end
 |===
 
 [[linked-lists]]
-==== Linked Lists
+== Linked Lists
 
 Creating a linked list from a collection of nodes can be done in Cypher, but is much easier with the `apoc.nodes.link` procedure.
 

@@ -1,5 +1,5 @@
 [[database-integration]]
-== Database Integration
+= Database Integration
 
 [abstract]
 --
@@ -11,25 +11,11 @@ It also has support for importing data from LDAP directories and executing queri
 
 For more information on how to use these procedures, see:
 
-* <<load-jdbc>>
-* <<database-modeling>>
-* <<elasticsearch>>
-* <<mongodb>>
-* <<couchbase>>
-* <<bolt-neo4j>>
-* <<load-ldap>>
-
-include::load-jdbc.adoc[leveloffset=+2]
-
-include::database-modeling.adoc[leveloffset=+1]
-
-include::elasticsearch.adoc[leveloffset=+2]
-
-include::mongodb.adoc[leveloffset=+2]
-
-include::couchbase.adoc[leveloffset=+2]
-
-include::bolt-neo4j.adoc[leveloffset=+2]
-
-include::load-ldap.adoc[leveloffset=+2]
+* xref::database-integration/load-jdbc.adoc[]
+* xref::database-integration/database-modeling.adoc[]
+* xref::database-integration/elasticsearch.adoc[]
+* xref::database-integration/mongodb.adoc[]
+* xref::database-integration/couchbase.adoc[]
+* xref::database-integration/bolt-neo4j.adoc[]
+* xref::database-integration/load-ldap.adoc[]
 

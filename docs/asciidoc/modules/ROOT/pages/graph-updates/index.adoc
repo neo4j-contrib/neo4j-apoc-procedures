@@ -1,5 +1,5 @@
 [[graph-updates]]
-== Graph Updates
+= Graph Updates
 
 [abstract]
 --
@@ -10,31 +10,12 @@ The APOC library adds extra functionality for writing to the database.
 
 For more information on how to use these procedures, see:
 
-* <<data-creation>>
-* <<auto-uuid>>
-* <<periodic-execution>>
-* <<graph-refactoring>>
-* <<atomic-updates>>
-* <<locking>>
-* <<ttl>>
-* <<graph-generators>>
-* <<deleting-data>>
-
-include::data-creation.adoc[leveloffset=2]
-
-include::uuid.adoc[leveloffset=2]
-
-include::periodic-execution.adoc[leveloffset=2]
-
-include::atomic-updates.adoc[leveloffset=2]
-
-include::graph-refactoring/index.adoc[leveloffset=2]
-
-include::locking.adoc[leveloffset=2]
-
-include::ttl.adoc[leveloffset=2]
-
-include::graph-generators.adoc[leveloffset=2]
-
-include::data-deletion.adoc[leveloffset=2]
-
+* xref::graph-updates/data-creation.adoc[]
+* xref::graph-updates/uuid.adoc[]
+* xref::graph-updates/periodic-execution.adoc[]
+* xref::graph-updates/graph-refactoring/index.adoc[]
+* xref::graph-updates/atomic-updates.adoc[]
+* xref::graph-updates/locking.adoc[]
+* xref::graph-updates/ttl.adoc[]
+* xref::graph-updates/graph-generators.adoc[]
+* xref::graph-updates/data-deletion.adoc[]

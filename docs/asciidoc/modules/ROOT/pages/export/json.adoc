@@ -40,12 +40,12 @@ The output of `labels()` function is not sorted, use it in combination with `apo
 [[export-json-file-export]]
 == Exporting to a file
 
-include::enableFileExport.adoc[]
+include::partial$enableFileExport.adoc[]
 
 [[export-json-stream-export]]
 == Exporting a stream
 
-include::streamExport.adoc[]
+include::partial$streamExport.adoc[]
 
 [[export-json-examples]]
 == Examples

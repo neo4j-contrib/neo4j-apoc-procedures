@@ -1,5 +1,5 @@
 [[database-modeling]]
-== Database Modeling
+= Database Modeling
 
 [abstract]
 --
@@ -12,11 +12,11 @@ This new package provides a set of function in order to extract metadata informa
 
  * `apoc.model.jdbc('key or url', {schema:'<schema>', write: <true/false>, filters: { tables:[], views: [], columns: []}) YIELD nodes, relationships`: load schema from relational databases
 
-=== `apoc.model.jdbc`
+== `apoc.model.jdbc`
 
 The procedure allows to extract metadata information by any JDBC compatible db.
 
-==== Configuration
+== Configuration
 
 [options="header",cols="a,3m,a"]
 |===
@@ -35,7 +35,7 @@ The procedure allows to extract metadata information by any JDBC compatible db.
 |A set of filters for each object type `tables`, `views`, `columns`
 |===
 
-===== Filters
+== Filters
 
 [options="header",cols="a,3m,a"]
 |===
@@ -55,7 +55,7 @@ The procedure allows to extract metadata information by any JDBC compatible db.
 |===
 
 
-==== Example
+== Example
 
 Starting from the following schema:
 

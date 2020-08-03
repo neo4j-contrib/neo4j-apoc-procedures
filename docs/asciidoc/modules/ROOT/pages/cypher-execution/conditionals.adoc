@@ -9,12 +9,6 @@ This section describes procedures and functions for conditionally executing Cyph
 Sometimes queries require conditional execution logic that can't be adequately expressed in Cypher.
 The conditional execution procedures simulate an if / else structure, where a supplied boolean condition determines which cypher query is executed.
 
-This section includes:
-
-* <<conditionals-overview>>
-* <<conditionals-when>>
-* <<conditionals-case>>
-
 [[conditionals-overview]]
 == Procedure and Function Overview
 

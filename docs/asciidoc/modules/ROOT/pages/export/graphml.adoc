@@ -76,12 +76,12 @@ The procedures support the following config parameters:
 [[export-graphml-file-export]]
 == Exporting to a file
 
-include::enableFileExport.adoc[]
+include::partial$enableFileExport.adoc[]
 
 [[export-graphml-stream-export]]
 == Exporting a stream
 
-include::streamExport.adoc[]
+include::partial$streamExport.adoc[]
 
 [[export-graphml-examples]]
 == Examples
@@ -89,7 +89,7 @@ include::streamExport.adoc[]
 This section includes examples showing how to use the export to Cypher procedures.
 These examples are based on a movies dataset, which can be imported by running the following Cypher query:
 
-include::includes/createExportGraph.adoc[]
+include::partial$createExportGraph.adoc[]
 
 The Neo4j Browser visualization below shows the imported graph:
 

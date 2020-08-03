@@ -1,5 +1,5 @@
 [[virtual]]
-== Virtual Nodes & Relationships (Graph Projections)
+= Virtual Nodes & Relationships (Graph Projections)
 
 [abstract]
 --
@@ -36,15 +36,7 @@ The `apoc.map.groupBy` function works well for this.
 
 For more information on how to use these procedures, see:
 
-* <<virtual-nodes-rels>>
-* <<nodes-collapse>>
-* <<virtual-graph>>
-* <<graph-grouping>>
-
-include::virtual-nodes-rels.adoc[leveloffset=1]
-
-include::nodes-collapse.adoc[leveloffset=1]
-
-include::virtual-graph.adoc[leveloffset=1]
-
-include::grouping.adoc[leveloffset=1]
+* xref::virtual/virtual-nodes-rels.adoc[]
+* xref::virtual/nodes-collapse.adoc[]
+* xref::virtual/virtual-graph.adoc[]
+* xref::virtual/grouping.adoc[]

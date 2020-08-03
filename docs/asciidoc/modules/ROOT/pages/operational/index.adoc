@@ -1,5 +1,5 @@
 [[operational]]
-== Operational
+= Operational
 
 [abstract]
 --
@@ -8,12 +8,6 @@ This chapter describes operational procedures in the APOC library.
 
 For more information on how to use these procedures, see:
 
-* <<init-script>>
-* <<warmup>>
-* <<log>>
-
-include::init-script.adoc[leveloffset=2]
-
-include::warmup.adoc[leveloffset=2]
-
-include::log.adoc[leveloffset=2]
+* xref::operational/init-script.adoc[]
+* xref::operational/warmup.adoc[]
+* xref::operational/log.adoc[]

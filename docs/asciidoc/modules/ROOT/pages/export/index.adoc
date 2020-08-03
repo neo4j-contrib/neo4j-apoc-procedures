@@ -1,5 +1,5 @@
 [[export]]
-== Export
+= Export
 
 [abstract]
 --
@@ -15,11 +15,11 @@ In addition to exporting data in these formats, we can choose to export the whol
 
 For more information on how to use these procedures, see:
 
-* <<export-csv>>
-* <<export-json>>
-* <<export-cypher>>
-* <<graphml-export>>
-* <<gephi>>
+* xref::import/export-csv.adoc[]
+* xref::import/export-json.adoc[]
+* xref::import/export-cypher.adoc[]
+* xref::import/graphml-export.adoc[]
+* xref::import/gephi.adoc[]
 
 include::csv.adoc[leveloffset=2]
 

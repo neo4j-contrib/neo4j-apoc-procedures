@@ -173,7 +173,7 @@ YIELD graph
 [[nlp-gcp-dependencies]]
 == Install Dependencies
 
-include::nlp-dependencies.adoc[]
+include::partial$nlp-dependencies.adoc[]
 
 
 [[nlp-gcp-api-key]]
@@ -247,7 +247,7 @@ The examples in this section are based on the following sample graph:
 
 [source,cypher]
 ----
-include::nlp-graph.cypher[]
+include::example$nlp-graph.cypher[]
 ----
 
 [[nlp-gcp-examples-entities]]
