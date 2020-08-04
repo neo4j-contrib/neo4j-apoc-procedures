@@ -1,4 +1,5 @@
 import apoc.util.TestUtil;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -199,39 +200,55 @@ public class DocsTest {
             throw new RuntimeException( e.getMessage(), e );
         }
 
-        try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_PARTIALS_DOCUMENTATION_DIR, "documentation.adoc")), StandardCharsets.UTF_8 ))
-        {
-//            writer.write("¦type¦qualified name¦signature¦description¦core¦documentation\n");
+        Map<String, List<Row>> topLevelNamespaces = rows.stream().filter(value -> value.name.split("\\.").length == 3).collect(Collectors.groupingBy(value -> {
+            String[] parts = value.name.split("\\.");
+            parts = Arrays.copyOf(parts, parts.length - 1);
+            return String.join(".", parts);
+        }));
 
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(GENERATED_PARTIALS_DOCUMENTATION_DIR, "documentation.adoc")), StandardCharsets.UTF_8)) {
+            topLevelNamespaces.keySet().stream().sorted().forEach(topLevelNamespace -> {
+                try {
+                    if (topLevelNamespaces.get(topLevelNamespace).size() < 3) {
+                        writer.write("[discrete]\n");
+                    }
 
-            writer.write("[.procedures, opts=header, cols='5a,1,1']\n" +
-                    "|===\n" +
-                    "| Qualified Name | Type | Release\n");
+                    writer.write("== " + topLevelNamespace + "\n\n");
+                    writer.write(header());
 
-//            "| **apoc.agg.first**\n" +
-//                    "`apoc.agg.first(value)` - returns first value\n" +
-//                    "| function\n" +
-//                    "| full\n" +
-//                    "| link:#[apoc.import.csv icon:book[]]\n" +
-//                    "`apoc.import.csv(nodes, relationships, config)`\n" +
-//                    "imports nodes and relationships from the provided CSV files with given labels and types\n" +
-//                    "| procedure\n" +
-//                    "| core\n" +
+                    for (Row row : topLevelNamespaces.get(topLevelNamespace)) {
+                        Optional<String> documentation = docs.keySet().stream()
+                                .filter((key) -> Pattern.compile(key).matcher(row.name).matches())
+                                .map(value -> String.format("xref::%s", docs.get(value)))
+                                .findFirst();
 
-            for (Row row : rows) {
+                        writer.write(String.format("|%s|%s|%s\n",
+                                documentation.isPresent() ? String.format("%s[%s icon:book[]]\n\n%s", documentation.get(), row.name, row.description.replace("|", "\\|")) : String.format("**%s**\n\n%s", row.name, row.description.replace("|", "\\|")),
+                                row.type,
+                                extended.contains(row.name) ? "full" : "core"));
+                    }
 
-                Optional<String> documentation = docs.keySet().stream()
-                        .filter((key) -> Pattern.compile(key).matcher(row.name).matches())
-                        .map(value -> String.format("xref::%s", docs.get(value)))
-                        .findFirst();
+                    writer.write(footer());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
 
-                writer.write(String.format("|%s|%s|%s\n",
-                        documentation.isPresent() ? String.format("%s[%s icon:book[]]\n\n%s", documentation.get(), row.name, row.description.replace("|", "\\|")) : String.format("**%s**\n\n%s", row.name, row.description.replace("|", "\\|")),
-                        row.type,
-                        extended.contains(row.name) ? "full" : "core"));
-            }
-
-                    writer.write("|===");
+//            writer.write(header());
+//
+//            for (Row row : rows) {
+//                Optional<String> documentation = docs.keySet().stream()
+//                        .filter((key) -> Pattern.compile(key).matcher(row.name).matches())
+//                        .map(value -> String.format("xref::%s", docs.get(value)))
+//                        .findFirst();
+//
+//                writer.write(String.format("|%s|%s|%s\n",
+//                        documentation.isPresent() ? String.format("%s[%s icon:book[]]\n\n%s", documentation.get(), row.name, row.description.replace("|", "\\|")) : String.format("**%s**\n\n%s", row.name, row.description.replace("|", "\\|")),
+//                        row.type,
+//                        extended.contains(row.name) ? "full" : "core"));
+//            }
+//
+//            writer.write(footer());
 
         }
         catch ( Exception e )
@@ -297,6 +314,18 @@ public class DocsTest {
             }
         }
 
+    }
+
+    @NotNull
+    private String footer() {
+        return "|===\n\n";
+    }
+
+    @NotNull
+    private String header() {
+        return "[.procedures, opts=header, cols='5a,1,1']\n" +
+                "|===\n" +
+                "| Qualified Name | Type | Release\n";
     }
 
     private Set<Class<?>> allClasses() {
