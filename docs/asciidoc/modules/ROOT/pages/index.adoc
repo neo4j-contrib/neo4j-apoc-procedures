@@ -1,5 +1,5 @@
 = APOC User Guide {apoc-release-absolute}
-:toc: left
+//:toc: left
 :experimental:
 :sectid:
 :sectlinks:

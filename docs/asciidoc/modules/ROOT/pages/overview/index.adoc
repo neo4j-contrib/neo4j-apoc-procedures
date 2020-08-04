@@ -8,8 +8,10 @@
 --
 
 
-[[table-all]]
-[separator=¦,opts=header]
-|===
-include::example$generated-documentation/documentation.csv[]
-|===
+//[[table-all]]
+//[separator=¦,opts=header]
+//|===
+//include::example$generated-documentation/documentation.csv[]
+//|===
+
+include::partial$generated-documentation/documentation.adoc[]
