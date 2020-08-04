@@ -1,27 +1,5 @@
 [[virtual-graph]]
-== Virtual Graph
-
-////
-Virtual Nodes and Relationships don't exist in the graph, they are only returned to the UI/user for representing a graph projection.
-They can be visualized or processed otherwise.
-Please note that they have negative id's.
-
-[cols="1m,5"]
-|===
-| CALL apoc.create.vNode(['Label'], {key:value,...}) YIELD node | returns a virtual node
-| apoc.create.vNode(['Label'], {key:value,...}) | returns a virtual node
-| CALL apoc.create.vNodes(['Label'], [{key:value,...}]) | returns virtual nodes
-| CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) YIELD rel | returns a virtual relationship
-| apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) | returns a virtual relationship
-| CALL apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) | returns a virtual pattern
-| CALL apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) | returns a virtual pattern
-| CALL apoc.nodes.group([labels],[properties],[{node-aggregation},{rel-aggregation]) yield nodes, relationships | Group all nodes and their relationships by given keys, create virtual nodes and relationships for the summary information, you can provide an aggregations map for nodes and rels [{kids:'sum',age:['min','max','avg'],gender:'collect'},{`*`,'count'}]
-|===
-
-// * TODO `CALL apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])
-
-== Virtual Graph
-////
+= Virtual Graph
 
 [abstract]
 --
@@ -31,7 +9,7 @@ This section describes procedures that create virtual graphs from Cypher queries
 Create a graph object (map) from information that's passed in.
 It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}`
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.graph.from(data,'name',{properties}) yield graph | creates a virtual graph object for later processing it tries its best to extract the graph information from the data you pass in
 | apoc.graph.fromData([nodes],[relationships],'name',{properties}) | creates a virtual graph object for later processing
@@ -46,7 +24,7 @@ It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],rel
 Create a graph object (map) from information that's passed in.
 Its basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}`
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.graph.from(data,'name',{properties}) yield graph | creates a virtual graph object for later processing it tries its best to extract the graph information from the data you pass in
 | apoc.graph.fromData([nodes],[relationships],'name',{properties}) | creates a virtual graph object for later processing
@@ -58,7 +36,7 @@ Its basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],rela
 | apoc.graph.validateDocument({json},{config}) | validate the JSON and returns information about required fields violations
 |===
 
-=== `apoc.graph.fromDocument`
+== `apoc.graph.fromDocument`
 
 The procedure `apoc.graph.fromDocument` transforms a JSON into a graph structure.
 It takes two arguments:
@@ -158,7 +136,7 @@ JSON Tree to graph:
 
 In this case it will create 2 `Node`, one *Artist* and one *Album* connected to each other by the *ALBUMS* `Relationship`
 
-=== Virtual Graph Examples
+== Virtual Graph Examples
 
 We create a dataset for our examples
 

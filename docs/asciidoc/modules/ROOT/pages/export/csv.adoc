@@ -21,17 +21,6 @@ For a graph containing node properties `age`, `city`, `kids`, `male`, `name`, an
 Labels exported are ordered alphabetically.
 The output of `labels()` function is not sorted, use it in combination with `apoc.coll.sort()`.
 
-This section includes:
-
-* <<export-csv-available-procedures, Available Procedures>>
-* <<export-csv-file-export, Exporting to a file>>
-* <<export-csv-stream-export, Exporting a stream>>
-* <<export-csv-examples, Examples>>
-    ** <<export-database-csv, Export whole database>>
-    ** <<export-nodes-relationships-csv, Export specified nodes and relationships>>
-    ** <<export-graph-csv, Export virtual graph>>
-    ** <<export-cypher-query-csv, Export results of Cypher query>>
-
 // tag::export.csv[]
 [[export-csv-available-procedures]]
 == Available Procedures
@@ -255,10 +244,10 @@ RETURN file, nodes, relationships, properties, data
 [[export-graph-csv]]
 === Export virtual graph to CSV
 
-The `apoc.export.csv.graph` procedure exports a <<virtual-graph,virtual graph>> to a CSV file or as a stream.
+The `apoc.export.csv.graph` procedure exports a xref::virtual/index.adoc[virtual graph] to a CSV file or as a stream.
 
 The examples in this section are based on a virtual graph that contains all `PRODUCED` relationships and the nodes either side of that relationship.
-The query below creates a virtual graph and stores it in memory with the name `producers.cached` using <<static-values, Static Value Storage>>.
+The query below creates a virtual graph and stores it in memory with the name `producers.cached` using xref::misc/static-values.adoc[Static Value Storage].
 
 [source,cypher]
 ----

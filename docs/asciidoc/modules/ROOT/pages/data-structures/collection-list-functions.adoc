@@ -14,7 +14,7 @@ ifdef::backend-html5[]
 ++++
 endif::[]
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.coll.sum([0.5,1,2.3]) | sum of all values in a list
 | apoc.coll.avg([0.5,1,2.3]) | avg of all values in a list

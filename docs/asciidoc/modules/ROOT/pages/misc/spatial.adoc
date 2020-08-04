@@ -9,7 +9,7 @@ This section describes spatial procedures and functions.
 The spatial procedures enable geographic capabilities on your data, and complement the https://neo4j.com/docs/cypher-manual/current/functions/spatial/[spatial functions^] that come with Neo4j.
 More extensive Spatial functionality can be found in the https://neo4j-contrib.github.io/spatial/0.24-neo4j-3.1/index.html[Neo4j Spatial Library^].
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData | look up geographic location of location from a geocoding service (the default one is OpenStreetMap)
 | CALL apoc.spatial.reverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description | look up address from latitude and longitude from a geocoding service (the default one is OpenStreetMap)
@@ -17,7 +17,7 @@ More extensive Spatial functionality can be found in the https://neo4j-contrib.g
 |===
 
 
-=== Geocode
+== Geocode
 
 The _geocode_ procedure converts a textual address into a location containing _latitude_, _longitude_ and _description_.
 Despite being only a single function, together with the built-in functions _point_ and _distance_ we can achieve quite powerful results.
@@ -63,7 +63,7 @@ RETURN location.description;
 | "21, Rue Paul Bellamy, Talensac - Pont Morand, Hauts-Pavés - Saint-Félix, Nantes, Loire-Atlantique, Pays de la Loire, France métropolitaine, 44000, France"
 |===
 
-==== Configuring Geocode
+=== Configuring Geocode
 
 There are a few options that can be set in the apoc.conf file to control the service:
 
@@ -78,7 +78,7 @@ For google, you should use either a key or a combination of client and signature
 about this on the google page for geocode access at
 https://developers.google.com/maps/documentation/geocoding/get-api-key#key
 
-==== Configuring Custom Geocode Provider
+=== Configuring Custom Geocode Provider
 
 *Geocode*
 

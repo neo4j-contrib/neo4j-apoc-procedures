@@ -8,7 +8,7 @@ This section describes a procedure that can be used to invert the direction of r
 
 The available procedure is described in the table below:
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | call apoc.refactor.invert(rel) | inverts relationship direction
 |===

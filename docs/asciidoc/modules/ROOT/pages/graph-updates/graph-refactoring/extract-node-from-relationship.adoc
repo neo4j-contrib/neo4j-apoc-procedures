@@ -8,7 +8,7 @@ This section describes a procedure that can be used to create nodes from relatio
 
 The available procedure is described in the table below:
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | call apoc.refactor.extractNode([rel1,rel2,...], [labels], 'OUT','IN') | extract node from relationships
 |===

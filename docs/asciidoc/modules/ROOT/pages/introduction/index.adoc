@@ -29,4 +29,4 @@ http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board 
 include::../../../readme.adoc[tags=full-core]
 
 
-A list of functions and procedures in _APOC Core_ and _APOC Full_ can be found in <<overview>>.
+A list of functions and procedures in _APOC Core_ and _APOC Full_ can be found in xref::overview/index.adoc[].

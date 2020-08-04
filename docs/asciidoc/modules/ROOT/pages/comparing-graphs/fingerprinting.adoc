@@ -27,6 +27,8 @@ This is useful if you store properties (like `created=timestamp()`) that should 
 | `apoc.hashing.graph(<list_of_props_to_ignore>)` | calculates a md5 hashsum over the full graph.
 |===
 
+== Configuration parameters
+
 .Fingerprinting configuration params
 [opts=header,cols="4"]
 |===

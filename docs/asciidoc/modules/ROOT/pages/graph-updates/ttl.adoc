@@ -10,16 +10,6 @@ Some nodes are not meant to live forever.
 That's why with APOC you can specify a time by when they are removed from the database, by utilizing a schema index and an additional label.
 A few procedures help with that.
 
-This section includes:
-
-* <<ttl-available-procedures, Available Procedures>>
-* <<ttl-config-parameters, Configuration and Parameters>>
-//* <<ttl-handson-video, Time-To-Live Hands-On>>
-* <<ttl-examples, Examples>>
-    ** <<ttl-expireAt, Expire at Specified Time>>
-    ** <<ttl-expireIn, Expire after Amount of Time>>
-* <<ttl-process, Manual Process: How TTL Works>>
-
 [[ttl-available-procedures]]
 == Available Procedures
 
@@ -70,7 +60,7 @@ The table below outlines values and formats for the valid parameters.
 This section includes examples showing how to use the time-to-live procedures.
 These examples are based on a movies dataset, which can be imported by running the following Cypher query:
 
-include::../export/includes/createExportGraph.adoc[]
+include::partial$createExportGraph.adoc[]
 
 The Neo4j Browser visualization below shows the imported graph:
 

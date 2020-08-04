@@ -26,7 +26,7 @@ include::partial$periodic-iterate.adoc[leveloffset=+1]
 include::partial$periodic-commit.adoc[leveloffset=+1]
 
 [[periodic-rock-n-roll]]
-=== Periodic Rock 'n' Roll
+== Periodic Rock 'n' Roll
 
 .copies over the `name` property of each person to `lastname`
 [source,cypher]

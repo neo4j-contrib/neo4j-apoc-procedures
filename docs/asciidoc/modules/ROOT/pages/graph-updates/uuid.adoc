@@ -10,16 +10,11 @@ The library supports manual and automation generation of UUIDs, which can be sto
 
 UUIDs are generated using the https://docs.oracle.com/javase/7/docs/api/java/util/UUID.html#randomUUID()[java randomUUID utility method], which generates a https://www.ietf.org/rfc/rfc4122.txt[v4UUID].
 
-This section includes:
-
-* <<manual-uuids>>
-* <<automatic-uuids>>
-
 [[manual-uuids]]
 == Manual UUIDs
 
 .Functions
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.create.uuid() | returns a UUID string
 |===
@@ -64,7 +59,7 @@ Please check the following documentation to an in-depth description.
 
 Enable `apoc.uuid.enabled=true` in `$NEO4J_HOME/config/apoc.conf` first.
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 |*procedure* | *description*
 | CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult | it will add the uuid transaction handler

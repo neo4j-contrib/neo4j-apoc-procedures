@@ -6,7 +6,7 @@ Returns a virtual graph that represents the labels and relationship-types availa
 image::apoc.meta.graph.jpg[scaledwidth="100%"]
 
 .Procedures
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | CALL apoc.meta.graphSample() | examines the database statistics to build the meta graph, very fast, might report extra relationships
 | CALL apoc.meta.graph | examines the database statistics to create the meta-graph, post filters extra relationships by sampling
@@ -19,7 +19,7 @@ image::apoc.meta.graph.jpg[scaledwidth="100%"]
 |===
 
 .Functions
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.meta.cypher.type(value) | type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION`)
 | apoc.meta.cypher.isType(value,type) | returns a row if type name matches none if not
@@ -31,7 +31,7 @@ In the case of `LIST` you may have many results, depending on the content. In th
 If no type was found, the function return name of the class.
 
 .Functions Deprecated
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.meta.type(value) | type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST`)
 | apoc.meta.isType(value,type) | returns a row if type name matches none if not

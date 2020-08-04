@@ -8,7 +8,8 @@ This chapter gives an overview of all the configuration options used by the APOC
 
 == Location of config options
 
-APOC for 4.0 introduces new configuration management. All config options from <<config-reference>> can be provided either in:
+APOC for 4.0 introduces new configuration management.
+All config options from <<config-reference>> can be provided either in:
 
 |===
 | environment variables | set them either via `export key=val` or via `--env` settings when used for docker.
@@ -18,17 +19,23 @@ APOC for 4.0 introduces new configuration management. All config options from <<
 
 The order of this table matches their config option precedence. E.g. any env setting will orverride options set in `apoc.conf`.
 
-NOTE:: internally APOC relies on Apache commons-config for resolving config settings, the meta-configuration is located in `src/main/resources/apoc-config.xml`.
+[NOTE]
+====
+APOC internally relies on Apache commons-config for resolving config settings.
+The meta-configuration is located in `src/main/resources/apoc-config.xml`.
+====
 
 [[config-reference]]
 == Reference of config options
 
 Set these config options in `$NEO4J_HOME/conf/apoc.conf`, via system properties or environment variables.
 
-All boolean options have default value set to **false**. This means that they are *disabled*, unless mentioned otherwise.
+All boolean options have the default value set to **false**.
+    This means that they are *disabled*, unless mentioned otherwise.
 
-[cols="1m,5"]
+[options="header",cols="5m,5"]
 |===
+| Property | Description
 | apoc.couchbase.<key>.uri=couchbase-url-with-credentials | store couchbase-urls under a key to be used by couchbase
 procedures
 | apoc.es.<key>.uri=es-url-with-credentials | store es-urls under a key to be used by elasticsearch procedures

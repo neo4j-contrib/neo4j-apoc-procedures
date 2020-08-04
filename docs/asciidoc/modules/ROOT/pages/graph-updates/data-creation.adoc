@@ -15,7 +15,7 @@ ifdef::backend-html5[]
 ++++
 endif::[]
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | CALL apoc.create.node(['Label'], {key:value,...}) | create node with dynamic labels
 | CALL apoc.create.nodes(['Label'], [{key:value,...}]) | create multiple nodes with dynamic labels
@@ -38,7 +38,7 @@ endif::[]
 == Remove Node Labels
 
 Cypher supports deleting of labels as long as the labels are hard coded.
-If the labels are dynamically specified we can use the `apoc.create.removeLabels` procedure.
+If the labels are dynamically specified, we can use the `apoc.create.removeLabels` procedure.
 
 .The following creates a sample graph of people:
 [source,cypher]

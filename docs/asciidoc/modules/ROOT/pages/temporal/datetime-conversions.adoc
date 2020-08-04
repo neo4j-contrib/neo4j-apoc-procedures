@@ -11,7 +11,7 @@ The APOC date functions allow users to take these Long or String values and mani
 
 [NOTE]
 ====
-If you need to manipulate Date object types into other formats, see <<temporal-conversions>>.
+If you need to manipulate Date object types into other formats, see xref::temporal/temporal-conversions.adoc[].
 ====
 
 This section includes:

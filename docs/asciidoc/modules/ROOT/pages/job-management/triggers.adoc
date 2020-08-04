@@ -13,7 +13,7 @@ You can run them before or after commit.
 
 Enable `apoc.trigger.enabled=true` in `$NEO4J_HOME/conf/apoc.conf` first.
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed | add a trigger statement under a name,
 in the statement you can use `$createdNodes`, `$deletedNodes` etc., the selector is `{phase:'before/after/rollback/afterAsync'}`
@@ -49,7 +49,7 @@ The parameters available are:
 You can use these helper functions to extract nodes or relationships by label/relationship-type or updated property key.
 
 .Helper Functions
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.trigger.nodesByLabel($assignedLabels/$assignedNodeProperties,'Label') | function to filter entries by label, to be used within a trigger statement with `$assignedLabels` and `$removedLabels`
 | apoc.trigger.propertiesByKey($assignedNodeProperties,'key') | function to filter propertyEntries by property-key, to be used within a trigger statement with $assignedNode/RelationshipProperties and $removedNode/RelationshipProperties. Returns [{old,[new],key,node,relationship}]
@@ -207,7 +207,7 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel($as
 
 .Trigger Phase Table
 .Helper Functions
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | Phase | Description
 | before | The trigger will be activate right `before` the commit. If no phase is specified, it's the default.

@@ -19,19 +19,6 @@ e.g:
 |LocalDateTime | 2018-10-10T00:00
 |===
 
-This section includes:
-
-* <<export-graphml-available-procedures, Available Procedures>>
-* <<export-graphml-config, Configuration parameters>>
-* <<export-graphml-file-export, Exporting to a file>>
-* <<export-graphml-stream-export, Exporting a stream>>
-* <<export-graphml-examples, Examples>>
-    ** <<export-graphml-whole-database, Export whole database>>
-    ** <<export-graphml-nodes-relationships, Export specified nodes and relationships>>
-    ** <<export-graphml-graph, Export virtual graph>>
-    ** <<export-graphml-cypher-query, Export results of Cypher query>>
-
-
 [[export-graphml-available-procedures]]
 == Available Procedures
 
@@ -390,10 +377,10 @@ RETURN file, nodes, relationships, properties, data;
 [[export-graphml-graph]]
 === Export virtual graph to GraphML
 
-The `apoc.export.graphml.graph` procedure exports a <<virtual-graph,virtual graph>> to a CSV file or as a stream.
+The `apoc.export.graphml.graph` procedure exports a xref::virtual/index.adoc[virtual graph] to a CSV file or as a stream.
 
 The examples in this section are based on a virtual graph that contains all `PRODUCED` relationships and the nodes either side of that relationship.
-The query below creates a virtual graph and stores it in memory with the name `producers.cached` using <<static-values, Static Value Storage>>.
+The query below creates a virtual graph and stores it in memory with the name `producers.cached` using xref::misc/static-values.adoc[Static Value Storage].
 
 [source,cypher]
 ----

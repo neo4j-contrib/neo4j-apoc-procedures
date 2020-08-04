@@ -7,7 +7,7 @@ This section describes procedures that can be used to query relationships.
 --
 
 .Functions
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.rel.id(rel) | returns id for (virtual) relationships
 | apoc.rel.type(rel) | returns type for (virtual) relationships
@@ -17,7 +17,7 @@ This section describes procedures that can be used to query relationships.
 
 
 .Procedures
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | CALL apoc.get.rels(rel\|id\|[ids]) | quickly returns all relationships with these ids
 |===

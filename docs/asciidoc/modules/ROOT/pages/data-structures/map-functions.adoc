@@ -12,7 +12,7 @@ ifdef::backend-html5[]
 ++++
 endif::[]
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.map.flatten(map,delimiter:".") | flatten a nested map into a single-level map, for example turning {parent:{child:1}} into {"parent.child":1}
 | apoc.map.fromNodes(label, property) | creates map from nodes with this label grouped by property

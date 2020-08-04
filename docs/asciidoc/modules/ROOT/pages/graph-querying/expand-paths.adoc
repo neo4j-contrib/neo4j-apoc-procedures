@@ -6,15 +6,10 @@
 This section describes a procedure that can be used to expand the paths of variable length path traversals.
 --
 
-The expand paths procedure is the most basic of the <<path-expander, path expanders>>.
+The expand paths procedure is the most basic of the xref::graph-querying/path-expander.adoc[path expanders].
 This procedure enables path traversals based on relationship filters and node filters.
-See <<path-expander-paths-config>> if more control is required over the traversal.
+See xref::graph-querying/expand-paths-config.adoc[] if more control is required over the traversal.
 
-This section includes the following:
-
-* <<path-expander-paths-procedure-overview>>
-* <<path-expander-paths-parameter-syntax>>
-* <<path-expander-paths-examples>>
 
 [[path-expander-paths-procedure-overview]]
 == Procedure Overview
@@ -71,7 +66,7 @@ ORDER BY hops;
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="4,1"]
 |===
 | path | hops
 | (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})                                                  | 1
@@ -96,7 +91,7 @@ ORDER BY hops;
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="4,1"]
 |===
 | path | hops
 | (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})                                                  | 1
@@ -119,7 +114,7 @@ ORDER BY hops;
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="4,1"]
 |===
 | path | hops
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                                     | 1
@@ -159,7 +154,7 @@ ORDER BY hops;
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="4,1"]
 |===
 | path | hops
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})     | 2
@@ -184,7 +179,7 @@ ORDER BY hops;
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="4,1"]
 |===
 | path | hops
 | (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                    | 2

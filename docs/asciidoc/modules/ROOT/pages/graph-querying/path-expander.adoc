@@ -18,10 +18,10 @@ This functionality is supported by five procedures:
 [options="header"]
 |===
 | Procedure | Description | Documentation
-|  `apoc.path.expand()` | expands paths using Cypher's default expansion modes (bfs and 'RELATIONSHIP_PATH' uniqueness).  | <<path-expander-paths>>
-| `apoc.path.expandConfig()`  | expands paths with more flexible configuration of parameters and expansion modes. | <<path-expander-paths-config>>
-|`apoc.path.subgraphNodes()` | expands to nodes of a subgraph. | <<expand-subgraph-nodes>>
-| `apoc.path.subgraphAll()` | expands to nodes of a subgraph and also returns all relationships in the subgraph. | <<expand-subgraph>>
-| `apoc.path.spanningTree()` | expands to paths collectively forming a spanning tree. | <<expand-spanning-tree>>
+|  `apoc.path.expand()` | expands paths using Cypher's default expansion modes (bfs and 'RELATIONSHIP_PATH' uniqueness).  | xref::graph-querying/expand-paths.adoc[]
+| `apoc.path.expandConfig()`  | expands paths with more flexible configuration of parameters and expansion modes. | xref::graph-querying/expand-paths-config.adoc[]
+|`apoc.path.subgraphNodes()` | expands to nodes of a subgraph. | xref::graph-querying/expand-subgraph-nodes.adoc[]
+| `apoc.path.subgraphAll()` | expands to nodes of a subgraph and also returns all relationships in the subgraph. | xref::graph-querying/expand-subgraph.adoc[]
+| `apoc.path.spanningTree()` | expands to paths collectively forming a spanning tree. | xref::graph-querying/expand-spanning-tree.adoc[]
 
 |===

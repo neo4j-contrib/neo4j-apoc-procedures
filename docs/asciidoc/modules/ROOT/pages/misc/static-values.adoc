@@ -8,7 +8,7 @@ This section describes procedures and functions for storing and retrieving stati
 
 The library has support for storing and retrieving static values, functionality that can be used to work with API credentials or cache query results.
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.static.get(name) | returns statically stored value from config (apoc.static.<key>) or server lifetime storage
 | apoc.static.getAll(prefix) |  returns statically stored values from config (apoc.static.<prefix>) or server lifetime storage

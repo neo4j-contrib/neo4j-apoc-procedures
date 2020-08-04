@@ -11,13 +11,6 @@ The export to Gephi procedure sends data to this end point.
 
 image::apoc-gephi.gif[scaledwidth="100%"]
 
-This section includes:
-
-* <<export-gephi-install-plugin, Installing the plugin>>
-* <<export-gephi-available-procedures, Available Procedures>>
-* <<export-gephi-format, Export Format>>
-* <<export-gephi-examples, Examples>>
-
 [[export-gephi-install-plugin]]
 == Installing the plugin
 

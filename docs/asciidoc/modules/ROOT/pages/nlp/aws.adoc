@@ -17,25 +17,8 @@ Each procedure has two modes:
 [NOTE]
 ====
 The procedures described in this chapter make API calls and subsequent updates to the database on the calling thread.
-
 If we want to make parallel requests to the API and avoid out of memory errors from keeping too much transaction state in memory while running procedures that write to the database, see <<nlp-aws-examples-batching>>.
 ====
-
-ifdef::docbook[]
-This section includes the following:
-
-* <<nlp-aws-overview>>
-    ** <<nlp-aws-entities>>
-    ** <<nlp-aws-key-phrases>>
-    ** <<nlp-aws-sentiment>>
-* <<nlp-aws-dependencies>>
-* <<nlp-aws-api-key>>
-* <<nlp-aws-examples-batching>>
-* <<nlp-aws-examples>>
-    ** <<nlp-aws-examples-entities>>
-    ** <<nlp-aws-examples-key-phrases>>
-    ** <<nlp-aws-examples-sentiment>>
-endif::[]
 
 [[nlp-aws-overview]]
 == Procedure Overview
@@ -257,7 +240,7 @@ Once we've done that, we can populate and execute the following commands to crea
 ----
 
 Alternatively we can add these credentials to `apoc.conf` and retrieve them using the static value storage functions.
-See <<static-values>>.
+See xref::misc/static-values.adoc[].
 
 .apoc.conf
 [source,properties]

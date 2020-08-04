@@ -1,5 +1,5 @@
 [[virtual-nodes-rels]]
-== Virtual Nodes/Rels
+= Virtual Nodes/Rels
 
 [abstract]
 --
@@ -11,9 +11,9 @@ Virtual Nodes and Relationships don't exist in the graph, they are only returned
 They can be visualized or processed otherwise.
 Please note that they have negative id's.
 
-=== Function Overview
+== Function Overview
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | CALL apoc.create.vNode(['Label'], {key:value,...}) YIELD node | returns a virtual node
 | apoc.create.vNode(['Label'], {key:value,...}) | function returns a virtual node
@@ -27,7 +27,7 @@ Please note that they have negative id's.
 
 // * TODO `CALL apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])
 
-=== Virtual Nodes/Rels Example
+== Virtual Nodes/Rels Example
 
 .Virtual node and virtual relationship `vNode`, `vRelationship`
 

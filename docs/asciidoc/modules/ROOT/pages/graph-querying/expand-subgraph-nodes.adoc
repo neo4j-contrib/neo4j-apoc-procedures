@@ -1,5 +1,5 @@
 [[expand-subgraph-nodes]]
-== Expand to nodes in a subgraph
+= Expand to nodes in a subgraph
 
 [abstract]
 --
@@ -9,18 +9,9 @@ This section describes a procedure that expands a subgraph from a set of start n
 This procedure expands to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
 It allows fine grained control over the traversals that expand the subgraph.
 
-This section includes:
-
-* <<expand-subgraph-nodes-overview>>
-* <<expand-subgraph-nodes-config>>
-* <<expand-subgraph-nodes-examples>>
-    ** <<expand-subgraph-nodes-examples-label-relationship-filters>>
-    ** <<expand-subgraph-nodes-examples-end-nodes-terminator-nodes>>
-    ** <<expand-subgraph-nodes-examples-whitelist-blacklist>>
-    ** <<expand-subgraph-nodes-examples-sequence-rel-types>>
 
 [[expand-subgraph-nodes-overview]]
-=== Procedure Overview
+== Procedure Overview
 
 The procedure is described below:
 
@@ -30,7 +21,7 @@ include::example$generated-documentation/apoc.path.subgraphNodes.csv[]
 |===
 
 [[expand-subgraph-nodes-config]]
-=== Configuration parameters
+== Configuration parameters
 
 The procedures support the following config parameters:
 
@@ -70,14 +61,14 @@ This is what the legacy traversal framework does.
 
 
 [[expand-subgraph-nodes-relationship-filters]]
-==== Relationship Filters
+=== Relationship Filters
 
 The syntax for relationship filters is described below:
 
 include::partial$relationship-filter.adoc[]
 
 [[expand-subgraph-nodes-label-filters]]
-==== Label Filters
+=== Label Filters
 
 The syntax for label filters is described below:
 
@@ -88,14 +79,14 @@ include::partial$label-filter.adoc[]
 include::partial$label-filter-precedence.adoc[]
 
 [[expand-subgraph-nodes-examples]]
-=== Examples
+== Examples
 
 The examples in this section are based on the following sample graph:
 
 include::partial$expand-config-sample-graph.adoc[]
 
 [[expand-subgraph-nodes-examples-label-relationship-filters]]
-==== Relationship Type and Node Label filters
+=== Relationship Type and Node Label filters
 
 Let's start by expanding paths from the Praveena node.
 We only want to consider the `KNOWS` relationship type, so we'll specify that as the `relationshipFilter` parameter.
@@ -246,7 +237,7 @@ RETURN node;
 Our query now also returns Martin, who must have been reachable via either Zhen or Praveena.
 
 [[expand-subgraph-nodes-examples-end-nodes-terminator-nodes]]
-==== Terminator Nodes and End Nodes
+=== Terminator Nodes and End Nodes
 
 As well as specifying terminator and end labels for traversals, we can also specify terminator and end nodes.
 For this procedure, these parameters both behave the same way - the procedure will determine whether any of the nodes provided as terminator or end nodes are reachable from the start node.
@@ -308,7 +299,7 @@ RETURN node;
 Only Mark is reachable!
 
 [[expand-subgraph-nodes-examples-whitelist-blacklist]]
-==== Whitelist Nodes and Blacklist Nodes
+=== Whitelist Nodes and Blacklist Nodes
 
 Whitelist and blacklist nodes can also be specified.
 
@@ -378,7 +369,7 @@ This indicates that Joe is an important connector in this graph.
 
 
 [[expand-subgraph-nodes-examples-sequence-rel-types]]
-==== Sequences of relationship types
+=== Sequences of relationship types
 
 Sequences of relationship types can be specified by comma separating the values passed to `relationshipFilter`.
 

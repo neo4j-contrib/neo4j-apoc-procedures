@@ -1,5 +1,5 @@
 [[expand-spanning-tree]]
-== Expand a spanning tree
+= Expand a spanning tree
 
 [abstract]
 --
@@ -9,19 +9,10 @@ This section describes a procedure that finds a spanning tree that starts from a
 Expands a spanning tree reachable from start node following relationships to max-level adhering to the label filters.
 The paths returned collectively form a spanning tree.
 
-This procedure has the same behaviour as <<path-expander-paths-config>> with the config `uniqueness: "NODE_GLOBAL"`.
-
-
-* <<expand-spanning-tree-overview>>
-* <<expand-spanning-tree-config>>
-* <<expand-spanning-tree-examples>>
-    ** <<expand-spanning-tree-examples-label-relationship-filters>>
-    ** <<expand-spanning-tree-examples-end-nodes-terminator-nodes>>
-    ** <<expand-spanning-tree-examples-whitelist-blacklist>>
-    ** <<expand-spanning-tree-examples-sequence-rel-types>>
+This procedure has the same behaviour as xref::graph-querying/expand-paths-config.adoc[] with the config `uniqueness: "NODE_GLOBAL"`.
 
 [[expand-spanning-tree-overview]]
-=== Procedure Overview
+== Procedure Overview
 
 The procedure is described below:
 
@@ -31,7 +22,7 @@ include::example$generated-documentation/apoc.path.spanningTree.csv[]
 |===
 
 [[expand-spanning-tree-config]]
-=== Configuration parameters
+== Configuration parameters
 
 The procedures support the following config parameters:
 
@@ -43,10 +34,10 @@ The procedures support the following config parameters:
 | maxLevel | Long | -1 | the maximum number of hops in the traversal
 | relationshipFilter | String | null | the relationship types and directions to traverse.
 
-See <<expand-subgraph-relationship-filters>>.
+See <<expand-spanning-tree-relationship-filters>>.
 | labelFilter | String | null | the node labels to traverse.
 
-See <<expand-subgraph-label-filters>>.
+See <<expand-spanning-tree-label-filters>>.
 | beginSequenceAtStart | Boolean | true | starts matching sequences of node labels and/or relationship types (defined in `relationshipFilter`, `labelFilter`, or `sequences`) one node away from the start node.
 | bfs | Boolean | true | use Breadth First Search when traversing. Uses Depth First Search if set to `false`
 | filterStartNode | Boolean | false | whether the `labelFilter` and `sequence` apply to the start node of the expansion.
@@ -71,14 +62,14 @@ This is what the legacy traversal framework does.
 
 
 [[expand-spanning-tree-relationship-filters]]
-==== Relationship Filters
+=== Relationship Filters
 
 The syntax for relationship filters is described below:
 
 include::partial$relationship-filter.adoc[]
 
 [[expand-spanning-tree-label-filters]]
-==== Label Filters
+=== Label Filters
 
 The syntax for label filters is described below:
 
@@ -89,14 +80,14 @@ include::partial$label-filter.adoc[]
 include::partial$label-filter-precedence.adoc[]
 
 [[expand-spanning-tree-examples]]
-=== Examples
+== Examples
 
 The examples in this section are based on the following sample graph:
 
 include::partial$expand-config-sample-graph.adoc[]
 
 [[expand-spanning-tree-examples-label-relationship-filters]]
-==== Relationship Type and Node Label filters
+=== Relationship Type and Node Label filters
 
 Let's start by expanding paths from the Praveena node.
 We only want to consider the `KNOWS` relationship type, so we'll specify that as the `relationshipFilter` parameter.
@@ -221,7 +212,7 @@ image::apoc.path.subtree.alicia-eng-end.svg[title="Spanning tree from Alicia to 
 The spanning tree now also reaches Martin, via a relationship from Zhen.
 
 [[expand-spanning-tree-examples-end-nodes-terminator-nodes]]
-==== Terminator Nodes and End Nodes
+=== Terminator Nodes and End Nodes
 
 As well as specifying terminator and end labels for traversals, we can also specify terminator and end nodes.
 
@@ -281,7 +272,7 @@ image::apoc.path.subtree.alicia-end.svg[title="Spanning tree from Alicia, ending
 Our spanning tree now includes Joe, Mark, and Zhen, but Rik is still unreachable.
 
 [[expand-spanning-tree-examples-whitelist-blacklist]]
-==== Whitelist Nodes and Blacklist Nodes
+=== Whitelist Nodes and Blacklist Nodes
 
 Whitelist and blacklist nodes can also be specified.
 
@@ -337,7 +328,7 @@ We can see a Neo4j Browser visualization of the returned spanning tree in <<viz-
 image::apoc.path.spanningTree.alicia-blacklist-joe.svg[title="Spanning tree from Alicia where paths to nodes can't go via Joe"]
 
 [[expand-spanning-tree-examples-sequence-rel-types]]
-==== Sequences of relationship types
+=== Sequences of relationship types
 
 Sequences of relationship types can be specified by comma separating the values passed to `relationshipFilter`.
 

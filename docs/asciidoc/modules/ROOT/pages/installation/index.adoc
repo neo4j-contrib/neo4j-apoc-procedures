@@ -25,7 +25,7 @@ _APOC Core_ can be installed by moving the APOC jar file from the `$NEO4J_HOME/l
 
 include::partial$neo4j-desktop.adoc[tags=install-desktop,leveloffset=2]
 
-
+[[neo4j-server]]
 == Neo4j Server
 
 include::partial$neo4j-server.adoc[tags=install,leveloffset=2]
@@ -58,7 +58,7 @@ The version compatibility matrix explains the mapping between Neo4j and APOC ver
 
 // end::version-matrix[]
 
-[[#docker]]
+[[docker]]
 == Docker
 
 include::partial$docker.adoc[tags=docker,leveloffset=1]

@@ -7,7 +7,7 @@ This section describes procedures that can be used to monitor the database.
 --
 
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.monitor.ids | node and relationships-ids in total and in use
 | apoc.monitor.kernel | store information such as kernel version, start time, read-only, database-name, store-log-version etc.

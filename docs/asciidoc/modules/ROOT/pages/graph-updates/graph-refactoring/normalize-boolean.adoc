@@ -8,7 +8,7 @@ This section describes a procedure that can be used to translate string values t
 
 The available procedure is described in the table below:
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | call apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) | normalize/convert a property to be boolean
 |===

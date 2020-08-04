@@ -16,27 +16,11 @@ Cypher has some basic functions to work with text like
 But a lot of useful functions for string manipulation, comparison, and filtering are missing.
 APOC adds these functions.
 
-This section includes:
-
-* <<text-functions-overview>>
-* <<text-functions-data-extraction>>
-* <<text-functions-text-similarity>>
-* <<text-functions-phonetic-comparison>>
-* <<text-functions-formatting-text>>
-* <<text-functions-string-search>>
-* <<text-functions-regex>>
-* <<text-functions-split-join>>
-* <<text-functions-data-cleaning>>
-* <<text-functions-case-change>>
-* <<text-functions-base64-encoding-decoding>>
-* <<text-functions-random-string>>
-* <<text-functions-extract-domain>>
-* <<text-functions-hashing>>
 
 [[text-functions-overview]]
 == Overview Text Functions
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.text.indexOf(text, lookup, offset=0, to=-1==len)| find the first occurence of the lookup string in the text, from inclusive, to exclusive,, -1 if not found, null if text is null.
 | apoc.text.indexesOf(text, lookup, from=0, to=-1==len)| finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.
@@ -77,7 +61,7 @@ The `replace`, `split` and `regexGroups` functions work with regular expressions
 == Data Extraction
 
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.data.url('url') as {protocol,user,host,port,path,query,file,anchor} | turn URL into map structure
 | apoc.data.email('email_address') as {personal,user,domain} | extract the personal name, user and domain as a map (needs javax.mail jar)
@@ -87,7 +71,7 @@ The `replace`, `split` and `regexGroups` functions work with regular expressions
 [[text-functions-text-similarity]]
 == Text Similarity Functions
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.text.distance(text1, text2) | compare the given strings with the Levenshtein distance algorithm
 | apoc.text.levenshteinDistance(text1, text2) | compare the given strings with the Levenshtein distance algorithm
@@ -139,7 +123,7 @@ The phonetic text (soundex) functions allow you to compute the soundex encoding 
 There is also a procedure to compare how similar two strings sound under the soundex algorithm.
 All soundex procedures by default assume the used language is US English.
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.text.phonetic(value) | Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
 | apoc.text.doubleMetaphone(value) | Compute the Double Metaphone phonetic encoding of all words of the text value which can be a single string or a list of strings
@@ -148,7 +132,7 @@ All soundex procedures by default assume the used language is US English.
 |===
 
 .Procedure
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta | Compute the US_ENGLISH soundex character difference between two given strings
 |===
@@ -389,7 +373,7 @@ You can generate a random string to a specified length by calling `apoc.text.ran
 
 The `valid` parameter will accept the following regex patterns, alternatively you can provide a string of letters and/or characters.
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | Pattern | Description
 | A-Z | A-Z in uppercase
@@ -424,7 +408,7 @@ RETURN apoc.data.domain(url) // will return 'www.example.com'
 [[text-functions-hashing]]
 == Hashing Functions
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list
 | apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list

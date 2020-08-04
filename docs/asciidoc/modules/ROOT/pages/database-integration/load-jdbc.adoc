@@ -27,7 +27,7 @@ image::apoc-jdbc-northwind-load.jpg[scaledwidth="100%"]
 
 //include::overview.adoc[tags=jdbc,leveloffset=-1]
 ////
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name}) | load from relational database, either a full table or a sql statement
 | CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18') | load from relational database, either a full table or a sql statement

@@ -34,7 +34,7 @@ include::example$generated-documentation/apoc.load.csv[lines=1;12]
                             When specified only the specified attributes will be returned. Regardless the attributes setting a returned entry will always have a "dn" property.
 |===
 
-=== Load LDAP Example
+== Load LDAP Example
 
 .Retrieve group member information from the ldap server
 [source,cypher]
@@ -72,7 +72,7 @@ foreach (member in entry.uniqueMember |
 ----
 
 
-=== Credentials
+== Credentials
 
 To protect credentials, you can configure aliases in `conf/apoc.conf`:
 

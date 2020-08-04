@@ -1,17 +1,17 @@
 [[nodes-collapse]]
-== Nodes collapse
+= Nodes collapse
 
 [abstract]
 --
 This section describes a procedure that can be used to collapse a list of nodes into a virtual node.
 --
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.nodes.collapse([<node>], {config}) | returns the list of nodes merged into a VirtualNode
 |===
 
-==== Config:
+== Config:
 
 On `apoc.nodes.collapse` with config properties you can choose from 3 different behavior:
 
@@ -26,7 +26,7 @@ If properties parameter isn't set relationships properties are `discard`.
  * "countMerge: true/false" : give the possibility count all the Nodes/Relationships merged. (DEFAULT `true`)
  * "collapsedLabel: true/false" : give the possibility to add the label `:Collapsed` to the virtualNode. (DEFAULT `false`)
 
-=== Nodes collapse example
+== Nodes collapse example
 
 With this dataset we have:
 

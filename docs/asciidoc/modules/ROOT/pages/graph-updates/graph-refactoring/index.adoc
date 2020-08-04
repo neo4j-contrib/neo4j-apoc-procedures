@@ -23,7 +23,7 @@ The library contains procedures for the following high level refactorings
 
 The available algorithms are described in the table below:
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | call apoc.refactor.cloneNodes([node1,node2,...]) |  clone nodes with their labels and properties
 | call apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) | clone nodes with their labels, properties and relationships

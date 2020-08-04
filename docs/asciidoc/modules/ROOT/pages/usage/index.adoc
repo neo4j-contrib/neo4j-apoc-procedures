@@ -1,5 +1,5 @@
 [[usage]]
-== Usage
+= Usage
 
 // tag::usage[]
 User defined *Functions* can be used in *any* expression or predicate, just like built-in functions.

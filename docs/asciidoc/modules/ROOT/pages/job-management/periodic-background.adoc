@@ -7,7 +7,7 @@ This section describes procedures that can be used to run procedures in the back
 --
 
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | CALL apoc.periodic.list() | list all jobs
 | CALL apoc.periodic.submit('name',statement) | submit a one-off background statement

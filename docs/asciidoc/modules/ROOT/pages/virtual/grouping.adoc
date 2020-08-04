@@ -1,5 +1,5 @@
 [[graph-grouping]]
-== Graph Grouping
+= Graph Grouping
 
 [abstract]
 --
@@ -45,7 +45,7 @@ RETURN node, rel;
 ----
 ====
 
-=== Usage
+== Usage
 
 [source,cypher]
 ----
@@ -56,7 +56,7 @@ The only required parameters are a _label-list_ (can also be `['*']`) and a _lis
 
 Optionally you can also provide grouping operators by field and a number of configuration options.
 
-=== Grouping Operators
+== Grouping Operators
 
 For grouping operators, you provide a map of operations per field in this form: `{fieldName: [operators]}`
 
@@ -73,7 +73,7 @@ Possible operators:
 
 The default is: `+[{*:count},{*:count}]+` which just counts nodes and relationships.
 
-=== Configuration
+== Configuration
 
 In the config there are more options:
 
@@ -93,7 +93,7 @@ The `filter` config option is a map of `{Label/TYPE.operator_property.min/max: n
 So you can e.g. filter only for people with a min-age in the grouping of 21: `Person.min_age.min: 21`
 or having at most 10 `KNOWS` relationships in common: `KNOWS.count_*.max:10`.
 
-=== Example
+== Example
 
 .Graph Setup
 [source,cypher]

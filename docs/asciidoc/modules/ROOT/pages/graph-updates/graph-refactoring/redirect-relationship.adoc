@@ -8,7 +8,7 @@ This section describes procedures that can be used to redirect relationships fro
 
 The available procedures are described in the table below:
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | call apoc.refactor.to(rel, endNode) | redirect relationship to use new end-node
 | call apoc.refactor.from(rel, startNode) | redirect relationship to use new start-node

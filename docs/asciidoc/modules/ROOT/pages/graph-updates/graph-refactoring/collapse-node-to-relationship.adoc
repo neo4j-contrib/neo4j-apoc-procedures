@@ -8,7 +8,7 @@ This section describes a procedure that can be used to collapse a node into a re
 
 The available procedure is described in the table below:
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | call apoc.refactor.collapseNode([node1,node2],'TYPE') | collapse nodes with 2 rels to relationship, node with one rel becomes self-relationship
 |===

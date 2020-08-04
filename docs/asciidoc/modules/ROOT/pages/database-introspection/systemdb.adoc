@@ -15,7 +15,7 @@ WARN:: Do not rely on the data structures within `system` database. They are a n
 and might change within minor release updates.
 
 .Procedures
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.systemdb.graph | returns a `nodes` and `relationships` stored in systemdb.
 | apoc.systemdb.execute | executes an DDL command on system db, yields `row` for further processing

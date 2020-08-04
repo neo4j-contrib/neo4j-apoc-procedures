@@ -15,18 +15,8 @@ In addition to exporting data in these formats, we can choose to export the whol
 
 For more information on how to use these procedures, see:
 
-* xref::import/export-csv.adoc[]
-* xref::import/export-json.adoc[]
-* xref::import/export-cypher.adoc[]
-* xref::import/graphml-export.adoc[]
-* xref::import/gephi.adoc[]
-
-include::csv.adoc[leveloffset=2]
-
-include::json.adoc[leveloffset=2]
-
-include::cypher.adoc[leveloffset=1]
-
-include::graphml.adoc[leveloffset=2]
-
-include::gephi.adoc[leveloffset=2]
+* xref::export/csv.adoc[]
+* xref::export/json.adoc[]
+* xref::export/cypher.adoc[]
+* xref::export/graphml.adoc[]
+* xref::export/gephi.adoc[]

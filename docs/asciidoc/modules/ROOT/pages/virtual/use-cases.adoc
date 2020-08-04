@@ -1,5 +1,5 @@
 [[virtual-use-cases]]
-== Use Cases
+= Use Cases
 
 Virtual nodes and relationships are used for quite a number of things.
 

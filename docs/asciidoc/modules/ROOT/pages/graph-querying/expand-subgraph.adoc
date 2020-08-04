@@ -1,5 +1,5 @@
 [[expand-subgraph]]
-== Expand to subgraph
+= Expand to subgraph
 
 [abstract]
 --
@@ -10,18 +10,9 @@ The expand to subgraph procedure expands to subgraph nodes reachable from the st
 Returns the collection of nodes in the subgraph, and the collection of relationships between all subgraph nodes.
 It allows fine grained control over the traversals that expand these subgraphs.
 
-This section includes:
-
-* <<expand-subgraph-overview>>
-* <<expand-subgraph-config>>
-* <<expand-subgraph-examples>>
-  ** <<expand-subgraph-examples-label-relationship-filters>>
-  ** <<expand-subgraph-examples-end-nodes-terminator-nodes>>
-  ** <<expand-subgraph-examples-whitelist-blacklist>>
-  ** <<expand-subgraph-examples-sequence-rel-types>>
 
 [[expand-subgraph-overview]]
-=== Procedure Overview
+== Procedure Overview
 
 The procedure is described below:
 
@@ -31,7 +22,7 @@ include::example$generated-documentation/apoc.path.subgraphAll.csv[]
 |===
 
 [[expand-subgraph-config]]
-=== Configuration parameters
+== Configuration parameters
 
 The procedures support the following config parameters:
 
@@ -70,14 +61,14 @@ This is what the legacy traversal framework does.
 |===
 
 [[expand-subgraph-relationship-filters]]
-==== Relationship Filters
+=== Relationship Filters
 
 The syntax for relationship filters is described below:
 
 include::partial$relationship-filter.adoc[]
 
 [[expand-subgraph-label-filters]]
-==== Label Filters
+=== Label Filters
 
 The syntax for label filters is described below:
 
@@ -89,14 +80,14 @@ include::partial$label-filter-precedence.adoc[]
 
 
 [[expand-subgraph-examples]]
-=== Examples
+== Examples
 
 The examples in this section are based on the following sample graph:
 
 include::partial$expand-config-sample-graph.adoc[]
 
 [[expand-subgraph-examples-label-relationship-filters]]
-==== Relationship Type and Node Label filters
+=== Relationship Type and Node Label filters
 
 Let's start by expanding paths from the Praveena node.
 We only want to consider the `KNOWS` relationship type, so we'll specify that as the `relationshipFilter` parameter.
@@ -218,7 +209,7 @@ image::apoc.path.subgraphAll.alicia-engineering-end.svg[title="Subgraph from Ali
 Our subgraph now also includes Martin, who is reached via a relationship from Zhen.
 
 [[expand-subgraph-examples-end-nodes-terminator-nodes]]
-==== Terminator Nodes and End Nodes
+=== Terminator Nodes and End Nodes
 
 As well as specifying terminator and end labels for traversals, we can also specify terminator and end nodes.
 
@@ -278,7 +269,7 @@ image::apoc.path.subgraphAll.alicia-end.svg[title="Subgraph from Alicia ending a
 We can now reach Joe, Mark, and Zhen, but Rik is still unreachable.
 
 [[expand-subgraph-examples-whitelist-blacklist]]
-==== Whitelist Nodes and Blacklist Nodes
+=== Whitelist Nodes and Blacklist Nodes
 
 Whitelist and blacklist nodes can also be specified.
 
@@ -334,7 +325,7 @@ We can see a Neo4j Browser visualization of the returned subgraph in <<viz-apoc-
 image::apoc.path.subgraphAll.alicia-blacklist-joe.svg[title="Subgraph from Alicia where paths to nodes can't go via Joe"]
 
 [[expand-subgraph-examples-sequence-rel-types]]
-==== Sequences of relationship types
+=== Sequences of relationship types
 
 Sequences of relationship types can be specified by comma separating the values passed to `relationshipFilter`.
 

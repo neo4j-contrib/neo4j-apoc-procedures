@@ -9,7 +9,7 @@ This section describes algorithm that can be used for thread safe updating of pr
 Atomic procedures handle the concurrency, it's add a lock to the resource.
 If two users access to the same resource at the same time, with the parameter `times` (default value 5) we can determine how many time retry to modify the resource, until the lock is release.
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | CALL apoc.atomic.add(node/relationship, "property", number, [times]) YIELD oldValue, newValue  | adds the number to the value of the property
 | CALL apoc.atomic.subtract(node/relationship, "property", number, [times]) YIELD oldValue, newValue | subtracts the number to the value of the property

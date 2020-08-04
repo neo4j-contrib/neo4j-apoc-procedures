@@ -18,7 +18,7 @@ These procedures complement the indexing functionality that comes out of the box
 This section describes procedures that can be used to create and query schema indexes.
 --
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.schema.assert({indexLabel:[indexKeys],...},{constraintLabel:[constraintKeys],...}, dropExisting : true) yield label, key, unique, action | drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label.
 | apoc.schema.nodes([config]) yield name, label, properties, status, type | get all indexes and constraints information for all the node labels in your database, in optional config param could be define a set of labels to include or exclude

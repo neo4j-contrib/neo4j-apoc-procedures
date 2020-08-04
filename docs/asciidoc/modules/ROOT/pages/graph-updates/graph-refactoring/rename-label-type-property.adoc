@@ -11,7 +11,7 @@ They return the list of eventually impacted constraints and indexes, the user sh
 
 The available procedures are described in the table below:
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | call apoc.refactor.rename.label(oldLabel, newLabel, [nodes]) | rename a label from 'oldLabel' to 'newLabel' for all nodes. If 'nodes' is provided renaming is applied to this set only
 | call apoc.refactor.rename.type(oldType, newType, [rels]) | rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only

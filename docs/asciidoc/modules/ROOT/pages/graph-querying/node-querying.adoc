@@ -7,7 +7,7 @@ This section describes functions that can be used to query nodes.
 --
 
 .Functions
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.nodes.isDense(node) | returns true if it is a dense node
 | apoc.nodes.connected(start, end, rel-direction-pattern) | returns true when the node is connected to the other node, optimized for dense nodes
@@ -33,7 +33,7 @@ rel-direction-pattern syntax:
 Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in either direction, outgoing :MENTORS relationships, and incoming :REPORTS_TO relationships.
 
 .Procedures
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | CALL apoc.nodes.get(node\|nodes\|id\|[ids]) | quickly returns all nodes with these ids
 |===

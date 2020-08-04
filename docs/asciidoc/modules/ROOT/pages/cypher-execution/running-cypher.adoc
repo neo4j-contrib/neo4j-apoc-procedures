@@ -1,7 +1,6 @@
 [[running-cypher]]
 = Running Cypher fragments
 
-
 [abstract]
 --
 This section describes procedures for running Cypher fragments.

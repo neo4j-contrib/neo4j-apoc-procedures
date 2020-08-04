@@ -647,7 +647,7 @@ CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID
 :commit
 ----
 
-We can then apply these files to our destination Neo4j instance, either by streaming their contents into Cypher Shell or by using the procedures described in <<running-cypher>>
+We can then apply these files to our destination Neo4j instance, either by streaming their contents into Cypher Shell or by using the procedures described in xref::cypher-execution/running-cypher.adoc[].
 
 We can also use the `separateFiles` when returning a stream of export statements.
 The results will appear in columns named `nodeStatements`, `relationshipStatements`, `cleanupStatements`, and `schemaStatements` rather than `cypherStatements`.
@@ -742,7 +742,7 @@ We'll need to first add the following property to `apoc.conf`:
 apoc.import.file.enabled=true
 ----
 
-And now we're going to use procedures from <<running-cypher>> to import the data.
+And now we're going to use procedures from xref::cypher-execution/running-cypher.adoc[] to import the data.
 
 .The following imports the schema
 [source,cypher]

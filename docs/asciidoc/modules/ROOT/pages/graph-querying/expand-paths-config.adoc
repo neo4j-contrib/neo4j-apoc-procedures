@@ -7,7 +7,7 @@ This section describes a procedure that can be used to expand the paths of varia
 --
 
 The expand paths with config procedure enables powerful variable length path traversals with fine grained control over the traversals.
-For a more basic version of the algorithm where fine grained control over traversals isn't required, see <<path-expander-paths>>.
+For a more basic version of the algorithm where fine grained control over traversals isn't required, see xref::graph-querying/expand-paths.adoc[].
 
 [[path-expander-paths-config-overview]]
 == Procedure Overview
@@ -678,7 +678,7 @@ ORDER BY hops;
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="4,1"]
 |===
 | path | hops
 | (:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})                                                                                      | 3
@@ -712,7 +712,7 @@ ORDER BY hops;
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="4,1"]
 |===
 | path | hops
 | (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})                                                                                          | 1
@@ -743,7 +743,7 @@ ORDER BY hops;
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="4,1"]
 |===
 | path | hops
 | (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                              | 2
@@ -773,7 +773,7 @@ ORDER BY hops;
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="4,1"]
 |===
 | path | hops
 | (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})<-[:FOLLOWS]-(:Person:Sales {name: "Anthony"})                                                                                           | 2
@@ -827,7 +827,7 @@ ORDER BY hops;
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="4,1"]
 |===
 | nodes | hops
 | [(:Person:Field {name: "Joe"}), (:Person:Sales {name: "Anthony"})]                                                                       | 2
@@ -869,7 +869,7 @@ ORDER BY hops;
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="4,1"]
 |===
 | nodes | hops
 | [(:Person:Field {name: "Joe"}), (:Person:DevRel {name: "Mark"})]                                                                          | 2

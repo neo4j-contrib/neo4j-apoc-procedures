@@ -15,7 +15,7 @@ For permitted configuration values, please look at the Javadoc of config classes
 Apart from the number of nodes you would like to generate, `null` can be passed in for all other parameters. Sensible
  defaults will be used.
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.generate.er(noNodes, noEdges, 'label', 'type') | generates a graph according to Erdos-Renyi model (uniform)
 | apoc.generate.ws(noNodes, degree, beta, 'label', 'type') | generates a graph according to Watts-Strogatz model (clusters)

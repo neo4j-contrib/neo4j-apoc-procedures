@@ -8,7 +8,7 @@ This section describes functions that can be used for type coercion of values.
 
 Sometimes type information gets lost, these functions help you to coerce an "Any" value to the concrete type
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.convert.toString(value) | tries its best to convert the value to a string
 | apoc.convert.toMap(value) | tries its best to convert the value to a map

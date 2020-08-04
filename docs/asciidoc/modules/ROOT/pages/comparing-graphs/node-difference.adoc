@@ -1,9 +1,10 @@
 [[node-difference]]
 = Diff
+:description: This section describes a function that displays the difference between two nodes.
 
 [abstract]
 --
-This section describes a function that displays the difference between two nodes.
+{description}
 --
 
 Diff is a user function to return a detailed diff between two nodes.

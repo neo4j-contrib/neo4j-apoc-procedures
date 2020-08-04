@@ -6,7 +6,7 @@
 This section describes functions for common math operations.
 --
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.math.round(value,[precision=0],mode=[HALF_UP,CEILING,FLOOR,UP,DOWN,HALF_EVEN,HALF_DOWN,DOWN,UNNECESSARY]) | rounds value with optionally given precision (default 0) and optional rounding mode (default HALF_UP)
 | apoc.math.maxLong() | return the maximum value a long can have

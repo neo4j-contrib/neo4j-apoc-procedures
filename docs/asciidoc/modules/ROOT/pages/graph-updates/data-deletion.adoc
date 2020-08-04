@@ -7,7 +7,7 @@ This section describes procedures that can be used to delete graph data
 --
 
 .Procedures
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | CALL apoc.nodes.delete(node\|nodes\|id\|[ids]) | quickly delete all nodes with these ids
 |===

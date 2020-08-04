@@ -175,10 +175,10 @@ RETURN file, nodes, relationships, properties, data
 [[export-graph-json]]
 === Export virtual graph to JSON
 
-The `apoc.export.json.graph` procedure exports a <<virtual-graph,virtual graph>> to a CSV file or as a stream.
+The `apoc.export.json.graph` procedure exports a xref::virtual/index.adoc[virtual graph] to a CSV file or as a stream.
 
 The examples in this section are based on a virtual graph of the whole database.
-The query below creates a virtual graph and stores it in memory with the name `db.cached` using <<static-values, Static Value Storage>>.
+The query below creates a virtual graph and stores it in memory with the name `db.cached` using xref::misc/static-values.adoc[Static Value Storage].
 
 [source,cypher]
 ----

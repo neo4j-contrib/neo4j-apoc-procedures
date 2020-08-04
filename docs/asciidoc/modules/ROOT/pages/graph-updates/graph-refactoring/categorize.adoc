@@ -8,7 +8,7 @@ This section describes a procedure that replaces string property values on nodes
 
 The available procedure is described in the table below:
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | CALL apoc.refactor.categorize(sourceKey, type, outgoing, label, targetKey, copiedKeys, batchSize) | turn each unique propertyKey into a category node and connect to it
 |===
