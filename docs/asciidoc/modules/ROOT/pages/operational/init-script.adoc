@@ -1,9 +1,10 @@
 [[init-script]]
 = Cypher init script
+:description: This section describes a hook to run Cypher commands after database initialization.
 
 [abstract]
 --
-This section describes a hook to run Cypher commands after database initialization.
+{description}
 --
 
 Apoc optionally allows you to run a cypher command after database initialization is finished.

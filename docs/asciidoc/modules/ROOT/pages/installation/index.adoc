@@ -1,9 +1,10 @@
 [[installation]]
 = Installation
+:description: This section contains instructions for installing the APOC standard library.
 
 [abstract]
 --
-This section contains instructions for installing the APOC standard library.
+{description}
 --
 
 _APOC Core_ is packaged with Neo4j and can be found in the `$NEO4J_HOME/labs` directory.

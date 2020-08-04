@@ -1,9 +1,10 @@
 [[config]]
 = Configuration Options
+:description: This chapter gives an overview of all the configuration options used by the APOC library.
 
 [abstract]
 --
-This chapter gives an overview of all the configuration options used by the APOC library.
+{description}
 --
 
 == Location of config options

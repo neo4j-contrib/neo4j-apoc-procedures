@@ -1,9 +1,10 @@
 [[node-functions]]
 = Node Querying
+:description: This section describes functions that can be used to query nodes.
 
 [abstract]
 --
-This section describes functions that can be used to query nodes.
+{description}
 --
 
 .Functions

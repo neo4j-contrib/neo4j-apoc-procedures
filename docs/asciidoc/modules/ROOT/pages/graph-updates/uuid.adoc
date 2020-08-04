@@ -1,9 +1,10 @@
 [[auto-uuid]]
 = UUIDs
+:description: This section describes procedures that can be used to add UUID properties to nodes.
 
 [abstract]
 --
-This section describes procedures that can be used to add UUID properties to nodes.
+{description}
 --
 
 The library supports manual and automation generation of UUIDs, which can be stored as properties on nodes.

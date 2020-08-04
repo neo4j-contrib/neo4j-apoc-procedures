@@ -1,9 +1,10 @@
 [[neo4j-config]]
 = Config
+:description: This section describes procedures that can be used to list Neo4j configuration.
 
 [abstract]
 --
-This section describes procedures that can be used to list Neo4j configuration.
+{description}
 --
 
 [cols="5m,5"]

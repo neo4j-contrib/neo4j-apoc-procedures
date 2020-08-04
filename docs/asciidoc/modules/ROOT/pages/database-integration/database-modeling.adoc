@@ -1,9 +1,10 @@
 [[database-modeling]]
 = Database Modeling
+:description: This section describes procedures that can be used to extract metadata from different data sources.
 
 [abstract]
 --
-This section describes procedures that can be used to extract metadata from different data sources.
+{description}
 --
 
 

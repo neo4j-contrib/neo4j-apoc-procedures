@@ -1,9 +1,10 @@
 [[number-conversions]]
 = Number Format Conversions
+:description: This section describes functions that can be used to format numeric values.
 
 [abstract]
 --
-This section describes functions that can be used to format numeric values.
+{description}
 --
 
 == Conversion between formatted decimals

@@ -1,9 +1,10 @@
 [[graph-grouping]]
 = Graph Grouping
+:description: This section describes procedures that can be used to group nodes by property values to create virtual nodes for graph visualizations.
 
 [abstract]
 --
-This section describes procedures that can be used to group nodes by property values to create virtual nodes for graph visualizations.
+{description}
 --
 
 

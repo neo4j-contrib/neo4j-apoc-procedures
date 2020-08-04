@@ -1,9 +1,10 @@
 [[cypher-based-procedures-functions]]
 = Custom, Cypher Based Procedures and Functions
+:description: This section describes how to register custom Cypher statements as procedures and functions
 
 [abstract]
 --
-This section describes how to register custom Cypher statements as procedures and functions
+{description}
 --
 
 

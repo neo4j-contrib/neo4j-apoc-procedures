@@ -1,9 +1,10 @@
 [[redirect-relationship]]
 = Redirect relationships
+:description: This section describes procedures that can be used to redirect relationships from source or target nodes.
 
 [abstract]
 --
-This section describes procedures that can be used to redirect relationships from source or target nodes.
+{description}
 --
 
 The available procedures are described in the table below:

@@ -1,9 +1,10 @@
 [[parallel-node-search]]
 = Parallel Node Search
+:description: This section describes procedures that can be used to find nodes in parallel.
 
 [abstract]
 --
-This section describes procedures that can be used to find nodes in parallel.
+{description}
 --
 
 Utility to find nodes in parallel (if possible).

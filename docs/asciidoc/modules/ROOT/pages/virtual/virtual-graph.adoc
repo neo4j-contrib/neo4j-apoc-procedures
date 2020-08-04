@@ -1,9 +1,10 @@
 [[virtual-graph]]
 = Virtual Graph
+:description: This section describes procedures that create virtual graphs from Cypher queries or JSON documents.
 
 [abstract]
 --
-This section describes procedures that create virtual graphs from Cypher queries or JSON documents.
+{description}
 --
 
 Create a graph object (map) from information that's passed in.

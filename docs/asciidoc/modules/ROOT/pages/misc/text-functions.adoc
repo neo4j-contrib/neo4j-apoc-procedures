@@ -1,9 +1,10 @@
 [[text-functions]]
 = Text Functions
+:description: This section describes functions that can be used for string manipulation, comparison, and filtering.
 
 [abstract]
 --
-This section describes functions that can be used for string manipulation, comparison, and filtering.
+{description}
 --
 
 Cypher has some basic functions to work with text like

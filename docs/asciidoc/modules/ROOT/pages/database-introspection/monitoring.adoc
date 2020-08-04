@@ -1,9 +1,10 @@
 [[monitoring]]
 = Monitoring
+:description: This section describes procedures that can be used to monitor the database.
 
 [abstract]
 --
-This section describes procedures that can be used to monitor the database.
+{description}
 --
 
 

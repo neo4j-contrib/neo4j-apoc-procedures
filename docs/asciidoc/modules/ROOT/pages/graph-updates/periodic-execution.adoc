@@ -1,9 +1,10 @@
 [[periodic-execution]]
 = Periodic Execution
+:description: This section describes procedures that can be used to batch transactions when executing large write operations.
 
 [abstract]
 --
-This section describes procedures that can be used to batch transactions when executing large write operations.
+{description}
 --
 
 Cypher is great for querying graphs and importing and updating graph structures.

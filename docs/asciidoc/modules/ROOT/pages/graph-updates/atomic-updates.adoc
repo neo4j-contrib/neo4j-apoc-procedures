@@ -1,9 +1,10 @@
 [[atomic-updates]]
 = Atomic Property Updates
+:description: This section describes algorithm that can be used for thread safe updating of properties on nodes and relationships.
 
 [abstract]
 --
-This section describes algorithm that can be used for thread safe updating of properties on nodes and relationships.
+{description}
 --
 
 Atomic procedures handle the concurrency, it's add a lock to the resource.

@@ -1,9 +1,10 @@
 [[periodic-background]]
 = Background Jobs
+:description: This section describes procedures that can be used to run procedures in the background or asynchronously.
 
 [abstract]
 --
-This section describes procedures that can be used to run procedures in the background or asynchronously.
+{description}
 --
 
 

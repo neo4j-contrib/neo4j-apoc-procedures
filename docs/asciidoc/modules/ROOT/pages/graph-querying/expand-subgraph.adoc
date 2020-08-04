@@ -1,9 +1,10 @@
 [[expand-subgraph]]
 = Expand to subgraph
+:description: This section describes a procedure that expands a subgraph from a set of start nodes, and returns all nodes and relationships within the subgraph.
 
 [abstract]
 --
-This section describes a procedure that expands a subgraph from a set of start nodes, and returns all nodes and relationships within the subgraph.
+{description}
 --
 
 The expand to subgraph procedure expands to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.

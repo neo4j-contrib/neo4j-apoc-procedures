@@ -1,9 +1,10 @@
 [[ttl]]
 = Time To Live (TTL) - Expire Nodes
+:description: This section describes procedures that can be used to remove nodes from the database once a time or time limit has been reached.
 
 [abstract]
 --
-This section describes procedures that can be used to remove nodes from the database once a time or time limit has been reached.
+{description}
 --
 
 Some nodes are not meant to live forever.

@@ -1,9 +1,10 @@
 [[load-jdbc]]
 = Load JDBC (RDBMS)
+:description: This section describes procedures that can be used to import data from databases that have JDBC support.
 
 [abstract]
 --
-This section describes procedures that can be used to import data from databases that have JDBC support.
+{description}
 --
 
 Data Integration is an important topic.

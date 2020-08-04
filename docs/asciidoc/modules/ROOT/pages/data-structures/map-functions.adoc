@@ -1,9 +1,10 @@
 [[map-functions]]
 = Map Functions
+:description: This section describes functions for working with maps.
 
 [abstract]
 --
-This section describes functions for working with maps.
+{description}
 --
 
 ifdef::backend-html5[]

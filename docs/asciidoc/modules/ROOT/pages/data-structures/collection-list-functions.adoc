@@ -1,9 +1,10 @@
 [[collection-list-functions]]
 = Collection Functions
+:description: This section describes functions and procedures for working with collections and lists.
 
 [abstract]
 --
-This section describes functions and procedures for working with collections and lists.
+{description}
 --
 
 APOC has a wide variety of Collection and List functions.

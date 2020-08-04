@@ -1,9 +1,10 @@
 [[warmup]]
 = Warmup
+:description: This section describes a procedure that can be used to warm up the database.
 
 [abstract]
 --
-This section describes a procedure that can be used to warm up the database.
+{description}
 --
 
 

@@ -1,9 +1,10 @@
 [[mongodb]]
 = MongoDB
+:description: This section describes procedures that can be used to interact with MongoDB.
 
 [abstract]
 --
-This section describes procedures that can be used to interact with MongoDB.
+{description}
 --
 
 [[mongodb-procedures]]

@@ -1,9 +1,10 @@
 [[misc]]
 = Miscellaneous
+:description: This chapter describes miscellaneous functions and procedures in the APOC library.
 
 [abstract]
 --
-This chapter describes miscellaneous functions and procedures in the APOC library.
+{description}
 --
 
 Cypher brings along some basic functions for math, text, collections and maps.

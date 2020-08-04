@@ -1,9 +1,10 @@
 [[export-csv]]
 = Export to CSV
+:description: This section describes procedures that can be used to export data in CSV format.
 
 [abstract]
 --
-This section describes procedures that can be used to export data in CSV format.
+{description}
 --
 
 The export CSV procedures export data into a format more supported by Data Science libraries in the Python and R ecosystems.

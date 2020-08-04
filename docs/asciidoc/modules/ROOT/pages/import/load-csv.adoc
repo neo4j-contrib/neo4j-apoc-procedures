@@ -1,9 +1,10 @@
 [[load-csv]]
 = Load CSV
+:description: This section describes procedures that can be used to import data from CSV files.
 
 [abstract]
 --
-This section describes procedures that can be used to import data from CSV files.
+{description}
 --
 
 Many existing applications and data integrations use CSV as the minimal denominator format.

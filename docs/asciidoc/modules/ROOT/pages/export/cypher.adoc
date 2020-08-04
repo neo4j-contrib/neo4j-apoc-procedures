@@ -1,9 +1,10 @@
 [[export-cypher]]
 = Export to Cypher Script
+:description: This section describes procedures that can be used to export data in Cypher format.
 
 [abstract]
 --
-This section describes procedures that can be used to export data in Cypher format.
+{description}
 --
 
 The export to Cypher procedures export data as Cypher statements that can then be used to import the data into another Neo4j instance.

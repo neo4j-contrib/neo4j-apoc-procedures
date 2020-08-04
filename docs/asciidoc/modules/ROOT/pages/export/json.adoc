@@ -1,9 +1,10 @@
 [[export-json]]
 = Export to JSON
+:description: This section describes procedures that can be used to export data in JSON format.
 
 [abstract]
 --
-This section describes procedures that can be used to export data in JSON format.
+{description}
 --
 
 The export JSON procedures export data into a format that's supported by JavaScript based visualisation tools.

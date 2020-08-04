@@ -1,9 +1,10 @@
 [[path-expander]]
 = Path Expander Overview
+:description: This section describes procedures that can be used to do variable length path traversals.
 
 [abstract]
 --
-This section describes procedures that can be used to do variable length path traversals.
+{description}
 --
 
 The Cypher query language supports https://neo4j.com/docs/cypher-manual/current/syntax/patterns/#cypher-pattern-varlength[variable-length pattern matching^], but path expansion is limited to relationship types.

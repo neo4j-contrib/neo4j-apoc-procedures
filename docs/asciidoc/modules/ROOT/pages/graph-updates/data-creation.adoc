@@ -1,9 +1,10 @@
 [[data-creation]]
 = Creating Data
+:description: This section describes functions that can be used to create data entities.
 
 [abstract]
 --
-This section describes functions that can be used to create data entities.
+{description}
 --
 
 The library has support for procedures that add to the write functionality that comes with Neo4j.

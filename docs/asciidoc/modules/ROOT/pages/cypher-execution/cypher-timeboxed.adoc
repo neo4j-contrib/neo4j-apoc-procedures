@@ -1,9 +1,10 @@
 [[cypher-timeboxed]]
 = Timeboxed Cypher statements
+:description: This chapter describes a procedure in the APOC library that can be used to timebox Cypher statements.
 
 [abstract]
 --
-This chapter describes a procedure in the APOC library that can be used to timebox Cypher statements.
+{description}
 --
 
 There's a way to terminate a cypher statement if it takes longer than a given threshold. Consider an expensive statement calculating cross product of shortestpaths for each pair of nodes:

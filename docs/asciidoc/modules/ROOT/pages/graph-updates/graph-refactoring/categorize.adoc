@@ -1,9 +1,10 @@
 [[categorize]]
 = Categorize
+:description: This section describes a procedure that replaces string property values on nodes with relationship to a unique category node for that property value.
 
 [abstract]
 --
-This section describes a procedure that replaces string property values on nodes with relationship to a unique category node for that property value.
+{description}
 --
 
 The available procedure is described in the table below:

@@ -1,28 +1,12 @@
 [[indexes]]
 = Text and Lookup Indexes
+:description: This chapter describes indexing procedures in the APOC library.
 
 [abstract]
 --
-This chapter describes indexing procedures in the APOC library.
+{description}
 --
 
 These procedures complement the indexing functionality that comes out of the box.
 
 * xref::indexes/schema-index-operations.adoc[]
-
-[[schema-index-operations]]
-== Schema Index Procedures
-
-[abstract]
---
-This section describes procedures that can be used to create and query schema indexes.
---
-
-[cols="5m,5"]
-|===
-| apoc.schema.assert({indexLabel:[indexKeys],...},{constraintLabel:[constraintKeys],...}, dropExisting : true) yield label, key, unique, action | drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label.
-| apoc.schema.nodes([config]) yield name, label, properties, status, type | get all indexes and constraints information for all the node labels in your database, in optional config param could be define a set of labels to include or exclude
-| apoc.schema.relationships([config]) yield name, type, properties, status | return all the constraint information for all the relationship types in your database, in optional config param could be define a set of types to include or exclude
-| apoc.schema.node.constraintExists(labelName, properties) | return the constraints existence on node
-| apoc.schema.relationship.constraintExists(type, properties) | return the constraints existence on relationship
-|===

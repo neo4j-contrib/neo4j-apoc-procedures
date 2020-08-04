@@ -1,9 +1,10 @@
 [[nlp-aws]]
 = Amazon Web Services (AWS)
+:description: This chapter describes procedures that wrap Amazon Web Services Comprehend Natural Language API.
 
 [abstract]
 --
-This chapter describes procedures that wrap Amazon Web Services Comprehend Natural Language API.
+{description}
 --
 
 The Amazon Web Services (AWS) https://docs.aws.amazon.com/comprehend/index.html[Comprehend Natural Language API^] uses machine learning to find insights and relationships in text.

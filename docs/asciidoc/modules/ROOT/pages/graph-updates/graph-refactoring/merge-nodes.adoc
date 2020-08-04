@@ -1,9 +1,10 @@
 [[merge-nodes]]
 = Merge Nodes
+:description: This section describes procedures that can be used to merge nodes.
 
 [abstract]
 --
-This section describes procedures that can be used to merge nodes.
+{description}
 --
 
 We can merge a list of nodes onto the first one in the list.

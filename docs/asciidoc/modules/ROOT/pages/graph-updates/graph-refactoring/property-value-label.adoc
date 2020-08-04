@@ -1,9 +1,10 @@
 [[property-value-label]]
 = Property value to a label
+:description: This section describes a procedure that can be used to create a label from a property value.
 
 [abstract]
 --
-This section describes a procedure that can be used to create a label from a property value.
+{description}
 --
 
 

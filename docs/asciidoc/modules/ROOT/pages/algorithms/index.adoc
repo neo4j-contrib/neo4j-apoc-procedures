@@ -1,9 +1,10 @@
 [[algorithms]]
 = Graph Algorithms
+:description: This chapter describes graph algorithms in the APOC library.
 
 [abstract]
 --
-This chapter describes graph algorithms in the APOC library.
+{description}
 --
 
 include::partial$deprecated.adoc[]

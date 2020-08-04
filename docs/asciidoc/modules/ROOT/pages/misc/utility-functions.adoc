@@ -1,9 +1,10 @@
 [[utility-functions]]
 = Utilities
+:description: This section describes functions for validating predicates, and sleeping a query.
 
 [abstract]
 --
-This section describes functions for validating predicates, and sleeping a query.
+{description}
 --
 
 [cols="5m,5"]

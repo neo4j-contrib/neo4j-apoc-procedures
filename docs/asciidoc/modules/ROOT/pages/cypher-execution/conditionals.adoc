@@ -1,9 +1,10 @@
 [[conditionals]]
 = Conditional Cypher Execution
+:description: This section describes procedures and functions for conditionally executing Cypher statements.
 
 [abstract]
 --
-This section describes procedures and functions for conditionally executing Cypher statements.
+{description}
 --
 
 Sometimes queries require conditional execution logic that can't be adequately expressed in Cypher.

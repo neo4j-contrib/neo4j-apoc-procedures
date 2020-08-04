@@ -1,9 +1,10 @@
 [[clone-nodes]]
 = Clone nodes
+:description: This section describes procedures that can be used to clone nodes and relationships.
 
 [abstract]
 --
-This section describes procedures that can be used to clone nodes and relationships.
+{description}
 --
 
 The available procedures are described in the table below:

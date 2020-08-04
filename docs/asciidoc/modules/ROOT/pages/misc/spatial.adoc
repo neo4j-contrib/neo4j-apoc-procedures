@@ -1,9 +1,10 @@
 [[spatial]]
 = Spatial
+:description: This section describes spatial procedures and functions.
 
 [abstract]
 --
-This section describes spatial procedures and functions.
+{description}
 --
 
 The spatial procedures enable geographic capabilities on your data, and complement the https://neo4j.com/docs/cypher-manual/current/functions/spatial/[spatial functions^] that come with Neo4j.

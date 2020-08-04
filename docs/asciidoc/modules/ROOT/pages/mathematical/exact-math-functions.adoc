@@ -1,9 +1,10 @@
 [[exact-math-functions]]
 = Exact Math
+:description: This section describes functions that can be used to do high precision arithmetic.
 
 [abstract]
 --
-This section describes functions that can be used to do high precision arithmetic.
+{description}
 --
 
 == Handle BigInteger And BigDecimal

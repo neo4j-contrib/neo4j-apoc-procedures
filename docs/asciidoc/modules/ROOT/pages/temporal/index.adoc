@@ -1,9 +1,10 @@
 [[temporal]]
 = Temporal (Date Time)
+:description: This chapter describes procedures that can be used for formatting temporal types.
 
 [abstract]
 --
-This chapter describes procedures that can be used for formatting temporal types.
+{description}
 --
 
 The APOC library adds support for formatting https://neo4j.com/docs/cypher-manual/current/syntax/temporal/[temporal types^], timestamps, and date string values.

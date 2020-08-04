@@ -1,9 +1,10 @@
 [[cypher-multiple-statements]]
 = Run multiple Statements
+:description: This section describes procedures that can be used to execute multiple Cypher statements.
 
 [abstract]
 --
-This section describes procedures that can be used to execute multiple Cypher statements.
+{description}
 --
 
 This procedure runs each semicolon separated statement and returns summary - currently no schema operations.

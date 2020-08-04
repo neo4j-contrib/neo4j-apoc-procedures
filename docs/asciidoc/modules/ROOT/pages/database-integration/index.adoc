@@ -1,9 +1,10 @@
 [[database-integration]]
 = Database Integration
+:description: This chapter describes data integration procedures in the APOC library.
 
 [abstract]
 --
-This chapter describes data integration procedures in the APOC library.
+{description}
 --
 
 The APOC library adds support for integrating with other databases, including relational databases (via JDBC), MongoDB, Elastic, and Couchbase.

@@ -1,9 +1,10 @@
 [[invert-relationship]]
 = Invert relationship
+:description: This section describes a procedure that can be used to invert the direction of relationships.
 
 [abstract]
 --
-This section describes a procedure that can be used to invert the direction of relationships.
+{description}
 --
 
 The available procedure is described in the table below:

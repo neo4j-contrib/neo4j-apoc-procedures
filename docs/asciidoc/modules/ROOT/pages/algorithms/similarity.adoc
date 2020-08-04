@@ -1,9 +1,10 @@
 [[similarity]]
 = Deprecated: Similarity
+:description: This section describes similarity algorithms in the APOC library.
 
 [abstract]
 --
-This section describes similarity algorithms in the APOC library.
+{description}
 --
 
 [cols="3m,3"]

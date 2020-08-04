@@ -1,9 +1,10 @@
 [[elasticsearch]]
 = ElasticSearch
+:description: This section describes procedures that can be used to interact with Elastic Search.
 
 [abstract]
 --
-This section describes procedures that can be used to interact with Elastic Search.
+{description}
 --
 
 

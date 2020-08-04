@@ -1,9 +1,10 @@
 [[rel-functions]]
 = Relationship Querying
+:description: This section describes procedures that can be used to query relationships.
 
 [abstract]
 --
-This section describes procedures that can be used to query relationships.
+{description}
 --
 
 .Functions

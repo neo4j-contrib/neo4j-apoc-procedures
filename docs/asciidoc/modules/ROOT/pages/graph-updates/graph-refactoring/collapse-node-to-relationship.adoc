@@ -1,9 +1,10 @@
 [[collapse-node-to-relationship]]
 = Collapse node to relationship
+:description: This section describes a procedure that can be used to collapse a node into a relationship.
 
 [abstract]
 --
-This section describes a procedure that can be used to collapse a node into a relationship.
+{description}
 --
 
 The available procedure is described in the table below:

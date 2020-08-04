@@ -1,9 +1,10 @@
 [[nlp-gcp]]
 = Google Cloud Platform (GCP)
+:description: This chapter describes procedures that wrap Google Cloud Platform's Natural Language API.
 
 [abstract]
 --
-This chapter describes procedures that wrap Google Cloud Platform's Natural Language API.
+{description}
 --
 
 Google Cloud Platform's https://cloud.google.com/natural-language[Natural Language API^] lets users derive insights from unstructured text using Google machine learning.

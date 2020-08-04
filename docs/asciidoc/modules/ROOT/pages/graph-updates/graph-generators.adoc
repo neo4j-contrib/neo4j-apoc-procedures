@@ -1,9 +1,10 @@
 [[graph-generators]]
 = Generating Graphs
+:description: This section describes procedures that can be used to generate example graphs.
 
 [abstract]
 --
-This section describes procedures that can be used to generate example graphs.
+{description}
 --
 
 Generate undirected (random direction) graphs with semi-real random distributions based on theoretical models.

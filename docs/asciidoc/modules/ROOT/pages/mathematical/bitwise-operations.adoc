@@ -1,9 +1,10 @@
 [[bitwise-operations]]
 = Bitwise operations
+:description: This section describes procedures that can be used for doing bitwise operations.
 
 [abstract]
 --
-This section describes procedures that can be used for doing bitwise operations.
+{description}
 --
 
 // TODO function

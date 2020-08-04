@@ -1,9 +1,10 @@
 [[rename-label-type-property]]
 = Rename
+:description: This section describes procedures that can be used to rename labels, relationship types, and properties of nodes and relationships.
 
 [abstract]
 --
-This section describes procedures that can be used to rename labels, relationship types, and properties of nodes and relationships.
+{description}
 --
 
 Procedures set for renaming labels, relationship types, nodes and relationships' properties.

@@ -1,9 +1,10 @@
 [[graph-updates]]
 = Graph Updates
+:description: This chapter describes procedures that can be used to perform graph updates.
 
 [abstract]
 --
-This chapter describes procedures that can be used to perform graph updates.
+{description}
 --
 
 The APOC library adds extra functionality for writing to the database.

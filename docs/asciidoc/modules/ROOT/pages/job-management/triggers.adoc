@@ -1,9 +1,10 @@
 [[triggers]]
 = Triggers
+:description: This section describes procedures that can be used to register triggers whenever data in Neo4j is created, updated, or deleted.
 
 [abstract]
 --
-This section describes procedures that can be used to register triggers whenever data in Neo4j is created, updated, or deleted.
+{description}
 --
 
 

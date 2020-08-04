@@ -1,9 +1,10 @@
 [[set-relationship-type]]
 = Set Relationship Types
+:description: This section describes a procedure that can be used to change relationship types.
 
 [abstract]
 --
-This section describes a procedure that can be used to change relationship types.
+{description}
 --
 
 The available procedure is described in the table below:

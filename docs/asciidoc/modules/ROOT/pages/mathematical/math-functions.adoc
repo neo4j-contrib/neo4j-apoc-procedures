@@ -1,9 +1,10 @@
 [[math-functions]]
 = Math Functions
+:description: This section describes functions for common math operations.
 
 [abstract]
 --
-This section describes functions for common math operations.
+{description}
 --
 
 [cols="5m,5"]

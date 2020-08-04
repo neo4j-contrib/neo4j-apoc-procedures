@@ -1,9 +1,10 @@
 [[graph-refactoring]]
 = Graph Refactorings
+:description: This section describes graph refactoring procedures in the APOC library.
 
 [abstract]
 --
-This section describes graph refactoring procedures in the APOC library.
+{description}
 --
 
 Given the agile approach taken towards building graph models, graph refactoring (or migration) is something that all graph based projects will have to do at some stage.

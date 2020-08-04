@@ -1,9 +1,10 @@
 [[conversion-functions]]
 = Conversion Functions
+:description: This section describes functions that can be used for type coercion of values.
 
 [abstract]
 --
-This section describes functions that can be used for type coercion of values.
+{description}
 --
 
 Sometimes type information gets lost, these functions help you to coerce an "Any" value to the concrete type

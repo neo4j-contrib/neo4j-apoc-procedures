@@ -1,9 +1,10 @@
 [[virtual-nodes-rels]]
 = Virtual Nodes/Rels
+:description: This section describes procedures that create virtual nodes and relationships.
 
 [abstract]
 --
-This section describes procedures that create virtual nodes and relationships.
+{description}
 --
 
 

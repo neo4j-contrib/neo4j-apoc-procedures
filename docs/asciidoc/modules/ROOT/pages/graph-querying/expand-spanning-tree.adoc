@@ -1,9 +1,10 @@
 [[expand-spanning-tree]]
 = Expand a spanning tree
+:description: This section describes a procedure that finds a spanning tree that starts from a set of start nodes.
 
 [abstract]
 --
-This section describes a procedure that finds a spanning tree that starts from a set of start nodes.
+{description}
 --
 
 Expands a spanning tree reachable from start node following relationships to max-level adhering to the label filters.

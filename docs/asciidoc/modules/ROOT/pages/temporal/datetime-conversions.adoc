@@ -1,9 +1,10 @@
 [[datetime-conversions]]
 = Date and Time Conversions
+:description: This section describes functions for working with dates and times.
 
 [abstract]
 --
-This section describes functions for working with dates and times.
+{description}
 --
 
 Dates and times can show up in a variety of formats and configurations, often requiring translations or conversions for data storage systems, reports, web pages, and more.
@@ -13,24 +14,6 @@ The APOC date functions allow users to take these Long or String values and mani
 ====
 If you need to manipulate Date object types into other formats, see xref::temporal/temporal-conversions.adoc[].
 ====
-
-This section includes:
-
-* <<datetime-format-notes>>
-* <<datetime-available-procedures>>
-    ** <<datetime-available-procedures-apoc.date.add>>
-    ** <<datetime-available-procedures-apoc.date.convert>>
-    ** <<datetime-available-procedures-apoc.date.convertFormat>>
-    ** <<datetime-available-procedures-apoc.date.currentTimestamp>>
-    ** <<datetime-available-procedures-apoc.date.field>>
-    ** <<datetime-available-procedures-apoc.date.fields>>
-    ** <<datetime-available-procedures-apoc.date.format>>
-    ** <<datetime-available-procedures-apoc.date.fromISO8601>>
-    ** <<datetime-available-procedures-apoc.date.parse>>
-    ** <<datetime-available-procedures-apoc.date.parseAsZonedDateTime>>
-    ** <<datetime-available-procedures-apoc.date.systemTimezone>>
-    ** <<datetime-available-procedures-apoc.date.toISO8601>>
-    ** <<datetime-available-procedures-apoc.date.toYears>>
 
 [[datetime-format-notes]]
 == Notes on formats for dates and times:

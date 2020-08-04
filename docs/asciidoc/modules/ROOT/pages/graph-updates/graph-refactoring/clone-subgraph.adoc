@@ -1,9 +1,10 @@
 [[clone-subgraph]]
 = Clone subgraph
+:description: This section describes procedures that can be used to clone subgraphs.
 
 [abstract]
 --
-This section describes procedures that can be used to clone subgraphs.
+{description}
 --
 
 These procedures can be used to clone a subgraph defined either by a list of nodes and a list of relationships, or a list of paths.

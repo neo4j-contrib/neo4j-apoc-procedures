@@ -1,9 +1,10 @@
 [[systemdb]]
 = SystemDB
+:description: This section describes procedures that can be used to access the contents of Neo4j system db.
 
 [abstract]
 --
-This section describes procedures that can be used to access the contents of Neo4j system db.
+{description}
 --
 
 In Neo4j 4.0 the concept of multi-database was introduced. There's now a database called `system` which contains some
