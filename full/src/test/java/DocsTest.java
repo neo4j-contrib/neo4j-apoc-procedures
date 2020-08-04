@@ -88,61 +88,61 @@ public class DocsTest {
         rows.addAll(functionRows);
 
         Map<String, String> docs = new HashMap<>();
-        docs.put("apoc.path.expand", "path-expander-paths");
-        docs.put("apoc.path.expandConfig", "path-expander-paths-config");
-        docs.put("apoc.path.subgraphNodes", "expand-subgraph-nodes");
-        docs.put("apoc.path.subgraphAll", "expand-subgraph");
-        docs.put("apoc.export.cypher.*", "export-cypher");
-        docs.put("apoc.export.json.*", "export-json");
-        docs.put("apoc.export.csv.*", "export-csv");
-        docs.put("apoc.export.graphml.*", "graphml-export");
-        docs.put("apoc.graph.*", "gephi");
-        docs.put("apoc.load.json.*|apoc.import.json", "load-json");
-        docs.put("apoc.load.csv", "load-csv");
-        docs.put("apoc.import.csv", "import-csv");
-        docs.put("apoc.import.graphml", "graphml-import");
-        docs.put("apoc.coll.*", "collection-list-functions");
-        docs.put("apoc.convert.*", "conversion-functions");
-        docs.put("apoc.create.v.*|apoc.create.virtual.*", "virtual-nodes-rels");
-        docs.put("apoc.map.*", "map-functions");
-        docs.put("apoc.math.*|apoc.number.romanToArabic|apoc.number.arabicToRoman", "math-functions");
-        docs.put("apoc.meta.*", "meta-graph");
-        docs.put("apoc.nodes.*|apoc.node.*|apoc.any.properties|apoc.any.property|apoc.label.exists", "node-functions");
-        docs.put("apoc.number.format.*|apoc.number.parseInt.*|apoc.number.parseFloat.*", "number-conversions");
-        docs.put("apoc.number.exact.*", "exact-math-functions");
-        docs.put("apoc.path.*", "path-functions");
-        docs.put("apoc.text.*", "text-functions");
-        docs.put("apoc.util.md5|apoc.util.sha1", "text-functions-hashing");
-        docs.put("apoc.mongodb.*", "mongodb");
-        docs.put("apoc.nlp.aws.*", "nlp-aws");
-        docs.put("apoc.nlp.gcp.*", "nlp-gcp");
-        docs.put("apoc.nlp.azure.*", "nlp-azure");
-        docs.put("apoc.neighbors.*", "neighbourhood-search");
-        docs.put("apoc.monitor.*", "monitoring");
-        docs.put("apoc.periodic.iterate", "commit-batching");
-        docs.put("apoc.periodic.commit", "periodic-commit");
-        docs.put("apoc.periodic.rock_n_roll", "periodic-rock-n-roll");
-        docs.put("apoc.refactor.clone.*", "clone-nodes");
-        docs.put("apoc.refactor.cloneSubgraph.*", "clone-subgraph");
-        docs.put("apoc.refactor.merge.*", "merge-nodes");
-        docs.put("apoc.refactor.to|apoc.refactor.from", "redirect-relationship");
-        docs.put("apoc.refactor.invert", "invert-relationship");
-        docs.put("apoc.refactor.setType", "set-relationship-type");
-        docs.put("apoc.static.*", "static-values");
-        docs.put("apoc.spatial.*", "spatial");
-        docs.put("apoc.schema.*", "schema-index-operations");
-        docs.put("apoc.search.node.*", "parallel-node-search");
-        docs.put("apoc.trigger.*", "triggers");
-        docs.put("apoc.ttl.*", "ttl");
-        docs.put("apoc.create.uuid", "auto-uuid");
-        docs.put("apoc.cypher.*", "cypher-execution");
-        docs.put("apoc.date.*", "datetime-conversions");
-        docs.put("apoc.hashing.*", "fingerprinting");
-        docs.put("apoc.temporal.*", "temporal-conversions");
-        docs.put("apoc.uuid.*", "auto-uuid");
-        docs.put("apoc.systemdb.*", "systemdb");
-        docs.put("apoc.periodic.submit|apoc.periodic.schedule|apoc.periodic.list|apoc.periodic.countdown", "periodic-background");
-        docs.put("apoc.model.jdbc", "database-modeling");
+        docs.put("apoc.path.expand", "graph-querying/expand-paths.adoc[]");
+        docs.put("apoc.path.expandConfig", "graph-querying/expand-paths-config.adoc[]");
+        docs.put("apoc.path.subgraphNodes", "graph-querying/expand-subgraph-nodes.adoc[]");
+        docs.put("apoc.path.subgraphAll", "graph-querying/expand-subgraph.adoc[]");
+        docs.put("apoc.export.cypher.*", "export/cypher.adoc[]");
+        docs.put("apoc.export.json.*", "export/json.adoc[]");
+        docs.put("apoc.export.csv.*", "export/csv.adoc[]");
+        docs.put("apoc.export.graphml.*", "export/graphml.adoc[]");
+        docs.put("apoc.graph.*", "export/gephi.adoc[]");
+        docs.put("apoc.load.json.*|apoc.import.json", "import/load-json.adoc[]");
+        docs.put("apoc.load.csv", "import/load-csv.adoc[]");
+        docs.put("apoc.import.csv", "import/import-csv.adoc[]");
+        docs.put("apoc.import.graphml", "import/graphml.adoc[]");
+        docs.put("apoc.coll.*", "data-structures/collection-list-functions.adoc[]");
+        docs.put("apoc.convert.*", "data-structures/conversion-functions.adoc[]");
+        docs.put("apoc.map.*", "data-structures/map-functions.adoc[]");
+        docs.put("apoc.create.v.*|apoc.create.virtual.*", "virtual/virtual-nodes-rels.adoc[]");
+        docs.put("apoc.math.*|apoc.number.romanToArabic|apoc.number.arabicToRoman", "mathematical/math-functions.adoc[]");
+        docs.put("apoc.meta.*", "database-introspection/meta.adoc[]");
+        docs.put("apoc.nodes.*|apoc.node.*|apoc.any.properties|apoc.any.property|apoc.label.exists", "graph-querying/node-querying.adoc[]");
+        docs.put("apoc.number.format.*|apoc.number.parseInt.*|apoc.number.parseFloat.*", "mathematical/number-conversions.adoc[]");
+        docs.put("apoc.number.exact.*", "mathematical/exact-math-functions.adoc[]");
+        docs.put("apoc.path.*", "graph-querying/path-querying.adoc[]");
+        docs.put("apoc.text.*", "misc/text-functions.adoc[]");
+        docs.put("apoc.util.md5|apoc.util.sha1", "misc/text-functions.adoc#text-functions-hashing[Hashing Functions]");
+        docs.put("apoc.mongodb.*", "database-integration/mongodb.adoc[]");
+        docs.put("apoc.nlp.aws.*", "nlp/aws.adoc[]");
+        docs.put("apoc.nlp.gcp.*", "nlp/gcp.adoc[]");
+        docs.put("apoc.nlp.azure.*", "nlp/azure.adoc[]");
+        docs.put("apoc.neighbors.*", "graph-querying/neighborhood-search.adoc[]");
+        docs.put("apoc.monitor.*", "database-introspection/monitoring.adoc[]");
+        docs.put("apoc.periodic.iterate", "graph-updates/periodic-execution.adoc#commit-batching[Periodic Iterate]");
+        docs.put("apoc.periodic.commit", "graph-updates/periodic-execution.adoc#periodic-commit[Periodic Commit]");
+        docs.put("apoc.periodic.rock_n_roll", "graph-updates/periodic-execution.adoc#periodic-rock-n-roll[Periodic Rock 'n' Roll]");
+        docs.put("apoc.refactor.clone.*", "graph-updates/graph-refactoring/clone-nodes.adoc[]");
+        docs.put("apoc.refactor.cloneSubgraph.*", "graph-updates/graph-refactoring/clone-subgraph.adoc[]");
+        docs.put("apoc.refactor.merge.*", "graph-updates/graph-refactoring/merge-nodes.adoc[]");
+        docs.put("apoc.refactor.to|apoc.refactor.from", "graph-updates/graph-refactoring/redirect-relationship.adoc[]");
+        docs.put("apoc.refactor.invert", "graph-updates/graph-refactoring/invert-relationship.adoc[]");
+        docs.put("apoc.refactor.setType", "graph-updates/graph-refactoring/set-relationship-type.adoc[]");
+        docs.put("apoc.static.*", "misc/static-values.adoc[]");
+        docs.put("apoc.spatial.*", "misc/spatial.adoc[]");
+        docs.put("apoc.schema.*", "indexes/schema-index-operations.adoc[]");
+        docs.put("apoc.search.node.*", "graph-querying/parallel-node-search.adoc[]");
+        docs.put("apoc.trigger.*", "job-management/triggers.adoc[]");
+        docs.put("apoc.ttl.*", "graph-updates/ttl.adoc[]");
+        docs.put("apoc.create.uuid", "graph-updates/uuid.adoc[]");
+        docs.put("apoc.cypher.*", "cypher-execution/index.adoc[]");
+        docs.put("apoc.date.*", "temporal/datetime-conversions.adoc[]");
+        docs.put("apoc.hashing.*", "comparing-graphs/fingerprinting.adoc[]");
+        docs.put("apoc.temporal.*", "temporal/temporal-conversions.adoc[]");
+        docs.put("apoc.uuid.*", "graph-updates/uuid.adoc[]");
+        docs.put("apoc.systemdb.*", "database-introspection/systemdb.adoc[]");
+        docs.put("apoc.periodic.submit|apoc.periodic.schedule|apoc.periodic.list|apoc.periodic.countdown", "job-management/periodic-background.adoc[]");
+        docs.put("apoc.model.jdbc", "database-integration/database-modeling.adoc[]");
 
         Set<String> extended = new HashSet<>();
         try (InputStream stream = getClass().getClassLoader().getResourceAsStream("extended.txt")) {
@@ -164,7 +164,7 @@ public class DocsTest {
 
                 Optional<String> documentation = docs.keySet().stream()
                         .filter((key) -> Pattern.compile(key).matcher(row.name).matches())
-                        .map(value -> String.format("<<%s>>", docs.get(value)))
+                        .map(value -> String.format("xref::%s", docs.get(value)))
                         .findFirst();
 
                 writer.write(String.format("¦%s¦%s¦%s¦%s¦%s¦%s\n",
