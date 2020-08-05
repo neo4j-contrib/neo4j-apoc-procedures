@@ -2,10 +2,7 @@
 = Built in Help
 :description: This chapter describes the built in help in the APOC library.
 
-[abstract]
---
-{description}
---
+
 
 The APOC library ships with the `apoc.help` procedure, which can be used for procedure and function discovery.
 

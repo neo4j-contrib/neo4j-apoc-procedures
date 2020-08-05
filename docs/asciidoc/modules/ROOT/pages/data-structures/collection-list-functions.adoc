@@ -2,10 +2,7 @@
 = Collection Functions
 :description: This section describes functions and procedures for working with collections and lists.
 
-[abstract]
---
-{description}
---
+
 
 APOC has a wide variety of Collection and List functions.
 

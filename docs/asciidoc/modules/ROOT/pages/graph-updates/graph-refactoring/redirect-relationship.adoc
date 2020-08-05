@@ -2,10 +2,7 @@
 = Redirect relationships
 :description: This section describes procedures that can be used to redirect relationships from source or target nodes.
 
-[abstract]
---
-{description}
---
+
 
 The available procedures are described in the table below:
 

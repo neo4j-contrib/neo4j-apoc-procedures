@@ -2,10 +2,7 @@
 = Operational
 :description: This chapter describes operational procedures in the APOC library.
 
-[abstract]
---
-{description}
---
+
 
 For more information on how to use these procedures, see:
 

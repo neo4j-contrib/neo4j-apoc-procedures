@@ -2,10 +2,7 @@
 = Loading Excel (XLS)
 :description: This section describes procedures that can be used to import data from Excel files.
 
-[abstract]
---
-{description}
---
+
 
 == Library Requirements
 

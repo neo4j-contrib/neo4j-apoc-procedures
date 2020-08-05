@@ -2,10 +2,7 @@
 = Database Integration
 :description: This chapter describes data integration procedures in the APOC library.
 
-[abstract]
---
-{description}
---
+
 
 The APOC library adds support for integrating with other databases, including relational databases (via JDBC), MongoDB, Elastic, and Couchbase.
 It also has support for importing data from LDAP directories and executing queries against other Neo4j databases.

@@ -2,10 +2,7 @@
 = Custom, Cypher Based Procedures and Functions
 :description: This section describes how to register custom Cypher statements as procedures and functions
 
-[abstract]
---
-{description}
---
+
 
 
 I wanted for a long time to be able to register Cypher statements as proper procedures and functions, so that they become callable in a standalone way.

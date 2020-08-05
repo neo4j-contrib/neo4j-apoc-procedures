@@ -2,10 +2,7 @@
 = Schema Information
 :description: This section describes procedures that can be used to query and create schema indexes.
 
-[abstract]
---
-{description}
---
+
 
 To drop or create index or constraint, you can use the following procedure:
 

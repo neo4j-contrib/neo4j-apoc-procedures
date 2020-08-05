@@ -2,10 +2,7 @@
 = Logging
 :description: This section describes procedures that can be used to append messages to Neo4j log files.
 
-[abstract]
---
-{description}
---
+
 
 APOC provide a set of store procedures in order to add log functionality:
 

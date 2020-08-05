@@ -2,10 +2,7 @@
 = Import GraphML
 :description: This chapter describes a procedure that can be using to load data from GraphML into Neo4j.
 
-[abstract]
---
-{description}
---
+
 
 GraphML is used by other tools, like Gephi and CytoScape, to read graph data.
 

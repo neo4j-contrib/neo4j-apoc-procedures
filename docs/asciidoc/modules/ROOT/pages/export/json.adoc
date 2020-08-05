@@ -2,10 +2,7 @@
 = Export to JSON
 :description: This section describes procedures that can be used to export data in JSON format.
 
-[abstract]
---
-{description}
---
+
 
 The export JSON procedures export data into a format that's supported by JavaScript based visualisation tools.
 We may also want to export data into JSON format for importing into other tools or for general sharing of query results.

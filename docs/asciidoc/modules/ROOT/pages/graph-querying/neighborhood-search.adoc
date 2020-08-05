@@ -2,10 +2,7 @@
 = Neighbor Functions
 :description: This section describes procedures that can be used to find the nodes in the neighborhood of a specified node.
 
-[abstract]
---
-{description}
---
+
 
 The Neighborhood search procedures enable quick discovery of surrounding nodes based on a specific relationship type and number of hops.
 

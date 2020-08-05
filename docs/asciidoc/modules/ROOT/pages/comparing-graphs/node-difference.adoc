@@ -2,10 +2,7 @@
 = Diff
 :description: This section describes a function that displays the difference between two nodes.
 
-[abstract]
---
-{description}
---
+
 
 Diff is a user function to return a detailed diff between two nodes.
 

@@ -2,10 +2,7 @@
 = Couchbase
 :description: This section describes procedures that can be used to interact with Couchbase.
 
-[abstract]
---
-{description}
---
+
 
 
 // tag::couchbase[]

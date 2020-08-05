@@ -2,10 +2,7 @@
 = Path Manipulation
 :description: This section describes functions that can be used to do path operations.
 
-[abstract]
---
-{description}
---
+
 
 The functions in this section can be used to create, combine and split paths.
 

@@ -2,10 +2,7 @@
 = Graph Updates
 :description: This chapter describes procedures that can be used to perform graph updates.
 
-[abstract]
---
-{description}
---
+
 
 The APOC library adds extra functionality for writing to the database.
 

@@ -2,10 +2,7 @@
 = Periodic Execution
 :description: This section describes procedures that can be used to batch transactions when executing large write operations.
 
-[abstract]
---
-{description}
---
+
 
 Cypher is great for querying graphs and importing and updating graph structures.
 While during imports you can use `PERIODIC COMMIT` to control transaction sizes in memory, but for other graph refactorings it's not that easy to commit transactions regularly to free memory for new update state.

@@ -2,10 +2,7 @@
 = Static Value Storage
 :description: This section describes procedures and functions for storing and retrieving static values.
 
-[abstract]
---
-{description}
---
+
 
 The library has support for storing and retrieving static values, functionality that can be used to work with API credentials or cache query results.
 

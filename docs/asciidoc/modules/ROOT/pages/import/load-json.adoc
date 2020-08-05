@@ -2,10 +2,7 @@
 = Load JSON
 :description: This section describes procedures that can be used to import JSON data from web APIs or files.
 
-[abstract]
---
-{description}
---
+
 
 Web APIs are a huge opportunity to access and integrate data from any sources with your graph.
 Most of them provide the data is JSON format.

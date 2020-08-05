@@ -2,10 +2,7 @@
 = Node Querying
 :description: This section describes functions that can be used to query nodes.
 
-[abstract]
---
-{description}
---
+
 
 .Functions
 [cols="5m,5"]

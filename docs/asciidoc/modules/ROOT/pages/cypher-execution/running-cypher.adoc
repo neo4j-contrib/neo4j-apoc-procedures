@@ -2,10 +2,7 @@
 = Running Cypher fragments
 :description: This section describes procedures for running Cypher fragments.
 
-[abstract]
---
-{description}
---
+
 
 We can use Cypher as a safe, graph-aware, partially compiled scripting language within APOC.
 

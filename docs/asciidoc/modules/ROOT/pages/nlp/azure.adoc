@@ -2,10 +2,7 @@
 = Microsoft Azure Cognitive Services
 :description: This chapter describes procedures that wrap Microsoft Azure Cognitive Services API.
 
-[abstract]
---
-{description}
---
+
 
 The Microsoft Azure https://azure.microsoft.com/en-us/services/cognitive-services/[Cognitive Services API^] uses machine learning to find insights and relationships in text.
 The procedures in this chapter act as a wrapper around calls to this API to extract entities and key phrases and provide sentiment analysis from text stored as node properties.

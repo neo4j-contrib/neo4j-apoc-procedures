@@ -2,10 +2,7 @@
 = Deleting Data
 :description: This section describes procedures that can be used to delete graph data
 
-[abstract]
---
-{description}
---
+
 
 .Procedures
 [cols="5m,5"]

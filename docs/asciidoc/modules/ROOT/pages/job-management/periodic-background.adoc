@@ -2,10 +2,7 @@
 = Background Jobs
 :description: This section describes procedures that can be used to run procedures in the background or asynchronously.
 
-[abstract]
---
-{description}
---
+
 
 
 [cols="5m,5"]

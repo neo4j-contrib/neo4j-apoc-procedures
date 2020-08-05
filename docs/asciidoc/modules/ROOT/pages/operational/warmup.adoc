@@ -2,10 +2,7 @@
 = Warmup
 :description: This section describes a procedure that can be used to warm up the database.
 
-[abstract]
---
-{description}
---
+
 
 
 [cols="5m,5"]

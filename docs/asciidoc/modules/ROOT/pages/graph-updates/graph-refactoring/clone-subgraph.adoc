@@ -2,10 +2,7 @@
 = Clone subgraph
 :description: This section describes procedures that can be used to clone subgraphs.
 
-[abstract]
---
-{description}
---
+
 
 These procedures can be used to clone a subgraph defined either by a list of nodes and a list of relationships, or a list of paths.
 This is useful when you want to ensure the cloned subgraph isn't connected to the original nodes, or to nodes outside the subgraph.

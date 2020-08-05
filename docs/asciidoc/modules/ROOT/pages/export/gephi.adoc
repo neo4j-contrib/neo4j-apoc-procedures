@@ -2,10 +2,7 @@
 = Export to Gephi
 :description: This section describes a procedure that can be used to export data into the Gephi visualization tool.
 
-[abstract]
---
-{description}
---
+
 
 Gephi has a https://marketplace.gephi.org/plugin/graph-streaming/[streaming plugin], that can provide and accept https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master[JSON-graph-data] in a streaming fashion.
 The export to Gephi procedure sends data to this end point.

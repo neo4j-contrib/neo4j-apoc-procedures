@@ -2,10 +2,7 @@
 = Monitoring
 :description: This section describes procedures that can be used to monitor the database.
 
-[abstract]
---
-{description}
---
+
 
 
 [cols="5m,5"]

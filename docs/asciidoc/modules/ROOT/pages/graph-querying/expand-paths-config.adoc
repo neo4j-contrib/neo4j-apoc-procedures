@@ -2,10 +2,7 @@
 = Expand paths with config
 :description: This section describes a procedure that can be used to expand the paths of variable length path traversals, while providing configuration options.
 
-[abstract]
---
-{description}
---
+
 
 The expand paths with config procedure enables powerful variable length path traversals with fine grained control over the traversals.
 For a more basic version of the algorithm where fine grained control over traversals isn't required, see xref::graph-querying/expand-paths.adoc[].

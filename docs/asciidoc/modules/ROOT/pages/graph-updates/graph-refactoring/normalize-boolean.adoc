@@ -2,10 +2,7 @@
 = Normalize As Boolean
 :description: This section describes a procedure that can be used to translate string values to booleans.
 
-[abstract]
---
-{description}
---
+
 
 The available procedure is described in the table below:
 

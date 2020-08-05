@@ -2,10 +2,7 @@
 = Database Introspection
 :description: This chapter describes procedures that can be used to introspect the database.
 
-[abstract]
---
-{description}
---
+
 
 The APOC library adds extra tools for introspecting the database.
 

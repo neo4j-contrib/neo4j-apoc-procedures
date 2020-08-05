@@ -2,10 +2,7 @@
 = Config
 :description: This section describes procedures that can be used to list Neo4j configuration.
 
-[abstract]
---
-{description}
---
+
 
 [cols="5m,5"]
 |===

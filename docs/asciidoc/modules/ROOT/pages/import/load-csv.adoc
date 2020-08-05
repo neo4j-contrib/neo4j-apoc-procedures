@@ -2,10 +2,7 @@
 = Load CSV
 :description: This section describes procedures that can be used to import data from CSV files.
 
-[abstract]
---
-{description}
---
+
 
 Many existing applications and data integrations use CSV as the minimal denominator format.
 CSV files contain text with delimiters (most often comma, but also tab (TSV) and colon (DSV)) separating columns and newlines for rows.

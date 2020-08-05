@@ -2,10 +2,7 @@
 = Creating Data
 :description: This section describes functions that can be used to create data entities.
 
-[abstract]
---
-{description}
---
+
 
 The library has support for procedures that add to the write functionality that comes with Neo4j.
 Many of these procedures enable dynamic data creation, such as dynamically adding node labels and node or relationship properties.

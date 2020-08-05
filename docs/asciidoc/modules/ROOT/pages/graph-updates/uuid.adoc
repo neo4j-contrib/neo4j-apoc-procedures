@@ -2,10 +2,7 @@
 = UUIDs
 :description: This section describes procedures that can be used to add UUID properties to nodes.
 
-[abstract]
---
-{description}
---
+
 
 The library supports manual and automation generation of UUIDs, which can be stored as properties on nodes.
 

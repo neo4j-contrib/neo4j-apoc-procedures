@@ -2,10 +2,7 @@
 = Spatial
 :description: This section describes spatial procedures and functions.
 
-[abstract]
---
-{description}
---
+
 
 The spatial procedures enable geographic capabilities on your data, and complement the https://neo4j.com/docs/cypher-manual/current/functions/spatial/[spatial functions^] that come with Neo4j.
 More extensive Spatial functionality can be found in the https://neo4j-contrib.github.io/spatial/0.24-neo4j-3.1/index.html[Neo4j Spatial Library^].

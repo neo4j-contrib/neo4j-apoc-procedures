@@ -2,10 +2,7 @@
 = Export to GraphML
 :description: This section describes procedures that can be used to export data in GraphML format.
 
-[abstract]
---
-{description}
---
+
 
 The export GraphML procedures export data into a format that's used by other tools like Gephi and CytoScape to read graph data.
 

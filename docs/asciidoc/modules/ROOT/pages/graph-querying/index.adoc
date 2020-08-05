@@ -2,10 +2,7 @@
 = Advanced Graph Querying
 :description: This chapter describes advanced graph querying procedures in the APOC library.
 
-[abstract]
---
-{description}
---
+
 
 The procedures in this chapter enable the querying of graph data when pure Cypher isn't enough.
 For more information on how to use these procedures, see:

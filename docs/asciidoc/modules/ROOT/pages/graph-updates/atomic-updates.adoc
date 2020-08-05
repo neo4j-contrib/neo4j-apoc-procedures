@@ -2,10 +2,7 @@
 = Atomic Property Updates
 :description: This section describes algorithm that can be used for thread safe updating of properties on nodes and relationships.
 
-[abstract]
---
-{description}
---
+
 
 Atomic procedures handle the concurrency, it's add a lock to the resource.
 If two users access to the same resource at the same time, with the parameter `times` (default value 5) we can determine how many time retry to modify the resource, until the lock is release.

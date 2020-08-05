@@ -2,10 +2,7 @@
 = Import CSV
 :description: This section describes procedures that can be used to import data from CSV files that comply with the Neo4j import tool’s header format.
 
-[abstract]
---
-{description}
---
+
 
 CSV files that comply with the https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/[Neo4j import tool's header format] can be imported using the `apoc.import.csv` procedure.
 This procedure can be used to load small- to medium-sized data sets in an online database.

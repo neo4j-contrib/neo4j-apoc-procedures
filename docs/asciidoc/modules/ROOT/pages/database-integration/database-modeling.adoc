@@ -2,10 +2,7 @@
 = Database Modeling
 :description: This section describes procedures that can be used to extract metadata from different data sources.
 
-[abstract]
---
-{description}
---
+
 
 
 This new package provides a set of function in order to extract metadata information from different data sources such as RDBMS, JSON file etc

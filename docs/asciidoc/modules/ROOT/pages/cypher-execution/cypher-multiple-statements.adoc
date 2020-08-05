@@ -2,10 +2,7 @@
 = Run multiple Statements
 :description: This section describes procedures that can be used to execute multiple Cypher statements.
 
-[abstract]
---
-{description}
---
+
 
 This procedure runs each semicolon separated statement and returns summary - currently no schema operations.
 

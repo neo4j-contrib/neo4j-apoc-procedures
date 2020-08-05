@@ -2,10 +2,7 @@
 = MongoDB
 :description: This section describes procedures that can be used to interact with MongoDB.
 
-[abstract]
---
-{description}
---
+
 
 [[mongodb-procedures]]
 == Available Procedures

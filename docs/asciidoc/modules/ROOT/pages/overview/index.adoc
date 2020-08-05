@@ -2,10 +2,7 @@
 = Procedures & Functions
 :description: This chapter provides a reference of all the procedures and functions in the APOC library.
 
-[abstract]
---
-{description}
---
+
 
 
 //[[table-all]]

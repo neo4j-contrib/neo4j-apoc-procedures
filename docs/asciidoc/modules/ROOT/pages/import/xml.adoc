@@ -2,10 +2,7 @@
 = Load XML
 :description: This section describes procedures that can be used to import data from XML files.
 
-[abstract]
---
-{description}
---
+
 
 Many existing enterprise applications, endpoints, and files use XML as data exchange format.
 The Load XML procedures allow us to process these files.

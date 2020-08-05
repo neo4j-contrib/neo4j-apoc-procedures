@@ -2,10 +2,7 @@
 = Path Finding Procedures
 :description: This section describes procedures that expose Neo4j's in-built path finding algorithms.
 
-[abstract]
---
-{description}
---
+
 
 APOC exposes some built in path-finding functions that Neo4j brings along.
 

@@ -2,10 +2,7 @@
 = Conditional Cypher Execution
 :description: This section describes procedures and functions for conditionally executing Cypher statements.
 
-[abstract]
---
-{description}
---
+
 
 Sometimes queries require conditional execution logic that can't be adequately expressed in Cypher.
 The conditional execution procedures simulate an if / else structure, where a supplied boolean condition determines which cypher query is executed.

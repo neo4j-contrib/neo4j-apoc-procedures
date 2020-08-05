@@ -2,10 +2,7 @@
 = Deprecated: Similarity
 :description: This section describes similarity algorithms in the APOC library.
 
-[abstract]
---
-{description}
---
+
 
 [cols="3m,3"]
 |===

@@ -2,10 +2,7 @@
 = Amazon Web Services (AWS)
 :description: This chapter describes procedures that wrap Amazon Web Services Comprehend Natural Language API.
 
-[abstract]
---
-{description}
---
+
 
 The Amazon Web Services (AWS) https://docs.aws.amazon.com/comprehend/index.html[Comprehend Natural Language API^] uses machine learning to find insights and relationships in text.
 The procedures in this chapter act as a wrapper around calls to this API to extract entities and key phrases from text stored as node properties.

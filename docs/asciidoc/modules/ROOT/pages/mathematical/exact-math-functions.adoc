@@ -2,10 +2,7 @@
 = Exact Math
 :description: This section describes functions that can be used to do high precision arithmetic.
 
-[abstract]
---
-{description}
---
+
 
 == Handle BigInteger And BigDecimal
 

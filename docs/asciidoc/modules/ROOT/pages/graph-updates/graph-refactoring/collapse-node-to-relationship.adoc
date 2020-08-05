@@ -2,10 +2,7 @@
 = Collapse node to relationship
 :description: This section describes a procedure that can be used to collapse a node into a relationship.
 
-[abstract]
---
-{description}
---
+
 
 The available procedure is described in the table below:
 

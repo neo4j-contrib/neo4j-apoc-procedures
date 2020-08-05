@@ -2,10 +2,7 @@
 = Run Cypher Script Files
 :description: This section describes procedures that can be used to execute files that contain Cypher statements.
 
-[abstract]
---
-{description}
---
+
 
 Runs each statement in the file / each file, all semicolon separated
 

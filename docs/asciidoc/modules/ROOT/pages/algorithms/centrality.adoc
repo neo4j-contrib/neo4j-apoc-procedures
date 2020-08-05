@@ -2,10 +2,7 @@
 = Removed: Centrality Algorithms
 :description: This section describes centrality algorithms in the APOC library.
 
-[abstract]
---
-{description}
---
+
 
 These algorithms have been deprecated by the https://neo4j.com/docs/graph-data-science/current/[Graph Data Science Library^], which has more performant and battle hardened versions of the algorithms.
 

@@ -2,10 +2,7 @@
 = Expand paths
 :description: This section describes a procedure that can be used to expand the paths of variable length path traversals.
 
-[abstract]
---
-{description}
---
+
 
 The expand paths procedure is the most basic of the xref::graph-querying/path-expander.adoc[path expanders].
 This procedure enables path traversals based on relationship filters and node filters.

@@ -2,10 +2,7 @@
 = Math Functions
 :description: This section describes functions for common math operations.
 
-[abstract]
---
-{description}
---
+
 
 [cols="5m,5"]
 |===

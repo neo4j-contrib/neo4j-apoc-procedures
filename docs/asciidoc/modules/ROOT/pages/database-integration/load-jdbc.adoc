@@ -2,10 +2,7 @@
 = Load JDBC (RDBMS)
 :description: This section describes procedures that can be used to import data from databases that have JDBC support.
 
-[abstract]
---
-{description}
---
+
 
 Data Integration is an important topic.
 Reading data from relational databases to create and augment data models is a very helpful exercise.

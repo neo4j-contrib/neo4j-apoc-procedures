@@ -2,10 +2,7 @@
 = Map Functions
 :description: This section describes functions for working with maps.
 
-[abstract]
---
-{description}
---
+
 
 ifdef::backend-html5[]
 ++++

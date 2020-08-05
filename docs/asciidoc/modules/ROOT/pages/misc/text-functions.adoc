@@ -2,10 +2,7 @@
 = Text Functions
 :description: This section describes functions that can be used for string manipulation, comparison, and filtering.
 
-[abstract]
---
-{description}
---
+
 
 Cypher has some basic functions to work with text like
 

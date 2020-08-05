@@ -2,10 +2,7 @@
 = Virtual Nodes & Relationships (Graph Projections)
 :description: This chapter describes virtual node and relationship procedures in the APOC library.
 
-[abstract]
---
-{description}
---
+
 
 Virtual Nodes and Relationships don't exist in the graph, they are only returned by a query, and can be used to represent a graph projection.
 

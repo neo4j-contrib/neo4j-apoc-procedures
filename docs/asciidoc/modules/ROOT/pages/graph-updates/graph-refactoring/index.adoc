@@ -2,10 +2,7 @@
 = Graph Refactorings
 :description: This section describes graph refactoring procedures in the APOC library.
 
-[abstract]
---
-{description}
---
+
 
 Given the agile approach taken towards building graph models, graph refactoring (or migration) is something that all graph based projects will have to do at some stage.
 While many graph refactorings can be done using Cypher directly, the APOC library provides tools to make the process easier.

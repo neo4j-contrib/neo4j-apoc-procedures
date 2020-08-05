@@ -2,10 +2,7 @@
 = Cypher Execution
 :description: This chapter describes Cypher Execution procedures in the APOC library.
 
-[abstract]
---
-{description}
---
+
 
 This section includes:
 

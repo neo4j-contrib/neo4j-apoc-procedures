@@ -2,10 +2,7 @@
 = Virtual Nodes/Rels
 :description: This section describes procedures that create virtual nodes and relationships.
 
-[abstract]
---
-{description}
---
+
 
 
 Virtual Nodes and Relationships don't exist in the graph, they are only returned to the UI/user for representing a graph projection.

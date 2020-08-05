@@ -2,10 +2,7 @@
 = Clone nodes
 :description: This section describes procedures that can be used to clone nodes and relationships.
 
-[abstract]
---
-{description}
---
+
 
 The available procedures are described in the table below:
 

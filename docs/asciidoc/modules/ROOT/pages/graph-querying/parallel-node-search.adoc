@@ -2,10 +2,7 @@
 = Parallel Node Search
 :description: This section describes procedures that can be used to find nodes in parallel.
 
-[abstract]
---
-{description}
---
+
 
 Utility to find nodes in parallel (if possible).
 These procedures return a single list of nodes or a list of 'reduced' records with node id, labels, and the properties where the search was executed upon.

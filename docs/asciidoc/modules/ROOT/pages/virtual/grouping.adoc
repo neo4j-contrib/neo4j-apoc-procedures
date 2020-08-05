@@ -2,10 +2,7 @@
 = Graph Grouping
 :description: This section describes procedures that can be used to group nodes by property values to create virtual nodes for graph visualizations.
 
-[abstract]
---
-{description}
---
+
 
 
 Large graphs are often hard to understand or visualize.

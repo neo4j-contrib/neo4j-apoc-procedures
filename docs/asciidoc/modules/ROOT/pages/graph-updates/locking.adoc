@@ -2,10 +2,7 @@
 = Locking
 :description: This section describes functions that can be used to acquire locks on nodes and relationships.
 
-[abstract]
---
-{description}
---
+
 
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===

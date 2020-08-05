@@ -2,10 +2,7 @@
 = Load HTML
 :description: This section describes procedures that can be used to import data from HTML pages.
 
-[abstract]
---
-{description}
---
+
 
 Scraping Data from Html Pages.
 

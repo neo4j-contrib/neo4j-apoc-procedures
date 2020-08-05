@@ -2,10 +2,7 @@
 = Merge Nodes
 :description: This section describes procedures that can be used to merge nodes.
 
-[abstract]
---
-{description}
---
+
 
 We can merge a list of nodes onto the first one in the list.
 All relationships are merged onto that node too.

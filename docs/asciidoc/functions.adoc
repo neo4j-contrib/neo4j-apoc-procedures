@@ -2,10 +2,7 @@
 = User Defined Functions
 :description: This chapter describes gives an overview of user defined features, and summarises the functions in the APOC library.
 
-[abstract]
---
-{description}
---
+
 
 
 Introduced in Neo4j 3.1.0-M10

@@ -2,10 +2,7 @@
 = Relationship Querying
 :description: This section describes procedures that can be used to query relationships.
 
-[abstract]
---
-{description}
---
+
 
 .Functions
 [cols="5m,5"]

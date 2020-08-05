@@ -2,10 +2,7 @@
 = Fingerprinting
 :description: This section describes procedures that can be used to create a hash over nodes, relationships or the whole graph.
 
-[abstract]
---
-{description}
---
+
 
 The following functions calculate hashsums over nodes, relationship or the entire graph.
 It takes into account all properties, node labels and relationship types.

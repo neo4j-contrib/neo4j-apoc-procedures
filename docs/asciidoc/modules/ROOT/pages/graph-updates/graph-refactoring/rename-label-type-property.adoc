@@ -2,10 +2,7 @@
 = Rename
 :description: This section describes procedures that can be used to rename labels, relationship types, and properties of nodes and relationships.
 
-[abstract]
---
-{description}
---
+
 
 Procedures set for renaming labels, relationship types, nodes and relationships' properties.
 They return the list of eventually impacted constraints and indexes, the user should take care of.

@@ -2,10 +2,7 @@
 = Bitwise operations
 :description: This section describes procedures that can be used for doing bitwise operations.
 
-[abstract]
---
-{description}
---
+
 
 // TODO function
 

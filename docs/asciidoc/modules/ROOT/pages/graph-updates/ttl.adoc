@@ -2,10 +2,7 @@
 = Time To Live (TTL) - Expire Nodes
 :description: This section describes procedures that can be used to remove nodes from the database once a time or time limit has been reached.
 
-[abstract]
---
-{description}
---
+
 
 Some nodes are not meant to live forever.
 That's why with APOC you can specify a time by when they are removed from the database, by utilizing a schema index and an additional label.

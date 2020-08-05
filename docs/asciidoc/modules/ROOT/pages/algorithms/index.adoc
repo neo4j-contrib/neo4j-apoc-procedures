@@ -2,10 +2,7 @@
 = Graph Algorithms
 :description: This chapter describes graph algorithms in the APOC library.
 
-[abstract]
---
-{description}
---
+
 
 include::partial$deprecated.adoc[]
 

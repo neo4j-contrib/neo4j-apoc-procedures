@@ -2,10 +2,7 @@
 = Date and Time Conversions
 :description: This section describes functions for working with dates and times.
 
-[abstract]
---
-{description}
---
+
 
 Dates and times can show up in a variety of formats and configurations, often requiring translations or conversions for data storage systems, reports, web pages, and more.
 The APOC date functions allow users to take these Long or String values and manipulate them for different types of format requirements.

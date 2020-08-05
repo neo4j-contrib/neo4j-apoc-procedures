@@ -2,10 +2,7 @@
 = Virtual Graph
 :description: This section describes procedures that create virtual graphs from Cypher queries or JSON documents.
 
-[abstract]
---
-{description}
---
+
 
 Create a graph object (map) from information that's passed in.
 It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}`

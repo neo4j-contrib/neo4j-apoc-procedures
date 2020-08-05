@@ -2,10 +2,7 @@
 = Data Structures
 :description: This chapter describes functions and procedures in the APOC library that can be used to manipulate data structures.
 
-[abstract]
---
-{description}
---
+
 
 Cypher brings along some basic functions for math, text, collections and maps.
 

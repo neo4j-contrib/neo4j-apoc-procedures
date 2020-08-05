@@ -2,10 +2,7 @@
 = Expand a spanning tree
 :description: This section describes a procedure that finds a spanning tree that starts from a set of start nodes.
 
-[abstract]
---
-{description}
---
+
 
 Expands a spanning tree reachable from start node following relationships to max-level adhering to the label filters.
 The paths returned collectively form a spanning tree.
