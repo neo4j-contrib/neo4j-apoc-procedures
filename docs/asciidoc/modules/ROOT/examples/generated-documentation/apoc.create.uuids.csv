@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.create.uuids¦apoc.create.uuids(count :: INTEGER?) :: (row :: INTEGER?, uuid :: STRING?)¦apoc.create.uuids(count) yield uuid - creates 'count' UUIDs 

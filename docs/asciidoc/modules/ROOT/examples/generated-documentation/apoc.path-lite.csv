@@ -1,0 +1,10 @@
+¦signature
+¦apoc.path.expand(start :: ANY?, relationshipFilter :: STRING?, labelFilter :: STRING?, minLevel :: INTEGER?, maxLevel :: INTEGER?) :: (path :: PATH?)
+¦apoc.path.expandConfig(start :: ANY?, config :: MAP?) :: (path :: PATH?)
+¦apoc.path.spanningTree(start :: ANY?, config :: MAP?) :: (path :: PATH?)
+¦apoc.path.subgraphAll(start :: ANY?, config :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)
+¦apoc.path.subgraphNodes(start :: ANY?, config :: MAP?) :: (node :: NODE?)
+¦apoc.path.combine(first :: PATH?, second :: PATH?) :: (PATH?)
+¦apoc.path.create(startNode :: NODE?, rels = [] :: LIST? OF RELATIONSHIP?) :: (PATH?)
+¦apoc.path.elements(path :: PATH?) :: (LIST? OF ANY?)
+¦apoc.path.slice(path :: PATH?, offset = 0 :: INTEGER?, length = -1 :: INTEGER?) :: (PATH?)

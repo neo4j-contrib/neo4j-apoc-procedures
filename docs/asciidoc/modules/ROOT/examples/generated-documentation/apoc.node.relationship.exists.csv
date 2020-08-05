@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.node.relationship.exists¦apoc.node.relationship.exists(node :: NODE?, types =  :: STRING?) :: (BOOLEAN?)¦apoc.node.relationship.exists(node, rel-direction-pattern) - returns true when the node has the relationships of the pattern

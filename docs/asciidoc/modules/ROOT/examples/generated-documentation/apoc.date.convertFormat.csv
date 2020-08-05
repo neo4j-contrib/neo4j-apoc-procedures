@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.date.convertFormat¦apoc.date.convertFormat(temporal :: STRING?, currentFormat :: STRING?, convertTo = yyyy-MM-dd :: STRING?) :: (STRING?)¦apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time', 'iso_date_time') convert a String of one date format into a String of another date format.

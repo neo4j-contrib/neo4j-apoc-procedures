@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.create.vNodes¦apoc.create.vNodes(label :: LIST? OF STRING?, props :: LIST? OF MAP?) :: (node :: NODE?)¦apoc.create.vNodes(['Label'], [{key:value,...}]) returns virtual nodes

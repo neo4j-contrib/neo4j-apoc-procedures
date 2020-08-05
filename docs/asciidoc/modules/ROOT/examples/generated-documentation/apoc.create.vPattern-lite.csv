@@ -1,0 +1,2 @@
+¦signature
+¦apoc.create.vPattern(from :: MAP?, relType :: STRING?, props :: MAP?, to :: MAP?) :: (from :: NODE?, rel :: RELATIONSHIP?, to :: NODE?)

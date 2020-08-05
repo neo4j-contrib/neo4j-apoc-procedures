@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.date.convert¦apoc.date.convert(time :: INTEGER?, unit :: STRING?, toUnit :: STRING?) :: (INTEGER?)¦apoc.date.convert(12345, 'ms', 'd') convert a timestamp in one time unit into one of a different time unit

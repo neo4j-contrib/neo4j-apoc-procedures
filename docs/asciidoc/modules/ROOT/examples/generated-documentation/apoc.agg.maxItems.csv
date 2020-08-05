@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.agg.maxItems¦apoc.agg.maxItems(item :: ANY?, value :: ANY?, groupLimit = -1 :: INTEGER?) :: (ANY?)¦apoc.agg.maxItems(item, value, groupLimit: -1) - returns a map {items:[], value:n} where `value` is the maximum value present, and `items` are all items with the same value. The number of items can be optionally limited.

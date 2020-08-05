@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.log.info¦apoc.log.info(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID¦apoc.log.info(message, params) - logs info message

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.convert.toString(string :: ANY?) :: (STRING?)

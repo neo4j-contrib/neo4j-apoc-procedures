@@ -1,0 +1,39 @@
+[[invert-relationship]]
+= Invert relationship
+:description: This section describes a procedure that can be used to invert the direction of relationships.
+
+
+
+The available procedure is described in the table below:
+
+[cols="5m,5"]
+|===
+| call apoc.refactor.invert(rel) | inverts relationship direction
+|===
+
+
+== Example Usage
+
+The example below will help us learn how to use this procedure.
+
+.The following creates a graph containing two nodes connected by a relationship:
+
+[source,cypher]
+----
+CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
+----
+
+image::apoc.refactor.invert.dataset.png[scaledwidth="100%"]
+
+.The following inverts the direction of the relationship:
+[source,cypher]
+----
+MATCH (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
+CALL apoc.refactor.invert(rel)
+yield input, output
+RETURN input, output
+----
+
+If we execute this query, it will result in the following graph:
+
+image::apoc.refactor.invert.png[scaledwidth="100%"]

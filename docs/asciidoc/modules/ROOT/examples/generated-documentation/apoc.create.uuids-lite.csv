@@ -1,0 +1,2 @@
+¦signature
+¦apoc.create.uuids(count :: INTEGER?) :: (row :: INTEGER?, uuid :: STRING?)

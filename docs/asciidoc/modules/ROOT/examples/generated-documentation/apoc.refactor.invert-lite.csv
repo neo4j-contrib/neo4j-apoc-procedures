@@ -1,0 +1,2 @@
+¦signature
+¦apoc.refactor.invert(relationship :: RELATIONSHIP?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)

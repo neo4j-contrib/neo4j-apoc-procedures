@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.algo.dijkstra¦apoc.algo.dijkstra(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, weightPropertyName :: STRING?, defaultWeight = NaN :: FLOAT?, numberOfWantedPaths = 1 :: INTEGER?) :: (path :: PATH?, weight :: FLOAT?)¦apoc.algo.dijkstra(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 'distance', defaultValue, numberOfWantedResults) YIELD path, weight - run dijkstra with relationship property name as cost function

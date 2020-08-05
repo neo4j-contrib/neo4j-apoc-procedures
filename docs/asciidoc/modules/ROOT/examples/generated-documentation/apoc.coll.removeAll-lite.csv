@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.removeAll(first :: LIST? OF ANY?, second :: LIST? OF ANY?) :: (LIST? OF ANY?)

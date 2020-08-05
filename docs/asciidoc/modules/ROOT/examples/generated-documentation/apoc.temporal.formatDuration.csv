@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.temporal.formatDuration¦apoc.temporal.formatDuration(input :: ANY?, format :: STRING?) :: (STRING?)¦apoc.temporal.formatDuration(input, format) | Format a Duration

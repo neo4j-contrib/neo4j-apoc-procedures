@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.create.relationship¦apoc.create.relationship(from :: NODE?, relType :: STRING?, props :: MAP?, to :: NODE?) :: (rel :: RELATIONSHIP?)¦apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) create relationship with dynamic rel-type

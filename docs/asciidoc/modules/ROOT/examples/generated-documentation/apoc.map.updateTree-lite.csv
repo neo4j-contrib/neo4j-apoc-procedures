@@ -1,0 +1,2 @@
+¦signature
+¦apoc.map.updateTree(tree :: MAP?, key :: STRING?, data :: LIST? OF LIST? OF ANY?) :: (MAP?)

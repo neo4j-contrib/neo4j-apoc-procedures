@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.flatten(coll :: LIST? OF ANY?, recursive = false :: BOOLEAN?) :: (LIST? OF ANY?)

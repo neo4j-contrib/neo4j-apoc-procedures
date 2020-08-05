@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.swapCase¦apoc.text.swapCase(text :: STRING?) :: (STRING?)¦apoc.text.swapCase(text) YIELD value - Swap the case of a string

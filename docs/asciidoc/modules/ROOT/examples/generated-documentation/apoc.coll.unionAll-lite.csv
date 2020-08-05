@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.unionAll(first :: LIST? OF ANY?, second :: LIST? OF ANY?) :: (LIST? OF ANY?)

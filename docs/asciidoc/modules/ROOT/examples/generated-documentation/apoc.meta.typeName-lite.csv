@@ -1,0 +1,2 @@
+¦signature
+¦apoc.meta.typeName(value :: ANY?) :: (STRING?)

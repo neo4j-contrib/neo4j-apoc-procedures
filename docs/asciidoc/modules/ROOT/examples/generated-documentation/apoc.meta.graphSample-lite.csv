@@ -1,0 +1,2 @@
+¦signature
+¦apoc.meta.graphSample(config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)

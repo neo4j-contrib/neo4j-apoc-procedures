@@ -1,0 +1,2 @@
+¦signature
+¦apoc.node.id(node :: NODE?) :: (INTEGER?)

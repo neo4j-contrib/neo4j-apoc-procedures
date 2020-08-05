@@ -1,0 +1,2 @@
+¦signature
+¦apoc.custom.removeProcedure(name :: STRING?) :: VOID

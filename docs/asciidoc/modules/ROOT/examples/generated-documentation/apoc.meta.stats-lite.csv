@@ -1,0 +1,2 @@
+¦signature
+¦apoc.meta.stats() :: (labelCount :: INTEGER?, relTypeCount :: INTEGER?, propertyKeyCount :: INTEGER?, nodeCount :: INTEGER?, relCount :: INTEGER?, labels :: MAP?, relTypes :: MAP?, relTypesCount :: MAP?, stats :: MAP?)

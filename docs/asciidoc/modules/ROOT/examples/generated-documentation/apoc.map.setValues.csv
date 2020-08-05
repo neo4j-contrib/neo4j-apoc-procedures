@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.map.setValues¦apoc.map.setValues(map :: MAP?, pairs :: LIST? OF ANY?) :: (MAP?)¦apoc.map.setValues(map,[key1,value1,key2,value2])

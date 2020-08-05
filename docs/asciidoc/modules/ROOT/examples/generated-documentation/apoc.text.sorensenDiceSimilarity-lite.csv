@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.sorensenDiceSimilarity(text1 :: STRING?, text2 :: STRING?, languageTag = en :: STRING?) :: (FLOAT?)

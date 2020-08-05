@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.map.groupByMulti¦apoc.map.groupByMulti(values :: LIST? OF ANY?, key :: STRING?) :: (MAP?)¦apoc.map.groupByMulti([maps/nodes/relationships],'key') yield value - creates a map of the list keyed by the given property, with list values

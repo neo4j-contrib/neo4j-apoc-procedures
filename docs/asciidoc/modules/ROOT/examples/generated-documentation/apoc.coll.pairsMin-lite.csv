@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.pairsMin(list :: LIST? OF ANY?) :: (LIST? OF ANY?)

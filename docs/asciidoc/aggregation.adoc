@@ -1,6 +1,6 @@
 == Aggregation Functions
 
-[cols="1m,5"]
+[cols="5m,5"]
 |===
 | apoc.agg.nth(value,offset) | returns non-null value of nth row (or -1 for last) offset is 0 based
 | apoc.agg.first(value) | returns first non-null value

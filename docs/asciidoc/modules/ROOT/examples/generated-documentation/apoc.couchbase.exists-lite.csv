@@ -1,0 +1,2 @@
+¦signature
+¦apoc.couchbase.exists(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?) :: (value :: BOOLEAN?)

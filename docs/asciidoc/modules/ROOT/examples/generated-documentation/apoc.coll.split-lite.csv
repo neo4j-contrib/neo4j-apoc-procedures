@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.split(values :: LIST? OF ANY?, value :: ANY?) :: (value :: LIST? OF ANY?)

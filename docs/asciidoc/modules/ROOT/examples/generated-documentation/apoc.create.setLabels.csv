@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.create.setLabels¦apoc.create.setLabels(nodes :: ANY?, label :: LIST? OF STRING?) :: (node :: NODE?)¦apoc.create.setLabels( [node,id,ids,nodes], ['Label',...]) - sets the given labels, non matching labels are removed on the node or nodes

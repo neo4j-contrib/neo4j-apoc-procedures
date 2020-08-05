@@ -1,0 +1,2 @@
+¦signature
+¦apoc.export.cypherData(nodes :: LIST? OF NODE?, rels :: LIST? OF RELATIONSHIP?, file :: STRING?, config :: MAP?) :: (file :: STRING?, batches :: INTEGER?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, cypherStatements :: STRING?, nodeStatements :: STRING?, relationshipStatements :: STRING?, schemaStatements :: STRING?, cleanupStatements :: STRING?)

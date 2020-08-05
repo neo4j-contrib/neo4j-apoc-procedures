@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.number.exact.div¦apoc.number.exact.div(stringA :: STRING?, stringB :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (STRING?)¦apoc.number.exact.div(stringA,stringB,[prec],[roundingModel]) - return the division's result of two large numbers

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.map.flatten¦apoc.map.flatten(map :: MAP?, delimiter = . :: STRING?) :: (MAP?)¦apoc.map.flatten(map, delimiter:'.') yield map - flattens nested items in map using dot notation

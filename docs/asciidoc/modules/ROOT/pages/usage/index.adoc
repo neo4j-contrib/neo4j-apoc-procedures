@@ -1,0 +1,21 @@
+[[usage]]
+= Usage
+
+// tag::usage[]
+User defined *Functions* can be used in *any* expression or predicate, just like built-in functions.
+
+*Procedures* can be called stand-alone with `CALL procedure.name();`
+
+But you can also integrate them into your Cypher statements which makes them so much more powerful.
+
+.Load JSON example
+[source,cypher,subs=attributes]
+----
+WITH 'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/person.json' AS url
+
+CALL apoc.load.json(url) YIELD value as person
+
+MERGE (p:Person {name:person.name})
+   ON CREATE SET p.age = person.age, p.children = size(person.children)
+----
+// end::usage[]

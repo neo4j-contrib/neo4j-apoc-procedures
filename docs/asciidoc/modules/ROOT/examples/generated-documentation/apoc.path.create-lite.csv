@@ -1,0 +1,2 @@
+¦signature
+¦apoc.path.create(startNode :: NODE?, rels = [] :: LIST? OF RELATIONSHIP?) :: (PATH?)

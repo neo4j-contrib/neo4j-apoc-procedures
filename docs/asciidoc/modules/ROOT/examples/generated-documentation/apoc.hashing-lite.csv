@@ -1,0 +1,4 @@
+¦signature
+¦apoc.hashing.fingerprint(some object :: ANY?, propertyExcludes = [] :: LIST? OF STRING?) :: (STRING?)
+¦apoc.hashing.fingerprintGraph(propertyExcludes = [] :: LIST? OF STRING?) :: (STRING?)
+¦apoc.hashing.fingerprinting(some object :: ANY?, conf = {} :: MAP?) :: (STRING?)

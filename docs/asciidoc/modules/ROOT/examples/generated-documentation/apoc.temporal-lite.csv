@@ -1,0 +1,4 @@
+¦signature
+¦apoc.temporal.format(temporal :: ANY?, format = yyyy-MM-dd :: STRING?) :: (STRING?)
+¦apoc.temporal.formatDuration(input :: ANY?, format :: STRING?) :: (STRING?)
+¦apoc.temporal.toZonedTemporal(time :: STRING?, format = yyyy-MM-dd HH:mm:ss :: STRING?, timezone = UTC :: STRING?) :: (DATETIME?)

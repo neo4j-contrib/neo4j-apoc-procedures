@@ -1,0 +1,8 @@
+¦signature
+¦apoc.mongodb.count(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?) :: (value :: INTEGER?)
+¦apoc.mongodb.delete(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?) :: (value :: INTEGER?)
+¦apoc.mongodb.find(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, project :: MAP?, sort :: MAP?, compatibleValues = false :: BOOLEAN?, skip = 0 :: INTEGER?, limit = 0 :: INTEGER?, extractReferences = false :: BOOLEAN?, objectIdAsMap = true :: BOOLEAN?) :: (value :: MAP?)
+¦apoc.mongodb.first(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, compatibleValues = true :: BOOLEAN?, extractReferences = false :: BOOLEAN?, objectIdAsMap = true :: BOOLEAN?) :: (value :: MAP?)
+¦apoc.mongodb.get(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, compatibleValues = false :: BOOLEAN?, skip = 0 :: INTEGER?, limit = 0 :: INTEGER?, extractReferences = false :: BOOLEAN?, objectIdAsMap = true :: BOOLEAN?) :: (value :: MAP?)
+¦apoc.mongodb.insert(host :: STRING?, db :: STRING?, collection :: STRING?, documents :: LIST? OF MAP?) :: VOID
+¦apoc.mongodb.update(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, update :: MAP?) :: (value :: INTEGER?)

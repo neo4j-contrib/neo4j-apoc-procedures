@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.shuffle¦apoc.coll.shuffle(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.shuffle(coll) - returns the shuffled list

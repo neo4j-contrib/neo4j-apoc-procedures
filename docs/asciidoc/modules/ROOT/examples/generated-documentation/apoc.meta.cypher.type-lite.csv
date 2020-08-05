@@ -1,0 +1,2 @@
+¦signature
+¦apoc.meta.cypher.type(value :: ANY?) :: (STRING?)

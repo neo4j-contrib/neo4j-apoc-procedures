@@ -1,0 +1,121 @@
+[[temporal-conversions]]
+= Temporal Functions
+:description: This section describes functions that can be used to format temporal values.
+
+
+
+These functions can be used to format temporal values using a valid `DateTimeFormatter` pattern.
+
+
+== Formatting Temporal Types
+
+You can pass through any temporal type (Date, Time, DateTime, LocalTime, LocalDateTime, Duration) along with a pattern.
+Please note that if the pattern is invalid for the value that you pass in (for example `HH` for hours on a Date value or `DD` for day on a Time value),
+an Exception will be thrown.
+
+.Format as date
+[source,cypher]
+----
+RETURN apoc.temporal.format( date(), 'YYYY-MM-dd') AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "2019-06-24"
+|===
+
+
+.Format as date and time
+[source,cypher]
+----
+RETURN apoc.temporal.format( datetime(), 'YYYY-MM-dd HH:mm:ss.SSSSZ') AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "2019-06-24 13:56:56.8550+0000"
+|===
+
+.Format as time
+[source,cypher]
+----
+RETURN apoc.temporal.format( localtime(), 'HH:mm:ss.SSSS') AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "13:57:31.9250"
+|===
+
+
+https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html[View full pattern listing]
+
+You can also pass a ISO DATE TIME pattern, the list is available here
+https://www.elastic.co/guide/en/elasticsearch/reference/5.5/mapping-date-format.html#built-in-date-formats[ISO_DATE]
+
+For example:
+
+
+.Format as date
+[source,cypher]
+----
+RETURN apoc.temporal.format( date( { year: 2018, month: 12, day: 10 } ), 'date' ) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "2018-12-10"
+|===
+
+
+.Format as date and time
+[source,cypher]
+----
+RETURN apoc.temporal.format( localdatetime( { year: 2018, month: 12, day: 10, hour: 12, minute: 34, second: 56, nanosecond: 123456789 } ), 'ISO_LOCAL_DATE_TIME' ) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "2018-12-10T12:34:56.123456789"
+|===
+
+.Format as date
+[source,cypher]
+----
+RETURN apoc.temporal.format( date( { year: 2018, month: 12, day: 10 } ), 'ISO_DATE' ) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "2018-12-10"
+|===
+
+== Formatting Durations
+
+When attempting to format a duration, the procedure will attempt to create a date (01/01/0000) and add the duration.
+This allows you to provide a consistent format as above.
+
+.Format as duration
+[source,cypher]
+----
+RETURN apoc.temporal.format( duration.between( datetime.transaction(), datetime.realtime() ) , 'HH:mm:ss.SSSS') AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "00:00:00.0110"
+|===

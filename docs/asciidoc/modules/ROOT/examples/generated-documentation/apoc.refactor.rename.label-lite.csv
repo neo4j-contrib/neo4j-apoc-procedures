@@ -1,0 +1,2 @@
+¦signature
+¦apoc.refactor.rename.label(oldLabel :: STRING?, newLabel :: STRING?, nodes = [] :: LIST? OF NODE?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, constraints :: LIST? OF STRING?, indexes :: LIST? OF STRING?)

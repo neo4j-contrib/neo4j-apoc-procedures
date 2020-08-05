@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.isEqualCollection(coll :: LIST? OF ANY?, values :: LIST? OF ANY?) :: (BOOLEAN?)

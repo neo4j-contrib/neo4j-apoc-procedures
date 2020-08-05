@@ -1,0 +1,2 @@
+¦signature
+¦apoc.mongodb.find(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, project :: MAP?, sort :: MAP?, compatibleValues = false :: BOOLEAN?, skip = 0 :: INTEGER?, limit = 0 :: INTEGER?, extractReferences = false :: BOOLEAN?, objectIdAsMap = true :: BOOLEAN?) :: (value :: MAP?)

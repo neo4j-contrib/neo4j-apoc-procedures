@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.map.mget¦apoc.map.mget(map :: MAP?, keys :: LIST? OF STRING?, values = [] :: LIST? OF ANY?, fail = true :: BOOLEAN?) :: (LIST? OF ANY?)¦apoc.map.mget(map,key,[defaults],[fail=true])  - returns list of values for keys or throws exception if one of the key doesn't exist and no default value given at that position

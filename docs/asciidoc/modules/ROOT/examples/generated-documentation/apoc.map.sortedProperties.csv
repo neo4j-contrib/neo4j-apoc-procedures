@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.map.sortedProperties¦apoc.map.sortedProperties(map :: MAP?, ignoreCase = true :: BOOLEAN?) :: (LIST? OF ANY?)¦apoc.map.sortedProperties(map, ignoreCase:true) - returns a list of key/value list pairs, with pairs sorted by keys alphabetically, with optional case sensitivity

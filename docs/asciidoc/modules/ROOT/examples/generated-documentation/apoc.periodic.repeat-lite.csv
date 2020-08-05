@@ -1,0 +1,2 @@
+¦signature
+¦apoc.periodic.repeat(name :: STRING?, statement :: STRING?, rate :: INTEGER?, config = {} :: MAP?) :: (name :: STRING?, delay :: INTEGER?, rate :: INTEGER?, done :: BOOLEAN?, cancelled :: BOOLEAN?)

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.refactor.mergeNodes(nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (node :: NODE?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.fill¦apoc.coll.fill(item :: STRING?, count :: INTEGER?) :: (LIST? OF ANY?)¦apoc.coll.fill(item, count) - returns a list with the given count of items

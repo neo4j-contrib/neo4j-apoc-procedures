@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.couchbase.exists¦apoc.couchbase.exists(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?) :: (value :: BOOLEAN?)¦apoc.couchbase.exists(hostOrKey, bucket, documentId) yield value - check whether a couchbase json document with the given ID does exist.

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.code¦apoc.text.code(codepoint :: INTEGER?) :: (STRING?)¦apoc.text.code(codepoint) - Returns the unicode character of the given codepoint

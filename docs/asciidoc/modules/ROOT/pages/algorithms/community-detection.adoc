@@ -1,0 +1,9 @@
+[[community-detection]]
+= Removed: Community Detection via Label Propagation
+:description: This section describes the Label Propagation community detection algorithm.
+
+
+
+This algorithm has been deprecated by the https://neo4j.com/docs/graph-data-science/current/[Graph Data Science Library^], which has more performant and battle hardened versions of the algorithms.
+
+For documentation of the Label Propagation algorithm, see https://neo4j.com/docs/graph-data-science/current/algorithms/label-propagation/

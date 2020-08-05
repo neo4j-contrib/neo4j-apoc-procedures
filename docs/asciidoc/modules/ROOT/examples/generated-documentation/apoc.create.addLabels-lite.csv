@@ -1,0 +1,2 @@
+¦signature
+¦apoc.create.addLabels(nodes :: ANY?, label :: LIST? OF STRING?) :: (node :: NODE?)

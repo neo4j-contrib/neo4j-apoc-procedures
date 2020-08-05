@@ -1,0 +1,8 @@
+¦signature
+¦apoc.custom.asFunction(name :: STRING?, statement :: STRING?, outputs =  :: STRING?, inputs = null :: LIST? OF LIST? OF STRING?, forceSingle = false :: BOOLEAN?, description =  :: STRING?) :: VOID
+¦apoc.custom.asProcedure(name :: STRING?, statement :: STRING?, mode = read :: STRING?, outputs = null :: LIST? OF LIST? OF STRING?, inputs = null :: LIST? OF LIST? OF STRING?, description =  :: STRING?) :: VOID
+¦apoc.custom.declareFunction(signature :: STRING?, statement :: STRING?, forceSingle = false :: BOOLEAN?, description =  :: STRING?) :: VOID
+¦apoc.custom.declareProcedure(signature :: STRING?, statement :: STRING?, mode = read :: STRING?, description =  :: STRING?) :: VOID
+¦apoc.custom.list() :: (type :: STRING?, name :: STRING?, description :: STRING?, mode :: STRING?, statement :: STRING?, inputs :: LIST? OF LIST? OF STRING?, outputs :: ANY?, forceSingle :: BOOLEAN?)
+¦apoc.custom.removeFunction(name :: STRING?) :: VOID
+¦apoc.custom.removeProcedure(name :: STRING?) :: VOID

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.different¦apoc.coll.different(values :: LIST? OF ANY?) :: (BOOLEAN?)¦apoc.coll.different(values) - returns true if values are different

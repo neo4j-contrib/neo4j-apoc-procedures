@@ -1,0 +1,3 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.nlp.aws.entities.graph¦apoc.nlp.aws.entities.graph(source :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)¦Creates a (virtual) entity graph for provided text
+¦procedure¦apoc.nlp.aws.entities.stream¦apoc.nlp.aws.entities.stream(source :: ANY?, config = {} :: MAP?) :: (node :: NODE?, value :: MAP?, error :: MAP?)¦Returns a stream of entities for provided text

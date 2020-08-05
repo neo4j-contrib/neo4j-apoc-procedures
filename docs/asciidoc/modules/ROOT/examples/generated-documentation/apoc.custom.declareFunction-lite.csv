@@ -1,0 +1,2 @@
+¦signature
+¦apoc.custom.declareFunction(signature :: STRING?, statement :: STRING?, forceSingle = false :: BOOLEAN?, description =  :: STRING?) :: VOID

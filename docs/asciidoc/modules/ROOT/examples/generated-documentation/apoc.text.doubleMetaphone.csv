@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.doubleMetaphone¦apoc.text.doubleMetaphone(value :: STRING?) :: (STRING?)¦apoc.text.doubleMetaphone(value) yield value - Compute the Double Metaphone phonetic encoding of all words of the text value

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.contains(coll :: LIST? OF ANY?, value :: ANY?) :: (BOOLEAN?)

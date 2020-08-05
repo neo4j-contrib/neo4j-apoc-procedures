@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.monitor.store¦apoc.monitor.store() :: (logSize :: INTEGER?, stringStoreSize :: INTEGER?, arrayStoreSize :: INTEGER?, relStoreSize :: INTEGER?, propStoreSize :: INTEGER?, totalStoreSize :: INTEGER?, nodeStoreSize :: INTEGER?)¦apoc.monitor.store() returns informations about the sizes of the different parts of the neo4j graph store

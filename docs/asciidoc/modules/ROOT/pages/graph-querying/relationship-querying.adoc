@@ -1,0 +1,21 @@
+[[rel-functions]]
+= Relationship Querying
+:description: This section describes procedures that can be used to query relationships.
+
+
+
+.Functions
+[cols="5m,5"]
+|===
+| apoc.rel.id(rel) | returns id for (virtual) relationships
+| apoc.rel.type(rel) | returns type for (virtual) relationships
+| apoc.any.properties(rel, [[keys]]) | returns properties for virtual and real rels. Optionally restrict via keys.
+| apoc.any.property(rel) | returns property for virtual and real rels
+|===
+
+
+.Procedures
+[cols="5m,5"]
+|===
+| CALL apoc.get.rels(rel\|id\|[ids]) | quickly returns all relationships with these ids
+|===

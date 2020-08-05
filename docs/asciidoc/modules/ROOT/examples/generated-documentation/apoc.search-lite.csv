@@ -1,0 +1,6 @@
+¦signature
+¦apoc.search.multiSearchReduced(LabelPropertyMap :: ANY?, operator :: STRING?, value :: STRING?) :: (id :: INTEGER?, labels :: LIST? OF STRING?, values :: MAP?)
+¦apoc.search.node(LabelPropertyMap :: ANY?, operator :: STRING?, value :: STRING?) :: (node :: NODE?)
+¦apoc.search.nodeAll(LabelPropertyMap :: ANY?, operator :: STRING?, value :: STRING?) :: (node :: NODE?)
+¦apoc.search.nodeAllReduced(LabelPropertyMap :: ANY?, operator :: STRING?, value :: ANY?) :: (id :: INTEGER?, labels :: LIST? OF STRING?, values :: MAP?)
+¦apoc.search.nodeReduced(LabelPropertyMap :: ANY?, operator :: STRING?, value :: STRING?) :: (id :: INTEGER?, labels :: LIST? OF STRING?, values :: MAP?)

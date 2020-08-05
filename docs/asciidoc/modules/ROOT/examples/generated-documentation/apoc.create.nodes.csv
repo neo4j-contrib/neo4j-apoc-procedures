@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.create.nodes¦apoc.create.nodes(label :: LIST? OF STRING?, props :: LIST? OF MAP?) :: (node :: NODE?)¦apoc.create.nodes(['Label'], [{key:value,...}]) create multiple nodes with dynamic labels

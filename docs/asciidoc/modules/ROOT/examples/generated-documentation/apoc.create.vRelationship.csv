@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.create.vRelationship¦apoc.create.vRelationship(from :: NODE?, relType :: STRING?, props :: MAP?, to :: NODE?) :: (RELATIONSHIP?)¦apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship

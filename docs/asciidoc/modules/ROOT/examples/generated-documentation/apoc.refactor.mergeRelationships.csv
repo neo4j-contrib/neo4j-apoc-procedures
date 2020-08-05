@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.refactor.mergeRelationships¦apoc.refactor.mergeRelationships(rels :: LIST? OF RELATIONSHIP?, config = {} :: MAP?) :: (rel :: RELATIONSHIP?)¦apoc.refactor.mergeRelationships([rel1,rel2]) merge relationships onto first in list

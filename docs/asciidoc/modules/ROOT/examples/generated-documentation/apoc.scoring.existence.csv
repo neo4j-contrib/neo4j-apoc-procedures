@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.scoring.existence¦apoc.scoring.existence(score :: INTEGER?, exists :: BOOLEAN?) :: (FLOAT?)¦apoc.scoring.existence(5, true) returns the provided score if true, 0 if false

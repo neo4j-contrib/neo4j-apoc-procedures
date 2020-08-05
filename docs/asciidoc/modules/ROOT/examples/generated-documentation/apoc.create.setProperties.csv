@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.create.setProperties¦apoc.create.setProperties(nodes :: ANY?, keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :: (node :: NODE?)¦apoc.create.setProperties( [node,id,ids,nodes], [keys], [values]) - sets the given properties on the nodes(s)

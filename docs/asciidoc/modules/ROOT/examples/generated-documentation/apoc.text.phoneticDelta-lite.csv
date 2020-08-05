@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.phoneticDelta(text1 :: STRING?, text2 :: STRING?) :: (phonetic1 :: STRING?, phonetic2 :: STRING?, delta :: INTEGER?)

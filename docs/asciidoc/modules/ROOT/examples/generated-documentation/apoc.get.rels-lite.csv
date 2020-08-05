@@ -1,0 +1,2 @@
+¦signature
+¦apoc.get.rels(relationships :: ANY?) :: (rel :: RELATIONSHIP?)

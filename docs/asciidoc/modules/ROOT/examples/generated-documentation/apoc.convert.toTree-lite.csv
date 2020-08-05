@@ -1,0 +1,2 @@
+¦signature
+¦apoc.convert.toTree(paths :: LIST? OF PATH?, lowerCaseRels = true :: BOOLEAN?, config = {} :: MAP?) :: (value :: MAP?)

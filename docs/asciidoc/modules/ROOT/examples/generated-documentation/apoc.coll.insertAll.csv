@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.insertAll¦apoc.coll.insertAll(coll :: LIST? OF ANY?, index :: INTEGER?, values :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.insertAll(coll, index, values) | insert values at index

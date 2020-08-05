@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.nodes.link¦apoc.nodes.link(nodes :: LIST? OF NODE?, type :: STRING?) :: VOID¦apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last

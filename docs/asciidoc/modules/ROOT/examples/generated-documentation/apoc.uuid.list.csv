@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.uuid.list¦apoc.uuid.list() :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)¦CALL apoc.uuid.list() yield label, installed, properties | provides a list of all the uuid handlers installed with the related configuration

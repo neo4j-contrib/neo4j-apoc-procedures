@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.label.exists¦apoc.label.exists(node :: ANY?, label :: STRING?) :: (BOOLEAN?)¦apoc.label.exists(element, label) - returns true or false related to label existance

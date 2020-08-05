@@ -1,0 +1,2 @@
+¦signature
+¦apoc.map.values(map :: MAP?, keys = [] :: LIST? OF STRING?, addNullsForMissing = false :: BOOLEAN?) :: (LIST? OF ANY?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.number.parseFloat¦apoc.number.parseFloat(text :: STRING?, pattern =  :: STRING?, lang =  :: STRING?) :: (FLOAT?)¦apoc.number.parseFloat(text)  | parse a text using the default system pattern and language to produce a double

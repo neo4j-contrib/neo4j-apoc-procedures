@@ -1,0 +1,13 @@
+¦signature
+¦apoc.meta.data(config = {} :: MAP?) :: (label :: STRING?, property :: STRING?, count :: INTEGER?, unique :: BOOLEAN?, index :: BOOLEAN?, existence :: BOOLEAN?, type :: STRING?, array :: BOOLEAN?, sample :: LIST? OF ANY?, leftCount :: INTEGER?, rightCount :: INTEGER?, left :: INTEGER?, right :: INTEGER?, other :: LIST? OF STRING?, otherLabels :: LIST? OF STRING?, elementType :: STRING?)
+¦apoc.meta.graph(config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)
+¦apoc.meta.graphSample(config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)
+¦apoc.meta.nodeTypeProperties(config = {} :: MAP?) :: (nodeType :: STRING?, nodeLabels :: LIST? OF STRING?, propertyName :: STRING?, propertyTypes :: LIST? OF STRING?, mandatory :: BOOLEAN?, propertyObservations :: INTEGER?, totalObservations :: INTEGER?)
+¦apoc.meta.relTypeProperties(config = {} :: MAP?) :: (relType :: STRING?, sourceNodeLabels :: LIST? OF STRING?, targetNodeLabels :: LIST? OF STRING?, propertyName :: STRING?, propertyTypes :: LIST? OF STRING?, mandatory :: BOOLEAN?, propertyObservations :: INTEGER?, totalObservations :: INTEGER?)
+¦apoc.meta.schema(config = {} :: MAP?) :: (value :: MAP?)
+¦apoc.meta.stats() :: (labelCount :: INTEGER?, relTypeCount :: INTEGER?, propertyKeyCount :: INTEGER?, nodeCount :: INTEGER?, relCount :: INTEGER?, labels :: MAP?, relTypes :: MAP?, relTypesCount :: MAP?, stats :: MAP?)
+¦apoc.meta.subGraph(config :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)
+¦apoc.meta.isType(value :: ANY?, type :: STRING?) :: (BOOLEAN?)
+¦apoc.meta.type(value :: ANY?) :: (STRING?)
+¦apoc.meta.typeName(value :: ANY?) :: (STRING?)
+¦apoc.meta.types(properties :: ANY?) :: (MAP?)

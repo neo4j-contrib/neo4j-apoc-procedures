@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.sortText(coll :: LIST? OF STRING?, conf = {} :: MAP?) :: (LIST? OF ANY?)

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.create.vNodes(label :: LIST? OF STRING?, props :: LIST? OF MAP?) :: (node :: NODE?)

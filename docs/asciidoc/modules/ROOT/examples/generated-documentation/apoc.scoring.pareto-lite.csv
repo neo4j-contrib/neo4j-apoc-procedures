@@ -1,0 +1,2 @@
+¦signature
+¦apoc.scoring.pareto(minimumThreshold :: INTEGER?, eightyPercentValue :: INTEGER?, maximumValue :: INTEGER?, score :: INTEGER?) :: (FLOAT?)

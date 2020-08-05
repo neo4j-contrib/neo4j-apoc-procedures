@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.toUpperCase¦apoc.text.toUpperCase(text :: STRING?) :: (STRING?)¦apoc.text.toUpperCase(text) YIELD value - Convert a string to UPPER_CASE

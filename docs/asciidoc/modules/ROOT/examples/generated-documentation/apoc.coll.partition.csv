@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.partition¦apoc.coll.partition(values :: LIST? OF ANY?, batchSize :: INTEGER?) :: (LIST? OF ANY?)¦apoc.coll.partition(list,batchSize)

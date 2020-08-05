@@ -1,0 +1,6 @@
+¦signature
+¦apoc.generate.ba(noNodes :: INTEGER?, edgesPerNode :: INTEGER?, label :: STRING?, type :: STRING?) :: VOID
+¦apoc.generate.complete(noNodes :: INTEGER?, label :: STRING?, type :: STRING?) :: VOID
+¦apoc.generate.er(noNodes :: INTEGER?, noEdges :: INTEGER?, label :: STRING?, type :: STRING?) :: VOID
+¦apoc.generate.simple(degrees :: LIST? OF INTEGER?, label :: STRING?, type :: STRING?) :: VOID
+¦apoc.generate.ws(noNodes :: INTEGER?, degree :: INTEGER?, beta :: FLOAT?, label :: STRING?, type :: STRING?) :: VOID

@@ -1,0 +1,25 @@
+[[bitwise-operations]]
+= Bitwise operations
+:description: This section describes procedures that can be used for doing bitwise operations.
+
+
+
+// TODO function
+
+Provides a wrapper around the java bitwise operations.
+|===
+| apoc.bitwise.op(a long, "operation", b long ) as <identifier>
+|===
+
+examples
+[options="header"]
+|===
+| operator | name | example | result
+| a & b | AND | `apoc.bitwise.op(60,"&",13)` | 12
+| a \| b | OR | `apoc.bitwise.op(60,"\|",13)` | 61
+| a ^ b | XOR | `apoc.bitwise.op(60,"&",13)` | 49
+| ~a | NOT | `apoc.bitwise.op(60,"&",0)` | -61
+| a << b | LEFT SHIFT | `apoc.bitwise.op(60,"<<",2)` | 240
+| a >> b | RIGHT SHIFT | `apoc.bitwise.op(60,">>",2)` | 15
+| a >>> b | UNSIGNED RIGHT SHIFT | `apoc.bitwise.op(60,">>>",2)` | 15
+|===

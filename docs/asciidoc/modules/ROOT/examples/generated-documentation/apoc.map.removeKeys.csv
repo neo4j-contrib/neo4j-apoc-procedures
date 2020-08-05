@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.map.removeKeys¦apoc.map.removeKeys(map :: MAP?, keys :: LIST? OF STRING?, config = {} :: MAP?) :: (MAP?)¦apoc.map.removeKeys(map,[keys],{recursive:true/false}) - remove the keys from the map (recursively if recursive is true)

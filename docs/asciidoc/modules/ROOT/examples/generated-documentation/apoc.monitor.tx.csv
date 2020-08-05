@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.monitor.tx¦apoc.monitor.tx() :: (rolledBackTx :: INTEGER?, peakTx :: INTEGER?, lastTxId :: INTEGER?, currentOpenedTx :: INTEGER?, totalOpenedTx :: INTEGER?, totalTx :: INTEGER?)¦apoc.monitor.tx() returns informations about the neo4j transaction manager

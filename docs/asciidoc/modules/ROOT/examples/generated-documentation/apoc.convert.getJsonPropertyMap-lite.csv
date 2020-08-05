@@ -1,0 +1,2 @@
+¦signature
+¦apoc.convert.getJsonPropertyMap(node :: NODE?, key :: STRING?, path =  :: STRING?) :: (MAP?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.static.get¦apoc.static.get(key :: STRING?) :: (ANY?)¦apoc.static.get(name) - returns statically stored value from config (apoc.static.<key>) or server lifetime storage

@@ -1,0 +1,95 @@
+[[import-csv]]
+= Import CSV
+:description: This section describes procedures that can be used to import data from CSV files that comply with the Neo4j import tool’s header format.
+
+
+
+CSV files that comply with the https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/[Neo4j import tool's header format] can be imported using the `apoc.import.csv` procedure.
+This procedure can be used to load small- to medium-sized data sets in an online database.
+For importing larger data sets, it is recommended to perform a batch import using the (https://neo4j.com/docs/operations-manual/current/tools/import/[import tool], which loads data in bulk to an offline (initially empty) database.
+
+== Usage
+
+The parameters of the `apoc.import.csv(<nodes>, <relationships>, <config>)` procedure are as follows.
+
+The `<nodes>` parameter is a list, where each element is a map defining a source file (`fileName`) to be loaded with a set of labels (`labels`):
+
+[opts=header,cols="m,a,m"]
+|===
+| name | description | example
+| fileName | filename | 'file:/students.csv'
+| labels | set of labels | ['Person', 'Student']
+|===
+
+The `<relationships>` parameter is also a list, where each element is a map defining a source file (`fileName`) to be loaded with a given relationship type (`type`):
+
+[opts=header,cols="m,a,m"]
+|===
+| name | description | example
+| fileName | filename | 'file:/works_at.csv'
+| type | relationship type | 'WORKS_AT'
+|===
+
+The `<config>` parameter is a map
+
+[opts=header,cols="m,a,m,m"]
+|===
+| name | description | default | https://neo4j.com/docs/operations-manual/current/tools/import/options/[import tool counterpart]
+| delimiter | delimiter character between columns | , | --delimiter=,
+| arrayDelimiter | delimiter character in arrays | ; | --array-delimiter=;
+| ignoreDuplicateNodes | for duplicate nodes, only load the first one and skip the rest (true) or fail the import (false) | false | --ignore-duplicate-nodes=false
+| quotationCharacter | quotation character | " | --quote='"'
+| stringIds | treat ids as strings | true | --id-type=STRING
+| skipLines | lines to skip (incl. header) | 1 | N/A
+|===
+
+== Examples for apoc.import.csv
+
+=== Loading nodes
+
+Given the following CSV file and procedure call, the database loads two `Person` nodes with their `name` properties set:
+
+.persons.csv
+----
+name:STRING
+John
+Jane
+
+----
+
+[source,cypher]
+----
+CALL apoc.import.csv([{fileName: 'file:/persons.csv', labels: ['Person']}], [], {})
+----
+
+=== Loading nodes and relationships
+
+Given the following CSV files and procedure call, the database loads two `Person` nodes and a `KNOWS` relationship between them (with the value of the `since` property set). Note that both the field terminators and the array delimiters are changed from the default value, and the CSVs use numeric ids.
+
+.persons.csv
+----
+:ID|name:STRING|speaks:STRING[]
+1|John|en,fr
+2|Jane|en,de
+----
+
+.knows.csv
+----
+:START_ID|:END_ID|since:INT
+1|2|2016
+----
+
+[source,cypher]
+----
+CALL apoc.import.csv(
+  [{fileName: 'file:/persons.csv', labels: ['Person']}],
+  [{fileName: 'file:/knows.csv', type: 'KNOWS'}],
+  {delimiter: '|', arrayDelimiter: ',', stringIds: false}
+)
+----
+
+The loader supports advanced features of the import tool:
+
+* _ID spaces_ are supported, using the link:https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-id-spaces[import tool's syntax].
+* Node labels can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-header-format-nodes[`:LABEL`] field.
+* Relationship types can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-header-format-rels[`:TYPE`] field.

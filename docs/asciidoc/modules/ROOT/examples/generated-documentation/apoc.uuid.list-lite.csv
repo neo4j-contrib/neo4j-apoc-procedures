@@ -1,0 +1,2 @@
+¦signature
+¦apoc.uuid.list() :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.convert.toList¦apoc.convert.toList(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toList(value) | tries it's best to convert the value to a list

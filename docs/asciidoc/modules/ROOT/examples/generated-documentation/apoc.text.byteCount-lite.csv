@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.byteCount(text :: STRING?, charset = UTF-8 :: STRING?) :: (INTEGER?)

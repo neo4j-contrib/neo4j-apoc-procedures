@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.custom.list¦apoc.custom.list() :: (type :: STRING?, name :: STRING?, description :: STRING?, mode :: STRING?, statement :: STRING?, inputs :: LIST? OF LIST? OF STRING?, outputs :: ANY?, forceSingle :: BOOLEAN?)¦apoc.custom.list() - provide a list of custom procedures/function registered
