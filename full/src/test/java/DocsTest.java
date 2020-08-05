@@ -163,8 +163,8 @@ public class DocsTest {
                         String releaseType = extended.contains(row.name) ? "full" : "core";
                         sectionWriter.write(String.format("|%s|%s|%s\n",
                                 String.format("xref::%s[%s icon:book[]]\n\n%s", "overview/" + topLevelNamespace + "/" + row.name + ".adoc", row.name, row.description.replace("|", "\\|")),
-                                String.format("[role=type %s]\n%s", row.type, row.type),
-                                String.format("[role=release %s]\n%s", releaseType, releaseType)));
+                                String.format("label:%s[]\n", row.type),
+                                String.format("label:apoc-%s[]\n", releaseType)));
                     }
 
                     sectionWriter.write(footer());
@@ -186,8 +186,8 @@ public class DocsTest {
                         String releaseType = extended.contains(row.name) ? "full" : "core";
                         overviewWriter.write(String.format("|%s|%s|%s\n",
                                 String.format("%s[%s icon:book[]]\n\n%s", "xref::overview/" + topLevelNamespace + "/" + row.name + ".adoc", row.name, row.description.replace("|", "\\|")),
-                                String.format("[role=type %s]\n%s", row.type, row.type),
-                                String.format("[role=release %s]\n%s", releaseType, releaseType)));
+                                String.format("label:%s[]\n", row.type),
+                                String.format("label:apoc-%s[]\n", releaseType)));
                         navWriter.write("*** xref::overview/" + topLevelNamespace + "/" + row.name  + ".adoc[]\n");
                     }
 
@@ -219,15 +219,8 @@ public class DocsTest {
                 writer.write(":description: This section contains reference documentation for the " + procedure.name().toString() + " procedure.\n\n");
 
                 String release = extended.contains(procedure.name().toString()) ? "full" : "core";
-                String releaseLong = extended.contains(procedure.name().toString()) ? "APOC Full" : "APOC Core";
 
-                writer.write("++++\n");
-                writer.write("<div style='display:flex'>\n");
-                writer.write("<div class='paragraph type procedure'><p>Procedure</p></div>\n");
-                writer.write("<div class='paragraph release " + release + "' style='margin-left:10px;'><p>" + releaseLong + "</p></div>\n");
-                writer.write("</div>\n");
-                writer.write("++++\n\n");
-
+                writer.write("label:procedure[] label:apoc-" + release + "[]\n\n");
                 writer.write("[.emphasis]\n" + procedure.description().orElse("") + "\n\n");
 
                 writer.write("== Signature\n\n");
@@ -287,14 +280,8 @@ public class DocsTest {
                 writer.write(":description: This section contains reference documentation for the " + userFunctionSignature.name().toString() + " function.\n\n");
 
                 String release = extended.contains(userFunctionSignature.name().toString()) ? "full" : "core";
-                String releaseLong = extended.contains(userFunctionSignature.name().toString()) ? "APOC Full" : "APOC Core";
 
-                writer.write("++++\n");
-                writer.write("<div style='display:flex'>\n");
-                writer.write("<div class='paragraph type function'><p>Function</p></div>\n");
-                writer.write("<div class='paragraph release " + release + "' style='margin-left:10px;'><p>" + releaseLong + "</p></div>\n");
-                writer.write("</div>\n");
-                writer.write("++++\n\n");
+                writer.write("label:function[] label:apoc-" + release + "[]\n\n");
 
                 writer.write("[.emphasis]\n" + userFunctionSignature.description().orElse("") + "\n\n");
 
