@@ -44,11 +44,12 @@ The `{config}` parameter is a map
 | dateParse: [<formats>] | Convert the String into Date (Array of strings are allowed)
 |===
 
-==== Note
-
+[NOTE]
+====
 In dateParse the first format matched return the date formatted, otherwise it will return an error
 
 In `format` config you can use the pattern describe as the Temporal functions: xref::temporal/temporal-conversions.adoc[temporal functions]
+====
 
 == Examples for `apoc.load.xls`
 
