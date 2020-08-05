@@ -228,7 +228,7 @@ public class DocsTest {
                 writer.write("</div>\n");
                 writer.write("++++\n\n");
 
-                writer.write(procedure.description().orElse("") + "\n\n");
+                writer.write("[.emphasis]\n" + procedure.description().orElse("") + "\n\n");
 
                 writer.write("== Signature\n\n");
                 writer.write("[source]\n----\n" + procedure.toString() + "\n----\n\n");
@@ -296,7 +296,7 @@ public class DocsTest {
                 writer.write("</div>\n");
                 writer.write("++++\n\n");
 
-                writer.write(userFunctionSignature.description().orElse("") + "\n\n");
+                writer.write("[.emphasis]\n" + userFunctionSignature.description().orElse("") + "\n\n");
 
                 writer.write("== Signature\n\n");
                 writer.write("[source]\n----\n" + userFunctionSignature.toString() + "\n----\n\n");
