@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.metrics.list¦apoc.metrics.list() :: (name :: STRING?, lastUpdated :: INTEGER?)¦apoc.metrics.list() - get a list of available metrics

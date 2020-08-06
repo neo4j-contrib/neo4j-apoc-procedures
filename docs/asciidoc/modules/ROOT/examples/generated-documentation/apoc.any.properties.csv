@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.any.properties¦apoc.any.properties(thing :: ANY?, keys = null :: LIST? OF STRING?) :: (MAP?)¦returns properties for virtual and real, nodes, rels and maps

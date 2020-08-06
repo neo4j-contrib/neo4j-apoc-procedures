@@ -1,0 +1,2 @@
+¦signature
+¦apoc.graph.fromDB(name :: STRING?, properties :: MAP?) :: (graph :: MAP?)

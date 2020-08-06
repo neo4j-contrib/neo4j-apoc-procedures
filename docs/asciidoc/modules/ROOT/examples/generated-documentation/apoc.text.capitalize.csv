@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.capitalize¦apoc.text.capitalize(text :: STRING?) :: (STRING?)¦apoc.text.capitalize(text) YIELD value - capitalise the first letter of the word

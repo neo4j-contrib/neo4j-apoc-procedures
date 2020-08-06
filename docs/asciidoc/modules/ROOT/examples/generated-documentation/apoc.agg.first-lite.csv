@@ -1,0 +1,2 @@
+¦signature
+¦apoc.agg.first(value :: ANY?) :: (ANY?)

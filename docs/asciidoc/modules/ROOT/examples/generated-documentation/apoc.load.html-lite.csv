@@ -1,0 +1,2 @@
+¦signature
+¦apoc.load.html(url :: STRING?, query = {} :: MAP?, config = {} :: MAP?) :: (value :: MAP?)

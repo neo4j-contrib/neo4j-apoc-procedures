@@ -1,0 +1,2 @@
+¦signature
+¦apoc.number.parseInt(text :: STRING?, pattern =  :: STRING?, lang =  :: STRING?) :: (INTEGER?)

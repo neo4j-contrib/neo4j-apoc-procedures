@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.base64Decode¦apoc.text.base64Decode(text :: STRING?) :: (STRING?)¦apoc.text.base64Decode(text) YIELD value - Decode Base64 encoded string

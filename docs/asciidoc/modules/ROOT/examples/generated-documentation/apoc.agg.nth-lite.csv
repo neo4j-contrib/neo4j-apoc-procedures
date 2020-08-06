@@ -1,0 +1,2 @@
+¦signature
+¦apoc.agg.nth(value :: ANY?, value :: INTEGER?) :: (ANY?)

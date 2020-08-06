@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.convert.toFloat¦apoc.convert.toFloat(object :: ANY?) :: (FLOAT?)¦apoc.convert.toFloat(value) | tries it's best to convert the value to a float

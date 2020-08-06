@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.nlp.aws.keyPhrases.stream¦apoc.nlp.aws.keyPhrases.stream(source :: ANY?, config = {} :: MAP?) :: (node :: NODE?, value :: MAP?, error :: MAP?)¦Returns a stream of key phrases for provided text

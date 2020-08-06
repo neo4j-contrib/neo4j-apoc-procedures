@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.xml.parse¦apoc.xml.parse(data :: STRING?, path = / :: STRING?, config = {} :: MAP?, simple = false :: BOOLEAN?) :: (MAP?)¦RETURN apoc.xml.parse(<xml string>, <xPath string>, config, false) AS value

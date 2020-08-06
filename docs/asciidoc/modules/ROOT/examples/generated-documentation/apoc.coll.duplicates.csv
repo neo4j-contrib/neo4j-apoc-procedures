@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.duplicates¦apoc.coll.duplicates(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.duplicates(coll) - returns a list of duplicate items in the collection

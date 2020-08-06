@@ -1,0 +1,2 @@
+¦signature
+¦apoc.es.put(host :: STRING?, index :: STRING?, type :: STRING?, id :: STRING?, query :: ANY?, payload = {} :: MAP?) :: (value :: MAP?)

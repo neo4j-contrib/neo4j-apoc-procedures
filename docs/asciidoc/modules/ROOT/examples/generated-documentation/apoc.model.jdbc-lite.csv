@@ -1,0 +1,2 @@
+¦signature
+¦apoc.model.jdbc(jdbc :: STRING?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)

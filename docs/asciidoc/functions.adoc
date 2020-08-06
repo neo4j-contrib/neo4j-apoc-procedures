@@ -1,10 +1,8 @@
 [[user-defined-functions]]
 = User Defined Functions
+:description: This chapter describes gives an overview of user defined features, and summarises the functions in the APOC library.
 
-[abstract]
---
-This chapter describes gives an overview of user defined features, and summarises the functions in the APOC library.
---
+
 
 
 Introduced in Neo4j 3.1.0-M10

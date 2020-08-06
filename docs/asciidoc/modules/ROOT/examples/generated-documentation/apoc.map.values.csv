@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.map.values¦apoc.map.values(map :: MAP?, keys = [] :: LIST? OF STRING?, addNullsForMissing = false :: BOOLEAN?) :: (LIST? OF ANY?)¦apoc.map.values(map, [key1,key2,key3,...],[addNullsForMissing]) returns list of values indicated by the keys

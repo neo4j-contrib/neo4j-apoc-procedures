@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.convert.toBoolean¦apoc.convert.toBoolean(bool :: ANY?) :: (BOOLEAN?)¦apoc.convert.toBoolean(value) | tries it's best to convert the value to a boolean

@@ -1,0 +1,4 @@
+¦signature
+¦apoc.lock.all(nodes :: LIST? OF NODE?, rels :: LIST? OF RELATIONSHIP?) :: VOID
+¦apoc.lock.nodes(nodes :: LIST? OF NODE?) :: VOID
+¦apoc.lock.rels(rels :: LIST? OF RELATIONSHIP?) :: VOID

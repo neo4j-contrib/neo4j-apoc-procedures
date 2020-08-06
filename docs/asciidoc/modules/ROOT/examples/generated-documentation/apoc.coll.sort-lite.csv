@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.sort(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)

@@ -1,0 +1,8 @@
+¦signature
+¦apoc.number.exact.add(stringA :: STRING?, stringB :: STRING?) :: (STRING?)
+¦apoc.number.exact.div(stringA :: STRING?, stringB :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (STRING?)
+¦apoc.number.exact.mul(stringA :: STRING?, stringB :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (STRING?)
+¦apoc.number.exact.sub(stringA :: STRING?, stringB :: STRING?) :: (STRING?)
+¦apoc.number.exact.toExact(number :: INTEGER?) :: (INTEGER?)
+¦apoc.number.exact.toFloat(stringA :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (FLOAT?)
+¦apoc.number.exact.toInteger(stringA :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (INTEGER?)

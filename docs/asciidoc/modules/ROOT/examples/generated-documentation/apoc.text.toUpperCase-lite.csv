@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.toUpperCase(text :: STRING?) :: (STRING?)

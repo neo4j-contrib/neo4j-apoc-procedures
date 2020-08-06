@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.refactor.invert¦apoc.refactor.invert(relationship :: RELATIONSHIP?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)¦apoc.refactor.invert(rel) inverts relationship direction

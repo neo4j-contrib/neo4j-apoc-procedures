@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.refactor.setType¦apoc.refactor.setType(relationship :: RELATIONSHIP?, newType :: STRING?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)¦apoc.refactor.setType(rel, 'NEW-TYPE') change relationship-type

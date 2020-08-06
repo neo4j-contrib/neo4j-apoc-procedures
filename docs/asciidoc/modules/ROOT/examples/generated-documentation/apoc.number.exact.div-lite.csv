@@ -1,0 +1,2 @@
+¦signature
+¦apoc.number.exact.div(stringA :: STRING?, stringB :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (STRING?)

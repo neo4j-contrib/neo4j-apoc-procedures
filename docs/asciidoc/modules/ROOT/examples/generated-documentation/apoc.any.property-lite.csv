@@ -1,0 +1,2 @@
+¦signature
+¦apoc.any.property(thing :: ANY?, key :: STRING?) :: (ANY?)

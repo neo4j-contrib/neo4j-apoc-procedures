@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.sort¦apoc.coll.sort(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.sort(coll) sort on Collections

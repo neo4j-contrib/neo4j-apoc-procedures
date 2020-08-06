@@ -1,0 +1,2 @@
+¦signature
+¦apoc.metrics.get(metricName :: STRING?, config = {} :: MAP?) :: (timestamp :: INTEGER?, metric :: STRING?, map :: MAP?)

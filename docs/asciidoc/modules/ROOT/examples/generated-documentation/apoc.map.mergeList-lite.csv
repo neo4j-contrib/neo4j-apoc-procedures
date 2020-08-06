@@ -1,0 +1,2 @@
+¦signature
+¦apoc.map.mergeList(maps :: LIST? OF MAP?) :: (MAP?)

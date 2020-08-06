@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.convert.toMap¦apoc.convert.toMap(map :: ANY?) :: (MAP?)¦apoc.convert.toMap(value) | tries it's best to convert the value to a map

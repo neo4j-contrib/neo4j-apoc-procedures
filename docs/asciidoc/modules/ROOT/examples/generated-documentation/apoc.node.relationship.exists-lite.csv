@@ -1,0 +1,2 @@
+¦signature
+¦apoc.node.relationship.exists(node :: NODE?, types =  :: STRING?) :: (BOOLEAN?)

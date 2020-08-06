@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.mongodb.count¦apoc.mongodb.count(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?) :: (value :: INTEGER?)¦apoc.mongodb.count(host-or-key,db,collection,query) yield value - perform a find operation on mongodb collection

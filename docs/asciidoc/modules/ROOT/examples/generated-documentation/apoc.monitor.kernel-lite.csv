@@ -1,0 +1,2 @@
+¦signature
+¦apoc.monitor.kernel() :: (readOnly :: BOOLEAN?, kernelVersion :: STRING?, storeId :: STRING?, kernelStartTime :: STRING?, databaseName :: STRING?, storeLogVersion :: INTEGER?, storeCreationDate :: STRING?)

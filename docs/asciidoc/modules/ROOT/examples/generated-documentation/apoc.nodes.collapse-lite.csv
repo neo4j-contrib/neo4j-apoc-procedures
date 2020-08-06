@@ -1,0 +1,2 @@
+¦signature
+¦apoc.nodes.collapse(nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (from :: NODE?, rel :: RELATIONSHIP?, to :: NODE?)

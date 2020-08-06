@@ -1,0 +1,2 @@
+¦signature
+¦apoc.path.expand(start :: ANY?, relationshipFilter :: STRING?, labelFilter :: STRING?, minLevel :: INTEGER?, maxLevel :: INTEGER?) :: (path :: PATH?)

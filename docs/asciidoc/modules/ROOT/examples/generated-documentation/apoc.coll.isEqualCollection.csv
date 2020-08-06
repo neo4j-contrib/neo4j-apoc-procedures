@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.isEqualCollection¦apoc.coll.isEqualCollection(coll :: LIST? OF ANY?, values :: LIST? OF ANY?) :: (BOOLEAN?)¦apoc.coll.isEqualCollection(coll, values) return true if two collections contain the same elements with the same cardinality in any order (using a HashMap)

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.neighbors.athop.count(node :: NODE?, types =  :: STRING?, distance = 1 :: INTEGER?) :: (value :: INTEGER?)

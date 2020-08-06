@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.max¦apoc.coll.max(values :: LIST? OF ANY?) :: (ANY?)¦apoc.coll.max([0.5,1,2.3])

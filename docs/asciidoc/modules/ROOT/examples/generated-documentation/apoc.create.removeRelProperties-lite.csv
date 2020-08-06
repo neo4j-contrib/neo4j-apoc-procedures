@@ -1,0 +1,2 @@
+¦signature
+¦apoc.create.removeRelProperties(rels :: ANY?, keys :: LIST? OF STRING?) :: (rel :: RELATIONSHIP?)

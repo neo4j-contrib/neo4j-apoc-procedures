@@ -1,0 +1,2 @@
+¦signature
+¦apoc.schema.relationship.constraintExists(type :: STRING?, propertyName :: LIST? OF STRING?) :: (BOOLEAN?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.subtract¦apoc.coll.subtract(first :: LIST? OF ANY?, second :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.subtract(first, second) - returns unique set of first list with all elements of second list removed

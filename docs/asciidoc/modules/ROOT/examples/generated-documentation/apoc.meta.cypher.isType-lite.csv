@@ -1,0 +1,2 @@
+¦signature
+¦apoc.meta.cypher.isType(value :: ANY?, type :: STRING?) :: (BOOLEAN?)

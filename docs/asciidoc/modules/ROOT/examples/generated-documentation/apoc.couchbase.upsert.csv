@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.couchbase.upsert¦apoc.couchbase.upsert(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, json :: STRING?) :: (id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?, content :: MAP?)¦apoc.couchbase.upsert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert or overwrite a couchbase json document with its unique ID.

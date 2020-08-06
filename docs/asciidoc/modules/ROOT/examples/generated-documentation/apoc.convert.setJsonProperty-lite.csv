@@ -1,0 +1,2 @@
+¦signature
+¦apoc.convert.setJsonProperty(node :: NODE?, key :: STRING?, value :: ANY?) :: VOID

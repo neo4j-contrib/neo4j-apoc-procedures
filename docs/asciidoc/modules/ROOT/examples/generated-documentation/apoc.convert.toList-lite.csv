@@ -1,0 +1,2 @@
+¦signature
+¦apoc.convert.toList(list :: ANY?) :: (LIST? OF ANY?)

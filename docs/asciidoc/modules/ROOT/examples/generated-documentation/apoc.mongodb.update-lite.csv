@@ -1,0 +1,2 @@
+¦signature
+¦apoc.mongodb.update(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, update :: MAP?) :: (value :: INTEGER?)

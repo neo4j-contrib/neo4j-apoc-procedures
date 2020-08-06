@@ -1,0 +1,2 @@
+¦signature
+¦apoc.algo.cosineSimilarity(vector1 :: LIST? OF NUMBER?, vector2 :: LIST? OF NUMBER?) :: (FLOAT?)

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.graph.fromData(nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?, name :: STRING?, properties :: MAP?) :: (graph :: MAP?)

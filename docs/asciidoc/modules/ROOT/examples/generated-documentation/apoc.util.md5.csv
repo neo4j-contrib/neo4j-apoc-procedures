@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.util.md5¦apoc.util.md5(values :: LIST? OF ANY?) :: (STRING?)¦apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list

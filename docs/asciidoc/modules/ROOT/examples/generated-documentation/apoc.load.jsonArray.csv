@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.load.jsonArray¦apoc.load.jsonArray(url :: STRING?, path =  :: STRING?) :: (value :: ANY?)¦apoc.load.jsonArray('url') YIELD value - load array from JSON URL (e.g. web-api) to import JSON as stream of values

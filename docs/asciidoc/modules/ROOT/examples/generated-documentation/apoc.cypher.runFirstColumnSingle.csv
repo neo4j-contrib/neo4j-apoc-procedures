@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.cypher.runFirstColumnSingle¦apoc.cypher.runFirstColumnSingle(cypher :: STRING?, params :: MAP?) :: (ANY?)¦apoc.cypher.runFirstColumnSingle(statement, params) - executes statement with given parameters, returns first element of the first column only, params are available as identifiers

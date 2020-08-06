@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.algo.cover¦apoc.algo.cover(nodes :: ANY?) :: (rel :: RELATIONSHIP?)¦apoc.algo.cover(nodes) yield rel - returns all relationships between this set of nodes

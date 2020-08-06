@@ -1,0 +1,2 @@
+¦signature
+¦apoc.nodes.connected(start :: NODE?, start :: NODE?, types =  :: STRING?) :: (BOOLEAN?)

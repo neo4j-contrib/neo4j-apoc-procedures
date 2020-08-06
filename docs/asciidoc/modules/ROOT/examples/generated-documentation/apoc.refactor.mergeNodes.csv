@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.refactor.mergeNodes¦apoc.refactor.mergeNodes(nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (node :: NODE?)¦apoc.refactor.mergeNodes([node1,node2],[{properties:'overwrite' or 'discard' or 'combine'}]) merge nodes onto first in list

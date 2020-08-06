@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.custom.declareFunction¦apoc.custom.declareFunction(signature :: STRING?, statement :: STRING?, forceSingle = false :: BOOLEAN?, description =  :: STRING?) :: VOID¦apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.metrics.get¦apoc.metrics.get(metricName :: STRING?, config = {} :: MAP?) :: (timestamp :: INTEGER?, metric :: STRING?, map :: MAP?)¦apoc.metrics.get(metricName, {}) - retrieve a system metric by its metric name. Additional configuration options may be passed matching the options available for apoc.load.csv.

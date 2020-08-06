@@ -1,0 +1,2 @@
+¦signature
+¦apoc.couchbase.namedParamsQuery(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?, paramNames :: LIST? OF STRING?, paramValues :: LIST? OF ANY?) :: (queryResult :: LIST? OF MAP?)

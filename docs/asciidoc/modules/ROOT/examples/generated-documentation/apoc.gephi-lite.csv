@@ -1,0 +1,2 @@
+¦signature
+¦apoc.gephi.add(urlOrKey :: STRING?, workspace :: STRING?, data :: ANY?, weightproperty = null :: STRING?, exportproperties = [] :: LIST? OF STRING?) :: (file :: STRING?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, batches :: INTEGER?, done :: BOOLEAN?, data :: STRING?)

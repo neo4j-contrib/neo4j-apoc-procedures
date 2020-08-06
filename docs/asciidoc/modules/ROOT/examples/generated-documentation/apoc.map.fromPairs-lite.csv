@@ -1,0 +1,2 @@
+¦signature
+¦apoc.map.fromPairs(pairs :: LIST? OF LIST? OF ANY?) :: (MAP?)

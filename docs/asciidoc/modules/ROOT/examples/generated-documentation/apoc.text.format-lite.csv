@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.format(text :: STRING?, params :: LIST? OF ANY?, language = en :: STRING?) :: (STRING?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.fuzzyMatch¦apoc.text.fuzzyMatch(text1 :: STRING?, text2 :: STRING?) :: (BOOLEAN?)¦apoc.text.fuzzyMatch(text1, text2) - check if 2 words can be matched in a fuzzy way. Depending on the length of the String it will allow more characters that needs to be edited to match the second String.

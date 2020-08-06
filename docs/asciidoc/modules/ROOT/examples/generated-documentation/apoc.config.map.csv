@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.config.map¦apoc.config.map() :: (value :: MAP?)¦apoc.config.map | Lists the Neo4j configuration as map

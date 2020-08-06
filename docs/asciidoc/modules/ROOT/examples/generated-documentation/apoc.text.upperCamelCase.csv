@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.upperCamelCase¦apoc.text.upperCamelCase(text :: STRING?) :: (STRING?)¦apoc.text.upperCamelCase(text) YIELD value - Convert a string to camelCase

@@ -1,0 +1,9 @@
+[[indexes]]
+= Text and Lookup Indexes
+:description: This chapter describes indexing procedures in the APOC library.
+
+
+
+These procedures complement the indexing functionality that comes out of the box.
+
+* xref::indexes/schema-index-operations.adoc[]

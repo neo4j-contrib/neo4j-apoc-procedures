@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.toSet(values :: LIST? OF ANY?) :: (LIST? OF ANY?)

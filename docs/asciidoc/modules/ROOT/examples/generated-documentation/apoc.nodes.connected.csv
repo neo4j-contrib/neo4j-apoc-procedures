@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.nodes.connected¦apoc.nodes.connected(start :: NODE?, start :: NODE?, types =  :: STRING?) :: (BOOLEAN?)¦apoc.nodes.connected(start, end, rel-direction-pattern) - returns true when the node is connected to the other node, optimized for dense nodes

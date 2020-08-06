@@ -1,0 +1,2 @@
+¦signature
+¦apoc.cypher.runTimeboxed(cypher :: STRING?, params :: MAP?, timeout :: INTEGER?) :: (value :: MAP?)

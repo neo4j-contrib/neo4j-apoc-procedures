@@ -1,0 +1,2 @@
+¦signature
+¦apoc.refactor.cloneSubgraph(nodes :: LIST? OF NODE?, rels = [] :: LIST? OF RELATIONSHIP?, config = {} :: MAP?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)

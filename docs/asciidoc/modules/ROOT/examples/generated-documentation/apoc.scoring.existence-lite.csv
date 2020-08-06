@@ -1,0 +1,2 @@
+¦signature
+¦apoc.scoring.existence(score :: INTEGER?, exists :: BOOLEAN?) :: (FLOAT?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.dropDuplicateNeighbors¦apoc.coll.dropDuplicateNeighbors(list :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.dropDuplicateNeighbors(list) - remove duplicate consecutive objects in a list

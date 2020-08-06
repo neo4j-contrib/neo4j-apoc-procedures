@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.map.clean¦apoc.map.clean(map :: MAP?, keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :: (MAP?)¦apoc.map.clean(map,[skip,keys],[skip,values]) yield map filters the keys and values contained in those lists, good for data cleaning from CSV/JSON

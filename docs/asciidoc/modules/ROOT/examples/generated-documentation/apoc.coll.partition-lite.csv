@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.partition(values :: LIST? OF ANY?, batchSize :: INTEGER?) :: (LIST? OF ANY?)

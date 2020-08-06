@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.schema.properties.distinctCount¦apoc.schema.properties.distinctCount(label =  :: STRING?, key =  :: STRING?) :: (label :: STRING?, key :: STRING?, value :: ANY?, count :: INTEGER?)¦apoc.schema.properties.distinctCount([label], [key]) YIELD label, key, value, count - quickly returns all distinct values and counts for a given key

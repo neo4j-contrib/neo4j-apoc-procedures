@@ -1,0 +1,2 @@
+¦signature
+¦apoc.number.exact.sub(stringA :: STRING?, stringB :: STRING?) :: (STRING?)

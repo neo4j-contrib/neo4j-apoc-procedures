@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.algo.euclideanSimilarity¦apoc.algo.euclideanSimilarity(vector1 :: LIST? OF NUMBER?, vector2 :: LIST? OF NUMBER?) :: (FLOAT?)¦apoc.algo.euclideanSimilarity([vector1], [vector2]) given two collection vectors, calculate similarity based on euclidean distance

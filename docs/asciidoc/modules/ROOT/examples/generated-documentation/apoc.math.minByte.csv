@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.math.minByte¦apoc.math.minByte() :: (INTEGER?)¦apoc.math.minByte() | return the minimum value an byte can have

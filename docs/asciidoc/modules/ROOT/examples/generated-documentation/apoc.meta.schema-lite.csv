@@ -1,0 +1,2 @@
+¦signature
+¦apoc.meta.schema(config = {} :: MAP?) :: (value :: MAP?)

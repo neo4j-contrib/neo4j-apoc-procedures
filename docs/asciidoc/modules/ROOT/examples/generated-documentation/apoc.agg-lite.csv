@@ -1,0 +1,12 @@
+¦signature
+¦apoc.agg.first(value :: ANY?) :: (ANY?)
+¦apoc.agg.graph(element :: ANY?) :: (MAP?)
+¦apoc.agg.last(value :: ANY?) :: (ANY?)
+¦apoc.agg.maxItems(item :: ANY?, value :: ANY?, groupLimit = -1 :: INTEGER?) :: (ANY?)
+¦apoc.agg.median(value :: ANY?) :: (ANY?)
+¦apoc.agg.minItems(item :: ANY?, value :: ANY?, groupLimit = -1 :: INTEGER?) :: (ANY?)
+¦apoc.agg.nth(value :: ANY?, value :: INTEGER?) :: (ANY?)
+¦apoc.agg.percentiles(value :: NUMBER?, percentiles = [0.5, 0.75, 0.9, 0.95, 0.99] :: LIST? OF FLOAT?) :: (LIST? OF ANY?)
+¦apoc.agg.product(number :: NUMBER?) :: (NUMBER?)
+¦apoc.agg.slice(value :: ANY?, from = 0 :: INTEGER?, to = -1 :: INTEGER?) :: (LIST? OF ANY?)
+¦apoc.agg.statistics(value :: NUMBER?, percentiles = [0.5, 0.75, 0.9, 0.95, 0.99] :: LIST? OF FLOAT?) :: (MAP?)

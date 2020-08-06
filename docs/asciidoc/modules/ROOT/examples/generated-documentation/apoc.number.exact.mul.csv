@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.number.exact.mul¦apoc.number.exact.mul(stringA :: STRING?, stringB :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (STRING?)¦apoc.number.exact.mul(stringA,stringB,[prec],[roundingModel]) - return the multiplication's result of two large numbers 

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.mongodb.get(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, compatibleValues = false :: BOOLEAN?, skip = 0 :: INTEGER?, limit = 0 :: INTEGER?, extractReferences = false :: BOOLEAN?, objectIdAsMap = true :: BOOLEAN?) :: (value :: MAP?)

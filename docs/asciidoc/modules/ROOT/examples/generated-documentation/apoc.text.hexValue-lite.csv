@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.hexValue(value :: INTEGER?) :: (STRING?)

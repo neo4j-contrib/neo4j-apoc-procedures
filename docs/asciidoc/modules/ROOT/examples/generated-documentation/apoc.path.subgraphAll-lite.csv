@@ -1,0 +1,2 @@
+¦signature
+¦apoc.path.subgraphAll(start :: ANY?, config :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)

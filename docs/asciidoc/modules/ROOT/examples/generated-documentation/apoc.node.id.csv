@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.node.id¦apoc.node.id(node :: NODE?) :: (INTEGER?)¦returns id for (virtual) nodes

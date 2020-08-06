@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.date.fromISO8601¦apoc.date.fromISO8601(time :: STRING?) :: (INTEGER?)¦apoc.date.fromISO8601('yyyy-MM-ddTHH:mm:ss.SSSZ') return number representation of time in EPOCH format

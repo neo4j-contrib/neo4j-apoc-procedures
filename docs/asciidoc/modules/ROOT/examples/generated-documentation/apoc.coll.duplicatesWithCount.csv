@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.duplicatesWithCount¦apoc.coll.duplicatesWithCount(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.duplicatesWithCount(coll) - returns a list of duplicate items in the collection and their count, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)

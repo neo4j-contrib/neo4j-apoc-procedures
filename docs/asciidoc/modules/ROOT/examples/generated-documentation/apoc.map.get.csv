@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.map.get¦apoc.map.get(map :: MAP?, key :: STRING?, value = null :: ANY?, fail = true :: BOOLEAN?) :: (ANY?)¦apoc.map.get(map,key,[default],[fail=true]) - returns value for key or throws exception if key doesn't exist and no default given

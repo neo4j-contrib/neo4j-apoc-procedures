@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.jaroWinklerDistance¦apoc.text.jaroWinklerDistance(text1 :: STRING?, text2 :: STRING?) :: (FLOAT?)¦apoc.text.jaroWinklerDistance(text1, text2) - compare the given strings with the Jaro-Winkler distance algorithm.

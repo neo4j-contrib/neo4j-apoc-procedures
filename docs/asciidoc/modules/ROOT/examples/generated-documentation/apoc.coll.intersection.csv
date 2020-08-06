@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.intersection¦apoc.coll.intersection(first :: LIST? OF ANY?, second :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.intersection(first, second) - returns the unique intersection of the two lists

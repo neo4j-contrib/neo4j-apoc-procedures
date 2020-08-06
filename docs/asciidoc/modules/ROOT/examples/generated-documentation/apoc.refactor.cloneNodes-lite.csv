@@ -1,0 +1,2 @@
+¦signature
+¦apoc.refactor.cloneNodes(nodes :: LIST? OF NODE?, withRelationships = false :: BOOLEAN?, skipProperties = [] :: LIST? OF STRING?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)

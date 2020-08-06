@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.doubleMetaphone(value :: STRING?) :: (STRING?)

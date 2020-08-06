@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.static.set¦apoc.static.set(key :: STRING?, value :: ANY?) :: (value :: ANY?)¦apoc.static.set(name, value) - stores value under key for server lifetime storage, returns previously stored or configured value

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.path.combine(first :: PATH?, second :: PATH?) :: (PATH?)

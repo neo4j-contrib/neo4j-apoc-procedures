@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.path.combine¦apoc.path.combine(first :: PATH?, second :: PATH?) :: (PATH?)¦apoc.path.combine(path1, path2) - combines the paths into one if the connecting node matches

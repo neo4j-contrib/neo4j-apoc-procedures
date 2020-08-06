@@ -1,0 +1,2 @@
+¦signature
+¦apoc.cypher.runFirstColumn(cypher :: STRING?, params :: MAP?, expectMultipleValues = true :: BOOLEAN?) :: (ANY?)

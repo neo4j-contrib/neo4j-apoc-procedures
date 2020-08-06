@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.agg.product¦apoc.agg.product(number :: NUMBER?) :: (NUMBER?)¦apoc.agg.product(number) - returns given product for non-null values

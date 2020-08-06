@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.create.setRelProperty¦apoc.create.setRelProperty(relationships :: ANY?, key :: STRING?, value :: ANY?) :: (rel :: RELATIONSHIP?)¦apoc.create.setRelProperty( [rel,id,ids,rels], key, value) - sets the given property on the relationship(s)

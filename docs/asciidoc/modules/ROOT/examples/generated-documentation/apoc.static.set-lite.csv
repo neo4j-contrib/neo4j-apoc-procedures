@@ -1,0 +1,2 @@
+¦signature
+¦apoc.static.set(key :: STRING?, value :: ANY?) :: (value :: ANY?)

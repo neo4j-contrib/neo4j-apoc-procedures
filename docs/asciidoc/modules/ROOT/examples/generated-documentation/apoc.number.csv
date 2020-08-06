@@ -1,0 +1,6 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.number.arabicToRoman¦apoc.number.arabicToRoman(number :: ANY?) :: (STRING?)¦apoc.number.arabicToRoman(number)  | convert arabic numbers to roman
+¦function¦apoc.number.format¦apoc.number.format(number :: ANY?, pattern =  :: STRING?, lang =  :: STRING?) :: (STRING?)¦apoc.number.format(number)  | format a long or double using the default system pattern and language to produce a string
+¦function¦apoc.number.parseFloat¦apoc.number.parseFloat(text :: STRING?, pattern =  :: STRING?, lang =  :: STRING?) :: (FLOAT?)¦apoc.number.parseFloat(text)  | parse a text using the default system pattern and language to produce a double
+¦function¦apoc.number.parseInt¦apoc.number.parseInt(text :: STRING?, pattern =  :: STRING?, lang =  :: STRING?) :: (INTEGER?)¦apoc.number.parseInt(text)  | parse a text using the default system pattern and language to produce a long
+¦function¦apoc.number.romanToArabic¦apoc.number.romanToArabic(romanNumber :: STRING?) :: (NUMBER?)¦apoc.number.romanToArabic(romanNumber)  | convert roman numbers to arabic

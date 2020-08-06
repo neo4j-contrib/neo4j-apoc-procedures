@@ -1,0 +1,92 @@
+[[load-xls]]
+= Loading Excel (XLS)
+:description: This section describes procedures that can be used to import data from Excel files.
+
+
+
+== Library Requirements
+
+For loading XLS we're using the Apache POI library, which works well with old and new Excel formats, but is quite large.
+That's why we decided not to include it into the apoc jar, but make it an optional dependency.
+
+Please download these jars and put them into your `plugins` directory:
+
+.For XLS files:
+* http://repo1.maven.org/maven2/org/apache/poi/poi/3.17/poi-3.17.jar[poi-3.17.jar^]
+
+.Additional for XLSX files:
+* http://repo1.maven.org/maven2/org/apache/commons/commons-collections4/4.1/commons-collections4-4.1.jar[commons-collections4-4.1.jar^]
+* http://repo1.maven.org/maven2/org/apache/poi/poi-ooxml/3.17/poi-ooxml-3.17.jar[poi-ooxml-3.17.jar^]
+* http://repo1.maven.org/maven2/org/apache/poi/poi-ooxml-schemas/3.17/poi-ooxml-schemas-3.17.jar[poi-ooxml-schemas-3.17.jar^]
+* http://repo1.maven.org/maven2/org/apache/xmlbeans/xmlbeans/2.6.0/xmlbeans-2.6.0.jar[xmlbeans-2.6.0.jar^]
+* http://repo1.maven.org/maven2/com/github/virtuald/curvesapi/1.04/curvesapi-1.04.jar[curvesapi-1.04.jar^]
+
+== Usage
+
+The usage of `apoc.load.xls` is similar to `apoc.load.csv` with the main difference the ability to select a worksheet or a range from a sheet to load.
+
+You can either select the sheet by name like `'Kids'`, or offset like `'Results!B2:F3'`
+
+`CALL apoc.load.xls({url}, {Name of sheet}, {config})`
+
+The `{config}` parameter is a map
+
+[opts=header,cols="m,m"]
+|===
+| name | description
+| mapping | {mapping:{'<sheet>':{type:'<type>', dateFormat: '<format>', dateParse: [<formats>]}}}
+| <sheet> | name of the sheet
+| <type> | Default `String`, The type of the conversion requested (`STRING`, `INTEGER`, `FLOAT`, `BOOLEAN`, `NULL`, `LIST`, `DATE`, `DATE_TIME`, `LOCAL_DATE`, `LOCAL_DATE_TIME`, `LOCAL_TIME`, `TIME`)
+| dateFormat: <format> | Convert the Date into String (only String is allowed)
+| dateParse: [<formats>] | Convert the String into Date (Array of strings are allowed)
+|===
+
+[NOTE]
+====
+In dateParse the first format matched return the date formatted, otherwise it will return an error
+
+In `format` config you can use the pattern describe as the Temporal functions: xref::temporal/temporal-conversions.adoc[temporal functions]
+====
+
+== Examples for `apoc.load.xls`
+
+[source,cypher]
+----
+CALL apoc.load.xls('file:///path/to/file.xls','Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})
+----
+
+image::apoc.load.xls.png[scaledwidth="100%"]
+
+[source,cypher]
+----
+CALL apoc.load.xls('http://bit.ly/2nXgHA2','Kids')
+----
+
+Some examples with type/dateFormat and dateParse:
+
+[source,cypher]
+----
+CALL apoc.load.xls('test_date.xlsx','sheet',{mapping:{Date:{type:'String'}}})
+----
+
+.results
+
+image::apoc.load.xls_1.png[scaledwidth="100%"]
+
+[source,cypher]
+----
+CALL apoc.load.xls('test_date.xlsx','sheet',{mapping:{Date:{type:'String',dateFormat:'iso_date'}}})
+----
+
+.results
+
+image::apoc.load.xls_2.png[scaledwidth="100%"]
+
+[source,cypher]
+----
+CALL apoc.load.xls('test_date.xlsx','sheet',{mapping:{Date:{type:'String',dateParse:["wrongPath", "dd-MM-yyyy", "dd/MM/yyyy", "yyyy/MM/dd", "yyyy/dd/MM", "yyyy-dd-MM'T'hh:mm:ss"]}}})
+----
+
+.results
+
+image::apoc.load.xls_3.png[scaledwidth="100%"]

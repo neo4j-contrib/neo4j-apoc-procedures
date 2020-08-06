@@ -1,0 +1,2 @@
+¦signature
+¦apoc.create.node(label :: LIST? OF STRING?, props :: MAP?) :: (node :: NODE?)

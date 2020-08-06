@@ -1,0 +1,23 @@
+[[graph-refactoring]]
+= Graph Refactorings
+:description: This section describes graph refactoring procedures in the APOC library.
+
+
+
+Given the agile approach taken towards building graph models, graph refactoring (or migration) is something that all graph based projects will have to do at some stage.
+While many graph refactorings can be done using Cypher directly, the APOC library provides tools to make the process easier.
+
+The library contains procedures for the following high level refactorings:
+
+* xref::graph-updates/graph-refactoring/categorize.adoc[]
+* xref::graph-updates/graph-refactoring/clone-nodes.adoc[]
+* xref::graph-updates/graph-refactoring/clone-subgraph.adoc[]
+* xref::graph-updates/graph-refactoring/collapse-node-to-relationship.adoc[]
+* xref::graph-updates/graph-refactoring/extract-node-from-relationship.adoc[]
+* xref::graph-updates/graph-refactoring/invert-relationship.adoc[]
+* xref::graph-updates/graph-refactoring/merge-nodes.adoc[]
+* xref::graph-updates/graph-refactoring/normalize-boolean.adoc[]
+* xref::graph-updates/graph-refactoring/property-value-label.adoc[]
+* xref::graph-updates/graph-refactoring/redirect-relationship.adoc[]
+* xref::graph-updates/graph-refactoring/rename-label-type-property.adoc[]
+* xref::graph-updates/graph-refactoring/set-relationship-type.adoc[]

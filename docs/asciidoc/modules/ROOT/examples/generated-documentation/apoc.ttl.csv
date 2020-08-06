@@ -1,0 +1,3 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.ttl.expire¦apoc.ttl.expire(node :: NODE?, time :: INTEGER?, timeUnit :: STRING?) :: VOID¦CALL apoc.ttl.expireAtInstant(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property
+¦procedure¦apoc.ttl.expireIn¦apoc.ttl.expireIn(node :: NODE?, timeDelta :: INTEGER?, timeUnit :: STRING?) :: VOID¦CALL apoc.ttl.expireAfterTimeLength(node,timeDelta,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property

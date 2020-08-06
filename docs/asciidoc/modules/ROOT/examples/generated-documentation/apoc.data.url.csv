@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.data.url¦apoc.data.url(url :: STRING?) :: (MAP?)¦apoc.data.url('url') as {protocol,host,port,path,query,file,anchor,user} | turn URL into map structure

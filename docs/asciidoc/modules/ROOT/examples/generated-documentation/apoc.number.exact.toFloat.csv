@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.number.exact.toFloat¦apoc.number.exact.toFloat(stringA :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (FLOAT?)¦apoc.number.exact.toFloat(string,[prec],[roundingMode]) - return the Float value of a large number

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.couchbase.posParamsQuery¦apoc.couchbase.posParamsQuery(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?, params :: LIST? OF ANY?) :: (queryResult :: LIST? OF MAP?)¦apoc.couchbase.posParamsQuery(hostOrKey, bucket, statement, params) yield queryResult - executes a N1QL statement with positional parameters.

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.refactor.normalizeAsBoolean(entity :: ANY?, propertyKey :: STRING?, true_values :: LIST? OF ANY?, false_values :: LIST? OF ANY?) :: VOID

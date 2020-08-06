@@ -1,0 +1,2 @@
+¦signature
+¦apoc.agg.slice(value :: ANY?, from = 0 :: INTEGER?, to = -1 :: INTEGER?) :: (LIST? OF ANY?)

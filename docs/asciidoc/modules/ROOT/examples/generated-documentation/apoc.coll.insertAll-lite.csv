@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.insertAll(coll :: LIST? OF ANY?, index :: INTEGER?, values :: LIST? OF ANY?) :: (LIST? OF ANY?)

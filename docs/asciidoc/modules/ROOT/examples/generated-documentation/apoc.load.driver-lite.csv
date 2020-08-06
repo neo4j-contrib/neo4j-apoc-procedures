@@ -1,0 +1,2 @@
+¦signature
+¦apoc.load.driver(driverClass :: STRING?) :: VOID

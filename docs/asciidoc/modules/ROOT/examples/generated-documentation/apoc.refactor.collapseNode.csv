@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.refactor.collapseNode¦apoc.refactor.collapseNode(nodes :: ANY?, type :: STRING?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)¦apoc.refactor.collapseNode([node1,node2],'TYPE') collapse node to relationship, node with one rel becomes self-relationship

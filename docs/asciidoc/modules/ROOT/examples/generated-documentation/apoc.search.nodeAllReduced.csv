@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.search.nodeAllReduced¦apoc.search.nodeAllReduced(LabelPropertyMap :: ANY?, operator :: STRING?, value :: ANY?) :: (id :: INTEGER?, labels :: LIST? OF STRING?, values :: MAP?)¦Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched property. apoc.search.nodeShortAll( map of label and properties which will be searched upon, operator: EXACT / CONTAINS / STARTS WITH | ENDS WITH / = / <> / < / > ..., value ). All 'hits' are returned.

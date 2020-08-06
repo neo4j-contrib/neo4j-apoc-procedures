@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.combinations¦apoc.coll.combinations(coll :: LIST? OF ANY?, minSelect :: INTEGER?, maxSelect = -1 :: INTEGER?) :: (LIST? OF ANY?)¦apoc.coll.combinations(coll, minSelect, maxSelect:minSelect) - Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive

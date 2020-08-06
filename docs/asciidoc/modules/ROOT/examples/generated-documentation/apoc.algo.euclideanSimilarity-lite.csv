@@ -1,0 +1,2 @@
+¦signature
+¦apoc.algo.euclideanSimilarity(vector1 :: LIST? OF NUMBER?, vector2 :: LIST? OF NUMBER?) :: (FLOAT?)

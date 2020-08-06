@@ -1,0 +1,2 @@
+¦signature
+¦apoc.nlp.gcp.classify.stream(source :: ANY?, config = {} :: MAP?) :: (node :: NODE?, value :: MAP?, error :: MAP?)

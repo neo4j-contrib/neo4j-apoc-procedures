@@ -1,0 +1,6 @@
+¦signature
+¦apoc.number.arabicToRoman(number :: ANY?) :: (STRING?)
+¦apoc.number.format(number :: ANY?, pattern =  :: STRING?, lang =  :: STRING?) :: (STRING?)
+¦apoc.number.parseFloat(text :: STRING?, pattern =  :: STRING?, lang =  :: STRING?) :: (FLOAT?)
+¦apoc.number.parseInt(text :: STRING?, pattern =  :: STRING?, lang =  :: STRING?) :: (INTEGER?)
+¦apoc.number.romanToArabic(romanNumber :: STRING?) :: (NUMBER?)

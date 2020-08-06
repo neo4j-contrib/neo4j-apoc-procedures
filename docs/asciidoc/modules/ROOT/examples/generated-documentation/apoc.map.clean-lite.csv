@@ -1,0 +1,2 @@
+¦signature
+¦apoc.map.clean(map :: MAP?, keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :: (MAP?)

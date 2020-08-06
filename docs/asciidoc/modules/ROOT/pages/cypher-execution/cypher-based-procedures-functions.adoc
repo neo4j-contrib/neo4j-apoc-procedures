@@ -1,0 +1,181 @@
+[[cypher-based-procedures-functions]]
+= Custom, Cypher Based Procedures and Functions
+:description: This section describes how to register custom Cypher statements as procedures and functions
+
+
+
+
+I wanted for a long time to be able to register Cypher statements as proper procedures and functions, so that they become callable in a standalone way.
+
+You can achieve that with the `apoc.custom.asProcedure` and `apoc.custom.asFunction` procedure calls.
+Those register a given Cypher statement, prefixed with the `custom.*` namespace, overriding potentially existing ones, so you can redefine them as needed.
+
+Here is a simple example:
+
+[source,cypher]
+----
+CALL apoc.custom.asProcedure('answer','RETURN 42 as answer')
+----
+
+This registers the statement as procedure `custom.answer` that you then can call.
+As no information on parameter and return types is given, it just returns a stream of columns of maps called `row`.
+
+[source,cypher]
+----
+CALL custom.answer YIELD row
+RETURN row.answer
+----
+
+The same is possible as a function:
+
+[source,cypher]
+----
+CALL apoc.custom.asFunction('answer','RETURN 42')
+----
+
+NOTE: If you override procedures or functions you might need to call `call dbms.clearQueryCaches()` as lookups to internal id's are kept in compiled query plans.
+
+== Custom Procedures with `apoc.custom.asProcedure`
+
+Given statement will be registered as a procedure, the results will be turned into a stream of records.
+
+.Parameters
+[%autowidth,opts=header,cols="m,m,a"]
+|===
+| name
+| default
+| description
+
+| name | none | dot-separated name, will be prefixed with `custom`
+| statement | none | cypher statement to run, can use $parameters
+| mode | read | execution mode of the procedure: read, write, or schema
+| outputs | [["row","MAP"]] | List of pairs of name-type to be used as output columns, need to be in-order with the cypher statement, the default is a special case, that will collect all columns of the statement result into a map
+| inputs | [["params","MAP","{}"]] | Pairs or triples of name-type-default, to be used as input parameters. The default just takes an optional map, otherwise they will become proper paramters in order
+| description | "" | A general description about the business rules implemented into the procedure
+|===
+
+The type names are what you would expect and see in outputs of `dbms.procedures` or `apoc.help` just without the `?`.
+The default values are parsed as JSON.
+
+.Type Names
+* FLOAT, DOUBLE, INT, INTEGER, NUMBER, LONG
+* TEXT, STRING
+* BOOL, BOOLEAN
+* POINT, GEO, GEOCORDINATE
+* DATE, DATETIME, LOCALDATETIME, TIME, LOCALTIME, DURATION
+* NODE, REL, RELATIONSHIP, PATH
+* MAP
+* LIST TYPE, LIST OF TYPE
+* ANY
+
+.Find neighbours of a node by name
+[source,cypher]
+----
+CALL apoc.custom.asProcedure('neighbours',
+  'MATCH (n:Person {name:$name})-->(nb) RETURN nb as neighbour','read',
+  [['neighbour','NODE']],[['name','STRING'], 'get neighbours of a person']);
+
+CALL custom.neighbours('Keanu Reeves') YIELD neighbour;
+----
+
+
+== Custom Functions with `apoc.custom.asFunction`
+
+Given statement will be registered as a statement, the results into a single value.
+If the given output type is a list, results will be collected into a list, otherwise the first row will be used.
+The statement needs to return a single column, otherwise an error is thrown.
+
+.Parameters
+[%autowidth,opts=header, cols="m,m,a"]
+|===
+| name
+| default
+| description
+
+| name | none | dot-separated name, will be prefixed with `custom`
+| statement | none | cypher statement to run, can use $parameters
+| outputs | "LIST OF MAP" | Output type for single output, if the type is a list, then all rows will be collected, otherwise just the first row. Only single column results are allowed.
+If your single row result is a list you can force a single row by setting the last parameter to `true`
+| inputs | [["params","MAP","{}"]] | Pairs or triples of name-type-default, to be used as input parameters. The default just takes an optional map, otherwise they will become proper paramters in order
+| singleRow | false | If set to true, the statement is treated as single row even with the list result type, then your statement has to return a list.
+| description | "" | A general description about the business rules implemented into the function
+|===
+
+The type names are what you would expect and see in outputs of `dbms.procedures` or `apoc.help` just without the `?`.
+The default values are parsed as JSON.
+
+
+== List of registered procedures/function with `apoc.custom.list`
+
+The procedure `apoc.custom.list` provide a list of all registered procedures/function via
+`apoc.custom.asProcedure` and `apoc.custom.asFunction`
+
+Given the this call:
+
+[source,cypher]
+----
+CALL apoc.custom.list
+----
+
+The the output will look like the following table:
+
+[%autowidth,opts=header]
+|===
+| type | name | description | mode | statement | inputs | outputs | forceSingle
+| "function"  | "answer" | <null> | <null> | "RETURN $input as answer" | [["input","number"]] | "long" | false
+| "procedure" | "answer" | "Procedure that answer to the Ultimate Question of Life, the Universe, and Everything" | "read" | "RETURN $input as answer" | [["input","int","42"]] | [["answer","number"]] | <null>
+|===
+
+
+== Remove a procedure `apoc.custom.removeProcedure`
+
+The procedure `apoc.custom.removeProcedure` allows to delete the targeted custom procedure.
+
+
+Given the this call:
+
+[source,cypher]
+----
+CALL apoc.custom.removeProcedure(<name>)
+----
+
+Fields:
+
+[%autowidth,opts=header]
+|===
+| argument | description
+| name  | the procedure name
+|===
+
+
+== Remove a procedure `apoc.custom.removeFunction`
+
+The procedure `apoc.custom.removeFunction` allows to delete the targeted custom function.
+
+
+Given the this call:
+
+[source,cypher]
+----
+CALL apoc.custom.removeFunction(<name>)
+----
+
+Fields:
+
+[%autowidth,opts=header]
+|===
+| argument | description
+| name  | the function name
+|===
+
+
+== How to manage procedure/function replication in a Causal Cluster
+
+In order to replicate the procedure/function in a cluster environment you can tune the following parameters:
+
+[%autowidth,opts=header]
+|===
+| name | type | description
+| `apoc.custom.procedures.refresh` | long (default `60000`) | the refresh time that allows replicating the procedure/function
+changes to each cluster member
+|===

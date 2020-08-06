@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.load.html¦apoc.load.html(url :: STRING?, query = {} :: MAP?, config = {} :: MAP?) :: (value :: MAP?)¦apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map

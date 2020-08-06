@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.slug¦apoc.text.slug(text :: STRING?, delim = - :: STRING?) :: (STRING?)¦apoc.text.slug(text, delim) - slug the text with the given delimiter

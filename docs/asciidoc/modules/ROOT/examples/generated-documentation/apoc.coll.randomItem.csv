@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.randomItem¦apoc.coll.randomItem(coll :: LIST? OF ANY?) :: (ANY?)¦apoc.coll.randomItem(coll)- returns a random item from the list, or null on an empty or null list

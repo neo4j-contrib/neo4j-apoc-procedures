@@ -1,0 +1,2 @@
+¦signature
+¦apoc.path.slice(path :: PATH?, offset = 0 :: INTEGER?, length = -1 :: INTEGER?) :: (PATH?)

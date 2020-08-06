@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.hexValue¦apoc.text.hexValue(value :: INTEGER?) :: (STRING?)¦apoc.text.hexValue(value) - the hex value string of the given number

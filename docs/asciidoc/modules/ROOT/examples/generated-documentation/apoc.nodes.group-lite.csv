@@ -1,0 +1,2 @@
+¦signature
+¦apoc.nodes.group(labels :: LIST? OF STRING?, groupByProperties :: LIST? OF STRING?, aggregations = [{*=count}, {*=count}] :: LIST? OF MAP?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?, node :: NODE?, relationship :: RELATIONSHIP?)

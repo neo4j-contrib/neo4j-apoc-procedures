@@ -1,0 +1,2 @@
+¦signature
+¦apoc.convert.toNodeList(list :: ANY?) :: (LIST? OF ANY?)

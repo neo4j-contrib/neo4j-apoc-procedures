@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.date.toISO8601¦apoc.date.toISO8601(time :: INTEGER?, unit = ms :: STRING?) :: (STRING?)¦apoc.date.toISO8601(12345,('ms|s|m|h|d') return string representation of time in ISO8601 format

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.path.slice¦apoc.path.slice(path :: PATH?, offset = 0 :: INTEGER?, length = -1 :: INTEGER?) :: (PATH?)¦apoc.path.slice(path, [offset], [length]) - creates a sub-path with the given offset and length

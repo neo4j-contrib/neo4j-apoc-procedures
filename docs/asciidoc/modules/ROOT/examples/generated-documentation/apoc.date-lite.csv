@@ -1,0 +1,16 @@
+¦signature
+¦apoc.date.expire(node :: NODE?, time :: INTEGER?, timeUnit :: STRING?) :: VOID
+¦apoc.date.expireIn(node :: NODE?, timeDelta :: INTEGER?, timeUnit :: STRING?) :: VOID
+¦apoc.date.add(time :: INTEGER?, unit :: STRING?, addValue :: INTEGER?, addUnit :: STRING?) :: (INTEGER?)
+¦apoc.date.convert(time :: INTEGER?, unit :: STRING?, toUnit :: STRING?) :: (INTEGER?)
+¦apoc.date.convertFormat(temporal :: STRING?, currentFormat :: STRING?, convertTo = yyyy-MM-dd :: STRING?) :: (STRING?)
+¦apoc.date.currentTimestamp() :: (INTEGER?)
+¦apoc.date.field(time :: INTEGER?, unit = d :: STRING?, timezone = UTC :: STRING?) :: (INTEGER?)
+¦apoc.date.fields(date :: STRING?, pattern = yyyy-MM-dd HH:mm:ss :: STRING?) :: (MAP?)
+¦apoc.date.format(time :: INTEGER?, unit = ms :: STRING?, format = yyyy-MM-dd HH:mm:ss :: STRING?, timezone =  :: STRING?) :: (STRING?)
+¦apoc.date.fromISO8601(time :: STRING?) :: (INTEGER?)
+¦apoc.date.parse(time :: STRING?, unit = ms :: STRING?, format = yyyy-MM-dd HH:mm:ss :: STRING?, timezone =  :: STRING?) :: (INTEGER?)
+¦apoc.date.parseAsZonedDateTime(time :: STRING?, format = yyyy-MM-dd HH:mm:ss :: STRING?, timezone = UTC :: STRING?) :: (DATETIME?)
+¦apoc.date.systemTimezone() :: (STRING?)
+¦apoc.date.toISO8601(time :: INTEGER?, unit = ms :: STRING?) :: (STRING?)
+¦apoc.date.toYears(value :: ANY?, format = yyyy-MM-dd HH:mm:ss :: STRING?) :: (FLOAT?)

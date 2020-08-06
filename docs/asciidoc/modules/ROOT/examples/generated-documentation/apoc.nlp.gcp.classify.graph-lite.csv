@@ -1,0 +1,2 @@
+¦signature
+¦apoc.nlp.gcp.classify.graph(source :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)

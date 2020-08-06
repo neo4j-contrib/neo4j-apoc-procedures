@@ -1,0 +1,2 @@
+¦signature
+¦apoc.convert.fromJsonList(list :: STRING?, path =  :: STRING?) :: (LIST? OF ANY?)

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.refactor.cloneSubgraphFromPaths(paths :: LIST? OF PATH?, config = {} :: MAP?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)
