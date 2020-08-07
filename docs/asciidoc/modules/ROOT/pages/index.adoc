@@ -32,7 +32,7 @@ The guide covers the following areas:
 * xref::cypher-execution/index.adoc[] -- A detailed guide to procedures that can be used for Cypher scripting.
 * xref::virtual/index.adoc[] -- A detailed guide to procedures that can be used to create virtual nodes and relationships.
 * xref::nlp/index.adoc[] -- A detailed guide to procedures that can be used to add Natural Language Processing functionality to graph applications.
-* xref::job-management/index.adoc[] -- A detailed guide to procedures that can be used for background job management.
+* xref::background-operations/index.adoc[] -- A detailed guide to procedures that can be used for background job management.
 * xref::database-introspection/index.adoc[] -- A detailed guide to procedures that can be used to introspect the database.
 * xref::operational/index.adoc[] -- A detailed guide to operational procedures.
 * xref::misc/index.adoc[] -- A detailed guide to miscellaneous procedures and functions, including map and collection functions, text functions, and spatial functionality.

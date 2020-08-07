@@ -10,8 +10,8 @@ This can also be useful in cloud environments that limit the runtime of statemen
 The `apoc.periodic.*` procedures provide such capabilities.
 
 
-* xref::job-management/periodic-background.adoc[]
-* xref::job-management/triggers.adoc[]
+* xref::background-operations/periodic-background.adoc[]
+* xref::background-operations/triggers.adoc[]
 
 
 
