@@ -29,7 +29,7 @@ import static apoc.util.MapUtil.map;
 
 public class ImportJsonTest {
 
-    private static File directory = new File("../docs/asciidoc/data/exportJSON");
+    private static File directory = new File("../docs/asciidoc/modules/ROOT/examples/data/exportJSON");
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
