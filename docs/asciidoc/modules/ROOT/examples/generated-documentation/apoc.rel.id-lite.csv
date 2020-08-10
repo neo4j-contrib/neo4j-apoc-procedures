@@ -1,0 +1,2 @@
+¦signature
+¦apoc.rel.id(rel :: RELATIONSHIP?) :: (INTEGER?)

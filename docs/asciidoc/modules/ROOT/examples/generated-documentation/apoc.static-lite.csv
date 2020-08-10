@@ -1,0 +1,6 @@
+¦signature
+¦apoc.static.get(key :: STRING?) :: (value :: ANY?)
+¦apoc.static.list(prefix :: STRING?) :: (key :: STRING?, value :: ANY?)
+¦apoc.static.set(key :: STRING?, value :: ANY?) :: (value :: ANY?)
+¦apoc.static.get(key :: STRING?) :: (ANY?)
+¦apoc.static.getAll(prefix :: STRING?) :: (MAP?)

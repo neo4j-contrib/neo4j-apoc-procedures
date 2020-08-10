@@ -1,0 +1,2 @@
+¦signature
+¦apoc.nodes.isDense(node :: NODE?) :: (BOOLEAN?)

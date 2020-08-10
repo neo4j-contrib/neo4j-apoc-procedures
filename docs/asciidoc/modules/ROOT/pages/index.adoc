@@ -1,0 +1,119 @@
+= APOC User Guide {apoc-release-absolute}
+//:toc: left
+:experimental:
+:sectid:
+:sectlinks:
+:toclevels: 2
+:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/images
+//{imagesdir}
+:script: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/script
+:gh-docs: https://neo4j-contrib.github.io/neo4j-apoc-procedures
+:description: This is the user guide for Neo4j APOC {docs-version}, authored by the Neo4j Labs Team.
+
+
+
+The guide covers the following areas:
+
+* xref::introduction/index.adoc[] -- An Introduction to the APOC library.
+* xref::installation/index.adoc[] -- Installation instructions for the library.
+* xref::usage/index.adoc[] -- A usage example.
+* xref::help/index.adoc[] -- In-built help in the library.
+* xref::overview/index.adoc[] -- A list of all APOC procedures and functions.
+* xref::config/index.adoc[] -- Configuration options used by the library.
+* xref::import/index.adoc[] -- A detailed guide to procedures that can be used to import data from different formats including JSON, CSV, and XLS.
+* xref::export/index.adoc[] -- A detailed guide to procedures that can be used to export data to different formats including JSON, CSV, GraphML, and Gephi.
+* xref::database-integration/index.adoc[] -- A detailed guide to procedures that can be used to integrate with other databases including relational databases, MongoDB, Couchbase, and ElasticSearch.
+* xref::graph-updates/index.adoc[] -- A detailed guide to procedures that can be used to apply graph updates.
+* xref::data-structures/index.adoc[] -- A detailed guide to procedures and functions, that can be used to work with data structures.
+* xref::temporal/index.adoc[]-- A detailed guide to procedures that can be used to format temporal types.
+* xref::mathematical/index.adoc[] -- A detailed guide to procedures and functions that can be used for mathematical operations.
+* xref::graph-querying/index.adoc[] -- A detailed guide to procedures that can be used for advanced graph querying.
+* xref::comparing-graphs/index.adoc[] -- A detailed guide to procedures that can be used to compare graphs.
+* xref::cypher-execution/index.adoc[] -- A detailed guide to procedures that can be used for Cypher scripting.
+* xref::virtual/index.adoc[] -- A detailed guide to procedures that can be used to create virtual nodes and relationships.
+* xref::nlp/index.adoc[] -- A detailed guide to procedures that can be used to add Natural Language Processing functionality to graph applications.
+* xref::background-operations/index.adoc[] -- A detailed guide to procedures that can be used for background job management.
+* xref::database-introspection/index.adoc[] -- A detailed guide to procedures that can be used to introspect the database.
+* xref::operational/index.adoc[] -- A detailed guide to operational procedures.
+* xref::misc/index.adoc[] -- A detailed guide to miscellaneous procedures and functions, including map and collection functions, text functions, and spatial functionality.
+* xref::indexes/index.adoc[] -- A detailed guide to indexing procedures.
+* xref::algorithms/index.adoc[] -- A detailed guide to Graph Algorithms.
+
+//include::introduction/index.adoc[]
+//
+//include::installation/index.adoc[]
+//
+//include::usage/index.adoc[]
+//
+//include::help/index.adoc[]
+//
+//include::overview/index.adoc[]
+//
+//include::config/index.adoc[]
+//
+//include::import/index.adoc[]
+//
+//include::export/index.adoc[]
+//
+//include::database-integration/index.adoc[]
+//
+//include::graph-updates/index.adoc[]
+//
+//include::data-structures/index.adoc[]
+//
+//include::temporal/index.adoc[]
+//
+//include::mathematical/index.adoc[]
+//
+//include::graph-querying/index.adoc[]
+//
+//include::comparing-graphs/index.adoc[]
+//
+//include::cypher-execution/index.adoc[]
+//
+//include::virtual/index.adoc[]
+//
+//include::nlp/index.adoc[]
+//
+//include::job-management/index.adoc[]
+//
+//include::database-introspection/index.adoc[]
+//
+//include::operational/index.adoc[]
+//
+//include::misc/index.adoc[]
+//
+//include::indexes/index.adoc[]
+//
+//include::algorithms/index.adoc[]
+
+////
+[[algorithms]]
+[[similarity]]
+[[community-detection]]
+[[pagerank]]
+[[centrality]]
+////
+
+////
+== Performance Tests
+
+include::big-graph-from-cypher.adoc[leveloffset=1]
+
+include::graphml-tests.adoc[leveloffset=1]
+
+include::jmh.adoc[leveloffset=1]
+////
+
+ifdef::backend-html5[]
+++++
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('#table-all').DataTable();
+} );
+</script>
+++++
+endif::[]

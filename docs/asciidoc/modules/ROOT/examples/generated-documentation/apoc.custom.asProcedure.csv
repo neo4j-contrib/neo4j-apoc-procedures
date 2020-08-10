@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.custom.asProcedure¦apoc.custom.asProcedure(name :: STRING?, statement :: STRING?, mode = read :: STRING?, outputs = null :: LIST? OF LIST? OF STRING?, inputs = null :: LIST? OF LIST? OF STRING?, description =  :: STRING?) :: VOID¦apoc.custom.asProcedure(name, statement, mode, outputs, inputs, description) - register a custom cypher procedure

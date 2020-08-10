@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.max(values :: LIST? OF ANY?) :: (ANY?)

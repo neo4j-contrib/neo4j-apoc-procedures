@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.decapitalize¦apoc.text.decapitalize(text :: STRING?) :: (STRING?)¦apoc.text.decapitalize(text) YIELD value - decapitalize the first letter of the word

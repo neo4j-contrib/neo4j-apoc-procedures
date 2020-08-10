@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.text.phoneticDelta¦apoc.text.phoneticDelta(text1 :: STRING?, text2 :: STRING?) :: (phonetic1 :: STRING?, phonetic2 :: STRING?, delta :: INTEGER?)¦apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta - Compute the US_ENGLISH soundex character difference between two given strings

@@ -1,0 +1,19 @@
+[[job-management]]
+= Background Operations
+:description: This chapter describes procedures that can be used to schedule execution of Cypher statements to run in the background.
+
+
+
+Sometimes you want to schedule execution of Cypher statements to run regularly in the background or asynchronously ("fire & forget").
+This can also be useful in cloud environments that limit the runtime of statements (e.g. to 2 or 5 minutes) by scheduling execution in the background.
+
+The `apoc.periodic.*` procedures provide such capabilities.
+
+
+* xref::background-operations/periodic-background.adoc[]
+* xref::background-operations/triggers.adoc[]
+
+
+
+
+

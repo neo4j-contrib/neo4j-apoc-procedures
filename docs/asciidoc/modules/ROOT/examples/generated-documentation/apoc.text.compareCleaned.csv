@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.compareCleaned¦apoc.text.compareCleaned(text1 :: STRING?, text2 :: STRING?) :: (BOOLEAN?)¦apoc.text.compareCleaned(text1, text2) - compare the given strings stripped of everything except alpha numeric characters converted to lower case.

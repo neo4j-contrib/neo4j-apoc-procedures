@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.pairs¦apoc.coll.pairs(list :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.pairs([1,2,3]) returns [1,2],[2,3],[3,null] 

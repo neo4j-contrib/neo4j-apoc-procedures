@@ -1,0 +1,2 @@
+¦signature
+¦apoc.log.warn(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID

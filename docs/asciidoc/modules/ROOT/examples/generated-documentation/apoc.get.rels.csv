@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.get.rels¦apoc.get.rels(relationships :: ANY?) :: (rel :: RELATIONSHIP?)¦apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these id's

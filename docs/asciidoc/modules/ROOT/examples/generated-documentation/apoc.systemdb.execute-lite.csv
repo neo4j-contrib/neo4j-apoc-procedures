@@ -1,0 +1,2 @@
+¦signature
+¦apoc.systemdb.execute(DDL command :: STRING?, params = {} :: MAP?) :: (row :: MAP?)

@@ -1,0 +1,25 @@
+[[path-expander]]
+= Path Expander Overview
+:description: This section describes procedures that can be used to do variable length path traversals.
+
+
+
+The Cypher query language supports https://neo4j.com/docs/cypher-manual/current/syntax/patterns/#cypher-pattern-varlength[variable-length pattern matching^], but path expansion is limited to relationship types.
+The path expander procedures enable more powerful variable length path traversals, where users can specify the following:
+
+* the direction of the relationship per relationship type.
+* a list of label names which act as a "whitelist" or a "blacklist".
+* end nodes for the expansion.
+
+This functionality is supported by five procedures:
+
+[options="header"]
+|===
+| Procedure | Description | Documentation
+|  `apoc.path.expand()` | expands paths using Cypher's default expansion modes (bfs and 'RELATIONSHIP_PATH' uniqueness).  | xref::graph-querying/expand-paths.adoc[]
+| `apoc.path.expandConfig()`  | expands paths with more flexible configuration of parameters and expansion modes. | xref::graph-querying/expand-paths-config.adoc[]
+|`apoc.path.subgraphNodes()` | expands to nodes of a subgraph. | xref::graph-querying/expand-subgraph-nodes.adoc[]
+| `apoc.path.subgraphAll()` | expands to nodes of a subgraph and also returns all relationships in the subgraph. | xref::graph-querying/expand-subgraph.adoc[]
+| `apoc.path.spanningTree()` | expands to paths collectively forming a spanning tree. | xref::graph-querying/expand-spanning-tree.adoc[]
+
+|===

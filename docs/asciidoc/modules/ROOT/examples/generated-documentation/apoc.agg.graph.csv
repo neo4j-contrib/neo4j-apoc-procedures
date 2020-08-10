@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.agg.graph¦apoc.agg.graph(element :: ANY?) :: (MAP?)¦apoc.agg.graph(path) - returns map of graph {nodes, relationships} of all distinct nodes and relationships

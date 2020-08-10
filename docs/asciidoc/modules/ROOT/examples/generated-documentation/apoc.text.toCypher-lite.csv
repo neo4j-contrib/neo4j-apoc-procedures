@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.toCypher(value :: ANY?, config = {} :: MAP?) :: (STRING?)

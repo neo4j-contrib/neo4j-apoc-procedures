@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.coll.split¦apoc.coll.split(values :: LIST? OF ANY?, value :: ANY?) :: (value :: LIST? OF ANY?)¦apoc.coll.split(list,value) | splits collection on given values rows of lists, value itself will not be part of resulting lists

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.generate.ba¦apoc.generate.ba(noNodes :: INTEGER?, edgesPerNode :: INTEGER?, label :: STRING?, type :: STRING?) :: VOID¦apoc.generate.ba(noNodes, edgesPerNode, label, type) - generates a random graph according to the Barabasi-Albert model

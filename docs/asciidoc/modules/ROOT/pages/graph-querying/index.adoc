@@ -1,0 +1,20 @@
+[[path-finding]]
+= Advanced Graph Querying
+:description: This chapter describes advanced graph querying procedures in the APOC library.
+
+
+
+The procedures in this chapter enable the querying of graph data when pure Cypher isn't enough.
+For more information on how to use these procedures, see:
+
+* xref::graph-querying/path-expander.adoc[]
+    ** xref::graph-querying/expand-paths.adoc[]
+    ** xref::graph-querying/expand-paths-config.adoc[]
+    ** xref::graph-querying/expand-subgraph-nodes.adoc[]
+    ** xref::graph-querying/expand-subgraph.adoc[]
+    ** xref::graph-querying/expand-spanning-tree.adoc[]
+* xref::graph-querying/neighborhood.adoc[]
+* xref::graph-querying/path-querying.adoc[]
+* xref::graph-querying/relationship-querying.adoc[]
+* xref::graph-querying/node-querying.adoc[]
+* xref::graph-querying/parallel-node-search.adoc[]

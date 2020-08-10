@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.trigger.propertiesByKey¦apoc.trigger.propertiesByKey(propertyEntries :: MAP?, key :: STRING?) :: (LIST? OF ANY?)¦

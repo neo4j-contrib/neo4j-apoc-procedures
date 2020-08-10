@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.charAt¦apoc.text.charAt(text :: STRING?, index :: INTEGER?) :: (INTEGER?)¦apoc.text.charAt(text, index) - the decimal value of the character at the given index

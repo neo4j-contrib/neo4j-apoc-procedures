@@ -1,0 +1,3 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.nlp.azure.sentiment.graph¦apoc.nlp.azure.sentiment.graph(source :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)¦Creates a (virtual) sentiment graph for provided text
+¦procedure¦apoc.nlp.azure.sentiment.stream¦apoc.nlp.azure.sentiment.stream(source :: ANY?, config = {} :: MAP?) :: (node :: NODE?, value :: MAP?, error :: MAP?)¦Provides a sentiment analysis for provided text

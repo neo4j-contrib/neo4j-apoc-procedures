@@ -1,0 +1,46 @@
+[[virtual-use-cases]]
+= Use Cases
+
+Virtual nodes and relationships are used for quite a number of things.
+
+You can create visual **representation of data that are not in the graph**, e.g. from other databases, that's also what the `apoc.bolt.load` procedure supports.
+
+Also the virtual nodes and relationships are used by `db.schema` and `apoc.meta.graph`
+
+You can use it to **visually project data**, e.g. aggregate relationships into one, or collapse intermediate nodes into virtual relationships etc.
+For instance, you can project a citation graph into a virtual author-author or paper-paper graph with aggregated relationships between them.
+Or turn Twitter data into an user-user mention graph.
+
+This is already automated in `apoc.nodes.group` which automatically groups nodes and relationships by grouping properties, https://neo4j.com/blog/apoc-release-for-neo4j-3-4-with-graph-grouping/[read more about that here^].
+
+You can **combine** real and virtual entities, e.g. connecting two real nodes with a virtual relationship or connecting a virtual node via a virtual relationship to a real node.
+
+APOC has already some means to also create "virtual graphs" which can also be used for export.
+
+Some more uses of virtual entities:
+
+- return only a few properties of nodes/rels to the visualization, e.g. if you have huge text properties
+- visualize clusters found by graph algorithms
+- aggregate information to a higher level of abstraction
+- skip intermediate nodes in a longer path
+- hide away properties or intermediate nodes/relationships for security reasons
+- graph grouping
+- visualization of data from other sources (computation, RDBMS, document-dbs, CSV, XML, JSON) as graph without even storing it
+- projecting partial data
+
+
+You can also create them yourself e.g. for projections.
+
+One thing to keep in mind: as you cannot look up already created virtual nodes from the graph you have to keep them in your own lookup structure.
+Something that works well for it is `apoc.map.groupBy` which creates a map from a list of entities, keyed by the string value of a given property.
+
+Virtual entities so far work across all surfaces, Neo4j-Browser, Bloom, neovis, and all the drivers, which is really cool, even if it was not originally intended.
+
+They are mainly used for visualization but Cypher itself can't access them (their ids, labels, types, properties)
+That's why we added a number of functions to access their properties, labels, and rel-types.
+
+In some future, they might be subsumed by graph views, the ability to return graphs and composable Cypher queries in Cypher 10.
+
+[NOTE]
+We also allow graph projections to be used https://neo4j.com/docs/graph-algorithms/3.5/projected-graph-model/cypher-projection/[as inputs for graph algorithms^], so you don't actually have to change your data to run an algorithm on a different shape but you can just specify node- and relationship-lists with two Cypher statements.
+You can visualize (a subset of) those using virtual nodes and relationships too.

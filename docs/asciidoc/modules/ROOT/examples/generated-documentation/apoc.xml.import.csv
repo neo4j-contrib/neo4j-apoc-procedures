@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.xml.import¦apoc.xml.import(url :: STRING?, config = {} :: MAP?) :: (node :: NODE?)¦Deprecated by apoc.import.xml

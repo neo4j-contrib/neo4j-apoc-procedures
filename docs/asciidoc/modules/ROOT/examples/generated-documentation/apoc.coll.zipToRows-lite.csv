@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.zipToRows(list1 :: LIST? OF ANY?, list2 :: LIST? OF ANY?) :: (value :: LIST? OF ANY?)

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.map.mget(map :: MAP?, keys :: LIST? OF STRING?, values = [] :: LIST? OF ANY?, fail = true :: BOOLEAN?) :: (LIST? OF ANY?)

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.sortMaps(coll :: LIST? OF MAP?, prop :: STRING?) :: (LIST? OF ANY?)

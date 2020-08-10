@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.agg.slice¦apoc.agg.slice(value :: ANY?, from = 0 :: INTEGER?, to = -1 :: INTEGER?) :: (LIST? OF ANY?)¦apoc.agg.slice(value, start, length) - returns subset of non-null values, start is 0 based and length can be -1

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.meta.graphSample¦apoc.meta.graphSample(config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)¦apoc.meta.graphSample() - examines the database statistics to build the meta graph, very fast, might report extra relationships

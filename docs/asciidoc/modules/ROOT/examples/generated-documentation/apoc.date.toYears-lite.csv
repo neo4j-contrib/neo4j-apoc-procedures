@@ -1,0 +1,2 @@
+¦signature
+¦apoc.date.toYears(value :: ANY?, format = yyyy-MM-dd HH:mm:ss :: STRING?) :: (FLOAT?)

@@ -1,0 +1,118 @@
+[[number-conversions]]
+= Number Format Conversions
+:description: This section describes functions that can be used to format numeric values.
+
+
+
+== Conversion between formatted decimals
+
+* `apoc.number.format(number)` format a long or double using the default system pattern and language to produce a string
+* `apoc.number.format(number, pattern)` format a long or double using a pattern and the default system language to produce a string
+* `apoc.number.format(number, lang)` format a long or double using the default system pattern pattern and a language to produce a string
+* `apoc.number.format(number, pattern, lang)` format a long or double using a pattern and a language to produce a string
+
+* `apoc.number.parseInt(text)` parse a text using the default system pattern and language to produce a long
+* `apoc.number.parseInt(text, pattern)` parse a text using a pattern and the default system language to produce a long
+* `apoc.number.parseInt(text, '', lang)` parse a text using the default system pattern and a language to produce a long
+* `apoc.number.parseInt(text, pattern, lang)` parse a text using a pattern and a language to produce a long
+
+* `apoc.number.parseFloat(text)` parse a text using the default system pattern and language to produce a double
+* `apoc.number.parseFloat(text, pattern)` parse a text using a pattern and the default system language to produce a double
+* `apoc.number.parseFloat(text,'',lang)` parse a text using the default system pattern and a language to produce a double
+* `apoc.number.parseFloat(text, pattern, lang)` parse a text using a pattern and a language to produce a double
+
+* The full list of supported values for `pattern` and `lang` params is described in https://docs.oracle.com/javase/9/docs/api/java/text/DecimalFormat.html[DecimalFormat JavaDoc]
+
+== Examples
+
+.The following formats a double value using the default system pattern:
+[source,cypher]
+----
+RETURN apoc.number.format(12345.67) as value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 12,345.67
+|===
+
+.The following formats a double value, using `.` as thousand separator, `,` as decimal separator, rounding down:
+[source,cypher]
+----
+RETURN apoc.number.format(12345, '#,##0.00;(#,##0.00)', 'it') as value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 12.345,00
+|===
+
+.The following formats a double value, using `.` as thousand separator and `,` as decimal separator:
+[source,cypher]
+----
+RETURN apoc.number.format(12345.67, '#,##0.00;(#,##0.00)', 'it') as value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 12.345,67
+|===
+
+.The following parses a formatted value as an int:
+[source,cypher]
+----
+RETURN apoc.number.parseInt('12.345', '#,##0.00;(#,##0.00)', 'it') as value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 12345
+|===
+
+.The following parses a formatted value as a float:
+[source,cypher]
+----
+RETURN apoc.number.parseFloat('12.345,67', '#,##0.00;(#,##0.00)', 'it') as value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 12345.67
+|===
+
+.The following formats a non numeric value:
+[source,cypher]
+----
+RETURN apoc.number.format('aaa') AS value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| null
+|===
+
+.The following parses a non numeric value:
+[source,cypher]
+----
+RETURN apoc.number.parseInt('aaa') AS value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| null
+|===
+

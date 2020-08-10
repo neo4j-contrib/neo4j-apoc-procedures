@@ -1,0 +1,2 @@
+¦signature
+¦apoc.date.fields(date :: STRING?, pattern = yyyy-MM-dd HH:mm:ss :: STRING?) :: (MAP?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.math.maxByte¦apoc.math.maxByte() :: (INTEGER?)¦apoc.math.maxByte() | return the maximum value an byte can have

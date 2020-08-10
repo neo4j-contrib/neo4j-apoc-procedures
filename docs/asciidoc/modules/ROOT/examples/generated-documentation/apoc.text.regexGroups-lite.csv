@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.regexGroups(text :: STRING?, regex :: STRING?) :: (LIST? OF ANY?)

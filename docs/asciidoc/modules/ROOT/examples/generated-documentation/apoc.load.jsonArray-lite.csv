@@ -1,0 +1,2 @@
+¦signature
+¦apoc.load.jsonArray(url :: STRING?, path =  :: STRING?) :: (value :: ANY?)

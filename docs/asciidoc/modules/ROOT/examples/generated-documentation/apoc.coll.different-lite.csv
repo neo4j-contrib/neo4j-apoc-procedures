@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.different(values :: LIST? OF ANY?) :: (BOOLEAN?)

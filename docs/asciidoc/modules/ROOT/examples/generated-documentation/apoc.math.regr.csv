@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.math.regr¦apoc.math.regr(label :: STRING?, propertyY :: STRING?, propertyX :: STRING?) :: (r2 :: FLOAT?, avgX :: FLOAT?, avgY :: FLOAT?, slope :: FLOAT?)¦apoc.math.regr(label, propertyY, propertyX) - It calculates the coefficient of determination (R-squared) for the values of propertyY and propertyX in the provided label

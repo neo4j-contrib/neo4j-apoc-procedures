@@ -1,0 +1,2 @@
+¦signature
+¦apoc.cypher.runFirstColumnSingle(cypher :: STRING?, params :: MAP?) :: (ANY?)

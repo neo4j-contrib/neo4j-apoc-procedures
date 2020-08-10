@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.split(text :: STRING?, regex :: STRING?, limit = 0 :: INTEGER?) :: (LIST? OF ANY?)

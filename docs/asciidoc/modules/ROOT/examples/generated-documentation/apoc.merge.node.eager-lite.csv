@@ -1,0 +1,2 @@
+¦signature
+¦apoc.merge.node.eager(label :: LIST? OF STRING?, identProps :: MAP?, props = {} :: MAP?, onMatchProps = {} :: MAP?) :: (node :: NODE?)

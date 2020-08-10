@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.split¦apoc.text.split(text :: STRING?, regex :: STRING?, limit = 0 :: INTEGER?) :: (LIST? OF ANY?)¦apoc.text.split(text, regex, limit) - splits the given text around matches of the given regex.

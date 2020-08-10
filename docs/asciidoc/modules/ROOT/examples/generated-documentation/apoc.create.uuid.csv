@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.create.uuid¦apoc.create.uuid() :: (STRING?)¦apoc.create.uuid() - creates an UUID

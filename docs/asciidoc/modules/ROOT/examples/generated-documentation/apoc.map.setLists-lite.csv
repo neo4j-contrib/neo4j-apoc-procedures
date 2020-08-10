@@ -1,0 +1,2 @@
+¦signature
+¦apoc.map.setLists(map :: MAP?, keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :: (MAP?)

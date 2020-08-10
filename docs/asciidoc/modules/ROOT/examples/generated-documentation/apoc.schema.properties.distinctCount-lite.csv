@@ -1,0 +1,2 @@
+¦signature
+¦apoc.schema.properties.distinctCount(label =  :: STRING?, key =  :: STRING?) :: (label :: STRING?, key :: STRING?, value :: ANY?, count :: INTEGER?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.node.degree.in¦apoc.node.degree.in(node :: NODE?, types =  :: STRING?) :: (INTEGER?)¦apoc.node.degree.in(node, relationshipName) - returns total number number of incoming relationships

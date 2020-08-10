@@ -1,0 +1,7 @@
+¦signature
+¦apoc.atomic.add(container :: ANY?, propertyName :: STRING?, number :: NUMBER?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)
+¦apoc.atomic.concat(container :: ANY?, propertyName :: STRING?, string :: STRING?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)
+¦apoc.atomic.insert(container :: ANY?, propertyName :: STRING?, position :: INTEGER?, value :: ANY?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)
+¦apoc.atomic.remove(container :: ANY?, propertyName :: STRING?, position :: INTEGER?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)
+¦apoc.atomic.subtract(container :: ANY?, propertyName :: STRING?, number :: NUMBER?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)
+¦apoc.atomic.update(container :: ANY?, propertyName :: STRING?, operation :: STRING?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)

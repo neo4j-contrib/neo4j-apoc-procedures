@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.math.maxLong¦apoc.math.maxLong() :: (INTEGER?)¦apoc.math.maxLong() | return the maximum value a long can have

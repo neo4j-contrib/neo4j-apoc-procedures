@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.shuffle(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)

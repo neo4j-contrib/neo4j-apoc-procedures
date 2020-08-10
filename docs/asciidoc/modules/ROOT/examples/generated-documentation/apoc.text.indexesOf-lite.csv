@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.indexesOf(text :: STRING?, lookup :: STRING?, from = 0 :: INTEGER?, to = -1 :: INTEGER?) :: (LIST? OF ANY?)

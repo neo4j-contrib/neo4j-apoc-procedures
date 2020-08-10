@@ -1,0 +1,2 @@
+¦signature
+¦apoc.neighbors.byhop(node :: NODE?, types =  :: STRING?, distance = 1 :: INTEGER?) :: (nodes :: LIST? OF NODE?)

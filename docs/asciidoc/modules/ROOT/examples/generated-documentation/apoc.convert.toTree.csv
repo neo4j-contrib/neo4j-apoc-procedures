@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.convert.toTree¦apoc.convert.toTree(paths :: LIST? OF PATH?, lowerCaseRels = true :: BOOLEAN?, config = {} :: MAP?) :: (value :: MAP?)¦apoc.convert.toTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the at least one root of these paths

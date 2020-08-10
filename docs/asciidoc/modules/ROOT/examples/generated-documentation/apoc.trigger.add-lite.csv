@@ -1,0 +1,2 @@
+¦signature
+¦apoc.trigger.add(name :: STRING?, kernelTransaction :: STRING?, selector :: MAP?, config = {} :: MAP?) :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.atomic.remove¦apoc.atomic.remove(container :: ANY?, propertyName :: STRING?, position :: INTEGER?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)¦apoc.atomic.remove(node/relatonship,propertyName,position) remove the element at position 'position'

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.meta.relTypeProperties(config = {} :: MAP?) :: (relType :: STRING?, sourceNodeLabels :: LIST? OF STRING?, targetNodeLabels :: LIST? OF STRING?, propertyName :: STRING?, propertyTypes :: LIST? OF STRING?, mandatory :: BOOLEAN?, propertyObservations :: INTEGER?, totalObservations :: INTEGER?)

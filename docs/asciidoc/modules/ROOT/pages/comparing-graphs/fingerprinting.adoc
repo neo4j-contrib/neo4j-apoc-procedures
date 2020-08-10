@@ -1,0 +1,56 @@
+[[fingerprinting]]
+= Fingerprinting
+:description: This section describes procedures that can be used to create a hash over nodes, relationships or the whole graph.
+
+
+
+The following functions calculate hashsums over nodes, relationship or the entire graph.
+It takes into account all properties, node labels and relationship types.
+
+NOTE: The algorithm used for hashing may change between APOC versions.
+So we can only compare hashing results of two entities/graphs from the same or from different graph using the *very same* apoc version.
+
+The hashsum of a graph first calculates the hashsums for each node.
+This hashsum list is ordered and for each node the hashsum for all relationships and their end node are added.
+This approach provides independence of internal ids.
+
+Optionally you can supply a list of `propertyKeys` that should be ignored on all nodes.
+This is useful if you store properties (like `created=timestamp()`) that should be ignored.
+
+[opts=header,cols="m,a"]
+|===
+| function name | description
+| `apoc.hashing.fingerprint(object, <list_of_props_to_ignore>)` | calculates a md5 hashsum over the object. It deals gracefully with ordering (in case of maps), scalars, arrays.
+| `apoc.hashing.fingerprinting(object, {conf})` | calculates a md5 hashsum over the object. It deals gracefully with ordering (in case of maps), scalars, arrays. Please check the `Fingerprinting configuration params` table for details
+| `apoc.hashing.graph(<list_of_props_to_ignore>)` | calculates a md5 hashsum over the full graph.
+|===
+
+== Configuration parameters
+
+.Fingerprinting configuration params
+[opts=header,cols="4"]
+|===
+| prop name | type | default | description
+| `digestAlgorithm` | ENUM | MD5 | the digest algorithm used to create the fingerprint, we only support MD5 right now
+| `nodeAllowMap` | Map<K,V> | empty | a map where the key is the node Label and the value is a lists properties allowed
+| `relAllowMap` | Map<K,V> | empty | a map where the key is the rel type and the value is a lists properties allowed
+| `nodeDisallowMap` | Map<K,V> | empty | a DisallowMap map where the key is the node Label and the value is a lists properties disallowed
+| `relDisallowMap` | Map<K,V> | empty | a DisallowMap map where the key is the rel type and the value is a lists properties disallowed
+| `mapAllowList` | List | empty | a List used in case the input to the procedure is a map allowed
+| `mapDisallowList` | List | empty | a List used in case the input to the procedure is a map disallowed
+| `allNodesAllowList` | List | empty | a List used for properties common to all Nodes that you need to include in the fingerprint
+| `allRelsAllowList` | List | empty | a List used for properties common to all Relationships that you need to include in the fingerprint
+| `allNodesDisallowList` | List | empty | a List used for properties common to all Nodes that you need to exclude from the fingerprint
+| `allRelsDisallowList` | List | empty | a List used for properties common to all Relationships that you need to exclude from the fingerprint
+| `strategy` | Enum[EAGER, LAZY] | LAZY | define the behaviour in case the properties are not present for the specific node/relationship, see the `Fingerprinting strategy` paragraph
+|===
+
+.n.b you cannot combine allow & disallow list for the same entity type, this means that for nodes/rels/maps you can specify allow or disallow with lists
+
+== Fingerprinting strategy
+
+In case the properties defined in the configuration are not present in the node and/or relationship you can define how
+the fingerprinting procedure must proceed with the process:
+
+* `EAGER`: it evaluates the whole node properties in order to create the fingerprint of the node/relationship
+* `LAZY`: it evaluates only the nodes/relationships provided in the configuration

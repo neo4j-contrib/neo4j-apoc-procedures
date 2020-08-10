@@ -1,0 +1,2 @@
+¦signature
+¦apoc.diff.nodes(leftNode :: NODE?, rightNode :: NODE?) :: (MAP?)

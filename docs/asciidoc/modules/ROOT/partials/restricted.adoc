@@ -1,0 +1,12 @@
+[WARNING]
+====
+// tag::warnings[]
+For security reasons, procedures that use internal APIs are disabled by default.
+They can be enabled by specifying config in `$NEO4J_HOME/conf/neo4j.conf` e.g. `+dbms.security.procedures.unrestricted=apoc.*+`
+
+If you want to do this when using the Neo4j Docker container, you need to amend `+-e NEO4J_dbms_security_procedures_unrestricted=apoc.\\\*+` to your `docker run ...` command.
+The three backslashes are necessary to prevent wildcard expansions.
+
+You _can_ also whitelist procedures and functions in general to be loaded using: `+dbms.security.procedures.whitelist=apoc.coll.*,apoc.load.*+`
+// end::warnings[]
+====

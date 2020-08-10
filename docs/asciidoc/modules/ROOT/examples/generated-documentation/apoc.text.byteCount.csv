@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.byteCount¦apoc.text.byteCount(text :: STRING?, charset = UTF-8 :: STRING?) :: (INTEGER?)¦apoc.text.byteCount(text,[charset]) - return size of text in bytes

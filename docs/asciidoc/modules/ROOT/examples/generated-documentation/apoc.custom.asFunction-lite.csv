@@ -1,0 +1,2 @@
+¦signature
+¦apoc.custom.asFunction(name :: STRING?, statement :: STRING?, outputs =  :: STRING?, inputs = null :: LIST? OF LIST? OF STRING?, forceSingle = false :: BOOLEAN?, description =  :: STRING?) :: VOID

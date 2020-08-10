@@ -1,0 +1,2 @@
+¦signature
+¦apoc.atomic.remove(container :: ANY?, propertyName :: STRING?, position :: INTEGER?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)

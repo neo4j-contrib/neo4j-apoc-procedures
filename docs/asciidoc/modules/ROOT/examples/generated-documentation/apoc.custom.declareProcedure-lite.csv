@@ -1,0 +1,2 @@
+¦signature
+¦apoc.custom.declareProcedure(signature :: STRING?, statement :: STRING?, mode = read :: STRING?, description =  :: STRING?) :: VOID

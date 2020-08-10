@@ -1,0 +1,2 @@
+¦signature
+¦apoc.math.regr(label :: STRING?, propertyY :: STRING?, propertyX :: STRING?) :: (r2 :: FLOAT?, avgX :: FLOAT?, avgY :: FLOAT?, slope :: FLOAT?)

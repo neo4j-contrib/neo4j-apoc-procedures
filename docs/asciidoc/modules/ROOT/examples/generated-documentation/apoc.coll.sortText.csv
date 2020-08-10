@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.sortText¦apoc.coll.sortText(coll :: LIST? OF STRING?, conf = {} :: MAP?) :: (LIST? OF ANY?)¦apoc.coll.sortText(coll) sort on string based collections

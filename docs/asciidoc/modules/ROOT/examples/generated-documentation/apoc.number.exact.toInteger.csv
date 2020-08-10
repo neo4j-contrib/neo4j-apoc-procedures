@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.number.exact.toInteger¦apoc.number.exact.toInteger(stringA :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (INTEGER?)¦apoc.number.exact.toInteger(string,[prec],[roundingMode]) - return the Integer value of a large number

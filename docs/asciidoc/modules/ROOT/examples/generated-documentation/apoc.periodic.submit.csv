@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.periodic.submit¦apoc.periodic.submit(name :: STRING?, statement :: STRING?) :: (name :: STRING?, delay :: INTEGER?, rate :: INTEGER?, done :: BOOLEAN?, cancelled :: BOOLEAN?)¦apoc.periodic.submit('name',statement) - submit a one-off background statement

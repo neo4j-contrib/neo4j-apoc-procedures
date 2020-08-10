@@ -1,0 +1,2 @@
+¦signature
+¦apoc.create.setProperty(nodes :: ANY?, key :: STRING?, value :: ANY?) :: (node :: NODE?)

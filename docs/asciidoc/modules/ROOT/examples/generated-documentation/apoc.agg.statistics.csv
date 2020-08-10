@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.agg.statistics¦apoc.agg.statistics(value :: NUMBER?, percentiles = [0.5, 0.75, 0.9, 0.95, 0.99] :: LIST? OF FLOAT?) :: (MAP?)¦apoc.agg.statistics(value,[percentiles = 0.5,0.75,0.9,0.95,0.99]) - returns numeric statistics (percentiles, min,minNonZero,max,total,mean,stdev) for values

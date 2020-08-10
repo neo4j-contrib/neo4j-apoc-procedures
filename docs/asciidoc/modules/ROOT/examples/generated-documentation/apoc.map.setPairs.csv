@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.map.setPairs¦apoc.map.setPairs(map :: MAP?, pairs :: LIST? OF LIST? OF ANY?) :: (MAP?)¦apoc.map.setPairs(map,[[key1,value1],[key2,value2])

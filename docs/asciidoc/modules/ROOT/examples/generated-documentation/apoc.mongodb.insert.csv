@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.mongodb.insert¦apoc.mongodb.insert(host :: STRING?, db :: STRING?, collection :: STRING?, documents :: LIST? OF MAP?) :: VOID¦apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection

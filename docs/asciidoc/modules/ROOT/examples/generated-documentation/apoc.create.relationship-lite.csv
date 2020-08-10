@@ -1,0 +1,2 @@
+¦signature
+¦apoc.create.relationship(from :: NODE?, relType :: STRING?, props :: MAP?, to :: NODE?) :: (rel :: RELATIONSHIP?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.sorensenDiceSimilarity¦apoc.text.sorensenDiceSimilarity(text1 :: STRING?, text2 :: STRING?, languageTag = en :: STRING?) :: (FLOAT?)¦apoc.text.sorensenDiceSimilarityWithLanguage(text1, text2, languageTag) - compare the given strings with the Sørensen–Dice coefficient formula, with the provided IETF language tag

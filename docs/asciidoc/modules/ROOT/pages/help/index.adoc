@@ -1,0 +1,67 @@
+[[help]]
+= Built in Help
+:description: This chapter describes the built in help in the APOC library.
+
+
+
+The APOC library ships with the `apoc.help` procedure, which can be used for procedure and function discovery.
+
+image::apoc-help-apoc.jpg[scaledwidth="100%"]
+
+Running `call apoc.help('keyword')` will lists all procedures and functions that have the keyword in their name.
+If no keyword is provided, it will return a list of all APOC procedures and functions, along with their signatures and descriptions.
+
+
+If you use `RETURN apoc.version()` it displays the current APOC version.
+
+[NOTE]
+====
+To generate the help output, this procedure uses the built in `dbms.procedures()` and `dbms.functions()` procedures.
+====
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/b1Yr2nHNS4M" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+// tag::signature[]
+
+== Procedure & Function Signatures
+
+To call procedures correctly, you need to know their parameter names, types and positions.
+And for YIELDing their results, you have to know the output column names and types.
+
+INFO:The signatures are shown in error messages, if you use a procedure incorrectly.
+
+You can see the procedures signature in the output of `CALL apoc.help("name")`
+
+[source,cypher]
+----
+CALL apoc.help("dijkstra")
+----
+
+The signature is always `name : : TYPE`, so in this case:
+
+----
+apoc.algo.dijkstra
+ (startNode :: NODE?, endNode :: NODE?,
+   relationshipTypesAndDirections :: STRING?, weightPropertyName :: STRING?)
+:: (path :: PATH?, weight :: FLOAT?)
+----
+
+.Parameter Explanation
+[opts=header,cols="m,m"]
+|===
+| Name | Type
+h| Procedure Parameters |
+| startNode | Node
+| endNode | Node
+| relationshipTypesAndDirections | String
+| weightPropertyName | String
+h| Output Return Columns |
+| path  |  Path
+| weight | Float
+|===
+
+// end::signature[]

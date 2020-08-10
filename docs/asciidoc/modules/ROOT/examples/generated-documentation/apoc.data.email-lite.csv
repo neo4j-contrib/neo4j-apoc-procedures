@@ -1,0 +1,2 @@
+¦signature
+¦apoc.data.email(email_address :: STRING?) :: (MAP?)

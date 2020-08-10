@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.randomItem(coll :: LIST? OF ANY?) :: (ANY?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.indexesOf¦apoc.text.indexesOf(text :: STRING?, lookup :: STRING?, from = 0 :: INTEGER?, to = -1 :: INTEGER?) :: (LIST? OF ANY?)¦apoc.text.indexesOf(text, lookup, from=0, to=-1==len) - finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.

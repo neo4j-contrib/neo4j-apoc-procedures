@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.couchbase.get¦apoc.couchbase.get(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?) :: (id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?, content :: MAP?)¦apoc.couchbase.get(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content - retrieves a couchbase json document by its unique ID.

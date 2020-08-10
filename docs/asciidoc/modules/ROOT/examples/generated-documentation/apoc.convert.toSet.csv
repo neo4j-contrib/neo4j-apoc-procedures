@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.convert.toSet¦apoc.convert.toSet(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toSet(value) | tries it's best to convert the value to a set

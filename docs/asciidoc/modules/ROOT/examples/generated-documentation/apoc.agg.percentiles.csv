@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.agg.percentiles¦apoc.agg.percentiles(value :: NUMBER?, percentiles = [0.5, 0.75, 0.9, 0.95, 0.99] :: LIST? OF FLOAT?) :: (LIST? OF ANY?)¦apoc.agg.percentiles(value,[percentiles = 0.5,0.75,0.9,0.95,0.99]) - returns given percentiles for values

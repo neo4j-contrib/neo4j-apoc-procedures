@@ -1,0 +1,2 @@
+¦signature
+¦apoc.date.convertFormat(temporal :: STRING?, currentFormat :: STRING?, convertTo = yyyy-MM-dd :: STRING?) :: (STRING?)

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.sortMulti¦apoc.coll.sortMulti(coll :: LIST? OF MAP?, orderFields = [] :: LIST? OF STRING?, limit = -1 :: INTEGER?, skip = 0 :: INTEGER?) :: (LIST? OF ANY?)¦apoc.coll.sortMulti(coll, ['^name','age'],[limit],[skip]) - sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip

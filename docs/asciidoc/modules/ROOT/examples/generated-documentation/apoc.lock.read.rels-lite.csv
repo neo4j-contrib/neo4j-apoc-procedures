@@ -1,0 +1,2 @@
+¦signature
+¦apoc.lock.read.rels(rels :: LIST? OF RELATIONSHIP?) :: VOID

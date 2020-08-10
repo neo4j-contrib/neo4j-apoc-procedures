@@ -1,0 +1,2 @@
+¦signature
+¦apoc.periodic.submit(name :: STRING?, statement :: STRING?) :: (name :: STRING?, delay :: INTEGER?, rate :: INTEGER?, done :: BOOLEAN?, cancelled :: BOOLEAN?)

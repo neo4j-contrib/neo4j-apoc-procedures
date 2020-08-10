@@ -1,0 +1,36 @@
+[[graph-generators]]
+= Generating Graphs
+:description: This section describes procedures that can be used to generate example graphs.
+
+
+
+Generate undirected (random direction) graphs with semi-real random distributions based on theoretical models. Providing
+a node label will generate nodes with that label and a random uuid property. Providing a relationship type will generate
+relationships with that type. Providing `null` in place of labels and/or relationships will generate random `Person` nodes
+with a random `name` and `FRIEND_OF` relationships, respectively.
+
+For a theoretical introduction, please take a look at the following blog posts:
+
+* http://graphaware.com/graph/theory/2014/07/16/random-graphs-part-one.html[Random Graph Models (Part I)]
+* http://graphaware.com/graph/theory/2014/08/06/random-graphs-part-two.html[Random Graph Models (Part II)]
+
+For permitted configuration values, please look at the Javadoc of config classes of the respective generators (`BarabasiAlbertConfig`,
+`ErdosRenyiConfig`, `WattsStrogatzConfig`, and `DistributionBasedConfig`).
+
+Apart from the number of nodes you would like to generate, `null` can be passed in for all other parameters. Sensible
+ defaults will be used.
+
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::example$generated-documentation/apoc.generate.csv[]
+|===
+
+Example
+
+[source,cypher]
+----
+CALL apoc.generate.ba(1000, 2, 'TestLabel', 'TEST_REL_TYPE')
+CALL apoc.generate.ws(1000, null, null, null)
+CALL apoc.generate.simple([2,2,2,2], null, null)
+----

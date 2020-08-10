@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.containsSorted¦apoc.coll.containsSorted(coll :: LIST? OF ANY?, value :: ANY?) :: (BOOLEAN?)¦apoc.coll.containsSorted(coll, value) optimized contains on a sorted list operation (Collections.binarySearch) (returns single row or not)

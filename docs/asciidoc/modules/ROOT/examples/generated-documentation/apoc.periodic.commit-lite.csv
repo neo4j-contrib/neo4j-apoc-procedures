@@ -1,0 +1,2 @@
+¦signature
+¦apoc.periodic.commit(statement :: STRING?, params = {} :: MAP?) :: (updates :: INTEGER?, executions :: INTEGER?, runtime :: INTEGER?, batches :: INTEGER?, failedBatches :: INTEGER?, batchErrors :: MAP?, failedCommits :: INTEGER?, commitErrors :: MAP?, wasTerminated :: BOOLEAN?)

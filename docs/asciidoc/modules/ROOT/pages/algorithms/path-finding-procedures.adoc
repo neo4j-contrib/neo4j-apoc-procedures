@@ -1,0 +1,26 @@
+[[path-finding-procedures]]
+= Path Finding Procedures
+:description: This section describes procedures that expose Neo4j's in-built path finding algorithms.
+
+
+
+APOC exposes some built in path-finding functions that Neo4j brings along.
+
+[cols="3m,3"]
+|===
+| apoc.algo.dijkstra(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance') YIELD path, weight | run dijkstra with relationship property name as cost function
+| apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>',  'distance', 10) YIELD path, weight | run dijkstra with relationship property name as cost function and a default weight if the property does not exist
+| apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance','lat','lon')  YIELD path, weight | run A* with relationship property name as cost function
+| apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', {weight:'dist',default:10, x:'lon',y:'lat'}) YIELD path, weight | run A* with relationship property name as cost function
+| apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 5) YIELD path,  weight | run allSimplePaths with relationships given and maxNodes
+| apoc.stats.degrees(relTypesDirections) yield type, direction, total, min, max, mean, p50, p75, p90, p95, p99, p999 | compute degree distribution in parallel
+|===
+
+Example: find the weighted shortest path based on relationship property `d` from `A` to `B` following just `:ROAD` relationships
+
+[source,cypher]
+----
+MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'})
+CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as weight
+RETURN path, weight
+----

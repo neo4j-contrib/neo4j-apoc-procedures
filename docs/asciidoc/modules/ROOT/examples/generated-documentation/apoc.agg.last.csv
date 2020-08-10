@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.agg.last¦apoc.agg.last(value :: ANY?) :: (ANY?)¦apoc.agg.last(value) - returns last value

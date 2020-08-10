@@ -1,0 +1,2 @@
+¦signature
+¦apoc.map.sortedProperties(map :: MAP?, ignoreCase = true :: BOOLEAN?) :: (LIST? OF ANY?)

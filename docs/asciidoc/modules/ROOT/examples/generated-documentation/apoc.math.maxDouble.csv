@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.math.maxDouble¦apoc.math.maxDouble() :: (FLOAT?)¦apoc.math.maxDouble() | return the largest positive finite value of type double

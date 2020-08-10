@@ -1,0 +1,2 @@
+¦signature
+¦apoc.metrics.storage(directorySetting :: STRING?) :: (setting :: STRING?, freeSpaceBytes :: INTEGER?, totalSpaceBytes :: INTEGER?, usableSpaceBytes :: INTEGER?, percentFree :: FLOAT?)

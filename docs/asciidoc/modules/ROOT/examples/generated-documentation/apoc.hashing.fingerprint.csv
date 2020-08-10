@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.hashing.fingerprint¦apoc.hashing.fingerprint(some object :: ANY?, propertyExcludes = [] :: LIST? OF STRING?) :: (STRING?)¦calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.

@@ -1,0 +1,37 @@
+[[node-functions]]
+= Node Querying
+:description: This section describes functions that can be used to query nodes.
+
+
+
+.Functions
+[cols="5m,5"]
+|===
+| apoc.nodes.isDense(node) | returns true if it is a dense node
+| apoc.nodes.connected(start, end, rel-direction-pattern) | returns true when the node is connected to the other node, optimized for dense nodes
+| apoc.node.relationship.exists(node, rel-direction-pattern) | returns true when the node has the relationships of the pattern
+| apoc.node.relationships.exist(node, rel-direction-pattern) | returns a map with rel-pattern, boolean for the given relationship patterns
+| apoc.nodes.relationships.exist(node\|nodes\|id\|[ids], rel-direction-pattern) | returns a list of maps where each one has two fields: `node` which is the node subject of the analysis and `exists` which is a map with <rel-pattern, boolean> for the given relationship patterns
+| apoc.node.relationship.types(node, rel-direction-pattern) | returns a list of distinct relationship types
+| apoc.nodes.relationship.types(node\|nodes\|id\|[ids], rel-direction-pattern) | returns a list of maps where each one has two fields: `node` which is the node subject of the analysis and `types` which is a list of distinct relationship types
+| apoc.node.degree(node, rel-direction-pattern) | returns total degrees of the given relationships in the pattern, can use `'>'` or `'<'` for all outgoing or incoming relationships
+| apoc.node.id(node) | returns id for (virtual) nodes
+| apoc.node.degree.in(node, relationshipName) | returns total number of incoming relationship
+| apoc.node.degree.out(node, relationshipName) | returns total number of outgoing relationship
+| apoc.node.labels(node) | returns labels for (virtual) nodes
+| apoc.any.properties(node/map, [[keys]]) | returns properties for virtual and real nodes, and maps. Optionally restrict via keys.
+| apoc.any.property(node/map) | returns property for virtual and real nodes, and maps
+| apoc.label.exists(element, label) | returns true or false related to label existance
+|===
+
+rel-direction-pattern syntax:
+
+`[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
+
+Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in either direction, outgoing :MENTORS relationships, and incoming :REPORTS_TO relationships.
+
+.Procedures
+[cols="5m,5"]
+|===
+| CALL apoc.nodes.get(node\|nodes\|id\|[ids]) | quickly returns all nodes with these ids
+|===

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.nodes.relationships.exist(ids :: ANY?, types =  :: STRING?) :: (LIST? OF ANY?)

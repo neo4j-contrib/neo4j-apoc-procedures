@@ -1,0 +1,2 @@
+¦signature
+¦apoc.rel.type(rel :: RELATIONSHIP?) :: (STRING?)

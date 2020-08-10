@@ -1,0 +1,2 @@
+¦signature
+¦apoc.nlp.azure.keyPhrases.graph(source :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)

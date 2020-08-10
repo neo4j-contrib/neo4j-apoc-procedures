@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.containsAll¦apoc.coll.containsAll(coll :: LIST? OF ANY?, values :: LIST? OF ANY?) :: (BOOLEAN?)¦apoc.coll.containsAll(coll, values) optimized contains-all operation (using a HashSet) (returns single row or not)

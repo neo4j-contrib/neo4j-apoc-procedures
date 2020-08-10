@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.random¦apoc.text.random(length :: INTEGER?, valid = A-Za-z0-9 :: STRING?) :: (STRING?)¦apoc.text.random(length, valid) YIELD value - generate a random string

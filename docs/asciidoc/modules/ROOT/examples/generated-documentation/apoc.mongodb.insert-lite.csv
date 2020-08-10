@@ -1,0 +1,2 @@
+¦signature
+¦apoc.mongodb.insert(host :: STRING?, db :: STRING?, collection :: STRING?, documents :: LIST? OF MAP?) :: VOID

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.generate.er(noNodes :: INTEGER?, noEdges :: INTEGER?, label :: STRING?, type :: STRING?) :: VOID

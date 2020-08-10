@@ -1,0 +1,2 @@
+¦signature
+¦apoc.hashing.fingerprint(some object :: ANY?, propertyExcludes = [] :: LIST? OF STRING?) :: (STRING?)

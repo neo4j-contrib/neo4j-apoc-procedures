@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.atomic.add¦apoc.atomic.add(container :: ANY?, propertyName :: STRING?, number :: NUMBER?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)¦apoc.atomic.add(node/relatonship,propertyName,number) Sums the property's value with the 'number' value 

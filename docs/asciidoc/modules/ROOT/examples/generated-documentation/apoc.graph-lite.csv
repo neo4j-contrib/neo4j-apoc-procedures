@@ -1,0 +1,9 @@
+¦signature
+¦apoc.graph.from(data :: ANY?, name :: STRING?, properties :: MAP?) :: (graph :: MAP?)
+¦apoc.graph.fromCypher(kernelTransaction :: STRING?, params :: MAP?, name :: STRING?, properties :: MAP?) :: (graph :: MAP?)
+¦apoc.graph.fromDB(name :: STRING?, properties :: MAP?) :: (graph :: MAP?)
+¦apoc.graph.fromData(nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?, name :: STRING?, properties :: MAP?) :: (graph :: MAP?)
+¦apoc.graph.fromDocument(json :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)
+¦apoc.graph.fromPath(path :: PATH?, name :: STRING?, properties :: MAP?) :: (graph :: MAP?)
+¦apoc.graph.fromPaths(paths :: LIST? OF PATH?, name :: STRING?, properties :: MAP?) :: (graph :: MAP?)
+¦apoc.graph.validateDocument(json :: ANY?, config = {} :: MAP?) :: (row :: MAP?)

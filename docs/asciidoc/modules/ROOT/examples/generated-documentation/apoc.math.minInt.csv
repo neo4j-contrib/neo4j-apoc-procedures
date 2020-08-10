@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.math.minInt¦apoc.math.minInt() :: (INTEGER?)¦apoc.math.minInt() | return the minimum value an int can have

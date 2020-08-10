@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.join¦apoc.text.join(texts :: LIST? OF STRING?, delimiter :: STRING?) :: (STRING?)¦apoc.text.join(['text1','text2',...], delimiter) - join the given strings with the given delimiter.

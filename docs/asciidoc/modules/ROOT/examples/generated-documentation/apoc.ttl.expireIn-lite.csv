@@ -1,0 +1,2 @@
+¦signature
+¦apoc.ttl.expireIn(node :: NODE?, timeDelta :: INTEGER?, timeUnit :: STRING?) :: VOID

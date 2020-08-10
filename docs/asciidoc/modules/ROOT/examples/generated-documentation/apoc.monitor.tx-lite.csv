@@ -1,0 +1,2 @@
+¦signature
+¦apoc.monitor.tx() :: (rolledBackTx :: INTEGER?, peakTx :: INTEGER?, lastTxId :: INTEGER?, currentOpenedTx :: INTEGER?, totalOpenedTx :: INTEGER?, totalTx :: INTEGER?)

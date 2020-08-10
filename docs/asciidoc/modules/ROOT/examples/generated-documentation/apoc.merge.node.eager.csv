@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.merge.node.eager¦apoc.merge.node.eager(label :: LIST? OF STRING?, identProps :: MAP?, props = {} :: MAP?, onMatchProps = {} :: MAP?) :: (node :: NODE?)¦apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) - merge nodes eagerly, with dynamic labels, with support for setting properties ON CREATE or ON MATCH

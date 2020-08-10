@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.refactor.cloneNodes¦apoc.refactor.cloneNodes(nodes :: LIST? OF NODE?, withRelationships = false :: BOOLEAN?, skipProperties = [] :: LIST? OF STRING?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)¦apoc.refactor.cloneNodes([node1,node2,...]) clone nodes with their labels and properties

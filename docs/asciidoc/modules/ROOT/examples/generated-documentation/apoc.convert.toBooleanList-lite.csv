@@ -1,0 +1,2 @@
+¦signature
+¦apoc.convert.toBooleanList(list :: ANY?) :: (LIST? OF ANY?)

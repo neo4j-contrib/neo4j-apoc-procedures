@@ -1,0 +1,2 @@
+¦signature
+¦apoc.create.removeProperties(nodes :: ANY?, keys :: LIST? OF STRING?) :: (node :: NODE?)

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.path.subgraphNodes(start :: ANY?, config :: MAP?) :: (node :: NODE?)

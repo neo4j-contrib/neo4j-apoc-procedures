@@ -1,0 +1,2 @@
+¦signature
+¦apoc.custom.list() :: (type :: STRING?, name :: STRING?, description :: STRING?, mode :: STRING?, statement :: STRING?, inputs :: LIST? OF LIST? OF STRING?, outputs :: ANY?, forceSingle :: BOOLEAN?)

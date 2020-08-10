@@ -1,0 +1,20 @@
+[[misc]]
+= Miscellaneous
+:description: This chapter describes miscellaneous functions and procedures in the APOC library.
+
+
+
+Cypher brings along some basic functions for math, text, collections and maps.
+
+* xref::misc/text-functions.adoc[]
+* xref::misc/spatial.adoc[]
+* xref::misc/static-values.adoc[]
+* xref::misc/utility-functions.adoc[]
+
+
+
+
+
+
+
+

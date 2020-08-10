@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.number.romanToArabic¦apoc.number.romanToArabic(romanNumber :: STRING?) :: (NUMBER?)¦apoc.number.romanToArabic(romanNumber)  | convert roman numbers to arabic

@@ -1,0 +1,7 @@
+¦signature
+¦apoc.algo.aStar(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, weightPropertyName :: STRING?, latPropertyName :: STRING?, lonPropertyName :: STRING?) :: (path :: PATH?, weight :: FLOAT?)
+¦apoc.algo.aStarConfig(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, config :: MAP?) :: (path :: PATH?, weight :: FLOAT?)
+¦apoc.algo.allSimplePaths(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, maxNodes :: INTEGER?) :: (path :: PATH?)
+¦apoc.algo.cover(nodes :: ANY?) :: (rel :: RELATIONSHIP?)
+¦apoc.algo.dijkstra(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, weightPropertyName :: STRING?, defaultWeight = NaN :: FLOAT?, numberOfWantedPaths = 1 :: INTEGER?) :: (path :: PATH?, weight :: FLOAT?)
+¦apoc.algo.dijkstraWithDefaultWeight(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, weightPropertyName :: STRING?, defaultWeight :: FLOAT?) :: (path :: PATH?, weight :: FLOAT?)

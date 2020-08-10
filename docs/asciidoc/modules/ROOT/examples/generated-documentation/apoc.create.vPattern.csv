@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.create.vPattern¦apoc.create.vPattern(from :: MAP?, relType :: STRING?, props :: MAP?, to :: MAP?) :: (from :: NODE?, rel :: RELATIONSHIP?, to :: NODE?)¦apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) returns a virtual pattern

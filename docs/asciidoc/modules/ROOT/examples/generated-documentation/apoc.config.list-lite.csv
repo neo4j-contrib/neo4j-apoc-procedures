@@ -1,0 +1,2 @@
+¦signature
+¦apoc.config.list() :: (key :: STRING?, value :: ANY?)

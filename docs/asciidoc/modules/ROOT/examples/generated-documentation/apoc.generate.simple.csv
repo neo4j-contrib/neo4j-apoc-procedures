@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.generate.simple¦apoc.generate.simple(degrees :: LIST? OF INTEGER?, label :: STRING?, type :: STRING?) :: VOID¦apoc.generate.simple(degrees, label, type) - generates a simple random graph according to the given degree distribution

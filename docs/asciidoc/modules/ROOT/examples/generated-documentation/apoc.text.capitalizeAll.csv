@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.capitalizeAll¦apoc.text.capitalizeAll(text :: STRING?) :: (STRING?)¦apoc.text.capitalizeAll(text) YIELD value - capitalise the first letter of every word in the text

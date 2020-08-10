@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.sum(numbers :: LIST? OF NUMBER?) :: (FLOAT?)

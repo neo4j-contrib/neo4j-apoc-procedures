@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.charAt(text :: STRING?, index :: INTEGER?) :: (INTEGER?)

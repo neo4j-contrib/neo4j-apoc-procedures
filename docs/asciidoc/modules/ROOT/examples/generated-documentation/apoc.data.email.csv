@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.data.email¦apoc.data.email(email_address :: STRING?) :: (MAP?)¦apoc.data.email('email_address') as {personal,user,domain} - extract the personal name, user and domain as a map

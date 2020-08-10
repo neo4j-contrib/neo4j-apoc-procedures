@@ -1,0 +1,2 @@
+¦signature
+¦apoc.bitwise.op(a :: INTEGER?, operator :: STRING?, b :: INTEGER?) :: (INTEGER?)

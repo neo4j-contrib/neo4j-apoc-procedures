@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.reverse¦apoc.coll.reverse(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.reverse(coll) - returns reversed list

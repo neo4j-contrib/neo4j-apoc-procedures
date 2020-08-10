@@ -1,0 +1,2 @@
+¦signature
+¦apoc.node.relationships.exist(node :: NODE?, types =  :: STRING?) :: (MAP?)

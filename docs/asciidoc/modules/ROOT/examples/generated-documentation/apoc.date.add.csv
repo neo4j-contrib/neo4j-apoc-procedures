@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.date.add¦apoc.date.add(time :: INTEGER?, unit :: STRING?, addValue :: INTEGER?, addUnit :: STRING?) :: (INTEGER?)¦apoc.date.add(12345, 'ms', -365, 'd') given a timestamp in one time unit, adds a value of the specified time unit

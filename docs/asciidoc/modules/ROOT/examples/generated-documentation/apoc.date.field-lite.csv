@@ -1,0 +1,2 @@
+¦signature
+¦apoc.date.field(time :: INTEGER?, unit = d :: STRING?, timezone = UTC :: STRING?) :: (INTEGER?)

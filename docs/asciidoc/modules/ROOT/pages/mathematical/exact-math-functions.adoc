@@ -1,0 +1,69 @@
+[[exact-math-functions]]
+= Exact Math
+:description: This section describes functions that can be used to do high precision arithmetic.
+
+
+
+== Handle BigInteger And BigDecimal
+
+[options="header"]
+|===
+| Statement | Description | Return type
+| RETURN apoc.number.exact.add(stringA,stringB) | return the sum's result of two large numbers | string
+| RETURN apoc.number.exact.sub(stringA,stringB) | return the substraction's of two large numbers | string
+| RETURN apoc.number.exact.mul(stringA,stringB,[prec],[roundingModel] | return the multiplication's result of two large numbers | string
+| RETURN apoc.number.exact.div(stringA,stringB,[prec],[roundingModel]) | return the division's result of two large numbers | string
+| RETURN apoc.number.exact.toInteger(string,[prec],[roundingMode]) | return the Integer value of a large number | Integer
+| RETURN apoc.number.exact.toFloat(string,[prec],[roundingMode]) | return the Float value of a large number | Float
+| RETURN apoc.number.exact.toExact(number) | return the exact value | Integer
+|===
+* Possible 'roundingModel' options are `UP`, `DOWN`, `CEILING`, `FLOOR`, `HALF_UP`, `HALF_DOWN`, `HALF_EVEN`, `UNNECESSARY`
+
+The `prec` parameter let us to set the precision of the operation result.
+The default value is 0 (unlimited precision arithmetic) while for 'roundingModel' the default value is `HALF_UP`. For other information abouth `prec` and `roundingModel` see the documentation of https://docs.oracle.com/javase/7/docs/api/java/math/MathContext.html[MathContext]
+
+For example if we set as `prec` 2:
+
+[source,cypher]
+----
+RETURN apoc.number.exact.div('5555.5555','5', 2, 'HALF_DOWN') as value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 1100
+|===
+
+
+As a result we have only the first two digits precise.
+If we set 8 we have all the result precise
+
+[source,cypher]
+----
+RETURN apoc.number.exact.div('5555.5555','5', 8, 'HALF_DOWN') as value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 1111.1111
+|===
+
+All the functions accept as input the *scientific notation* as `1E6`, for example:
+
+[source,cypher]
+----
+RETURN apoc.number.exact.add('1E6','1E6') as value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 2000000
+|===
+
+For other information see the documentation about https://docs.oracle.com/javase/7/docs/api/java/math/BigDecimal.html#[BigDecimal] and https://docs.oracle.com/javase/7/docs/api/java/math/BigInteger.html#[BigInteger]

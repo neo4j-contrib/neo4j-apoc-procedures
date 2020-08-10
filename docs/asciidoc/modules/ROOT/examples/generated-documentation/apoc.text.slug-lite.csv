@@ -1,0 +1,2 @@
+¦signature
+¦apoc.text.slug(text :: STRING?, delim = - :: STRING?) :: (STRING?)

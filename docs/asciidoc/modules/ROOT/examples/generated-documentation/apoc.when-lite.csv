@@ -1,0 +1,2 @@
+¦signature
+¦apoc.when(condition :: BOOLEAN?, ifQuery :: STRING?, elseQuery =  :: STRING?, params = {} :: MAP?) :: (value :: MAP?)

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.min(values :: LIST? OF ANY?) :: (ANY?)

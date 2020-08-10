@@ -1,0 +1,2 @@
+¦signature
+¦apoc.load.jdbcUpdate(jdbc :: STRING?, query :: STRING?, params = [] :: LIST? OF ANY?, config = {} :: MAP?) :: (row :: MAP?)

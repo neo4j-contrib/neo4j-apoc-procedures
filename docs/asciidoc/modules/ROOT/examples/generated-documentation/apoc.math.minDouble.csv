@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.math.minDouble¦apoc.math.minDouble() :: (FLOAT?)¦apoc.math.minDouble() | return the smallest positive nonzero value of type double

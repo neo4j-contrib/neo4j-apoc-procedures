@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.es.postRaw¦apoc.es.postRaw(host :: STRING?, path :: STRING?, payload :: ANY?) :: (value :: MAP?)¦apoc.es.postRaw(host-or-port,path,payload-or-null) yield value - perform a raw POST operation on elastic search

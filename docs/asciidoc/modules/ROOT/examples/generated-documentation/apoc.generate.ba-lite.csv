@@ -1,0 +1,2 @@
+¦signature
+¦apoc.generate.ba(noNodes :: INTEGER?, edgesPerNode :: INTEGER?, label :: STRING?, type :: STRING?) :: VOID

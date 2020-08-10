@@ -1,0 +1,42 @@
+[[node-difference]]
+= Diff
+:description: This section describes a function that displays the difference between two nodes.
+
+
+
+Diff is a user function to return a detailed diff between two nodes.
+
+`apoc.diff.nodes([leftNode],[rightNode])`
+
+.Example
+[source,cypher]
+----
+CREATE
+    (n:Person{name:'Steve',age:34, eyes:'blue'}),
+    (m:Person{name:'Jake',hair:'brown',age:34})
+WITH n,m
+return apoc.diff.nodes(n,m)
+----
+
+
+.Resulting JSON body:
+[source,json]
+----
+{
+  "leftOnly": {
+    "eyes": "blue"
+  },
+  "inCommon": {
+    "age": 34
+  },
+  "different": {
+    "name": {
+      "left": "Steve",
+      "right": "Jake"
+    }
+  },
+  "rightOnly": {
+    "hair": "brown"
+  }
+}
+----

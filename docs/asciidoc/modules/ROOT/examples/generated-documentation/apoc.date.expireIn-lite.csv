@@ -1,0 +1,2 @@
+¦signature
+¦apoc.date.expireIn(node :: NODE?, timeDelta :: INTEGER?, timeUnit :: STRING?) :: VOID

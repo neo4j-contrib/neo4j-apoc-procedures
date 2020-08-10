@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.nodes.isDense¦apoc.nodes.isDense(node :: NODE?) :: (BOOLEAN?)¦apoc.nodes.isDense(node) - returns true if it is a dense node

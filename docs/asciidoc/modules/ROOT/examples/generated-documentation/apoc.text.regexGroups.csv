@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.text.regexGroups¦apoc.text.regexGroups(text :: STRING?, regex :: STRING?) :: (LIST? OF ANY?)¦apoc.text.regexGroups(text, regex) - return all matching groups of the regex on the given text.

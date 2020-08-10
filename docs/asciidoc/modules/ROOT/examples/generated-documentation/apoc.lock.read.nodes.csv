@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.lock.read.nodes¦apoc.lock.read.nodes(nodes :: LIST? OF NODE?) :: VOID¦apoc.lock.read.nodes([nodes]) acquires a read lock on the given nodes

@@ -1,0 +1,11 @@
+[[data-structures]]
+= Data Structures
+:description: This chapter describes functions and procedures in the APOC library that can be used to manipulate data structures.
+
+
+
+Cypher brings along some basic functions for math, text, collections and maps.
+
+* xref::data-structures/conversion-functions.adoc[]
+* xref::data-structures/map-functions.adoc[] 
+* xref::data-structures/collection-list-functions.adoc[]

@@ -1,0 +1,2 @@
+¦signature
+¦apoc.refactor.extractNode(relationships :: ANY?, labels :: LIST? OF STRING?, outType :: STRING?, inType :: STRING?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)

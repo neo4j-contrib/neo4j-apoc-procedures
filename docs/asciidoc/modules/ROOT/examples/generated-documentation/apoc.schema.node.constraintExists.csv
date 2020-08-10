@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.schema.node.constraintExists¦apoc.schema.node.constraintExists(labelName :: STRING?, propertyName :: LIST? OF STRING?) :: (BOOLEAN?)¦RETURN apoc.schema.node.constraintExists(labelName, propertyNames)

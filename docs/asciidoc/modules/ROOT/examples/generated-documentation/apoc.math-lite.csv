@@ -1,0 +1,11 @@
+¦signature
+¦apoc.math.regr(label :: STRING?, propertyY :: STRING?, propertyX :: STRING?) :: (r2 :: FLOAT?, avgX :: FLOAT?, avgY :: FLOAT?, slope :: FLOAT?)
+¦apoc.math.maxByte() :: (INTEGER?)
+¦apoc.math.maxDouble() :: (FLOAT?)
+¦apoc.math.maxInt() :: (INTEGER?)
+¦apoc.math.maxLong() :: (INTEGER?)
+¦apoc.math.minByte() :: (INTEGER?)
+¦apoc.math.minDouble() :: (FLOAT?)
+¦apoc.math.minInt() :: (INTEGER?)
+¦apoc.math.minLong() :: (INTEGER?)
+¦apoc.math.round(value :: FLOAT?, precision = 0 :: INTEGER?, mode = HALF_UP :: STRING?) :: (FLOAT?)

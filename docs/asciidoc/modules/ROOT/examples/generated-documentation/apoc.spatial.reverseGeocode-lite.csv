@@ -1,0 +1,2 @@
+¦signature
+¦apoc.spatial.reverseGeocode(latitude :: FLOAT?, longitude :: FLOAT?, quotaException = false :: BOOLEAN?) :: (location :: MAP?, data :: MAP?, latitude :: FLOAT?, longitude :: FLOAT?, description :: STRING?)
