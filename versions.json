@@ -13,15 +13,15 @@
     },
     {
         "neo4j": "4.0.7",
-        "apoc": "4.0.0.17",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.17",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.17/apoc-4.0.0.17-all.jar"
+        "apoc": "4.0.0.18",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.18",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.18/apoc-4.0.0.18-all.jar"
     },
     {
         "neo4j": "4.0.6",
-        "apoc": "4.0.0.17",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.17",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.17/apoc-4.0.0.17-all.jar"
+        "apoc": "4.0.0.18",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.18",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.18/apoc-4.0.0.18-all.jar"
     },
     {
         "neo4j": "4.0.5",
