@@ -5,6 +5,7 @@ import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -14,6 +15,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -22,11 +24,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.time.ZoneId;
+import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static junit.framework.TestCase.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class JdbcTest extends AbstractJdbcTest {
@@ -107,11 +111,14 @@ public class JdbcTest extends AbstractJdbcTest {
 
         testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], {config})",
                 map("config", map("timezone", asiaTokio.toString())),
-                (row) -> assertEquals(Util.map("NAME", "John", "SURNAME", null,
-                        "HIRE_DATE", hireDate.toLocalDate(),
-                        "EFFECTIVE_FROM_DATE", effectiveFromDate.toInstant().atZone(asiaTokio).toOffsetDateTime().toZonedDateTime(), // todo investigate why by only changing the procedure mode returned class type changes
-                        "TEST_TIME", time.toLocalTime(),
-                        "NULL_DATE", null), row.get("row"))
+                (row) -> {
+                    Map<String, ? extends Serializable> expected = Util.map("NAME", "John", "SURNAME", null,
+                            "HIRE_DATE", hireDate.toLocalDate(),
+                            "EFFECTIVE_FROM_DATE", effectiveFromDate.toInstant().atZone(asiaTokio).toOffsetDateTime(), // todo investigate why by only changing the procedure mode returned class type changes
+                            "TEST_TIME", time.toLocalTime(),
+                            "NULL_DATE", null);
+                    assertThat(row.get("row"), Matchers.equalTo(expected));
+                }
         );
     }
 
