@@ -13,7 +13,7 @@ plugins {
 archivesBaseName = "apoc"
 
 
-jar {
+jar {from (project(':core').sourceSets.main.output)
     manifest {
         attributes 'Implementation-Version': version
     }
@@ -185,6 +185,7 @@ publishing {
             artifact(mySourcesJar)
             artifact(myJavadocJar)
             artifact(jar)
+
 
             pom.withXml {
                 def root = asNode()
