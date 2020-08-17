@@ -212,7 +212,7 @@ RETURN apoc.static.getAll("gcp") AS gcp;
 [[nlp-gcp-examples-batching]]
 == Batching Requests
 
-Batching requests to the GCP API and the processing of results can be done using xref:graph-updates/periodic-iterate.adoc[].
+Batching requests to the GCP API and the processing of results can be done using xref:graph-updates/periodic-execution.adoc#commit-batching[Periodic Iterate].
 This approach is useful if we want to make parallel requests to the GCP API and reduce the amount of transaction state kept in memory while running procedures that write to the database.
 
 .The following creates an entity graph in batches of 25 nodes
