@@ -1,6 +1,6 @@
 package apoc.custom;
 
-import apoc.ExtendedRegisterComponentFactory;
+import apoc.RegisterComponentFactory;
 import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.util.StatusCodeMatcher;
@@ -278,7 +278,7 @@ public class CypherProceduresTest  {
         }
 
         // refresh procedures
-        ExtendedRegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = db.getDependencyResolver().resolveDependency(ExtendedRegisterComponentFactory.RegisterComponentLifecycle.class);
+        RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = db.getDependencyResolver().resolveDependency(RegisterComponentFactory.RegisterComponentLifecycle.class);
         CypherProceduresHandler cypherProceduresHandler = (CypherProceduresHandler) registerComponentLifecycle.getResolvers().get(CypherProceduresHandler.class).get(db.databaseName());
         cypherProceduresHandler.restoreProceduresAndFunctions();
 
@@ -307,7 +307,7 @@ public class CypherProceduresTest  {
         }
 
         // refresh procedures
-        ExtendedRegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = db.getDependencyResolver().resolveDependency(ExtendedRegisterComponentFactory.RegisterComponentLifecycle.class);
+        RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = db.getDependencyResolver().resolveDependency(RegisterComponentFactory.RegisterComponentLifecycle.class);
         CypherProceduresHandler cypherProceduresHandler = (CypherProceduresHandler) registerComponentLifecycle.getResolvers().get(CypherProceduresHandler.class).get(db.databaseName());
         cypherProceduresHandler.restoreProceduresAndFunctions();
 
