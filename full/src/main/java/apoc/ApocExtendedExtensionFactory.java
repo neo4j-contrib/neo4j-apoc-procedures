@@ -37,13 +37,6 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
  */
 public class ApocExtendedExtensionFactory extends ExtensionFactory<ApocExtendedExtensionFactory.Dependencies> {
 
-    static {
-        try {
-            URL.setURLStreamHandlerFactory(new ApocUrlStreamHandlerFactory());
-        } catch (Error e) {
-            System.err.println("APOC couln't set a URLStreamHandlerFactory since some other tool already did this (e.g. tomcat). This means you cannot use s3:// or hdfs:// style URLs in APOC. This is caused by a limitation of the JVM which we cannot fix. ");
-        }
-    }
     public ApocExtendedExtensionFactory() {
         super(ExtensionType.DATABASE, "APOC");
     }
