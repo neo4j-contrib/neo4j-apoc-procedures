@@ -900,4 +900,15 @@ public class Util {
     public static void validateQuery(GraphDatabaseService db, String statement) {
         db.executeTransactionally("EXPLAIN " + statement);
     }
+
+    /**
+     * all new threads being created within apoc should be daemon threads to allow graceful termination, so use this whenever you need a thread
+     * @param target
+     * @return
+     */
+    public static Thread newDaemonThread(Runnable target) {
+        Thread thread = new Thread(target);
+        thread.setDaemon(true);
+        return thread;
+    }
 }
