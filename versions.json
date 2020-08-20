@@ -66,6 +66,12 @@
         "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0-rc01/apoc-4.0.0-rc01-all.jar"
     },
     {
+        "neo4j": "3.5.21",
+        "apoc": "3.5.0.14",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.14",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.14/apoc-3.5.0.14-all.jar"
+    },
+    {
         "neo4j": "3.5.20",
         "apoc": "3.5.0.14",
         "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.14",
