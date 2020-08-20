@@ -1,33 +1,36 @@
 package apoc;
 
-import apoc.custom.CypherProceduresHandler;
 import apoc.trigger.TriggerHandler;
-import apoc.uuid.UuidHandler;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
 import org.neo4j.kernel.extension.context.ExtensionContext;
 import org.neo4j.kernel.lifecycle.Lifecycle;
+import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
+import org.neo4j.service.Services;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class ExtendedRegisterComponentFactory extends ExtensionFactory<ExtendedRegisterComponentFactory.Dependencies> {
+/**
+ * NOTE: this is a GLOBAL component, so only once per DBMS
+ */
+public class RegisterComponentFactory extends ExtensionFactory<RegisterComponentFactory.Dependencies> {
 
     private Log log;
     private GlobalProcedures globalProceduresRegistry;
 
-    public ExtendedRegisterComponentFactory() {
+    public RegisterComponentFactory() {
         super(ExtensionType.GLOBAL,
-                "ApocExtendedRegisterComponent");
+                "ApocRegisterComponent");
     }
 
     @Override
     public Lifecycle newInstance(ExtensionContext context, Dependencies dependencies) {
         globalProceduresRegistry = dependencies.globalProceduresRegistry();
-        log = dependencies.log().getUserLog(ExtendedRegisterComponentFactory.class);
+        log = dependencies.log().getUserLog(RegisterComponentFactory.class);
         return new RegisterComponentLifecycle();
     }
 
@@ -36,7 +39,7 @@ public class ExtendedRegisterComponentFactory extends ExtensionFactory<ExtendedR
         GlobalProcedures globalProceduresRegistry();
     }
 
-    public class RegisterComponentLifecycle implements Lifecycle {
+    public class RegisterComponentLifecycle extends LifecycleAdapter {
 
         private final Map<Class, Map<String, Object>> resolvers = new ConcurrentHashMap<>();
 
@@ -51,9 +54,13 @@ public class ExtendedRegisterComponentFactory extends ExtensionFactory<ExtendedR
 
         @Override
         public void init() throws Exception {
-            // FIXME: after lifecycle issue has been resolved upstream
-            resolvers.put(UuidHandler.class, new ConcurrentHashMap<>());
-            resolvers.put(CypherProceduresHandler.class, new ConcurrentHashMap<>());
+
+            for (ApocGlobalComponents c: Services.loadAll(ApocGlobalComponents.class)) {
+                for (Class clazz: c.getContextClasses()) {
+                    resolvers.put(clazz, new ConcurrentHashMap<>());
+                }
+            }
+
             resolvers.forEach(
                     (clazz, dbFunctionMap) -> globalProceduresRegistry.registerComponent(clazz, context -> {
                         String databaseName = context.graphDatabaseAPI().databaseName();
@@ -66,16 +73,5 @@ public class ExtendedRegisterComponentFactory extends ExtensionFactory<ExtendedR
             );
         }
 
-        @Override
-        public void start() throws Exception {
-        }
-
-        @Override
-        public void stop() throws Exception {
-        }
-
-        @Override
-        public void shutdown() throws Exception {
-        }
     }
 }
