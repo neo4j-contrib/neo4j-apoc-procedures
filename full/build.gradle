@@ -33,6 +33,7 @@ javadoc {
 }
 
 shadowJar {
+    mergeServiceFiles()
     archiveClassifier.set('all')
 }
 
