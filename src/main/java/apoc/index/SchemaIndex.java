@@ -2,6 +2,7 @@ package apoc.index;
 
 import apoc.result.ListResult;
 import apoc.util.QueueBasedSpliterator;
+import apoc.util.Util;
 import org.neo4j.exceptions.KernelException;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
@@ -70,11 +71,11 @@ public class SchemaIndex {
         BlockingQueue<PropertyValueCount> queue = new LinkedBlockingDeque<>(100);
         Iterable<IndexDefinition> indexDefinitions = (labelName.isEmpty()) ? tx.schema().getIndexes() : tx.schema().getIndexes(Label.label(labelName));
 
-        new Thread(() ->
+        Util.newDaemonThread(() ->
                 StreamSupport.stream(indexDefinitions.spliterator(), true)
-                .filter(indexDefinition -> isIndexCoveringProperty(indexDefinition, keyName))
-                .map(indexDefinition -> scanIndexDefinitionForKeys(indexDefinition, keyName, queue))
-                .collect(new QueuePoisoningCollector(queue, POISON))
+                        .filter(indexDefinition -> isIndexCoveringProperty(indexDefinition, keyName))
+                        .map(indexDefinition -> scanIndexDefinitionForKeys(indexDefinition, keyName, queue))
+                        .collect(new QueuePoisoningCollector(queue, POISON))
         ).start();
 
         return StreamSupport.stream(new QueueBasedSpliterator<>(queue, POISON, terminationGuard, Integer.MAX_VALUE),false);

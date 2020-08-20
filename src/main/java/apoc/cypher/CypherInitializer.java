@@ -1,6 +1,7 @@
 package apoc.cypher;
 
 import apoc.ApocConfig;
+import apoc.util.Util;
 import org.apache.commons.configuration2.Configuration;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -42,7 +43,7 @@ public class CypherInitializer implements AvailabilityListener {
         // run initializers in a new thread
         // we need to wait until apoc procs are registered
         // unfortunately an AvailabilityListener is triggered before that
-        new Thread(() -> {
+        Util.newDaemonThread(() -> {
 
             try {
                 awaitApocProceduresRegistered();
@@ -55,13 +56,13 @@ public class CypherInitializer implements AvailabilityListener {
                                 },
                                 TreeMap::new));
 
-                for (Object initializer: initializers.values()) {
+                for (Object initializer : initializers.values()) {
                     String query = initializer.toString();
                     try {
                         db.executeTransactionally(query);
                         userLog.info("successfully initialized: " + query);
                     } catch (Exception e) {
-                        userLog.warn("error upon initialization, running: "+query, e);
+                        userLog.warn("error upon initialization, running: " + query, e);
                     }
                 }
             } finally {

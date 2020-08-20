@@ -9,7 +9,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.TransactionTerminatedException;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
@@ -149,7 +148,7 @@ public class Cypher {
            wait in the pool's job queue.
          */
         BlockingQueue<T> queue = new ArrayBlockingQueue<>(queueCapacity);
-        new Thread(() -> {
+        Util.newDaemonThread(() -> {
             try {
                 action.accept(queue);
             } finally {
