@@ -71,7 +71,7 @@ public class Cypher {
     public Pools pools;
 
     @Procedure
-    @Description("apoc.cypher.run(fragment, params) yield value - executes reading fragment with the given parameters")
+    @Description("apoc.cypher.run(fragment, params) yield value - executes reading fragment with the given parameters - currently no schema operations")
     public Stream<MapResult> run(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         return runCypherQuery(tx, statement, params);
     }
