@@ -47,14 +47,14 @@ public class ExportGraphMLTest {
 
     public static final String KEY_TYPES_EMPTY = "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
             "<key id=\"limit\" for=\"node\" attr.name=\"limit\" attr.type=\"long\"/>%n" +
-            "<key id=\"label\" for=\"node\" attr.name=\"label\" attr.type=\"string\"/>%n";
+            "<key id=\"labels\" for=\"node\" attr.name=\"labels\" attr.type=\"string\"/>%n";
     public static final String GRAPH = "<graph id=\"G\" edgedefault=\"directed\">%n";
     public static final String HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>%n" +
             "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">%n";
     public static final String KEY_TYPES_FALSE = "<key id=\"born\" for=\"node\" attr.name=\"born\"/>%n" +
             "<key id=\"values\" for=\"node\" attr.name=\"values\"/>%n" +
             "<key id=\"name\" for=\"node\" attr.name=\"name\"/>%n" +
-            "<key id=\"label\" for=\"node\" attr.name=\"label\"/>%n"+
+            "<key id=\"labels\" for=\"node\" attr.name=\"labels\"/>%n"+
             "<key id=\"place\" for=\"node\" attr.name=\"place\"/>%n" +
             "<key id=\"age\" for=\"node\" attr.name=\"age\"/>%n" +
             "<key id=\"label\" for=\"edge\" attr.name=\"label\"/>%n";
@@ -63,13 +63,13 @@ public class ExportGraphMLTest {
     public static final String KEY_TYPES = "<key id=\"born\" for=\"node\" attr.name=\"born\" attr.type=\"string\"/>%n" +
             "<key id=\"values\" for=\"node\" attr.name=\"values\" attr.type=\"string\" attr.list=\"long\"/>%n" +
             "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
-            "<key id=\"label\" for=\"node\" attr.name=\"label\" attr.type=\"string\"/>%n"+
+            "<key id=\"labels\" for=\"node\" attr.name=\"labels\" attr.type=\"string\"/>%n"+
             "<key id=\"place\" for=\"node\" attr.name=\"place\" attr.type=\"string\"/>%n" +
             "<key id=\"age\" for=\"node\" attr.name=\"age\" attr.type=\"long\"/>%n" +
             "<key id=\"label\" for=\"edge\" attr.name=\"label\" attr.type=\"string\"/>%n";
     public static final String KEY_TYPES_PATH = "<key id=\"born\" for=\"node\" attr.name=\"born\" attr.type=\"string\"/>%n" +
             "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
-            "<key id=\"label\" for=\"node\" attr.name=\"label\" attr.type=\"string\"/>%n"+
+            "<key id=\"labels\" for=\"node\" attr.name=\"labels\" attr.type=\"string\"/>%n"+
             "<key id=\"place\" for=\"node\" attr.name=\"place\" attr.type=\"string\"/>%n" +
             "<key id=\"TYPE\" for=\"node\" attr.name=\"TYPE\" attr.type=\"string\"/>%n" +
             "<key id=\"age\" for=\"node\" attr.name=\"age\" attr.type=\"long\"/>%n" +
@@ -78,7 +78,7 @@ public class ExportGraphMLTest {
     public static final String KEY_TYPES_CAMEL_CASE = "<key id=\"firstName\" for=\"node\" attr.name=\"firstName\" attr.type=\"string\"/>%n" +
             "<key id=\"ageNow\" for=\"node\" attr.name=\"ageNow\" attr.type=\"long\"/>%n" +
             "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
-            "<key id=\"label\" for=\"node\" attr.name=\"label\" attr.type=\"string\"/>%n" +
+            "<key id=\"labels\" for=\"node\" attr.name=\"labels\" attr.type=\"string\"/>%n" +
             "<key id=\"TYPE\" for=\"node\" attr.name=\"TYPE\" attr.type=\"string\"/>%n" +
             "<key id=\"label\" for=\"edge\" attr.name=\"label\" attr.type=\"string\"/>%n" +
             "<key id=\"TYPE\" for=\"edge\" attr.name=\"TYPE\" attr.type=\"string\"/>%n";
