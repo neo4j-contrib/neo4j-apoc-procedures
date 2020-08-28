@@ -96,6 +96,11 @@ public class ExportGraphMLTest {
             "<node id=\"n3\"> <data key=\"labels\">:QWERTY</data><data key=\"name\">qwerty</data> </node>%n" +
             "<edge id=\"e2\" source=\"n1\" target=\"n3\"> <data key=\"label\">KNOWS</data> </edge>%n";
 
+    private static final String DATA_WITHOUT_CHAR_DATA_KEYS = "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"labels\">:Foo:Foo0:Foo2</data><data key=\"place\">{\"crs\":\"wgs-84-3d\",\"latitude\":56.7,\"longitude\":12.78,\"height\":100.0}</data><data key=\"name\">foo</data><data key=\"born\">2018-10-10</data></node>%n" +
+            "<node id=\"n1\" labels=\":Bar\"><data key=\"labels\">:Bar</data><data key=\"age\">42</data><data key=\"name\">bar</data><data key=\"place\">{\"crs\":\"wgs-84\",\"latitude\":56.7,\"longitude\":12.78,\"height\":null}</data></node>%n" +
+            "<node id=\"n2\" labels=\":Bar\"><data key=\"labels\">:Bar</data><data key=\"age\">12</data><data key=\"values\">[1,2,3]</data></node>%n" +
+            "<edge id=\"e0\" source=\"n0\" target=\"n1\"><data key=\"d10\"/></edge>\n";
+
     public static final String FOOTER = "</graph>%n" +
             "</graphml>";
 
@@ -115,6 +120,7 @@ public class ExportGraphMLTest {
     private static final String EXPECTED_TYPES_PATH_CAPTION = String.format(HEADER + KEY_TYPES_PATH + GRAPH + DATA_PATH_CAPTION + FOOTER);
     private static final String EXPECTED_TYPES_PATH_WRONG_CAPTION = String.format(HEADER + KEY_TYPES_PATH + GRAPH + DATA_PATH_CAPTION_DEFAULT + FOOTER);
     private static final String EXPECTED_TYPES = String.format(HEADER + KEY_TYPES + GRAPH + DATA + FOOTER);
+    private static final String EXPECTED_TYPES_WITHOUT_CHAR_DATA_KEYS = String.format(HEADER + KEY_TYPES  + GRAPH + DATA_WITHOUT_CHAR_DATA_KEYS + FOOTER);
     private static final String EXPECTED_FALSE = String.format(HEADER + KEY_TYPES_FALSE + GRAPH + DATA + FOOTER);
     private static final String EXPECTED_READ_NODE_EDGE = String.format(HEADER + GRAPH + DATA_NODE_EDGE + FOOTER);
     private static final String EXPECTED_TYPES_PATH_CAMEL_CASE = String.format(HEADER + KEY_TYPES_CAMEL_CASE + GRAPH + DATA_CAMEL_CASE + FOOTER);
@@ -161,6 +167,21 @@ public class ExportGraphMLTest {
                 });
 
         TestUtil.testCall(db, "MATCH  (c:Bar {age: 12, values: [1,2,3]}) RETURN COUNT(c) AS c", null, (r) -> assertEquals(1L, r.get("c")));
+    }
+
+    @Test
+    public void testImportGraphMLWithoutCharactersDataKeys() throws Exception {
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+
+        File output = new File(directory, "import.graphml");
+        FileWriter fw = new FileWriter(output);
+        fw.write(EXPECTED_TYPES_WITHOUT_CHAR_DATA_KEYS); fw.close();
+        TestUtil.testCall(db, "CALL apoc.import.graphml($file,{readLabels:true})", map("file", output.getAbsolutePath()),
+                (r) -> {
+                    assertResults(output, r, "statement");
+                });
+
+        TestUtil.testCall(db, "MATCH  ()-[c:RELATED]->() RETURN COUNT(c) AS c", null, (r) -> assertEquals(1L, r.get("c")));
     }
 
     @Test(expected = QueryExecutionException.class)
