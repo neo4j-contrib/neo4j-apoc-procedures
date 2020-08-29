@@ -12,6 +12,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
+import org.neo4j.kernel.impl.coreapi.TransactionImpl;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -29,7 +30,7 @@ public class SystemDb {
 
     @Context
     public ApocConfig apocConfig;
-    
+
     @Context
     public SecurityContext securityContext;
 
@@ -78,7 +79,10 @@ public class SystemDb {
 
         Transaction tx = apocConfig.getSystemDb().beginTx();  // we can't use try-with-resources otherwise tx gets closed too early
         return commands.stream().flatMap(command -> tx.execute(command, params).stream().map(RowResult::new)).onClose(() -> {
-            tx.commit();
+            boolean isOpen = ((TransactionImpl) tx).isOpen(); // no other way to check if a tx is still open
+            if (isOpen) {
+                tx.commit();
+            }
             tx.close();
         });
     }
