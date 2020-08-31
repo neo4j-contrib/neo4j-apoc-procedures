@@ -11,7 +11,6 @@ import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
 
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -58,7 +57,7 @@ public class TTLLifeCycle extends LifecycleAdapter {
                     Util.map("limit", limit),
                     result -> {
                         QueryStatistics stats = result.getQueryStatistics();
-                        if (stats.getNodesDeleted() > 0) {
+                        if (stats.getNodesDeleted()>0) {
                             log.info("TTL: Expired %d nodes %d relationships", stats.getNodesDeleted(), stats.getRelationshipsDeleted());
                         }
                         return null;
