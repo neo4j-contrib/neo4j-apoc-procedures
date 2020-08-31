@@ -11,6 +11,7 @@ import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
 
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -45,15 +46,16 @@ public class TTLLifeCycle extends LifecycleAdapter {
             long ttlScheduleDb = configValues.schedule;
             ttlIndexJobHandle = scheduler.schedule(TTL_GROUP, this::createTTLIndex, (int)(ttlScheduleDb*0.8), TimeUnit.SECONDS);
             long limitDb = configValues.limit;
-            ttlJobHandle = scheduler.scheduleRecurring(TTL_GROUP, () -> expireNodes(limitDb), ttlScheduleDb, ttlScheduleDb, TimeUnit.SECONDS);
+            long batchSizeDb = configValues.batchSize;
+            ttlJobHandle = scheduler.scheduleRecurring(TTL_GROUP, () -> expireNodes(limitDb, batchSizeDb), ttlScheduleDb, ttlScheduleDb, TimeUnit.SECONDS);
         }
     }
 
-    public void expireNodes(long limit) {
+    public void expireNodes() {
         try {
             if (!Util.isWriteableInstance(db)) return;
-            db.executeTransactionally("MATCH (t:TTL) where t.ttl < timestamp() WITH t LIMIT $limit DETACH DELETE t",
-                    Util.map("limit", limit),
+            db.executeTransactionally("MATCH (t:TTL) where t.ttl < timestamp() DETACH DELETE t",
+                    Collections.emptyMap(),
                     result -> {
                         QueryStatistics stats = result.getQueryStatistics();
                         if (stats.getNodesDeleted()>0) {
