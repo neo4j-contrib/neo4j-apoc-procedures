@@ -53,7 +53,8 @@ public class TTLLifeCycle extends LifecycleAdapter {
     public void expireNodes(long limit) {
         try {
             if (!Util.isWriteableInstance(db)) return;
-            db.executeTransactionally("MATCH (t:TTL) where t.ttl < timestamp() WITH t " + ((limit > 0) ? "LIMIT $limit " : "") + "DETACH DELETE t",
+            String withLimit = (limit > 0) ? "LIMIT $limit " : "";
+            db.executeTransactionally("MATCH (t:TTL) where t.ttl < timestamp() WITH t " + withLimit + "DETACH DELETE t",
                     Util.map("limit", limit),
                     result -> {
                         QueryStatistics stats = result.getQueryStatistics();
