@@ -1,6 +1,5 @@
 package apoc.ttl;
 
-import apoc.date.DateExpiry;
 import apoc.util.TestUtil;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
