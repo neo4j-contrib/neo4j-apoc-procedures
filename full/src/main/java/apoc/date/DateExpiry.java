@@ -17,16 +17,16 @@ import static apoc.date.Date.unit;
  */
 @Extended
 public class DateExpiry {
-	@Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.ttl.expire")
-	@Description("CALL apoc.date.expire(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property")
+	@Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.ttl.expireAtInstant")
+	@Description("CALL apoc.ttl.expire(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property")
 	@Deprecated
 	public void expire(@Name("node") Node node, @Name("time") long time, @Name("timeUnit") String timeUnit) {
 		node.addLabel(Label.label("TTL"));
 		node.setProperty("ttl",unit(timeUnit).toMillis(time));
 	}
 
-	@Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.ttl.expireIn")
-	@Description("CALL apoc.date.expire.in(node,time,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property")
+	@Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.ttl.expireAfterTimeLength")
+	@Description("CALL apoc.ttl.expireIn(node,time,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property")
 	@Deprecated
 	public void expireIn(@Name("node") Node node, @Name("timeDelta") long time, @Name("timeUnit") String timeUnit) {
 		node.addLabel(Label.label("TTL"));

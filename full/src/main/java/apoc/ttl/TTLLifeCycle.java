@@ -51,14 +51,14 @@ public class TTLLifeCycle extends LifecycleAdapter {
         }
     }
 
-    public void expireNodes() {
+    public void expireNodes(long limit) {
         try {
             if (!Util.isWriteableInstance(db)) return;
-            db.executeTransactionally("MATCH (t:TTL) where t.ttl < timestamp() DETACH DELETE t",
-                    Collections.emptyMap(),
+            db.executeTransactionally("MATCH (t:TTL) where t.ttl < timestamp() WITH t " + ((limit > 0) ? "LIMIT $limit " : "") + "DETACH DELETE t",
+                    Util.map("limit", limit),
                     result -> {
                         QueryStatistics stats = result.getQueryStatistics();
-                        if (stats.getNodesDeleted()>0) {
+                        if (stats.getNodesDeleted() > 0) {
                             log.info("TTL: Expired %d nodes %d relationships", stats.getNodesDeleted(), stats.getRelationshipsDeleted());
                         }
                         return null;
