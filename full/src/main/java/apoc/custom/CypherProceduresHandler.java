@@ -198,6 +198,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                 null,
                 new String[0],
                 description,
+                "apoc.custom",
                 false
         ), statement, forceSingle);
     }
@@ -326,7 +327,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public UserFunctionSignature functionSignature(String name, String output, List<List<String>> inputs, String description) {
         AnyType outType = typeof(output.isEmpty() ? "LIST OF MAP" : output);
-        return new UserFunctionSignature(qualifiedName(name), inputSignatures(inputs), outType, null, new String[0], description, false);
+        return new UserFunctionSignature(qualifiedName(name), inputSignatures(inputs), outType, null, new String[0], description, "apoc.custom",false);
     }
 
     /**

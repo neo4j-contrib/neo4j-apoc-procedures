@@ -71,7 +71,7 @@ public class CypherExtendedTest {
         testResult(db, "CALL apoc.cypher.mapParallel('UNWIND range(0,9) as b RETURN b',{},range(1,$size))", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
-    @Test
+    @Test @Ignore("flaky")
     public void testMapParallel2() throws Exception {
         int size = 10_000;
         testResult(db, "CALL apoc.cypher.mapParallel2('UNWIND range(0,9) as b RETURN b',{},range(1,$size),10)", map("size", size),

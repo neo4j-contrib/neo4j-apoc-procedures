@@ -94,7 +94,7 @@ public class SchemaIndex {
                     String label = Iterables.single(indexDefinition.getLabels()).name();
                     LabelSchemaDescriptor schema = SchemaDescriptor.forLabel(tokenRead.nodeLabel(label), propertyKeyIds);
                     IndexDescriptor indexDescriptor = Iterators.single(schemaRead.index(schema));
-                    scanIndex(queue, indexDefinition, key, read, cursors, indexDescriptor);
+                    scanIndex(queue, indexDefinition, key, read, cursors, indexDescriptor, ktx);
                 }
             }
             threadTx.commit();
@@ -102,8 +102,8 @@ public class SchemaIndex {
         }
     }
 
-    private void scanIndex(BlockingQueue<PropertyValueCount> queue, IndexDefinition indexDefinition, String key, Read read, CursorFactory cursors, IndexDescriptor indexDescriptor) {
-        try (NodeValueIndexCursor cursor = cursors.allocateNodeValueIndexCursor(PageCursorTracer.NULL)) {
+    private void scanIndex(BlockingQueue<PropertyValueCount> queue, IndexDefinition indexDefinition, String key, Read read, CursorFactory cursors, IndexDescriptor indexDescriptor, KernelTransaction ktx) {
+        try (NodeValueIndexCursor cursor = cursors.allocateNodeValueIndexCursor(PageCursorTracer.NULL, ktx.memoryTracker())) {
             // we need to using IndexOrder.NONE here to prevent an exception
             // however the index guarantees to be scanned in order unless
             // there are writes done in the same tx beforehand - which we don't do.
