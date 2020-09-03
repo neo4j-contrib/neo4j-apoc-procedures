@@ -11,6 +11,7 @@ import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
 
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -53,8 +54,17 @@ public class TTLLifeCycle extends LifecycleAdapter {
     public void expireNodes(long limit) {
         try {
             if (!Util.isWriteableInstance(db)) return;
-            String withLimit = (limit > 0) ? "LIMIT $limit " : "";
-            db.executeTransactionally("MATCH (t:TTL) where t.ttl < timestamp() WITH t " + withLimit + "DETACH DELETE t",
+            String withLimit = (limit > 0) ? "LIMIT $limit" : "";
+            String matchTTL = "MATCH (t:TTL) WHERE t.ttl < timestamp()";
+            db.executeTransactionally("CALL apoc.periodic.iterate(\n" +
+                            "\"" + matchTTL + " WITH t " + withLimit + " MATCH (t)-[r]->() RETURN r\", \n" +
+                            "\"DELETE r\", {params:{limit: $limit}}) YIELD total as relOut\n" +
+                            "WITH relOut CALL apoc.periodic.iterate(\n" +
+                            "\"" + matchTTL + " WITH t " + withLimit + " MATCH (t)<-[r]-() RETURN r\", \n" +
+                            "\"DELETE r\", {params:{limit: $limit}}) YIELD total as relIn\n" +
+                            "WITH relIn CALL apoc.periodic.iterate(\n" +
+                            "\"" + matchTTL + " RETURN t " + withLimit + " \", \n" +
+                            "\"DELETE t\", {params:{limit: $limit}}) YIELD total RETURN total",
                     Util.map("limit", limit),
                     result -> {
                         QueryStatistics stats = result.getQueryStatistics();
