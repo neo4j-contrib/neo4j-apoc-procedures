@@ -23,7 +23,8 @@ public class TTLTest {
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_ttl_schedule, Duration.ofMillis(3000))
-            .withSetting(ApocSettings.apoc_ttl_enabled, true);
+            .withSetting(ApocSettings.apoc_ttl_enabled, true)
+            .withSetting(ApocSettings.apoc_ttl_batch_size, 8000l);
 
     @BeforeClass
     public static void setUp() throws Exception {
