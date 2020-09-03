@@ -38,11 +38,11 @@ public class TTLTest {
         TestUtil.registerProcedure(db, TTL.class, Periodic.class);
         db.executeTransactionally("UNWIND range(1,1600) as range CREATE (n:Foo:TTL {id: range, ttl: timestamp() + 100});");
         db.executeTransactionally("UNWIND range(1,2500) as range CREATE (n:Bar:TTL {id: range, ttl: timestamp() + 100});");
-        testNodes(1600, 2500);
-        Thread.sleep(5 * 1000);
-        testNodes(1300, 2500);
-        Thread.sleep(3 * 1000);
-        testNodes(1000, 2500);
+        testNodes(1600,2500);
+        Thread.sleep(5*1000);
+        testNodes(1300,2500);
+        Thread.sleep(3*1000);
+        testNodes(1000,2500);
     }
 
     @Test
@@ -53,9 +53,9 @@ public class TTLTest {
         TestUtil.registerProcedure(db, TTL.class, Periodic.class);
         db.executeTransactionally("UNWIND range(1,1500) as range CREATE (n:Foo:TTL {id: range, ttl: timestamp() + 100});");
         db.executeTransactionally("UNWIND range(1,2500) as range CREATE (n:Bar:TTL {id: range, ttl: timestamp() + 100});");
-        testNodes(1500, 2500);
-        Thread.sleep(5 * 1000);
-        testNodes(1000, 2500);
+        testNodes(1500,2500);
+        Thread.sleep(5*1000);
+        testNodes(1000,2500);
     }
 
     @Test
@@ -78,13 +78,13 @@ public class TTLTest {
         TestUtil.registerProcedure(db, TTL.class, Periodic.class);
         db.executeTransactionally("CREATE (n:Foo:TTL) SET n.ttl = timestamp() + 100");
         db.executeTransactionally("CREATE (n:Bar) WITH n CALL apoc.ttl.expireIn(n,500,'ms') RETURN count(*)");
-        testNodes(1, 1);
-        Thread.sleep(10 * 1000);
-        testNodes(0, 0);
+        testNodes(1,1);
+        Thread.sleep(10*1000);
+        testNodes(0,0);
     }
 
     private static void testNodes(int foo, int bar) {
-        try (Transaction tx = db.beginTx()) {
+        try (Transaction tx=db.beginTx()) {
             assertEquals(foo, Iterators.count(tx.findNodes(Label.label("Foo"))));
             assertEquals(bar, Iterators.count(tx.findNodes(Label.label("Bar"))));
             assertEquals(foo + bar, Iterators.count(tx.findNodes(Label.label("TTL"))));
