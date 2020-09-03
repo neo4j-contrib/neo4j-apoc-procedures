@@ -11,7 +11,6 @@ import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
 
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
