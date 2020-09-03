@@ -26,17 +26,15 @@ public class TTLTest {
             .withSetting(ApocSettings.apoc_ttl_enabled, true)
             .withSetting(ApocSettings.apoc_ttl_batch_size, 8000L);
 
-    @BeforeClass
-    public static void setUp() throws Exception {
-        TestUtil.registerProcedure(db, TTL.class, Periodic.class);
+    @Before
+    public void setUp() {
+        db.shutdown();
     }
 
     @Test
     public void testExpire600NodesIn2Steps() throws Exception {
-        db.shutdown();
         db.withSetting(ApocSettings.apoc_ttl_limit, 300L);
-        db.restartDatabase();
-        TestUtil.registerProcedure(db, TTL.class, Periodic.class);
+        restartAndRegister(db);
         db.executeTransactionally("UNWIND range(1,1600) as range CREATE (n:Foo:TTL {id: range, ttl: timestamp() + 100});");
         db.executeTransactionally("UNWIND range(1,2500) as range CREATE (n:Bar:TTL {id: range, ttl: timestamp() + 100});");
         testNodes(1600,2500);
@@ -48,10 +46,8 @@ public class TTLTest {
 
     @Test
     public void testExpireOnlyLimitedNumberOfNodes() throws Exception {
-        db.shutdown();
         db.withSetting(ApocSettings.apoc_ttl_limit, 500L);
-        db.restartDatabase();
-        TestUtil.registerProcedure(db, TTL.class, Periodic.class);
+        restartAndRegister(db);
         db.executeTransactionally("UNWIND range(1,1500) as range CREATE (:Baz)-[:REL_TEST]->(n:Foo:TTL {id: range, ttl: timestamp() + 100});");
         db.executeTransactionally("UNWIND range(1,2500) as range CREATE (n:Bar:TTL {id: range, ttl: timestamp() + 100});");
         testNodes(1500,2500);
@@ -61,11 +57,8 @@ public class TTLTest {
 
     @Test
     public void testExpireAllNodes() throws Exception {
-        db.shutdown();
         db.withSetting(ApocSettings.apoc_ttl_limit, 0L);
-        db.restartDatabase();
-        TestUtil.registerProcedure(db, TTL.class, Periodic.class);
-
+        restartAndRegister(db);
         db.executeTransactionally("UNWIND range(1,2000) as range CREATE (:Baz)-[:REL_TEST]->(n:Foo:TTL {id: range, ttl: timestamp() + 100});");
         db.executeTransactionally("UNWIND range(1,3000) as range CREATE (n:Bar:TTL {id: range, ttl: timestamp() + 100});");
         testNodes(2000, 3000);
@@ -76,7 +69,7 @@ public class TTLTest {
     // test extracted from apoc.date
     @Test
     public void testExpire() throws Exception {
-        TestUtil.registerProcedure(db, TTL.class, Periodic.class);
+        restartAndRegister(db);
         db.executeTransactionally("CREATE (n:Foo:TTL) SET n.ttl = timestamp() + 100");
         db.executeTransactionally("CREATE (n:Bar) WITH n CALL apoc.ttl.expireIn(n,500,'ms') RETURN count(*)");
         testNodes(1,1);
@@ -91,5 +84,10 @@ public class TTLTest {
             assertEquals(foo + bar, Iterators.count(tx.findNodes(Label.label("TTL"))));
             tx.commit();
         }
+    }
+
+    private static void restartAndRegister(DbmsRule db) throws Exception {
+        db.restartDatabase();
+        TestUtil.registerProcedure(db, TTL.class, Periodic.class);
     }
 }
