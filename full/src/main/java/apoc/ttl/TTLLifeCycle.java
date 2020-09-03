@@ -59,26 +59,21 @@ public class TTLLifeCycle extends LifecycleAdapter {
             String queryRels = matchTTL + "WITH t " + withLimit + " MATCH (t)-[r]-() RETURN r";
             String queryNodes = matchTTL +  "RETURN t " + withLimit;
             Map<String,Object> params = Util.map("limit", limit, "batchSize", batchSize, "queryRels", queryRels, "queryNodes", queryNodes);
-            db.executeTransactionally(
+            long relationshipsDeleted = db.executeTransactionally(
                     "CALL apoc.periodic.iterate($queryRels, 'DELETE r', {batchSize: $batchSize, params:{limit: $limit}})",
                     params,
-                    result -> {
-                        long total = Iterators.single(result.columnAs("total"));
-                        if (total > 0) {
-                            log.info("TTL: Expired %d relationships", total);
-                        }
-                        return null;
-                    });
-            db.executeTransactionally(
+                    result -> Iterators.single(result.columnAs("total"))
+            );
+
+            long nodesDeleted = db.executeTransactionally(
                     "CALL apoc.periodic.iterate($queryNodes, 'DELETE t', {batchSize: $batchSize, params:{limit: $limit}})",
                     params,
-                    result -> {
-                        long total = Iterators.single(result.columnAs("total"));
-                        if (total > 0) {
-                            log.info("TTL: Expired %d nodes", total);
-                        }
-                        return null;
-                    });
+                    result -> Iterators.single(result.columnAs("total"))
+            );
+
+            if (nodesDeleted > 0) {
+                log.info("TTL: Expired %d nodes %d relationships", nodesDeleted, relationshipsDeleted);
+            }
         } catch (Exception e) {
             log.error("TTL: Error deleting expired nodes", e);
         }
