@@ -3,7 +3,7 @@ package apoc.ttl;
 import apoc.ApocConfig;
 import apoc.TTLConfig;
 import apoc.util.Util;
-import org.neo4j.graphdb.QueryStatistics;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
@@ -11,6 +11,7 @@ import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -57,16 +58,24 @@ public class TTLLifeCycle extends LifecycleAdapter {
             String matchTTL = "MATCH (t:TTL) WHERE t.ttl < timestamp() ";
             String queryRels = matchTTL + "WITH t " + withLimit + " MATCH (t)-[r]-() RETURN r";
             String queryNodes = matchTTL +  "RETURN t " + withLimit;
-            db.executeTransactionally("CALL apoc.periodic.iterate($queryRels, 'DELETE r', {batchSize: $batchSize, params:{limit: $limit, queryRels: $queryRels}}) YIELD total as relOut\n" +
-                            "CALL apoc.periodic.iterate($queryNodes, 'DELETE t', {batchSize: $batchSize, params:{limit: $limit, queryNodes: $queryNodes}}) YIELD total RETURN total",
-                    Util.map("limit", limit,
-                            "queryNodes", queryNodes,
-                            "queryRels", queryRels,
-                            "batchSize", batchSize),
+            Map<String,Object> params = Util.map("limit", limit, "batchSize", batchSize, "queryRels", queryRels, "queryNodes", queryNodes);
+            db.executeTransactionally(
+                    "CALL apoc.periodic.iterate($queryRels, 'DELETE r', {batchSize: $batchSize, params:{limit: $limit}})",
+                    params,
                     result -> {
-                        QueryStatistics stats = result.getQueryStatistics();
-                        if (stats.getNodesDeleted() > 0) {
-                            log.info("TTL: Expired %d nodes %d relationships", stats.getNodesDeleted(), stats.getRelationshipsDeleted());
+                        long total = Iterators.single(result.columnAs("total"));
+                        if (total > 0) {
+                            log.info("TTL: Expired %d relationships", total);
+                        }
+                        return null;
+                    });
+            db.executeTransactionally(
+                    "CALL apoc.periodic.iterate($queryNodes, 'DELETE t', {batchSize: $batchSize, params:{limit: $limit}})",
+                    params,
+                    result -> {
+                        long total = Iterators.single(result.columnAs("total"));
+                        if (total > 0) {
+                            log.info("TTL: Expired %d nodes", total);
                         }
                         return null;
                     });

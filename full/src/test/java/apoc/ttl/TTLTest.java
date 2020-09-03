@@ -24,7 +24,7 @@ public class TTLTest {
     public static DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_ttl_schedule, Duration.ofMillis(3000))
             .withSetting(ApocSettings.apoc_ttl_enabled, true)
-            .withSetting(ApocSettings.apoc_ttl_batch_size, 8000l);
+            .withSetting(ApocSettings.apoc_ttl_batch_size, 8000L);
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -34,7 +34,7 @@ public class TTLTest {
     @Test
     public void testExpire600NodesIn2Steps() throws Exception {
         db.shutdown();
-        db.withSetting(ApocSettings.apoc_ttl_limit, 300l);
+        db.withSetting(ApocSettings.apoc_ttl_limit, 300L);
         db.restartDatabase();
         TestUtil.registerProcedure(db, TTL.class, Periodic.class);
         db.executeTransactionally("UNWIND range(1,1600) as range CREATE (n:Foo:TTL {id: range, ttl: timestamp() + 100});");
@@ -49,10 +49,10 @@ public class TTLTest {
     @Test
     public void testExpireOnlyLimitedNumberOfNodes() throws Exception {
         db.shutdown();
-        db.withSetting(ApocSettings.apoc_ttl_limit, 500l);
+        db.withSetting(ApocSettings.apoc_ttl_limit, 500L);
         db.restartDatabase();
         TestUtil.registerProcedure(db, TTL.class, Periodic.class);
-        db.executeTransactionally("UNWIND range(1,1500) as range CREATE (n:Foo:TTL {id: range, ttl: timestamp() + 100});");
+        db.executeTransactionally("UNWIND range(1,1500) as range CREATE (:Baz)-[:REL_TEST]->(n:Foo:TTL {id: range, ttl: timestamp() + 100});");
         db.executeTransactionally("UNWIND range(1,2500) as range CREATE (n:Bar:TTL {id: range, ttl: timestamp() + 100});");
         testNodes(1500,2500);
         Thread.sleep(5*1000);
@@ -62,11 +62,11 @@ public class TTLTest {
     @Test
     public void testExpireAllNodes() throws Exception {
         db.shutdown();
-        db.withSetting(ApocSettings.apoc_ttl_limit, 0l);
+        db.withSetting(ApocSettings.apoc_ttl_limit, 0L);
         db.restartDatabase();
         TestUtil.registerProcedure(db, TTL.class, Periodic.class);
 
-        db.executeTransactionally("UNWIND range(1,2000) as range CREATE (n:Foo:TTL {id: range, ttl: timestamp() + 100});");
+        db.executeTransactionally("UNWIND range(1,2000) as range CREATE (:Baz)-[:REL_TEST]->(n:Foo:TTL {id: range, ttl: timestamp() + 100});");
         db.executeTransactionally("UNWIND range(1,3000) as range CREATE (n:Bar:TTL {id: range, ttl: timestamp() + 100});");
         testNodes(2000, 3000);
         Thread.sleep(5 * 1000);

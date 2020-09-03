@@ -33,10 +33,10 @@ public class ApocSettings implements SettingsDeclaration {
     public static final Setting<Boolean> apoc_ttl_enabled = newBuilder(APOC_TTL_ENABLED, BOOL, false ).build();
 
     @Description("maximum number of nodes to be deleted during one iteration")
-    public static final Setting<Long> apoc_ttl_limit = newBuilder(APOC_TTL_LIMIT, LONG, 1000l ).build();
+    public static final Setting<Long> apoc_ttl_limit = newBuilder(APOC_TTL_LIMIT, LONG, 1000L ).build();
 
     @Description("The batchSize applied to apoc.periodic.iterate during removing nodes")
-    public static final Setting<Long> apoc_ttl_batch_size = newBuilder(APOC_TTL_BATCH_SIZE, LONG, 10000l ).build();
+    public static final Setting<Long> apoc_ttl_batch_size = newBuilder(APOC_TTL_BATCH_SIZE, LONG, 10000L ).build();
 
     public static final Setting<Boolean> apoc_trigger_enabled = newBuilder(APOC_TRIGGER_ENABLED, BOOL, false ).build();
 
