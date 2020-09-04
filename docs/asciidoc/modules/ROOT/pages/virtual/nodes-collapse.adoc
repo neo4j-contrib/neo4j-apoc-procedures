@@ -6,7 +6,7 @@
 
 [cols="5m,5"]
 |===
-| apoc.nodes.collapse([<node>], {config}) | returns the list of nodes merged into a VirtualNode
+| apoc.nodes.collapse([<node>], \{config}) | returns the list of nodes merged into a VirtualNode
 |===
 
 == Config:

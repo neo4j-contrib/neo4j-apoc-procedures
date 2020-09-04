@@ -25,7 +25,7 @@ RETURN node
 ----
 
 Below are the config options for this procedure:
-These config option also works for `apoc.refactor.mergeRelationships([rels],{config})`.
+These config option also works for `apoc.refactor.mergeRelationships([rels],\{config})`.
 
 [opts=header]
 |===

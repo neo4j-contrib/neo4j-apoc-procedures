@@ -125,12 +125,12 @@ public class DocsTest {
                         .filter((key) -> Pattern.compile(key).matcher(row.name).matches())
                         .map(value -> String.format("xref::%s", docs.get(value)))
                         .findFirst();
-
+                String description = row.description.replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
                 writer.write(String.format("¦%s¦%s¦%s¦%s¦%s¦%s\n",
                         row.type,
                         row.name,
                         row.signature,
-                        row.description,
+                        description,
                         !extended.contains(row.name),
                         documentation.orElse("")));
             }
@@ -161,10 +161,13 @@ public class DocsTest {
 
                     for (Row row : topLevelNamespaces.get(topLevelNamespace)) {
                         String releaseType = extended.contains(row.name) ? "full" : "core";
-                        sectionWriter.write(String.format("|%s|%s|%s\n",
-                                String.format("xref::%s[%s icon:book[]]\n\n%s", "overview/" + topLevelNamespace + "/" + row.name + ".adoc", row.name, row.description.replace("|", "\\|")),
-                                String.format("label:%s[]\n", row.type),
-                                String.format("label:apoc-%s[]\n", releaseType)));
+                        String description = row.description
+                                .replace("|", "\\|")
+                                .replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
+                        sectionWriter.write(String.format("|%s\n|%s\n|%s\n",
+                                String.format("xref::%s[%s icon:book[]]\n\n%s", "overview/" + topLevelNamespace + "/" + row.name + ".adoc", row.name, description),
+                                String.format("label:%s[]", row.type),
+                                String.format("label:apoc-%s[]", releaseType)));
                     }
 
                     sectionWriter.write(footer());
@@ -184,10 +187,13 @@ public class DocsTest {
                     navWriter.write("** xref::overview/" + topLevelNamespace + "/index.adoc[]\n");
                     for (Row row : topLevelNamespaces.get(topLevelNamespace)) {
                         String releaseType = extended.contains(row.name) ? "full" : "core";
-                        overviewWriter.write(String.format("|%s|%s|%s\n",
-                                String.format("%s[%s icon:book[]]\n\n%s", "xref::overview/" + topLevelNamespace + "/" + row.name + ".adoc", row.name, row.description.replace("|", "\\|")),
-                                String.format("label:%s[]\n", row.type),
-                                String.format("label:apoc-%s[]\n", releaseType)));
+                        String description = row.description
+                                .replace("|", "\\|")
+                                .replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
+                        overviewWriter.write(String.format("|%s\n|%s\n|%s\n",
+                                String.format("%s[%s icon:book[]]\n\n%s", "xref::overview/" + topLevelNamespace + "/" + row.name + ".adoc", row.name, description),
+                                String.format("label:%s[]", row.type),
+                                String.format("label:apoc-%s[]", releaseType)));
                         navWriter.write("*** xref::overview/" + topLevelNamespace + "/" + row.name  + ".adoc[]\n");
                     }
 
@@ -221,7 +227,13 @@ public class DocsTest {
                 String release = extended.contains(procedure.name().toString()) ? "full" : "core";
 
                 writer.write("label:procedure[] label:apoc-" + release + "[]\n\n");
-                writer.write("[.emphasis]\n" + procedure.description().orElse("") + "\n\n");
+
+                String description = procedure.description()
+                        .orElse("")
+                        .replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
+                if (!description.isBlank()) {
+                    writer.write("[.emphasis]\n" + description.trim() + "\n\n");
+                }
 
                 writer.write("== Signature\n\n");
                 writer.write("[source]\n----\n" + procedure.toString() + "\n----\n\n");
@@ -283,7 +295,12 @@ public class DocsTest {
 
                 writer.write("label:function[] label:apoc-" + release + "[]\n\n");
 
-                writer.write("[.emphasis]\n" + userFunctionSignature.description().orElse("") + "\n\n");
+                String description = userFunctionSignature.description()
+                        .orElse("")
+                        .replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
+                if (!description.isBlank()) {
+                    writer.write("[.emphasis]\n" + description.trim() + "\n\n");
+                }
 
                 writer.write("== Signature\n\n");
                 writer.write("[source]\n----\n" + userFunctionSignature.toString() + "\n----\n\n");
@@ -330,7 +347,8 @@ public class DocsTest {
             {
                 writer.write("¦type¦qualified name¦signature¦description\n");
                 for (Row row : record.getValue()) {
-                    writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, row.description));
+                    String description = row.description.replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
+                    writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, description));
                 }
 
             }
@@ -344,7 +362,8 @@ public class DocsTest {
             try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(GENERATED_DOCUMENTATION_DIR, String.format("%s.csv", row.name))), StandardCharsets.UTF_8)) {
                 writer.write("¦type¦qualified name¦signature¦description\n");
 
-                writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, row.description));
+                String description = row.description.replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
+                writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, description));
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage(), e);
             }
