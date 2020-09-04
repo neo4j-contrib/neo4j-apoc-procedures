@@ -9,3 +9,4 @@ asciidoc:
     branch: "4.0"
     apoc-release-absolute: "4.0"
     apoc-release: "4.0.0.18"
+    page-product: "apoc"
