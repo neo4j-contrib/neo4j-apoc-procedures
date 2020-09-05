@@ -6,6 +6,7 @@ import apoc.ttl.TTLLifeCycle;
 import apoc.uuid.Uuid;
 import apoc.uuid.UuidHandler;
 import org.neo4j.annotations.service.ServiceProvider;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -15,22 +16,25 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceProvider
 public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
 
-    private CypherProceduresHandler cypherProcedureHandler;
+    private final Map<GraphDatabaseService,CypherProceduresHandler> cypherProcedureHandlers = new ConcurrentHashMap<>();
 
     @Override
     public Map<String, Lifecycle> getServices(GraphDatabaseAPI db, ApocExtensionFactory.Dependencies dependencies) {
 
-        this.cypherProcedureHandler = new CypherProceduresHandler(
+
+        CypherProceduresHandler cypherProcedureHandler = new CypherProceduresHandler(
                 db,
                 dependencies.scheduler(),
                 dependencies.apocConfig(),
                 dependencies.log().getUserLog(CypherProcedures.class),
                 dependencies.globalProceduresRegistry()
         );
+        cypherProcedureHandlers.put(db, cypherProcedureHandler);
 
         return MapUtil.genericMap(
 
@@ -53,6 +57,7 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
 
     @Override
     public Iterable<AvailabilityListener> getListeners(GraphDatabaseAPI db, ApocExtensionFactory.Dependencies dependencies) {
-        return Collections.singleton(cypherProcedureHandler);
+        CypherProceduresHandler cypherProceduresHandler = cypherProcedureHandlers.get(db);
+        return cypherProceduresHandler==null ? Collections.emptyList() : Collections.singleton(cypherProceduresHandler);
     }
 }
