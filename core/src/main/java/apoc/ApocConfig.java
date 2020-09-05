@@ -68,6 +68,7 @@ public class ApocConfig extends LifecycleAdapter {
      * This has been replaced by database-specific initialisers.
      * Use apoc.initializer.<database name> instead.
      */
+
     @Deprecated
     public static final String APOC_CONFIG_INITIALIZER_CYPHER = APOC_CONFIG_INITIALIZER + ".cypher";
 

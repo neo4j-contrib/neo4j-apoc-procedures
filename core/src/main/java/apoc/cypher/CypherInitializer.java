@@ -12,6 +12,7 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Map;
 import java.util.TreeMap;
@@ -57,14 +58,26 @@ public class CypherInitializer implements AvailabilityListener {
                 }
                 Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
 
-                for (String query : collectInitializers(isSystemDatabase, config)) {
-                    try {
-                        // we need to apply a retry strategy here since in systemdb we potentially conflict with
-                        // creating constraints which could cause our query to fail with a transient error.
-                        Util.retryInTx(userLog, db, tx -> Iterators.count(tx.execute(query)), 0, 5, retries -> { });
-                        userLog.info("successfully initialized: " + query);
-                    } catch (Exception e) {
-                        userLog.error("error upon initialization, running: " + query, e);
+
+                TreeMap<String, String> initializers = new TreeMap<>();
+
+                config.getKeys(ApocConfig.APOC_CONFIG_INITIALIZER + "." + db.databaseName()).forEachRemaining(key -> initializers.put(key, config.getString(key)));
+
+                if (!isSystemDatabase) {
+                    config.getKeys(ApocConfig.APOC_CONFIG_INITIALIZER_CYPHER).forEachRemaining(key -> initializers.put(key, config.getString(key)));
+                }
+
+                for (Object initializer : initializers.values()) {
+                    String query = initializer.toString();
+                    if (!query.isEmpty()) {
+                        try {
+                            // we need to apply a retry strategy here since in systemdb we potentially conflict with
+                            // creating contraints which could cause our query to fail with a transient error.
+                            Util.retryInTx(userLog, db, tx -> Iterators.count(tx.execute(query)), 0, 5, retries -> {});
+                            userLog.info("successfully initialized: " + query);
+                        } catch (Exception e) {
+                            userLog.error("error upon initialization, running: " + query, e);
+                        }
                     }
                 }
             } finally {
