@@ -38,8 +38,11 @@ public class TTLLifeCycle extends LifecycleAdapter {
 
     @Override
     public void start() {
+        String apocTTLEnabledDb = String.format(ApocConfig.APOC_TTL_ENABLED_DB, this.db.databaseName());
+        boolean containsTTLEnabled = apocConfig.containsKey(apocTTLEnabledDb);
         boolean enabled = apocConfig.getBoolean(ApocConfig.APOC_TTL_ENABLED);
-        if (enabled) {
+        boolean dbEnabled = containsTTLEnabled && apocConfig.getBoolean(apocTTLEnabledDb);
+        if ( dbEnabled || (enabled && !containsTTLEnabled) ) {
             long ttlSchedule = apocConfig.getInt(ApocConfig.APOC_TTL_SCHEDULE, DEFAULT_SCHEDULE);
             ttlIndexJobHandle = scheduler.schedule(TTL_GROUP, this::createTTLIndex, (int)(ttlSchedule*0.8), TimeUnit.SECONDS);
             long limit = apocConfig.getInt(ApocConfig.APOC_TTL_LIMIT, 1000);

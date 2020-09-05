@@ -27,7 +27,9 @@ public class TTLTest {
 
     public static ProvideSystemProperty systemPropertyRule
             = new ProvideSystemProperty(APOC_TTL_ENABLED, "true")
-            .and(APOC_TTL_SCHEDULE, "5");
+            .and(APOC_TTL_SCHEDULE, "5")
+            .and("apoc.ttl.enabled.prova", "true");
+            //.and("apoc.ttl.enabled.neo4j", "true");
 
     @ClassRule
     public static TestRule chain = RuleChain.outerRule(systemPropertyRule).around(db);
@@ -45,6 +47,18 @@ public class TTLTest {
         Thread.sleep(10*1000);
         testNodes(0,0);
     }
+
+    /*
+    metterlo nel testcontainer
+    @Test
+    public void testApocConfig() throws Exception {
+        // todo remove indexes
+        // todo - e se il database non esiste? Mettere un'eccezione ?
+        // todo - come si crea l'indice solo per quel ttl
+        //systemPropertyRule;
+        Thread.sleep(10*1000);
+        testNodes(0,0);
+    }*/
 
     private static void testNodes(int foo, int bar) {
         try (Transaction tx=db.beginTx()) {
