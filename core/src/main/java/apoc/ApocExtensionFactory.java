@@ -121,13 +121,14 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
                     }
                 });
 
-                AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
-                for (ApocGlobalComponents c: apocGlobalComponents) {
-                    for (AvailabilityListener listener: c.getListeners(db, dependencies)) {
-                        availabilityGuard.addListener(listener);
-                    }
-                }
             });
+
+            AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
+            for (ApocGlobalComponents c: apocGlobalComponents) {
+                for (AvailabilityListener listener: c.getListeners(db, dependencies)) {
+                    availabilityGuard.addListener(listener);
+                }
+            }
         }
 
         @Override

@@ -4,12 +4,14 @@ import apoc.ApocConfig;
 import apoc.util.Util;
 import org.apache.commons.configuration2.Configuration;
 import org.neo4j.common.DependencyResolver;
+import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -37,6 +39,10 @@ public class CypherInitializer implements AvailabilityListener {
         return finished;
     }
 
+    public GraphDatabaseAPI getDb() {
+        return db;
+    }
+
     @Override
     public void available() {
 
@@ -46,23 +52,31 @@ public class CypherInitializer implements AvailabilityListener {
         Util.newDaemonThread(() -> {
 
             try {
-                awaitApocProceduresRegistered();
+                final boolean isSystemDatabase = db.databaseName().equals(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
+                if (!isSystemDatabase) {
+                    awaitApocProceduresRegistered();
+                }
                 Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
 
-                TreeMap<String, String> initializers = Iterators.stream(config.getKeys(ApocConfig.APOC_CONFIG_INITIALIZER_CYPHER))
-                        .collect(Collectors.toMap(k -> k, k -> config.getString(k),
-                                (v1, v2) -> {
-                                    throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));
-                                },
-                                TreeMap::new));
+                TreeMap<String, String> initializers = new TreeMap<>();
+
+                config.getKeys(ApocConfig.APOC_CONFIG_INITIALIZER + "." + db.databaseName()).forEachRemaining(key -> initializers.put(key, config.getString(key)));
+
+                if (!isSystemDatabase) {
+                    config.getKeys(ApocConfig.APOC_CONFIG_INITIALIZER_CYPHER).forEachRemaining(key -> initializers.put(key, config.getString(key)));
+                }
 
                 for (Object initializer : initializers.values()) {
                     String query = initializer.toString();
-                    try {
-                        db.executeTransactionally(query);
-                        userLog.info("successfully initialized: " + query);
-                    } catch (Exception e) {
-                        userLog.warn("error upon initialization, running: " + query, e);
+                    if (!query.isEmpty()) {
+                        try {
+                            // we need to apply a retry strategy here since in systemdb we potentially conflict with
+                            // creating contraints which could cause our query to fail with a transient error.
+                            Util.retryInTx(userLog, db, tx -> Iterators.count(tx.execute(query)), 0, 5, retries -> {});
+                            userLog.info("successfully initialized: " + query);
+                        } catch (Exception e) {
+                            userLog.error("error upon initialization, running: " + query, e);
+                        }
                     }
                 }
             } finally {
