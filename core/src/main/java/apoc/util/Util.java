@@ -204,7 +204,7 @@ public class Util {
         return relTypes;
     }
 
-    private static <T> T retryInTx(Log log, GraphDatabaseService db, Function<Transaction, T> function, long retry, long maxRetries, Consumer<Long> callbackForRetry) {
+    public static <T> T retryInTx(Log log, GraphDatabaseService db, Function<Transaction, T> function, long retry, long maxRetries, Consumer<Long> callbackForRetry) {
         try (Transaction tx = db.beginTx()) {
             T result = function.apply(tx);
             tx.commit();
