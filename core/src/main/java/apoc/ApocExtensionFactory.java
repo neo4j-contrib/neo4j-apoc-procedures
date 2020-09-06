@@ -1,8 +1,7 @@
 package apoc;
 
-import apoc.cypher.CypherInitializer;
-import apoc.trigger.TriggerHandler;
 import apoc.util.ApocUrlStreamHandlerFactory;
+import org.neo4j.annotations.service.ServiceProvider;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.internal.kernel.api.Procedures;
@@ -34,6 +33,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
  * @author mh
  * @since 14.05.16
  */
+@ServiceProvider
 public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.Dependencies> {
 
     static {
