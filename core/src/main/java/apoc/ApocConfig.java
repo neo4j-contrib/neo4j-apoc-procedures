@@ -58,6 +58,12 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_CONFIG_JOBS_POOL_NUM_THREADS = "apoc.jobs.pool.num_threads";
     public static final String APOC_CONFIG_JOBS_QUEUE_SIZE = "apoc.jobs.queue.size";
     public static final String APOC_CONFIG_INITIALIZER = "apoc.initializer";
+
+    /**
+     * @deprecated
+     * This has been replaced by database-specific initialisers.
+     * Use apoc.initializer.<database name> instead.
+     */
     @Deprecated
     public static final String APOC_CONFIG_INITIALIZER_CYPHER = APOC_CONFIG_INITIALIZER + ".cypher";
 
