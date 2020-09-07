@@ -7,7 +7,7 @@
 Apoc optionally allows you to run a cypher command after database initialization is finished.
 This can e.g. be used to ensure indexes/constraints are created up front.
 
-To use this feature, add the following line to Neo4j configuration file:
+To use this feature, add the following line to one of the https://neo4j.com/labs/apoc/4.1/config/#_location_of_config_options[configuration options]:
 
 [source,config]
 ----
