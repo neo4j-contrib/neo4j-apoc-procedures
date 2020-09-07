@@ -7,7 +7,7 @@
 Apoc optionally allows you to run a cypher command after database initialization is finished.
 This can e.g. be used to ensure indexes/constraints are created up front.
 
-To use this feature use a config option:
+To use this feature, add the following line to Neo4j configuration file:
 
 [source,config]
 ----
@@ -16,3 +16,9 @@ apoc.initializer.cypher=CALL apoc.cypher.runSchemaFile("file:///indexes.cypher")
 
 For running multiple statements you can also add suffixes to the config options, like `cypher.1`, `cypher.2`.
 The statements will then be executed in sort-order.
+
+[source,config]
+----
+apoc.initializer.cypher.1=CALL apoc.cypher.runSchemaFile("file:///indexes.cypher")
+apoc.initializer.cypher.2=CALL apoc.cypher.runFile("file:///setupProcedures.cypher")
+----
