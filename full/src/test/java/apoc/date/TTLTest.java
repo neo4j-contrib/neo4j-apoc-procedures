@@ -27,8 +27,7 @@ public class TTLTest {
 
     public static ProvideSystemProperty systemPropertyRule
             = new ProvideSystemProperty(APOC_TTL_ENABLED, "true")
-            .and(APOC_TTL_SCHEDULE, "5")
-            .and("apoc.ttl.enabled.prova", "true");
+            .and(APOC_TTL_SCHEDULE, "5");
 
     @ClassRule
     public static TestRule chain = RuleChain.outerRule(systemPropertyRule).around(db);
