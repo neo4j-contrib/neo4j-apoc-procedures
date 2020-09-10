@@ -5,7 +5,7 @@
 
 
 Web APIs are a huge opportunity to access and integrate data from any sources with your graph.
-Most of them provide the data is JSON format.
+Most of them provide the data in JSON format.
 
 The Load JSON procedures retrieve data from URLs or maps and turn it into map value(s) for Cypher to consume.
 Cypher has support for deconstructing nested documents with dot syntax, slices, `UNWIND` etc. so it is easy to turn nested data into graphs.
