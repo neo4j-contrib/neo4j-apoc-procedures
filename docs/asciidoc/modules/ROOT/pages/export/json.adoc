@@ -8,6 +8,8 @@ The export JSON procedures export data into a format that's supported by JavaScr
 We may also want to export data into JSON format for importing into other tools or for general sharing of query results.
 The procedures described in this section support exporting to a file or as a stream.
 
+The format used is http://jsonlines.org/[jsonlines or JSONL^], a streaming format that contains one JSON object per line, in our case a node or relationship.
+
 [[export-json-available-procedures]]
 == Available Procedures
 
