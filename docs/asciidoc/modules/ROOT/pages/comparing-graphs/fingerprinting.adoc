@@ -2,8 +2,6 @@
 = Fingerprinting
 :description: This section describes procedures that can be used to create a hash over nodes, relationships or the whole graph.
 
-
-
 The following functions calculate hashsums over nodes, relationship or the entire graph.
 It takes into account all properties, node labels and relationship types.
 
@@ -21,7 +19,7 @@ This is useful if you store properties (like `created=timestamp()`) that should 
 |===
 | function name | description
 | `apoc.hashing.fingerprint(object, <list_of_props_to_ignore>)` | calculates a md5 hashsum over the object. It deals gracefully with ordering (in case of maps), scalars, arrays.
-| `apoc.hashing.fingerprinting(object, {conf})` | calculates a md5 hashsum over the object. It deals gracefully with ordering (in case of maps), scalars, arrays. Please check the `Fingerprinting configuration params` table for details
+| `apoc.hashing.fingerprinting(object, \{conf})` | calculates a md5 hashsum over the object. It deals gracefully with ordering (in case of maps), scalars, arrays. Please check the `Fingerprinting configuration params` table for details
 | `apoc.hashing.graph(<list_of_props_to_ignore>)` | calculates a md5 hashsum over the full graph.
 |===
 

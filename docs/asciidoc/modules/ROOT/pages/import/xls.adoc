@@ -2,8 +2,6 @@
 = Loading Excel (XLS)
 :description: This section describes procedures that can be used to import data from Excel files.
 
-
-
 == Library Requirements
 
 For loading XLS we're using the Apache POI library, which works well with old and new Excel formats, but is quite large.
@@ -27,9 +25,9 @@ The usage of `apoc.load.xls` is similar to `apoc.load.csv` with the main differe
 
 You can either select the sheet by name like `'Kids'`, or offset like `'Results!B2:F3'`
 
-`CALL apoc.load.xls({url}, {Name of sheet}, {config})`
+`CALL apoc.load.xls(\{url}, {Name of sheet}, \{config})`
 
-The `{config}` parameter is a map
+The `\{config}` parameter is a map
 
 [opts=header,cols="m,m"]
 |===

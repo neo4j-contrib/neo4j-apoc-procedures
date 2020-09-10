@@ -2,9 +2,6 @@
 = Load LDAP
 :description: This section describes procedures that can be used to import data from LDAP.
 
-
-
-
 With 'apoc.load.ldap' you can execute queries on any LDAP v3 enabled directory, the results are turned into a streams of entries.
 The entries can then be used to update or create graph structures.
 
@@ -20,10 +17,10 @@ include::example$generated-documentation/apoc.load.csv[lines=1;12]
 [options="header",cols="a,3m,a"]
 |===
 |Parameter | Property | Description
-|{connectionMap} | ldapHost | the ldapserver:port if port is omitted the default port 389 will be used
+|\{connectionMap} | ldapHost | the ldapserver:port if port is omitted the default port 389 will be used
 |  | loginDN | This is the dn of the ldap server user who has read access on the ldap server
 |  | loginPW | This is the password used by the loginDN
-|{searchMap} | searchBase | From this entry a search is executed
+|\{searchMap} | searchBase | From this entry a search is executed
 |  | searchScope | SCOPE_ONE (one level) or
                    SCOPE_SUB (all sub levels) or
                    SCOPE_BASE (only the base node)

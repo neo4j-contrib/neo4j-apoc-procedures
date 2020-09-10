@@ -2,8 +2,6 @@
 = Run Cypher Script Files
 :description: This section describes procedures that can be used to execute files that contain Cypher statements.
 
-
-
 Runs each statement in the file / each file, all semicolon separated
 
 These procedures can be used to run files that are usually run by cypher-shell.
@@ -23,12 +21,11 @@ include::example$generated-documentation/apoc.cypher.runSchemaFile.csv[lines=2:]
 include::example$generated-documentation/apoc.cypher.runSchemaFiles.csv[lines=2:]
 |===
 
-
 [[run-cypher-scripts-data-operations]]
 == Data Operations only
 
-* `apoc.cypher.runFile(file or url,[{config}])`
-* `apoc.cypher.runFiles([files or urls],[{config})])`
+* `apoc.cypher.runFile(file or url,[\{config}])`
+* `apoc.cypher.runFiles([files or urls],[\{config})])`
 
 The `apoc.cypher.run*File(s)` procedures have some optional configuration:
 
@@ -38,6 +35,5 @@ The `apoc.cypher.run*File(s)` procedures have some optional configuration:
 [[run-cypher-scripts-schema-operations]]
 == Schema Operations only
 
-* `apoc.cypher.runSchemaFile(file or url,[{config}])`
-* `apoc.cypher.runSchemaFiles([files or urls],[{config})])`
-
+* `apoc.cypher.runSchemaFile(file or url,[\{config}])`
+* `apoc.cypher.runSchemaFiles([files or urls],[\{config})])`
