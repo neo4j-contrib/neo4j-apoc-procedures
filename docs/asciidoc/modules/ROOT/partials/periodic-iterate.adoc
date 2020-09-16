@@ -26,7 +26,7 @@ The results of the data-driven  statement are passed to the operation statement 
 | name | type | default | description
 | batchSize | Long | 10000 | run the specified number of operation statements in a single tx - params: {_count, _batch}
 | parallel | boolean | false | run operation statements in parallel (note that statements might deadlock if conflicting)
-| retries | Long | 0 | if the operation statement fails with an error, sleep 100ms and retry until retries-count is reached - param {_retry}
+| retries | Long | 0 | if the operation statement fails with an error, sleep 100ms and retry until retries-count is reached - param \{_retry}
 | batchMode | String | "BATCH" a| how data-driven statements should be processed by operation statement. Valid values are:
 
 * "BATCH" - execute operation statement once per batchSize. Operation statement is prefixed with the following, which extracts each field returned in the data-driven statement from the `$_batch` parameter:
@@ -59,7 +59,7 @@ These config keys are treated as follows:
 [options=header]
 |===
 | param | default | description
-| iterateList | true a| execute operation statements once per batchSize (whole batchSize list is passed in as parameter {_batch})
+| iterateList | true a| execute operation statements once per batchSize (whole batchSize list is passed in as parameter \{_batch})
 
 * A value of true is equivalent to `batchMode: "BATCH"`
 * A value of false is equivalent to `batchMode: "SINGLE"`

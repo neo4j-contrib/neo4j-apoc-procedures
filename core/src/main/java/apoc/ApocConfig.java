@@ -57,7 +57,15 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS = "apoc.jobs.scheduled.num_threads";
     public static final String APOC_CONFIG_JOBS_POOL_NUM_THREADS = "apoc.jobs.pool.num_threads";
     public static final String APOC_CONFIG_JOBS_QUEUE_SIZE = "apoc.jobs.queue.size";
-    public static final String APOC_CONFIG_INITIALIZER_CYPHER = "apoc.initializer.cypher";
+    public static final String APOC_CONFIG_INITIALIZER = "apoc.initializer";
+
+    /**
+     * @deprecated
+     * This has been replaced by database-specific initialisers.
+     * Use apoc.initializer.<database name> instead.
+     */
+    @Deprecated
+    public static final String APOC_CONFIG_INITIALIZER_CYPHER = APOC_CONFIG_INITIALIZER + ".cypher";
 
     private static final List<Setting> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = new ArrayList<>(Arrays.asList(
             data_directory,

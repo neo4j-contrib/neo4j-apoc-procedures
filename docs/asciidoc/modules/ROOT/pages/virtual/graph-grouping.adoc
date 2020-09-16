@@ -2,9 +2,6 @@
 = Graph Grouping
 :description: This section describes procedures that can be used to group nodes by property values to create virtual nodes for graph visualizations.
 
-
-
-
 Large graphs are often hard to understand or visualize.
 
 Tabular results can be aggregated for overviews, e.g. in charts with sums, counts etc.
@@ -58,7 +55,7 @@ Optionally you can also provide grouping operators by field and a number of conf
 
 For grouping operators, you provide a map of operations per field in this form: `{fieldName: [operators]}`
 
-One map for nodes and one for relationships: `[{nodeOperators},{relOperators}]`
+One map for nodes and one for relationships: `+[{nodeOperators},{relOperators}]+`
 
 Possible operators:
 
