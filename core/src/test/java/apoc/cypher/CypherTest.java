@@ -108,11 +108,11 @@ public class CypherTest {
 
     @Test
     public void testRunFirstColumnBugCompiled() throws Exception {
-        Node movie = TestUtil.singleResultFirstColumn(db, "CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'}) RETURN m");
-        String query = "WITH $m AS m MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10";
+        TestUtil.singleResultFirstColumn(db, "CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'}) RETURN m");
+        String query = "MATCH (m:Movie  {title:'MovieA'}) MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10";
         String plan = db.executeTransactionally("EXPLAIN " + query, emptyMap(), result -> result.getExecutionPlanDescription().toString());
         System.out.println(plan);
-        List<Node> recs = TestUtil.firstColumn(db, query, map("m",movie));
+        List<Node> recs = TestUtil.firstColumn(db, query);
         assertEquals(1, recs.size());
     }
 
