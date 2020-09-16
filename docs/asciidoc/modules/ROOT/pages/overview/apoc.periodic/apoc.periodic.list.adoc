@@ -20,7 +20,7 @@ apoc.periodic.list() :: (name :: STRING?, delay :: INTEGER?, rate :: INTEGER?, d
 == Output parameters
 [.procedures, opts=header]
 |===
-| Name | Type 
+| Name | Type
 |name|STRING?
 |delay|INTEGER?
 |rate|INTEGER?
@@ -28,5 +28,5 @@ apoc.periodic.list() :: (name :: STRING?, delay :: INTEGER?, rate :: INTEGER?, d
 |cancelled|BOOLEAN?
 |===
 
-xref::job-management/periodic-background.adoc[More documentation of apoc.periodic.list,role=more information]
+xref::background-operations/periodic-background.adoc[More documentation of apoc.periodic.list,role=more information]
 

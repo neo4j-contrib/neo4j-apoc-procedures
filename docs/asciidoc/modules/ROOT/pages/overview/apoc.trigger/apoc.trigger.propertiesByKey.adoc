@@ -20,10 +20,10 @@ apoc.trigger.propertiesByKey(propertyEntries :: MAP?, key :: STRING?) :: (LIST? 
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default 
+| Name | Type | Default
 |propertyEntries|MAP?|null
 |key|STRING?|null
 |===
 
-xref::job-management/triggers.adoc[More documentation of apoc.trigger.propertiesByKey,role=more information]
+xref::background-operations/triggers.adoc[More documentation of apoc.trigger.propertiesByKey,role=more information]
 
