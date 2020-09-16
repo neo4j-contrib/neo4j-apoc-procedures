@@ -20,7 +20,7 @@ apoc.trigger.list() :: (name :: STRING?, query :: STRING?, selector :: MAP?, par
 == Output parameters
 [.procedures, opts=header]
 |===
-| Name | Type 
+| Name | Type
 |name|STRING?
 |query|STRING?
 |selector|MAP?
@@ -29,5 +29,5 @@ apoc.trigger.list() :: (name :: STRING?, query :: STRING?, selector :: MAP?, par
 |paused|BOOLEAN?
 |===
 
-xref::job-management/triggers.adoc[More documentation of apoc.trigger.list,role=more information]
+xref::background-operations/triggers.adoc[More documentation of apoc.trigger.list,role=more information]
 
