@@ -34,6 +34,8 @@ public class ParallelNodeSearch {
     @Context
     public Log log;
 
+    @Context
+    public Transaction tx;
 
     @Procedure("apoc.search.nodeAllReduced")
     @Description("Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched property. apoc.search.nodeShortAll( map of label and properties which will be searched upon, operator: EXACT / CONTAINS / STARTS WITH | ENDS WITH / = / <> / < / > ..., value ). All 'hits' are returned.")
@@ -72,7 +74,7 @@ public class ParallelNodeSearch {
     @Procedure("apoc.search.nodeAll")
     @Description("Do a parallel search over multiple indexes returning nodes. usage apoc.search.nodeAll( map of label and properties which will be searched upon, operator: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ) returns all the Nodes found in the different searches.")
     public Stream<NodeResult> multiSearchNodeAll(@Name("LabelPropertyMap") final Object labelProperties, @Name("operator") final String operator, @Name("value") final String value) throws Exception {
-        return createWorkersFromValidInput(labelProperties, operator, value).flatMap(QueryWorker::queryForNode);
+        return createWorkersFromValidInput(labelProperties, operator, value).flatMap(QueryWorker::queryForNodeId).map(nodeId -> new NodeResult(tx.getNodeById(nodeId)));
     }
 
 
@@ -80,7 +82,8 @@ public class ParallelNodeSearch {
     @Description("Do a parallel search over multiple indexes returning nodes. usage apoc.search.node( map of label and properties which will be searched upon, operator: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ) returns all the DISTINCT Nodes found in the different searches.")
     public Stream<NodeResult> multiSearchNode(@Name("LabelPropertyMap") final Object labelProperties, @Name("operator") final String operator, @Name("value") final String value) throws Exception {
         return createWorkersFromValidInput(labelProperties, operator, value)
-                .flatMap(QueryWorker::queryForNode)
+                .flatMap(QueryWorker::queryForNodeId)
+                .map(nodeId -> new NodeResult(tx.getNodeById(nodeId)))
                 .distinct();
     }
 
@@ -128,6 +131,11 @@ public class ParallelNodeSearch {
             List<String> labels = singletonList(label);
             String query = format("match (n:`%s`) where n.`%s` %s $value return id(n) as id,  n.`%s` as value", label, prop, operator, prop);
             return queryForNode(query, (row) -> new NodeReducedResult((long) row.get("id"), labels, singletonMap(prop, row.get("value")))).stream();
+        }
+
+        public Stream<Long> queryForNodeId() {
+            String query = format("match (n:`%s`) where n.`%s` %s $value return id(n) AS id", label, prop, operator);
+            return queryForNode(query, (row) -> (long) row.get("id")).stream();
         }
 
         public Stream<NodeResult> queryForNode() {
