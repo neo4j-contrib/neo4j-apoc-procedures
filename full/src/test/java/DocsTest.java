@@ -429,7 +429,7 @@ public class DocsTest {
         docs.put("apoc.nlp.aws.*", "nlp/aws.adoc");
         docs.put("apoc.nlp.gcp.*", "nlp/gcp.adoc");
         docs.put("apoc.nlp.azure.*", "nlp/azure.adoc");
-        docs.put("apoc.neighbors.*", "graph-querying/neighborhood-search.adoc");
+        docs.put("apoc.neighbors.*", "graph-querying/neighborhood.adoc");
         docs.put("apoc.monitor.*", "database-introspection/monitoring.adoc");
         docs.put("apoc.periodic.iterate", "graph-updates/periodic-execution.adoc#commit-batching");
         docs.put("apoc.periodic.commit", "graph-updates/periodic-execution.adoc#periodic-commit");
@@ -444,7 +444,7 @@ public class DocsTest {
         docs.put("apoc.spatial.*", "misc/spatial.adoc");
         docs.put("apoc.schema.*", "indexes/schema-index-operations.adoc");
         docs.put("apoc.search.node.*", "graph-querying/parallel-node-search.adoc");
-        docs.put("apoc.trigger.*", "job-management/triggers.adoc");
+        docs.put("apoc.trigger.*", "background-operations/triggers.adoc");
         docs.put("apoc.ttl.*", "graph-updates/ttl.adoc");
         docs.put("apoc.create.uuid", "graph-updates/uuid.adoc");
         docs.put("apoc.cypher.*", "cypher-execution/index.adoc");
@@ -453,7 +453,7 @@ public class DocsTest {
         docs.put("apoc.temporal.*", "temporal/temporal-conversions.adoc");
         docs.put("apoc.uuid.*", "graph-updates/uuid.adoc");
         docs.put("apoc.systemdb.*", "database-introspection/systemdb.adoc");
-        docs.put("apoc.periodic.submit|apoc.periodic.schedule|apoc.periodic.list|apoc.periodic.countdown", "job-management/periodic-background.adoc");
+        docs.put("apoc.periodic.submit|apoc.periodic.schedule|apoc.periodic.list|apoc.periodic.countdown", "background-operations/periodic-background.adoc");
         docs.put("apoc.model.jdbc", "database-integration/database-modeling.adoc");
         docs.put("apoc.algo.*", "algorithms/path-finding-procedures.adoc");
         docs.put("apoc.atomic.*", "graph-updates/atomic-updates.adoc");

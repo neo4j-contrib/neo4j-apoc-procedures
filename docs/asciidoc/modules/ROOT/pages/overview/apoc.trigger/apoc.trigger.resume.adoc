@@ -20,14 +20,14 @@ apoc.trigger.resume(name :: STRING?) :: (name :: STRING?, query :: STRING?, sele
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default 
+| Name | Type | Default
 |name|STRING?|null
 |===
 
 == Output parameters
 [.procedures, opts=header]
 |===
-| Name | Type 
+| Name | Type
 |name|STRING?
 |query|STRING?
 |selector|MAP?
@@ -36,5 +36,5 @@ apoc.trigger.resume(name :: STRING?) :: (name :: STRING?, query :: STRING?, sele
 |paused|BOOLEAN?
 |===
 
-xref::job-management/triggers.adoc[More documentation of apoc.trigger.resume,role=more information]
+xref::background-operations/triggers.adoc[More documentation of apoc.trigger.resume,role=more information]
 
