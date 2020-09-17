@@ -218,15 +218,15 @@ public class AtomicTest {
 
 	@Test
 	public void testConcurrentConcat() throws Exception {
-		db.executeTransactionally("CREATE (p:Person {name:'Tom',age: 40})");
+		Long nodeId = TestUtil.singleResultFirstColumn(db, "CREATE (n:Person {name:'Tom', age: 40}) RETURN id(n) AS id;");
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
 		Runnable task = () -> {
-			db.executeTransactionally("MATCH (n:Person {name:'Tom'}) CALL apoc.atomic.concat(n,$property,$value,$times) YIELD container RETURN count(*)", map("property","name","value","asson","times",5));
+			db.executeTransactionally("MATCH (n) WHERE id(n) = $nodeId CALL apoc.atomic.concat(n,$property,$value,$times) YIELD container RETURN count(*)", map("nodeId", nodeId, "property","name","value","asson","times",5));
 		};
 
 		Runnable task2 = () -> {
-			db.executeTransactionally("MATCH (n:Person {name:'Tom'}) CALL apoc.atomic.concat(n,$property,$value,$times) YIELD container RETURN count(*)", map("property","name","value","s","times",5));
+			db.executeTransactionally("MATCH (n) WHERE id(n) = $nodeId CALL apoc.atomic.concat(n,$property,$value,$times) YIELD container RETURN count(*)", map("nodeId", nodeId, "property","name","value","s","times",5));
 		};
 
 		executorService.execute(task);
