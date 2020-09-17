@@ -14,10 +14,6 @@ import java.time.Duration;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * @author mh
- * @since 21.05.16
- */
 public class TTLTest {
 
     @ClassRule
