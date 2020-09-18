@@ -7,6 +7,7 @@ import apoc.util.Util;
 import org.apache.commons.configuration2.Configuration;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -37,12 +38,15 @@ public class Config {
     public SecurityContext securityContext;
 
     @Context
+    public ProcedureCallContext callContext;
+
+    @Context
     public DependencyResolver dependencyResolver;
 
     @Description("apoc.config.list | Lists the Neo4j configuration as key,value table")
     @Procedure
     public Stream<ConfigResult> list() {
-        Util.checkAdmin(securityContext, "apoc.config.list");
+        Util.checkAdmin(securityContext, callContext,"apoc.config.list");
         Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
         return Iterators.stream(config.getKeys()).map(s -> new ConfigResult(s, config.getString(s)));
     }
@@ -50,7 +54,7 @@ public class Config {
     @Description("apoc.config.map | Lists the Neo4j configuration as map")
     @Procedure
     public Stream<MapResult> map() {
-        Util.checkAdmin(securityContext, "apoc.config.map");
+        Util.checkAdmin(securityContext,callContext, "apoc.config.map");
         Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
         Map<String, Object> configMap = Iterators.stream(config.getKeys())
                 .collect(Collectors.toMap(s -> s, s -> config.getString(s)));
