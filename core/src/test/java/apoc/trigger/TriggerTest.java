@@ -4,12 +4,15 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.impl.coreapi.TransactionImpl;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Collections;
 import java.util.Map;
 
 import static apoc.ApocSettings.apoc_trigger_enabled;
@@ -121,7 +124,6 @@ public class TriggerTest {
         });
     }
 
-
     @Test
     public void testTxId() throws Exception {
         db.executeTransactionally("CALL apoc.trigger.add('txinfo','UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime',{phase:'after'})");
@@ -132,6 +134,29 @@ public class TriggerTest {
         });
     }
     
+    @Test
+    public void testMetaDataBefore() {
+        testMetaData("before");
+    }
+
+    @Test
+    public void testMetaDataAfter() {
+        testMetaData("after");
+    }
+
+    private void testMetaData(String phase) {
+        db.executeTransactionally("CALL apoc.trigger.add('txinfo','UNWIND $createdNodes AS n SET n += $metaData',{phase:$phase})", Collections.singletonMap("phase", phase));
+        try (Transaction tx = db.beginTx()) {
+            KernelTransaction ktx = ((TransactionImpl)tx).kernelTransaction();
+            ktx.setMetaData(Collections.singletonMap("txMeta", "hello"));
+            tx.execute("CREATE (f:Bar)");
+            tx.commit();
+        }
+        TestUtil.testCall(db, "MATCH (f:Bar) RETURN f", (row) -> {
+            assertEquals("hello",  ((Node) row.get("f")).getProperty("txMeta") );
+        });
+    }
+
     @Test
     public void testPauseResult() throws Exception {
         db.executeTransactionally("CALL apoc.trigger.add('pausedTest', 'UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime', {phase: 'after'})");

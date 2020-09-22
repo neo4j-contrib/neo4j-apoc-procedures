@@ -246,7 +246,9 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
                 "removedRelationshipProperties", aggregatePropertyKeys(txData.removedRelationshipProperties(),false,true),
                 "assignedLabels", aggregateLabels(txData.assignedLabels()),
                 "assignedNodeProperties",aggregatePropertyKeys(txData.assignedNodeProperties(),true,false),
-                "assignedRelationshipProperties",aggregatePropertyKeys(txData.assignedRelationshipProperties(),false,false));
+                "assignedRelationshipProperties",aggregatePropertyKeys(txData.assignedRelationshipProperties(),false,false),
+                "metaData", txData.metaData()
+        );
     }
 
     private void executeTriggers(Transaction tx, TransactionData txData, String phase) {
