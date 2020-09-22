@@ -42,6 +42,7 @@ The parameters available are:
 |assignedLabels | when a labes is assigned our trigger fires  (map of label to list of nodes)
 |assignedNodeProperties | when node property is assigned our trigger fires (map of key to list of map of key,old,new,node)
 |assignedRelationshipProperties | when relationship property is assigned our trigger fires (map of key to list of map of key,old,new,relationship)
+|metaData | a map containing the metadata of that transaction. Transaction meta data can be set on client side e.g. via https://neo4j.com/docs/api/java-driver/current/org/neo4j/driver/TransactionConfig.html#metadata--
 |===
 
 You can use these helper functions to extract nodes or relationships by label/relationship-type or updated property key.
