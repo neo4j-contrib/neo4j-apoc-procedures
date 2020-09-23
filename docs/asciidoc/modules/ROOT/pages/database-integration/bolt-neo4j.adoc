@@ -11,6 +11,8 @@ Bolt procedures allows to accessing other databases via bolt protocol.
 |===
 | CALL apoc.bolt.execute(urlOrKey, statement, params, config) YIELD row  | access to other databases via bolt for read and write
 | CALL apoc.bolt.load(urlOrKey, statement, params, config) YIELD row | access to other databases via bolt for read
+| CALL apoc.bolt.fromLocal(urlOrKey, localStatement, remoteStatement, config) YIELD row | executes the `localStatement`
+on the local instance and uses the results a parameters for the `remoteStatement` executed on the remote instance
 |===
 
 **urlOrKey** param allows users to decide if send url by apoc or if put it into apoc.conf file.
@@ -64,6 +66,8 @@ Config available are:
 
 * `statistics`: possible values are true/false, the default value is false. This config print the execution statistics;
 * `virtual`: possible values are true/false, the default value is false. This config return result in virtual format and not in map format, in apoc.bolt.load.
+* `databaseName`: the database instance name on the remote Neo4j instance
+* `streamStatements`: if true and used in combination with the cypher export procedures it streams the statement from local to remote database.
 
 == Driver configuration
 
