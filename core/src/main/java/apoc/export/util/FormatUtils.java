@@ -3,11 +3,13 @@ package apoc.export.util;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.spatial.Point;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -23,20 +25,9 @@ import static apoc.util.Util.map;
  */
 public class FormatUtils {
 
-    private static DecimalFormat decimalFormat = new DecimalFormat() {
-        {
-            setMaximumFractionDigits(340);
-            setGroupingUsed(false);
-            setDecimalSeparatorAlwaysShown(false);
-            DecimalFormatSymbols symbols = getDecimalFormatSymbols();
-            symbols.setDecimalSeparator('.');
-            setDecimalFormatSymbols(symbols);
-        }
-    };
-
     public static String formatNumber(Number value) {
         if (value == null) return null;
-        return decimalFormat.format(value);
+        return value.toString();
     }
 
     public static String formatString(Object value) {
