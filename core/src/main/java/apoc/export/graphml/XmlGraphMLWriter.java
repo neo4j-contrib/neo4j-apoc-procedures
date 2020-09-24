@@ -43,7 +43,7 @@ public class XmlGraphMLWriter {
         Map<String, Class> keyTypes = new HashMap<>();
         for (Node node : ops.getNodes()) {
             if (node.getLabels().iterator().hasNext()) {
-                keyTypes.put("label", String.class);
+                keyTypes.put("labels", String.class);
             }
             updateKeyTypes(keyTypes, node);
         }
