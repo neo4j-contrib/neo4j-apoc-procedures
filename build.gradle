@@ -1,6 +1,10 @@
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
+import java.time.LocalDate
+import java.time.ZonedDateTime
+import java.security.MessageDigest
+
 /**
  * Get all the Neo4j releases
  * The source of truth is https://api.github.com/repos/neo4j/neo4j/releases
@@ -40,7 +44,7 @@ def orderVersion(str) {
  * - if there is no available version of APOC for a given NEO4j release than take the prior available version of APOC
  */
 
-def extractMappings(neo4jReleases) {
+def apocReleases(neo4jReleases) {
     def slurper = new JsonSlurper()
 
     // get tags
@@ -71,7 +75,8 @@ def extractMappings(neo4jReleases) {
     return [
             oldestApoc: oldestApoc,
             latestApoc: latestApoc,
-            neo4jToApoc: neo4jToApoc
+            neo4jToApoc: neo4jToApoc,
+            releases: releases.findAll { !(it.prerelease || it.draft)}
     ]
 }
 
@@ -88,19 +93,22 @@ def findApocVersion(neo4jToApoc, neo4jRelease, prefix) {
         apocVersion = neo4jToApoc[matchingNeo4jVersion]==null ? firstApocVersion : neo4jToApoc[matchingNeo4jVersion]
     }
     return apocVersion
-}
+};
 
-task versions {
+task versions <<  {
     def neo4jReleases = collectNeo4jReleases()
-
-    def mappings = extractMappings(neo4jReleases)
-    def oldestApoc = mappings.oldestApoc
-    def latestApoc = mappings.latestApoc
-    def neo4jToApoc = mappings.neo4jToApoc
+    def apocReleases = apocReleases()
+    def oldestApoc = apocReleases.oldestApoc
+    def latestApoc = apocReleases.latestApoc
+    def neo4jToApoc = apocReleases.neo4jToApoc
+    def releases = apocReleases.releases
 
     println "LATEST APOC IS " + latestApoc + " WHILE OLDEST IS " + oldestApoc
     println(neo4jToApoc)
     println(neo4jReleases)
+
+    def jsonSlurper = new JsonSlurper()
+    def checksums = jsonSlurper.parse(new File("checksums.json"))
 
     def versions = []
     for (neo4jRelease in neo4jReleases) {
@@ -109,10 +117,20 @@ task versions {
 
         def apocVersion = findApocVersion(neo4jToApoc, neo4jRelease, prefix)
         if (apocVersion != null) {
+
+            def url = releases.find { it.tag_name == apocVersion}.assets.find { it.browser_download_url.contains("apoc-${apocVersion}")}.browser_download_url
+
             def version = [ neo4j : neo4jRelease,
                             apoc : apocVersion,
                             url : "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/" + apocVersion,
-                            jar: "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/${apocVersion}/apoc-${apocVersion}-all.jar" ]
+                            jar: url]
+
+            if(checksums[apocVersion]) {
+                version["sha1"] =  checksums[apocVersion].sha1
+                version["sha256"] =  checksums[apocVersion].sha256
+                version["md5"] =  checksums[apocVersion].md5
+            }
+
             versions.add(version)
         }
     }
@@ -120,4 +138,80 @@ task versions {
     def versionsFile = new File("build/versions.json")
 
     versionsFile.write(JsonOutput.prettyPrint(JsonOutput.toJson(versions)))
+};
+
+task checksums <<  {
+    def jsonSlurper = new JsonSlurper()
+    def values = jsonSlurper.parse(new File("checksums.json"))
+    def apocReleases = apocReleases().releases
+
+    for(apocRelease in apocReleases) {
+        def apocVersion = apocRelease.tag_name
+        def assets = apocRelease.assets.find { it.browser_download_url.contains("apoc-${apocVersion}")}
+
+        def fileName = "apoc-${apocVersion}-all.jar"
+        def url = assets.browser_download_url
+        def f = new File(fileName)
+
+        if (!f.exists()) {
+            new URL(url).withInputStream{ i -> f.withOutputStream{ it << i }}
+        }
+        println("sha1: " + Checksum.getSha1sum(f))
+        println("sha256: " + Checksum.getSha256sum(f))
+        println("md5: " + Checksum.getMD5sum(f))
+
+
+        values[apocVersion] = [sha1: Checksum.getSha1sum(f), sha256: Checksum.getSha256sum(f), md5: Checksum.getMD5sum(f)]
+    }
+
+    def checksumsFile = new File("build/checksums.json")
+    checksumsFile.write(JsonOutput.prettyPrint(JsonOutput.toJson(values)))
 }
+
+class Checksum {
+    static getSha1sum(file) {
+        return getChecksum(file, "SHA1")
+    }
+
+    static getSha256sum(file) {
+        return getChecksum(file, "SHA-256")
+    }
+
+    static getMD5sum(file) {
+        return getChecksum(file, "MD5")
+    }
+
+    static getChecksum(file, type) {
+        def digest = MessageDigest.getInstance(type)
+        def inputstream = file.newInputStream()
+        def buffer = new byte[16384]
+        def len
+
+        while((len=inputstream.read(buffer)) > 0) {
+            digest.update(buffer, 0, len)
+        }
+        def sha1sum = digest.digest()
+
+        def result = ""
+        for(byte b : sha1sum) {
+            result += toHex(b)
+        }
+        return result
+    }
+
+    private static hexChr(int b) {
+        return Integer.toHexString(b & 0xF)
+    }
+
+    private static toHex(int b) {
+        return hexChr((b & 0xF0) >> 4) + hexChr(b & 0x0F)
+    }
+
+    static def main(args) {
+        def sha1sum = Checksum.getSha1sum(new File(args[0]))
+        println "file($args[0]): sha1sum($sha1sum)"
+    }
+
+}
+
+
