@@ -147,6 +147,12 @@ task checksums <<  {
 
     for(apocRelease in apocReleases) {
         def apocVersion = apocRelease.tag_name
+
+        if(values.containsKey(apocVersion)) {
+            println("skipping: " + apocVersion)
+            continue;
+        }
+
         def assets = apocRelease.assets.find { it.browser_download_url.contains("apoc-${apocVersion}")}
 
         def fileName = "apoc-${apocVersion}-all.jar"
