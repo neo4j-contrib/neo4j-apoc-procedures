@@ -634,7 +634,24 @@ public class ExportCypherTest {
                             .orElse(null);
                     assertEquals(expected, unwind);
                 });
+    }
 
+    @Test
+    public void shouldManageBigNumbersCorrectly() {
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+        db.executeTransactionally("CREATE (:bug {var1:1.416785E32, var2:12E4});");
+        final String expected = "UNWIND [{_id:3, properties:{var1:1.416785E32, var2:120000}}] AS row\n" +
+                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:bug";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all($file, $config)",
+                map("file", null, "config", map("format", "plain", "stream", true)), (r) -> {
+                    final String cypherStatements = (String) r.get("cypherStatements");
+                    String unwind = Stream.of(cypherStatements.split(";"))
+                            .map(String::trim)
+                            .filter(s -> s.startsWith("UNWIND"))
+                            .findFirst()
+                            .orElse(null);
+                    assertEquals(expected, unwind);
+                });
     }
     
     @Test
