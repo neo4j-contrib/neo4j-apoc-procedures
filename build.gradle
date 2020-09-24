@@ -39,15 +39,13 @@ def orderVersion(str) {
  * - latest version of Neo4j with latest version of APOC
  * - if there is no available version of APOC for a given NEO4j release than take the prior available version of APOC
  */
-task versions {
-    def neo4jReleases = collectNeo4jReleases()
 
+def extractMappings(neo4jReleases) {
     def slurper = new JsonSlurper()
 
     // get tags
     def pattern = ~/neo4jVersion\s*=\s*"(.*)".*/
     def releases = slurper.parseText(new URL("https://api.github.com/repos/neo4j-contrib/neo4j-apoc-procedures/releases?page=1&per_page=500").getText())
-    def versions = []
     def neo4jToApoc = [:]
     def latestApoc, oldestApoc
     for (release in releases) {
@@ -57,7 +55,7 @@ task versions {
         for (def i = 0; i < matcher.getCount(); i++) {
             def neo4jVersion = matcher[i][1]
 
-            println "neo " + neo4jVersion + ", apoc " + release.tag_name 
+            println "neo " + neo4jVersion + ", apoc " + release.tag_name
             if (!neo4jToApoc.containsKey(neo4jVersion)) {
                 neo4jToApoc[neo4jVersion] = release.tag_name
             }
@@ -70,26 +68,49 @@ task versions {
         }
     }
 
+    return [
+            oldestApoc: oldestApoc,
+            latestApoc: latestApoc,
+            neo4jToApoc: neo4jToApoc
+    ]
+}
+
+def findApocVersion(neo4jToApoc, neo4jRelease, prefix) {
+    def apocVersion = neo4jToApoc[neo4jRelease]
+
+    // If there is no APOC release for a Neo4j release we have to guess which one to associate
+    if (apocVersion == null) {
+        def matchingNeo4jVersions = neo4jToApoc.keySet().findAll{ it.substring(0,4) == prefix }.sort{ o1, o2 -> orderVersion(o1) <=> orderVersion(o2) }
+        def matchingApocVersions = neo4jToApoc.subMap(matchingNeo4jVersions).values().sort{ o1, o2 -> orderVersion(o1) <=> orderVersion(o2) }
+        matchingNeo4jVersions = matchingNeo4jVersions.findAll{ orderVersion(it) < orderVersion(neo4jRelease) }
+        def matchingNeo4jVersion = matchingNeo4jVersions.isEmpty() ? null : matchingNeo4jVersions[-1]
+        def firstApocVersion = matchingApocVersions.isEmpty() ? null : matchingApocVersions[0]
+        apocVersion = neo4jToApoc[matchingNeo4jVersion]==null ? firstApocVersion : neo4jToApoc[matchingNeo4jVersion]
+    }
+    return apocVersion
+}
+
+task versions {
+    def neo4jReleases = collectNeo4jReleases()
+
+    def mappings = extractMappings(neo4jReleases)
+    def oldestApoc = mappings.oldestApoc
+    def latestApoc = mappings.latestApoc
+    def neo4jToApoc = mappings.neo4jToApoc
+
     println "LATEST APOC IS " + latestApoc + " WHILE OLDEST IS " + oldestApoc
     println(neo4jToApoc)
     println(neo4jReleases)
+
+    def versions = []
     for (neo4jRelease in neo4jReleases) {
         def prefix = neo4jRelease.substring(0,Math.min(4,neo4jRelease.length()))
         if (prefix < "3.0") continue;
 
-        def apocVersion = neo4jToApoc[neo4jRelease]
-
-        // If there is no APOC release for a Neo4j release we have to guess which one to associate
-        if (apocVersion == null) {
-            def matchingNeo4jVersions = neo4jToApoc.keySet().findAll{ it.substring(0,4) == prefix }.sort{ o1, o2 -> orderVersion(o1) <=> orderVersion(o2) }
-            def matchingApocVersions = neo4jToApoc.subMap(matchingNeo4jVersions).values().sort{ o1, o2 -> orderVersion(o1) <=> orderVersion(o2) }
-            matchingNeo4jVersions = matchingNeo4jVersions.findAll{ orderVersion(it) < orderVersion(neo4jRelease) }
-            def matchingNeo4jVersion = matchingNeo4jVersions.isEmpty() ? null : matchingNeo4jVersions[-1]
-            def firstApocVersion = matchingApocVersions.isEmpty() ? null : matchingApocVersions[0]
-            apocVersion = neo4jToApoc[matchingNeo4jVersion]==null ? firstApocVersion : neo4jToApoc[matchingNeo4jVersion]
-        }
+        def apocVersion = findApocVersion(neo4jToApoc, neo4jRelease, prefix)
         if (apocVersion != null) {
-            def version = [ neo4j : neo4jRelease, apoc : apocVersion, 
+            def version = [ neo4j : neo4jRelease,
+                            apoc : apocVersion,
                             url : "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/" + apocVersion,
                             jar: "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/${apocVersion}/apoc-${apocVersion}-all.jar" ]
             versions.add(version)
