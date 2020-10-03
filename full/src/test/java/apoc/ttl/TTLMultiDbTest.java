@@ -2,63 +2,63 @@ package apoc.ttl;
 
 import apoc.util.*;
 import org.junit.*;
-import org.neo4j.driver.Session;
-import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.*;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeNotNull;
 
+public class TTLMultiDbTest {
 
-public class TTLClusterTest {
-
-    private static TestcontainersCausalCluster cluster;
+    private static Neo4jContainerExtension neo4jContainer;
+    private static Driver driver;
 
     @BeforeClass
-    public static void setupCluster() throws InterruptedException {
+    public static void setupContainer() {
         assumeFalse(isTravis());
-        TestUtil.ignoreException(() -> cluster = TestContainerUtil
-                        .createEnterpriseCluster(3, 0,
-                                Collections.emptyMap(),
-                                Map.of("apoc.ttl.enabled.dbtest", "false",
-                                        "apoc.ttl.enabled", "true",
-                                        "apoc.ttl.schedule", "2")
-                        ),
-                Exception.class);
-        Assume.assumeNotNull(cluster);
+        TestUtil.ignoreException(() -> {
+            neo4jContainer = createEnterpriseDB(!TestUtil.isTravis())
+                    .withEnv(Map.of("apoc.ttl.enabled.dbtest", "false",
+                            "apoc.ttl.enabled", "true",
+                            "apoc.ttl.schedule", "2"));
+            neo4jContainer.start();
+        }, Exception.class);
+        assumeNotNull(neo4jContainer);
 
-        try (Session session = cluster.getDriver().session(SessionConfig.forDatabase("system"))) {
+        driver = GraphDatabase.driver(neo4jContainer.getBoltUrl(), AuthTokens.basic("neo4j", "apoc"));
+
+        try (Session session = driver.session()) {
             session.writeTransaction(tx -> tx.run("CREATE DATABASE dbtest;" ));
         }
-        Thread.sleep(10000);
 
     }
 
     @After
     public void cleanDb() {
-        try (Session session = cluster.getDriver().session()) {
+        try (Session session = driver.session()) {
             session.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n;"));
         }
     }
 
     @AfterClass
-    public static void bringDownCluster() {
-        if (cluster != null) {
-            cluster.close();
+    public static void bringDownContainer() {
+        if (neo4jContainer != null) {
+            neo4jContainer.close();
         }
     }
 
     @Test
     public void testWithSpecificDatabaseWithTTLDisabled() throws Exception {
 
-        try (Session session = cluster.getDriver().session(SessionConfig.forDatabase("dbtest"))) {
+        try (Session session = driver.session(SessionConfig.forDatabase("dbtest"))) {
             session.writeTransaction(tx -> tx.run(
-                    "UNWIND range(1,100) as range CREATE (n:Foo {id: range}) WITH n CALL apoc.ttl.expireIn(n,500,'ms') RETURN count(*)"
-            ));
-            Thread.sleep(100);
+                    "UNWIND range(1,100) as range CREATE (n:Foo {id: range}) WITH n CALL apoc.ttl.expireIn(n,500,'ms') RETURN count(*)")
+            );
 
             TestContainerUtil.testCall(
                     session,
@@ -72,17 +72,15 @@ public class TTLClusterTest {
                     "MATCH (n:Foo) RETURN collect(n) as row",
                     (row) -> assertEquals(100, ((List) row.get("row")).size()));
         }
-
     }
 
     @Test
     public void testWithDefaultDatabaseWithTTLEnabled() throws Exception {
 
-        try (Session session = cluster.getDriver().session(SessionConfig.forDatabase("neo4j"))) {
+        try (Session session = driver.session(SessionConfig.forDatabase("neo4j"))) {
             session.writeTransaction(tx -> tx.run(
-                    "UNWIND range(1,100) as range CREATE (n:Foo {id: range}) WITH n CALL apoc.ttl.expireIn(n,500,'ms') RETURN count(*)"
-            ));
-            Thread.sleep(100);
+                    "UNWIND range(1,100) as range CREATE (n:Foo {id: range}) WITH n CALL apoc.ttl.expireIn(n,500,'ms') RETURN count(*)")
+            );
 
             TestContainerUtil.testCall(
                     session,
