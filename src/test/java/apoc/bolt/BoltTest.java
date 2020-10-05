@@ -412,7 +412,7 @@ public class BoltTest {
                 "UNWIND [statement IN split(cypherStatements, \";\\n\") WHERE statement STARTS WITH 'UNWIND'] AS statement\n" +
                 "RETURN statement";
         String remoteStatement =
-                "CALL apoc.cypher.run(statement, {}) YIELD value\n" +
+                "CALL apoc.cypher.doIt(statement, {}) YIELD value\n" +
                         "RETURN value";
         final Map<String, Object> map = Util.map("url", neo4jContainer.getBoltUrl(),
                 "localStatement", localStatement,
