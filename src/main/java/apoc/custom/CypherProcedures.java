@@ -508,7 +508,6 @@ public class CypherProcedures {
         public static Group REFRESH_GROUP = Group.STORAGE_MAINTENANCE;
         private JobHandle restoreProceduresHandle;
 
-
         public CustomProcedureStorage(JobScheduler neo4jScheduler, GraphDatabaseAPI api, Log log) {
             this.scheduler = neo4jScheduler;
             this.api = api;
@@ -534,21 +533,23 @@ public class CypherProcedures {
             Map<String, Map<String, Map<String, Object>>> stored = readData(properties);
             Signatures sigs = new Signatures("custom");
             stored.get(FUNCTIONS).forEach((name, data) -> {
+                String description = parseStoredDescription(data.get("description"));
                 if (data.containsKey("signature")) {
-                    UserFunctionSignature userFunctionSignature = sigs.asFunctionSignature((String) data.get("signature"), (String) data.get("description"));
+                    UserFunctionSignature userFunctionSignature = sigs.asFunctionSignature((String) data.get("signature"), description);
                     registry.registerFunction(userFunctionSignature, (String) data.get("statement"), (Boolean) data.get("forceSingle"));
                 } else {
                     registry.registerFunction(name, (String) data.get("statement"), (String) data.get("output"),
-                            (List<List<String>>) data.get("inputs"), (Boolean) data.get("forceSingle"), (String) data.get("description"));
+                            (List<List<String>>) data.get("inputs"), (Boolean) data.get("forceSingle"), description);
                 }
             });
             stored.get(PROCEDURES).forEach((name, data) -> {
+                String description = parseStoredDescription(data.get("description"));
                 if (data.containsKey("signature")) {
-                    ProcedureSignature procedureSignature = sigs.asProcedureSignature((String) data.get("signature"), (String) data.get("description"), Mode.valueOf((String) data.get("mode")));
+                    ProcedureSignature procedureSignature = sigs.asProcedureSignature((String) data.get("signature"), description, Mode.valueOf((String) data.get("mode")));
                     registry.registerProcedure(procedureSignature, (String) data.get("statement"));
                 } else {
                     registry.registerProcedure(name, (String) data.get("statement"), (String) data.get("mode"),
-                            (List<List<String>>) data.get("outputs"), (List<List<String>>) data.get("inputs"), (String) data.get("description"));
+                            (List<List<String>>) data.get("outputs"), (List<List<String>>) data.get("inputs"), description);
                 }
             });
             stored.getOrDefault(REMOVED, emptyMap())
@@ -563,6 +564,18 @@ public class CypherProcedures {
                         }
                     }));
             clearQueryCaches(api);
+        }
+
+        private String parseStoredDescription(Object rawDescription) {
+            // Description was changed to be an Optional in the Neo4j internal API. Optional.None serialized to
+            // JSON objects in various stores around the world; hence, deal with this value not being a string
+            if(rawDescription instanceof String) {
+                if("null".equals(rawDescription)) {
+                    return null;
+                }
+                return (String)rawDescription;
+            }
+            return "";
         }
 
         @Override
@@ -580,7 +593,7 @@ public class CypherProcedures {
         }
 
         public static Map<String, Object> storeProcedure(GraphDatabaseAPI api, ProcedureSignature signature, String statement) {
-            Map<String, Object> data = map("statement", statement, "mode", signature.mode().toString(), "signature", signature.toString(), "description", signature.description());
+            Map<String, Object> data = map("statement", statement, "mode", signature.mode().toString(), "signature", signature.toString(), "description", signature.description().orElse(""));
             return updateCustomData(getProperties(api), signature.name().toString(), PROCEDURES, data);
         }
         public static Map<String, Object> storeFunction(GraphDatabaseAPI api, String name, String statement, String output, List<List<String>> inputs, boolean forceSingle, String description) {
@@ -589,7 +602,7 @@ public class CypherProcedures {
         }
 
         public static Map<String, Object> storeFunction(GraphDatabaseAPI api, UserFunctionSignature signature, String statement, boolean forceSingle) {
-            Map<String, Object> data = map("statement", statement, "forceSingle", forceSingle, "signature", signature.toString(), "description", signature.description());
+            Map<String, Object> data = map("statement", statement, "forceSingle", forceSingle, "signature", signature.toString(), "description", signature.description().orElse(""));
             return updateCustomData(getProperties(api), signature.name().toString(), FUNCTIONS, data);
         }
 
@@ -657,8 +670,7 @@ public class CypherProcedures {
                             String procedureName = entryProcedure.getKey();
                             Map<String, Object> procedureParams = entryProcedure.getValue();
                             return new CustomProcedureInfo(typeLabel, procedureName,
-                                    "null".equals(procedureParams.get("description")) ?
-                                            null : String.valueOf(procedureParams.get("description")),
+                                    parseStoredDescription(procedureParams.get("description")),
                                     procedureParams.containsKey("mode")
                                             ? String.valueOf(procedureParams.get("mode")) : null,
                                     String.valueOf(procedureParams.get("statement")),
