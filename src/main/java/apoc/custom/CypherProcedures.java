@@ -575,7 +575,7 @@ public class CypherProcedures {
                 }
                 return (String)rawDescription;
             }
-            return "";
+            return null;
         }
 
         @Override
@@ -593,7 +593,7 @@ public class CypherProcedures {
         }
 
         public static Map<String, Object> storeProcedure(GraphDatabaseAPI api, ProcedureSignature signature, String statement) {
-            Map<String, Object> data = map("statement", statement, "mode", signature.mode().toString(), "signature", signature.toString(), "description", signature.description().orElse(""));
+            Map<String, Object> data = map("statement", statement, "mode", signature.mode().toString(), "signature", signature.toString(), "description", signature.description().orElse(null));
             return updateCustomData(getProperties(api), signature.name().toString(), PROCEDURES, data);
         }
         public static Map<String, Object> storeFunction(GraphDatabaseAPI api, String name, String statement, String output, List<List<String>> inputs, boolean forceSingle, String description) {
@@ -602,7 +602,7 @@ public class CypherProcedures {
         }
 
         public static Map<String, Object> storeFunction(GraphDatabaseAPI api, UserFunctionSignature signature, String statement, boolean forceSingle) {
-            Map<String, Object> data = map("statement", statement, "forceSingle", forceSingle, "signature", signature.toString(), "description", signature.description().orElse(""));
+            Map<String, Object> data = map("statement", statement, "forceSingle", forceSingle, "signature", signature.toString(), "description", signature.description().orElse(null));
             return updateCustomData(getProperties(api), signature.name().toString(), FUNCTIONS, data);
         }
 
