@@ -81,7 +81,6 @@ public class ApocConfig extends LifecycleAdapter {
 
     private final Config neo4jConfig;
     private final Log log;
-    private final GlobalProcedures globalProceduresRegistry;
     private final DatabaseManagementService databaseManagementService;
 
     private Configuration config;
@@ -90,11 +89,14 @@ public class ApocConfig extends LifecycleAdapter {
     private LoggingType loggingType;
     private SimpleRateLimiter rateLimiter;
     private GraphDatabaseService systemDb;
+    /**
+     * keep track if this instance is already initialized so dependent class can wait if needed
+     */
+    private boolean initialized = false;
 
     public ApocConfig(Config neo4jConfig, LogService log, GlobalProcedures globalProceduresRegistry, DatabaseManagementService databaseManagementService) {
         this.neo4jConfig = neo4jConfig;
         this.log = log.getInternalLog(ApocConfig.class);
-        this.globalProceduresRegistry = globalProceduresRegistry;
         this.databaseManagementService = databaseManagementService;
         theInstance = this;
 
@@ -107,7 +109,6 @@ public class ApocConfig extends LifecycleAdapter {
     public ApocConfig() {
         this.neo4jConfig = null;
         this.log = NullLog.getInstance();
-        this.globalProceduresRegistry = null;
         this.databaseManagementService = null;
         theInstance = this;
         this.config = new PropertiesConfiguration();
@@ -125,6 +126,11 @@ public class ApocConfig extends LifecycleAdapter {
         System.setProperty("NEO4J_CONF", neo4jConfFolder);
         log.info("system property NEO4J_CONF set to %s", neo4jConfFolder);
         loadConfiguration();
+        initialized = true;
+    }
+
+    public boolean isInitialized() {
+        return initialized;
     }
 
     protected String determineNeo4jConfFolder() {

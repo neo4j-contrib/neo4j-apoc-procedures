@@ -1,5 +1,6 @@
 package apoc;
 
+import org.neo4j.annotations.service.ServiceProvider;
 import org.neo4j.configuration.Config;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
@@ -12,6 +13,7 @@ import org.neo4j.logging.internal.LogService;
 /**
  * a kernel extension for the new apoc configuration mechanism
  */
+@ServiceProvider
 public class ApocConfigExtensionFactory extends ExtensionFactory<ApocConfigExtensionFactory.Dependencies> {
 
     public interface Dependencies {
