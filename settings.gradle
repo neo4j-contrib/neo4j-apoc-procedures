@@ -2,4 +2,5 @@ rootProject.name = 'apoc'
 
 include("core")
 include("full")
+include("src")
 include("test-utils")

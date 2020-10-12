@@ -639,9 +639,9 @@ public class ExportCypherTest {
     @Test
     public void shouldManageBigNumbersCorrectly() {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
-        db.executeTransactionally("CREATE (:bug {var1:1.416785E32, var2:12E4});");
-        final String expected = "UNWIND [{_id:3, properties:{var1:1.416785E32, var2:120000}}] AS row\n" +
-                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:bug";
+        db.executeTransactionally("CREATE (:Bar{name:'Foo', var1:1.416785E32}), (:Bar{name:'Bar', var1:12E4});");
+        final String expected = "UNWIND [{name:\"Foo\", properties:{var1:1.416785E32}}, {name:\"Bar\", properties:{var1:120000.0}}] AS row\n" +
+                "CREATE (n:Bar{name: row.name}) SET n += row.properties";
         TestUtil.testCall(db, "CALL apoc.export.cypher.all($file, $config)",
                 map("file", null, "config", map("format", "plain", "stream", true)), (r) -> {
                     final String cypherStatements = (String) r.get("cypherStatements");
