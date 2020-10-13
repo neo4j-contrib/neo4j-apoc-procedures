@@ -11,4 +11,6 @@ public interface ExportFileManager {
     String drain(String type);
 
     String getFileName();
+
+    Boolean separatedFiles();
 }
