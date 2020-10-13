@@ -53,6 +53,31 @@ public class LoadJson {
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
         return loadJsonStream(urlOrKey, headers, payload, path, failOnError);
     }
+    
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	@Procedure
+    @Description("apoc.load.jsonText('text',config) YIELD value -  import JSON as stream of values if the JSON was an array or a single value if it was a map")
+    public Stream<MapResult> jsonText(@Name("text") String text,@Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+		List<Object> datas=JsonUtil.parse(text,null,List.class);
+		config = config == null?Collections.emptyMap():config;
+	    boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
+		Stream<Object> stream=datas.stream();
+        return stream.flatMap((value) -> {
+            if (value instanceof Map) {
+                return Stream.of(new MapResult((Map) value));
+            }
+            if (value instanceof List) {
+                if (((List)value).isEmpty()) return Stream.empty();
+                if (((List) value).get(0) instanceof Map)
+                    return ((List) value).stream().map((v) -> new MapResult((Map) v));
+                return Stream.of(new MapResult(Collections.singletonMap("result",value)));
+            }
+            if(!failOnError)
+                throw new RuntimeException("Incompatible Type " + (value == null ? "null" : value.getClass()));
+            else
+                return Stream.of(new MapResult(Collections.emptyMap()));
+        });
+    }
 
     public static Stream<MapResult> loadJsonStream(@Name("url") String url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload) {
         return loadJsonStream(url, headers, payload, "", true);
