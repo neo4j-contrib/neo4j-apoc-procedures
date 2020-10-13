@@ -12,6 +12,7 @@ public class S3ParamsExtractor {
     private static final String PROTOCOL = "s3";
     private static final String ACCESS_KEY = "accessKey";
     private static final String SECRET_KEY = "secretKey";
+    private static final String SESSION_TOKEN = "sessionToken";
 
     public static S3Params extract(URL url) throws  IllegalArgumentException {
 
@@ -22,15 +23,25 @@ public class S3ParamsExtractor {
         //aws credentials
         String accessKey = null;
         String secretKey = null;
+        String sessionToken = null;
 
         if (url.getUserInfo() != null) {
             String[] credentials = url.getUserInfo().split(":");
-            accessKey = credentials[0];
-            secretKey = credentials[1];
+            if (credentials.length > 1) {
+                accessKey = credentials[0];
+                secretKey = credentials[1];
+            }
+            if (credentials.length > 2) {
+                sessionToken = credentials[2];
+            }
+            // User info part cannot contain session token.
         } else {
             Map<String, String> params = Util.getRequestParameter(url.getQuery());
-            if(params.containsKey(ACCESS_KEY)){accessKey = params.get(ACCESS_KEY);}
-            if(params.containsKey(SECRET_KEY)){secretKey = params.get(SECRET_KEY);}
+            if(Objects.nonNull(params)) {
+                if(params.containsKey(ACCESS_KEY)){accessKey = params.get(ACCESS_KEY);}
+                if(params.containsKey(SECRET_KEY)){secretKey = params.get(SECRET_KEY);}
+                if(params.containsKey(SESSION_TOKEN)){sessionToken = params.get(SESSION_TOKEN);}
+            }
         }
 
         // endpoint
@@ -53,22 +64,37 @@ public class S3ParamsExtractor {
 
         String region = null;
 
-        //look for endpoint contains region.
-        for (Regions r: Regions.values()){
-            if(endpoint.toLowerCase().contains(r.getName().toLowerCase())){
-                region = r.getName().toLowerCase();
-            }
-        }
+        if (Objects.nonNull(endpoint)) {
 
-        //has specific endpoints for regions otherwise remove region from endpoint
-        if(Objects.nonNull(region) && !endpoint.contains("amazonaws.com")) {
-            endpoint = endpoint.substring(endpoint.indexOf(".") + 1);
+            // Look for endpoint contains region
+            for (Regions r: Regions.values()){
+                if(endpoint.toLowerCase().contains(r.getName().toLowerCase())){
+                    region = r.getName().toLowerCase();
+                    break;
+                }
+            }
+
+            if(Objects.nonNull(region)) {
+                //has specific endpoints for regions, otherwise remove region from endpoint
+                if(!endpoint.contains("amazonaws.com")) {
+                    endpoint = endpoint.substring(endpoint.indexOf(".") + 1);
+                }
+
+                // If it contains region only, it is an invalid endpoint.
+                if (region.toLowerCase().equals(endpoint.toLowerCase())) {
+                    endpoint = "";
+                }
+            }
         }
 
         if (url.getPort() != 80 && url.getPort() != 443 && url.getPort() > 0) {
             endpoint += ":" + url.getPort();
         }
 
-        return new S3Params(accessKey, secretKey, endpoint, bucket, key, region);
+        if (Objects.nonNull(endpoint) &&  endpoint.isEmpty()) {
+            endpoint = null;
+        }
+
+        return new S3Params(accessKey, secretKey, sessionToken, endpoint, bucket, key, region);
     }
 }
