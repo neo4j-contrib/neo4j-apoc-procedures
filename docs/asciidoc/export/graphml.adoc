@@ -24,6 +24,7 @@ This section includes:
 * <<export-graphml-available-procedures, Available Procedures>>
 * <<export-graphml-config, Configuration parameters>>
 * <<export-graphml-file-export, Exporting to a file>>
+* <<export-graphml-s3-export, Export to S3>>
 * <<export-graphml-stream-export, Exporting a stream>>
 * <<export-graphml-examples, Examples>>
     ** <<export-graphml-whole-database, Export whole database>>
@@ -77,6 +78,11 @@ The procedures support the following config parameters:
 == Exporting to a file
 
 include::enableFileExport.adoc[]
+
+[[export-graphml-s3-export]]
+== Exporting to S3
+
+include::enableS3Export.adoc[]
 
 [[export-graphml-stream-export]]
 == Exporting a stream

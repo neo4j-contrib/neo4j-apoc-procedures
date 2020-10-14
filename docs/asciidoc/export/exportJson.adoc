@@ -14,6 +14,7 @@ This section includes:
 
 * <<export-json-available-procedures, Available Procedures>>
 * <<export-json-file-export, Exporting to a file>>
+* <<export-json-s3-export, Export to S3>>
 * <<export-json-stream-export, Exporting a stream>>
 * <<export-json-examples, Examples>>
     ** <<export-database-json, Export whole database>>
@@ -52,6 +53,11 @@ The output of `labels()` function is not sorted, use it in combination with `apo
 == Exporting to a file
 
 include::enableFileExport.adoc[]
+
+[[export-json-s3-export]]
+== Exporting to S3
+
+include::enableS3Export.adoc[]
 
 [[export-json-stream-export]]
 == Exporting a stream
