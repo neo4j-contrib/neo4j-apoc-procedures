@@ -6,7 +6,7 @@ import apoc.util.s3.S3TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
+import org.junit.Ignore;
 import org.junit.rules.TestName;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.test.rule.DbmsRule;
@@ -25,7 +25,7 @@ import static apoc.export.util.ExportFormat.*;
 import static apoc.util.Util.map;
 import static org.junit.Assert.*;
 
-@Disabled("To use this test, you need to set the S3 bucket and region to a valid endpoint " +
+@Ignore("To use this test, you need to set the S3 bucket and region to a valid endpoint " +
         "and have your access key and secret key setup in your environment.")
 public class ExportCypherS3Test {
     private static String S3_BUCKET_NAME = null;
