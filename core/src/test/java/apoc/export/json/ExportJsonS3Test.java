@@ -8,7 +8,7 @@ import apoc.util.s3.S3TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
+import org.junit.Ignore;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -22,7 +22,7 @@ import java.util.Optional;
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.*;
 
-@Disabled("To use this test, you need to set the S3 bucket and region to a valid endpoint " +
+@Ignore("To use this test, you need to set the S3 bucket and region to a valid endpoint " +
         "and have your access key and secret key setup in your environment.")
 public class ExportJsonS3Test {
     private static String S3_BUCKET_NAME = null;

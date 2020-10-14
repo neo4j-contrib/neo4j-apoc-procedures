@@ -13,7 +13,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
+import org.junit.Ignore;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -26,7 +26,7 @@ import java.util.Optional;
 import static apoc.util.MapUtil.map;
 import static junit.framework.TestCase.assertTrue;
 
-@Disabled("To use this test, you need to set the S3 bucket and region to a valid endpoint " +
+@Ignore("To use this test, you need to set the S3 bucket and region to a valid endpoint " +
         "and have your access key and secret key setup in your environment.")
 public class ExportS3PerformanceTest {
     private static String S3_BUCKET_NAME = null;
