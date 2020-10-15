@@ -277,12 +277,13 @@ public class XmlGraphMLReader {
     private RelationshipType getRelationshipType(XMLEventReader reader) throws XMLStreamException {
         if (this.labels) {
             XMLEvent peek = reader.peek();
-            if (peek.isCharacters() && !(peek.asCharacters().isWhiteSpace())) {
+            boolean isChar = peek.isCharacters();
+            if (isChar && !(peek.asCharacters().isWhiteSpace())) {
                 String value = peek.asCharacters().getData();
                 String el = ":";
                 String typeRel = value.contains(el) ? value.replace(el, StringUtils.EMPTY) : value;
                 return RelationshipType.withName(typeRel.trim());
-            } else if (!peek.isEndDocument()) {
+            } else if (!peek.isEndDocument() && !"data".equals(isChar ? peek.asCharacters().toString() : peek.asStartElement().getName().getLocalPart()) ) {
                 reader.nextEvent();
                 return getRelationshipType(reader);
             }
