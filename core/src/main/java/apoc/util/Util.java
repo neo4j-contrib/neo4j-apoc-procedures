@@ -1,6 +1,7 @@
 package apoc.util;
 
 import apoc.Pools;
+import apoc.convert.Convert;
 import apoc.export.util.CountingInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -146,14 +147,7 @@ public class Util {
     }
 
     public static Stream<Object> stream(Object values) {
-        if (values == null) return Stream.empty();
-        if (values instanceof Collection) return ((Collection)values).stream();
-        if (values instanceof Object[]) return Stream.of(((Object[])values));
-        if (values instanceof Iterable) {
-            Spliterator<Object> spliterator = ((Iterable) values).spliterator();
-            return StreamSupport.stream(spliterator,false);
-        }
-        return Stream.of(values);
+        return Convert.convertToList(values).stream();
     }
 
     public static Stream<Node> nodeStream(Transaction tx, Object ids) {
