@@ -900,5 +900,33 @@ public class CollTest {
                 (row) -> assertEquals(asList("Гусак", "Єльська"), row.get("value")));
     }
 
+    @Test
+    public void testPairWithOffsetFn() throws Exception {
+        testCall(db, "RETURN apoc.coll.pairWithOffset([1,2,3,4], 2) AS value",
+                (row) -> assertEquals(asList(asList(1L, 3L), asList(2L, 4L), asList(3L, null), asList(4L, null)), row.get("value")));
+        testCall(db, "RETURN apoc.coll.pairWithOffset([1,2,3,4], -2) AS value",
+                (row) -> assertEquals(asList(asList(1L, null), asList(2L, null), asList(3L, 1L), asList(4L, 2L)), row.get("value")));
+    }
+
+    @Test
+    public void testPairWithOffset() throws Exception {
+        testResult(db, "CALL apoc.coll.pairWithOffset([1,2,3,4], 2)",
+                (result) -> {
+                    assertEquals(asList(1L, 3L), result.next().get("value"));
+                    assertEquals(asList(2L, 4L), result.next().get("value"));
+                    assertEquals(asList(3L, null), result.next().get("value"));
+                    assertEquals(asList(4L, null), result.next().get("value"));
+                    assertFalse(result.hasNext());
+                });
+        testResult(db, "CALL apoc.coll.pairWithOffset([1,2,3,4], -2)",
+                (result) -> {
+                    assertEquals(asList(1L, null), result.next().get("value"));
+                    assertEquals(asList(2L, null), result.next().get("value"));
+                    assertEquals(asList(3L, 1L), result.next().get("value"));
+                    assertEquals(asList(4L, 2L), result.next().get("value"));
+                    assertFalse(result.hasNext());
+                });
+    }
+
 }
 

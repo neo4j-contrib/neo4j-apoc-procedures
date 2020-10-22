@@ -33,6 +33,7 @@ import java.util.Random;
 import java.util.RandomAccess;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -901,8 +902,6 @@ public class Coll {
         return new HashSet(values).size() == values.size();
     }
 
-
-
     @UserFunction
     @Description("apoc.coll.dropDuplicateNeighbors(list) - remove duplicate consecutive objects in a list")
     public List<Object> dropDuplicateNeighbors(@Name("list") List<Object> list){
@@ -938,4 +937,28 @@ public class Coll {
         Collections.sort(sorted, collator);
         return sorted;
     }
+
+    @UserFunction("apoc.coll.pairWithOffset")
+    @Description("apoc.coll.pairWithOffset(values, offset) - returns a list of pairs defined by the offset")
+    public List<List<Object>> pairWithOffsetFn(@Name("values") List<Object> values, @Name("offset") long offset) {
+        if (values == null) return null;
+        BiFunction<List<Object>, Long, Object> extract = (list, index) -> index < list.size() && index >= 0 ? list.get(index.intValue()) : null;
+        final int length = Double.valueOf(Math.ceil((double) values.size() / Math.abs(offset))).intValue();
+        List<List<Object>> result = new ArrayList<>(length);
+        for (long i = 0; i < values.size(); i++) {
+            final List<Object> objects = asList(extract.apply(values, i), extract.apply(values, i + offset));
+            result.add(objects);
+        }
+        return result;
+    }
+
+    @Procedure
+    @Description("apoc.coll.pairWithOffset(values, offset) - returns a list of pairs defined by the offset")
+    public Stream<ListResult> pairWithOffset(@Name("values") List<Object> values, @Name("offset") long offset) {
+        return pairWithOffsetFn(values, offset).stream()
+                .map(ListResult::new);
+    }
+
+
+
 }
