@@ -106,4 +106,4 @@ By doing this procedure call:
 
 You'll get the following result:
 
-image::apoc.model.jdbc[scaledwidth="100%"]
+image::apoc.model.jdbc.png[scaledwidth="100%"]
