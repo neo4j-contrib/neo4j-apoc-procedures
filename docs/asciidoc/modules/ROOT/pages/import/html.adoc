@@ -63,7 +63,7 @@ image::apoc.load.htmllinks.png[scaledwidth="100%"]
 
 [source,cypher]
 ----
-CALL apoc.load.html("https://en.wikipedia.org/",{metadata:"meta", h2:"h2"}, {charset: "UTF-8})
+CALL apoc.load.html("https://en.wikipedia.org/",{metadata:"meta", h2:"h2"}, {charset: "UTF-8"})
 ----
 
 You will get this result:
