@@ -6,13 +6,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Collections;
 import java.util.List;
 
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author mh
@@ -45,6 +48,24 @@ public class GetProceduresTest {
             assertEquals(true, ids.contains(((Relationship) r.next().get("rel")).getId()));
             assertEquals(true, ids.contains(((Relationship) r.next().get("rel")).getId()));
             assertEquals(true, ids.contains(((Relationship) r.next().get("rel")).getId()));
+        });
+    }
+
+    @Test
+    public void testArrayOfIds() {
+        String query = "MERGE (g:Foo {id: 1})\n" +
+                "MERGE (h:Foo {id: 2})\n" +
+                "MERGE (g)-[r:BAR]->(h)\n" +
+                "MERGE (t:Temp)\n" +
+                "SET t.ids = [] + ID(r)\n" +
+                "WITH t\n" +
+                "CALL apoc.get.rels(t.ids) YIELD rel\n" +
+                "RETURN rel";
+        TestUtil.testResult(db, query, Collections.emptyMap(), r -> {
+            final ResourceIterator<Relationship> relIT = r.columnAs("rel");
+            final Relationship rel = relIT.next();
+            assertEquals("BAR", rel.getType().name());
+            assertFalse(r.hasNext());
         });
     }
 }
