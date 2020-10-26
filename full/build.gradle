@@ -67,6 +67,10 @@ dependencies {
     compile 'org.jsoup:jsoup:1.11.3'
 
     compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
+    compile(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7') {
+        exclude group: "org.yaml"
+        exclude module: "snakeyaml"
+    }
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.26'
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
 
