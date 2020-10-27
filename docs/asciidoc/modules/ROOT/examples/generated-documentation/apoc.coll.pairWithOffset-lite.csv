@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.pairWithOffset(values :: LIST? OF ANY?, offset :: INTEGER?) :: (LIST? OF ANY?)

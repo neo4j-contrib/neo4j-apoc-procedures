@@ -26,3 +26,6 @@ apoc.agg.maxItems(item :: ANY?, value :: ANY?, groupLimit = -1 :: INTEGER?) :: (
 |groupLimit|INTEGER?|-1
 |===
 
+== Usage Examples
+include::partial$usage/apoc.agg.maxItems.adoc[]
+
