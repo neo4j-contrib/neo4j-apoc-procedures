@@ -235,6 +235,7 @@ class DocumentationGenerator {
             writeDescription(writer, userFunctionSignature.description());
             writeSignature(writer, userFunctionSignature.toString());
             writeInputParameters(writer, userFunctionSignature.inputSignature());
+            writeUsageExample(writer, userFunctionSignature.name().toString());
             writeExtraDocumentation(writer, userFunctionSignature.name());
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
@@ -249,10 +250,18 @@ class DocumentationGenerator {
             writeSignature(writer, procedure.toString());
             writeInputParameters(writer, procedure.inputSignature());
             writeOutputParameters(procedure, writer);
+            writeUsageExample(writer, procedure.name().toString());
             writeExtraDocumentation(writer, procedure.name());
 
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    private void writeUsageExample(Writer writer, String name) throws IOException {
+        if(new File("../docs/asciidoc/modules/ROOT/partials/usage", name + ".adoc").exists()) {
+            writer.write("== Usage Examples\n");
+            writer.write("include::partial$usage/" + name + ".adoc[]\n\n");
         }
     }
 

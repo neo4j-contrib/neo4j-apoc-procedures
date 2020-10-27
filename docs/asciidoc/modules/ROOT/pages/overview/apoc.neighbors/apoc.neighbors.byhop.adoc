@@ -20,7 +20,7 @@ apoc.neighbors.byhop(node :: NODE?, types =  :: STRING?, distance = 1 :: INTEGER
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default
+| Name | Type | Default 
 |node|NODE?|null
 |types|STRING?|
 |distance|INTEGER?|1
@@ -29,7 +29,7 @@ apoc.neighbors.byhop(node :: NODE?, types =  :: STRING?, distance = 1 :: INTEGER
 == Output parameters
 [.procedures, opts=header]
 |===
-| Name | Type
+| Name | Type 
 |nodes|LIST? OF NODE?
 |===
 

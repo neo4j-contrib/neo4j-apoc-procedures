@@ -32,5 +32,8 @@ apoc.create.node(label :: LIST? OF STRING?, props :: MAP?) :: (node :: NODE?)
 |node|NODE?
 |===
 
+== Usage Examples
+include::partial$usage/apoc.create.node.adoc[]
+
 xref::graph-updates/data-creation.adoc[More documentation of apoc.create.node,role=more information]
 
