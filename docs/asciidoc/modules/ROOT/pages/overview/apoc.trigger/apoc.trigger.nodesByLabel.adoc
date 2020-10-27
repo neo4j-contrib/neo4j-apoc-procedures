@@ -20,7 +20,7 @@ apoc.trigger.nodesByLabel(labelEntries :: ANY?, label :: STRING?) :: (LIST? OF A
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default
+| Name | Type | Default 
 |labelEntries|ANY?|null
 |label|STRING?|null
 |===

@@ -20,7 +20,7 @@ apoc.periodic.countdown(name :: STRING?, statement :: STRING?, rate :: INTEGER?)
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default
+| Name | Type | Default 
 |name|STRING?|null
 |statement|STRING?|null
 |rate|INTEGER?|null
@@ -29,7 +29,7 @@ apoc.periodic.countdown(name :: STRING?, statement :: STRING?, rate :: INTEGER?)
 == Output parameters
 [.procedures, opts=header]
 |===
-| Name | Type
+| Name | Type 
 |name|STRING?
 |delay|INTEGER?
 |rate|INTEGER?
