@@ -10,9 +10,6 @@ import org.neo4j.internal.kernel.api.procs.FieldSignature;
 import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
 import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
-import org.neo4j.kernel.impl.query.FunctionInformation;
-import org.neo4j.kernel.impl.query.QueryExecutionEngine;
-import org.neo4j.procedure.builtin.BuiltInDbmsProcedures;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.reflections.Reflections;
@@ -77,75 +74,150 @@ public class DocsTest {
         }
     }
 
-    @Test
-    public void generateDocs() {
-        Map<String, String> docs = createDocsMapping();
+    class DocumentationGenerator {
+        private final List<Row> rows;
 
-        // given
-        List<Row> rows = new ArrayList<>();
+        DocumentationGenerator() {
+            rows = new ArrayList<>();
 
-        List<Row> procedureRows = db.executeTransactionally("CALL dbms.procedures() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'procedure' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
-                result -> result.stream().map(record -> new Row(
-                        record.get("type").toString(),
-                        record.get("name").toString(),
-                        record.get("signature").toString(),
-                        record.get("description").toString())
-                ).collect(Collectors.toList()));
-        rows.addAll(procedureRows);
+            List<Row> procedureRows = collectProcedures();
+            List<Row> functionRows = collectFunctions();
 
-        List<Row> functionRows = db.executeTransactionally("CALL dbms.functions() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'function' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
-                result -> result.stream().map(record -> new Row(
-                        record.get("type").toString(),
-                        record.get("name").toString(),
-                        record.get("signature").toString(),
-                        record.get("description").toString())
-                ).collect(Collectors.toList()));
+            rows.addAll(procedureRows);
+            rows.addAll(functionRows);
+        }
 
-        rows.addAll(functionRows);
+        private List<Row> collectProcedures() {
+            return db.executeTransactionally("CALL dbms.procedures() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'procedure' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
+                    result -> result.stream().map(record -> new Row(
+                            record.get("type").toString(),
+                            record.get("name").toString(),
+                            record.get("signature").toString(),
+                            record.get("description").toString())
+                    ).collect(Collectors.toList()));
+        }
 
-        Set<String> extended = new HashSet<>();
-        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("extended.txt")) {
-            if (stream != null) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-                String name;
-                while ((name = reader.readLine()) != null) {
-                    extended.add(name);
+        private List<Row> collectFunctions() {
+            return db.executeTransactionally("CALL dbms.functions() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'function' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
+                    result -> result.stream().map(record -> new Row(
+                            record.get("type").toString(),
+                            record.get("name").toString(),
+                            record.get("signature").toString(),
+                            record.get("description").toString())
+                    ).collect(Collectors.toList()));
+        }
+
+        public void writeAllToCsv(Map<String, String> docs, Set<String> extended) {
+            try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, "documentation.csv")), StandardCharsets.UTF_8 ))
+            {
+                writer.write("¦type¦qualified name¦signature¦description¦core¦documentation\n");
+                for (Row row : rows) {
+
+                    Optional<String> documentation = docs.keySet().stream()
+                            .filter((key) -> Pattern.compile(key).matcher(row.name).matches())
+                            .map(value -> String.format("xref::%s", docs.get(value)))
+                            .findFirst();
+                    String description = row.description.replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
+                    writer.write(String.format("¦%s¦%s¦%s¦%s¦%s¦%s\n",
+                            row.type,
+                            row.name,
+                            row.signature,
+                            description,
+                            !extended.contains(row.name),
+                            documentation.orElse("")));
+                }
+
+            }
+            catch ( Exception e )
+            {
+                throw new RuntimeException( e.getMessage(), e );
+            }
+        }
+
+        public void writeNamespaceCsvs() {
+            Map<String, List<Row>> collect = rows.stream().collect(Collectors.groupingBy(value -> {
+                String[] parts = value.name.split("\\.");
+                parts = Arrays.copyOf(parts, parts.length - 1);
+                return String.join(".", parts);
+            }));
+
+
+            for (Map.Entry<String, List<Row>> record : collect.entrySet()) {
+                try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, String.format("%s.csv", record.getKey()))), StandardCharsets.UTF_8 ))
+                {
+                    writer.write("¦type¦qualified name¦signature¦description\n");
+                    for (Row row : record.getValue()) {
+                        String description = row.description.replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
+                        writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, description));
+                    }
+
+                }
+                catch ( Exception e )
+                {
+                    throw new RuntimeException( e.getMessage(), e );
                 }
             }
-        } catch (IOException e) {
-            // Failed to load extended file
-        }
 
-        try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, "documentation.csv")), StandardCharsets.UTF_8 ))
-        {
-            writer.write("¦type¦qualified name¦signature¦description¦core¦documentation\n");
-            for (Row row : rows) {
+            for (Map.Entry<String, List<Row>> record : collect.entrySet()) {
+                try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, String.format("%s-lite.csv", record.getKey()))), StandardCharsets.UTF_8 ))
+                {
+                    writer.write("¦signature\n");
+                    for (Row row : record.getValue()) {
+                        writer.write(String.format("¦%s\n", row.signature));
+                    }
 
-                Optional<String> documentation = docs.keySet().stream()
-                        .filter((key) -> Pattern.compile(key).matcher(row.name).matches())
-                        .map(value -> String.format("xref::%s", docs.get(value)))
-                        .findFirst();
-                String description = row.description.replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
-                writer.write(String.format("¦%s¦%s¦%s¦%s¦%s¦%s\n",
-                        row.type,
-                        row.name,
-                        row.signature,
-                        description,
-                        !extended.contains(row.name),
-                        documentation.orElse("")));
+                }
+                catch ( Exception e )
+                {
+                    throw new RuntimeException( e.getMessage(), e );
+                }
             }
 
         }
-        catch ( Exception e )
-        {
-            throw new RuntimeException( e.getMessage(), e );
+
+         Map<String, List<Row>> topLevelNamespaces() {
+            return rows.stream().filter(value -> value.name.split("\\.").length == 3).collect(Collectors.groupingBy(value -> {
+                String[] parts = value.name.split("\\.");
+                parts = Arrays.copyOf(parts, parts.length - 1);
+                return String.join(".", parts);
+            }));
         }
 
-        Map<String, List<Row>> topLevelNamespaces = rows.stream().filter(value -> value.name.split("\\.").length == 3).collect(Collectors.groupingBy(value -> {
-            String[] parts = value.name.split("\\.");
-            parts = Arrays.copyOf(parts, parts.length - 1);
-            return String.join(".", parts);
-        }));
+        public void writeIndividualCsvs() {
+            for (Row row : rows) {
+                try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(GENERATED_DOCUMENTATION_DIR, String.format("%s.csv", row.name))), StandardCharsets.UTF_8)) {
+                    writer.write("¦type¦qualified name¦signature¦description\n");
+
+                    String description = row.description.replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
+                    writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, description));
+                } catch (Exception e) {
+                    throw new RuntimeException(e.getMessage(), e);
+                }
+            }
+
+            for (Row row : rows) {
+                try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(GENERATED_DOCUMENTATION_DIR, String.format("%s-lite.csv", row.name))), StandardCharsets.UTF_8)) {
+                    writer.write("¦signature\n");
+
+                    writer.write(String.format("¦%s\n",row.signature));
+                } catch (Exception e) {
+                    throw new RuntimeException(e.getMessage(), e);
+                }
+            }
+        }
+    }
+
+    @Test
+    public void generateDocs() {
+        DocumentationGenerator documentationGenerator = new DocumentationGenerator();
+        Map<String, String> docs = createDocsMapping();
+        Set<String> extended = writeExtended();
+
+        documentationGenerator.writeAllToCsv(docs, extended);
+        documentationGenerator.writeNamespaceCsvs();
+        documentationGenerator.writeIndividualCsvs();
+
+        Map<String, List<Row>> topLevelNamespaces = documentationGenerator.topLevelNamespaces();
 
         try (Writer overviewWriter = new OutputStreamWriter(new FileOutputStream(new File(GENERATED_PARTIALS_DOCUMENTATION_DIR, "documentation.adoc")), StandardCharsets.UTF_8);
              Writer navWriter = new OutputStreamWriter(new FileOutputStream(new File(GENERATED_PARTIALS_DOCUMENTATION_DIR, "nav.adoc")), StandardCharsets.UTF_8)) {
@@ -335,66 +407,72 @@ public class DocsTest {
 
 
 
-        Map<String, List<Row>> collect = rows.stream().collect(Collectors.groupingBy(value -> {
-            String[] parts = value.name.split("\\.");
-            parts = Arrays.copyOf(parts, parts.length - 1);
-            return String.join(".", parts);
-        }));
+    }
+
+    private List<Row> collectProcedures() {
+        return db.executeTransactionally("CALL dbms.procedures() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'procedure' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
+                result -> result.stream().map(record -> new Row(
+                        record.get("type").toString(),
+                        record.get("name").toString(),
+                        record.get("signature").toString(),
+                        record.get("description").toString())
+                ).collect(Collectors.toList()));
+    }
+
+    private List<Row> collectFunctions() {
+        return db.executeTransactionally("CALL dbms.functions() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'function' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
+                result -> result.stream().map(record -> new Row(
+                        record.get("type").toString(),
+                        record.get("name").toString(),
+                        record.get("signature").toString(),
+                        record.get("description").toString())
+                ).collect(Collectors.toList()));
+    }
 
 
-        for (Map.Entry<String, List<Row>> record : collect.entrySet()) {
-            try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, String.format("%s.csv", record.getKey()))), StandardCharsets.UTF_8 ))
-            {
-                writer.write("¦type¦qualified name¦signature¦description\n");
-                for (Row row : record.getValue()) {
-                    String description = row.description.replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
-                    writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, description));
-                }
 
-            }
-            catch ( Exception e )
-            {
-                throw new RuntimeException( e.getMessage(), e );
-            }
-        }
+    private void writeDocumentationCsv(Map<String, String> docs, List<Row> rows, Set<String> extended) {
+        try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, "documentation.csv")), StandardCharsets.UTF_8 ))
+        {
+            writer.write("¦type¦qualified name¦signature¦description¦core¦documentation\n");
+            for (Row row : rows) {
 
-        for (Row row : rows) {
-            try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(GENERATED_DOCUMENTATION_DIR, String.format("%s.csv", row.name))), StandardCharsets.UTF_8)) {
-                writer.write("¦type¦qualified name¦signature¦description\n");
-
+                Optional<String> documentation = docs.keySet().stream()
+                        .filter((key) -> Pattern.compile(key).matcher(row.name).matches())
+                        .map(value -> String.format("xref::%s", docs.get(value)))
+                        .findFirst();
                 String description = row.description.replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
-                writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, description));
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage(), e);
+                writer.write(String.format("¦%s¦%s¦%s¦%s¦%s¦%s\n",
+                        row.type,
+                        row.name,
+                        row.signature,
+                        description,
+                        !extended.contains(row.name),
+                        documentation.orElse("")));
             }
-        }
 
-        for (Map.Entry<String, List<Row>> record : collect.entrySet()) {
-            try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, String.format("%s-lite.csv", record.getKey()))), StandardCharsets.UTF_8 ))
-            {
-                writer.write("¦signature\n");
-                for (Row row : record.getValue()) {
-                    writer.write(String.format("¦%s\n", row.signature));
+        }
+        catch ( Exception e )
+        {
+            throw new RuntimeException( e.getMessage(), e );
+        }
+    }
+
+    @NotNull
+    private Set<String> writeExtended() {
+        Set<String> extended = new HashSet<>();
+        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("extended.txt")) {
+            if (stream != null) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+                String name;
+                while ((name = reader.readLine()) != null) {
+                    extended.add(name);
                 }
-
             }
-            catch ( Exception e )
-            {
-                throw new RuntimeException( e.getMessage(), e );
-            }
+        } catch (IOException e) {
+            // Failed to load extended file
         }
-
-
-        for (Row row : rows) {
-            try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(GENERATED_DOCUMENTATION_DIR, String.format("%s-lite.csv", row.name))), StandardCharsets.UTF_8)) {
-                writer.write("¦signature\n");
-
-                writer.write(String.format("¦%s\n",row.signature));
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
-        }
-
+        return extended;
     }
 
     @NotNull
