@@ -217,6 +217,11 @@ apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other 
 apoc.coll.elements(list,limit,offset) yield _1,_2,..,_10,_1s,_2i,_3f,_4m,_5l,_6n,_7r,_8p - deconstruct subset of mixed list into identifiers of the correct type
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.coll/apoc.coll.pairWithOffset.adoc[apoc.coll.pairWithOffset icon:book[]]
+
+apoc.coll.pairWithOffset(values, offset) - returns a list of pairs defined by the offset
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.coll/apoc.coll.partition.adoc[apoc.coll.partition icon:book[]]
 
 apoc.coll.partition(list,batchSize)
@@ -350,6 +355,11 @@ apoc.coll.min([0.5,1,2.3])
 |xref::overview/apoc.coll/apoc.coll.occurrences.adoc[apoc.coll.occurrences icon:book[]]
 
 apoc.coll.occurrences(coll, item) - returns the count of the given item in the collection
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.coll/apoc.coll.pairWithOffset.adoc[apoc.coll.pairWithOffset icon:book[]]
+
+apoc.coll.pairWithOffset(values, offset) - returns a list of pairs defined by the offset
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.coll/apoc.coll.pairs.adoc[apoc.coll.pairs icon:book[]]
