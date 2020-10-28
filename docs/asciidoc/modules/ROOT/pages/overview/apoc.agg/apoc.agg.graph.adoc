@@ -24,3 +24,6 @@ apoc.agg.graph(element :: ANY?) :: (MAP?)
 |element|ANY?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.agg.graph.adoc[]
+
