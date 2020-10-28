@@ -27,7 +27,7 @@ For example, to find the earliest movie that each person has acted in, we could 
 ----
 MATCH (p:Person)-[:ACTED_IN]->(movie)
 WITH p, movie
-ORDER BY movie.release
+ORDER BY p, movie.released
 RETURN p.name AS person, collect(movie)[0] AS earliestMovie;
 ----
 
@@ -39,7 +39,7 @@ We can avoid this build up of in memory state by using the `apoc.agg.first` aggr
 ----
 MATCH (p:Person)-[:ACTED_IN]->(movie)
 WITH p, movie
-ORDER BY movie.release
+ORDER BY p, movie.released
 RETURN p.name AS person, apoc.agg.first(movie) AS earliestMovie;
 ----
 
@@ -47,8 +47,8 @@ RETURN p.name AS person, apoc.agg.first(movie) AS earliestMovie;
 [opts="header", cols="1,3"]
 |===
 | person         | earliestMovie
-| "Keanu Reeves" | (:Movie {tagline: "Welcome to the Real World", title: "The Matrix", released: 1999})
-| "Tom Hanks"    | (:Movie {tagline: "At odds in life... in love on-line.", title: "You've Got Mail", released: 1998})
+| "Tom Hanks"    | (:Movie {tagline: "What if someone you never met, someone you never saw, someone you never knew was the only someone for you?", title: "Sleepless in Seattle", released: 1993})
+| "Keanu Reeves" | (:Movie {tagline: "Evil has its winning ways", title: "The Devil's Advocate", released: 1997})
 |===
 
 
