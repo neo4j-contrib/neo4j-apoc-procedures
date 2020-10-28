@@ -1,0 +1,34 @@
+The examples in this section are based on the following file:
+
+.$NEO4J_HOME/import/schema.cypher
+[source, cypher]
+----
+CREATE INDEX ON :Node(id);
+----
+
+We can run the Cypher commands in `schema.cypher`, by running the following query:
+
+[source,cypher]
+----
+CALL apoc.cypher.runSchemaFile("schema.cypher");
+----
+
+.Results
+[opts="header", cols="1,5"]
+|===
+| row | result
+| -1  | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 0, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 1, labelsAdded: 0, relationshipsCreated: 0, time: 0}
+|===
+
+If we don't want to see statistics for each Cypher statement, we can set `statistics: false`:
+
+[source,cypher]
+----
+CALL apoc.cypher.runSchemaFile("schema.cypher", {statistics: false});
+----
+
+.Results
+[opts="header", cols="1,5"]
+|===
+| row | result
+|===

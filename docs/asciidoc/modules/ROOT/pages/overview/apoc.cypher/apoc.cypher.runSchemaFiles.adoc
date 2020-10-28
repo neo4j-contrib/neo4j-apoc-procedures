@@ -33,5 +33,8 @@ apoc.cypher.runSchemaFiles(file :: LIST? OF STRING?, config = {} :: MAP?) :: (ro
 |result|MAP?
 |===
 
+== Usage Examples
+include::partial$usage/apoc.cypher.runSchemaFiles.adoc[]
+
 xref::cypher-execution/index.adoc[More documentation of apoc.cypher.runSchemaFiles,role=more information]
 
