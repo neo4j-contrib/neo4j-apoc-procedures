@@ -27,8 +27,8 @@ For example, to find the newest movie that each person has acted in, we could wr
 ----
 MATCH (p:Person)-[:ACTED_IN]->(movie)
 WITH p, movie
-ORDER BY movie.release
-RETURN p.name AS person, collect(movie)[-1] AS earliestMovie;
+ORDER BY p, movie.released
+RETURN p.name AS person, collect(movie)[-1] AS latestMovie;
 ----
 
 This query collects all of the movies into memory, before returning just the last one.
@@ -39,16 +39,16 @@ We can avoid this build up of in memory state by using the `apoc.agg.last` aggre
 ----
 MATCH (p:Person)-[:ACTED_IN]->(movie)
 WITH p, movie
-ORDER BY movie.release
-RETURN p.name AS person, apoc.agg.last(movie) AS earliestMovie;
+ORDER BY p, movie.released
+RETURN p.name AS person, apoc.agg.last(movie) AS latestMovie;
 ----
 
 .Results
 [opts="header", cols="1,3"]
 |===
-| person         | earliestMovie
-| "Keanu Reeves" | (:Movie {tagline: "Free your mind", title: "The Matrix Reloaded", released: 2003})
-| "Tom Hanks"    | (:Movie {tagline: "What if someone you never met, someone you never saw, someone you never knew was the only someone for you?", title: "Sleepless in Seattle", released: 1993})
+| person         | latestMovie
+| "Keanu Reeves" | (:Movie {title: "Something's Gotta Give", released: 2003})
+| "Tom Hanks"    | (:Movie {tagline: "Everything is connected", title: "Cloud Atlas", released: 2012})
 |===
 
 
