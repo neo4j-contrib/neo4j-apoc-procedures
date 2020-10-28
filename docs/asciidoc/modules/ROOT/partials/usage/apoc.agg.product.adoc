@@ -1,0 +1,19 @@
+We can compute the product of rows of numeric values, by running the following query:
+
+[source,cypher]
+----
+UNWIND range(1,10) AS value
+RETURN apoc.agg.product(value),
+       1*2*3*4*5*6*7*8*9*10 AS manualEquivalent;
+----
+
+.Results
+[opts="header"]
+|===
+| apoc.agg.product(value) | manualEquivalent
+| 3628800                 | 3628800
+|===
+
+
+
+

@@ -24,3 +24,6 @@ apoc.agg.median(value :: ANY?) :: (ANY?)
 |value|ANY?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.agg.median.adoc[]
+

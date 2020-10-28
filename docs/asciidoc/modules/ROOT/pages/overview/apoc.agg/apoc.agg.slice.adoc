@@ -26,3 +26,6 @@ apoc.agg.slice(value :: ANY?, from = 0 :: INTEGER?, to = -1 :: INTEGER?) :: (LIS
 |to|INTEGER?|-1
 |===
 
+== Usage Examples
+include::partial$usage/apoc.agg.slice.adoc[]
+
