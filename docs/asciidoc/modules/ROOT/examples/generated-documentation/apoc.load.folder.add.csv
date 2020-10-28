@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.load.folder.add¦apoc.load.folder.add(name :: STRING?, pattern :: STRING?, cypher :: STRING?, config = {} :: MAP?) :: (name :: STRING?, cypher :: STRING?, pattern :: STRING?)¦apoc.load.folder.add(name, pattern, cypher, {}) YIELD name, pattern, cypher - Add or replace a WatchListener with a specific name, pattern and cypher

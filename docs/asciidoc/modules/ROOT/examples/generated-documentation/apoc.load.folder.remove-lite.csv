@@ -1,0 +1,2 @@
+¦signature
+¦apoc.load.folder.remove(name :: STRING?) :: (name :: STRING?, cypher :: STRING?, pattern :: STRING?)
