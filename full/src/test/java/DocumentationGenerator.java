@@ -250,11 +250,21 @@ class DocumentationGenerator {
             writeSignature(writer, procedure.toString());
             writeInputParameters(writer, procedure.inputSignature());
             writeOutputParameters(procedure, writer);
+            writeReadingFromFile(writer, procedure.name().toString());
             writeUsageExample(writer, procedure.name().toString());
             writeExtraDocumentation(writer, procedure.name());
 
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    private List<String> readsFromFile = Arrays.asList("apoc.cypher.runFile");
+
+    private void writeReadingFromFile(Writer writer, String name) throws IOException {
+        if(readsFromFile.contains(name)) {
+            writer.write("== Reading from a file\n");
+            writer.write("include::../../import/includes/enableFileImport.adoc[]\n\n");
         }
     }
 

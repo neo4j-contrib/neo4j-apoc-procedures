@@ -33,5 +33,11 @@ apoc.cypher.runFile(file :: STRING?, config = {} :: MAP?) :: (row :: INTEGER?, r
 |result|MAP?
 |===
 
+== Reading from a file
+include::../../import/includes/enableFileImport.adoc[]
+
+== Usage Examples
+include::partial$usage/apoc.cypher.runFile.adoc[]
+
 xref::cypher-execution/index.adoc[More documentation of apoc.cypher.runFile,role=more information]
 
