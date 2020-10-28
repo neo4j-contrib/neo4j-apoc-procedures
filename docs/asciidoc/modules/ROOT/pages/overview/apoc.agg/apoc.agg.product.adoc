@@ -24,3 +24,6 @@ apoc.agg.product(number :: NUMBER?) :: (NUMBER?)
 |number|NUMBER?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.agg.product.adoc[]
+

@@ -1,0 +1,82 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (TopGun:Movie {title:"Top Gun", released:1986, tagline:'I feel the need, the need for speed.'})
+CREATE (SleeplessInSeattle:Movie {title:'Sleepless in Seattle', released:1993, tagline:'What if someone you never met, someone you never saw, someone you never knew was the only someone for you?'})
+CREATE (ThatThingYouDo:Movie {title:'That Thing You Do', released:1996, tagline:'In every life there comes a time when that thing you dream becomes that thing you do'})
+CREATE (TheDevilsAdvocate:Movie {title:"The Devil's Advocate", released:1997, tagline:'Evil has its winning ways'})
+CREATE (AsGoodAsItGets:Movie {title:'As Good as It Gets', released:1997, tagline:'A comedy from the heart that goes for the throat.'})
+CREATE (YouveGotMail:Movie {title:"You've Got Mail", released:1998, tagline:'At odds in life... in love on-line.'})
+CREATE (TheMatrix:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})
+CREATE (SnowFallingonCedars:Movie {title:'Snow Falling on Cedars', released:1999, tagline:'First loves last. Forever.'})
+CREATE (JerryMaguire:Movie {title:'Jerry Maguire', released:2000, tagline:'The rest of his life begins now.'});
+CREATE (TheMatrixReloaded:Movie {title:'The Matrix Reloaded', released:2003, tagline:'Free your mind'})
+----
+
+We can find the release year of movies for different statistical measures, by running the query below:
+
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN apoc.agg.statistics(movie.released) AS stats;
+----
+
+.Results
+[opts="header"]
+|===
+| stats
+| {total: 10, min: 1986, minNonZero: 1986.0, max: 2003, mean: 1996.8, `0.5`: 1997, `0.99`: 2003, `0.75`: 1999, `0.9`: 2000, `0.95`: 2003, stdev: 4.3772137256478585}
+|===
+
+We can expand the map of values to have one key per row by using the `UNWIND` clause on the `keys` of the map:
+
+[source,cypher]
+----
+MATCH (movie:Movie)
+WITH apoc.agg.statistics(movie.released) AS stats
+UNWIND keys(stats) AS key
+RETURN key, stats[key] AS value;
+----
+
+.Results
+[opts="header"]
+|===
+| key          | value
+| "total"      | 10
+| "min"        | 1986
+| "minNonZero" | 1986.0
+| "max"        | 2003
+| "mean"       | 1996.8
+| "0.5"        | 1997
+| "0.99"       | 2003
+| "0.75"       | 1999
+| "0.9"        | 2000
+| "0.95"       | 2003
+| "stdev"      | 4.3772137256478585
+|===
+
+By default, the function will return the 0.5, 0.75, 0.9, 0.95, and 0.99 percentiles, but we can pass in our own percentiles (2nd parameter):
+
+
+[source,cypher]
+----
+MATCH (movie:Movie)
+WITH apoc.agg.statistics(movie.released, [0.1, 0.25]) AS stats
+UNWIND keys(stats) AS key
+RETURN key, stats[key] AS value;
+----
+
+.Results
+[opts="header"]
+|===
+| key          | value
+| "total"      | 10
+| "min"        | 1986
+| "minNonZero" | 1986.0
+| "0.1"        | 1986
+| "max"        | 2003
+| "mean"       | 1996.8
+| "0.25"       | 1996
+| "stdev"      | 4.3772137256478585
+|===
