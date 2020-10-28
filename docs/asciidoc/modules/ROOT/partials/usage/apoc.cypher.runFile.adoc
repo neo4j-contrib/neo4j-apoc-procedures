@@ -10,7 +10,6 @@ DELETE n;
 ----
 
 We can run the Cypher commands in `create_delete.cypher`, by running the following query:
-We can run the Cypher commands in `create_delete.cypher`, by running the following query:
 
 [source,cypher]
 ----
