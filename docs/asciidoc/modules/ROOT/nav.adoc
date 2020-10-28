@@ -11,7 +11,10 @@
 * xref::help/index.adoc[]
 * xref::overview/index.adoc[]
 
++
+--
 include::partial$generated-documentation/nav.adoc[]
+--
 
 * xref::config/index.adoc[]
 
