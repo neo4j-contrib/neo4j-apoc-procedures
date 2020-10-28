@@ -20,7 +20,7 @@ RETURN minItems.value AS value, minItems.items AS items;
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="1,3"]
 |===
 | value | items
 | 1956  | [(:Person {name: "Tom Hanks", dateOfBirth: 1956-07-09}), (:Person {name: "Carrie Fisher", dateOfBirth: 1956-10-21}), (:Person {name: "Bryan Cranston", dateOfBirth: 1956-03-07})]
@@ -36,7 +36,7 @@ RETURN minItems.value AS value, minItems.items AS items;
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="1,3"]
 |===
 | value | items
 | 1956  | [(:Person {name: "Tom Hanks", dateOfBirth: 1956-07-09}), (:Person {name: "Carrie Fisher", dateOfBirth: 1956-10-21})]
