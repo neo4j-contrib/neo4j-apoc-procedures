@@ -104,9 +104,9 @@ public class LoadFolder {
     }
 
 
-    @Procedure(name = "apoc.load.folder")
+    @Procedure("apoc.load.folder")
     @Description("apoc.load.folder('pattern',{config}) YIELD url - List of all files in import folder")
-    public Stream<UrlResult> folder(@Name("pattern") String pattern, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<UrlResult> folder(@Name(value="pattern", defaultValue = "*") String pattern, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         log.info("Search files that match regular expression: " + pattern);
 
         File directory = Paths.get(apocConfig().getString("dbms.directories.import")).toFile();
@@ -117,6 +117,5 @@ public class LoadFolder {
 
         return files.stream().map(i -> new UrlResult(i.toString()));
     }
-
 
 }
