@@ -25,5 +25,8 @@ apoc.cypher.runFirstColumnMany(cypher :: STRING?, params :: MAP?) :: (LIST? OF A
 |params|MAP?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.cypher.runFirstColumnMany.adoc[]
+
 xref::cypher-execution/index.adoc[More documentation of apoc.cypher.runFirstColumnMany,role=more information]
 

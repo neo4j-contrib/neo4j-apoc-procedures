@@ -30,16 +30,15 @@ CREATE (TomH)-[:ACTED_IN {roles:['Zachry', 'Dr. Henry Goose', 'Isaac Sachs', 'De
 CREATE (TomT)-[:DIRECTED]->(CloudAtlas);
 ----
 
-This procedure is useful for executing Cypher statements that have a dynamic node label or relationship type.
+This function is useful for executing Cypher statements that have a dynamic node label or relationship type and return one row of one column.
 For example, we can return a stream of all the labels and their counts by running the following query:
 
 [source,cypher]
 ----
 CALL db.labels()
 YIELD label
-CALL apoc.cypher.run("MATCH (:" + label + ") RETURN count(*) AS count", {})
-YIELD value
-RETURN label, value.count AS count;
+RETURN label,
+       apoc.cypher.runFirstColumnSingle("MATCH (:" + label + ") RETURN count(*)", {}) AS count;
 ----
 
 .Results
@@ -56,9 +55,8 @@ And we can return a stream of all relationship types and their counts, by runnin
 ----
 CALL db.relationshipTypes()
 YIELD relationshipType
-CALL apoc.cypher.run("MATCH ()-[:" + relationshipType + "]->() RETURN count(*) AS count", {})
-YIELD value
-RETURN relationshipType, value.count AS count;
+RETURN relationshipType,
+       apoc.cypher.runFirstColumnSingle("MATCH ()-[:" + relationshipType + "]->() RETURN count(*)", {}) AS count;
 ----
 
 .Results
@@ -68,5 +66,3 @@ RETURN relationshipType, value.count AS count;
 | "ACTED_IN"       | 9
 | "DIRECTED"       | 1
 |===
-
-If the query that we're running only returns a single column, we could also xref::overview/apoc.cypher/apoc.cypher.runFirstColumnMany.adoc[] or xref::overview/apoc.cypher/apoc.cypher.runFirstColumnSingle.adoc[].
