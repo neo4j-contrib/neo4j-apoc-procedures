@@ -33,6 +33,9 @@ apoc.cypher.runSchemaFiles(file :: LIST? OF STRING?, config = {} :: MAP?) :: (ro
 |result|MAP?
 |===
 
+== Reading from a file
+include::../../import/includes/enableFileImport.adoc[]
+
 == Usage Examples
 include::partial$usage/apoc.cypher.runSchemaFiles.adoc[]
 
