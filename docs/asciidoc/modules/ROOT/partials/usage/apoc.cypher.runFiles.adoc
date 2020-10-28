@@ -1,0 +1,57 @@
+The examples in this section are based on the following file:
+
+.$NEO4J_HOME/import/create.cypher
+[source, cypher]
+----
+CREATE (n:Node {id:1});
+----
+
+.$NEO4J_HOME/import/update.cypher
+[source, cypher]
+----
+MATCH (n:Node {id:1})
+SET n.city = "London";
+----
+
+We can run the Cypher commands in `create.cypher` and `update.cypher`, by running the following query:
+
+[source,cypher]
+----
+CALL apoc.cypher.runFiles(["create.cypher", "update.cypher"]);
+----
+
+.Results
+[opts="header", cols="1,5"]
+|===
+| row | result
+| -1  | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 1, rows: 0, propertiesSet: 1, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 1, relationshipsCreated: 0, time: 0}
+| -1  | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 1, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 0, relationshipsCreated: 0, time: 0}
+|===
+
+We can see the contents of the database, by running the following query:
+
+[source,cypher]
+----
+MATCH (n:Node)
+RETURN n;
+----
+
+.Results
+[opts="header"]
+|===
+| n
+| (:Node {city: "London", id: 1})
+|===
+
+If we don't want to see statistics for each Cypher statement, we can set `statistics: false`:
+
+[source,cypher]
+----
+CALL apoc.cypher.runFiles(["create.cypher", "update.cypher"], {statistics: false});
+----
+
+.Results
+[opts="header", cols="1,5"]
+|===
+| row | result
+|===

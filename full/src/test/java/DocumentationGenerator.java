@@ -259,7 +259,7 @@ class DocumentationGenerator {
         }
     }
 
-    private List<String> readsFromFile = Arrays.asList("apoc.cypher.runFile");
+    private final List<String> readsFromFile = Arrays.asList("apoc.cypher.runFile", "apoc.cypher.runFiles");
 
     private void writeReadingFromFile(Writer writer, String name) throws IOException {
         if(readsFromFile.contains(name)) {
