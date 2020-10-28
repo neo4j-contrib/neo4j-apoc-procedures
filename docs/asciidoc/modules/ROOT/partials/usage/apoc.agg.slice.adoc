@@ -1,0 +1,65 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (Keanu:Person {name:'Keanu Reeves', born:1964})
+CREATE (TomH:Person {name:'Tom Hanks', born:1956})
+
+CREATE (TheMatrix:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})
+CREATE (TheMatrixReloaded:Movie {title:'The Matrix Reloaded', released:2003, tagline:'Free your mind'})
+CREATE (TheMatrixRevolutions:Movie {title:'The Matrix Revolutions', released:2003, tagline:'Everything that has a beginning has an end'})
+CREATE (SomethingsGottaGive:Movie {title:"Something's Gotta Give", released:2003})
+CREATE (TheDevilsAdvocate:Movie {title:"The Devil's Advocate", released:1997, tagline:'Evil has its winning ways'})
+
+CREATE (YouveGotMail:Movie {title:"You've Got Mail", released:1998, tagline:'At odds in life... in love on-line.'})
+CREATE (SleeplessInSeattle:Movie {title:'Sleepless in Seattle', released:1993, tagline:'What if someone you never met, someone you never saw, someone you never knew was the only someone for you?'})
+CREATE (ThatThingYouDo:Movie {title:'That Thing You Do', released:1996, tagline:'In every life there comes a time when that thing you dream becomes that thing you do'})
+CREATE (CloudAtlas:Movie {title:'Cloud Atlas', released:2012, tagline:'Everything is connected'})
+
+CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrix)
+CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrixReloaded)
+CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrixRevolutions)
+CREATE (Keanu)-[:ACTED_IN {roles:['Julian Mercer']}]->(SomethingsGottaGive)
+CREATE (Keanu)-[:ACTED_IN {roles:['Kevin Lomax']}]->(TheDevilsAdvocate)
+
+CREATE (TomH)-[:ACTED_IN {roles:['Joe Fox']}]->(YouveGotMail)
+CREATE (TomH)-[:ACTED_IN {roles:['Sam Baldwin']}]->(SleeplessInSeattle)
+CREATE (TomH)-[:ACTED_IN {roles:['Mr. White']}]->(ThatThingYouDo)
+CREATE (TomH)-[:ACTED_IN {roles:['Zachry', 'Dr. Henry Goose', 'Isaac Sachs', 'Dermot Hoggins']}]->(CloudAtlas);
+----
+
+This function provides a more efficient way of getting values in a collection.
+For example, to find the earliest 3 movies that each person has acted in, we could write the following query:
+
+.Cypher
+[source,cypher]
+----
+MATCH (p:Person)-[:ACTED_IN]->(movie)
+WITH p, movie
+ORDER BY p, movie.released
+RETURN p.name AS person, collect(movie)[0..3] AS movies;
+----
+
+This query collects all of the movies into memory, before returning the first three.
+We can avoid this build up of in memory state by using the `apoc.agg.slice` aggregation function, as shown below:
+
+.apoc.agg.slice
+[source,cypher]
+----
+MATCH (p:Person)-[:ACTED_IN]->(movie)
+WITH p, movie
+ORDER BY p, movie.released
+RETURN p.name AS person, apoc.agg.slice(movie, 0, 3) AS movies;
+----
+
+.Results
+[opts="header", cols="1,3"]
+|===
+| person         | movies
+| "Keanu Reeves" | [(:Movie {tagline: "Evil has its winning ways", title: "The Devil's Advocate", released: 1997}), (:Movie {tagline: "Welcome to the Real World", title: "The Matrix", released: 1999}), (:Movie {tagline: "Free your mind", title: "The Matrix Reloaded", released: 2003})]
+| "Tom Hanks"    | [(:Movie {tagline: "What if someone you never met, someone you never saw, someone you never knew was the only someone for you?", title: "Sleepless in Seattle", released: 1993}), (:Movie {tagline: "In every life there comes a time when that thing you dream becomes that thing you do", title: "That Thing You Do", released: 1996}), (:Movie {tagline: "At odds in life... in love on-line.", title: "You've Got Mail", released: 1998})]
+|===
+
+
+
+
