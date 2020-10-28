@@ -32,5 +32,8 @@ apoc.cypher.run(cypher :: STRING?, params :: MAP?) :: (value :: MAP?)
 |value|MAP?
 |===
 
+== Usage Examples
+include::partial$usage/apoc.cypher.run.adoc[]
+
 xref::cypher-execution/index.adoc[More documentation of apoc.cypher.run,role=more information]
 
