@@ -231,7 +231,7 @@ class DocumentationGenerator {
     private void writeFunctionPage(UserFunctionSignature userFunctionSignature, String topLevelDirectory) {
         try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelDirectory), userFunctionSignature.name().toString() + ".adoc")), StandardCharsets.UTF_8)) {
             writeIndividualPageHeader(writer, userFunctionSignature.name().toString(), "function");
-            writeLabel(writer, userFunctionSignature.name(), "function");
+            writeLabel(writer, userFunctionSignature.name(), "function", userFunctionSignature.deprecated().isPresent());
             writeDescription(writer, userFunctionSignature.description());
             writeSignature(writer, userFunctionSignature.toString());
             writeInputParameters(writer, userFunctionSignature.inputSignature());
@@ -245,7 +245,7 @@ class DocumentationGenerator {
     private void writeProcedurePage(ProcedureSignature procedure, String topLevelDirectory) {
         try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelDirectory), procedure.name().toString() + ".adoc")), StandardCharsets.UTF_8)) {
             writeIndividualPageHeader(writer, procedure.name().toString(), "procedure");
-            writeLabel(writer, procedure.name(), "procedure");
+            writeLabel(writer, procedure.name(), "procedure", procedure.deprecated().isPresent());
             writeDescription(writer, procedure.description());
             writeSignature(writer, procedure.toString());
             writeInputParameters(writer, procedure.inputSignature());
@@ -335,9 +335,9 @@ class DocumentationGenerator {
         writer.write("[source]\n----\n" + name + "\n----\n\n");
     }
 
-    private void writeLabel(Writer writer, QualifiedName name, String type) throws IOException {
+    private void writeLabel(Writer writer, QualifiedName name, String type, boolean isDeprecated) throws IOException {
         String release = extended.contains(name.toString()) ? "full" : "core";
-        writer.write("label:" + type + "[] label:apoc-" + release + "[]\n\n");
+        writer.write("label:" + type + "[] label:apoc-" + release + "[]" + (isDeprecated ? " label:deprecated[]" : "") + "\n\n");
     }
 
     private void writeDescription(Writer writer, Optional<String> potentialDescription) throws IOException {
