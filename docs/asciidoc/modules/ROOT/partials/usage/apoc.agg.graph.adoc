@@ -1,0 +1,40 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (Keanu:Person {name:'Keanu Reeves', born:1964})
+CREATE (TomH:Person {name:'Tom Hanks', born:1956})
+
+CREATE (TheDevilsAdvocate:Movie {title:"The Devil's Advocate", released:1997, tagline:'Evil has its winning ways'})
+CREATE (TheMatrix:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})
+CREATE (TheMatrixReloaded:Movie {title:'The Matrix Reloaded', released:2003, tagline:'Free your mind'})
+
+CREATE (SleeplessInSeattle:Movie {title:'Sleepless in Seattle', released:1993, tagline:'What if someone you never met, someone you never saw, someone you never knew was the only someone for you?'})
+CREATE (ThatThingYouDo:Movie {title:'That Thing You Do', released:1996, tagline:'In every life there comes a time when that thing you dream becomes that thing you do'})
+CREATE (YouveGotMail:Movie {title:"You've Got Mail", released:1998, tagline:'At odds in life... in love on-line.'})
+
+CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrix)
+CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrixReloaded)
+CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheDevilsAdvocate)
+
+CREATE (TomH)-[:ACTED_IN {roles:['Joe Fox']}]->(YouveGotMail)
+CREATE (TomH)-[:ACTED_IN {roles:['Sam Baldwin']}]->(SleeplessInSeattle)
+CREATE (TomH)-[:ACTED_IN {roles:['Mr. White']}]->(ThatThingYouDo);
+----
+
+We can extract a sub graph of the movies that Keanu Reeves and Tom Hanks acted in before 1998, by running the following query:
+
+[source,cypher]
+----
+MATCH path = (person:Person)-[:ACTED_IN]->(movie)
+WHERE movie.released < 1998
+WITH apoc.agg.graph(path) AS g
+RETURN g.nodes AS nodes, g.relationships AS relationships;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes                                                                                                                                                                                                                                | relationships
+| [(:Person {name: "Keanu Reeves", born: 1964}), (:Person {name: "Tom Hanks", born: 1956}), (:Movie {tagline: "Evil has its winning ways", title: "The Devil's Advocate", released: 1997}), (:Movie {tagline: "What if someone you never met, someone you never saw, someone you never knew was the only someone for you?", title: "Sleepless in Seattle", released: 1993}), (:Movie {tagline: "In every life there comes a time when that thing you dream becomes that thing you do", title: "That Thing You Do", released: 1996})] | [[:ACTED_IN {roles: ["Neo"]}], [:ACTED_IN {roles: ["Sam Baldwin"]}], [:ACTED_IN {roles: ["Mr. White"]}]]
+|===
