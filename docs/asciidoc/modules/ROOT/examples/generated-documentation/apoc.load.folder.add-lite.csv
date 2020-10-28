@@ -1,0 +1,2 @@
+¦signature
+¦apoc.load.folder.add(name :: STRING?, pattern :: STRING?, cypher :: STRING?, config = {} :: MAP?) :: (name :: STRING?, cypher :: STRING?, pattern :: STRING?)

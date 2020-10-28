@@ -1,0 +1,2 @@
+¦signature
+¦apoc.load.folder.list() :: (name :: STRING?, cypher :: STRING?, pattern :: STRING?)
