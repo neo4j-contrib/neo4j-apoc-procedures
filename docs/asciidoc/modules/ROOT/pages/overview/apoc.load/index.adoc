@@ -30,12 +30,11 @@ apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of 
 apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database
 |label:procedure[]
 |label:apoc-full[]
-
 |xref::overview/apoc.load/apoc.load.folder.adoc[apoc.load.folder icon:book[]]
 
-apoc.load.folder('pattern',{config}) YIELD url - List of all files in import folder|label:procedure[]
+apoc.load.folder('pattern',\{config}) YIELD url - List of all files in import folder
+|label:procedure[]
 |label:apoc-core[]
-
 |xref::overview/apoc.load/apoc.load.html.adoc[apoc.load.html icon:book[]]
 
 apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map

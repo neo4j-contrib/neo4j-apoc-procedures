@@ -1,2 +1,0 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.load.folder.remove¦apoc.load.folder.remove(name :: STRING?) :: (name :: STRING?, cypher :: STRING?, pattern :: STRING?)¦apoc.load.folder.remove(name) YIELD name, pattern, cypher - Remove a WatchListener by name
