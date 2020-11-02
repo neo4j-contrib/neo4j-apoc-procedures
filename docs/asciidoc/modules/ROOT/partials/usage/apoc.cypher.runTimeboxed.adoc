@@ -1,0 +1,46 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CALL apoc.generate.ba(10000, 50, "Node", "CONNECTED_TO");
+----
+
+The query below calculates the cross product of shortest paths for every pair of nodes.
+
+[source,cypher]
+----
+match (n:Node), (m:Node)
+WHERE n <> m
+match path = shortestpath((n)-[:CONNECTED_TO*]-(m))
+RETURN n, m, length(path) AS path;
+----
+
+This query returns 999,000 rows, but it takes a while to return all of those rows.
+
+We can use the `apoc.cypher.runTimeboxed` procedure to return the paths computed within a threshold defined in ms.
+We can return the results computed within 100ms, by running the query below:
+
+[source,cypher]
+----
+call apoc.cypher.runTimeboxed("match (n:Node), (m:Node)
+WHERE n <> m
+match path = shortestpath((n)-[:CONNECTED_TO*]-(m))
+RETURN n, m, length(path) AS path", {}, 100)
+YIELD value
+RETURN value.n.uuid, value.m.uuid, value.path;
+----
+
+.Results
+[opts="header"]
+|===
+| value.n.uuid                           | value.m.uuid                           | value.path
+| "67dd7a13-dc8d-4d82-9ab3-383d66c54fe4" | "62b0578a-cae5-4d45-8a47-5553692a6f22" | 1
+| "67dd7a13-dc8d-4d82-9ab3-383d66c54fe4" | "9d910497-1aca-48e8-a14c-cd04528675ab" | 1
+| "67dd7a13-dc8d-4d82-9ab3-383d66c54fe4" | "dde31015-73a9-4d22-bf57-ee13a8f7eeb0" | 1
+| "67dd7a13-dc8d-4d82-9ab3-383d66c54fe4" | "6040453e-c705-4755-95f3-3b673d10ae54" | 1
+| "67dd7a13-dc8d-4d82-9ab3-383d66c54fe4" | "bb2a9b42-71ab-4219-beae-a1e99353921f" | 1
+| "67dd7a13-dc8d-4d82-9ab3-383d66c54fe4" | "856a4b54-d027-4438-bbee-fd34d9a6990d" | 1
+| "67dd7a13-dc8d-4d82-9ab3-383d66c54fe4" | "d3e325b4-7691-400a-a819-787c065d537c" | 1
+3+| ....
+3+| 1022 rows available after 9 ms, consumed after another 1 ms
+|===
