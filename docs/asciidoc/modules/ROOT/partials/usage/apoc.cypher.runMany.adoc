@@ -1,0 +1,39 @@
+This procedure is useful for executing multiple Cypher statements.
+We can create a node in one statement and create a relationship to itself in another statement, by running the following query:
+
+[source,cypher]
+----
+CALL apoc.cypher.runMany(
+  'CREATE (n:Node {name:$name});
+   MATCH (n {name:$name})
+   CREATE (n)-[:X {name:$name2}]->(n);',
+  {name:"John", name2:"Doe"}
+);
+----
+
+.Results
+[opts="header", cols="1,4"]
+|===
+| row | result
+| -1  | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 1, rows: 0, propertiesSet: 1, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 1, relationshipsCreated: 0, time: 0}
+| -1  | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 1, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 0, relationshipsCreated: 1, time: 0}
+|===
+
+If we don't want to see statistics for each Cypher statement, we can set `statistics: false`:
+
+[source,cypher]
+----
+CALL apoc.cypher.runMany(
+  'CREATE (n:Node {name:$name});
+   MATCH (n {name:$name})
+   CREATE (n)-[:X {name:$name2}]->(n);',
+  {name:"John", name2:"Doe"},
+  {statistics: false}
+);
+----
+
+.Results
+[opts="header", cols="1,5"]
+|===
+| row | result
+|===
