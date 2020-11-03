@@ -1,4 +1,4 @@
-The following combines two lists, element for element, into a stream of lists:
+The following combines two lists, element for element, into a list of lists:
 
 [source,cypher]
 ----
