@@ -33,5 +33,8 @@ apoc.cypher.runTimeboxed(cypher :: STRING?, params :: MAP?, timeout :: INTEGER?)
 |value|MAP?
 |===
 
+== Usage Examples
+include::partial$usage/apoc.cypher.runTimeboxed.adoc[]
+
 xref::cypher-execution/index.adoc[More documentation of apoc.cypher.runTimeboxed,role=more information]
 
