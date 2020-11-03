@@ -24,5 +24,8 @@ apoc.coll.sumLongs(numbers :: LIST? OF NUMBER?) :: (INTEGER?)
 |numbers|LIST? OF NUMBER?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.coll.sumLongs.adoc[]
+
 xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.sumLongs,role=more information]
 

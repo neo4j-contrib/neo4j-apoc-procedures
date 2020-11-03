@@ -25,5 +25,8 @@ apoc.coll.partition(values :: LIST? OF ANY?, batchSize :: INTEGER?) :: (LIST? OF
 |batchSize|INTEGER?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.coll.partition.adoc[]
+
 xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.partition,role=more information]
 

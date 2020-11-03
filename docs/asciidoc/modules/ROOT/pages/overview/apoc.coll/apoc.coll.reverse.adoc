@@ -24,5 +24,8 @@ apoc.coll.reverse(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |coll|LIST? OF ANY?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.coll.reverse.adoc[]
+
 xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.reverse,role=more information]
 
