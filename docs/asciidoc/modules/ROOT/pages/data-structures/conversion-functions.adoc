@@ -7,7 +7,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 [cols="5m,5"]
 |===
 | xref::overview/apoc.convert/apoc.convert.toString.adoc[apoc.convert.toString(value)]  | tries its best to convert the value to a string
-| apoc.convert.toMap(value) | tries its best to convert the value to a map
+| xref::overview/apoc.convert/apoc.convert.toMap.adoc[apoc.convert.toMap(value)] | tries its best to convert the value to a map
 | apoc.convert.toList(value) | tries its best to convert the value to a list
 | xref::overview/apoc.convert/apoc.convert.toBoolean.adoc[apoc.convert.toBoolean(value)] | tries its best to convert the value to a boolean
 | apoc.convert.toNode(value) | tries its best to convert the value to a node
