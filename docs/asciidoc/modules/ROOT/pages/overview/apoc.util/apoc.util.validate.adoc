@@ -26,3 +26,6 @@ apoc.util.validate(predicate :: BOOLEAN?, message :: STRING?, params :: LIST? OF
 |params|LIST? OF ANY?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.util.validate.adoc[]
+

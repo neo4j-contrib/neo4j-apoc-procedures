@@ -1,0 +1,29 @@
+The following throws an exception because the predicate is true:
+
+[source,cypher]
+----
+WITH true AS predicate
+CALL apoc.util.validate(predicate,'message %d',[42])
+RETURN count(*);
+----
+
+.Results
+|===
+| Failed to invoke procedure `apoc.util.validate`: Caused by: java.lang.RuntimeException: message 42
+|===
+
+The following does nothing because the predicate is false:
+
+[source,cypher]
+----
+WITH false AS predicate
+CALL apoc.util.validate(predicate,'message %d',[42])
+RETURN count(*);
+----
+
+.Results
+[opts="header"]
+|===
+| count(*)
+| 1
+|===
