@@ -1,0 +1,13 @@
+.Convert node to map
+[source,cypher]
+----
+CREATE (node:Node {id: 4})
+RETURN apoc.convert.toMap(node) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| output
+| {id: 4}
+|===
