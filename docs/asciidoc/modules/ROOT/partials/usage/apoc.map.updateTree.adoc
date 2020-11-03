@@ -1,0 +1,52 @@
+The following updates a nested map, adding additional key/values based on the value of the `id` key:
+
+[source,cypher]
+----
+RETURN apoc.map.updateTree({
+  id:1,
+  c:{
+    id:2
+  },
+  d:[
+    {id:3},
+    {id:4}
+  ],
+  e: {notId: 5}
+},'id',[
+  [1,{description: "Added where id=1"}],
+  [2,{description: "Added where id=2"}],
+  [3,{description: "Added where id=3"}],
+  [4,{description: "Added where id=4"}]
+]) AS value;
+----
+
+.Results
+[opts="header",cols="a"]
+|===
+| Output
+|
+[source,json]
+----
+{
+  "id": 1,
+  "description": "Added where id=1",
+  "c": {
+    "id": 2,
+    "description": "Added where id=2"
+  },
+  "d": [
+    {
+      "id": 3,
+      "description": "Added where id=3"
+    },
+    {
+      "id": 4,
+      "description": "Added where id=4"
+    }
+  ],
+  "e": {
+    "notId": 5
+  }
+}
+----
+|===
