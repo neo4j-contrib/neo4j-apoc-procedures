@@ -13,8 +13,7 @@ endif::[]
 [cols="5m,5"]
 |===
 | xref::overview/apoc.map/apoc.map.flatten.adoc[+++apoc.map.flatten(map,delimiter:".")+++] | flatten a nested map into a single-level map, for example turning {parent:{child:1}} into {"parent.child":1}
-| apoc.map.fromNodes(label, property) | creates map from nodes with this label grouped by property
-| apoc.map.fromNodes(label, property) | creates map from nodes with this label grouped by property
+| xref::overview/apoc.map/apoc.map.fromNodes.adoc[+++apoc.map.fromNodes(label, property)+++] | creates map from nodes with this label grouped by property
 | xref::overview/apoc.map/apoc.map.fromPairs.adoc[+++apoc.map.fromPairs([[key,value],[key2,value2],...])+++] | creates map from list with key-value pairs
 | xref::overview/apoc.map/apoc.map.fromLists.adoc[+++apoc.map.fromLists([keys],[values])+++] | creates map from a keys and a values list
 | xref::overview/apoc.map/apoc.map.fromValues.adoc[+++apoc.map.fromValues([key,value,key1,value1])+++] | creates map from alternating keys and values in a list
