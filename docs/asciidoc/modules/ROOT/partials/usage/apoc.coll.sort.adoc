@@ -1,0 +1,13 @@
+The following sorts a collection:
+
+[source,cypher]
+----
+RETURN apoc.coll.sort([5,4,2,3,1]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 2, 3, 4, 5]
+|===

@@ -1,0 +1,15 @@
+The following partitions a list into sublists of size `2`:
+
+[source,cypher]
+----
+CALL apoc.coll.partition([1,2,3,4,5], 2);
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| [1, 2]
+| [3, 4]
+| [5]
+|===
