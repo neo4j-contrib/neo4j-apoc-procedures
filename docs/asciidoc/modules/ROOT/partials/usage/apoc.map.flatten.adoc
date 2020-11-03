@@ -1,0 +1,59 @@
+The following flattens a nested map using the default `.` delimiter:
+
+[source,cypher]
+----
+RETURN apoc.map.flatten({
+  person: {
+    name: "Cristiano Ronaldo",
+    club: {
+      name: "Juventus",
+      founded: 1897
+    }
+  }
+}) AS output;
+----
+
+.Results
+[opts="header",cols="a"]
+|===
+| Output
+|
+[source,json]
+----
+{
+  "person.name": "Cristiano Ronaldo",
+  "person.club.founded": 1897,
+  "person.club.name": "Juventus"
+}
+----
+|===
+
+The following flattens a nested map using the `/` delimiter:
+
+[source,cypher]
+----
+RETURN apoc.map.flatten({
+  person: {
+    name: "Cristiano Ronaldo",
+    club: {
+      name: "Juventus",
+      founded: 1897
+    }
+  }
+}, "/") AS output;
+----
+
+.Results
+[opts="header",cols="a"]
+|===
+| Output
+|
+[source,json]
+----
+{
+  "person/club/name": "Juventus",
+  "person/club/founded": 1897,
+  "person/name": "Cristiano Ronaldo"
+}
+----
+|===
