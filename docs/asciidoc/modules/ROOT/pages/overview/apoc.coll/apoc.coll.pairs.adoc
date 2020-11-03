@@ -24,5 +24,8 @@ apoc.coll.pairs(list :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |list|LIST? OF ANY?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.coll.pairs.adoc[]
+
 xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.pairs,role=more information]
 
