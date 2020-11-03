@@ -28,5 +28,3 @@ apoc.map.fromLists(keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :: (MAP?)
 == Usage Examples
 include::partial$usage/apoc.map.fromLists.adoc[]
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.fromLists,role=more information]
-

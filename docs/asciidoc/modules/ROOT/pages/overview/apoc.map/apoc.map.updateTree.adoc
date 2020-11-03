@@ -26,5 +26,3 @@ apoc.map.updateTree(tree :: MAP?, key :: STRING?, data :: LIST? OF LIST? OF ANY?
 |data|LIST? OF LIST? OF ANY?|null
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.updateTree,role=more information]
-

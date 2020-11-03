@@ -27,5 +27,3 @@ apoc.map.submap(map :: MAP?, keys :: LIST? OF STRING?, values = [] :: LIST? OF A
 |fail|BOOLEAN?|true
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.submap,role=more information]
-

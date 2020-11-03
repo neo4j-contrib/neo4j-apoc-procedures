@@ -27,5 +27,3 @@ apoc.convert.toInteger(object :: ANY?) :: (INTEGER?)
 == Usage Examples
 include::partial$usage/apoc.convert.toInteger.adoc[]
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toInteger,role=more information]
-

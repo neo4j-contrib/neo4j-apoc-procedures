@@ -25,5 +25,6 @@ apoc.map.groupBy(values :: LIST? OF ANY?, key :: STRING?) :: (MAP?)
 |key|STRING?|null
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.groupBy,role=more information]
+== Usage Examples
+include::partial$usage/apoc.map.groupBy.adoc[]
 

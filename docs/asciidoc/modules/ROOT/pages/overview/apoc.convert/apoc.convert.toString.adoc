@@ -27,5 +27,3 @@ apoc.convert.toString(string :: ANY?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.convert.toString.adoc[]
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toString,role=more information]
-
