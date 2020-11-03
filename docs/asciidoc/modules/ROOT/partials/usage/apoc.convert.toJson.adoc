@@ -1,0 +1,29 @@
+.Convert map to JSON
+[source,cypher]
+----
+RETURN apoc.convert.toJson({
+  name: "Michael",
+  time: datetime()
+}) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "{\"name\":\"Michael\",\"time\":\"2020-11-03T12:05:50.963Z\"}"
+|===
+
+.Convert node properties to JSON
+[source,cypher]
+----
+CREATE (node:Node {id: 4, name: "Foo"})
+RETURN apoc.convert.toJson(properties(node)) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+|  "{\"name\":\"Foo\",\"id\":4}"
+|===
