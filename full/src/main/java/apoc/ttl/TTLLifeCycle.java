@@ -39,13 +39,17 @@ public class TTLLifeCycle extends LifecycleAdapter {
     @Override
     public void start() {
         String apocTTLEnabledDb = String.format(ApocConfig.APOC_TTL_ENABLED_DB, this.db.databaseName());
+        String apocTTLScheduleDb = String.format(ApocConfig.APOC_TTL_SCHEDULE_DB, this.db.databaseName());
+        String apocTTLLimitDb = String.format(ApocConfig.APOC_TTL_LIMIT_DB, this.db.databaseName());
         boolean enabled = apocConfig.getBoolean(ApocConfig.APOC_TTL_ENABLED);
         boolean dbEnabled = apocConfig.getConfig().getBoolean(apocTTLEnabledDb, enabled);
         if (dbEnabled) {
-            long ttlSchedule = apocConfig.getInt(ApocConfig.APOC_TTL_SCHEDULE, DEFAULT_SCHEDULE);
-            ttlIndexJobHandle = scheduler.schedule(TTL_GROUP, this::createTTLIndex, (int)(ttlSchedule*0.8), TimeUnit.SECONDS);
+            long ttlSchedule = apocConfig.getConfig().getInt(ApocConfig.APOC_TTL_SCHEDULE, DEFAULT_SCHEDULE);
+            long ttlScheduleDb = apocConfig.getConfig().getInt(apocTTLScheduleDb, (int) ttlSchedule);
+            ttlIndexJobHandle = scheduler.schedule(TTL_GROUP, this::createTTLIndex, (int)(ttlScheduleDb*0.8), TimeUnit.SECONDS);
             long limit = apocConfig.getInt(ApocConfig.APOC_TTL_LIMIT, 1000);
-            ttlJobHandle = scheduler.scheduleRecurring(TTL_GROUP, () -> expireNodes(limit), ttlSchedule, ttlSchedule, TimeUnit.SECONDS);
+            long limitDb = apocConfig.getInt(apocTTLLimitDb, (int) limit);
+            ttlJobHandle = scheduler.scheduleRecurring(TTL_GROUP, () -> expireNodes(limitDb), ttlScheduleDb, ttlScheduleDb, TimeUnit.SECONDS);
         }
     }
 
