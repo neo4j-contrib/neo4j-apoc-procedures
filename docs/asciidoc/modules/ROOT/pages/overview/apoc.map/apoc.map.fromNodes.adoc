@@ -25,3 +25,6 @@ apoc.map.fromNodes(label :: STRING?, property :: STRING?) :: (MAP?)
 |property|STRING?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.map.fromNodes.adoc[]
+

@@ -26,3 +26,6 @@ apoc.map.updateTree(tree :: MAP?, key :: STRING?, data :: LIST? OF LIST? OF ANY?
 |data|LIST? OF LIST? OF ANY?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.map.updateTree.adoc[]
+
