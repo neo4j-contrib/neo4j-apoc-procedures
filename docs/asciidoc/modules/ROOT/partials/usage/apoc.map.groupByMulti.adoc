@@ -1,0 +1,43 @@
+The following creates a map keyed by `club`, with list values:
+
+[source,cypher]
+----
+RETURN apoc.map.groupByMulti([
+	{name: "Cristiano Ronaldo", club: "Juventus"},
+    {name: "Lionel Messi", club: "Barcelona"},
+    {name: "Aaron Ramsey", club: "Juventus"},
+    {name: "Luiz Suarez", club: "Barcelona"}
+], "club") AS output;
+----
+
+.Results
+[opts="header",cols="a"]
+|===
+| Output
+|
+[source,json]
+----
+{
+    "Juventus": [
+      {
+        "name": "Cristiano Ronaldo",
+        "club": "Juventus"
+      },
+      {
+        "name": "Aaron Ramsey",
+        "club": "Juventus"
+      }
+    ],
+    "Barcelona": [
+      {
+        "name": "Lionel Messi",
+        "club": "Barcelona"
+      },
+      {
+        "name": "Luiz Suarez",
+        "club": "Barcelona"
+      }
+    ]
+  }
+----
+|===

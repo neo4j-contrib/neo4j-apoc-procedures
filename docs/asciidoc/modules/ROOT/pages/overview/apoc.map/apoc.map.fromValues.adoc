@@ -24,5 +24,8 @@ apoc.map.fromValues(values :: LIST? OF ANY?) :: (MAP?)
 |values|LIST? OF ANY?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.map.fromValues.adoc[]
+
 xref::data-structures/map-functions.adoc[More documentation of apoc.map.fromValues,role=more information]
 

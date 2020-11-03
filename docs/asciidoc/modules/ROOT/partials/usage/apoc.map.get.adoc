@@ -1,0 +1,29 @@
+The following throws an exception when attempting to look up missing key `missingKey` with no default value:
+
+[source,cypher]
+----
+WITH {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05")} AS map
+RETURN apoc.map.get(map, "missingKey") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| Neo.ClientError.Procedure.ProcedureCallFailed: Failed to invoke function `apoc.map.get`: Caused by: java.lang.IllegalArgumentException: Key missingKey is not of one of the existing keys [country, dob, name]
+|===
+
+The following returns default value `defaultValue` when attempting to look up missing key `missingKey`:
+
+[source,cypher]
+----
+WITH {name:"Cristiano Ronaldo", country:"Portugal", dob:date("1985-02-05")} AS map
+RETURN apoc.map.get(map, "missingKey", "defaultValue") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| "defaultValue"
+|===

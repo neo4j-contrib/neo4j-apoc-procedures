@@ -1,0 +1,33 @@
+The following returns a list of values for keys `name` and `country`:
+
+[source,cypher]
+----
+WITH {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05")} AS map
+RETURN apoc.map.mget(map, ["name", "country"]) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| ["Cristiano Ronaldo", "Portugal"]
+|===
+
+The following returns a list of values for keys `name` and `country`, and default value `defaultValue` for missing key `missingKey`:
+
+[source,cypher]
+----
+WITH {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05")} AS map
+RETURN apoc.map.mget(
+    map,
+    ["name", "country", "missingKey"],
+    [null, null, "defaultValue"]
+) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| ["Cristiano Ronaldo", "Portugal", "defaultValue"]
+|===

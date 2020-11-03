@@ -1,0 +1,24 @@
+The following creates a map from alternating keys and values in a list:
+
+[source,cypher]
+----
+RETURN apoc.map.fromValues([
+    "name", "Cristiano Ronaldo",
+    "age", date("1985-02-05")
+]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+a|
+
+[source,json]
+----
+{
+  "name": "Cristiano Ronaldo",
+  "age": "1985-02-05"
+}
+----
+|===
