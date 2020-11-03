@@ -32,5 +32,8 @@ apoc.cypher.doIt(cypher :: STRING?, params :: MAP?) :: (value :: MAP?)
 |value|MAP?
 |===
 
+== Usage Examples
+include::partial$usage/apoc.cypher.doIt.adoc[]
+
 xref::cypher-execution/index.adoc[More documentation of apoc.cypher.doIt,role=more information]
 

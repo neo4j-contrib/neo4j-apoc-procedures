@@ -34,5 +34,8 @@ apoc.cypher.runMany(cypher :: STRING?, params :: MAP?, config = {} :: MAP?) :: (
 |result|MAP?
 |===
 
+== Usage Examples
+include::partial$usage/apoc.cypher.runMany.adoc[]
+
 xref::cypher-execution/index.adoc[More documentation of apoc.cypher.runMany,role=more information]
 

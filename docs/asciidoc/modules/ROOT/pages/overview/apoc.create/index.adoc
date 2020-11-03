@@ -112,6 +112,14 @@ apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node|label:funct
 
 apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship|label:function[]
 |label:apoc-core[]
+<<<<<<< HEAD
 
+=======
+|xref::overview/apoc.create/apoc.create.virtual.fromNode.adoc[apoc.create.virtual.fromNode icon:book[]]
+
+apoc.create.virtual.fromNode(node, [propertyNames]) returns a virtual node built from an existing node with only the requested properties
+|label:function[]
+|label:apoc-core[]
+>>>>>>> 8dbdb6e5... add apoc.cypher examples and fix a bug with how parent categories were being generated
 |===
 
