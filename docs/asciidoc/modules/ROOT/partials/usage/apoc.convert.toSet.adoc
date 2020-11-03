@@ -1,0 +1,12 @@
+.Convert list to set
+[source,cypher]
+----
+RETURN apoc.convert.toSet([1,2,3,2]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 2, 3]
+|===

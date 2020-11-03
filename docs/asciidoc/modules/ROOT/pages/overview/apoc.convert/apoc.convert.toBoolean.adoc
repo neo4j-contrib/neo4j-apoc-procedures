@@ -24,5 +24,8 @@ apoc.convert.toBoolean(bool :: ANY?) :: (BOOLEAN?)
 |bool|ANY?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.convert.toBoolean.adoc[]
+
 xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toBoolean,role=more information]
 
