@@ -1,0 +1,23 @@
+The following removes a key from a map:
+
+[source,cypher]
+----
+RETURN apoc.map.removeKey(
+    {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05")},
+    "dob"
+) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+a|
+[source,json]
+----
+{
+  "name": "Cristiano Ronaldo",
+  "country": "Portugal"
+}
+----
+|===

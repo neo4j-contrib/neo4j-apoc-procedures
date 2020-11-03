@@ -1,0 +1,14 @@
+The following returns a list of key/value list pairs with pairs sorted by key alphabetically:
+
+[source,cypher]
+----
+WITH {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05")} AS map
+RETURN apoc.map.sortedProperties(map) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [["country","Portugal"],["dob","1985-02-05"],["name","Cristiano Ronaldo"]]
+|===

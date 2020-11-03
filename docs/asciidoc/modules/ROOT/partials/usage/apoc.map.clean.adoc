@@ -1,0 +1,43 @@
+The following removes empty string values from a map:
+
+[source,cypher]
+----
+RETURN apoc.map.clean({name: "Cristiano Ronaldo", club: ""}, [], [""]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+a|
+[source,json]
+----
+{
+  "name": "Cristiano Ronaldo"
+}
+----
+|===
+
+The following removes empty string values and the keys `dob` and `country` from a map:
+
+[source,cypher]
+----
+RETURN apoc.map.clean(
+    {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05"), club: ""},
+    ["dob", "country"],
+    [""]
+) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+a|
+[source,json]
+----
+{
+  "name": "Cristiano Ronaldo"
+}
+----
+|===
