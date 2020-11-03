@@ -1,0 +1,26 @@
+The following merges multiple maps:
+
+[source,cypher]
+----
+RETURN apoc.map.mergeList([
+    {name: "Cristiano Ronaldo"},
+    {dob: date("1985-02-05")},
+    {country: "Portugal"}
+]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+a|
+
+[source,json]
+----
+{
+  "name": "Cristiano Ronaldo",
+  "country": "Portugal",
+  "dob": "1985-02-05"
+}
+----
+|===

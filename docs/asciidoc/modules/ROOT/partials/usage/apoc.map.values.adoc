@@ -1,0 +1,14 @@
+The following returns a list of values for keys `name` and `country`, and a `null` value for missing key `missingKey`:
+
+[source,cypher]
+----
+WITH {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05")} AS map
+RETURN apoc.map.values(map, ["name", "country", "missingKey"], true) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| ["Cristiano Ronaldo","Portugal",null]
+|===

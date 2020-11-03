@@ -1,0 +1,23 @@
+The following creates a map from list of key-value pairs:
+
+[source,cypher]
+----
+RETURN apoc.map.fromPairs([
+    ["name", "Cristiano Ronaldo"],
+    ["age", date("1985-02-05")]
+]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+a|
+[source,json]
+----
+{
+  "name": "Cristiano Ronaldo",
+  "age": "1985-02-05"
+}
+----
+|===
