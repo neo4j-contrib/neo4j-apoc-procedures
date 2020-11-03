@@ -1,0 +1,53 @@
+The following returns a map containing only the key `a`:
+
+[source,cypher]
+----
+RETURN apoc.map.submap({a:1,b:1},['a']) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| {a: 1}
+|===
+
+The following throw an exception because the map doesn't contain the key `c`:
+
+[source, cypher]
+----
+RETURN apoc.map.submap({a:1,b:1},['c']) AS output;
+----
+
+.Results
+|===
+| Failed to invoke function `apoc.map.submap`: Caused by: java.lang.IllegalArgumentException: Key c is not of one of the existing keys [a, b]
+|===
+
+The following returns a map containing a default value of `42` for the missing key `c`:
+
+[source,cypher]
+----
+RETURN apoc.map.submap({a:1,b:1},['c'], [42]) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| {c: 42}
+|===
+
+The following returns a map containing a null value for the missing key `c`:
+
+[source,cypher]
+----
+RETURN apoc.map.submap({a:1,b:1},['c'], null, false) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| {c: NULL}
+|===

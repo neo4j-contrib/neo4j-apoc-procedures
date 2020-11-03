@@ -27,3 +27,6 @@ apoc.map.submap(map :: MAP?, keys :: LIST? OF STRING?, values = [] :: LIST? OF A
 |fail|BOOLEAN?|true
 |===
 
+== Usage Examples
+include::partial$usage/apoc.map.submap.adoc[]
+

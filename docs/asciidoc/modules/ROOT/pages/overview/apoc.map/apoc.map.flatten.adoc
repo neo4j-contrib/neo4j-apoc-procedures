@@ -25,3 +25,6 @@ apoc.map.flatten(map :: MAP?, delimiter = . :: STRING?) :: (MAP?)
 |delimiter|STRING?|.
 |===
 
+== Usage Examples
+include::partial$usage/apoc.map.flatten.adoc[]
+
