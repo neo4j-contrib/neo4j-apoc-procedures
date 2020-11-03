@@ -1,0 +1,13 @@
+The following combines two lists, element for element, into a list of lists:
+
+[source,cypher]
+----
+RETURN apoc.coll.zip([1,2,3], ["a", "b", "c"]) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [[1, "a"], [2, "b"], [3, "c"]]
+|===
