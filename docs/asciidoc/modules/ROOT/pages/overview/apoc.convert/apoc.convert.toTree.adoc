@@ -33,5 +33,3 @@ apoc.convert.toTree(paths :: LIST? OF PATH?, lowerCaseRels = true :: BOOLEAN?, c
 |value|MAP?
 |===
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toTree,role=more information]
-

@@ -24,5 +24,3 @@ apoc.convert.toList(list :: ANY?) :: (LIST? OF ANY?)
 |list|ANY?|null
 |===
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toList,role=more information]
-

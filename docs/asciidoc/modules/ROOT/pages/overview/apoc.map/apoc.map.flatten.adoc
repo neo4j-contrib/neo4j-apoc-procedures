@@ -25,5 +25,3 @@ apoc.map.flatten(map :: MAP?, delimiter = . :: STRING?) :: (MAP?)
 |delimiter|STRING?|.
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.flatten,role=more information]
-

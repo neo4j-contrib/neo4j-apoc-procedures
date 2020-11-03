@@ -27,5 +27,3 @@ apoc.convert.toIntList(list :: ANY?) :: (LIST? OF ANY?)
 == Usage Examples
 include::partial$usage/apoc.convert.toIntList.adoc[]
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toIntList,role=more information]
-

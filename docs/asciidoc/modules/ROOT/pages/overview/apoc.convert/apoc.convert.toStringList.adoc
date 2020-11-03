@@ -27,5 +27,3 @@ apoc.convert.toStringList(list :: ANY?) :: (LIST? OF ANY?)
 == Usage Examples
 include::partial$usage/apoc.convert.toStringList.adoc[]
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toStringList,role=more information]
-

@@ -24,5 +24,3 @@ apoc.convert.toRelationship(relationship :: ANY?) :: (RELATIONSHIP?)
 |relationship|ANY?|null
 |===
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toRelationship,role=more information]
-

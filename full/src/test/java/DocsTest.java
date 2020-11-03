@@ -100,8 +100,6 @@ public class DocsTest {
         docs.put("apoc.import.csv", "import/import-csv.adoc");
         docs.put("apoc.import.graphml", "import/graphml.adoc");
         docs.put("apoc.coll.*", "data-structures/collection-list-functions.adoc");
-        docs.put("apoc.convert.*", "data-structures/conversion-functions.adoc");
-        docs.put("apoc.map.*", "data-structures/map-functions.adoc");
         docs.put("apoc.create.v.*|apoc.create.virtual.*", "virtual/virtual-nodes-rels.adoc");
         docs.put("apoc.math.*|apoc.number.romanToArabic|apoc.number.arabicToRoman", "mathematical/math-functions.adoc");
         docs.put("apoc.meta.*", "database-introspection/meta.adoc");

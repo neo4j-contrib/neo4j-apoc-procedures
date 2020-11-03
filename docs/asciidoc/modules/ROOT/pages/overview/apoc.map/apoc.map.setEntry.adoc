@@ -26,5 +26,3 @@ apoc.map.setEntry(map :: MAP?, key :: STRING?, value :: ANY?) :: (MAP?)
 |value|ANY?|null
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.setEntry,role=more information]
-

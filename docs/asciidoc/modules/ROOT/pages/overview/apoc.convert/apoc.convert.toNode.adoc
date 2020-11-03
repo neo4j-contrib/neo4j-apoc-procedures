@@ -24,5 +24,3 @@ apoc.convert.toNode(node :: ANY?) :: (NODE?)
 |node|ANY?|null
 |===
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toNode,role=more information]
-
