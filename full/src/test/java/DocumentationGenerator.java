@@ -210,8 +210,13 @@ class DocumentationGenerator {
 
     public void writeProcedurePages() {
         for (ProcedureSignature procedure : allProcedures()) {
+//            String[] parts = procedure.name().toString().split("\\.");
+//            String topLevelDirectory = String.format("%s.%s", parts[0], parts[1]);
+
             String[] parts = procedure.name().toString().split("\\.");
-            String topLevelDirectory = String.format("%s.%s", parts[0], parts[1]);
+            parts = Arrays.copyOf(parts, Math.min(2, parts.length-1));
+            String topLevelDirectory = String.join(".", parts);
+
             new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelDirectory).mkdirs();
 
             writeProcedurePage(procedure, topLevelDirectory);
@@ -220,8 +225,13 @@ class DocumentationGenerator {
 
     public void writeFunctionPages() {
         allFunctions().forEach(userFunctionSignature -> {
+//            String[] parts = userFunctionSignature.name().toString().split("\\.");
+//            String topLevelDirectory = String.format("%s.%s", parts[0], parts[1]);
+
             String[] parts = userFunctionSignature.name().toString().split("\\.");
-            String topLevelDirectory = String.format("%s.%s", parts[0], parts[1]);
+            parts = Arrays.copyOf(parts, Math.min(2, parts.length-1));
+            String topLevelDirectory = String.join(".", parts);
+
             new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelDirectory).mkdirs();
 
             writeFunctionPage(userFunctionSignature, topLevelDirectory);
