@@ -1,0 +1,70 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (p:Person {name: "Tom Hanks"})
+CREATE (m:Movie {title:"You've Got Mail"});
+----
+
+This procedure provides a more flexible way of creating relationships than Cypher's https://neo4j.com/docs/cypher-manual/current/clauses/create/[`CREATE`^] clause.
+
+The example below shows equivalent ways of creating a node with the `Person` and `Actor` labels, with a `name` property of "Tom Hanks":
+
+// tag::tabs[]
+[.tabs]
+
+.apoc.create.relationship
+[source,cypher]
+----
+MATCH (p:Person {name: "Tom Hanks"})
+MATCH (m:Movie {title:"You've Got Mail"})
+CALL apoc.create.relationship(p, "ACTED_IN", {roles:['Joe Fox']}, m)
+YIELD rel
+RETURN rel;
+----
+
+.CREATE clause
+[source,cypher]
+----
+MATCH (p:Person {name: "Tom Hanks"})
+MATCH (m:Movie {title:"You've Got Mail"})
+CREATE (p)-[rel:ACTED_IN {roles:['Joe Fox']}]->(m)
+RETURN rel;
+----
+// end::tabs[]
+
+.Results
+[opts="header"]
+|===
+| rel
+| [:ACTED_IN {roles: ["Joe Fox"]}]
+|===
+
+But this procedure is mostly useful for creating relationships that have a dynamic relationship type or dynamic properties.
+For example, we might want to create a relationship with a relationship type or properties passed in as parameters.
+
+The following creates `relationshipType` and `properties` parameters:
+
+[source,cypher]
+----
+:param relType =>  ("ACTED_IN");
+:param properties => ({roles: ["Joe Fox"]});
+----
+
+The following creates a relationship with a relationship type and properties based on the previously defined parameters:
+
+[source,cypher]
+----
+MATCH (p:Person {name: "Tom Hanks"})
+MATCH (m:Movie {title:"You've Got Mail"})
+CALL apoc.create.relationship(p, $relType, $properties, m)
+YIELD rel
+RETURN rel;
+----
+
+.Results
+[opts="header"]
+|===
+| rel
+| [:ACTED_IN {roles: ["Joe Fox"]}]
+|===

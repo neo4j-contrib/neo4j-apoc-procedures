@@ -276,9 +276,9 @@ class DocumentationGenerator {
     }
 
     Map<String, List<Row>> topLevelNamespaces() {
-        return rows.stream().filter(value -> value.name.split("\\.").length == 3).collect(Collectors.groupingBy(value -> {
+        return rows.stream().collect(Collectors.groupingBy(value -> {
             String[] parts = value.name.split("\\.");
-            parts = Arrays.copyOf(parts, parts.length - 1);
+            parts = Arrays.copyOf(parts, Math.min(2, parts.length-1));
             return String.join(".", parts);
         }));
     }

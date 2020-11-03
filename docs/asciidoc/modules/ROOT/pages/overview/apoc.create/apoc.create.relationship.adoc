@@ -34,5 +34,8 @@ apoc.create.relationship(from :: NODE?, relType :: STRING?, props :: MAP?, to ::
 |rel|RELATIONSHIP?
 |===
 
+== Usage Examples
+include::partial$usage/apoc.create.relationship.adoc[]
+
 xref::graph-updates/data-creation.adoc[More documentation of apoc.create.relationship,role=more information]
 
