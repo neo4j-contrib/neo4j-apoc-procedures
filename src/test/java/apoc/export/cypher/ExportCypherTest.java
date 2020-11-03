@@ -675,7 +675,24 @@ public class ExportCypherTest {
                             .orElse(null);
                     assertEquals(expected, unwind);
                 });
+    }
 
+    @Test
+    public void shouldQuotePropertyNameStartingWithDollarCharacter() {
+        db.execute("CREATE (n:Bar:Baz{name: 'A', `$lock`: true})").close();
+        String query = "MATCH (n:Baz) RETURN n";
+        final String expected = "UNWIND [{name:\"A\", properties:{`$lock`:true}}] AS row\n" +
+                "CREATE (n:Bar{name: row.name}) SET n += row.properties SET n:Baz";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.query($query, $file, $config)",
+                map("file", null, "query", query, "config", map("format", "plain", "stream", true)), (r) -> {
+                    final String cypherStatements = (String) r.get("cypherStatements");
+                    String unwind = Stream.of(cypherStatements.split(";"))
+                            .map(String::trim)
+                            .filter(s -> s.startsWith("UNWIND"))
+                            .findFirst()
+                            .orElse(null);
+                    assertEquals(expected, unwind);
+                });
     }
 
     private void assertResultsOptimized(String fileName, Map<String, Object> r) {
