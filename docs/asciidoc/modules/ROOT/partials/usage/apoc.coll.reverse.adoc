@@ -1,0 +1,13 @@
+The following reverses a collection:
+
+[source,cypher]
+----
+RETURN apoc.coll.reverse([5,4,3,2,1]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 2, 3, 4, 5]
+|===

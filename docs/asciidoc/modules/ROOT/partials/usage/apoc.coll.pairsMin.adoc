@@ -1,0 +1,13 @@
+The following creates a list of lists of adjacent elements in a list, skipping the last item:
+
+[source,cypher]
+----
+RETURN apoc.coll.pairsMin([1,2,3,4,5]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [[1, 2], [2, 3], [3, 4], [4, 5]]
+|===

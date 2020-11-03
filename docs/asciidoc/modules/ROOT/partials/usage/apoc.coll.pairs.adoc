@@ -1,0 +1,13 @@
+The following creates a list of lists of adjacent elements in a list:
+
+[source,cypher]
+----
+RETURN apoc.coll.pairs([1,2,3,4,5]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [[1, 2], [2, 3], [3, 4], [4, 5], [5, null]]
+|===
