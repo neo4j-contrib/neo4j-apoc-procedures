@@ -36,5 +36,8 @@ apoc.merge.relationship(startNode :: NODE?, relationshipType :: STRING?, identPr
 |rel|RELATIONSHIP?
 |===
 
+== Usage Examples
+include::partial$usage/apoc.merge.relationship.adoc[]
+
 xref::graph-updates/data-creation.adoc[More documentation of apoc.merge.relationship,role=more information]
 
