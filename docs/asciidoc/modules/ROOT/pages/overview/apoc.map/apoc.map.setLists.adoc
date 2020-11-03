@@ -26,5 +26,3 @@ apoc.map.setLists(map :: MAP?, keys :: LIST? OF STRING?, values :: LIST? OF ANY?
 |values|LIST? OF ANY?|null
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.setLists,role=more information]
-

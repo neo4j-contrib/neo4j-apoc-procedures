@@ -27,5 +27,3 @@ apoc.convert.toBoolean(bool :: ANY?) :: (BOOLEAN?)
 == Usage Examples
 include::partial$usage/apoc.convert.toBoolean.adoc[]
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toBoolean,role=more information]
-

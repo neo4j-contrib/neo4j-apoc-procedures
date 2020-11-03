@@ -27,5 +27,6 @@ apoc.map.get(map :: MAP?, key :: STRING?, value = null :: ANY?, fail = true :: B
 |fail|BOOLEAN?|true
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.get,role=more information]
+== Usage Examples
+include::partial$usage/apoc.map.get.adoc[]
 

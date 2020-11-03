@@ -25,5 +25,6 @@ apoc.map.sortedProperties(map :: MAP?, ignoreCase = true :: BOOLEAN?) :: (LIST? 
 |ignoreCase|BOOLEAN?|true
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.sortedProperties,role=more information]
+== Usage Examples
+include::partial$usage/apoc.map.sortedProperties.adoc[]
 

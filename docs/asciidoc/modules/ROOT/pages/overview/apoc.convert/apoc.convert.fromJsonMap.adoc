@@ -25,5 +25,3 @@ apoc.convert.fromJsonMap(map :: STRING?, path =  :: STRING?) :: (MAP?)
 |path|STRING?|
 |===
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.fromJsonMap,role=more information]
-

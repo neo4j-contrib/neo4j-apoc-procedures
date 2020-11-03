@@ -25,5 +25,3 @@ apoc.map.setPairs(map :: MAP?, pairs :: LIST? OF LIST? OF ANY?) :: (MAP?)
 |pairs|LIST? OF LIST? OF ANY?|null
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.setPairs,role=more information]
-

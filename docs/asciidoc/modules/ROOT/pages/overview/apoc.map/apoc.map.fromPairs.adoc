@@ -27,5 +27,3 @@ apoc.map.fromPairs(pairs :: LIST? OF LIST? OF ANY?) :: (MAP?)
 == Usage Examples
 include::partial$usage/apoc.map.fromPairs.adoc[]
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.fromPairs,role=more information]
-

@@ -24,5 +24,6 @@ apoc.map.mergeList(maps :: LIST? OF MAP?) :: (MAP?)
 |maps|LIST? OF MAP?|null
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.mergeList,role=more information]
+== Usage Examples
+include::partial$usage/apoc.map.mergeList.adoc[]
 

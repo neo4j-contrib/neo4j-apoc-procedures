@@ -26,5 +26,6 @@ apoc.map.setKey(map :: MAP?, key :: STRING?, value :: ANY?) :: (MAP?)
 |value|ANY?|null
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.setKey,role=more information]
+== Usage Examples
+include::partial$usage/apoc.map.setKey.adoc[]
 

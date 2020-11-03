@@ -27,5 +27,3 @@ apoc.convert.toMap(map :: ANY?) :: (MAP?)
 == Usage Examples
 include::partial$usage/apoc.convert.toMap.adoc[]
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toMap,role=more information]
-

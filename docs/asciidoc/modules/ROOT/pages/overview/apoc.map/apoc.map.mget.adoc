@@ -27,5 +27,6 @@ apoc.map.mget(map :: MAP?, keys :: LIST? OF STRING?, values = [] :: LIST? OF ANY
 |fail|BOOLEAN?|true
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.mget,role=more information]
+== Usage Examples
+include::partial$usage/apoc.map.mget.adoc[]
 
