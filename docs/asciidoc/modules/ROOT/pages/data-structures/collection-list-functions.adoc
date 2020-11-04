@@ -53,7 +53,7 @@ endif::[]
 | xref::overview/apoc.coll/apoc.coll.sortMulti.adoc[+++apoc.coll.sortMulti+++] | sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip
 | xref::overview/apoc.coll/apoc.coll.flatten.adoc[+++apoc.coll.flatten+++] | flattens a nested list
 | xref::overview/apoc.coll/apoc.coll.combinations.adoc[+++apoc.coll.combinations(coll, minSelect, maxSelect:minSelect)+++] | Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive
-| CALL apoc.coll.elements(list,limit,offset) yield _1,_2,..,_10,_1s,_2i,_3f,_4m,_5l,_6n,_7r,_8p | deconstruct subset of mixed list into identifiers of the correct type
+| xref::overview/apoc.coll/apoc.coll.elements.adoc[+++CALL apoc.coll.elements(list,limit,offset) yield _1,_2,..,_10,_1s,_2i,_3f,_4m,_5l,_6n,_7r,_8p+++] | deconstruct subset of mixed list into identifiers of the correct type
 | xref::overview/apoc.coll/apoc.coll.set.adoc[+++apoc.coll.set(coll, index, value)+++] | set index to value
 | xref::overview/apoc.coll/apoc.coll.insert.adoc[+++apoc.coll.insert(coll, index, value)+++] | insert value at index
 | xref::overview/apoc.coll/apoc.coll.insertAll.adoc[+++apoc.coll.insertAll(coll, index, values)+++] | insert values at index
