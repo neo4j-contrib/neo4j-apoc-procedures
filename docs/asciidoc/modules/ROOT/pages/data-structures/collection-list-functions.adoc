@@ -25,14 +25,14 @@ endif::[]
 | xref::overview/apoc.coll/apoc.coll.pairsMin.adoc[+++apoc.coll.pairsMin([1,2,3]) YIELD value+++] | [1,2],[2,3]
 | xref::overview/apoc.coll/apoc.coll.toSet.adoc[+++apoc.coll.toSet([list])+++] | returns a unique list backed by a set
 | xref::overview/apoc.coll/apoc.coll.sort.adoc[+++apoc.coll.sort(coll)+++] | sort on Collections
-| apoc.coll.sortNodes([nodes], 'name') | sort nodes by property, ascending sorting by adding ^ in front of the sorting field
+| xref::overview/apoc.coll/apoc.coll.sortNodes.adoc[+++apoc.coll.sortNodes([nodes], 'name')+++] | sort nodes by property, ascending sorting by adding ^ in front of the sorting field
 | xref::overview/apoc.coll/apoc.coll.sortMaps.adoc[+++apoc.coll.sortMaps([maps], 'key')+++] | sort maps by map key, ascending sorting by adding ^ in front of the sorting field
 | xref::overview/apoc.coll/apoc.coll.reverse.adoc[+++apoc.coll.reverse(coll)+++] | returns the reversed list
 | xref::overview/apoc.coll/apoc.coll.contains.adoc[+++apoc.coll.contains(coll, value)+++] | returns true if collection contains the value
-| apoc.coll.containsAll(coll, values) | optimized contains-all operation (using a HashSet) returns true or false
-| apoc.coll.containsSorted(coll, value) | optimized contains on a sorted list operation (Collections.binarySearch) (returns true or false)
-| apoc.coll.containsAllSorted(coll, value) | optimized contains-all on a sorted list operation (Collections.binarySearch) (returns true or false)
-| apoc.coll.isEqualCollection(coll, values) | return true if two collections contain the same elements with the same cardinality in any order (using a HashMap)
+| xref::overview/apoc.coll/apoc.coll.containsAll.adoc[+++apoc.coll.containsAll(coll, values)+++] | optimized contains-all operation (using a HashSet) returns true or false
+| xref::overview/apoc.coll/apoc.coll.containsSorted.adoc[+++apoc.coll.containsSorted(coll, value)+++] | optimized contains on a sorted list operation (Collections.binarySearch) (returns true or false)
+| xref::overview/apoc.coll/apoc.coll.containsAllSorted.adoc[+++apoc.coll.containsAllSorted(coll, value)+++] | optimized contains-all on a sorted list operation (Collections.binarySearch) (returns true or false)
+| xref::overview/apoc.coll/apoc.coll.isEqualCollection.adoc[+++apoc.coll.isEqualCollection(coll, values)+++] | return true if two collections contain the same elements with the same cardinality in any order (using a HashMap)
 | xref::overview/apoc.coll/apoc.coll.union.adoc[+++apoc.coll.union(first, second)+++] | creates the distinct union of the 2 lists
 | xref::overview/apoc.coll/apoc.coll.unionAll.adoc[+++apoc.coll.unionAll(first, second)+++] | creates the full union with duplicates of the two lists
 | xref::overview/apoc.coll/apoc.coll.subtract.adoc[+++apoc.coll.subtract(first, second)+++] | returns unique set of first list with all elements of second list removed
@@ -50,16 +50,16 @@ endif::[]
 | xref::overview/apoc.coll/apoc.coll.occurrences.adoc[+++apoc.coll.occurrences(coll, item)+++] | returns the count of the given item in the collection
 | xref::overview/apoc.coll/apoc.coll.frequencies.adoc[+++apoc.coll.frequencies(coll)+++] | returns a list of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}, {item:abc, count:1}]`)
 | xref::overview/apoc.coll/apoc.coll.frequenciesAsMap.adoc[+++apoc.coll.frequenciesAsMap(coll)+++] | return a map of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `{1: 2, 3: 2}`)
-| apoc.coll.sortMulti | sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip
+| xref::overview/apoc.coll/apoc.coll.sortMulti.adoc[+++apoc.coll.sortMulti+++] | sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip
 | xref::overview/apoc.coll/apoc.coll.flatten.adoc[+++apoc.coll.flatten+++] | flattens a nested list
 | xref::overview/apoc.coll/apoc.coll.combinations.adoc[+++apoc.coll.combinations(coll, minSelect, maxSelect:minSelect)+++] | Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive
 | CALL apoc.coll.elements(list,limit,offset) yield _1,_2,..,_10,_1s,_2i,_3f,_4m,_5l,_6n,_7r,_8p | deconstruct subset of mixed list into identifiers of the correct type
 | xref::overview/apoc.coll/apoc.coll.set.adoc[+++apoc.coll.set(coll, index, value)+++] | set index to value
 | xref::overview/apoc.coll/apoc.coll.insert.adoc[+++apoc.coll.insert(coll, index, value)+++] | insert value at index
-| apoc.coll.insertAll(coll, index, values) | insert values at index
+| xref::overview/apoc.coll/apoc.coll.insertAll.adoc[+++apoc.coll.insertAll(coll, index, values)+++] | insert values at index
 | xref::overview/apoc.coll/apoc.coll.remove.adoc[+++apoc.coll.remove(coll, index, [length=1])+++] | remove range of values from index to length
 | xref::overview/apoc.coll/apoc.coll.different.adoc[+++apoc.coll.different(values)+++] | returns true if value are different
-| apoc.coll.fill(item, count) | returns a list with the given count of items
+| xref::overview/apoc.coll/apoc.coll.fill.adoc[+++apoc.coll.fill(item, count)+++] | returns a list with the given count of items
 | xref::overview/apoc.coll/apoc.coll.sortText.adoc[+++apoc.coll.sortText(coll, conf)+++] | sort on string based collections
 | xref::overview/apoc.coll/apoc.coll.pairWithOffset.adoc[+++apoc.coll.pairWithOffset(values, offset)+++] | returns a list of pairs defined by the offset
 |===

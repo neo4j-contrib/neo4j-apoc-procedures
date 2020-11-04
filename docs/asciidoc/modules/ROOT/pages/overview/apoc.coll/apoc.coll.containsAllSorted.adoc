@@ -25,3 +25,6 @@ apoc.coll.containsAllSorted(coll :: LIST? OF ANY?, values :: LIST? OF ANY?) :: (
 |values|LIST? OF ANY?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.coll.containsAllSorted.adoc[]
+

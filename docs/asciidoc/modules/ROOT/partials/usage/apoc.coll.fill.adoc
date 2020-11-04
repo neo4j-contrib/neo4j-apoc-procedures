@@ -1,0 +1,13 @@
+The following returns a list containing 2 lists with the contents `abc`:
+
+[source,cypher]
+----
+RETURN apoc.coll.fill('abc', 2) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| ["abc", "abc"]
+|===
