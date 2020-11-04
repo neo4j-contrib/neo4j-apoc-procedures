@@ -1,0 +1,36 @@
+The following deconstructs a list of 3 values into identifiers of the correct type:
+
+[source,cypher]
+----
+CALL apoc.coll.elements([9, true, "Neo4j"])
+YIELD _1, _1s, _1i, _1b, _1l, _1m, _1n, _1r, _1p,
+      _2, _2s, _2i, _2b, _2l, _2m, _2n, _2r, _2p,
+      _3, _3s, _3i, _3b, _3l, _3m, _3n, _3r, _3p
+RETURN _1, _1s, _1i, _1b, _1l, _1m, _1n, _1r, _1p,
+       _2, _2s, _2i, _2b, _2l, _2m, _2n, _2r, _2p,
+       _3, _3s, _3i, _3b, _3l, _3m, _3n, _3r, _3p;
+----
+
+The output below would usually be in one table, but for readability we format it into multiple tables
+
+.Results
+[opts="header"]
+|===
+| _1 | _1s  | _1i | _1b  | _1l  | _1m  | _1n  | _1r  | _1p
+| 9  | NULL | 9   | NULL | NULL | NULL | NULL | NULL | NULL
+|===
+
+.Results
+[opts="header"]
+|===
+|_2   | _2s  | _2i  | _2b  | _2l  | _2m  | _2n  | _2r  | _2p
+|TRUE | NULL | NULL | TRUE | NULL | NULL | NULL | NULL | NULL
+|===
+
+
+.Results
+[opts="header"]
+|===
+| _3      | _3s     | _3i  | _3b  | _3l  | _3m  | _3n  | _3r  | _3p
+| "Neo4j" | "Neo4j" | NULL | NULL | NULL | NULL | NULL | NULL | NULL
+|===
