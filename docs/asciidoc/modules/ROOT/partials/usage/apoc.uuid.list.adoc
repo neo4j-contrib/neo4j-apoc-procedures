@@ -1,0 +1,13 @@
+We can list all the UUID handlers (installed by xref::overview/apoc.uuid/apoc.uuid.install.adoc[]), by running the following query:
+
+[source,cypher]
+----
+CALL apoc.uuid.list();
+----
+
+.Results
+[opts="header"]
+|===
+| label    | installed | properties
+| "Person" | TRUE      | {uuidProperty: "myUUID"}
+|===
