@@ -25,3 +25,6 @@ apoc.coll.fill(item :: STRING?, count :: INTEGER?) :: (LIST? OF ANY?)
 |count|INTEGER?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.coll.fill.adoc[]
+
