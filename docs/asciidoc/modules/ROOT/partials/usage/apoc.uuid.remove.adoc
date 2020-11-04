@@ -1,0 +1,28 @@
+We can remove a UUID handler (installed by xref::overview/apoc.uuid/apoc.uuid.install.adoc[]), by running the following query:
+
+[source,cypher]
+----
+CALL apoc.uuid.remove("Person");
+----
+
+.Results
+[opts="header"]
+|===
+| label    | installed | properties
+| "Person" | FALSE     | {uuidProperty: "myUUID"}
+|===
+
+If we try to remove a non existent UUID handler, the output will indicate that no such handler is installed:
+
+
+[source,cypher]
+----
+CALL apoc.uuid.remove("Foo");
+----
+
+.Results
+[opts="header"]
+|===
+| label    | installed | properties
+| NULL | FALSE      | {}
+|===
