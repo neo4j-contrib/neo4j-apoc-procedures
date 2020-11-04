@@ -26,5 +26,6 @@ apoc.coll.remove(coll :: LIST? OF ANY?, index :: INTEGER?, length = 1 :: INTEGER
 |length|INTEGER?|1
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.remove,role=more information]
+== Usage Examples
+include::partial$usage/apoc.coll.remove.adoc[]
 

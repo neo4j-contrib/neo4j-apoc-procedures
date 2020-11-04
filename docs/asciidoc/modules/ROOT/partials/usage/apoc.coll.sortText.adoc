@@ -1,0 +1,15 @@
+The following sort a list of strings:
+
+[source,cypher]
+----
+// n.b. if no locale is provided it takes the default of the machine where neo4j is running on
+RETURN apoc.coll.sortText(['Єльська', 'Гусак'], {locale: 'ru'}) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| Гусак
+| Єльська
+|===

@@ -25,5 +25,6 @@ apoc.coll.occurrences(coll :: LIST? OF ANY?, item :: ANY?) :: (INTEGER?)
 |item|ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.occurrences,role=more information]
+== Usage Examples
+include::partial$usage/apoc.coll.occurrences.adoc[]
 

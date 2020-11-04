@@ -1,0 +1,14 @@
+The following splits a collection on the value `.`:
+
+[source,cypher]
+----
+CALL apoc.coll.split(["Hello", "World", ".", "How", "are", "you", "?"], ".");
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| ["Hello", "World"]
+| ["How", "are", "you", "?"]
+|===

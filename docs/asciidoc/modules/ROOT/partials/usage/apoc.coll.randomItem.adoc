@@ -1,0 +1,12 @@
+The following returns a random value from a list:
+[source,cypher]
+----
+RETURN apoc.coll.randomItem([1,3,5,7,9]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| 7
+|===

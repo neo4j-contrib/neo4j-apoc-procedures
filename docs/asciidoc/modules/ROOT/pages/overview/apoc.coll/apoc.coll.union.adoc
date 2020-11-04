@@ -25,5 +25,6 @@ apoc.coll.union(first :: LIST? OF ANY?, second :: LIST? OF ANY?) :: (LIST? OF AN
 |second|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.union,role=more information]
+== Usage Examples
+include::partial$usage/apoc.coll.union.adoc[]
 

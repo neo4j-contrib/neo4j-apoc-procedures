@@ -27,5 +27,3 @@ apoc.coll.max(values :: LIST? OF ANY?) :: (ANY?)
 == Usage Examples
 include::partial$usage/apoc.coll.max.adoc[]
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.max,role=more information]
-
