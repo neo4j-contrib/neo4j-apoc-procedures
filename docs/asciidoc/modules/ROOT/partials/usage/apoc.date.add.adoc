@@ -9,7 +9,7 @@ The `unit` and `addUnit` parameters support the following values:
 * `d`,  `day`, `days`
 ====
 
-The following adds 1000 milliseconds to the current time:
+The following adds 10,000 milliseconds to the current time:
 
 [source,cypher]
 ----
@@ -22,4 +22,19 @@ RETURN output, datetime({epochMillis: output}) AS datetime;
 |===
 | output        | datetime
 | 1604509597386 | 2020-11-04T17:06:37.386Z
+|===
+
+The following adds 1 day to the current time:
+
+[source,cypher]
+----
+WITH apoc.date.add(datetime().epochMillis, "ms", 1, "day") AS output
+RETURN output, datetime({epochMillis: output}) AS datetime;
+----
+
+.Results
+[opts="header"]
+|===
+| output        | datetime
+| 1604596506209 | 2020-11-05T17:15:06.209Z 
 |===
