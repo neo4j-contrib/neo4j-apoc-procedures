@@ -1,0 +1,11 @@
+This procedure is part of a set of procedures that handle automatic adding of UUID properties, via the UUID Handler Lifecycle.
+The UUID handler is a transaction event handler that automatically adds the UUID property to a provided label and for the provided property name.
+
+By default automatic adding of UUIDs is disabled.
+We can enable it by setting the following property in `apoc.conf`:
+
+.apoc.conf
+[source,properties]
+----
+apoc.uuid.enabled=true
+----

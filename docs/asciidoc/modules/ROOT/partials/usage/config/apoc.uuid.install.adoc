@@ -1,0 +1,9 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| addToExistingNodes | Boolean | true | adds UUID values to existing nodes. Will override an existing value.
+| uuidProperty | String | "uuid" | the property key for the UUID value
+|===
