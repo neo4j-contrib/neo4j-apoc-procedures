@@ -259,8 +259,10 @@ class DocumentationGenerator {
             writeDescription(writer, procedure.description());
             writeSignature(writer, procedure.toString());
             writeInputParameters(writer, procedure.inputSignature());
+            writeConfigParameters(writer, procedure.name().toString());
             writeOutputParameters(procedure, writer);
             writeReadingFromFile(writer, procedure.name().toString());
+            writeUuid(writer, procedure.name().toString());
             writeUsageExample(writer, procedure.name().toString());
             writeExtraDocumentation(writer, procedure.name());
 
@@ -275,6 +277,20 @@ class DocumentationGenerator {
         if(readsFromFile.contains(name)) {
             writer.write("== Reading from a file\n");
             writer.write("include::../../import/includes/enableFileImport.adoc[]\n\n");
+        }
+    }
+
+    private void writeUuid(Writer writer, String name) throws IOException {
+        if(name.startsWith("apoc.uuid")) {
+            writer.write("== Enable automatic UUIDs\n");
+            writer.write("include::partial$uuids.adoc[]\n\n");
+        }
+    }
+
+    private void writeConfigParameters(Writer writer, String name) throws IOException {
+        if(new File("../docs/asciidoc/modules/ROOT/partials/usage/config", name + ".adoc").exists()) {
+            writer.write("== Config parameters\n");
+            writer.write("include::partial$usage/config/" + name + ".adoc[]\n\n");
         }
     }
 
