@@ -26,5 +26,3 @@ apoc.coll.insertAll(coll :: LIST? OF ANY?, index :: INTEGER?, values :: LIST? OF
 |values|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.insertAll,role=more information]
-

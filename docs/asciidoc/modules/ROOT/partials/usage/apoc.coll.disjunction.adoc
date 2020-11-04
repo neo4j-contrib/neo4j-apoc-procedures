@@ -1,0 +1,16 @@
+
+
+
+The following returns the unique disjunction of two lists:
+
+[source,cypher]
+----
+RETURN apoc.coll.disjunction([1,2,3,4,5], [3,4,5]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 2]
+|===

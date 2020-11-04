@@ -32,5 +32,3 @@ apoc.coll.zipToRows(list1 :: LIST? OF ANY?, list2 :: LIST? OF ANY?) :: (value ::
 |value|LIST? OF ANY?
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.zipToRows,role=more information]
-

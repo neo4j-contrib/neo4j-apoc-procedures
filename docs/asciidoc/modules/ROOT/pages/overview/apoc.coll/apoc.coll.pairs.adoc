@@ -27,5 +27,3 @@ apoc.coll.pairs(list :: LIST? OF ANY?) :: (LIST? OF ANY?)
 == Usage Examples
 include::partial$usage/apoc.coll.pairs.adoc[]
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.pairs,role=more information]
-

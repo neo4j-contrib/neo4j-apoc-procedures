@@ -25,5 +25,3 @@ apoc.coll.sortNodes(coll :: LIST? OF NODE?, prop :: STRING?) :: (LIST? OF ANY?)
 |prop|STRING?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.sortNodes,role=more information]
-

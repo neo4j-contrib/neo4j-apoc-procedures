@@ -27,5 +27,3 @@ apoc.coll.sort(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)
 == Usage Examples
 include::partial$usage/apoc.coll.sort.adoc[]
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.sort,role=more information]
-

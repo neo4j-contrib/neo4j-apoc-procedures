@@ -32,5 +32,6 @@ apoc.coll.split(values :: LIST? OF ANY?, value :: ANY?) :: (value :: LIST? OF AN
 |value|LIST? OF ANY?
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.split,role=more information]
+== Usage Examples
+include::partial$usage/apoc.coll.split.adoc[]
 
