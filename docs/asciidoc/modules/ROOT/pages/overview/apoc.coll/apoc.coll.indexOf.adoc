@@ -25,5 +25,6 @@ apoc.coll.indexOf(coll :: LIST? OF ANY?, value :: ANY?) :: (INTEGER?)
 |value|ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.indexOf,role=more information]
+== Usage Examples
+include::partial$usage/apoc.coll.indexOf.adoc[]
 

@@ -26,5 +26,6 @@ apoc.coll.insert(coll :: LIST? OF ANY?, index :: INTEGER?, value :: ANY?) :: (LI
 |value|ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.insert,role=more information]
+== Usage Examples
+include::partial$usage/apoc.coll.insert.adoc[]
 

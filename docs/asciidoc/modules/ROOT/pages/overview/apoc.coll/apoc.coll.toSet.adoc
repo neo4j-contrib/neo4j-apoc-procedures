@@ -27,5 +27,3 @@ apoc.coll.toSet(values :: LIST? OF ANY?) :: (LIST? OF ANY?)
 == Usage Examples
 include::partial$usage/apoc.coll.toSet.adoc[]
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.toSet,role=more information]
-

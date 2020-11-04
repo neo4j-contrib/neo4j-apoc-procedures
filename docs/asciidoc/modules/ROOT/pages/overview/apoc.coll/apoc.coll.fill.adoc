@@ -25,5 +25,3 @@ apoc.coll.fill(item :: STRING?, count :: INTEGER?) :: (LIST? OF ANY?)
 |count|INTEGER?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.fill,role=more information]
-

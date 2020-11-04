@@ -1,0 +1,12 @@
+The following replaces the item at index `4` with the value `11`:
+[source,cypher]
+----
+RETURN apoc.coll.set([1,3,5,7,9], 4, 11) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 3, 5, 7, 11]
+|===

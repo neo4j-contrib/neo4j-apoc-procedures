@@ -25,5 +25,3 @@ apoc.coll.containsSorted(coll :: LIST? OF ANY?, value :: ANY?) :: (BOOLEAN?)
 |value|ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.containsSorted,role=more information]
-

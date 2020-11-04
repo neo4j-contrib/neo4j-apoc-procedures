@@ -26,5 +26,6 @@ apoc.coll.set(coll :: LIST? OF ANY?, index :: INTEGER?, value :: ANY?) :: (LIST?
 |value|ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.set,role=more information]
+== Usage Examples
+include::partial$usage/apoc.coll.set.adoc[]
 
