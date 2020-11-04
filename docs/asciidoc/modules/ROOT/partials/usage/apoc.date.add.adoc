@@ -1,0 +1,25 @@
+[NOTE]
+====
+The `unit` and `addUnit` parameters support the following values:
+
+* `ms`, `milli`, `millis`, `milliseconds`
+* `s`, `second`, `seconds`
+* `m`, `minute`, `minutes`
+* `h`, `hour`, `hours`
+* `d`,  `day`, `days`
+====
+
+The following adds 1000 milliseconds to the current time:
+
+[source,cypher]
+----
+WITH apoc.date.add(datetime().epochMillis, "ms", 10000, "ms") AS output
+RETURN output, datetime({epochMillis: output}) AS datetime;
+----
+
+.Results
+[opts="header"]
+|===
+| output        | datetime
+| 1604509597386 | 2020-11-04T17:06:37.386Z
+|===

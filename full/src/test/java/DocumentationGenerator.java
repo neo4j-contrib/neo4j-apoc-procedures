@@ -245,6 +245,7 @@ class DocumentationGenerator {
             writeDescription(writer, userFunctionSignature.description());
             writeSignature(writer, userFunctionSignature.toString());
             writeInputParameters(writer, userFunctionSignature.inputSignature());
+            writeConfigParameters(writer, userFunctionSignature.name().toString());
             writeUsageExample(writer, userFunctionSignature.name().toString());
             writeExtraDocumentation(writer, userFunctionSignature.name());
         } catch (Exception e) {
