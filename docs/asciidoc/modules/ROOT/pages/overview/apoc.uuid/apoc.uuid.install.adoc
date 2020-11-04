@@ -26,7 +26,7 @@ apoc.uuid.install(label :: STRING?, config = {} :: MAP?) :: (batchComputationRes
 |config|MAP?|{}
 |===
 
-== Config Parameters
+== Config parameters
 include::partial$usage/config/apoc.uuid.install.adoc[]
 
 == Output parameters
