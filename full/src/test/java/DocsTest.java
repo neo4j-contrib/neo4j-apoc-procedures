@@ -167,7 +167,7 @@ public class DocsTest {
         docs.put("apoc.load.jdbc.*", "database-integration/load-jdbc.adoc");
         docs.put("apoc.load.xml.*|apoc.xml.parse", "import/xml.adoc");
         docs.put("apoc.lock.*", "graph-updates/locking.adoc");
-        docs.put("apoc.load.folder.*", "import/load-folder.adoc");
+        docs.put("apoc.load.directory.*", "import/load-directory.adoc");
         return docs;
     }
 
