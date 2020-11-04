@@ -1,0 +1,90 @@
+The following sorts a list of maps by the `name` property in ascending order:
+
+[source,cypher]
+----
+RETURN apoc.coll.sortMulti([
+  {name:'graphs'},
+  {name:'are',age:32},
+  {name:'everywhere',age:42}
+], ['^name']) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [{name: "are", age: 32}, {name: "everywhere", age: 42}, {name: "graphs"}]
+|===
+
+The following sorts a list of maps by the `name` property in ascending order and then the `age` property in descending order:
+
+[source,cypher]
+----
+RETURN apoc.coll.sortMulti([
+  {name:'graphs'},
+  {name:'are',age:32},
+  {name:'are',age:21},
+  {name:'everywhere'}
+], ['^name', 'age']) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [{name: "are", age: 32}, {name: "are", age: 21}, {name: "everywhere"}, {name: "graphs"}]
+|===
+
+The following sorts a list of maps by the `name` property in ascending order and returns only one value:
+
+[source,cypher]
+----
+RETURN apoc.coll.sortMulti([
+  {name:'graphs'},
+  {name:'are'},
+  {name:'everywhere'}
+], ['^name'], 1) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [{name: "are"}]
+|===
+
+The following sorts a list of maps by the `name` property in ascending order and skips the first value:
+
+[source,cypher]
+----
+RETURN apoc.coll.sortMulti([
+  {name:'graphs'},
+  {name:'are'},
+  {name:'everywhere'}
+], ['^name'], -1, 1) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [{name: "everywhere"}, {name: "graphs"}]
+|===
+
+The following sorts a list of maps by the `name` property in ascending order, skips the first value, and returns only one value:
+
+[source,cypher]
+----
+RETURN apoc.coll.sortMulti([
+  {name:'graphs'},
+  {name:'are'},
+  {name:'everywhere'}
+], ['^name'], 1, 1) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [{name: "everywhere"}]
+|===

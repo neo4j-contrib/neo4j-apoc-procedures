@@ -1,0 +1,29 @@
+The following checks if a sorted collection contains a value:
+
+[source,cypher]
+----
+RETURN apoc.coll.containsSorted([1,4,5], 4) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| TRUE
+|===
+
+This function will not work on *unsorted collections*, as shown in the example below:
+
+[source,cypher]
+----
+RETURN apoc.coll.containsSorted([1,5,4], 4) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| FALSE
+|===
+
+If we want to find a value in an unsorted collection, see xref::overview/apoc.coll/apoc.coll.contains.adoc[].

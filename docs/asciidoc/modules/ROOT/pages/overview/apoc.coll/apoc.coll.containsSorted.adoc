@@ -25,3 +25,6 @@ apoc.coll.containsSorted(coll :: LIST? OF ANY?, value :: ANY?) :: (BOOLEAN?)
 |value|ANY?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.coll.containsSorted.adoc[]
+

@@ -26,3 +26,6 @@ apoc.coll.insertAll(coll :: LIST? OF ANY?, index :: INTEGER?, values :: LIST? OF
 |values|LIST? OF ANY?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.coll.insertAll.adoc[]
+

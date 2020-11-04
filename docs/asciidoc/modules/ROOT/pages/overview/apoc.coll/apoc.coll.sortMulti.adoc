@@ -27,3 +27,6 @@ apoc.coll.sortMulti(coll :: LIST? OF MAP?, orderFields = [] :: LIST? OF STRING?,
 |skip|INTEGER?|0
 |===
 
+== Usage Examples
+include::partial$usage/apoc.coll.sortMulti.adoc[]
+

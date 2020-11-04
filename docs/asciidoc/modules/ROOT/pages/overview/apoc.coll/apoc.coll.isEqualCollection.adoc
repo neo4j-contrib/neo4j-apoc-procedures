@@ -25,3 +25,6 @@ apoc.coll.isEqualCollection(coll :: LIST? OF ANY?, values :: LIST? OF ANY?) :: (
 |values|LIST? OF ANY?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.coll.isEqualCollection.adoc[]
+

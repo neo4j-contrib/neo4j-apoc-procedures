@@ -1,0 +1,29 @@
+The following checks if a sorted collection contains all the values from another collection:
+
+[source,cypher]
+----
+RETURN apoc.coll.containsAllSorted([1,4,5], [1,4]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| TRUE
+|===
+
+This function will not work on *unsorted collections*, as shown in the example below:
+
+[source,cypher]
+----
+RETURN apoc.coll.containsAllSorted([1,5,4], [1,4]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| FALSE
+|===
+
+If we want to find values in an unsorted collection, see xref::overview/apoc.coll/apoc.coll.containsAll.adoc[].

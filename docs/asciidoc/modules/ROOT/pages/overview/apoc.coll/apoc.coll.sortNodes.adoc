@@ -25,3 +25,6 @@ apoc.coll.sortNodes(coll :: LIST? OF NODE?, prop :: STRING?) :: (LIST? OF ANY?)
 |prop|STRING?|null
 |===
 
+== Usage Examples
+include::partial$usage/apoc.coll.sortNodes.adoc[]
+
