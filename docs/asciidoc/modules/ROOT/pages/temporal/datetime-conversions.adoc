@@ -111,6 +111,8 @@ It accepts the following parameters:
 | convertTo | String | the format for the output temporal type | can be specified manually with https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html[Java formats^] or as https://www.elastic.co/guide/en/elasticsearch/reference/5.5/mapping-date-format.html#built-in-date-formats[built-in formats^]
 |===
 
+xref::overview/apoc.date/apoc.date.convertFormat.adoc#usage-apoc.date.convertFormat[View usage examples]
+
 [[datetime-available-procedures-apoc.date.currentTimestamp]]
 === `apoc.date.currentTimestamp`
 
@@ -123,6 +125,8 @@ include::example$generated-documentation/apoc.date.currentTimestamp-lite.csv[]
 |===
 
 It accepts no parameters.
+
+xref::overview/apoc.date/apoc.date.currentTimestamp.adoc#usage-apoc.date.currentTimestamp[View usage examples]
 
 [[datetime-available-procedures-apoc.date.field]]
 === `apoc.date.field`

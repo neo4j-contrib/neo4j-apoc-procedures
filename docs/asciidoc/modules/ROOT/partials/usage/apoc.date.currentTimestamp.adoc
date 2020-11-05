@@ -1,0 +1,34 @@
+The following returns the current timestamp in ms:
+
+[source,cypher]
+----
+WITH apoc.date.currentTimestamp() AS outputInMs
+RETURN outputinMs, datetime({epochMillis: output}) AS datetime;
+----
+
+.Results
+[opts="header"]
+|===
+| outputinMs        | datetime
+| 1604571467744 | 2020-11-05T10:17:47.744Z
+|===
+
+The following returns the current timestamp before and after sleeping for 1000 ms:
+
+[source,cypher]
+----
+WITH apoc.date.currentTimestamp() AS outputStart
+CALL apoc.util.sleep(1000)
+WITH outputStart, apoc.date.currentTimestamp() AS outputEnd
+RETURN outputStart,
+       datetime({epochMillis: outputStart}) AS datetimeStart,
+       outputEnd,
+       datetime({epochMillis: outputEnd}) AS datetimeEnd;
+----
+
+.Results
+[opts="header"]
+|===
+| outputStart   | datetimeStart            | outputEnd     | datetimeEnd
+| 1604571641430 | 2020-11-05T10:20:41.430Z | 1604571642434 | 2020-11-05T10:20:42.434Z
+|===

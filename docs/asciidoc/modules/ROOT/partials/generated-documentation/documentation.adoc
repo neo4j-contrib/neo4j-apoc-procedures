@@ -995,7 +995,12 @@ apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time',
 
 |xref::overview/apoc.date/apoc.date.currentTimestamp.adoc[apoc.date.currentTimestamp icon:book[]]
 
+<<<<<<< HEAD
 apoc.date.currentTimestamp() - returns System.currentTimeMillis()|label:function[]
+=======
+apoc.date.currentTimestamp() - returns System.currentTimeMillis() at the time it was called. The value is current throughout transaction execution, and is different from Cypher’s timestamp() function, which does not update within a transaction.
+|label:function[]
+>>>>>>> 981bd121... usage examples for apoc.date.convertFormat and apoc.date.currentTimestamp
 |label:apoc-core[]
 
 |xref::overview/apoc.date/apoc.date.field.adoc[apoc.date.field icon:book[]]
