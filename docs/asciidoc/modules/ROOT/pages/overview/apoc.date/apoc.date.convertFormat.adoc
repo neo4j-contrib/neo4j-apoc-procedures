@@ -30,5 +30,3 @@ apoc.date.convertFormat(temporal :: STRING?, currentFormat :: STRING?, convertTo
 == Usage Examples
 include::partial$usage/apoc.date.convertFormat.adoc[]
 
-xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.convertFormat,role=more information]
-

@@ -26,5 +26,3 @@ apoc.date.parseAsZonedDateTime(time :: STRING?, format = yyyy-MM-dd HH:mm:ss :: 
 |timezone|STRING?|UTC
 |===
 
-xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.parseAsZonedDateTime,role=more information]
-

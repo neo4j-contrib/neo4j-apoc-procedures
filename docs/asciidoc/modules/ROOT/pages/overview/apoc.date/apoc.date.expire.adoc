@@ -26,5 +26,3 @@ apoc.date.expire(node :: NODE?, time :: INTEGER?, timeUnit :: STRING?) :: VOID
 |timeUnit|STRING?|null
 |===
 
-xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.expire,role=more information]
-
