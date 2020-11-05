@@ -88,6 +88,8 @@ It accepts the following parameters:
 | toUnit | String | the unit type for the output value | `ms,s,m,h,d` or long forms
 |===
 
+xref::overview/apoc.date/apoc.date.convert.adoc#usage-apoc.date.convert[View usage examples]
+
 [[datetime-available-procedures-apoc.date.convertFormat]]
 === `apoc.date.convertFormat`
 
