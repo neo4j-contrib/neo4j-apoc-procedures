@@ -1,0 +1,28 @@
+The following converts a datetime in milliseconds to floating point years:
+
+[source,cypher]
+----
+WITH datetime("2020-11-05").epochMillis AS datetime
+RETURN apoc.date.toYears(datetime) AS years;
+----
+
+.Results
+[opts="header"]
+|===
+| years
+| 50.87945205479452
+|===
+
+The following converts a date to floating point years:
+
+[source,cypher]
+----
+RETURN apoc.date.toYears("2020-11-02", "YYYY-MM-dd") AS years;
+----
+
+.Results
+[opts="header"]
+|===
+| years
+| 2020.027397260274
+|===

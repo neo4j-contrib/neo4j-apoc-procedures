@@ -1,0 +1,13 @@
+The following returns the system timezone where Neo4j is running:
+
+[source,cypher]
+----
+RETURN apoc.date.systemTimezone() AS timezone;
+----
+
+.Results
+[opts="header"]
+|===
+| timezone
+| "Europe/London"
+|===

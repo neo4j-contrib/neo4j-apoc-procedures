@@ -263,6 +263,8 @@ It accepts the following parameters:
 | timezone | String | the timezone of the resulting date string | can be specified with GMT or database (text) name, as listed for https://en.wikipedia.org/wiki/List_of_tz_database_time_zones[timezones]
 |===
 
+xref::overview/apoc.date/apoc.date.parse.adoc#usage-apoc.date.parse[View usage examples,role=more information]
+
 [[datetime-available-procedures-apoc.date.parseAsZonedDateTime]]
 === `apoc.date.parseAsZonedDateTime`
 
@@ -286,6 +288,8 @@ include::example$generated-documentation/apoc.date.systemTimezone-lite.csv[]
 
 It accepts no parameters.
 
+xref::overview/apoc.date/apoc.date.systemTimezone.adoc#usage-apoc.date.systemTimezone[View usage examples,role=more information]
+
 [[datetime-available-procedures-apoc.date.toISO8601]]
 === `apoc.date.toISO8601`
 
@@ -305,6 +309,8 @@ It accepts the following parameters:
 | time | Integer | the date value (in epoch integer format) to operate upon |
 | unit | String | the specificity of the input value | `ms,s,m,h,d` or long forms (`millis,seconds,minutes,hours,days`)
 |===
+
+xref::overview/apoc.date/apoc.date.toISO8601.adoc#usage-apoc.date.toISO8601[View usage examples,role=more information]
 
 [[datetime-available-procedures-apoc.date.toYears]]
 === `apoc.date.toYears`
@@ -335,3 +341,5 @@ It accepts the following parameters for each conversion:
 | value | String | the date string that needs formatted | date string in an https://en.wikipedia.org/wiki/ISO_8601[ISO8601] standard format
 | format | String | the format of the date string to convert | see the Java documentation for https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/format/DateTimeFormatter.html[full list] (under Patterns for Formatting and Parsing)
 |===
+
+xref::overview/apoc.date/apoc.date.toYears.adoc#usage-apoc.date.toYears[View usage examples,role=more information]

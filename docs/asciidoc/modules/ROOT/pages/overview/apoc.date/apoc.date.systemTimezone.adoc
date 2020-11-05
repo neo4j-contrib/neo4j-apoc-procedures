@@ -17,5 +17,9 @@ apoc.date.systemTimezone() returns the system timezone display name
 apoc.date.systemTimezone() :: (STRING?)
 ----
 
+[[usage-apoc.date.systemTimezone]]
+== Usage Examples
+include::partial$usage/apoc.date.systemTimezone.adoc[]
+
 xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.systemTimezone,role=more information]
 

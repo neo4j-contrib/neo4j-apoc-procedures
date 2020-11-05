@@ -25,5 +25,9 @@ apoc.date.toYears(value :: ANY?, format = yyyy-MM-dd HH:mm:ss :: STRING?) :: (FL
 |format|STRING?|yyyy-MM-dd HH:mm:ss
 |===
 
+[[usage-apoc.date.toYears]]
+== Usage Examples
+include::partial$usage/apoc.date.toYears.adoc[]
+
 xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.toYears,role=more information]
 
