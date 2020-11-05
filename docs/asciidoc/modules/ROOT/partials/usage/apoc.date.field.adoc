@@ -43,3 +43,12 @@ RETURN apoc.date.field(datetime, "weekday") AS weekday;
 | weekday
 | 3
 |===
+
+[NOTE]
+====
+In version 3.4 Neo4j introduced temporal data types, which are the recommended way of representing dates in Neo4j.
+Fields of a temporal type can be retrieved using Cypher's `instance.field` function. (e.g. `datetime({epochMillis: dateInteger}).year`)
+See the https://neo4j.com/docs/cypher-manual/current/syntax/temporal/#cypher-temporal-accessing-components-temporal-instants[Cypher documentation] for more details on the syntax.
+
+If, however, you still need to convert timestamp formats, this procedure provides that functionality.
+====
