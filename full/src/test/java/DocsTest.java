@@ -131,7 +131,6 @@ public class DocsTest {
         docs.put("apoc.ttl.*", "graph-updates/ttl.adoc");
         docs.put("apoc.create.uuid", "graph-updates/uuid.adoc");
         docs.put("apoc.cypher.*", "cypher-execution/index.adoc");
-        docs.put("apoc.date.*", "temporal/datetime-conversions.adoc");
         docs.put("apoc.hashing.*", "comparing-graphs/fingerprinting.adoc");
         docs.put("apoc.temporal.*", "temporal/temporal-conversions.adoc");
         docs.put("apoc.uuid.*", "graph-updates/uuid.adoc");

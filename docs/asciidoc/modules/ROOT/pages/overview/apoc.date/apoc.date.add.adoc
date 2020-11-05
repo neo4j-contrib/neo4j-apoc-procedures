@@ -31,5 +31,3 @@ apoc.date.add(time :: INTEGER?, unit :: STRING?, addValue :: INTEGER?, addUnit :
 == Usage Examples
 include::partial$usage/apoc.date.add.adoc[]
 
-xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.add,role=more information]
-

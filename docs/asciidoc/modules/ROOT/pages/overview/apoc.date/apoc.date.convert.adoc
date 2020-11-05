@@ -30,5 +30,3 @@ apoc.date.convert(time :: INTEGER?, unit :: STRING?, toUnit :: STRING?) :: (INTE
 == Usage Examples
 include::partial$usage/apoc.date.convert.adoc[]
 
-xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.convert,role=more information]
-
