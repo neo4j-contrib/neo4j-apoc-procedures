@@ -1,0 +1,18 @@
+[NOTE]
+====
+The `time` parameter is a date string in the https://en.wikipedia.org/wiki/ISO_8601[ISO8601] standard format
+====
+
+The following converts a date string in ISO 8601 format to epoch millis:
+
+[source,cypher]
+----
+RETURN apoc.date.fromISO8601('2020-11-04T12:21:33.000Z') AS outputInMs;
+----
+
+.Results
+[opts="header"]
+|===
+| outputInMs
+| 1604492493000
+|===

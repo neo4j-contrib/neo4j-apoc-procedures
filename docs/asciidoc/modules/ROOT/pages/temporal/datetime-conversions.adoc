@@ -65,7 +65,7 @@ It accepts the following parameters:
 | addUnit | String | the unit type to add or subtract | `ms,s,m,h,d` or long forms
 |===
 
-xref::overview/apoc.date/apoc.date.add.adoc#usage-apoc.date.add[View usage examples]
+xref::overview/apoc.date/apoc.date.add.adoc#usage-apoc.date.add[View usage examples,role=more information]
 
 [[datetime-available-procedures-apoc.date.convert]]
 === `apoc.date.convert`
@@ -88,7 +88,7 @@ It accepts the following parameters:
 | toUnit | String | the unit type for the output value | `ms,s,m,h,d` or long forms
 |===
 
-xref::overview/apoc.date/apoc.date.convert.adoc#usage-apoc.date.convert[View usage examples]
+xref::overview/apoc.date/apoc.date.convert.adoc#usage-apoc.date.convert[View usage examples,role=more information]
 
 [[datetime-available-procedures-apoc.date.convertFormat]]
 === `apoc.date.convertFormat`
@@ -111,7 +111,7 @@ It accepts the following parameters:
 | convertTo | String | the format for the output temporal type | can be specified manually with https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html[Java formats^] or as https://www.elastic.co/guide/en/elasticsearch/reference/5.5/mapping-date-format.html#built-in-date-formats[built-in formats^]
 |===
 
-xref::overview/apoc.date/apoc.date.convertFormat.adoc#usage-apoc.date.convertFormat[View usage examples]
+xref::overview/apoc.date/apoc.date.convertFormat.adoc#usage-apoc.date.convertFormat[View usage examples,role=more information]
 
 [[datetime-available-procedures-apoc.date.currentTimestamp]]
 === `apoc.date.currentTimestamp`
@@ -126,7 +126,7 @@ include::example$generated-documentation/apoc.date.currentTimestamp-lite.csv[]
 
 It accepts no parameters.
 
-xref::overview/apoc.date/apoc.date.currentTimestamp.adoc#usage-apoc.date.currentTimestamp[View usage examples]
+xref::overview/apoc.date/apoc.date.currentTimestamp.adoc#usage-apoc.date.currentTimestamp[View usage examples,role=more information]
 
 [[datetime-available-procedures-apoc.date.field]]
 === `apoc.date.field`
@@ -158,7 +158,7 @@ It accepts the following parameters:
 | timezone | String | the timezone of the resulting date string | can be specified with GMT or database (text) name, as listed for https://en.wikipedia.org/wiki/List_of_tz_database_time_zones[timezones]
 |===
 
-xref::overview/apoc.date/apoc.date.field.adoc#usage-apoc.date.field[View usage examples]
+xref::overview/apoc.date/apoc.date.field.adoc#usage-apoc.date.field[View usage examples,role=more information]
 
 [[datetime-available-procedures-apoc.date.fields]]
 === `apoc.date.fields`
@@ -189,7 +189,7 @@ It accepts the following parameters:
 | pattern | String | the format of the input date string | see the Java documentation for https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/format/DateTimeFormatter.html[full list] (under Patterns for Formatting and Parsing)
 |===
 
-xref::overview/apoc.date/apoc.date.fields.adoc#usage-apoc.date.fields[View usage examples]
+xref::overview/apoc.date/apoc.date.fields.adoc#usage-apoc.date.fields[View usage examples,role=more information]
 
 [[datetime-available-procedures-apoc.date.format]]
 === `apoc.date.format`
@@ -213,7 +213,7 @@ It accepts the following parameters:
 | timezone | String | the timezone of the resulting date string | can be specified with GMT or database (text) name, as listed for https://en.wikipedia.org/wiki/List_of_tz_database_time_zones[timezones]
 |===
 
-xref::overview/apoc.date/apoc.date.format.adoc#usage-apoc.date.format[View usage examples]
+xref::overview/apoc.date/apoc.date.format.adoc#usage-apoc.date.format[View usage examples,role=more information]
 
 [[datetime-available-procedures-apoc.date.fromISO8601]]
 === `apoc.date.fromISO8601`
@@ -238,6 +238,8 @@ It accepts the following parameters:
 ====
 The date string timezone expects only a GMT+00:00 format of `Z` as the timezone specifier. Other timezone specifications are not supported by this procedure.
 ====
+
+xref::overview/apoc.date/apoc.date.fromISO8601.adoc#usage-apoc.date.fromISO8601[View usage examples,role=more information]
 
 [[datetime-available-procedures-apoc.date.parse]]
 === `apoc.date.parse`
@@ -269,7 +271,7 @@ This function parses a date string in a specified format and converts it to a Ne
 [NOTE]
 ====
 This function has been renamed to `apoc.temporal.toZonedDateTime` and moved to the temporal section.
-See <<temporal-conversions>>.
+See xref::temporal/temporal-conversions.adoc[].
 ====
 
 [[datetime-available-procedures-apoc.date.systemTimezone]]
