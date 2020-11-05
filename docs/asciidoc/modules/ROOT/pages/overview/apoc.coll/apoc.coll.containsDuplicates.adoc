@@ -24,6 +24,7 @@ apoc.coll.containsDuplicates(coll :: LIST? OF ANY?) :: (BOOLEAN?)
 |coll|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.containsDuplicates]]
 == Usage Examples
 include::partial$usage/apoc.coll.containsDuplicates.adoc[]
 

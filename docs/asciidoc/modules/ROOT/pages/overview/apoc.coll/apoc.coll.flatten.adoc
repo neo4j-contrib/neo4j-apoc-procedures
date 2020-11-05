@@ -25,6 +25,7 @@ apoc.coll.flatten(coll :: LIST? OF ANY?, recursive = false :: BOOLEAN?) :: (LIST
 |recursive|BOOLEAN?|false
 |===
 
+[[usage-apoc.coll.flatten]]
 == Usage Examples
 include::partial$usage/apoc.coll.flatten.adoc[]
 

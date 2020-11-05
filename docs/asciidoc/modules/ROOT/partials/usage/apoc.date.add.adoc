@@ -7,34 +7,64 @@ The `unit` and `addUnit` parameters support the following values:
 * `m`, `minute`, `minutes`
 * `h`, `hour`, `hours`
 * `d`,  `day`, `days`
+
+The computed value will be in the unit specified by the `unit` parameter.
 ====
 
-The following adds 10,000 milliseconds to the current time:
+The following adds 10,000 milliseconds to the current datetime:
 
 [source,cypher]
 ----
 WITH apoc.date.add(datetime().epochMillis, "ms", 10000, "ms") AS output
-RETURN output, datetime({epochMillis: output}) AS datetime;
+RETURN outputinMs, datetime({epochMillis: output}) AS datetime;
 ----
 
 .Results
 [opts="header"]
 |===
-| output        | datetime
+| outputinMs        | datetime
 | 1604509597386 | 2020-11-04T17:06:37.386Z
 |===
 
-The following adds 1 day to the current time:
+The following adds 1 day to the current datetime:
 
 [source,cypher]
 ----
 WITH apoc.date.add(datetime().epochMillis, "ms", 1, "day") AS output
-RETURN output, datetime({epochMillis: output}) AS datetime;
+RETURN outputinMs, datetime({epochMillis: output}) AS datetime;
 ----
 
 .Results
 [opts="header"]
 |===
-| output        | datetime
-| 1604596506209 | 2020-11-05T17:15:06.209Z 
+| outputinMs        | datetime
+| 1604596506209 | 2020-11-05T17:15:06.209Z
+|===
+
+The following adds 1 hour to 12 hours:
+
+[source,cypher]
+----
+RETURN apoc.date.add(12, "hour", 1, "hour") AS outputinHours
+----
+
+.Results
+[opts="header"]
+|===
+| outputinHours
+| 13
+|===
+
+The following adds 1 hour to 34 minutes:
+
+[source,cypher]
+----
+RETURN apoc.date.add(34, "minutes", 1, "hour") AS outputInMinutes;
+----
+
+.Results
+[opts="header"]
+|===
+| outputInMinutes
+| 94
 |===

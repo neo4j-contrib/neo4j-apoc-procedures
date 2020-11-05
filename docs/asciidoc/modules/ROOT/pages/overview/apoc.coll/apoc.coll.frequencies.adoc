@@ -24,6 +24,7 @@ apoc.coll.frequencies(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |coll|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.frequencies]]
 == Usage Examples
 include::partial$usage/apoc.coll.frequencies.adoc[]
 

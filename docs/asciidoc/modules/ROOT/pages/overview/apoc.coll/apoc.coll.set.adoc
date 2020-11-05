@@ -26,6 +26,7 @@ apoc.coll.set(coll :: LIST? OF ANY?, index :: INTEGER?, value :: ANY?) :: (LIST?
 |value|ANY?|null
 |===
 
+[[usage-apoc.coll.set]]
 == Usage Examples
 include::partial$usage/apoc.coll.set.adoc[]
 

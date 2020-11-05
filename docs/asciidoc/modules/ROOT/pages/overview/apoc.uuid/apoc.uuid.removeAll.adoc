@@ -29,6 +29,7 @@ apoc.uuid.removeAll() :: (label :: STRING?, installed :: BOOLEAN?, properties ::
 == Enable automatic UUIDs
 include::partial$uuids.adoc[]
 
+[[usage-apoc.uuid.removeAll]]
 == Usage Examples
 include::partial$usage/apoc.uuid.removeAll.adoc[]
 

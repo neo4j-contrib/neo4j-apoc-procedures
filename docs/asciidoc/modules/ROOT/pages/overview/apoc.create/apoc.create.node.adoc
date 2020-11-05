@@ -20,7 +20,7 @@ apoc.create.node(label :: LIST? OF STRING?, props :: MAP?) :: (node :: NODE?)
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default 
+| Name | Type | Default
 |label|LIST? OF STRING?|null
 |props|MAP?|null
 |===
@@ -28,9 +28,14 @@ apoc.create.node(label :: LIST? OF STRING?, props :: MAP?) :: (node :: NODE?)
 == Output parameters
 [.procedures, opts=header]
 |===
-| Name | Type 
+| Name | Type
 |node|NODE?
 |===
+
+
+[[usage-apoc.create.node]]
+== Usage Examples
+include::partial$usage/apoc.create.node.adoc[]
 
 xref::graph-updates/data-creation.adoc[More documentation of apoc.create.node,role=more information]
 

@@ -27,6 +27,7 @@ apoc.map.mget(map :: MAP?, keys :: LIST? OF STRING?, values = [] :: LIST? OF ANY
 |fail|BOOLEAN?|true
 |===
 
+[[usage-apoc.map.mget]]
 == Usage Examples
 include::partial$usage/apoc.map.mget.adoc[]
 

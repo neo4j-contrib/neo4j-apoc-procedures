@@ -25,6 +25,7 @@ apoc.coll.indexOf(coll :: LIST? OF ANY?, value :: ANY?) :: (INTEGER?)
 |value|ANY?|null
 |===
 
+[[usage-apoc.coll.indexOf]]
 == Usage Examples
 include::partial$usage/apoc.coll.indexOf.adoc[]
 

@@ -26,6 +26,7 @@ apoc.map.setKey(map :: MAP?, key :: STRING?, value :: ANY?) :: (MAP?)
 |value|ANY?|null
 |===
 
+[[usage-apoc.map.setKey]]
 == Usage Examples
 include::partial$usage/apoc.map.setKey.adoc[]
 

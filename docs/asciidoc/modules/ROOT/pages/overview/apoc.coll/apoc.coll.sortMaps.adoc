@@ -25,6 +25,7 @@ apoc.coll.sortMaps(coll :: LIST? OF MAP?, prop :: STRING?) :: (LIST? OF ANY?)
 |prop|STRING?|null
 |===
 
+[[usage-apoc.coll.sortMaps]]
 == Usage Examples
 include::partial$usage/apoc.coll.sortMaps.adoc[]
 

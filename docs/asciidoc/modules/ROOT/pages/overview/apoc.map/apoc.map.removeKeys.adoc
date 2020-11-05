@@ -26,6 +26,7 @@ apoc.map.removeKeys(map :: MAP?, keys :: LIST? OF STRING?, config = {} :: MAP?) 
 |config|MAP?|{}
 |===
 
+[[usage-apoc.map.removeKeys]]
 == Usage Examples
 include::partial$usage/apoc.map.removeKeys.adoc[]
 

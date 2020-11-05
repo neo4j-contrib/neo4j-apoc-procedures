@@ -25,6 +25,7 @@ apoc.coll.pairWithOffset(values :: LIST? OF ANY?, offset :: INTEGER?) :: (LIST? 
 |offset|INTEGER?|null
 |===
 
+[[usage-apoc.coll.pairWithOffset]]
 == Usage Examples
 include::partial$usage/apoc.coll.pairWithOffset.adoc[]
 

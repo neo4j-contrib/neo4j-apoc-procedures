@@ -32,6 +32,7 @@ apoc.coll.split(values :: LIST? OF ANY?, value :: ANY?) :: (value :: LIST? OF AN
 |value|LIST? OF ANY?
 |===
 
+[[usage-apoc.coll.split]]
 == Usage Examples
 include::partial$usage/apoc.coll.split.adoc[]
 

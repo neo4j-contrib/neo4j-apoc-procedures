@@ -36,6 +36,7 @@ apoc.cypher.runFile(file :: STRING?, config = {} :: MAP?) :: (row :: INTEGER?, r
 == Reading from a file
 include::../../import/includes/enableFileImport.adoc[]
 
+[[usage-apoc.cypher.runFile]]
 == Usage Examples
 include::partial$usage/apoc.cypher.runFile.adoc[]
 

@@ -24,6 +24,7 @@ apoc.coll.shuffle(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |coll|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.shuffle]]
 == Usage Examples
 include::partial$usage/apoc.coll.shuffle.adoc[]
 

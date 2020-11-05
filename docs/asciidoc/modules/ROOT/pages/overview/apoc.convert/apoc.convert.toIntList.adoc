@@ -24,6 +24,7 @@ apoc.convert.toIntList(list :: ANY?) :: (LIST? OF ANY?)
 |list|ANY?|null
 |===
 
+[[usage-apoc.convert.toIntList]]
 == Usage Examples
 include::partial$usage/apoc.convert.toIntList.adoc[]
 

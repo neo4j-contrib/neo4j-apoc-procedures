@@ -24,6 +24,7 @@ apoc.convert.toInteger(object :: ANY?) :: (INTEGER?)
 |object|ANY?|null
 |===
 
+[[usage-apoc.convert.toInteger]]
 == Usage Examples
 include::partial$usage/apoc.convert.toInteger.adoc[]
 

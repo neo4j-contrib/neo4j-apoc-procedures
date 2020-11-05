@@ -26,6 +26,7 @@ apoc.coll.combinations(coll :: LIST? OF ANY?, minSelect :: INTEGER?, maxSelect =
 |maxSelect|INTEGER?|-1
 |===
 
+[[usage-apoc.coll.combinations]]
 == Usage Examples
 include::partial$usage/apoc.coll.combinations.adoc[]
 
