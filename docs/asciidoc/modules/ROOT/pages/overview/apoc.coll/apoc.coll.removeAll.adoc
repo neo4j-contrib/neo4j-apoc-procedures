@@ -25,6 +25,7 @@ apoc.coll.removeAll(first :: LIST? OF ANY?, second :: LIST? OF ANY?) :: (LIST? O
 |second|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.removeAll]]
 == Usage Examples
 include::partial$usage/apoc.coll.removeAll.adoc[]
 

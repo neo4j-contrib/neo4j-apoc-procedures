@@ -25,6 +25,7 @@ apoc.coll.zip(list1 :: LIST? OF ANY?, list2 :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |list2|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.zip]]
 == Usage Examples
 include::partial$usage/apoc.coll.zip.adoc[]
 

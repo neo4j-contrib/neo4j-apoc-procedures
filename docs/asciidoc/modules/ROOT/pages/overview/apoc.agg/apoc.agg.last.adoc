@@ -24,6 +24,7 @@ apoc.agg.last(value :: ANY?) :: (ANY?)
 |value|ANY?|null
 |===
 
+[[usage-apoc.agg.last]]
 == Usage Examples
 include::partial$usage/apoc.agg.last.adoc[]
 

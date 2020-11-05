@@ -24,6 +24,7 @@ apoc.coll.avg(numbers :: LIST? OF NUMBER?) :: (FLOAT?)
 |numbers|LIST? OF NUMBER?|null
 |===
 
+[[usage-apoc.coll.avg]]
 == Usage Examples
 include::partial$usage/apoc.coll.avg.adoc[]
 

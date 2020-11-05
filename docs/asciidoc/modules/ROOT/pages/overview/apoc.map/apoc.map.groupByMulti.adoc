@@ -25,6 +25,7 @@ apoc.map.groupByMulti(values :: LIST? OF ANY?, key :: STRING?) :: (MAP?)
 |key|STRING?|null
 |===
 
+[[usage-apoc.map.groupByMulti]]
 == Usage Examples
 include::partial$usage/apoc.map.groupByMulti.adoc[]
 

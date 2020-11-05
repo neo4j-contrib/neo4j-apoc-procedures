@@ -24,6 +24,7 @@ apoc.coll.sum(numbers :: LIST? OF NUMBER?) :: (FLOAT?)
 |numbers|LIST? OF NUMBER?|null
 |===
 
+[[usage-apoc.coll.sum]]
 == Usage Examples
 include::partial$usage/apoc.coll.sum.adoc[]
 

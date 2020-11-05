@@ -24,6 +24,7 @@ apoc.convert.toBooleanList(list :: ANY?) :: (LIST? OF ANY?)
 |list|ANY?|null
 |===
 
+[[usage-apoc.convert.toBooleanList]]
 == Usage Examples
 include::partial$usage/apoc.convert.toBooleanList.adoc[]
 

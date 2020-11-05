@@ -25,6 +25,7 @@ apoc.coll.subtract(first :: LIST? OF ANY?, second :: LIST? OF ANY?) :: (LIST? OF
 |second|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.subtract]]
 == Usage Examples
 include::partial$usage/apoc.coll.subtract.adoc[]
 

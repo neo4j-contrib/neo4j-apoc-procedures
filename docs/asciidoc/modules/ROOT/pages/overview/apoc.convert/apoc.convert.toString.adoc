@@ -24,6 +24,7 @@ apoc.convert.toString(string :: ANY?) :: (STRING?)
 |string|ANY?|null
 |===
 
+[[usage-apoc.convert.toString]]
 == Usage Examples
 include::partial$usage/apoc.convert.toString.adoc[]
 

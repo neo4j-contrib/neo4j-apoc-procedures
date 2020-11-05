@@ -65,6 +65,8 @@ It accepts the following parameters:
 | addUnit | String | the unit type to add or subtract | `ms,s,m,h,d` or long forms
 |===
 
+xref::overview/apoc.date/apoc.date.add.adoc#usage-apoc.date.add[View usage examples]
+
 [[datetime-available-procedures-apoc.date.convert]]
 === `apoc.date.convert`
 

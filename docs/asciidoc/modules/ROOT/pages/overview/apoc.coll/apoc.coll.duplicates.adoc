@@ -24,6 +24,7 @@ apoc.coll.duplicates(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |coll|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.duplicates]]
 == Usage Examples
 include::partial$usage/apoc.coll.duplicates.adoc[]
 

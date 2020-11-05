@@ -24,6 +24,7 @@ apoc.map.fromPairs(pairs :: LIST? OF LIST? OF ANY?) :: (MAP?)
 |pairs|LIST? OF LIST? OF ANY?|null
 |===
 
+[[usage-apoc.map.fromPairs]]
 == Usage Examples
 include::partial$usage/apoc.map.fromPairs.adoc[]
 

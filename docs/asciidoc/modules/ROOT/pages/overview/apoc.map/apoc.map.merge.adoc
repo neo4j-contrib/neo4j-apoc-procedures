@@ -25,6 +25,7 @@ apoc.map.merge(first :: MAP?, second :: MAP?) :: (MAP?)
 |second|MAP?|null
 |===
 
+[[usage-apoc.map.merge]]
 == Usage Examples
 include::partial$usage/apoc.map.merge.adoc[]
 

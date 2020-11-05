@@ -27,6 +27,7 @@ apoc.map.get(map :: MAP?, key :: STRING?, value = null :: ANY?, fail = true :: B
 |fail|BOOLEAN?|true
 |===
 
+[[usage-apoc.map.get]]
 == Usage Examples
 include::partial$usage/apoc.map.get.adoc[]
 

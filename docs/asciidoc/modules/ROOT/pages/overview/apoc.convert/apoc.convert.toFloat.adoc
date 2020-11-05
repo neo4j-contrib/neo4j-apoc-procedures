@@ -24,6 +24,7 @@ apoc.convert.toFloat(object :: ANY?) :: (FLOAT?)
 |object|ANY?|null
 |===
 
+[[usage-apoc.convert.toFloat]]
 == Usage Examples
 include::partial$usage/apoc.convert.toFloat.adoc[]
 

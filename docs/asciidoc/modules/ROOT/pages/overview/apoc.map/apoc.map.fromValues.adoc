@@ -24,6 +24,7 @@ apoc.map.fromValues(values :: LIST? OF ANY?) :: (MAP?)
 |values|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.map.fromValues]]
 == Usage Examples
 include::partial$usage/apoc.map.fromValues.adoc[]
 

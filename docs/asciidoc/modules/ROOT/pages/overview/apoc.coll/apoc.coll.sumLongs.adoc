@@ -24,6 +24,7 @@ apoc.coll.sumLongs(numbers :: LIST? OF NUMBER?) :: (INTEGER?)
 |numbers|LIST? OF NUMBER?|null
 |===
 
+[[usage-apoc.coll.sumLongs]]
 == Usage Examples
 include::partial$usage/apoc.coll.sumLongs.adoc[]
 

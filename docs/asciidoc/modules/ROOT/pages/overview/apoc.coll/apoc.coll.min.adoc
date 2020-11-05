@@ -24,6 +24,7 @@ apoc.coll.min(values :: LIST? OF ANY?) :: (ANY?)
 |values|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.min]]
 == Usage Examples
 include::partial$usage/apoc.coll.min.adoc[]
 

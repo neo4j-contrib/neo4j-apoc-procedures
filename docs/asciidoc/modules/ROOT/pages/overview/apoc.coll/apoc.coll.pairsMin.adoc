@@ -24,6 +24,7 @@ apoc.coll.pairsMin(list :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |list|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.pairsMin]]
 == Usage Examples
 include::partial$usage/apoc.coll.pairsMin.adoc[]
 

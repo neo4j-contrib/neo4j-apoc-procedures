@@ -24,6 +24,7 @@ apoc.agg.first(value :: ANY?) :: (ANY?)
 |value|ANY?|null
 |===
 
+[[usage-apoc.agg.first]]
 == Usage Examples
 include::partial$usage/apoc.agg.first.adoc[]
 

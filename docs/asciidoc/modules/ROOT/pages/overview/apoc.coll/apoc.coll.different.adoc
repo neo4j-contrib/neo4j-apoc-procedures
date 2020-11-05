@@ -24,6 +24,7 @@ apoc.coll.different(values :: LIST? OF ANY?) :: (BOOLEAN?)
 |values|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.different]]
 == Usage Examples
 include::partial$usage/apoc.coll.different.adoc[]
 

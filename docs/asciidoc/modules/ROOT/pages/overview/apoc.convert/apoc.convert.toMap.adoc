@@ -24,6 +24,7 @@ apoc.convert.toMap(map :: ANY?) :: (MAP?)
 |map|ANY?|null
 |===
 
+[[usage-apoc.convert.toMap]]
 == Usage Examples
 include::partial$usage/apoc.convert.toMap.adoc[]
 

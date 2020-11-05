@@ -24,6 +24,7 @@ apoc.coll.reverse(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |coll|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.reverse]]
 == Usage Examples
 include::partial$usage/apoc.coll.reverse.adoc[]
 

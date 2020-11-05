@@ -24,6 +24,7 @@ apoc.coll.randomItem(coll :: LIST? OF ANY?) :: (ANY?)
 |coll|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.randomItem]]
 == Usage Examples
 include::partial$usage/apoc.coll.randomItem.adoc[]
 
