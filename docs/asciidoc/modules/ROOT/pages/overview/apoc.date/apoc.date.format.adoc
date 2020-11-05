@@ -27,5 +27,9 @@ apoc.date.format(time :: INTEGER?, unit = ms :: STRING?, format = yyyy-MM-dd HH:
 |timezone|STRING?|
 |===
 
+[[usage-apoc.date.format]]
+== Usage Examples
+include::partial$usage/apoc.date.format.adoc[]
+
 xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.format,role=more information]
 
