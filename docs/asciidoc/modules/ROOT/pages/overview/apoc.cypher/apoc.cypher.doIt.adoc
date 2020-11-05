@@ -32,6 +32,7 @@ apoc.cypher.doIt(cypher :: STRING?, params :: MAP?) :: (value :: MAP?)
 |value|MAP?
 |===
 
+[[usage-apoc.cypher.doIt]]
 == Usage Examples
 include::partial$usage/apoc.cypher.doIt.adoc[]
 

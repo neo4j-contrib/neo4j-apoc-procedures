@@ -24,6 +24,7 @@ apoc.convert.toSet(list :: ANY?) :: (LIST? OF ANY?)
 |list|ANY?|null
 |===
 
+[[usage-apoc.convert.toSet]]
 == Usage Examples
 include::partial$usage/apoc.convert.toSet.adoc[]
 

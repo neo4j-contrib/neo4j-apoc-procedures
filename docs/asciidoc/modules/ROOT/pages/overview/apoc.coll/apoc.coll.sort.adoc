@@ -24,6 +24,7 @@ apoc.coll.sort(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |coll|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.sort]]
 == Usage Examples
 include::partial$usage/apoc.coll.sort.adoc[]
 

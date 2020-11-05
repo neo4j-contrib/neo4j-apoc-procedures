@@ -24,6 +24,7 @@ apoc.convert.toJson(value :: ANY?) :: (STRING?)
 |value|ANY?|null
 |===
 
+[[usage-apoc.convert.toJson]]
 == Usage Examples
 include::partial$usage/apoc.convert.toJson.adoc[]
 

@@ -24,6 +24,7 @@ apoc.coll.max(values :: LIST? OF ANY?) :: (ANY?)
 |values|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.max]]
 == Usage Examples
 include::partial$usage/apoc.coll.max.adoc[]
 

@@ -34,6 +34,7 @@ apoc.create.relationship(from :: NODE?, relType :: STRING?, props :: MAP?, to ::
 |rel|RELATIONSHIP?
 |===
 
+[[usage-apoc.create.relationship]]
 == Usage Examples
 include::partial$usage/apoc.create.relationship.adoc[]
 

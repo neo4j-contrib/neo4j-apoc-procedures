@@ -27,6 +27,7 @@ apoc.date.add(time :: INTEGER?, unit :: STRING?, addValue :: INTEGER?, addUnit :
 |addUnit|STRING?|null
 |===
 
+[[usage-apoc.date.add]]
 == Usage Examples
 include::partial$usage/apoc.date.add.adoc[]
 

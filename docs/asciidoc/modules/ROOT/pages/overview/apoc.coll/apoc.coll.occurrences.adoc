@@ -25,6 +25,7 @@ apoc.coll.occurrences(coll :: LIST? OF ANY?, item :: ANY?) :: (INTEGER?)
 |item|ANY?|null
 |===
 
+[[usage-apoc.coll.occurrences]]
 == Usage Examples
 include::partial$usage/apoc.coll.occurrences.adoc[]
 

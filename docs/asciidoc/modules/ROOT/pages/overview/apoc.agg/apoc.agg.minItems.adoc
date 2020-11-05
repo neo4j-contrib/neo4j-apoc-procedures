@@ -26,6 +26,7 @@ apoc.agg.minItems(item :: ANY?, value :: ANY?, groupLimit = -1 :: INTEGER?) :: (
 |groupLimit|INTEGER?|-1
 |===
 
+[[usage-apoc.agg.minItems]]
 == Usage Examples
 include::partial$usage/apoc.agg.minItems.adoc[]
 

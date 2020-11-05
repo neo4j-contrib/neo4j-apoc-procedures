@@ -24,6 +24,7 @@ apoc.coll.frequenciesAsMap(coll :: LIST? OF ANY?) :: (MAP?)
 |coll|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.frequenciesAsMap]]
 == Usage Examples
 include::partial$usage/apoc.coll.frequenciesAsMap.adoc[]
 

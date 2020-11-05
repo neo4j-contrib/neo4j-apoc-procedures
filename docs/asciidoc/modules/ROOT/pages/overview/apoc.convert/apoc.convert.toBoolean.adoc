@@ -24,6 +24,7 @@ apoc.convert.toBoolean(bool :: ANY?) :: (BOOLEAN?)
 |bool|ANY?|null
 |===
 
+[[usage-apoc.convert.toBoolean]]
 == Usage Examples
 include::partial$usage/apoc.convert.toBoolean.adoc[]
 

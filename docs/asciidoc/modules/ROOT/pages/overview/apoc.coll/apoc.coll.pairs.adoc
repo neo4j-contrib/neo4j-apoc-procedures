@@ -24,6 +24,7 @@ apoc.coll.pairs(list :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |list|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.pairs]]
 == Usage Examples
 include::partial$usage/apoc.coll.pairs.adoc[]
 

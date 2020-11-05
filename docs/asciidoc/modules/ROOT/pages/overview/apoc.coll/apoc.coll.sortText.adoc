@@ -25,6 +25,7 @@ apoc.coll.sortText(coll :: LIST? OF STRING?, conf = {} :: MAP?) :: (LIST? OF ANY
 |conf|MAP?|{}
 |===
 
+[[usage-apoc.coll.sortText]]
 == Usage Examples
 include::partial$usage/apoc.coll.sortText.adoc[]
 

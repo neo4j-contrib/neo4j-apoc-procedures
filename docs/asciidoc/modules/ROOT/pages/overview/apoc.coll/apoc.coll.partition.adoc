@@ -25,6 +25,7 @@ apoc.coll.partition(values :: LIST? OF ANY?, batchSize :: INTEGER?) :: (LIST? OF
 |batchSize|INTEGER?|null
 |===
 
+[[usage-apoc.coll.partition]]
 == Usage Examples
 include::partial$usage/apoc.coll.partition.adoc[]
 

@@ -24,6 +24,7 @@ apoc.convert.toStringList(list :: ANY?) :: (LIST? OF ANY?)
 |list|ANY?|null
 |===
 
+[[usage-apoc.convert.toStringList]]
 == Usage Examples
 include::partial$usage/apoc.convert.toStringList.adoc[]
 

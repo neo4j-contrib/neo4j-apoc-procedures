@@ -26,6 +26,7 @@ apoc.map.clean(map :: MAP?, keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :
 |values|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.map.clean]]
 == Usage Examples
 include::partial$usage/apoc.map.clean.adoc[]
 

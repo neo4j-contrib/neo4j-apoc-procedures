@@ -36,6 +36,7 @@ apoc.merge.relationship(startNode :: NODE?, relationshipType :: STRING?, identPr
 |rel|RELATIONSHIP?
 |===
 
+[[usage-apoc.merge.relationship]]
 == Usage Examples
 include::partial$usage/apoc.merge.relationship.adoc[]
 

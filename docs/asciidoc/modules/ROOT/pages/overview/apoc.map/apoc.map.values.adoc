@@ -26,6 +26,7 @@ apoc.map.values(map :: MAP?, keys = [] :: LIST? OF STRING?, addNullsForMissing =
 |addNullsForMissing|BOOLEAN?|false
 |===
 
+[[usage-apoc.map.values]]
 == Usage Examples
 include::partial$usage/apoc.map.values.adoc[]
 

@@ -26,6 +26,7 @@ apoc.coll.insert(coll :: LIST? OF ANY?, index :: INTEGER?, value :: ANY?) :: (LI
 |value|ANY?|null
 |===
 
+[[usage-apoc.coll.insert]]
 == Usage Examples
 include::partial$usage/apoc.coll.insert.adoc[]
 

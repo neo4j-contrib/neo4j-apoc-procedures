@@ -42,6 +42,7 @@ include::partial$usage/config/apoc.uuid.install.adoc[]
 == Enable automatic UUIDs
 include::partial$uuids.adoc[]
 
+[[usage-apoc.uuid.install]]
 == Usage Examples
 include::partial$usage/apoc.uuid.install.adoc[]
 

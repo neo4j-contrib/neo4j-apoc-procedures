@@ -25,6 +25,7 @@ apoc.coll.intersection(first :: LIST? OF ANY?, second :: LIST? OF ANY?) :: (LIST
 |second|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.intersection]]
 == Usage Examples
 include::partial$usage/apoc.coll.intersection.adoc[]
 

@@ -297,7 +297,7 @@ class DocumentationGenerator {
 
     private void writeUsageExample(Writer writer, String name) throws IOException {
         if(new File("../docs/asciidoc/modules/ROOT/partials/usage", name + ".adoc").exists()) {
-            writer.write("== Usage Examples\n");
+            writer.write("[[usage-" + name + "]]\n== Usage Examples\n");
             writer.write("include::partial$usage/" + name + ".adoc[]\n\n");
         }
     }

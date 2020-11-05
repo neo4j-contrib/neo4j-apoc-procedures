@@ -25,6 +25,7 @@ apoc.map.groupBy(values :: LIST? OF ANY?, key :: STRING?) :: (MAP?)
 |key|STRING?|null
 |===
 
+[[usage-apoc.map.groupBy]]
 == Usage Examples
 include::partial$usage/apoc.map.groupBy.adoc[]
 
