@@ -21,5 +21,3 @@ apoc.date.systemTimezone() :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.date.systemTimezone.adoc[]
 
-xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.systemTimezone,role=more information]
-

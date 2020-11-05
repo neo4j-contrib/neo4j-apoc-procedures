@@ -30,5 +30,3 @@ apoc.date.field(time :: INTEGER?, unit = d :: STRING?, timezone = UTC :: STRING?
 == Usage Examples
 include::partial$usage/apoc.date.field.adoc[]
 
-xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.field,role=more information]
-

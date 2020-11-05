@@ -29,5 +29,3 @@ apoc.date.fields(date :: STRING?, pattern = yyyy-MM-dd HH:mm:ss :: STRING?) :: (
 == Usage Examples
 include::partial$usage/apoc.date.fields.adoc[]
 
-xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.fields,role=more information]
-
