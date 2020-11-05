@@ -1,0 +1,40 @@
+[NOTE]
+====
+The `unit` and `toUnit` parameters support the following values:
+
+* `ms`, `milli`, `millis`, `milliseconds`
+* `s`, `second`, `seconds`
+* `m`, `minute`, `minutes`
+* `h`, `hour`, `hours`
+* `d`,  `day`, `days`
+
+The computed value will be in the unit specified by the `unit` parameter.
+====
+
+The following converts 30 minutes into seconds:
+
+[source,cypher]
+----
+RETURN apoc.date.convert(30, "minutes", "seconds") as outputInSeconds;
+----
+
+.Results
+[opts="header"]
+|===
+| outputInSeconds
+| 1800
+|===
+
+The following converts the current datetime in epoch seconds into the number of days since 1st January 1970:
+
+[source,cypher]
+----
+RETURN apoc.date.convert(datetime().epochSeconds, "seconds", "days") as outputInDays;
+----
+
+.Results
+[opts="header"]
+|===
+| outputInDays
+| 18571
+|===
