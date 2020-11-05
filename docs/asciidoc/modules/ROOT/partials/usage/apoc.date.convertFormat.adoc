@@ -1,0 +1,34 @@
+[NOTE]
+====
+The `currentFormat` parameter supports the values specified https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/format/DateTimeFormatter.html[under Patterns for Formatting and Parsing for the DateTimeFormatter^].
+
+The `convertTo` parameter supports https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html[Java formats^] or https://www.elastic.co/guide/en/elasticsearch/reference/5.5/mapping-date-format.html#built-in-date-formats[built-in formats^].
+====
+
+The following converts a date in `YYYY-MM-dd` format to `basic_date` (`yyyyMMdd`) format:
+
+[source,cypher]
+----
+RETURN apoc.date.convertFormat("2020-11-04", "date", "basic_date") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "20201104"
+|===
+
+The following converts a date in `date_hour` (`yyyy-MM-dd'T'HH`) format to `date_hour_minute` (`yyyy-MM-dd'T'HH:mm`) format:
+
+[source,cypher]
+----
+RETURN apoc.date.convertFormat("2020-11-04T22", "date_hour", "date_hour_minute") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "2020-11-04T22:00"
+|===

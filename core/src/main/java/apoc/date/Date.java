@@ -91,7 +91,7 @@ public class Date {
 	}
 
 	@UserFunction
-	@Description( "apoc.date.currentTimestamp() - returns System.currentTimeMillis()" )
+	@Description( "apoc.date.currentTimestamp() - returns System.currentTimeMillis() at the time it was called. The value is current throughout transaction execution, and is different from Cypher’s timestamp() function, which does not update within a transaction." )
 	public long currentTimestamp()
 	{
 		return System.currentTimeMillis();
