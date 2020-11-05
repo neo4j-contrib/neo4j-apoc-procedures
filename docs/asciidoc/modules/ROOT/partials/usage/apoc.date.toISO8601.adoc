@@ -1,0 +1,24 @@
+[NOTE]
+====
+The `unit` parameter supports the following values:
+
+* `ms`, `milli`, `millis`, `milliseconds`
+* `s`, `second`, `seconds`
+* `m`, `minute`, `minutes`
+* `h`, `hour`, `hours`
+* `d`,  `day`, `days`
+====
+
+The following converts the current datetime in milliseconds to a date string in ISO8601 standard format:
+
+[source,cypher]
+----
+RETURN apoc.date.toISO8601(datetime().epochMillis, "ms") AS iso8601;
+----
+
+.Results
+[opts="header"]
+|===
+| iso8601
+| "2020-11-05T14:21:58.179Z"
+|===
