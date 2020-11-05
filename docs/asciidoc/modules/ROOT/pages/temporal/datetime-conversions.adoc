@@ -158,6 +158,8 @@ It accepts the following parameters:
 | timezone | String | the timezone of the resulting date string | can be specified with GMT or database (text) name, as listed for https://en.wikipedia.org/wiki/List_of_tz_database_time_zones[timezones]
 |===
 
+xref::overview/apoc.date/apoc.date.field.adoc#usage-apoc.date.field[View usage examples]
+
 [[datetime-available-procedures-apoc.date.fields]]
 === `apoc.date.fields`
 
