@@ -189,6 +189,8 @@ It accepts the following parameters:
 | pattern | String | the format of the input date string | see the Java documentation for https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/format/DateTimeFormatter.html[full list] (under Patterns for Formatting and Parsing)
 |===
 
+xref::overview/apoc.date/apoc.date.fields.adoc#usage-apoc.date.fields[View usage examples]
+
 [[datetime-available-procedures-apoc.date.format]]
 === `apoc.date.format`
 
