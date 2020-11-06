@@ -25,7 +25,7 @@ public class PropertiesManager {
         }
     }
 
-    private static void mergeProperty(Entity target, RefactorConfig propertyManagementMode, Map.Entry<String, Object> prop, String key, String mergeMode) {
+    private static void mergeProperty(Entity target, RefactorConfig refactorConfig, Map.Entry<String, Object> prop, String key, String mergeMode) {
         switch (mergeMode) {
             case RefactorConfig.OVERWRITE:
             case RefactorConfig.OVERRIDE:
@@ -37,12 +37,12 @@ public class PropertiesManager {
                 }
                 break;
             case RefactorConfig.COMBINE:
-                combineProperties(prop, target);
+                combineProperties(prop, target, refactorConfig);
                 break;
         }
     }
 
-    public static void combineProperties(Map.Entry<String, Object> prop, Entity target) {
+    public static void combineProperties(Map.Entry<String, Object> prop, Entity target, RefactorConfig refactorConfig) {
         if (!target.hasProperty(prop.getKey()))
             target.setProperty(prop.getKey(), prop.getValue());
         else {
@@ -55,17 +55,17 @@ public class PropertiesManager {
                 values.addAll(new ArrayBackedList(prop.getValue()));
             else
                 values.add(prop.getValue());
-            Object array = createPropertyValueFromSet(values);
+            Object array = createPropertyValueFromSet(values, refactorConfig);
             target.setProperty(prop.getKey(), array);
         }
     }
 
-    private static Object createPropertyValueFromSet(Set<Object> input) {
+    private static Object createPropertyValueFromSet(Set<Object> input, RefactorConfig refactorConfig) {
         Object array = null;
         try {
-            if (input.size() == 1)
+            if (input.size() == 1 && !refactorConfig.isSingleElementAsArray()) {
                 return input.toArray()[0];
-            else {
+            } else {
                 if (sameTypeForAllElements(input)) {
                     Class clazz = Class.forName(input.toArray()[0].getClass().getName());
                     array = Array.newInstance(clazz, input.size());

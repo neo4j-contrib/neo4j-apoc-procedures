@@ -32,6 +32,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -361,21 +362,6 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
     }
 
     @Test
-    public void testMergeNodes() throws Exception {
-
-    }
-
-    @Test
-    public void testChangeType() throws Exception {
-
-    }
-
-    @Test
-    public void testRedirectRelationship() throws Exception {
-
-    }
-
-    @Test
     public void testMergeNodesWithConstraints() throws Exception {
         db.executeTransactionally("CREATE CONSTRAINT ON (p:Person) ASSERT p.name IS UNIQUE");
         long id = db.executeTransactionally("CREATE (p1:Person {name:'Foo'}), (p2:Person {surname:'Bar'}) RETURN id(p1) as id",
@@ -654,6 +640,38 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
                     assertEquals(id, node.getId());
                     assertEquals(true, node.hasLabel(Label.label("Person")));
                     assertEquals(2L, node.getProperty("ID"));
+                });
+    }
+
+    @Test
+    public void testMergeNodesOnArrayValues() throws Exception {
+        long id = db.executeTransactionally("CREATE (p1:Person {ID:1, prop: ['foo']}), (p2:Person {ID:2, prop: ['foo']}) RETURN id(p1) as id ",
+                emptyMap(),
+                result -> Iterators.single(result.columnAs("id")));
+        testCall(db, "MATCH (o:Person {ID:$oldID}), (n:Person {ID:$newID}) WITH head(collect([o,n])) as nodes CALL apoc.refactor.mergeNodes(nodes, {properties:'combine'}) yield node return node",
+                map("oldID", 1L, "newID",2L),
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    assertEquals(id, node.getId());
+                    assertEquals(true, node.hasLabel(Label.label("Person")));
+                    assertArrayEquals(new long[] {1L, 2L}, (long[]) node.getProperty("ID"));
+                    assertEquals("foo", node.getProperty("prop"));
+                });
+    }
+
+    @Test
+    public void testMergeNodesOnArrayValuesPreventTypeChange() throws Exception {
+        long id = db.executeTransactionally("CREATE (p1:Person {ID:1, prop: ['foo']}), (p2:Person {ID:2, prop: ['foo']}) RETURN id(p1) as id ",
+                emptyMap(),
+                result -> Iterators.single(result.columnAs("id")));
+        testCall(db, "MATCH (o:Person {ID:$oldID}), (n:Person {ID:$newID}) WITH head(collect([o,n])) as nodes CALL apoc.refactor.mergeNodes(nodes, {properties:'combine', singleElementAsArray: true}) yield node return node",
+                map("oldID", 1L, "newID",2L),
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    assertEquals(id, node.getId());
+                    assertEquals(true, node.hasLabel(Label.label("Person")));
+                    assertArrayEquals(new long[] {1L, 2L}, (long[]) node.getProperty("ID"));
+                    assertArrayEquals(new String[] {"foo"}, (String[]) node.getProperty("prop"));
                 });
     }
 
