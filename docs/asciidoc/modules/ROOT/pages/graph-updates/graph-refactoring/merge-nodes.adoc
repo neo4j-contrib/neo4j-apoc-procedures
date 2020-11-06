@@ -35,12 +35,13 @@ These config option also works for `apoc.refactor.mergeRelationships([rels],\{co
 | combine | if there is only one property in list, it will be set / kept as single property otherwise create an array, tries to coerce values
 |===
 
-In addition, mergeNodes supports the following config property:
+In addition, mergeNodes supports the following config properties:
 
 [opts=header]
 |===
 | type | operations
-| mergeRels | true/false" : give the possibility to merge relationships with same type and direction.
+| mergeRels | true/false: give the possibility to merge relationships with same type and direction.
+| singleElementAsArray | false/true: if is `false` (default) and `type` is `combine` in case the merge of two arrays is a new array with size 1 it extracts the single value.
 |===
 
 Relationships properties are managed with the same nodes' method, if properties parameter isn't set relationships properties are combined.
