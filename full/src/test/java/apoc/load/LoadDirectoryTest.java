@@ -47,11 +47,16 @@ public class LoadDirectoryTest {
     }
 
     @Test
+    public void testWithNullUrlDir() {
+        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
+        TestUtil.testFail(db, "CALL apoc.load.directory('*', null, {recursive: false}) YIELD value RETURN value", IllegalArgumentException.class);
+    }
+
+    @Test
     public void testWithSubfolder() {
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
-        // todo
-        testResult(db, "CALL apoc.load.directory('*', 'subfolder', {recursive: false}) YIELD url RETURN url", result -> {
-                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("url"));
+        testResult(db, "CALL apoc.load.directory('*', 'subfolder', {recursive: false}) YIELD value RETURN value", result -> {
+                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
                     assertTrue(rows.contains("subfolder/TestSubfolder.json"));
                     assertTrue(rows.contains("subfolder/TestSubfolder.csv"));
                     assertEquals(2, rows.size());
@@ -64,9 +69,8 @@ public class LoadDirectoryTest {
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
         File rootTempFolder = temporaryFolder.getRoot();
         String folderAsExternalUrl = "file://" + rootTempFolder;
-        // todo
-        testResult(db, "CALL apoc.load.directory('*', '" + folderAsExternalUrl + "', {recursive: false}) YIELD url RETURN url", result -> {
-                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("url"));
+        testResult(db, "CALL apoc.load.directory('*', '" + folderAsExternalUrl + "', {recursive: false}) YIELD value RETURN value", result -> {
+                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
                     assertTrue(rows.contains(rootTempFolder + "/Foo.csv"));
                     assertTrue(rows.contains(rootTempFolder + "/Bar.csv"));
                     assertTrue(rows.contains(rootTempFolder + "/Baz.xls"));
@@ -78,9 +82,8 @@ public class LoadDirectoryTest {
     @Test
     public void testWithFilterAllRecursiveFalse() {
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
-        // todo
-        testResult(db, "CALL apoc.load.directory('*', null, {recursive: false}) YIELD url RETURN url", result -> {
-                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("url"));
+        testResult(db, "CALL apoc.load.directory('*', '', {recursive: false}) YIELD value RETURN value", result -> {
+                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
                     assertTrue(rows.contains("TestCsv3.csv"));
                     assertTrue(rows.contains("TestJson1.json"));
                     assertEquals(5, rows.size());
@@ -91,8 +94,8 @@ public class LoadDirectoryTest {
     @Test
     public void testWithFilterCsv() {
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
-        testResult(db, "CALL apoc.load.directory('*.csv', null, {}) YIELD url RETURN url", result -> {
-                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("url"));
+        testResult(db, "CALL apoc.load.directory('*.csv') YIELD value RETURN value", result -> {
+                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
                     assertTrue(rows.contains("TestCsv1.csv"));
                     assertTrue(rows.contains("TestCsv2.csv"));
                     assertTrue(rows.contains("TestCsv3.csv"));

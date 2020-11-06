@@ -1,6 +1,7 @@
 package apoc.load;
 
 import apoc.Extended;
+import apoc.result.StringResult;
 import apoc.util.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -10,7 +11,6 @@ import org.neo4j.procedure.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Stream;
@@ -23,21 +23,16 @@ public class LoadDirectory {
     @Context
     public Log log;
 
-    public static class UrlResult {
-        public final String url;
-
-        public UrlResult(String url) {
-            this.url = url;
-        }
-    }
-
-    @Procedure("apoc.load.directory")
-    @Description("apoc.load.directory('pattern', 'urlDir', {config}) YIELD url - List of all files in folder specified by urlDir or in import folder if urlDir is null")
-    public Stream<UrlResult> folder(@Name(value = "pattern", defaultValue = "*") String pattern, @Name(value = "urlDir", defaultValue = "") String urlDir, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException, URISyntaxException {
+    @Procedure
+    @Description("apoc.load.directory('pattern', 'urlDir', {config}) YIELD value - List of all files in folder specified by urlDir or in import folder if urlDir string is empty or not specified")
+    public Stream<StringResult> directory(@Name(value = "pattern", defaultValue = "*") String pattern, @Name(value = "urlDir", defaultValue = "") String urlDir, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
         log.info("Search files that match regular expression: " + pattern);
 
-        urlDir = urlDir == null ?
-                apocConfig().getString("dbms.directories.import", "import")
+        if (urlDir == null)
+            throw new IllegalArgumentException("Invalid (null) urlDir");
+
+        urlDir = urlDir.isEmpty()
+                ? apocConfig().getString("dbms.directories.import", "import")
                 : FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir);
 
         boolean isRecursive = (boolean) config.getOrDefault("recursive", true);
@@ -50,7 +45,7 @@ public class LoadDirectory {
 
         return files.stream().map(i -> {
             String urlFile = i.toString();
-            return new UrlResult(apocConfig().isImportFolderConfigured()
+            return new StringResult(apocConfig().isImportFolderConfigured()
                     ? urlFile.replace(apocConfig().getString("dbms.directories.import") + "/", "")
                     : urlFile);
         });
