@@ -2,6 +2,7 @@ package apoc;
 
 import apoc.custom.CypherProcedures;
 import apoc.custom.CypherProceduresHandler;
+import apoc.load.DirectoryHandler;
 import apoc.ttl.TTLLifeCycle;
 import apoc.uuid.Uuid;
 import apoc.uuid.UuidHandler;
@@ -45,6 +46,9 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
                 dependencies.log().getUserLog(Uuid.class),
                 dependencies.apocConfig(),
                 dependencies.globalProceduresRegistry()),
+
+                // todo - en
+                "directory", new DirectoryHandler(dependencies.apocConfig())
 
                 "cypherProcedures", cypherProcedureHandler
         );

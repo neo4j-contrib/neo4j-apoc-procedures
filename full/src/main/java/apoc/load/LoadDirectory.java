@@ -2,10 +2,12 @@ package apoc.load;
 
 import apoc.Extended;
 import apoc.result.StringResult;
+import apoc.trigger.TriggerHandler;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.Context;
