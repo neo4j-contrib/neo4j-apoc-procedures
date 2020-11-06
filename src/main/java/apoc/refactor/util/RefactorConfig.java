@@ -27,6 +27,7 @@ public class RefactorConfig {
 	private boolean countMerge;
 	private boolean hasProperties;
 	private boolean collapsedLabel;
+	private boolean singleElementAsArray;
 
 	public RefactorConfig(Map<String,Object> config) {
 		Object value = config.get("properties");
@@ -42,6 +43,7 @@ public class RefactorConfig {
 		this.selfRel = toBoolean(config.get("selfRel"));
 		this.countMerge = toBoolean(config.getOrDefault("countMerge", true));
 		this.collapsedLabel = toBoolean(config.get("collapsedLabel"));
+		this.singleElementAsArray = toBoolean(config.getOrDefault("singleElementAsArray", false));
 	}
 
 	public String getMergeMode(String name){
@@ -82,5 +84,9 @@ public class RefactorConfig {
 
 	public boolean isMergeVirtualRels() {
 		return mergeVirtualRels;
+	}
+
+	public boolean isSingleElementAsArray() {
+		return singleElementAsArray;
 	}
 }
