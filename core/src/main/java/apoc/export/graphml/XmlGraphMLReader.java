@@ -283,11 +283,18 @@ public class XmlGraphMLReader {
                 String el = ":";
                 String typeRel = value.contains(el) ? value.replace(el, StringUtils.EMPTY) : value;
                 return RelationshipType.withName(typeRel.trim());
-            } else if (!peek.isEndDocument() && !"data".equals(isChar ? peek.asCharacters().toString() : peek.asStartElement().getName().getLocalPart()) ) {
+            }
+
+            boolean notStartElementOrContainsKeyLabel = isChar
+                    || !(peek instanceof StartElement)
+                    || peek.asStartElement().getAttributes().next().getValue().equals("label");
+
+            if (!peek.isEndDocument() && notStartElementOrContainsKeyLabel) {
                 reader.nextEvent();
                 return getRelationshipType(reader);
             }
         }
+        reader.nextEvent(); // to prevent eventual wrong reader (f.e. self-closing tag)
         return defaultRelType;
     }
 
