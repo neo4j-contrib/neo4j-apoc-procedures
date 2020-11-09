@@ -39,7 +39,16 @@ public class MetricsTest {
         }, Exception.class);
         assumeNotNull(neo4jContainer);
         session = neo4jContainer.getSession();
-        Thread.sleep(3000); // need to wait until metrics files get written initially
+
+        boolean metricsExist = false;
+        while (!metricsExist)  {
+            try {
+                neo4jContainer.copyFileFromContainer("/var/lib/neo4j/metrics/neo4j.bolt.connections_opened.csv", inputStream -> null);
+                metricsExist = true;
+            } catch (Exception e) {
+                Thread.sleep(200);
+            }
+        }
     }
 
     @AfterClass
@@ -52,7 +61,7 @@ public class MetricsTest {
     @Test
     public void shouldGetMetrics() {
         session.readTransaction(tx -> tx.run("RETURN 1 AS num;"));
-        String metricKey = "neo4j.bolt.sessions_started";
+        String metricKey = "neo4j.bolt.connections_opened";
         testResult(session, "CALL apoc.metrics.get($metricKey)",
                 map("metricKey", metricKey), (r) -> {
                     assertTrue("should have at least one element", r.hasNext());
