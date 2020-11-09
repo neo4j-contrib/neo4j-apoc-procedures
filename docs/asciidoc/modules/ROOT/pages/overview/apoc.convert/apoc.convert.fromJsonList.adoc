@@ -25,3 +25,7 @@ apoc.convert.fromJsonList(list :: STRING?, path =  :: STRING?) :: (LIST? OF ANY?
 |path|STRING?|
 |===
 
+[[usage-apoc.convert.fromJsonList]]
+== Usage Examples
+include::partial$usage/apoc.convert.fromJsonList.adoc[]
+
