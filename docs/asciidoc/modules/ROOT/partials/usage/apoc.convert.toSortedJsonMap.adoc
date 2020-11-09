@@ -1,0 +1,29 @@
+The following converts a map to a JSON map with keys sorted alphabetically, ignoring case sensitivity:
+
+[source,cypher]
+----
+WITH {b:8, d:3, a:2, E: 12, C:9} as map
+RETURN apoc.convert.toSortedJsonMap(map) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "{\"a\":2,\"b\":8,\"C\":9,\"d\":3,\"E\":12}"
+|===
+
+The following converts a map to a JSON map with keys sorted alphabetically, with case sensitivity:
+
+[source,cypher]
+----
+WITH {b:8, d:3, a:2, E: 12, C:9} as map
+RETURN apoc.convert.toSortedJsonMap(map, false) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "{\"C\":9,\"E\":12,\"a\":2,\"b\":8,\"d\":3}"
+|===
