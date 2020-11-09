@@ -44,10 +44,8 @@ dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib"
     testCompile "org.jetbrains.kotlin:kotlin-stdlib"
 //    apt 'net.biville.florent:neo4j-sproc-compiler:1.2'  // temporarily disabled until byte[] is supported by sproc compiler
-    apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
-    compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
-    compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
-    testCompile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
+    apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
+//    compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
@@ -69,10 +67,6 @@ dependencies {
     compile 'org.jsoup:jsoup:1.11.3'
 
     compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
-    compile(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7') {
-        exclude group: "org.yaml"
-        exclude module: "snakeyaml"
-    }
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.26'
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
 
