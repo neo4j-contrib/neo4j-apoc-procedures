@@ -38,5 +38,9 @@ apoc.create.vPatternFull(labelsN :: LIST? OF STRING?, n :: MAP?, relType :: STRI
 |to|NODE?
 |===
 
+[[usage-apoc.create.vPatternFull]]
+== Usage Examples
+include::partial$usage/apoc.create.vPatternFull.adoc[]
+
 xref::virtual/virtual-nodes-rels.adoc[More documentation of apoc.create.vPatternFull,role=more information]
 
