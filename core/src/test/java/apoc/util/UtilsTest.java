@@ -60,7 +60,7 @@ public class UtilsTest {
 
     @Test
     public void testValidatePredicateReturn() throws Exception {
-        TestUtil.testResult(db, "RETURN apoc.util.validatePredicate(false,'message',null) AS value", r -> assertEquals(true, r.get("value")));
+        TestUtil.testCall(db, "RETURN apoc.util.validatePredicate(false,'message',null) AS value", r -> assertEquals(true, r.get("value")));
     }
 
     @Test
