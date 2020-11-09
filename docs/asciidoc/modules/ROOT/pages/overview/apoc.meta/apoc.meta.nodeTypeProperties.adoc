@@ -24,6 +24,9 @@ apoc.meta.nodeTypeProperties(config = {} :: MAP?) :: (nodeType :: STRING?, nodeL
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.meta.nodeTypeProperties.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -36,6 +39,10 @@ apoc.meta.nodeTypeProperties(config = {} :: MAP?) :: (nodeType :: STRING?, nodeL
 |propertyObservations|INTEGER?
 |totalObservations|INTEGER?
 |===
+
+[[usage-apoc.meta.nodeTypeProperties]]
+== Usage Examples
+include::partial$usage/apoc.meta.nodeTypeProperties.adoc[]
 
 xref::database-introspection/meta.adoc[More documentation of apoc.meta.nodeTypeProperties,role=more information]
 
