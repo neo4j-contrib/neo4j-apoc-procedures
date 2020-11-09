@@ -25,3 +25,7 @@ apoc.convert.fromJsonMap(map :: STRING?, path =  :: STRING?) :: (MAP?)
 |path|STRING?|
 |===
 
+[[usage-apoc.convert.fromJsonMap]]
+== Usage Examples
+include::partial$usage/apoc.convert.fromJsonMap.adoc[]
+
