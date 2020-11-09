@@ -25,3 +25,7 @@ apoc.convert.toSortedJsonMap(value :: ANY?, ignoreCase = true :: BOOLEAN?) :: (S
 |ignoreCase|BOOLEAN?|true
 |===
 
+[[usage-apoc.convert.toSortedJsonMap]]
+== Usage Examples
+include::partial$usage/apoc.convert.toSortedJsonMap.adoc[]
+
