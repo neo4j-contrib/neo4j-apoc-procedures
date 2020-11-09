@@ -14,8 +14,6 @@ The apoc.create.vNodes is a procedure that takes a list or group of data and cal
 
 We can use the same example from the `apoc.create.vNode`, but collect the scores into a single list for the procedure to create a node for each in a single call:
 
-// tag::tabs[]
-[.tabs]
 .apoc.create.vNode Procedure
 [source,cypher]
 ----
@@ -24,16 +22,15 @@ WITH collect(s {.score}) as scores
 CALL apoc.create.vNodes(['Score'],scores) YIELD node
 RETURN node;
 ----
-// end::tabs[]
 
 .Results
 [opts="header"]
 |===
-|"node"
-│{"score":82}
-│{"score":81}
-│{"score":74}
-│{"score":70}
-│{"score":92}
-│{"score":85}
+|node
+|{"score":82}
+|{"score":81}
+|{"score":74}
+|{"score":70}
+|{"score":92}
+|{"score":85}
 |===

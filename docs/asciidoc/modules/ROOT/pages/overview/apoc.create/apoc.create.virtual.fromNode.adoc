@@ -25,5 +25,9 @@ apoc.create.virtual.fromNode(node :: NODE?, propertyNames :: LIST? OF STRING?) :
 |propertyNames|LIST? OF STRING?|null
 |===
 
+[[usage-apoc.create.virtual.fromNode]]
+== Usage Examples
+include::partial$usage/apoc.create.virtual.fromNode.adoc[]
+
 xref::virtual/virtual-nodes-rels.adoc[More documentation of apoc.create.virtual.fromNode,role=more information]
 
