@@ -32,8 +32,6 @@ The apoc.create.vRelationship offers both a procedure and function version, so w
 
 For instance, we might want to create virtual relationships between students to see which students have the same understanding level of class material:
 
-// tag::tabs[]
-[.tabs]
 .apoc.create.vRelationship Procedure
 [source,cypher]
 ----
@@ -41,7 +39,6 @@ MATCH (s1:Student)-[:HAS]->(:TestScore)-[:ASSIGNED_TO]->(l:Level)<-[:ASSIGNED_TO
 CALL apoc.create.vRelationship(s1,'SIMILAR_LEVEL',{level: l.level},s2) YIELD rel
 RETURN s1, rel, s2;
 ----
-// end::tabs[]
 
 .Results
 image::apoc.create.vRelationship_proc.png[scaledwidth="100%"]

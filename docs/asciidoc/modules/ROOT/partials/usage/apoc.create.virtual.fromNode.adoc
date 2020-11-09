@@ -23,8 +23,8 @@ RETURN apoc.create.virtual.fromNode(a, ['type','bank']);
 .Results
 [opts="header"]
 |===
-|"account"
-│{"type":"checking","bank":"Best Bank"}
+| account
+| {"type":"checking","bank":"Best Bank"}
 |===
 
 The apoc.create.virtual.fromNode procedure can also be used to simplify nodes with many properties by only displaying ones that are important to the query.
@@ -41,7 +41,7 @@ RETURN apoc.create.virtual.fromNode(p, ['favoriteColor','favoriteAnimal','favori
 .Results
 [opts="header"]
 |===
-|"favorites"
-│{"favoriteAnimal":"horse","favoriteMusic":"classical","favoriteColor":│
-│"green"}    
+|favorites
+|{"favoriteAnimal":"horse","favoriteMusic":"classical","favoriteColor":│
+|"green"}
 |===

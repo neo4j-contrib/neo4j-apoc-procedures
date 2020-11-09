@@ -14,8 +14,6 @@ The apoc.create.vPattern and apoc.create.vPatternFull are procedures that allow 
 
 As an example, all of our data is in the `Student` nodes, but we can separate some of the data into other nodes and relationships with the query below.
 
-// tag::tabs[]
-[.tabs]
 .apoc.create.vPattern
 [source,cypher]
 ----
@@ -23,7 +21,6 @@ MATCH (s:Student)
 CALL apoc.create.vPattern({_labels:['Student'],name:s.name}, 'FINISHED_COURSE_WITH',{score: s.score},{_labels:['Grade'],letter: s.grade}) YIELD from, rel, to
 RETURN from, rel, to;
 ----
-// end::tabs[]
 
 .Results
 image::apoc.create.vPattern.png[scaledwidth="100%"]

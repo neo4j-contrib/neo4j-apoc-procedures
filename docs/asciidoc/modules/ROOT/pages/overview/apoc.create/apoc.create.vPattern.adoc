@@ -36,5 +36,9 @@ apoc.create.vPattern(from :: MAP?, relType :: STRING?, props :: MAP?, to :: MAP?
 |to|NODE?
 |===
 
+[[usage-apoc.create.vPattern]]
+== Usage Examples
+include::partial$usage/apoc.create.vPattern.adoc[]
+
 xref::virtual/virtual-nodes-rels.adoc[More documentation of apoc.create.vPattern,role=more information]
 

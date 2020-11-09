@@ -27,5 +27,9 @@ apoc.create.vRelationship(from :: NODE?, relType :: STRING?, props :: MAP?, to :
 |to|NODE?|null
 |===
 
+[[usage-apoc.create.vRelationship]]
+== Usage Examples
+include::partial$usage/apoc.create.vRelationship.adoc[]
+
 xref::virtual/virtual-nodes-rels.adoc[More documentation of apoc.create.vRelationship,role=more information]
 
