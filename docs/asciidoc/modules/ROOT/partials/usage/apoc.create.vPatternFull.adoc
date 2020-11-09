@@ -18,7 +18,13 @@ As an example, all of our data is in the `Student` nodes, but we can separate so
 [source,cypher]
 ----
 MATCH (s:Student)
-CALL apoc.create.vPattern({_labels:['Student'],name:s.name}, 'FINISHED_COURSE_WITH',{score: s.score},{_labels:['Grade'],letter: s.grade}) YIELD from, rel, to
+CALL apoc.create.vPattern(
+  {_labels:['Student'],name:s.name},
+  'FINISHED_COURSE_WITH',
+  {score: s.score},
+  {_labels:['Grade'],letter: s.grade}
+)
+YIELD from, rel, to
 RETURN from, rel, to;
 ----
 
@@ -33,7 +39,15 @@ Let's do the same thing with the apoc.create.vPatternFull procedure to see the s
 [source,cypher]
 ----
 MATCH (s:Student)
-CALL apoc.create.vPatternFull(['Student'],{name: s.name}, 'FINISHED_COURSE_WITH',{score: s.score},['Grade'],{letter: s.grade}) YIELD from, rel, to
+CALL apoc.create.vPatternFull(
+  ['Student'],
+  {name: s.name},
+  'FINISHED_COURSE_WITH',
+  {score: s.score},
+  ['Grade'],
+  {letter: s.grade}
+)
+YIELD from, rel, to
 RETURN from, rel, to;
 ----
 
