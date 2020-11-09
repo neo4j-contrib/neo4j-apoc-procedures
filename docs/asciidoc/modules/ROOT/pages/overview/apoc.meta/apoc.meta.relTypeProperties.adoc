@@ -24,6 +24,9 @@ apoc.meta.relTypeProperties(config = {} :: MAP?) :: (relType :: STRING?, sourceN
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.meta.relTypeProperties.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -37,6 +40,10 @@ apoc.meta.relTypeProperties(config = {} :: MAP?) :: (relType :: STRING?, sourceN
 |propertyObservations|INTEGER?
 |totalObservations|INTEGER?
 |===
+
+[[usage-apoc.meta.relTypeProperties]]
+== Usage Examples
+include::partial$usage/apoc.meta.relTypeProperties.adoc[]
 
 xref::database-introspection/meta.adoc[More documentation of apoc.meta.relTypeProperties,role=more information]
 
