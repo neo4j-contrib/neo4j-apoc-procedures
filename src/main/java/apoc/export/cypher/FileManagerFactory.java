@@ -68,11 +68,6 @@ public class FileManagerFactory {
         public String getFileName() {
             return this.fileName;
         }
-
-        @Override
-        public Boolean separatedFiles() {
-            return this.separatedFiles;
-        }
     }
 
     private static class StringExportCypherFileManager implements ExportFileManager {
@@ -120,11 +115,6 @@ public class FileManagerFactory {
         @Override
         public String getFileName() {
             return null;
-        }
-
-        @Override
-        public Boolean separatedFiles() {
-            return this.separatedFiles;
         }
     }
 

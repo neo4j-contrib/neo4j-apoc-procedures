@@ -2,6 +2,7 @@ package apoc.util.s3;
 
 import apoc.util.Util;
 import com.amazonaws.regions.Regions;
+import org.apache.commons.lang.StringUtils;
 
 import java.net.URL;
 import java.util.Map;
@@ -91,7 +92,7 @@ public class S3ParamsExtractor {
             endpoint += ":" + url.getPort();
         }
 
-        if (Objects.nonNull(endpoint) &&  endpoint.isEmpty()) {
+        if (StringUtils.isBlank(endpoint)) {
             endpoint = null;
         }
 

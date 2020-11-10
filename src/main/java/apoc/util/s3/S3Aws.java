@@ -1,6 +1,8 @@
 package apoc.util.s3;
 
 import apoc.util.StreamConnection;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -12,14 +14,15 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
+import org.apache.commons.lang.StringUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 
 public class S3Aws {
 
     AmazonS3 s3Client;
+    private static final String LOCALSTACK_IP = "127.0.0.1";
 
     public S3Aws(S3Params s3Params, String region) {
 
@@ -27,9 +30,19 @@ public class S3Aws {
                 s3Params.getAccessKey(), s3Params.getSecretKey(), s3Params.getSessionToken());
 
         AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
-        builder.withCredentials(credentialsProvider)
-                .withClientConfiguration(S3URLConnection.buildClientConfig())
-                .withPathStyleAccessEnabled(true);
+        builder.withCredentials(credentialsProvider);
+
+        // If it is a localstack connection, use HTTP instead of HTTPS.
+        if (StringUtils.isNotBlank(s3Params.getEndpoint()) &&
+                s3Params.getEndpoint().startsWith(LOCALSTACK_IP)) {
+            ClientConfiguration config = new ClientConfiguration();
+            config.setProtocol(Protocol.HTTP);
+            builder.withClientConfiguration(config);
+        } else {
+            builder.withClientConfiguration(S3URLConnection.buildClientConfig());
+        }
+
+        builder.withPathStyleAccessEnabled(true);
 
         region = Objects.nonNull(region) ? region : s3Params.getRegion();
         String endpoint = s3Params.getEndpoint();
@@ -71,10 +84,9 @@ public class S3Aws {
     private static AWSCredentialsProvider getCredentialsProvider(
             final String accessKey, final String secretKey, final String sessionToken) {
 
-        if (Objects.nonNull(accessKey) && !accessKey.isEmpty()
-                && Objects.nonNull(secretKey) && !secretKey.isEmpty()) {
+        if (StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey)) {
             final AWSCredentials credentials;
-            if (Objects.isNull(sessionToken) || sessionToken.isEmpty()) {
+            if (StringUtils.isNotBlank(sessionToken)) {
                 credentials = new BasicAWSCredentials(accessKey, secretKey);
             } else {
                 credentials = new BasicSessionCredentials(accessKey, secretKey, sessionToken);

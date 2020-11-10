@@ -131,31 +131,32 @@ public class FileUtils {
     }
 
     public static PrintWriter getPrintWriter(String fileName, Writer out) throws IOException {
-        OutputStream outputStream = getOutputStream(fileName, new WriterOutputStream(out));
+        OutputStream outputStream = OutputStreamFactory.getBufferedOutputStream(fileName, new WriterOutputStream(out));
         return outputStream == null ? null : new PrintWriter(outputStream);
     }
 
-    public static OutputStream getOutputStream(String fileName, OutputStream out) throws IOException {
-        if (fileName == null) return null;
-        OutputStream outputStream;
-        if (isHdfs(fileName)) {
+    public static class OutputStreamFactory {
+        private OutputStreamFactory() {
+        }
+
+        public static OutputStream getBufferedOutputStream(String fileName, OutputStream out) {
+            if (fileName == null) return null;
             try {
-                outputStream = HDFSUtils.writeFile(fileName);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else if (isS3(fileName)) {
-            try {
-                outputStream = S3UploadUtils.writeFile(fileName);
+                return new BufferedOutputStream(getOutputStream(fileName, out));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
-        else {
-            outputStream = getOrCreateOutputStream(fileName, out);
-//            outputStream = fileName.equals("-") ? out : new FileOutputStream(fileName);
+
+        private static OutputStream getOutputStream(String fileName, OutputStream out) throws IOException {
+            if (isS3(fileName)) {
+                return S3UploadUtils.writeFile(fileName);
+            } else if (isHdfs(fileName)) {
+                return HDFSUtils.writeFile(fileName);
+            } else {
+                return getOrCreateOutputStream(fileName, out);
+            }
         }
-        return new BufferedOutputStream(outputStream);
     }
 
     private static OutputStream getOrCreateOutputStream(String fileName, OutputStream out) throws FileNotFoundException, MalformedURLException {

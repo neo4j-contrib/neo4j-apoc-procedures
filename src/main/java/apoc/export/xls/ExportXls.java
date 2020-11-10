@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.util.FileUtils.checkWriteAllowed;
-import static apoc.util.FileUtils.getOutputStream;
+import static apoc.util.FileUtils.OutputStreamFactory.getBufferedOutputStream;
 
 public class ExportXls {
     @Context
@@ -77,7 +77,7 @@ public class ExportXls {
     private Stream<ProgressInfo> exportXls(@Name("file") String fileName, String source, Object data, Map<String,Object> configMap) throws Exception {
         checkWriteAllowed();
         try (Transaction tx = db.beginTx();
-             OutputStream out = getOutputStream(fileName, null);
+             OutputStream out = getBufferedOutputStream(fileName, null);
              SXSSFWorkbook wb = new SXSSFWorkbook(100)) {
 
             XlsExportConfig config = new XlsExportConfig(configMap);
