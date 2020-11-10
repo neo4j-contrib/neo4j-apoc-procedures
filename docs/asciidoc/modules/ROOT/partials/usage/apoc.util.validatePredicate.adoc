@@ -16,12 +16,12 @@ The following returns true because the predicate is false:
 
 [source,cypher]
 ----
-RETURN apoc.util.validatePredicate(predicate,'message %d',[42]) AS result
+RETURN apoc.util.validatePredicate(false,'message %d',[42]) AS result
 ----
 
 .Results
 [opts="header"]
 |===
 | result
-| false
+| true
 |===
