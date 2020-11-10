@@ -97,7 +97,7 @@ You can use Google Cloud storage via the following url format:
 moreover you can also define the authorization type:
 
 * `NONE`: for public buckets (it's the default behaviour so you don't need to specify this)
-* `SERVICE`: with Service authentication by setting the env variable GOOGLE_APPLICATION_CREDENTIALS as described here: https://cloopenud.google.com/storage/docs/reference/libraries#client-libraries-install-java
+* `SERVICE`: with Service authentication by setting the env variable GOOGLE_APPLICATION_CREDENTIALS as described here: https://cloud.google.com/storage/docs/reference/libraries#client-libraries-install-java
 
 Ex:
 
