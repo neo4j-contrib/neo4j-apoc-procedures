@@ -26,10 +26,17 @@ apoc.convert.toTree(paths :: LIST? OF PATH?, lowerCaseRels = true :: BOOLEAN?, c
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.convert.toTree.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
 | Name | Type 
 |value|MAP?
 |===
+
+[[usage-apoc.convert.toTree]]
+== Usage Examples
+include::partial$usage/apoc.convert.toTree.adoc[]
 
