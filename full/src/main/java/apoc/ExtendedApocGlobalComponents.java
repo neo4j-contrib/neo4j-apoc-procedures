@@ -2,7 +2,8 @@ package apoc;
 
 import apoc.custom.CypherProcedures;
 import apoc.custom.CypherProceduresHandler;
-import apoc.load.DirectoryHandler;
+import apoc.load.LoadDirectory;
+import apoc.load.LoadDirectoryHandler;
 import apoc.ttl.TTLLifeCycle;
 import apoc.uuid.Uuid;
 import apoc.uuid.UuidHandler;
@@ -47,8 +48,13 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
                 dependencies.apocConfig(),
                 dependencies.globalProceduresRegistry()),
 
-                // todo - en
-                "directory", new DirectoryHandler(dependencies.apocConfig())
+                // todo - check...
+                "directory", new LoadDirectoryHandler(db,
+                        dependencies.databaseManagementService(),
+                        dependencies.apocConfig(),
+                        dependencies.log().getUserLog(LoadDirectory.class),
+                        dependencies.globalProceduresRegistry(),
+                        dependencies.pools()),
 
                 "cypherProcedures", cypherProcedureHandler
         );
@@ -56,7 +62,7 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
 
     @Override
     public Collection<Class> getContextClasses() {
-        return List.of(CypherProceduresHandler.class, UuidHandler.class);
+        return List.of(CypherProceduresHandler.class, UuidHandler.class, LoadDirectoryHandler.class);
     }
 
     @Override

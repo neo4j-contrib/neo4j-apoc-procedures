@@ -8,6 +8,7 @@ import apoc.util.Util;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.Context;
@@ -44,6 +45,8 @@ public class LoadDirectory {
         if (urlDir == null) {
             throw new IllegalArgumentException("Invalid (null) urlDir");
         }
+        return Stream.of(new LoadDirectoryListenerResult(name, removed.getCypher(), removed.getPattern()));
+    }
 
         urlDir = checkIfUrlEmptyAndGetFileUrl(urlDir);
 
