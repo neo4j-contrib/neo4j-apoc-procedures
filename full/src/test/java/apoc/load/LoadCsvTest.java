@@ -1,15 +1,24 @@
 package apoc.load;
 
 import apoc.ApocSettings;
+import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvParser;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import org.junit.*;
+import org.junit.jupiter.params.shadow.com.univocity.parsers.csv.CsvWriter;
 import org.mockserver.client.server.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.GenericContainer;
@@ -17,16 +26,15 @@ import org.testcontainers.containers.GenericContainer;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.getUrlFileName;
-import static apoc.util.TestUtil.testResult;
+import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
 import static org.mockserver.model.HttpRequest.request;
@@ -224,9 +232,22 @@ RETURN m.col_1,m.col_2,m.col_3
     }
 
     @Test
-    public void testLoadCsvWithUserPassInUrl() {
+    public void testLoadCsvWithUserPassInUrl() throws JsonProcessingException {
         String userPass = "user:password";
         String token = Util.encodeUserColonPassToBase64(userPass);
+        List<Map<String, Object>> responseBody = Arrays.asList(
+                Map.of("headFoo", "one", "headBar", "two"),
+                Map.of("headFoo", "three", "headBar", "four"),
+                Map.of("headFoo", "five", "headBar", "six")
+        );
+
+        String responseString = new CsvMapper().writerFor(List.class)
+                .with(CsvSchema.builder()
+                        .addColumn("headFoo")
+                        .addColumn("headBar")
+                        .build()
+                        .withHeader())
+                .writeValueAsString(responseBody);
 
         new MockServerClient("localhost", 1080)
                 .when(
@@ -241,20 +262,14 @@ RETURN m.col_1,m.col_2,m.col_3
                                 .withHeaders(
                                         new Header("Content-Type", "text/csv; charset=utf-8"),
                                         new Header("Cache-Control", "private, max-age=1000"))
-                                .withBody("headFoo,headBar\n" + "one,two\n" + "three,four\n" + "five,six\n")
+                                .withBody(responseString)
                                 .withDelay(TimeUnit.SECONDS, 1)
                 );
 
-        testResult(db, "CALL apoc.load.csv($url, {results:['map','list','stringMap','strings']})",
-                map("url", "http://" + userPass + "@localhost:1080/docs/csv",
-                        "header", map("method", "POST"),
-                        "payload", "{\"query\":\"pagecache\",\"version\":\"3.5\"}"),
-                (row) -> {
-                    assertRow(row, 0L, "headFoo", "one", "headBar", "two");
-                    assertRow(row, 1L, "headFoo", "three", "headBar", "four");
-                    assertRow(row, 2L, "headFoo", "five", "headBar", "six");
-                    assertEquals(false, row.hasNext());
-                });
+        testResult(db, "CALL apoc.load.csv($url, {results:['map']}) YIELD map",
+                    map("url", "http://" + userPass + "@localhost:1080/docs/csv"),
+                    (row) -> assertEquals(responseBody, row.stream().map(i->i.get("map")).collect(Collectors.toList()))
+                );
     }
 
     @Test

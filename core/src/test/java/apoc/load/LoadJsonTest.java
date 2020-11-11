@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -12,6 +13,7 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -267,6 +269,9 @@ public class LoadJsonTest {
     public void testLoadJsonWithAuth() throws Exception {
         String userPass = "user:password";
         String token = Util.encodeUserColonPassToBase64(userPass);
+        HashMap<String, Object> responseBody = new HashMap<>() {{
+            put("result", "message");
+        }};
         new MockServerClient("localhost", 1080)
                 .when(
                         request()
@@ -280,22 +285,23 @@ public class LoadJsonTest {
                                 .withHeaders(
                                         new Header("Content-Type", "application/json; charset=utf-8"),
                                         new Header("Cache-Control", "private, max-age=1000"))
-                                .withBody("{ result: 'message' }")
+                                .withBody(JsonUtil.OBJECT_MAPPER.writeValueAsString(responseBody))
                                 .withDelay(TimeUnit.SECONDS, 1)
                 );
 
         testCall(db, "call apoc.load.json($url)",
-                map( "url", "http://" + userPass + "@localhost:1080/docs/search"),
-                (row) -> {
-                    Map<String, Object> value = (Map<String, Object>) row.get("value");
-                    assertFalse("value should be not empty", value.isEmpty());
-                });
+                    map( "url", "http://" + userPass + "@localhost:1080/docs/search"),
+                    (row) -> assertEquals(responseBody, row.get("value"))
+                );
     }
 
     @Test
     public void testLoadJsonParamsWithAuth() throws Exception {
 	    String userPass = "user:password";
         String token = Util.encodeUserColonPassToBase64(userPass);
+        HashMap<String, Object> responseBody = new HashMap<>() {{
+            put("result", "message");
+        }};
         new MockServerClient("localhost", 1080)
                 .when(
                         request()
@@ -310,18 +316,16 @@ public class LoadJsonTest {
                                 .withHeaders(
                                         new Header("Content-Type", "application/json; charset=utf-8"),
                                         new Header("Cache-Control", "public, max-age=86400"))
-                                .withBody("{ result: 'message' }")
+                                .withBody(JsonUtil.OBJECT_MAPPER.writeValueAsString(responseBody))
                                 .withDelay(TimeUnit.SECONDS, 1)
                 );
 
         testCall(db, "call apoc.load.jsonParams($url, $config, $payload)",
-                map("payload", "{\"query\":\"pagecache\",\"version\":\"3.5\"}",
+                    map("payload", "{\"query\":\"pagecache\",\"version\":\"3.5\"}",
                         "url", "http://" + userPass + "@localhost:1080/docs/search",
                         "config", map("method", "POST")),
-                (row) -> {
-                    Map<String, Object> value = (Map<String, Object>) row.get("value");
-                    assertFalse("value should be not empty", value.isEmpty());
-                });
+                    (row) -> assertEquals(responseBody, row.get("value"))
+                );
     }
 
     @Test
