@@ -46,6 +46,12 @@ include::partial$usage/config/apoc.export.json.all.adoc[]
 |data|STRING?
 |===
 
+== Exporting to a file
+include::partial$enableFileExport.adoc[]
+
+== Exporting a stream
+include::partial$streamExport.adoc[]
+
 [[usage-apoc.export.json.all]]
 == Usage Examples
 include::partial$usage/apoc.export.json.all.adoc[]
