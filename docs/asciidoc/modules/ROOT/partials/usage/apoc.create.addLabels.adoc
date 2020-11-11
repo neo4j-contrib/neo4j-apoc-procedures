@@ -1,0 +1,23 @@
+The examples in this section are based on the following sample graph:
+[source,cypher]
+----
+CREATE (:Movie {title: 'A Few Good Men', genre: 'Drama'});
+----
+
+We can move the 'genre' property to a label and remove it as a property by running the following query:
+
+[source,cypher]
+----
+MATCH (n:Movie)
+CALL apoc.create.addLabels( n, [ n.genre ] )
+YIELD node
+REMOVE node.genre
+RETURN node;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| node
+| (:Movie:Drama {title: "A Few Good Men"})
+|===
