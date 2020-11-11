@@ -1,0 +1,36 @@
+Cypher supports deleting of relationship properties as long as the property names are hard coded.
+If the property names are dynamically specified we can use this procedure instead.
+
+
+The examples in this section are based on the following sample graph:
+[source,cypher]
+----
+CREATE (jennifer:Person {name: "Jennifer", community: 1, partition: 4})
+CREATE (karin:Person {name: "Karin", community: 4, partition: 2})
+CREATE (elaine:Person {name: "Elaine", community: 3, partition: 3})
+MERGE (jennifer)-[:FRIENDS {since: datetime("2019-06-01")}]-(karin)
+MERGE (jennifer)-[:FRIENDS {since: datetime("2019-05-04")}]-(elaine);
+----
+
+We can delete all properties except for `name` from `Person` nodes, by running the following query:
+
+[source, cypher]
+----
+CALL db.propertyKeys()
+YIELD propertyKey
+WITH collect(propertyKey) AS propertyKeys
+MATCH (:Person)-[friends:FRIENDS]->(:Person)
+WITH collect(friends) AS friendsRels, propertyKeys
+CALL apoc.create.removeRelProperties(friendsRels, propertyKeys)
+YIELD rel
+RETURN startNode(rel).name AS start, rel, endNode(rel).name AS end;
+----
+
+.Results
+[opts="header"]
+|===
+| start      | rel        | end
+| "Jennifer" | [:FRIENDS] | "Elaine"
+| "Jennifer" | [:FRIENDS] | "Karin"
+
+|===

@@ -1,0 +1,29 @@
+The examples in this section are based on the following sample graph:
+[source,cypher]
+----
+CREATE (jennifer:Person {name: "Jennifer", community: 1, partition: 4})
+CREATE (karin:Person {name: "Karin", community: 4, partition: 2})
+CREATE (elaine:Person {name: "Elaine", community: 3, partition: 3})
+MERGE (jennifer)-[:FRIENDS {since: datetime("2019-06-01")}]-(karin)
+MERGE (jennifer)-[:FRIENDS {since: datetime("2019-05-04")}]-(elaine);
+----
+
+We can duplicate all node properties on `Person` nodes, by running the following query:
+
+[source, cypher]
+----
+MATCH (p:Person)
+WITH p, keys(p) AS keys
+CALL apoc.create.setProperties(p,[k in keys | k + "Copy"], [k in keys | p[k]])
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| node
+| {"name":"Jennifer","partition":4,"community":1,"nameCopy":"Jennifer","partitionCopy":4,"communityCopy":1}
+| {"name":"Karin","partition":2,"community":4,"nameCopy":"Karin","partitionCopy":2,"communityCopy":4}
+| {"name":"Mark","partition":3,"community":3,"nameCopy":"Mark","partitionCopy":3,"communityCopy":3}
+|===

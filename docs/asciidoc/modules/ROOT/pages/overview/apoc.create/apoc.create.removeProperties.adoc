@@ -32,5 +32,9 @@ apoc.create.removeProperties(nodes :: ANY?, keys :: LIST? OF STRING?) :: (node :
 |node|NODE?
 |===
 
+[[usage-apoc.create.removeProperties]]
+== Usage Examples
+include::partial$usage/apoc.create.removeProperties.adoc[]
+
 xref::graph-updates/data-creation.adoc[More documentation of apoc.create.removeProperties,role=more information]
 
