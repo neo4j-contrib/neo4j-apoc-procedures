@@ -4,7 +4,6 @@ import apoc.Extended;
 import apoc.export.util.CountingReader;
 import apoc.load.util.LoadCsvConfig;
 import apoc.util.FileUtils;
-import apoc.util.MapUtil;
 import apoc.util.Util;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
@@ -16,7 +15,6 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -24,7 +22,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import apoc.load.util.Results;
-
 import static apoc.util.FileUtils.closeReaderSafely;
 import static apoc.util.Util.cleanUrl;
 import static java.util.Collections.emptyList;
@@ -51,16 +48,16 @@ public class LoadCsv {
             httpHeaders.putAll(Util.extractCredentialsIfNeeded(url, true));
             reader = FileUtils.readerFor(url, httpHeaders, payload);
             return streamCsv(url, config, reader);
-        } catch (IOException | URISyntaxException e) {
+        } catch (IOException e) {
             closeReaderSafely(reader);
-            if (!config.isFailOnError())
+            if(!config.isFailOnError())
                 return Stream.of(new CSVResult(new String[0], new String[0], 0, true, Collections.emptyMap(), emptyList(), EnumSet.noneOf(Results.class)));
             else
                 throw new RuntimeException("Can't read CSV from URL " + cleanUrl(url), e);
         }
     }
 
-    public Stream<CSVResult> streamCsv(@Name("url") String url, LoadCsvConfig config, CountingReader reader) throws IOException, URISyntaxException {
+    public Stream<CSVResult> streamCsv(@Name("url") String url, LoadCsvConfig config, CountingReader reader) throws IOException {
 
         CSVReader csv = new CSVReaderBuilder(reader)
                 .withCSVParser(new CSVParserBuilder()
