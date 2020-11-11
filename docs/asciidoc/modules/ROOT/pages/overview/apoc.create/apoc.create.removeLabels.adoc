@@ -32,5 +32,9 @@ apoc.create.removeLabels(nodes :: ANY?, label :: LIST? OF STRING?) :: (node :: N
 |node|NODE?
 |===
 
+[[usage-apoc.create.removeLabels]]
+== Usage Examples
+include::partial$usage/apoc.create.removeLabels.adoc[]
+
 xref::graph-updates/data-creation.adoc[More documentation of apoc.create.removeLabels,role=more information]
 
