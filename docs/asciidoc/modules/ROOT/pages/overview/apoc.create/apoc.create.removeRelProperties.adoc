@@ -32,5 +32,9 @@ apoc.create.removeRelProperties(rels :: ANY?, keys :: LIST? OF STRING?) :: (rel 
 |rel|RELATIONSHIP?
 |===
 
+[[usage-apoc.create.removeRelProperties]]
+== Usage Examples
+include::partial$usage/apoc.create.removeRelProperties.adoc[]
+
 xref::graph-updates/data-creation.adoc[More documentation of apoc.create.removeRelProperties,role=more information]
 

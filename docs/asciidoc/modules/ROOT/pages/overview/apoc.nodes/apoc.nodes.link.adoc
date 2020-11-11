@@ -25,5 +25,9 @@ apoc.nodes.link(nodes :: LIST? OF NODE?, type :: STRING?) :: VOID
 |type|STRING?|null
 |===
 
+[[usage-apoc.nodes.link]]
+== Usage Examples
+include::partial$usage/apoc.nodes.link.adoc[]
+
 xref::graph-updates/data-creation.adoc[More documentation of apoc.nodes.link,role=more information]
 
