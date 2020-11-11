@@ -15,7 +15,6 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
