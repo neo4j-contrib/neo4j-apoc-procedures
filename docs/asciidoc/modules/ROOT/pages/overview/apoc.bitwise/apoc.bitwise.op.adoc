@@ -26,3 +26,7 @@ apoc.bitwise.op(a :: INTEGER?, operator :: STRING?, b :: INTEGER?) :: (INTEGER?)
 |b|INTEGER?|null
 |===
 
+[[usage-apoc.bitwise.op]]
+== Usage Examples
+include::partial$usage/apoc.bitwise.op.adoc[]
+
