@@ -32,5 +32,9 @@ apoc.create.addLabels(nodes :: ANY?, label :: LIST? OF STRING?) :: (node :: NODE
 |node|NODE?
 |===
 
+[[usage-apoc.create.addLabels]]
+== Usage Examples
+include::partial$usage/apoc.create.addLabels.adoc[]
+
 xref::graph-updates/data-creation.adoc[More documentation of apoc.create.addLabels,role=more information]
 
