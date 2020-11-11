@@ -28,6 +28,8 @@ include::partial$neo4j-desktop.adoc[tags=install-desktop,leveloffset=2]
 
 include::partial$neo4j-server.adoc[tags=install,leveloffset=2]
 
+After you move the jar file to the plugins folder you have to restart neo4j with `neo4j restart`
+
 // tag::version-matrix[]
 Since APOC relies on Neo4j's internal APIs, you need to use the right APOC version for your Neo4j installation.
 
