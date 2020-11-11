@@ -26,6 +26,9 @@ apoc.periodic.iterate(cypherIterate :: STRING?, cypherAction :: STRING?, config 
 |config|MAP?|null
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.periodic.iterate.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -43,6 +46,10 @@ apoc.periodic.iterate(cypherIterate :: STRING?, cypherAction :: STRING?, config 
 |wasTerminated|BOOLEAN?
 |failedParams|MAP?
 |===
+
+[[usage-apoc.periodic.iterate]]
+== Usage Examples
+include::partial$usage/apoc.periodic.iterate.adoc[]
 
 xref::graph-updates/periodic-execution.adoc#commit-batching[More documentation of apoc.periodic.iterate,role=more information]
 
