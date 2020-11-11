@@ -1,0 +1,28 @@
+The examples in this section are based on the following sample graph:
+[source,cypher]
+----
+CREATE (jennifer:Person {name: "Jennifer", community: 1, partition: 4})
+CREATE (karin:Person {name: "Karin", community: 4, partition: 2})
+CREATE (elaine:Person {name: "Elaine", community: 3, partition: 3})
+MERGE (jennifer)-[:FRIENDS {since: datetime("2019-06-01")}]-(karin)
+MERGE (jennifer)-[:FRIENDS {since: datetime("2019-05-04")}]-(elaine);
+----
+
+We can duplicate all relationship properties, by running the following query:
+
+[source,cypher]
+-----
+MATCH (:Person)-[friends:FRIENDS]->(:Person)
+WITH friends, keys(friends) AS keys
+CALL apoc.create.setRelProperties(friends,[k in keys | k + "Copy"], [k in keys | friends[k]])
+YIELD rel
+RETURN startNode(rel).name AS start, rel, endNode(rel).name AS end;
+-----
+
+.Results
+[opts="header", cols="1,3,1"]
+|===
+| start | rel | end
+| "Jennifer" | [:FRIENDS {sinceCopy: 2019-05-04T00:00Z, since: 2019-05-04T00:00Z}] | "Elaine"
+| "Jennifer" | [:FRIENDS {sinceCopy: 2019-06-01T00:00Z, since: 2019-06-01T00:00Z}] | "Karin"
+|===
