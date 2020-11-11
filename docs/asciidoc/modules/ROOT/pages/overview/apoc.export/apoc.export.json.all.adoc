@@ -25,6 +25,9 @@ apoc.export.json.all(file :: STRING?, config = {} :: MAP?) :: (file :: STRING?, 
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.export.json.all.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -42,6 +45,10 @@ apoc.export.json.all(file :: STRING?, config = {} :: MAP?) :: (file :: STRING?, 
 |done|BOOLEAN?
 |data|STRING?
 |===
+
+[[usage-apoc.export.json.all]]
+== Usage Examples
+include::partial$usage/apoc.export.json.all.adoc[]
 
 xref::export/json.adoc[More documentation of apoc.export.json.all,role=more information]
 
