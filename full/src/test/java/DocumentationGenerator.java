@@ -263,6 +263,8 @@ class DocumentationGenerator {
             writeConfigParameters(writer, procedure.name().toString());
             writeOutputParameters(procedure, writer);
             writeReadingFromFile(writer, procedure.name().toString());
+            writeExportToFile(writer, procedure.name().toString());
+            writeExportToStream(writer, procedure.name().toString());
             writeUuid(writer, procedure.name().toString());
             writeUsageExample(writer, procedure.name().toString());
             writeExtraDocumentation(writer, procedure.name());
@@ -273,11 +275,27 @@ class DocumentationGenerator {
     }
 
     private final List<String> readsFromFile = Arrays.asList("apoc.cypher.runFile", "apoc.cypher.runFiles", "apoc.cypher.runSchemaFile", "apoc.cypher.runSchemaFiles");
+    private final List<String> writeToFile = Arrays.asList("apoc.export.json.all");
+    private final List<String> writeToStream = Arrays.asList("apoc.export.json.all");
 
     private void writeReadingFromFile(Writer writer, String name) throws IOException {
         if(readsFromFile.contains(name)) {
             writer.write("== Reading from a file\n");
             writer.write("include::../../import/includes/enableFileImport.adoc[]\n\n");
+        }
+    }
+
+    private void writeExportToFile(Writer writer, String name) throws IOException {
+        if(writeToFile.contains(name)) {
+            writer.write("== Exporting to a file\n");
+            writer.write("include::partial$enableFileExport.adoc[]\n\n");
+        }
+    }
+
+    private void writeExportToStream(Writer writer, String name) throws IOException {
+        if(writeToStream.contains(name)) {
+            writer.write("== Exporting a stream\n");
+            writer.write("include::partial$streamExport.adoc[]\n\n");
         }
     }
 
