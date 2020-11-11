@@ -67,7 +67,7 @@ public class GCStorageURLConnection extends URLConnection {
             if (StringUtils.isBlank(uri.getPath())) {
                 throw new RuntimeException("Please provide the file name");
             }
-            blob = getStorage(uri).get(BlobId.of(uri.getHost(), uri.getPath().substring(1)));
+            blob = getStorage(uri).get(BlobId.of(uri.getAuthority(), uri.getPath().substring(1)));
             connected = true;
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
