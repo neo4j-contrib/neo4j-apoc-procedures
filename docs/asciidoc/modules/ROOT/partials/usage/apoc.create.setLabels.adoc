@@ -1,0 +1,25 @@
+The examples in this section are based on the following sample graph:
+[source,cypher]
+----
+CREATE (:Movie {title: 'A Few Good Men', genre: 'Drama'});
+----
+
+We can move the 'genre' property to a label and remove it as a property, as well as removing any other labels, by running the following query:
+
+[source,cypher]
+----
+MATCH (n:Movie)
+CALL apoc.create.setLabels( n, [ n.genre ] )
+YIELD node
+REMOVE node.genre
+RETURN node;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| node
+| (:Drama {title: "A Few Good Men"})
+|===
+
+If we want to only add new labels and not remove existing ones, see xref::overview/apoc.create/apoc.create.addLabels.adoc[]
