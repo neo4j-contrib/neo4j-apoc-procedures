@@ -4,6 +4,7 @@ import apoc.Extended;
 import apoc.export.util.CountingReader;
 import apoc.load.util.LoadCsvConfig;
 import apoc.util.FileUtils;
+import apoc.util.MapUtil;
 import apoc.util.Util;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
@@ -15,12 +16,15 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import apoc.load.util.Results;
+
 import static apoc.util.FileUtils.closeReaderSafely;
 import static apoc.util.Util.cleanUrl;
 import static java.util.Collections.emptyList;
@@ -32,23 +36,31 @@ public class LoadCsv {
     public GraphDatabaseService db;
 
     @Procedure
-    @Description("apoc.load.csv('url',{config}) YIELD lineNo, list, map - load CSV fom URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
-    public Stream<CSVResult> csv(@Name("url") String url, @Name(value = "config",defaultValue = "{}") Map<String, Object> configMap) {
+    @Description("apoc.load.csv('url',{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
+    public Stream<CSVResult> csv(@Name("url") String url, @Name(value = "config", defaultValue = "{}") Map<String, Object> configMap) {
+        return csvParams(url, null, null,configMap);
+    }
+
+    @Procedure
+    @Description("apoc.load.csvParams('url', {httpHeader: value}, payload, {config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
+    public Stream<CSVResult> csvParams(@Name("url") String url, @Name("httpHeaders") Map<String, Object> httpHeaders, @Name("payload") String payload, @Name(value = "config", defaultValue = "{}") Map<String, Object> configMap) {
         LoadCsvConfig config = new LoadCsvConfig(configMap);
         CountingReader reader = null;
         try {
-            reader = FileUtils.readerFor(url);
+            httpHeaders = httpHeaders != null ? httpHeaders : new HashMap<>();
+            httpHeaders.putAll(Util.extractCredentialsIfNeeded(url, true));
+            reader = FileUtils.readerFor(url, httpHeaders, payload);
             return streamCsv(url, config, reader);
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             closeReaderSafely(reader);
-            if(!config.isFailOnError())
+            if (!config.isFailOnError())
                 return Stream.of(new CSVResult(new String[0], new String[0], 0, true, Collections.emptyMap(), emptyList(), EnumSet.noneOf(Results.class)));
             else
                 throw new RuntimeException("Can't read CSV from URL " + cleanUrl(url), e);
         }
     }
 
-    public Stream<CSVResult> streamCsv(@Name("url") String url, LoadCsvConfig config, CountingReader reader) throws IOException {
+    public Stream<CSVResult> streamCsv(@Name("url") String url, LoadCsvConfig config, CountingReader reader) throws IOException, URISyntaxException {
 
         CSVReader csv = new CSVReaderBuilder(reader)
                 .withCSVParser(new CSVParserBuilder()

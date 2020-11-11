@@ -4,6 +4,9 @@ import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.*;
+import org.mockserver.client.server.MockServerClient;
+import org.mockserver.integration.ClientAndServer;
+import org.mockserver.model.Header;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
@@ -17,14 +20,31 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import static org.mockserver.matchers.Times.exactly;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
 
 public class LoadCsvTest {
+
+    private static ClientAndServer mockServer;
+
+    @BeforeClass
+    public static void startServer() {
+        mockServer = startClientAndServer(1080);
+    }
+
+    @AfterClass
+    public static void stopServer() {
+        mockServer.stop();
+    }
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
@@ -201,6 +221,110 @@ RETURN m.col_1,m.col_2,m.col_3
                     assertEquals(false, r.hasNext());
                 });
 
+    }
+
+    @Test
+    public void testLoadCsvWithUserPassInUrl() {
+        String userPass = "user:password";
+        String token = Util.encodeUserColonPassToBase64(userPass);
+
+        new MockServerClient("localhost", 1080)
+                .when(
+                        request()
+                                .withPath("/docs/csv")
+                                .withHeader("Authorization", "Basic " + token)
+                                .withHeader("\"Content-type\", \"text/csv\""),
+                        exactly(1))
+                .respond(
+                        response()
+                                .withStatusCode(200)
+                                .withHeaders(
+                                        new Header("Content-Type", "text/csv; charset=utf-8"),
+                                        new Header("Cache-Control", "private, max-age=1000"))
+                                .withBody("headFoo,headBar\n" + "one,two\n" + "three,four\n" + "five,six\n")
+                                .withDelay(TimeUnit.SECONDS, 1)
+                );
+
+        testResult(db, "CALL apoc.load.csv($url, {results:['map','list','stringMap','strings']})",
+                map("url", "http://" + userPass + "@localhost:1080/docs/csv",
+                        "header", map("method", "POST"),
+                        "payload", "{\"query\":\"pagecache\",\"version\":\"3.5\"}"),
+                (row) -> {
+                    assertRow(row, 0L, "headFoo", "one", "headBar", "two");
+                    assertRow(row, 1L, "headFoo", "three", "headBar", "four");
+                    assertRow(row, 2L, "headFoo", "five", "headBar", "six");
+                    assertEquals(false, row.hasNext());
+                });
+    }
+
+    @Test
+    public void testLoadCsvParamsWithUserPassInUrl() {
+        String userPass = "user:password";
+        String token = Util.encodeUserColonPassToBase64(userPass);
+
+        new MockServerClient("localhost", 1080)
+                .when(
+                        request()
+                                .withMethod("POST")
+                                .withPath("/docs/csv")
+                                .withHeader("Authorization", "Basic " + token)
+                                .withHeader("\"Content-type\", \"text/csv\""),
+                        exactly(1))
+                .respond(
+                        response()
+                                .withStatusCode(200)
+                                .withHeaders(
+                                        new Header("Content-Type", "text/csv; charset=utf-8"),
+                                        new Header("Cache-Control", "private, max-age=100"))
+                                .withBody("headFoo,headBar\n" + "one,two\n" + "three,four\n" + "five,six\n")
+                                .withDelay(TimeUnit.SECONDS, 1)
+                );
+
+        testResult(db, "CALL apoc.load.csvParams($url, $header, $payload, {results:['map','list','stringMap','strings']})",
+                map("url", "http://" + userPass + "@localhost:1080/docs/csv",
+                        "header", map("method", "POST"),
+                        "payload", "{\"query\":\"pagecache\",\"version\":\"3.5\"}"),
+                (row) -> {
+                    assertRow(row, 0L, "headFoo", "one", "headBar", "two");
+                    assertRow(row, 1L, "headFoo", "three", "headBar", "four");
+                    assertRow(row, 2L, "headFoo", "five", "headBar", "six");
+                    assertEquals(false, row.hasNext());
+                });
+    }
+
+    @Test
+    public void testLoadCsvParamsWithBasicAuth() {
+        String userPass = "user:password";
+        String token = Util.encodeUserColonPassToBase64(userPass);
+
+        new MockServerClient("localhost", 1080)
+                .when(
+                        request()
+                                .withMethod("POST")
+                                .withPath("/docs/csv")
+                                .withHeader("Authorization", "Basic " + token)
+                                .withHeader("\"Content-type\", \"text/csv\""),
+                        exactly(1))
+                .respond(
+                        response()
+                                .withStatusCode(200)
+                                .withHeaders(
+                                        new Header("Content-Type", "text/csv; charset=utf-8"),
+                                        new Header("Cache-Control", "private, max-age=100"))
+                                .withBody("headFoo,headBar\n" + "one,two\n" + "three,four\n" + "five,six\n")
+                                .withDelay(TimeUnit.SECONDS, 1)
+                );
+
+        testResult(db, "CALL apoc.load.csvParams($url, $header, $payload, {results:['map','list','stringMap','strings']})",
+                map("url", "http://localhost:1080/docs/csv",
+                        "header", map("method", "POST", "Authorization", "Basic " + token),
+                        "payload", "{\"query\":\"pagecache\",\"version\":\"3.5\"}"),
+                (row) -> {
+                    assertRow(row, 0L, "headFoo", "one", "headBar", "two");
+                    assertRow(row, 1L, "headFoo", "three", "headBar", "four");
+                    assertRow(row, 2L, "headFoo", "five", "headBar", "six");
+                    assertEquals(false, row.hasNext());
+                });
     }
 
     @Test
