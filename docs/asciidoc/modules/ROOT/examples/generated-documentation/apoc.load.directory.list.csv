@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.load.directory.list¦apoc.load.directory.list() :: (name :: STRING?, cypher :: STRING?, pattern :: STRING?, urlDir :: STRING?)¦apoc.load.directory.list() YIELD name, pattern, cypher - List of all folder listeners

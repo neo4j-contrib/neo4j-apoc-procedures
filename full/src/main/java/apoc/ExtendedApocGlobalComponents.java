@@ -48,12 +48,9 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
                 dependencies.apocConfig(),
                 dependencies.globalProceduresRegistry()),
 
-                // todo - check...
                 "directory", new LoadDirectoryHandler(db,
-                        dependencies.databaseManagementService(),
                         dependencies.apocConfig(),
                         dependencies.log().getUserLog(LoadDirectory.class),
-                        dependencies.globalProceduresRegistry(),
                         dependencies.pools()),
 
                 "cypherProcedures", cypherProcedureHandler

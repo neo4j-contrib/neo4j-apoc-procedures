@@ -8,7 +8,7 @@ public class LoadDirectoryItem {
     private final String urlDir;
     private final LoadDirectoryConfig config;
 
-    public LoadDirectoryItem( String name, String pattern, String cypher, String urlDir, LoadDirectoryConfig config) {
+    public LoadDirectoryItem(String name, String pattern, String cypher, String urlDir, LoadDirectoryConfig config) {
         this.name = name;
         this.cypher = cypher;
         this.pattern = pattern;

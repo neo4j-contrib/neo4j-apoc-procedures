@@ -1,0 +1,2 @@
+¦signature
+¦apoc.load.directory.removeAll() :: (name :: STRING?, cypher :: STRING?, pattern :: STRING?, urlDir :: STRING?)
