@@ -82,7 +82,7 @@ public class Convert {
             Collections.addAll(result, ((Object[]) list));
             return result;
         }
-        return null;
+        return Collections.singletonList(list);
     }
     
     @SuppressWarnings("unchecked")
