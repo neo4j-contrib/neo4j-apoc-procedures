@@ -13,7 +13,6 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.net.URL;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -269,9 +268,8 @@ public class LoadJsonTest {
     public void testLoadJsonWithAuth() throws Exception {
         String userPass = "user:password";
         String token = Util.encodeUserColonPassToBase64(userPass);
-        HashMap<String, Object> responseBody = new HashMap<>() {{
-            put("result", "message");
-        }};
+        Map<String, String> responseBody = Map.of("result", "message");
+
         new MockServerClient("localhost", 1080)
                 .when(
                         request()
@@ -299,9 +297,8 @@ public class LoadJsonTest {
     public void testLoadJsonParamsWithAuth() throws Exception {
 	    String userPass = "user:password";
         String token = Util.encodeUserColonPassToBase64(userPass);
-        HashMap<String, Object> responseBody = new HashMap<>() {{
-            put("result", "message");
-        }};
+        Map<String, String> responseBody = Map.of("result", "message");
+
         new MockServerClient("localhost", 1080)
                 .when(
                         request()

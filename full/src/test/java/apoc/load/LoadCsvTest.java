@@ -1,24 +1,18 @@
 package apoc.load;
 
 import apoc.ApocSettings;
-import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import org.junit.*;
-import org.junit.jupiter.params.shadow.com.univocity.parsers.csv.CsvWriter;
 import org.mockserver.client.server.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.GenericContainer;
@@ -43,6 +37,12 @@ import static org.mockserver.model.HttpResponse.response;
 public class LoadCsvTest {
 
     private static ClientAndServer mockServer;
+
+    private static final List<Map<String, Object>> RESPONSE_BODY = List.of(
+            Map.of("headFoo", "one", "headBar", "two"),
+            Map.of("headFoo", "three", "headBar", "four"),
+            Map.of("headFoo", "five", "headBar", "six")
+    );
 
     @BeforeClass
     public static void startServer() {
@@ -235,19 +235,6 @@ RETURN m.col_1,m.col_2,m.col_3
     public void testLoadCsvWithUserPassInUrl() throws JsonProcessingException {
         String userPass = "user:password";
         String token = Util.encodeUserColonPassToBase64(userPass);
-        List<Map<String, Object>> responseBody = Arrays.asList(
-                Map.of("headFoo", "one", "headBar", "two"),
-                Map.of("headFoo", "three", "headBar", "four"),
-                Map.of("headFoo", "five", "headBar", "six")
-        );
-
-        String responseString = new CsvMapper().writerFor(List.class)
-                .with(CsvSchema.builder()
-                        .addColumn("headFoo")
-                        .addColumn("headBar")
-                        .build()
-                        .withHeader())
-                .writeValueAsString(responseBody);
 
         new MockServerClient("localhost", 1080)
                 .when(
@@ -262,18 +249,18 @@ RETURN m.col_1,m.col_2,m.col_3
                                 .withHeaders(
                                         new Header("Content-Type", "text/csv; charset=utf-8"),
                                         new Header("Cache-Control", "private, max-age=1000"))
-                                .withBody(responseString)
+                                .withBody(fromListOfMapToCsvString(RESPONSE_BODY))
                                 .withDelay(TimeUnit.SECONDS, 1)
                 );
 
         testResult(db, "CALL apoc.load.csv($url, {results:['map']}) YIELD map",
                     map("url", "http://" + userPass + "@localhost:1080/docs/csv"),
-                    (row) -> assertEquals(responseBody, row.stream().map(i->i.get("map")).collect(Collectors.toList()))
+                    (row) -> assertEquals(RESPONSE_BODY, row.stream().map(i->i.get("map")).collect(Collectors.toList()))
                 );
     }
 
     @Test
-    public void testLoadCsvParamsWithUserPassInUrl() {
+    public void testLoadCsvParamsWithUserPassInUrl() throws JsonProcessingException {
         String userPass = "user:password";
         String token = Util.encodeUserColonPassToBase64(userPass);
 
@@ -291,24 +278,20 @@ RETURN m.col_1,m.col_2,m.col_3
                                 .withHeaders(
                                         new Header("Content-Type", "text/csv; charset=utf-8"),
                                         new Header("Cache-Control", "private, max-age=100"))
-                                .withBody("headFoo,headBar\n" + "one,two\n" + "three,four\n" + "five,six\n")
+                                .withBody(fromListOfMapToCsvString(RESPONSE_BODY))
                                 .withDelay(TimeUnit.SECONDS, 1)
                 );
 
         testResult(db, "CALL apoc.load.csvParams($url, $header, $payload, {results:['map','list','stringMap','strings']})",
-                map("url", "http://" + userPass + "@localhost:1080/docs/csv",
+                    map("url", "http://" + userPass + "@localhost:1080/docs/csv",
                         "header", map("method", "POST"),
                         "payload", "{\"query\":\"pagecache\",\"version\":\"3.5\"}"),
-                (row) -> {
-                    assertRow(row, 0L, "headFoo", "one", "headBar", "two");
-                    assertRow(row, 1L, "headFoo", "three", "headBar", "four");
-                    assertRow(row, 2L, "headFoo", "five", "headBar", "six");
-                    assertEquals(false, row.hasNext());
-                });
+                    (row) -> assertEquals(RESPONSE_BODY, row.stream().map(i->i.get("map")).collect(Collectors.toList()))
+                );
     }
 
     @Test
-    public void testLoadCsvParamsWithBasicAuth() {
+    public void testLoadCsvParamsWithBasicAuth() throws JsonProcessingException {
         String userPass = "user:password";
         String token = Util.encodeUserColonPassToBase64(userPass);
 
@@ -326,20 +309,16 @@ RETURN m.col_1,m.col_2,m.col_3
                                 .withHeaders(
                                         new Header("Content-Type", "text/csv; charset=utf-8"),
                                         new Header("Cache-Control", "private, max-age=100"))
-                                .withBody("headFoo,headBar\n" + "one,two\n" + "three,four\n" + "five,six\n")
+                                .withBody(fromListOfMapToCsvString(RESPONSE_BODY))
                                 .withDelay(TimeUnit.SECONDS, 1)
                 );
 
         testResult(db, "CALL apoc.load.csvParams($url, $header, $payload, {results:['map','list','stringMap','strings']})",
-                map("url", "http://localhost:1080/docs/csv",
+                    map("url", "http://localhost:1080/docs/csv",
                         "header", map("method", "POST", "Authorization", "Basic " + token),
-                        "payload", "{\"query\":\"pagecache\",\"version\":\"3.5\"}"),
-                (row) -> {
-                    assertRow(row, 0L, "headFoo", "one", "headBar", "two");
-                    assertRow(row, 1L, "headFoo", "three", "headBar", "four");
-                    assertRow(row, 2L, "headFoo", "five", "headBar", "six");
-                    assertEquals(false, row.hasNext());
-                });
+                            "payload", "{\"query\":\"pagecache\",\"version\":\"3.5\"}"),
+                    (row) -> assertEquals(RESPONSE_BODY, row.stream().map(i->i.get("map")).collect(Collectors.toList()))
+                );
     }
 
     @Test
@@ -493,5 +472,15 @@ RETURN m.col_1,m.col_2,m.col_3
         URL url = new URL("https://www.fhwa.dot.gov/bridge/nbi/2010/delimited/AL10.txt");
         testResult(db, "CALL apoc.load.csv($url, {quoteChar: '\0'})", map("url",url.toString()),
                 (r) -> assertEquals(16018L, r.stream().count()));
+    }
+
+    private static String fromListOfMapToCsvString(List<Map<String, Object>> mapList ) throws JsonProcessingException {
+        return new CsvMapper().writerFor(List.class)
+                .with(CsvSchema.builder()
+                        .addColumn("headFoo")
+                        .addColumn("headBar")
+                        .build()
+                        .withHeader())
+                .writeValueAsString(mapList);
     }
 }
