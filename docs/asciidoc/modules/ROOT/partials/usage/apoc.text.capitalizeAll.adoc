@@ -1,0 +1,12 @@
+.Capitalise the first letter of every word in the text
+[source,cypher]
+----
+RETURN apoc.text.capitalizeAll("graph database") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "Graph Database"
+|===
