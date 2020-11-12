@@ -1,0 +1,11 @@
+.Decapitalize the first letter of the string
+[source,cypher]
+----
+RETURN apoc.text.decapitalize("Graph Database") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "graph Database"
+|===

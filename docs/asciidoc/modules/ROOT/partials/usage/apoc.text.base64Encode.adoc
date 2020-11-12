@@ -1,0 +1,12 @@
+.Capitalise the first letter of the word with
+[source,cypher]
+----
+RETURN apoc.text.base64Encode("neo4j") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "bmVvNGo="
+|===
