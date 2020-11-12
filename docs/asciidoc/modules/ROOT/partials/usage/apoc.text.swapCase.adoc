@@ -1,0 +1,10 @@
+[source,cypher]
+----
+RETURN apoc.text.swapCase("Neo4j")  AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "nEO4J"
+|===
