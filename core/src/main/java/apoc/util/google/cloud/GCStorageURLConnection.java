@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 public class GCStorageURLConnection extends URLConnection {
 
-    enum AuthType { NONE, SERVICE }
+    enum AuthType { NONE, PRIVATE_KEY, GCP_ENVIRONMENT }
 
     private Blob blob;
     public GCStorageURLConnection(URL url) {
@@ -35,11 +35,13 @@ public class GCStorageURLConnection extends URLConnection {
         Map<String, String> queryParams = getQueryParams(uri);
         AuthType authenticationType = AuthType.valueOf(queryParams.getOrDefault("authenticationType", AuthType.NONE.toString()));
         switch (authenticationType) {
-            case SERVICE:
+            case PRIVATE_KEY:
                 String googleAppCredentialsEnv = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
                 if (StringUtils.isBlank(googleAppCredentialsEnv)) {
                     throw new RuntimeException("You must set the env variable GOOGLE_APPLICATION_CREDENTIALS as described here: https://cloud.google.com/storage/docs/reference/libraries#client-libraries-install-java");
                 }
+                // fall through
+            case GCP_ENVIRONMENT:
                 storage = StorageOptions.getDefaultInstance().getService();
                 break;
             default:
