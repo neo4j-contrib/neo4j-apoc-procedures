@@ -38,7 +38,7 @@ public class GCStorageURLConnection extends URLConnection {
             case SERVICE:
                 String googleAppCredentialsEnv = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
                 if (StringUtils.isBlank(googleAppCredentialsEnv)) {
-                    throw new RuntimeException("You must set the env variable GOOGLE_APPLICATION_CREDENTIALS as described here: https://cloopenud.google.com/storage/docs/reference/libraries#client-libraries-install-java");
+                    throw new RuntimeException("You must set the env variable GOOGLE_APPLICATION_CREDENTIALS as described here: https://cloud.google.com/storage/docs/reference/libraries#client-libraries-install-java");
                 }
                 storage = StorageOptions.getDefaultInstance().getService();
                 break;
