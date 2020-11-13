@@ -15,7 +15,6 @@ import org.reflections.util.ConfigurationBuilder;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
 import static apoc.ApocConfig.apocConfig;

@@ -234,7 +234,7 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         return result;
     }
 
-    private Map<String, Object> txDataParams(TransactionData txData, String phase) {
+    private Map<String, Object> txDataParams(TransactionData txData, String phase) {    
         return map("transactionId", phase.equals("after") ? txData.getTransactionId() : -1,
                 "commitTime", phase.equals("after") ? txData.getCommitTime() : -1,
                 "createdNodes", txData.createdNodes(),
