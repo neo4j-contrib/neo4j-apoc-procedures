@@ -25,5 +25,9 @@ apoc.text.random(length :: INTEGER?, valid = A-Za-z0-9 :: STRING?) :: (STRING?)
 |valid|STRING?|A-Za-z0-9
 |===
 
+[[usage-apoc.text.random]]
+== Usage Examples
+include::partial$usage/apoc.text.random.adoc[]
+
 xref::misc/text-functions.adoc[More documentation of apoc.text.random,role=more information]
 

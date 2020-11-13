@@ -1,0 +1,25 @@
+[source,cypher]
+----
+RETURN apoc.data.domain('http://www.example.com/all-the-things') AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "www.example.com"
+|===
+
+
+
+[source,cypher]
+----
+RETURN apoc.data.domain('foo@bar.com' ) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "bar.com"
+|===
