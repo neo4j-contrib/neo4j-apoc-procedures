@@ -24,3 +24,7 @@ apoc.data.domain(url_or_email_address :: STRING?) :: (STRING?)
 |url_or_email_address|STRING?|null
 |===
 
+[[usage-apoc.data.domain]]
+== Usage Examples
+include::partial$usage/apoc.data.domain.adoc[]
+
