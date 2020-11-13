@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 public class GCStorageURLConnection extends URLConnection {
 
-    enum AuthType { NONE, SERVICE }
+    enum AuthType { NONE, PRIVATE_KEY, GCP_ENVIRONMENT }
 
     private Blob blob;
     public GCStorageURLConnection(URL url) {
@@ -35,11 +35,13 @@ public class GCStorageURLConnection extends URLConnection {
         Map<String, String> queryParams = getQueryParams(uri);
         AuthType authenticationType = AuthType.valueOf(queryParams.getOrDefault("authenticationType", AuthType.NONE.toString()));
         switch (authenticationType) {
-            case SERVICE:
+            case PRIVATE_KEY:
                 String googleAppCredentialsEnv = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
                 if (StringUtils.isBlank(googleAppCredentialsEnv)) {
-                    throw new RuntimeException("You must set the env variable GOOGLE_APPLICATION_CREDENTIALS as described here: https://cloopenud.google.com/storage/docs/reference/libraries#client-libraries-install-java");
+                    throw new RuntimeException("You must set the env variable GOOGLE_APPLICATION_CREDENTIALS as described here: https://cloud.google.com/storage/docs/reference/libraries#client-libraries-install-java");
                 }
+                // fall through
+            case GCP_ENVIRONMENT:
                 storage = StorageOptions.getDefaultInstance().getService();
                 break;
             default:
@@ -67,7 +69,7 @@ public class GCStorageURLConnection extends URLConnection {
             if (StringUtils.isBlank(uri.getPath())) {
                 throw new RuntimeException("Please provide the file name");
             }
-            blob = getStorage(uri).get(BlobId.of(uri.getHost(), uri.getPath().substring(1)));
+            blob = getStorage(uri).get(BlobId.of(uri.getAuthority(), uri.getPath().substring(1)));
             connected = true;
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
