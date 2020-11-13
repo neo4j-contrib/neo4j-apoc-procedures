@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.text.distance("Levenshtein", "Levenstein") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 1
+|===
