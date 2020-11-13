@@ -1,0 +1,76 @@
+[source,cypher]
+----
+RETURN apoc.text.snakeCase("test Snake Case") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "test-snake-case"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.snakeCase("FOO_BAR") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "foo-bar"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.snakeCase("Foo bar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "foo-bar"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.snakeCase("fooBar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "foo-bar"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.snakeCase("foo-bar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "foo-bar"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.snakeCase("Foo bar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "foo-bar"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.snakeCase("Foo  bar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "foo-bar"
+|===

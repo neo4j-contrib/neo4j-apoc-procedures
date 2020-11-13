@@ -1,0 +1,76 @@
+[source,cypher]
+----
+RETURN apoc.text.toUpperCase("test upper case") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "TEST_UPPER_CASE"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.toUpperCase("FooBar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "FOO_BAR"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.toUpperCase("fooBar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "FOO_BAR"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.toUpperCase("foo-bar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "FOO_BAR"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.toUpperCase("foo--bar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "FOO_BAR"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.toUpperCase("foo$$bar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "FOO_BAR"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.toUpperCase("foo 22 bar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "FOO_22_BAR"
+|===

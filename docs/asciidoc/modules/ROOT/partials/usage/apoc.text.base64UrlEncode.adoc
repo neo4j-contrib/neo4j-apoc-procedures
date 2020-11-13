@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.text.base64UrlEncode("http://neo4j.com/?test=test") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0"
+|===

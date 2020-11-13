@@ -6,60 +6,60 @@ RETURN apoc.text.camelCase("FOO_BAR") AS output;
 [opts="header"]
 |===
 | output
-| "fooBar"
+| "FooBar"
 |===
 
 [source,cypher]
 ----
-RETURN apoc.text.camelCase("Foo bar") AS output;
+RETURN apoc.text.upperCamelCase("Foo bar") AS output;
 ----
 .Results
 [opts="header"]
 |===
 | output
-| "fooBar"
+| "FooBar"
 |===
 
 [source,cypher]
 ----
-RETURN apoc.text.camelCase("Foo22 bar") AS output;
+RETURN apoc.text.upperCamelCase("Foo22 bar") AS output;
 ----
 .Results
 [opts="header"]
 |===
 | output
-| "foo22Bar"
+| "Foo22Bar"
 |===
 
 [source,cypher]
 ----
-RETURN apoc.text.camelCase("foo-bar") AS output;
+RETURN apoc.text.upperCamelCase("foo-bar") AS output;
 ----
 .Results
 [opts="header"]
 |===
 | output
-| "fooBar"
+| "FooBar"
 |===
 
 [source,cypher]
 ----
-RETURN apoc.text.camelCase("Foobar") AS output;
+RETURN apoc.text.upperCamelCase("Foobar") AS output;
 ----
 .Results
 [opts="header"]
 |===
 | output
-| "foobar"
+| "Foobar"
 |===
 
 [source,cypher]
 ----
-RETURN apoc.text.camelCase("Foo$$Bar") AS output;
+RETURN apoc.text.upperCamelCase("Foo$$Bar") AS output;
 ----
 .Results
 [opts="header"]
 |===
 | output
-| "fooBar"
+| "FooBar"
 |===

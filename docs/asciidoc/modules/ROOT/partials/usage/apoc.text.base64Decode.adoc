@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.text.base64Decode("bmVvNGo=") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "neo4j"
+|===
