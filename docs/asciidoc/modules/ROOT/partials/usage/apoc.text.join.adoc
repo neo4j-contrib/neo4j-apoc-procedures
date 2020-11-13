@@ -1,0 +1,10 @@
+[source,cypher]
+----
+RETURN apoc.text.join(['Hello', 'World'], ' ') AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "Hello World"
+|===
