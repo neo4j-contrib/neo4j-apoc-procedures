@@ -55,26 +55,24 @@ apoc.export.cypher.schema(file,config) - exports all schema indexes and constrai
 |label:apoc-core[]
 |xref::overview/apoc.export/apoc.export.cypherAll.adoc[apoc.export.cypherAll icon:book[]]
 
-apoc.export.cypherAll(file,config) - exports whole database incl. indexes as cypher statements to the provided file|label:procedure[]
+apoc.export.cypherAll(file,config) - exports whole database incl. indexes as cypher statements to the provided file
+|label:procedure[]
 |label:apoc-core[]
-
 |xref::overview/apoc.export/apoc.export.cypherData.adoc[apoc.export.cypherData icon:book[]]
 
-apoc.export.cypherData(nodes,rels,file,config) - exports given nodes and relationships incl. indexes as cypher statements to the provided file|label:procedure[]
+apoc.export.cypherData(nodes,rels,file,config) - exports given nodes and relationships incl. indexes as cypher statements to the provided file
+|label:procedure[]
 |label:apoc-core[]
-
 |xref::overview/apoc.export/apoc.export.cypherGraph.adoc[apoc.export.cypherGraph icon:book[]]
 
-apoc.export.cypherGraph(graph,file,config) - exports given graph object incl. indexes as cypher statements to the provided file|label:procedure[]
+apoc.export.cypherGraph(graph,file,config) - exports given graph object incl. indexes as cypher statements to the provided file
+|label:procedure[]
 |label:apoc-core[]
-
 |xref::overview/apoc.export/apoc.export.cypherQuery.adoc[apoc.export.cypherQuery icon:book[]]
 
-apoc.export.cypherQuery(query,file,config) - exports nodes and relationships from the cypher kernelTransaction incl. indexes as cypher statements to the provided file|label:procedure[]
+apoc.export.cypherQuery(query,file,config) - exports nodes and relationships from the cypher kernelTransaction incl. indexes as cypher statements to the provided file
+|label:procedure[]
 |label:apoc-core[]
-<<<<<<< HEAD
-
-=======
 |xref::overview/apoc.export/apoc.export.graphml.all.adoc[apoc.export.graphml.all icon:book[]]
 
 apoc.export.graphml.all(file,config) - exports whole database as graphml to the provided file
@@ -135,6 +133,5 @@ apoc.export.xls.graph(graph,file,config) - exports given graph object as xls to 
 apoc.export.xls.query(query,file,{config,...,params:\{params}}) - exports results from the cypher statement as xls to the provided file
 |label:procedure[]
 |label:apoc-full[]
->>>>>>> 8dbdb6e5... add apoc.cypher examples and fix a bug with how parent categories were being generated
 |===
 
