@@ -1,0 +1,22 @@
+[source,cypher]
+----
+RETURN apoc.text.compareCleaned('Hello World!', '_hello-world_') AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| TRUE
+|===
+
+
+[source,cypher]
+----
+RETURN apoc.text.compareCleaned('Hello World!', '_hello-world_$') AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| TRUE
+|===

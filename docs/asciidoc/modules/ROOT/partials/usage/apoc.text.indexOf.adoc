@@ -1,0 +1,22 @@
+[source,cypher]
+----
+RETURN apoc.text.indexOf("Hello World", 'Hello') AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| 0
+|===
+
+.Starting from index 3, find the first occurrence of 'Hello',
+[source,cypher]
+----
+RETURN apoc.text.indexOf("Hello World, Hello", 'Hello', 3) AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| 13
+|===

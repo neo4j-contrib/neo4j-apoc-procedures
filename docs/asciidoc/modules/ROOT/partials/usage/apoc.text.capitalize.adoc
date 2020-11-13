@@ -1,4 +1,4 @@
-.Capitalise the first letter of the word with
+.Capitalise the first letter of the word
 [source,cypher]
 ----
 RETURN apoc.text.capitalize("neo4j") AS output;

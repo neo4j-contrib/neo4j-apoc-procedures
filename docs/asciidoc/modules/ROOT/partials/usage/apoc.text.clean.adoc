@@ -1,0 +1,34 @@
+[source,cypher]
+----
+RETURN apoc.text.clean('Hello World!') AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "helloworld"
+|===
+
+
+[source,cypher]
+----
+RETURN apoc.text.clean('Hello___World!') AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "helloworld"
+|===
+
+
+[source,cypher]
+----
+RETURN apoc.text.clean('$-Hello___World!$') AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "helloworld"
+|===

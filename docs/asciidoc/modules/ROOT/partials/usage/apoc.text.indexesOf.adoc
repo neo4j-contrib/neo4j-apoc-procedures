@@ -1,0 +1,34 @@
+[source,cypher]
+----
+RETURN apoc.text.indexesOf("Hello World, Hello, Hello", 'Hello') AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| [0, 13, 20]
+|===
+
+.Starting from index 6, find the occurrences of 'Hello',
+[source,cypher]
+----
+RETURN apoc.text.indexesOf("Hello World, Hello, Hello", 'Hello', 6) AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| [13, 20]
+|===
+
+.Starting from index 6 up to index 20, find the occurrences of 'Hello',
+[source,cypher]
+----
+RETURN apoc.text.indexesOf("Hello World, Hello, Hello", 'Hello', 6, 20) AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| [13]
+|===

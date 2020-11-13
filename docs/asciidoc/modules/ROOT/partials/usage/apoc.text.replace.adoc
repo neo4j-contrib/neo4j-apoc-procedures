@@ -1,0 +1,21 @@
+[source,cypher]
+----
+RETURN apoc.text.replace('Hello World!', '[^a-zA-Z]', '') AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "HelloWorld"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.replace('GDS is a Neo4j Product', 'GDS', 'Bloom') AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "Bloom is a Neo4j Product"
+|===
