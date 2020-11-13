@@ -55,16 +55,14 @@ Once those files have been copied we'll need to restart the database.
 
 The S3 URL must be in the following format:
 
-* `s3://accessKey:secretKey[:sessionToken]@endpoint:port/bucket/key`
-(sessionToken is optional) or
-* `s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey[&sessionToken=sessionToken]`
-(sessionToken is optional) or
-* `s3://endpoint:port/bucket/key`
-if the accessKey, secretKey, and the optional sessionToken are provided in the environment variables
+* `s3://accessKey:secretKey@endpoint:port/bucket/key`
+or
+* `s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey`
+
 
 == Using Google Cloud Storage
 
-In order to use https://cloud.google.com/storage/[Google Cloud Storage] you need that the following jars are included into the plugin dir:
+In order to use https://cloud.google.com/storage/[Google Cloud Storage], you need to add the following Google Cloud dependencies in the plugins directory:
 
 * api-common-1.8.1.jar
 * failureaccess-1.0.1.jar
@@ -91,20 +89,21 @@ In order to use https://cloud.google.com/storage/[Google Cloud Storage] you need
 * protobuf-java-util-3.9.1.jar
 * threetenbp-1.3.3.jar
 
-We've prepared an uber-jar that contains the above dependencies in a single file in order simplify the process. You can http://example-data.neo4j.org/apoc/google-cloud-storage-dependencies-3.5-apoc.jar[download it from here] and copy it to your plugins directory.
+We've prepared an uber-jar that contains the above dependencies in a single file in order simplify the process. You can download it from http://example-data.neo4j.org/apoc/google-cloud-storage-dependencies-3.5-apoc.jar[here] and copy it to your plugins directory.
 
 You can use Google Cloud storage via the following url format:
 
 `gs://<bucket_name>/<file_path>`
 
-moreover you can also define the authorization type:
+Moreover, you can also specify the authorization type via an additional `authenticationType` query parameter:
 
-* `NONE`: for public buckets (it's the default behaviour so you don't need to specify this)
-* `SERVICE`: with Service authentication by setting the env variable GOOGLE_APPLICATION_CREDENTIALS as described here: https://cloopenud.google.com/storage/docs/reference/libraries#client-libraries-install-java
+* `NONE`: for public buckets (this is the default behavior if the parameter is not specified)
+* `GCP_ENVIRONMENT`: for passive authentication as a service account when Neo4j is running in the Google Cloud
+* `PRIVATE_KEY`: for using private keys generated for service accounts (requires setting `GOOGLE_APPLICATION_CREDENTIALS` environment variable pointing to a private key json file as described here: https://cloud.google.com/docs/authentication#strategies)
 
-Ex:
+Example:
 
-`gs://andrea-bucket-1/test-privato.csv?authenticationType=SERVICE`
+`gs://andrea-bucket-1/test-privato.csv?authenticationType=GCP_ENVIRONMENT`
 
 == failOnError
 
