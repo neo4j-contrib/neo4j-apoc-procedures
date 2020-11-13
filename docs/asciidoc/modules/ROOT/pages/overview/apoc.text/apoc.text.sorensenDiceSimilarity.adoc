@@ -26,5 +26,9 @@ apoc.text.sorensenDiceSimilarity(text1 :: STRING?, text2 :: STRING?, languageTag
 |languageTag|STRING?|en
 |===
 
+[[usage-apoc.text.sorensenDiceSimilarity]]
+== Usage Examples
+include::partial$usage/apoc.text.sorensenDiceSimilarity.adoc[]
+
 xref::misc/text-functions.adoc[More documentation of apoc.text.sorensenDiceSimilarity,role=more information]
 
