@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.math.maxInt() AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 2147483647
+|===

@@ -17,5 +17,9 @@ apoc.math.maxInt() | return the maximum value an int can have
 apoc.math.maxInt() :: (INTEGER?)
 ----
 
+[[usage-apoc.math.maxInt]]
+== Usage Examples
+include::partial$usage/apoc.math.maxInt.adoc[]
+
 xref::mathematical/math-functions.adoc[More documentation of apoc.math.maxInt,role=more information]
 

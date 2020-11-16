@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.math.maxByte() AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 127
+|===

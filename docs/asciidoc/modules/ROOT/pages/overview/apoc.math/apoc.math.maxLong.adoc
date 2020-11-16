@@ -17,5 +17,9 @@ apoc.math.maxLong() | return the maximum value a long can have
 apoc.math.maxLong() :: (INTEGER?)
 ----
 
+[[usage-apoc.math.maxLong]]
+== Usage Examples
+include::partial$usage/apoc.math.maxLong.adoc[]
+
 xref::mathematical/math-functions.adoc[More documentation of apoc.math.maxLong,role=more information]
 

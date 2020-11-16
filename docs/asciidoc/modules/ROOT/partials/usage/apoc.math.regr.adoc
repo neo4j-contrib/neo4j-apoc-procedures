@@ -1,0 +1,21 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (:REGR_TEST {x_property: 1 , y_property: 2 })
+CREATE (:REGR_TEST {x_property: 2 , y_property: 3 })
+CREATE (:REGR_TEST {y_property: 10000 })
+CREATE (:REGR_TEST {x_property: 3 , y_property: 6 });
+----
+
+[source,cypher]
+----
+CALL apoc.math.regr('REGR_TEST', 'y_property', 'x_property');
+----
+
+.Results
+[opts="header"]
+|===
+| r2                 | avgX | avgY               | slope
+| 0.9854227405247813 | 2.0  | 3.6666666666666665 | 1.8571428571428572
+|===

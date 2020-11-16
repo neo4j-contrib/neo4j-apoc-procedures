@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.math.maxDouble() AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 1.7976931348623157E308
+|===
