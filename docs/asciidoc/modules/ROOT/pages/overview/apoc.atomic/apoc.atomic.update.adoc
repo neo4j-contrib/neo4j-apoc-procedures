@@ -37,5 +37,9 @@ apoc.atomic.update(container :: ANY?, propertyName :: STRING?, operation :: STRI
 |newValue|ANY?
 |===
 
+[[usage-apoc.atomic.update]]
+== Usage Examples
+include::partial$usage/apoc.atomic.update.adoc[]
+
 xref::graph-updates/atomic-updates.adoc[More documentation of apoc.atomic.update,role=more information]
 

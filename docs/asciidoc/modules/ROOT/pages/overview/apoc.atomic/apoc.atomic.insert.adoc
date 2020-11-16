@@ -38,5 +38,9 @@ apoc.atomic.insert(container :: ANY?, propertyName :: STRING?, position :: INTEG
 |newValue|ANY?
 |===
 
+[[usage-apoc.atomic.insert]]
+== Usage Examples
+include::partial$usage/apoc.atomic.insert.adoc[]
+
 xref::graph-updates/atomic-updates.adoc[More documentation of apoc.atomic.insert,role=more information]
 
