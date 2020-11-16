@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.math.minByte() AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| -128
+|===

@@ -34,3 +34,7 @@ apoc.log.stream(path :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, li
 |path|STRING?
 |===
 
+[[usage-apoc.log.stream]]
+== Usage Examples
+include::partial$usage/apoc.log.stream.adoc[]
+
