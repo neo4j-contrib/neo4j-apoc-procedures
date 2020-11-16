@@ -26,6 +26,9 @@ apoc.load.csv(url :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, list 
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.load.csv.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -36,6 +39,13 @@ apoc.load.csv(url :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, list 
 |map|MAP?
 |stringMap|MAP?
 |===
+
+== Reading from a file
+include::../../import/includes/enableFileImport.adoc[]
+
+[[usage-apoc.load.csv]]
+== Usage Examples
+include::partial$usage/apoc.load.csv.adoc[]
 
 xref::import/load-csv.adoc[More documentation of apoc.load.csv,role=more information]
 

@@ -1,0 +1,27 @@
+`test.csv` contains people and their properties:
+
+.test.csv
+----
+name,age,beverage
+Selma,9,Soda
+Rana,12,Tea;Milk
+Selina,19,Cola
+----
+
+We can load this file and return the contents by running the following query:
+
+[source, cypher]
+----
+CALL apoc.load.csv('test.csv')
+YIELD lineNo, map, list
+RETURN *;
+----
+
+.Results
+[opts="header",cols="1,2,2"]
+|===
+| lineNo | list | map
+| 0      | ["Selma", "9", "Soda"]     | {name: "Selma", age: "9", beverage: "Soda"}
+| 1      | ["Rana", "12", "Tea;Milk"] | {name: "Rana", age: "12", beverage: "Tea;Milk"}
+| 2      | ["Selina", "19", "Cola"]   | {name: "Selina", age: "19", beverage: "Cola"}
+|===

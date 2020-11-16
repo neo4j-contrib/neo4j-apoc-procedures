@@ -1,0 +1,9 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| charset | String | "UTF-8" | the character set of the page being scraped
+| baseUri | String | "" | Base URI used to resolve relative paths
+|===

@@ -33,5 +33,12 @@ apoc.load.json(url :: STRING?, path =  :: STRING?, config = {} :: MAP?) :: (valu
 |value|MAP?
 |===
 
+== Reading from a file
+include::../../import/includes/enableFileImport.adoc[]
+
+[[usage-apoc.load.json]]
+== Usage Examples
+include::partial$usage/apoc.load.json.adoc[]
+
 xref::import/load-json.adoc[More documentation of apoc.load.json,role=more information]
 
