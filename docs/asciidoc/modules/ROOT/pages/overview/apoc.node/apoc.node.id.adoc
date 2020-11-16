@@ -24,5 +24,9 @@ apoc.node.id(node :: NODE?) :: (INTEGER?)
 |node|NODE?|null
 |===
 
+[[usage-apoc.node.id]]
+== Usage Examples
+include::partial$usage/apoc.node.id.adoc[]
+
 xref::graph-querying/node-querying.adoc[More documentation of apoc.node.id,role=more information]
 

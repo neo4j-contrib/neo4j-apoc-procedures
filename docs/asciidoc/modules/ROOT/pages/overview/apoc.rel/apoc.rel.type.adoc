@@ -24,3 +24,7 @@ apoc.rel.type(rel :: RELATIONSHIP?) :: (STRING?)
 |rel|RELATIONSHIP?|null
 |===
 
+[[usage-apoc.rel.type]]
+== Usage Examples
+include::partial$usage/apoc.rel.type.adoc[]
+

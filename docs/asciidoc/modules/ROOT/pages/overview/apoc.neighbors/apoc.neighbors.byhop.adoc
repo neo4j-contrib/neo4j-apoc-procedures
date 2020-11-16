@@ -33,5 +33,9 @@ apoc.neighbors.byhop(node :: NODE?, types =  :: STRING?, distance = 1 :: INTEGER
 |nodes|LIST? OF NODE?
 |===
 
+[[usage-apoc.neighbors.byhop]]
+== Usage Examples
+include::partial$usage/apoc.neighbors.byhop.adoc[]
+
 xref::graph-querying/neighborhood.adoc[More documentation of apoc.neighbors.byhop,role=more information]
 
