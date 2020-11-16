@@ -46,7 +46,7 @@ RETURN file, nodes, relationships, properties, data
 ----
 
 .Results
-[opts="header"]
+[opts="header", cols="1,1,1,1,5"]
 |===
 | file         | nodes | relationships | properties | data
 | NULL | 3     | 1             | 10         | "{\"type\":\"node\",\"id\":\"0\",\"labels\":[\"User\"],\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"age\":42,\"male\":true,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]}}
