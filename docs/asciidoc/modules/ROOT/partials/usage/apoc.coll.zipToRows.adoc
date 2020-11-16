@@ -1,0 +1,15 @@
+The following indicates whether all values in a collection are different:
+
+[source,cypher]
+----
+CALL apoc.coll.zipToRows([1,2,3], ["a", "b", "c"]);
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+| [1, "a"]
+| [2, "b"]
+| [3, "c"] 
+|===

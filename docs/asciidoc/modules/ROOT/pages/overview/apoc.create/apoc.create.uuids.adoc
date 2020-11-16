@@ -32,3 +32,7 @@ apoc.create.uuids(count :: INTEGER?) :: (row :: INTEGER?, uuid :: STRING?)
 |uuid|STRING?
 |===
 
+[[usage-apoc.create.uuids]]
+== Usage Examples
+include::partial$usage/apoc.create.uuids.adoc[]
+
