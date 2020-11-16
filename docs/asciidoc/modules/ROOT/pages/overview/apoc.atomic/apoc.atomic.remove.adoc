@@ -37,5 +37,9 @@ apoc.atomic.remove(container :: ANY?, propertyName :: STRING?, position :: INTEG
 |newValue|ANY?
 |===
 
+[[usage-apoc.atomic.remove]]
+== Usage Examples
+include::partial$usage/apoc.atomic.remove.adoc[]
+
 xref::graph-updates/atomic-updates.adoc[More documentation of apoc.atomic.remove,role=more information]
 

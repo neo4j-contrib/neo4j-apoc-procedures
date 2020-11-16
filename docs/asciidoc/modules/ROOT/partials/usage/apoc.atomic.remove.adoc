@@ -1,0 +1,31 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (:Person {name:'Tom',age: 40})
+CREATE (:Person {name:'Will',age: 35})
+CREATE (:Person {name:'David', children: ['Anne','Sam','Paul']})
+CREATE (:Person {name:'John', cars: ['Class A','X3','Focus']})
+CREATE (:Person {name:'Ryan', salary1:1800, salary2:1500});
+----
+
+The following removes the element `X3`, which is at position 1, from the array `cars`
+
+[source,cypher]
+----
+MATCH (p:Person {name:'John'})
+CALL apoc.atomic.remove(p,'cars',1,5)
+YIELD oldValue, newValue
+RETURN oldValue, newValue;
+----
+
+
+.Results
+[opts="header"]
+|===
+| oldValue | newValue
+| ["Class A", "X3", "Focus"] | ["Class A", "Focus"]
+|===
+
+
+
