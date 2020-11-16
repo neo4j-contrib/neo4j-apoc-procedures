@@ -37,5 +37,9 @@ apoc.atomic.add(container :: ANY?, propertyName :: STRING?, number :: NUMBER?, t
 |newValue|ANY?
 |===
 
+[[usage-apoc.atomic.add]]
+== Usage Examples
+include::partial$usage/apoc.atomic.add.adoc[]
+
 xref::graph-updates/atomic-updates.adoc[More documentation of apoc.atomic.add,role=more information]
 
