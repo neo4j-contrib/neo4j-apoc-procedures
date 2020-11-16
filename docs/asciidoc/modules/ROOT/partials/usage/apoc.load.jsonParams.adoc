@@ -1,0 +1,27 @@
+We can perform a POST request to a JSON endpoint by setting the config parameter `method` to `POST`.
+We'll also use xref::overview/apoc.convert/apoc.convert.toJson.adoc[] to construct a JSON payload from a Cypher map.
+
+The following makes a POST request to Neo4j's search API:
+
+[source,cypher]
+----
+CALL apoc.load.jsonParams(
+  "https://neo4j.com/docs/search/",
+  {method: "POST"},
+  apoc.convert.toJson({query: "subquery", version: "4.0"})
+);
+----
+
+
+.Results
+[options="header"]
+|===
+| value
+| {description: "The CALL {} clause evaluates a subquery that returns some values.", weight: 0.6460227966308594, title: "3.16. CALL {} (subquery) - Chapter 3. Clauses", uri: "https://neo4j.com/docs/cypher-manual/4.0/clauses/call-subquery/"}
+| {description: "This section provides examples of queries and Cypher commands that can be used with Neo4j Fabric.", weight: 0.05099273845553398, title: "7.3. Queries - Chapter 7. Fabric", uri: "https://neo4j.com/docs/operations-manual/4.0/fabric/queries/"}
+| {description: "WHERE adds constraints to the patterns in a MATCH or OPTIONAL MATCH clause or filters the results of a WITH clause.", weight: 0.03291567042469978, title: "3.6. WHERE - Chapter 3. Clauses", uri: "https://neo4j.com/docs/cypher-manual/4.0/clauses/where/"}
+| {description: "This appendix contains the recommended style when writing Cypher queries.", weight: 0.031550146639347076, title: "Appendix A. Cypher styleguide - The Neo4j Cypher Manual v4.0", uri: "https://neo4j.com/docs/cypher-manual/4.0/styleguide/"}
+| {description: "This section contains information on all the clauses in the Cypher query language.", weight: 0.02944066934287548, title: "Chapter 3. Clauses - The Neo4j Cypher Manual v4.0", uri: "https://neo4j.com/docs/cypher-manual/4.0/clauses/"}
+| {description: "", weight: 0.01821548491716385, title: "2.3. Expressions - Chapter 2. Syntax", uri: "https://neo4j.com/docs/cypher-manual/4.0/syntax/expressions/"}
+
+|===

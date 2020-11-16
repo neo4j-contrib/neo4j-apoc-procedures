@@ -35,5 +35,12 @@ apoc.load.jsonParams(urlOrKey :: STRING?, headers :: MAP?, payload :: STRING?, p
 |value|MAP?
 |===
 
+== Reading from a file
+include::../../import/includes/enableFileImport.adoc[]
+
+[[usage-apoc.load.jsonParams]]
+== Usage Examples
+include::partial$usage/apoc.load.jsonParams.adoc[]
+
 xref::import/load-json.adoc[More documentation of apoc.load.jsonParams,role=more information]
 

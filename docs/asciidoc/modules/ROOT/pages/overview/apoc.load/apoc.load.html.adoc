@@ -26,10 +26,17 @@ apoc.load.html(url :: STRING?, query = {} :: MAP?, config = {} :: MAP?) :: (valu
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.load.html.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
 | Name | Type 
 |value|MAP?
 |===
+
+[[usage-apoc.load.html]]
+== Usage Examples
+include::partial$usage/apoc.load.html.adoc[]
 

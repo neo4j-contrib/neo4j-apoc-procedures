@@ -1,0 +1,36 @@
+The following examples assume that the MySQL driver has been loaded using xref::overview/apoc.load/apoc.load.driver.adoc[].
+
+The following count rows in the products table of the Northwind dataset:
+
+[source,cypher]
+----
+WITH "jdbc:mysql://localhost:3306/northwind?user=root" as url
+CALL apoc.load.jdbc(url,"products") YIELD row
+RETURN count(*);
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| count(*)
+| 77
+|===
+
+
+The following returns the first row in the products table of the Northwind dataset:
+
+[source,cypher]
+----
+WITH "jdbc:mysql://localhost:3306/northwind?user=root" as url
+CALL apoc.load.jdbc(url,"products")
+YIELD row
+RETURN row
+LIMIT 1;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| row
+| {UnitPrice -> 18.0000, UnitsOnOrder -> 0, CategoryID -> 1, UnitsInStock -> 39}
+|===

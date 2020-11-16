@@ -1,0 +1,51 @@
+`person.json` contains a JSON document representing a person and their children.
+
+.person.json
+[source,json]
+----
+{
+ "name":"Michael",
+ "age": 41,
+ "children": ["Selina","Rana","Selma"]
+}
+----
+
+We'll place this file into the `import` directory of our Neo4j instance.
+Let's now write a query using the `apoc.load.json` procedure to explore this file.
+
+The following query processes `person.json` and returns the content as Cypher data structures
+
+[source,cypher]
+----
+CALL apoc.load.json("file:///person.json")
+YIELD value
+RETURN value;
+----
+
+.Results
+[options="header"]
+|===
+| value
+| {name: "Michael", children: ["Selina", "Rana", "Selma"], age: 41}
+|===
+
+We get back a map that looks almost the same as the JSON document.
+We can now extend that query to create a graph based on this JSON file.
+We'll create a `Person` node for Michael and each of his children, and a `CHILD_OF` relationship from each child to the Michael node.
+
+.The following creates a graph based on `person.json`
+[source,cypher]
+----
+CALL apoc.load.json("file:///person.json")
+YIELD value
+MERGE (p:Person {name: value.name})
+SET p.age = value.age
+WITH p, value
+UNWIND value.children AS child
+MERGE (c:Person {name: child})
+MERGE (c)-[:CHILD_OF]->(p);
+----
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::apoc.load.json.local.file.svg[]
