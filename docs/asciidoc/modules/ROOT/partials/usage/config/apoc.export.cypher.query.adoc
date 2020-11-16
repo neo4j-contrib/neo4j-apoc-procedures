@@ -1,0 +1,28 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header, cols="1,1,1,5"]
+|===
+| name | type | default | description
+| writeNodeProperties | boolean | false | if true export properties too.
+| stream | boolean | false | stream the json directly to the client into the `data` field
+| format | String | cypher-shell a| Export format. The following values are supported:
+
+* `cypher-shell` - for import with Cypher Shell
+* `neo4j-shell` - for import with Neo4j Shell and partly the `apoc.cypher.runFile` procedure
+* `plain` - exports plain Cypher without `begin`, `commit`, or `await` commands. For import with Neo4j Browser
+
+| cypherFormat | String | create a| Cypher update operation type. The following values are supported:
+
+* `create` - only uses the `CREATE` clause
+* `updateAll` - uses `MERGE` instead of `CREATE`
+* `addStructure` - uses `MATCH` for nodes and `MERGE` for relationships
+* `updateStructure` - uses `MERGE` and `MATCH` for nodes and relationships
+| separateFiles | boolean | false | Export to separate files? This is useful for later use with the `apoc.cypher.runFiles` and `apoc.cypher.runSchemaFiles` procedures.
+| useOptimizations | Map a| `{type: "UNWIND_BATCH", unwindBatchSize: 20}` a| Optimizations to use for Cypher statement generation. `type` supports the following values:
+
+* `NONE` - exports the file with `CREATE` statement
+* `UNWIND_BATCH` - exports the file by batching the entities with the `UNWIND` method as explained in Michael Hunger's article on https://medium.com/neo4j/5-tips-tricks-for-fast-batched-updates-of-graph-structures-with-neo4j-and-cypher-73c7f693c8cc[fast batched writes^].
+* `UNWIND_BATCH_PARAMS` - similar to `UNWIND_BATCH`, but also uses parameters where appropriate
+| awaitForIndexes | Long | 300 | Timeout to use for `db.awaitIndexes` when using `format: "cypher-shell"`
+|===

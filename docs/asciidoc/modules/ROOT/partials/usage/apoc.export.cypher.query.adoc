@@ -1,0 +1,134 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$createExportGraph.adoc[]
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::play-movies.png[title="Movies Graph Visualization"]
+
+The export to Cypher procedures all support writing to multiple files or multiple columns.
+We can enable this mode by passing in the config `separateFiles: true`
+
+The following query exports all the `ACTED_IN` relationships and corresponding nodes into files with an `actedIn` prefix
+[source,cypher]
+----
+CALL apoc.export.cypher.query(
+  "MATCH ()-[r:ACTED_IN]->()
+   RETURN *",
+  "actedIn.cypher",
+  { format: "cypher-shell", separateFiles: true })
+YIELD file, batches, source, format, nodes, relationships, time, rows, batchSize
+RETURN file, batches, source, format, nodes, relationships, time, rows, batchSize;
+----
+
+.Results
+[opts="header"]
+|===
+| file | batches | source                          | format   | nodes | relationships | time | rows | batchSize
+| "actedIn.cypher" | 1       | "statement: nodes(10), rels(8)" | "cypher" | 10    | 8             | 3    | 18   | 20000
+|===
+
+This will result in the following files being created:
+
+.Results
+[opts="header"]
+|===
+| Name | Size in bytes | Number of lines
+| actedIn.cleanup.cypher | 234 | 6
+| actedIn.nodes.cypher | 893 | 6
+| actedIn.relationships.cypher | 757 | 6
+| actedIn.schema.cypher | 109 | 3
+|===
+
+Each of those files contains one particular part of the graph.
+Let's have a look at their content:
+
+.actedIn.cleanup.cypher
+[source,cypher]
+----
+:begin
+MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
+:commit
+:begin
+DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+:commit
+----
+
+.actedIn.nodes.cypher
+[source,cypher]
+----
+:begin
+UNWIND [{_id:28, properties:{tagline:"Welcome to the Real World", title:"The Matrix", released:1999}}, {_id:37, properties:{tagline:"Welcome to the Real World", title:"The Matrix", released:1999}}] AS row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Movie;
+UNWIND [{_id:31, properties:{born:1961, name:"Laurence Fishburne"}}, {_id:30, properties:{born:1967, name:"Carrie-Anne Moss"}}, {_id:42, properties:{born:1964, name:"Keanu Reeves"}}, {_id:0, properties:{born:1960, name:"Hugo Weaving"}}, {_id:29, properties:{born:1964, name:"Keanu Reeves"}}, {_id:38, properties:{born:1960, name:"Hugo Weaving"}}, {_id:43, properties:{born:1967, name:"Carrie-Anne Moss"}}, {_id:57, properties:{born:1961, name:"Laurence Fishburne"}}] AS row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Person;
+:commit
+----
+
+.actedIn.relationships.cypher
+[source,cypher]
+----
+:begin
+UNWIND [{start: {_id:31}, end: {_id:28}, properties:{roles:["Morpheus"]}}, {start: {_id:42}, end: {_id:37}, properties:{roles:["Neo"]}}, {start: {_id:38}, end: {_id:37}, properties:{roles:["Agent Smith"]}}, {start: {_id:0}, end: {_id:28}, properties:{roles:["Agent Smith"]}}, {start: {_id:29}, end: {_id:28}, properties:{roles:["Neo"]}}, {start: {_id:43}, end: {_id:37}, properties:{roles:["Trinity"]}}, {start: {_id:30}, end: {_id:28}, properties:{roles:["Trinity"]}}, {start: {_id:57}, end: {_id:37}, properties:{roles:["Morpheus"]}}] AS row
+MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})
+MATCH (end:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.end._id})
+CREATE (start)-[r:ACTED_IN]->(end) SET r += row.properties;
+:commit
+----
+
+.actedIn.schema.cypher
+[source,cypher]
+----
+:begin
+CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+:commit
+----
+
+We can then apply these files to our destination Neo4j instance, either by streaming their contents into Cypher Shell or by using the procedures described in xref::cypher-execution/running-cypher.adoc[].
+
+We can also use the `separateFiles` when returning a stream of export statements.
+The results will appear in columns named `nodeStatements`, `relationshipStatements`, `cleanupStatements`, and `schemaStatements` rather than `cypherStatements`.
+
+
+The following query returns a stream all the `ACTED_IN` relationships and corresponding nodes
+[source,cypher]
+----
+CALL apoc.export.cypher.query(
+  "MATCH ()-[r:ACTED_IN]->()
+   RETURN *",
+  null,
+  { format: "cypher-shell", separateFiles: true })
+YIELD nodes, relationships, properties, nodeStatements, relationshipStatements, cleanupStatements, schemaStatements
+RETURN nodes, relationships, properties, nodeStatements, relationshipStatements, cleanupStatements, schemaStatements;
+----
+
+.Results
+[opts="header", cols="1,1,1,2,2,2,2"]
+|===
+| nodes | relationships | properties | nodeStatements | relationshipStatements | cleanupStatements | schemaStatements
+| 10    | 8             | 30         | ":begin
+UNWIND [{_id:28, properties:{tagline:\"Welcome to the Real World\", title:\"The Matrix\", released:1999}}, {_id:37, properties:{tagline:\"Welcome to the Real World\", title:\"The Matrix\", released:1999}}] AS row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Movie;
+UNWIND [{_id:0, properties:{born:1960, name:\"Hugo Weaving\"}}, {_id:42, properties:{born:1964, name:\"Keanu Reeves\"}}, {_id:31, properties:{born:1961, name:\"Laurence Fishburne\"}}, {_id:29, properties:{born:1964, name:\"Keanu Reeves\"}}, {_id:30, properties:{born:1967, name:\"Carrie-Anne Moss\"}}, {_id:43, properties:{born:1967, name:\"Carrie-Anne Moss\"}}, {_id:38, properties:{born:1960, name:\"Hugo Weaving\"}}, {_id:57, properties:{born:1961, name:\"Laurence Fishburne\"}}] AS row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Person;
+:commit
+" | ":begin
+UNWIND [{start: {_id:31}, end: {_id:28}, properties:{roles:[\"Morpheus\"]}}, {start: {_id:38}, end: {_id:37}, properties:{roles:[\"Agent Smith\"]}}, {start: {_id:0}, end: {_id:28}, properties:{roles:[\"Agent Smith\"]}}, {start: {_id:30}, end: {_id:28}, properties:{roles:[\"Trinity\"]}}, {start: {_id:29}, end: {_id:28}, properties:{roles:[\"Neo\"]}}, {start: {_id:43}, end: {_id:37}, properties:{roles:[\"Trinity\"]}}, {start: {_id:42}, end: {_id:37}, properties:{roles:[\"Neo\"]}}, {start: {_id:57}, end: {_id:37}, properties:{roles:[\"Morpheus\"]}}] AS row
+MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})
+MATCH (end:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.end._id})
+CREATE (start)-[r:ACTED_IN]->(end) SET r += row.properties;
+:commit
+" | ":begin
+MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
+:commit
+:begin
+DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+:commit
+" | ":begin
+CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+:commit
+"
+|===
+
+We can then copy/paste the content of each of these columns (excluding the double quotes) into a Cypher Shell session, or into a local file that we stream into a Cypher Shell session.
+If we want to export Cypher statements that can be pasted into the Neo4j Browser query editor, we need to use the config `format: "plain"`.

@@ -25,6 +25,9 @@ apoc.export.cypher.all(file =  :: STRING?, config = {} :: MAP?) :: (file :: STRI
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.export.cypher.all.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -45,6 +48,16 @@ apoc.export.cypher.all(file =  :: STRING?, config = {} :: MAP?) :: (file :: STRI
 |schemaStatements|STRING?
 |cleanupStatements|STRING?
 |===
+
+== Exporting to a file
+include::partial$enableFileExport.adoc[]
+
+== Exporting a stream
+include::partial$streamExport.adoc[]
+
+[[usage-apoc.export.cypher.all]]
+== Usage Examples
+include::partial$usage/apoc.export.cypher.all.adoc[]
 
 xref::export/cypher.adoc[More documentation of apoc.export.cypher.all,role=more information]
 
