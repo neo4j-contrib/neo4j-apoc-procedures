@@ -1,0 +1,176 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (a:User {
+    name:'Adam', age:42, male:true, kids:['Sam','Anna','Grace'],
+    born:localdatetime('2015185T19:32:24'),
+    place:point({latitude: 13.1, longitude: 33.46789})
+})
+CREATE (b:User {name:'Jim', age:42})
+CREATE (c:User {age:12})
+
+CREATE (a)-[:KNOWS {since: 1993}]->(b);
+----
+
+The `apoc.export.json.query` procedure exports the results of a Cypher query to a JSON file or as a stream.
+
+The following query exports all `User` nodes with an `age` property greater than `10` to the file `users-age.json`
+[source,cypher]
+----
+CALL apoc.export.json.query(
+    "MATCH (u:User) WHERE u.age > $age return u",
+    "users-age.json",
+    {params:{age:15}}
+)
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "users-age.json" | "statement: cols(1)" | "json" | 2     | 0             | 8          | 3    | 2    | -1        | 0       | TRUE | NULL
+|===
+
+The contents of `users-age.json` are shown below:
+
+.users-age.json
+[source,json]
+----
+include::example$data/exportJSON/query_nodes_param.json[leveloffset]
+----
+
+The following query returns a stream of `User` nodes with an `age` property greater than `10` to the `data` column
+[source,cypher]
+----
+CALL apoc.export.json.query(
+    "MATCH (u:User) WHERE u.age > $age return u",
+    null,
+    {params:{age:15}, stream: true}
+)
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data
+----
+
+.Results
+[opts="header"]
+|===
+| file         | nodes | relationships | properties | data
+| NULL | 2     | 0             | 8          | "{\"u\":{\"type\":\"node\",\"id\":\"0\",\"labels\":[\"User\"],\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"age\":42,\"male\":true,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]}}}
+{\"u\":{\"type\":\"node\",\"id\":\"1\",\"labels\":[\"User\"],\"properties\":{\"name\":\"Jim\",\"age\":42}}}"
+|===
+
+The following query exports a complex Cypher map structure to the file `complex-cypher-structure.json`
+[source,cypher]
+----
+WITH "RETURN {
+	value:1,
+    data:[
+    	10, 'car', null,
+        point({ longitude: 56.7, latitude: 12.78 }),
+        point({ longitude: 56.7, latitude: 12.78, height: 8 }),
+        point({ x: 2.3, y: 4.5 }),
+        point({ x: 2.3, y: 4.5, z: 2 }),
+        date('2018-10-10'),
+        datetime('2018-10-18T14:21:40.004Z'),
+        localdatetime({ year:1984, week:10, dayOfWeek:3, hour:12, minute:31, second:14, millisecond: 645 }),
+        {x:1, y:[1,2,3,{age:10}]}
+    ]
+} as key" AS query
+CALL apoc.export.json.query(query, "complex-cypher-structure.json")
+YIELD file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+RETURN file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "complex-cypher-structure.json" | "statement: cols(1)" | "json" | 0     | 0             | 16         | 2    | 1    | -1        | 0       | TRUE | NULL
+|===
+
+The contents of `complex-cypher-structure.json` are shown below:
+
+.complex-cypher-structure.json
+[source,json]
+----
+include::example$data/exportJSON/MapComplex.json[leveloffset]
+----
+
+The following query exports a list of `User` nodes with an `age` property is greater than `10` to the file `users-list.json`
+[source,cypher]
+----
+CALL apoc.export.json.query(
+    "MATCH (u:User) RETURN COLLECT(u) as list",
+    "users-list.json",
+    {params:{age:10}}
+)
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "users-list.json" | "statement: cols(1)" | "json" | 3     | 0             | 9          | 1    | 1    | -1        | 0       | TRUE | NULL
+|===
+
+The contents of `users-list.json` are shown below:
+
+.users-list.json
+[source,json]
+----
+include::example$data/exportJSON/listNode.json[leveloffset]
+----
+
+The following query exports the map representation of `User` nodes connected by a `KNOWS` relationship to the file `users-map.json`
+[source,cypher]
+----
+CALL apoc.export.json.query(
+    "MATCH (u:User)-[r:KNOWS]->(d:User) RETURN u {.*}, d {.*}, r {.*}",
+    "users-map.json",
+    {params:{age:10}}
+)
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "users-map.json" | "statement: cols(3)" | "json" | 0     | 0             | 11         | 8    | 1    | -1        | 0       | TRUE | NULL
+|===
+
+The contents of `users-map.json` are shown below:
+
+.users-map.json
+[source,json]
+----
+include::example$data/exportJSON/MapNode.json[leveloffset]
+----
+
+In this example we use the `{.*}` syntax when returning graph entities in the Cypher statement.
+This syntax returns a map representation of graph entities, meaning that only properties will be exported; labels and relationship types are excluded.
+
+The following query exports all `KNOWS` relationship, including start and end nodes and their properties, to the file `knows-with-node-properties.json`
+[source,cypher]
+----
+CALL apoc.export.json.query(
+    "MATCH p = (u:User)-[rel:KNOWS]->(u2:User) RETURN rel",
+    "knows-with-node-properties.json",
+    {writeNodeProperties:true}
+)
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "knows-with-node-properties.json" | "statement: cols(1)" | "json" | 0     | 1             | 1          | 20   | 2    | -1        | 0       | TRUE | NULL
+|===
+
+The contents of `knows-with-node-properties.json` are shown below:
+
+.knows-with-node-properties.json
+[source,json]
+----
+include::example$data/exportJSON/writeNodeProperties.json[leveloffset]
+----

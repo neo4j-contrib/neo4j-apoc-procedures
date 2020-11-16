@@ -44,5 +44,15 @@ apoc.export.json.graph(graph :: MAP?, file :: STRING?, config = {} :: MAP?) :: (
 |data|STRING?
 |===
 
+== Exporting to a file
+include::partial$enableFileExport.adoc[]
+
+== Exporting a stream
+include::partial$streamExport.adoc[]
+
+[[usage-apoc.export.json.graph]]
+== Usage Examples
+include::partial$usage/apoc.export.json.graph.adoc[]
+
 xref::export/json.adoc[More documentation of apoc.export.json.graph,role=more information]
 

@@ -1,0 +1,81 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (a:User {
+    name:'Adam', age:42, male:true, kids:['Sam','Anna','Grace'],
+    born:localdatetime('2015185T19:32:24'),
+    place:point({latitude: 13.1, longitude: 33.46789})
+})
+CREATE (b:User {name:'Jim', age:42})
+CREATE (c:User {age:12})
+
+CREATE (a)-[:KNOWS {since: 1993}]->(b);
+----
+
+The `apoc.export.json.graph` procedure exports a xref::virtual/index.adoc[virtual graph] to a CSV file or as a stream.
+
+The examples in this section are based on a virtual graph of the whole database.
+The query below creates a virtual graph and stores it in memory with the name `db.cached` using xref::misc/static-values.adoc[Static Value Storage].
+
+[source,cypher]
+----
+CALL apoc.graph.fromDB('test',{})
+YIELD graph AS g
+CALL apoc.static.set("db.cached", g)
+YIELD value
+RETURN value, g
+----
+
+.Results
+[opts="header"]
+|===
+| value | g
+| NULL | {name: "test", relationships: [[:KNOWS {since: 1993}]], nodes: [(:User {born: 2015-07-04T19:32:24, name: "Adam", place: point({srid:4326, x:33.46789, y:13.1}), age: 42, male: TRUE, kids: ["Sam", "Anna", "Grace"]}), (:User {name: "Jim", age: 42}), (:User {age: 12})], properties: {}}
+|===
+
+
+The following query exports the virtual graph from static value storage to the file `graph.json`
+
+[source,cypher]
+----
+CALL apoc.export.json.graph(apoc.static.get("db.cached"),"graph.json",{})
+YIELD file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+RETURN file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+----
+
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+|   "graph.json" | "graph: nodes(3), rels(1)" | "json" | 3     | 1             | 10         | 3    | 4    | -1        | 0       | TRUE | NULL
+|===
+
+
+The contents of `graph.json` are shown below:
+
+.graph.json
+[source,json]
+----
+include::example$data/exportJSON/graph.json[leveloffset]
+----
+
+The following query returns a streams of the virtual graph from static value storage to the `data` column:
+
+[source,cypher]
+----
+CALL apoc.export.json.graph(apoc.static.get("knows.cached"), null, {stream: true})
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data
+----
+
+.Results
+[opts="header"]
+|===
+| file         | nodes | relationships | properties | data
+| NULL | 2     | 1             | 9          | "{\"type\":\"node\",\"id\":\"0\",\"labels\":[\"User\"],\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"age\":42,\"male\":true,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]}}
+{\"type\":\"node\",\"id\":\"1\",\"labels\":[\"User\"],\"properties\":{\"name\":\"Jim\",\"age\":42}}
+{\"id\":\"50000\",\"type\":\"relationship\",\"label\":\"KNOWS\",\"properties\":{\"since\":1993},\"start\":{\"id\":\"0\",\"labels\":[\"User\"]},\"end\":{\"id\":\"1\",\"labels\":[\"User\"]}}"
+"
+|===

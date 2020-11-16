@@ -275,8 +275,8 @@ class DocumentationGenerator {
     }
 
     private final List<String> readsFromFile = Arrays.asList("apoc.cypher.runFile", "apoc.cypher.runFiles", "apoc.cypher.runSchemaFile", "apoc.cypher.runSchemaFiles");
-    private final List<String> writeToFile = Arrays.asList("apoc.export.json.all");
-    private final List<String> writeToStream = Arrays.asList("apoc.export.json.all");
+    private final List<String> writeToFile = Arrays.asList("apoc.export.json.all", "apoc.export.json.data", "apoc.export.json.graph", "apoc.export.json.query");
+    private final List<String> writeToStream = Arrays.asList("apoc.export.json.all", "apoc.export.json.data", "apoc.export.json.graph", "apoc.export.json.query");
 
     private void writeReadingFromFile(Writer writer, String name) throws IOException {
         if(readsFromFile.contains(name)) {
