@@ -1,0 +1,50 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (michael:Person {name: "Michael"})
+WITH michael
+CALL {
+    WITH michael
+    UNWIND range(0, 100) AS id
+    MERGE (p:Person {name: "Person" + id})
+    MERGE (michael)-[:KNOWS]-(p)
+    RETURN count(*) AS friends
+}
+
+CALL {
+    WITH michael
+    UNWIND range(0, 50) AS id
+    MERGE (p:Person {name: "Person" + id})
+    MERGE (michael)-[:FOLLOWS]-(p)
+    RETURN count(*) AS follows
+}
+
+RETURN friends, follows;
+----
+
+.Results
+[opts="header"]
+|===
+| friends | follows
+| 101 | 51
+|===
+
+
+[source,cypher]
+----
+MATCH (p1:Person)
+WHERE p1.name IN ["Michael", "Person30", "Person60"]
+WITH collect(p1) AS people
+UNWIND apoc.nodes.relationships.exist(people, "KNOWS>|FOLLOWS") AS output
+RETURN output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| {node: (:Person {name: "Michael"}), exists: {`KNOWS>`: TRUE, FOLLOWS: TRUE}}
+| {node: (:Person {name: "Person30"}), exists: {`KNOWS>`: FALSE, FOLLOWS: TRUE}}
+| {node: (:Person {name: "Person60"}), exists: {`KNOWS>`: FALSE, FOLLOWS: FALSE}}
+|===

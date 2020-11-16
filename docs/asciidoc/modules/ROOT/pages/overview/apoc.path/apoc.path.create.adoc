@@ -25,5 +25,9 @@ apoc.path.create(startNode :: NODE?, rels = [] :: LIST? OF RELATIONSHIP?) :: (PA
 |rels|LIST? OF RELATIONSHIP?|[]
 |===
 
+[[usage-apoc.path.create]]
+== Usage Examples
+include::partial$usage/apoc.path.create.adoc[]
+
 xref::graph-querying/path-querying.adoc[More documentation of apoc.path.create,role=more information]
 

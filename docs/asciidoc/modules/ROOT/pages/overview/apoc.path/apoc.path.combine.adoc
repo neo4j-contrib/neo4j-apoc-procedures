@@ -25,5 +25,9 @@ apoc.path.combine(first :: PATH?, second :: PATH?) :: (PATH?)
 |second|PATH?|null
 |===
 
+[[usage-apoc.path.combine]]
+== Usage Examples
+include::partial$usage/apoc.path.combine.adoc[]
+
 xref::graph-querying/path-querying.adoc[More documentation of apoc.path.combine,role=more information]
 

@@ -1,0 +1,90 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (mark:Person {name: "Mark"})
+MERGE (praveena:Person {name: "Praveena"})
+MERGE (joe:Person {name: "Joe"})
+MERGE (lju:Person {name: "Lju"})
+MERGE (michael:Person {name: "Michael"})
+MERGE (emil:Person {name: "Emil"})
+MERGE (ryan:Person {name: "Ryan"})
+
+MERGE (ryan)-[:FOLLOWS]->(joe)
+MERGE (joe)-[:FOLLOWS]->(mark)
+MERGE (mark)-[:FOLLOWS]->(emil)
+MERGE (michael)-[:KNOWS]-(emil)
+MERGE (michael)-[:KNOWS]-(lju)
+MERGE (michael)-[:KNOWS]-(praveena)
+MERGE (emil)-[:FOLLOWS]->(joe)
+MERGE (praveena)-[:FOLLOWS]->(joe)
+----
+
+
+The `apoc.neighbors.tohop` procedure compute a node's neighborhood up to a specified hop count.
+
+The following returns the people that Praveena `FOLLOWS` up to 1 hop:
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.neighbors.tohop(p, "FOLLOWS>", 1)
+YIELD node
+RETURN node
+----
+
+.Results
+[opts="header"]
+|===
+| nodes
+| (:Person {name: "Joe"})
+|===
+
+The only person that Praveena follows is Joe, so that's the only node returned.
+What about if we include people at up to 2 hops?
+
+The following returns the people that Praveena `FOLLOWS` up to 2 hops:
+
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.neighbors.tohop(p, "FOLLOWS>", 2)
+YIELD node
+RETURN node
+----
+
+
+.Results
+[opts="header"]
+|===
+| nodes
+| (:Person {name: "Mark"})
+| (:Person {name: "Joe"})
+|===
+
+Now Mark is returned as well.
+The following graph patterns describe how Emil knows the different people:
+
+* `(praveena)-[:FOLLOWS]-(joe)`
+* `(praveena)-[:FOLLOWS]-(joe)-[:FOLLOWS]->(mark)`
+
+And if we just want a count of the number of people, we can use the count variant.
+
+The following returns the number of people that Praveena `FOLLOWS` up to 2 hops:
+
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.neighbors.tohop.count(p, "FOLLOWS>", 2)
+YIELD value
+RETURN value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| 2
+|===
+
+If we aren't interested in knowing which nodes are in our neighborhood, but just want a count of the number, we can do that as well.
+See xref::overview/apoc.neighbors/apoc.neighbors.tohop.count.adoc[].

@@ -1,0 +1,49 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (michael:Person {name: "Michael"})
+WITH michael
+CALL {
+    WITH michael
+    UNWIND range(0, 100) AS id
+    MERGE (p:Person {name: "Person" + id})
+    MERGE (michael)-[:KNOWS]-(p)
+    RETURN count(*) AS friends
+}
+RETURN friends;
+----
+
+.Results
+[opts="header"]
+|===
+| friends
+| 101
+|===
+
+
+[source,cypher]
+----
+MATCH (p:Person {name: "Michael"})
+RETURN apoc.nodes.isDense(p) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| TRUE
+|===
+
+[source,cypher]
+----
+MATCH (p:Person {name: "Person1"})
+RETURN apoc.nodes.isDense(p) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| FALSE
+|===

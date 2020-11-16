@@ -1,0 +1,49 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (manUtd:Club {name: 'Man Utd'})
+MERGE (juventus:Club {name: 'Juventus'})
+MERGE (flamengo:Club {name: 'Flamengo'})
+
+MERGE (premierLeague:League {name: 'Premier League'})
+MERGE (serieA:League {name: 'Serie A'})
+MERGE (brasileirao:League {name: 'Brasileirão'})
+
+MERGE (england:Country {name: 'England'})
+MERGE (brazil:Country {name: 'Brazil'})
+
+MERGE (uefa:Confederation {name: 'UEFA'})
+
+MERGE (manUtd)-[:IN_LEAGUE]->(premierLeague)
+MERGE (premierLeague)-[:IN_COUNTRY]->(england)
+MERGE (england)-[:IN_CONFEDERATION]->(uefa)
+
+MERGE (juventus)-[:IN_LEAGUE]->(serieA)
+
+MERGE (flamengo)-[:IN_LEAGUE]->(brasileirao)
+MERGE (brasileirao)-[:IN_COUNTRY]->(brazil);
+----
+
+The `apoc.path.create` function creates paths from a start node and a list of relationships.
+One use case for this function is combining relationships from `OPTIONAL MATCH` clauses.
+
+The following query creates a path from relationships returned by `OPTIONAL MATCH` clauses:
+[source, cypher]
+----
+MATCH (club:Club)
+OPTIONAL MATCH (club)-[inLeague:IN_LEAGUE]->(league)
+OPTIONAL MATCH (league)-[inCountry:IN_COUNTRY]->(country)
+OPTIONAL MATCH (country)-[inConfederation:IN_CONFEDERATION]->(confederation)
+RETURN club.name, apoc.path.create(club, [inLeague, inCountry, inConfederation]) AS path
+ORDER BY length(path);
+----
+
+.Results
+[opts="header"]
+|===
+| club.name  | path
+| "Juventus" | (:Club {name: "Juventus"})-[:IN_LEAGUE]->(:League {name: "Serie A"})
+| "Flamengo" | (:Club {name: "Flamengo"})-[:IN_LEAGUE]->(:League {name: "Brasileirão"})-[:IN_COUNTRY]->(:Country {name: "Brazil"})
+| "Man Utd"  | (:Club {name: "Man Utd"})-[:IN_LEAGUE]->(:League {name: "Premier League"})-[:IN_COUNTRY]->(:Country {name: "England"})-[:IN_CONFEDERATION]->(:Confederation {name: "UEFA"})
+|===

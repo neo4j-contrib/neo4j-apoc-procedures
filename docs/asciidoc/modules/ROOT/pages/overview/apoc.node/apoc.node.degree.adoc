@@ -25,5 +25,9 @@ apoc.node.degree(node :: NODE?, types =  :: STRING?) :: (INTEGER?)
 |types|STRING?|
 |===
 
+[[usage-apoc.node.degree]]
+== Usage Examples
+include::partial$usage/apoc.node.degree.adoc[]
+
 xref::graph-querying/node-querying.adoc[More documentation of apoc.node.degree,role=more information]
 

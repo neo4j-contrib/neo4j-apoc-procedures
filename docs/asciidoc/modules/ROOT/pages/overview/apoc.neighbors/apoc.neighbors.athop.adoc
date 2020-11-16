@@ -33,5 +33,9 @@ apoc.neighbors.athop(node :: NODE?, types =  :: STRING?, distance = 1 :: INTEGER
 |node|NODE?
 |===
 
+[[usage-apoc.neighbors.athop]]
+== Usage Examples
+include::partial$usage/apoc.neighbors.athop.adoc[]
+
 xref::graph-querying/neighborhood.adoc[More documentation of apoc.neighbors.athop,role=more information]
 
