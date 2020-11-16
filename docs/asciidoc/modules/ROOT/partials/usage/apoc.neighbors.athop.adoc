@@ -1,0 +1,65 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (mark:Person {name: "Mark"})
+MERGE (praveena:Person {name: "Praveena"})
+MERGE (joe:Person {name: "Joe"})
+MERGE (lju:Person {name: "Lju"})
+MERGE (michael:Person {name: "Michael"})
+MERGE (emil:Person {name: "Emil"})
+MERGE (ryan:Person {name: "Ryan"})
+
+MERGE (ryan)-[:FOLLOWS]->(joe)
+MERGE (joe)-[:FOLLOWS]->(mark)
+MERGE (mark)-[:FOLLOWS]->(emil)
+MERGE (michael)-[:KNOWS]-(emil)
+MERGE (michael)-[:KNOWS]-(lju)
+MERGE (michael)-[:KNOWS]-(praveena)
+MERGE (emil)-[:FOLLOWS]->(joe)
+MERGE (praveena)-[:FOLLOWS]->(joe)
+----
+
+This procedure computes a node's neighborhood at a specific hop count.
+
+The following returns the people that Emil `KNOWS` at 1 hop:
+
+[source,cypher]
+----
+MATCH (p:Person {name: "Emil"})
+CALL apoc.neighbors.athop(p, "KNOWS", 1)
+YIELD node
+RETURN node
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person {name: "Michael"})
+|===
+
+Emil only has a direct `KNOWS` relationship to Michael, so Michael is the only node returned by this query.
+
+The following returns the people that Emil `KNOWS` at 2 hops:
+
+[source,cypher]
+----
+MATCH (p:Person {name: "Emil"})
+CALL apoc.neighbors.athop(p, "KNOWS", 2)
+YIELD node
+RETURN node
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person {name: "Praveena"})
+| (:Person {name: "Lju"})
+|===
+
+Michael also `KNOWS` Praveena and Lju, and since Emil doesn't `KNOW` either of those directly, he only `KNOWS` them at a hop distance of 2.
+
+If we aren't interested in knowing which nodes are in our neighborhood, but just want a count of the number, we can do that as well.
+See xref::overview/apoc.neighbors/apoc.neighbors.athop.count.adoc[].

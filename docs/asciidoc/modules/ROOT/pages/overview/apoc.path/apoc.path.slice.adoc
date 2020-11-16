@@ -26,5 +26,9 @@ apoc.path.slice(path :: PATH?, offset = 0 :: INTEGER?, length = -1 :: INTEGER?) 
 |length|INTEGER?|-1
 |===
 
+[[usage-apoc.path.slice]]
+== Usage Examples
+include::partial$usage/apoc.path.slice.adoc[]
+
 xref::graph-querying/path-querying.adoc[More documentation of apoc.path.slice,role=more information]
 

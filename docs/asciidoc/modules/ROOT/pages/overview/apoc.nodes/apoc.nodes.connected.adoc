@@ -26,5 +26,9 @@ apoc.nodes.connected(start :: NODE?, start :: NODE?, types =  :: STRING?) :: (BO
 |types|STRING?|
 |===
 
+[[usage-apoc.nodes.connected]]
+== Usage Examples
+include::partial$usage/apoc.nodes.connected.adoc[]
+
 xref::graph-querying/node-querying.adoc[More documentation of apoc.nodes.connected,role=more information]
 

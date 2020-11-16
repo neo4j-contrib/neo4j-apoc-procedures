@@ -1,0 +1,65 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (mark:Person {name: "Mark"})
+MERGE (praveena:Person {name: "Praveena"})
+MERGE (joe:Person {name: "Joe"})
+MERGE (lju:Person {name: "Lju"})
+MERGE (michael:Person {name: "Michael"})
+MERGE (emil:Person {name: "Emil"})
+MERGE (ryan:Person {name: "Ryan"})
+
+MERGE (ryan)-[:FOLLOWS]->(joe)
+MERGE (joe)-[:FOLLOWS]->(mark)
+MERGE (mark)-[:FOLLOWS]->(emil)
+MERGE (michael)-[:KNOWS]-(emil)
+MERGE (michael)-[:KNOWS]-(lju)
+MERGE (michael)-[:KNOWS]-(praveena)
+MERGE (emil)-[:FOLLOWS]->(joe)
+MERGE (praveena)-[:FOLLOWS]->(joe)
+----
+
+This procedure computes a node's neighborhood at multiple hop counts.
+
+The following returns the number of people that Emil `KNOWS` and the number that have `FOLLOWS` relationships to him, at up to 3 hops:
+
+[source,cypher]
+----
+MATCH (p:Person {name: "Emil"})
+CALL apoc.neighbors.byhop.count(p, "KNOWS|<FOLLOWS", 3)
+YIELD value
+RETURN value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| [2, 3, 1]
+|===
+
+And as expected we have a count of 2 at level 1, 3 at level 2, and 1 at level 3.
+
+We could even xref::data-structures/map-functions.adoc[turn that list of numbers into a map] with the key being the number of hops and the value the neighborhood size.
+The following query shows how to do this using the  `apoc.map.fromLists` function:
+
+[source,cypher]
+----
+MATCH (p:Person {name: "Emil"})
+CALL apoc.neighbors.byhop.count(p, "KNOWS|<FOLLOWS", 3)
+YIELD value
+RETURN apoc.map.fromLists(
+         [value in range(1, size(value)) | toString(value)],
+         value) AS value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| {`1`: 2, `2`: 3, `3`: 1}
+|===
+
+If we also want to know which nodes are in our neighborhood, we can do that as well.
+See xref::overview/apoc.neighbors/apoc.neighbors.byhop.adoc[].

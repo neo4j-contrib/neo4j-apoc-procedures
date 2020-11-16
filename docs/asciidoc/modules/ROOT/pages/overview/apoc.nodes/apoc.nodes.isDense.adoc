@@ -24,5 +24,9 @@ apoc.nodes.isDense(node :: NODE?) :: (BOOLEAN?)
 |node|NODE?|null
 |===
 
+[[usage-apoc.nodes.isDense]]
+== Usage Examples
+include::partial$usage/apoc.nodes.isDense.adoc[]
+
 xref::graph-querying/node-querying.adoc[More documentation of apoc.nodes.isDense,role=more information]
 

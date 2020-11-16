@@ -1,0 +1,49 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (manUtd:Club {name: 'Man Utd'})
+MERGE (juventus:Club {name: 'Juventus'})
+MERGE (flamengo:Club {name: 'Flamengo'})
+
+MERGE (premierLeague:League {name: 'Premier League'})
+MERGE (serieA:League {name: 'Serie A'})
+MERGE (brasileirao:League {name: 'Brasileirão'})
+
+MERGE (england:Country {name: 'England'})
+MERGE (brazil:Country {name: 'Brazil'})
+
+MERGE (uefa:Confederation {name: 'UEFA'})
+
+MERGE (manUtd)-[:IN_LEAGUE]->(premierLeague)
+MERGE (premierLeague)-[:IN_COUNTRY]->(england)
+MERGE (england)-[:IN_CONFEDERATION]->(uefa)
+
+MERGE (juventus)-[:IN_LEAGUE]->(serieA)
+
+MERGE (flamengo)-[:IN_LEAGUE]->(brasileirao)
+MERGE (brasileirao)-[:IN_COUNTRY]->(brazil);
+----
+
+The `apoc.path.slice` function returns a subset of a path starting from a specified offset for a specified number of elements.
+
+The following returns a subset of the combined path, starting from an offset of 1 for a length of 1:
+
+[source,cypher]
+----
+MATCH (club:Club)
+OPTIONAL MATCH path1 = (club)-[:IN_LEAGUE]->(league)
+OPTIONAL MATCH path2 = (league)-[:IN_COUNTRY]->(country)
+WITH apoc.path.combine(path1, path2) AS path
+RETURN apoc.path.slice(path, 1, 1);
+----
+
+.Results
+[opts="header"]
+|===
+| apoc.path.slice(path, 1, 1)
+| (:League {name: "Premier League"})-[:IN_COUNTRY]->(:Country {name: "England"})
+| (:League {name: "Serie A"})
+| (:League {name: "Brasileirão"})-[:IN_COUNTRY]->(:Country {name: "Brazil"})
+
+|===

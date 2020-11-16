@@ -1,0 +1,34 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (s:Student {name: 'Alice', score: 71});
+CREATE (s:Student {name: 'Mark', score: 95});
+CREATE (s:Student {name: 'Andrea', score: 86});
+CREATE (s:Student {name: 'Rajesh', score: 89});
+CREATE (s:Student {name: 'Jennifer', score: 96});
+CREATE (s:Student {name: 'Katarina', score: 80});
+----
+
+If we create virtual nodes containing students scores, we can use `apoc.node.id` to return the node id of those virtual nodes:
+
+.apoc.create.vNode Procedure
+[source,cypher]
+----
+MATCH (s:Student)
+CALL apoc.create.vNode(['Score'],{value: s.score})
+YIELD node
+RETURN node, apoc.node.id(node) AS nodeId;
+----
+
+.Results
+[opts="header"]
+|===
+| node                 | nodeId
+| (:Score {value: 71}) | -13
+| (:Score {value: 95}) | -14
+| (:Score {value: 86}) | -15
+| (:Score {value: 89}) | -16
+| (:Score {value: 96}) | -17
+| (:Score {value: 80}) | -18
+|===
