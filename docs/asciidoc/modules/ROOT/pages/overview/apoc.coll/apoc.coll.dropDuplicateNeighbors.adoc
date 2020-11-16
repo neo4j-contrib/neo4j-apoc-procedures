@@ -24,3 +24,7 @@ apoc.coll.dropDuplicateNeighbors(list :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |list|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.coll.dropDuplicateNeighbors]]
+== Usage Examples
+include::partial$usage/apoc.coll.dropDuplicateNeighbors.adoc[]
+

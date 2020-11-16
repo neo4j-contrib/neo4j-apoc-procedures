@@ -17,5 +17,9 @@ apoc.create.uuid() - creates an UUID
 apoc.create.uuid() :: (STRING?)
 ----
 
+[[usage-apoc.create.uuid]]
+== Usage Examples
+include::partial$usage/apoc.create.uuid.adoc[]
+
 xref::graph-updates/uuid.adoc[More documentation of apoc.create.uuid,role=more information]
 
