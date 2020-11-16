@@ -27,6 +27,9 @@ apoc.export.cypher.data(nodes :: LIST? OF NODE?, rels :: LIST? OF RELATIONSHIP?,
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.export.cypher.data.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -47,6 +50,16 @@ apoc.export.cypher.data(nodes :: LIST? OF NODE?, rels :: LIST? OF RELATIONSHIP?,
 |schemaStatements|STRING?
 |cleanupStatements|STRING?
 |===
+
+== Exporting to a file
+include::partial$enableFileExport.adoc[]
+
+== Exporting a stream
+include::partial$streamExport.adoc[]
+
+[[usage-apoc.export.cypher.data]]
+== Usage Examples
+include::partial$usage/apoc.export.cypher.data.adoc[]
 
 xref::export/cypher.adoc[More documentation of apoc.export.cypher.data,role=more information]
 
