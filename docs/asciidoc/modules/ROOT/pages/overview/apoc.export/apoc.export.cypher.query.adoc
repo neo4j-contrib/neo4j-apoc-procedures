@@ -26,6 +26,9 @@ apoc.export.cypher.query(query :: STRING?, file =  :: STRING?, config = {} :: MA
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.export.cypher.query.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -46,6 +49,16 @@ apoc.export.cypher.query(query :: STRING?, file =  :: STRING?, config = {} :: MA
 |schemaStatements|STRING?
 |cleanupStatements|STRING?
 |===
+
+== Exporting to a file
+include::partial$enableFileExport.adoc[]
+
+== Exporting a stream
+include::partial$streamExport.adoc[]
+
+[[usage-apoc.export.cypher.query]]
+== Usage Examples
+include::partial$usage/apoc.export.cypher.query.adoc[]
 
 xref::export/cypher.adoc[More documentation of apoc.export.cypher.query,role=more information]
 

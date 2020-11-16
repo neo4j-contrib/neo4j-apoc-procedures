@@ -26,6 +26,9 @@ apoc.export.json.graph(graph :: MAP?, file :: STRING?, config = {} :: MAP?) :: (
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.export.json.graph.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
