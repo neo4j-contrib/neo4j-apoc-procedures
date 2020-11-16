@@ -17,5 +17,9 @@ apoc.math.maxByte() | return the maximum value an byte can have
 apoc.math.maxByte() :: (INTEGER?)
 ----
 
+[[usage-apoc.math.maxByte]]
+== Usage Examples
+include::partial$usage/apoc.math.maxByte.adoc[]
+
 xref::mathematical/math-functions.adoc[More documentation of apoc.math.maxByte,role=more information]
 

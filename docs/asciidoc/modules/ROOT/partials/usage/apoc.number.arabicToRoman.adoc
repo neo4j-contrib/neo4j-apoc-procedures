@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.number.arabicToRoman(2010) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+|"MMX"
+|===

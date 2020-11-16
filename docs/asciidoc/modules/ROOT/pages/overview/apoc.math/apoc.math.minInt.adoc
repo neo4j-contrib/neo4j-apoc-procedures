@@ -17,5 +17,9 @@ apoc.math.minInt() | return the minimum value an int can have
 apoc.math.minInt() :: (INTEGER?)
 ----
 
+[[usage-apoc.math.minInt]]
+== Usage Examples
+include::partial$usage/apoc.math.minInt.adoc[]
+
 xref::mathematical/math-functions.adoc[More documentation of apoc.math.minInt,role=more information]
 

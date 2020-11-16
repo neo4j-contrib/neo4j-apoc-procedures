@@ -24,5 +24,9 @@ apoc.number.romanToArabic(romanNumber :: STRING?) :: (NUMBER?)
 |romanNumber|STRING?|null
 |===
 
+[[usage-apoc.number.romanToArabic]]
+== Usage Examples
+include::partial$usage/apoc.number.romanToArabic.adoc[]
+
 xref::mathematical/math-functions.adoc[More documentation of apoc.number.romanToArabic,role=more information]
 

@@ -36,5 +36,9 @@ apoc.math.regr(label :: STRING?, propertyY :: STRING?, propertyX :: STRING?) :: 
 |slope|FLOAT?
 |===
 
+[[usage-apoc.math.regr]]
+== Usage Examples
+include::partial$usage/apoc.math.regr.adoc[]
+
 xref::mathematical/math-functions.adoc[More documentation of apoc.math.regr,role=more information]
 

@@ -1,0 +1,18 @@
+[source,cypher]
+----
+CALL apoc.metrics.get("neo4j.neo4j.transaction.started")
+YIELD metric, map, timestamp
+RETURN metric, map, datetime({epochSeconds: timestamp}) AS timestamp
+LIMIT 5;
+----
+
+.Results
+[opts="header", cols="1,3,2"]
+|===
+| metric                                               | map                                                                                                                       | timestamp
+| "neo4j.neo4j.transaction.started" | {mean_rate: 0.0, t: "1605189172", count: "0", rate_unit: "events/second", m15_rate: 0.0, m1_rate: 0.0, m5_rate: 0.0}      | 2020-11-12T13:52:52Z
+| "neo4j.neo4j.transaction.started" | {mean_rate: 0.943493, t: "1605189175", count: "6", rate_unit: "events/second", m15_rate: 0.0, m1_rate: 0.0, m5_rate: 0.0} | 2020-11-12T13:52:55Z
+| "neo4j.neo4j.transaction.started" | {mean_rate: 0.64233, t: "1605189178", count: "6", rate_unit: "events/second", m15_rate: 0.0, m1_rate: 0.0, m5_rate: 0.0}  | 2020-11-12T13:52:58Z
+| "neo4j.neo4j.transaction.started" | {mean_rate: 0.485832, t: "1605189181", count: "6", rate_unit: "events/second", m15_rate: 0.0, m1_rate: 0.0, m5_rate: 0.0} | 2020-11-12T13:53:01Z
+| "neo4j.neo4j.transaction.started" | {mean_rate: 0.456092, t: "1605189184", count: "7", rate_unit: "events/second", m15_rate: 0.0, m1_rate: 0.0, m5_rate: 0.0} | 2020-11-12T13:53:04Z
+|===
