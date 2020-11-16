@@ -1,0 +1,13 @@
+The following generates a new UUID:
+
+[source,cypher]
+----
+RETURN apoc.create.uuid() as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "3bfef4ba-564e-4ce1-b3af-616651f90aff"
+|===

@@ -1,0 +1,13 @@
+The following removes duplicate neighbors
+
+[source,cypher]
+----
+RETURN apoc.coll.dropDuplicateNeighbors([1,1,1,4,5,4,6,6,7]) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 4, 5, 4, 6, 7]
+|===
