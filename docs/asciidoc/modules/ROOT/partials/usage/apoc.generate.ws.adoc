@@ -1,0 +1,8 @@
+The following creates a random graph of 10 nodes, using the Watts-Strogatz model:
+
+[source,cypher]
+----
+CALL apoc.generate.ws(10, null, null, null, null);
+----
+
+image::apoc.generate.ws.png[]
