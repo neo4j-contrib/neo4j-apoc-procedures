@@ -1,0 +1,2 @@
+¦signature
+¦apoc.util.validatePredicate(predicate :: BOOLEAN?, message :: STRING?, params :: LIST? OF ANY?) :: (BOOLEAN?)
