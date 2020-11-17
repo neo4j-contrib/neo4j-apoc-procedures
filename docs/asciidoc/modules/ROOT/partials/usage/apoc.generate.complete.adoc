@@ -1,0 +1,8 @@
+The following creates a graph of 10 nodes where every node is connected to all other nodes:
+
+[source,cypher]
+----
+CALL apoc.generate.complete(10, "Node", "CONNECTED_TO");
+----
+
+image::apoc.generate.complete.png[]
