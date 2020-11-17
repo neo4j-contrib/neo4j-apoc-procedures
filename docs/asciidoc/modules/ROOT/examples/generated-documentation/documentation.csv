@@ -526,5 +526,6 @@ for the provided `label` and `uuidProperty`, in case the UUID handler is already
 ¦function¦apoc.util.sha256¦apoc.util.sha256(values :: LIST? OF ANY?) :: (STRING?)¦apoc.util.sha256([values]) | computes the sha256 of the concatenation of all string values of the list¦true¦
 ¦function¦apoc.util.sha384¦apoc.util.sha384(values :: LIST? OF ANY?) :: (STRING?)¦apoc.util.sha384([values]) | computes the sha384 of the concatenation of all string values of the list¦true¦
 ¦function¦apoc.util.sha512¦apoc.util.sha512(values :: LIST? OF ANY?) :: (STRING?)¦apoc.util.sha512([values]) | computes the sha512 of the concatenation of all string values of the list¦true¦
+¦function¦apoc.util.validatePredicate¦apoc.util.validatePredicate(predicate :: BOOLEAN?, message :: STRING?, params :: LIST? OF ANY?) :: (BOOLEAN?)¦apoc.util.validatePredicate(predicate, message, params) | if the predicate yields to true raise an exception else returns true, for use inside WHERE subclauses¦true¦
 ¦function¦apoc.version¦apoc.version() :: (STRING?)¦RETURN apoc.version() | return the current APOC installed version¦true¦
 ¦function¦apoc.xml.parse¦apoc.xml.parse(data :: STRING?, path = / :: STRING?, config = {} :: MAP?, simple = false :: BOOLEAN?) :: (MAP?)¦RETURN apoc.xml.parse(<xml string>, <xPath string>, config, false) AS value¦true¦xref::import/xml.adoc

@@ -14,7 +14,7 @@ apoc.util.validatePredicate(predicate, message, params) | if the predicate yield
 
 [source]
 ----
-apoc.util.validatePredicate(predicate :: BOOLEAN?, message :: STRING?, params :: LIST? OF ANY?) :: BOOLEAN
+apoc.util.validatePredicate(predicate :: BOOLEAN?, message :: STRING?, params :: LIST? OF ANY?) :: (BOOLEAN?)
 ----
 
 == Input parameters

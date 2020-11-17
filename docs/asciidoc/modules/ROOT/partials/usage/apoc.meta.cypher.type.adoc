@@ -1,0 +1,87 @@
+[source,cypher]
+----
+RETURN apoc.meta.cypher.type(1) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "INTEGER"
+|===
+
+[source,cypher]
+----
+RETURN apoc.meta.cypher.type("Michael") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "STRING"
+|===
+
+[source,cypher]
+----
+RETURN apoc.meta.cypher.type(true) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "BOOLEAN"
+|===
+
+[source,cypher]
+----
+RETURN apoc.meta.cypher.type(datetime()) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "DATE_TIME"
+|===
+
+
+[source,cypher]
+----
+RETURN apoc.meta.cypher.type(["Neo4j", 2020]) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "LIST OF ANY"
+|===
+
+[source,cypher]
+----
+RETURN apoc.meta.cypher.type(["Neo4j", "Bloom"]) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "LIST OF STRING"
+|===
+
+[source,cypher]
+----
+CREATE (node1:Person)-[rel:FRIENDS]->(node2:Person)
+RETURN apoc.meta.cypher.type(node1) AS node1Type,
+       apoc.meta.cypher.type(rel) AS relType,
+       apoc.meta.cypher.type(node2) AS node2Type;
+----
+
+.Results
+[opts="header"]
+|===
+| node1Type  | relType        | node2Type
+| "NODE" | "RELATIONSHIP" | "NODE"
+|===
