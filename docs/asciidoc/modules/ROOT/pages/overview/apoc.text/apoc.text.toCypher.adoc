@@ -25,5 +25,9 @@ apoc.text.toCypher(value :: ANY?, config = {} :: MAP?) :: (STRING?)
 |config|MAP?|{}
 |===
 
+[[usage-apoc.text.toCypher]]
+== Usage Examples
+include::partial$usage/apoc.text.toCypher.adoc[]
+
 xref::misc/text-functions.adoc[More documentation of apoc.text.toCypher,role=more information]
 

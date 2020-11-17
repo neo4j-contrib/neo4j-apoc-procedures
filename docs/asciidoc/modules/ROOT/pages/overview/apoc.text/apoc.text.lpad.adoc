@@ -26,5 +26,9 @@ apoc.text.lpad(text :: STRING?, count :: INTEGER?, delim =   :: STRING?) :: (STR
 |delim|STRING?| 
 |===
 
+[[usage-apoc.text.lpad]]
+== Usage Examples
+include::partial$usage/apoc.text.lpad.adoc[]
+
 xref::misc/text-functions.adoc[More documentation of apoc.text.lpad,role=more information]
 

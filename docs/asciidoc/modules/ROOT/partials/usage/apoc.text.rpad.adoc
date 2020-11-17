@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.text.rpad("Neo4j", 8, "-") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "Neo4j---"
+|===

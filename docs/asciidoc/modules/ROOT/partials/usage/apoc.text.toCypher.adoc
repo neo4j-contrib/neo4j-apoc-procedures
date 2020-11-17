@@ -1,0 +1,23 @@
+[source,cypher]
+----
+RETURN apoc.text.toCypher("Neo4j") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "'Neo4j'"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.toCypher({key: "Value"}) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+|  "{key:'Value'}"
+|===

@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.text.repeat('item', 5) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "itemitemitemitemitem"
+|===

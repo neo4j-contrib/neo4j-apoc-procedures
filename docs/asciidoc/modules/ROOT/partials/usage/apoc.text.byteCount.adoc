@@ -1,0 +1,23 @@
+[source,cypher]
+----
+RETURN apoc.text.byteCount("Neo4j") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 5
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.byteCount("Jesús") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 6
+|===
