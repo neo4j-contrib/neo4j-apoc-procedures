@@ -1,0 +1,20 @@
+[source,cypher]
+----
+WITH apoc.data.url("https://www.neo4j.com/developer/graph-data-science?q=neo4j#heading-1") AS output
+UNWIND keys(output) AS key
+RETURN key, output[key] AS value;
+----
+
+.Results
+[opts="header"]
+|===
+| key        | value
+| "path"     | "/developer/graph-data-science"
+| "protocol" | "https"
+| "file"     | "/developer/graph-data-science?q=neo4j"
+| "port"     | NULL
+| "query"    | "q=neo4j"
+| "anchor"   | "heading-1"
+| "host"     | "www.neo4j.com"
+| "user"     | NULL
+|===

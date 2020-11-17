@@ -1,0 +1,50 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+include::example$nlp-graph.cypher[]
+----
+
+We can use this procedure to extract categories from the Article node.
+The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
+
+The following streams the categories for the Pokemon article:
+
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.gcp.classify.stream(a, {
+  key: $apiKey,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.categories AS category
+RETURN category;
+----
+
+.Results
+[opts="header"]
+|===
+| category
+| {name: "/Games", confidence: 0.91}
+|===
+
+We get back only one category
+We could then apply a Cypher statement that creates one node per category and a `CATEGORY` relationship from each of those nodes back to the `Article` node.
+
+The following streams the categories for the Pokemon article and then creates nodes for each category:
+
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.gcp.classify.stream(a, {
+  key: $apiKey,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.categories AS category
+MERGE (c:Category {name: category.name})
+MERGE (a)-[:CATEGORY]->(c)
+----
+
+If we want to automatically create a category graph, see xref::overview/apoc.nlp/apoc.nlp.gcp.classify.graph.adoc[].
