@@ -21,14 +21,11 @@ import static org.junit.Assert.assertEquals;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 public class S3TestUtil {
-    private static String LOCAL_STACK_VERSION = "0.11.3";
     private static String S3_BUCKET_NAME = "test-bucket";
     private LocalStackContainer localstack;
 
     public S3TestUtil() {
-        DockerImageName localstackImage = DockerImageName.parse(
-                String.format("localstack/localstack:%s", LOCAL_STACK_VERSION));
-        localstack = new LocalStackContainer(localstackImage).withServices(S3);
+        localstack = new LocalStackContainer().withServices(S3);
         localstack.start();
         AmazonS3 s3 = AmazonS3ClientBuilder
                 .standard()
@@ -61,8 +58,8 @@ public class S3TestUtil {
                         .replace("http://", ""),
                 S3_BUCKET_NAME,
                 key,
-                localstack.getAccessKey(),
-                localstack.getSecretKey());
+                localstack.getDefaultCredentialsProvider().getCredentials().getAWSAccessKeyId(),
+                localstack.getDefaultCredentialsProvider().getCredentials().getAWSSecretKey());
     }
 
     public void verifyUpload(File directory, String fileName, String expected) throws IOException {
