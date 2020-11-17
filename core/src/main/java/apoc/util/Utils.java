@@ -76,4 +76,15 @@ public class Utils {
             throw new RuntimeException(message);
         }
     }
+
+    @UserFunction
+    @Description("apoc.util.validatePredicate(predicate, message, params) | if the predicate yields to true raise an exception else returns true, for use inside WHERE subclauses")
+    public boolean validatePredicate(@Name("predicate") boolean predicate, @Name("message") String message, @Name("params") List<Object> params) {
+        if (predicate) {
+            if (params!=null && !params.isEmpty()) message = String.format(message,params.toArray(new Object[params.size()]));
+            throw new RuntimeException(message);
+        }
+
+        return true;
+    }
 }
