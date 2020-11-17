@@ -65,12 +65,8 @@ public class UtilsTest {
 
     @Test
     public void testValidatePredicateTrue() throws Exception {
-        try {
-            db.executeTransactionally("MATCH (n) WHERE apoc.util.validatePredicate(true,'message %d',[42]) RETURN n");
-            fail("should have failed");
-        } catch(QueryExecutionException qee) {
-            assertEquals("Failed to invoke procedure `apoc.util.validatePredicate`: Caused by: java.lang.RuntimeException: message 42",qee.getCause().getCause().getMessage());
-        }
+        db.executeTransactionally("CREATE (:Person {predicate: true})");
+        TestUtil.testFail(db, "MATCH (n:Person) RETURN apoc.util.validatePredicate(n.predicate,'message %d',[42]) AS n", QueryExecutionException.class);
     }
 
     @Test
