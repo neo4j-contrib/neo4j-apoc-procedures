@@ -1,0 +1,35 @@
+[source,cypher]
+----
+RETURN apoc.number.exact.add('1213669989','1238126387') as output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "2451796376"
+|===
+
+[source,cypher]
+----
+RETURN apoc.number.exact.add(null,'1238126387') as output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| NULL
+|===
+
+[source,cypher]
+----
+RETURN apoc.number.exact.add('1E6','1E6') as value;
+----
+
+.Results
+[opts="header"]
+|===
+| Value
+| "2000000"
+|===

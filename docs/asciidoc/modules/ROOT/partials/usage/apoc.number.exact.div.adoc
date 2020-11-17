@@ -1,0 +1,12 @@
+[source,cypher]
+----
+RETURN apoc.number.exact.div('550058444','662557', 18, 'HALF_DOWN') as output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "830.205467605051339"
+|===
+

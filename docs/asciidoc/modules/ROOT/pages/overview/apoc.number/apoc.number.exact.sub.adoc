@@ -25,5 +25,9 @@ apoc.number.exact.sub(stringA :: STRING?, stringB :: STRING?) :: (STRING?)
 |stringB|STRING?|null
 |===
 
+[[usage-apoc.number.exact.sub]]
+== Usage Examples
+include::partial$usage/apoc.number.exact.sub.adoc[]
+
 xref::mathematical/exact-math-functions.adoc[More documentation of apoc.number.exact.sub,role=more information]
 

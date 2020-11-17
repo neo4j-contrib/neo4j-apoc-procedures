@@ -1,0 +1,12 @@
+[source,cypher]
+----
+RETURN apoc.number.exact.mul('550058444','662557', 15, 'HALF_DOWN') as output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "364445072481308"
+|===
+

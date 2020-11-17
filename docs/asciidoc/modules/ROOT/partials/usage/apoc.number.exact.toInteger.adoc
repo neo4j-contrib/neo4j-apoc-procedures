@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.number.exact.toInteger('504238974', 5, 'HALF_DOWN') as output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 504238974
+|===

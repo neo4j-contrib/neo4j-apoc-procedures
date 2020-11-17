@@ -1,0 +1,47 @@
+[source,cypher]
+----
+RETURN apoc.number.exact.toFloat('50423.1656', 10) as output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 50423.1656
+|===
+
+[source,cypher]
+----
+RETURN apoc.number.exact.toFloat('50423.1656', 3) as output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 50400.0
+|===
+
+[source,cypher]
+----
+RETURN apoc.number.exact.toFloat('50423.1656', 5, "CEILING") as output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 50424.0
+|===
+
+[source,cypher]
+----
+RETURN apoc.number.exact.toFloat('50423.1656', 5, "FLOOR") as output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 50423.0
+|===

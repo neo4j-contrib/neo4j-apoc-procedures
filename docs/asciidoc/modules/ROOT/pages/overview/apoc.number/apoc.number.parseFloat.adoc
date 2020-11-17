@@ -26,5 +26,9 @@ apoc.number.parseFloat(text :: STRING?, pattern =  :: STRING?, lang =  :: STRING
 |lang|STRING?|
 |===
 
+[[usage-apoc.number.parseFloat]]
+== Usage Examples
+include::partial$usage/apoc.number.parseFloat.adoc[]
+
 xref::mathematical/number-conversions.adoc[More documentation of apoc.number.parseFloat,role=more information]
 

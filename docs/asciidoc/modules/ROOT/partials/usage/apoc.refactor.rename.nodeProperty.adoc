@@ -1,0 +1,51 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (mark:Engineer {name: "Mark", city: "London"})
+CREATE (jennifer:Engineer {name: "Jennifer", city: "St Louis"})
+CREATE (michael:Engineer {name: "Michael", city: "Dresden"})
+CREATE (jim:Engineer {name: "Jim", city: "London"})
+CREATE (alistair:Engineer {name: "Alistair", city: "London"})
+
+MERGE (jim)-[:COLLEAGUES {since: date("2006-05-01")}]->(alistair)
+MERGE (mark)-[:COLLEAGUES {since: date("2018-02-01")}]->(jennifer)
+MERGE (mark)-[:COLLEAGUES {since: date("2013-05-01")}]->(michael);
+----
+
+The following query changes the node property `city` to `location` for all nodes with the `DevRel` label:
+
+[source,cypher]
+----
+MATCH (person:DevRel)
+WITH collect(person) AS people
+CALL apoc.refactor.rename.nodeProperty("city", "location", people)
+YIELD batches, total, timeTaken, committedOperations
+RETURN batches, total, timeTaken, committedOperations;
+----
+
+.Results
+[opts="header"]
+|===
+| batches | total | timeTaken | committedOperations
+| 1       | 3   | 0         | 3
+|===
+
+The following query returns all the nodes in our graph after this refactoring has been done:
+
+[source,cypher]
+----
+MATCH (n)
+RETURN (n)
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| n
+| (:DevRel {name: "Jennifer", location: "St Louis"})
+| (:DevRel {name: "Michael", location: "Dresden"})
+| (:Engineer {city: "London", name: "Jim"})
+| (:DevRel {name: "Mark", location: "London"})
+| (:Engineer {city: "London", name: "Alistair"})
+|===
