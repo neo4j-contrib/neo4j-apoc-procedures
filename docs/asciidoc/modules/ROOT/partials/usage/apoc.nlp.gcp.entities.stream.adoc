@@ -1,0 +1,62 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+include::example$nlp-graph.cypher[]
+----
+
+We can use this procedure to extract the entities from the Article node.
+The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
+
+The following streams the entities for the Pokemon article:
+
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.gcp.entities.stream(a, {
+  key: $apiKey,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.entities AS entity
+RETURN entity;
+----
+
+.Results
+[opts="header"]
+|===
+| entity
+| {name: "card games", salience: 0.17967656, metadata: {}, type: "CONSUMER_GOOD", mentions: [{type: "COMMON", text: {content: "card games", beginOffset: -1}}]}
+| {name: "role playing games", salience: 0.16441391, metadata: {}, type: "OTHER", mentions: [{type: "COMMON", text: {content: "role playing games", beginOffset: -1}}]}
+| {name: "Switch", salience: 0.143287, metadata: {}, type: "OTHER", mentions: [{type: "COMMON", text: {content: "Switch", beginOffset: -1}}]}
+| {name: "friends", salience: 0.13336793, metadata: {}, type: "PERSON", mentions: [{type: "COMMON", text: {content: "friends", beginOffset: -1}}]}
+| {name: "Nintendo", salience: 0.12601112, metadata: {mid: "/g/1ymzszlpz"}, type: "ORGANIZATION", mentions: [{type: "PROPER", text: {content: "Nintendo", beginOffset: -1}}]}
+| {name: "board games", salience: 0.08861496, metadata: {}, type: "CONSUMER_GOOD", mentions: [{type: "COMMON", text: {content: "board games", beginOffset: -1}}]}
+| {name: "tournaments", salience: 0.0603245, metadata: {}, type: "EVENT", mentions: [{type: "COMMON", text: {content: "tournaments", beginOffset: -1}}]}
+| {name: "offices", salience: 0.034420907, metadata: {}, type: "LOCATION", mentions: [{type: "COMMON", text: {content: "offices", beginOffset: -1}}]}
+| {name: "Mario Kart 8", salience: 0.029095741, metadata: {wikipedia_url: "https://en.wikipedia.org/wiki/Mario_Kart_8", mid: "/m/0119mf7q"}, type: "PERSON", mentions: [{type: "PROPER", text: {content: "Mario Kart 8", beginOffset: -1}}]}
+| {name: "European", salience: 0.020393685, metadata: {mid: "/m/02j9z", wikipedia_url: "https://en.wikipedia.org/wiki/Europe"}, type: "LOCATION", mentions: [{type: "PROPER", text: {content: "European", beginOffset: -1}}]}
+| {name: "Neo4j", salience: 0.020393685, metadata: {mid: "/m/0b76t3s", wikipedia_url: "https://en.wikipedia.org/wiki/Neo4j"}, type: "ORGANIZATION", mentions: [{type: "PROPER", text: {content: "Neo4j", beginOffset: -1}}]}
+| {name: "8", salience: 0, metadata: {value: "8"}, type: "NUMBER", mentions: [{type: "TYPE_UNKNOWN", text: {content: "8", beginOffset: -1}}]}
+|===
+
+We get back 12 different entities.
+We could then apply a Cypher statement that creates one node per entity and an `ENTITY` relationship from each of those nodes back to the `Article` node.
+
+The following streams the entities for the Pokemon article and then creates nodes for each entity:
+
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.gcp.entities.stream(a, {
+  key: $apiKey,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.entities AS entity
+MERGE (e:Entity {name: entity.name})
+SET e.type = entity.type
+MERGE (a)-[:ENTITY]->(e);
+----
+
+If we want to automatically create an entity graph, see xref::overview/apoc.nlp/apoc.nlp.gcp.entities.graph.adoc[].

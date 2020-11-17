@@ -1,0 +1,33 @@
+We can generate an Access Key and Secret by following the instructions at https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html[docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html^].
+Once we've done that, we can populate and execute the following commands to create parameters that contains these details.
+
+.The following define the `apiKey` and `apiSecret` parameters
+[source,cypher]
+----
+:param apiKey => ("<api-key-here>");
+:param apiSecret => ("<api-secret-here>");
+----
+
+Alternatively we can add these credentials to `apoc.conf` and retrieve them using the static value storage functions.
+See xref::misc/static-values.adoc[].
+
+.apoc.conf
+[source,properties]
+----
+apoc.static.aws.apiKey=<api-key-here>
+apoc.static.aws.apiSecret=<api-secret-here>
+----
+
+
+.The following retrieves AWS credentials from `apoc.conf`
+[source,cypher]
+----
+RETURN apoc.static.getAll("aws") AS aws;
+----
+
+.Results
+[opts="header"]
+|===
+| aws
+| {apiKey: "<api-key-here>", apiSecret: "<api-secret-here>"}
+|===

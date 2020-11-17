@@ -34,5 +34,11 @@ apoc.nlp.azure.sentiment.stream(source :: ANY?, config = {} :: MAP?) :: (node ::
 |error|MAP?
 |===
 
+== Install Dependencies
+include::partial$nlp-dependencies.adoc[]
+
+== Setting up API Key
+include::partial$nlp-api-keys-apoc.nlp.azure.adoc[]
+
 xref::nlp/azure.adoc[More documentation of apoc.nlp.azure.sentiment.stream,role=more information]
 

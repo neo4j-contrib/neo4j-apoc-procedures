@@ -1,0 +1,9 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header, cols="1,1,1,5"]
+|===
+| name | type | default | description
+| key | String | null | API Key for Google Natural Language API
+| nodeProperty | String | text | The property on the provided node that contains the unstructured text to be analyzed
+|===
