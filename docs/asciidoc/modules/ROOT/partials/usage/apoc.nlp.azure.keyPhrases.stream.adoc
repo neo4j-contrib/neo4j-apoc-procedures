@@ -1,0 +1,43 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+include::example$nlp-graph.cypher[]
+----
+
+We can use this procedure to extract the key phrases from the Article node.
+The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
+
+The following streams the key phrases for the Pokemon article:
+
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.azure.keyPhrases.stream(a, {
+  key: $apiKey,
+  url: $apiUrl,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.keyPhrases AS keyPhrase
+RETURN keyPhrase;
+----
+
+.Results
+[opts="header"]
+|===
+| keyPhrase
+| "board games"
+| "card games"
+| "tournaments"
+| "role"
+| "organised lunch-time Mario Kart"
+| "Neo4j European offices"
+| "Nintendo Switch"
+| "friends"
+| "feet"
+| "days"
+|===
+
+
+If we want to automatically create a key phrase graph, see xref::overview/apoc.nlp/apoc.nlp.azure.keyPhrases.graph.adoc[].

@@ -1,0 +1,37 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+include::example$nlp-graph.cypher[]
+----
+
+We can use this procedure to  automatically store the sentiment and its score.
+
+By default, a virtual graph is returned, but the graph can be persisted by specifying the `write: true` configuration.
+The sentiment is stored in the `sentiment` property and the score for that sentiment in the `sentimentScore` property.
+
+
+The following returns a graph with the sentiment for the Pokemon article:
+
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.azure.sentiment.graph(a, {
+  key: $apiKey,
+  url: $apiUrl,
+  nodeProperty: "body",
+  write: true
+})
+YIELD graph AS g
+UNWIND g.nodes AS node
+RETURN node {.uri, .sentimentScore} AS node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/", sentimentScore: 0.5}
+|===
+
+If we want to stream back the sentiment and apply custom logic to the results, see xref::overview/apoc.nlp/apoc.nlp.azure.sentiment.stream.adoc[].
