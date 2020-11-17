@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.text.code(102) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "f"
+|===
