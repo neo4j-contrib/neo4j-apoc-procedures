@@ -1,0 +1,15 @@
+[source,cypher]
+----
+RETURN apoc.meta.cypher.types({
+  item1: 2,
+  item2: datetime(),
+  item3: "Michael"
+}) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| {item2: "DATE_TIME", item1: "INTEGER", item3: "STRING"}
+|===

@@ -1,0 +1,21 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| includeLabels | List<String> | [] | labels to include. Default is to include all labels
+| includeRels | List<String> | [] | relationship types to include. Default is to include all relationship types
+| excludesLabels | List<String> | [] | labels to include. Default is to include all relationship types
+| sample | Long | 1000 | number of  nodes to sample per label
+| maxRels | Long | 100 | number of relationships to sample per relationship type
+|===
+
+.Deprecated parameters
+[opts=header]
+|===
+| name | type | default | description
+| labels | List<String> | [] | deprecated, use `includeLabels`
+| rels | List<String> | [] | deprecated, use `includeRels`
+| excludes | List<String> | [] | deprecated, use `excludesLabels`
+|===

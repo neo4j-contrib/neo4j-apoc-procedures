@@ -32,5 +32,9 @@ apoc.meta.graphSample(config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relation
 |relationships|LIST? OF RELATIONSHIP?
 |===
 
+[[usage-apoc.meta.graphSample]]
+== Usage Examples
+include::partial$usage/apoc.meta.graphSample.adoc[]
+
 xref::database-introspection/meta.adoc[More documentation of apoc.meta.graphSample,role=more information]
 

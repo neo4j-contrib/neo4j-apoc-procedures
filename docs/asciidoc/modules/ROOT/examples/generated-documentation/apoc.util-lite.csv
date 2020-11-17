@@ -6,3 +6,4 @@
 ¦apoc.util.sha256(values :: LIST? OF ANY?) :: (STRING?)
 ¦apoc.util.sha384(values :: LIST? OF ANY?) :: (STRING?)
 ¦apoc.util.sha512(values :: LIST? OF ANY?) :: (STRING?)
+¦apoc.util.validatePredicate(predicate :: BOOLEAN?, message :: STRING?, params :: LIST? OF ANY?) :: (BOOLEAN?)

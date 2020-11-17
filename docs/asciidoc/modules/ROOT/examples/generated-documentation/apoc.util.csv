@@ -6,3 +6,4 @@
 ¦function¦apoc.util.sha256¦apoc.util.sha256(values :: LIST? OF ANY?) :: (STRING?)¦apoc.util.sha256([values]) | computes the sha256 of the concatenation of all string values of the list
 ¦function¦apoc.util.sha384¦apoc.util.sha384(values :: LIST? OF ANY?) :: (STRING?)¦apoc.util.sha384([values]) | computes the sha384 of the concatenation of all string values of the list
 ¦function¦apoc.util.sha512¦apoc.util.sha512(values :: LIST? OF ANY?) :: (STRING?)¦apoc.util.sha512([values]) | computes the sha512 of the concatenation of all string values of the list
+¦function¦apoc.util.validatePredicate¦apoc.util.validatePredicate(predicate :: BOOLEAN?, message :: STRING?, params :: LIST? OF ANY?) :: (BOOLEAN?)¦apoc.util.validatePredicate(predicate, message, params) | if the predicate yields to true raise an exception else returns true, for use inside WHERE subclauses
