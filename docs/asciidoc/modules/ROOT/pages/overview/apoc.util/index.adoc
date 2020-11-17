@@ -43,5 +43,10 @@ apoc.util.sha384([values]) \| computes the sha384 of the concatenation of all st
 apoc.util.sha512([values]) \| computes the sha512 of the concatenation of all string values of the list
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.util/apoc.util.validatePredicate.adoc[apoc.util.validatePredicate icon:book[]]
+
+apoc.util.validatePredicate(predicate, message, params) \| if the predicate yields to true raise an exception else returns true, for use inside WHERE subclauses
+|label:function[]
+|label:apoc-core[]
 |===
 

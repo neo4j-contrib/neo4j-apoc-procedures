@@ -99,7 +99,7 @@ include::partial$createExportGraph.adoc[]
 
 The Neo4j Browser visualization below shows the imported graph:
 
-image::play-movies.png[title="Movies Graph Visualization"]
+:play-movies.png[title="Movies Graph Visualization"]image:
 
 [[export-cypher-cypher-shell]]
 === Export to Cypher Shell format

@@ -1,0 +1,23 @@
+[source,cypher]
+----
+RETURN apoc.meta.cypher.isType(1, "NODE") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| FALSE
+|===
+
+[source,cypher]
+----
+RETURN apoc.meta.cypher.isType(datetime(), "DATE_TIME") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| TRUE
+|===

@@ -31,5 +31,9 @@ apoc.meta.schema(config = {} :: MAP?) :: (value :: MAP?)
 |value|MAP?
 |===
 
+[[usage-apoc.meta.schema]]
+== Usage Examples
+include::partial$usage/apoc.meta.schema.adoc[]
+
 xref::database-introspection/meta.adoc[More documentation of apoc.meta.schema,role=more information]
 
