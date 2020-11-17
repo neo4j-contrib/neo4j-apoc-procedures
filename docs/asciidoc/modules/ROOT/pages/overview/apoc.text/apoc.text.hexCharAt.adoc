@@ -25,5 +25,9 @@ apoc.text.hexCharAt(text :: STRING?, index :: INTEGER?) :: (STRING?)
 |index|INTEGER?|null
 |===
 
+[[usage-apoc.text.hexCharAt]]
+== Usage Examples
+include::partial$usage/apoc.text.hexCharAt.adoc[]
+
 xref::misc/text-functions.adoc[More documentation of apoc.text.hexCharAt,role=more information]
 

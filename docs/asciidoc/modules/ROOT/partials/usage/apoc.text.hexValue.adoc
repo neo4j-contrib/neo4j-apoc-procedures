@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.text.hexValue(10) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "000A"
+|===

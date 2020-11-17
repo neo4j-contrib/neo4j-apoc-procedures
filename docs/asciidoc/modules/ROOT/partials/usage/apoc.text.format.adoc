@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.text.format("Neo4j %s", ["Bloom"]) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "Neo4j Bloom"
+|===
