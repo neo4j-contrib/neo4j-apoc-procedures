@@ -21,3 +21,16 @@ RETURN apoc.text.toCypher({key: "Value"}) AS output;
 | output
 |  "{key:'Value'}"
 |===
+
+
+[source,cypher]
+----
+CREATE (p:Person) RETURN apoc.text.toCypher(p) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+|  "(:Person {})"
+|===

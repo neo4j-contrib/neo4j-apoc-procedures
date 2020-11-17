@@ -266,6 +266,7 @@ class DocumentationGenerator {
             writeExportToFile(writer, procedure.name().toString());
             writeExportToStream(writer, procedure.name().toString());
             writeUuid(writer, procedure.name().toString());
+            writeNlpDependencies(writer, procedure.name().toString());
             writeUsageExample(writer, procedure.name().toString());
             writeExtraDocumentation(writer, procedure.name());
 
@@ -312,6 +313,20 @@ class DocumentationGenerator {
         if(name.startsWith("apoc.uuid")) {
             writer.write("== Enable automatic UUIDs\n");
             writer.write("include::partial$uuids.adoc[]\n\n");
+        }
+    }
+
+    private void writeNlpDependencies(Writer writer, String name) throws IOException {
+        if(name.startsWith("apoc.nlp")) {
+            writer.write("== Install Dependencies\n");
+            writer.write("include::partial$nlp-dependencies.adoc[]\n\n");
+            writer.write("== Setting up API Key\n");
+
+            String[] parts = name.split("\\.");
+            parts = Arrays.copyOf(parts, 3);
+            String platform = String.join(".", parts);
+
+            writer.write("include::partial$nlp-api-keys-" + platform + ".adoc[]\n\n");
         }
     }
 

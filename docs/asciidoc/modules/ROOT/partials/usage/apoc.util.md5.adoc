@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.util.md5(["Michael"]) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "3e06fa3927cbdf4e9d93ba4541acce86"
+|===

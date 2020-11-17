@@ -1,0 +1,117 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+include::example$nlp-graph.cypher[]
+----
+
+We can use this procedure to automatically create the entity graph.
+As well as having the `Entity` label, each entity node will have another label based on the value of the `type` property.
+By default a virtual graph is returned.
+
+The following returns a virtual graph of entities for the Pokemon article:
+
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.gcp.entities.graph(a, {
+  key: $apiKey,
+  nodeProperty: "body",
+  writeRelationshipType: "ENTITY"
+})
+YIELD graph AS g
+RETURN g;
+----
+
+We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.gcp.entities.graph.svg>>.
+
+[[apoc.nlp.gcp.entities.graph.svg]]
+image::apoc.nlp.gcp.entities.graph.svg[title="Pokemon entities graph"]
+
+We can compute the entities for multiple nodes by passing a list of nodes to the procedure.
+
+The following returns a virtual graph of entities for the Pokemon and Nintendo Switch articles:
+
+[source,cypher]
+----
+MATCH (a:Article)
+WITH collect(a) AS articles
+CALL apoc.nlp.gcp.entities.graph(articles, {
+  key: $apiKey,
+  nodeProperty: "body",
+  writeRelationshipType: "ENTITY"
+})
+YIELD graph AS g
+RETURN g;
+----
+
+We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.gcp.entities-multiple.graph.svg>>.
+
+[[apoc.nlp.gcp.entities-multiple.graph.svg]]
+image::apoc.nlp.gcp.entities-multiple.graph.svg[title="Pokemon and Nintendo Switch entities graph"]
+
+On this visualization we can also see the score for each entity node.
+This score represents importance of that entity in the entire document.
+We can specify a minimum cut off value for the score using the `scoreCutoff` property.
+
+The following returns a virtual graph of entities for the Pokemon and Nintendo Switch articles:
+
+[source,cypher]
+----
+MATCH (a:Article)
+WITH collect(a) AS articles
+CALL apoc.nlp.gcp.entities.graph(articles, {
+  key: $apiKey,
+  nodeProperty: "body",
+  writeRelationshipType: "ENTITY",
+  scoreCutoff: 0.01
+})
+YIELD graph AS g
+RETURN g;
+----
+
+We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.gcp.entities-multiple.graph-cutoff.svg>>.
+
+[[apoc.nlp.gcp.entities-multiple.graph-cutoff.svg]]
+image::apoc.nlp.gcp.entities-multiple.graph-cutoff.svg[title="Pokemon and Nintendo Switch entities graph with importance >= 0.01"]
+
+If we're happy with this graph and would like to persist it in Neo4j, we can do this by specifying the `write: true` configuration.
+
+The following creates a `HAS_ENTITY` relationship from the article to each entity:
+
+[source,cypher]
+----
+MATCH (a:Article)
+WITH collect(a) AS articles
+CALL apoc.nlp.gcp.entities.graph(articles, {
+  key: $apiKey,
+  nodeProperty: "body",
+  scoreCutoff: 0.01,
+  writeRelationshipType: "HAS_ENTITY",
+  writeRelationshipProperty: "gcpEntityScore",
+  write: true
+})
+YIELD graph AS g
+RETURN g;
+----
+
+We can then write a query to return the entities that have been created.
+
+The following returns articles and their entities:
+
+[source,cypher]
+----
+MATCH (article:Article)
+RETURN article.uri AS article,
+       [(article)-[r:HAS_ENTITY]->(e) | {entity: e.text, score: r.gcpEntityScore}] AS entities;
+----
+
+.Results
+[opts="header"]
+|===
+| article                                           | entities
+| "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/" | [{score: 0.020393685, entity: "Neo4j"}, {score: 0.034420907, entity: "offices"}, {score: 0.0603245, entity: "tournaments"}, {score: 0.020393685, entity: "European"}, {score: 0.029095741, entity: "Mario Kart 8"}, {score: 0.12601112, entity: "Nintendo"}, {score: 0.13336793, entity: "friends"}, {score: 0.08861496, entity: "board games"}, {score: 0.143287, entity: "Switch"}, {score: 0.16441391, entity: "role playing games"}, {score: 0.17967656, entity: "card games"}]
+| "https://en.wikipedia.org/wiki/Nintendo_Switch"        | [{score: 0.76108575, entity: "Nintendo Switch"}, {score: 0.07424594, entity: "Nintendo"}, {score: 0.015900765, entity: "home console"}, {score: 0.012772448, entity: "device"}, {score: 0.038113687, entity: "regions"}, {score: 0.07299799, entity: "Joy-Con Wheel"}]
+|===
+
+If we want to stream back entities and apply custom logic to the results, see xref::overview/apoc.nlp/apoc.nlp.gcp.entities.stream.adoc[].
