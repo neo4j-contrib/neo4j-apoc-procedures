@@ -1,0 +1,8 @@
+The following creates a graph of 5 nodes, each connected to two other nodes:
+
+[source,cypher]
+----
+CALL apoc.generate.simple([2,2,2,2,2], "Node", "CONNECTED_TO");
+----
+
+image::apoc.generate.simple.png[]

@@ -26,5 +26,9 @@ apoc.generate.complete(noNodes :: INTEGER?, label :: STRING?, type :: STRING?) :
 |type|STRING?|null
 |===
 
+[[usage-apoc.generate.complete]]
+== Usage Examples
+include::partial$usage/apoc.generate.complete.adoc[]
+
 xref::graph-updates/graph-generators.adoc[More documentation of apoc.generate.complete,role=more information]
 
