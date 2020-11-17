@@ -1,0 +1,51 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+include::example$nlp-graph.cypher[]
+----
+
+We can use this procedure to automatically create a key phrase graph.
+One node with the `KeyPhrase` label will be created for each key phrase extracted.
+
+By default, a virtual graph is returned, but the graph can be persisted by specifying the `write: true` configuration.
+
+.The following returns a graph of key phrases for the Pokemon article
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.azure.keyPhrases.graph(a, {
+  key: $apiKey,
+  url: $apiUrl,
+  nodeProperty: "body",
+  writeRelationshipType: "KEY_PHRASE",
+  write: true
+})
+YIELD graph AS g
+RETURN g;
+----
+
+We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.azure.keyPhrases.graph.svg>>.
+
+[[apoc.nlp.azure.keyPhrases.graph.svg]]
+image::apoc.nlp.azure.keyPhrases.graph.svg[title="Pokemon key phrases graph"]
+
+We can then write a query to return the key phrases that have been created.
+
+.The following returns articles and their entities
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+RETURN a.uri AS article,
+       [(a)-[:KEY_PHRASE]->(k:KeyPhrase) | k.text] AS keyPhrases;
+----
+
+.Results
+[opts="header"]
+|===
+| article                                                | keyPhrases
+| "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/" | ["card games", "board games", "friends", "feet", "Nintendo Switch", "days", "organised lunch-time Mario Kart", "tournaments", "Neo4j European offices", "role"]
+|===
+
+
+If we want to stream back key phrases and apply custom logic to the results, see xref::overview/apoc.nlp/apoc.nlp.azure.keyPhrases.stream.adoc[].
