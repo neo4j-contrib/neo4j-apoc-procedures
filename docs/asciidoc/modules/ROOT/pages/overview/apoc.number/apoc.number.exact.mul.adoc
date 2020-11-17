@@ -27,5 +27,9 @@ apoc.number.exact.mul(stringA :: STRING?, stringB :: STRING?, precision = 0 :: I
 |roundingMode|STRING?|HALF_UP
 |===
 
+[[usage-apoc.number.exact.mul]]
+== Usage Examples
+include::partial$usage/apoc.number.exact.mul.adoc[]
+
 xref::mathematical/exact-math-functions.adoc[More documentation of apoc.number.exact.mul,role=more information]
 

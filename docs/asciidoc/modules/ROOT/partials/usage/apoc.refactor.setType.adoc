@@ -1,0 +1,29 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (f:Foo)-[rel:FOOBAR]->(b:Bar);
+----
+
+The following changes the relationship type from `FOOBAR` to `NEW-TYPE`:
+
+[source,cypher]
+----
+MATCH (f:Foo)-[rel:FOOBAR]->(b:Bar)
+CALL apoc.refactor.setType(rel, 'NEW-TYPE')
+YIELD input, output
+RETURN input, output;
+----
+
+If we execute this query, it will result in the following output:
+
+.Results
+[opts="header"]
+|===
+| input | output
+| 30    | [:`NEW-TYPE`]
+|===
+
+And the graph now looks like this:
+
+image::apoc.refactor.setType2.png[scaledwidth="100%"]

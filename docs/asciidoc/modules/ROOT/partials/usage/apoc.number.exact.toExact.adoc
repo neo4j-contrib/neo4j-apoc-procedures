@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.number.exact.toExact(1213669989) as output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| RETURN apoc.number.exact.toExact('1213669989') as output;
+|===

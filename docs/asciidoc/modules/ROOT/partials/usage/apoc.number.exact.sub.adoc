@@ -1,0 +1,12 @@
+[source,cypher]
+----
+RETURN apoc.number.exact.sub('1238126387','1213669989') as output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "24456398"
+|===
+
