@@ -44,5 +44,9 @@ apoc.refactor.rename.typeProperty(oldName :: STRING?, newName :: STRING?, rels =
 |indexes|LIST? OF STRING?
 |===
 
+[[usage-apoc.refactor.rename.typeProperty]]
+== Usage Examples
+include::partial$usage/apoc.refactor.rename.typeProperty.adoc[]
+
 xref::graph-updates/graph-refactoring/rename-label-type-property.adoc[More documentation of apoc.refactor.rename.typeProperty,role=more information]
 

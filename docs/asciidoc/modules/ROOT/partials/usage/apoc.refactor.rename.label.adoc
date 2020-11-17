@@ -1,0 +1,36 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (mark:Engineer {name: "Mark", city: "London"})
+CREATE (jennifer:Engineer {name: "Jennifer", city: "St Louis"})
+CREATE (michael:Engineer {name: "Michael", city: "Dresden"})
+CREATE (jim:Engineer {name: "Jim", city: "London"})
+CREATE (alistair:Engineer {name: "Alistair", city: "London"})
+
+MERGE (jim)-[:COLLEAGUES {since: date("2006-05-01")}]->(alistair)
+MERGE (mark)-[:COLLEAGUES {since: date("2018-02-01")}]->(jennifer)
+MERGE (mark)-[:COLLEAGUES {since: date("2013-05-01")}]->(michael);
+----
+
+The following changes the relationship type between Jim and Alistair from `COLLEAGUES` to `FROLLEAGUES`:
+
+[source,cypher]
+----
+MATCH (:Engineer {name: "Jim"})-[rel]->(:Engineer {name: "Alistair"})
+WITH collect(rel) AS rels
+CALL apoc.refactor.rename.type("COLLEAGUES", "FROLLEAGUES", rels)
+YIELD batches, total, timeTaken, committedOperations
+RETURN batches, total, timeTaken, committedOperations;
+----
+
+.Results
+[opts="header"]
+|===
+| batches | total | timeTaken | committedOperations
+| 1       | 1    | 0         | 1
+|===
+
+After this query has run, we'll have the following graph:
+
+image::apoc.rename-rename-rel-type.png[]
