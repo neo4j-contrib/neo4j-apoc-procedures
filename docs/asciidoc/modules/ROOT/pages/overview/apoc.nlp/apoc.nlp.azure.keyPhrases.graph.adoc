@@ -38,5 +38,9 @@ include::partial$nlp-dependencies.adoc[]
 == Setting up API Key
 include::partial$nlp-api-keys-apoc.nlp.azure.adoc[]
 
+[[usage-apoc.nlp.azure.keyPhrases.graph]]
+== Usage Examples
+include::partial$usage/apoc.nlp.azure.keyPhrases.graph.adoc[]
+
 xref::nlp/azure.adoc[More documentation of apoc.nlp.azure.keyPhrases.graph,role=more information]
 

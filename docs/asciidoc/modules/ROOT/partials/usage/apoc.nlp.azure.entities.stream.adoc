@@ -1,0 +1,64 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+include::example$nlp-graph.cypher[]
+----
+
+We can use this procedure to extract the entities from the Article node.
+The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
+
+The following streams the entities for the Pokemon article:
+
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.azure.entities.stream(a, {
+  key: $apiKey,
+  url: $apiUrl,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.entities AS entity
+RETURN entity;
+----
+
+.Results
+[opts="header"]
+|===
+| entity
+| {name: "Nintendo Switch", wikipediaId: "Nintendo Switch", type: "Other", matches: [{length: 15, text: "Nintendo Switch", wikipediaScore: 0.8339868065025469, offset: 56}], bingId: "b3d617ef-81fc-4188-9a2b-a5cf1f8534b5", wikipediaLanguage: "en", wikipediaUrl: "https://en.wikipedia.org/wiki/Nintendo_Switch"}
+| {name: "Nintendo Switch", type: "Organization", matches: [{length: 15, entityTypeScore: 0.94, text: "Nintendo Switch", offset: 56}]}
+| {name: "Oberon Media", wikipediaId: "Oberon Media", type: "Organization", matches: [{length: 6, text: "I play", wikipediaScore: 0.032446316016667254, offset: 76}], bingId: "166f6e0f-33b7-8707-bb8b-5a932c498333", wikipediaLanguage: "en", wikipediaUrl: "https://en.wikipedia.org/wiki/Oberon_Media"}
+| {name: "a week", subType: "Duration", type: "DateTime", matches: [{length: 6, entityTypeScore: 0.8, text: "a week", offset: 166}]}
+| {name: "Mario Kart 8", wikipediaId: "Mario Kart 8", type: "Other", matches: [{length: 12, text: "Mario Kart 8", wikipediaScore: 0.7802000593632747, offset: 205}], bingId: "ce6f55ec-d3d7-032a-0bf8-15ad3e8df3f4", wikipediaLanguage: "en", wikipediaUrl: "https://en.wikipedia.org/wiki/Mario_Kart_8"}
+| {name: "Mario Kart", type: "Organization", matches: [{length: 10, entityTypeScore: 0.72, text: "Mario Kart", offset: 205}]}
+| {name: "8", subType: "Number", type: "Quantity", matches: [{length: 1, entityTypeScore: 0.8, text: "8", offset: 216}]}
+| {name: "Neo4j", wikipediaId: "Neo4j", type: "Other", matches: [{length: 5, text: "Neo4j", wikipediaScore: 0.8150388253887939, offset: 242}], bingId: "bc2f436b-8edd-6ba6-b2d3-69901348d653", wikipediaLanguage: "en", wikipediaUrl: "https://en.wikipedia.org/wiki/Neo4j"}
+| {name: "Europe", wikipediaId: "Europe", type: "Location", matches: [{length: 8, text: "European", wikipediaScore: 0.00591759926701263, offset: 248}], bingId: "501457aa-5b70-cfba-cfd8-be882b4bac1e", wikipediaLanguage: "en", wikipediaUrl: "https://en.wikipedia.org/wiki/Europe"}
+|===
+
+
+We get back 9 different entities, although we can see that some of them are referring to the same things, albeit with different `type` values.
+We could then apply a Cypher statement that creates one node per entity and an `ENTITY` relationship from each of those nodes back to the `Article` node.
+
+The following streams the entities for the Pokemon article and then creates nodes for each entity:
+
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.azure.entities.stream(a, {
+  key: $apiKey,
+  url: $apiUrl,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.entities AS entity
+WITH a, entity.name AS entity, collect(entity.type) AS types
+MERGE (e:Entity {name: entity})
+SET e.type = types
+MERGE (a)-[:ENTITY]->(e);
+----
+
+
+If we want to automatically create an entity graph, see xref::overview/apoc.nlp/apoc.nlp.azure.entities.graph.adoc[].

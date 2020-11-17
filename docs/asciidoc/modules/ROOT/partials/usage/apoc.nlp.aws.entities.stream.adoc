@@ -1,0 +1,58 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+include::example$nlp-graph.cypher[]
+----
+
+We can use this procedure to extract the entities from the Article node.
+The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
+
+The following streams the entities for the Pokemon article:
+
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.aws.entities.stream(a, {
+  key: $apiKey,
+  secret: $apiSecret,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.entities AS entity
+RETURN entity;
+----
+
+.Results
+[opts="header"]
+|===
+| entity
+| {score: 0.780032217502594, endOffset: 71, text: "Nintendo Switch", type: "COMMERCIAL_ITEM", beginOffset: 56}
+| {score: 0.8155304193496704, endOffset: 151, text: "at least", type: "QUANTITY", beginOffset: 143}
+| {score: 0.7507548332214355, endOffset: 156, text: "once", type: "QUANTITY", beginOffset: 152}
+| {score: 0.8760746717453003, endOffset: 172, text: "twice a week", type: "QUANTITY", beginOffset: 160}
+| {score: 0.9944096803665161, endOffset: 217, text: "Mario Kart 8", type: "TITLE", beginOffset: 205}
+| {score: 0.9946564435958862, endOffset: 247, text: "Neo4j", type: "ORGANIZATION", beginOffset: 242}
+| {score: 0.6274040937423706, endOffset: 256, text: "European", type: "LOCATION", beginOffset: 248}
+|===
+
+We get back 7 different entities.
+We could then apply a Cypher statement that creates one node per entity and an `ENTITY` relationship from each of those nodes back to the `Article` node.
+
+.The following streams the entities for the Pokemon article and then creates nodes for each entity
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.aws.entities.stream(a, {
+  key: $apiKey,
+  secret: $apiSecret,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.entities AS entity
+MERGE (e:Entity {name: entity.text})
+SET e.type = entity.type
+MERGE (a)-[:ENTITY]->(e)
+----
+
+If we want to automatically create a key phrase graph, see xref::overview/apoc.nlp/apoc.nlp.aws.entities.graph.adoc[].

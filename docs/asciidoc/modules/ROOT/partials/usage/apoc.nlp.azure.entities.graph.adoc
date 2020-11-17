@@ -1,0 +1,99 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+include::example$nlp-graph.cypher[]
+----
+
+We can use this procedure to automatically create the entity graph.
+As well as having the `Entity` label, each entity node will have another label based on the value of the `type` property.
+By default a virtual graph is returned.
+
+The following returns a virtual graph of entities for the Pokemon and Nintendo Switch articles:
+
+[source,cypher]
+----
+MATCH (a:Article)
+WITH collect(a) AS articles
+CALL apoc.nlp.azure.entities.graph(articles, {
+  key: $apiKey,
+  url: $apiUrl,
+  nodeProperty: "body",
+  writeRelationshipType: "ENTITY"
+})
+YIELD graph AS g
+RETURN g
+----
+
+We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.azure.entities-multiple.graph.svg>>.
+
+[[apoc.nlp.azure.entities-multiple.graph.svg]]
+image::apoc.nlp.azure.entities-multiple.graph.svg[title="Pokemon and Nintendo Switch entities graph"]
+
+On this visualization we can also see the score for each entity node.
+This score represents the level of confidence that the API has in its detection of the entity.
+We can specify a minimum cut off value for the score using the `scoreCutoff` property.
+
+The following returns a virtual graph of entities with a score >= 0.7 for the Pokemon and Nintendo Switch articles:
+
+[source,cypher]
+----
+MATCH (a:Article)
+WITH collect(a) AS articles
+CALL apoc.nlp.azure.entities.graph(articles, {
+  key: $apiKey,
+  url: $apiUrl,
+  nodeProperty: "body",
+  scoreCutoff: 0.7,
+  writeRelationshipType: "ENTITY"
+})
+YIELD graph AS g
+RETURN g
+----
+
+We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.azure.entities-multiple.graph-cutoff.svg>>.
+
+[[apoc.nlp.azure.entities-multiple.graph-cutoff.svg]]
+image::apoc.nlp.azure.entities-multiple.graph-cutoff.svg[title="Pokemon and Nintendo Switch entities graph with confidence >= 0.7"]
+
+If we're happy with this graph and would like to persist it in Neo4j, we can do this by specifying the `write: true` configuration.
+
+The following creates a `HAS_ENTITY` relationship from the article to each entity:
+
+[source,cypher]
+----
+MATCH (a:Article)
+WITH collect(a) AS articles
+CALL apoc.nlp.azure.entities.graph(articles, {
+  key: $apiKey,
+  url: $apiUrl,
+  nodeProperty: "body",
+  scoreCutoff: 0.7,
+  writeRelationshipType: "HAS_ENTITY",
+  writeRelationshipProperty: "azureEntityScore",
+  write: true
+})
+YIELD graph AS g
+RETURN g;
+----
+
+We can then write a query to return the entities that have been created.
+
+The following returns articles and their entities:
+
+[source,cypher]
+----
+MATCH (article:Article)
+RETURN article.uri AS article,
+       [(article)-[r:HAS_ENTITY]->(e:Entity) | {text: e.text, score: r.azureEntityScore}] AS entities;
+----
+
+.Results
+[opts="header"]
+|===
+| article                                           | entities
+| "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/" | [{score: 0.72, text: "Mario Kart"}, {score: 0.7802000593632747, text: "Mario Kart 8"}, {score: 0.8, text: "8"}, {score: 0.8, text: "a week"}, {score: 0.94, text: "Nintendo Switch"}, {score: 0.8150388253887939, text: "Neo4j"}]
+| "https://en.wikipedia.org/wiki/Nintendo_Switch"        | [{score: 0.9023679924293266, text: "Joy-Con"}, {score: 0.98, text: "Nintendo"}, {score: 0.8, text: "March 3, 2017"}, {score: 0.9355623498560008, text: "Nintendo Switch"}, {score: 0.92, text: "Mario Kart"}, {score: 0.8, text: "8"}, {score: 0.8863202650046607, text: "Mario Kart 8"}, {score: 0.8, text: "October 20, 2016"}]
+|===
+
+If we want to stream back entities and apply custom logic to the results, see xref::overview/apoc.nlp/apoc.nlp.azure.entities.stream.adoc[].
