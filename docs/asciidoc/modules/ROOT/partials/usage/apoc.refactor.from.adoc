@@ -1,0 +1,43 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (mark:Person {name: "Mark", city: "London"})
+CREATE (jennifer:Person {name: "Jennifer", city: "St Louis"})
+CREATE (michael:Person {name: "Michael", city: "Dresden"})
+CREATE (mark)-[:FOLLOWS]->(jennifer);
+----
+
+The following makes Michael the start node in the `FOLLOWS` relationship:
+
+[source,cypher]
+----
+MATCH (michael:Person {name: "Michael"})
+MATCH ()-[rel:FOLLOWS]->()
+CALL apoc.refactor.from(rel, michael)
+YIELD input, output
+RETURN input, output;
+----
+
+.Results
+[opts="header"]
+|===
+| input | output
+| 14    | [:FOLLOWS]
+|===
+
+We can list all the `Person` nodes by running the following query:
+
+[source,cypher]
+----
+MATCH path = ()-[rel:FOLLOWS]->()
+RETURN path;
+----
+
+.Results
+[opts="header"]
+|===
+| path
+| (:Person {name: "Michael", city: "Dresden"})-[:FOLLOWS]->(:Person {name: "Jennifer", city: "St Louis"})
+|===
+
