@@ -1,0 +1,57 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$createExportGraph.adoc[]
+
+We can expire any people that have produced a movie by running the following query:
+
+[source,cypher]
+----
+MATCH (movie:Movie)<-[produced:PRODUCED]-(person:Person)
+CALL apoc.ttl.expireIn(person, 10,'s')
+RETURN movie, produced, person;
+----
+
+.Results
+[opts="header"]
+|===
+| movie                                                                                | produced    | person
+| (:Movie {tagline: "Welcome to the Real World", title: "The Matrix", released: 1999}) | [:PRODUCED] | (:Person:TTL {name: "Joel Silver", ttl: 1605698768575, born: 1952}
+|===
+
+This node (and its relationships) will expire at `1605698768575` (10 seconds from now at the time of writing):
+
+[source,cypher]
+----
+RETURN datetime({epochMillis: 1605698768575}) AS expiryTime;
+----
+
+.Results
+[opts="header"]
+|===
+| expiryTime
+| 2020-11-18T11:26:08.575Z
+|===
+
+The next time that the expiration job runs, we'll see the following output in `neo4j.log`:
+
+.neo4j.log
+[source,text]
+----
+2020-11-18 11:26:40.357+0000 INFO  [apoc] TTL: Expired 1 nodes 1 relationships
+----
+
+And if we try to look for our producer:
+
+[source,cypher]
+----
+MATCH (movie:Movie)<-[produced:PRODUCED]-(person:Person)
+RETURN movie, produced, person;
+----
+
+We won't get any results:
+
+.Results
+[opts="header"]
+|===
+| movie                                                                                | produced    | person
+|===

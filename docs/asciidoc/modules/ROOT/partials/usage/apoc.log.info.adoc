@@ -1,0 +1,14 @@
+We can log a message to `neo4j.log` using the following query:
+
+[source,cypher]
+----
+CALL apoc.log.info('Hello %s', ['World']);
+----
+
+.neo4j.log
+[source,text]
+----
+2020-11-18 10:18:08.673+0000 INFO  hello_world
+----
+
+We can query the contents of `neo4j.log` using xref::overview/apoc.log/apoc.log.stream.adoc[]

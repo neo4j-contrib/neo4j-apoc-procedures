@@ -25,3 +25,7 @@ apoc.log.debug(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID
 |params|LIST? OF ANY?|[]
 |===
 
+[[usage-apoc.log.debug]]
+== Usage Examples
+include::partial$usage/apoc.log.debug.adoc[]
+

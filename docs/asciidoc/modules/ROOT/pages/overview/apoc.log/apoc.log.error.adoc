@@ -25,3 +25,7 @@ apoc.log.error(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID
 |params|LIST? OF ANY?|[]
 |===
 
+[[usage-apoc.log.error]]
+== Usage Examples
+include::partial$usage/apoc.log.error.adoc[]
+

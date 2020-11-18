@@ -1,0 +1,8 @@
+By default TTL is disabled.
+We can enable it by setting the following property in `apoc.conf`:
+
+.apoc.conf
+[source,properties]
+----
+apoc.ttl.enabled=true
+----

@@ -266,6 +266,7 @@ class DocumentationGenerator {
             writeExportToFile(writer, procedure.name().toString());
             writeExportToStream(writer, procedure.name().toString());
             writeUuid(writer, procedure.name().toString());
+            writeTTL(writer, procedure.name().toString());
             writeNlpDependencies(writer, procedure.name().toString());
             writeUsageExample(writer, procedure.name().toString());
             writeExtraDocumentation(writer, procedure.name());
@@ -314,6 +315,13 @@ class DocumentationGenerator {
         if(name.startsWith("apoc.uuid")) {
             writer.write("== Enable automatic UUIDs\n");
             writer.write("include::partial$uuids.adoc[]\n\n");
+        }
+    }
+
+    private void writeTTL(Writer writer, String name) throws IOException {
+        if(name.startsWith("apoc.ttl")) {
+            writer.write("== Enable TTL\n");
+            writer.write("include::partial$ttl.adoc[]\n\n");
         }
     }
 

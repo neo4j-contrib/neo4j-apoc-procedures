@@ -1,0 +1,22 @@
+For this procedure to log messages, we need to set the following config in the Neo4j configuration file:
+
+.$NEO4J_HOME/neo4j.conf
+[source,properties]
+----
+dbms.logs.debug.level=DEBUG
+----
+
+We can log a message to `neo4j.log` using the following query:
+
+[source,cypher]
+----
+CALL apoc.log.debug('Hello %s', ['World']);
+----
+
+.neo4j.log
+[source,text]
+----
+CALL apoc.log.debug('Hello %s', ['World']);
+----
+
+We can query the contents of `neo4j.log` using xref::overview/apoc.log/apoc.log.stream.adoc[]

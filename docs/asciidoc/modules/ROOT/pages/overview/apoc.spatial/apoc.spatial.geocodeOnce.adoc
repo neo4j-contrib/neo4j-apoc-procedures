@@ -35,5 +35,9 @@ apoc.spatial.geocodeOnce(location :: STRING?) :: (location :: MAP?, data :: MAP?
 |description|STRING?
 |===
 
+[[usage-apoc.spatial.geocodeOnce]]
+== Usage Examples
+include::partial$usage/apoc.spatial.geocodeOnce.adoc[]
+
 xref::misc/spatial.adoc[More documentation of apoc.spatial.geocodeOnce,role=more information]
 
