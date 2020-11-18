@@ -32,5 +32,9 @@ apoc.spatial.sortByDistance(paths :: LIST? OF PATH?) :: (path :: PATH?, distance
 |distance|FLOAT?
 |===
 
+[[usage-apoc.spatial.sortByDistance]]
+== Usage Examples
+include::partial$usage/apoc.spatial.sortByDistance.adoc[]
+
 xref::misc/spatial.adoc[More documentation of apoc.spatial.sortByDistance,role=more information]
 

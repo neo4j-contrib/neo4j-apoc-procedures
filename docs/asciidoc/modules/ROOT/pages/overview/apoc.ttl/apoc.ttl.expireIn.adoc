@@ -26,5 +26,12 @@ apoc.ttl.expireIn(node :: NODE?, timeDelta :: INTEGER?, timeUnit :: STRING?) :: 
 |timeUnit|STRING?|null
 |===
 
+== Enable TTL
+include::partial$ttl.adoc[]
+
+[[usage-apoc.ttl.expireIn]]
+== Usage Examples
+include::partial$usage/apoc.ttl.expireIn.adoc[]
+
 xref::graph-updates/ttl.adoc[More documentation of apoc.ttl.expireIn,role=more information]
 
