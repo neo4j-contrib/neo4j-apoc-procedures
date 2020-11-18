@@ -13,7 +13,7 @@ import org.neo4j.procedure.Procedure;
 import java.io.File;
 import java.util.stream.Stream;
 
-public class Store  {
+public class Store {
 
     @Context
     public GraphDatabaseService db;

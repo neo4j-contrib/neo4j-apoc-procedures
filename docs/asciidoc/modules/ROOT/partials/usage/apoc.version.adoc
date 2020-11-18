@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.version() AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "{apoc-release}"
+|===
