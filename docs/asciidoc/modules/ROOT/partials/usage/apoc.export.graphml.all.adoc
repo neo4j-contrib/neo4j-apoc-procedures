@@ -1,0 +1,155 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$createExportGraph.adoc[]
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::play-movies.png[title="Movies Graph Visualization"]
+
+The `apoc.export.graphml.all` procedure exports the whole database to a GraphML file or as a stream.
+
+The following query exports the whole database to the file `movies.graphml`:
+[source,cypher]
+----
+CALL apoc.export.graphml.all("movies.graphml", {})
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "movies.graphml" | "database: nodes(8), rels(7)" | "graphml" | 8     | 7             | 21         | 4    | 15   | -1        | 0       | TRUE | NULL
+|===
+
+.movies.graphml
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+<key id="born" for="node" attr.name="born"/>
+<key id="name" for="node" attr.name="name"/>
+<key id="tagline" for="node" attr.name="tagline"/>
+<key id="label" for="node" attr.name="label"/>
+<key id="title" for="node" attr.name="title"/>
+<key id="released" for="node" attr.name="released"/>
+<key id="roles" for="edge" attr.name="roles"/>
+<key id="label" for="edge" attr.name="label"/>
+<graph id="G" edgedefault="directed">
+<node id="n188" labels=":Movie"><data key="labels">:Movie</data><data key="title">The Matrix</data><data key="tagline">Welcome to the Real World</data><data key="released">1999</data></node>
+<node id="n189" labels=":Person"><data key="labels">:Person</data><data key="born">1964</data><data key="name">Keanu Reeves</data></node>
+<node id="n190" labels=":Person"><data key="labels">:Person</data><data key="born">1967</data><data key="name">Carrie-Anne Moss</data></node>
+<node id="n191" labels=":Person"><data key="labels">:Person</data><data key="born">1961</data><data key="name">Laurence Fishburne</data></node>
+<node id="n192" labels=":Person"><data key="labels">:Person</data><data key="born">1960</data><data key="name">Hugo Weaving</data></node>
+<node id="n193" labels=":Person"><data key="labels">:Person</data><data key="born">1967</data><data key="name">Lilly Wachowski</data></node>
+<node id="n194" labels=":Person"><data key="labels">:Person</data><data key="born">1965</data><data key="name">Lana Wachowski</data></node>
+<node id="n195" labels=":Person"><data key="labels">:Person</data><data key="born">1952</data><data key="name">Joel Silver</data></node>
+<edge id="e267" source="n189" target="n188" label="ACTED_IN"><data key="label">ACTED_IN</data><data key="roles">["Neo"]</data></edge>
+<edge id="e268" source="n190" target="n188" label="ACTED_IN"><data key="label">ACTED_IN</data><data key="roles">["Trinity"]</data></edge>
+<edge id="e269" source="n191" target="n188" label="ACTED_IN"><data key="label">ACTED_IN</data><data key="roles">["Morpheus"]</data></edge>
+<edge id="e270" source="n192" target="n188" label="ACTED_IN"><data key="label">ACTED_IN</data><data key="roles">["Agent Smith"]</data></edge>
+<edge id="e271" source="n193" target="n188" label="DIRECTED"><data key="label">DIRECTED</data></edge>
+<edge id="e272" source="n194" target="n188" label="DIRECTED"><data key="label">DIRECTED</data></edge>
+<edge id="e273" source="n195" target="n188" label="PRODUCED"><data key="label">PRODUCED</data></edge>
+</graph>
+</graphml>
+----
+
+The following query returns a stream of the whole database in the `data` column:
+[source,cypher]
+----
+CALL apoc.export.graphml.all(null, {stream:true})
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data;
+----
+
+.Results
+[opts="header"]
+|===
+| file         | nodes | relationships | properties | data
+| NULL | 8     | 7             | 21         a|
+[source,xml]
+----
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+ <graphml xmlns="\"http://graphml.graphdrawing.org/xmlns\""
+          xmlns:xsi="\"http://www.w3.org/2001/XMLSchema-instance\""
+          xsi:schemaLocation="\"http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\"">
+   <key id="\"born\"" for="\"node\"" attr.name="\"born\""/>
+   <key id="\"name\"" for="\"node\"" attr.name="\"name\""/>
+   <key id="\"tagline\"" for="\"node\"" attr.name="\"tagline\""/>
+   <key id="\"label\"" for="\"node\"" attr.name="\"label\""/>
+   <key id="\"title\"" for="\"node\"" attr.name="\"title\""/>
+   <key id="\"released\"" for="\"node\"" attr.name="\"released\""/>
+   <key id="\"roles\"" for="\"edge\"" attr.name="\"roles\""/>
+   <key id="\"label\"" for="\"edge\"" attr.name="\"label\""/>
+   <graph id="\"G\"" edgedefault="\"directed\"">
+     <node id="\"n188\"" labels="\":Movie\"">
+       <data key="\"labels\"">:Movie</data>
+       <data key="\"title\"">The Matrix</data>
+       <data key="\"tagline\"">Welcome to the Real World</data>
+       <data key="\"released\"">1999</data>
+     </node>
+     <node id="\"n189\"" labels="\":Person\"">
+       <data key="\"labels\"">:Person</data>
+       <data key="\"born\"">1964</data>
+       <data key="\"name\"">Keanu Reeves</data>
+     </node>
+     <node id="\"n190\"" labels="\":Person\"">
+       <data key="\"labels\"">:Person</data>
+       <data key="\"born\"">1967</data>
+       <data key="\"name\"">Carrie-Anne Moss</data>
+     </node>
+     <node id="\"n191\"" labels="\":Person\"">
+       <data key="\"labels\"">:Person</data>
+       <data key="\"born\"">1961</data>
+       <data key="\"name\"">Laurence Fishburne</data>
+     </node>
+     <node id="\"n192\"" labels="\":Person\"">
+       <data key="\"labels\"">:Person</data>
+       <data key="\"born\"">1960</data>
+       <data key="\"name\"">Hugo Weaving</data>
+     </node>
+     <node id="\"n193\"" labels="\":Person\"">
+       <data key="\"labels\"">:Person</data>
+       <data key="\"born\"">1967</data>
+       <data key="\"name\"">Lilly Wachowski</data>
+     </node>
+     <node id="\"n194\"" labels="\":Person\"">
+       <data key="\"labels\"">:Person</data>
+       <data key="\"born\"">1965</data>
+       <data key="\"name\"">Lana Wachowski</data>
+     </node>
+     <node id="\"n195\"" labels="\":Person\"">
+       <data key="\"labels\"">:Person</data>
+       <data key="\"born\"">1952</data>
+       <data key="\"name\"">Joel Silver</data>
+     </node>
+     <edge id="\"e267\"" source="\"n189\"" target="\"n188\"" label="\"ACTED_IN\"">
+       <data key="\"label\"">ACTED_IN</data>
+       <data key="\"roles\"">[\"Neo\"]</data>
+     </edge>
+     <edge id="\"e268\"" source="\"n190\"" target="\"n188\"" label="\"ACTED_IN\"">
+       <data key="\"label\"">ACTED_IN</data>
+       <data key="\"roles\"">[\"Trinity\"]</data>
+     </edge>
+     <edge id="\"e269\"" source="\"n191\"" target="\"n188\"" label="\"ACTED_IN\"">
+       <data key="\"label\"">ACTED_IN</data>
+       <data key="\"roles\"">[\"Morpheus\"]</data>
+     </edge>
+     <edge id="\"e270\"" source="\"n192\"" target="\"n188\"" label="\"ACTED_IN\"">
+       <data key="\"label\"">ACTED_IN</data>
+       <data key="\"roles\"">[\"Agent Smith\"]</data>
+     </edge>
+     <edge id="\"e271\"" source="\"n193\"" target="\"n188\"" label="\"DIRECTED\"">
+       <data key="\"label\"">DIRECTED</data>
+     </edge>
+     <edge id="\"e272\"" source="\"n194\"" target="\"n188\"" label="\"DIRECTED\"">
+       <data key="\"label\"">DIRECTED</data>
+     </edge>
+     <edge id="\"e273\"" source="\"n195\"" target="\"n188\"" label="\"PRODUCED\"">
+       <data key="\"label\"">PRODUCED</data>
+     </edge>
+   </graph>
+ </graphml>
+  "
+----
+|===

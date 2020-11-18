@@ -1,0 +1,119 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$createExportGraph.adoc[]
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::play-movies.png[title="Movies Graph Visualization"]
+
+The `apoc.export.graphml.graph` procedure exports a xref::virtual/index.adoc[virtual graph] to a CSV file or as a stream.
+
+The examples in this section are based on a virtual graph that contains all `PRODUCED` relationships and the nodes either side of that relationship.
+The query below creates a virtual graph and stores it in memory with the name `producers.cached` using xref::misc/static-values.adoc[Static Value Storage].
+
+[source,cypher]
+----
+MATCH path = (:Person)-[produced:PRODUCED]->(:Movie)
+WITH collect(path) AS paths
+CALL apoc.graph.fromPaths(paths, "producers", {})
+YIELD graph AS g
+CALL apoc.static.set("producers.cached", g)
+YIELD value
+RETURN value, g
+----
+
+.Results
+[opts="header"]
+|===
+| value | g
+| NULL  | {name: "producers", relationships: [[:PRODUCED]], nodes: [(:Person {name: "Joel Silver", born: 1952}), (:Movie {tagline: "Welcome to the Real World", title: "The Matrix", released: 1999})], properties: {}} |
+
+|===
+
+The following query exports the virtual graph from static value storage to the file `movies-producers.csv`:
+
+[source,cypher]
+----
+CALL apoc.export.graphml.graph(apoc.static.get("producers.cached"), "movies-producers.graphml", {});
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "movies-producers.graphml" | "graph: nodes(2), rels(1)" | "csv"  | 2     | 1             | 5          | 2    | 3    | 20000     | 1       | TRUE | NULL
+|===
+
+.movies-producers.graphml
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+<key id="born" for="node" attr.name="born"/>
+<key id="name" for="node" attr.name="name"/>
+<key id="tagline" for="node" attr.name="tagline"/>
+<key id="label" for="node" attr.name="label"/>
+<key id="title" for="node" attr.name="title"/>
+<key id="released" for="node" attr.name="released"/>
+<key id="label" for="edge" attr.name="label"/>
+<graph id="G" edgedefault="directed">
+<node id="n195" labels=":Person"><data key="labels">:Person</data><data key="born">1952</data><data key="name">Joel Silver</data></node>
+<node id="n188" labels=":Movie"><data key="labels">:Movie</data><data key="title">The Matrix</data><data key="tagline">Welcome to the Real World</data><data key="released">1999</data></node>
+<edge id="e273" source="n195" target="n188" label="PRODUCED"><data key="label">PRODUCED</data></edge>
+</graph>
+</graphml>
+
+----
+
+The following query returns a streams of the virtual graph from static value storage to the `data` column:
+
+[source,cypher]
+----
+CALL apoc.export.graphml.graph(apoc.static.get("producers.cached"), null, {stream: true})
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data;
+----
+
+.Results
+[opts="header"]
+|===
+| file         | nodes | relationships | properties | data
+| NULL | 2     | 1             | 5          a|
+[source,xml]
+----
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+ <graphml
+   xmlns="\"
+   http://graphml.graphdrawing.org/xmlns\""="http://graphml.graphdrawing.org/xmlns\"""
+   xmlns:xsi="\"
+   http://www.w3.org/2001/XMLSchema-instance\""="http://www.w3.org/2001/XMLSchema-instance\"""
+   xsi:schemaLocation="\"
+   http://graphml.graphdrawing.org/xmlns="http://graphml.graphdrawing.org/xmlns"
+   http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\""="http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\""">
+   <key id="\" born\""="born\""" for="\" node\""="node\""" attr.name="\"/>
+   <key id="\" name\""="name\""" for="\" node\""="node\""" attr.name="\"/>
+   <key id="\" tagline\""="tagline\""" for="\" node\""="node\""" attr.name="\"/>
+   <key id="\" label\""="label\""" for="\" node\""="node\""" attr.name="\"/>
+   <key id="\" title\""="title\""" for="\" node\""="node\""" attr.name="\"/>
+   <key id="\" released\""="released\""" for="\" node\""="node\""" attr.name="\"/>
+   <key id="\" label\""="label\""" for="\" edge\""="edge\""" attr.name="\"/>
+   <graph id="\" G\""="G\""" edgedefault="\" directed\""="directed\""">
+     <node id="\" n195\""="n195\""" labels="\" :Person\""=":Person\""">
+       <data key="\" labels\""="labels\""">:Person</data>
+       <data key="\" born\""="born\""">1952</data>
+       <data key="\" name\""="name\""">Joel Silver</data>
+     </node>
+     <node id="\" n188\""="n188\""" labels="\" :Movie\""=":Movie\""">
+       <data key="\" labels\""="labels\""">:Movie</data>
+       <data key="\" title\""="title\""">The Matrix</data>
+       <data key="\" tagline\""="tagline\""">Welcome to the Real World</data>
+       <data key="\" released\""="released\""">1999</data>
+     </node>
+     <edge id="\" e273\""="e273\""" source="\" n195\""="n195\""" target="\" n188\""="n188\""" label="\" PRODUCED\""="PRODUCED\""">
+       <data key="\" label\""="label\""">PRODUCED</data>
+     </edge>
+   </graph>
+ </graphml>
+  "
+----
+|===

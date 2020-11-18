@@ -44,5 +44,9 @@ apoc.export.graphml.query(query :: STRING?, file :: STRING?, config :: MAP?) :: 
 |data|STRING?
 |===
 
+[[usage-apoc.export.graphml.query]]
+== Usage Examples
+include::partial$usage/apoc.export.graphml.query.adoc[]
+
 xref::export/graphml.adoc[More documentation of apoc.export.graphml.query,role=more information]
 

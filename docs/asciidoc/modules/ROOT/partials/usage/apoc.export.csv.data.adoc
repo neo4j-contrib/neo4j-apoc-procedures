@@ -1,0 +1,120 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (TheMatrix:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})
+CREATE (Keanu:Person {name:'Keanu Reeves', born:1964})
+CREATE (Carrie:Person {name:'Carrie-Anne Moss', born:1967})
+CREATE (Laurence:Person {name:'Laurence Fishburne', born:1961})
+CREATE (Hugo:Person {name:'Hugo Weaving', born:1960})
+CREATE (LillyW:Person {name:'Lilly Wachowski', born:1967})
+CREATE (LanaW:Person {name:'Lana Wachowski', born:1965})
+CREATE (JoelS:Person {name:'Joel Silver', born:1952})
+CREATE
+(Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrix),
+(Carrie)-[:ACTED_IN {roles:['Trinity']}]->(TheMatrix),
+(Laurence)-[:ACTED_IN {roles:['Morpheus']}]->(TheMatrix),
+(Hugo)-[:ACTED_IN {roles:['Agent Smith']}]->(TheMatrix),
+(LillyW)-[:DIRECTED]->(TheMatrix),
+(LanaW)-[:DIRECTED]->(TheMatrix),
+(JoelS)-[:PRODUCED]->(TheMatrix);
+----
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::play-movies.png[]
+
+The `apoc.export.csv.data` procedure exports the specified nodes and relationships to a CSV file or as a stream.
+
+The following query exports all nodes with the `:Person` label with a `name` property that starts with `L` to the file `movies-l.csv`:
+
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.name STARTS WITH "L"
+WITH collect(person) AS people
+CALL apoc.export.csv.data(people, [], "movies-l.csv", {})
+YIELD file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+RETURN file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "movies-l.csv" | "data: nodes(3), rels(0)" | "csv"  | 3     | 0             | 6          | 2    | 3    | 20000     | 1       | TRUE | NULL
+|===
+
+The contents of `movies-l.csv` are shown below:
+
+[source,csv]
+----
+"_id","_labels","born","name","_start","_end","_type"
+"191",":Person","1961","Laurence Fishburne",,,
+"193",":Person","1967","Lilly Wachowski",,,
+"194",":Person","1965","Lana Wachowski",,,
+----
+
+
+The following query exports all `ACTED_IN` relationships and the nodes with `Person` and `Movie` labels on either side of that relationship to the file `movies-actedIn.csv`:
+
+[source,cypher]
+----
+MATCH (person:Person)-[actedIn:ACTED_IN]->(movie:Movie)
+WITH collect(DISTINCT person) AS people, collect(DISTINCT movie) AS movies, collect(actedIn) AS actedInRels
+CALL apoc.export.csv.data(people + movies, actedInRels, "movies-actedIn.csv", {})
+YIELD file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+RETURN file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "movies-actedIn.csv" | "data: nodes(5), rels(4)" | "csv"  | 5     | 4             | 15         | 2    | 9    | 20000     | 1       | TRUE | NULL
+|===
+
+The contents of `movies-actedIn.csv` are shown below:
+
+[source,csv]
+----
+"_id","_labels","born","name","released","tagline","title","_start","_end","_type","roles"
+"189",":Person","1964","Keanu Reeves","","","",,,,
+"190",":Person","1967","Carrie-Anne Moss","","","",,,,
+"191",":Person","1961","Laurence Fishburne","","","",,,,
+"192",":Person","1960","Hugo Weaving","","","",,,,
+"188",":Movie","","","1999","Welcome to the Real World","The Matrix",,,,
+,,,,,,,"189","188","ACTED_IN","[""Neo""]"
+,,,,,,,"190","188","ACTED_IN","[""Trinity""]"
+,,,,,,,"191","188","ACTED_IN","[""Morpheus""]"
+,,,,,,,"192","188","ACTED_IN","[""Agent Smith""]"
+----
+
+The following query returns a stream of all `ACTED_IN` relationships and the nodes with `Person` and `Movie` labels on either side of that relationship in the `data` column:
+
+[source,cypher]
+----
+MATCH (person:Person)-[actedIn:ACTED_IN]->(movie:Movie)
+WITH collect(DISTINCT person) AS people, collect(DISTINCT movie) AS movies, collect(actedIn) AS actedInRels
+CALL apoc.export.csv.data(people + movies, actedInRels, null, {stream: true})
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data
+----
+
+.Results
+[opts="header"]
+|===
+| file         | nodes | relationships | properties | data
+| NULL | 5     | 4             | 15          | "\"_id\",\"_labels\",\"born\",\"name\",\"released\",\"tagline\",\"title\",\"_start\",\"_end\",\"_type\",\"roles\"
+\"190\",\":Person\",\"1967\",\"Carrie-Anne Moss\",\"\",\"\",\"\",,,,
+\"189\",\":Person\",\"1964\",\"Keanu Reeves\",\"\",\"\",\"\",,,,
+\"191\",\":Person\",\"1961\",\"Laurence Fishburne\",\"\",\"\",\"\",,,,
+\"192\",\":Person\",\"1960\",\"Hugo Weaving\",\"\",\"\",\"\",,,,
+\"188\",\":Movie\",\"\",\"\",\"1999\",\"Welcome to the Real World\",\"The Matrix\",,,,
+,,,,,,,\"189\",\"188\",\"ACTED_IN\",\"[\"\"Neo\"\"]\"
+,,,,,,,\"190\",\"188\",\"ACTED_IN\",\"[\"\"Trinity\"\"]\"
+,,,,,,,\"191\",\"188\",\"ACTED_IN\",\"[\"\"Morpheus\"\"]\"
+,,,,,,,\"192\",\"188\",\"ACTED_IN\",\"[\"\"Agent Smith\"\"]\"
+"
+|===
+

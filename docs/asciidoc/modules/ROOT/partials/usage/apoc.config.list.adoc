@@ -1,0 +1,24 @@
+[source,cypher]
+----
+CALL apoc.config.list()
+YIELD key, value
+WHERE key CONTAINS "apoc"
+RETURN key, value;
+----
+
+
+.Results
+[opts="header"]
+|===
+| key | value
+| "apoc_ttl_enabled"                            | "true"
+| "apoc.export.file.enabled"                    | "false"
+| "apoc.ttl.enabled"                            | "true"
+| "apoc.ttl.schedule"                           | "PT1M"
+| "apoc.ttl.limit"                              | "1000"
+| "apoc.import.file.enabled"                    | "false"
+| "apoc.import.file.use_neo4j_config"           | "true"
+| "apoc.import.file.allow_read_from_filesystem" | "true"
+| "apoc.trigger.enabled"                        | "false"
+| "apoc.uuid.enabled"                           | "false"
+|===
