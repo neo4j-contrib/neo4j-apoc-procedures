@@ -9,7 +9,7 @@ MERGE (person3:Person {name: "Jennifer"})
 MERGE (person1)-[:FRIENDS]->(person2);
 ----
 
-The following changes the `FRIENDS` relationship that goes from Michael to `Jennifer` instead of `Ryan`:
+The following makes Jennifer the end node in the `FOLLOWS` relationship instead of Ryan:
 
 [source,cypher]
 ----
