@@ -17,3 +17,7 @@ RETURN apoc.version() | return the current APOC installed version
 apoc.version() :: (STRING?)
 ----
 
+[[usage-apoc.version]]
+== Usage Examples
+include::partial$usage/apoc.version.adoc[]
+
