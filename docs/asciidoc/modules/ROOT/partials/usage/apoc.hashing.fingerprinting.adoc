@@ -1,0 +1,76 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (joe:Person {name: "Joe"})
+MERGE (ryan:Person {name: "Ryan"})
+MERGE (ryan)-[:FOLLOWS {since: datetime("2020-11-04")}]->(joe);
+----
+
+The following generates the fingerprint for Ryan:
+
+[source,cypher]
+----
+MATCH (person:Person {name: "Ryan"})
+RETURN apoc.hashing.fingerprinting(person) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "D41D8CD98F00B204E9800998ECF8427E"
+|===
+
+The following generates the fingerprint for Ryan, using the `EAGER` strategy, which includes node properties:
+
+[source,cypher]
+----
+MATCH (person:Person {name: "Ryan"})
+RETURN apoc.hashing.fingerprinting(person, {
+  strategy: "EAGER"
+}) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "81C99DD6C9382C4E01A1873F9E818CE0"
+|===
+
+The following generates the fingerprint for Ryan, excluding the `name` property:
+
+[source,cypher]
+----
+MATCH (person:Person {name: "Ryan"})
+RETURN apoc.hashing.fingerprinting(person, {
+  allNodesDisallowList: ["name"]
+}) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "D41D8CD98F00B204E9800998ECF8427E"
+|===
+
+The following generates the fingerprint for Ryan, using the `SHA-256` algorithm:
+
+[source,cypher]
+----
+MATCH (person:Person {name: "Ryan"})
+RETURN apoc.hashing.fingerprinting(person, {
+  digestAlgorithm: "SHA-256"
+}) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+|===
+
+If we want less control over the generation of the fingerprint, see xref::overview/apoc.hashing/apoc.hashing.fingerprint.adoc[].

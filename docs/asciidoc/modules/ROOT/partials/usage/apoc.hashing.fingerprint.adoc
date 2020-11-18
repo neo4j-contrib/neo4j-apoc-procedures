@@ -1,0 +1,49 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (joe:Person {name: "Joe"})
+MERGE (ryan:Person {name: "Ryan"})
+MERGE (ryan)-[:FOLLOWS {since: datetime("2020-11-04")}]->(joe);
+----
+
+
+[source,cypher]
+----
+MATCH (person:Person {name: "Ryan"})
+RETURN apoc.hashing.fingerprint(person) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "81C99DD6C9382C4E01A1873F9E818CE0"
+|===
+
+[source,cypher]
+----
+MATCH ()-[rel:FOLLOWS]->()
+RETURN apoc.hashing.fingerprint(rel) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "C5A4B9FA273CC723D96BF93FFDD42858"
+|===
+
+[source,cypher]
+----
+RETURN apoc.hashing.fingerprint({name: "Michael"}) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "F582CEF35FA83F3691BB756313191948"
+|===
+
+If we want more control over fingerprint generation, see xref::overview/apoc.hashing/apoc.hashing.fingerprinting.adoc[].
