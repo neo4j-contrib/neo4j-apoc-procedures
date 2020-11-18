@@ -1,0 +1,39 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (n1:Person {name:'Tom'}),
+(n2:Person {name:'John'}),
+(n3:Company {name:'Company1'}),
+(n5:Car {brand:'Ferrari'}),
+(n6:Animal:Cat {name:'Derby'}),
+(n7:City {name:'London'}),
+
+(n1)-[:WORKS_FOR {since:2015}]->(n3),
+(n2)-[:WORKS_FOR {since:2018}]->(n3),
+(n3)-[:HAS_HQ {since:2004}]->(n7),
+(n1)-[:DRIVE {since:2017}]->(n5),
+(n2)-[:HAS {since:2013}]->(n6);
+----
+
+The following merges John and Tom into a single node:
+
+[source,cypher]
+----
+MATCH (a1:Person{name:'John'}), (a2:Person {name:'Tom'})
+WITH head(collect([a1,a2])) as nodes
+CALL apoc.refactor.mergeNodes(nodes,{
+  properties:"combine",
+  mergeRels:true
+})
+YIELD node
+RETURN node;
+----
+
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person {name: ["John", "Tom"]})
+|===

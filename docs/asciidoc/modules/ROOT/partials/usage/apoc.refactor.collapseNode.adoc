@@ -1,0 +1,32 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (flight:Flight {number: "BA001"})
+CREATE (origin:Airport {code: "LHR"})
+CREATE (destination:Airport {code: "AMS"})
+CREATE (flight)<-[:OUT]-(origin)
+CREATE (flight)-[:IN]->(destination);
+----
+
+The following query collapses the `Flight` node, replacing it with a `CONNECTED` to relationship:
+
+[source,cypher]
+----
+MATCH (flight:Flight {number: "BA001"})
+CALL apoc.refactor.collapseNode([flight],'CONNECTED_TO')
+YIELD input, output
+RETURN input, output;
+----
+
+.Results
+[opts="header"]
+|===
+| input | output
+| 10    | [:CONNECTED_TO {number: "BA001"}]
+|===
+
+If we execute this query, it will result in the following graph:
+
+image::apoc.refactor.collapseNode.png[]
+

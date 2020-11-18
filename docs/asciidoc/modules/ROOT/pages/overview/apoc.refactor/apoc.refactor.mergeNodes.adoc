@@ -32,5 +32,9 @@ apoc.refactor.mergeNodes(nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (node 
 |node|NODE?
 |===
 
+[[usage-apoc.refactor.mergeNodes]]
+== Usage Examples
+include::partial$usage/apoc.refactor.mergeNodes.adoc[]
+
 xref::graph-updates/graph-refactoring/merge-nodes.adoc[More documentation of apoc.refactor.mergeNodes,role=more information]
 

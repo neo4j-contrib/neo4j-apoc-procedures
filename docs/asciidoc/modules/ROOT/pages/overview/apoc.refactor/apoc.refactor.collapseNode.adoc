@@ -34,3 +34,7 @@ apoc.refactor.collapseNode(nodes :: ANY?, type :: STRING?) :: (input :: INTEGER?
 |error|STRING?
 |===
 
+[[usage-apoc.refactor.collapseNode]]
+== Usage Examples
+include::partial$usage/apoc.refactor.collapseNode.adoc[]
+
