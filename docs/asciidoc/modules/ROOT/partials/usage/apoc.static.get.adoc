@@ -1,0 +1,20 @@
+The examples in this section assume that we have the following entries in the APOC configuration file (`conf/apoc.conf`):
+
+----
+apoc.static.twitter.bearer=ABCDEF
+apoc.static.twitter.url=https://api.twitter.com/1.1/search/tweets.json?count=100&result_type=recent&lang=en&q=
+----
+
+The following returns the `apoc.static.twitter.bearer` value:
+
+[source,cypher]
+----
+RETURN apoc.static.get("twitter.bearer") AS value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+| "ABCDEF"
+|===

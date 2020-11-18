@@ -1,0 +1,17 @@
+[source,cypher]
+----
+UNWIND [0,1,2,8,10,100] as value
+RETURN value, apoc.scoring.pareto(2,8,10,value) as output;
+----
+
+.Results
+[opts="header"]
+|===
+| value |   output
+| 0     | 0.0
+| 1     | 0.0
+| 2     | 3.31259695023578
+| 8     | 8.0
+| 10    | 8.662519390047157
+| 100   | 9.999999981682132
+|===
