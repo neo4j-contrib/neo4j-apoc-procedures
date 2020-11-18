@@ -34,5 +34,9 @@ apoc.schema.relationships(config = {} :: MAP?) :: (name :: STRING?, type :: STRI
 |status|STRING?
 |===
 
+[[usage-apoc.schema.relationships]]
+== Usage Examples
+include::partial$usage/apoc.schema.relationships.adoc[]
+
 xref::indexes/schema-index-operations.adoc[More documentation of apoc.schema.relationships,role=more information]
 

@@ -1,0 +1,37 @@
+The examples in this section are based on a database that has applied the following constraints:
+
+[source,cypher]
+----
+CREATE CONSTRAINT personName ON (person:Person)
+ASSERT person.name IS UNIQUE;
+
+CREATE CONSTRAINT userId ON (user:User)
+ASSERT user.id IS UNIQUE;
+
+CREATE INDEX personCity FOR (person:Person)
+ON (person.city);
+----
+
+[source,cypher]
+----
+RETURN apoc.schema.node.indexExists("Person", ["name"]) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| TRUE
+|===
+
+[source,cypher]
+----
+RETURN apoc.schema.node.indexExists("Person", ["city"]) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| TRUE
+|===
