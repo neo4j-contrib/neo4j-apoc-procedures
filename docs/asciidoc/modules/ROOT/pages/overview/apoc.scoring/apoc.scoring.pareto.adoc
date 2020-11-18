@@ -27,3 +27,7 @@ apoc.scoring.pareto(minimumThreshold :: INTEGER?, eightyPercentValue :: INTEGER?
 |score|INTEGER?|null
 |===
 
+[[usage-apoc.scoring.pareto]]
+== Usage Examples
+include::partial$usage/apoc.scoring.pareto.adoc[]
+

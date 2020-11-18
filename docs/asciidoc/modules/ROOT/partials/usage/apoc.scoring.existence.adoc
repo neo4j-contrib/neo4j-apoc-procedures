@@ -1,0 +1,23 @@
+[source,cypher]
+----
+RETURN apoc.scoring.existence(10,true) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 10.0
+|===
+
+[source,cypher]
+----
+RETURN apoc.scoring.existence(10,false) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 0.0
+|===
