@@ -35,5 +35,9 @@ apoc.schema.properties.distinctCount(label =  :: STRING?, key =  :: STRING?) :: 
 |count|INTEGER?
 |===
 
+[[usage-apoc.schema.properties.distinctCount]]
+== Usage Examples
+include::partial$usage/apoc.schema.properties.distinctCount.adoc[]
+
 xref::indexes/schema-index-operations.adoc[More documentation of apoc.schema.properties.distinctCount,role=more information]
 

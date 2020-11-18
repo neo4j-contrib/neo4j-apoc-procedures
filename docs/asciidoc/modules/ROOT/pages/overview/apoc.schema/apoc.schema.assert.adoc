@@ -37,5 +37,9 @@ apoc.schema.assert(indexes :: MAP?, constraints :: MAP?, dropExisting = true :: 
 |action|STRING?
 |===
 
+[[usage-apoc.schema.assert]]
+== Usage Examples
+include::partial$usage/apoc.schema.assert.adoc[]
+
 xref::indexes/schema-index-operations.adoc[More documentation of apoc.schema.assert,role=more information]
 

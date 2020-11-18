@@ -1,0 +1,34 @@
+The examples in this section are based on a database that has applied the following constraints:
+
+[source,cypher]
+----
+CREATE CONSTRAINT personName ON (person:Person)
+ASSERT person.name IS UNIQUE;
+
+CREATE CONSTRAINT userId ON (user:User)
+ASSERT user.id IS UNIQUE;
+----
+
+[source,cypher]
+----
+RETURN apoc.schema.node.constraintExists("Person", ["name"]) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| TRUE
+|===
+
+[source,cypher]
+----
+RETURN apoc.schema.node.constraintExists("Person", ["name", "id"]) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| FALSE
+|===

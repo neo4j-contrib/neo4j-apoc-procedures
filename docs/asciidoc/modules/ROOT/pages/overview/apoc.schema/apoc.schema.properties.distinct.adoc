@@ -32,5 +32,9 @@ apoc.schema.properties.distinct(label :: STRING?, key :: STRING?) :: (value :: L
 |value|LIST? OF ANY?
 |===
 
+[[usage-apoc.schema.properties.distinct]]
+== Usage Examples
+include::partial$usage/apoc.schema.properties.distinct.adoc[]
+
 xref::indexes/schema-index-operations.adoc[More documentation of apoc.schema.properties.distinct,role=more information]
 

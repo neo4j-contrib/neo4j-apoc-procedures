@@ -1,0 +1,11 @@
+[source,cypher]
+----
+CALL apoc.monitor.store();
+----
+
+.Results
+[opts="header"]
+|===
+| logSize   | stringStoreSize | arrayStoreSize | relStoreSize | propStoreSize | totalStoreSize | nodeStoreSize
+| 262144000 | 8192            | 8192           | 16964640     | 416109        | 19256826       | 155610
+|===
