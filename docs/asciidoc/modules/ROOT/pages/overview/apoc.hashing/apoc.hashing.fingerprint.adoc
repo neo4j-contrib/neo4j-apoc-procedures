@@ -25,5 +25,9 @@ apoc.hashing.fingerprint(some object :: ANY?, propertyExcludes = [] :: LIST? OF 
 |propertyExcludes|LIST? OF STRING?|[]
 |===
 
+[[usage-apoc.hashing.fingerprint]]
+== Usage Examples
+include::partial$usage/apoc.hashing.fingerprint.adoc[]
+
 xref::comparing-graphs/fingerprinting.adoc[More documentation of apoc.hashing.fingerprint,role=more information]
 

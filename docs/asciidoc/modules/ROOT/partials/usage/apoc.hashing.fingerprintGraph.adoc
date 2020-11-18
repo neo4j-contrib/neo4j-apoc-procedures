@@ -1,0 +1,36 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (joe:Person {name: "Joe"})
+MERGE (ryan:Person {name: "Ryan"})
+MERGE (ryan)-[:FOLLOWS {since: datetime("2020-11-04")}]->(joe);
+----
+
+This function computes a fingerprint of the whole graph using the MD5 checksum:
+
+[source,cypher]
+----
+RETURN apoc.hashing.fingerprintGraph() AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "655408F901B554A8999AEF61EA6D5AE5"
+|===
+
+We can pass in a list of properties to exclude from the fingerprint, as shown in the following query:
+
+[source,cypher]
+----
+RETURN apoc.hashing.fingerprintGraph(["since"]) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "0583812D25093B4CD03C96DF15215048"
+|===

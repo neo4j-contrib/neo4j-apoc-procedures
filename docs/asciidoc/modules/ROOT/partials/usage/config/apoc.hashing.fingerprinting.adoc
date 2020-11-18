@@ -1,0 +1,29 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| digestAlgorithm | String | "MD5" | The algorithm used to compute the fingerprint. Supported values are: `MD5`, `SHA-1`, `SHA-256`
+| strategy | String | "LAZY" a| Property loading strategy. Supported values are:
+
+* `LAZY` - does not include properties
+* `EAGER` - uses all properties
+
+| nodeAllowMap | Map<String, List<String>> | {} | Properties to include per node label
+| nodeDisallowMap | Map<String, List<String>> | [] | Properties to exclude per node label
+
+| relAllowMap | Map<String, List<String>> | {} | Properties to include per relationship type
+| relDisallowMap | Map<String, List<String>> | [] | Properties to exclude per relationship type
+
+| mapAllowList | List<String> | [] | Map properties to include
+| mapDisallowList | List<String> | [] | Map properties to exclude
+
+| allNodesAllowList | List<String> | [] | Node properties to include
+| allNodesDisallowList | List<String> | [] | Node properties to exclude
+
+
+| allRelsAllowList | List<String> | [] | Relationship properties to include
+| allRelsDisallowList | List<String> | [] | Relationship properties to exclude
+
+|===
