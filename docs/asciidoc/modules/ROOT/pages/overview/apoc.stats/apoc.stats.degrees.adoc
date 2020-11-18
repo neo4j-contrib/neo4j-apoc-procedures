@@ -39,3 +39,7 @@ apoc.stats.degrees(types =  :: STRING?) :: (type :: STRING?, direction :: STRING
 |mean|FLOAT?
 |===
 
+[[usage-apoc.stats.degrees]]
+== Usage Examples
+include::partial$usage/apoc.stats.degrees.adoc[]
+

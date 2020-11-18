@@ -1,0 +1,4 @@
+This procedure has a dependency on an email library that is not included in the APOC Library.
+
+The dependency is included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-email-dependencies-{apoc-release}.jar[apoc-email-dependencies-{apoc-release}.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
+Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.

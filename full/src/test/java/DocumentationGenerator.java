@@ -246,6 +246,7 @@ class DocumentationGenerator {
             writeSignature(writer, userFunctionSignature.toString());
             writeInputParameters(writer, userFunctionSignature.inputSignature());
             writeConfigParameters(writer, userFunctionSignature.name().toString());
+            writeEmailDependencies(writer, userFunctionSignature.name().toString());
             writeUsageExample(writer, userFunctionSignature.name().toString());
             writeExtraDocumentation(writer, userFunctionSignature.name());
         } catch (Exception e) {
@@ -335,6 +336,12 @@ class DocumentationGenerator {
             String platform = String.join(".", parts);
 
             writer.write("include::partial$nlp-api-keys-" + platform + ".adoc[]\n\n");
+        }
+    }
+    private void writeEmailDependencies(Writer writer, String name) throws IOException {
+        if(name.startsWith("apoc.data.email")) {
+            writer.write("== Install Dependencies\n");
+            writer.write("include::partial$email-dependencies.adoc[]\n\n");
         }
     }
 

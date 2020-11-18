@@ -43,5 +43,9 @@ apoc.export.graphml.all(file :: STRING?, config :: MAP?) :: (file :: STRING?, so
 |data|STRING?
 |===
 
+[[usage-apoc.export.graphml.all]]
+== Usage Examples
+include::partial$usage/apoc.export.graphml.all.adoc[]
+
 xref::export/graphml.adoc[More documentation of apoc.export.graphml.all,role=more information]
 

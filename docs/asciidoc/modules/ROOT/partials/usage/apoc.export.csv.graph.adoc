@@ -1,0 +1,92 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (TheMatrix:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})
+CREATE (Keanu:Person {name:'Keanu Reeves', born:1964})
+CREATE (Carrie:Person {name:'Carrie-Anne Moss', born:1967})
+CREATE (Laurence:Person {name:'Laurence Fishburne', born:1961})
+CREATE (Hugo:Person {name:'Hugo Weaving', born:1960})
+CREATE (LillyW:Person {name:'Lilly Wachowski', born:1967})
+CREATE (LanaW:Person {name:'Lana Wachowski', born:1965})
+CREATE (JoelS:Person {name:'Joel Silver', born:1952})
+CREATE
+(Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrix),
+(Carrie)-[:ACTED_IN {roles:['Trinity']}]->(TheMatrix),
+(Laurence)-[:ACTED_IN {roles:['Morpheus']}]->(TheMatrix),
+(Hugo)-[:ACTED_IN {roles:['Agent Smith']}]->(TheMatrix),
+(LillyW)-[:DIRECTED]->(TheMatrix),
+(LanaW)-[:DIRECTED]->(TheMatrix),
+(JoelS)-[:PRODUCED]->(TheMatrix);
+----
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::play-movies.png[]
+
+The `apoc.export.csv.graph` procedure exports a xref::virtual/index.adoc[virtual graph] to a CSV file or as a stream.
+
+The examples in this section are based on a virtual graph that contains all `PRODUCED` relationships and the nodes either side of that relationship.
+The query below creates a virtual graph and stores it in memory with the name `producers.cached` using xref::misc/static-values.adoc[Static Value Storage].
+
+[source,cypher]
+----
+MATCH path = (:Person)-[produced:PRODUCED]->(:Movie)
+WITH collect(path) AS paths
+CALL apoc.graph.fromPaths(paths, "producers", {})
+YIELD graph AS g
+CALL apoc.static.set("producers.cached", g)
+YIELD value
+RETURN value, g
+----
+
+.Results
+[opts="header"]
+|===
+| value | g
+| NULL |{name: "producers", relationships: [[:PRODUCED]], nodes: [(:Person {name: "Joel Silver", born: 1952}), (:Movie {tagline: "Welcome to the Real World", title: "The Matrix", released: 1999})], properties: {}}
+|===
+
+The following query exports the virtual graph from static value storage to the file `movies-producers.csv`:
+
+[source,cypher]
+----
+CALL apoc.export.csv.graph(apoc.static.get("producers.cached"), "movies-producers.csv", {})
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "movies-producers.csv" | "graph: nodes(2), rels(1)" | "csv"  | 2     | 1             | 5          | 2    | 3    | 20000     | 1       | TRUE | NULL
+|===
+
+The contents of `movies-producers.csv` are shown below:
+
+[source,csv]
+----
+"_id","_labels","born","name","released","tagline","title","_start","_end","_type"
+"195",":Person","1952","Joel Silver","","","",,,
+"188",":Movie","","","1999","Welcome to the Real World","The Matrix",,,
+,,,,,,,"195","188","PRODUCED"
+----
+
+The following query returns a streams of the virtual graph from static value storage to the `data` column:
+
+[source,cypher]
+----
+CALL apoc.export.csv.graph(apoc.static.get("producers.cached"), null, {stream: true})
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data
+----
+
+.Results
+[opts="header"]
+|===
+| file         | nodes | relationships | properties | data
+| NULL | 2     | 1             | 5          | "\"_id\",\"_labels\",\"born\",\"name\",\"released\",\"tagline\",\"title\",\"_start\",\"_end\",\"_type\"
+\"195\",\":Person\",\"1952\",\"Joel Silver\",\"\",\"\",\"\",,,
+\"188\",\":Movie\",\"\",\"\",\"1999\",\"Welcome to the Real World\",\"The Matrix\",,,
+,,,,,,,\"195\",\"188\",\"PRODUCED\"
+"
+|===

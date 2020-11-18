@@ -488,7 +488,7 @@ RETURN file, nodes, relationships, properties, data;
 [[export-graphml-cypher-query]]
 === Export results of Cypher query to GraphML
 
-The `apoc.export.csv.query` procedure exports the results of a Cypher query to a CSV file or as a stream.
+The `apoc.export.graphml.query` procedure exports the results of a Cypher query to a CSV file or as a stream.
 
 .The following query exports all `DIRECTED` relationships and the nodes with `Person` and `Movie` labels on either side of that relationship to the file `movies-directed.graphml`
 [source,cypher]

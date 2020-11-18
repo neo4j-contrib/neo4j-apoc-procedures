@@ -24,3 +24,10 @@ apoc.data.email(email_address :: STRING?) :: (MAP?)
 |email_address|STRING?|null
 |===
 
+== Install Dependencies
+include::partial$email-dependencies.adoc[]
+
+[[usage-apoc.data.email]]
+== Usage Examples
+include::partial$usage/apoc.data.email.adoc[]
+

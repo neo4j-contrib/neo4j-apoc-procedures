@@ -45,5 +45,9 @@ apoc.export.graphml.data(nodes :: LIST? OF NODE?, rels :: LIST? OF RELATIONSHIP?
 |data|STRING?
 |===
 
+[[usage-apoc.export.graphml.data]]
+== Usage Examples
+include::partial$usage/apoc.export.graphml.data.adoc[]
+
 xref::export/graphml.adoc[More documentation of apoc.export.graphml.data,role=more information]
 
