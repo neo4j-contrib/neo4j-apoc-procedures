@@ -1,0 +1,15 @@
+The following stores an in memory value that lasts for the lifetime of the server:
+
+[source,cypher]
+----
+CALL apoc.static.set("twitter.user", "Michael");
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+| null
+|===
+
+We can retrieve static values using xref::overview/apoc.static/apoc.static.get.adoc[] and xref::overview/apoc.static/apoc.static.getAll.adoc[].

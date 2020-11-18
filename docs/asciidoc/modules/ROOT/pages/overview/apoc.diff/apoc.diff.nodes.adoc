@@ -22,3 +22,7 @@ apoc.diff.nodes(leftNode :: NODE?, rightNode :: NODE?) :: (MAP?)
 |rightNode|NODE?|null
 |===
 
+[[usage-apoc.diff.nodes]]
+== Usage Examples
+include::partial$usage/apoc.diff.nodes.adoc[]
+
