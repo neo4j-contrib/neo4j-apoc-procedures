@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.data.email("michael@neo4j.com") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| {personal: NULL, user: "michael", domain: "neo4j.com"
+|===

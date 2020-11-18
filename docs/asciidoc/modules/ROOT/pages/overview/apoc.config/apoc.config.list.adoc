@@ -25,5 +25,9 @@ apoc.config.list() :: (key :: STRING?, value :: ANY?)
 |value|ANY?
 |===
 
+[[usage-apoc.config.list]]
+== Usage Examples
+include::partial$usage/apoc.config.list.adoc[]
+
 xref::database-introspection/config.adoc[More documentation of apoc.config.list,role=more information]
 

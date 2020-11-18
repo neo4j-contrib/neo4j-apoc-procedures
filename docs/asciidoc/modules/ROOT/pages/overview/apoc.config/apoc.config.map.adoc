@@ -24,5 +24,9 @@ apoc.config.map() :: (value :: MAP?)
 |value|MAP?
 |===
 
+[[usage-apoc.config.map]]
+== Usage Examples
+include::partial$usage/apoc.config.map.adoc[]
+
 xref::database-introspection/config.adoc[More documentation of apoc.config.map,role=more information]
 

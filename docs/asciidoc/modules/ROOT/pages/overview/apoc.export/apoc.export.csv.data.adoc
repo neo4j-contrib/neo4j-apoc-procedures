@@ -45,5 +45,9 @@ apoc.export.csv.data(nodes :: LIST? OF NODE?, rels :: LIST? OF RELATIONSHIP?, fi
 |data|STRING?
 |===
 
+[[usage-apoc.export.csv.data]]
+== Usage Examples
+include::partial$usage/apoc.export.csv.data.adoc[]
+
 xref::export/csv.adoc[More documentation of apoc.export.csv.data,role=more information]
 

@@ -44,5 +44,9 @@ apoc.export.csv.query(query :: STRING?, file :: STRING?, config :: MAP?) :: (fil
 |data|STRING?
 |===
 
+[[usage-apoc.export.csv.query]]
+== Usage Examples
+include::partial$usage/apoc.export.csv.query.adoc[]
+
 xref::export/csv.adoc[More documentation of apoc.export.csv.query,role=more information]
 

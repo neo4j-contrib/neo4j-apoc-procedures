@@ -1,3 +1,4 @@
 rootProject.name = 'extra-dependencies'
 include('nlp')
 include('mongodb')
+include('email')

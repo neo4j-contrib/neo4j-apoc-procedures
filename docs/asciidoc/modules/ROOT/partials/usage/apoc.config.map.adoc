@@ -1,0 +1,15 @@
+[source,cypher]
+----
+CALL apoc.config.map()
+YIELD value
+WITH [key in keys(value) WHERE not(key STARTS WITH "apoc")] AS keys, value
+RETURN apoc.map.clean(value, keys, []) AS value;
+----
+
+
+.Results
+[opts="header"]
+|===
+| value
+| {`apoc.uuid.enabled`: "false", `apoc.import.file.allow_read_from_filesystem`: "true", `apoc.ttl.enabled`: "true", `apoc.trigger.enabled`: "false", `apoc.ttl.limit`: "1000", `apoc.import.file.enabled`: "false", `apoc.ttl.schedule`: "PT1M", `apoc.export.file.enabled`: "false", apoc_ttl_enabled: "true", `apoc.import.file.use_neo4j_config`: "true"}
+|===
