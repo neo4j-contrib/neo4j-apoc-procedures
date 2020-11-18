@@ -1,0 +1,32 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (:Person {prop: 'Y', name:'A'}),
+       (:Person {prop: 'Yes', name:'B'}),
+       (:Person {prop: 'NO', name:'C'}),
+       (:Person {prop: 'X', name:'D'});
+----
+
+We want to transform some properties into a boolean, `Y`, `Yes` into true and the properties `NO` into false.
+The other properties that don't match these possibilities will be set as `null`.
+
+.The following normalizes all applicable boolean values for all nodes that have the `prop` property:
+[source,cypher]
+----
+MATCH (n)
+CALL apoc.refactor.normalizeAsBoolean(n,'prop',['Y','Yes'],['NO'])
+WITH n
+ORDER BY n.id
+RETURN n.name AS name, n.prop AS prop;
+----
+
+.Results
+[opts="header"]
+|===
+| name | prop
+| "A"  | TRUE
+| "B"  | TRUE
+| "C"  | FALSE
+| "D"  | NULL
+|===
