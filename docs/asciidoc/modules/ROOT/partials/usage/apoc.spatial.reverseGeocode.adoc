@@ -1,0 +1,15 @@
+
+[source,cypher]
+----
+CALL apoc.spatial.reverseGeocode(51.5074, 0.1277);
+----
+
+.Results
+[opts="header"]
+|===
+| location                                                                                                                                                                                                                | data                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | latitude   | longitude  | description
+| {description: "Crossway, London Borough of Bexley, London, Greater London, England, SE28 8NH, United Kingdom", latitude: 51.50743369498096, longitud
+e: 0.1274535888695359} | {country: "United Kingdom", country_code: "gb", road: "Crossway", city: "London", state_district: "Greater London", postcode:
+"SE28 8NH", state: "England", city_district: "London Borough of Bexley"} | 51.50743369498096 | 0.1274535888695359 | "Crossway, London Borough of Bexl
+ey, London, Greater London, England, SE28 8NH, United Kingdom"
+|===

@@ -37,5 +37,9 @@ apoc.spatial.reverseGeocode(latitude :: FLOAT?, longitude :: FLOAT?, quotaExcept
 |description|STRING?
 |===
 
+[[usage-apoc.spatial.reverseGeocode]]
+== Usage Examples
+include::partial$usage/apoc.spatial.reverseGeocode.adoc[]
+
 xref::misc/spatial.adoc[More documentation of apoc.spatial.reverseGeocode,role=more information]
 

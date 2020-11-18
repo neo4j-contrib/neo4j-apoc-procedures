@@ -37,5 +37,9 @@ apoc.spatial.geocode(location :: STRING?, maxResults = 100 :: INTEGER?, quotaExc
 |description|STRING?
 |===
 
+[[usage-apoc.spatial.geocode]]
+== Usage Examples
+include::partial$usage/apoc.spatial.geocode.adoc[]
+
 xref::misc/spatial.adoc[More documentation of apoc.spatial.geocode,role=more information]
 
