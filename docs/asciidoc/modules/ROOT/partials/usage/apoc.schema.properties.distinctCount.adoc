@@ -1,0 +1,20 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (:Person {name: "Michael"});
+CREATE (:Person {name: "Ryan"});
+----
+
+[source,cypher]
+----
+CALL apoc.schema.properties.distinctCount("Person", "name");
+----
+
+.Results
+[opts="header"]
+|===
+| label    | key    | value     | count
+| "Person" | "name" | "Michael" | 1
+| "Person" | "name" | "Ryan"    | 1
+|===

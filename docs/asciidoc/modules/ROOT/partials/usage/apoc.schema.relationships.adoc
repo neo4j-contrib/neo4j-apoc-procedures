@@ -1,0 +1,21 @@
+The examples in this section are based on a database that has applied the following constraints:
+
+[source,cypher]
+----
+CREATE CONSTRAINT likesDay
+ON ()-[like:LIKED]-()
+ASSERT EXISTS (like.day);
+----
+
+[source,cypher]
+----
+CALL apoc.schema.relationships();
+----
+
+
+.Results
+[opts="header"]
+|===
+| name                                                         | type                              | properties | status
+| "CONSTRAINT ON ()-[liked:LIKED]-() ASSERT exists(liked.day)" | "RELATIONSHIP_PROPERTY_EXISTENCE" | ["day"]    | ""
+|===

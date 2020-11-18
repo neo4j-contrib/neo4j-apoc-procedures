@@ -40,5 +40,9 @@ apoc.schema.nodes(config = {} :: MAP?) :: (name :: STRING?, label :: STRING?, pr
 |userDescription|STRING?
 |===
 
+[[usage-apoc.schema.nodes]]
+== Usage Examples
+include::partial$usage/apoc.schema.nodes.adoc[]
+
 xref::indexes/schema-index-operations.adoc[More documentation of apoc.schema.nodes,role=more information]
 

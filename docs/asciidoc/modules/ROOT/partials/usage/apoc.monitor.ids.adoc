@@ -1,0 +1,11 @@
+[source,cypher]
+----
+CALL apoc.monitor.ids();
+----
+
+.Results
+[opts="header"]
+|===
+| nodeIds | relIds | propIds | relTypeIds
+| 10040   | 498773 | 10040   | 15
+|===

@@ -1,0 +1,35 @@
+[source,cypher]
+----
+CALL apoc.schema.assert({
+  Person: ["id"]
+}, {
+  Person: ["name"]
+});
+----
+
+We can create a uniqueness constraint on `:Person(name)` and an index on `:Person(id)` by running the following query:
+
+.Results
+[opts="header"]
+|===
+| label    | key    | keys     | unique | action
+| "Person" | "id"   | ["id"]   | FALSE  | "CREATED"
+| "Person" | "name" | ["name"] | TRUE   | "CREATED"
+|===
+
+We can drop all constraints and indexes by running the following query:
+
+[source,cypher]
+----
+CALL apoc.schema.assert({}, {});
+----
+
+
+.Results
+[opts="header"]
+|===
+| label    | key    | keys     | unique | action
+| "Person" | "id"   | ["id"]   | FALSE  | "DROPPED"
+| "Person" | "name" | ["name"] | TRUE   | "DROPPED"
+|===
+

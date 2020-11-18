@@ -27,5 +27,9 @@ apoc.monitor.ids() :: (nodeIds :: INTEGER?, relIds :: INTEGER?, propIds :: INTEG
 |relTypeIds|INTEGER?
 |===
 
+[[usage-apoc.monitor.ids]]
+== Usage Examples
+include::partial$usage/apoc.monitor.ids.adoc[]
+
 xref::database-introspection/monitoring.adoc[More documentation of apoc.monitor.ids,role=more information]
 

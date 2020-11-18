@@ -1,0 +1,11 @@
+[source,cypher]
+----
+CALL apoc.monitor.tx();
+----
+
+.Results
+[opts="header"]
+|===
+| rolledBackTx | peakTx | lastTxId | currentOpenedTx | totalOpenedTx | totalTx
+| 21           | 1      | 710      | 1               | 49            | 27
+|===
