@@ -281,7 +281,6 @@ class DocumentationGenerator {
             "apoc.cypher.runFile", "apoc.cypher.runFiles", "apoc.cypher.runSchemaFile", "apoc.cypher.runSchemaFiles",
             "apoc.load.json", "apoc.load.jsonParams", "apoc.load.csv"
     );
-
     private final List<String> writeToFile = Arrays.asList(
             "apoc.export.json.all", "apoc.export.json.data", "apoc.export.json.graph", "apoc.export.json.query",
             "apoc.export.cypher.all", "apoc.export.cypher.data", "apoc.export.cypher.query"

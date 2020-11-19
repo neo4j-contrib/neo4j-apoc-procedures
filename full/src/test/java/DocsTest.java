@@ -12,11 +12,7 @@ import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ConfigurationBuilder;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
 import static apoc.ApocConfig.apocConfig;
@@ -28,7 +24,9 @@ import static org.junit.Assert.assertFalse;
  */
 public class DocsTest {
 
-    public static final String GENERATED_DOCUMENTATION_DIR = "../build/generated-documentation";
+    public static final String GENERATED_DOCUMENTATION_DIR = "../docs/asciidoc/modules/ROOT/examples/generated-documentation";
+    public static final String GENERATED_PARTIALS_DOCUMENTATION_DIR = "../docs/asciidoc/modules/ROOT/partials/generated-documentation";
+    public static final String GENERATED_OVERVIEW_DIR = "../docs/asciidoc/modules/ROOT/pages/overview";
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.auth_enabled, true)
@@ -48,48 +46,28 @@ public class DocsTest {
         }
 
         new File(GENERATED_DOCUMENTATION_DIR).mkdirs();
-    }
-
-    static class Row {
-        private String type;
-        private String name;
-        private String signature;
-        private String description;
-
-        public Row(String type, String name, String signature, String description) {
-            this.type = type;
-            this.name = name;
-            this.signature = signature;
-            this.description = description;
-        }
+        new File(GENERATED_PARTIALS_DOCUMENTATION_DIR).mkdirs();
+        new File(GENERATED_OVERVIEW_DIR).mkdirs();
     }
 
     @Test
     public void generateDocs() {
-        Map<String, String> docs = createDocsMapping();
+        Set<String> extended = readExtended();
+        Map<String, String> docs = docsMapping();
+        DocumentationGenerator documentationGenerator = new DocumentationGenerator(db, extended, docs);
 
-        // given
-        List<Row> rows = new ArrayList<>();
+        documentationGenerator.writeAllToCsv(docs, extended);
+        documentationGenerator.writeNamespaceCsvs();
+        documentationGenerator.writeIndividualCsvs();
 
-        List<Row> procedureRows = db.executeTransactionally("CALL dbms.procedures() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'procedure' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
-                result -> result.stream().map(record -> new Row(
-                        record.get("type").toString(),
-                        record.get("name").toString(),
-                        record.get("signature").toString(),
-                        record.get("description").toString())
-                ).collect(Collectors.toList()));
-        rows.addAll(procedureRows);
+        documentationGenerator.writeNavAndOverview();
 
-        List<Row> functionRows = db.executeTransactionally("CALL dbms.functions() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'function' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
-                result -> result.stream().map(record -> new Row(
-                        record.get("type").toString(),
-                        record.get("name").toString(),
-                        record.get("signature").toString(),
-                        record.get("description").toString())
-                ).collect(Collectors.toList()));
+        documentationGenerator.writeProcedurePages();
+        documentationGenerator.writeFunctionPages();
+    }
 
-        rows.addAll(functionRows);
-
+    @NotNull
+    private Set<String> readExtended() {
         Set<String> extended = new HashSet<>();
         try (InputStream stream = getClass().getClassLoader().getResourceAsStream("extended.txt")) {
             if (stream != null) {
@@ -102,94 +80,11 @@ public class DocsTest {
         } catch (IOException e) {
             // Failed to load extended file
         }
-
-        try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, "documentation.csv")), StandardCharsets.UTF_8 ))
-        {
-            writer.write("¦type¦qualified name¦signature¦description¦core¦documentation\n");
-            for (Row row : rows) {
-
-                Optional<String> documentation = docs.keySet().stream()
-                        .filter((key) -> Pattern.compile(key).matcher(row.name).matches())
-                        .map(value -> String.format("<<%s>>", docs.get(value)))
-                        .findFirst();
-
-                writer.write(String.format("¦%s¦%s¦%s¦%s¦%s¦%s\n",
-                        row.type,
-                        row.name,
-                        row.signature,
-                        row.description,
-                        !extended.contains(row.name),
-                        documentation.orElse("")));
-            }
-
-        }
-        catch ( Exception e )
-        {
-            throw new RuntimeException( e.getMessage(), e );
-        }
-
-        Map<String, List<Row>> collect = rows.stream().collect(Collectors.groupingBy(value -> {
-            String[] parts = value.name.split("\\.");
-            parts = Arrays.copyOf(parts, parts.length - 1);
-            return String.join(".", parts);
-        }));
-
-
-        for (Map.Entry<String, List<Row>> record : collect.entrySet()) {
-            try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, String.format("%s.csv", record.getKey()))), StandardCharsets.UTF_8 ))
-            {
-                writer.write("¦type¦qualified name¦signature¦description\n");
-                for (Row row : record.getValue()) {
-                    writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, row.description));
-                }
-
-            }
-            catch ( Exception e )
-            {
-                throw new RuntimeException( e.getMessage(), e );
-            }
-        }
-
-        for (Row row : rows) {
-            try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(GENERATED_DOCUMENTATION_DIR, String.format("%s.csv", row.name))), StandardCharsets.UTF_8)) {
-                writer.write("¦type¦qualified name¦signature¦description\n");
-
-                writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, row.description));
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
-        }
-
-        for (Map.Entry<String, List<Row>> record : collect.entrySet()) {
-            try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(GENERATED_DOCUMENTATION_DIR, String.format("%s-lite.csv", record.getKey()))), StandardCharsets.UTF_8 ))
-            {
-                writer.write("¦signature\n");
-                for (Row row : record.getValue()) {
-                    writer.write(String.format("¦%s\n", row.signature));
-                }
-
-            }
-            catch ( Exception e )
-            {
-                throw new RuntimeException( e.getMessage(), e );
-            }
-        }
-
-
-        for (Row row : rows) {
-            try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(GENERATED_DOCUMENTATION_DIR, String.format("%s-lite.csv", row.name))), StandardCharsets.UTF_8)) {
-                writer.write("¦signature\n");
-
-                writer.write(String.format("¦%s\n",row.signature));
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
-        }
-
+        return extended;
     }
 
     @NotNull
-    private Map<String, String> createDocsMapping() {
+    private Map<String, String> docsMapping() {
         Map<String, String> docs = new HashMap<>();
         docs.put("apoc.path.expand", "graph-querying/expand-paths.adoc");
         docs.put("apoc.path.expandConfig", "graph-querying/expand-paths-config.adoc");
@@ -204,9 +99,6 @@ public class DocsTest {
         docs.put("apoc.load.csv", "import/load-csv.adoc");
         docs.put("apoc.import.csv", "import/import-csv.adoc");
         docs.put("apoc.import.graphml", "import/graphml.adoc");
-        docs.put("apoc.coll.*", "data-structures/collection-list-functions.adoc");
-        docs.put("apoc.convert.*", "data-structures/conversion-functions.adoc");
-        docs.put("apoc.map.*", "data-structures/map-functions.adoc");
         docs.put("apoc.create.v.*|apoc.create.virtual.*", "virtual/virtual-nodes-rels.adoc");
         docs.put("apoc.math.*|apoc.number.romanToArabic|apoc.number.arabicToRoman", "mathematical/math-functions.adoc");
         docs.put("apoc.meta.*", "database-introspection/meta.adoc");
@@ -239,7 +131,6 @@ public class DocsTest {
         docs.put("apoc.ttl.*", "graph-updates/ttl.adoc");
         docs.put("apoc.create.uuid", "graph-updates/uuid.adoc");
         docs.put("apoc.cypher.*", "cypher-execution/index.adoc");
-        docs.put("apoc.date.*", "temporal/datetime-conversions.adoc");
         docs.put("apoc.hashing.*", "comparing-graphs/fingerprinting.adoc");
         docs.put("apoc.temporal.*", "temporal/temporal-conversions.adoc");
         docs.put("apoc.uuid.*", "graph-updates/uuid.adoc");
@@ -253,7 +144,7 @@ public class DocsTest {
         docs.put("apoc.es.*", "database-integration/elasticsearch.adoc");
         docs.put("apoc.refactor.rename.*", "graph-updates/graph-refactoring/rename-label-type-property.adoc");
         docs.put("apoc.couchbase.*", "database-integration/couchbase.adoc");
-        docs.put("apoc.create.node.*|apoc.create.*Labels|apoc.create.setP.*|apoc.create.setRel.*|apoc.create.relationship|apoc.nodes.link|apoc.merge.*|apoc.create.remove.*", "graph-updates/data-creation.adoc");
+        docs.put("apoc.create.node.*|apoc.create.setP.*|apoc.create.setRel.*|apoc.create.relationship|apoc.nodes.link|apoc.merge.*|apoc.create.remove.*", "graph-updates/data-creation.adoc");
         docs.put("apoc.custom.*", "cypher-execution/cypher-based-procedures-functions.adoc");
         docs.put("apoc.generate.*", "graph-updates/graph-generators.adoc");
         docs.put("apoc.config.*", "database-introspection/config.adoc");
