@@ -668,7 +668,7 @@ public class Util {
     }
 
     public static String quote(String var) {
-        return SourceVersion.isIdentifier(var) ? var : '`' + var + '`';
+        return SourceVersion.isIdentifier(var) && !var.startsWith("$") ? var : '`' + var + '`';
     }
 
     public static String sanitizeAndQuote(String var) {
