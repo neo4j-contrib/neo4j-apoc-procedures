@@ -26,7 +26,7 @@ public class UtilQuoteTest {
                 { "_id", true },
                 { "some_var", true },
                 { "$lock", false },
-                { "has$inside", true },
+                { "has$inside", false },
                 { "ähhh", true },
                 { "rübe", true },
                 { "rådhuset", true },
