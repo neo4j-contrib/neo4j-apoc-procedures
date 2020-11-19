@@ -742,12 +742,19 @@ public class Util {
         }
     }
 
-    public static void close(Closeable closeable) {
+    public static void close(Closeable closeable, Consumer<Exception> onErrror) {
         try {
             if (closeable!=null) closeable.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             // ignore
+            if (onErrror != null) {
+                onErrror.accept(e);
+            }
         }
+    }
+
+    public static void close(Closeable closeable) {
+        close(closeable, null);
     }
 
     public static boolean isNotNullOrEmpty(String s) {

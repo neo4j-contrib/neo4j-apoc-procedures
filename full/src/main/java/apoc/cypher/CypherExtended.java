@@ -12,12 +12,22 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
@@ -25,7 +35,6 @@ import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -73,17 +82,25 @@ public class CypherExtended {
     @Procedure(mode = WRITE)
     @Description("apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each statement in the files, all semicolon separated")
     public Stream<RowResult> runFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        @SuppressWarnings( "unchecked" )
+        final Map<String,Object> parameters = (Map<String,Object>) config.getOrDefault("parameters",Collections.emptyMap());
+        final boolean schemaOperation = false;
+        return runFiles(fileNames, config, parameters, schemaOperation);
+    }
+
+    private Stream<RowResult> runFiles(List<String> fileNames, Map<String, Object> config, Map<String, Object> parameters, boolean schemaOperation) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",10));
         int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
-        List<RowResult> result = new ArrayList<>();
-        @SuppressWarnings( "unchecked" )
-        Map<String,Object> parameters = (Map<String,Object>)config.getOrDefault("parameters",Collections.emptyMap());
-        for (String f : fileNames) {
-            List<RowResult> rowResults = runManyStatements(readerForFile(f), parameters, false, addStatistics, timeout, queueCapacity).collect(Collectors.toList());
-            result.addAll(rowResults);
+        List<Stream<RowResult>> result = new ArrayList<>();
+        for (final String fileName : fileNames) {
+            final Reader reader = readerForFile(fileName);
+            final Scanner scanner = createScannerFor(reader);
+            final Stream<RowResult> stream = runManyStatements(scanner, parameters, schemaOperation, addStatistics, timeout, queueCapacity)
+                    .onClose(() -> Util.close(scanner, (e) -> log.info("Cannot close the scanner for file " + fileName + " because the following exception", e)));
+            result.add(stream);
         }
-        return result.stream();
+        return result.stream().reduce(Stream::concat).orElse(Stream.empty());
     }
 
     @Procedure(mode=Mode.SCHEMA)
@@ -95,23 +112,17 @@ public class CypherExtended {
     @Procedure(mode=Mode.SCHEMA)
     @Description("apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema statement in the files, all semicolon separated")
     public Stream<RowResult> runSchemaFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
-        boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
-        int timeout = Util.toInteger(config.getOrDefault("timeout",10));
-        int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
-        List<RowResult> result = new ArrayList<>();
-        for (String f : fileNames) {
-            List<RowResult> rowResults = runManyStatements(readerForFile(f), Collections.emptyMap(), true, addStatistics, timeout, queueCapacity).collect(Collectors.toList());
-            result.addAll(rowResults);
-        }
-        return result.stream();
+        final boolean schemaOperation = true;
+        final Map<String, Object> parameters = Collections.emptyMap();
+        return runFiles(fileNames, config, parameters, schemaOperation);
     }
 
-    private Stream<RowResult> runManyStatements(Reader reader, Map<String, Object> params, boolean schemaOperation, boolean addStatistics, int timeout, int queueCapacity) {
+    private Stream<RowResult> runManyStatements(Scanner scanner, Map<String, Object> params, boolean schemaOperation, boolean addStatistics, int timeout, int queueCapacity) {
         BlockingQueue<RowResult> queue = runInSeparateThreadAndSendTombstone(queueCapacity, internalQueue -> {
             if (schemaOperation) {
-                runSchemaStatementsInTx(reader, internalQueue, params, addStatistics, timeout);
+                runSchemaStatementsInTx(scanner, internalQueue, params, addStatistics, timeout);
             } else {
-                runDataStatementsInTx(reader, internalQueue, params, addStatistics, timeout);
+                runDataStatementsInTx(scanner, internalQueue, params, addStatistics, timeout);
             }
         }, RowResult.TOMBSTONE);
         return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, Integer.MAX_VALUE), false);
@@ -141,9 +152,7 @@ public class CypherExtended {
         return queue;
     }
 
-    private void runDataStatementsInTx(Reader reader, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout) {
-        Scanner scanner = new Scanner(reader);
-        scanner.useDelimiter(";\r?\n");
+    private void runDataStatementsInTx(Scanner scanner, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout) {
         while (scanner.hasNext()) {
             String stmt = removeShellControlCommands(scanner.next());
             if (stmt.trim().isEmpty()) continue;
@@ -162,9 +171,13 @@ public class CypherExtended {
         }
     }
 
-    private void runSchemaStatementsInTx(Reader reader, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout) {
+    private Scanner createScannerFor(Reader reader) {
         Scanner scanner = new Scanner(reader);
         scanner.useDelimiter(";\r?\n");
+        return scanner;
+    }
+
+    private void runSchemaStatementsInTx(Scanner scanner, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout) {
         while (scanner.hasNext()) {
             String stmt = removeShellControlCommands(scanner.next());
             if (stmt.trim().isEmpty()) continue;
