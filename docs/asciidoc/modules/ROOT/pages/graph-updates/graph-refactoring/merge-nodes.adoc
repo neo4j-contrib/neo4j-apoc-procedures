@@ -69,7 +69,7 @@ CREATE (n1:Person {name:'Tom'}),
 (n2)-[:WORKS_FOR {since:2018}]->(n3),
 (n3)-[:HAS_HQ {since:2004}]->(n7),
 (n1)-[:DRIVE {since:2017}]->(n5),
-(n2)-[:HAS {since:2013}]->(n6)
+(n2)-[:HAS {since:2013}]->(n6);
 return *;
 ----
 

@@ -25,5 +25,7 @@ apoc.coll.zip(list1 :: LIST? OF ANY?, list2 :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |list2|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.zip,role=more information]
+[[usage-apoc.coll.zip]]
+== Usage Examples
+include::partial$usage/apoc.coll.zip.adoc[]
 

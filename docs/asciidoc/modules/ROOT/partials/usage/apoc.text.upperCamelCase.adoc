@@ -1,0 +1,65 @@
+[source,cypher]
+----
+RETURN apoc.text.camelCase("FOO_BAR") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "FooBar"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.upperCamelCase("Foo bar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "FooBar"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.upperCamelCase("Foo22 bar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "Foo22Bar"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.upperCamelCase("foo-bar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "FooBar"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.upperCamelCase("Foobar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "Foobar"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.upperCamelCase("Foo$$Bar") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "FooBar"
+|===

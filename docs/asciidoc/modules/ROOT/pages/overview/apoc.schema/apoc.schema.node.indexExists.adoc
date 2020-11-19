@@ -25,5 +25,9 @@ apoc.schema.node.indexExists(labelName :: STRING?, propertyName :: LIST? OF STRI
 |propertyName|LIST? OF STRING?|null
 |===
 
+[[usage-apoc.schema.node.indexExists]]
+== Usage Examples
+include::partial$usage/apoc.schema.node.indexExists.adoc[]
+
 xref::indexes/schema-index-operations.adoc[More documentation of apoc.schema.node.indexExists,role=more information]
 

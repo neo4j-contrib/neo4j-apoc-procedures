@@ -24,5 +24,7 @@ apoc.convert.toInteger(object :: ANY?) :: (INTEGER?)
 |object|ANY?|null
 |===
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toInteger,role=more information]
+[[usage-apoc.convert.toInteger]]
+== Usage Examples
+include::partial$usage/apoc.convert.toInteger.adoc[]
 

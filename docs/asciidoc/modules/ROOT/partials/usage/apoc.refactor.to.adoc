@@ -1,0 +1,34 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+MERGE (person1:Person {name: "Michael"})
+MERGE (person2:Person {name: "Ryan"})
+MERGE (person3:Person {name: "Jennifer"})
+
+MERGE (person1)-[:FRIENDS]->(person2);
+----
+
+The following makes Jennifer the end node in the `FOLLOWS` relationship instead of Ryan:
+
+[source,cypher]
+----
+MATCH (:Person {name: "Michael"})-[rel:FRIENDS]->()
+MATCH (jennifer:Person {name: "Jennifer"})
+CALL apoc.refactor.to(rel, jennifer)
+YIELD input, output
+RETURN input, output;
+----
+
+If we execute this query, it will result in the following output:
+
+.Results
+[opts="header"]
+|===
+| input | output
+| 32    | [:`FRIENDS`]
+|===
+
+And the graph now looks like this:
+
+image::apoc.refactor.to2.png[]

@@ -1,0 +1,56 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (a:User {
+    name:'Adam', age:42, male:true, kids:['Sam','Anna','Grace'],
+    born:localdatetime('2015185T19:32:24'),
+    place:point({latitude: 13.1, longitude: 33.46789})
+})
+CREATE (b:User {name:'Jim', age:42})
+CREATE (c:User {age:12})
+
+CREATE (a)-[:KNOWS {since: 1993}]->(b);
+----
+
+
+The following query exports the whole database to the file `all.json`
+
+[source,cypher]
+----
+CALL apoc.export.json.all("all.json",{useTypes:true});
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "all.json" | "database: nodes(3), rels(1)" | "json" | 3     | 1             | 10         | 7    | 0    | -1        | 0       | TRUE | NULL
+|===
+
+The contents of `all.json` are shown below:
+
+.all.json
+[source,json]
+----
+include::example$data/exportJSON/all.json[leveloffset]
+----
+
+The following query returns a stream of the whole database in the `data` column:
+
+[source,cypher]
+----
+CALL apoc.export.json.all(null,{useTypes:true, stream: true})
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data
+----
+
+.Results
+[opts="header", cols="1,1,1,1,5"]
+|===
+| file         | nodes | relationships | properties | data
+| NULL | 3     | 1             | 10         | "{\"type\":\"node\",\"id\":\"0\",\"labels\":[\"User\"],\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"age\":42,\"male\":true,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]}}
+{\"type\":\"node\",\"id\":\"1\",\"labels\":[\"User\"],\"properties\":{\"name\":\"Jim\",\"age\":42}}
+{\"type\":\"node\",\"id\":\"2\",\"labels\":[\"User\"],\"properties\":{\"age\":12}}
+{\"id\":\"50000\",\"type\":\"relationship\",\"label\":\"KNOWS\",\"properties\":{\"since\":1993},\"start\":{\"id\":\"0\",\"labels\":[\"User\"]},\"end\":{\"id\":\"1\",\"labels\":[\"User\"]}}"
+|===

@@ -24,5 +24,7 @@ apoc.coll.shuffle(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |coll|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.shuffle,role=more information]
+[[usage-apoc.coll.shuffle]]
+== Usage Examples
+include::partial$usage/apoc.coll.shuffle.adoc[]
 

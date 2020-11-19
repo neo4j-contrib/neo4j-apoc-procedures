@@ -27,5 +27,7 @@ apoc.date.parse(time :: STRING?, unit = ms :: STRING?, format = yyyy-MM-dd HH:mm
 |timezone|STRING?|
 |===
 
-xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.parse,role=more information]
+[[usage-apoc.date.parse]]
+== Usage Examples
+include::partial$usage/apoc.date.parse.adoc[]
 

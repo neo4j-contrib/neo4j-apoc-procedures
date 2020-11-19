@@ -34,5 +34,9 @@ apoc.refactor.setType(relationship :: RELATIONSHIP?, newType :: STRING?) :: (inp
 |error|STRING?
 |===
 
+[[usage-apoc.refactor.setType]]
+== Usage Examples
+include::partial$usage/apoc.refactor.setType.adoc[]
+
 xref::graph-updates/graph-refactoring/set-relationship-type.adoc[More documentation of apoc.refactor.setType,role=more information]
 

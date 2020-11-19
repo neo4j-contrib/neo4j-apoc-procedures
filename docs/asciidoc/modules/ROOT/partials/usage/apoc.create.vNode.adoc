@@ -1,0 +1,57 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (s:Student {name: 'Alice', score: 71});
+CREATE (s:Student {name: 'Mark', score: 95});
+CREATE (s:Student {name: 'Andrea', score: 86});
+CREATE (s:Student {name: 'Rajesh', score: 89});
+CREATE (s:Student {name: 'Jennifer', score: 96});
+CREATE (s:Student {name: 'Katarina', score: 80});
+----
+
+The apoc.create.vNode offers both a procedure and function version, so that we can create the virtual nodes independently or return them based on results of a query.
+
+For instance, we might want to create virtual nodes for just the scores, so that researchers could retrieve the score, but not student data:
+
+.apoc.create.vNode Procedure
+[source,cypher]
+----
+MATCH (s:Student)
+CALL apoc.create.vNode(['Score'],{value: s.score}) YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+|node
+|{"value":71}
+|{"value":95}
+|{"value":86}
+|{"value":89}
+|{"value":96}
+|{"value":80}
+|===
+
+We could also create a virtual graph adhoc that separates students from their scores. This allows testing or querying the data in an alternate data model than what physically exists in the database.
+
+.apoc.create.vNode Function
+[source,cypher]
+----
+MATCH (s:Student)
+RETURN apoc.create.vNode(['Student'],{name: s.name}) as student,
+       apoc.create.vNode(['Score'],{value: s.score}) as score;
+----
+
+.Results
+[opts="header"]
+|===
+|student          |score     
+|{"name":"Alice"}   |{"value":71}
+|{"name":"Mark"}    |{"value":95}
+|{"name":"Andrea"}  |{"value":86}
+|{"name":"Rajesh"}  |{"value":89}
+|{"name":"Jennifer"}|{"value":96}
+|{"name":"Katarina"}|{"value":80}
+|===

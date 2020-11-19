@@ -25,6 +25,7 @@ apoc.cypher.runFirstColumnSingle(cypher :: STRING?, params :: MAP?) :: (ANY?)
 |params|MAP?|null
 |===
 
+[[usage-apoc.cypher.runFirstColumnSingle]]
 == Usage Examples
 include::partial$usage/apoc.cypher.runFirstColumnSingle.adoc[]
 

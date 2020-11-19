@@ -1,0 +1,13 @@
+The following converts a date string into epoch milliseconds:
+
+[source,cypher]
+----
+RETURN apoc.date.parse("2020-11-04", "ms", "yyyy-MM-dd") AS outputInMs;
+----
+
+.Results
+[opts="header"]
+|===
+| outputInMs
+| 1604448000000
+|===

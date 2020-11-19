@@ -20,36 +20,36 @@ APOC adds these functions.
 
 [cols="5m,5"]
 |===
-| apoc.text.indexOf(text, lookup, offset=0, to=-1==len)| find the first occurence of the lookup string in the text, from inclusive, to exclusive,, -1 if not found, null if text is null.
-| apoc.text.indexesOf(text, lookup, from=0, to=-1==len)| finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.
-| apoc.text.replace(text, regex, replacement)| replace each substring of the given string that matches the given regular expression with the given replacement.
-| apoc.text.regexGroups(text, regex) | returns an array containing a nested array for each match. The inner array contains all match groups.
-| apoc.text.join(['text1','text2',...], delimiter) | join the given strings with the given delimiter.
-| apoc.text.repeat('item',count) | multiply the given string with the given count
-| apoc.text.format(text,[params],language) | sprintf format the string with the params given, and optional param language (default value is 'en').
-| apoc.text.lpad(text,count,delim) | left pad the string to the given width
-| apoc.text.rpad(text,count,delim) | right pad the string to the given width
-| apoc.text.random(length, [valid]) | returns a random string to the specified length
-| apoc.text.capitalize(text) | capitalise the first letter of the word
-| apoc.text.capitalizeAll(text) | capitalise the first letter of every word in the text
-| apoc.text.decapitalize(text) | decapitalize the first letter of the word
-| apoc.text.decapitalizeAll(text) | decapitalize the first letter of all words
-| apoc.text.swapCase(text) | Swap the case of a string
-| apoc.text.camelCase(text) | Convert a string to camelCase
-| apoc.text.upperCamelCase(text) | Convert a string to UpperCamelCase
-| apoc.text.snakeCase(text) | Convert a string to snake-case
-| apoc.text.toUpperCase(text) | Convert a string to UPPER_CASE
-| apoc.text.charAt(text, index) | Returns the decimal value of the character at the given index
-| apoc.text.code(codepoint) | Returns the unicode character of the given codepoint
-| apoc.text.hexCharAt(text, index) | Returns the hex value string of the character at the given index
-| apoc.text.hexValue(value) | Returns the hex value string of the given value
-| apoc.text.byteCount(text,[charset]) | return size of text in bytes
-| apoc.text.bytes(text,[charset]) | return bytes of the text
-| apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end}) | tries it's best to convert the value to a cypher-property-string
-| apoc.text.base64Encode(text) | Encode a string with Base64
-| apoc.text.base64Decode(text) | Decode Base64 encoded string
-| apoc.text.base64UrlEncode(url) | Encode a url with Base64
-| apoc.text.base64UrlDecode(url) | Decode Base64 encoded url
+| xref::overview/apoc.text/apoc.text.indexOf.adoc[apoc.text.indexOf(text, lookup, offset=0, to=-1==len)] | find the first occurence of the lookup string in the text, from inclusive, to exclusive,, -1 if not found, null if text is null.
+| xref::overview/apoc.text/apoc.text.indexesOf.adoc[apoc.text.indexesOf(text, lookup, from=0, to=-1==len)] | finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.
+| xref::overview/apoc.text/apoc.text.replace.adoc[apoc.text.replace(text, regex, replacement)] | replace each substring of the given string that matches the given regular expression with the given replacement.
+| xref::overview/apoc.text/apoc.text.regexGroups.adoc[apoc.text.regexGroups(text, regex)] | returns an array containing a nested array for each match. The inner array contains all match groups.
+| xref::overview/apoc.text/apoc.text.join.adoc[+++apoc.text.join(['text1','text2',...], delimiter)+++] | join the given strings with the given delimiter.
+| xref::overview/apoc.text/apoc.text.repeat.adoc[apoc.text.repeat('item',count)] | multiply the given string with the given count
+| xref::overview/apoc.text/apoc.text.format.adoc[apoc.text.format(text,[params],language)] | sprintf format the string with the params given, and optional param language (default value is 'en').
+| xref::overview/apoc.text/apoc.text.lpad.adoc[apoc.text.lpad(text,count,delim)] | left pad the string to the given width
+| xref::overview/apoc.text/apoc.text.rpad.adoc[apoc.text.rpad(text,count,delim)] | right pad the string to the given width
+| xref::overview/apoc.text/apoc.text.random.adoc[apoc.text.random(length, [valid])] | returns a random string to the specified length
+| xref::overview/apoc.text/apoc.text.capitalize.adoc[apoc.text.capitalize(text)] | capitalise the first letter of the word
+| xref::overview/apoc.text/apoc.text.capitalizeAll.adoc[apoc.text.capitalizeAll(text)] | capitalise the first letter of every word in the text
+| xref::overview/apoc.text/apoc.text.decapitalize.adoc[apoc.text.decapitalize(text)] | decapitalize the first letter of the word
+| xref::overview/apoc.text/apoc.text.decapitalizeAll.adoc[apoc.text.decapitalizeAll(text)] | decapitalize the first letter of all words
+| xref::overview/apoc.text/apoc.text.swapCase.adoc[apoc.text.swapCase(text)] | Swap the case of a string
+| xref::overview/apoc.text/apoc.text.camelCase.adoc[apoc.text.camelCase(text)] | Convert a string to camelCase
+| xref::overview/apoc.text/apoc.text.upperCamelCase.adoc[apoc.text.upperCamelCase(text)] | Convert a string to UpperCamelCase
+| xref::overview/apoc.text/apoc.text.snakeCase.adoc[apoc.text.snakeCase(text)] | Convert a string to snake-case
+| xref::overview/apoc.text/apoc.text.toUpperCase.adoc[apoc.text.toUpperCase(text)] | Convert a string to UPPER_CASE
+| xref::overview/apoc.text/apoc.text.charAt.adoc[apoc.text.charAt(text, index)] | Returns the decimal value of the character at the given index
+| xref::overview/apoc.text/apoc.text.code.adoc[apoc.text.code(codepoint)] | Returns the unicode character of the given codepoint
+| xref::overview/apoc.text/apoc.text.hexCharAt.adoc[apoc.text.hexCharAt(text, index)] | Returns the hex value string of the character at the given index
+| xref::overview/apoc.text/apoc.text.hexValue.adoc[apoc.text.hexValue(value)] | Returns the hex value string of the given value
+| xref::overview/apoc.text/apoc.text.byteCount.adoc[+++apoc.text.byteCount(text,[charset])+++] | return size of text in bytes
+| xref::overview/apoc.text/apoc.text.bytes.adoc[+++apoc.text.bytes(text,[charset])+++] | return bytes of the text
+| xref::overview/apoc.text/apoc.text.toCypher.adoc[apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end})] | tries it's best to convert the value to a cypher-property-string
+| xref::overview/apoc.text/apoc.text.base64Encode.adoc[apoc.text.base64Encode(text)] | Encode a string with Base64
+| xref::overview/apoc.text/apoc.text.base64Decode.adoc[apoc.text.base64Decode(text)] | Decode Base64 encoded string
+| xref::overview/apoc.text/apoc.text.base64UrlEncode.adoc[apoc.text.base64UrlEncode(url)] | Encode a url with Base64
+| xref::overview/apoc.text/apoc.text.base64UrlDecode.adoc[apoc.text.base64UrlDecode(url)] | Decode Base64 encoded url
 |===
 
 The `replace`, `split` and `regexGroups` functions work with regular expressions.

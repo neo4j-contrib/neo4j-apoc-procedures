@@ -44,5 +44,9 @@ apoc.refactor.rename.nodeProperty(oldName :: STRING?, newName :: STRING?, nodes 
 |indexes|LIST? OF STRING?
 |===
 
+[[usage-apoc.refactor.rename.nodeProperty]]
+== Usage Examples
+include::partial$usage/apoc.refactor.rename.nodeProperty.adoc[]
+
 xref::graph-updates/graph-refactoring/rename-label-type-property.adoc[More documentation of apoc.refactor.rename.nodeProperty,role=more information]
 

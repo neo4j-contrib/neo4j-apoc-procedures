@@ -24,6 +24,9 @@ apoc.meta.data(config = {} :: MAP?) :: (label :: STRING?, property :: STRING?, c
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.meta.data.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -45,6 +48,10 @@ apoc.meta.data(config = {} :: MAP?) :: (label :: STRING?, property :: STRING?, c
 |otherLabels|LIST? OF STRING?
 |elementType|STRING?
 |===
+
+[[usage-apoc.meta.data]]
+== Usage Examples
+include::partial$usage/apoc.meta.data.adoc[]
 
 xref::database-introspection/meta.adoc[More documentation of apoc.meta.data,role=more information]
 

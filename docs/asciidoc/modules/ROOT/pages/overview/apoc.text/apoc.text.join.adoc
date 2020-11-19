@@ -25,5 +25,9 @@ apoc.text.join(texts :: LIST? OF STRING?, delimiter :: STRING?) :: (STRING?)
 |delimiter|STRING?|null
 |===
 
+[[usage-apoc.text.join]]
+== Usage Examples
+include::partial$usage/apoc.text.join.adoc[]
+
 xref::misc/text-functions.adoc[More documentation of apoc.text.join,role=more information]
 

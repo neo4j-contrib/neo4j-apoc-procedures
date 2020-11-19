@@ -1,0 +1,19 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (:Person {name: "Michael"});
+CREATE (:Person {name: "Ryan"});
+----
+
+[source,cypher]
+----
+CALL apoc.schema.properties.distinct("Person", "name");
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| ["Michael", "Ryan"]
+|===

@@ -1,0 +1,54 @@
+[NOTE]
+====
+The `unit` parameter supports the following values:
+
+* `ms`, `milli`, `millis`, `milliseconds`
+* `s`, `second`, `seconds`
+* `m`, `minute`, `minutes`
+* `h`, `hour`, `hours`
+* `d`,  `day`, `days`
+* `w`, `weekday`, `weekdays`
+* `month`, `months`
+* `year`, `years`
+
+The computed value will be in the unit specified by the `unit` parameter.
+====
+
+The following returns the hours of a datetime:
+
+[source,cypher]
+----
+WITH datetime("2020-11-04T10:30:00").epochMillis AS datetime
+RETURN apoc.date.field(datetime, "hours") AS hour;
+----
+
+.Results
+[opts="header"]
+|===
+| hour
+| 10
+|===
+
+The following returns the weekday of a datetime:
+
+[source,cypher]
+----
+WITH datetime("2020-11-04T10:30:00").epochMillis AS datetime
+RETURN apoc.date.field(datetime, "weekday") AS weekday;
+----
+
+.Results
+[opts="header"]
+|===
+| weekday
+| 3
+|===
+
+[NOTE]
+====
+In version 3.4 Neo4j introduced temporal data types, which are the recommended way of representing dates in Neo4j.
+Fields of a temporal type can be retrieved using Cypher's `instance.field` function. (e.g. `datetime({epochMillis: dateInteger}).year`)
+See the https://neo4j.com/docs/cypher-manual/current/syntax/temporal/#cypher-temporal-accessing-components-temporal-instants[Cypher documentation] for more details on the syntax.
+
+If, however, you still need to convert timestamp formats, this procedure provides that functionality.
+====

@@ -24,5 +24,9 @@ apoc.path.elements(path :: PATH?) :: (LIST? OF ANY?)
 |path|PATH?|null
 |===
 
+[[usage-apoc.path.elements]]
+== Usage Examples
+include::partial$usage/apoc.path.elements.adoc[]
+
 xref::graph-querying/path-querying.adoc[More documentation of apoc.path.elements,role=more information]
 

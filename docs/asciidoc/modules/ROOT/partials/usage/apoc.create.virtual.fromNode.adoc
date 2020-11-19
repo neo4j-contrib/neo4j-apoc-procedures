@@ -1,0 +1,47 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (a:Account {type: 'checking', ownerName: 'Maria Perez', ownerId: '123456789', accountNumber: 101010101, routingNumber: 010101010, amount: 1000.00, bank: 'Best Bank'});
+CREATE (p:Person {name: 'Jane Doe', birthdate: date('1990-01-13'), favoriteColor: 'green', favoriteDessert: 'ice cream', favoriteMusic: 'classical', favoriteBand: 'The Beatles', favoriteVacation: 'beach', favoriteAnimal: 'horse', favoriteBeverage: 'coffee', favoriteFlower: 'lily'});
+----
+
+The apoc.create.virtual.fromNode procedure provides a way to only visualize or return data that is needed, hiding any unnecessary or sensitive pieces.
+
+The example below shows how we can use the procedure to return only the non-sensitive properties from the node above:
+
+// tag::tabs[]
+[.tabs]
+.apoc.create.virtual.fromNode
+[source,cypher]
+----
+MATCH (a:Account {accountNumber: 101010101})
+RETURN apoc.create.virtual.fromNode(a, ['type','bank']);
+----
+// end::tabs[]
+
+.Results
+[opts="header"]
+|===
+| account
+| {"type":"checking","bank":"Best Bank"}
+|===
+
+The apoc.create.virtual.fromNode procedure can also be used to simplify nodes with many properties by only displaying ones that are important to the query.
+
+The example below shows an example of this use:
+
+.apoc.create.virtual.fromNode
+[source,cypher]
+----
+MATCH (p:Person {name: 'Jane Doe'})
+RETURN apoc.create.virtual.fromNode(p, ['favoriteColor','favoriteAnimal','favoriteMusic']);
+----
+
+.Results
+[opts="header"]
+|===
+|favorites
+|{"favoriteAnimal":"horse","favoriteMusic":"classical","favoriteColor":│
+|"green"}
+|===

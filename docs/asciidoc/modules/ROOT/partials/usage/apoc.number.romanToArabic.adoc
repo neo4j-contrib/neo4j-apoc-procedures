@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.number.romanToArabic("MCMXXXII") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+|1932
+|===

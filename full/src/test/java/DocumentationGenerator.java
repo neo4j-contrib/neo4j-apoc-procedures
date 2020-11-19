@@ -210,8 +210,13 @@ class DocumentationGenerator {
 
     public void writeProcedurePages() {
         for (ProcedureSignature procedure : allProcedures()) {
+//            String[] parts = procedure.name().toString().split("\\.");
+//            String topLevelDirectory = String.format("%s.%s", parts[0], parts[1]);
+
             String[] parts = procedure.name().toString().split("\\.");
-            String topLevelDirectory = String.format("%s.%s", parts[0], parts[1]);
+            parts = Arrays.copyOf(parts, Math.min(2, parts.length-1));
+            String topLevelDirectory = String.join(".", parts);
+
             new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelDirectory).mkdirs();
 
             writeProcedurePage(procedure, topLevelDirectory);
@@ -220,8 +225,13 @@ class DocumentationGenerator {
 
     public void writeFunctionPages() {
         allFunctions().forEach(userFunctionSignature -> {
+//            String[] parts = userFunctionSignature.name().toString().split("\\.");
+//            String topLevelDirectory = String.format("%s.%s", parts[0], parts[1]);
+
             String[] parts = userFunctionSignature.name().toString().split("\\.");
-            String topLevelDirectory = String.format("%s.%s", parts[0], parts[1]);
+            parts = Arrays.copyOf(parts, Math.min(2, parts.length-1));
+            String topLevelDirectory = String.join(".", parts);
+
             new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelDirectory).mkdirs();
 
             writeFunctionPage(userFunctionSignature, topLevelDirectory);
@@ -235,6 +245,8 @@ class DocumentationGenerator {
             writeDescription(writer, userFunctionSignature.description());
             writeSignature(writer, userFunctionSignature.toString());
             writeInputParameters(writer, userFunctionSignature.inputSignature());
+            writeConfigParameters(writer, userFunctionSignature.name().toString());
+            writeEmailDependencies(writer, userFunctionSignature.name().toString());
             writeUsageExample(writer, userFunctionSignature.name().toString());
             writeExtraDocumentation(writer, userFunctionSignature.name());
         } catch (Exception e) {
@@ -249,8 +261,14 @@ class DocumentationGenerator {
             writeDescription(writer, procedure.description());
             writeSignature(writer, procedure.toString());
             writeInputParameters(writer, procedure.inputSignature());
+            writeConfigParameters(writer, procedure.name().toString());
             writeOutputParameters(procedure, writer);
             writeReadingFromFile(writer, procedure.name().toString());
+            writeExportToFile(writer, procedure.name().toString());
+            writeExportToStream(writer, procedure.name().toString());
+            writeUuid(writer, procedure.name().toString());
+            writeTTL(writer, procedure.name().toString());
+            writeNlpDependencies(writer, procedure.name().toString());
             writeUsageExample(writer, procedure.name().toString());
             writeExtraDocumentation(writer, procedure.name());
 
@@ -259,7 +277,18 @@ class DocumentationGenerator {
         }
     }
 
-    private final List<String> readsFromFile = Arrays.asList("apoc.cypher.runFile", "apoc.cypher.runFiles", "apoc.cypher.runSchemaFile", "apoc.cypher.runSchemaFiles");
+    private final List<String> readsFromFile = Arrays.asList(
+            "apoc.cypher.runFile", "apoc.cypher.runFiles", "apoc.cypher.runSchemaFile", "apoc.cypher.runSchemaFiles",
+            "apoc.load.json", "apoc.load.jsonParams", "apoc.load.csv"
+    );
+    private final List<String> writeToFile = Arrays.asList(
+            "apoc.export.json.all", "apoc.export.json.data", "apoc.export.json.graph", "apoc.export.json.query",
+            "apoc.export.cypher.all", "apoc.export.cypher.data", "apoc.export.cypher.query"
+    );
+    private final List<String> writeToStream = Arrays.asList(
+            "apoc.export.json.all", "apoc.export.json.data", "apoc.export.json.graph", "apoc.export.json.query",
+            "apoc.export.cypher.all", "apoc.export.cypher.data", "apoc.export.cypher.query"
+    );
 
     private void writeReadingFromFile(Writer writer, String name) throws IOException {
         if(readsFromFile.contains(name)) {
@@ -268,9 +297,64 @@ class DocumentationGenerator {
         }
     }
 
+    private void writeExportToFile(Writer writer, String name) throws IOException {
+        if(writeToFile.contains(name)) {
+            writer.write("== Exporting to a file\n");
+            writer.write("include::partial$enableFileExport.adoc[]\n\n");
+        }
+    }
+
+    private void writeExportToStream(Writer writer, String name) throws IOException {
+        if(writeToStream.contains(name)) {
+            writer.write("== Exporting a stream\n");
+            writer.write("include::partial$streamExport.adoc[]\n\n");
+        }
+    }
+
+    private void writeUuid(Writer writer, String name) throws IOException {
+        if(name.startsWith("apoc.uuid")) {
+            writer.write("== Enable automatic UUIDs\n");
+            writer.write("include::partial$uuids.adoc[]\n\n");
+        }
+    }
+
+    private void writeTTL(Writer writer, String name) throws IOException {
+        if(name.startsWith("apoc.ttl")) {
+            writer.write("== Enable TTL\n");
+            writer.write("include::partial$ttl.adoc[]\n\n");
+        }
+    }
+
+    private void writeNlpDependencies(Writer writer, String name) throws IOException {
+        if(name.startsWith("apoc.nlp")) {
+            writer.write("== Install Dependencies\n");
+            writer.write("include::partial$nlp-dependencies.adoc[]\n\n");
+            writer.write("== Setting up API Key\n");
+
+            String[] parts = name.split("\\.");
+            parts = Arrays.copyOf(parts, 3);
+            String platform = String.join(".", parts);
+
+            writer.write("include::partial$nlp-api-keys-" + platform + ".adoc[]\n\n");
+        }
+    }
+    private void writeEmailDependencies(Writer writer, String name) throws IOException {
+        if(name.startsWith("apoc.data.email")) {
+            writer.write("== Install Dependencies\n");
+            writer.write("include::partial$email-dependencies.adoc[]\n\n");
+        }
+    }
+
+    private void writeConfigParameters(Writer writer, String name) throws IOException {
+        if(new File("../docs/asciidoc/modules/ROOT/partials/usage/config", name + ".adoc").exists()) {
+            writer.write("== Config parameters\n");
+            writer.write("include::partial$usage/config/" + name + ".adoc[]\n\n");
+        }
+    }
+
     private void writeUsageExample(Writer writer, String name) throws IOException {
         if(new File("../docs/asciidoc/modules/ROOT/partials/usage", name + ".adoc").exists()) {
-            writer.write("== Usage Examples\n");
+            writer.write("[[usage-" + name + "]]\n== Usage Examples\n");
             writer.write("include::partial$usage/" + name + ".adoc[]\n\n");
         }
     }

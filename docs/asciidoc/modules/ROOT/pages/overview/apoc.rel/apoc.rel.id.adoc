@@ -24,3 +24,7 @@ apoc.rel.id(rel :: RELATIONSHIP?) :: (INTEGER?)
 |rel|RELATIONSHIP?|null
 |===
 
+[[usage-apoc.rel.id]]
+== Usage Examples
+include::partial$usage/apoc.rel.id.adoc[]
+

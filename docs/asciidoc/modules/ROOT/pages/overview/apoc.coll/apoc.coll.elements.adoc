@@ -133,5 +133,7 @@ apoc.coll.elements(values :: LIST? OF ANY?, limit = -1 :: INTEGER?, offset = 0 :
 |elements|INTEGER?
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.elements,role=more information]
+[[usage-apoc.coll.elements]]
+== Usage Examples
+include::partial$usage/apoc.coll.elements.adoc[]
 

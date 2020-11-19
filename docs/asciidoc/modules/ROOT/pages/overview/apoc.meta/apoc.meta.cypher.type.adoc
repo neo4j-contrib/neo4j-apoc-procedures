@@ -24,5 +24,9 @@ apoc.meta.cypher.type(value :: ANY?) :: (STRING?)
 |value|ANY?|null
 |===
 
+[[usage-apoc.meta.cypher.type]]
+== Usage Examples
+include::partial$usage/apoc.meta.cypher.type.adoc[]
+
 xref::database-introspection/meta.adoc[More documentation of apoc.meta.cypher.type,role=more information]
 

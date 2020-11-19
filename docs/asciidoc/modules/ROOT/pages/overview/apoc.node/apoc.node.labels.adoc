@@ -24,5 +24,9 @@ apoc.node.labels(node :: NODE?) :: (LIST? OF ANY?)
 |node|NODE?|null
 |===
 
+[[usage-apoc.node.labels]]
+== Usage Examples
+include::partial$usage/apoc.node.labels.adoc[]
+
 xref::graph-querying/node-querying.adoc[More documentation of apoc.node.labels,role=more information]
 

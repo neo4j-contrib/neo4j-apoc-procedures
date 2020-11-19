@@ -24,5 +24,7 @@ apoc.coll.avg(numbers :: LIST? OF NUMBER?) :: (FLOAT?)
 |numbers|LIST? OF NUMBER?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.avg,role=more information]
+[[usage-apoc.coll.avg]]
+== Usage Examples
+include::partial$usage/apoc.coll.avg.adoc[]
 

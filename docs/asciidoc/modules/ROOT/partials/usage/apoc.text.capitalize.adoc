@@ -1,0 +1,12 @@
+.Capitalise the first letter of the word
+[source,cypher]
+----
+RETURN apoc.text.capitalize("neo4j") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "Neo4j"
+|===

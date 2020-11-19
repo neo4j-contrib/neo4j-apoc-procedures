@@ -1,0 +1,6 @@
+The following loads the JDBC driver:
+
+[source,cypher]
+----
+CALL apoc.load.driver("com.mysql.jdbc.Driver");
+----

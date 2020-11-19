@@ -25,6 +25,7 @@ apoc.agg.nth(value :: ANY?, value :: INTEGER?) :: (ANY?)
 |value|INTEGER?|null
 |===
 
+[[usage-apoc.agg.nth]]
 == Usage Examples
 include::partial$usage/apoc.agg.nth.adoc[]
 

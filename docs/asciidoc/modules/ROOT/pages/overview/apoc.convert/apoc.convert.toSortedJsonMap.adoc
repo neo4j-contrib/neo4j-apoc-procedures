@@ -25,5 +25,7 @@ apoc.convert.toSortedJsonMap(value :: ANY?, ignoreCase = true :: BOOLEAN?) :: (S
 |ignoreCase|BOOLEAN?|true
 |===
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toSortedJsonMap,role=more information]
+[[usage-apoc.convert.toSortedJsonMap]]
+== Usage Examples
+include::partial$usage/apoc.convert.toSortedJsonMap.adoc[]
 

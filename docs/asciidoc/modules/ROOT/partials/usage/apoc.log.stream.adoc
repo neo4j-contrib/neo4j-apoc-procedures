@@ -1,0 +1,22 @@
+The following returns the last 10 lines in `neo4j.log`:
+
+[source,cypher]
+----
+CALL apoc.log.stream("neo4j.log", {last: 10});
+----
+
+.Results
+[opts="header", cols="1,3,2"]
+|===
+| lineNo | line                                                                                                              | path
+| 12827  | "2020-11-16 11:12:10.197+0000 WARN  The client is unauthorized due to authentication failure."                    | "/home/markhneedham/.local/share/neo4j-relate/dbmss/dbms-8c3607ed-fe8d-42de-9be9-075d86babcfe/logs/neo4j.log"
+| 12826  | "2020-11-16 11:12:09.967+0000 WARN  The client is unauthorized due to authentication failure."                    | "/home/markhneedham/.local/share/neo4j-relate/dbmss/dbms-8c3607ed-fe8d-42de-9be9-075d86babcfe/logs/neo4j.log"
+| 12825  | "2020-11-16 09:43:39.332+0000 INFO  Called db.clearQueryCaches(): Query cache already empty."                     | "/home/markhneedham/.local/share/neo4j-relate/dbmss/dbms-8c3607ed-fe8d-42de-9be9-075d86babcfe/logs/neo4j.log"
+| 12824  | "2020-11-12 16:18:44.392+0000 INFO  LabelPropagationStreamProc: overall memory usage 27 KiB"                      | "/home/markhneedham/.local/share/neo4j-relate/dbmss/dbms-8c3607ed-fe8d-42de-9be9-075d86babcfe/logs/neo4j.log"
+| 12823  | "2020-11-12 16:18:44.391+0000 INFO  [neo4j.BoltWorker-5 [bolt] [/127.0.0.1:51704] ] LabelPropagation :: Finished" | "/home/markhneedham/.local/share/neo4j-relate/dbmss/dbms-8c3607ed-fe8d-42de-9be9-075d86babcfe/logs/neo4j.log"
+| 12822  | "2020-11-12 16:18:44.391+0000 INFO  [gds-3] LabelPropagation 99%"                                                 | "/home/markhneedham/.local/share/neo4j-relate/dbmss/dbms-8c3607ed-fe8d-42de-9be9-075d86babcfe/logs/neo4j.log"
+| 12821  | "2020-11-12 16:18:44.391+0000 INFO  [gds-3] LabelPropagation 98%"                                                 | "/home/markhneedham/.local/share/neo4j-relate/dbmss/dbms-8c3607ed-fe8d-42de-9be9-075d86babcfe/logs/neo4j.log"
+| 12820  | "2020-11-12 16:18:44.391+0000 INFO  [gds-3] LabelPropagation 97%"                                                 | "/home/markhneedham/.local/share/neo4j-relate/dbmss/dbms-8c3607ed-fe8d-42de-9be9-075d86babcfe/logs/neo4j.log"
+| 12819  | "2020-11-12 16:18:44.391+0000 INFO  [gds-3] LabelPropagation 96%"                                                 | "/home/markhneedham/.local/share/neo4j-relate/dbmss/dbms-8c3607ed-fe8d-42de-9be9-075d86babcfe/logs/neo4j.log"
+| 12818  | "2020-11-12 16:18:44.391+0000 INFO  [gds-3] LabelPropagation 95%"                                                 | "/home/markhneedham/.local/share/neo4j-relate/dbmss/dbms-8c3607ed-fe8d-42de-9be9-075d86babcfe/logs/neo4j.log"
+|===

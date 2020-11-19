@@ -26,5 +26,7 @@ apoc.coll.combinations(coll :: LIST? OF ANY?, minSelect :: INTEGER?, maxSelect =
 |maxSelect|INTEGER?|-1
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.combinations,role=more information]
+[[usage-apoc.coll.combinations]]
+== Usage Examples
+include::partial$usage/apoc.coll.combinations.adoc[]
 

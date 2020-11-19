@@ -1,0 +1,90 @@
+.AND (a & b)
+[source,cypher]
+----
+RETURN apoc.bitwise.op(60,"&",13) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| output
+| 12
+|===
+
+.OR (a | b)
+[source,cypher]
+----
+RETURN apoc.bitwise.op(60,"|",13) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| output
+| 61
+|===
+
+.XOR (a ^ b)
+[source,cypher]
+----
+RETURN apoc.bitwise.op(60,"&",13) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| output
+| 49
+|===
+
+.NOT (~a)
+[source,cypher]
+----
+RETURN apoc.bitwise.op(60,"~",0) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| output
+| -61
+|===
+
+.LEFT SHIFT (a << b)
+[source,cypher]
+----
+RETURN apoc.bitwise.op(60,"<<",2) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| output
+| 240
+|===
+
+.RIGHT SHIFT (a >> b)
+[source,cypher]
+----
+RETURN apoc.bitwise.op(60,">>",2) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| output
+| 15
+|===
+
+.UNSIGNED RIGHT SHIFT (a >> b)
+[source,cypher]
+----
+RETURN apoc.bitwise.op(60,">>>",2) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| output
+| 15
+|===

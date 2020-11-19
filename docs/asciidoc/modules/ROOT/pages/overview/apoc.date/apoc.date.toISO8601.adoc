@@ -25,5 +25,7 @@ apoc.date.toISO8601(time :: INTEGER?, unit = ms :: STRING?) :: (STRING?)
 |unit|STRING?|ms
 |===
 
-xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.toISO8601,role=more information]
+[[usage-apoc.date.toISO8601]]
+== Usage Examples
+include::partial$usage/apoc.date.toISO8601.adoc[]
 

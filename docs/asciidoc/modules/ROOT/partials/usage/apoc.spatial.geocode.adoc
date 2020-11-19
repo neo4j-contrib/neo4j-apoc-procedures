@@ -1,0 +1,31 @@
+
+[source,cypher]
+----
+CALL apoc.spatial.geocode('Union House, London');
+----
+
+.Results
+[opts="header"]
+|===
+| location                                                                                                                                                                                                                | data                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | latitude   | longitude  | description
+| {description: "Union House, 182-194, Union Street, Bankside, Southwark, London Borough of Southwark, London, Greater London, England, SE1 0LR, Unite
+d Kingdom", latitude: 51.503819199999995, longitude: -0.10101882640252435} | {osm_type: "way", osm_id: 77765231, licence: "Data © OpenStreetMap contri
+butors, ODbL 1.0. https://osm.org/copyright", boundingbox: ["51.5037439", "51.5038945", "-0.1013092", "-0.1007285"], importance: 0.31100000000000005,
+lon: "-0.10101882640252435", display_name: "Union House, 182-194, Union Street, Bankside, Southwark, London Borough of Southwark, London, Greater Lond
+on, England, SE1 0LR, United Kingdom", type: "yes", class: "building", place_id: 104116750, lat: "51.503819199999995"} | 51.503819199999995 | -0.10101
+882640252435 | "Union House, 182-194, Union Street, Bankside, Southwark, London Borough of Southwark, London, Greater London, England, SE1 0LR, United
+Kingdom"
+| {description: "Union House, Shepherds Bush Green, Brook Green, London Borough of Hammersmith and Fulham, London, Greater London, England, W12 7DP, U
+nited Kingdom", latitude: 51.504723, longitude: -0.2249915937565324}       | {osm_type: "way", osm_id: 159245997, licence: "Data © OpenStreetMap contr
+ibutors, ODbL 1.0. https://osm.org/copyright", boundingbox: ["51.5045808", "51.5048507", "-0.2251614", "-0.2248218"], importance: 0.31100000000000005,
+lon: "-0.2249915937565324", display_name: "Union House, Shepherds Bush Green, Brook Green, London Borough of Hammersmith and Fulham, London, Greater
+London, England, W12 7DP, United Kingdom", type: "yes", class: "building", place_id: 123432321, lat: "51.504723"}      | 51.504723          | -0.22499
+15937565324  | "Union House, Shepherds Bush Green, Brook Green, London Borough of Hammersmith and Fulham, London, Greater London, England, W12 7DP, Un
+ited Kingdom"
+| {description: "Union House, 6, Martin Lane, Bishopsgate, City of London, Greater London, England, EC4R 0DP, United Kingdom", latitude: 51.510519, lo
+ngitude: -0.08806049069724674}                                             | {osm_type: "way", osm_id: 809354346, licence: "Data © OpenStreetMap contr
+ibutors, ODbL 1.0. https://osm.org/copyright", boundingbox: ["51.5104519", "51.5106113", "-0.0882068", "-0.0878968"], importance: 0.30100000000000005,
+lon: "-0.08806049069724674", display_name: "Union House, 6, Martin Lane, Bishopsgate, City of London, Greater London, England, EC4R 0DP, United Kingd
+om", type: "commercial", class: "building", place_id: 289689410, lat: "51.510519"}                                     | 51.510519          | -0.08806
+049069724674 | "Union House, 6, Martin Lane, Bishopsgate, City of London, Greater London, England, EC4R 0DP, United Kingdom"
+|===

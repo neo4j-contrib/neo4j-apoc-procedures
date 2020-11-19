@@ -25,5 +25,7 @@ apoc.coll.sortMaps(coll :: LIST? OF MAP?, prop :: STRING?) :: (LIST? OF ANY?)
 |prop|STRING?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.sortMaps,role=more information]
+[[usage-apoc.coll.sortMaps]]
+== Usage Examples
+include::partial$usage/apoc.coll.sortMaps.adoc[]
 

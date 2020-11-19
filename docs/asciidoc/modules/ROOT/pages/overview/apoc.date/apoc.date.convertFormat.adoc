@@ -26,5 +26,7 @@ apoc.date.convertFormat(temporal :: STRING?, currentFormat :: STRING?, convertTo
 |convertTo|STRING?|yyyy-MM-dd
 |===
 
-xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.convertFormat,role=more information]
+[[usage-apoc.date.convertFormat]]
+== Usage Examples
+include::partial$usage/apoc.date.convertFormat.adoc[]
 

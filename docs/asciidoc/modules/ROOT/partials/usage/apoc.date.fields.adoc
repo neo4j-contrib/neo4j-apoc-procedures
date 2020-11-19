@@ -1,0 +1,58 @@
+[NOTE]
+====
+The `date` parameter is a date string in an https://en.wikipedia.org/wiki/ISO_8601[ISO8601] standard format
+
+The `pattern` parameter supports values defined https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/format/DateTimeFormatter.html[under Patterns for Formatting and Parsing of the Java DateTime formats^]
+====
+
+The following returns the fields of a date:
+
+[source,cypher]
+----
+RETURN apoc.date.fields("2020-11-04", "YYYY-MM-dd") AS fields;
+----
+
+.Results
+[opts="header"]
+|===
+| fields
+| {days: 4, zoneid: "UTC", months: 11}
+|===
+
+The following returns the fields of a datetime:
+
+[source,cypher]
+----
+RETURN apoc.date.fields("2020-11-04T10:30:21", "YYYY-MM-dd'T'HH:mm:ss") AS fields;
+----
+
+
+.Results
+[opts="header"]
+|===
+| fields
+| {hours: 10, seconds: 21, months: 11, minutes: 30, days: 4, zoneid: "UTC"}
+|===
+
+The following returns the fields of a datetime that contains a timezone:
+
+[source,cypher]
+----
+RETURN apoc.date.fields("2020-11-04T10:30:21+01:00", "YYYY-MM-dd'T'HH:mm:ssz") AS fields;
+----
+
+.Results
+[opts="header"]
+|===
+| fields
+| {hours: 10, seconds: 21, months: 11, minutes: 30, days: 4, zoneid: "+01:00"}
+|===
+
+[NOTE]
+====
+In version 3.4 Neo4j introduced temporal data types, which are the recommended way of representing dates in Neo4j.
+Fields of a temporal type can be retrieved using Cypher's `instance.field` function. (e.g. `datetime({epochMillis: dateInteger}).year`)
+See the https://neo4j.com/docs/cypher-manual/current/syntax/temporal/#cypher-temporal-accessing-components-temporal-instants[Cypher documentation] for more details on the syntax.
+
+If, however, you still need to convert timestamp formats, this procedure provides that functionality.
+====

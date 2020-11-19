@@ -1,0 +1,30 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (:Person {name:'Tom',age: 40})
+CREATE (:Person {name:'Will',age: 35})
+CREATE (:Person {name:'David', children: ['Anne','Sam','Paul']})
+CREATE (:Person {name:'John', cars: ['Class A','X3','Focus']})
+CREATE (:Person {name:'Ryan', salary1:1800, salary2:1500});
+----
+
+The following adds 10 to the property `age` for `Tom`:
+
+[source,cypher]
+----
+MATCH (n:Person {name:'Tom'})
+CALL apoc.atomic.add(n,'age',10,5)
+YIELD oldValue, newValue
+RETURN oldValue, newValue;
+----
+
+.Results
+[opts="header"]
+|===
+| oldValue | newValue
+| 40       | 50
+|===
+
+
+

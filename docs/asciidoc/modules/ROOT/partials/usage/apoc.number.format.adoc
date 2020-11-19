@@ -1,0 +1,36 @@
+[source,cypher]
+----
+RETURN apoc.number.format(1234567.87)  as output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "1,234,567.87"
+|===
+
+[source,cypher]
+----
+RETURN apoc.number.format(12345, '#,##0.00;(#,##0.00)', 'it') AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "12.345,00"
+|===
+
+[source,cypher]
+----
+RETURN apoc.number.format('aaa')  as output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| NULL
+|===
+

@@ -25,5 +25,7 @@ apoc.coll.containsAll(coll :: LIST? OF ANY?, values :: LIST? OF ANY?) :: (BOOLEA
 |values|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.containsAll,role=more information]
+[[usage-apoc.coll.containsAll]]
+== Usage Examples
+include::partial$usage/apoc.coll.containsAll.adoc[]
 

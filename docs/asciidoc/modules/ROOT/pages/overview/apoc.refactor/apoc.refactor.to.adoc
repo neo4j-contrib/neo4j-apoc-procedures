@@ -34,5 +34,9 @@ apoc.refactor.to(relationship :: RELATIONSHIP?, newNode :: NODE?) :: (input :: I
 |error|STRING?
 |===
 
+[[usage-apoc.refactor.to]]
+== Usage Examples
+include::partial$usage/apoc.refactor.to.adoc[]
+
 xref::graph-updates/graph-refactoring/redirect-relationship.adoc[More documentation of apoc.refactor.to,role=more information]
 

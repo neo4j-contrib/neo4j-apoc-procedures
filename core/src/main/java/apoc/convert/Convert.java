@@ -99,7 +99,7 @@ public class Convert {
             Collections.addAll(result, objectArray);
             return result;
         }
-        return null;
+        return Collections.singletonList(list);
     }
     
     @SuppressWarnings("unchecked")

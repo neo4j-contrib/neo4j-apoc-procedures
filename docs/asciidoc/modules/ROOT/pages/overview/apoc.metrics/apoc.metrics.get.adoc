@@ -34,3 +34,7 @@ apoc.metrics.get(metricName :: STRING?, config = {} :: MAP?) :: (timestamp :: IN
 |map|MAP?
 |===
 
+[[usage-apoc.metrics.get]]
+== Usage Examples
+include::partial$usage/apoc.metrics.get.adoc[]
+

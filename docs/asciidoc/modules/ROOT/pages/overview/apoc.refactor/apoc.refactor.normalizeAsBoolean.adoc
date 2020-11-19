@@ -27,3 +27,7 @@ apoc.refactor.normalizeAsBoolean(entity :: ANY?, propertyKey :: STRING?, true_va
 |false_values|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.refactor.normalizeAsBoolean]]
+== Usage Examples
+include::partial$usage/apoc.refactor.normalizeAsBoolean.adoc[]
+

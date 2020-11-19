@@ -8,22 +8,22 @@ image::apoc.meta.graph.jpg[scaledwidth="100%"]
 .Procedures
 [cols="5m,5"]
 |===
-| CALL apoc.meta.graphSample() | examines the database statistics to build the meta graph, very fast, might report extra relationships
-| CALL apoc.meta.graph | examines the database statistics to create the meta-graph, post filters extra relationships by sampling
-| CALL apoc.meta.subGraph({labels:[labels],rels:[rel-types],excludes:[label,rel-type,...]}) | examines a sample sub graph to create the meta-graph
-| CALL apoc.meta.data | examines a subset of the graph to provide a tabular meta information
-| CALL apoc.meta.schema | examines a subset of the graph to provide a map-like meta information
-| CALL apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats | returns the information stored in the transactional database statistics
-| CALL apoc.meta.nodeTypeProperties({includeLabels:[label,...],includeRels:[rel-type,...],excludeLabels:[label,,...],excludeRels:[rel-type,...]}) | replaces built-in function for node property schema to provide a sample-based result for high performance - used by the Neo4J BI Connector
-| CALL apoc.meta.relTypeProperties({includeLabels:[label,...],includeRels:[rel-type,...],excludeLabels:[label,...],excludeRels:[rel-type,...]}) | replaces built-in function for relationship property schema to provide a sample-based result for high performance - used by the Neo4J BI Connector
+| xref::overview/apoc.meta/apoc.meta.graphSample.adoc[CALL apoc.meta.graphSample()] | examines the database statistics to build the meta graph, very fast, might report extra relationships
+| xref::overview/apoc.meta/apoc.meta.graph.adoc[CALL apoc.meta.graph] | examines the database statistics to create the meta-graph, post filters extra relationships by sampling
+| xref::overview/apoc.meta/apoc.meta.subGraph.adoc[+++CALL apoc.meta.subGraph({labels:[labels],rels:[rel-types],excludes:[label,rel-type,...]})+++] | examines a sample sub graph to create the meta-graph
+| xref::overview/apoc.meta/apoc.meta.data.adoc[CALL apoc.meta.data] | examines a subset of the graph to provide a tabular meta information
+| xref::overview/apoc.meta/apoc.meta.schema.adoc[CALL apoc.meta.schema] | examines a subset of the graph to provide a map-like meta information
+| xref::overview/apoc.meta/apoc.meta.stats.adoc[CALL apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats] | returns the information stored in the transactional database statistics
+| xref::overview/apoc.meta/apoc.meta.nodeTypeProperties.adoc[+++CALL apoc.meta.nodeTypeProperties({includeLabels:[label,...],includeRels:[rel-type,...],excludeLabels:[label,,...],excludeRels:[rel-type,...]})+++] | replaces built-in function for node property schema to provide a sample-based result for high performance - used by the Neo4J BI Connector
+| xref::overview/apoc.meta/apoc.meta.relTypeProperties.adoc[+++CALL apoc.meta.relTypeProperties({includeLabels:[label,...],includeRels:[rel-type,...],excludeLabels:[label,...],excludeRels:[rel-type,...]})+++] | replaces built-in function for relationship property schema to provide a sample-based result for high performance - used by the Neo4J BI Connector
 |===
 
 .Functions
 [cols="5m,5"]
 |===
-| apoc.meta.cypher.type(value) | type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION`)
-| apoc.meta.cypher.isType(value,type) | returns a row if type name matches none if not
-| apoc.meta.cypher.types(node or relationship or map) | returns a a map of property-keys to their names
+| xref::overview/apoc.meta/apoc.meta.cypher.type.adoc[apoc.meta.cypher.type(value)] | type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION`)
+| xref::overview/apoc.meta/apoc.meta.cypher.isType.adoc[apoc.meta.cypher.isType(value,type)] | returns a row if type name matches none if not
+| xref::overview/apoc.meta/apoc.meta.cypher.types.adoc[apoc.meta.cypher.types(node or relationship or map)] | returns a a map of property-keys to their names
 |===
 
 In the case of `LIST` you may have many results, depending on the content. In the event that all contents are of the same type, will you have the `LIST OF <TYPE>`, otherwise if the type is different, will you get `LIST OF ANY`

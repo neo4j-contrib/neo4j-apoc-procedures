@@ -25,3 +25,7 @@ apoc.metrics.list() :: (name :: STRING?, lastUpdated :: INTEGER?)
 |lastUpdated|INTEGER?
 |===
 
+[[usage-apoc.metrics.list]]
+== Usage Examples
+include::partial$usage/apoc.metrics.list.adoc[]
+

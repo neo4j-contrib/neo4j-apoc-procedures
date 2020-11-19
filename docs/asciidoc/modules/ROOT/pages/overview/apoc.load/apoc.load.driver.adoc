@@ -24,3 +24,7 @@ apoc.load.driver(driverClass :: STRING?) :: VOID
 |driverClass|STRING?|null
 |===
 
+[[usage-apoc.load.driver]]
+== Usage Examples
+include::partial$usage/apoc.load.driver.adoc[]
+

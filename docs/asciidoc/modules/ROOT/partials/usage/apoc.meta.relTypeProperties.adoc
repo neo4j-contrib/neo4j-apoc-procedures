@@ -1,0 +1,81 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (Keanu:Person {name:'Keanu Reeves', born:1964})
+CREATE (TomH:Person {name:'Tom Hanks', born:1956})
+CREATE (LillyW:Person {name:'Lilly Wachowski', born:1967})
+
+CREATE (TheMatrix:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})
+CREATE (TheMatrixReloaded:Movie {title:'The Matrix Reloaded', released:2003, tagline:'Free your mind'})
+CREATE (TheMatrixRevolutions:Movie {title:'The Matrix Revolutions', released:2003, tagline:'Everything that has a beginning has an end'})
+CREATE (SomethingsGottaGive:Movie {title:"Something's Gotta Give", released:2003})
+CREATE (TheDevilsAdvocate:Movie {title:"The Devil's Advocate", released:1997, tagline:'Evil has its winning ways'})
+
+CREATE (YouveGotMail:Movie {title:"You've Got Mail", released:1998, tagline:'At odds in life... in love on-line.'})
+CREATE (SleeplessInSeattle:Movie {title:'Sleepless in Seattle', released:1993, tagline:'What if someone you never met, someone you never saw, someone you never knew was the only someone for you?'})
+CREATE (ThatThingYouDo:Movie {title:'That Thing You Do', released:1996, tagline:'In every life there comes a time when that thing you dream becomes that thing you do'})
+CREATE (CloudAtlas:Movie {title:'Cloud Atlas', released:2012, tagline:'Everything is connected'})
+
+CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrix)
+CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrixReloaded)
+CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrixRevolutions)
+CREATE (Keanu)-[:ACTED_IN {roles:['Julian Mercer']}]->(SomethingsGottaGive)
+CREATE (Keanu)-[:ACTED_IN {roles:['Kevin Lomax']}]->(TheDevilsAdvocate)
+
+CREATE (TomH)-[:ACTED_IN {roles:['Joe Fox']}]->(YouveGotMail)
+CREATE (TomH)-[:ACTED_IN {roles:['Sam Baldwin']}]->(SleeplessInSeattle)
+CREATE (TomH)-[:ACTED_IN {roles:['Mr. White']}]->(ThatThingYouDo)
+CREATE (TomH)-[:ACTED_IN {roles:['Zachry', 'Dr. Henry Goose', 'Isaac Sachs', 'Dermot Hoggins']}]->(CloudAtlas)
+
+CREATE (LillyW)-[:DIRECTED]->(TheMatrix);
+----
+
+We can return the metadata of the database from a sample of the database contents, by running the following query:
+
+[source,cypher]
+----
+CALL apoc.meta.relTypeProperties();
+----
+
+.Results
+[opts="header"]
+|===
+| relType       | sourceNodeLabels | targetNodeLabels | propertyName | propertyTypes   | mandatory | propertyObservations | totalObservations
+| ":`ACTED_IN`" | ["Person"]       | ["Movie"]        | "roles"      | ["StringArray"] | FALSE     | 9                    | 9
+| ":`DIRECTED`" | ["Person"]       | ["Movie"]        | NULL         | NULL            | FALSE     | 0                    | 1
+|===
+
+We can return metadata for a subset of relationship types by specifying the `rels` config parameter.
+The following returns the metadata for the `ACTED_IN` label:
+
+[source,cypher]
+----
+CALL apoc.meta.relTypeProperties({rels: ["ACTED_IN"]});
+----
+
+.Results
+[opts="header"]
+|===
+| relType       | sourceNodeLabels | targetNodeLabels | propertyName | propertyTypes   | mandatory | propertyObservations | totalObservations
+| ":`ACTED_IN`" | ["Person"]       | ["Movie"]        | "roles"      | ["StringArray"] | FALSE     | 9                    | 9
+|===
+
+
+We can control the number of relationships sampled by specifying the `maxRels` parameter.
+The following returns metadata based on sampling up to 3 relationships per relationship type:
+
+[source,cypher]
+----
+CALL apoc.meta.relTypeProperties({maxRels: 3});
+----
+
+.Results
+[opts="header"]
+|===
+| relType       | sourceNodeLabels | targetNodeLabels | propertyName | propertyTypes   | mandatory | propertyObservations | totalObservations
+| ":`ACTED_IN`" | ["Person"]       | ["Movie"]        | "roles"      | ["StringArray"] | FALSE     | 3                    | 9
+| ":`DIRECTED`" | ["Person"]       | ["Movie"]        | NULL         | NULL            | FALSE     | 0                    | 1
+|===
+
+

@@ -26,5 +26,3 @@ apoc.convert.getJsonProperty(node :: NODE?, key :: STRING?, path =  :: STRING?) 
 |path|STRING?|
 |===
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.getJsonProperty,role=more information]
-

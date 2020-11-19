@@ -99,9 +99,6 @@ public class DocsTest {
         docs.put("apoc.load.csv", "import/load-csv.adoc");
         docs.put("apoc.import.csv", "import/import-csv.adoc");
         docs.put("apoc.import.graphml", "import/graphml.adoc");
-        docs.put("apoc.coll.*", "data-structures/collection-list-functions.adoc");
-        docs.put("apoc.convert.*", "data-structures/conversion-functions.adoc");
-        docs.put("apoc.map.*", "data-structures/map-functions.adoc");
         docs.put("apoc.create.v.*|apoc.create.virtual.*", "virtual/virtual-nodes-rels.adoc");
         docs.put("apoc.math.*|apoc.number.romanToArabic|apoc.number.arabicToRoman", "mathematical/math-functions.adoc");
         docs.put("apoc.meta.*", "database-introspection/meta.adoc");
@@ -134,7 +131,6 @@ public class DocsTest {
         docs.put("apoc.ttl.*", "graph-updates/ttl.adoc");
         docs.put("apoc.create.uuid", "graph-updates/uuid.adoc");
         docs.put("apoc.cypher.*", "cypher-execution/index.adoc");
-        docs.put("apoc.date.*", "temporal/datetime-conversions.adoc");
         docs.put("apoc.hashing.*", "comparing-graphs/fingerprinting.adoc");
         docs.put("apoc.temporal.*", "temporal/temporal-conversions.adoc");
         docs.put("apoc.uuid.*", "graph-updates/uuid.adoc");
@@ -148,7 +144,7 @@ public class DocsTest {
         docs.put("apoc.es.*", "database-integration/elasticsearch.adoc");
         docs.put("apoc.refactor.rename.*", "graph-updates/graph-refactoring/rename-label-type-property.adoc");
         docs.put("apoc.couchbase.*", "database-integration/couchbase.adoc");
-        docs.put("apoc.create.node.*|apoc.create.*Labels|apoc.create.setP.*|apoc.create.setRel.*|apoc.create.relationship|apoc.nodes.link|apoc.merge.*|apoc.create.remove.*", "graph-updates/data-creation.adoc");
+        docs.put("apoc.create.node.*|apoc.create.setP.*|apoc.create.setRel.*|apoc.create.relationship|apoc.nodes.link|apoc.merge.*|apoc.create.remove.*", "graph-updates/data-creation.adoc");
         docs.put("apoc.custom.*", "cypher-execution/cypher-based-procedures-functions.adoc");
         docs.put("apoc.generate.*", "graph-updates/graph-generators.adoc");
         docs.put("apoc.config.*", "database-introspection/config.adoc");

@@ -32,6 +32,7 @@ apoc.create.node(label :: LIST? OF STRING?, props :: MAP?) :: (node :: NODE?)
 |node|NODE?
 |===
 
+[[usage-apoc.create.node]]
 == Usage Examples
 include::partial$usage/apoc.create.node.adoc[]
 

@@ -1,0 +1,33 @@
+Cypher supports deleting of labels as long as the labels are hard coded.
+If the labels are dynamically specified, we can use this procedure.
+
+The examples in this section are based on the following sample graph:
+[source,cypher]
+----
+CREATE (jennifer:Person:US {name: "Jennifer", community: 1, partition: 4})
+CREATE (karin:Person:US {name: "Karin", community: 4, partition: 2})
+CREATE (mark:Person:UK {name: "Mark", community: 3, partition: 3});
+----
+
+The following removes all labels except `Person` from all nodes:
+
+[source,cypher]
+----
+CALL db.labels()
+YIELD label WHERE label <> "Person"
+WITH collect(label) AS labels
+MATCH (p:Person)
+WITH collect(p) AS people, labels
+CALL apoc.create.removeLabels(people, labels)
+YIELD node
+RETURN node, labels(node) AS labels;
+----
+
+.Results
+[opts="header"]
+|===
+| node | labels
+| (:Person {name: "Jennifer", partition: 4, community: 1}) | ["Person"]
+| (:Person {name: "Karin", partition: 2, community: 4})    | ["Person"]
+| (:Person {name: "Mark", partition: 3, community: 3})     | ["Person"]
+|===

@@ -24,5 +24,9 @@ apoc.static.getAll(prefix :: STRING?) :: (MAP?)
 |prefix|STRING?|null
 |===
 
+[[usage-apoc.static.getAll]]
+== Usage Examples
+include::partial$usage/apoc.static.getAll.adoc[]
+
 xref::misc/static-values.adoc[More documentation of apoc.static.getAll,role=more information]
 

@@ -33,6 +33,7 @@ apoc.cypher.runTimeboxed(cypher :: STRING?, params :: MAP?, timeout :: INTEGER?)
 |value|MAP?
 |===
 
+[[usage-apoc.cypher.runTimeboxed]]
 == Usage Examples
 include::partial$usage/apoc.cypher.runTimeboxed.adoc[]
 

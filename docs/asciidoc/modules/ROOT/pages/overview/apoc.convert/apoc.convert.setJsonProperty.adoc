@@ -26,5 +26,3 @@ apoc.convert.setJsonProperty(node :: NODE?, key :: STRING?, value :: ANY?) :: VO
 |value|ANY?|null
 |===
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.setJsonProperty,role=more information]
-

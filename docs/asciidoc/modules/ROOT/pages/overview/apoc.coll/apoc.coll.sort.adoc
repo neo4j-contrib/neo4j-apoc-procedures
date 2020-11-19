@@ -24,5 +24,7 @@ apoc.coll.sort(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |coll|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.sort,role=more information]
+[[usage-apoc.coll.sort]]
+== Usage Examples
+include::partial$usage/apoc.coll.sort.adoc[]
 

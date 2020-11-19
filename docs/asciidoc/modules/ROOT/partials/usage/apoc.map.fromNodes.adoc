@@ -1,0 +1,58 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (TheMatrixRevolutions:Movie {title:'The Matrix Revolutions', released:2003, tagline:'Everything that has a beginning has an end'})
+CREATE (YouveGotMail:Movie {title:"You've Got Mail", released:1998, tagline:'At odds in life... in love on-line.'})
+CREATE (SleeplessInSeattle:Movie {title:'Sleepless in Seattle', released:1993, tagline:'What if someone you never met, someone you never saw, someone you never knew was the only someone for you?'});
+----
+
+[source,cypher]
+----
+RETURN apoc.map.fromNodes("Movie", "title");
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+a|
+[source,json]
+----
+{
+  "The Matrix Revolutions": {
+    "identity": 14,
+    "labels": [
+      "Movie"
+    ],
+    "properties": {
+    "tagline": "Everything that has a beginning has an end",
+    "title": "The Matrix Revolutions",
+    "released": 2003
+    }
+  },
+  "Sleepless in Seattle": {
+    "identity": 16,
+    "labels": [
+      "Movie"
+    ],
+    "properties": {
+    "tagline": "What if someone you never met, someone you never saw, someone you never knew was the only someone for you?",
+    "title": "Sleepless in Seattle",
+    "released": 1993
+    }
+  },
+  "You've Got Mail": {
+    "identity": 15,
+    "labels": [
+      "Movie"
+    ],
+    "properties": {
+    "tagline": "At odds in life... in love on-line.",
+    "title": "You've Got Mail",
+    "released": 1998
+    }
+  }
+}
+----
+|===

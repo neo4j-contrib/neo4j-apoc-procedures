@@ -59,6 +59,17 @@ public class UtilsTest {
     }
 
     @Test
+    public void testValidatePredicateReturn() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.util.validatePredicate(false,'message',null) AS value", r -> assertEquals(true, r.get("value")));
+    }
+
+    @Test
+    public void testValidatePredicateTrue() throws Exception {
+        db.executeTransactionally("CREATE (:Person {predicate: true})");
+        TestUtil.testFail(db, "MATCH (n:Person) RETURN apoc.util.validatePredicate(n.predicate,'message %d',[42]) AS n", QueryExecutionException.class);
+    }
+
+    @Test
     public void testSleep() {
         String cypherSleep = "call apoc.util.sleep($duration)";
         testCallEmpty(db, cypherSleep, MapUtil.map("duration", 0l));  // force building query plan

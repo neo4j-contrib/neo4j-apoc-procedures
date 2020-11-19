@@ -1,0 +1,43 @@
+The following will create a node with a `name` property of `B`, because that's the first of the conditionals to evaluate to true:
+
+[source, cypher]
+----
+CALL apoc.do.case([
+  false,
+  'CREATE (a:Node{name:"A"}) RETURN a AS node',
+  true,
+  'CREATE (b:Node{name:"B"}) RETURN b AS node'
+  ],
+  'CREATE (c:Node{name:"C"}) RETURN c AS node',{})
+YIELD value
+RETURN value.node AS node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Node {name: "B"})
+|===
+
+The following will create a node with a `name` property of `C`, as per the elseQuery, because all conditionals evaluate to false:
+
+[source, cypher]
+----
+CALL apoc.do.case([
+  false,
+  'CREATE (a:Node{name:"A"}) RETURN a AS node',
+  false,
+  'CREATE (b:Node{name:"B"}) RETURN b AS node'
+  ],
+  'CREATE (c:Node{name:"C"}) RETURN c AS node',{})
+YIELD value
+RETURN value.node AS node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Node {name: "C"})
+|===

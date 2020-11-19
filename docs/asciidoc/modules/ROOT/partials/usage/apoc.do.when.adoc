@@ -1,0 +1,39 @@
+The following will create a node with a `name` property of `A`, as per the ifQuery, because the predicate is true:
+
+[source, cypher]
+----
+CALL apoc.do.when(true,
+  'CREATE (a:Node{name:"A"}) RETURN a AS node',
+  'CREATE (b:Node{name:"B"}) RETURN b AS node',
+  {}
+)
+YIELD value
+RETURN value.node AS node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Node {name: "A"})
+|===
+
+The following will create a node with a `name` property of `B`, as per the elseQuery, because the predicate is false:
+
+[source, cypher]
+----
+CALL apoc.do.when(false,
+  'CREATE (a:Node{name:"A"}) RETURN a AS node',
+  'CREATE (b:Node{name:"B"}) RETURN b AS node',
+  {}
+)
+YIELD value
+RETURN value.node AS node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Node {name: "B"})
+|===

@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.text.fuzzyMatch("The", "the") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| TRUE
+|===

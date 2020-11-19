@@ -26,5 +26,9 @@ apoc.number.parseInt(text :: STRING?, pattern =  :: STRING?, lang =  :: STRING?)
 |lang|STRING?|
 |===
 
+[[usage-apoc.number.parseInt]]
+== Usage Examples
+include::partial$usage/apoc.number.parseInt.adoc[]
+
 xref::mathematical/number-conversions.adoc[More documentation of apoc.number.parseInt,role=more information]
 

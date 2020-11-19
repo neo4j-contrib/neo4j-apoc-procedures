@@ -25,5 +25,9 @@ apoc.node.relationships.exist(node :: NODE?, types =  :: STRING?) :: (MAP?)
 |types|STRING?|
 |===
 
+[[usage-apoc.node.relationships.exist]]
+== Usage Examples
+include::partial$usage/apoc.node.relationships.exist.adoc[]
+
 xref::graph-querying/node-querying.adoc[More documentation of apoc.node.relationships.exist,role=more information]
 

@@ -25,5 +25,7 @@ apoc.coll.intersection(first :: LIST? OF ANY?, second :: LIST? OF ANY?) :: (LIST
 |second|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.intersection,role=more information]
+[[usage-apoc.coll.intersection]]
+== Usage Examples
+include::partial$usage/apoc.coll.intersection.adoc[]
 

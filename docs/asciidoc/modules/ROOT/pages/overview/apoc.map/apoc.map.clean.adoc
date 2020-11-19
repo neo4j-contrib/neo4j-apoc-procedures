@@ -26,5 +26,7 @@ apoc.map.clean(map :: MAP?, keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :
 |values|LIST? OF ANY?|null
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.clean,role=more information]
+[[usage-apoc.map.clean]]
+== Usage Examples
+include::partial$usage/apoc.map.clean.adoc[]
 

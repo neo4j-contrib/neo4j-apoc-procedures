@@ -1,0 +1,13 @@
+The following inserts the values `11`, `12`, and `13` at index `3` in the list:
+
+[source,cypher]
+----
+RETURN apoc.coll.insertAll([1,3,5,7,9], 3, [11,12,13]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 3, 5, 11, 12, 13, 7, 9]
+|===

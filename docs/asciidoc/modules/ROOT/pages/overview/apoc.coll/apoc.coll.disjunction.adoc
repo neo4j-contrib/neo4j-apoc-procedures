@@ -25,5 +25,7 @@ apoc.coll.disjunction(first :: LIST? OF ANY?, second :: LIST? OF ANY?) :: (LIST?
 |second|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.disjunction,role=more information]
+[[usage-apoc.coll.disjunction]]
+== Usage Examples
+include::partial$usage/apoc.coll.disjunction.adoc[]
 

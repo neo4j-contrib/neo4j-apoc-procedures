@@ -29,5 +29,9 @@ apoc.monitor.tx() :: (rolledBackTx :: INTEGER?, peakTx :: INTEGER?, lastTxId :: 
 |totalTx|INTEGER?
 |===
 
+[[usage-apoc.monitor.tx]]
+== Usage Examples
+include::partial$usage/apoc.monitor.tx.adoc[]
+
 xref::database-introspection/monitoring.adoc[More documentation of apoc.monitor.tx,role=more information]
 

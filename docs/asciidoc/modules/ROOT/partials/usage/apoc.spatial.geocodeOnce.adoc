@@ -1,0 +1,12 @@
+
+[source,cypher]
+----
+CALL apoc.spatial.geocodeOnce('21 rue Paul Bellamy 44000 NANTES FRANCE')
+----
+
+.Results
+[opts="header"]
+|===
+| location                                                                                                                                                                                                                | data                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | latitude   | longitude  | description
+| {description: "21, Rue Paul Bellamy, Talensac - Pont Morand, Hauts-Pavés - Saint-Félix, Nantes, Loire-Atlantique, Pays de la Loire, France métropolitaine, 44000, France", latitude: 47.2221667, longitude: -1.5566625} | {osm_type: "node", osm_id: 1730317979, licence: "Data © OpenStreetMap contributors, ODbL 1.0. https://osm.org/copyright", boundingbox: ["47.2221167", "47.2222167", "-1.5567125", "-1.5566125"], importance: 0.721, lon: "-1.5566625", display_name: "21, Rue Paul Bellamy, Talensac - Pont Morand, Hauts-Pavés - Saint-Félix, Nantes, Loire-Atlantique, Pays de la Loire, France métropolitaine, 44000, France", type: "house", class: "place", place_id: 17843897, lat: "47.2221667"} | 47.2221667 | -1.5566625 | "21, Rue Paul Bellamy, Talensac - Pont Morand, Hauts-Pavés - Saint-Félix, Nantes, Loire-Atlantique, Pays de la Loire, France métropolitaine, 44000, France"
+|===

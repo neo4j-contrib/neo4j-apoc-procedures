@@ -1,0 +1,56 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (s1:Student {name: 'Priya'})
+CREATE (s2:Student {name: 'Joachim'})
+CREATE (s3:Student {name: 'Dominic'})
+CREATE (s4:Student {name: 'Amir'})
+CREATE (s5:Student {name: 'Natasha'})
+CREATE (s6:Student {name: 'Elena'})
+
+CREATE (t1:TestScore {score: 87})
+CREATE (t2:TestScore {score: 90})
+CREATE (t3:TestScore {score: 78})
+CREATE (t4:TestScore {score: 84})
+CREATE (t5:TestScore {score: 76})
+CREATE (t6:TestScore {score: 92})
+
+CREATE (a:Level {level: 'beginner'})
+CREATE (b:Level {level: 'intermediate'})
+CREATE (c:Level {level: 'advanced'})
+
+MERGE (s1)-[:HAS]->(t1)-[:ASSIGNED_TO]->(b)
+MERGE (s2)-[:HAS]->(t2)-[:ASSIGNED_TO]->(c)
+MERGE (s3)-[:HAS]->(t3)-[:ASSIGNED_TO]->(a)
+MERGE (s4)-[:HAS]->(t4)-[:ASSIGNED_TO]->(b)
+MERGE (s5)-[:HAS]->(t5)-[:ASSIGNED_TO]->(a)
+MERGE (s6)-[:HAS]->(t6)-[:ASSIGNED_TO]->(c);
+----
+
+The apoc.create.vRelationship offers both a procedure and function version, so we can create the virtual relationships independently or return them based on results of a query.
+
+For instance, we might want to create virtual relationships between students to see which students have the same understanding level of class material:
+
+.apoc.create.vRelationship Procedure
+[source,cypher]
+----
+MATCH (s1:Student)-[:HAS]->(:TestScore)-[:ASSIGNED_TO]->(l:Level)<-[:ASSIGNED_TO]-(:TestScore)<-[:HAS]-(s2:Student)
+CALL apoc.create.vRelationship(s1,'SIMILAR_LEVEL',{level: l.level},s2) YIELD rel
+RETURN s1, rel, s2;
+----
+
+.Results
+image::apoc.create.vRelationship_proc.png[scaledwidth="100%"]
+
+We could also create a virtual relationship straight to their level and use the function version of the `apoc.create.vRelationship`.
+
+.apoc.create.vRelationship Function
+[source,cypher]
+----
+MATCH (s1:Student)-[:HAS]->(:TestScore)-[:ASSIGNED_TO]->(l:Level)
+RETURN s1, apoc.create.vRelationship(s1,'HAS_UNDERSTANDING',{},l) as rel, l
+----
+
+.Results
+image::apoc.create.vRelationship_func.png[scaledwidth="100%"]

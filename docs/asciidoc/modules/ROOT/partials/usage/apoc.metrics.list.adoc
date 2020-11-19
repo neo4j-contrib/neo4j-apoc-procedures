@@ -1,0 +1,19 @@
+[source,cypher]
+----
+CALL apoc.metrics.list()
+YIELD name, lastUpdated
+WHERE name STARTS WITH "neo4j.neo4j"
+RETURN name, datetime({epochMillis: lastUpdated}) AS lastUpdated
+LIMIT 5;
+----
+
+.Results
+[opts="header"]
+|===
+| name                                                 | lastUpdated
+| "neo4j.neo4j.transaction.started"              | 2020-11-16T12:04:13.224Z
+| "neo4j.neo4j.transaction.peak_concurrent"      | 2020-11-16T12:04:13.224Z
+| "neo4j.neo4j.transaction.active_write"         | 2020-11-16T12:04:13.220Z
+| "neo4j.neo4j.transaction.rollbacks"            | 2020-11-16T12:04:13.224Z
+| "neo4j.neo4j.transaction.last_committed_tx_id" | 2020-11-16T12:04:13.224Z
+|===

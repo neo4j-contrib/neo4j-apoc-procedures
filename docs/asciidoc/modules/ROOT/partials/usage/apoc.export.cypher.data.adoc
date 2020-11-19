@@ -1,0 +1,191 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$createExportGraph.adoc[]
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::play-movies.png[title="Movies Graph Visualization"]
+
+
+The export to Cypher procedures generate Cypher statements using the `CREATE`, `MATCH` and `MERGE` clauses.
+The format is configured by the `cypherFormat` parameter.
+The following values are supported:
+
+* `create` - only uses the `CREATE` clause (default)
+* `updateAll` - uses `MERGE` instead of `CREATE`
+* `addStructure` - uses `MATCH` for nodes and `MERGE` for relationships
+* `updateStructure` - uses `MERGE` and `MATCH` for nodes and relationships
+
+If we're exporting a database for the first time we should use the default `create` format, but for subsequent exports the other formats may be more suitable.
+
+The following exports the `ACTED_IN` relationships and surrounding nodes to `export-cypher-format-create.cypher` using the `create` format
+[source,cypher]
+----
+MATCH (person)-[r:ACTED_IN]->(movie)
+WITH collect(DISTINCT person) + collect(DISTINCT  movie) AS importNodes, collect(r) AS importRels
+CALL apoc.export.cypher.data(importNodes, importRels,
+  "export-cypher-format-create.cypher",
+  { format: "plain", cypherFormat: "create" })
+YIELD file, batches, source, format, nodes, relationships, properties, time, rows, batchSize
+RETURN file, batches, source, format, nodes, relationships, properties, time, rows, batchSize;
+----
+
+.Results
+[opts="header"]
+|===
+| file                                 | batches | source                         | format   | nodes | relationships | properties | time | rows | batchSize
+| "export-cypher-format-create.cypher" | 1       | "data: nodes(5), rels(4)" | "cypher" | 5     | 4             | 15         | 2    | 9    | 20000
+|===
+
+.export-cypher-format-create.cypher
+[source,cypher]
+----
+CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+UNWIND [{_id:0, properties:{tagline:"Welcome to the Real World", title:"The Matrix", released:1999}}] AS row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Movie;
+
+UNWIND [{_id:7, properties:{born:1967, name:"Carrie-Anne Moss"}},
+        {_id:80, properties:{born:1960, name:"Hugo Weaving"}},
+        {_id:27, properties:{born:1964, name:"Keanu Reeves"}},
+        {_id:44, properties:{born:1961, name:"Laurence Fishburne"}}] AS row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Person;
+
+UNWIND [{start: {_id:27}, end: {_id:0}, properties:{roles:["Neo"]}},
+        {start: {_id:7}, end: {_id:0}, properties:{roles:["Trinity"]}},
+        {start: {_id:44}, end: {_id:0}, properties:{roles:["Morpheus"]}},
+        {start: {_id:80}, end: {_id:0}, properties:{roles:["Agent Smith"]}}] AS row
+MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})
+MATCH (end:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.end._id})
+CREATE (start)-[r:ACTED_IN]->(end) SET r += row.properties;
+
+MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
+DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+----
+
+The creation of all graph entities uses the Cypher `CREATE` clause.
+If those entities may already exist in the destination database, we may choose to use another format.
+Using `cypherFormat: "updateAll"` means that the `MERGE` clause will be used instead of `CREATE` when creating entities.
+
+The following exports the `ACTED_IN` relationships and surrounding nodes to `export-cypher-format-create.cypher` using the `updateAll` format
+[source,cypher]
+----
+MATCH (person)-[r:ACTED_IN]->(movie)
+WITH collect(DISTINCT person) + collect(DISTINCT  movie) AS importNodes, collect(r) AS importRels
+CALL apoc.export.cypher.data(importNodes, importRels,
+  "export-cypher-format-updateAll.cypher",
+  { format: "plain", cypherFormat: "updateAll" })
+YIELD file, batches, source, format, nodes, relationships, properties, time, rows, batchSize
+RETURN file, batches, source, format, nodes, relationships, properties, time, rows, batchSize;
+----
+
+.Results
+[opts="header"]
+|===
+| file                                 | batches | source                         | format   | nodes | relationships | properties | time | rows | batchSize
+| "export-cypher-format-updateAll.cypher" | 1       | "data: nodes(5), rels(4)" | "cypher" | 5     | 4             | 15         | 8    | 9    | 20000
+|===
+
+
+.export-cypher-format-updateAll.cypher
+[source,cypher]
+----
+CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+UNWIND [{_id:0, properties:{tagline:"Welcome to the Real World", title:"The Matrix", released:1999}}] AS row
+MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Movie;
+
+UNWIND [{_id:80, properties:{born:1960, name:"Hugo Weaving"}},
+        {_id:7, properties:{born:1967, name:"Carrie-Anne Moss"}},
+        {_id:44, properties:{born:1961, name:"Laurence Fishburne"}},
+        {_id:27, properties:{born:1964, name:"Keanu Reeves"}}] AS row
+MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Person;
+
+UNWIND [{start: {_id:27}, end: {_id:0}, properties:{roles:["Neo"]}},
+        {start: {_id:7}, end: {_id:0}, properties:{roles:["Trinity"]}},
+        {start: {_id:44}, end: {_id:0}, properties:{roles:["Morpheus"]}},
+        {start: {_id:80}, end: {_id:0}, properties:{roles:["Agent Smith"]}}] AS row
+MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})
+MATCH (end:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.end._id})
+MERGE (start)-[r:ACTED_IN]->(end) SET r += row.properties;
+
+MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
+DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+----
+
+If we already have the nodes in our destination database, we can use `cypherFormat: "addStructure"` to create Cypher `CREATE` statements for just the relationships.
+
+The following exports the `ACTED_IN` relationships and surrounding nodes to `export-cypher-format-addStructure.cypher` using the `addStructure` format
+[source,cypher]
+----
+MATCH (person)-[r:ACTED_IN]->(movie)
+WITH collect(DISTINCT person) + collect(DISTINCT  movie) AS importNodes, collect(r) AS importRels
+CALL apoc.export.cypher.data(importNodes, importRels,
+  "export-cypher-format-addStructure.cypher",
+  { format: "plain", cypherFormat: "addStructure" })
+YIELD file, batches, source, format, nodes, relationships, properties, time, rows, batchSize
+RETURN file, batches, source, format, nodes, relationships, properties, time, rows, batchSize;
+----
+
+.Results
+[opts="header"]
+|===
+| file                                 | batches | source                         | format   | nodes | relationships | properties | time | rows | batchSize
+| "export-cypher-format-addStructure.cypher" | 1       | "data: nodes(5), rels(4)" | "cypher" | 5     | 4             | 15         | 4    | 9    | 20000
+|===
+
+.export-cypher-format-addStructure.cypher
+[source,cypher]
+----
+UNWIND [{_id:0, properties:{tagline:"Welcome to the Real World", title:"The Matrix", released:1999}}] AS row
+MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) ON CREATE SET n += row.properties SET n:Movie;
+
+UNWIND [{_id:7, properties:{born:1967, name:"Carrie-Anne Moss"}},
+        {_id:27, properties:{born:1964, name:"Keanu Reeves"}},
+        {_id:80, properties:{born:1960, name:"Hugo Weaving"}},
+        {_id:44, properties:{born:1961, name:"Laurence Fishburne"}}] AS row
+MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) ON CREATE SET n += row.properties SET n:Person;
+
+UNWIND [{start: {_id:27}, end: {_id:0}, properties:{roles:["Neo"]}},
+        {start: {_id:7}, end: {_id:0}, properties:{roles:["Trinity"]}},
+        {start: {_id:44}, end: {_id:0}, properties:{roles:["Morpheus"]}},
+        {start: {_id:80}, end: {_id:0}, properties:{roles:["Agent Smith"]}}] AS row
+MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})
+MATCH (end:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.end._id})
+CREATE (start)-[r:ACTED_IN]->(end)  SET r += row.properties;
+----
+
+In this example we're using the `MERGE` clause to create a node if it doesn't already exist, and are only creating properties if the node doesn't already exist.
+In this example, relationships don't exist in the destination database and need to be created.
+
+If those relationships do exist but have properties that need to be updated, we can use `cypherFormat: "updateStructure"` to create our import script.
+
+The following exports the `ACTED_IN` relationships and surrounding nodes to `export-cypher-format-updateStructure.cypher` using the `updateStructure` format
+[source,cypher]
+----
+MATCH (person)-[r:ACTED_IN]->(movie)
+WITH collect(DISTINCT person) + collect(DISTINCT  movie) AS importNodes, collect(r) AS importRels
+CALL apoc.export.cypher.data(importNodes, importRels,
+  "export-cypher-format-updateStructure.cypher",
+  { format: "plain", cypherFormat: "updateStructure" })
+YIELD file, batches, source, format, nodes, relationships, properties, time, rows, batchSize
+RETURN file, batches, source, format, nodes, relationships, properties, time, rows, batchSize;
+----
+
+.Results
+[opts="header"]
+|===
+| file                                 | batches | source                         | format   | nodes | relationships | properties | time | rows | batchSize
+| "export-cypher-format-updateStructure.cypher" | 1       | "data: nodes(5), rels(4)" | "cypher" | 0     | 4             | 4          | 2    | 4    | 20000
+|===
+
+.export-cypher-format-updateStructure.cypher
+[source,cypher]
+----
+UNWIND [{start: {_id:27}, end: {_id:0}, properties:{roles:["Neo"]}},
+        {start: {_id:7}, end: {_id:0}, properties:{roles:["Trinity"]}},
+        {start: {_id:44}, end: {_id:0}, properties:{roles:["Morpheus"]}},
+        {start: {_id:80}, end: {_id:0}, properties:{roles:["Agent Smith"]}}] AS row
+MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})
+MATCH (end:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.end._id})
+MERGE (start)-[r:ACTED_IN]->(end) SET r += row.properties;
+
+----

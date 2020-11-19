@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.text.hexCharAt("Neo4j", 4) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "006A"
+|===

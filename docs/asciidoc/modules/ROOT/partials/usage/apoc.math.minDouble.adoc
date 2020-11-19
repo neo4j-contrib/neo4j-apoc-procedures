@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.math.minDouble() AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 4.9E-324
+|===

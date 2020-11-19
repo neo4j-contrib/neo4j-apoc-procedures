@@ -25,5 +25,7 @@ apoc.coll.sortText(coll :: LIST? OF STRING?, conf = {} :: MAP?) :: (LIST? OF ANY
 |conf|MAP?|{}
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.sortText,role=more information]
+[[usage-apoc.coll.sortText]]
+== Usage Examples
+include::partial$usage/apoc.coll.sortText.adoc[]
 

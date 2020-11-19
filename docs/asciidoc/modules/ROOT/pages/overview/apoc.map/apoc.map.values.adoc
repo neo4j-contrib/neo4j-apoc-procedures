@@ -26,5 +26,7 @@ apoc.map.values(map :: MAP?, keys = [] :: LIST? OF STRING?, addNullsForMissing =
 |addNullsForMissing|BOOLEAN?|false
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.values,role=more information]
+[[usage-apoc.map.values]]
+== Usage Examples
+include::partial$usage/apoc.map.values.adoc[]
 

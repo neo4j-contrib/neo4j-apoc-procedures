@@ -44,5 +44,9 @@ apoc.export.graphml.graph(graph :: MAP?, file :: STRING?, config :: MAP?) :: (fi
 |data|STRING?
 |===
 
+[[usage-apoc.export.graphml.graph]]
+== Usage Examples
+include::partial$usage/apoc.export.graphml.graph.adoc[]
+
 xref::export/graphml.adoc[More documentation of apoc.export.graphml.graph,role=more information]
 

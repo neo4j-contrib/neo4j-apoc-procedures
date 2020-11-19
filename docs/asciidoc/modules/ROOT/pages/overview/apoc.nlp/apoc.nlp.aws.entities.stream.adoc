@@ -34,5 +34,15 @@ apoc.nlp.aws.entities.stream(source :: ANY?, config = {} :: MAP?) :: (node :: NO
 |error|MAP?
 |===
 
+== Install Dependencies
+include::partial$nlp-dependencies.adoc[]
+
+== Setting up API Key
+include::partial$nlp-api-keys-apoc.nlp.aws.adoc[]
+
+[[usage-apoc.nlp.aws.entities.stream]]
+== Usage Examples
+include::partial$usage/apoc.nlp.aws.entities.stream.adoc[]
+
 xref::nlp/aws.adoc[More documentation of apoc.nlp.aws.entities.stream,role=more information]
 

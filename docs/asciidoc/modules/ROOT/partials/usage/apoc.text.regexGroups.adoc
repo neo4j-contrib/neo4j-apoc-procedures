@@ -1,0 +1,27 @@
+[source,cypher]
+----
+RETURN apoc.text.regexGroups(
+  'abc <link xxx1>yyy1</link> def <link xxx2>yyy2</link>',
+  '<link (\\w+)>(\\w+)</link>'
+) AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| [["<link xxx1>yyy1</link>", "xxx1", "yyy1"], ["<link xxx2>yyy2</link>", "xxx2", "yyy2"]]
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.regexGroups(
+  'Michael: 1234\nJennifer: 5678',
+  '(\\w+): (\\d+)'
+) AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| [["Michael: 1234", "Michael", "1234"], ["Jennifer: 5678", "Jennifer", "5678"]]
+|===

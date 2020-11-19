@@ -24,5 +24,7 @@ apoc.coll.containsDuplicates(coll :: LIST? OF ANY?) :: (BOOLEAN?)
 |coll|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.containsDuplicates,role=more information]
+[[usage-apoc.coll.containsDuplicates]]
+== Usage Examples
+include::partial$usage/apoc.coll.containsDuplicates.adoc[]
 

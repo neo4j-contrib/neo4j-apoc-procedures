@@ -37,5 +37,9 @@ apoc.atomic.subtract(container :: ANY?, propertyName :: STRING?, number :: NUMBE
 |newValue|ANY?
 |===
 
+[[usage-apoc.atomic.subtract]]
+== Usage Examples
+include::partial$usage/apoc.atomic.subtract.adoc[]
+
 xref::graph-updates/atomic-updates.adoc[More documentation of apoc.atomic.subtract,role=more information]
 

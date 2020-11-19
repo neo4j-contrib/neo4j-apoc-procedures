@@ -1,0 +1,22 @@
+The following generates a stream of UUID:
+
+[source,cypher]
+----
+CALL apoc.create.uuids(10);
+----
+
+.Results
+[opts="header", cols="1,5"]
+|===
+| row | uuid
+| 0   | "e2c84705-5667-4550-b468-9e1faf08c0d7"
+| 1   | "7112c6ac-13bc-4c0c-afd8-2c1bc47b9942"
+| 2   | "bb4f5089-6907-4550-9b38-919c2400e82c"
+| 3   | "40cf6b89-5b42-4792-802c-bc55d03e12e4"
+| 4   | "486b2b05-7d73-4f14-ba14-dc4ea72f5335"
+| 5   | "3b0e6253-73e1-4b19-a6af-e57164bd34cd"
+| 6   | "7f01f2b4-f8bf-4975-9a1f-a4567e70d0f9"
+| 7   | "1c2ad4cb-0ba1-412c-baeb-0349126c4938"
+| 8   | "52ce2443-8ce5-42c1-8553-349d8dfbefb4"
+| 9   | "02111796-7531-41b9-99dc-22c8625009c4"
+|===

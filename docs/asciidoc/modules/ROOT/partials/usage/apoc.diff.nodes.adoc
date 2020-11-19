@@ -1,0 +1,22 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (joe:Person {name: "Joe", dateOfBirth: datetime("1981-09-02")})
+MERGE (ryan:Person {name: "Ryan", twitter: "@ryguyrg"});
+----
+
+
+[source,cypher]
+----
+MATCH (joe:Person {name: "Joe"})
+MATCH (ryan:Person {name: "Ryan"})
+RETURN apoc.diff.nodes(joe, ryan) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+|  {leftOnly: {dateOfBirth: 1981-09-02T00:00Z}, inCommon: {}, different: {name: {left: "Joe", right: "Ryan"}}, rightOnly: {twitter: "@ryguyrg"}}
+|===

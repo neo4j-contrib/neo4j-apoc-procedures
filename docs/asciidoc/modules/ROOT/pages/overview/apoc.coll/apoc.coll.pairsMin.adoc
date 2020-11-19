@@ -24,5 +24,7 @@ apoc.coll.pairsMin(list :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |list|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.pairsMin,role=more information]
+[[usage-apoc.coll.pairsMin]]
+== Usage Examples
+include::partial$usage/apoc.coll.pairsMin.adoc[]
 

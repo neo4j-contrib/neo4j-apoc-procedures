@@ -24,5 +24,7 @@ apoc.convert.toFloat(object :: ANY?) :: (FLOAT?)
 |object|ANY?|null
 |===
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toFloat,role=more information]
+[[usage-apoc.convert.toFloat]]
+== Usage Examples
+include::partial$usage/apoc.convert.toFloat.adoc[]
 

@@ -1,0 +1,35 @@
+[source,cypher]
+----
+RETURN apoc.number.parseInt('12,345') AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 12345
+|===
+
+[source,cypher]
+----
+RETURN apoc.number.parseInt('12,345', '#,##0.00;(#,##0.00)') AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 12345
+|===
+
+[source,cypher]
+----
+RETURN apoc.number.parseInt('12.345', '' ,'it') AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 12345
+|===

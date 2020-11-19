@@ -24,5 +24,7 @@ apoc.date.fromISO8601(time :: STRING?) :: (INTEGER?)
 |time|STRING?|null
 |===
 
-xref::temporal/datetime-conversions.adoc[More documentation of apoc.date.fromISO8601,role=more information]
+[[usage-apoc.date.fromISO8601]]
+== Usage Examples
+include::partial$usage/apoc.date.fromISO8601.adoc[]
 

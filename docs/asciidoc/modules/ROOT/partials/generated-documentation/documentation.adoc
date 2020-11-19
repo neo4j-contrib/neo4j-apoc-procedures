@@ -986,7 +986,7 @@ apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time',
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.currentTimestamp.adoc[apoc.date.currentTimestamp icon:book[]]
 
-apoc.date.currentTimestamp() - returns System.currentTimeMillis()
+apoc.date.currentTimestamp() - returns System.currentTimeMillis() at the time it was called. The value is current throughout transaction execution, and is different from Cypher’s timestamp() function, which does not update within a transaction.
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.field.adoc[apoc.date.field icon:book[]]
@@ -2460,7 +2460,7 @@ apoc.refactor.setType(rel, 'NEW-TYPE') change relationship-type
 |label:apoc-core[]
 |xref::overview/apoc.refactor/apoc.refactor.to.adoc[apoc.refactor.to icon:book[]]
 
-apoc.refactor.to(rel, endNode) redirect relationship to use new end-node
+  apoc.refactor.to(rel, endNode) redirect relationship to use new end-node
 |label:procedure[]
 |label:apoc-core[]
 |===
@@ -3047,6 +3047,11 @@ apoc.util.sha384([values]) \| computes the sha384 of the concatenation of all st
 |xref::overview/apoc.util/apoc.util.sha512.adoc[apoc.util.sha512 icon:book[]]
 
 apoc.util.sha512([values]) \| computes the sha512 of the concatenation of all string values of the list
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.util/apoc.util.validatePredicate.adoc[apoc.util.validatePredicate icon:book[]]
+
+apoc.util.validatePredicate(predicate, message, params) \| if the predicate yields to true raise an exception else returns true, for use inside WHERE subclauses
 |label:function[]
 |label:apoc-core[]
 |===

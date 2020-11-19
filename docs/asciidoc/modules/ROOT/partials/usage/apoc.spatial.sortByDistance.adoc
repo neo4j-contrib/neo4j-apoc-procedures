@@ -1,0 +1,41 @@
+The examples in this section are based on the following sample graph:
+
+[source, cypher]
+----
+CREATE (bruges:City {name:"bruges", latitude: 51.2605829, longitude: 3.0817189})
+CREATE (brussels:City {name:"brussels", latitude: 50.854954, longitude: 4.3051786})
+CREATE (paris:City {name:"paris", latitude: 48.8588376, longitude: 2.2773455})
+CREATE (dresden:City {name:"dresden", latitude: 51.0767496, longitude: 13.6321595})
+MERGE (bruges)-[:NEXT]->(brussels)
+MERGE (brussels)-[:NEXT]->(dresden)
+MERGE (brussels)-[:NEXT]->(paris)
+MERGE (bruges)-[:NEXT]->(paris)
+MERGE (paris)-[:NEXT]->(dresden);
+----
+
+[source, cypher]
+----
+MATCH (a:City {name:'bruges'}), (b:City {name:'dresden'})
+MATCH p=(a)-[*]->(b)
+WITH collect(p) as paths
+CALL apoc.spatial.sortByDistance(paths)
+YIELD path, distance
+RETURN path, distance;
+----
+
+.Results
+[opts="header"]
+|===
+| path | distance
+| (:City {name: "bruges", latitude: 51.2605829, longitude: 3.0817189})-[:NEXT]->(:City {name: "brussels", latitude: 50.854954, longitude: 4.3051786})-
+[:NEXT]->(:City {name: "dresden", latitude: 51.0767496, longitude: 13.6321595})
+       | 749.8210570020021
+| (:City {name: "bruges", latitude: 51.2605829, longitude: 3.0817189})-[:NEXT]->(:City {name: "paris", latitude: 48.8588376, longitude: 2.2773455})-[:
+NEXT]->(:City {name: "dresden", latitude: 51.0767496, longitude: 13.6321595})
+       | 1120.8512195180913
+| (:City {name: "bruges", latitude: 51.2605829, longitude: 3.0817189})-[:NEXT]->(:City {name: "brussels", latitude: 50.854954, longitude: 4.3051786})-
+[:NEXT]->(:City {name: "paris", latitude: 48.8588376, longitude: 2.2773455})-[:NEXT]->(:City {name: "dresden", latitude: 51.0767496, longitude: 13.632
+1595}) | 1209.661314133324
+|===
+
+

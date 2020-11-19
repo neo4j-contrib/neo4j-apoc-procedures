@@ -1,0 +1,25 @@
+You can generate a random string to a specified length by calling `apoc.text.random` with a length parameter and optional string of valid characters.
+
+The `valid` parameter will accept the following regex patterns, alternatively you can provide a string of letters and/or characters.
+
+[cols="5m,5"]
+|===
+| Pattern | Description
+| A-Z | A-Z in uppercase
+| a-z | A-Z in lowercase
+| 0-9 | Numbers 0-9 inclusive
+|===
+
+The following call will return a random string including uppercase letters, numbers and `.` and `$` characters.
+
+[source,cypher]
+----
+RETURN apoc.text.random(10, "A-Z0-9.$") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "V9Y7N54LO6"
+|===

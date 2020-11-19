@@ -1,0 +1,41 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (mark:Person {name: "Mark", city: "London"})
+CREATE (jennifer:Person {name: "Jennifer", city: "St Louis"})
+CREATE (mark)-[:FOLLOWS]->(jennifer);
+----
+
+The following reverses the direction of the `FOLLOWS` relationship:
+
+[source,cypher]
+----
+MATCH ()-[rel:FOLLOWS]->()
+CALL apoc.refactor.invert(rel)
+YIELD input, output
+RETURN input, output;
+----
+
+.Results
+[opts="header"]
+|===
+| input | output
+| 0     | [:FOLLOWS]
+|===
+
+We can list all the `Person` nodes by running the following query:
+
+[source,cypher]
+----
+MATCH path = ()-[rel:FOLLOWS]->()
+RETURN path;
+----
+
+.Results
+[opts="header"]
+|===
+| path
+|  (:Person {name: "Jennifer", city: "St Louis"})-[:FOLLOWS]->(:Person {name: "Mark", city: "London"})
+|===
+

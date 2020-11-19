@@ -32,5 +32,9 @@ apoc.static.set(key :: STRING?, value :: ANY?) :: (value :: ANY?)
 |value|ANY?
 |===
 
+[[usage-apoc.static.set]]
+== Usage Examples
+include::partial$usage/apoc.static.set.adoc[]
+
 xref::misc/static-values.adoc[More documentation of apoc.static.set,role=more information]
 

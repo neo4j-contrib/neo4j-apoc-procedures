@@ -1,0 +1,65 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+include::example$nlp-graph.cypher[]
+----
+
+We can use this procedure to automatically create the category graph.
+As well as having the `Category` label, each category node will have another label based on the value of the `type` property.
+By default, a virtual graph is returned.
+
+The following returns a virtual graph of categories for the Pokemon article:
+
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.gcp.classify.graph(a, {
+  key: $apiKey,
+  nodeProperty: "body",
+  writeRelationshipType: "CATEGORY"
+})
+YIELD graph AS g
+RETURN g;
+----
+
+We can see a Neo4j Browser visualization of the virtual graph in <<apoc.nlp.gcp.classify.graph.svg>>.
+
+[[apoc.nlp.gcp.classify.graph.svg]]
+image::apoc.nlp.gcp.classify.graph.svg[title="Pokemon categories graph"]
+
+The following creates a `HAS_CATEGORY` relationship from the article to each entity:
+[source,cypher]
+----
+MATCH (a:Article)
+WITH collect(a) AS articles
+CALL apoc.nlp.gcp.classify.graph(articles, {
+  key: $apiKey,
+  nodeProperty: "body",
+  writeRelationshipType: "HAS_CATEGORY",
+  writeRelationshipProperty: "gcpCategoryScore",
+  write: true
+})
+YIELD graph AS g
+RETURN g;
+----
+
+We can then write a query to return the entities that have been created.
+
+.The following returns articles and their entities
+[source,cypher]
+----
+MATCH (article:Article)
+RETURN article.uri AS article,
+       [(article)-[r:HAS_CATEGORY]->(c) | {category: c.text, score: r.gcpCategoryScore}] AS categories;
+----
+
+.Results
+[opts="header"]
+|===
+| article                                                | categories
+| "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/" | [{category: "/Games", score: 0.91}]
+| "https://en.wikipedia.org/wiki/Nintendo_Switch"        | [{category: "/Computers & Electronics/Consumer Electronics/Game Systems & Consoles", score: 0.99}, {category: "/Games/Computer & Video Games", score: 0.99}]
+|===
+
+If we want to stream back categories and apply custom logic to the results, see xref::overview/apoc.nlp/apoc.nlp.gcp.classify.stream.adoc[].

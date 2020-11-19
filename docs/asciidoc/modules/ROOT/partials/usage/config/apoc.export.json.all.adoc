@@ -1,0 +1,9 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| writeNodeProperties | boolean | false | if true export properties too.
+| stream | boolean | false | stream the json directly to the client into the `data` field
+|===

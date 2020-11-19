@@ -25,5 +25,7 @@ apoc.convert.fromJsonList(list :: STRING?, path =  :: STRING?) :: (LIST? OF ANY?
 |path|STRING?|
 |===
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.fromJsonList,role=more information]
+[[usage-apoc.convert.fromJsonList]]
+== Usage Examples
+include::partial$usage/apoc.convert.fromJsonList.adoc[]
 

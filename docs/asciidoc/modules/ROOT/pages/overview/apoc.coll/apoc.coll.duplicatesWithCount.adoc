@@ -24,5 +24,7 @@ apoc.coll.duplicatesWithCount(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |coll|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.duplicatesWithCount,role=more information]
+[[usage-apoc.coll.duplicatesWithCount]]
+== Usage Examples
+include::partial$usage/apoc.coll.duplicatesWithCount.adoc[]
 

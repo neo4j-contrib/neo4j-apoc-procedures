@@ -32,5 +32,9 @@ apoc.create.vNodes(label :: LIST? OF STRING?, props :: LIST? OF MAP?) :: (node :
 |node|NODE?
 |===
 
+[[usage-apoc.create.vNodes]]
+== Usage Examples
+include::partial$usage/apoc.create.vNodes.adoc[]
+
 xref::virtual/virtual-nodes-rels.adoc[More documentation of apoc.create.vNodes,role=more information]
 

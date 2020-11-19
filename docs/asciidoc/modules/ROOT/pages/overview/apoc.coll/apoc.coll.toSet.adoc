@@ -24,5 +24,7 @@ apoc.coll.toSet(values :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |values|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.toSet,role=more information]
+[[usage-apoc.coll.toSet]]
+== Usage Examples
+include::partial$usage/apoc.coll.toSet.adoc[]
 

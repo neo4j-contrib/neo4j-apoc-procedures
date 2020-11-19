@@ -33,5 +33,9 @@ apoc.refactor.invert(relationship :: RELATIONSHIP?) :: (input :: INTEGER?, outpu
 |error|STRING?
 |===
 
+[[usage-apoc.refactor.invert]]
+== Usage Examples
+include::partial$usage/apoc.refactor.invert.adoc[]
+
 xref::graph-updates/graph-refactoring/invert-relationship.adoc[More documentation of apoc.refactor.invert,role=more information]
 

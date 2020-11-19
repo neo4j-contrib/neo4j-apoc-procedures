@@ -25,5 +25,9 @@ apoc.text.byteCount(text :: STRING?, charset = UTF-8 :: STRING?) :: (INTEGER?)
 |charset|STRING?|UTF-8
 |===
 
+[[usage-apoc.text.byteCount]]
+== Usage Examples
+include::partial$usage/apoc.text.byteCount.adoc[]
+
 xref::misc/text-functions.adoc[More documentation of apoc.text.byteCount,role=more information]
 

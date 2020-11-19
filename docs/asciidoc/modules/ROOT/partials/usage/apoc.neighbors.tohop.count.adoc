@@ -1,0 +1,44 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (mark:Person {name: "Mark"})
+MERGE (praveena:Person {name: "Praveena"})
+MERGE (joe:Person {name: "Joe"})
+MERGE (lju:Person {name: "Lju"})
+MERGE (michael:Person {name: "Michael"})
+MERGE (emil:Person {name: "Emil"})
+MERGE (ryan:Person {name: "Ryan"})
+
+MERGE (ryan)-[:FOLLOWS]->(joe)
+MERGE (joe)-[:FOLLOWS]->(mark)
+MERGE (mark)-[:FOLLOWS]->(emil)
+MERGE (michael)-[:KNOWS]-(emil)
+MERGE (michael)-[:KNOWS]-(lju)
+MERGE (michael)-[:KNOWS]-(praveena)
+MERGE (emil)-[:FOLLOWS]->(joe)
+MERGE (praveena)-[:FOLLOWS]->(joe)
+----
+
+
+This procedure computes a node's neighborhood up to a specified hop count.
+
+The following returns the number of people that Praveena `FOLLOWS` up to 2 hops:
+
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.neighbors.tohop.count(p, "FOLLOWS>", 2)
+YIELD value
+RETURN value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| 2
+|===
+
+If we also want to know which nodes are in our neighborhood, we can do that as well.
+See xref::overview/apoc.neighbors/apoc.neighbors.tohop.adoc[].

@@ -1,0 +1,13 @@
+The following returns unique set of first list with all elements of second list removed:
+
+[source,cypher]
+----
+RETURN apoc.coll.subtract([1,2,3,4,5,6,6], [3,4,5]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 2, 6]
+|===

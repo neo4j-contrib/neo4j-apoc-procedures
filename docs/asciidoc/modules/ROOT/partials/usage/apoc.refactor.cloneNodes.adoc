@@ -1,0 +1,46 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (mark:Person {name: "Mark", city: "London"})
+CREATE (jennifer:Person {name: "Jennifer", city: "St Louis"});
+----
+
+
+The following creates copies of all `Person` nodes:
+
+[source,cypher]
+----
+MATCH (p:Person)
+WITH collect(p) AS people
+CALL apoc.refactor.cloneNodes(people)
+YIELD input, output
+RETURN input, output;
+----
+
+.Results
+[opts="header"]
+|===
+| input | output
+| 4     | (:Person {name: "Mark", city: "London"})
+| 5     | (:Person {name: "Jennifer", city: "St Louis"})
+|===
+
+We can list all the `Person` nodes by running the following query:
+
+[source,cypher]
+----
+MATCH (p:Person)
+RETURN p;
+----
+
+.Results
+[opts="header"]
+|===
+| p
+| (:Person {name: "Mark", city: "London"})
+| (:Person {name: "Jennifer", city: "St Louis"})
+| (:Person {name: "Mark", city: "London"})
+| (:Person {name: "Jennifer", city: "St Louis"})
+|===
+

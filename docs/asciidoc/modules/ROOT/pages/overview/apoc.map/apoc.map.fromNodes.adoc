@@ -25,5 +25,7 @@ apoc.map.fromNodes(label :: STRING?, property :: STRING?) :: (MAP?)
 |property|STRING?|null
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.fromNodes,role=more information]
+[[usage-apoc.map.fromNodes]]
+== Usage Examples
+include::partial$usage/apoc.map.fromNodes.adoc[]
 

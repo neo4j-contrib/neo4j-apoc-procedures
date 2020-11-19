@@ -26,5 +26,9 @@ apoc.generate.simple(degrees :: LIST? OF INTEGER?, label :: STRING?, type :: STR
 |type|STRING?|null
 |===
 
+[[usage-apoc.generate.simple]]
+== Usage Examples
+include::partial$usage/apoc.generate.simple.adoc[]
+
 xref::graph-updates/graph-generators.adoc[More documentation of apoc.generate.simple,role=more information]
 

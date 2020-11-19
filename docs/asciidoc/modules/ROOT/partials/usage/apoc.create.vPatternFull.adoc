@@ -1,0 +1,55 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (s1:Student:TA:Graduate {name: 'Priya', score: 87, grade: 'B'})
+CREATE (s2:Student:Graduate {name: 'Joachim', score: 90, grade: 'A'})
+CREATE (s3:Student:TA:Graduate {name: 'Dominic', score: 78, grade: 'C'})
+CREATE (s4:Student:Undergraduate {name: 'Amir', score: 84, grade: 'B'})
+CREATE (s5:Student:Undergraduate {name: 'Natasha', score: 76, grade: 'C'})
+CREATE (s6:Student:Undergraduate {name: 'Elena', score: 92, grade: 'A'});
+----
+
+The apoc.create.vPattern and apoc.create.vPatternFull are procedures that allow us to create a virtual graph - both nodes and relationships at once. Both procedures have the same functionality, but slightly different syntax for specifying the nodes and relationships to create.
+
+As an example, all of our data is in the `Student` nodes, but we can separate some of the data into other nodes and relationships with the query below.
+
+.apoc.create.vPattern
+[source,cypher]
+----
+MATCH (s:Student)
+CALL apoc.create.vPattern(
+  {_labels:['Student'],name:s.name},
+  'FINISHED_COURSE_WITH',
+  {score: s.score},
+  {_labels:['Grade'],letter: s.grade}
+)
+YIELD from, rel, to
+RETURN from, rel, to;
+----
+
+.Results
+image::apoc.create.vPattern.png[scaledwidth="100%"]
+
+Note that the statement above does a `CREATE` (not `MERGE`), so it creates multiple nodes with the same grade letters.
+
+Let's do the same thing with the apoc.create.vPatternFull procedure to see the syntax differences and that the result is the same.
+
+.apoc.create.vPatternFull
+[source,cypher]
+----
+MATCH (s:Student)
+CALL apoc.create.vPatternFull(
+  ['Student'],
+  {name: s.name},
+  'FINISHED_COURSE_WITH',
+  {score: s.score},
+  ['Grade'],
+  {letter: s.grade}
+)
+YIELD from, rel, to
+RETURN from, rel, to;
+----
+
+.Results
+image::apoc.create.vPatternFull.png[scaledwidth="100%"]

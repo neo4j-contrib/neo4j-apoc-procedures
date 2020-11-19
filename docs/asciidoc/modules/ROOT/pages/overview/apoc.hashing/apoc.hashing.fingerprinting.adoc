@@ -25,5 +25,12 @@ apoc.hashing.fingerprinting(some object :: ANY?, conf = {} :: MAP?) :: (STRING?)
 |conf|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.hashing.fingerprinting.adoc[]
+
+[[usage-apoc.hashing.fingerprinting]]
+== Usage Examples
+include::partial$usage/apoc.hashing.fingerprinting.adoc[]
+
 xref::comparing-graphs/fingerprinting.adoc[More documentation of apoc.hashing.fingerprinting,role=more information]
 

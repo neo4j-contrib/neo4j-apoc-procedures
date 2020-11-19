@@ -34,5 +34,9 @@ apoc.load.jdbc(jdbc :: STRING?, tableOrSql :: STRING?, params = [] :: LIST? OF A
 |row|MAP?
 |===
 
+[[usage-apoc.load.jdbc]]
+== Usage Examples
+include::partial$usage/apoc.load.jdbc.adoc[]
+
 xref::database-integration/load-jdbc.adoc[More documentation of apoc.load.jdbc,role=more information]
 

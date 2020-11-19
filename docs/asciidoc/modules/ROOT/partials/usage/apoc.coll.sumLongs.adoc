@@ -1,0 +1,13 @@
+The following computes the sum of numeric values in a list:
+
+[source,cypher]
+----
+RETURN apoc.coll.sumLongs([1,2,3,4,5]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| 15
+|===

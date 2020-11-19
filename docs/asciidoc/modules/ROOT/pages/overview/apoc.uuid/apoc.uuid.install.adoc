@@ -26,6 +26,9 @@ apoc.uuid.install(label :: STRING?, config = {} :: MAP?) :: (batchComputationRes
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.uuid.install.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -35,6 +38,13 @@ apoc.uuid.install(label :: STRING?, config = {} :: MAP?) :: (batchComputationRes
 |installed|BOOLEAN?
 |properties|MAP?
 |===
+
+== Enable automatic UUIDs
+include::partial$uuids.adoc[]
+
+[[usage-apoc.uuid.install]]
+== Usage Examples
+include::partial$usage/apoc.uuid.install.adoc[]
 
 xref::graph-updates/uuid.adoc[More documentation of apoc.uuid.install,role=more information]
 

@@ -1,0 +1,32 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+include::example$nlp-graph.cypher[]
+----
+
+We can use this procedure to extract the sentiment for the Article node.
+The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
+
+The following streams the key phrases for the Pokemon article:
+
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.aws.sentiment.stream(a, {
+  key: $apiKey,
+  secret: $apiSecret,
+  nodeProperty: "body"
+})
+YIELD value
+RETURN value;
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| {index: 0, sentiment: "POSITIVE", sentimentScore: {neutral: 0.33138760924339294, negative: 0.0026062370743602514, mixed: 3.5950531582784606E-6, positive: 0.6660025119781494}}
+|===
+
+If we want to automatically store the sentiment, see xref::overview/apoc.nlp/apoc.nlp.aws.sentiment.graph.adoc[].

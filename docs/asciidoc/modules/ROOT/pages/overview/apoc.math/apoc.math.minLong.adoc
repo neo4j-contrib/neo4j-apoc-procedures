@@ -17,5 +17,9 @@ apoc.math.minLong() | return the minimum value a long can have
 apoc.math.minLong() :: (INTEGER?)
 ----
 
+[[usage-apoc.math.minLong]]
+== Usage Examples
+include::partial$usage/apoc.math.minLong.adoc[]
+
 xref::mathematical/math-functions.adoc[More documentation of apoc.math.minLong,role=more information]
 

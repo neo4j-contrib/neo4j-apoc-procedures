@@ -1,0 +1,34 @@
+[source,cypher]
+----
+RETURN apoc.text.split('Hello World', ' ') AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| ["Hello", World"]
+|===
+
+
+[source,cypher]
+----
+RETURN apoc.text.split('Hello  World', ' ') AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| ["Hello", "", "World"]
+|===
+
+
+[source,cypher]
+----
+RETURN apoc.text.split('Hello   World', ' +') AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| ["Hello", "World"]
+|===

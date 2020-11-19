@@ -24,5 +24,7 @@ apoc.coll.dropDuplicateNeighbors(list :: LIST? OF ANY?) :: (LIST? OF ANY?)
 |list|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.dropDuplicateNeighbors,role=more information]
+[[usage-apoc.coll.dropDuplicateNeighbors]]
+== Usage Examples
+include::partial$usage/apoc.coll.dropDuplicateNeighbors.adoc[]
 

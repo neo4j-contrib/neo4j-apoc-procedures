@@ -1,0 +1,45 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (mark:Person {name: "Mark"})
+MERGE (praveena:Person {name: "Praveena"})
+MERGE (joe:Person {name: "Joe"})
+MERGE (lju:Person {name: "Lju"})
+MERGE (michael:Person {name: "Michael"})
+MERGE (emil:Person {name: "Emil"})
+MERGE (ryan:Person {name: "Ryan"})
+
+MERGE (ryan)-[:FOLLOWS]->(joe)
+MERGE (joe)-[:FOLLOWS]->(mark)
+MERGE (mark)-[:FOLLOWS]->(emil)
+MERGE (michael)-[:KNOWS]-(emil)
+MERGE (michael)-[:KNOWS]-(lju)
+MERGE (michael)-[:KNOWS]-(praveena)
+MERGE (emil)-[:FOLLOWS]->(joe)
+MERGE (praveena)-[:FOLLOWS]->(joe)
+----
+
+This procedure computes a node's neighborhood at a specific hop count.
+
+The following returns the number of people that Emil `KNOWS` at 2 hops:
+
+[source,cypher]
+----
+MATCH (p:Person {name: "Emil"})
+CALL apoc.neighbors.athop.count(p, "KNOWS", 2)
+YIELD value
+RETURN value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| 2
+|===
+
+As expected we get a count of 2, those people being Praveena and Lju!
+
+If we also want to know which nodes are in our neighborhood, we can do that as well.
+See xref::overview/apoc.neighbors/apoc.neighbors.athop.adoc[].

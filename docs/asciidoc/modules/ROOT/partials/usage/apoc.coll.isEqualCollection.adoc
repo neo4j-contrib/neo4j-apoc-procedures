@@ -1,0 +1,28 @@
+The following checks if two collections contain exactly the same values in any order:
+
+[source,cypher]
+----
+RETURN apoc.coll.isEqualCollection([1,4,5], [1,5,4]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| TRUE
+|===
+
+If the collections contain the same unique values but have a different cardinality, they aren't considered equal:
+
+[source,cypher]
+----
+RETURN apoc.coll.isEqualCollection([1,4,4,5], [1,5,4]) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| FALSE
+|===
+

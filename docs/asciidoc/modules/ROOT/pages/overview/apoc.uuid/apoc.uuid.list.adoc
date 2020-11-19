@@ -26,5 +26,12 @@ apoc.uuid.list() :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?
 |properties|MAP?
 |===
 
+== Enable automatic UUIDs
+include::partial$uuids.adoc[]
+
+[[usage-apoc.uuid.list]]
+== Usage Examples
+include::partial$usage/apoc.uuid.list.adoc[]
+
 xref::graph-updates/uuid.adoc[More documentation of apoc.uuid.list,role=more information]
 

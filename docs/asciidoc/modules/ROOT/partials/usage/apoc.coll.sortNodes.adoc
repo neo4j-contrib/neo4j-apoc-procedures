@@ -1,0 +1,40 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (Keanu:Person {name:'Keanu Reeves', born:1964})
+CREATE (TomH:Person {name:'Tom Hanks', born:1956})
+CREATE (TomT:Person {name:'Tom Tykwer', born:1965});
+----
+
+The following sorts a collection of nodes by the `name` property in descending order:
+
+[source,cypher]
+----
+MATCH (person:Person)
+WITH collect(person) AS people
+RETURN apoc.coll.sortNodes(people, 'name') AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [(:Person {name: "Tom Tykwer", born: 1965}), (:Person {name: "Tom Hanks", born: 1956}), (:Person {name: "Keanu Reeves", born: 1964})]
+|===
+
+The following sorts a collection of nodes by the `name` property in ascending order:
+
+[source,cypher]
+----
+MATCH (person:Person)
+WITH collect(person) AS people
+RETURN apoc.coll.sortNodes(people, 'name') AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [(:Person {name: "Keanu Reeves", born: 1964}), (:Person {name: "Tom Hanks", born: 1956}), (:Person {name: "Tom Tykwer", born: 1965})]
+|===

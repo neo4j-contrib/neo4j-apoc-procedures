@@ -1,0 +1,23 @@
+[source,cypher]
+----
+RETURN apoc.text.bytes("Neo4j") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+|  [78, 101, 111, 52, 106]
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.bytes("Jesús") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| [74, 101, 115, 195, 186, 115]
+|===

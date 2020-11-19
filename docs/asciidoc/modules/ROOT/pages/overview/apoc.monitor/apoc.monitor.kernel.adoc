@@ -30,5 +30,9 @@ apoc.monitor.kernel() :: (readOnly :: BOOLEAN?, kernelVersion :: STRING?, storeI
 |storeCreationDate|STRING?
 |===
 
+[[usage-apoc.monitor.kernel]]
+== Usage Examples
+include::partial$usage/apoc.monitor.kernel.adoc[]
+
 xref::database-introspection/monitoring.adoc[More documentation of apoc.monitor.kernel,role=more information]
 

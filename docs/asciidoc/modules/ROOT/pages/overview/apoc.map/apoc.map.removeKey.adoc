@@ -26,5 +26,7 @@ apoc.map.removeKey(map :: MAP?, key :: STRING?, config = {} :: MAP?) :: (MAP?)
 |config|MAP?|{}
 |===
 
-xref::data-structures/map-functions.adoc[More documentation of apoc.map.removeKey,role=more information]
+[[usage-apoc.map.removeKey]]
+== Usage Examples
+include::partial$usage/apoc.map.removeKey.adoc[]
 

@@ -27,6 +27,9 @@ apoc.export.json.data(nodes :: LIST? OF NODE?, rels :: LIST? OF RELATIONSHIP?, f
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.export.json.data.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -44,6 +47,16 @@ apoc.export.json.data(nodes :: LIST? OF NODE?, rels :: LIST? OF RELATIONSHIP?, f
 |done|BOOLEAN?
 |data|STRING?
 |===
+
+== Exporting to a file
+include::partial$enableFileExport.adoc[]
+
+== Exporting a stream
+include::partial$streamExport.adoc[]
+
+[[usage-apoc.export.json.data]]
+== Usage Examples
+include::partial$usage/apoc.export.json.data.adoc[]
 
 xref::export/json.adoc[More documentation of apoc.export.json.data,role=more information]
 

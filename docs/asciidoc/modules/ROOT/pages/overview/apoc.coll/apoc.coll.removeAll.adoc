@@ -25,5 +25,7 @@ apoc.coll.removeAll(first :: LIST? OF ANY?, second :: LIST? OF ANY?) :: (LIST? O
 |second|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.removeAll,role=more information]
+[[usage-apoc.coll.removeAll]]
+== Usage Examples
+include::partial$usage/apoc.coll.removeAll.adoc[]
 

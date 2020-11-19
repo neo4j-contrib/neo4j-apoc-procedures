@@ -24,5 +24,7 @@ apoc.convert.toString(string :: ANY?) :: (STRING?)
 |string|ANY?|null
 |===
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toString,role=more information]
+[[usage-apoc.convert.toString]]
+== Usage Examples
+include::partial$usage/apoc.convert.toString.adoc[]
 

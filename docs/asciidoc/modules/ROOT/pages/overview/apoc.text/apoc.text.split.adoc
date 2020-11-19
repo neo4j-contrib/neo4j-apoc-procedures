@@ -26,5 +26,9 @@ apoc.text.split(text :: STRING?, regex :: STRING?, limit = 0 :: INTEGER?) :: (LI
 |limit|INTEGER?|0
 |===
 
+[[usage-apoc.text.split]]
+== Usage Examples
+include::partial$usage/apoc.text.split.adoc[]
+
 xref::misc/text-functions.adoc[More documentation of apoc.text.split,role=more information]
 

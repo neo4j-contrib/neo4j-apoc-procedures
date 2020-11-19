@@ -25,5 +25,9 @@ apoc.nodes.relationship.types(ids :: ANY?, types =  :: STRING?) :: (LIST? OF ANY
 |types|STRING?|
 |===
 
+[[usage-apoc.nodes.relationship.types]]
+== Usage Examples
+include::partial$usage/apoc.nodes.relationship.types.adoc[]
+
 xref::graph-querying/node-querying.adoc[More documentation of apoc.nodes.relationship.types,role=more information]
 

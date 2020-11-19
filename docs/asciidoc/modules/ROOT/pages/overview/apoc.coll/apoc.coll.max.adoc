@@ -24,5 +24,7 @@ apoc.coll.max(values :: LIST? OF ANY?) :: (ANY?)
 |values|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.max,role=more information]
+[[usage-apoc.coll.max]]
+== Usage Examples
+include::partial$usage/apoc.coll.max.adoc[]
 

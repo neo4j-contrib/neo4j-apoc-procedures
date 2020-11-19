@@ -27,5 +27,7 @@ apoc.coll.sortMulti(coll :: LIST? OF MAP?, orderFields = [] :: LIST? OF STRING?,
 |skip|INTEGER?|0
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.sortMulti,role=more information]
+[[usage-apoc.coll.sortMulti]]
+== Usage Examples
+include::partial$usage/apoc.coll.sortMulti.adoc[]
 

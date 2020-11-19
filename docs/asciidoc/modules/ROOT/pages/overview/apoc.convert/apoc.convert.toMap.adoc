@@ -24,5 +24,7 @@ apoc.convert.toMap(map :: ANY?) :: (MAP?)
 |map|ANY?|null
 |===
 
-xref::data-structures/conversion-functions.adoc[More documentation of apoc.convert.toMap,role=more information]
+[[usage-apoc.convert.toMap]]
+== Usage Examples
+include::partial$usage/apoc.convert.toMap.adoc[]
 

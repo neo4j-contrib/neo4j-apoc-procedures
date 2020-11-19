@@ -26,5 +26,9 @@ apoc.math.round(value :: FLOAT?, precision = 0 :: INTEGER?, mode = HALF_UP :: ST
 |mode|STRING?|HALF_UP
 |===
 
+[[usage-apoc.math.round]]
+== Usage Examples
+include::partial$usage/apoc.math.round.adoc[]
+
 xref::mathematical/math-functions.adoc[More documentation of apoc.math.round,role=more information]
 

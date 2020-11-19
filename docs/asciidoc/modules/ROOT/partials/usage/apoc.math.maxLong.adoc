@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.math.maxLong() AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 9223372036854775807
+|===

@@ -1,0 +1,11 @@
+[source,cypher]
+----
+CALL apoc.monitor.kernel();
+----
+
+.Results
+[opts="header"]
+|===
+| readOnly | kernelVersion | storeId                                                                                                                                         | kernelStartTime       | databaseName | storeLogVersion     | storeCreationDate
+| FALSE    | "4.1.3"       | "StoreId{creationTime=1605519819278, randomId=4311716801557479419, storeVersion=3471765337752883975, upgradeTime=1605519819278, upgradeTxId=1}" | "2020-11-18 14:25:46" | "apoc"       | 3471765337752883975 | "2020-11-16 09:43:39"
+|===

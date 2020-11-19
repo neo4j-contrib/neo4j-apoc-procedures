@@ -24,3 +24,7 @@ apoc.data.url(url :: STRING?) :: (MAP?)
 |url|STRING?|null
 |===
 
+[[usage-apoc.data.url]]
+== Usage Examples
+include::partial$usage/apoc.data.url.adoc[]
+

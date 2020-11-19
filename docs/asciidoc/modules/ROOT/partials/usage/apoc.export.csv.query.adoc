@@ -1,0 +1,77 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (TheMatrix:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})
+CREATE (Keanu:Person {name:'Keanu Reeves', born:1964})
+CREATE (Carrie:Person {name:'Carrie-Anne Moss', born:1967})
+CREATE (Laurence:Person {name:'Laurence Fishburne', born:1961})
+CREATE (Hugo:Person {name:'Hugo Weaving', born:1960})
+CREATE (LillyW:Person {name:'Lilly Wachowski', born:1967})
+CREATE (LanaW:Person {name:'Lana Wachowski', born:1965})
+CREATE (JoelS:Person {name:'Joel Silver', born:1952})
+CREATE
+(Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrix),
+(Carrie)-[:ACTED_IN {roles:['Trinity']}]->(TheMatrix),
+(Laurence)-[:ACTED_IN {roles:['Morpheus']}]->(TheMatrix),
+(Hugo)-[:ACTED_IN {roles:['Agent Smith']}]->(TheMatrix),
+(LillyW)-[:DIRECTED]->(TheMatrix),
+(LanaW)-[:DIRECTED]->(TheMatrix),
+(JoelS)-[:PRODUCED]->(TheMatrix);
+----
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::play-movies.png[]
+
+The `apoc.export.csv.query` procedure exports the results of a Cypher query to a CSV file or as a stream.
+
+The following query exports all `DIRECTED` relationships and the nodes with `Person` and `Movie` labels on either side of that relationship to the file `movies-directed.csv`:
+
+[source,cypher]
+----
+WITH "MATCH path = (person:Person)-[:DIRECTED]->(movie)
+      RETURN person.name AS name, person.born AS born,
+             movie.title AS title, movie.tagline AS tagline, movie.released AS released" AS query
+CALL apoc.export.csv.query(query, "movies-directed.csv", {})
+YIELD file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+RETURN file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data;
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "movies-directed.csv" | "statement: cols(5)" | "csv"  | 0     | 0             | 10         | 3    | 2    | 20000     | 1       | TRUE | NULL
+|===
+
+The contents of `movies-directed.csv` are shown below:
+
+[source,csv]
+----
+"name","born","role","title","tagline","released"
+"Lilly Wachowski","1967","","The Matrix","Welcome to the Real World","1999"
+"Lana Wachowski","1965","","The Matrix","Welcome to the Real World","1999"
+----
+
+The following query returns a stream of all `DIRECTED` relationships and the nodes with `Person` and `Movie` labels on either side of that relationship:
+
+[source,cypher]
+----
+WITH "MATCH path = (person:Person)-[:DIRECTED]->(movie)
+      RETURN person.name AS name, person.born AS born,
+             movie.title AS title, movie.tagline AS tagline, movie.released AS released" AS query
+CALL apoc.export.csv.query(query, null, {stream: true})
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data;
+----
+
+.Results
+[opts="header"]
+|===
+| file       | nodes | relationships | properties | data
+| NULL | 0     | 0             | 10         | "\"name\",\"born\",\"title\",\"tagline\",\"released\"
+\"Lilly Wachowski\",\"1967\",\"The Matrix\",\"Welcome to the Real World\",\"1999\"
+\"Lana Wachowski\",\"1965\",\"The Matrix\",\"Welcome to the Real World\",\"1999\"
+"
+|===

@@ -17,5 +17,9 @@ apoc.math.maxDouble() | return the largest positive finite value of type double
 apoc.math.maxDouble() :: (FLOAT?)
 ----
 
+[[usage-apoc.math.maxDouble]]
+== Usage Examples
+include::partial$usage/apoc.math.maxDouble.adoc[]
+
 xref::mathematical/math-functions.adoc[More documentation of apoc.math.maxDouble,role=more information]
 

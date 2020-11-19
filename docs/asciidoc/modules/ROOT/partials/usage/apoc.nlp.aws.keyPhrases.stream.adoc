@@ -1,0 +1,44 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+include::example$nlp-graph.cypher[]
+----
+
+We can use this procedure to extract the key phrases from the Article node.
+The text that we want to analyze is stored in the `body` property of the node, so we'll need to specify that via the `nodeProperty` configuration parameter.
+
+The following streams the key phrases for the Pokemon article:
+
+[source,cypher]
+----
+MATCH (a:Article {uri: "https://neo4j.com/blog/pokegraph-gotta-graph-em-all/"})
+CALL apoc.nlp.aws.keyPhrases.stream(a, {
+  key: $apiKey,
+  secret: $apiSecret,
+  nodeProperty: "body"
+})
+YIELD value
+UNWIND value.keyPhrases AS keyPhrase
+RETURN keyPhrase;
+----
+
+.Results
+[opts="header"]
+|===
+| keyPhrase
+| {score: 0.9999966621398926, endOffset: 10, text: "These days", beginOffset: 0}
+| {score: 0.9867414236068726, endOffset: 42, text: "more than a few feet", beginOffset: 22}
+| {score: 0.9999999403953552, endOffset: 71, text: "my Nintendo Switch", beginOffset: 53}
+| {score: 0.9999997019767761, endOffset: 94, text: "board games", beginOffset: 83}
+| {score: 0.9999964237213135, endOffset: 106, text: "card games", beginOffset: 96}
+| {score: 0.9998161792755127, endOffset: 129, text: "role playing games", beginOffset: 111}
+| {score: 1.0, endOffset: 142, text: "friends", beginOffset: 135}
+| {score: 0.8642383217811584, endOffset: 172, text: "a week", beginOffset: 166}
+| {score: 0.9999430179595947, endOffset: 215, text: "lunch-time Mario Kart", beginOffset: 194}
+| {score: 0.9983567595481873, endOffset: 229, text: "8 tournaments", beginOffset: 216}
+| {score: 0.999997615814209, endOffset: 264, text: "the Neo4j European offices", beginOffset: 238}
+|===
+
+
+If we want to automatically create a key phrase graph, see xref::overview/apoc.nlp/apoc.nlp.aws.keyPhrases.graph.adoc[].

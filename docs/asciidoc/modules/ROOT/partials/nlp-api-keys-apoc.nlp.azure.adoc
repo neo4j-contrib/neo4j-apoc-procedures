@@ -1,0 +1,39 @@
+We can generate an API key and URL by following the instructions in the  https://docs.microsoft.com/en-us/azure/cognitive-services/text-analytics/quickstarts/text-analytics-sdk[Quickstart: Use the Text Analytics client library^] article.
+Once we've done that, we should be able to see a page listing our credentials, similar to the screenshot below:
+
+image::azure-text-analytics-keys.png[title="Azure Text Analytics credentials"]
+
+In this case our API URL is `https://neo4j-nlp-text-analytics.cognitiveservices.azure.com/`, and we can use either of the hidden keys.
+
+Let's populate and execute the following commands to create parameters that contains these details.
+
+.The following define the `apiKey` and `apiSecret` parameters
+[source,cypher]
+----
+:param apiKey => ("<api-key-here>");
+:param apiUrl => ("<api-url-here>");
+----
+
+Alternatively we can add these credentials to `apoc.conf` and retrieve them using the static value storage functions.
+See xref::misc/static-values.adoc[]
+
+.apoc.conf
+[source,properties]
+----
+apoc.static.azure.apiKey=<api-key-here>
+apoc.static.azure.apiUrl=<api-url-here>
+----
+
+
+.The following retrieves AWS credentials from `apoc.conf`
+[source,cypher]
+----
+RETURN apoc.static.getAll("azure") AS azure;
+----
+
+.Results
+[opts="header"]
+|===
+| azure
+| {apiKey: "<api-key-here>", apiUrl: "<api-url-here>"}
+|===

@@ -1,0 +1,36 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (s:Student {name: 'Xavier', score: 82});
+CREATE (s:Student {name: 'Jackson', score: 81});
+CREATE (s:Student {name: 'Sophia', score: 74});
+CREATE (s:Student {name: 'Ariana', score: 70});
+CREATE (s:Student {name: 'Elena', score: 92});
+CREATE (s:Student {name: 'Luca', score: 85});
+----
+
+The apoc.create.vNodes is a procedure that takes a list or group of data and calls the procedure once for the entire batch.
+
+We can use the same example from the `apoc.create.vNode`, but collect the scores into a single list for the procedure to create a node for each in a single call:
+
+.apoc.create.vNode Procedure
+[source,cypher]
+----
+MATCH (s:Student)
+WITH collect(s {.score}) as scores
+CALL apoc.create.vNodes(['Score'],scores) YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+|node
+|{"score":82}
+|{"score":81}
+|{"score":74}
+|{"score":70}
+|{"score":92}
+|{"score":85}
+|===

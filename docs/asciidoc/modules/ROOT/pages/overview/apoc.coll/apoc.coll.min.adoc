@@ -24,5 +24,7 @@ apoc.coll.min(values :: LIST? OF ANY?) :: (ANY?)
 |values|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.min,role=more information]
+[[usage-apoc.coll.min]]
+== Usage Examples
+include::partial$usage/apoc.coll.min.adoc[]
 

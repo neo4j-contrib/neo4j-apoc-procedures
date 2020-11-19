@@ -24,5 +24,7 @@ apoc.coll.different(values :: LIST? OF ANY?) :: (BOOLEAN?)
 |values|LIST? OF ANY?|null
 |===
 
-xref::data-structures/collection-list-functions.adoc[More documentation of apoc.coll.different,role=more information]
+[[usage-apoc.coll.different]]
+== Usage Examples
+include::partial$usage/apoc.coll.different.adoc[]
 
