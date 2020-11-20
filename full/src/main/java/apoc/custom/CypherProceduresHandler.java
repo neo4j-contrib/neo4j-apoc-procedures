@@ -246,6 +246,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                     Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
                     Pair.of(SystemPropertyKeys.name.name(), signature.name().name())
             );
+
             node.setProperty(SystemPropertyKeys.prefix.name(),  signature.name().namespace());
             node.setProperty(SystemPropertyKeys.description.name(), signature.description().orElse(null));
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
