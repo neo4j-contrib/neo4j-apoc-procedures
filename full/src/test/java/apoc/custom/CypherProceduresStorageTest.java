@@ -50,6 +50,14 @@ public class CypherProceduresStorageTest {
     }
 
     @Test
+    public void registerSimpleStatementWithDotInName() throws Exception {
+        db.executeTransactionally("call apoc.custom.asProcedure('foo.bar','RETURN 42 as answer')");
+        TestUtil.testCall(db, "call custom.foo.bar()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+        restartDb();
+        TestUtil.testCall(db, "call custom.foo.bar()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+    }
+
+    @Test
     public void registerSimpleStatementConcreteResults() throws Exception {
         db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN 42 as answer','read',[['answer','long']])");
         restartDb();
@@ -91,6 +99,14 @@ public class CypherProceduresStorageTest {
         TestUtil.testCall(db, "return custom.answer() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
         restartDb();
         TestUtil.testCall(db, "return custom.answer() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+    }
+
+    @Test
+    public void registerSimpleStatementFunctionWithDotInName() throws Exception {
+        db.executeTransactionally("call apoc.custom.asFunction('foo.bar','RETURN 42 as answer')");
+        TestUtil.testCall(db, "return custom.foo.bar() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        restartDb();
+        TestUtil.testCall(db, "return custom.foo.bar() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
     }
 
     @Test
