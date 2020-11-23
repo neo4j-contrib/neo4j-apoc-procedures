@@ -1,0 +1,33 @@
+The examples in this section are based on a Mongo DB instance with a pre-populate twitter dataset.
+You can find instructions for setting this up at https://github.com/neo4j-examples/mongo-example[github.com/neo4j-examples/mongo-example^].
+
+.Cypher
+[source,cypher]
+----
+CALL apoc.mongodb.get('mongodb://mongo:neo4j@mongo:27017', 'test', 'tweets', {}, true) YIELD value
+RETURN datetime({epochMillis:value._id.date}) AS date, value.user.name, value.text
+LIMIT 10;
+----
+
+.Results
+[opts="header"]
+|===
+| date                 | value.user.name     | value.text
+| 2015-04-25T16:20:26Z | "Mean Magazine Bot" | "RT @webinara: RT: http://t.co/tgxDJSOrHb #webinar #TrueTwit #TechTip.
+A Node.js API development webinar:
+https://t.co/nBjkk4MnuN"
+| 2015-04-25T16:20:26Z | "Mean Magazine Bot" | "RT @zhangtai_me: Starting Angularjs Essentials, by Rodrigo Branas http://t.co/b2HaUzVtKt"
+| 2015-04-25T16:20:26Z | "FC Barcelona"      | "[CALENDAR] Barça have 5 league games left, 2 #UCL semi-final games, and the Spanish Cup final: http://t.co/mWKOzNEWFo http://t.co/cyN1ZZNsSx"
+| 2015-04-25T16:20:26Z | "Mean Magazine Bot" | "RT @YAPCNA: David Golden (@xdg) talks about working with both Perl and MongoDB http://t.co/BEVQB521Al http://t.co/DallwKNcR8"
+| 2015-04-25T16:20:26Z | "Hootsuite"         | "Do you like social media? If so, you'll LOVE this awesome list of movies: http://t.co/aUF2WUYudF http://t.co/T0ZtFaHoKJ"
+| 2015-04-25T16:20:26Z | "Lemi Orhan Ergin"  | "RT @serkanc: I'm going to @CraftSummit , who wants to join me? Some great speakers including @sandromancuso @alexboly @lemiorhan and @oezca…"
+| 2015-04-25T16:20:26Z | "Mean Magazine Bot" | "RT @zhangtai_me: 25% done with Angularjs Essentials, by Rodrigo Branas http://t.co/wAMQJi7JoQ"
+| 2015-04-25T16:20:26Z | "Hazelcast"         | "Spring Integration Hazelcast Support 1.0 Milestone 1 is available http://t.co/kIu102CHKY"
+| 2015-04-25T16:20:26Z | "Premier League"    | "TEAM NEWS @MCFC are unchanged from the side that beat West Ham; Okore &amp; Westwood replace Clark &amp; Agbonlahor for @AVFCOfficial #MCIAVL"
+| 2015-04-25T16:20:26Z | "Mean Magazine Bot" | "RT @Manjuics: Apply first: MNC looking for AngularJS in HYDERABAD, IND http://t.co/ijsnQWlgGb #job"
+
+|===
+
+
+
+

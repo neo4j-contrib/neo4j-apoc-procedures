@@ -39,5 +39,9 @@ apoc.mongodb.get(host :: STRING?, db :: STRING?, collection :: STRING?, query ::
 |value|MAP?
 |===
 
+[[usage-apoc.mongodb.get]]
+== Usage Examples
+include::partial$usage/apoc.mongodb.get.adoc[]
+
 xref::database-integration/mongodb.adoc[More documentation of apoc.mongodb.get,role=more information]
 

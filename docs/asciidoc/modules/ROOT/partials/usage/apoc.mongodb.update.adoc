@@ -1,0 +1,54 @@
+The examples in this section are based on a Mongo DB instance with a pre-populate twitter dataset.
+You can find instructions for setting this up at https://github.com/neo4j-examples/mongo-example[github.com/neo4j-examples/mongo-example^].
+
+We're going to update the `retweet_count` for the document with an `id` of `591999465512382500`.
+We can check its current value, by running the following query using xref::overview/apoc.mongodb/apoc.mongodb.find.adoc[].
+
+.Cypher
+[source,cypher]
+----
+CALL apoc.mongodb.find('mongodb://mongo:neo4j@mongo:27017', 'test', 'tweets', {id: 591999465512382500.0}, null, null)
+YIELD value
+RETURN value._id, value.text, value.retweet_count
+LIMIT 1;
+----
+
+.Results
+[opts="header"]
+|===
+| value._id                  | value.text                                                                                                                                     | value.retweet_count
+| "553bbecae8f1e57878b72a1e" | "[CALENDAR] Barça have 5 league games left, 2 #UCL semi-final games, and the Spanish Cup final: http://t.co/mWKOzNEWFo http://t.co/cyN1ZZNsSx" | 95.0
+|===
+
+We can update that field, by running the following query:
+
+.Cypher
+[source,cypher]
+----
+CALL apoc.mongodb.update('mongodb://mongo:neo4j@mongo:27017', 'test', 'tweets', {id: 591999465512382500.0}, {`$set`:{retweet_count:96.0}});
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| 1
+|===
+
+And now let's query it again:
+
+.Cypher
+[source,cypher]
+----
+CALL apoc.mongodb.find('mongodb://mongo:neo4j@mongo:27017', 'test', 'tweets', {id: 591999465512382500.0}, null, null)
+YIELD value
+RETURN value._id, value.text, value.retweet_count
+LIMIT 1;
+----
+
+.Results
+[opts="header"]
+|===
+| value._id                  | value.text                                                                                                                                     | value.retweet_count
+| "553bbecae8f1e57878b72a1e" | "[CALENDAR] Barça have 5 league games left, 2 #UCL semi-final games, and the Spanish Cup final: http://t.co/mWKOzNEWFo http://t.co/cyN1ZZNsSx" | 96.0
+|===

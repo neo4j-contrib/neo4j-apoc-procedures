@@ -34,5 +34,9 @@ apoc.mongodb.count(host :: STRING?, db :: STRING?, collection :: STRING?, query 
 |value|INTEGER?
 |===
 
+[[usage-apoc.mongodb.count]]
+== Usage Examples
+include::partial$usage/apoc.mongodb.count.adoc[]
+
 xref::database-integration/mongodb.adoc[More documentation of apoc.mongodb.count,role=more information]
 

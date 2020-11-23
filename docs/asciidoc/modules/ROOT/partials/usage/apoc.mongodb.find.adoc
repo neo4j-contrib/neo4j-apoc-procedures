@@ -1,0 +1,33 @@
+The examples in this section are based on a Mongo DB instance with a pre-populate twitter dataset.
+You can find instructions for setting this up at https://github.com/neo4j-examples/mongo-example[github.com/neo4j-examples/mongo-example^].
+
+.Cypher
+[source,cypher]
+----
+CALL apoc.mongodb.find('mongodb://mongo:neo4j@mongo:27017', 'test', 'tweets', {`user.name`: "FC Barcelona"}, null, null) YIELD value
+RETURN value.created_at, value.text, [item in value.entities.hashtags | item.text] AS hashtags
+LIMIT 10;
+----
+
+.Results
+[opts="header"]
+|===
+
+| value.created_at                 | value.text                                                                                                                                     | hashtags
+| "Sat Apr 25 16:17:26 +0000 2015" | "[CALENDAR] Barça have 5 league games left, 2 #UCL semi-final games, and the Spanish Cup final: http://t.co/mWKOzNEWFo http://t.co/cyN1ZZNsSx" | ["UCL"]
+| "Sat Apr 25 16:13:58 +0000 2015" | "\"The players understand the difficulty of every game we have left,\" says Luis Enrique. #FCBLive http://t.co/iASWBXiV8D"                     | ["FCBLive"]
+| "Sat Apr 25 16:12:09 +0000 2015" | "Luis Enrique says, \"That was the best first half we've played.\" #FCBLive #EspanyolFCB http://t.co/rhvaFNgmf6"                               | ["FCBLive", "EspanyolFCB"]
+| "Sat Apr 25 16:09:15 +0000 2015" | "[#MESSI, NEYMAR, SUÁREZ] Heat map of Barça's Big 3 for all 90 minutes!  http://t.co/Z5zYu82WLH #FCBLive  #FCBLive http://t.co/3b3c2sHY59"     | ["MESSI", "FCBLive", "FCBLive"]
+| "Sat Apr 25 16:05:30 +0000 2015" | "[MVP] Who do you think was the best player of the match? Vote for the MVP! http://t.co/JSHYGY8o1s http://t.co/oRjHwZQRCd"                     | []
+| "Sat Apr 25 16:04:27 +0000 2015" | "[LA LIGA TABLE] Barça move 5 points clear with today's 2–0 win at Espanyol: http://t.co/jkqeVh52wX #FCBLive http://t.co/9yeP00ZL62"           | ["FCBLive"]
+| "Sat Apr 25 15:58:45 +0000 2015" | "[STATISTICS] All the stats and more from the full 90 minutes of Barça's 2–0 win at Espanyol! http://t.co/micLdI7xsk http://t.co/68Lw8F9hYU"   | []
+| "Sat Apr 25 15:59:54 +0000 2015" | "Andrés Iniesta says \"We knew that to win this derby we had to play a complete game, and we did.\" #FCBLive #EspanyolFCB"                     | ["FCBLive", "EspanyolFCB"]
+| "Sat Apr 25 15:55:28 +0000 2015" | "[CALENDAR] Fixture list. These are the next games for Barça http://t.co/m9MF2YNOhG http://t.co/ZEbmbzNVyB"                                    | []
+| "Sat Apr 25 15:59:35 +0000 2015" | "[STATS] Xavi makes 500th @LaLiga appearance. RT to support him! #Xavi500 #FCBLive http://t.co/ewuAlKcQDr"                                     | ["Xavi500", "FCBLive"]
+
+
+|===
+
+
+
+
