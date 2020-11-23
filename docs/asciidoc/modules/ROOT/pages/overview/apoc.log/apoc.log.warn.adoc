@@ -25,6 +25,9 @@ apoc.log.warn(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID
 |params|LIST? OF ANY?|[]
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.log.warn.adoc[]
+
 [[usage-apoc.log.warn]]
 == Usage Examples
 include::partial$usage/apoc.log.warn.adoc[]
