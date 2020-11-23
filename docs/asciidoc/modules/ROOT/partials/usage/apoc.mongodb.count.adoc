@@ -1,0 +1,20 @@
+The examples in this section are based on a Mongo DB instance with a pre-populate twitter dataset.
+You can find instructions for setting this up at https://github.com/neo4j-examples/mongo-example[github.com/neo4j-examples/mongo-example^].
+
+.Cypher
+[source,cypher]
+----
+CALL apoc.mongodb.count('mongodb://mongo:neo4j@mongo:27017', 'test', 'tweets', {});
+----
+
+.Results
+[opts="header"]
+|===
+
+| value
+| 966
+|===
+
+
+
+

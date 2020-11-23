@@ -41,5 +41,9 @@ apoc.mongodb.find(host :: STRING?, db :: STRING?, collection :: STRING?, query :
 |value|MAP?
 |===
 
+[[usage-apoc.mongodb.find]]
+== Usage Examples
+include::partial$usage/apoc.mongodb.find.adoc[]
+
 xref::database-integration/mongodb.adoc[More documentation of apoc.mongodb.find,role=more information]
 

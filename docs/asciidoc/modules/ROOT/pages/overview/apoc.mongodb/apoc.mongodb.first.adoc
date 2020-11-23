@@ -37,5 +37,9 @@ apoc.mongodb.first(host :: STRING?, db :: STRING?, collection :: STRING?, query 
 |value|MAP?
 |===
 
+[[usage-apoc.mongodb.first]]
+== Usage Examples
+include::partial$usage/apoc.mongodb.first.adoc[]
+
 xref::database-integration/mongodb.adoc[More documentation of apoc.mongodb.first,role=more information]
 

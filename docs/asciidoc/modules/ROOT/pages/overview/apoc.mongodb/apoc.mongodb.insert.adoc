@@ -27,5 +27,9 @@ apoc.mongodb.insert(host :: STRING?, db :: STRING?, collection :: STRING?, docum
 |documents|LIST? OF MAP?|null
 |===
 
+[[usage-apoc.mongodb.insert]]
+== Usage Examples
+include::partial$usage/apoc.mongodb.insert.adoc[]
+
 xref::database-integration/mongodb.adoc[More documentation of apoc.mongodb.insert,role=more information]
 

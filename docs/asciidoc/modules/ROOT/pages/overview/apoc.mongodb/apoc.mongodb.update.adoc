@@ -35,5 +35,9 @@ apoc.mongodb.update(host :: STRING?, db :: STRING?, collection :: STRING?, query
 |value|INTEGER?
 |===
 
+[[usage-apoc.mongodb.update]]
+== Usage Examples
+include::partial$usage/apoc.mongodb.update.adoc[]
+
 xref::database-integration/mongodb.adoc[More documentation of apoc.mongodb.update,role=more information]
 
