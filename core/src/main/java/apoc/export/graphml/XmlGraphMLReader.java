@@ -286,8 +286,8 @@ public class XmlGraphMLReader {
             }
 
             boolean notStartElementOrContainsKeyLabel = isChar
-                    || !(peek instanceof StartElement)
-                    || peek.asStartElement().getAttributes().next().getValue().equals("label");
+                    || !peek.isStartElement()
+                    || containsLabelKey(peek);
 
             if (!peek.isEndDocument() && notStartElementOrContainsKeyLabel) {
                 reader.nextEvent();
@@ -296,6 +296,11 @@ public class XmlGraphMLReader {
         }
         reader.nextEvent(); // to prevent eventual wrong reader (f.e. self-closing tag)
         return defaultRelType;
+    }
+
+    private boolean containsLabelKey(XMLEvent peek) {
+        final Attribute keyAttribute = peek.asStartElement().getAttributeByName(new QName("key"));
+        return keyAttribute != null && keyAttribute.getValue().equals("label");
     }
 
     private void addLabels(Node node, String labels) {

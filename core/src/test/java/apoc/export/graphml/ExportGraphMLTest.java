@@ -221,7 +221,7 @@ public class ExportGraphMLTest {
         TestUtil.testCall(db, "MATCH ()-[r]-() RETURN Distinct type(r) as type",
                 (r) -> {
                     String label = (String) r.get("type");
-                    assertEquals(label, "RELATED");
+                    assertEquals("RELATED", label);
                 }
         );
     }
