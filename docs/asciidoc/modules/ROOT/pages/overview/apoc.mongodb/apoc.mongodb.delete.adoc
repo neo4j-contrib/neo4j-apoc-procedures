@@ -34,5 +34,9 @@ apoc.mongodb.delete(host :: STRING?, db :: STRING?, collection :: STRING?, query
 |value|INTEGER?
 |===
 
+[[usage-apoc.mongodb.delete]]
+== Usage Examples
+include::partial$usage/apoc.mongodb.delete.adoc[]
+
 xref::database-integration/mongodb.adoc[More documentation of apoc.mongodb.delete,role=more information]
 

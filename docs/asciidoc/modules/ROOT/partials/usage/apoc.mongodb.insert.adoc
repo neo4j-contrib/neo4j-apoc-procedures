@@ -1,0 +1,25 @@
+The examples in this section are based on a Mongo DB instance with a pre-populate twitter dataset.
+You can find instructions for setting this up at https://github.com/neo4j-examples/mongo-example[github.com/neo4j-examples/mongo-example^].
+
+We're going to inser a document with the key `foo` with value `bar`:
+
+.Cypher
+[source,cypher]
+----
+CALL apoc.mongodb.insert('mongodb://mongo:neo4j@mongo:27017', 'test', 'tweets',[{foo:'bar'}]);
+----
+
+We can check that our document has been stored using xref::overview/apoc.mongodb/apoc.mongodb.find.adoc[], as shown below:
+
+.Cypher
+[source,cypher]
+----
+CALL apoc.mongodb.find('mongodb://mongo:neo4j@mongo:27017', 'test', 'tweets', {foo: "bar"}, null, null);
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| {foo: "bar", _id: "5fbbdbecb834740006b242dc"}
+|===
