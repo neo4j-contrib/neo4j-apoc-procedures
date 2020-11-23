@@ -1,0 +1,15 @@
+The procedure support the following properties in the APOC configuration file (`apoc.conf`):
+
+.Config parameters
+[opts=header, cols="1,1,1,3"]
+|===
+| name | type | default | description
+| apoc.user.log.type | String | `safe` a| Type of logging.
+
+* `node`: disable the procedures
+* `safe`: replace all `.` and whitespace (space and tab) with underscore and lowercase all characters
+* `raw`: left the messages as-is
+
+| apoc.user.log.window.ops | Long | 10 | Number of log messages permitted in a time-window. If this quota is exceeded, log messags will be skipped.
+| apoc.user.log.window.time | Long | 10000 | Length (in milliseconds) of the time-window.
+|===
