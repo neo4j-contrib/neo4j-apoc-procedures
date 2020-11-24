@@ -25,6 +25,9 @@ apoc.graph.fromDocument(json :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.graph.fromDocument.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -36,5 +39,5 @@ apoc.graph.fromDocument(json :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)
 == Usage Examples
 include::partial$usage/apoc.graph.fromDocument.adoc[]
 
-xref::export/gephi.adoc[More documentation of apoc.graph.fromDocument,role=more information]
+xref::virtual/virtual-graph.adoc[More documentation of apoc.graph.fromDB,role=more information]
 

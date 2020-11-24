@@ -1,0 +1,14 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header, cols="1,1,1,5"]
+|===
+| name | type | default | description
+| write | boolean | false | persist the graph otherwise return a Virtual Graph
+| labelField | String | type | the field name that became the label of the node
+| idField | String | id | the document field name that will become the id field of the created nodes (used for node resolution when you create relationships between nodes)
+| generateId | boolean | true | in case of missing id-field value it generates an UUID for it
+| defaultLabel | String | "" | in case of missing label-field value is uses the provided default label
+| skipValidation | boolean | false | in case you want skip the validation process into the `apoc.graph.fromDocument`
+| mappings | Map<String, String> | {} | click on link below for more detail
+|===

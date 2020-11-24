@@ -33,9 +33,8 @@ apoc.graph.from(data :: ANY?, name :: STRING?, properties :: MAP?) :: (graph :: 
 |graph|MAP?
 |===
 
-[[usage-apoc.graph.from]]
 == Usage Examples
 include::partial$usage/apoc.graph.from.adoc[]
 
-xref::export/gephi.adoc[More documentation of apoc.graph.from,role=more information]
+xref::virtual/virtual-graph.adoc[More documentation of apoc.graph.from,role=more information]
 

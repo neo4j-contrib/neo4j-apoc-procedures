@@ -38,5 +38,5 @@ apoc.graph.fromCypher(kernelTransaction :: STRING?, params :: MAP?, name :: STRI
 == Usage Examples
 include::partial$usage/apoc.graph.fromCypher.adoc[]
 
-xref::export/gephi.adoc[More documentation of apoc.graph.fromCypher,role=more information]
+xref::virtual/virtual-graph.adoc[More documentation of apoc.graph.fromCypher,role=more information]
 
