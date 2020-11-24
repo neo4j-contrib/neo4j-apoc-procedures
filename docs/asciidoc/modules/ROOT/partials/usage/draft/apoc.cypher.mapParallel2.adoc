@@ -1,0 +1,63 @@
+The examples in this section are based on the following graph:
+
+
+[source,cypher]
+----
+CREATE CONSTRAINT ON (day:Day)
+ASSERT day.day is UNIQUE;
+
+CREATE CONSTRAINT ON (hour:Hour)
+ASSERT hour.id is UNIQUE;
+
+CREATE CONSTRAINT ON (minute:Minute)
+ASSERT minute.id is UNIQUE;
+
+UNWIND range(0, 365) AS days
+MERGE (day:Day {day: datetime.truncate("day", datetime()) + duration({days: days})})
+WITH day
+CALL {
+  WITH day
+  UNWIND range(0,23) AS hourOfDay
+  MERGE (hour:Hour {id: day.day + duration({hours:hourOfDay})})
+  SET hour.hourOfDay = hourOfDay
+  MERGE (day)-[:HOUR]->(hour)
+
+  WITH day, hour
+  CALL {
+    WITH day, hour
+    UNWIND range(0,59) AS minuteOfHour
+    MERGE (minute:Minute {id:hour.id + duration({minutes: minuteOfHour})})
+    SET minute.minuteOfHour = minuteOfHour
+    MERGE (hour)-[:MINUTE]->(minute)
+    RETURN count(*)
+  }
+
+  RETURN count(*) AS count
+}
+RETURN day, count;
+
+CALL apoc.periodic.iterate(
+  "MATCH (m:Minute) RETURN m",
+  "UNWIND range(0, toInteger(rand() * 100)) AS event
+   CREATE (e:Event {uuid: apoc.create.uuid()})
+   SET e.measure = rand()
+   MERGE (m)-[:EVENT]->(e)",
+  {}
+);
+----
+
+We can see a Neo4j visualization of this graph below:
+
+MATCH (day:Day)-[:HOUR]->(hour)-[:MINUTE]->(minute)-[:EVENT]->(event)
+RETURN day.day, sum(event.measure) AS total
+ORDER BY total DESC
+LIMIT 10
+
+MATCH (day:Day)
+WITH collect(day) AS days
+CALL apoc.cypher.mapParallel2(
+"MATCH (_)-[:HOUR]->(hour)-[:MINUTE]->(minute)-[:EVENT]->(event)
+RETURN _.day as day, sum(event.measure) AS total", {}, days, 8)
+YIELD value
+RETURN value
+LIMIT 10

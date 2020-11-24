@@ -268,6 +268,7 @@ class DocumentationGenerator {
             writeExportToStream(writer, procedure.name().toString());
             writeUuid(writer, procedure.name().toString());
             writeTTL(writer, procedure.name().toString());
+            writeTrigger(writer, procedure.name().toString());
             writeNlpDependencies(writer, procedure.name().toString());
             writeMongodbDependencies(writer, procedure.name().toString());
             writeUsageExample(writer, procedure.name().toString());
@@ -324,6 +325,13 @@ class DocumentationGenerator {
         if(name.startsWith("apoc.ttl")) {
             writer.write("== Enable TTL\n");
             writer.write("include::partial$ttl.adoc[]\n\n");
+        }
+    }
+
+    private void writeTrigger(Writer writer, String name) throws IOException {
+        if(name.startsWith("apoc.trigger")) {
+            writer.write("== Enable Triggers\n");
+            writer.write("include::partial$triggers.adoc[]\n\n");
         }
     }
 

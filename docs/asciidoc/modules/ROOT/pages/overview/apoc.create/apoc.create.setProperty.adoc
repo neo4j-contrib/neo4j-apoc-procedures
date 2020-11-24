@@ -33,5 +33,9 @@ apoc.create.setProperty(nodes :: ANY?, key :: STRING?, value :: ANY?) :: (node :
 |node|NODE?
 |===
 
+[[usage-apoc.create.setProperty]]
+== Usage Examples
+include::partial$usage/apoc.create.setProperty.adoc[]
+
 xref::graph-updates/data-creation.adoc[More documentation of apoc.create.setProperty,role=more information]
 

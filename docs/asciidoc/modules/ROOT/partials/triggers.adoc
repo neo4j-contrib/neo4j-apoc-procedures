@@ -1,0 +1,8 @@
+By default triggers are disabled.
+We can enable them by setting the following property in `apoc.conf`:
+
+.apoc.conf
+[source,properties]
+----
+apoc.trigger.enabled=true
+----
