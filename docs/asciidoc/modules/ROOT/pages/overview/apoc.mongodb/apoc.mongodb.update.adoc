@@ -35,6 +35,9 @@ apoc.mongodb.update(host :: STRING?, db :: STRING?, collection :: STRING?, query
 |value|INTEGER?
 |===
 
+== Install Dependencies
+include::partial$mongodb-dependencies.adoc[]
+
 [[usage-apoc.mongodb.update]]
 == Usage Examples
 include::partial$usage/apoc.mongodb.update.adoc[]

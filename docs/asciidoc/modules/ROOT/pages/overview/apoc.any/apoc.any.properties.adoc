@@ -25,5 +25,9 @@ apoc.any.properties(thing :: ANY?, keys = null :: LIST? OF STRING?) :: (MAP?)
 |keys|LIST? OF STRING?|null
 |===
 
+[[usage-apoc.any.properties]]
+== Usage Examples
+include::partial$usage/apoc.any.properties.adoc[]
+
 xref::graph-querying/node-querying.adoc[More documentation of apoc.any.properties,role=more information]
 

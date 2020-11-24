@@ -37,6 +37,9 @@ apoc.mongodb.first(host :: STRING?, db :: STRING?, collection :: STRING?, query 
 |value|MAP?
 |===
 
+== Install Dependencies
+include::partial$mongodb-dependencies.adoc[]
+
 [[usage-apoc.mongodb.first]]
 == Usage Examples
 include::partial$usage/apoc.mongodb.first.adoc[]
