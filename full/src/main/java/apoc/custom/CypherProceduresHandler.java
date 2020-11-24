@@ -601,30 +601,32 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public void removeProcedure(String name) {
         withSystemDb(tx -> {
-            Node node = Iterators.single(tx.findNodes(SystemLabels.ApocCypherProcedures,
+            tx.findNodes(SystemLabels.ApocCypherProcedures,
                     SystemPropertyKeys.database.name(), api.databaseName(),
                     SystemPropertyKeys.name.name(), name
-            ).stream().filter(n -> n.hasLabel(SystemLabels.Procedure)).iterator());
-            ProcedureDescriptor descriptor = procedureDescriptor(node);
-            registerProcedure(descriptor.getSignature(), null);
-            registeredProcedureSignatures.remove(descriptor.getSignature());
-            node.delete();
-            setLastUpdate(tx);
+            ).stream().filter(n -> n.hasLabel(SystemLabels.Procedure)).forEach(node -> {
+                ProcedureDescriptor descriptor = procedureDescriptor(node);
+                registerProcedure(descriptor.getSignature(), null);
+                registeredProcedureSignatures.remove(descriptor.getSignature());
+                node.delete();
+                setLastUpdate(tx);
+            });
             return null;
         });
     }
 
     public void removeFunction(String name) {
         withSystemDb(tx -> {
-            Node node = Iterators.single(tx.findNodes(SystemLabels.ApocCypherProcedures,
+            tx.findNodes(SystemLabels.ApocCypherProcedures,
                     SystemPropertyKeys.database.name(), api.databaseName(),
                     SystemPropertyKeys.name.name(), name
-            ).stream().filter(n -> n.hasLabel(SystemLabels.Function)).iterator());
-            UserFunctionDescriptor descriptor = userFunctionDescriptor(node);
-            registerFunction(descriptor.getSignature(), null, false);
-            registeredUserFunctionSignatures.remove(descriptor.getSignature());
-            node.delete();
-            setLastUpdate(tx);
+            ).stream().filter(n -> n.hasLabel(SystemLabels.Function)).forEach(node -> {
+                UserFunctionDescriptor descriptor = userFunctionDescriptor(node);
+                registerFunction(descriptor.getSignature(), null, false);
+                registeredUserFunctionSignatures.remove(descriptor.getSignature());
+                node.delete();
+                setLastUpdate(tx);
+            });
             return null;
         });
 
