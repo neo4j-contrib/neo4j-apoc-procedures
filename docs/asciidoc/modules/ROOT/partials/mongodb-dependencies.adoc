@@ -1,0 +1,4 @@
+The Mongo procedures have dependencies on a client library that is not included in the APOC Library.
+
+This dependency is included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-mongodb-dependencies-{apoc-release}.jar[apoc-mongodb-dependencies-{apoc-release}.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
+Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.

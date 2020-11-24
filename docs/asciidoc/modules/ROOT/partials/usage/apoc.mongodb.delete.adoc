@@ -2,7 +2,7 @@ The examples in this section are based on a Mongo DB instance with a pre-populat
 You can find instructions for setting this up at https://github.com/neo4j-examples/mongo-example[github.com/neo4j-examples/mongo-example^].
 
 We're going to delete the document with an `id` of `591999465512382500`.
-We can check it existing, by running the following query using xref::overview/apoc.mongodb/apoc.mongodb.find.adoc[].
+We can check it exists, by running the following query using xref::overview/apoc.mongodb/apoc.mongodb.find.adoc[].
 
 .Cypher
 [source,cypher]

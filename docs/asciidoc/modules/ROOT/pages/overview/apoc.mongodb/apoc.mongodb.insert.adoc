@@ -27,6 +27,9 @@ apoc.mongodb.insert(host :: STRING?, db :: STRING?, collection :: STRING?, docum
 |documents|LIST? OF MAP?|null
 |===
 
+== Install Dependencies
+include::partial$mongodb-dependencies.adoc[]
+
 [[usage-apoc.mongodb.insert]]
 == Usage Examples
 include::partial$usage/apoc.mongodb.insert.adoc[]

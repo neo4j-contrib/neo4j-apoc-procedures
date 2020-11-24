@@ -269,6 +269,7 @@ class DocumentationGenerator {
             writeUuid(writer, procedure.name().toString());
             writeTTL(writer, procedure.name().toString());
             writeNlpDependencies(writer, procedure.name().toString());
+            writeMongodbDependencies(writer, procedure.name().toString());
             writeUsageExample(writer, procedure.name().toString());
             writeExtraDocumentation(writer, procedure.name());
 
@@ -338,6 +339,14 @@ class DocumentationGenerator {
             writer.write("include::partial$nlp-api-keys-" + platform + ".adoc[]\n\n");
         }
     }
+
+    private void writeMongodbDependencies(Writer writer, String name) throws IOException {
+        if(name.startsWith("apoc.mongodb")) {
+            writer.write("== Install Dependencies\n");
+            writer.write("include::partial$mongodb-dependencies.adoc[]\n\n");
+        }
+    }
+
     private void writeEmailDependencies(Writer writer, String name) throws IOException {
         if(name.startsWith("apoc.data.email")) {
             writer.write("== Install Dependencies\n");

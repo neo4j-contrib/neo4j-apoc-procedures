@@ -39,6 +39,9 @@ apoc.mongodb.get(host :: STRING?, db :: STRING?, collection :: STRING?, query ::
 |value|MAP?
 |===
 
+== Install Dependencies
+include::partial$mongodb-dependencies.adoc[]
+
 [[usage-apoc.mongodb.get]]
 == Usage Examples
 include::partial$usage/apoc.mongodb.get.adoc[]
