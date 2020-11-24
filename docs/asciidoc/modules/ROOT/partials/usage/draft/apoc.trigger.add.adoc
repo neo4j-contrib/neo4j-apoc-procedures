@@ -1,0 +1,56 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (d:Person {name:'Daniel'})
+CREATE (l:Person {name:'Mary'})
+CREATE (t:Person {name:'Tom'})
+CREATE (j:Person {name:'John'})
+CREATE (m:Person {name:'Michael'})
+CREATE (a:Person {name:'Anne'})
+CREATE (l)-[:DAUGHTER_OF]->(d)
+CREATE (t)-[:SON_OF]->(d)
+CREATE (t)-[:BROTHER]->(j)
+CREATE (a)-[:WIFE_OF]->(d)
+CREATE (d)-[:SON_OF]->(m)
+CREATE (j)-[:SON_OF]->(d);
+----
+
+This procedure is useful for executing Cypher statements that have a dynamic node label or relationship type.
+For example, we can return a stream of all the labels and their counts by running the following query:
+
+[source,cypher]
+----
+CALL apoc.trigger.add(
+  'setAllConnectedNodes',
+  'UNWIND apoc.trigger.propertiesByKey({assignedNodeProperties},"surname") as prop
+   WITH prop.node as n
+   MATCH(n)-[]-(a)
+   SET a.surname = n.surname',
+  {phase:'after'}
+);
+----
+
+.Results
+[opts="header"]
+|===
+| name                   | query      | selector         | params | installed | paused
+| "setAllConnectedNodes" | "UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties,\"surname\") as prop
+WITH prop.node as n
+MATCH(n)-[]-(a)
+SET a.surname = n.surname" | {phase: "after"} | {}     | TRUE      | FALSE
+|===
+
+
+[source,cypher]
+----
+MATCH (d:Person {name:'Daniel'})
+SET d.surname = 'William';
+----
+
+
+[source,cypher]
+----
+MATCH (p:Person)
+RETURN p;
+----

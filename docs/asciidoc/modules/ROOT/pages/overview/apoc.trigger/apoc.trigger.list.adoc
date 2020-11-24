@@ -29,5 +29,8 @@ apoc.trigger.list() :: (name :: STRING?, query :: STRING?, selector :: MAP?, par
 |paused|BOOLEAN?
 |===
 
+== Enable Triggers
+include::partial$triggers.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.list,role=more information]
 

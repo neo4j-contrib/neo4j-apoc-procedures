@@ -34,5 +34,9 @@ apoc.merge.node(label :: LIST? OF STRING?, identProps :: MAP?, props = {} :: MAP
 |node|NODE?
 |===
 
+[[usage-apoc.merge.node]]
+== Usage Examples
+include::partial$usage/apoc.merge.node.adoc[]
+
 xref::graph-updates/data-creation.adoc[More documentation of apoc.merge.node,role=more information]
 

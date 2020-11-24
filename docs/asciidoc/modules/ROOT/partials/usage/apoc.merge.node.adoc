@@ -1,0 +1,59 @@
+This procedure provides a more flexible way of merging nodes than Cypher's https://neo4j.com/docs/cypher-manual/current/clauses/merge/[`MERGE`^] clause.
+
+The example below shows equivalent ways of merging a node with the `Person` and `Actor` labels, with a `name` property of "Tom Hanks":
+
+// tag::tabs[]
+[.tabs]
+
+.apoc.create.node
+[source,cypher]
+----
+CALL apoc.merge.node(
+  ["Person", "Actor"],
+  {name: "Tom Hanks"},
+  {created: datetime()},
+  {lastSeen: datetime()}
+);
+----
+
+.CREATE clause
+[source,cypher]
+----
+MERGE (node:Person:Actor {name: "Tom Hanks"})
+ON CREATE SET node.created = datetime()
+ON MATCH SET node.lastSeen = datetime()
+RETURN node;
+----
+// end::tabs[]
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person:Actor {name: "Tom Hanks", created: 2020-11-24T11:33:39.319Z})
+|===
+
+But this procedure is mostly useful for merging nodes that have dynamic labels or properties.
+For example, we might want to create a node with labels or properties passed in as parameters.
+
+The following creates `labels` and `properties` parameters:
+
+[source,cypher]
+----
+:param labels =>  (["Human", "MovieStar"]);
+:param identityProperties => ({name: "Tom Cruise", placeOfBirth: "Syracuse, New York, United States"});
+----
+
+The following creates a node with labels and properties based on the previously defined parameters:
+
+[source,cypher]
+----
+CALL apoc.merge.node($labels, $identityProperties);
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Human:MovieStar {name: "Tom Cruise", placeOfBirth: "Syracuse, New York, United States"})
+|===

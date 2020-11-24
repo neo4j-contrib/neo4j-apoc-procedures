@@ -34,5 +34,9 @@ apoc.merge.node.eager(label :: LIST? OF STRING?, identProps :: MAP?, props = {} 
 |node|NODE?
 |===
 
+[[usage-apoc.merge.node.eager]]
+== Usage Examples
+include::partial$usage/apoc.merge.node.eager.adoc[]
+
 xref::graph-updates/data-creation.adoc[More documentation of apoc.merge.node.eager,role=more information]
 
