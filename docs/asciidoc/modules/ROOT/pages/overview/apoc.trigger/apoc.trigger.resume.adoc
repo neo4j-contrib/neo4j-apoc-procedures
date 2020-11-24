@@ -36,5 +36,8 @@ apoc.trigger.resume(name :: STRING?) :: (name :: STRING?, query :: STRING?, sele
 |paused|BOOLEAN?
 |===
 
+== Enable Triggers
+include::partial$triggers.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.resume,role=more information]
 

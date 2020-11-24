@@ -39,5 +39,8 @@ apoc.trigger.add(name :: STRING?, kernelTransaction :: STRING?, selector :: MAP?
 |paused|BOOLEAN?
 |===
 
+== Enable Triggers
+include::partial$triggers.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.add,role=more information]
 

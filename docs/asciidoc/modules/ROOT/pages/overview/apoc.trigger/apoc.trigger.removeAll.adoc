@@ -29,5 +29,8 @@ apoc.trigger.removeAll() :: (name :: STRING?, query :: STRING?, selector :: MAP?
 |paused|BOOLEAN?
 |===
 
+== Enable Triggers
+include::partial$triggers.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.removeAll,role=more information]
 

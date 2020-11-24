@@ -8,7 +8,7 @@ CREATE (m:Movie {title:"You've Got Mail"});
 
 This procedure provides a more flexible way of merging relationships than Cypher's https://neo4j.com/docs/cypher-manual/current/clauses/merge/[`MERGE`^] clause.
 
-The example below shows equivalent ways of merging a node with the `Person` and `Actor` labels, with a `name` property of "Tom Hanks":
+The example below shows equivalent ways of merging an `ACTED_IN` relationship between the `Tom Hanks` and `You've Got Mail` nodes:
 
 // tag::tabs[]
 [.tabs]

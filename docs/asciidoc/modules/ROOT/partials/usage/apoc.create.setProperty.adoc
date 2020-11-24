@@ -1,0 +1,62 @@
+The examples in this section are based on the following sample graph:
+[source,cypher]
+----
+CREATE (stop:Stop {arrival: "0802", departure: "0803"});
+----
+
+We want to convert the `arrival` and `departure` properties into Time types and store them as new properties, whose names are based on the original property keys.
+
+We can generate the new property keys and Time values, by running the following query:
+
+[source,cypher]
+----
+MATCH (stop:Stop)
+UNWIND ["arrival", "departure"] AS key
+RETURN key + "Time" AS newKey, time(stop[key]) AS time;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| newKey          | time
+| "arrivalTime"   | 08:02Z
+| "departureTime" | 08:03Z
+|===
+
+But if we try to save these properties back to the database:
+
+[source,cypher]
+----
+MATCH (stop:Stop)
+UNWIND ["arrival", "departure"] AS key
+WITH stop, key + "Time" AS newKey, time(stop[key]) AS time
+SET stop[newKey] = time;
+----
+
+We'll receive the following error:
+
+.Results
+|===
+| Invalid input '[': expected an identifier character, whitespace, '{', node labels, a property map, a relationship pattern, '.', '(', '=' or "+=" (line 5, column 9 (offset: 119))
+"SET stop[newKey] = time;"
+|===
+
+We can use `apoc.create.setProperty` to work around this problem, as shown in the query below:
+
+[source,cypher]
+----
+MATCH (stop:Stop)
+UNWIND ["arrival", "departure"] AS key
+WITH stop, key + "Time" AS newKey, time(stop[key]) AS time
+CALL apoc.create.setProperty(stop, newKey, time)
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| node
+| (:Stop {departure: "0803", arrival: "0802", arrivalTime: 08:02Z})
+| (:Stop {departureTime: 08:03Z, departure: "0803", arrival: "0802", arrivalTime: 08:02Z})
+|===
