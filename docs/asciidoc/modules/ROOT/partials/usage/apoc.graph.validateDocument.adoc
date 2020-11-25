@@ -1,0 +1,12 @@
+[source,cypher]
+----
+CALL apoc.graph.validateDocument('[{"foo": "foo"}, {"bar": "bar", "id": 1, "type": "label"}, {"fooBar": "fooBar", "id": 1}]');
+----
+
+.Results
+[opts="header"]
+|===
+| row
+| {message: "The object `{\"foo\":\"foo\",\"id\":\"9447525f-8a2b-4ab9-b440-b80396741683\"}` must have `type` as label-field name", index: 0}
+| {message: "The object `{\"fooBar\":\"fooBar\",\"id\":1}` must have `type` as label-field name", index: 2}
+|===

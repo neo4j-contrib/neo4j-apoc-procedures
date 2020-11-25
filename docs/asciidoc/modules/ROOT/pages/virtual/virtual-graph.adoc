@@ -18,22 +18,6 @@ It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],rel
 | apoc.agg.graph(element) as graph | aggregates graph elements to a "graph" map with unique sets of "nodes" and "relationships"
 |===
 
-
-Create a graph object (map) from information that's passed in.
-Its basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}`
-
-[cols="5m,5"]
-|===
-| apoc.graph.from(data,'name',{properties}) yield graph | creates a virtual graph object for later processing it tries its best to extract the graph information from the data you pass in
-| apoc.graph.fromData([nodes],[relationships],'name',{properties}) | creates a virtual graph object for later processing
-| apoc.graph.fromPaths(path,'name',{properties}) | creates a virtual graph object for later processing
-| apoc.graph.fromPaths([paths],'name',{properties}) | creates a virtual graph object for later processing
-| apoc.graph.fromDB('name',{properties}) | creates a virtual graph object for later processing
-| apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
-| apoc.graph.fromDocument({json},{config}) | transform JSON documents into graph structures
-| apoc.graph.validateDocument({json},{config}) | validate the JSON and returns information about required fields violations
-|===
-
 == `apoc.graph.fromDocument`
 
 The procedure `apoc.graph.fromDocument` transforms a JSON into a graph structure.

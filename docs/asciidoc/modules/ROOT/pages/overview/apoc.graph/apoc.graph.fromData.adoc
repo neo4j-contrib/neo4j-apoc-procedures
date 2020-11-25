@@ -34,5 +34,9 @@ apoc.graph.fromData(nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONS
 |graph|MAP?
 |===
 
+[[usage-apoc.graph.fromData]]
+== Usage Examples
+include::partial$usage/apoc.graph.fromData.adoc[]
+
 xref::export/gephi.adoc[More documentation of apoc.graph.fromData,role=more information]
 

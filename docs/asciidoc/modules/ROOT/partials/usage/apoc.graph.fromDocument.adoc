@@ -1,0 +1,13 @@
+[source,cypher]
+----
+CALL apoc.graph.fromDocument("{'id': 1,'type': 'artist','name':'Genesis','members': ['Tony Banks','Mike Rutherford','Phil Collins'],'years': [1967, 1998, 1999, 2000, 2006],'albums': [{'type': 'album','id': 1,'producer': 'Jonathan King','title': 'From Genesis to Revelation'}]}", {write: false})
+YIELD graph AS g
+RETURN g.nodes AS nodes, g.relationships AS rels;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes                                                                                                                                                                                                                                                    | rels
+| [(:Artist {name: "Genesis", id: 1, type: "artist", years: [1967, 1998, 1999, 2000, 2006], members: ["Tony Banks", "Mike Rutherford", "Phil Collins"]}), (:Album {producer: "Jonathan King", id: 1, type: "album", title: "From Genesis to Revelation"})] | +++[[:ALBUMS]]+++
+|===
