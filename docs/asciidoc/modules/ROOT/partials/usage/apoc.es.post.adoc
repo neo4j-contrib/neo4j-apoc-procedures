@@ -1,0 +1,21 @@
+The examples in this section are based on an Elastic instance populated with the accounts.json sample dataset from the https://www.elastic.co/guide/en/elasticsearch/reference/current/getting-started-index.html[Getting Started with Elasticsearch^] guide.
+You can find instructions for setting this up at https://github.com/neo4j-examples/elastic-example[github.com/neo4j-examples/elastic-example^].
+
+We can create a document with a `name` property of `John Doe` in the `customers` index, by running the following query:
+
+[source,cypher]
+----
+CALL apoc.es.post("localhost","customers","_doc", null, {
+  name: "John Doe"
+});
+----
+
+.Results
+[opts="header"]
+|===
+| value
+|  {result: "created", _shards: {total: 2, failed: 0, successful: 1}, _seq_no: 4, _index: "customers", _type: "_doc", _id: "Im4w_3UBi9jUSsIzV4Js", _version: 1, _primary_term: 1}
+|===
+
+Elastic will generate an `_id` value for us when we use `apoc.es.post`.
+If we want to provide an id, or update an existing document, see xref::overview/apoc.es/apoc.es.put.adoc[].

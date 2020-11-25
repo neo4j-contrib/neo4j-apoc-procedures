@@ -1,0 +1,85 @@
+The examples in this section are based on an Elastic instance populated with the accounts.json sample dataset from the https://www.elastic.co/guide/en/elasticsearch/reference/current/getting-started-index.html[Getting Started with Elasticsearch^] guide.
+You can find instructions for setting this up at https://github.com/neo4j-examples/elastic-example[github.com/neo4j-examples/elastic-example^].
+
+We can find the first 10 documents sorted by `account_number`, by running the following query:
+
+[source,cypher]
+----
+CALL apoc.es.query("localhost","bank","_doc",null,{
+  query: { match_all: {} },
+  sort: [
+    { account_number: "asc" }
+  ]
+})
+YIELD value
+UNWIND value.hits.hits AS hit
+RETURN hit;
+----
+
+.Results
+[opts="header"]
+|===
+| hit
+| {_index: "bank", _type: "_doc", _source: {account_number: 0, firstname: "Bradshaw", address: "244 Columbus Place", balance: 16623, gender: "F", city: "Hobucken", employer: "Euron", state: "CO", age: 29, email: "bradshawmckenzie@euron.com", lastname: "Mckenzie"}, _id: "0", sort: [0], _score: NULL}
+| {_index: "bank", _type: "_doc", _source: {account_number: 1, firstname: "Amber", address: "880 Holmes Lane", balance: 39225, gender: "M", city: "Brogan", employer: "Pyrami", state: "IL", age: 32, email: "amberduke@pyrami.com", lastname: "Duke"}, _id: "1", sort: [1], _score: NULL}
+| {_index: "bank", _type: "_doc", _source: {account_number: 2, firstname: "Roberta", address: "560 Kingsway Place", balance: 28838, gender: "F", city: "Bennett", employer: "Chillium", state: "LA", age: 22, email: "robertabender@chillium.com", lastname: "Bender"}, _id: "2", sort: [2], _score: NULL}
+| {_index: "bank", _type: "_doc", _source: {account_number: 3, firstname: "Levine", address: "328 Wilson Avenue", balance: 44947, gender: "F", city: "Cochranville", employer: "Amtap", state: "HI", age: 26, email: "levineburks@amtap.com", lastname: "Burks"}, _id: "3", sort: [3], _score: NULL}
+| {_index: "bank", _type: "_doc", _source: {account_number: 4, firstname: "Rodriquez", address: "986 Wyckoff Avenue", balance: 27658, gender: "F", city: "Eastvale", employer: "Tourmania", state: "HI", age: 31, email: "rodriquezflores@tourmania.com", lastname: "Flores"}, _id: "4", sort: [4], _score: NULL}
+| {_index: "bank", _type: "_doc", _source: {account_number: 5, firstname: "Leola", address: "311 Elm Place", balance: 29342, gender: "F", city: "Fairview", employer: "Diginetic", state: "NJ", age: 30, email: "leolastewart@diginetic.com", lastname: "Stewart"}, _id: "5", sort: [5], _score: NULL}
+| {_index: "bank", _type: "_doc", _source: {account_number: 6, firstname: "Hattie", address: "671 Bristol Street", balance: 5686, gender: "M", city: "Dante", employer: "Netagy", state: "TN", age: 36, email: "hattiebond@netagy.com", lastname: "Bond"}, _id: "6", sort: [6], _score: NULL}
+| {_index: "bank", _type: "_doc", _source: {account_number: 7, firstname: "Levy", address: "820 Logan Street", balance: 39121, gender: "M", city: "Shrewsbury", employer: "Teraprene", state: "MO", age: 22, email: "levyrichard@teraprene.com", lastname: "Richard"}, _id: "7", sort: [7], _score: NULL}
+| {_index: "bank", _type: "_doc", _source: {account_number: 8, firstname: "Jan", address: "699 Visitation Place", balance: 48868, gender: "M", city: "Wakulla", employer: "Glasstep", state: "AZ", age: 35, email: "janburns@glasstep.com", lastname: "Burns"}, _id: "8", sort: [8], _score: NULL}
+| {_index: "bank", _type: "_doc", _source: {account_number: 9, firstname: "Opal", address: "963 Neptune Avenue", balance: 24776, gender: "M", city: "Olney", employer: "Cedward", state: "OH", age: 39, email: "opalmeadows@cedward.com", lastname: "Meadows"}, _id: "9", sort: [9], _score: NULL}
+|===
+
+We can find documents with an account number of `7`, by running the following query:
+
+[source,cypher]
+----
+CALL apoc.es.query("localhost","bank","_doc",null,{
+  query: { match: {account_number: 7} }
+})
+YIELD value
+UNWIND value.hits.hits AS hit
+RETURN hit;
+----
+
+.Results
+[opts="header"]
+|===
+| hit
+| {_index: "bank", _type: "_doc", _source: {account_number: 7, firstname: "Levy", address: "820 Logan Street", balance: 39121, gender: "M", city: "Shrewsbury", employer: "Teraprene", state: "MO", age: 22, email: "levyrichard@teraprene.com", lastname: "Richard"}, _id: "7", sort: [7], _score: NULL}
+|===
+
+We can find documents that belong to customers who are 40 years old, but excluding anyone who lives in Idaho (ID), by running the following query:
+
+[source,cypher]
+----
+CALL apoc.es.query("localhost","bank","_doc",null,{
+  query: {
+    bool: {
+      must: [ { match: { age: "40" } }],
+      must_not: [{ match: { state: "ID" } }]
+    }
+  }
+})
+YIELD value
+UNWIND value.hits.hits AS hit
+RETURN hit;
+----
+
+.Results
+[opts="header"]
+|===
+| hit
+| {_type: "_doc", _source: {account_number: 474, firstname: "Obrien", address: "192 Ide Court", balance: 35896, gender: "F", city: "Crucible", employer: "Suremax", state: "UT", age: 40, email: "obrienwalton@suremax.com", lastname: "Walton"}, _id: "474", _index: "bank", _score: 1.0}
+| {_type: "_doc", _source: {account_number: 479, firstname: "Cameron", address: "904 Bouck Court", balance: 31865, gender: "M", city: "Nord", employer: "Telpod", state: "MO", age: 40, email: "cameronross@telpod.com", lastname: "Ross"}, _id: "479", _index: "bank", _score: 1.0}
+| {_type: "_doc", _source: {account_number: 549, firstname: "Jacqueline", address: "444 Schenck Place", balance: 1932, gender: "M", city: "Oretta", employer: "Fuelworks", state: "OR", age: 40, email: "jacquelinemaxwell@fuelworks.com", lastname: "Maxwell"}, _id: "549", _index: "bank", _score: 1.0}
+| {_type: "_doc", _source: {account_number: 878, firstname: "Battle", address: "234 Hendrix Street", balance: 49159, gender: "F", city: "Wanamie", employer: "Zilphur", state: "PA", age: 40, email: "battleblackburn@zilphur.com", lastname: "Blackburn"}, _id: "878", _index: "bank", _score: 1.0}
+| {_type: "_doc", _source: {account_number: 885, firstname: "Valdez", address: "227 Scholes Street", balance: 31661, gender: "F", city: "Chilton", employer: "Delphide", state: "MT", age: 40, email: "valdezroberson@delphide.com", lastname: "Roberson"}, _id: "885", _index: "bank", _score: 1.0}
+| {_type: "_doc", _source: {account_number: 948, firstname: "Sargent", address: "532 Fiske Place", balance: 37074, gender: "M", city: "Umapine", employer: "Accuprint", state: "AK", age: 40, email: "sargentpowers@accuprint.com", lastname: "Powers"}, _id: "948", _index: "bank", _score: 1.0}
+| {_type: "_doc", _source: {account_number: 998, firstname: "Letha", address: "206 Llama Court", balance: 16869, gender: "F", city: "Dunlo", employer: "Dognosis", state: "WV", age: 40, email: "lethabaker@dognosis.com", lastname: "Baker"}, _id: "998", _index: "bank", _score: 1.0}
+| {_type: "_doc", _source: {account_number: 40, firstname: "Pace", address: "263 Ovington Court", balance: 33882, gender: "M", city: "Silkworth", employer: "Cytrak", state: "OR", age: 40, email: "pacemolina@cytrak.com", lastname: "Molina"}, _id: "40", _index: "bank", _score: 1.0}
+| {_type: "_doc", _source: {account_number: 165, firstname: "Sims", address: "205 Jackson Street", balance: 18956, gender: "F", city: "Tilden", employer: "Comtour", state: "DC", age: 40, email: "simsmckay@comtour.com", lastname: "Mckay"}, _id: "165", _index: "bank", _score: 1.0}
+| {_type: "_doc", _source: {account_number: 177, firstname: "Harris", address: "468 Suydam Street", balance: 48972, gender: "F", city: "Yettem", employer: "Kidstock", state: "KY", age: 40, email: "harrisgross@kidstock.com", lastname: "Gross"}, _id: "177", _index: "bank", _score: 1.0}
+|===
