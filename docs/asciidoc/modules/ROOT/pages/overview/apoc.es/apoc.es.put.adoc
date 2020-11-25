@@ -36,5 +36,9 @@ apoc.es.put(host :: STRING?, index :: STRING?, type :: STRING?, id :: STRING?, q
 |value|MAP?
 |===
 
+[[usage-apoc.es.put]]
+== Usage Examples
+include::partial$usage/apoc.es.put.adoc[]
+
 xref::database-integration/elasticsearch.adoc[More documentation of apoc.es.put,role=more information]
 

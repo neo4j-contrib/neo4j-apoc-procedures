@@ -1,0 +1,16 @@
+The examples in this section are based on an Elastic instance populated with the accounts.json sample dataset from the https://www.elastic.co/guide/en/elasticsearch/reference/current/getting-started-index.html[Getting Started with Elasticsearch^] guide.
+You can find instructions for setting this up at https://github.com/neo4j-examples/elastic-example[github.com/neo4j-examples/elastic-example^].
+
+We can find the document with id `1`, by running the following query:
+
+[source,cypher]
+----
+CALL apoc.es.get("localhost","bank","_doc","1",null,null);
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| {_seq_no: 0, found: TRUE, _index: "bank", _type: "_doc", _source: {account_number: 1, firstname: "Amber", address: "880 Holmes Lane", balance: 39225, gender: "M", city: "Brogan", employer: "Pyrami", state: "IL", age: 32, email: "amberduke@pyrami.com", lastname: "Duke"}, _id: "1", _version: 1, _primary_term: 1}
+|===

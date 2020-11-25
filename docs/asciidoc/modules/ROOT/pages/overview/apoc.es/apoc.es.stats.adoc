@@ -31,5 +31,9 @@ apoc.es.stats(host :: STRING?) :: (value :: MAP?)
 |value|MAP?
 |===
 
+[[usage-apoc.es.stats]]
+== Usage Examples
+include::partial$usage/apoc.es.stats.adoc[]
+
 xref::database-integration/elasticsearch.adoc[More documentation of apoc.es.stats,role=more information]
 

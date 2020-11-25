@@ -36,5 +36,9 @@ apoc.es.get(host :: STRING?, index :: STRING?, type :: STRING?, id :: STRING?, q
 |value|MAP?
 |===
 
+[[usage-apoc.es.get]]
+== Usage Examples
+include::partial$usage/apoc.es.get.adoc[]
+
 xref::database-integration/elasticsearch.adoc[More documentation of apoc.es.get,role=more information]
 
