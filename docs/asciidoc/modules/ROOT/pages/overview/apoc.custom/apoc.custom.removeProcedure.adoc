@@ -24,5 +24,9 @@ apoc.custom.removeProcedure(name :: STRING?) :: VOID
 |name|STRING?|null
 |===
 
+[[usage-apoc.custom.removeProcedure]]
+== Usage Examples
+include::partial$usage/apoc.custom.removeProcedure.adoc[]
+
 xref::cypher-execution/cypher-based-procedures-functions.adoc[More documentation of apoc.custom.removeProcedure,role=more information]
 

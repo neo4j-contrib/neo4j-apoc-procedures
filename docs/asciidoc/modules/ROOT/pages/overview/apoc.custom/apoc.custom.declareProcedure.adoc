@@ -27,5 +27,9 @@ apoc.custom.declareProcedure(signature :: STRING?, statement :: STRING?, mode = 
 |description|STRING?|
 |===
 
+[[usage-apoc.custom.declareProcedure]]
+== Usage Examples
+include::partial$usage/apoc.custom.declareProcedure.adoc[]
+
 xref::cypher-execution/cypher-based-procedures-functions.adoc[More documentation of apoc.custom.declareProcedure,role=more information]
 

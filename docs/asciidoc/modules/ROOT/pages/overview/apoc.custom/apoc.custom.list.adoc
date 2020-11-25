@@ -31,5 +31,9 @@ apoc.custom.list() :: (type :: STRING?, name :: STRING?, description :: STRING?,
 |forceSingle|BOOLEAN?
 |===
 
+[[usage-apoc.custom.list]]
+== Usage Examples
+include::partial$usage/apoc.custom.list.adoc[]
+
 xref::cypher-execution/cypher-based-procedures-functions.adoc[More documentation of apoc.custom.list,role=more information]
 

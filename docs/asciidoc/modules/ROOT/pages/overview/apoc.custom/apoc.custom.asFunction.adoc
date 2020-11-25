@@ -29,5 +29,9 @@ apoc.custom.asFunction(name :: STRING?, statement :: STRING?, outputs =  :: STRI
 |description|STRING?|
 |===
 
+[[usage-apoc.custom.asFunction]]
+== Usage Examples
+include::partial$usage/apoc.custom.asFunction.adoc[]
+
 xref::cypher-execution/cypher-based-procedures-functions.adoc[More documentation of apoc.custom.asFunction,role=more information]
 

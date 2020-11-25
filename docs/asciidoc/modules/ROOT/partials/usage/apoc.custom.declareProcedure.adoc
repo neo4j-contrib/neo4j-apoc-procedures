@@ -1,0 +1,27 @@
+We can create the function `custom.powers` that returns a stream of the powers of the first parameter, up to and including the power provided by the second parameter:
+
+[source,cypher]
+----
+CALL apoc.custom.declareProcedure(
+  'powers(input::INT, power::INT) :: (answer::INT)',
+  'UNWIND range(0, $power) AS power
+   RETURN $input ^ power AS answer'
+);
+----
+
+We can use this function, to return 4°, 4¹, 4², and 4³, as shown in the query below:
+
+[source,cypher]
+----
+call custom.powers(4,3);
+----
+
+.Results
+[opts="header"]
+|===
+| answer
+| 1.0
+| 4.0
+| 16.0
+| 64.0
+|===
