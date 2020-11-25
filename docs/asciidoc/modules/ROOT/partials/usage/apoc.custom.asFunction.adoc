@@ -1,0 +1,25 @@
+We can create the function `custom.double`, that doubles the provided value, by running the following function:
+
+[source,cypher]
+----
+CALL apoc.custom.asFunction(
+  'double',
+  'RETURN $input*2 as answer',
+  'long',
+  [['input','number']]
+);
+----
+
+We can use this function, as shown in the query below:
+
+[source,cypher]
+----
+RETURN custom.double(12) AS value;
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| 24
+|===

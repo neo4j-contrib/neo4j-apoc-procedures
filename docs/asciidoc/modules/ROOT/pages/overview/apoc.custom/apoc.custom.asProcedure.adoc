@@ -29,5 +29,9 @@ apoc.custom.asProcedure(name :: STRING?, statement :: STRING?, mode = read :: ST
 |description|STRING?|
 |===
 
+[[usage-apoc.custom.asProcedure]]
+== Usage Examples
+include::partial$usage/apoc.custom.asProcedure.adoc[]
+
 xref::cypher-execution/cypher-based-procedures-functions.adoc[More documentation of apoc.custom.asProcedure,role=more information]
 

@@ -27,5 +27,9 @@ apoc.custom.declareFunction(signature :: STRING?, statement :: STRING?, forceSin
 |description|STRING?|
 |===
 
+[[usage-apoc.custom.declareFunction]]
+== Usage Examples
+include::partial$usage/apoc.custom.declareFunction.adoc[]
+
 xref::cypher-execution/cypher-based-procedures-functions.adoc[More documentation of apoc.custom.declareFunction,role=more information]
 
