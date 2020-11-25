@@ -24,5 +24,9 @@ apoc.custom.removeFunction(name :: STRING?) :: VOID
 |name|STRING?|null
 |===
 
+[[usage-apoc.custom.removeFunction]]
+== Usage Examples
+include::partial$usage/apoc.custom.removeFunction.adoc[]
+
 xref::cypher-execution/cypher-based-procedures-functions.adoc[More documentation of apoc.custom.removeFunction,role=more information]
 
