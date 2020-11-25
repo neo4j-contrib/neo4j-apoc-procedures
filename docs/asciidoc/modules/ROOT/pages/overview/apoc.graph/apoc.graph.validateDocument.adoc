@@ -32,5 +32,9 @@ apoc.graph.validateDocument(json :: ANY?, config = {} :: MAP?) :: (row :: MAP?)
 |row|MAP?
 |===
 
+[[usage-apoc.graph.validateDocument]]
+== Usage Examples
+include::partial$usage/apoc.graph.validateDocument.adoc[]
+
 xref::export/gephi.adoc[More documentation of apoc.graph.validateDocument,role=more information]
 

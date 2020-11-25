@@ -32,5 +32,9 @@ apoc.graph.fromDocument(json :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)
 |graph|MAP?
 |===
 
+[[usage-apoc.graph.fromDocument]]
+== Usage Examples
+include::partial$usage/apoc.graph.fromDocument.adoc[]
+
 xref::export/gephi.adoc[More documentation of apoc.graph.fromDocument,role=more information]
 
