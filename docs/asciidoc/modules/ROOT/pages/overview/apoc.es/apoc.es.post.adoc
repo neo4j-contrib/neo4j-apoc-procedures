@@ -35,5 +35,9 @@ apoc.es.post(host :: STRING?, index :: STRING?, type :: STRING?, query :: ANY?, 
 |value|MAP?
 |===
 
+[[usage-apoc.es.post]]
+== Usage Examples
+include::partial$usage/apoc.es.post.adoc[]
+
 xref::database-integration/elasticsearch.adoc[More documentation of apoc.es.post,role=more information]
 

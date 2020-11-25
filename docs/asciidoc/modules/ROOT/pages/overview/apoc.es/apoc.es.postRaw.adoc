@@ -33,5 +33,9 @@ apoc.es.postRaw(host :: STRING?, path :: STRING?, payload :: ANY?) :: (value :: 
 |value|MAP?
 |===
 
+[[usage-apoc.es.postRaw]]
+== Usage Examples
+include::partial$usage/apoc.es.postRaw.adoc[]
+
 xref::database-integration/elasticsearch.adoc[More documentation of apoc.es.postRaw,role=more information]
 

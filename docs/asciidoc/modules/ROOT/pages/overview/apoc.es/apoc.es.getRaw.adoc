@@ -33,5 +33,9 @@ apoc.es.getRaw(host :: STRING?, path :: STRING?, payload :: ANY?) :: (value :: M
 |value|MAP?
 |===
 
+[[usage-apoc.es.getRaw]]
+== Usage Examples
+include::partial$usage/apoc.es.getRaw.adoc[]
+
 xref::database-integration/elasticsearch.adoc[More documentation of apoc.es.getRaw,role=more information]
 
