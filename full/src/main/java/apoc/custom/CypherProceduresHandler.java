@@ -35,7 +35,6 @@ import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
-import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
@@ -177,8 +176,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                 false,
                 false,
                 false,
-                false
-        ), statement);
+                false,
+                false), statement);
     }
 
     private UserFunctionDescriptor userFunctionDescriptor(Node node) {
