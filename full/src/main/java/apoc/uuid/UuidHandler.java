@@ -38,8 +38,8 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     private final ApocConfig apocConfig;
     private final ConcurrentHashMap<String, String> configuredLabelAndPropertyNames = new ConcurrentHashMap<>();
 
-    private static final String NOT_ENABLED_ERROR = "UUID have not been enabled." +
-            " Set 'apoc.uuid.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
+    public static final String NOT_ENABLED_ERROR = "UUID have not been enabled." +
+            " Set 'apoc.uuid.enabled=true' or 'apoc.uuid.enabled.%s=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
 
     public UuidHandler(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, Log log, ApocConfig apocConfig, GlobalProcedures globalProceduresRegistry) {
         this.db = db;
@@ -57,7 +57,8 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     }
 
     private boolean isEnabled() {
-        return apocConfig.getBoolean(APOC_UUID_ENABLED);
+        String apocUUIDEnabledDb = String.format(ApocConfig.APOC_UUID_ENABLED_DB, this.db.databaseName());
+        return apocConfig.getConfig().getBoolean(apocUUIDEnabledDb, apocConfig.getBoolean(APOC_UUID_ENABLED));
     }
 
     @Override
@@ -127,7 +128,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
 
     private void checkEnabled() {
         if (!isEnabled()) {
-            throw new RuntimeException(NOT_ENABLED_ERROR);
+            throw new RuntimeException(String.format(NOT_ENABLED_ERROR, this.db.databaseName()) );
         }
     }
 
