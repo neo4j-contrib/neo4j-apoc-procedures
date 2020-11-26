@@ -93,26 +93,34 @@ public class MultiStatementCypherSubGraphExporter {
         int batchSize = config.getBatchSize();
         ExportConfig.OptimizationType useOptimizations = config.getOptimizationType();
 
-        switch (useOptimizations) {
-            case NONE:
-                exportNodes(cypherFileManager.getPrintWriter("nodes"), reporter, batchSize);
-                exportSchema(cypherFileManager.getPrintWriter("schema"));
-                exportRelationships(cypherFileManager.getPrintWriter("relationships"), reporter, batchSize);
-                break;
-            default:
-                artificialUniques += countArtificialUniques(graph.getNodes());
-                exportSchema(cypherFileManager.getPrintWriter("schema"));
-                PrintWriter nodeWrite = cypherFileManager.getPrintWriter("nodes");
-                exportNodesUnwindBatch(nodeWrite, reporter);
-                PrintWriter relWrite = cypherFileManager.getPrintWriter("relationships");
-                exportRelationshipsUnwindBatch(relWrite, reporter);
+        try (
+            PrintWriter schemaWriter = cypherFileManager.getPrintWriter("schema");
+            PrintWriter nodesWriter = cypherFileManager.getPrintWriter("nodes");
+            PrintWriter relationshipsWriter = cypherFileManager.getPrintWriter("relationships");
+            PrintWriter cleanupWriter = cypherFileManager.getPrintWriter("cleanup")) {
+
+            switch (useOptimizations) {
+                case NONE:
+                    exportNodes(nodesWriter, reporter, batchSize);
+                    exportSchema(schemaWriter);
+                    exportRelationships(relationshipsWriter, reporter, batchSize);
+                    break;
+                default:
+                    artificialUniques += countArtificialUniques(graph.getNodes());
+                    exportSchema(schemaWriter);
+                    exportNodesUnwindBatch(nodesWriter, reporter);
+                    exportRelationshipsUnwindBatch(relationshipsWriter, reporter);
+                    break;
+            }
+            exportCleanUp(cleanupWriter, batchSize);
         }
-        exportCleanUp(cypherFileManager.getPrintWriter("cleanup"), batchSize);
         reporter.done();
     }
 
     public void exportOnlySchema(ExportFileManager cypherFileManager) throws IOException {
-        exportSchema(cypherFileManager.getPrintWriter("schema"));
+        try (PrintWriter schemaWriter = cypherFileManager.getPrintWriter("schema")) {
+            exportSchema(schemaWriter);
+        }
     }
 
     // ---- Nodes ----

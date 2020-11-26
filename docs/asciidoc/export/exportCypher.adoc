@@ -22,6 +22,7 @@ This section includes:
 * <<export-cypher-available-procedures, Available Procedures>>
 * <<export-cypher-config, Configuration parameters>>
 * <<export-cypher-file-export, Exporting to a file>>
+* <<export-cypher-s3-export, Export to S3>>
 * <<export-cypher-stream-export, Exporting a stream>>
 * <<export-cypher-examples, Examples>>
     ** <<export-cypher-cypher-shell, Export to Cypher Shell format>>
@@ -87,6 +88,11 @@ The procedures support the following config parameters:
 === Exporting to a file
 
 include::enableFileExport.adoc[]
+
+[[export-cypher-s3-export]]
+== Exporting to s3
+
+include::enableS3Export.adoc[]
 
 [[export-cypher-stream-export]]
 === Exporting a stream

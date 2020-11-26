@@ -6,6 +6,7 @@ import apoc.export.util.CountingReader;
 import apoc.export.util.ExportConfig;
 import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
+import apoc.util.s3.S3UploadUtils;
 import org.apache.commons.io.output.WriterOutputStream;
 
 import java.io.*;
@@ -31,6 +32,7 @@ public class FileUtils {
     public static final String HDFS_PROTOCOL = "hdfs";
     public static final boolean HDFS_ENABLED = Util.classExists("org.apache.hadoop.fs.FileSystem");
     public static final Pattern HDFS_PATTERN = Pattern.compile("^(hdfs:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
+    public static final Pattern S3_PATTERN = Pattern.compile("^(s3:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
 
     public static final List<String> NON_FILE_PROTOCOLS = Arrays.asList(HTTP_PROTOCOL, S3_PROTOCOL, GCS_PROTOCOL, HDFS_PROTOCOL);
 
@@ -129,24 +131,32 @@ public class FileUtils {
     }
 
     public static PrintWriter getPrintWriter(String fileName, Writer out) throws IOException {
-        OutputStream outputStream = getOutputStream(fileName, new WriterOutputStream(out));
+        OutputStream outputStream = OutputStreamFactory.getBufferedOutputStream(fileName, new WriterOutputStream(out));
         return outputStream == null ? null : new PrintWriter(outputStream);
     }
 
-    public static OutputStream getOutputStream(String fileName, OutputStream out) throws IOException {
-        if (fileName == null) return null;
-        OutputStream outputStream;
-        if (isHdfs(fileName)) {
+    public static class OutputStreamFactory {
+        private OutputStreamFactory() {
+        }
+
+        public static OutputStream getBufferedOutputStream(String fileName, OutputStream out) {
+            if (fileName == null) return null;
             try {
-                outputStream = HDFSUtils.writeFile(fileName);
+                return new BufferedOutputStream(getOutputStream(fileName, out));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        } else {
-            outputStream = getOrCreateOutputStream(fileName, out);
-//            outputStream = fileName.equals("-") ? out : new FileOutputStream(fileName);
         }
-        return new BufferedOutputStream(outputStream);
+
+        private static OutputStream getOutputStream(String fileName, OutputStream out) throws IOException {
+            if (isS3(fileName)) {
+                return S3UploadUtils.writeFile(fileName);
+            } else if (isHdfs(fileName)) {
+                return HDFSUtils.writeFile(fileName);
+            } else {
+                return getOrCreateOutputStream(fileName, out);
+            }
+        }
     }
 
     private static OutputStream getOrCreateOutputStream(String fileName, OutputStream out) throws FileNotFoundException, MalformedURLException {
@@ -217,6 +227,11 @@ public class FileUtils {
                     "\nSee the documentation: https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_loading_data_from_web_apis_json_xml_csv");
         }
         return HDFSUtils.readFile(url);
+    }
+
+    public static boolean isS3(String fileName) {
+        Matcher matcher = S3_PATTERN.matcher(fileName);
+        return matcher.find();
     }
 
     public static boolean isHdfs(String fileName) {

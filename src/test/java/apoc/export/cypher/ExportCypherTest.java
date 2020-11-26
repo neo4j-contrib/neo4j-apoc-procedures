@@ -82,8 +82,8 @@ public class ExportCypherTest {
     @Rule
     public TestName testName = new TestName();
 
-    private static final String OPTIMIZED = "Optimized";
-    private static final String ODD = "OddDataset";
+    public static final String OPTIMIZED = "Optimized";
+    public static final String ODD = "OddDataset";
 
     @Before
     public void setUp() throws Exception {
