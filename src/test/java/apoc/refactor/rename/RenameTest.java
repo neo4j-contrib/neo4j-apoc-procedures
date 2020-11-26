@@ -109,22 +109,19 @@ public class RenameTest {
 	}
 
 	@Test
-	public void testConcurrency() {
+	public void testDeadlockException() {
 		String query = "UNWIND RANGE(1, 100) AS ID \n" +
-				"CREATE (a:Account{ID: ID})\n" +
-				"CREATE (a)-[:HAS_VOLUME{bonusPeriod:'202001'}]->(:Volume)\n" +
-				"CREATE (a)-[:HAS_VOLUME{bonusPeriod:'201912'}]->(:Volume)\n" +
-				"WITH a\n" +
-				"MATCH (u:Account{ID: a.ID - 10})\n" +
-				"CREATE (a)-[:IN_MARKET]->(u)\n";
+				"MERGE (account1:Account{ID: ID})\n" +
+				"MERGE (account2:Account{ID: toInteger(rand() * 100)})\n" +
+				"MERGE (account3:Account{ID: toInteger(rand() * 100)})\n" +
+				"MERGE (account1)-[:SIMILAR_TO]->(account2)\n" +
+				"MERGE (account1)-[:SIMILAR_TO]->(account3)\n" +
+				"MERGE (account2)-[:SIMILAR_TO]->(account3)";
 		db.executeTransactionally(query);
 
-		String testQuery = "MATCH (a:Account)-[r:HAS_VOLUME]->()\n" +
-				"WITH COLLECT(DISTINCT r.bonusPeriod) as ps\n" +
-				"UNWIND ps as period\n" +
-				"MATCH (a:Account)-[r:HAS_VOLUME{bonusPeriod:period}]->()\n" +
-				"WITH COLLECT(r) as rs, period\n" +
-				"CALL apoc.refactor.rename.type('HAS_VOLUME','HAS_VOLUME_'+period,rs, {batchSize:2}) YIELD committedOperations, batches, failedBatches, total, errorMessages, batch\n" +
+		String testQuery = "MATCH (:Account)-[r:SIMILAR_TO]->(:Account)\n" +
+				"WITH COLLECT(r) as rs\n" +
+				"CALL apoc.refactor.rename.type('SIMILAR_TO','SIMILAR_TO_'+rand(),rs, {batchSize:10}) YIELD committedOperations, batches, failedBatches, total, errorMessages, batch\n" +
 				"RETURN committedOperations, batches, failedBatches, total, errorMessages, batch";
 		testResult(db, testQuery, Collections.emptyMap(), (r) -> {
 			final Map<String, Object> batch = r.<Map<String, Object>>columnAs("batch").next();
