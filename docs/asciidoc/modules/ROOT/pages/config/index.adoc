@@ -61,6 +61,7 @@ apoc.spatial.geocode.<providerName>.<key>=<value>
 | apoc.ttl.limit=<number> (default: 1000) | Maximum number of nodes being deleted in one background transaction, if the value is `0` we exclude the limit
 | apoc.ttl.limit.<name_db>=<number> (default 1000) | Maximum number of nodes being deleted in one background transaction for a specific db. It has priority over apoc.ttl.limit. Please note that this key has to be set necessarily in `apoc.conf`.
 | apoc.ttl.batchsize=<number> (default: 10000) | The batchSize applied to apoc.periodic.iterate() during removing nodes
+| apoc.ttl.batchsize.<name_db>=<number> (default: 10000) | The batchSize applied to apoc.periodic.iterate() during removing nodes for a specific db. It has priority over apoc.ttl.batchsize. Please note that this key has to be set necessarily in `apoc.conf`.
 | apoc.uuid.enabled=false/true (default false) | global switch to enable uuid handlers
 | apoc.uuid.enabled.<name_db>=false/true (default true) | Enable/disable uuid handlers for a specific db. Please note that this key has to be set necessarily in `apoc.conf`. If is true UUID is enabled for the db even if apoc.uuid.enabled is false, instead if is false is disabled for the db even if apoc.uuid.enabled is true
 
