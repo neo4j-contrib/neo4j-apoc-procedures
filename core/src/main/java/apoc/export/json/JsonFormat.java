@@ -27,10 +27,15 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class JsonFormat implements Format {
+    enum Format {JSON_LINES, ARRAY_JSON, JSON, JSON_ID_AS_KEYS}
     private final GraphDatabaseService db;
+    private final Format format;
 
-    public JsonFormat(GraphDatabaseService db) {
+    private boolean isExportSubGraph = false;
+
+    public JsonFormat(GraphDatabaseService db, Format format) {
         this.db = db;
+        this.format = format;
     }
 
     @Override
@@ -53,10 +58,17 @@ public class JsonFormat implements Format {
 
     @Override
     public ProgressInfo dump(SubGraph graph, ExportFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
+        isExportSubGraph = true;
         Consumer<JsonGenerator> consumer = (jsonGenerator) -> {
             try {
+                writeJsonContainerStart(jsonGenerator);
+                writeJsonNodeContainerStart(jsonGenerator);
                 writeNodes(graph.getNodes(), reporter, jsonGenerator, config);
+                writeJsonNodeContainerEnd(jsonGenerator);
+                writeJsonRelationshipContainerStart(jsonGenerator);
                 writeRels(graph.getRelationships(), reporter, jsonGenerator, config);
+                writeJsonRelationshipContainerEnd(jsonGenerator);
+                writeJsonContainerEnd(jsonGenerator);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -64,15 +76,83 @@ public class JsonFormat implements Format {
         return dump(writer.getPrintWriter("json"), reporter, consumer);
     }
 
+    private void writeJsonRelationshipContainerEnd(JsonGenerator jsonGenerator) throws IOException {
+        switch (format) {
+            case JSON:
+                jsonGenerator.writeEndArray();
+                break;
+            case JSON_ID_AS_KEYS:
+                jsonGenerator.writeEndObject();
+                break;
+        }
+    }
+
+    private void writeJsonRelationshipContainerStart(JsonGenerator jsonGenerator) throws IOException {
+        switch (format) {
+            case JSON:
+                jsonGenerator.writeFieldName("rels");
+                jsonGenerator.writeStartArray();
+                break;
+            case JSON_ID_AS_KEYS:
+                jsonGenerator.writeFieldName("rels");
+                jsonGenerator.writeStartObject();
+                break;
+        }
+    }
+
+    private void writeJsonNodeContainerEnd(JsonGenerator jsonGenerator) throws IOException {
+        switch (format) {
+            case JSON:
+                jsonGenerator.writeEndArray();
+                break;
+            case JSON_ID_AS_KEYS:
+                jsonGenerator.writeEndObject();
+                break;
+        }
+    }
+
+    private void writeJsonNodeContainerStart(JsonGenerator jsonGenerator) throws IOException {
+        switch (format) {
+            case JSON:
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeFieldName("nodes");
+                jsonGenerator.writeStartArray();
+                break;
+            case JSON_ID_AS_KEYS:
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeFieldName("nodes");
+                jsonGenerator.writeStartObject();
+                break;
+        }
+    }
+
+    private void writeJsonContainerEnd(JsonGenerator jsonGenerator) throws IOException {
+        switch (format) {
+            case ARRAY_JSON:
+                jsonGenerator.writeEndArray();
+                break;
+        }
+    }
+
+    private void writeJsonContainerStart(JsonGenerator jsonGenerator) throws IOException {
+        switch (format) {
+            case ARRAY_JSON:
+                jsonGenerator.writeStartArray();
+                break;
+        }
+    }
+
     public ProgressInfo dump(Result result, ExportFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
         Consumer<JsonGenerator> consumer = (jsonGenerator) -> {
             try {
+                writeJsonContainerStart(jsonGenerator);
                 String[] header = result.columns().toArray(new String[result.columns().size()]);
                 result.accept((row) -> {
                     writeJsonResult(reporter, header, jsonGenerator, row, config);
                     reporter.nextRow();
                     return true;
                 });
+                writeJsonContainerEnd(jsonGenerator);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -96,8 +176,20 @@ public class JsonFormat implements Format {
 
     private void writeNode(Reporter reporter, JsonGenerator jsonGenerator, Node node, ExportConfig config) throws IOException {
         Map<String, Object> allProperties = node.getAllProperties();
+        writeJsonIdKeyStart(jsonGenerator, node.getId());
         JsonFormatSerializer.DEFAULT.writeNode(jsonGenerator, node, config);
         reporter.update(1, 0, allProperties.size());
+    }
+
+    private void writeJsonIdKeyStart(JsonGenerator jsonGenerator, long id) throws IOException {
+        if (!isExportSubGraph) {
+            return;
+        }
+        switch (format) {
+            case JSON_ID_AS_KEYS:
+                writeFieldName(jsonGenerator, String.valueOf(id), true);
+                break;
+        }
     }
 
     private void writeRels(Iterable<Relationship> rels, Reporter reporter, JsonGenerator jsonGenerator, ExportConfig config) throws IOException {
@@ -108,6 +200,7 @@ public class JsonFormat implements Format {
 
     private void writeRel(Reporter reporter, JsonGenerator jsonGenerator, Relationship rel, ExportConfig config) throws IOException {
         Map<String, Object> allProperties = rel.getAllProperties();
+        writeJsonIdKeyStart(jsonGenerator, rel.getId());
         JsonFormatSerializer.DEFAULT.writeRelationship(jsonGenerator, rel, config);
         reporter.update(0, 1, allProperties.size());
     }

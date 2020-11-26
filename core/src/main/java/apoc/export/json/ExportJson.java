@@ -88,7 +88,7 @@ public class ExportJson {
         if (StringUtils.isNotBlank(fileName)) apocConfig.checkWriteAllowed(exportConfig);
         final String format = "json";
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, format));
-        JsonFormat exporter = new JsonFormat(db);
+        JsonFormat exporter = new JsonFormat(db, getJsonFormat(config));
         ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, false);
         if (exportConfig.streamStatements()) {
             return ExportUtils.getProgressInfoStream(db, pools.getDefaultExecutorService() ,terminationGuard, format, exportConfig, reporter, cypherFileManager,
@@ -97,6 +97,16 @@ public class ExportJson {
             dump(data, exportConfig, reporter, exporter, cypherFileManager);
             return reporter.stream();
         }
+    }
+
+    private JsonFormat.Format getJsonFormat(Map<String, Object> config) {
+        if (config == null) {
+            return JsonFormat.Format.JSON_LINES;
+        }
+        final String jsonFormat = config.getOrDefault("jsonFormat", JsonFormat.Format.JSON_LINES.toString())
+                .toString()
+                .toUpperCase();
+        return JsonFormat.Format.valueOf(jsonFormat);
     }
 
     private void dump(Object data, ExportConfig c, ProgressReporter reporter, JsonFormat exporter, ExportFileManager cypherFileManager) {

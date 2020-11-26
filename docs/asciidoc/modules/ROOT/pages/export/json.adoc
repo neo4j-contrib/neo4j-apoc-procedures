@@ -27,6 +27,21 @@ include::example$generated-documentation/apoc.export.json.csv[]
 | name | type | default | description
 | writeNodeProperties | boolean | false | if true export properties too.
 | stream | boolean | false | stream the json directly to the client into the `data` field
+| jsonFormat | enum[JSON_LINES, ARRAY_JSON, JSON, JSON_ID_AS_KEYS] | JSON_LINES | the format of the exported json
+|===
+
+.jsonFormat types
+[opts=header]
+|===
+| name | description
+| JSON_LINES | the data will be exported as https://jsonlines.org/[JSON lines]
+| ARRAY_JSON | the data will be exported as array of json:
+`[{"type":"node","id":"2","labels":["User"],"properties":{"age":12}},...]`
+| JSON | the data will be exported as json with two (array) fields `nodes` and `rels`:
+`{"nodes":[{"type":"node","id":"2","labels":["User"],"properties":{...}},...],"rels":[{"id":"0","type":"relationship","label":"KNOWS","properties":{"since":1993},"start":{"id":"0","labels":["User"]},"end":{"id":"1","labels":["User"]}},...]}`
+| JSON_ID_AS_KEYS | the data will be exported as json with two (map) fields `nodes` and `rels`
+where the key is the neo4j internal id and the value is the graph entity value:
+`{"nodes":{"0":{"type":"node","id":"0","labels":["User"],"properties":{...},"1":{...},"2":{...},"rels":{"0":{"id":"0","type":"relationship","label":"KNOWS","properties":{...},"start":{"id":"0","labels":["User"]},"end":{"id":"1","labels":["User"]}}}}`
 |===
 
 [NOTE]
