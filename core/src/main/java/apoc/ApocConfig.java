@@ -51,6 +51,7 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_TTL_LIMIT = "apoc.ttl.limit";
     public static final String APOC_TRIGGER_ENABLED = "apoc.trigger.enabled";
     public static final String APOC_UUID_ENABLED = "apoc.uuid.enabled";
+    public static final String APOC_UUID_ENABLED_DB = "apoc.uuid.enabled.%s";
     public static final String APOC_JSON_ZIP_URL = "apoc.json.zip.url";  // TODO: check if really needed
     public static final String APOC_JSON_SIMPLE_JSON_URL = "apoc.json.simpleJson.url"; // TODO: check if really needed
     public static final String APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM = "apoc.import.file.allow_read_from_filesystem";
