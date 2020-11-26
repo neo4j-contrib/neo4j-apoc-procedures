@@ -10,11 +10,15 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author AgileLARUS
@@ -102,6 +106,32 @@ public class RenameTest {
 
 		assertEquals(10L, resultRelationshipsMatches(null, "surname"));
 		assertEquals(0L, resultRelationshipsMatches(null, "name"));
+	}
+
+	@Test
+	public void testConcurrency() {
+		String query = "UNWIND RANGE(1, 100) AS ID \n" +
+				"CREATE (a:Account{ID: ID})\n" +
+				"CREATE (a)-[:HAS_VOLUME{bonusPeriod:'202001'}]->(:Volume)\n" +
+				"CREATE (a)-[:HAS_VOLUME{bonusPeriod:'201912'}]->(:Volume)\n" +
+				"WITH a\n" +
+				"MATCH (u:Account{ID: a.ID - 10})\n" +
+				"CREATE (a)-[:IN_MARKET]->(u)\n";
+		db.executeTransactionally(query);
+
+		String testQuery = "MATCH (a:Account)-[r:HAS_VOLUME]->()\n" +
+				"WITH COLLECT(DISTINCT r.bonusPeriod) as ps\n" +
+				"UNWIND ps as period\n" +
+				"MATCH (a:Account)-[r:HAS_VOLUME{bonusPeriod:period}]->()\n" +
+				"WITH COLLECT(r) as rs, period\n" +
+				"CALL apoc.refactor.rename.type('HAS_VOLUME','HAS_VOLUME_'+period,rs, {batchSize:2}) YIELD committedOperations, batches, failedBatches, total, errorMessages, batch\n" +
+				"RETURN committedOperations, batches, failedBatches, total, errorMessages, batch";
+		testResult(db, testQuery, Collections.emptyMap(), (r) -> {
+			final Map<String, Object> batch = r.<Map<String, Object>>columnAs("batch").next();
+			final Map<String, Object> errors = (Map<String, Object>) batch.get("error");
+			assertFalse(errors.isEmpty());
+		});
+
 	}
 
 	@Test
