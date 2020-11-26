@@ -63,6 +63,11 @@ The procedures support the following config parameters:
 
 include::partial$enableFileExport.adoc[]
 
+[[export-csv-s3-export]]
+== Exporting to S3
+
+include::partial$enableS3Export.adoc[]
+
 [[export-graphml-stream-export]]
 == Exporting a stream
 
