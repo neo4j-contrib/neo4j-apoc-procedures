@@ -55,10 +55,12 @@ Once those files have been copied we'll need to restart the database.
 
 The S3 URL must be in the following format:
 
-* `s3://accessKey:secretKey@endpoint:port/bucket/key`
-or
-* `s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey`
-
+* `s3://accessKey:secretKey[:sessionToken]@endpoint:port/bucket/key`
+(sessionToken is optional) or
+* `s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey[&sessionToken=sessionToken]`
+(sessionToken is optional) or
+* `s3://endpoint:port/bucket/key`
+if the accessKey, secretKey, and the optional sessionToken are provided in the environment variables
 
 == Using Google Cloud Storage
 
