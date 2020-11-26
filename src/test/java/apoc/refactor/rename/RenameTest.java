@@ -128,7 +128,7 @@ public class RenameTest {
 				"RETURN committedOperations, batches, failedBatches, total, errorMessages, batch";
 		testResult(db, testQuery, Collections.emptyMap(), (r) -> {
 			final Map<String, Object> batch = r.<Map<String, Object>>columnAs("batch").next();
-			final Map<String, Object> errors = (Map<String, Object>) batch.get("error");
+			final Map<String, Object> errors = (Map<String, Object>) batch.get("errors");
 			assertFalse(errors.isEmpty());
 		});
 
