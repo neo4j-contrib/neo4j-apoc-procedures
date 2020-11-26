@@ -321,7 +321,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public ProcedureSignature procedureSignature(String name, String mode, List<List<String>> outputs, List<List<String>> inputs, String description) {
         boolean admin = false; // TODO
         return new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
-                Mode.valueOf(mode.toUpperCase()), admin, null, new String[0], description, null, false, false, true, false
+                Mode.valueOf(mode.toUpperCase()), admin, null, new String[0], description, null, false, false, true, false, false
         );
     }
 
