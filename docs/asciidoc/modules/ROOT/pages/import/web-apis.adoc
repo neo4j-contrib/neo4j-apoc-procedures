@@ -89,7 +89,7 @@ In order to use https://cloud.google.com/storage/[Google Cloud Storage], you nee
 * protobuf-java-util-3.9.1.jar
 * threetenbp-1.3.3.jar
 
-We've prepared an uber-jar that contains the above dependencies in a single file in order simplify the process. You can download it from http://example-data.neo4j.org/apoc/google-cloud-storage-dependencies-3.5-apoc.jar[here] and copy it to your plugins directory.
+We've prepared an uber-jar that contains the above dependencies in a single file in order simplify the process. You can http://example-data.neo4j.org/apoc/google-cloud-storage-dependencies-3.5-apoc.jar[download it from here] and copy it to your plugins directory.
 
 You can use Google Cloud storage via the following url format:
 
