@@ -50,6 +50,33 @@ public class ExportJsonTest {
     }
 
     @Test
+    public void testExportAllJsonArray() {
+        String filename = "all_array.json";
+        TestUtil.testCall(db, "CALL apoc.export.json.all($file, {jsonFormat: 'ARRAY_JSON'})",
+                map("file", filename),
+                (r) -> assertResults(filename, r, "database"));
+        assertFileEquals(filename);
+    }
+
+    @Test
+    public void testExportAllJsonFields() {
+        String filename = "all_fields.json";
+        TestUtil.testCall(db, "CALL apoc.export.json.all($file, {jsonFormat: 'JSON'})",
+                map("file", filename),
+                (r) -> assertResults(filename, r, "database"));
+        assertFileEquals(filename);
+    }
+
+    @Test
+    public void testExportAllJsonIdAsKeys() {
+        String filename = "all_id_as_keys.json";
+        TestUtil.testCall(db, "CALL apoc.export.json.all($file, {jsonFormat: 'JSON_ID_AS_KEYS'})",
+                map("file", filename),
+                (r) -> assertResults(filename, r, "database"));
+        assertFileEquals(filename);
+    }
+
+    @Test
     public void testExportAllJsonStream() throws Exception {
         String filename = "all.json";
         TestUtil.testCall(db, "CALL apoc.export.json.all(null, {stream: true})",
