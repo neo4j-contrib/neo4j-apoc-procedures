@@ -5,6 +5,7 @@ import apoc.export.util.CountingInputStream;
 import apoc.export.util.CountingReader;
 import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
+import apoc.util.s3.S3UploadUtils;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.neo4j.configuration.GraphDatabaseSettings;
 
@@ -37,6 +38,7 @@ public class FileUtils {
     static final String HDFS_PROTOCOL = "hdfs";
     static final boolean HDFS_ENABLED = Util.classExists("org.apache.hadoop.fs.FileSystem");
     public static final Pattern HDFS_PATTERN = Pattern.compile("^(hdfs:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
+    public static final Pattern S3_PATTERN = Pattern.compile("^(s3:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
 
     private static final List<String> NON_FILE_PROTOCOLS = Arrays.asList(HTTP_PROTOCOL, S3_PROTOCOL, GCS_PROTOCOL, HDFS_PROTOCOL);
 
@@ -147,7 +149,14 @@ public class FileUtils {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        } else {
+        } else if (isS3(fileName)) {
+            try {
+                outputStream = S3UploadUtils.writeFile(fileName);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        else {
             outputStream = getOrCreateOutputStream(fileName, out);
 //            outputStream = fileName.equals("-") ? out : new FileOutputStream(fileName);
         }
@@ -208,6 +217,11 @@ public class FileUtils {
                     "\nSee the documentation: https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_loading_data_from_web_apis_json_xml_csv");
         }
         return HDFSUtils.readFile(url);
+    }
+
+    public static boolean isS3(String fileName) {
+        Matcher matcher = S3_PATTERN.matcher(fileName);
+        return matcher.find();
     }
 
     public static boolean isHdfs(String fileName) {
