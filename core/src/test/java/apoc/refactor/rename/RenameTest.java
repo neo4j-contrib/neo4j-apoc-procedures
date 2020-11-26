@@ -124,11 +124,11 @@ public class RenameTest {
 				"UNWIND ps as period\n" +
 				"MATCH (a:Account)-[r:HAS_VOLUME{bonusPeriod:period}]->()\n" +
 				"WITH COLLECT(r) as rs, period\n" +
-				"CALL apoc.refactor.rename.type('HAS_VOLUME','HAS_VOLUME_'+period,rs, {batchSize:2}) YIELD committedOperations, batches, failedBatches, total, errorMessages, batch\n" +
+				"CALL apoc.refactor.rename.type('HAS_VOLUME','HAS_VOLUME_'+period,rs, {batchSize:10}) YIELD committedOperations, batches, failedBatches, total, errorMessages, batch\n" +
 				"RETURN committedOperations, batches, failedBatches, total, errorMessages, batch";
 		testResult(db, testQuery, Collections.emptyMap(), (r) -> {
 			final Map<String, Object> batch = r.<Map<String, Object>>columnAs("batch").next();
-			final Map<String, Object> errors = (Map<String, Object>) batch.get("error");
+			final Map<String, Object> errors = (Map<String, Object>) batch.get("errors");
 			assertFalse(errors.isEmpty());
 		});
 
