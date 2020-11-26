@@ -1,0 +1,39 @@
+By default exporting to S3 is disabled.
+We can enable it by setting the following property in `apoc.conf`:
+
+.apoc.conf
+[source,properties]
+----
+apoc.export.file.enabled=true
+----
+
+If we try to use any of the export procedures without having first set this property, we'll get the following error message:
+
+|===
+| Failed to invoke procedure: Caused by: java.lang.RuntimeException: Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf
+|===
+
+== Using S3 protocol
+
+When using the S3 protocol we need to download and copy the following jars into the plugins directory:
+
+* aws-java-sdk-core-1.11.250.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-core/1.11.250)
+* aws-java-sdk-s3-1.11.250.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3/1.11.250)
+* httpclient-4.4.8.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient/4.5.4)
+* httpcore-4.5.4.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore/4.4.8)
+* joda-time-2.9.9.jar (https://mvnrepository.com/artifact/joda-time/joda-time/2.9.9)
+
+Once those files have been copied we'll need to restart the database.
+
+Exporting to S3 can be done by simply replacing the file output with an S3 endpoint. The S3 URL must be in the following format:
+
+* `s3://accessKey:secretKey[:sessionToken]@endpoint:port/bucket/key`
+(where the sessionToken is optional) or
+* `s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey[&sessionToken=sessionToken]`
+(where the sessionToken is optional) or
+* `s3://endpoint:port/bucket/key`
+if the accessKey, secretKey, and the optional sessionToken are provided in the environment variables
+
+== Memory Requirements
+
+To support large uploads, the S3 uploading utility may use up to 2.25 GB of memory at a time. The actual usage will depend on the size of the upload, but will use a maximum of 2.25 GB.
