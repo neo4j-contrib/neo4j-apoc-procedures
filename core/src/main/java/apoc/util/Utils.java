@@ -111,7 +111,7 @@ public class Utils {
     public String decompress(@Name("data") List<Long> data, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(convertFromListToBytes(data))) {
-            return (String) makeCompressionAlgo(new CompressionConfig(config), byteArrayInputStream, false);
+            return (String) makeCompressionAlgo(new CompressionConfig(config), byteArrayInputStream, false, null);
         }
     }
 
@@ -122,10 +122,6 @@ public class Utils {
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
             return (List<Long>) makeCompressionAlgo(new CompressionConfig(config), byteArrayOutputStream, true, data);
         }
-    }
-
-    private Object makeCompressionAlgo(CompressionConfig config, Closeable stream, boolean fromStringToByte) throws Exception {
-        return makeCompressionAlgo(config, stream, fromStringToByte, null);
     }
 
     private Object makeCompressionAlgo(CompressionConfig config, Closeable stream, boolean fromStringToByte, String data) throws Exception {
