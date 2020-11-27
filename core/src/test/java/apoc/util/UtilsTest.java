@@ -260,7 +260,7 @@ public class UtilsTest {
             db.executeTransactionally("CALL apoc.util.validate(true,'message %d',[42])");
             fail("should have failed");
         } catch(QueryExecutionException qee) {
-            assertEquals("Failed to invoke procedure `apoc.util.validate`: Caused by: java.lang.RuntimeException: message 42", qee.getCause().getCause().getMessage());
+            assertEquals("Failed to invoke procedure `apoc.util.validate`: Caused by: java.lang.RuntimeException: message 42",qee.getCause().getCause().getMessage());
         }
     }
 
@@ -307,7 +307,7 @@ public class UtilsTest {
                 }
             });
 
-            sleepUntil( dummy -> tx[0] != null);
+            sleepUntil( dummy -> tx[0]!=null );
             tx[0].terminate();
             try {
                 future.get();
