@@ -121,15 +121,3 @@ If we run this query, we'll see the following output:
 | {total: 1000, committed: 1000, failed: 0, errors: {}} | {total: 100000, committed: 100000, failed: 0, errors: {}}
 |===
 
-
-=== Progress logs
-
-To visualize verbose progresses' logs of `apoc.periodic.iterate`, please set `dbms.logs.debug.level=DEBUG` in `neo4j.conf`.
-
-As follows, one example of logs:
-
-TODO ...
-
-CYPHER
-
-LOG

@@ -2,6 +2,7 @@ package apoc.periodic;
 
 import apoc.Extended;
 import apoc.Pools;
+import apoc.create.Create;
 import apoc.util.Util;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -13,6 +14,7 @@ import org.neo4j.procedure.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -66,6 +68,7 @@ public class PeriodicExtended {
 
         Map<String,Object> loopParams = new HashMap<>(1);
         Object value = null;
+        String periodicId = new Create().uuid();
 
         while (true) {
             loopParams.put("previous", value);
@@ -75,10 +78,10 @@ public class PeriodicExtended {
                 if (!Util.toBoolean(value)) return allResults;
             }
 
-            log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
+            log.info("starting batched operation using iteration `%s` in separate thread with id: `%s`", cypherIterate, periodicId);
             try (Result result = tx.execute(cypherIterate)) {
                 Stream<BatchAndTotalResult> oneResult =
-                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, false, false,0, result, (tx, params) -> tx.execute(cypherAction, params), 50, -1);
+                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, false, false,0, result, (tx, params) -> tx.execute(cypherAction, params), 50, -1, periodicId);
                 final Object loopParam = value;
                 allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
             }
@@ -115,21 +118,24 @@ public class PeriodicExtended {
                 "cypherAction", cypherAction);
         validateQueries(fieldStatement);
 
+        String periodicId = new Create().uuid();
         log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
         try (Result result = tx.execute(cypherIterate)) {
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, (tx, p) -> tx.execute(cypherAction, p), 50, -1);
+            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, (tx, p) -> tx.execute(cypherAction, p), 50, -1, periodicId);
         }
     }
 
     private Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, boolean parallel, boolean iterateList, long retries,
-                  Iterator<Map<String, Object>> iterator, BiConsumer<Transaction, Map<String, Object>> consumer, int concurrency, int failedParams) {
+                  Iterator<Map<String, Object>> iterator, BiConsumer<Transaction, Map<String, Object>> consumer, int concurrency, int failedParams, String periodicId) {
 
         ExecutorService pool = parallel ? pools.getDefaultExecutorService() : pools.getSingleExecutorService();
         List<Future<Long>> futures = new ArrayList<>(concurrency);
         BatchAndTotalCollector collector = new BatchAndTotalCollector(terminationGuard, failedParams);
         do {
             if (Util.transactionIsTerminated(terminationGuard)) break;
-            if (log.isDebugEnabled()) log.debug("execute in batch no %d batch size ", batchsize);
+            if (log.isDebugEnabled()) {
+                log.debug("Execute, in periodic rock_n_roll with id %s, no %d batch size ", periodicId, batchsize);
+            }
             List<Map<String,Object>> batch = Util.take(iterator, batchsize);
             final long currentBatchSize = batch.size();
             Function<Transaction, Long> task;
@@ -155,31 +161,25 @@ public class PeriodicExtended {
                 };
             }
             futures.add(Util.inTxFuture(log, pool, db, task, retries, aLong -> collector.incrementRetried(), _ignored -> collector.incrementBatches()));
-            /*  TODO: not sure if the block below is required
-            if (futures.size() > concurrency) {
-                while (futures.stream().noneMatch(Future::isDone)) { // none done yet, block for a bit
-                    LockSupport.parkNanos(1000);
-                }
-                Iterator<Future<Long>> it = futures.iterator();
-                while (it.hasNext()) {
-                    Future<Long> future = it.next();
-                    if (future.isDone()) {
-                        collector.incrementSuccesses(Util.getFuture(future, collector.getBatchErrors(), collector.getFailedBatches(), 0L));
-                        it.remove();
-                    }
-                }
-            }*/
             collector.incrementCount(currentBatchSize);
+            if (log.isDebugEnabled()) {
+                log.debug("Processed, in periodic rock_n_roll with id %s, %d iterations of %d total", periodicId, batchsize, collector.getCount());
+            }
         } while (iterator.hasNext());
 
+        AtomicInteger failedBatches = collector.getFailedBatches();
+        Map<String, Long> batchErrors = collector.getBatchErrors();
         boolean wasTerminated = Util.transactionIsTerminated(terminationGuard);
         ToLongFunction<Future<Long>> toLongFunction = wasTerminated ?
-                f -> Util.getFutureOrCancel(f, collector.getBatchErrors(), collector.getFailedBatches(), 0L) :
-                f -> Util.getFuture(f, collector.getBatchErrors(), collector.getFailedBatches(), 0L);
+                f -> Util.getFutureOrCancel(f, batchErrors, failedBatches, 0L) :
+                f -> Util.getFuture(f, batchErrors, failedBatches, 0L);
         collector.incrementSuccesses(futures.stream().mapToLong(toLongFunction).sum());
 
-        Util.logErrors("Error during iterate.commit:", collector.getBatchErrors(), log);
+        Util.logErrors("Error during iterate.commit:", batchErrors, log);
         Util.logErrors("Error during iterate.execute:", collector.getOperationErrors(), log);
+        if (log.isDebugEnabled()) {
+            log.debug("Terminated periodic rock_n_roll with id %s with %d executions", periodicId, collector.getCount());
+        }
         return Stream.of(collector.getResult());
     }
 
