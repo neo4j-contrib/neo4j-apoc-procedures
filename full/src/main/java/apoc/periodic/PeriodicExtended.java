@@ -68,7 +68,6 @@ public class PeriodicExtended {
 
         Map<String,Object> loopParams = new HashMap<>(1);
         Object value = null;
-        String periodicId = new Create().uuid();
 
         while (true) {
             loopParams.put("previous", value);
@@ -78,6 +77,7 @@ public class PeriodicExtended {
                 if (!Util.toBoolean(value)) return allResults;
             }
 
+            String periodicId = new Create().uuid();
             log.info("starting batched operation using iteration `%s` in separate thread with id: `%s`", cypherIterate, periodicId);
             try (Result result = tx.execute(cypherIterate)) {
                 Stream<BatchAndTotalResult> oneResult =

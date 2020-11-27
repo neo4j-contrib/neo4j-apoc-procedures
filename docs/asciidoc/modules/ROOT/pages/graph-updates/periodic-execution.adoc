@@ -33,7 +33,6 @@ include::partial$periodic-commit.adoc[leveloffset=+1]
 CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (p) where id(p)={id_p} SET p.lastname =p.name', 20000)
 ----
 
-
 === Progress logs
 
 To visualize verbose progresses' logs of `apoc.periodic.iterate`, `apoc.periodic.commit`, `apoc.periodic.rock_n_roll`, `apoc.periodic.rock_n_roll_while`, please set `dbms.logs.debug.level=DEBUG` in `neo4j.conf`.
@@ -49,7 +48,7 @@ CALL apoc.periodic.iterate('match (p:TestLog) return p', 'SET p.foo =p.bar REMOV
 we receive the logs, as follows:
 [source]
 ----
-2020-11-27 09:03:44.279+0000 INFO  Starting batching from `match (p:TestLog) return p` operation using iteration `SET p.foo =p.bar REMOVE p.bar` in separate thread with id: `fc8ff303-bfdd-49f0-a724-603f03b0da45`
+2020-11-27 09:03:44.279+0000 INFO  Starting periodic iterate from `match (p:TestLog) return p` operation using iteration `SET p.foo =p.bar REMOVE p.bar` in separate thread with id: `fc8ff303-bfdd-49f0-a724-603f03b0da45`
 2020-11-27 09:03:44.279+0000 DEBUG Execute, in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, no 10 batch size
 2020-11-27 09:03:44.280+0000 DEBUG Processed in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, 10 iterations of 10 total
 2020-11-27 09:03:44.280+0000 DEBUG Execute, in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, no 10 batch size
