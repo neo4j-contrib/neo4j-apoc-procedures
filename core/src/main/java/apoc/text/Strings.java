@@ -96,7 +96,6 @@ public class Strings {
     @UserFunction
     @Description("apoc.text.bytes(text,[charset]) - return bytes of the text")
     public List<Long> bytes(final @Name("text") String text, @Name(value = "charset", defaultValue = "UTF-8") String charset) throws UnsupportedEncodingException {
-
         return convertFromBytesToList(text.getBytes(charset));
     }
 

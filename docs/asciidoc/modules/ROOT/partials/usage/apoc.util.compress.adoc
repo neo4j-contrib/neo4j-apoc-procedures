@@ -12,14 +12,14 @@ RETURN apoc.util.compress('Mätrix II 哈哈😄123', {charset: 'UTF-32'}) AS va
 
 [source,cypher]
 ----
-RETURN apoc.util.compress('Mätrix II 哈哈😄123', {compress: 'DEFLATE'}) AS value
+RETURN apoc.util.compress('Mätrix II 哈哈😄123', {compression: 'DEFLATE'}) AS value
 ----
 
 .Results
 [opts="header"]
 |===
 | value
-| [31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 243, 61, 188, 164, 164, 40, 179, 66, 193, 211, 83, 225, 233, 228, 14, 32, 250, 48, 127, 70, 139, 161, 145, 49, 0, 182, 146, 12, 31, 24, 0, 0, 0]
+| [120, 156, 243, 61, 188, 164, 164, 40, 179, 66, 193, 211, 83, 225, 233, 228, 14, 32, 250, 48, 127, 70, 139, 161, 145, 49, 0, 145, 129, 11, 143]
 |===
 
 [source,cypher]
