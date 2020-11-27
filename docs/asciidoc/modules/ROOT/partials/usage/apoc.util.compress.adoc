@@ -12,7 +12,7 @@ RETURN apoc.util.compress('Mätrix II 哈哈😄123', {charset: 'UTF-32'}) AS va
 
 [source,cypher]
 ----
-RETURN apoc.util.compress('Mätrix II 哈哈😄123', {compressAlgo: 'DEFLATE'}) AS value
+RETURN apoc.util.compress('Mätrix II 哈哈😄123', {compress: 'DEFLATE'}) AS value
 ----
 
 .Results

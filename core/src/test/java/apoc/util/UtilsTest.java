@@ -134,6 +134,7 @@ public class UtilsTest {
 
     @Test
     public void testWrongDecompressionFromPreviousDifferentCharset() throws Exception {
+
         TestUtil.testCall(db,
                 "WITH apoc.util.compress($text, {charset: 'UTF-8'}) AS compressed RETURN apoc.util.decompress(compressed, {charset: 'UTF-8'}) AS value",
                 map("text", COMPLEX_STRING),
@@ -240,11 +241,6 @@ public class UtilsTest {
     }
 
     @Test
-    public void testCompress() throws Exception {
-        TestUtil.testCall(db, "RETURN apoc.util.sha1(['ABC']) AS value", r -> assertEquals("3c01bdbb26f358bab27f267924aa2c9a03fcfdb8", r.get("value")));
-    }
-
-    @Test
     public void testSha1() throws Exception {
         TestUtil.testCall(db, "RETURN apoc.util.sha1(['ABC']) AS value", r -> assertEquals("3c01bdbb26f358bab27f267924aa2c9a03fcfdb8", r.get("value")));
     }
@@ -256,7 +252,7 @@ public class UtilsTest {
 
     @Test
     public void testValidateFalse() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.util.validate(false,'message',null)", r -> assertEquals(false, r.hasNext()));
+        TestUtil.testResult(db, "CALL apoc.util.validate(false,'message',null)", r -> assertEquals(false,r.hasNext()));
     }
 
     @Test
@@ -264,7 +260,7 @@ public class UtilsTest {
         try {
             db.executeTransactionally("CALL apoc.util.validate(true,'message %d',[42])");
             fail("should have failed");
-        } catch (QueryExecutionException qee) {
+        } catch(QueryExecutionException qee) {
             assertEquals("Failed to invoke procedure `apoc.util.validate`: Caused by: java.lang.RuntimeException: message 42", qee.getCause().getCause().getMessage());
         }
     }
@@ -301,7 +297,7 @@ public class UtilsTest {
         TestUtil.assertDuration(Matchers.lessThan(duration), () -> {
             final Transaction[] tx = new Transaction[1];
 
-            Future future = Executors.newSingleThreadScheduledExecutor().submit(() -> {
+            Future future = Executors.newSingleThreadScheduledExecutor().submit( () -> {
                 tx[0] = db.beginTx();
                 try {
                     Result result = tx[0].execute(cypherSleep, MapUtil.map("duration", 10000));
@@ -312,11 +308,11 @@ public class UtilsTest {
                 }
             });
 
-            sleepUntil(dummy -> tx[0] != null);
+            sleepUntil( dummy -> tx[0] != null);
             tx[0].terminate();
             try {
                 future.get();
-            } catch (InterruptedException | ExecutionException e) {
+            } catch (InterruptedException|ExecutionException e) {
                 throw new RuntimeException(e);
             }
             return null;
