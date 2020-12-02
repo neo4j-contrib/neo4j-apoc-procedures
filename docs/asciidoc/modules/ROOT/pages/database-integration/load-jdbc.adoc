@@ -402,6 +402,14 @@ CALL apoc.load.jdbc('jdbc:derby:derbyDB;user=apoc;password=Ap0c!#Db;create=true'
 CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})
 ----
 
+Google BigQuery using Simba drivers requires an additional parameter 'autoCommit' to be used e.g.
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('BigQuery', 'SELECT action_type FROM `patents-public-data.ebi_chembl.action_type` LIMIT 10', [], {autoCommit:true})
+----
+
+
 [options="header",cols="a,3m,a"]
 |===
 |Database | JDBC-URL | Driver Source
@@ -442,6 +450,11 @@ CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',
 |jdbc:hive2://username%40krb-realm:password@hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject
 | https://cwiki.apache.org/confluence/display/Hive/HiveServer2+Clients#HiveServer2Clients-JDBC[Apache Hive Driver] https://www.cloudera.com/downloads/connectors/hive/jdbc/2-5-20.html[(Cloudera)] https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.3/bk_data-access/content/hive-jdbc-odbc-drivers.html[(Hortonworks)]
  There are several jars (hadoop-common-xxx.jar hive-exec-xxx.jar hive-jdbc-xxx.jar hive-metastore-xxx.jar hive-service-xxx.jar httpclient-4.4.jar httpcore-4.4.jar libfb303-0.9.2.jar libthrift-0.9.3.jar)
+ 
+|Google BigQuery
+| jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=<Project ID>;OAuthType=0;OAuthServiceAcctEmail=<Service Account ID>;OAuthPvtKeyPath=/path/to/<Private Key>.json
+| https://cloud.google.com/bigquery/providers/simba-drivers[Simba Drivers for BigQuery] There are several jars 
+ 
 |===
 
 There are a number of blog posts / examples that details usage of apoc.load.jdbc
@@ -449,7 +462,7 @@ There are a number of blog posts / examples that details usage of apoc.load.jdbc
 * https://jesusbarrasa.wordpress.com/2016/09/30/quickgraph4-explore-your-browser-history-in-neo4j/[Explore your browser history in Neo4j]
 * https://blog.knoldus.com/2016/09/12/neo4j-with-scala-migrate-data-from-other-database-to-neo4j/[Neo4j With Scala : Migrate Data From Other Database to Neo4j]
 * https://neo4j.com/blog/apoc-database-integration-import-export-cypher/[APOC: Database Integration, Import and Export with Awesome Procedures On Cypher]
-
+* https://adamcowley.co.uk/neo4j/importing-google-analytics-to-neo4j-via-bigquery-using-apoc-jdbc/[Importing Google Analytics to Neo4j via BigQuery using APOC & JDBC]
 
 == LOAD JDBC - UPDATE
 
