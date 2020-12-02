@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
 import static apoc.util.Util.map;
@@ -273,10 +274,10 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         }
         return map("transactionId", txId,
                 "commitTime", commitTime,
-                "createdNodes", txData.createdNodes(),
-                "createdRelationships", txData.createdRelationships(),
-                "deletedNodes", txData.deletedNodes(),
-                "deletedRelationships", txData.deletedRelationships(),
+                "createdNodes", toList(txData.createdNodes()),
+                "createdRelationships", toList(txData.createdRelationships()),
+                "deletedNodes", toList(txData.deletedNodes()),
+                "deletedRelationships", toList(txData.deletedRelationships()),
                 "removedLabels", aggregateLabels(txData.removedLabels()),
                 "removedNodeProperties", aggregatePropertyKeys(txData.removedNodeProperties(),true,true),
                 "removedRelationshipProperties", aggregatePropertyKeys(txData.removedRelationshipProperties(),false,true),
@@ -285,6 +286,11 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
                 "assignedRelationshipProperties",aggregatePropertyKeys(txData.assignedRelationshipProperties(),false,false),
                 "metaData", txData.metaData()
         );
+    }
+
+    private <E> List<E> toList(Iterable<E> iterable) {
+        return StreamSupport.stream(iterable.spliterator(), false)
+                .collect(Collectors.toList());
     }
 
     private boolean hasPhase(Phase phase) {
