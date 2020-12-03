@@ -3,6 +3,7 @@ package apoc.load;
 import apoc.Extended;
 import apoc.result.StringResult;
 import apoc.util.FileUtils;
+import apoc.util.Util;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.neo4j.logging.Log;
@@ -39,7 +40,7 @@ public class LoadDirectory {
                 ? dirImport
                 : FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir);
 
-        boolean isRecursive = (boolean) config.getOrDefault("recursive", true);
+        boolean isRecursive = Util.toBoolean(config.getOrDefault("recursive", true));
 
         Collection<File> files = org.apache.commons.io.FileUtils.listFiles(
                 Paths.get(URI.create(encodeSpaces(urlDir)).getPath()).toFile(),
