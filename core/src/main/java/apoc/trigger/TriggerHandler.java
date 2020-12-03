@@ -4,6 +4,7 @@ import apoc.ApocConfig;
 import apoc.Pools;
 import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
+import apoc.convert.Convert;
 import apoc.util.Util;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.function.ThrowingFunction;
@@ -24,7 +25,6 @@ import org.neo4j.kernel.api.procedure.Context;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
 import static apoc.util.Util.map;
@@ -274,10 +273,10 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         }
         return map("transactionId", txId,
                 "commitTime", commitTime,
-                "createdNodes", toList(txData.createdNodes()),
-                "createdRelationships", toList(txData.createdRelationships()),
-                "deletedNodes", toList(txData.deletedNodes()),
-                "deletedRelationships", toList(txData.deletedRelationships()),
+                "createdNodes", Convert.convertToList(txData.createdNodes()),
+                "createdRelationships", Convert.convertToList(txData.createdRelationships()),
+                "deletedNodes", Convert.convertToList(txData.deletedNodes()),
+                "deletedRelationships", Convert.convertToList(txData.deletedRelationships()),
                 "removedLabels", aggregateLabels(txData.removedLabels()),
                 "removedNodeProperties", aggregatePropertyKeys(txData.removedNodeProperties(),true,true),
                 "removedRelationshipProperties", aggregatePropertyKeys(txData.removedRelationshipProperties(),false,true),
@@ -286,11 +285,6 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
                 "assignedRelationshipProperties",aggregatePropertyKeys(txData.assignedRelationshipProperties(),false,false),
                 "metaData", txData.metaData()
         );
-    }
-
-    private <E> List<E> toList(Iterable<E> iterable) {
-        return StreamSupport.stream(iterable.spliterator(), false)
-                .collect(Collectors.toList());
     }
 
     private boolean hasPhase(Phase phase) {
