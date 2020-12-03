@@ -26,7 +26,7 @@ public class LoadDirectoryTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        File importFolder = new File(temporaryFolder.getRoot() + "/importDir");
+        File importFolder = new File(temporaryFolder.getRoot() + "/import Dir");
         DatabaseManagementService databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
 
@@ -36,14 +36,14 @@ public class LoadDirectoryTest {
         temporaryFolder.newFile("Foo.csv");
         temporaryFolder.newFile("Bar.csv");
         temporaryFolder.newFile("Baz.xls");
-        temporaryFolder.newFolder("importDir/subfolder");
-        temporaryFolder.newFile("importDir/TestCsv1.csv");
-        temporaryFolder.newFile("importDir/TestCsv2.csv");
-        temporaryFolder.newFile("importDir/TestCsv3.csv");
-        temporaryFolder.newFile("importDir/TestXls1.xsl");
-        temporaryFolder.newFile("importDir/TestJson1.json");
-        temporaryFolder.newFile("importDir/subfolder/TestSubfolder.json");
-        temporaryFolder.newFile("importDir/subfolder/TestSubfolder.csv");
+        temporaryFolder.newFolder("import Dir/subfolder");
+        temporaryFolder.newFile("import Dir/TestCsv1.csv");
+        temporaryFolder.newFile("import Dir/TestCsv2.csv");
+        temporaryFolder.newFile("import Dir/TestCsv3.csv");
+        temporaryFolder.newFile("import Dir/TestXls1.xsl");
+        temporaryFolder.newFile("import Dir/TestJson1.json");
+        temporaryFolder.newFile("import Dir/subfolder/TestSubfolder.json");
+        temporaryFolder.newFile("import Dir/subfolder/TestSubfolder.csv");
     }
 
     @Test
@@ -104,5 +104,4 @@ public class LoadDirectoryTest {
                 }
         );
     }
-
 }

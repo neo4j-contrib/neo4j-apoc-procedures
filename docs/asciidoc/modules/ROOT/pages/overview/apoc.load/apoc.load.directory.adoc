@@ -26,6 +26,9 @@ apoc.load.directory(pattern = * :: STRING?, urlDir =  :: STRING?, config = {} ::
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.load.directory.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -33,5 +36,7 @@ apoc.load.directory(pattern = * :: STRING?, urlDir =  :: STRING?, config = {} ::
 |value|STRING?
 |===
 
-xref::import/load-directory.adoc[More documentation of apoc.load.directory,role=more information]
+[[usage-apoc.load.directory]]
+== Usage Examples
+include::partial$usage/apoc.load.directory.adoc[]
 

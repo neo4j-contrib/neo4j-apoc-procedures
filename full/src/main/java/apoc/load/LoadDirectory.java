@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
+import static org.eclipse.jetty.util.URIUtil.encodeSpaces;
 
 @Extended
 public class LoadDirectory {
@@ -28,17 +29,20 @@ public class LoadDirectory {
     public Stream<StringResult> directory(@Name(value = "pattern", defaultValue = "*") String pattern, @Name(value = "urlDir", defaultValue = "") String urlDir, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
         log.info("Search files that match regular expression: " + pattern);
 
-        if (urlDir == null)
+        if (urlDir == null) {
             throw new IllegalArgumentException("Invalid (null) urlDir");
+        }
+
+        String dirImport = apocConfig().getString("dbms.directories.import", "import");
 
         urlDir = urlDir.isEmpty()
-                ? apocConfig().getString("dbms.directories.import", "import")
+                ? dirImport
                 : FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir);
 
         boolean isRecursive = (boolean) config.getOrDefault("recursive", true);
 
         Collection<File> files = org.apache.commons.io.FileUtils.listFiles(
-                Paths.get(URI.create(urlDir).getPath()).toFile(),
+                Paths.get(URI.create(encodeSpaces(urlDir)).getPath()).toFile(),
                 new WildcardFileFilter(pattern),
                 isRecursive ? TrueFileFilter.TRUE : null
         );
@@ -46,10 +50,9 @@ public class LoadDirectory {
         return files.stream().map(i -> {
             String urlFile = i.toString();
             return new StringResult(apocConfig().isImportFolderConfigured()
-                    ? urlFile.replace(apocConfig().getString("dbms.directories.import") + "/", "")
+                    ? urlFile.replace(dirImport + "/", "")
                     : urlFile);
         });
     }
-
 
 }
