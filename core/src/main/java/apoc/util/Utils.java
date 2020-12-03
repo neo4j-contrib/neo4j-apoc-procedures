@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
 /**
  * @author mh
  * @since 26.05.16
@@ -95,7 +94,7 @@ public class Utils {
     public String decompress(@Name("data") List<Long> data, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
         CompressionConfig conf = new CompressionConfig(config);
-        return conf.getCompressionAlgo().decompress(data, conf.getCharset());
+        return CompressionAlgo.valueOf(conf.getCompressionAlgo()).decompress(data, conf.getCharset());
     }
 
     @UserFunction
@@ -103,6 +102,6 @@ public class Utils {
     public List<Long> compress(@Name("data") String data, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
         CompressionConfig conf = new CompressionConfig(config);
-        return conf.getCompressionAlgo().compress(data, conf.getCharset());
+        return CompressionAlgo.valueOf(conf.getCompressionAlgo()).compress(data, conf.getCharset());
     }
 }
