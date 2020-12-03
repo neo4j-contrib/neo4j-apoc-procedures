@@ -7,6 +7,13 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "org.sonarqube" version "2.7"
+    id "com.github.hierynomus.license-report" version"0.15.0"
+}
+
+downloadLicenses {
+    excludeDependencies = [
+            'org.neo4j.*'
+    ]
 }
 
 allprojects {
@@ -14,6 +21,21 @@ allprojects {
     version = '4.1.0.4'
     archivesBaseName = 'apoc'
     description = """neo4j-apoc-procedures"""
+}
+
+apply plugin: 'java'
+
+repositories {
+
+    /*maven {  // this contains the neo4j 4.0.0-beta jars
+    url "https://neo4j.bintray.com/community/"
+}*/
+    jcenter()
+    //mavenCentral()
+    maven {
+        url "https://repo.gradle.org/gradle/libs-releases"
+    }
+    mavenLocal()
 }
 
 subprojects {
