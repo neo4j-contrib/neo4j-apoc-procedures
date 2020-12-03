@@ -1,30 +1,14 @@
 package apoc.util;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
-import org.apache.commons.compress.compressors.deflate.DeflateCompressorInputStream;
-import org.apache.commons.compress.compressors.deflate.DeflateCompressorOutputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream;
-import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorOutputStream;
-import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream;
-import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorOutputStream;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.TransactionTerminatedException;
 import org.neo4j.procedure.*;
 
-import java.io.*;
-import java.lang.reflect.Constructor;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static apoc.util.CompressionConfig.CompressionAlgo;
-import static apoc.util.Util.convertFromBytesToList;
-import static apoc.util.Util.convertFromListToBytes;
 
 /**
  * @author mh
@@ -110,64 +94,15 @@ public class Utils {
     @Description("apoc.util.decompress(compressed, {config}) | return a string from a compressed byte[] in various format")
     public String decompress(@Name("data") List<Long> data, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
-        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(convertFromListToBytes(data))) {
-            return (String) makeCompressionAlgo(new CompressionConfig(config), byteArrayInputStream, false, null);
-        }
+        CompressionConfig conf = new CompressionConfig(config);
+        return conf.getCompressionAlgo().decompress(data, conf.getCharset());
     }
 
     @UserFunction
     @Description("apoc.util.compress(string, {config}) | return a compressed byte[] in various format from a string")
     public List<Long> compress(@Name("data") String data, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
-        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-            return (List<Long>) makeCompressionAlgo(new CompressionConfig(config), byteArrayOutputStream, true, data);
-        }
-    }
-
-    private Object makeCompressionAlgo(CompressionConfig config, Closeable stream, boolean fromStringToByte, String data) throws Exception {
-        Charset charset = config.getCharset();
-        CompressionAlgo compressionAlgo = config.getCompressionAlgo();
-        switch (compressionAlgo) {
-            case GZIP:
-                return finalizeCompression(GzipCompressorOutputStream.class, GzipCompressorInputStream.class, fromStringToByte, stream, charset, data);
-            case BZIP2:
-                return finalizeCompression(BZip2CompressorOutputStream.class, BZip2CompressorInputStream.class, fromStringToByte, stream, charset, data);
-            case DEFLATE:
-                return finalizeCompression(DeflateCompressorOutputStream.class, DeflateCompressorInputStream.class, fromStringToByte, stream, charset, data);
-            case BLOCK_LZ4:
-                return finalizeCompression(BlockLZ4CompressorOutputStream.class, BlockLZ4CompressorInputStream.class, fromStringToByte, stream, charset, data);
-            case FRAMED_SNAPPY:
-                return finalizeCompression(FramedSnappyCompressorOutputStream.class, FramedSnappyCompressorInputStream.class, fromStringToByte, stream, charset, data);
-            default:
-                throw new IllegalArgumentException("Invalid compression algorithm: " + compressionAlgo);
-        }
-    }
-
-    private <T, S> Object finalizeCompression(Class<T> clazzOutput, Class<S> clazzInput, boolean fromStringToByte, Closeable stream, Charset charset, String data) throws Exception {
-        if (fromStringToByte) {
-            Constructor<?> constructor = clazzOutput.getConstructor(OutputStream.class);
-            try (OutputStream outputStream = (OutputStream) constructor.newInstance((OutputStream) stream)) {
-                outputStream.write(data.getBytes(charset));
-            }
-            return convertFromBytesToList(((ByteArrayOutputStream) stream).toByteArray());
-        } else {
-            Constructor<?> constructor = clazzInput.getConstructor(InputStream.class);
-            try (InputStream inputStream = (InputStream) constructor.newInstance((InputStream) stream)) {
-                return inputReader(inputStream, charset);
-            }
-        }
-    }
-
-    private String inputReader(InputStream inputStream, Charset charset) throws IOException {
-        try (InputStreamReader inputStreamReader = new InputStreamReader(inputStream, charset)) {
-            try (BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
-                StringBuilder output = new StringBuilder();
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    output.append(line);
-                }
-                return output.toString();
-            }
-        }
+        CompressionConfig conf = new CompressionConfig(config);
+        return conf.getCompressionAlgo().compress(data, conf.getCharset());
     }
 }
