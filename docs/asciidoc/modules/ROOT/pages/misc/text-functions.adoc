@@ -45,7 +45,7 @@ APOC adds these functions.
 | xref::overview/apoc.text/apoc.text.hexValue.adoc[apoc.text.hexValue(value)] | Returns the hex value string of the given value
 | xref::overview/apoc.text/apoc.text.byteCount.adoc[+++apoc.text.byteCount(text,[charset])+++] | return size of text in bytes
 | xref::overview/apoc.text/apoc.text.bytes.adoc[+++apoc.text.bytes(text,[charset])+++] | return bytes of the text
-| xref::overview/apoc.text/apoc.text.toCypher.adoc[apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end})] | tries it's best to convert the value to a cypher-property-string
+| xref::overview/apoc.text/apoc.text.toCypher.adoc[apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end})] | tries its best to convert the value to a cypher-property-string
 | xref::overview/apoc.text/apoc.text.base64Encode.adoc[apoc.text.base64Encode(text)] | Encode a string with Base64
 | xref::overview/apoc.text/apoc.text.base64Decode.adoc[apoc.text.base64Decode(text)] | Decode Base64 encoded string
 | xref::overview/apoc.text/apoc.text.base64UrlEncode.adoc[apoc.text.base64UrlEncode(url)] | Encode a url with Base64
