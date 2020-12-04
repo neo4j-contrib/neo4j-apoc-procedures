@@ -259,6 +259,22 @@ public class CypherProceduresTest  {
     }
 
     @Test
+    public void shouldOverwriteAndRemoveCustomProcedure() throws Exception {
+        db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN 42')");
+        db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN 42')");
+        assertEquals("Expecting one procedure listed", 1, TestUtil.count(db, "call apoc.custom.list()"));
+        db.executeTransactionally("call apoc.custom.removeProcedure('answer')");
+    }
+
+    @Test
+    public void shouldOverwriteAndRemoveCustomFunction() throws Exception {
+        db.executeTransactionally("call apoc.custom.asFunction('answer','RETURN 42','long')");
+        db.executeTransactionally("call apoc.custom.asFunction('answer','RETURN 42','long')");
+        assertEquals("Expecting one function listed", 1, TestUtil.count(db, "call apoc.custom.list()"));
+        db.executeTransactionally("call apoc.custom.removeFunction('answer')");
+    }
+
+    @Test
     public void shouldRemovalOfProcedureNodeDeactivate() {
         thrown.expect(QueryExecutionException.class);
         thrown.expectMessage("There is no procedure with the name `custom.answer` registered for this database instance. " +
