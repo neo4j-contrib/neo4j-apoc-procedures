@@ -20,7 +20,7 @@ The example below will help us learn how to use this procedure.
 
 [source,cypher]
 ----
-CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
+CREATE (c:Car {make:"Volvo")-[rel:DRIVES {year:2001}]->(p:Person {name:"Dan"})
 ----
 
 image::apoc.refactor.invert.dataset.png[scaledwidth="100%"]
@@ -28,7 +28,7 @@ image::apoc.refactor.invert.dataset.png[scaledwidth="100%"]
 .The following inverts the direction of the relationship:
 [source,cypher]
 ----
-MATCH (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
+MATCH (c:Car)-[rel:DRIVES]->(p:Person)
 CALL apoc.refactor.invert(rel)
 yield input, output
 RETURN input, output
