@@ -284,6 +284,10 @@ public class ApocConfig extends LifecycleAdapter {
         return getConfig().getBoolean(key);
     }
 
+    public boolean getBoolean(String key, boolean defaultValue) {
+        return getConfig().getBoolean(key, defaultValue);
+    }
+
     public boolean isImportFolderConfigured() {
         // in case we're test database import path is TestDatabaseManagementServiceBuilder.EPHEMERAL_PATH
 
