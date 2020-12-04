@@ -867,7 +867,7 @@ public class Util {
 
     public static Node mergeNode(Transaction tx, Label primaryLabel, Label addtionalLabel,
                                  Pair<String, Object>... pairs ) {
-        Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, pairs[0].first(), pairs[1].other()).stream()
+        Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, pairs[0].first(), pairs[0].other()).stream()
                 .filter(n -> addtionalLabel!=null && n.hasLabel(addtionalLabel))
                 .filter( n -> {
                     for (int i=1; i<pairs.length; i++) {
