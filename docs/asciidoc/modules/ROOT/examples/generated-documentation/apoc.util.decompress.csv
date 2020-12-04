@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.util.decompress¦apoc.util.decompress(data :: LIST? OF INTEGER?, config = {} :: MAP?) :: (STRING?)¦apoc.util.decompress(compressed, \{config}) | return a string from a compressed byte[] in various format
