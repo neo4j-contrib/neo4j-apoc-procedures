@@ -277,17 +277,30 @@ public class XmlGraphMLReader {
     private RelationshipType getRelationshipType(XMLEventReader reader) throws XMLStreamException {
         if (this.labels) {
             XMLEvent peek = reader.peek();
-            if (peek.isCharacters() && !(peek.asCharacters().isWhiteSpace())) {
+            boolean isChar = peek.isCharacters();
+            if (isChar && !(peek.asCharacters().isWhiteSpace())) {
                 String value = peek.asCharacters().getData();
                 String el = ":";
                 String typeRel = value.contains(el) ? value.replace(el, StringUtils.EMPTY) : value;
                 return RelationshipType.withName(typeRel.trim());
-            } else if (!peek.isEndDocument()) {
+            }
+
+            boolean notStartElementOrContainsKeyLabel = isChar
+                    || !peek.isStartElement()
+                    || containsLabelKey(peek);
+
+            if (!peek.isEndDocument() && notStartElementOrContainsKeyLabel) {
                 reader.nextEvent();
                 return getRelationshipType(reader);
             }
         }
+        reader.nextEvent(); // to prevent eventual wrong reader (f.e. self-closing tag)
         return defaultRelType;
+    }
+
+    private boolean containsLabelKey(XMLEvent peek) {
+        final Attribute keyAttribute = peek.asStartElement().getAttributeByName(new QName("key"));
+        return keyAttribute != null && keyAttribute.getValue().equals("label");
     }
 
     private void addLabels(Node node, String labels) {
