@@ -3,6 +3,7 @@ package apoc.trigger;
 import apoc.ApocConfig;
 import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
+import apoc.convert.Convert;
 import apoc.util.Util;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.function.ThrowingFunction;
@@ -237,10 +238,10 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     private Map<String, Object> txDataParams(TransactionData txData, String phase) {    
         return map("transactionId", phase.equals("after") ? txData.getTransactionId() : -1,
                 "commitTime", phase.equals("after") ? txData.getCommitTime() : -1,
-                "createdNodes", txData.createdNodes(),
-                "createdRelationships", txData.createdRelationships(),
-                "deletedNodes", txData.deletedNodes(),
-                "deletedRelationships", txData.deletedRelationships(),
+                "createdNodes", Convert.convertToList(txData.createdNodes()),
+                "createdRelationships", Convert.convertToList(txData.createdRelationships()),
+                "deletedNodes", Convert.convertToList(txData.deletedNodes()),
+                "deletedRelationships", Convert.convertToList(txData.deletedRelationships()),
                 "removedLabels", aggregateLabels(txData.removedLabels()),
                 "removedNodeProperties", aggregatePropertyKeys(txData.removedNodeProperties(),true,true),
                 "removedRelationshipProperties", aggregatePropertyKeys(txData.removedRelationshipProperties(),false,true),
