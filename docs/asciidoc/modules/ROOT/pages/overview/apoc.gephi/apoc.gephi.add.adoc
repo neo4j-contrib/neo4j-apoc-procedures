@@ -46,3 +46,5 @@ apoc.gephi.add(urlOrKey :: STRING?, workspace :: STRING?, data :: ANY?, weightpr
 |data|STRING?
 |===
 
+xref::export/gephi.adoc[More documentation of apoc.gephi.add,role=more information]
+

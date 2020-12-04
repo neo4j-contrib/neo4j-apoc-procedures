@@ -122,7 +122,8 @@ public class DocsTest {
         docs.put("apoc.export.json.*", "export/json.adoc");
         docs.put("apoc.export.csv.*", "export/csv.adoc");
         docs.put("apoc.export.graphml.*", "export/graphml.adoc");
-        docs.put("apoc.graph.*", "export/gephi.adoc");
+        docs.put("apoc.graph.*", "virtual/virtual-graph.adoc");
+        docs.put("apoc.gephi.*", "export/gephi.adoc");
         docs.put("apoc.load.json.*|apoc.import.json", "import/load-json.adoc");
         docs.put("apoc.load.csv", "import/load-csv.adoc");
         docs.put("apoc.import.csv", "import/import-csv.adoc");
