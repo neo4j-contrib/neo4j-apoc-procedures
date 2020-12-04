@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.util.compress¦apoc.util.compress(data :: STRING?, config = {} :: MAP?) :: (LIST? OF ANY?)¦apoc.util.compress(string, \{config}) | return a compressed byte[] in various format from a string
