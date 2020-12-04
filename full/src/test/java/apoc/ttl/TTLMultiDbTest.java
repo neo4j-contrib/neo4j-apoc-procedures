@@ -9,7 +9,7 @@ import java.util.Map;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestUtil.isTravis;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 
@@ -33,7 +33,7 @@ public class TTLMultiDbTest {
                             "apoc.ttl.schedule", "2",
                             "apoc.ttl.schedule." + DB_FOO, "7",
                             "apoc.ttl.limit", "200",
-                            "apoc.ttl.limit." + DB_BAR, "1000"));
+                            "apoc.ttl.limit." + DB_BAR, "2000"));
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
@@ -64,23 +64,14 @@ public class TTLMultiDbTest {
 
     @Test
     public void testWithSpecificDatabaseWithTTLDisabled() throws Exception {
-
         try (Session session = driver.session(SessionConfig.forDatabase(DB_TEST))) {
-            session.writeTransaction(tx -> tx.run(
-                    "UNWIND range(1,100) as range CREATE (n:Foo {id: range}) WITH n CALL apoc.ttl.expireIn(n,500,'ms') RETURN count(*)")
-            );
-
             TestContainerUtil.testCall(
                     session,
-                    "MATCH (n:Foo) RETURN collect(n) as row",
-                    (row) -> assertEquals(100, ((List) row.get("row")).size()));
-
-            Thread.sleep(4000);
-
-            TestContainerUtil.testCall(
-                    session,
-                    "MATCH (n:Foo) RETURN collect(n) as row",
-                    (row) -> assertEquals(100, ((List) row.get("row")).size()));
+                    "RETURN apoc.ttl.config() AS value",
+                    (row) -> {
+                        Map<String, Object> value = (Map<String, Object>) row.get("value");
+                        assertFalse((Boolean) value.get("enabled"));
+                    });
         }
     }
 
@@ -88,61 +79,42 @@ public class TTLMultiDbTest {
     public void testWithDefaultDatabaseWithTTLEnabled() throws Exception {
 
         try (Session session = driver.session(SessionConfig.forDatabase(DB_NEO4J))) {
-            session.writeTransaction(tx -> tx.run(
-                    "UNWIND range(1,100) as range CREATE (n:Foo {id: range}) WITH n CALL apoc.ttl.expireIn(n,500,'ms') RETURN count(*)")
-            );
-
             TestContainerUtil.testCall(
                     session,
-                    "MATCH (n:Foo) RETURN collect(n) as row",
-                    (row) -> assertEquals(100, ((List) row.get("row")).size()));
-
-            Thread.sleep(4000);
-
-            TestContainerUtil.testCall(
-                    session,
-                    "MATCH (n:Foo) RETURN collect(n) as row",
-                    (row) -> assertEquals(0, ((List) row.get("row")).size()));
+                    "RETURN apoc.ttl.config() AS value",
+                    (row) -> {
+                        Map<String, Object> value = (Map<String, Object>) row.get("value");
+                        assertTrue((Boolean) value.get("enabled"));
+                        assertEquals(2L, value.get("schedule"));
+                        assertEquals(200L, value.get("limit"));
+                    });
         }
     }
 
     @Test
     public void testWithDefaultDatabaseAndSpecificDbWithScheduleSpecified() throws Exception {
-
         try (Session session = driver.session(SessionConfig.forDatabase(DB_NEO4J))) {
-            session.writeTransaction(tx -> tx.run(
-                    "UNWIND range(1,100) as range CREATE (n:Foo {id: range}) WITH n CALL apoc.ttl.expireIn(n,500,'ms') RETURN count(*)")
-            );
-
             TestContainerUtil.testCall(
                     session,
-                    "MATCH (n:Foo) RETURN collect(n) as row",
-                    (row) -> assertEquals(100, ((List) row.get("row")).size()));
-
-            Thread.sleep(2000);
-
-            TestContainerUtil.testCall(
-                    session,
-                    "MATCH (n:Foo) RETURN collect(n) as row",
-                    (row) -> assertEquals(0, ((List) row.get("row")).size()));
+                    "RETURN apoc.ttl.config() AS value",
+                    (row) -> {
+                        Map<String, Object> value = (Map<String, Object>) row.get("value");
+                        assertTrue((Boolean) value.get("enabled"));
+                        assertEquals(2L, value.get("schedule"));
+                        assertEquals(200L, value.get("limit"));
+                    });
         }
 
         try (Session session = driver.session(SessionConfig.forDatabase(DB_FOO))) {
-            session.writeTransaction(tx -> tx.run(
-                    "UNWIND range(1,100) as range CREATE (n:Foo {id: range}) WITH n CALL apoc.ttl.expireIn(n,500,'ms') RETURN count(*)")
-            );
-
             TestContainerUtil.testCall(
                     session,
-                    "MATCH (n:Foo) RETURN collect(n) as row",
-                    (row) -> assertEquals(100, ((List) row.get("row")).size()));
-
-            Thread.sleep(2000);
-
-            TestContainerUtil.testCall(
-                    session,
-                    "MATCH (n:Foo) RETURN collect(n) as row",
-                    (row) -> assertEquals(100, ((List) row.get("row")).size()));
+                    "RETURN apoc.ttl.config() AS value",
+                    (row) -> {
+                        Map<String, Object> value = (Map<String, Object>) row.get("value");
+                        assertTrue((Boolean) value.get("enabled"));
+                        assertEquals(7L, value.get("schedule"));
+                        assertEquals(200L, value.get("limit"));
+                    });
         }
     }
 
@@ -150,39 +122,27 @@ public class TTLMultiDbTest {
     public void testWithDefaultDatabaseAndSpecificDbWithLimitSpecified() throws Exception {
 
         try (Session session = driver.session(SessionConfig.forDatabase(DB_NEO4J))) {
-            session.writeTransaction(tx -> tx.run(
-                    "UNWIND range(1,2000) as range CREATE (n:Foo {id: range}) WITH n CALL apoc.ttl.expireIn(n,500,'ms') RETURN count(*)")
-            );
-
             TestContainerUtil.testCall(
                     session,
-                    "MATCH (n:Foo) RETURN collect(n) as row",
-                    (row) -> assertEquals(2000, ((List) row.get("row")).size()));
-
-            Thread.sleep(2000);
-
-            TestContainerUtil.testCall(
-                    session,
-                    "MATCH (n:Foo) RETURN collect(n) as row",
-                    (row) -> assertEquals(1800, ((List) row.get("row")).size()));
+                    "RETURN apoc.ttl.config() AS value",
+                    (row) -> {
+                        Map<String, Object> value = (Map<String, Object>) row.get("value");
+                        assertTrue((Boolean) value.get("enabled"));
+                        assertEquals(2L, value.get("schedule"));
+                        assertEquals(200L, value.get("limit"));
+                    });
         }
 
         try (Session session = driver.session(SessionConfig.forDatabase(DB_BAR))) {
-            session.writeTransaction(tx -> tx.run(
-                    "UNWIND range(1,2000) as range CREATE (n:Foo {id: range}) WITH n CALL apoc.ttl.expireIn(n,500,'ms') RETURN count(*)")
-            );
-
             TestContainerUtil.testCall(
                     session,
-                    "MATCH (n:Foo) RETURN collect(n) as row",
-                    (row) -> assertEquals(2000, ((List) row.get("row")).size()));
-
-            Thread.sleep(2000);
-
-            TestContainerUtil.testCall(
-                    session,
-                    "MATCH (n:Foo) RETURN collect(n) as row",
-                    (row) -> assertEquals(1000, ((List) row.get("row")).size()));
+                    "RETURN apoc.ttl.config() AS value",
+                    (row) -> {
+                        Map<String, Object> value = (Map<String, Object>) row.get("value");
+                        assertTrue((Boolean) value.get("enabled"));
+                        assertEquals(2L, value.get("schedule"));
+                        assertEquals(2000L, value.get("limit"));
+                    });
         }
     }
 }
