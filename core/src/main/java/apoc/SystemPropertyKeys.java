@@ -13,6 +13,7 @@ public enum SystemPropertyKeys  {
     outputs,
     output,
     forceSingle,
+    prefix,
 
     // triggers
     selector,
