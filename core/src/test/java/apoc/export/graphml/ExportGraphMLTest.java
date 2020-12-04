@@ -210,6 +210,21 @@ public class ExportGraphMLTest {
 
         TestUtil.testCall(db, "MATCH  ()-[c:RELATED]->() RETURN COUNT(c) AS c", null, (r) -> assertEquals(1L, r.get("c")));
     }
+    
+    @Test
+    public void testImportDefaultRelationship() throws Exception {
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+        db.executeTransactionally("CALL apoc.import.graphml( " +
+                "  'http://sonetlab.fbk.eu/data/social_networks_of_wikipedia/vecwiki_social_network_extraction/vecwiki-20091230-manual-coding.graphml', " +
+                "  { batchSize: 5000, readLabels: true, defaultRelationshipType:'RELATED' } " +
+                ")");
+        TestUtil.testCall(db, "MATCH ()-[r]-() RETURN Distinct type(r) as type",
+                (r) -> {
+                    String label = (String) r.get("type");
+                    assertEquals("RELATED", label);
+                }
+        );
+    }
 
     @Test(expected = QueryExecutionException.class)
     public void testImportGraphMLWithNoImportConfig() throws Exception {
