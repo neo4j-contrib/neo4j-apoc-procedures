@@ -1,0 +1,11 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header, cols="1,1,1,5"]
+|===
+| name | type | default | description
+| compression | enum | GZIP | The compression algorithm used to compress the string +
+Accepted values are: GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY
+| charset | enum | UTF-8 | The charset used to compress the string +
+Accepted values are: UTF-8, UTF-16, UTF-16BE, UTF-16LE, UTF-32, US-ASCII, ISO-8859-1
+|===
