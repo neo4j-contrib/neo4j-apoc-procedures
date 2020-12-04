@@ -28,12 +28,12 @@ nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',i
 
 == Load Single File From Compressed File (zip/tar/tar.gz/tgz)
 
-When loading data from compressed files, we need to put the `!` character before the file name.
+When loading data from compressed files, we need to put the `!` character before the file name or path in the compressed file.
 For example:
 
 .Loading a compressed CSV file
 ----
-apoc.load.csv("pathToFile!csv/fileName.csv.tgz")
+apoc.load.csv("pathToCompressedFile/file.zip!pathToCsvFileInZip/fileName.csv")
 ----
 
 .Loading a compressed JSON file
