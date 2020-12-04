@@ -158,13 +158,14 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
         String name = (String) node.getProperty(SystemPropertyKeys.name.name());
         String description = (String) node.getProperty(SystemPropertyKeys.description.name(), null);
+        String[] prefix = (String[]) node.getProperty(SystemPropertyKeys.prefix.name(), new String[]{PREFIX});
 
         String property = (String) node.getProperty(SystemPropertyKeys.inputs.name());
         List<FieldSignature> inputs = deserializeSignatures(property);
 
         List<FieldSignature> outputSignature = deserializeSignatures((String) node.getProperty(SystemPropertyKeys.outputs.name()));
         return new ProcedureDescriptor(Signatures.createProcedureSignature(
-                new QualifiedName(new String[]{PREFIX}, name),
+                new QualifiedName(prefix, name),
                 inputs,
                 outputSignature,
                 Mode.valueOf((String) node.getProperty(SystemPropertyKeys.mode.name())),
@@ -185,13 +186,14 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
         String name = (String) node.getProperty(SystemPropertyKeys.name.name());
         String description = (String) node.getProperty(SystemPropertyKeys.description.name(), null);
+        String[] prefix = (String[]) node.getProperty(SystemPropertyKeys.prefix.name(), new String[]{PREFIX});
 
         String property = (String) node.getProperty(SystemPropertyKeys.inputs.name());
         List<FieldSignature> inputs = deserializeSignatures(property);
 
         boolean forceSingle = (boolean) node.getProperty(SystemPropertyKeys.forceSingle.name(), false);
         return new UserFunctionDescriptor(new UserFunctionSignature(
-                new QualifiedName(new String[]{PREFIX}, name),
+                new QualifiedName(prefix, name),
                 inputs,
                 typeof((String) node.getProperty(SystemPropertyKeys.output.name())),
                 null,
@@ -245,6 +247,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                     Pair.of(SystemPropertyKeys.name.name(), signature.name().name())
             );
 
+            node.setProperty(SystemPropertyKeys.prefix.name(), signature.name().namespace());
             node.setProperty(SystemPropertyKeys.description.name(), signature.description().orElse(null));
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
             node.setProperty(SystemPropertyKeys.inputs.name(), serializeSignatures(signature.inputSignature()));
@@ -263,6 +266,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                     Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
                     Pair.of(SystemPropertyKeys.name.name(), signature.name().name())
             );
+            node.setProperty(SystemPropertyKeys.prefix.name(), signature.name().namespace());
             node.setProperty(SystemPropertyKeys.description.name(), signature.description().orElse(null));
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
             node.setProperty(SystemPropertyKeys.inputs.name(), serializeSignatures(signature.inputSignature()));
