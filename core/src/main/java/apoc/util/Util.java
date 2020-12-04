@@ -84,6 +84,7 @@ import java.util.zip.ZipInputStream;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
+import static org.apache.commons.lang.ArrayUtils.toPrimitive;
 
 /**
  * @author mh
@@ -912,5 +913,20 @@ public class Util {
         Thread thread = new Thread(target);
         thread.setDaemon(true);
         return thread;
+    }
+
+    public static List<Long> convertFromBytesToList(byte[] bytes) {
+        List<Long> result = new ArrayList<>(bytes.length);
+        for (byte b : bytes) {
+            result.add((long)b & 0xFFL);
+        }
+        return result;
+    }
+
+    public static byte[] convertFromListToBytes(List<Long> list) {
+        return toPrimitive(list
+                .stream()
+                .map(Long::byteValue)
+                .toArray(Byte[]::new));
     }
 }

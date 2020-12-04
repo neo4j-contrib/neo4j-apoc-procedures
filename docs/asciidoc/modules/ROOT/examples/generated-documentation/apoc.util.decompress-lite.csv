@@ -1,0 +1,2 @@
+¦signature
+¦apoc.util.decompress(data :: LIST? OF INTEGER?, config = {} :: MAP?) :: (STRING?)

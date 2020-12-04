@@ -1,6 +1,8 @@
 ¦type¦qualified name¦signature¦description
 ¦procedure¦apoc.util.sleep¦apoc.util.sleep(duration :: INTEGER?) :: VOID¦apoc.util.sleep(<duration>) | sleeps for <duration> millis, transaction termination is honored
 ¦procedure¦apoc.util.validate¦apoc.util.validate(predicate :: BOOLEAN?, message :: STRING?, params :: LIST? OF ANY?) :: VOID¦apoc.util.validate(predicate, message, params) | if the predicate yields to true raise an exception
+¦function¦apoc.util.compress¦apoc.util.compress(data :: STRING?, config = {} :: MAP?) :: (LIST? OF ANY?)¦apoc.util.compress(string, \{config}) | return a compressed byte[] in various format from a string
+¦function¦apoc.util.decompress¦apoc.util.decompress(data :: LIST? OF INTEGER?, config = {} :: MAP?) :: (STRING?)¦apoc.util.decompress(compressed, \{config}) | return a string from a compressed byte[] in various format
 ¦function¦apoc.util.md5¦apoc.util.md5(values :: LIST? OF ANY?) :: (STRING?)¦apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list
 ¦function¦apoc.util.sha1¦apoc.util.sha1(values :: LIST? OF ANY?) :: (STRING?)¦apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list
 ¦function¦apoc.util.sha256¦apoc.util.sha256(values :: LIST? OF ANY?) :: (STRING?)¦apoc.util.sha256([values]) | computes the sha256 of the concatenation of all string values of the list

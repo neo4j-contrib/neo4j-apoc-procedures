@@ -521,6 +521,8 @@ for the provided `label` and `uuidProperty`, in case the UUID handler is already
 ¦function¦apoc.trigger.nodesByLabel¦apoc.trigger.nodesByLabel(labelEntries :: ANY?, label :: STRING?) :: (LIST? OF ANY?)¦¦false¦xref::background-operations/triggers.adoc
 ¦function¦apoc.trigger.propertiesByKey¦apoc.trigger.propertiesByKey(propertyEntries :: MAP?, key :: STRING?) :: (LIST? OF ANY?)¦¦false¦xref::background-operations/triggers.adoc
 ¦function¦apoc.ttl.config¦apoc.ttl.config() :: (MAP?)¦¦true¦xref::graph-updates/ttl.adoc
+¦function¦apoc.util.compress¦apoc.util.compress(data :: STRING?, config = {} :: MAP?) :: (LIST? OF ANY?)¦apoc.util.compress(string, \{config}) | return a compressed byte[] in various format from a string¦true¦
+¦function¦apoc.util.decompress¦apoc.util.decompress(data :: LIST? OF INTEGER?, config = {} :: MAP?) :: (STRING?)¦apoc.util.decompress(compressed, \{config}) | return a string from a compressed byte[] in various format¦true¦
 ¦function¦apoc.util.md5¦apoc.util.md5(values :: LIST? OF ANY?) :: (STRING?)¦apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list¦true¦xref::misc/text-functions.adoc#text-functions-hashing
 ¦function¦apoc.util.sha1¦apoc.util.sha1(values :: LIST? OF ANY?) :: (STRING?)¦apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list¦true¦xref::misc/text-functions.adoc#text-functions-hashing
 ¦function¦apoc.util.sha256¦apoc.util.sha256(values :: LIST? OF ANY?) :: (STRING?)¦apoc.util.sha256([values]) | computes the sha256 of the concatenation of all string values of the list¦true¦

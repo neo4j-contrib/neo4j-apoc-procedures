@@ -1,6 +1,8 @@
 ¦signature
 ¦apoc.util.sleep(duration :: INTEGER?) :: VOID
 ¦apoc.util.validate(predicate :: BOOLEAN?, message :: STRING?, params :: LIST? OF ANY?) :: VOID
+¦apoc.util.compress(data :: STRING?, config = {} :: MAP?) :: (LIST? OF ANY?)
+¦apoc.util.decompress(data :: LIST? OF INTEGER?, config = {} :: MAP?) :: (STRING?)
 ¦apoc.util.md5(values :: LIST? OF ANY?) :: (STRING?)
 ¦apoc.util.sha1(values :: LIST? OF ANY?) :: (STRING?)
 ¦apoc.util.sha256(values :: LIST? OF ANY?) :: (STRING?)
