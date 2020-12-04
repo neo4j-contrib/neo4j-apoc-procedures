@@ -210,18 +210,39 @@ public class ExportGraphMLTest {
 
         TestUtil.testCall(db, "MATCH  ()-[c:RELATED]->() RETURN COUNT(c) AS c", null, (r) -> assertEquals(1L, r.get("c")));
     }
+
+    private String NO_REL_TYPES = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+            "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\"\n" +
+            "         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+            "         xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns\n" +
+            "         http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">\n" +
+            "<!-- Created by igraph -->\n" +
+            "  <key id=\"username\" for=\"node\" attr.name=\"username\" attr.type=\"string\"/>\n" +
+            "  <key id=\"weight\" for=\"edge\" attr.name=\"weight\" attr.type=\"double\"/>\n" +
+            "  <graph id=\"G\" edgedefault=\"directed\">\n" +
+            "    <node id=\"n0\">\n" +
+            "      <data key=\"username\">Dodo von den Bergen</data>\n" +
+            "    </node>\n" +
+            "    <node id=\"n1\">\n" +
+            "      <data key=\"username\">Semolo75</data>\n" +
+            "    </node>  " +
+            "<edge source=\"n1\" target=\"n0\">\n" +
+            "      <data key=\"weight\">1</data>\n" +
+            "    </edge>  </graph>\n" +
+            "</graphml>";
     
     @Test
     public void testImportDefaultRelationship() throws Exception {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
-        db.executeTransactionally("CALL apoc.import.graphml( " +
-                "  'http://sonetlab.fbk.eu/data/social_networks_of_wikipedia/vecwiki_social_network_extraction/vecwiki-20091230-manual-coding.graphml', " +
-                "  { batchSize: 5000, readLabels: true, defaultRelationshipType:'RELATED' } " +
-                ")");
+
+        File output = new File(directory, "import_no_rel_types.graphml");
+        FileWriter fw = new FileWriter(output);
+        fw.write(NO_REL_TYPES); fw.close();
+        db.executeTransactionally("CALL apoc.import.graphml( $file, { batchSize: 5000, readLabels: true, defaultRelationshipType:'DEFAULT_TYPE' })", map("file", output.getAbsolutePath()));
         TestUtil.testCall(db, "MATCH ()-[r]-() RETURN Distinct type(r) as type",
                 (r) -> {
                     String label = (String) r.get("type");
-                    assertEquals("RELATED", label);
+                    assertEquals("DEFAULT_TYPE", label);
                 }
         );
     }
