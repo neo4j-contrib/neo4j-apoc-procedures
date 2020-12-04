@@ -41,7 +41,6 @@ public class TTLLifeCycle extends LifecycleAdapter {
     @Override
     public void start() {
         TTLConfig.Values configValues = ttlConfig.configFor(db);
-        System.out.println("configValues = " + configValues);
         if(configValues.enabled) {
             long ttlScheduleDb = configValues.schedule;
             ttlIndexJobHandle = scheduler.schedule(TTL_GROUP, this::createTTLIndex, (int)(ttlScheduleDb*0.8), TimeUnit.SECONDS);
