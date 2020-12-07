@@ -92,9 +92,9 @@ public class UUIDMultiDbTest {
                     "CREATE CONSTRAINT ON (foo:Foo) ASSERT foo.uuid IS UNIQUE")
             );
 
-//            session.writeTransaction(tx -> tx.run(
-//                    "CALL apoc.uuid.install('Foo') YIELD label RETURN label")
-//            );
+            session.writeTransaction(tx -> tx.run(
+                    "CALL apoc.uuid.install('Foo') YIELD label RETURN label")
+            );
 
             String call = "MATCH (n:Foo) RETURN n.uuid as uuid";
             AtomicBoolean nodeHasUUID = new AtomicBoolean(false);
