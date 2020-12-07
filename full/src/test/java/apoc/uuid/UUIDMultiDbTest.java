@@ -1,19 +1,19 @@
 package apoc.uuid;
+
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.driver.AuthTokens;
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.Session;
-import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.*;
 
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
 import static apoc.ApocConfig.APOC_UUID_ENABLED_DB;
@@ -24,7 +24,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
 
 public class UUIDMultiDbTest {
 
@@ -42,7 +41,6 @@ public class UUIDMultiDbTest {
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
-        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
         driver = GraphDatabase.driver(neo4jContainer.getBoltUrl(), AuthTokens.basic("neo4j", "apoc"));
 
@@ -84,8 +82,7 @@ public class UUIDMultiDbTest {
     }
 
     @Test
-    public void testWithDefaultDatabaseWithUUIDEnabled() {
-
+    public void testWithDefaultDatabaseWithUUIDEnabled() throws InterruptedException {
         try (Session session = driver.session(SessionConfig.forDatabase("neo4j"))) {
             session.writeTransaction(tx -> tx.run(
                     "CREATE (d:Foo {name:'Test'})-[:WORK]->(l:Bar {name:'Baz'})")
@@ -99,19 +96,27 @@ public class UUIDMultiDbTest {
                     "CALL apoc.uuid.install('Foo') YIELD label RETURN label")
             );
 
-            long start = System.currentTimeMillis();
-            AtomicBoolean uuidFound = new AtomicBoolean(false);
+            String call = "MATCH (n:Foo) RETURN n.uuid as uuid";
+            AtomicBoolean nodeHasUUID = new AtomicBoolean(false);
+            Consumer<Iterator<Map<String, Object>>> resultConsumer = (result) -> {
+                Map<String, Object> r = result.next();
+                nodeHasUUID.set(r.get("uuid") != null);
+            };
 
-            while(!uuidFound.get() || System.currentTimeMillis() > (start + TimeUnit.SECONDS.toMillis(5))) {
-                boolean hasUuid = session.writeTransaction(tx -> {
-                    Record r = tx.run("CALL apoc.uuid.install('Foo') YIELD label RETURN label").next();
-                    return r.get("uuid") != null;
+            long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(5);
+            while (!nodeHasUUID.get() || System.currentTimeMillis() < timeout) {
+                session.writeTransaction(tx -> {
+                    Map<String, Object> p = Collections.<String, Object>emptyMap();
+                    resultConsumer.accept(tx.run(call, p).list().stream().map(Record::asMap).collect(Collectors.toList()).iterator());
+                    tx.commit();
+                    return null;
                 });
-                uuidFound.set(hasUuid);
+
+                if (!nodeHasUUID.get()) {
+                    Thread.sleep(100);
+                }
             }
-
-            assertTrue(uuidFound.get());
-
+            assertTrue(nodeHasUUID.get());
         }
     }
 }
