@@ -17,6 +17,7 @@ import static apoc.ApocConfig.*;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.*;
 
+
 public class LoadDirectoryTest {
 
     @ClassRule
