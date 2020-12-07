@@ -59,7 +59,7 @@ public class LoadJson {
     }
     public static Stream<MapResult> loadJsonStream(@Name("url") String url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload, String path, boolean failOnError) {
         headers = null != headers ? headers : new HashMap<>();
-        headers.putAll(extractCredentialsIfNeeded(url, failOnError));
+        headers.putAll(Util.extractCredentialsIfNeeded(url, failOnError));
         Stream<Object> stream = JsonUtil.loadJson(url,headers,payload, path, failOnError);
         return stream.flatMap((value) -> {
             if (value instanceof Map) {
@@ -78,25 +78,4 @@ public class LoadJson {
         });
     }
 
-    private static Map<String, Object> extractCredentialsIfNeeded(String url, boolean failOnError) {
-        try {
-            URI uri = new URI(url);
-            String authInfo = uri.getUserInfo();
-            if (null != authInfo) {
-                String[] parts = authInfo.split(":");
-                if (2 == parts.length) {
-                    String token = new String(Base64.getEncoder().encode(authInfo.getBytes()));
-                    return MapUtil.map(AUTH_HEADER_KEY, "Basic " + token);
-                }
-            }
-
-        } catch (Exception e) {
-            if(!failOnError)
-                return Collections.emptyMap();
-            else
-                throw new RuntimeException(e);
-        }
-
-        return Collections.emptyMap();
-    }
 }
