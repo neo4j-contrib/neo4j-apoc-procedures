@@ -38,7 +38,6 @@ public class LoadDirectory {
     @Procedure
     @Description("apoc.load.directory('pattern', 'urlDir', {config}) YIELD value - Loads list of all files in folder specified by urlDir or in import folder if urlDir string is empty or not specified")
     public Stream<StringResult> directory(@Name(value = "pattern", defaultValue = "*") String pattern, @Name(value = "urlDir", defaultValue = "") String urlDir, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
-        log.info("Search files that match regular expression: " + pattern);
 
         if (urlDir == null) {
             throw new IllegalArgumentException("Invalid (null) urlDir");
