@@ -16,7 +16,7 @@ CALL apoc.log.debug('Hello %s', ['World']);
 .neo4j.log
 [source,text]
 ----
-CALL apoc.log.debug('Hello %s', ['World']);
+2020-11-18 10:22:28.923+0000 DEBUG hello_world
 ----
 
 We can query the contents of `neo4j.log` using xref::overview/apoc.log/apoc.log.stream.adoc[]

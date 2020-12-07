@@ -100,7 +100,7 @@ public class UUIDMultiDbTest {
             };
 
             long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(5);
-            while (!nodeHasUUID.get() || System.currentTimeMillis() < timeout) {
+            while (!nodeHasUUID.get() || System.currentTimeMillis() > timeout) {
                 session.writeTransaction(tx -> {
                     Map<String, Object> p = Collections.<String, Object>emptyMap();
                     resultConsumer.accept(tx.run(call, p).list().stream().map(Record::asMap).collect(Collectors.toList()).iterator());
