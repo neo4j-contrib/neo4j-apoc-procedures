@@ -40,6 +40,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -49,6 +50,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -930,4 +932,30 @@ public class Util {
                 .map(Long::byteValue)
                 .toArray(Byte[]::new));
     }
+    
+    public static String encodeUserColonPassToBase64(String userPass) {
+        return new String(Base64.getEncoder().encode((userPass).getBytes()));
+    }
+
+    public static Map<String, Object> extractCredentialsIfNeeded(String url, boolean failOnError) {
+        try {
+            URI uri = new URI(url);
+            String authInfo = uri.getUserInfo();
+            if (null != authInfo) {
+                String[] parts = authInfo.split(":");
+                if (2 == parts.length) {
+                    String token = encodeUserColonPassToBase64(authInfo);
+                    return MapUtil.map("Authorization", "Basic " + token);
+                }
+            }
+        } catch (Exception e) {
+            if(!failOnError)
+                return Collections.emptyMap();
+            else
+                throw new RuntimeException(e);
+        }
+
+        return Collections.emptyMap();
+    }
+
 }
