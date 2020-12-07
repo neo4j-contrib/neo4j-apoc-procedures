@@ -2,14 +2,12 @@ package apoc.load;
 
 import apoc.ApocConfig;
 import apoc.Pools;
-import apoc.util.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 
-import java.net.URI;
 import java.nio.file.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +15,8 @@ import java.util.concurrent.*;
 
 import static apoc.ApocConfig.*;
 import static apoc.periodic.Periodic.JobInfo;
+import static apoc.util.FileUtils.checkIfUrlEmptyAndGetFileUrl;
+import static apoc.util.FileUtils.getPathFromUrlString;
 
 public class LoadDirectoryHandler extends LifecycleAdapter {
 
@@ -79,10 +79,12 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
             pools.getJobList().get(new JobInfo(name)).cancel(true);
         }
 
+        System.out.println(pools.getJobList());
         pools.getJobList().put(
                 new JobInfo(name),
                 pools.getDefaultExecutorService().submit(executeListener(loadDirectoryItem))
         );
+        System.out.println(pools.getJobList());
 
         directoryListenerList.put(loadDirectoryItem.getName(), loadDirectoryItem);
     }
@@ -107,14 +109,11 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
         return () -> {
             try (WatchService watcher = FileSystems.getDefault().newWatchService()) {
 
-                // todo - create common function with apoc.load.directory()
-                String urlDir = item.getUrlDir().isEmpty()
-                        ? apocConfig().getString("dbms.directories.import", "import")
-                        : FileUtils.changeFileUrlIfImportDirectoryConstrained(item.getUrlDir());
+                String urlDir = checkIfUrlEmptyAndGetFileUrl(item.getUrlDir());
+                getPathFromUrlString(urlDir).register(watcher, item.getConfig().getEventKinds());
 
-                Path path = Paths.get(URI.create(urlDir).getPath());
-                path.register(watcher, item.getConfig().getEventKinds());
                 while (!Thread.currentThread().isInterrupted()) {
+
                     WatchKey watchKey = watcher.take();
                     if (watchKey != null) {
                         watchKey.reset();
@@ -124,6 +123,7 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
                             try {
                                 WildcardFileFilter fileFilter = new WildcardFileFilter(item.getPattern());
                                 boolean matchFilePattern = fileFilter.accept(dir.toFile(), eventPath.getFileName().toString());
+                                System.out.println("item = " + item);
                                 if (matchFilePattern) {
                                     try (Transaction tx = db.beginTx()) {
                                         tx.execute(item.getCypher());

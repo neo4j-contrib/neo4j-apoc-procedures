@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.apocConfig;
+import static org.eclipse.jetty.util.URIUtil.encodeSpaces;
 
 /**
  * @author mh
@@ -290,5 +291,19 @@ public class FileUtils {
         if (reader != null) {
             try { reader.close(); } catch (IOException ignored) { }
         }
+    }
+
+    public static String checkIfUrlEmptyAndGetFileUrl(String urlDir) throws IOException {
+        return urlDir.isEmpty()
+                ? getDirImport()
+                : changeFileUrlIfImportDirectoryConstrained(urlDir);
+    }
+
+    public static String getDirImport() {
+        return apocConfig().getString("dbms.directories.import", "import");
+    }
+
+    public static Path getPathFromUrlString(String urlDir) {
+        return Paths.get(URI.create(encodeSpaces(urlDir)).getPath());
     }
 }
