@@ -37,7 +37,7 @@ public class ErdosRenyiRelationshipGenerator extends BaseRelationshipGenerator<E
     @Override
     protected List<Pair<Integer, Integer>> doGenerateEdges() {
         long threshold = getConfiguration().getNumberOfEdges() * 4;
-        long potentialEdges = getConfiguration().getNumberOfNodes() * (getConfiguration().getNumberOfNodes() - 1);
+        long potentialEdges = Long.valueOf(getConfiguration().getNumberOfNodes()) * (Long.valueOf(getConfiguration().getNumberOfNodes()) - 1);
 
         if (threshold > potentialEdges) {
             return doGenerateEdgesWithOmitList(); // Make sure to avoid edges
@@ -87,7 +87,7 @@ public class ErdosRenyiRelationshipGenerator extends BaseRelationshipGenerator<E
     private List<Pair<Integer, Integer>> doGenerateEdgesWithOmitList() {
         final int numberOfNodes = getConfiguration().getNumberOfNodes();
         final int numberOfEdges = getConfiguration().getNumberOfEdges();
-        final long maxEdges = numberOfNodes * (numberOfNodes - 1) / 2;
+        final long maxEdges = Long.valueOf(numberOfNodes) * (Long.valueOf(numberOfNodes) - 1) / 2;
 
         final List<Pair<Integer, Integer>> edges = new LinkedList<>();
 
