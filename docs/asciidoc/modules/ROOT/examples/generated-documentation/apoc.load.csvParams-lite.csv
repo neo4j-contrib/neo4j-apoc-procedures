@@ -1,0 +1,2 @@
+¦signature
+¦apoc.load.csvParams(url :: STRING?, httpHeaders :: MAP?, payload :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, list :: LIST? OF ANY?, strings :: LIST? OF STRING?, map :: MAP?, stringMap :: MAP?)

@@ -1,6 +1,8 @@
 package apoc.load;
 
+import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.*;
 import org.mockserver.client.server.MockServerClient;
@@ -262,7 +264,66 @@ public class LoadJsonTest {
         }
     }
 
+    @Test
+    public void testLoadJsonWithAuth() throws Exception {
+        String userPass = "user:password";
+        String token = Util.encodeUserColonPassToBase64(userPass);
+        Map<String, String> responseBody = Map.of("result", "message");
 
+        new MockServerClient("localhost", 1080)
+                .when(
+                        request()
+                                .withPath("/docs/search")
+                                .withHeader("Authorization", "Basic " + token)
+                                .withHeader("\"Content-type\", \"application/json\""),
+                        exactly(1))
+                .respond(
+                        response()
+                                .withStatusCode(200)
+                                .withHeaders(
+                                        new Header("Content-Type", "application/json; charset=utf-8"),
+                                        new Header("Cache-Control", "private, max-age=1000"))
+                                .withBody(JsonUtil.OBJECT_MAPPER.writeValueAsString(responseBody))
+                                .withDelay(TimeUnit.SECONDS, 1)
+                );
+
+        testCall(db, "call apoc.load.json($url)",
+                    map( "url", "http://" + userPass + "@localhost:1080/docs/search"),
+                    (row) -> assertEquals(responseBody, row.get("value"))
+                );
+    }
+
+    @Test
+    public void testLoadJsonParamsWithAuth() throws Exception {
+	    String userPass = "user:password";
+        String token = Util.encodeUserColonPassToBase64(userPass);
+        Map<String, String> responseBody = Map.of("result", "message");
+
+        new MockServerClient("localhost", 1080)
+                .when(
+                        request()
+                                .withMethod("POST")
+                                .withPath("/docs/search")
+                                .withHeader("Authorization", "Basic " + token)
+                                .withHeader("\"Content-type\", \"application/json\""),
+                        exactly(1))
+                .respond(
+                        response()
+                                .withStatusCode(200)
+                                .withHeaders(
+                                        new Header("Content-Type", "application/json; charset=utf-8"),
+                                        new Header("Cache-Control", "public, max-age=86400"))
+                                .withBody(JsonUtil.OBJECT_MAPPER.writeValueAsString(responseBody))
+                                .withDelay(TimeUnit.SECONDS, 1)
+                );
+
+        testCall(db, "call apoc.load.jsonParams($url, $config, $payload)",
+                    map("payload", "{\"query\":\"pagecache\",\"version\":\"3.5\"}",
+                        "url", "http://" + userPass + "@localhost:1080/docs/search",
+                        "config", map("method", "POST")),
+                    (row) -> assertEquals(responseBody, row.get("value"))
+                );
+    }
 
     @Test
     public void testLoadJsonParams() throws Exception {

@@ -32,12 +32,20 @@ public class LoadCsv {
     public GraphDatabaseService db;
 
     @Procedure
-    @Description("apoc.load.csv('url',{config}) YIELD lineNo, list, map - load CSV fom URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
-    public Stream<CSVResult> csv(@Name("url") String url, @Name(value = "config",defaultValue = "{}") Map<String, Object> configMap) {
+    @Description("apoc.load.csv('url',{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
+    public Stream<CSVResult> csv(@Name("url") String url, @Name(value = "config", defaultValue = "{}") Map<String, Object> configMap) {
+        return csvParams(url, null, null,configMap);
+    }
+
+    @Procedure
+    @Description("apoc.load.csvParams('url', {httpHeader: value}, payload, {config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
+    public Stream<CSVResult> csvParams(@Name("url") String url, @Name("httpHeaders") Map<String, Object> httpHeaders, @Name("payload") String payload, @Name(value = "config", defaultValue = "{}") Map<String, Object> configMap) {
         LoadCsvConfig config = new LoadCsvConfig(configMap);
         CountingReader reader = null;
         try {
-            reader = FileUtils.readerFor(url);
+            httpHeaders = httpHeaders != null ? httpHeaders : new HashMap<>();
+            httpHeaders.putAll(Util.extractCredentialsIfNeeded(url, true));
+            reader = FileUtils.readerFor(url, httpHeaders, payload);
             return streamCsv(url, config, reader);
         } catch (IOException e) {
             closeReaderSafely(reader);

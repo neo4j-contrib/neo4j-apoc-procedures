@@ -1,5 +1,6 @@
 ¦signature
 ¦apoc.load.csv(url :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, list :: LIST? OF ANY?, strings :: LIST? OF STRING?, map :: MAP?, stringMap :: MAP?)
+¦apoc.load.csvParams(url :: STRING?, httpHeaders :: MAP?, payload :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, list :: LIST? OF ANY?, strings :: LIST? OF STRING?, map :: MAP?, stringMap :: MAP?)
 ¦apoc.load.driver(driverClass :: STRING?) :: VOID
 ¦apoc.load.html(url :: STRING?, query = {} :: MAP?, config = {} :: MAP?) :: (value :: MAP?)
 ¦apoc.load.jdbc(jdbc :: STRING?, tableOrSql :: STRING?, params = [] :: LIST? OF ANY?, config = {} :: MAP?) :: (row :: MAP?)
