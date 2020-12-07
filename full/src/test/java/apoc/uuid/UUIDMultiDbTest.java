@@ -92,9 +92,9 @@ public class UUIDMultiDbTest {
                     "CREATE CONSTRAINT ON (foo:Foo) ASSERT foo.uuid IS UNIQUE")
             );
 
-            session.writeTransaction(tx -> tx.run(
-                    "CALL apoc.uuid.install('Foo') YIELD label RETURN label")
-            );
+//            session.writeTransaction(tx -> tx.run(
+//                    "CALL apoc.uuid.install('Foo') YIELD label RETURN label")
+//            );
 
             String call = "MATCH (n:Foo) RETURN n.uuid as uuid";
             AtomicBoolean nodeHasUUID = new AtomicBoolean(false);
@@ -104,7 +104,8 @@ public class UUIDMultiDbTest {
             };
 
             long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(5);
-            while (!nodeHasUUID.get() || System.currentTimeMillis() < timeout) {
+            System.out.println("timeout = " + timeout);
+            while (!nodeHasUUID.get() || System.currentTimeMillis() > timeout) {
                 session.writeTransaction(tx -> {
                     Map<String, Object> p = Collections.<String, Object>emptyMap();
                     resultConsumer.accept(tx.run(call, p).list().stream().map(Record::asMap).collect(Collectors.toList()).iterator());
