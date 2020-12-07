@@ -104,8 +104,7 @@ public class UUIDMultiDbTest {
             };
 
             long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(5);
-            System.out.println("timeout = " + timeout);
-            while (!nodeHasUUID.get() || System.currentTimeMillis() > timeout) {
+            while (System.currentTimeMillis() < timeout && !nodeHasUUID.get()) {
                 session.writeTransaction(tx -> {
                     Map<String, Object> p = Collections.<String, Object>emptyMap();
                     resultConsumer.accept(tx.run(call, p).list().stream().map(Record::asMap).collect(Collectors.toList()).iterator());
@@ -117,7 +116,8 @@ public class UUIDMultiDbTest {
                     Thread.sleep(100);
                 }
             }
-            assertTrue(nodeHasUUID.get());
+            assertTrue("UUID not set on node after 5 seconds", nodeHasUUID.get());
         }
     }
+
 }
