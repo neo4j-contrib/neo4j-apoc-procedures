@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,6 +44,10 @@ public class FileUtils {
     private static final List<String> NON_FILE_PROTOCOLS = Arrays.asList(HTTP_PROTOCOL, S3_PROTOCOL, GCS_PROTOCOL, HDFS_PROTOCOL);
 
     public static CountingReader readerFor(String fileName) throws IOException {
+        return readerFor(fileName, null, null);
+    }
+
+    public static CountingReader readerFor(String fileName, Map<String, Object> headers, String payload) throws IOException {
         apocConfig().checkReadAllowed(fileName);
         if (fileName==null) return null;
         fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
@@ -50,7 +55,7 @@ public class FileUtils {
             if (isHdfs(fileName)) {
                 return readHdfs(fileName);
             } else {
-                return Util.openInputStream(fileName,null,null).asReader();
+                return Util.openInputStream(fileName, headers, payload).asReader();
             }
         }
         return readFile(fileName);
