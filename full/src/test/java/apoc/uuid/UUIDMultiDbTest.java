@@ -3,7 +3,13 @@ import apoc.util.*;
 import org.junit.*;
 import org.neo4j.driver.*;
 
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
 import static apoc.ApocConfig.APOC_UUID_ENABLED_DB;
@@ -72,8 +78,7 @@ public class UUIDMultiDbTest {
     }
 
     @Test
-    public void testWithDefaultDatabaseWithUUIDEnabled() {
-
+    public void testWithDefaultDatabaseWithUUIDEnabled() throws InterruptedException {
         try (Session session = driver.session(SessionConfig.forDatabase("neo4j"))) {
             session.writeTransaction(tx -> tx.run(
                     "CREATE (d:Foo {name:'Test'})-[:WORK]->(l:Bar {name:'Baz'})")
@@ -87,11 +92,28 @@ public class UUIDMultiDbTest {
                     "CALL apoc.uuid.install('Foo') YIELD label RETURN label")
             );
 
-            testResult(session, "MATCH (n:Foo) RETURN n.uuid as uuid", (result) -> {
+            String call = "MATCH (n:Foo) RETURN n.uuid as uuid";
+            AtomicBoolean nodeHasUUID = new AtomicBoolean(false);
+            Consumer<Iterator<Map<String, Object>>> resultConsumer = (result) -> {
                 Map<String, Object> r = result.next();
-                assertNotNull(r.get("uuid")  );
-            });
+                nodeHasUUID.set(r.get("uuid") != null);
+            };
 
+            long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(5);
+            while (!nodeHasUUID.get() || System.currentTimeMillis() < timeout) {
+                session.writeTransaction(tx -> {
+                    Map<String, Object> p = Collections.<String, Object>emptyMap();
+                    resultConsumer.accept(tx.run(call, p).list().stream().map(Record::asMap).collect(Collectors.toList()).iterator());
+                    tx.commit();
+                    return null;
+                });
+
+                if (!nodeHasUUID.get()) {
+                    Thread.sleep(100);
+                }
+            }
+            assertTrue(nodeHasUUID.get());
         }
     }
+
 }
