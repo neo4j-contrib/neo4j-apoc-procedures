@@ -38,5 +38,3 @@ apoc.load.directory.add(name :: STRING?, cypher :: STRING?, pattern = * :: STRIN
 |urlDir|STRING?
 |===
 
-xref::import/load-folder.adoc[More documentation of apoc.load.directory.add,role=more information]
-

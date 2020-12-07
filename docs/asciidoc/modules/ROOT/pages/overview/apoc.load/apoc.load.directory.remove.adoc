@@ -34,5 +34,3 @@ apoc.load.directory.remove(name :: STRING?) :: (name :: STRING?, cypher :: STRIN
 |urlDir|STRING?
 |===
 
-xref::import/load-folder.adoc[More documentation of apoc.load.directory.remove,role=more information]
-

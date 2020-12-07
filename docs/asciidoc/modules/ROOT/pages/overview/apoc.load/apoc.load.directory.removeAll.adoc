@@ -27,5 +27,3 @@ apoc.load.directory.removeAll() :: (name :: STRING?, cypher :: STRING?, pattern 
 |urlDir|STRING?
 |===
 
-xref::import/load-folder.adoc[More documentation of apoc.load.directory.removeAll,role=more information]
-

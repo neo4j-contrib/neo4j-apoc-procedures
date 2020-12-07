@@ -25,6 +25,26 @@ apoc.load.csvParams('url', {httpHeader: value}, payload, \{config}) YIELD lineNo
 apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of all files in folder specified by urlDir or in import folder if urlDir string is empty or not specified
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.load/apoc.load.directory.add.adoc[apoc.load.directory.add icon:book[]]
+
+apoc.load.directory.add(name, cypher, pattern, urlDir, {}) YIELD name, pattern, cypher, urlDir - Add or replace a folder listener with a specific name, pattern, cypher and url directory
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.load/apoc.load.directory.list.adoc[apoc.load.directory.list icon:book[]]
+
+apoc.load.directory.list() YIELD name, pattern, cypher - List of all folder listeners
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.load/apoc.load.directory.remove.adoc[apoc.load.directory.remove icon:book[]]
+
+apoc.load.directory.remove(name) YIELD name, pattern, cypher, urlDir - Remove a folder listener by name
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.load/apoc.load.directory.removeAll.adoc[apoc.load.directory.removeAll icon:book[]]
+
+apoc.load.directory.removeAll() YIELD name, pattern, cypher, urlDir - Remove all folder listeners
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.driver.adoc[apoc.load.driver icon:book[]]
 
 apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database
