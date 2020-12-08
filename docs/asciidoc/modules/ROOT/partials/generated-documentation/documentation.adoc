@@ -1474,7 +1474,7 @@ apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of 
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.directory.add.adoc[apoc.load.directory.add icon:book[]]
 
-apoc.load.directory.add(name, cypher, pattern, urlDir, {}) YIELD name, pattern, cypher, urlDir - Add or replace a folder listener with a specific name, pattern, cypher and url directory
+apoc.load.directory.add(name, cypher, pattern, urlDir, {}) YIELD name, pattern, cypher, urlDir - Add or replace a folder listener with a specific name, pattern and url directory that execute the specified cypher query when an event is triggered
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.directory.list.adoc[apoc.load.directory.list icon:book[]]

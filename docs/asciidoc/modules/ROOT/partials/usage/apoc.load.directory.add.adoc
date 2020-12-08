@@ -1,0 +1,46 @@
+The first parameter is the name of our custom watch listener.
+If I call a procedure with the same name as an existing one, this will be overwritten.
+The second parameter is the cypher query that will be executed.
+The third parameter is the pattern of file to search for.
+By default is '*', that is, search all files.
+The fourth is the search path of directory.
+By default is an empty string, that is, search file in `import` directory.
+
+Let's suppose we have set the config option:
+----
+apoc.import.file.use_neo4j_config=true
+----
+
+We can do the following procedure:
+
+[source,cypher]
+----
+CALL apoc.load.directory.add('test', 'CREATE (n:Test)');
+----
+so every time, in `import` folder, a file is created/deleted/updated will be executed the query `CREATE (n:Test)`.
+
+We can set a specific file pattern, for example:
+
+[source,cypher]
+----
+CALL apoc.load.directory.add('test', 'CREATE (n:Test)', '*.csv');
+----
+in this case, every time in `import` folder, a file `.csv` is created/deleted/updated will be executed the query `CREATE (n:Test)`.
+
+Furthermore, we can also set a path, like:
+----
+CALL apoc.load.directory.add('test', 'CREATE (n:Test)', '*.csv', 'subfolderImport');
+----
+to listen in a subfolder called `subfolderImport` in `import` folder.
+
+Moreover, we can listen only for specified event kinds, for example for file creation:
+----
+CALL apoc.load.directory.add('test', 'CREATE (n:Test)', '*.csv', '', {eventKinds: ['ENTRY_CREATE']});
+----
+to listen only for file creation.
+
+
+Instead, if we set `apoc.import.file.use_neo4j_config=false`, we can search with an absolute path:
+----
+CALL apoc.load.directory.add('test', 'CREATE (n:Test)', '*.csv', 'file:///Users/username/Downloads');
+----

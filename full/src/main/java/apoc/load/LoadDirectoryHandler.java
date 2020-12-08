@@ -79,12 +79,10 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
             pools.getJobList().get(new JobInfo(name)).cancel(true);
         }
 
-        System.out.println(pools.getJobList());
         pools.getJobList().put(
                 new JobInfo(name),
                 pools.getDefaultExecutorService().submit(executeListener(loadDirectoryItem))
         );
-        System.out.println(pools.getJobList());
 
         directoryListenerList.put(loadDirectoryItem.getName(), loadDirectoryItem);
     }
@@ -123,7 +121,6 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
                             try {
                                 WildcardFileFilter fileFilter = new WildcardFileFilter(item.getPattern());
                                 boolean matchFilePattern = fileFilter.accept(dir.toFile(), eventPath.getFileName().toString());
-                                System.out.println("item = " + item);
                                 if (matchFilePattern) {
                                     try (Transaction tx = db.beginTx()) {
                                         tx.execute(item.getCypher());
