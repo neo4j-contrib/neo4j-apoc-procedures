@@ -2,13 +2,11 @@ package apoc.meta;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.neo4j.values.storable.*;
@@ -28,12 +26,37 @@ import static apoc.util.TestUtil.testCall;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.neo4j.driver.Values.isoDuration;
 import static org.neo4j.graphdb.traversal.Evaluators.toDepth;
 
 public class MetaTest {
+
+    private static final String CREATE_DATASET_TEST = "CREATE (Keanu:Person {name:'Keanu Reeves', born:1964})\n" +
+            "CREATE (TomH:Person {name:'Tom Hanks', born:1956})\n" +
+            "CREATE (LillyW:Person {name:'Lilly Wachowski', born:1967})\n" +
+            "CREATE (WB:Filmmaking {name:'Warner Bros'})\n" +
+            "CREATE (TheMatrix:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})\n" +
+            "CREATE (TheMatrixReloaded:Movie {title:'The Matrix Reloaded', released:2003, tagline:'Free your mind'})\n" +
+            "CREATE (TheMatrixRevolutions:Movie {title:'The Matrix Revolutions', released:2003, tagline:'Everything that has a beginning has an end'})\n" +
+            "CREATE (SomethingsGottaGive:Movie {title:\"Something's Gotta Give\", released:2003})\n" +
+            "CREATE (TheDevilsAdvocate:Movie {title:\"The Devil's Advocate\", released:1997, tagline:'Evil has its winning ways'})\n" +
+            "CREATE (YouveGotMail:Movie {title:\"You've Got Mail\", released:1998, tagline:'At odds in life... in love on-line.'})\n" +
+            "CREATE (SleeplessInSeattle:Movie {title:'Sleepless in Seattle', released:1993, tagline:'What if someone you never met, someone you never saw, someone you never knew was the only someone for you?'})\n" +
+            "CREATE (ThatThingYouDo:Movie {title:'That Thing You Do', released:1996, tagline:'In every life there comes a time when that thing you dream becomes that thing you do'})\n" +
+            "CREATE (CloudAtlas:Movie {title:'Cloud Atlas', released:2012, tagline:'Everything is connected'})\n" +
+            "CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrix)\n" +
+            "CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrixReloaded)\n" +
+            "CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrixRevolutions)\n" +
+            "CREATE (Keanu)-[:ACTED_IN {roles:['Julian Mercer']}]->(SomethingsGottaGive)\n" +
+            "CREATE (Keanu)-[:ACTED_IN {roles:['Kevin Lomax']}]->(TheDevilsAdvocate)\n" +
+            "CREATE (TomH)-[:ACTED_IN {roles:['Joe Fox']}]->(YouveGotMail)\n" +
+            "CREATE (TomH)-[:ACTED_IN {roles:['Sam Baldwin']}]->(SleeplessInSeattle)\n" +
+            "CREATE (TomH)-[:ACTED_IN {roles:['Mr. White']}]->(ThatThingYouDo)\n" +
+            "CREATE (TomH)-[:ACTED_IN {roles:['Zachry', 'Dr. Henry Goose', 'Isaac Sachs', 'Dermot Hoggins']}]->(CloudAtlas)\n" +
+            "CREATE (LillyW)-[:DIRECTED]->(TheMatrix)\n" +
+            "CREATE (TomH)-[:WROTE]->(TheMatrix)\n" +
+            "CREATE (WB)-[:PRODUCED]->(TheMatrix)";
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
@@ -44,11 +67,10 @@ public class MetaTest {
         TestUtil.registerProcedure(db, Meta.class);
     }
 
-    /*
-        @Test public void testMetaStats() throws Exception {
-            testResult(db,"CALL apoc.meta.stats", (r) -> assertEquals(true, r.hasNext()));
-        }
-    */
+    @After
+    public void clearDb(){
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+    }
 
     public static boolean hasRecordMatching(List<Map<String,Object>> records, Map<String,Object> record) {
         return hasRecordMatching(records, row -> {
@@ -594,7 +616,36 @@ public class MetaTest {
                 });
     }
 
+    
+    @Test
+    public void testMetaDataWithExcludeRels() throws Exception {
+        db.executeTransactionally(CREATE_DATASET_TEST);
+        TestUtil.testResult(db, "CALL apoc.meta.data({excludeRels: ['PRODUCED']})",
+                (r) -> {
+                    List<Map<String, Object>> list = Iterators.asList(r);
 
+                    assertEquals(12, list.size());
+                    assertTrue(list.stream().anyMatch(i->i.get("label").equals("Person")) );
+                    assertTrue(list.stream().anyMatch(i->i.get("property").equals("Person")));
+                    assertFalse(list.stream().anyMatch(i->i.get("label").equals("PRODUCED")));
+                    assertFalse(list.stream().anyMatch(i->i.get("property").equals("PRODUCED")));
+                });
+    }
+
+    @Test
+    public void testMetaDataWithIncludeRels() throws Exception {
+        db.executeTransactionally(CREATE_DATASET_TEST);
+        TestUtil.testResult(db, "CALL apoc.meta.data({includeRels: ['PRODUCED']})",
+                (r) -> {
+                    List<Map<String, Object>> list = Iterators.asList(r);
+
+                    assertEquals(6, list.size());
+                    assertFalse(list.stream().anyMatch(i->i.get("label").equals("Person")) );
+                    assertFalse(list.stream().anyMatch(i->i.get("property").equals("Person")));
+                    assertTrue(list.stream().anyMatch(i->i.get("label").equals("PRODUCED")));
+                    assertTrue(list.stream().anyMatch(i->i.get("property").equals("PRODUCED")));
+                });
+    }
 
     @Test
     public void testMetaDataWithSampleNormalized() throws Exception {

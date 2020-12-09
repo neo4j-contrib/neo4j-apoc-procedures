@@ -39,3 +39,5 @@ CALL apoc.meta.stats();
 | labelCount | relTypeCount | propertyKeyCount | nodeCount | relCount | labels                | relTypes                                                                                 | relTypesCount | stats
 | 9          | 5            | 17               | 11        | 9        | {Movie: 9, Person: 2} | {`(:Person)-[:ACTED_IN]->()`: 9, `()-[:ACTED_IN]->(:Movie)`: 9, `()-[:ACTED_IN]->()`: 9} | {ACTED_IN: 9} | {relTypeCount: 5, propertyKeyCount: 17, labelCount: 9, nodeCount: 11, relCount: 9, labels: {Movie: 9, Person: 2}, relTypes: {`(:Person)-[:ACTED_IN]->()`: 9, `()-[:ACTED_IN]->(:Movie)`: 9, `()-[:ACTED_IN]->()`: 9}}
 |===
+
+// todo - descrivere il risultato di call apoc.meta.stats

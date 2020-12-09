@@ -34,7 +34,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_LABEL;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 
-public class    Meta {
+public class Meta {
 
     @Context
     public Transaction tx;
@@ -335,6 +335,7 @@ public class    Meta {
         void rel(int typeId, String typeName, int labelId, String labelName, long out, long in);
     }
 
+    // todo - e sta cosa che fa???
     @Procedure
     @Description("apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats | returns the information stored in the transactional database statistics")
     public Stream<MetaStats> stats() {
@@ -434,6 +435,7 @@ public class    Meta {
         MetaStats metaStats = collectStats();
         MetaConfig metaConfig = new MetaConfig(config);
         Map<String, Map<String, MetaResult>> metaData = collectMetaData(metaConfig);
+        // todo - vedere se funziona anche exclude
 
         Map<String, Object> relationships = collectRelationshipsMetaData(metaStats, metaData);
         Map<String, Object> nodes = collectNodesMetaData(metaStats, metaData, relationships);
@@ -451,7 +453,7 @@ public class    Meta {
      * metadata that is useful for generating "Tables 4 Labels" schema designs for RDBMSs, but in a more performant way.
      */
     @Procedure
-    @Description("apoc.meta.nodeTypeProperties()")
+    @Description("apoc.meta.nodeTypeProperties({config})")
     public Stream<Tables4LabelsProfile.NodeTypePropertiesEntry> nodeTypeProperties(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         MetaConfig metaConfig = new MetaConfig(config);
         try {
@@ -468,7 +470,7 @@ public class    Meta {
      * metadata that is useful for generating "Tables 4 Labels" schema designs for RDBMSs, but in a more performant way.
      */
     @Procedure
-    @Description("apoc.meta.relTypeProperties()")
+    @Description("apoc.meta.relTypeProperties({config})")
     public Stream<Tables4LabelsProfile.RelTypePropertiesEntry> relTypeProperties(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         MetaConfig metaConfig = new MetaConfig(config);
         try {
@@ -479,6 +481,7 @@ public class    Meta {
         }
     }
 
+    // todo - ma allora...
     private Tables4LabelsProfile collectTables4LabelsProfile (MetaConfig config) {
         Tables4LabelsProfile profile = new Tables4LabelsProfile();
 
@@ -506,25 +509,17 @@ public class    Meta {
 
         Map<String, Long> countStore = getLabelCountStore();
 
-        Set<String> includeLabels = config.getIncludesLabels();
-        Set<String> excludes = config.getExcludes();
-
-        Set<String> includeRels = config.getIncludesRels();
-        Set<String> excludeRels = config.getExcludeRels();
-
         for (Label label : tx.getAllLabelsInUse()) {
-            String labelName = label.name();
 
-            if (!excludes.contains(labelName) && (includeLabels.isEmpty() || includeLabels.contains(labelName))) {
-                // Skip if explicitly excluded or at least 1 include specified and not included
+            if(config.matches(label)) {
+
+                String labelName = label.name();
 
                 for (ConstraintDefinition cd : schema.getConstraints(label)) { profile.noteConstraint(label, cd); }
                 for (IndexDefinition index : schema.getIndexes(label)) { profile.noteIndex(label, index); }
 
                 long labelCount = countStore.get(labelName);
                 long sample = getSampleForLabelCount(labelCount, config.getSample());
-
-                //System.out.println("Sampling " + sample + " for " + labelName);
 
                 try (ResourceIterator<Node> nodes = tx.findNodes(label)) {
                     int count = 1;
@@ -533,12 +528,8 @@ public class    Meta {
                         if(count++ % sample == 0) {
                             boolean skipNode = false;
                             for (RelationshipType rel : node.getRelationshipTypes()) {
-                                String relName = rel.name();
-                                if (excludeRels.contains(relName)) {
-                                    // Skip if explicitly excluded
-                                    skipNode = true;
-                                } else if (!includeRels.isEmpty() && !includeRels.contains(relName)) {
-                                    // Skip if included set is specified and this is not in it.
+                                // Skip if explicitly excluded or if included set is specified and this is not in it.
+                                if (!config.matches(rel)) {
                                     skipNode = true;
                                 }
                             }
@@ -562,16 +553,21 @@ public class    Meta {
 
         Map<String, Iterable<ConstraintDefinition>> relConstraints = new HashMap<>(20);
         for (RelationshipType type : tx.getAllRelationshipTypesInUse()) {
-            metaData.put(type.name(), new LinkedHashMap<>(10));
-            relConstraints.put(type.name(),schema.getConstraints(type));
+            if (config.matches(type)) {
+                metaData.put(type.name(), new LinkedHashMap<>(10));
+                relConstraints.put(type.name(),schema.getConstraints(type));
+            }
         }
         Map<String, Long> countStore = getLabelCountStore();
         for (Label label : tx.getAllLabelsInUse()) {
             Map<String,MetaResult> nodeMeta = new LinkedHashMap<>(50);
             String labelName = label.name();
-            metaData.put(labelName, nodeMeta);
+            if (config.matches(label)) {
+                metaData.put(labelName, nodeMeta);
+            }
             Iterable<ConstraintDefinition> constraints = schema.getConstraints(label);
             Set<String> indexed = new LinkedHashSet<>();
+
             for (IndexDefinition index : schema.getIndexes(label)) {
                 for (String prop : index.getPropertyKeys()) {
                     indexed.add(prop);
@@ -584,8 +580,10 @@ public class    Meta {
                 while (nodes.hasNext()) {
                     Node node = nodes.next();
                     if(count++ % sample == 0) {
-                        addRelationships(metaData, nodeMeta, labelName, node, relConstraints);
-                        addProperties(nodeMeta, labelName, constraints, indexed, node, node);
+                        boolean addNode = addRelationships(metaData, nodeMeta, labelName, node, relConstraints, config);
+                        if (addNode) {
+                            addProperties(nodeMeta, labelName, constraints, indexed, node, node);
+                        }
                     }
                 }
             }
@@ -730,23 +728,39 @@ public class    Meta {
         }
     }
 
-    private void addRelationships(Map<String, Map<String, MetaResult>> metaData, Map<String, MetaResult> nodeMeta, String labelName, Node node, Map<String, Iterable<ConstraintDefinition>> relConstraints) {
-        for (RelationshipType type : node.getRelationshipTypes()) {
+    private boolean addRelationships(Map<String, Map<String, MetaResult>> metaData, Map<String, MetaResult> nodeMeta, String labelName, Node node, Map<String, Iterable<ConstraintDefinition>> relConstraints, MetaConfig config) {
 
-            int out = node.getDegree(type, Direction.OUTGOING);
-            if (out == 0) continue;
+        boolean addNode = false;
 
-            String typeName = type.name();
+        Iterable<RelationshipType> rels = node.getRelationshipTypes();
 
-            Iterable<ConstraintDefinition> constraints = relConstraints.get(typeName);
-            if (!nodeMeta.containsKey(typeName)) nodeMeta.put(typeName, new MetaResult(labelName,typeName));
-//            int in = node.getDegree(type, Direction.INCOMING);
+        if (rels.iterator().hasNext()) {
 
-            Map<String, MetaResult> typeMeta = metaData.get(typeName);
-            if (!typeMeta.containsKey(labelName)) typeMeta.put(labelName,new MetaResult(typeName,labelName));
-            MetaResult relMeta = nodeMeta.get(typeName);
-            addOtherNodeInfo(node, labelName, out, type, relMeta , typeMeta, constraints);
+            for (RelationshipType type : node.getRelationshipTypes()) {
+
+                String typeName = type.name();
+
+                if (config.matches(type)) {
+
+                    addNode = true;
+
+                    int out = node.getDegree(type, Direction.OUTGOING);
+                    if (out == 0) continue;
+
+                    Iterable<ConstraintDefinition> constraints = relConstraints.get(typeName);
+                    if (!nodeMeta.containsKey(typeName)) nodeMeta.put(typeName, new MetaResult(labelName, typeName));
+
+                    Map<String, MetaResult> typeMeta = metaData.get(typeName);
+                    if (!typeMeta.containsKey(labelName)) typeMeta.put(labelName, new MetaResult(typeName, labelName));
+                    MetaResult relMeta = nodeMeta.get(typeName);
+                    addOtherNodeInfo(node, labelName, out, type, relMeta, typeMeta, constraints);
+                }
+            }
+        } else {
+            addNode = true;
         }
+
+        return addNode;
     }
 
     private void addOtherNodeInfo(Node node, String labelName, int out, RelationshipType type, MetaResult relMeta, Map<String, MetaResult> typeMeta, Iterable<ConstraintDefinition> relConstraints) {
@@ -988,17 +1002,22 @@ public class    Meta {
         return metaGraph(null, null, false, metaConfig);
     }
 
+    // todo - cambiare description? eh si...
     @Procedure
-    @Description("apoc.meta.subGraph({labels:[labels],rels:[rel-types], excludes:[labels,rel-types]}) - examines a sample sub graph to create the meta-graph")
-    public Stream<GraphResult> subGraph(@Name("config") Map<String,Object> config ) {
+    @Description("apoc.meta.subGraph({config}) - examines a sample sub graph to create the meta-graph")
+    public Stream<GraphResult> subGraph(@Name(value="config", defaultValue = "{}") Map<String,Object> config ) {
 
         MetaConfig metaConfig = new MetaConfig(config);
 
+        // todo - sta cosa che fa
         return filterResultStream(metaConfig.getExcludes(), metaGraph(metaConfig.getIncludesLabels(), metaConfig.getIncludesRels(),true, metaConfig));
     }
 
     private Stream<GraphResult> filterResultStream(Set<String> excludes, Stream<GraphResult> graphResultStream) {
+        // todo
         if (excludes == null || excludes.isEmpty()) return graphResultStream;
+        //
+
         return graphResultStream.map(gr -> {
             Iterator<Node> it = gr.nodes.iterator();
             while (it.hasNext()) {
@@ -1006,6 +1025,7 @@ public class    Meta {
                 if (containsLabelName(excludes,node)) it.remove();
             }
 
+            // todo - mettere exclude rels
             Iterator<Relationship> it2 = gr.relationships.iterator();
             while (it2.hasNext()) {
                 Relationship relationship = it2.next();

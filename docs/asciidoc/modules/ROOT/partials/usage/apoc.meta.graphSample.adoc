@@ -34,3 +34,26 @@ CALL apoc.meta.graphSample()
 ----
 
 image::apoc.meta.graph.png[title="Meta Graph"]
+
+---
+
+In some cases this procedure will show extra relationships, because is based on database statistics.
+For example:
+[source,cypher]
+----
+CREATE (a:S1 {SomeName1:'aaa'})
+CREATE (b:S2 {SomeName2:'bbb'})
+CREATE (c:S3 {SomeName3:'ccc'})
+CREATE (a)-[:HAS]->(b)
+CREATE (b)-[:HAS]->(c)
+----
+
+[source,cypher]
+----
+CALL apoc.meta.graphSample()
+----
+
+generate the following graph:
+
+image::apoc.meta.graphSampleWrongRel.png[title="Meta Graph"]
+If you want to create a meta-graph without extra relationships, please use xref::../pages/overview/apoc.meta/apoc.meta.graph.adoc[apoc.meta.graph]

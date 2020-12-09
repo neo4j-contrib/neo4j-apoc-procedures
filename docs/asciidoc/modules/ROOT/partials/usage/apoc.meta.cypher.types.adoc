@@ -3,7 +3,8 @@
 RETURN apoc.meta.cypher.types({
   item1: 2,
   item2: datetime(),
-  item3: "Michael"
+  item3: "Michael",
+  item4: ["1", 3, 5]
 }) AS output;
 ----
 
@@ -11,5 +12,5 @@ RETURN apoc.meta.cypher.types({
 [opts="header"]
 |===
 | output
-| {item2: "DATE_TIME", item1: "INTEGER", item3: "STRING"}
+| {item2: "DATE_TIME", item1: "INTEGER", item3: "STRING", item4: "LIST OF ANY"}
 |===

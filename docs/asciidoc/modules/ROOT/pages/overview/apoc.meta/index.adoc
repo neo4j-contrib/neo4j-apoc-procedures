@@ -25,12 +25,12 @@ apoc.meta.graphSample() - examines the database statistics to build the meta gra
 |label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.nodeTypeProperties.adoc[apoc.meta.nodeTypeProperties icon:book[]]
 
-apoc.meta.nodeTypeProperties()
+apoc.meta.nodeTypeProperties(\{config})
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.relTypeProperties.adoc[apoc.meta.relTypeProperties icon:book[]]
 
-apoc.meta.relTypeProperties()
+apoc.meta.relTypeProperties(\{config})
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.schema.adoc[apoc.meta.schema icon:book[]]
@@ -45,7 +45,7 @@ apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, re
 |label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.subGraph.adoc[apoc.meta.subGraph icon:book[]]
 
-apoc.meta.subGraph({labels:[labels],rels:[rel-types], excludes:[labels,rel-types]}) - examines a sample sub graph to create the meta-graph
+apoc.meta.subGraph(\{config}) - examines a sample sub graph to create the meta-graph
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.cypher.isType.adoc[apoc.meta.cypher.isType icon:book[]]

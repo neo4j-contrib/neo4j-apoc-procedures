@@ -72,10 +72,6 @@ public class MetaConfig {
         return excludes;
     }
 
-    public void setExcludes(Set<String> excludes) {
-        this.excludes = excludes;
-    }
-
     public Set<String> getExcludeRels() {
         return excludeRels;
     }

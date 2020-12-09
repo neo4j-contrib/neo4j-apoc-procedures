@@ -21,3 +21,15 @@ RETURN apoc.meta.cypher.isType(datetime(), "DATE_TIME") AS output;
 | output
 | TRUE
 |===
+
+[source,cypher]
+----
+RETURN apoc.meta.cypher.isType([1,3,5], "LIST OF INTEGER") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| TRUE
+|===

@@ -6,7 +6,8 @@ The procedure support the following config parameters:
 | name | type | default | description
 | includeLabels | List<String> | [] | labels to include. Default is to include all labels
 | includeRels | List<String> | [] | relationship types to include. Default is to include all relationship types
-| excludesLabels | List<String> | [] | labels to include. Default is to include all relationship types
+| excludeLabels | List<String> | [] | labels to include. Default is to exclude none of labels
+| excludeRels | List<String> | [] | labels to include. Default is to exclude none of relationship types
 | sample | Long | 1000 | number of  nodes to sample per label
 | maxRels | Long | 100 | number of relationships to sample per relationship type
 |===

@@ -5,6 +5,7 @@ The examples in this section are based on the following sample graph:
 CREATE (Keanu:Person {name:'Keanu Reeves', born:1964})
 CREATE (TomH:Person {name:'Tom Hanks', born:1956})
 CREATE (LillyW:Person {name:'Lilly Wachowski', born:1967})
+CREATE (WB:Filmmaking {name:'Warner Bros'})
 
 CREATE (TheMatrix:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})
 CREATE (TheMatrixReloaded:Movie {title:'The Matrix Reloaded', released:2003, tagline:'Free your mind'})
@@ -28,7 +29,10 @@ CREATE (TomH)-[:ACTED_IN {roles:['Sam Baldwin']}]->(SleeplessInSeattle)
 CREATE (TomH)-[:ACTED_IN {roles:['Mr. White']}]->(ThatThingYouDo)
 CREATE (TomH)-[:ACTED_IN {roles:['Zachry', 'Dr. Henry Goose', 'Isaac Sachs', 'Dermot Hoggins']}]->(CloudAtlas)
 
-CREATE (LillyW)-[:DIRECTED]->(TheMatrix);
+CREATE (LillyW)-[:DIRECTED]->(TheMatrix)
+
+CREATE (TomH)-[:WROTE]->(TheMatrix)
+CREATE (WB)-[:PRODUCED]->(TheMatrix)
 ----
 
 We can return the metadata of the database from a sample of the database contents, by running the following query:
@@ -44,14 +48,31 @@ CALL apoc.meta.relTypeProperties();
 | relType       | sourceNodeLabels | targetNodeLabels | propertyName | propertyTypes   | mandatory | propertyObservations | totalObservations
 | ":`ACTED_IN`" | ["Person"]       | ["Movie"]        | "roles"      | ["StringArray"] | FALSE     | 9                    | 9
 | ":`DIRECTED`" | ["Person"]       | ["Movie"]        | NULL         | NULL            | FALSE     | 0                    | 1
+| ":`WROTE`"    | ["Person"]       | ["Movie"]        | NULL         | NULL            | FALSE     | 0                    | 1
+| ":`PRODUCED`" | ["Filmmaking"]   | ["Movie"]        | NULL         | NULL            | FALSE     | 0                    | 1
 |===
 
-We can return metadata for a subset of relationship types by specifying the `rels` config parameter.
+We can return metadata for a subset of relationship types by specifying the `includeRels` config parameter.
 The following returns the metadata for the `ACTED_IN` label:
 
 [source,cypher]
 ----
-CALL apoc.meta.relTypeProperties({rels: ["ACTED_IN"]});
+CALL apoc.meta.relTypeProperties({includeRels: ["ACTED_IN"]});
+----
+
+.Results
+[opts="header"]
+|===
+| relType       | sourceNodeLabels | targetNodeLabels | propertyName | propertyTypes   | mandatory | propertyObservations | totalObservations
+| ":`ACTED_IN`" | ["Person"]       | ["Movie"]        | "roles"      | ["StringArray"] | FALSE     | 5                    | 5
+|===
+
+We can return metadata for a subset of relationship types by specifying the `excludeRels` config parameter.
+The following returns the metadata for the `ACTED_IN` label:
+
+[source,cypher]
+----
+CALL apoc.meta.relTypeProperties({excludeRels: ["ACTED_IN"]});
 ----
 
 .Results
@@ -59,8 +80,9 @@ CALL apoc.meta.relTypeProperties({rels: ["ACTED_IN"]});
 |===
 | relType       | sourceNodeLabels | targetNodeLabels | propertyName | propertyTypes   | mandatory | propertyObservations | totalObservations
 | ":`ACTED_IN`" | ["Person"]       | ["Movie"]        | "roles"      | ["StringArray"] | FALSE     | 9                    | 9
+| ":`WROTE`"    | ["Person"]       | ["Movie"]        | NULL         | NULL            | FALSE     | 0                    | 1
+| ":`PRODUCED`" | ["Filmmaking"]   | ["Movie"]        | NULL         | NULL            | FALSE     | 0                    | 1
 |===
-
 
 We can control the number of relationships sampled by specifying the `maxRels` parameter.
 The following returns metadata based on sampling up to 3 relationships per relationship type:
@@ -76,6 +98,8 @@ CALL apoc.meta.relTypeProperties({maxRels: 3});
 | relType       | sourceNodeLabels | targetNodeLabels | propertyName | propertyTypes   | mandatory | propertyObservations | totalObservations
 | ":`ACTED_IN`" | ["Person"]       | ["Movie"]        | "roles"      | ["StringArray"] | FALSE     | 3                    | 9
 | ":`DIRECTED`" | ["Person"]       | ["Movie"]        | NULL         | NULL            | FALSE     | 0                    | 1
+| ":`WROTE`"    | ["Person"]       | ["Movie"]        | NULL         | NULL            | FALSE     | 0                    | 1
+| ":`PRODUCED`" | ["Filmmaking"]   | ["Movie"]        | NULL         | NULL            | FALSE     | 0                    | 1
 |===
 
 

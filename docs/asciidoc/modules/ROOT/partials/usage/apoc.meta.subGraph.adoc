@@ -5,6 +5,7 @@ The examples in this section are based on the following sample graph:
 CREATE (Keanu:Person {name:'Keanu Reeves', born:1964})
 CREATE (TomH:Person {name:'Tom Hanks', born:1956})
 CREATE (LillyW:Person {name:'Lilly Wachowski', born:1967})
+CREATE (WB:Filmmaking {name:'Warner Bros'})
 
 CREATE (TheMatrix:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})
 CREATE (TheMatrixReloaded:Movie {title:'The Matrix Reloaded', released:2003, tagline:'Free your mind'})
@@ -28,7 +29,11 @@ CREATE (TomH)-[:ACTED_IN {roles:['Sam Baldwin']}]->(SleeplessInSeattle)
 CREATE (TomH)-[:ACTED_IN {roles:['Mr. White']}]->(ThatThingYouDo)
 CREATE (TomH)-[:ACTED_IN {roles:['Zachry', 'Dr. Henry Goose', 'Isaac Sachs', 'Dermot Hoggins']}]->(CloudAtlas)
 
-CREATE (LillyW)-[:DIRECTED]->(TheMatrix);
+CREATE (LillyW)-[:DIRECTED]->(TheMatrix)
+
+CREATE (TomH)-[:WROTE]->(TheMatrix)
+CREATE (WB)-[:PRODUCED]->(TheMatrix)
+
 ----
 
 [source,cypher]
@@ -40,3 +45,13 @@ CALL apoc.meta.subGraph({
 ----
 
 image::apoc.meta.subGraph-filter.png[title="Meta Sub Graph"]
+
+
+[source,cypher]
+----
+CALL apoc.meta.subGraph({
+  excludes: ["Filmmaking", "DIRECTED"]
+});
+----
+
+image::apoc.meta.subGraph-excludes.png[title="Meta Sub Graph"]
