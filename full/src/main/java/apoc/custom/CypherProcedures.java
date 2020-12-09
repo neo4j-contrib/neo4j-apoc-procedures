@@ -3,10 +3,7 @@ package apoc.custom;
 import apoc.Extended;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
-import org.neo4j.internal.kernel.api.procs.FieldSignature;
-import org.neo4j.internal.kernel.api.procs.Neo4jTypes;
-import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
-import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
+import org.neo4j.internal.kernel.api.procs.*;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -104,7 +101,7 @@ public class CypherProcedures {
                 ProcedureSignature signature = procedureDescriptor.getSignature();
                 return new CustomProcedureInfo(
                         PROCEDURE,
-                        signature.name().name(),
+                        getFullStatement(signature.name()),
                         signature.description().orElse(null),
                         signature.mode().toString().toLowerCase(),
                         procedureDescriptor.getStatement(),
@@ -116,7 +113,7 @@ public class CypherProcedures {
                 UserFunctionSignature signature = userFunctionDescriptor.getSignature();
                 return new CustomProcedureInfo(
                         FUNCTION,
-                        signature.name().name(),
+                        getFullStatement(signature.name()),
                         signature.description().orElse(null),
                         null,
                         userFunctionDescriptor.getStatement(),
@@ -158,6 +155,15 @@ public class CypherProcedures {
             s = s.substring(0, s.length()-1);
         }
         return s;
+    }
+
+    private String getFullStatement(QualifiedName qualifiedName) {
+        String[] nameSpace = qualifiedName.namespace();
+        String name = nameSpace.length > 1
+                ? String.join(".", Arrays.copyOfRange(nameSpace, 1, nameSpace.length)) + "."
+                : "";
+
+        return name + qualifiedName.name();
     }
 
     public static class CustomProcedureInfo {

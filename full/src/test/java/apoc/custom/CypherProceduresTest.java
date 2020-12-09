@@ -330,4 +330,14 @@ public class CypherProceduresTest  {
         // when
         TestUtil.singleResultFirstColumn(db, "return custom.answer()");
     }
+
+    @Test
+    public void testIssue1715() {
+        db.executeTransactionally("CALL apoc.custom.asFunction('a.b.c', 'RETURN 42')");
+        TestUtil.testCall(db, "RETURN custom.a.b.c() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("42")));
+        TestUtil.testCall(db, "CALL apoc.custom.list()", row -> {
+            assertEquals("a.b.c", row.get("name"));
+            assertEquals("function", row.get("type"));
+        });
+    }
 }
