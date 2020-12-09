@@ -60,7 +60,7 @@ We can set a file pattern, for example:
 
 [source,cypher]
 ----
-CALL apoc.load.directory("*csv");
+CALL apoc.load.directory("*.csv");
 ----
 
 .Results
@@ -77,7 +77,7 @@ CALL apoc.load.directory("*csv");
 Furthermore we can also set a path, like:
 
 ----
-CALL apoc.load.directory("*csv", "subfolder1");
+CALL apoc.load.directory("*.csv", "subfolder1");
 ----
 .Results
 [opts="header"]
