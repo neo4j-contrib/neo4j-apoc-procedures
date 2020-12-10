@@ -180,7 +180,8 @@ public class Create {
         return new VirtualRelationship(from, to, withName(relType)).withProperties(props);
     }
 
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.create.virtualPath")
+    @Deprecated
     @Description("apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) returns a virtual pattern")
     public Stream<VirtualPathResult> vPattern(@Name("from") Map<String, Object> n,
                                               @Name("relType") String relType, @Name("props") Map<String, Object> props,
@@ -194,9 +195,22 @@ public class Create {
         return Stream.of(new VirtualPathResult(from, rel, to));
     }
 
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.create.virtualPath")
+    @Deprecated
     @Description("apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual pattern")
     public Stream<VirtualPathResult> vPatternFull(@Name("labelsN") List<String> labelsN, @Name("n") Map<String, Object> n,
+                                                  @Name("relType") String relType, @Name("props") Map<String, Object> props,
+                                                  @Name("labelsM") List<String> labelsM, @Name("m") Map<String, Object> m) {
+        RelationshipType type = withName(relType);
+        VirtualNode from = new VirtualNode(Util.labels(labelsN), n);
+        VirtualNode to = new VirtualNode(Util.labels(labelsM), m);
+        Relationship rel = new VirtualRelationship(from, to, type).withProperties(props);
+        return Stream.of(new VirtualPathResult(from, rel, to));
+    }
+
+    @Procedure
+    @Description("apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties")
+    public Stream<VirtualPathResult> virtualPath(@Name("labelsN") List<String> labelsN, @Name("n") Map<String, Object> n,
                                                   @Name("relType") String relType, @Name("props") Map<String, Object> props,
                                                   @Name("labelsM") List<String> labelsM, @Name("m") Map<String, Object> m) {
         RelationshipType type = withName(relType);
