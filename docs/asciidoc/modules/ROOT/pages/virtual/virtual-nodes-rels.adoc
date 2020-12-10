@@ -19,8 +19,6 @@ Please note that they have negative id's.
 | apoc.create.virtual.fromNode(node, [propertyNames]) | function returns a virtual node  built from an existing node with only the requested properties
 | CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) YIELD rel | returns a virtual relationship
 | apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) | function returns a virtual relationship
-// | CALL apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) | returns a virtual pattern
-// | CALL apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) | returns a virtual pattern
 | CALL apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) | returns a virtual pattern
 |===
 
@@ -85,24 +83,6 @@ In this case, the Virtual node keeps the id of the original node.
 MATCH (node:Person {name:'neo', age:'42'})
 return apoc.create.virtual.fromNode(node, ['name']) as person
 ----
-
-// .Virtual pattern `vPattern`
-
-// [source,cypher]
-// ----
-// CALL apoc.create.vPattern({_labels:['Person'],name:'Mary'},'KNOWS',{since:2012},{_labels:['Person'],name:'Michael'})
-// ----
-
-// image::apoc.create.vPattern.png[scaledwidth="100%"]
-
-// We can add more labels, just adding them on `_labels`
-
-// [source,cypher]
-// ----
-// CALL apoc.create.vPattern({_labels:['Person', 'Woman'],name:'Mary'},'KNOWS',{since:2012},{_labels:['Person', 'Man'],name:'Michael'})
-// ----
-
-// image::apoc.create.vPatternLabels.png[scaledwidth="100%"]
 
 .Virtual path `virtualPath`
 
