@@ -241,6 +241,121 @@ public class CypherProceduresTest  {
     }
 
     @Test
+    public void shouldOverrideAndRemoveTheCustomFunctionWithDotInName() throws Exception {
+        thrown.expect(QueryExecutionException.class);
+        thrown.expectMessage("Unknown function 'custom.a.b.c'");
+        thrown.expect(new StatusCodeMatcher("Neo.ClientError.Statement.SyntaxError"));
+
+        // given
+        db.executeTransactionally("CALL apoc.custom.asFunction('a.b.c','RETURN 42 as answer')");
+        TestUtil.testCall(db, "return custom.a.b.c() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        db.executeTransactionally("call db.clearQueryCaches()");
+        db.executeTransactionally("CALL apoc.custom.asFunction('a.b.c','RETURN 43 as answer')");
+        TestUtil.testCall(db, "return custom.a.b.c() as row", (row) -> assertEquals(43L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        db.executeTransactionally("call db.clearQueryCaches()");
+
+        // when
+        db.executeTransactionally("call apoc.custom.removeFunction('a.b.c')");
+        db.executeTransactionally("call db.clearQueryCaches()");
+
+        // then
+        TestUtil.count(db, "RETURN custom.a.b.c()");
+    }
+
+    @Test
+    public void shouldOverrideAndRemoveTheCustomProcedureWithDotInName() throws Exception {
+        thrown.expect(QueryExecutionException.class);
+        thrown.expectMessage("There is no procedure with the name `custom.a.b.c` registered for this database instance. " +
+                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.");
+        thrown.expect(new StatusCodeMatcher("Neo.ClientError.Statement.SyntaxError"));
+
+        // given
+        db.executeTransactionally("call apoc.custom.asProcedure('a.b.c','RETURN 42 as answer')");
+        TestUtil.testCall(db, "call custom.a.b.c()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+        db.executeTransactionally("call db.clearQueryCaches()");
+        db.executeTransactionally("call apoc.custom.asProcedure('a.b.c','RETURN 43 as answer')");
+        TestUtil.testCall(db, "call custom.a.b.c()", (row) -> assertEquals(43L, ((Map)row.get("row")).get("answer")));
+        db.executeTransactionally("call db.clearQueryCaches()");
+
+        // when
+        db.executeTransactionally("call apoc.custom.removeProcedure('a.b.c')");
+        db.executeTransactionally("call db.clearQueryCaches()");
+
+        // then
+        TestUtil.count(db, "call custom.a.b.c()");
+    }
+
+    @Test
+    public void shouldRemoveTheCustomFunctionWithDotInName() throws Exception {
+        thrown.expect(QueryExecutionException.class);
+        thrown.expectMessage("Unknown function 'custom.a.b.c'");
+        thrown.expect(new StatusCodeMatcher("Neo.ClientError.Statement.SyntaxError"));
+
+        // given
+        db.executeTransactionally("CALL apoc.custom.asFunction('a.b.c','RETURN 42 as answer')");
+        TestUtil.testCall(db, "return custom.a.b.c() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+
+        // when
+        db.executeTransactionally("call apoc.custom.removeFunction('a.b.c')");
+        db.executeTransactionally("call db.clearQueryCaches()");
+
+        // then
+        TestUtil.count(db, "RETURN custom.a.b.c()");
+    }
+
+    @Test
+    public void shouldRemoveTheCustomProcedureWithDotInName() throws Exception {
+        thrown.expect(QueryExecutionException.class);
+        thrown.expectMessage("There is no procedure with the name `custom.a.b.c` registered for this database instance. " +
+                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.");
+        thrown.expect(new StatusCodeMatcher("Neo.ClientError.Statement.SyntaxError"));
+
+        // given
+        db.executeTransactionally("call apoc.custom.asProcedure('a.b.c','RETURN 42 as answer')");
+        TestUtil.testCall(db, "call custom.a.b.c()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+
+        // when
+        db.executeTransactionally("call apoc.custom.removeProcedure('a.b.c')");
+        db.executeTransactionally("call db.clearQueryCaches()");
+
+        // then
+        TestUtil.count(db, "call custom.a.b.c()");
+    }
+
+    @Test
+    public void shouldOverrideCustomFunctionWithDotInNameOnlyIfWithSameNamespaceAndFinalName() throws Exception {
+
+        // given
+        db.executeTransactionally("call apoc.custom.asFunction('a.b.name','RETURN 42 as answer')");
+        TestUtil.testCall(db, "return custom.a.b.name() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        db.executeTransactionally("call db.clearQueryCaches()");
+
+        db.executeTransactionally("call apoc.custom.asFunction('a.b.name','RETURN 34 as answer')");
+        TestUtil.testCall(db, "return custom.a.b.name() as row", (row) -> assertEquals(34L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+
+        db.executeTransactionally("call apoc.custom.asFunction('x.z.name','RETURN 12 as answer')");
+        TestUtil.testCall(db, "return custom.x.z.name() as row", (row) -> assertEquals(12L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        TestUtil.testCall(db, "return custom.a.b.name() as row", (row) -> assertEquals(34L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+
+    }
+
+    @Test
+    public void shouldOverrideCustomProcedureWithDotInNameOnlyIfWithSameNamespaceAndFinalName() throws Exception {
+
+        // given
+        db.executeTransactionally("call apoc.custom.asProcedure('a.b.name','RETURN 42 as answer')");
+        TestUtil.testCall(db, "call custom.a.b.name()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+        db.executeTransactionally("call db.clearQueryCaches()");
+
+        db.executeTransactionally("call apoc.custom.asProcedure('a.b.name','RETURN 34 as answer')");
+        TestUtil.testCall(db, "call custom.a.b.name()", (row) -> assertEquals(34L, ((Map)row.get("row")).get("answer")));
+
+        db.executeTransactionally("call apoc.custom.asProcedure('x.z.name','RETURN 12 as answer')");
+        TestUtil.testCall(db, "call custom.x.z.name()", (row) -> assertEquals(12L, ((Map)row.get("row")).get("answer")));
+        TestUtil.testCall(db, "call custom.a.b.name()", (row) -> assertEquals(34L, ((Map)row.get("row")).get("answer")));
+    }
+
+    @Test
     public void shouldRemoveTheCustomFunction() throws Exception {
         thrown.expect(QueryExecutionException.class);
         thrown.expectMessage("Unknown function 'custom.answer'");
@@ -331,13 +446,4 @@ public class CypherProceduresTest  {
         TestUtil.singleResultFirstColumn(db, "return custom.answer()");
     }
 
-    @Test
-    public void testIssue1715() {
-        db.executeTransactionally("CALL apoc.custom.asFunction('a.b.c', 'RETURN 42')");
-        TestUtil.testCall(db, "RETURN custom.a.b.c() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("42")));
-        TestUtil.testCall(db, "CALL apoc.custom.list()", row -> {
-            assertEquals("a.b.c", row.get("name"));
-            assertEquals("function", row.get("type"));
-        });
-    }
 }
