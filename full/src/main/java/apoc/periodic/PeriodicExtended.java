@@ -2,7 +2,6 @@ package apoc.periodic;
 
 import apoc.Extended;
 import apoc.Pools;
-import apoc.create.Create;
 import apoc.util.Util;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -14,7 +13,6 @@ import org.neo4j.procedure.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -77,7 +75,7 @@ public class PeriodicExtended {
                 if (!Util.toBoolean(value)) return allResults;
             }
 
-            String periodicId = new Create().uuid();
+            String periodicId = UUID.randomUUID().toString();
             log.info("starting batched operation using iteration `%s` in separate thread with id: `%s`", cypherIterate, periodicId);
             try (Result result = tx.execute(cypherIterate)) {
                 Stream<BatchAndTotalResult> oneResult =
@@ -118,7 +116,7 @@ public class PeriodicExtended {
                 "cypherAction", cypherAction);
         validateQueries(fieldStatement);
 
-        String periodicId = new Create().uuid();
+        String periodicId = UUID.randomUUID().toString();
         log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
         try (Result result = tx.execute(cypherIterate)) {
             return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, (tx, p) -> tx.execute(cypherAction, p), 50, -1, periodicId);
