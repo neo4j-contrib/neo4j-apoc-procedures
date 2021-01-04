@@ -12,11 +12,15 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static org.junit.Assert.assertEquals;
+import static org.neo4j.configuration.SettingImpl.newBuilder;
+import static org.neo4j.configuration.SettingValueParsers.BOOL;
 
 public class ExportStreamsStatementsTest {
 
     @ClassRule
-    static public DbmsRule db = new ImpermanentDbmsRule();
+    static public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(newBuilder( "unsupported.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
+            .withSetting(newBuilder( "unsupported.dbms.debug.trace_cursors", BOOL, false ).build(), false);
 
     @BeforeClass
     public static void setUp() throws Exception {

@@ -356,6 +356,7 @@ public class PeriodicTest {
 
             long count = TestUtil.singleResultFirstColumn(db, "MATCH (counter:Counter) RETURN counter.c as c");
             assertEquals(0L, count);
+            r.close();
         });
     }
 
