@@ -5,6 +5,9 @@ import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert
 import org.junit.ClassRule
 import org.junit.Test
+import org.neo4j.configuration.SettingImpl
+import org.neo4j.configuration.SettingValueParser
+import org.neo4j.configuration.SettingValueParsers.BOOL
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.RelationshipType
 import org.neo4j.test.rule.ImpermanentDbmsRule
@@ -14,6 +17,8 @@ class NLPHelperFunctionsWithDatabaseTest {
         @ClassRule
         @JvmField
         val neo4j = ImpermanentDbmsRule()
+                .withSetting(SettingImpl.newBuilder( "unsupported.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
+                .withSetting(SettingImpl.newBuilder( "unsupported.dbms.debug.trace_cursors", BOOL, false ).build(), false)
     }
 
     @Test

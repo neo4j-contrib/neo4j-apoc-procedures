@@ -7,6 +7,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.MapUtil;
@@ -37,11 +38,10 @@ public class SystemDbTest {
             Map<String, Object> map = Iterators.single(result);
             List<Node> nodes = (List<Node>) map.get("nodes");
             List<Relationship> relationships = (List<Relationship>) map.get("relationships");
-            assertEquals(5, nodes.size());
+            assertEquals(4, nodes.size());
             assertEquals( 2, nodes.stream().filter( node -> "Database".equals(Iterables.single(node.getLabels()).name())).count());
             assertEquals( 1, nodes.stream().filter( node -> "User".equals(Iterables.single(node.getLabels()).name())).count());
             assertEquals( 1, nodes.stream().filter( node -> "Version".equals(Iterables.single(node.getLabels()).name())).count());
-            assertEquals( 1, nodes.stream().filter( node -> "DbmsRuntime".equals(Iterables.single(node.getLabels()).name())).count());
             Set<String> names = nodes.stream().map(node -> (String)node.getProperty("name")).filter(Objects::nonNull).collect(Collectors.toSet());
             org.hamcrest.MatcherAssert.assertThat( names, Matchers.containsInAnyOrder("neo4j", "system"));
 

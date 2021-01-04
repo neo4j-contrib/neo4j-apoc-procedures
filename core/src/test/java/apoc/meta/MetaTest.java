@@ -30,6 +30,8 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.neo4j.configuration.SettingImpl.newBuilder;
+import static org.neo4j.configuration.SettingValueParsers.BOOL;
 import static org.neo4j.driver.Values.isoDuration;
 import static org.neo4j.graphdb.traversal.Evaluators.toDepth;
 
@@ -37,7 +39,9 @@ public class MetaTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.procedure_unrestricted, singletonList("apoc.*"));
+            .withSetting(GraphDatabaseSettings.procedure_unrestricted, singletonList("apoc.*"))
+            .withSetting(newBuilder( "unsupported.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
+            .withSetting(newBuilder( "unsupported.dbms.debug.trace_cursors", BOOL, false ).build(), false);
 
     @Before
     public void setUp() throws Exception {
@@ -648,6 +652,7 @@ public class MetaTest {
                 (r) -> {
                     Map<String, Object>  personNameProperty = r.next();
                     assertEquals("name", personNameProperty.get("property"));
+                    r.close();
                 });
     }
 

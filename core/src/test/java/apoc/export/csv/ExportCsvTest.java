@@ -282,6 +282,7 @@ public class ExportCsvTest {
             assertEquals(12L, r.get("properties"));
             assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
             sb.append(r.get("data"));
+            res.close();
         });
         assertEquals(EXPECTED, sb.toString());
     }

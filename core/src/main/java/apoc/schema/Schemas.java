@@ -179,7 +179,7 @@ public class Schemas {
         List<String> backTickedKeys = new ArrayList<>();
         keys.forEach(key->backTickedKeys.add(String.format("`%s`", key)));
 
-        tx.execute(String.format("CREATE INDEX ON :`%s` (%s)", label, String.join(",", backTickedKeys)));
+        tx.execute(String.format("CREATE INDEX ON :`%s` (%s)", label, String.join(",", backTickedKeys))).close();
         return new AssertSchemaResult(label, keys).created();
     }
 

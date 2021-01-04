@@ -20,10 +20,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
+import static org.neo4j.configuration.SettingImpl.newBuilder;
+import static org.neo4j.configuration.SettingValueParsers.BOOL;
 
 /**
  * @author mh
@@ -402,6 +405,7 @@ public class SchemasTest {
             assertEquals(expectedKeys("bar", "baa"), r.get("keys"));
             assertEquals(false, r.get("unique"));
             assertEquals("DROPPED", r.get("action"));
+            result.close();
         });
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
