@@ -103,6 +103,8 @@ public class BoltTest {
                 assertEquals("John", node.getProperty("name"));
                 assertEquals("William", node.getProperty("surname"));
                 assertEquals(22L, node.getProperty("age"));
+
+                r.close();
             });
     }
 
