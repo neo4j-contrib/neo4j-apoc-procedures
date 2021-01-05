@@ -1,7 +1,7 @@
 package apoc.ttl;
 
 import apoc.ApocConfig;
-import apoc.TTLConfig;
+import apoc.Extended;
 import apoc.util.Util;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -27,24 +27,28 @@ public class TTLLifeCycle extends LifecycleAdapter {
     private final ApocConfig apocConfig;
     private JobHandle ttlIndexJobHandle;
     private JobHandle ttlJobHandle;
-    private TTLConfig ttlConfig;
     private Log log;
 
-    public TTLLifeCycle(JobScheduler scheduler, GraphDatabaseAPI db, ApocConfig apocConfig, TTLConfig ttlConfig, Log log) {
+    public TTLLifeCycle(JobScheduler scheduler, GraphDatabaseAPI db, ApocConfig apocConfig, Log log) {
         this.scheduler = scheduler;
         this.db = db;
         this.apocConfig = apocConfig;
-        this.ttlConfig = ttlConfig;
         this.log = log;
     }
 
     @Override
     public void start() {
-        TTLConfig.Values configValues = ttlConfig.configFor(db);
-        if(configValues.enabled) {
-            long ttlScheduleDb = configValues.schedule;
+        String apocTTLEnabledDb = String.format(ApocConfig.APOC_TTL_ENABLED_DB, this.db.databaseName());
+        String apocTTLScheduleDb = String.format(ApocConfig.APOC_TTL_SCHEDULE_DB, this.db.databaseName());
+        String apocTTLLimitDb = String.format(ApocConfig.APOC_TTL_LIMIT_DB, this.db.databaseName());
+        boolean enabled = apocConfig.getBoolean(ApocConfig.APOC_TTL_ENABLED);
+        boolean dbEnabled = apocConfig.getConfig().getBoolean(apocTTLEnabledDb, enabled);
+        if (dbEnabled) {
+            long ttlSchedule = apocConfig.getConfig().getInt(ApocConfig.APOC_TTL_SCHEDULE, DEFAULT_SCHEDULE);
+            long ttlScheduleDb = apocConfig.getConfig().getInt(apocTTLScheduleDb, (int) ttlSchedule);
             ttlIndexJobHandle = scheduler.schedule(TTL_GROUP, this::createTTLIndex, (int)(ttlScheduleDb*0.8), TimeUnit.SECONDS);
-            long limitDb = configValues.limit;
+            long limit = apocConfig.getInt(ApocConfig.APOC_TTL_LIMIT, 1000);
+            long limitDb = apocConfig.getInt(apocTTLLimitDb, (int) limit);
             ttlJobHandle = scheduler.scheduleRecurring(TTL_GROUP, () -> expireNodes(limitDb), ttlScheduleDb, ttlScheduleDb, TimeUnit.SECONDS);
         }
     }

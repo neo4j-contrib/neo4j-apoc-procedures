@@ -38,7 +38,7 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
 
         return MapUtil.genericMap(
 
-                "ttl", new TTLLifeCycle(dependencies.scheduler(), db, dependencies.apocConfig(), dependencies.ttlConfig(), dependencies.log().getUserLog(TTLLifeCycle.class)),
+                "ttl", new TTLLifeCycle(dependencies.scheduler(), db, dependencies.apocConfig(), dependencies.log().getUserLog(TTLLifeCycle.class)),
 
                 "uuid", new UuidHandler(db,
                 dependencies.databaseManagementService(),
