@@ -42,7 +42,7 @@ public class MetricsTest {
         }, Exception.class);
         assumeNotNull(neo4jContainer);
         session = neo4jContainer.getSession();
-        Thread.sleep(10000); // need to wait until metrics files get written initially
+        Thread.sleep(3000); // need to wait until metrics files get written initially
     }
 
     @AfterClass
