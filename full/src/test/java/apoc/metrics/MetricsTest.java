@@ -34,12 +34,15 @@ public class MetricsTest {
         assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             neo4jContainer = createEnterpriseDB(true)
-                .withNeo4jConfig("apoc.import.file.enabled", "true");
+                    .withNeo4jConfig("apoc.import.file.enabled", "true")
+                    .withNeo4jConfig("metrics.enabled", "true")
+                    .withNeo4jConfig("metrics.csv.interval", "1s")
+                    .withNeo4jConfig("metrics.namespaces.enabled", "true");
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
         session = neo4jContainer.getSession();
-        Thread.sleep(3000); // need to wait until metrics files get written initially
+        Thread.sleep(10000); // need to wait until metrics files get written initially
     }
 
     @AfterClass
@@ -52,7 +55,7 @@ public class MetricsTest {
     @Test
     public void shouldGetMetrics() {
         session.readTransaction(tx -> tx.run("RETURN 1 AS num;"));
-        String metricKey = "neo4j.bolt.sessions_started";
+        String metricKey = "neo4j.database.system.check_point.total_time";
         testResult(session, "CALL apoc.metrics.get($metricKey)",
                 map("metricKey", metricKey), (r) -> {
                     assertTrue("should have at least one element", r.hasNext());
@@ -65,7 +68,10 @@ public class MetricsTest {
     @Test
     public void shouldListMetrics() {
         testResult(session, "CALL apoc.metrics.list()",
-                (r) -> assertTrue("should have at least one element", r.hasNext()));
+                (r) -> {
+
+            assertTrue("should have at least one element", r.hasNext());
+                });
     }
 
 }
