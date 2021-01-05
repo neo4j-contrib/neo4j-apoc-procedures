@@ -42,7 +42,7 @@ public class TestContainerUtil {
         importFolder.mkdirs();
 
         // read neo4j version from build.gradle and use this as default
-        String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:4.1.0-enterprise");
+        String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:4.3.0-drop02.0-enterprise");
 
         // use a separate folder for mounting plugins jar - build/libs might contain other jars as well.
         File pluginsFolder = new File("build/plugins");
@@ -67,7 +67,8 @@ public class TestContainerUtil {
         Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(neo4jDockerImageVersion)
                 .withPlugins(MountableFile.forHostPath(pluginsFolder.toPath()))
                 .withAdminPassword("apoc")
-                .withEnv("NEO4J_dbms_memory_heap_max__size", "1G")
+                .withEnv("NEO4J_dbms_memory_heap_max__size", "512M")
+                .withEnv("NEO4J_dbms_memory_pagecache_size", "256M")
                 .withEnv("apoc.export.file.enabled", "true")
                 .withNeo4jConfig("dbms.security.procedures.unrestricted", "apoc.*")
                 .withFileSystemBind(canonicalPath, "/var/lib/neo4j/import") // map the "target/import" dir as the Neo4j's import dir

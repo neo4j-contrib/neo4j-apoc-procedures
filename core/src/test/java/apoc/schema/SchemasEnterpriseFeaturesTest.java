@@ -44,8 +44,10 @@ public class SchemasEnterpriseFeaturesTest {
     @AfterClass
     public static void afterAll() {
         if (neo4jContainer != null) {
-            session.close();
             neo4jContainer.close();
+            if(session!= null) {
+                session.close();
+            }
         }
     }
 
@@ -240,7 +242,7 @@ public class SchemasEnterpriseFeaturesTest {
         });
         testResult(session, "CALL apoc.schema.relationships()", (result) -> {
             Map<String, Object> r = result.next();
-            assertEquals("CONSTRAINT ON ()-[liked:LIKED]-() ASSERT exists(liked.day)", r.get("name"));
+            assertEquals("CONSTRAINT ON ()-[liked:LIKED]-() ASSERT (liked.day) IS NOT NULL", r.get("name"));
             assertEquals("RELATIONSHIP_PROPERTY_EXISTENCE", r.get("type"));
             assertEquals(asList("day"), r.get("properties"));
             assertEquals(StringUtils.EMPTY, r.get("status"));
