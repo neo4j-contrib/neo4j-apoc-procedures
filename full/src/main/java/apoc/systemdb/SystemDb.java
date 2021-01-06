@@ -69,7 +69,8 @@ public class SystemDb {
     @Procedure
     public Stream<RowResult> execute(@Name("DDL command") String command, @Name(value="params", defaultValue = "{}") Map<String ,Object> params) {
         Util.checkAdmin(securityContext, callContext,"apoc.systemdb.execute");
-        return withSystemDbTransaction(tx -> tx.execute(command, params).stream().map(map -> new RowResult(map)));
+        List<RowResult> rowResultStream = withSystemDbTransaction(tx -> tx.execute(command, params).stream().map(map -> new RowResult(map)).collect(Collectors.toList()));
+        return rowResultStream.stream();
     }
 
     private <T> T withSystemDbTransaction(Function<Transaction, T> function) {
