@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
+import org.neo4j.configuration.SettingValueParsers;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.ResultTransformer;
@@ -17,12 +18,16 @@ import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Collections;
 import java.util.Map;
 
 import static apoc.ApocConfig.APOC_TTL_ENABLED;
 import static apoc.ApocConfig.APOC_TTL_SCHEDULE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
+import static org.neo4j.configuration.SettingImpl.newBuilder;
+import static org.neo4j.configuration.SettingValueParsers.BOOL;
 
 /**
  * @author mh
@@ -30,7 +35,8 @@ import static org.junit.Assert.assertTrue;
  */
 public class TTLTest {
 
-    public static DbmsRule db = new ImpermanentDbmsRule();
+    public static DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(procedure_unrestricted, Collections.singletonList("apoc.*"));
 
     public static ProvideSystemProperty systemPropertyRule
             = new ProvideSystemProperty(
