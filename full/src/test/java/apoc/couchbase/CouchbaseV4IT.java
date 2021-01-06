@@ -5,6 +5,7 @@ import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.bucket.BucketType;
+import com.couchbase.client.java.cluster.BucketSettings;
 import com.couchbase.client.java.cluster.DefaultBucketSettings;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
@@ -70,6 +71,17 @@ public class CouchbaseV4IT {
                 environment,
                 couchbase.getHost()
         ).authenticate(USERNAME, PASSWORD);
+
+        BucketSettings bucketSettings = new DefaultBucketSettings.Builder()
+                .type(BucketType.COUCHBASE)
+                .name(BUCKET_NAME)
+                .quota(120) // megabytes
+                .replicas(1)
+                .indexReplicas(true)
+                .enableFlush(true)
+                .build();
+
+        cluster.clusterManager(USERNAME, PASSWORD).insertBucket(bucketSettings);
 
         boolean isFilled = fillDB(cluster);
         assumeTrue("should fill Couchbase with data", isFilled);
