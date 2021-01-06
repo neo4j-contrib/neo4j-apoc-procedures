@@ -3,7 +3,11 @@ import apoc.util.*;
 import org.junit.*;
 import org.neo4j.driver.*;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
 import static apoc.ApocConfig.APOC_UUID_ENABLED_DB;
@@ -87,10 +91,18 @@ public class UUIDMultiDbTest {
                     "CALL apoc.uuid.install('Foo') YIELD label RETURN label")
             );
 
-            testResult(session, "MATCH (n:Foo) RETURN n.uuid as uuid", (result) -> {
-                Map<String, Object> r = result.next();
-                assertNotNull(r.get("uuid")  );
-            });
+            long start = System.currentTimeMillis();
+            AtomicBoolean uuidFound = new AtomicBoolean(false);
+
+            while(!uuidFound.get() || System.currentTimeMillis() > (start + TimeUnit.SECONDS.toMillis(5))) {
+                boolean hasUuid = session.writeTransaction(tx -> {
+                    Record r = tx.run("CALL apoc.uuid.install('Foo') YIELD label RETURN label").next();
+                    return r.get("uuid") != null;
+                });
+                uuidFound.set(hasUuid);
+            }
+
+            assertTrue(uuidFound.get());
 
         }
     }
