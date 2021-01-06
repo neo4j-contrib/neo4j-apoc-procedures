@@ -1,6 +1,6 @@
 package apoc;
 
-import org.neo4j.annotations.service.ServiceProvider;
+import apoc.trigger.TriggerHandler;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
@@ -17,14 +17,14 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * NOTE: this is a GLOBAL component, so only once per DBMS
  */
-@ServiceProvider
 public class RegisterComponentFactory extends ExtensionFactory<RegisterComponentFactory.Dependencies> {
 
     private Log log;
     private GlobalProcedures globalProceduresRegistry;
 
     public RegisterComponentFactory() {
-        super(ExtensionType.GLOBAL, "ApocRegisterComponent");
+        super(ExtensionType.GLOBAL,
+                "ApocRegisterComponent");
     }
 
     @Override
