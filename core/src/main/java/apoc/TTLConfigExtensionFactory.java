@@ -14,7 +14,6 @@ import org.neo4j.logging.internal.LogService;
 /**
  * a kernel extension for the TTL config
  */
-@ServiceProvider
 public class TTLConfigExtensionFactory extends ExtensionFactory<TTLConfigExtensionFactory.Dependencies> {
 
     public interface Dependencies {
