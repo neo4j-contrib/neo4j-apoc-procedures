@@ -1,6 +1,8 @@
 package apoc.couchbase;
 
 import apoc.util.TestUtil;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.auth.PasswordAuthenticator;
 import com.couchbase.client.java.bucket.BucketType;
 import com.couchbase.client.java.cluster.DefaultBucketSettings;
@@ -11,6 +13,7 @@ import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import org.junit.*;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+import org.testcontainers.couchbase.BucketDefinition;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
 import java.util.Arrays;
@@ -53,22 +56,29 @@ public class CouchbaseConnectionIT {
         assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             couchbase = new CouchbaseContainer()
-                    .withClusterAdmin(USERNAME, PASSWORD)
-                    .withNewBucket(DefaultBucketSettings.builder()
-                            .password(PASSWORD)
-                            .name(BUCKET_NAME)
-                            .quota(100)
-                            .type(BucketType.COUCHBASE)
-                            .build());
+                    .withCredentials(USERNAME, PASSWORD)
+                    .withBucket(new BucketDefinition(BUCKET_NAME));
             couchbase.start();
         }, Exception.class);
         assumeNotNull(couchbase);
         assumeTrue("couchbase must be running", couchbase.isRunning());
-        boolean isFilled = fillDB(couchbase.getCouchbaseCluster());
+
+        CouchbaseEnvironment environment = DefaultCouchbaseEnvironment
+                .builder()
+                .bootstrapCarrierDirectPort(couchbase.getBootstrapCarrierDirectPort())
+                .bootstrapHttpDirectPort(couchbase.getBootstrapHttpDirectPort())
+                .build();
+
+        Cluster cluster = CouchbaseCluster.create(
+                environment,
+                couchbase.getHost()
+        );
+
+        boolean isFilled = fillDB(cluster);
         assumeTrue("should fill Couchbase with data", isFilled);
         COUCHBASE_SERVER_VERSION = getVersion(couchbase);
     }
-    
+
     @AfterClass
     public static void tearDown() {
         if (couchbase != null) {
