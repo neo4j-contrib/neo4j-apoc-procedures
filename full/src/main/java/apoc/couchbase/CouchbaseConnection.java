@@ -71,7 +71,7 @@ public class CouchbaseConnection implements AutoCloseable {
          * We don't need to authenticate again, it has been done checking major version
          * TODO: check if all levels of user's authorizations allow the client to get cluster info and so version as well otherwise we need two pairs of credentials
          */
-        if (couchbaseServerVersion == 5) {
+        if (couchbaseServerVersion == 5 || couchbaseServerVersion == 6) {
             this.bucket = cluster.openBucket(bucketName);
         }
 
