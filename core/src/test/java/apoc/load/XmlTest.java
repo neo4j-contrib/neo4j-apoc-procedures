@@ -4,6 +4,7 @@ import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.xml.XmlTestUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,6 +14,7 @@ import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+import org.xml.sax.SAXParseException;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -407,5 +409,21 @@ public class XmlTest {
         testCall(db, "RETURN apoc.xml.parse($xmlString, '/catalog/book[title=\"Maeve Ascendant\"]/.') AS result",
                 map("xmlString", xmlString),
                 (r) -> assertEquals(XmlTestUtils.XML_XPATH_AS_NESTED_MAP, r.get("result")));
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testLoadXmlPreventXXEVulnerabilityThrowsQueryExecutionException() {
+        try {
+            testResult(db, "CALL apoc.load.xml('file:src/test/resources/xml/xxe.xml', '/catalog/book[genre=\"Computer\"]') yield value as result", (r) -> {
+                r.next();
+                r.close();
+            });
+        } catch (Exception e) {
+            // We want test that the cause of the exception is SAXParseException with the correct cause message
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof SAXParseException);
+            assertEquals("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true.", except.getMessage());
+            throw e;
+        }
     }
 }
