@@ -435,15 +435,6 @@ public class XmlTest {
     }
 
     @Test
-    public void testExternalDTDschouldNotBeLoaded() {
-        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/missingExternalDTD.xml', '/', null, true)",
-                (row) -> {
-                    Object value = row.get("value");
-                    assertEquals("{_type=document, _document=[null, {_type=title, _text=dtd 404}]}", value.toString());
-                });
-    }
-
-    @Test
     public void testLoadXmlSingleLineSimple() {
         testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml', '/', null, true)", //  YIELD value RETURN value
                 (row) -> {
