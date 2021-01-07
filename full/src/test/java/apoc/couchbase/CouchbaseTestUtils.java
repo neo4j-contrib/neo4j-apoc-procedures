@@ -3,10 +3,13 @@ package apoc.couchbase;
 import apoc.couchbase.document.CouchbaseJsonDocument;
 import apoc.couchbase.document.CouchbaseQueryResult;
 import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.env.CouchbaseEnvironment;
+import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.query.N1qlParams;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.query.N1qlQueryResult;
@@ -52,7 +55,7 @@ public class CouchbaseTestUtils {
             .put("lastName", "Van Gogh")
             .put("notableWorks", JsonArray.from("Starry Night", "Sunflowers", "Bedroom in Arles", "Portrait of Dr Gachet", "Sorrow"));
 
-    public static boolean fillDB(CouchbaseCluster cluster) {
+    public static boolean fillDB(Cluster cluster) {
         Bucket couchbaseBucket = cluster.openBucket(BUCKET_NAME);
         couchbaseBucket.insert(JsonDocument.create("artist:vincent_van_gogh", VINCENT_VAN_GOGH));
         N1qlQueryResult queryResult = couchbaseBucket.query(N1qlQuery.simple(String.format(QUERY, BUCKET_NAME), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
@@ -121,17 +124,39 @@ public class CouchbaseTestUtils {
     }
 
     public static Bucket getCouchbaseBucket(CouchbaseContainer couchbase) {
+        CouchbaseEnvironment environment = DefaultCouchbaseEnvironment
+                .builder()
+                .bootstrapCarrierDirectPort(couchbase.getBootstrapCarrierDirectPort())
+                .bootstrapHttpDirectPort(couchbase.getBootstrapHttpDirectPort())
+                .build();
+
+        Cluster cluster = CouchbaseCluster.create(
+                environment,
+                couchbase.getHost()
+        );
+
         int version = getVersion(couchbase);
         if (version == 4) {
-            return couchbase.getCouchbaseCluster().openBucket(BUCKET_NAME, PASSWORD);
+            return cluster.openBucket(BUCKET_NAME, PASSWORD);
         } else {
-            return couchbase.getCouchbaseCluster().authenticate(USERNAME, PASSWORD).openBucket(BUCKET_NAME);
+            return cluster.authenticate(USERNAME, PASSWORD).openBucket(BUCKET_NAME);
         }
 
     }
 
     public static int getVersion(CouchbaseContainer couchbase) {
-        return couchbase.getCouchbaseCluster().clusterManager(USERNAME, PASSWORD).info(1, TimeUnit.SECONDS).getMinVersion().major();
+        CouchbaseEnvironment environment = DefaultCouchbaseEnvironment
+                .builder()
+                .bootstrapCarrierDirectPort(couchbase.getBootstrapCarrierDirectPort())
+                .bootstrapHttpDirectPort(couchbase.getBootstrapHttpDirectPort())
+                .build();
+
+        Cluster cluster = CouchbaseCluster.create(
+                environment,
+                couchbase.getHost()
+        );
+
+        return cluster.clusterManager(USERNAME, PASSWORD).info(1, TimeUnit.SECONDS).getMinVersion().major();
     }
 
     public static String getBucketName(CouchbaseContainer couchbase) {

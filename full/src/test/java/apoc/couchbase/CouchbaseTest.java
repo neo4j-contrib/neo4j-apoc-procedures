@@ -5,14 +5,19 @@ import apoc.couchbase.document.CouchbaseQueryResult;
 import apoc.result.BooleanResult;
 import apoc.util.TestUtil;
 import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.bucket.BucketType;
 import com.couchbase.client.java.cluster.DefaultBucketSettings;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.env.CouchbaseEnvironment;
+import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.error.DocumentAlreadyExistsException;
 import org.junit.*;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+import org.testcontainers.couchbase.BucketDefinition;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
 import java.util.Arrays;
@@ -48,18 +53,25 @@ public class CouchbaseTest {
         assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             couchbase = new CouchbaseContainer()
-                    .withClusterAdmin(USERNAME, PASSWORD)
-                    .withNewBucket(DefaultBucketSettings.builder()
-                            .password(PASSWORD)
-                            .name(BUCKET_NAME)
-                            .quota(100)
-                            .type(BucketType.COUCHBASE)
-                            .build());
+                    .withCredentials(USERNAME, PASSWORD)
+                    .withBucket(new BucketDefinition(BUCKET_NAME));
             couchbase.start();
         }, Exception.class);
         assumeNotNull(couchbase);
         assumeTrue("couchbase must be running", couchbase.isRunning());
-        boolean isFilled = fillDB(couchbase.getCouchbaseCluster());
+
+        CouchbaseEnvironment environment = DefaultCouchbaseEnvironment
+                .builder()
+                .bootstrapCarrierDirectPort(couchbase.getBootstrapCarrierDirectPort())
+                .bootstrapHttpDirectPort(couchbase.getBootstrapHttpDirectPort())
+                .build();
+
+        Cluster cluster = CouchbaseCluster.create(
+                environment,
+                couchbase.getHost()
+        );
+
+        boolean isFilled = fillDB(cluster);
         assumeTrue("should fill Couchbase with data", isFilled);
         HOST = getUrl(couchbase);
         couchbaseBucket = getCouchbaseBucket(couchbase);
