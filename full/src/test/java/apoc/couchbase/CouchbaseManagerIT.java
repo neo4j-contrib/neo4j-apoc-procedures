@@ -91,7 +91,7 @@ public class CouchbaseManagerIT {
     public static void tearDown() {
         if (couchbase != null) {
             couchbase.stop();
-            }
+        }
     }
 
     /**

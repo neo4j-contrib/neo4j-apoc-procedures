@@ -78,7 +78,7 @@ public class CouchbaseConnectionIT {
         assumeTrue("should fill Couchbase with data", isFilled);
         COUCHBASE_SERVER_VERSION = getVersion(couchbase);
     }
-    
+
     @AfterClass
     public static void tearDown() {
         if (couchbase != null) {
