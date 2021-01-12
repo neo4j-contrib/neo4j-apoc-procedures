@@ -21,7 +21,6 @@ import java.util.function.Predicate;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCallEmpty;
-import static apoc.util.Util.convertFromListToBytes;
 import static org.junit.Assert.*;
 
 /**
@@ -49,43 +48,43 @@ public class UtilsTest {
         TestUtil.testCall(db,
                 "RETURN apoc.util.compress($text, {charset: 'UTF-8'}) AS value",
                 map("text", COMPLEX_STRING),
-                r -> listCompressed.add(encodeBase64FromListToString((List<Long>) r.get("value")))
+                r -> listCompressed.add(encodeBase64FromBytesToString((byte[]) r.get("value")))
         );
 
         TestUtil.testCall(db,
                 "RETURN apoc.util.compress($text, {charset: 'UTF-16'}) AS value",
                 map("text", COMPLEX_STRING),
-                r -> listCompressed.add(encodeBase64FromListToString((List<Long>) r.get("value")))
+                r -> listCompressed.add(encodeBase64FromBytesToString((byte[]) r.get("value")))
         );
 
         TestUtil.testCall(db,
                 "RETURN apoc.util.compress($text, {charset: 'UTF-16BE'}) AS value",
                 map("text", COMPLEX_STRING),
-                r -> listCompressed.add(encodeBase64FromListToString((List<Long>) r.get("value")))
+                r -> listCompressed.add(encodeBase64FromBytesToString((byte[]) r.get("value")))
         );
 
         TestUtil.testCall(db,
                 "RETURN apoc.util.compress($text, {charset: 'UTF-16LE'}) AS value",
                 map("text", COMPLEX_STRING),
-                r -> listCompressed.add(encodeBase64FromListToString((List<Long>) r.get("value")))
+                r -> listCompressed.add(encodeBase64FromBytesToString((byte[]) r.get("value")))
         );
 
         TestUtil.testCall(db,
                 "RETURN apoc.util.compress($text, {charset: 'ISO-8859-1'}) AS value",
                 map("text", COMPLEX_STRING),
-                r -> listCompressed.add(encodeBase64FromListToString((List<Long>) r.get("value")))
+                r -> listCompressed.add(encodeBase64FromBytesToString((byte[]) r.get("value")))
         );
 
         TestUtil.testCall(db,
                 "RETURN apoc.util.compress($text, {charset: 'UTF-32'}) AS value",
                 map("text", COMPLEX_STRING),
-                r -> listCompressed.add(encodeBase64FromListToString((List<Long>) r.get("value")))
+                r -> listCompressed.add(encodeBase64FromBytesToString((byte[]) r.get("value")))
         );
 
         TestUtil.testCall(db,
                 "RETURN apoc.util.compress($text, {charset: 'US-ASCII'}) AS value",
                 map("text", COMPLEX_STRING),
-                r -> listCompressed.add(encodeBase64FromListToString((List<Long>) r.get("value")))
+                r -> listCompressed.add(encodeBase64FromBytesToString((byte[]) r.get("value")))
         );
 
         // expected all different compressed string in complex string
@@ -103,19 +102,19 @@ public class UtilsTest {
         TestUtil.testCall(db,
                 "RETURN apoc.util.compress($text, {compression: 'GZIP'}) AS value",
                 map("text", SIMPLE_STRING),
-                r -> assertEquals(TEST_TO_GZIP, encodeBase64FromListToString((List<Long>) r.get("value")))
+                r -> assertEquals(TEST_TO_GZIP, encodeBase64FromBytesToString((byte[]) r.get("value")))
         );
 
         TestUtil.testCall(db,
                 "RETURN apoc.util.compress($text, {compression: 'BZIP2'}) AS value",
                 map("text", SIMPLE_STRING),
-                r -> assertEquals(TEST_TO_BZIP2, encodeBase64FromListToString((List<Long>) r.get("value")))
+                r -> assertEquals(TEST_TO_BZIP2, encodeBase64FromBytesToString((byte[]) r.get("value")))
         );
 
         TestUtil.testCall(db,
                 "RETURN apoc.util.compress($text, {compression: 'DEFLATE'}) AS value",
                 map("text", SIMPLE_STRING),
-                r -> assertEquals(TEST_TO_DEFLATE, encodeBase64FromListToString((List<Long>) r.get("value")))
+                r -> assertEquals(TEST_TO_DEFLATE, encodeBase64FromBytesToString((byte[]) r.get("value")))
         );
     }
 
@@ -328,8 +327,8 @@ public class UtilsTest {
         }
     }
 
-    private String encodeBase64FromListToString(List<Long> list) {
-        return Base64.getEncoder().encodeToString(convertFromListToBytes(list));
+    private String encodeBase64FromBytesToString(byte[] list) {
+        return Base64.getEncoder().encodeToString(list);
     }
 
 }

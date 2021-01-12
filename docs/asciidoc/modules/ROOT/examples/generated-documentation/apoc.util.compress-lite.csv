@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.util.compress(data :: STRING?, config = {} :: MAP?) :: (LIST? OF ANY?)
+¦apoc.util.compress(data :: STRING?, config = {} :: MAP?) :: (BYTEARRAY?)
