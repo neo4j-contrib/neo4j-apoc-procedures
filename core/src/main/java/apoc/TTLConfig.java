@@ -18,7 +18,6 @@ public class TTLConfig extends LifecycleAdapter {
         String apocTTLEnabledDb = String.format(ApocConfig.APOC_TTL_ENABLED_DB, db.databaseName());
         String apocTTLScheduleDb = String.format(ApocConfig.APOC_TTL_SCHEDULE_DB, db.databaseName());
         String apocTTLLimitDb = String.format(ApocConfig.APOC_TTL_LIMIT_DB, db.databaseName());
-        String apocTTLBatchSizeDb = String.format(ApocConfig.APOC_TTL_BATCH_SIZE_DB, db.databaseName());
         boolean enabled = apocConfig.getBoolean(ApocConfig.APOC_TTL_ENABLED);
         boolean dbEnabled = apocConfig.getBoolean(apocTTLEnabledDb, enabled);
 
@@ -27,13 +26,11 @@ public class TTLConfig extends LifecycleAdapter {
             long ttlScheduleDb = apocConfig.getInt(apocTTLScheduleDb, (int) ttlSchedule);
             long limit = apocConfig.getInt(ApocConfig.APOC_TTL_LIMIT, 1000);
             long limitDb = apocConfig.getInt(apocTTLLimitDb, (int) limit);
-            long batchSize = apocConfig.getInt(ApocConfig.APOC_TTL_BATCH_SIZE, 10000);
-            long batchSizeDb = apocConfig.getInt(apocTTLBatchSizeDb, (int) batchSize);
 
-            return new Values(true, ttlScheduleDb, limitDb, batchSizeDb);
+            return new Values(true, ttlScheduleDb, limitDb);
         }
 
-        return new Values(false, -1, -1, -1);
+        return new Values(false, -1, -1);
     }
 
 
@@ -41,13 +38,11 @@ public class TTLConfig extends LifecycleAdapter {
         public final boolean enabled;
         public final long schedule;
         public final long limit;
-        public final long batchSize;
 
-        public Values(boolean enabled, long schedule, long limit, long batchSize) {
+        public Values(boolean enabled, long schedule, long limit) {
             this.enabled = enabled;
             this.schedule = schedule;
             this.limit = limit;
-            this.batchSize = batchSize;
         }
 
         @Override
@@ -56,7 +51,6 @@ public class TTLConfig extends LifecycleAdapter {
                     "enabled=" + enabled +
                     ", schedule=" + schedule +
                     ", limit=" + limit +
-                    ", batchSize=" + batchSize +
                     '}';
         }
     }

@@ -49,11 +49,9 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_TTL_SCHEDULE = "apoc.ttl.schedule";
     public static final String APOC_TTL_ENABLED = "apoc.ttl.enabled";
     public static final String APOC_TTL_LIMIT = "apoc.ttl.limit";
-    public static final String APOC_TTL_BATCH_SIZE = "apoc.ttl.batchsize";
     public static final String APOC_TTL_SCHEDULE_DB = "apoc.ttl.schedule.%s";
     public static final String APOC_TTL_ENABLED_DB = "apoc.ttl.enabled.%s";
     public static final String APOC_TTL_LIMIT_DB = "apoc.ttl.limit.%s";
-    public static final String APOC_TTL_BATCH_SIZE_DB = "apoc.ttl.batchsize.%s";
     public static final String APOC_TRIGGER_ENABLED = "apoc.trigger.enabled";
     public static final String APOC_UUID_ENABLED = "apoc.uuid.enabled";
     public static final String APOC_UUID_ENABLED_DB = "apoc.uuid.enabled.%s";

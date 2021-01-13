@@ -46,27 +46,25 @@ public class TTLLifeCycle extends LifecycleAdapter {
             long ttlScheduleDb = configValues.schedule;
             ttlIndexJobHandle = scheduler.schedule(TTL_GROUP, this::createTTLIndex, (int)(ttlScheduleDb*0.8), TimeUnit.SECONDS);
             long limitDb = configValues.limit;
-            long batchSizeDb = configValues.batchSize;
-            ttlJobHandle = scheduler.scheduleRecurring(TTL_GROUP, () -> expireNodes(limitDb, batchSizeDb), ttlScheduleDb, ttlScheduleDb, TimeUnit.SECONDS);
+            ttlJobHandle = scheduler.scheduleRecurring(TTL_GROUP, () -> expireNodes(limitDb), ttlScheduleDb, ttlScheduleDb, TimeUnit.SECONDS);
         }
     }
 
-    public void expireNodes(long limit, long batchSize) {
+    public void expireNodes(long limit) {
         try {
             if (!Util.isWriteableInstance(db)) return;
-            String withLimit = (limit > 0) ? "LIMIT $limit" : "";
             String matchTTL = "MATCH (t:TTL) WHERE t.ttl < timestamp() ";
-            String queryRels = matchTTL + "WITH t " + withLimit + " MATCH (t)-[r]-() RETURN r";
-            String queryNodes = matchTTL +  "RETURN t " + withLimit;
-            Map<String,Object> params = Util.map("limit", limit, "batchSize", batchSize, "queryRels", queryRels, "queryNodes", queryNodes);
+            String queryRels = matchTTL + "WITH t MATCH (t)-[r]-() RETURN id(r) as id";
+            String queryNodes = matchTTL +  "RETURN id(t) as id";
+            Map<String,Object> params = Util.map("batchSize", limit, "queryRels", queryRels, "queryNodes", queryNodes);
             long relationshipsDeleted = db.executeTransactionally(
-                    "CALL apoc.periodic.iterate($queryRels, 'DELETE r', {batchSize: $batchSize, params:{limit: $limit}})",
+                    "CALL apoc.periodic.iterate($queryRels, 'MATCH ()-[r]->() WHERE id(r) = id DELETE r', {batchSize: $batchSize})",
                     params,
                     result -> Iterators.single(result.columnAs("total"))
             );
 
             long nodesDeleted = db.executeTransactionally(
-                    "CALL apoc.periodic.iterate($queryNodes, 'DELETE t', {batchSize: $batchSize, params:{limit: $limit}})",
+                    "CALL apoc.periodic.iterate($queryNodes, 'MATCH (n) WHERE id(n) = id DELETE n', {batchSize: $batchSize})",
                     params,
                     result -> Iterators.single(result.columnAs("total"))
             );
