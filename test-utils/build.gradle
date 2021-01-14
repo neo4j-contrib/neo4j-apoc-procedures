@@ -13,7 +13,7 @@ dependencies {
     // there is a compatibility problem between the Guava Library used by HDFS, Google Cloud Storage and Reflections; the only version that fits for all is the following
     compile group: 'com.google.guava', name: 'guava', version: '20.0'
 
-    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
+    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.2.0'
 
     compile group: 'org.gradle', name: 'gradle-tooling-api', version: '6.0.1'
 
@@ -27,7 +27,7 @@ dependencies {
     compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.7.5', withoutServers
     compile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '2.7.5', withoutServers
 
-    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
+    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.2.0'
     compile group: 'org.jetbrains', name: 'annotations', version: "17.0.0"
 
     // Test Containers
