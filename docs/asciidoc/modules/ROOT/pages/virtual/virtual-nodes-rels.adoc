@@ -19,8 +19,7 @@ Please note that they have negative id's.
 | apoc.create.virtual.fromNode(node, [propertyNames]) | function returns a virtual node  built from an existing node with only the requested properties
 | CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) YIELD rel | returns a virtual relationship
 | apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) | function returns a virtual relationship
-| CALL apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) | returns a virtual pattern
-| CALL apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) | returns a virtual pattern
+| CALL apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) | returns a virtual pattern
 |===
 
 // * TODO `CALL apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])
@@ -85,32 +84,14 @@ MATCH (node:Person {name:'neo', age:'42'})
 return apoc.create.virtual.fromNode(node, ['name']) as person
 ----
 
-.Virtual pattern `vPattern`
+.Virtual path `virtualPath`
 
 [source,cypher]
 ----
-CALL apoc.create.vPattern({_labels:['Person'],name:'Mary'},'KNOWS',{since:2012},{_labels:['Person'],name:'Michael'})
+CALL apoc.create.virtualPath(['British','Person'],{name:'James', age:28},'KNOWS',{since:2009},['Swedish','Person'],{name:'Daniel', age:30})
 ----
 
-image::apoc.create.vPattern.png[scaledwidth="100%"]
-
-We can add more labels, just adding them on `_labels`
-
-[source,cypher]
-----
-CALL apoc.create.vPattern({_labels:['Person', 'Woman'],name:'Mary'},'KNOWS',{since:2012},{_labels:['Person', 'Man'],name:'Michael'})
-----
-
-image::apoc.create.vPatternLabels.png[scaledwidth="100%"]
-
-.Virtual pattern full `vPatternFull`
-
-[source,cypher]
-----
-CALL apoc.create.vPatternFull(['British','Person'],{name:'James', age:28},'KNOWS',{since:2009},['Swedish','Person'],{name:'Daniel', age:30})
-----
-
-image::apoc.create.vPatternFull.png[scaledwidth="100%"]
+image::apoc.create.virtualPath.png[scaledwidth="100%"]
 
 We can create a virtual pattern from an existing one
 
@@ -125,8 +106,9 @@ From this dataset we can create a virtual pattern
 ----
 MATCH (a)-[r]->(b)
 WITH head(labels(a)) AS labelA, head(labels(b)) AS labelB, type(r) AS rel_type, a.name AS aName, b.name AS bName
-CALL apoc.create.vPatternFull([labelA],{name: aName},rel_type,{since:2009},[labelB],{name: bName}) yield from, rel, to
+CALL apoc.create.virtualPath([labelA],{name: aName},rel_type,{since:2009},[labelB],{name: bName}) yield from, rel, to
 RETURN *;
 ----
 
-image::apoc.create.vPatternFullTwo.png[scaledwidth="100%"]
+//update image once procedure is created
+//image::apoc.create.vPatternFullTwo.png[scaledwidth="100%"]
