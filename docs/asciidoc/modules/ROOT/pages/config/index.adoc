@@ -58,8 +58,8 @@ apoc.spatial.geocode.<providerName>.<key>=<value>
 | apoc.ttl.enabled.<name_db>=false/true (default true) | Enable time to live background task for a specific db. Please note that this key has to be set necessarily in `apoc.conf`. If is true TTL is enabled for the db even if apoc.ttl.enabled is false, instead if is false is disabled for the db even if apoc.ttl.enabled is true
 | apoc.ttl.schedule=<secs> (default `60`) | Set frequency in seconds to run ttl background task
 | apoc.ttl.schedule.<name_db>=<secs> (default `60`) | Set frequency in seconds to run ttl background task for a specific db. It has priority over apoc.ttl.schedule. Please note that this key has to be set necessarily in `apoc.conf`.
-| apoc.ttl.limit=<number> (default 1000) | Maximum number of nodes being deleted in one background transaction
-| apoc.ttl.limit.<name_db>=<number> (default 1000) | Maximum number of nodes being deleted in one background transaction for a specific db. It has priority over apoc.ttl.limit. Please note that this key has to be set necessarily in `apoc.conf`.
+| apoc.ttl.limit=<number> (default 1000) | Maximum number of nodes being deleted in one background transaction, that is the batchSize applied to apoc.periodic.iterate() during removing nodes
+| apoc.ttl.limit.<name_db>=<number> (default 1000) | Maximum number of nodes being deleted in one background transaction for a specific db, that is the batchSize applied to apoc.periodic.iterate() during removing nodes for a specific db. It has priority over apoc.ttl.limit. Please note that this key has to be set necessarily in `apoc.conf`.
 | apoc.uuid.enabled=false/true (default false) | global switch to enable uuid handlers
 | apoc.uuid.enabled.<name_db>=false/true (default true) | Enable/disable uuid handlers for a specific db. Please note that this key has to be set necessarily in `apoc.conf`. If is true UUID is enabled for the db even if apoc.uuid.enabled is false, instead if is false is disabled for the db even if apoc.uuid.enabled is true
 
