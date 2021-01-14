@@ -675,7 +675,81 @@ public class ExportCypherTest {
                             .orElse(null);
                     assertEquals(expected, unwind);
                 });
+    }
 
+    @Test
+    public void shouldQuotePropertyNameStartingWithDollarCharacter() {
+        db.execute("CREATE (n:Bar:Baz{name: 'A', `$lock`: true})").close();
+        String query = "MATCH (n:Baz) RETURN n";
+        final String expected = "UNWIND [{name:\"A\", properties:{`$lock`:true}}] AS row\n" +
+                "CREATE (n:Bar{name: row.name}) SET n += row.properties SET n:Baz";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.query($query, $file, $config)",
+                map("file", null, "query", query, "config", map("format", "plain", "stream", true)), (r) -> {
+                    final String cypherStatements = (String) r.get("cypherStatements");
+                    String unwind = Stream.of(cypherStatements.split(";"))
+                            .map(String::trim)
+                            .filter(s -> s.startsWith("UNWIND"))
+                            .findFirst()
+                            .orElse(null);
+                    assertEquals(expected, unwind);
+                });
+    }
+
+    @Test
+    public void shouldHandleTwoLabelsWithOneUniqueConstraintEach() {
+        db.execute("CREATE CONSTRAINT ON (b:Base) ASSERT b.id IS UNIQUE").close();
+        db.execute("CREATE (b:Bar:Base {id:'waBfk3z', name:'barista',age:42})" +
+                "-[:KNOWS]->(f:Foo {name:'foosha', born:date('2018-10-31')})").close();
+        String query = "MATCH (b:Bar:Base)-[r:KNOWS]-(f:Foo) RETURN b, f, r";
+        /* The bug was:
+        UNWIND [{start: {name:"barista"}, end: {_id:4}, properties:{}}] AS row
+        MATCH (start:Bar{name: row.start.name, id: row.start.id})    // <-- Notice id here but not above in UNWIND!
+        MATCH (end:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.end._id})
+        CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;
+        But should be the expected variable
+         */
+        final String expected = "UNWIND [{start: {name:\"barista\"}, end: {_id:4}, properties:{}}] AS row\n" +
+                "MATCH (start:Bar{name: row.start.name})\n" +
+                "MATCH (end:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.end._id})\n" +
+                "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.query($query, $file, $config)",
+                map("file", null, "query", query, "config", map("format", "plain", "stream", true)), (r) -> {
+                    final String cypherStatements = (String) r.get("cypherStatements");
+                    String unwind = Stream.of(cypherStatements.split(";"))
+                            .map(String::trim)
+                            .filter(s -> s.startsWith("UNWIND"))
+                            .filter(s -> s.contains("barista"))
+                            .skip(1)
+                            .findFirst()
+                            .orElse(null);
+                    assertEquals(expected, unwind);
+                });
+    }
+
+    @Test
+    public void shouldHandleTwoLabelsWithTwoUniqueConstraintsEach() {
+        db.execute("CREATE CONSTRAINT ON (b:Base) ASSERT b.id IS UNIQUE").close();
+        db.execute("CREATE CONSTRAINT ON (b:Base) ASSERT b.oid IS UNIQUE").close();
+        db.execute("CREATE CONSTRAINT ON (b:Bar) ASSERT b.oname IS UNIQUE").close();
+        db.execute("CREATE (b:Bar:Base {id:'waBfk3z',oid:42,name:'barista',oname:'bar',age:42})" +
+                "-[:KNOWS]->(f:Foo {name:'foosha', born:date('2018-10-31')})").close();
+        String query = "MATCH (b:Bar:Base)-[r:KNOWS]-(f:Foo) RETURN b, f, r";
+        final String expected = "UNWIND [{start: {name:\"barista\"}, end: {_id:4}, properties:{}}] AS row\n" +
+                "MATCH (start:Bar{name: row.start.name})\n" +
+                "MATCH (end:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.end._id})\n" +
+                "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.query($query, $file, $config)",
+                map("file", null, "query", query, "config", map("format", "plain", "stream", true)), (r) -> {
+                    final String cypherStatements = (String) r.get("cypherStatements");
+                    String unwind = Stream.of(cypherStatements.split(";"))
+                            .map(String::trim)
+                            .filter(s -> s.startsWith("UNWIND"))
+                            .filter(s -> s.contains("barista"))
+                            .skip(1)
+                            .findFirst()
+                            .orElse(null);
+                    assertEquals(expected, unwind);
+                });
     }
 
     private void assertResultsOptimized(String fileName, Map<String, Object> r) {

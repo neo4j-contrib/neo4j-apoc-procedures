@@ -9,10 +9,7 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 
 import java.io.PrintWriter;
-import java.util.AbstractMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -311,10 +308,10 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	private void closeUnwindRelationships(String relationshipClause, String setClause, Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig, PrintWriter out, String start, String end, Map<String, Object> path, Relationship last) {
 		writeUnwindEnd(exportConfig, out);
 		// match start node
-		writeRelationshipMatchAsciiNode(last.getStartNode(), out, start, path, uniqueConstraints);
+		writeRelationshipMatchAsciiNode(last.getStartNode(), out, start, uniqueConstraints);
 
 		// match end node
-		writeRelationshipMatchAsciiNode(last.getEndNode(), out, end, path, uniqueConstraints);
+		writeRelationshipMatchAsciiNode(last.getEndNode(), out, end, uniqueConstraints);
 
 		out.append(StringUtils.LF);
 
@@ -399,6 +396,14 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 				.orElse(CypherFormatterUtils.UNIQUE_ID_LABEL);
 	}
 
+	private Set<String> getUniqueConstrainedProperties(Map<String, Set<String>> uniqueConstraints, String uniqueConstrainedLabel) {
+		Set<String> props = uniqueConstraints.get(uniqueConstrainedLabel);
+		if (props == null || props.isEmpty()) {
+			props = Collections.singleton(UNIQUE_ID_PROP);
+		}
+		return props;
+	}
+
 	private Set<String> getLabels(Node node) {
 		Set<String> labels = StreamSupport.stream(node.getLabels().spliterator(), false)
 				.map(Label::name)
@@ -409,29 +414,34 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		return labels;
 	}
 
-	private void writeRelationshipMatchAsciiNode(Node node, PrintWriter out, String key, Map<String, Object> path, Map<String, Set<String>> uniqueConstraints) {
-		Map.Entry<Set<String>, Set<String>> entry = (Map.Entry<Set<String>, Set<String>>) path.get(key);
+	private void writeRelationshipMatchAsciiNode(Node node, PrintWriter out, String key, Map<String, Set<String>> uniqueConstraints) {
+		String uniqueConstrainedLabel = getUniqueConstrainedLabel(node, uniqueConstraints);
+		Set<String> uniqueConstrainedProps = getUniqueConstrainedProperties(uniqueConstraints, uniqueConstrainedLabel);
+
 		out.append(StringUtils.LF);
 		out.append("MATCH ");
 		out.append("(");
 		out.append(key);
 		out.append(":");
-		out.append(Util.quote(getUniqueConstrainedLabel(node, uniqueConstraints)));
+		out.append(Util.quote(uniqueConstrainedLabel));
 		out.append("{");
-		writeSetProperties(out, entry.getValue(), key + ".");
+		writeSetProperties(out, uniqueConstrainedProps, key + ".");
 		out.append("})");
 	}
 
 	private void writeRelationshipNodeIds(Map<String, Set<String>> uniqueConstraints, PrintWriter out, String key, Node node) {
-		out.append(key + ": ");
-		Set<String> props = uniqueConstraints.get(getUniqueConstrainedLabel(node, uniqueConstraints));
+		String uniqueConstrainedLabel = getUniqueConstrainedLabel(node, uniqueConstraints);
+		Set<String> props = getUniqueConstrainedProperties(uniqueConstraints, uniqueConstrainedLabel);
 		Map<String, Object> properties;
-		if (props != null && !props.isEmpty()) {
+		if (!props.contains(UNIQUE_ID_PROP)) {
 			String[] propsArray = props.toArray(new String[props.size()]);
 			properties = node.getProperties(propsArray);
 		} else {
+			// UNIQUE_ID_PROP is always the only member of the Set
 			properties = Util.map(UNIQUE_ID_PROP, node.getId());
 		}
+
+		out.append(key + ": ");
 		out.append("{");
 		writeNodeIds(out, properties);
 		out.append("}");
