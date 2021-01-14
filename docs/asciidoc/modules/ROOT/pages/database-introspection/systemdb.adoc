@@ -2,8 +2,6 @@
 = SystemDB
 :description: This section describes procedures that can be used to access the contents of Neo4j system db.
 
-
-
 In Neo4j 4.0 the concept of multi-database was introduced. There's now a database called `system` which contains some
 internal information, e.g. configured permissions. Those can be exposed by APOC.
 
@@ -28,4 +26,5 @@ include::example$generated-documentation/apoc.systemdb.execute.adoc[]
 ----
 CALL apoc.systemdb.graph() YIELD nodes, relationships RETURN *;
 CALL apoc.systemdb.execute('SHOW DATABASES') YIELD row RETURN row.name as dbName;
+CALL apoc.systemdb.execute(["CREATE USER foo", "GRANT ROLE myRole TO foo"])
 ----
