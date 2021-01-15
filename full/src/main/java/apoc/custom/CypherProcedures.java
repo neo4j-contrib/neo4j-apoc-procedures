@@ -71,7 +71,6 @@ public class CypherProcedures {
     }
 
 
-    // vedere outputs
     @Procedure(value = "apoc.custom.asFunction",mode = Mode.WRITE)
     @Description("apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description) - register a custom cypher function")
     public void asFunction(@Name("name") String name, @Name("statement") String statement,
@@ -80,7 +79,6 @@ public class CypherProcedures {
                            @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
                            @Name(value = "description", defaultValue = "") String description) throws ProcedureException {
         UserFunctionSignature signature = cypherProceduresHandler.functionSignature(name, output, inputs, description);
-        // qui sopra arriva - custom.n(val :: INTEGER?) :: (NODE?)
         cypherProceduresHandler.storeFunction(signature, statement, forceSingle);
     }
 
