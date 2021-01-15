@@ -31,6 +31,7 @@ public class Signatures {
     }
 
     public SignatureParser.FunctionContext parseFunction(String functionSignatureText) {
+        // todo...
         return parse(functionSignatureText).function();
     }
 
@@ -90,7 +91,7 @@ public class Signatures {
 
     public UserFunctionSignature toFunctionSignature(SignatureParser.FunctionContext signature, String description) {
         QualifiedName name = new QualifiedName(namespace(signature.namespace()), name(signature.name()));
-
+// todo - e co 2 lettere
         if (signature.type() == null) {
             System.out.println("signature = " + signature);
             return null;
@@ -131,6 +132,7 @@ public class Signatures {
     }
 
     public String name(SignatureParser.NameContext ns) {
+        // ns arriva null...
         if (ns.IDENTIFIER() != null) return ns.IDENTIFIER().getText();
         if (ns.QUOTED_IDENTIFIER() != null) return ns.QUOTED_IDENTIFIER().getText(); // todo
         throw new IllegalStateException("Invalid Name " + ns);

@@ -8,6 +8,7 @@ import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.io.IOException;
@@ -143,5 +144,13 @@ public class CypherProceduresStorageTest {
                 "[['int','int'],['float','float'],['string','string'],['map','map'],['list int','list int'],['bool','bool'],['date','date'],['datetime','datetime'],['point','point']], true)");
         restartDb();
         TestUtil.testCall(db, "return custom.answer(42,3.14,'foo',{a:1},[1],true,date(),datetime(),point({x:1,y:2})) as data", (row) -> assertEquals(9, ((List)row.get("data")).size()));
+    }
+
+    @Test
+    public void testIssue1714() throws Exception {
+        db.executeTransactionally("CREATE (i:Target {value: 2});");
+        db.executeTransactionally("CALL apoc.custom.asFunction('fun', 'MATCH (t:Target {value : $val}) RETURN t', 'NODE', [['val', 'INTEGER']])");
+        restartDb();
+        TestUtil.testCall(db, "RETURN custom.fun(2) as row", (row) -> assertEquals(2L, ((Node) row.get("row")).getProperty("value")));
     }
 }

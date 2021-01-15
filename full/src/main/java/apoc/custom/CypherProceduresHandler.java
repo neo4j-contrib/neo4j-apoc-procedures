@@ -254,6 +254,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             node.setProperty(SystemPropertyKeys.output.name(), signature.outputType().toString());
             node.setProperty(SystemPropertyKeys.forceSingle.name(), forceSingle);
 
+            // todo - boh...
             setLastUpdate(tx);
             registerFunction(signature, statement, forceSingle);
             return null;
@@ -330,6 +331,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public UserFunctionSignature functionSignature(String name, String output, List<List<String>> inputs, String description) {
         AnyType outType = typeof(output.isEmpty() ? "LIST OF MAP" : output);
+        // output - 'NODE'
         return new UserFunctionSignature(qualifiedName(name), inputSignatures(inputs), outType, null, new String[0], description, false);
     }
 
@@ -388,8 +390,10 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 //                resourceTracker.registerCloseableResource(result); // TODO
                             if (!result.hasNext()) return null;
                             if (outType.equals(NTAny)) {
+                                // forse va qua in qualche modo...
                                 return ValueUtils.of(result.stream().collect(Collectors.toList()));
                             }
+                            // cols - primo elemento "t"
                             List<String> cols = result.columns();
                             if (cols.isEmpty()) return null;
                             if (!forceSingle && outType instanceof Neo4jTypes.ListType) {
@@ -401,8 +405,12 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                                     return ValueUtils.of(result.stream().map(row -> row.get(cols.get(0))).collect(Collectors.toList()));
                             } else {
                                 Map<String, Object> row = result.next();
-                                if (outType instanceof Neo4jTypes.MapType) return ValueUtils.of(row);
+                                //  qui casca l'asino --> Neo4jTypes
+                                // ma.... perché outType instanceof Neo4jTypes.MapType ?? qual è il caso che fa sta cosa?
+//                                if (outType instanceof Neo4jTypes.MapType) return ValueUtils.of(row);
+                                if (outType.getClass().equals(Neo4jTypes.MapType.class)) return ValueUtils.of(row);
                                 if (cols.size() == 1) return ValueUtils.of(row.get(cols.get(0)));
+                                    //ValueUtils.of(row.get(cols.get(0))) è il Nodo con testIssue1714_2
                             }
                             throw new IllegalStateException("Result mismatch " + cols + " output type is " + outType);
                         }
@@ -426,6 +434,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         return new QualifiedName(namespace.subList(0, namespace.size() - 1), names[names.length - 1]);
     }
 
+    // questi sono i parametri
     public List<FieldSignature> inputSignatures(@Name(value = "inputs", defaultValue = "null") List<List<String>> inputs) {
         List<FieldSignature> inputSignature = inputs == null ? singletonList(FieldSignature.inputField("params", NTMap, DefaultParameterValue.ntMap(Collections.emptyMap()))) :
                 inputs.stream().map(pair -> {
@@ -496,6 +505,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                 return NTGeometry;
             case "GEOMETRY":
                 return NTGeometry;
+            // con string il nodo lo restituisce correttamente
             case "STRING":
                 return NTString;
             case "TEXT":
