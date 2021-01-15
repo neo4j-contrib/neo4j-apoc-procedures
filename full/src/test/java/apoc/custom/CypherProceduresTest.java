@@ -50,6 +50,14 @@ public class CypherProceduresTest  {
     }
 
     @Test
+    public void registerSimpleStatementWithOneChar() throws Exception {
+        db.executeTransactionally("call apoc.custom.asProcedure('a','RETURN 42 as answer')");
+        TestUtil.testCall(db, "call custom.a()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('b() :: (answer::INT)','RETURN 42 as answer')");
+        TestUtil.testCall(db, "call custom.b()", (row) -> assertEquals(42L, row.get("answer")));
+    }
+
+    @Test
     public void overrideSingleCallStatement() throws Exception {
         db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");
         TestUtil.testCall(db, "call custom.answer() yield row return row", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
@@ -101,14 +109,13 @@ public class CypherProceduresTest  {
     }
 
     // TODO - FARE TEST PURE SU CUSTOM PROCEDURES
+    // todo - testare declareProcedure con una lettera
 
     @Test
     public void registerConcreteParameterAndReturnStatement1() throws Exception {
-        db.executeTransactionally("CREATE (i:Target {value: 1});");
-        db.executeTransactionally("call apoc.custom.asProcedure('answer','MATCH (t:Target {value : 2}) RETURN t','read',[['NODE']],[['input','int','42']])");
-        TestUtil.testCall(db, "call custom.answer()", (row) -> {
-            assertEquals(42L, row.get("answer"));
-        });
+        db.executeTransactionally("CREATE (i:Foo {value: 2});");
+        db.executeTransactionally("call apoc.custom.asProcedure('test','MATCH (t:Foo {value : 2}) RETURN t', 'read', [['t', 'NODE']])");
+        TestUtil.testCall(db, "call custom.test()", (row) -> assertTrue(row.get("t") instanceof Node));
     }
 
     @Test

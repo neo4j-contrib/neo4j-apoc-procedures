@@ -16,7 +16,7 @@ opt_type:	base_type'?'? ;
 base_type:	'MAP' | 'ANY' | 'NODE' | 'REL' | 'RELATIONSHIP' | 'EDGE' | 'PATH' | 'NUMBER' | 'LONG' | 'INT' | 'INTEGER' | 'FLOAT' | 'DOUBLE' | 'BOOL' | 'BOOLEAN' | 'DATE' | 'TIME' | 'LOCALTIME' | 'DATETIME' | 'LOCALDATETIME' | 'DURATION' | 'POINT' | 'GEO' | 'GEOMETRY' | 'STRING' | 'TEXT' ;
 NEWLINE:	[\r\n]+ ;
 QUOTED_IDENTIFIER:	'`' [^`]+? '`' ;
-IDENTIFIER:	[a-zA-Z_][a-zA-Z0-9_]+ ;
+IDENTIFIER:	[a-zA-Z_][a-zA-Z0-9_]* ;
 WS:	[ \t\r\n]+ -> skip ;
 value: nullValue | INT_VALUE | FLOAT_VALUE | boolValue | mapValue | listValue | stringValue;
 INT_VALUE: [0-9]+;
