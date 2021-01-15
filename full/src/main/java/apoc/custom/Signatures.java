@@ -90,6 +90,7 @@ public class Signatures {
 
     public UserFunctionSignature toFunctionSignature(SignatureParser.FunctionContext signature, String description) {
         QualifiedName name = new QualifiedName(namespace(signature.namespace()), name(signature.name()));
+
         if (signature.type() == null) {
             System.out.println("signature = " + signature);
             return null;
