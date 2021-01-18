@@ -454,12 +454,23 @@ public class Util {
         }
     }
 
-    public static String toJson(Object value) {
+    public static String toJson(Object value, boolean withError) {
         try {
             return JsonUtil.OBJECT_MAPPER.writeValueAsString(value);
         } catch (IOException e) {
-            throw new RuntimeException("Can't convert "+value+" to JSON");
+            // todo - funziona in questo modo? - provarlo
+//            throw new RuntimeException("Can't convert "+value+" to JSON", withError ? e : null);
+
+            String error = "Can't convert "+value+" to JSON";
+            if (withError) {
+                throw new RuntimeException("Can't convert "+value+" to JSON", e);
+            } else {
+                throw new RuntimeException("Can't convert "+value+" to JSON");
+            }
         }
+    }
+    public static String toJson(Object value) {
+        return toJson(value, false);
     }
     public static <T> T fromJson(String value, Class<T> type) {
         try {

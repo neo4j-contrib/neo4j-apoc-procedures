@@ -32,6 +32,7 @@ public class ConvertJsonTest {
 
 	@Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Json.class);
+        db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42}),(c:User {age:12}),(d:User)");
     }
 
     @Test public void testToJsonList() throws Exception {
@@ -40,6 +41,55 @@ public class ConvertJsonTest {
     }
     @Test public void testToJsonMap() throws Exception {
 	    testCall(db, "RETURN apoc.convert.toJson({a:42,b:\"foo\",c:[1,2,3]}) as value",
+	             (row) -> assertEquals("{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}", row.get("value")) );
+    }
+    @Test
+    public void testToJsonNode() throws Exception {
+	    testCall(db, "CREATE (a:Test {foo: 7}) RETURN apoc.convert.toJson(a) AS value",
+	             (row) -> assertNotNull(row.get("value")) );
+    }
+
+    // todo - nodo senza label?
+
+    // todo - lista di nodi?
+
+
+    // todo - 2 nodi?
+    @Test
+    public void testExportQueryTwoNodesJson() throws Exception {
+        String filename = "query_two_nodes.json";
+        String query = "MATCH (u:User) RETURN apoc.convert.toJson(COLLECT(u)) as list";
+        TestUtil.testCall(db, query,
+                (r) -> {
+                    assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(2)"));
+                    assertEquals(filename, r.get("file"));
+                    assertEquals("json", r.get("format"));
+                });
+
+//        assertFileEquals(filename);
+    }
+
+    @Test
+    public void testToJsonProperties() throws Exception {
+        testCall(db, "CREATE (a:Test {foo: 7}) RETURN apoc.convert.toJson(properties(a)) AS value",
+                (row) -> assertNotNull(row.get("value")) );
+    }
+
+    @Test
+    public void testToJsonMapOfNodes() throws Exception {
+        testCall(db, "CREATE (a:Test {foo: 7}), (b:Test {bar: 9}) RETURN apoc.convert.toJson({one: a, two: b}) AS value",
+                (row) -> assertNotNull(row.get("value")) );
+    }
+
+
+    @Test
+    public void testToJsonRel() throws Exception {
+	    testCall(db, "RETURN apoc.convert.toJson({a:42,b:\"foo\",c:[1,2,3]}) as value",
+	             (row) -> assertEquals("{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}", row.get("value")) );
+    }
+    @Test
+    public void testToJsonPath() throws Exception {
+	    testCall(db, "CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baz {a:'b'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www', two:2, three: datetime()}) RETURN apoc.convert.toJson(p) AS value",
 	             (row) -> assertEquals("{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}", row.get("value")) );
     }
     @Test public void testFromJsonList() throws Exception {

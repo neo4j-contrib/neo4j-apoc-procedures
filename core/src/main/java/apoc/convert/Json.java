@@ -1,12 +1,17 @@
 package apoc.convert;
 
+import apoc.export.json.JsonFormatSerializer;
+import apoc.export.util.ExportConfig;
+import apoc.export.util.FormatUtils;
+import apoc.export.util.Reporter;
+import apoc.meta.Meta;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
-import org.neo4j.graphdb.Entity;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.Relationship;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.neo4j.graphdb.*;
+import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
 import java.io.IOException;
@@ -14,10 +19,182 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static apoc.export.util.FormatUtils.getLabelsSorted;
+
 public class Json {
+
+    // TODO TODOISSIMO - USARE TOMAP DI FORMATUTILS!!!
+
+    private Object writeJsonResult(Object value) throws IOException {
+        Meta.Types type = Meta.Types.of(value);
+        switch (type) {
+            case NODE:
+//                writeFieldName(jsonGenerator, keyName, writeKey);
+                return writeNode((Node) value);
+//                break;
+            case RELATIONSHIP:
+//                writeFieldName(jsonGenerator, keyName, writeKey);
+                writeRel((Relationship) value);
+                return "";
+//                break;
+            case PATH:
+//                writeFieldName(jsonGenerator, keyName, writeKey);
+                writePath((Path) value);
+                return "";
+//                break;
+            default:
+                return value;
+        }
+    }
+
+
+    public void writeRelationship(JsonGenerator jsonGenerator, Relationship rel, ExportConfig config) throws IOException {
+        Node startNode = rel.getStartNode();
+        Node endNode = rel.getEndNode();
+        jsonGenerator.writeStartObject();
+        jsonGenerator.writeStringField("id", String.valueOf(rel.getId()));
+        jsonGenerator.writeStringField("type", "relationship");
+        jsonGenerator.writeStringField("label", rel.getType().toString());
+        serializeProperties(jsonGenerator, rel.getAllProperties());
+        writeRelationshipNode(jsonGenerator, "start", startNode, config);
+        writeRelationshipNode(jsonGenerator, "end", endNode, config);
+        jsonGenerator.writeEndObject();
+    }
+
+    public void serializeProperties(JsonGenerator jsonGenerator, Map<String, Object> properties) throws IOException {
+        if(properties != null && !properties.isEmpty()) {
+            jsonGenerator.writeObjectFieldStart("properties");
+            for (Map.Entry<String, Object> entry : properties.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                serializeProperty(jsonGenerator, key, value, true);
+            }
+            jsonGenerator.writeEndObject();
+        }
+    }
+
+    public void serializeProperty(JsonGenerator jsonGenerator, String key, Object value, boolean writeKey) throws IOException {
+        if (value == null) {
+            if (writeKey) {
+                jsonGenerator.writeNullField(key);
+            } else {
+                jsonGenerator.writeNull();
+            }
+        } else {
+            if (writeKey) {
+                jsonGenerator.writeObjectField(key, value);
+            } else {
+                jsonGenerator.writeObject(value);
+            }
+        }
+    }
+
+    private void writeNodeDetails(JsonGenerator jsonGenerator, Node node, boolean withNodeProperties) throws IOException {
+        jsonGenerator.writeStringField("id", String.valueOf(node.getId()));
+
+        if (node.getLabels().iterator().hasNext()) {
+            jsonGenerator.writeArrayFieldStart("labels");
+
+            List<String> labels = getLabelsSorted(node);
+            for (String label : labels) {
+                jsonGenerator.writeString(label);
+            }
+            jsonGenerator.writeEndArray();
+        }
+        if (withNodeProperties) {
+            serializeProperties(jsonGenerator, node.getAllProperties());
+        }
+    }
+
+    private void writeRelationshipNode(JsonGenerator jsonGenerator, String type, Node node, ExportConfig config) throws IOException {
+        jsonGenerator.writeObjectFieldStart(type);
+
+        writeNodeDetails(jsonGenerator, node, config.writeNodeProperties());
+        jsonGenerator.writeEndObject();
+    }
+
+
+    private void writePath(Path path) throws IOException {
+//        jsonGenerator.writeStartObject();
+//        jsonGenerator.writeObjectField("length", path.length());
+//        jsonGenerator.writeArrayFieldStart("rels");
+//        writeRels(path.relationships(), reporter, jsonGenerator, config);
+//        jsonGenerator.writeEndArray();
+//        jsonGenerator.writeArrayFieldStart("nodes");
+//        writeNodes(path.nodes(), reporter, jsonGenerator, config);
+//        jsonGenerator.writeEndArray();
+//        jsonGenerator.writeEndObject();
+    }
+
+    private void writeNodes(Iterable<Node> nodes) throws IOException {
+        for (Node node : nodes) {
+            writeNode(node);
+        }
+    }
+
+    private Map<String, Object> writeNode(Node node) {
+        Map<String, Object> nodeMap = new HashMap<>(Map.of(
+                "id", String.valueOf(node.getId()),
+                "labels", node.getLabels(),
+                "type", "node"));
+        // todo - fare l'if anche per le labels??
+        Map<String, Object> properties = node.getAllProperties();
+        if (properties.isEmpty()) {
+            nodeMap.put("properties", properties);
+        }
+        return nodeMap;
+//
+////        writeJsonIdKeyStart(jsonGenerator, node.getId());
+//
+//        writeNode(jsonGenerator, node, config);
+//
+//        reporter.update(1, 0, allProperties.size());
+    }
+
+//    private void writeJsonIdKeyStart(JsonGenerator jsonGenerator, long id) throws IOException {
+//        if (!isExportSubGraph) {
+//            return;
+//        }
+//        switch (format) {
+//            case JSON_ID_AS_KEYS:
+//                writeFieldName(jsonGenerator, String.valueOf(id), true);
+//                break;
+//        }
+//    }
+
+    private void writeRels(Iterable<Relationship> rels) throws IOException {
+        for (Relationship rel : rels) {
+            writeRel(rel);
+        }
+    }
+
+    private void writeRel(Relationship rel) throws IOException {
+        Map<String, Object> allProperties = rel.getAllProperties();
+
+//        writeJsonIdKeyStart(jsonGenerator, rel.getId());
+
+//        writeRelationship(jsonGenerator, rel, config);
+
+//        reporter.update(0, 1, allProperties.size());
+    }
+
+//    private String writeJsonResult(Object value) throws IOException {
+//        return JsonUtil.OBJECT_MAPPER.writeValueAsString(value);
+//        jsonGenerator.writeStartObject();
+//        for (int col = 0; col < header.length; col++) {
+//            String keyName = header[col];
+//            Object value = row.get(keyName);
+//            // TODO - VEDERE QUA CHE SUCCEDE
+//            write(reporter, jsonGenerator, config, keyName, value, true);
+//        }
+//        jsonGenerator.writeEndObject();
+//    }
+
 
     @Context
     public org.neo4j.graphdb.GraphDatabaseService db;
+
+    @Context public Log log;
 
     @UserFunction("apoc.json.path")
     @Description("apoc.json.path('{json}','json-path')")
@@ -26,12 +203,30 @@ public class Json {
     }
     @UserFunction("apoc.convert.toJson")
     @Description("apoc.convert.toJson([1,2,3]) or toJson({a:42,b:\"foo\",c:[1,2,3]})")
-    public String toJson(@Name("value") Object value) {
-        try {
-            return JsonUtil.OBJECT_MAPPER.writeValueAsString(value);
-        } catch (IOException e) {
-            throw new RuntimeException("Can't convert " + value + " to json", e);
-        }
+    public String toJson(@Name("value") Object value) throws JsonProcessingException {
+        log.info("osvaldo json string");
+//        log.info("string " + JsonUtil.OBJECT_MAPPER.writeValueAsString(value));
+
+
+
+//        if (value instanceof Node) {
+//            value = ((Node)value).getAllProperties();
+//        }
+        // rel...
+
+        //path...
+
+        // todo - intercettare il punto in cui apoc.export.json.query scrive nel file
+
+        // todo - aggiungere "type": "node" ... , relazioni con nodeStart/end con più info (labels...), ed id stringa e non numerico
+        // ossia fare un overload...
+        return FormatUtils.toString(value, true, true);
+//        try {
+//            return JsonUtil.OBJECT_MAPPER.writeValueAsString(writeJsonResult(value));
+//        } catch (IOException e) {
+//            log.info("osvaldo error");
+//            throw new RuntimeException("Can't convert " + value + " to json", e);
+//        }
     }
 
     @Procedure(mode = Mode.WRITE) // ,name = "apoc.json.setProperty")
