@@ -418,8 +418,11 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     }
 
     public static QualifiedName qualifiedName(@Name("name") String name) {
-        Map<String, Object> fullName = getFullName(name);
-        return new QualifiedName((List<String>) fullName.get("prefix"), (String) fullName.get("name"));
+        String[] names = name.split("\\.");
+        List<String> namespace = new ArrayList<>(names.length);
+        namespace.add(PREFIX);
+        namespace.addAll(Arrays.asList(names));
+        return new QualifiedName(namespace.subList(0, namespace.size() - 1), names[names.length - 1]);
     }
 
     public List<FieldSignature> inputSignatures(@Name(value = "inputs", defaultValue = "null") List<List<String>> inputs) {
@@ -601,11 +604,11 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public void removeProcedure(String name) {
         withSystemDb(tx -> {
-            Map<String, Object> fullName = getFullName(name);
+            QualifiedName qName = qualifiedName(name);
             tx.findNodes(SystemLabels.ApocCypherProcedures,
                     SystemPropertyKeys.database.name(), api.databaseName(),
-                    SystemPropertyKeys.name.name(), fullName.get("name"),
-                    SystemPropertyKeys.prefix.name(), ((List<String>) fullName.get("prefix")).toArray(String[]::new)
+                    SystemPropertyKeys.name.name(), qName.name(),
+                    SystemPropertyKeys.prefix.name(), qName.namespace()
             ).stream().filter(n -> n.hasLabel(SystemLabels.Procedure)).forEach(node -> {
                 ProcedureDescriptor descriptor = procedureDescriptor(node);
                 registerProcedure(descriptor.getSignature(), null);
@@ -619,11 +622,11 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public void removeFunction(String name) {
         withSystemDb(tx -> {
-            Map<String, Object> fullName = getFullName(name);
+            QualifiedName qName = qualifiedName(name);
             tx.findNodes(SystemLabels.ApocCypherProcedures,
                     SystemPropertyKeys.database.name(), api.databaseName(),
-                    SystemPropertyKeys.name.name(), fullName.get("name"),
-                    SystemPropertyKeys.prefix.name(), ((List<String>) fullName.get("prefix")).toArray(String[]::new)
+                    SystemPropertyKeys.name.name(), qName.name(),
+                    SystemPropertyKeys.prefix.name(), qName.namespace()
             ).stream().filter(n -> n.hasLabel(SystemLabels.Function)).forEach(node -> {
                 UserFunctionDescriptor descriptor = userFunctionDescriptor(node);
                 registerFunction(descriptor.getSignature(), null, false);
@@ -634,18 +637,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             return null;
         });
 
-    }
-
-    private static Map<String, Object> getFullName(String name) {
-        String[] names = name.split("\\.");
-        List<String> namespace = new ArrayList<>(names.length);
-        namespace.add(PREFIX);
-        namespace.addAll(Arrays.asList(names));
-        return Map.of("prefix",
-                namespace.subList(0, namespace.size() - 1),
-                "name",
-                names[names.length - 1]
-        );
     }
 
     public abstract class ProcedureOrFunctionDescriptor {
