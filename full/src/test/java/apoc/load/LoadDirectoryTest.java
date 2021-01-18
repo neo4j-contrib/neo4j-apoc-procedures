@@ -25,9 +25,12 @@ public class LoadDirectoryTest {
 
     private static GraphDatabaseService db;
 
+    private static String IMPORT_DIR = "import_dir";
+    private static String SUBFOLDER = "subfolder";
+
     @BeforeClass
     public static void setUp() throws Exception {
-        File importFolder = new File(temporaryFolder.getRoot() + "/import Dir");
+        File importFolder = new File(temporaryFolder.getRoot() + File.separator + IMPORT_DIR);
         DatabaseManagementService databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
 
@@ -37,14 +40,14 @@ public class LoadDirectoryTest {
         temporaryFolder.newFile("Foo.csv");
         temporaryFolder.newFile("Bar.csv");
         temporaryFolder.newFile("Baz.xls");
-        temporaryFolder.newFolder("import Dir/subfolder");
-        temporaryFolder.newFile("import Dir/TestCsv1.csv");
-        temporaryFolder.newFile("import Dir/TestCsv2.csv");
-        temporaryFolder.newFile("import Dir/TestCsv3.csv");
-        temporaryFolder.newFile("import Dir/TestXls1.xsl");
-        temporaryFolder.newFile("import Dir/TestJson1.json");
-        temporaryFolder.newFile("import Dir/subfolder/TestSubfolder.json");
-        temporaryFolder.newFile("import Dir/subfolder/TestSubfolder.csv");
+        temporaryFolder.newFolder(IMPORT_DIR + File.separator + SUBFOLDER);
+        temporaryFolder.newFile(IMPORT_DIR + File.separator + "TestCsv1.csv");
+        temporaryFolder.newFile(IMPORT_DIR + File.separator + "TestCsv2.csv");
+        temporaryFolder.newFile(IMPORT_DIR + File.separator + "TestCsv3.csv");
+        temporaryFolder.newFile(IMPORT_DIR + File.separator + "TestXls1.xsl");
+        temporaryFolder.newFile(IMPORT_DIR + File.separator + "TestJson1.json");
+        temporaryFolder.newFile(IMPORT_DIR + File.separator + SUBFOLDER + File.separator + "TestSubfolder.json");
+        temporaryFolder.newFile(IMPORT_DIR + File.separator + SUBFOLDER + File.separator + "TestSubfolder.csv");
     }
 
     @Test
@@ -58,8 +61,8 @@ public class LoadDirectoryTest {
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
         testResult(db, "CALL apoc.load.directory('*', 'subfolder', {recursive: false}) YIELD value RETURN value", result -> {
                     List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
-                    assertTrue(rows.contains("subfolder/TestSubfolder.json"));
-                    assertTrue(rows.contains("subfolder/TestSubfolder.csv"));
+                    assertTrue(rows.contains(SUBFOLDER + File.separator + "TestSubfolder.json"));
+                    assertTrue(rows.contains(SUBFOLDER + File.separator + "TestSubfolder.csv"));
                     assertEquals(2, rows.size());
                 }
         );
@@ -72,9 +75,9 @@ public class LoadDirectoryTest {
         String folderAsExternalUrl = "file://" + rootTempFolder;
         testResult(db, "CALL apoc.load.directory('*', '" + folderAsExternalUrl + "', {recursive: false}) YIELD value RETURN value", result -> {
                     List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
-                    assertTrue(rows.contains(rootTempFolder + "/Foo.csv"));
-                    assertTrue(rows.contains(rootTempFolder + "/Bar.csv"));
-                    assertTrue(rows.contains(rootTempFolder + "/Baz.xls"));
+                    assertTrue(rows.contains(rootTempFolder + File.separator + "Foo.csv"));
+                    assertTrue(rows.contains(rootTempFolder + File.separator + "Bar.csv"));
+                    assertTrue(rows.contains(rootTempFolder + File.separator + "Baz.xls"));
                     assertEquals(3, rows.size());
                 }
         );
@@ -100,7 +103,7 @@ public class LoadDirectoryTest {
                     assertTrue(rows.contains("TestCsv1.csv"));
                     assertTrue(rows.contains("TestCsv2.csv"));
                     assertTrue(rows.contains("TestCsv3.csv"));
-                    assertTrue(rows.contains("subfolder/TestSubfolder.csv"));
+                    assertTrue(rows.contains(SUBFOLDER + File.separator + "TestSubfolder.csv"));
                     assertEquals(4, rows.size());
                 }
         );

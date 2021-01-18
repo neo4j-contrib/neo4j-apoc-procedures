@@ -50,7 +50,7 @@ public class LoadDirectory {
         return files.stream().map(i -> {
             String urlFile = i.toString();
             return new StringResult(apocConfig().isImportFolderConfigured()
-                    ? urlFile.replace(dirImport + "/", "")
+                    ? urlFile.replace(dirImport + File.separator, "")
                     : urlFile);
         });
     }
