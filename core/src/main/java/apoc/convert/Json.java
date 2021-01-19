@@ -80,7 +80,7 @@ public class Json {
         return JsonUtil.parse(json,path,Object.class);
     }
     @UserFunction("apoc.convert.toJson")
-    @Description("apoc.convert.toJson([1,2,3]) or apoc.convert.toJson({a:42,b:\"foo\",c:[1,2,3]}) - convert the value to JSON")
+    @Description("apoc.convert.toJson([1,2,3]) or toJson({a:42,b:\"foo\",c:[1,2,3]}) or toJson(NODE/REL/PATH)")
     public String toJson(@Name("value") Object value) {
         try {
             return JsonUtil.OBJECT_MAPPER.writeValueAsString(writeJsonResult(value));
