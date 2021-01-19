@@ -30,3 +30,7 @@ apoc.refactor.categorize(sourceKey :: STRING?, type :: STRING?, outgoing :: BOOL
 |batchSize|INTEGER?|null
 |===
 
+[[usage-apoc.refactor.categorize]]
+== Usage Examples
+include::partial$usage/apoc.refactor.categorize.adoc[]
+

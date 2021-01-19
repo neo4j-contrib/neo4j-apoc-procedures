@@ -39,5 +39,5 @@ include::partial$usage/config/apoc.graph.fromDocument.adoc[]
 == Usage Examples
 include::partial$usage/apoc.graph.fromDocument.adoc[]
 
-xref::virtual/virtual-graph.adoc[More documentation of apoc.graph.fromDB,role=more information]
+xref::virtual/virtual-graph.adoc[More documentation of apoc.graph.fromDocument,role=more information]
 

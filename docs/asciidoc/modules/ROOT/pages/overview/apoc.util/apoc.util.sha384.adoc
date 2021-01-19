@@ -24,3 +24,7 @@ apoc.util.sha384(values :: LIST? OF ANY?) :: (STRING?)
 |values|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.util.sha384]]
+== Usage Examples
+include::partial$usage/apoc.util.sha384.adoc[]
+

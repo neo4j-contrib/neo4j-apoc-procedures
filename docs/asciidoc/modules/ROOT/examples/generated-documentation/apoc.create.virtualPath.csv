@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.create.virtualPath¦apoc.create.virtualPath(labelsN :: LIST? OF STRING?, n :: MAP?, relType :: STRING?, props :: MAP?, labelsM :: LIST? OF STRING?, m :: MAP?) :: (from :: NODE?, rel :: RELATIONSHIP?, to :: NODE?)¦apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties

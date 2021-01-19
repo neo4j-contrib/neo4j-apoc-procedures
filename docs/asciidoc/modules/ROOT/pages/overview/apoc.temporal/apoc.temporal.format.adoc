@@ -25,5 +25,9 @@ apoc.temporal.format(temporal :: ANY?, format = yyyy-MM-dd :: STRING?) :: (STRIN
 |format|STRING?|yyyy-MM-dd
 |===
 
+[[usage-apoc.temporal.format]]
+== Usage Examples
+include::partial$usage/apoc.temporal.format.adoc[]
+
 xref::temporal/temporal-conversions.adoc[More documentation of apoc.temporal.format,role=more information]
 

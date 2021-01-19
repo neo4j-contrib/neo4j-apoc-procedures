@@ -1,2 +1,2 @@
 ¦type¦qualified name¦signature¦description
-¦procedure¦apoc.systemdb.execute¦apoc.systemdb.execute(DDL command :: STRING?, params = {} :: MAP?) :: (row :: MAP?)¦
+¦procedure¦apoc.systemdb.execute¦apoc.systemdb.execute(DDL commands, either a string or a list of strings :: ANY?, params = {} :: MAP?) :: (row :: MAP?)¦
