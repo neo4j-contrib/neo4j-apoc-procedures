@@ -73,18 +73,20 @@ public class FormatUtils {
             long id = node.getId();
             // todo - if properties is empty non lo metto se isConvertToMap.
             // todo - if more info è true metto metto anche type: node
-            Map<String, Object> mapNode = map("id", isConvertToMap ? String.valueOf(id) : id,
-                    "labels",labelStrings(node));
+            Map<String, Object> mapNode = Collections.emptyMap();
 
             Map<String, Object> props = pc.getAllProperties();
             // todo - forse basta map("properties", props) se isEmpty?
             if(isConvertToMap) {
-                mapNode.put("type", "node");
+                mapNode.putAll(map("id", String.valueOf(id), "type", "node"));
                 if (!props.isEmpty()) {
                     mapNode.put("properties", props);
                 }
+                if (!node.getLabels().iterator().hasNext()) {
+                    mapNode.put("labels", labelStrings(node));
+                }
             } else {
-                mapNode.put("properties",props);
+                mapNode.putAll(map("id", id, "properties",props,"labels", labelStrings(node)));
             }
 
             return mapNode;
@@ -95,14 +97,19 @@ public class FormatUtils {
 
             // todo - rel.getType().name() che stampa??????
             //  nel caso cambiarlo o farlo con il ternario che ritorna 'relationship'
+            String type = rel.getType().name();
+
+            // todo - farlo come Node, cioè emptyMap e poi popolare
             Map<String, Object> mapRel = map("id", isConvertToMap ? String.valueOf(id) : id, "type", rel.getType().name());
+
+            // todo - rel.getType().toString() e rel.getType().name() sono la stessa cosa??
 
             // todo - labels metterlo solo se ci sono labels nel risultato...
 
             // todo - forse basta map("properties", props) se isEmpty?
             Map<String, Object> props = pc.getAllProperties();
             if (isConvertToMap) {
-                mapRel.putAll(map("type", "relationship",
+                mapRel.putAll(map(/*"type", "relationship",*/
                         // todo - labels usando il metodo commentato di sopra
                         "start", map("id",String.valueOf(rel.getStartNode().getId()),
                                 "labels", rel.getStartNode().getLabels()),
@@ -133,43 +140,39 @@ public class FormatUtils {
     public static Map<String,Object> toMap(Entity value) {
         return toMap(value, false);
     }
-    public static String toString(Object value, boolean isConvertToMap, boolean withErrors) {
+    public static String toString(Object value, boolean isConvertToMap) {
         // todo - path che fa?
         if (value == null) return "";
         if (value instanceof Path) {
             return toString(StreamSupport.stream(((Path)value).spliterator(),false).map(i->toMap(i, isConvertToMap)).collect(Collectors.toList()));
         }
         if (value instanceof Entity) {
-            return Util.toJson(toMap((Entity) value, isConvertToMap), withErrors); // todo id, label, type ?
+            return Util.toJson(toMap((Entity) value, isConvertToMap), isConvertToMap); // todo id, label, type ?
         }
         if (value.getClass().isArray()) {
             if (isConvertToMap) {
-                value = ((ArrayList) value).stream().map(i->toString(i, true, true)).collect(Collectors.toList());
+                value = ((ArrayList) value).stream().map(i->toString(i, true)).collect(Collectors.toList());
             }
 
-            return Util.toJson(value, withErrors);
+            return Util.toJson(value, isConvertToMap);
         }
         if (value instanceof Iterable) {
             if (isConvertToMap) {
                 value = StreamSupport.stream(
                         ((Iterable) value).spliterator(), false)
-                        .map(i->toString(i, true, true))
+                        .map(i->toString(i, true))
                         .collect(Collectors.toList());
-//                value = (List) value).entrySet()
-//                        .stream()
-//                        .collect(Collectors.toMap(Map.Entry::getKey,
-//                                e -> toString(e.getValue(), true, withErrors )));
             }
-            return Util.toJson(value, withErrors);
+            return Util.toJson(value, isConvertToMap);
         }
         if (value instanceof Map) {
             if (isConvertToMap) {
                 value = ((Map<String, Object>) value).entrySet()
                         .stream()
                         .collect(Collectors.toMap(Map.Entry::getKey,
-                                e -> toString(e.getValue(), isConvertToMap, withErrors)));
+                                e -> toString(e.getValue(), true)));
             }
-            return Util.toJson(value, withErrors);
+            return Util.toJson(value, isConvertToMap);
         }
         if (value instanceof Number) {
             return formatNumber((Number)value);
@@ -181,7 +184,7 @@ public class FormatUtils {
     }
 
     public static String toString(Object value) {
-        return toString(value, false, false);
+        return toString(value, false);
     }
 
 

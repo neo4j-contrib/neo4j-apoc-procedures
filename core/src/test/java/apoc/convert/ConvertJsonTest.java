@@ -32,7 +32,7 @@ public class ConvertJsonTest {
 
 	@Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Json.class);
-        db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42}),(c:User {age:12}),(d:User)");
+        db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42}),(c:User {age:12}),(d:User),(e {pippo:'pluto'})");
     }
 
     @Test public void testToJsonList() throws Exception {
@@ -58,12 +58,22 @@ public class ConvertJsonTest {
     @Test
     public void testExportQueryTwoNodesJson() throws Exception {
         String filename = "query_two_nodes.json";
-        String query = "MATCH (u:User) RETURN apoc.convert.toJson(COLLECT(u)) as list";
+        String query = "MATCH (u) RETURN apoc.convert.toJson(COLLECT(u)) as list";
         TestUtil.testCall(db, query,
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(2)"));
-                    assertEquals(filename, r.get("file"));
-                    assertEquals("json", r.get("format"));
+                });
+
+//        assertFileEquals(filename);
+    }
+
+    @Test
+    public void testExportQueryTwoNodesJson2() throws Exception {
+        String filename = "query_two_nodes.json";
+        String query = "MATCH (u) RETURN apoc.convert.toJson(COLLECT(u)) as list";
+        TestUtil.testCall(db, query,
+                (r) -> {
+                    assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(2)"));
                 });
 
 //        assertFileEquals(filename);
@@ -84,7 +94,7 @@ public class ConvertJsonTest {
 
     @Test
     public void testToJsonRel() throws Exception {
-	    testCall(db, "RETURN apoc.convert.toJson({a:42,b:\"foo\",c:[1,2,3]}) as value",
+	    testCall(db, "MATCH ()-[rel:KNOWS]->() RETURN apoc.convert.toJson(rel) as value",
 	             (row) -> assertEquals("{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}", row.get("value")) );
     }
     @Test
