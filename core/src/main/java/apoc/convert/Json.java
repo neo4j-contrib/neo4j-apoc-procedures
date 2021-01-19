@@ -42,7 +42,6 @@ public class Json {
     }
 
     private Map<String,Object> relToMap(Relationship rel) {
-
         Map<String, Object> mapRel = map(
                 "id", String.valueOf(rel.getId()),
                 "type", "relationship",
@@ -54,7 +53,6 @@ public class Json {
     }
 
     private Map<String,Object> nodeToMap(Node node, boolean mapForNode) {
-
         Map<String, Object> mapNode = map("id", String.valueOf(node.getId()));
 
         if (mapForNode) {
