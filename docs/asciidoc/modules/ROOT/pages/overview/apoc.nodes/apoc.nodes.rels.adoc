@@ -31,5 +31,9 @@ apoc.nodes.rels(relationships :: ANY?) :: (rel :: RELATIONSHIP?)
 |rel|RELATIONSHIP?
 |===
 
+[[usage-apoc.nodes.rels]]
+== Usage Examples
+include::partial$usage/apoc.nodes.rels.adoc[]
+
 xref::graph-querying/node-querying.adoc[More documentation of apoc.nodes.rels,role=more information]
 

@@ -32,5 +32,9 @@ apoc.nodes.delete(nodes :: ANY?, batchSize :: INTEGER?) :: (value :: INTEGER?)
 |value|INTEGER?
 |===
 
+[[usage-apoc.nodes.delete]]
+== Usage Examples
+include::partial$usage/apoc.nodes.delete.adoc[]
+
 xref::graph-querying/node-querying.adoc[More documentation of apoc.nodes.delete,role=more information]
 

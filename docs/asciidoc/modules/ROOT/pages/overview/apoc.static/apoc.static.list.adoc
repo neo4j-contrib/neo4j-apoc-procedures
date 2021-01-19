@@ -32,5 +32,9 @@ apoc.static.list(prefix :: STRING?) :: (key :: STRING?, value :: ANY?)
 |value|ANY?
 |===
 
+[[usage-apoc.static.list]]
+== Usage Examples
+include::partial$usage/apoc.static.list.adoc[]
+
 xref::misc/static-values.adoc[More documentation of apoc.static.list,role=more information]
 

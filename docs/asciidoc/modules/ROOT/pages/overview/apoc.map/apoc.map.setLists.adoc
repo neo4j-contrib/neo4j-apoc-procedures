@@ -26,3 +26,7 @@ apoc.map.setLists(map :: MAP?, keys :: LIST? OF STRING?, values :: LIST? OF ANY?
 |values|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.map.setLists]]
+== Usage Examples
+include::partial$usage/apoc.map.setLists.adoc[]
+

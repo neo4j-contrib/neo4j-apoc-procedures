@@ -26,3 +26,7 @@ apoc.map.setEntry(map :: MAP?, key :: STRING?, value :: ANY?) :: (MAP?)
 |value|ANY?|null
 |===
 
+[[usage-apoc.map.setEntry]]
+== Usage Examples
+include::partial$usage/apoc.map.setEntry.adoc[]
+

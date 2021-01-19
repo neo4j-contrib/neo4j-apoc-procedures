@@ -26,3 +26,7 @@ apoc.convert.getJsonProperty(node :: NODE?, key :: STRING?, path =  :: STRING?) 
 |path|STRING?|
 |===
 
+[[usage-apoc.convert.getJsonProperty]]
+== Usage Examples
+include::partial$usage/apoc.convert.getJsonProperty.adoc[]
+
