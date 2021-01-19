@@ -49,34 +49,20 @@ public class ConvertJsonTest {
 	             (row) -> assertNotNull(row.get("value")) );
     }
 
-    // todo - nodo senza label?
-
-    // todo - lista di nodi?
-
-
-    // todo - 2 nodi?
     @Test
-    public void testExportQueryTwoNodesJson() throws Exception {
-        String filename = "query_two_nodes.json";
-        String query = "MATCH (u) RETURN apoc.convert.toJson(COLLECT(u)) as list";
-        TestUtil.testCall(db, query,
-                (r) -> {
-                    assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(2)"));
-                });
-
-//        assertFileEquals(filename);
+    public void testToJsonNodeWithoutLabel() throws Exception {
+        testCall(db, "MATCH (a {pippo:'pluto'}) RETURN apoc.convert.toJson(a) AS value",
+                (row) -> assertEquals("{\"id\":\"4\",\"properties\":{\"pippo\":\"pluto\"},\"type\":\"node\"}", row.get("value")) );
     }
 
     @Test
-    public void testExportQueryTwoNodesJson2() throws Exception {
-        String filename = "query_two_nodes.json";
+    public void testExportQueryTwoNodesJson() throws Exception {
         String query = "MATCH (u) RETURN apoc.convert.toJson(COLLECT(u)) as list";
-        TestUtil.testCall(db, query,
-                (r) -> {
-                    assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(2)"));
-                });
-
-//        assertFileEquals(filename);
+        TestUtil.testCall(db, query, (row) ->
+            assertEquals(
+                    "[{\"id\":\"0\",\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"male\":true,\"age\":42,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]},\"labels\":[\"User\"],\"type\":\"node\"},{\"id\":\"1\",\"properties\":{\"name\":\"Jim\",\"age\":42},\"labels\":[\"User\"],\"type\":\"node\"},{\"id\":\"2\",\"properties\":{\"age\":12},\"labels\":[\"User\"],\"type\":\"node\"},{\"id\":\"3\",\"labels\":[\"User\"],\"type\":\"node\"},{\"id\":\"4\",\"properties\":{\"pippo\":\"pluto\"},\"type\":\"node\"}]",
+                    row.get("list")
+            ));
     }
 
     @Test
@@ -91,17 +77,24 @@ public class ConvertJsonTest {
                 (row) -> assertNotNull(row.get("value")) );
     }
 
-
     @Test
     public void testToJsonRel() throws Exception {
 	    testCall(db, "MATCH ()-[rel:KNOWS]->() RETURN apoc.convert.toJson(rel) as value",
-	             (row) -> assertEquals("{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}", row.get("value")) );
+	             (row) -> assertEquals(
+	                     "{\"id\":\"0\",\"type\":\"relationship\",\"label\":\"KNOWS\",\"start\":{\"id\":\"0\",\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"male\":true,\"age\":42,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]},\"labels\":[\"User\"]},\"end\":{\"id\":\"1\",\"properties\":{\"name\":\"Jim\",\"age\":42},\"labels\":[\"User\"]},\"properties\":{\"bffSince\":\"P5M1DT12H\",\"since\":1993}}",
+                         row.get("value")
+                 ));
     }
+
     @Test
     public void testToJsonPath() throws Exception {
-	    testCall(db, "CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baz {a:'b'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www', two:2, three: datetime()}) RETURN apoc.convert.toJson(p) AS value",
-	             (row) -> assertEquals("{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}", row.get("value")) );
+	    testCall(db, "CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baz {a:'b'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www', two:2, three: date('2020-20-20')}) RETURN apoc.convert.toJson(p) AS value",
+	             (row) -> assertEquals(
+	                     "[{\"id\":\"5\",\"type\":\"node\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},{\"start\":{\"id\":\"5\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},\"end\":{\"id\":\"6\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]},\"id\":\"1\",\"label\":\"TEST\",\"type\":\"relationship\"},{\"id\":\"6\",\"type\":\"node\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]},{\"start\":{\"id\":\"7\",\"properties\":{\"one\":\"www\",\"three\":\"2020-20-20T00:00:00.000Z\",\"two\":2},\"labels\":[\"Bar\"]},\"end\":{\"id\":\"6\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]},\"id\":\"2\",\"label\":\"TEST_2\",\"type\":\"relationship\",\"properties\":{\"aa\":\"bb\"}},{\"id\":\"7\",\"type\":\"node\",\"properties\":{\"one\":\"www\",\"three\":\"2021-01-19T11:00:52.243Z\",\"two\":2},\"labels\":[\"Bar\"]}]",
+                         row.get("value")
+                 ));
     }
+
     @Test public void testFromJsonList() throws Exception {
 	    testCall(db, "RETURN apoc.convert.fromJsonList('[1,2,3]') as value",
 	             (row) -> assertEquals(asList(1L,2L,3L), row.get("value")) );

@@ -18,33 +18,104 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.export.util.FormatUtils.getLabelsSorted;
+import static apoc.util.Util.labelStrings;
+import static apoc.util.Util.map;
 
 public class Json {
 
     // TODO TODOISSIMO - USARE TOMAP DI FORMATUTILS!!!
 
-    private Object writeJsonResult(Object value) throws IOException {
+    private Object writeJsonResult(Object value) {
         Meta.Types type = Meta.Types.of(value);
         switch (type) {
             case NODE:
 //                writeFieldName(jsonGenerator, keyName, writeKey);
-                return writeNode((Node) value);
+                return nodeToMap((Node) value, true);
 //                break;
             case RELATIONSHIP:
 //                writeFieldName(jsonGenerator, keyName, writeKey);
-                writeRel((Relationship) value);
-                return "";
+                return relToMap((Relationship) value);
 //                break;
             case PATH:
+                return writeJsonResult(StreamSupport.stream(((Path)value).spliterator(),false).map(i-> i instanceof Node ? nodeToMap(i, true) : relToMap(i)).collect(Collectors.toList()));
 //                writeFieldName(jsonGenerator, keyName, writeKey);
-                writePath((Path) value);
-                return "";
+//                writePath((Path) value);
+//                return "";
 //                break;
+            case LIST:
+//                Object[] list = value.getClass().isArray() ? (Object[]) value : ((List<Object>) value).toArray();
+//                return Arrays.stream(arrayPattern.split(value)).map(this::convertType).collect(Collectors.toList());
+                return ((ArrayList) value).stream().map(this::writeJsonResult).collect(Collectors.toList());
+            case MAP:
+                return ((Map<String, Object>) value).entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey,
+                                e -> writeJsonResult(e.getValue())));
             default:
                 return value;
         }
+    }
+
+    public static Map<String,Object> relToMap(Entity pc) {
+        Relationship rel = (Relationship) pc;
+
+        // todo - farlo come Node, cioè emptyMap e poi popolare
+        Map<String, Object> mapRel = map(
+                "id", String.valueOf(rel.getId()),
+                "type", "relationship",
+                "label", rel.getType().toString(),
+                "start", nodeToMap(rel.getStartNode(), false),
+                "end", nodeToMap(rel.getEndNode(), false));
+
+        // todo - rel.getType().toString() e rel.getType().name() sono la stessa cosa??
+
+        // todo - labels metterlo solo se ci sono labels nel risultato...
+
+        // todo - forse basta map("properties", props) se isEmpty?
+        Map<String, Object> props = pc.getAllProperties();
+        if (!props.isEmpty()) {
+            mapRel.put("properties", props);
+        }
+//        }
+        // todo - if properties is empty non lo metto se isConvertToMap.
+        // todo - if more info è true metto in start ed end anche le labels
+        // todo - if more info è true metto  anche type: relationship
+        // todo - if more info è true metto anche le labels - jsonGenerator.writeStringField("label", rel.getType().toString());
+
+        return mapRel;
+//            return map("id", rel.getId(), "type", rel.getType().name(),
+//                    "start", rel.getStartNode().getId(),"end", rel.getEndNode().getId(),
+//                    "properties",pc.getAllProperties());
+    }
+
+    public static Map<String,Object> nodeToMap(Entity pc, boolean mapForNode) {
+
+        Node node = (Node) pc;
+        long id = node.getId();
+        // todo - if properties is empty non lo metto se isConvertToMap.
+        // todo - if more info è true metto metto anche type: node
+        Map<String, Object> mapNode = map("id", String.valueOf(id));
+
+        Map<String, Object> props = pc.getAllProperties();
+        // todo - forse basta map("properties", props) se isEmpty?
+//        if(isConvertToMap) {
+//            mapNode.putAll(map("id", String.valueOf(id), "type", "node"));
+            if (!props.isEmpty()) {
+                mapNode.put("properties", props);
+            }
+            if (node.getLabels().iterator().hasNext()) {
+                mapNode.put("labels", labelStrings(node));
+            }
+            if (mapForNode) {
+                mapNode.put( "type", "node");
+            }
+//        }
+
+        return mapNode;
+
     }
 
 
@@ -220,13 +291,15 @@ public class Json {
 
         // todo - aggiungere "type": "node" ... , relazioni con nodeStart/end con più info (labels...), ed id stringa e non numerico
         // ossia fare un overload...
-        return FormatUtils.toString(value, true, true);
-//        try {
-//            return JsonUtil.OBJECT_MAPPER.writeValueAsString(writeJsonResult(value));
-//        } catch (IOException e) {
-//            log.info("osvaldo error");
-//            throw new RuntimeException("Can't convert " + value + " to json", e);
-//        }
+
+        // todo - vedere che stampa Meta.Types.of(value)
+//        return FormatUtils.toString(value, true);
+        try {
+            return JsonUtil.OBJECT_MAPPER.writeValueAsString(writeJsonResult(value));
+        } catch (IOException e) {
+            log.info("osvaldo error");
+            throw new RuntimeException("Can't convert " + value + " to json", e);
+        }
     }
 
     @Procedure(mode = Mode.WRITE) // ,name = "apoc.json.setProperty")
