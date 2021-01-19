@@ -10,7 +10,7 @@
 ¦function¦apoc.convert.toFloat¦apoc.convert.toFloat(object :: ANY?) :: (FLOAT?)¦apoc.convert.toFloat(value) | tries it's best to convert the value to a float
 ¦function¦apoc.convert.toIntList¦apoc.convert.toIntList(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toIntList(value) | tries it's best to convert the value to a list of integers
 ¦function¦apoc.convert.toInteger¦apoc.convert.toInteger(object :: ANY?) :: (INTEGER?)¦apoc.convert.toInteger(value) | tries it's best to convert the value to an integer
-¦function¦apoc.convert.toJson¦apoc.convert.toJson(value :: ANY?) :: (STRING?)¦apoc.convert.toJson([1,2,3]) or toJson({a:42,b:"foo",c:[1,2,3]})
+¦function¦apoc.convert.toJson¦apoc.convert.toJson(value :: ANY?) :: (STRING?)¦apoc.convert.toJson([1,2,3]) or toJson({a:42,b:"foo",c:[1,2,3]}) - convert the value to JSON
 ¦function¦apoc.convert.toList¦apoc.convert.toList(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toList(value) | tries it's best to convert the value to a list
 ¦function¦apoc.convert.toMap¦apoc.convert.toMap(map :: ANY?) :: (MAP?)¦apoc.convert.toMap(value) | tries it's best to convert the value to a map
 ¦function¦apoc.convert.toNode¦apoc.convert.toNode(node :: ANY?) :: (NODE?)¦apoc.convert.toNode(value) | tries it's best to convert the value to a node

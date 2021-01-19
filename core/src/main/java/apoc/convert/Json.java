@@ -4,9 +4,7 @@ import apoc.meta.Meta;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.neo4j.graphdb.*;
-import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
 import java.io.IOException;
@@ -28,7 +26,9 @@ public class Json {
             case RELATIONSHIP:
                 return relToMap((Relationship) value);
             case PATH:
-                return writeJsonResult(StreamSupport.stream(((Path)value).spliterator(),false).map(i-> i instanceof Node ? nodeToMap(i, true) : relToMap(i)).collect(Collectors.toList()));
+                return writeJsonResult(StreamSupport.stream(((Path)value).spliterator(),false)
+                        .map(i-> i instanceof Node ? nodeToMap((Node) i, true) : relToMap((Relationship) i))
+                        .collect(Collectors.toList()));
             case LIST:
                 return ((ArrayList) value).stream().map(this::writeJsonResult).collect(Collectors.toList());
             case MAP:
@@ -41,8 +41,7 @@ public class Json {
         }
     }
 
-    public static Map<String,Object> relToMap(Entity pc) {
-        Relationship rel = (Relationship) pc;
+    private Map<String,Object> relToMap(Relationship rel) {
 
         Map<String, Object> mapRel = map(
                 "id", String.valueOf(rel.getId()),
@@ -51,30 +50,27 @@ public class Json {
                 "start", nodeToMap(rel.getStartNode(), false),
                 "end", nodeToMap(rel.getEndNode(), false));
 
-        Map<String, Object> props = pc.getAllProperties();
-        if (!props.isEmpty()) {
-            mapRel.put("properties", props);
-        }
-        return mapRel;
+        return mapWithOptionalProps(mapRel, rel.getAllProperties());
     }
 
-    public static Map<String,Object> nodeToMap(Entity pc, boolean mapForNode) {
-        Node node = (Node) pc;
+    private Map<String,Object> nodeToMap(Node node, boolean mapForNode) {
 
         Map<String, Object> mapNode = map("id", String.valueOf(node.getId()));
 
-        Map<String, Object> props = pc.getAllProperties();
-        if (!props.isEmpty()) {
-            mapNode.put("properties", props);
+        if (mapForNode) {
+            mapNode.put( "type", "node");
         }
         if (node.getLabels().iterator().hasNext()) {
             mapNode.put("labels", labelStrings(node));
         }
-        if (mapForNode) {
-            mapNode.put( "type", "node");
-        }
-        return mapNode;
+        return mapWithOptionalProps(mapNode, node.getAllProperties());
+    }
 
+    private Map<String, Object> mapWithOptionalProps(Map<String,Object> mapEntity, Map<String,Object> props) {
+        if (!props.isEmpty()) {
+            mapEntity.put("properties", props);
+        }
+        return mapEntity;
     }
 
     @Context
@@ -86,7 +82,7 @@ public class Json {
         return JsonUtil.parse(json,path,Object.class);
     }
     @UserFunction("apoc.convert.toJson")
-    @Description("apoc.convert.toJson([1,2,3]) or toJson({a:42,b:\"foo\",c:[1,2,3]})")
+    @Description("apoc.convert.toJson([1,2,3]) or apoc.convert.toJson({a:42,b:\"foo\",c:[1,2,3]}) - convert the value to JSON")
     public String toJson(@Name("value") Object value) {
         try {
             return JsonUtil.OBJECT_MAPPER.writeValueAsString(writeJsonResult(value));

@@ -42,25 +42,28 @@ public class ConvertJsonTest {
 	    testCall(db, "RETURN apoc.convert.toJson({a:42,b:\"foo\",c:[1,2,3]}) as value",
 	             (row) -> assertEquals("{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}", row.get("value")) );
     }
+
     @Test
     public void testToJsonNode() throws Exception {
 	    testCall(db, "CREATE (a:Test {foo: 7}) RETURN apoc.convert.toJson(a) AS value",
-	             (row) -> assertEquals("{\"id\":\"0\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"],\"type\":\"node\"}", row.get("value")));
+	             (row) -> assertEquals("{\"id\":\"0\",\"type\":\"node\",\"labels\":[\"Test\"],\"properties\":{\"foo\":7}}", row.get("value")));
     }
 
     @Test
     public void testToJsonNodeWithoutLabel() throws Exception {
         testCall(db, "CREATE (a {pippo:'pluto'}) RETURN apoc.convert.toJson(a) AS value",
-                (row) -> assertEquals("{\"id\":\"0\",\"properties\":{\"pippo\":\"pluto\"},\"type\":\"node\"}", row.get("value")) );
+                (row) -> assertEquals("{\"id\":\"0\",\"type\":\"node\",\"properties\":{\"pippo\":\"pluto\"}}", row.get("value")) );
     }
 
     @Test
-    public void testExportQueryTwoNodesJson() throws Exception {
-        db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42}),(c:User {age:12}),(d:User),(e {pippo:'pluto'})");
+    public void testToJsonCollectNodes() throws Exception {
+        db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})}),(b:User {name:'Jim',age:42}),(c:User {age:12}),(d:User),(e {pippo:'pluto'})");
         String query = "MATCH (u) RETURN apoc.convert.toJson(COLLECT(u)) as list";
         TestUtil.testCall(db, query, (row) ->
             assertEquals(
-                    "[{\"id\":\"0\",\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"male\":true,\"age\":42,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]},\"labels\":[\"User\"],\"type\":\"node\"},{\"id\":\"1\",\"properties\":{\"name\":\"Jim\",\"age\":42},\"labels\":[\"User\"],\"type\":\"node\"},{\"id\":\"2\",\"properties\":{\"age\":12},\"labels\":[\"User\"],\"type\":\"node\"},{\"id\":\"3\",\"labels\":[\"User\"],\"type\":\"node\"},{\"id\":\"4\",\"properties\":{\"pippo\":\"pluto\"},\"type\":\"node\"}]",
+                    "[{\"id\":\"0\",\"type\":\"node\",\"labels\":[\"User\"],\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"male\":true,\"age\":42,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]}}," +
+                            "{\"id\":\"1\",\"type\":\"node\",\"labels\":[\"User\"],\"properties\":{\"name\":\"Jim\",\"age\":42}},{\"id\":\"2\",\"type\":\"node\",\"labels\":[\"User\"],\"properties\":{\"age\":12}}," +
+                            "{\"id\":\"3\",\"type\":\"node\",\"labels\":[\"User\"]},{\"id\":\"4\",\"type\":\"node\",\"properties\":{\"pippo\":\"pluto\"}}]",
                     row.get("list")
             ));
     }
@@ -68,20 +71,22 @@ public class ConvertJsonTest {
     @Test
     public void testToJsonProperties() throws Exception {
         testCall(db, "CREATE (a:Test {foo: 7}) RETURN apoc.convert.toJson(properties(a)) AS value",
-                (row) -> assertEquals("{\"foo\":7}", row.get("value")) );
+                (row) -> assertEquals("{\"foo\":7}", row.get("value")));
     }
 
     @Test
     public void testToJsonMapOfNodes() throws Exception {
         testCall(db, "CREATE (a:Test {foo: 7}), (b:Test {bar: 9}) RETURN apoc.convert.toJson({one: a, two: b}) AS value",
-                (row) -> assertNotNull(row.get("value")) );
+                (row) -> assertEquals("{\"one\":{\"id\":\"0\",\"type\":\"node\",\"labels\":[\"Test\"],\"properties\":{\"foo\":7}},\"two\":{\"id\":\"1\",\"type\":\"node\",\"labels\":[\"Test\"],\"properties\":{\"bar\":9}}}", row.get("value")));
     }
 
     @Test
     public void testToJsonRel() throws Exception {
         testCall(db, "CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[rel:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42}) RETURN apoc.convert.toJson(rel) as value",
 	             (row) -> assertEquals(
-	                     "{\"id\":\"0\",\"type\":\"relationship\",\"label\":\"KNOWS\",\"start\":{\"id\":\"0\",\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"age\":42,\"male\":true,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]},\"labels\":[\"User\"]},\"end\":{\"id\":\"1\",\"properties\":{\"name\":\"Jim\",\"age\":42},\"labels\":[\"User\"]},\"properties\":{\"bffSince\":\"P5M1DT12H\",\"since\":1993}}",
+	                     "{\"id\":\"0\",\"type\":\"relationship\",\"label\":\"KNOWS\"," +
+                                 "\"start\":{\"id\":\"0\",\"labels\":[\"User\"],\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"age\":42,\"male\":true,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]}}," +
+                                 "\"end\":{\"id\":\"1\",\"labels\":[\"User\"],\"properties\":{\"name\":\"Jim\",\"age\":42}},\"properties\":{\"bffSince\":\"P5M1DT12H\",\"since\":1993}}",
                          row.get("value")
                  ));
     }
@@ -90,7 +95,22 @@ public class ConvertJsonTest {
     public void testToJsonPath() throws Exception {
 	    testCall(db, "CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baz {a:'b'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www', two:2, three: localdatetime('2020-01-01')}) RETURN apoc.convert.toJson(p) AS value",
 	             (row) -> assertEquals(
-	                     "[{\"id\":\"0\",\"type\":\"node\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},{\"start\":{\"id\":\"0\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},\"end\":{\"id\":\"1\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]},\"id\":\"0\",\"label\":\"TEST\",\"type\":\"relationship\"},{\"id\":\"1\",\"type\":\"node\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]},{\"start\":{\"id\":\"2\",\"properties\":{\"one\":\"www\",\"two\":2,\"three\":\"2020-01-01T00:00\"},\"labels\":[\"Bar\"]},\"end\":{\"id\":\"1\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]},\"id\":\"1\",\"label\":\"TEST_2\",\"type\":\"relationship\",\"properties\":{\"aa\":\"bb\"}},{\"id\":\"2\",\"type\":\"node\",\"properties\":{\"one\":\"www\",\"two\":2,\"three\":\"2020-01-01T00:00\"},\"labels\":[\"Bar\"]}]",
+	                     "[{\"id\":\"0\",\"type\":\"node\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},{\"start\":{\"id\":\"0\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},\"end\":{\"id\":\"1\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]}," +
+                                 "\"id\":\"0\",\"label\":\"TEST\",\"type\":\"relationship\"},{\"id\":\"1\",\"type\":\"node\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]},{\"start\":{\"id\":\"2\",\"properties\":{\"one\":\"www\",\"two\":2,\"three\":\"2020-01-01T00:00\"},\"labels\":[\"Bar\"]},\"end\":{\"id\":\"1\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]}," +
+                                 "\"id\":\"1\",\"label\":\"TEST_2\",\"type\":\"relationship\",\"properties\":{\"aa\":\"bb\"}},{\"id\":\"2\",\"type\":\"node\",\"properties\":{\"one\":\"www\",\"two\":2,\"three\":\"2020-01-01T00:00\"},\"labels\":[\"Bar\"]}]",
+                         row.get("value")
+                 ));
+    }
+
+    @Test
+    public void testToJsonListOfPath() throws Exception {
+	    testCall(db, "CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baz {a:'b'}), q=(:Omega {alpha: 'beta'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www'}) RETURN apoc.convert.toJson(collect(p)+collect(q)) AS value",
+	             (row) -> assertEquals(
+	                     "[[{\"id\":\"0\",\"type\":\"node\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},{\"start\":{\"id\":\"0\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},\"end\":{\"id\":\"1\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]}," +
+                                 "\"id\":\"0\",\"label\":\"TEST\",\"type\":\"relationship\"}," +
+                                 "{\"id\":\"1\",\"type\":\"node\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]}]," +
+                                 "[{\"id\":\"2\",\"type\":\"node\",\"properties\":{\"alpha\":\"beta\"},\"labels\":[\"Omega\"]},{\"start\":{\"id\":\"3\",\"properties\":{\"one\":\"www\"},\"labels\":[\"Bar\"]},\"end\":{\"id\":\"2\",\"properties\":{\"alpha\":\"beta\"},\"labels\":[\"Omega\"]}," +
+                                 "\"id\":\"1\",\"label\":\"TEST_2\",\"type\":\"relationship\",\"properties\":{\"aa\":\"bb\"}},{\"id\":\"3\",\"type\":\"node\",\"properties\":{\"one\":\"www\"},\"labels\":[\"Bar\"]}]]",
                          row.get("value")
                  ));
     }
