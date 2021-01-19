@@ -1,0 +1,26 @@
+`map.json` contains a JSON document representing a person and their children.
+
+.map.json
+[source,json]
+----
+{
+  "foo":[1,2,3]
+}
+----
+
+We'll place this file into the `import` directory of our Neo4j instance.
+Let's now write a query using the `apoc.load.jsonArray` procedure to explore this file.
+
+The following query processes `map.json` and returns the content as Cypher data structures
+
+[source,cypher]
+----
+CALL apoc.load.jsonArray("file:///map.json", "$.foo");
+----
+
+.Results
+[options="header"]
+|===
+| value
+| [1, 2, 3]
+|===
