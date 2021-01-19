@@ -1,0 +1,51 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (michael:Person {name: "Michael"})
+WITH michael
+CALL {
+    WITH michael
+    UNWIND range(0, 10000) AS id
+    MERGE (p:Person {name: "Person" + id})
+    MERGE (michael)-[:KNOWS]-(p)
+    RETURN count(*) AS friends
+}
+RETURN friends;
+----
+
+.Results
+[opts="header"]
+|===
+| friends
+| 10001
+|===
+
+
+[source,cypher]
+----
+CALL apoc.warmup.run()
+YIELD nodesTotal, nodePages, relsTotal, relPages, propPages, propertiesLoaded
+RETURN nodesTotal, nodePages, relsTotal, relPages, propPages, propertiesLoaded;
+----
+
+.Results
+[opts="header"]
+|===
+| nodesTotal | nodePages | relsTotal | relPages | propPages | propertiesLoaded
+| 10002      | 184       | 10001     | 417 | 503 | FALSE
+|===
+
+[source,cypher]
+----
+CALL apoc.warmup.run(true, true, false)
+YIELD nodesTotal, nodePages, relsTotal, relPages, propPages, propertiesLoaded
+RETURN nodesTotal, nodePages, relsTotal, relPages, propPages, propertiesLoaded;
+----
+
+.Results
+[opts="header"]
+|===
+| nodesTotal | nodePages | relsTotal | relPages | propPages | propertiesLoaded
+| 10002      | 184       | 10001     | 417 | 503 | TRUE
+|===

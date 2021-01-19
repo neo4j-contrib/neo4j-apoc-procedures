@@ -36,3 +36,7 @@ apoc.refactor.extractNode(relationships :: ANY?, labels :: LIST? OF STRING?, out
 |error|STRING?
 |===
 
+[[usage-apoc.refactor.extractNode]]
+== Usage Examples
+include::partial$usage/apoc.refactor.extractNode.adoc[]
+
