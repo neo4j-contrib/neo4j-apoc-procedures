@@ -1,0 +1,33 @@
+The examples in this section are based on the following sample graph:
+[source,cypher]
+----
+CREATE (:Movie {title: 'A Few Good Men', genre: 'Drama'});
+----
+
+We want to move the `genre` from the `Movie` node to a new node with the `Genre` label and `name` property.
+We'll also create a `GENRE` relationship from the `Movie` node to that genre node.
+
+This procedure requires us to create a unique constraint on the `Genre` label, `name` property, otherwise we'll get the following exception:
+
+[source,cypher]
+----
+CALL apoc.refactor.categorize('genre', 'GENRE', true, "Genre", "name", [], 100);
+----
+
+.Results
+[source,text]
+----
+Failed to invoke procedure `apoc.refactor.categorize`: Caused by: java.lang.IllegalArgumentException: Before execute this procedure you must define an unique constraint for the label and the targetKey:
+CREATE CONSTRAINT ON (n:`Genre`) ASSERT n.`name` IS UNIQUE
+----
+
+Once we've created the constraint, we can re-run the procedure, and then see the new graph structure by running the following query:
+
+[source,cypher]
+----
+MATCH p=()-[:GENRE]->()
+RETURN p;
+----
+
+.New graph structure
+image::apoc.refactor.categorize.usage.png[]

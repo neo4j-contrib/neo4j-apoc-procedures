@@ -30,6 +30,10 @@ class DocumentationGenerator {
             this.signature = signature;
             this.description = description;
         }
+
+        public String getName() {
+            return name;
+        }
     }
 
     DocumentationGenerator(GraphDatabaseAPI db, Set<String> extended, Map<String, String> docs) {
@@ -45,6 +49,16 @@ class DocumentationGenerator {
 
         rows.addAll(procedureRows);
         rows.addAll(functionRows);
+    }
+
+    public Set<String> getDeprecated() {
+        Stream<String> procedures = allProcedures().stream().filter(item -> item.deprecated().isPresent()).map(item -> item.name().toString());
+        Stream<String> functions = allFunctions().filter(item -> item.deprecated().isPresent()).map(item -> item.name().toString());
+        return Stream.concat(procedures, functions).collect(Collectors.toSet());
+    }
+
+    public List<Row> getRows() {
+         return rows;
     }
 
     public void writeAllToCsv(Map<String, String> docs, Set<String> extended) {

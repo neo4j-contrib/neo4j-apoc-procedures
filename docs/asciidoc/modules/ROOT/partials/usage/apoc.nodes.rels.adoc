@@ -1,0 +1,35 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (Keanu:Person {name:'Keanu Reeves', born:1964})
+CREATE (TheMatrix:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})
+CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrix);
+----
+
+We can return the internal IDs of these nodes using the `id` function:
+
+[source,cypher]
+----
+MATCH ()-[r]->()
+RETURN id(r) AS id;
+----
+
+.Results
+[opts="header"]
+|===
+| id
+| 499367
+|===
+
+[source,cypher]
+----
+CALL apoc.nodes.rels([499367]);
+----
+
+.Results
+[opts="header"]
+|===
+| rel
+| [:ACTED_IN {roles: ["Neo"]}]
+|===

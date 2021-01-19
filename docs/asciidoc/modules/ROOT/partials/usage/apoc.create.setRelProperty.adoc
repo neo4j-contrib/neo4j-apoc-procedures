@@ -1,0 +1,66 @@
+The examples in this section are based on the following sample graph:
+[source,cypher]
+----
+CREATE (station1:Station {name: "Station 1"})
+CREATE (station2:Station {name: "Station 3"})
+CREATE (station1)-[:JOURNEY {arrival: "0802", departure: "0803"}]->(station2);
+----
+
+We want to convert the `arrival` and `departure` properties into Time types and store them as new properties, whose names are based on the original property keys.
+
+We can generate the new property keys and Time values, by running the following query:
+
+[source,cypher]
+----
+MATCH (:Station)-[journey:JOURNEY]->(:Station)
+UNWIND ["arrival", "departure"] AS key
+RETURN key + "Time" AS newKey, time(journey[key]) AS time;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| newKey          | time
+| "arrivalTime"   | 08:02Z
+| "departureTime" | 08:03Z
+|===
+
+But if we try to save these properties back to the database:
+
+[source,cypher]
+----
+MATCH (:Station)-[journey:JOURNEY]->(:Station)
+UNWIND ["arrival", "departure"] AS key
+WITH stop, key + "Time" AS newKey, time(journey[key]) AS time
+SET journey[newKey] = time;
+----
+
+We'll receive the following error:
+
+.Results
+[source,text]
+----
+Invalid input '[': expected ":" (line 5, column 12 (offset: 160))
+"SET journey[newKey] = time;"
+            ^
+----
+
+We can use `apoc.create.setRelProperty` to work around this problem, as shown in the query below:
+
+[source,cypher]
+----
+MATCH (:Station)-[journey:JOURNEY]->(:Station)
+UNWIND ["arrival", "departure"] AS key
+WITH journey, key + "Time" AS newKey, time(journey[key]) AS time
+CALL apoc.create.setRelProperty(journey, newKey, time)
+YIELD rel
+RETURN rel;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| rel
+| [:JOURNEY {departure: "0803", arrival: "0802", arrivalTime: 08:02Z}]
+| [:JOURNEY {departureTime: 08:03Z, departure: "0803", arrival: "0802", arrivalTime: 08:02Z}]
+|===

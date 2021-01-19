@@ -1,0 +1,21 @@
+[source,cypher]
+----
+RETURN apoc.text.urldecode("Neo4j+Aura") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "Neo4j Aura"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.urldecode("Neo4j%3C3GRANDstack") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "Neo4j<3GRANDstack"
+|===

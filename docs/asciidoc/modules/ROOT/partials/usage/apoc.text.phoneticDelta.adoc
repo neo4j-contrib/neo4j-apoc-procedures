@@ -1,0 +1,34 @@
+[source,cypher]
+----
+CALL apoc.text.phoneticDelta("Neo4j", "Neo4j");
+----
+.Results
+[opts="header"]
+|===
+| phonetic1 | phonetic2 | delta
+| "N200"    | "N200"    | 4
+|===
+
+[source,cypher]
+----
+CALL apoc.text.phoneticDelta("Neo4j Graph Data Science Library", "Neo4j Graph Database");
+----
+.Results
+[opts="header"]
+|===
+| phonetic1 | phonetic2 | delta
+| "N261"    | "N261"    | 4
+|===
+
+
+[source,cypher]
+----
+CALL apoc.text.phoneticDelta("GRANDstack", "GraphQL");
+----
+
+.Results
+[opts="header"]
+|===
+| phonetic1 | phonetic2 | delta
+| "G653"    | "G612"    | 2
+|===
