@@ -32,5 +32,9 @@ apoc.load.jsonArray(url :: STRING?, path =  :: STRING?) :: (value :: ANY?)
 |value|ANY?
 |===
 
+[[usage-apoc.load.jsonArray]]
+== Usage Examples
+include::partial$usage/apoc.load.jsonArray.adoc[]
+
 xref::import/load-json.adoc[More documentation of apoc.load.jsonArray,role=more information]
 
