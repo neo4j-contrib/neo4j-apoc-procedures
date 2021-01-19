@@ -98,6 +98,11 @@ apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB
 apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.virtualPath.adoc[apoc.create.virtualPath icon:book[]]
+
+apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.create/apoc.create.uuid.adoc[apoc.create.uuid icon:book[]]
 
 apoc.create.uuid() - creates an UUID

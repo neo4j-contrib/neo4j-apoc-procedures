@@ -1,6 +1,7 @@
 import apoc.util.TestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -53,6 +54,7 @@ public class DocsTest {
     }
 
     @Test
+    @Ignore
     public void findMissingUsageDocs() {
         Set<String> extended = readExtended();
         Map<String, String> docs = docsMapping();

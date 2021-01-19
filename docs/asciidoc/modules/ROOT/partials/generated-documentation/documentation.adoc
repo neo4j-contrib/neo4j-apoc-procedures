@@ -786,6 +786,11 @@ apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB
 apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.virtualPath.adoc[apoc.create.virtualPath icon:book[]]
+
+apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.create/apoc.create.uuid.adoc[apoc.create.uuid icon:book[]]
 
 apoc.create.uuid() - creates an UUID
@@ -966,7 +971,7 @@ CALL apoc.date.expire(node,time,'time-unit') - expire node at specified time by 
 |label:apoc-full[]
 |xref::overview/apoc.date/apoc.date.expireIn.adoc[apoc.date.expireIn icon:book[]]
 
-CALL apoc.date.expire.in(node,time,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
+CALL apoc.date.expireIn(node,time,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.date/apoc.date.add.adoc[apoc.date.add icon:book[]]
@@ -2440,17 +2445,17 @@ apoc.refactor.rename.label(oldLabel, newLabel, [nodes]) \| rename a label from '
 |label:apoc-core[]
 |xref::overview/apoc.refactor/apoc.refactor.rename.nodeProperty.adoc[apoc.refactor.rename.nodeProperty icon:book[]]
 
-apoc.refactor.rename.nodeProperty(oldName, newName, [nodes]) \| rename all node's property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only
+apoc.refactor.rename.nodeProperty(oldName, newName, [nodes], \{config}) \| rename all node's property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.refactor/apoc.refactor.rename.type.adoc[apoc.refactor.rename.type icon:book[]]
 
-apoc.refactor.rename.type(oldType, newType, [rels]) \| rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only
+apoc.refactor.rename.type(oldType, newType, [rels], \{config}) \| rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.refactor/apoc.refactor.rename.typeProperty.adoc[apoc.refactor.rename.typeProperty icon:book[]]
 
-apoc.refactor.rename.typeProperty(oldName, newName, [rels]) \| rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only
+apoc.refactor.rename.typeProperty(oldName, newName, [rels], \{config}) \| rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.refactor/apoc.refactor.setType.adoc[apoc.refactor.setType icon:book[]]
@@ -2991,7 +2996,6 @@ CALL apoc.trigger.resume(name) \| it resumes the paused trigger
 |label:apoc-full[]
 |===
 
-[discrete]
 == xref::overview/apoc.ttl/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
@@ -2999,14 +3003,19 @@ CALL apoc.trigger.resume(name) \| it resumes the paused trigger
 | Qualified Name | Type | Release
 |xref::overview/apoc.ttl/apoc.ttl.expire.adoc[apoc.ttl.expire icon:book[]]
 
-CALL apoc.ttl.expireAtInstant(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property
+CALL apoc.ttl.expire(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.ttl/apoc.ttl.expireIn.adoc[apoc.ttl.expireIn icon:book[]]
 
-CALL apoc.ttl.expireAfterTimeLength(node,timeDelta,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
+CALL apoc.ttl.expireIn(node,timeDelta,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
 |label:procedure[]
 |label:apoc-full[]
+|xref::overview/apoc.ttl/apoc.ttl.config.adoc[apoc.ttl.config icon:book[]]
+
+
+|label:function[]
+|label:apoc-core[]
 |===
 
 == xref::overview/apoc.util/index.adoc[]

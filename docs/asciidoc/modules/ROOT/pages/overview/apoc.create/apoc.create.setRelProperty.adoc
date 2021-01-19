@@ -33,5 +33,9 @@ apoc.create.setRelProperty(relationships :: ANY?, key :: STRING?, value :: ANY?)
 |rel|RELATIONSHIP?
 |===
 
+[[usage-apoc.create.setRelProperty]]
+== Usage Examples
+include::partial$usage/apoc.create.setRelProperty.adoc[]
+
 xref::graph-updates/data-creation.adoc[More documentation of apoc.create.setRelProperty,role=more information]
 

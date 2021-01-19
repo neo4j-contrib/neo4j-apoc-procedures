@@ -25,3 +25,7 @@ apoc.map.setValues(map :: MAP?, pairs :: LIST? OF ANY?) :: (MAP?)
 |pairs|LIST? OF ANY?|null
 |===
 
+[[usage-apoc.map.setValues]]
+== Usage Examples
+include::partial$usage/apoc.map.setValues.adoc[]
+

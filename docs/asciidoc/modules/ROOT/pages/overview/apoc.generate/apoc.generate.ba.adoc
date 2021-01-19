@@ -27,5 +27,9 @@ apoc.generate.ba(noNodes :: INTEGER?, edgesPerNode :: INTEGER?, label :: STRING?
 |type|STRING?|null
 |===
 
+[[usage-apoc.generate.ba]]
+== Usage Examples
+include::partial$usage/apoc.generate.ba.adoc[]
+
 xref::graph-updates/graph-generators.adoc[More documentation of apoc.generate.ba,role=more information]
 

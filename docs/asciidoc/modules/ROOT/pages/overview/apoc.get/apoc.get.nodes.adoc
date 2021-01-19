@@ -31,3 +31,7 @@ apoc.get.nodes(nodes :: ANY?) :: (node :: NODE?)
 |node|NODE?
 |===
 
+[[usage-apoc.get.nodes]]
+== Usage Examples
+include::partial$usage/apoc.get.nodes.adoc[]
+

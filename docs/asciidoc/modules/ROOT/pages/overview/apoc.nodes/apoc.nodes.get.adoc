@@ -31,5 +31,9 @@ apoc.nodes.get(nodes :: ANY?) :: (node :: NODE?)
 |node|NODE?
 |===
 
+[[usage-apoc.nodes.get]]
+== Usage Examples
+include::partial$usage/apoc.nodes.get.adoc[]
+
 xref::graph-querying/node-querying.adoc[More documentation of apoc.nodes.get,role=more information]
 
