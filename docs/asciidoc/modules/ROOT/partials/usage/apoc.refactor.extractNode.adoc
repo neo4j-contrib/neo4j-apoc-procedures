@@ -1,0 +1,42 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (origin:Airport {code: "LHR"})
+CREATE (destination:Airport {code: "AMS"})
+CREATE (origin)-[:FLIGHT {number: "BA001"}]->(destination);
+----
+
+The following creates a `Flight` node with an `IN` relationship from `LHR` and an `OUT` relationship to `AMS`:
+
+[source,cypher]
+----
+MATCH (:Airport)-[rel:FLIGHT]->(:Airport)
+WITH collect(rel) AS rels
+CALL apoc.refactor.extractNode(rels,['Flight'],'OUT','IN')
+YIELD input, output
+RETURN input, output;
+----
+
+.Results
+[opts="header"]
+|===
+| input | output
+| 0     | (:Flight {number: "BA001"})
+|===
+
+We can list all the `Flight` nodes by running the following query:
+
+[source,cypher]
+----
+MATCH path = (origin)-[:IN]->(:Flight)-[:OUT]->(destination)
+RETURN path;
+----
+
+.Results
+[opts="header"]
+|===
+| path
+|  (:Airport {code: "LHR"})-[:IN]->(:Flight {number: "BA001"})-[:OUT]->(:Airport {code: "AMS"})
+|===
+
