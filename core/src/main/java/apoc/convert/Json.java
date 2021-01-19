@@ -1,14 +1,9 @@
 package apoc.convert;
 
-import apoc.export.json.JsonFormatSerializer;
-import apoc.export.util.ExportConfig;
-import apoc.export.util.FormatUtils;
-import apoc.export.util.Reporter;
 import apoc.meta.Meta;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.neo4j.graphdb.*;
 import org.neo4j.logging.Log;
@@ -20,7 +15,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.export.util.FormatUtils.getLabelsSorted;
 import static apoc.util.Util.labelStrings;
 import static apoc.util.Util.map;
 
@@ -86,8 +80,6 @@ public class Json {
     @Context
     public org.neo4j.graphdb.GraphDatabaseService db;
 
-    @Context public Log log;
-
     @UserFunction("apoc.json.path")
     @Description("apoc.json.path('{json}','json-path')")
     public Object path(@Name("json") String json, @Name(value = "path",defaultValue = "$") String path) {
@@ -95,7 +87,7 @@ public class Json {
     }
     @UserFunction("apoc.convert.toJson")
     @Description("apoc.convert.toJson([1,2,3]) or toJson({a:42,b:\"foo\",c:[1,2,3]})")
-    public String toJson(@Name("value") Object value) throws JsonProcessingException {
+    public String toJson(@Name("value") Object value) {
         try {
             return JsonUtil.OBJECT_MAPPER.writeValueAsString(writeJsonResult(value));
         } catch (IOException e) {
