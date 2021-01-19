@@ -27,6 +27,15 @@
         "md5": "c819a1a7d5b822ef2676d966e4d29d25"
     },
     {
+        "neo4j": "4.1.6",
+        "apoc": "4.1.0.4",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.1.0.4",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.1.0.4/apoc-4.1.0.4-all.jar",
+        "sha1": "3f0e0a3a6f18492e27b0f084b1db16bdbb4ac76f",
+        "sha256": "0c37a75c758c33d52c30d871dc50f12b9ebb70eb6b176fac25e91edff76715bc",
+        "md5": "2d3d8edcff9fc3ec4d325c130b4d0321"
+    },
+    {
         "neo4j": "4.1.5",
         "apoc": "4.1.0.4",
         "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.1.0.4",
