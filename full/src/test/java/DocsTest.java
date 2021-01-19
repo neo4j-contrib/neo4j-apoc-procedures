@@ -61,7 +61,6 @@ public class DocsTest {
         DocumentationGenerator documentationGenerator = new DocumentationGenerator(db, extended, docs);
 
         Set<String> deprecated = documentationGenerator.getDeprecated();
-        System.out.println("deprecated = " + deprecated);
 
         List<DocumentationGenerator.Row> allRows = documentationGenerator.getRows();
 
