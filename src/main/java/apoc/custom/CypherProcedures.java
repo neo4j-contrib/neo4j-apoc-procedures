@@ -11,7 +11,12 @@ import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
-import org.neo4j.internal.kernel.api.procs.*;
+import org.neo4j.internal.kernel.api.procs.DefaultParameterValue;
+import org.neo4j.internal.kernel.api.procs.FieldSignature;
+import org.neo4j.internal.kernel.api.procs.Neo4jTypes;
+import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
+import org.neo4j.internal.kernel.api.procs.QualifiedName;
+import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ResourceTracker;
 import org.neo4j.kernel.api.proc.CallableProcedure;
@@ -27,22 +32,54 @@ import org.neo4j.kernel.impl.util.DefaultValueMapper;
 import org.neo4j.kernel.impl.util.ValueUtils;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
 import org.neo4j.values.AnyValue;
 import org.neo4j.values.virtual.MapValue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.util.Util.map;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
-import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.*;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.AnyType;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.ListType;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.MapType;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTAny;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTBoolean;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTDate;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTDateTime;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTDuration;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTFloat;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTGeometry;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTInteger;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTList;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTLocalDateTime;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTLocalTime;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTMap;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTNode;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTNumber;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTPath;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTPoint;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTRelationship;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTString;
+import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTTime;
 
 /**
  * @author mh
@@ -205,6 +242,7 @@ public class CypherProcedures {
                         };
                     }
                 }, true);
+                CustomProcedureStorage.registeredProcedures.add(signature);
                 return true;
             } catch (Exception e) {
                 log.error("Could not register procedure: " + signature.name() + " with " + statement + "\n accepting" + signature.inputSignature() + " resulting in " + signature.outputSignature() + " mode " + signature.mode(), e);
@@ -231,6 +269,7 @@ public class CypherProcedures {
                         throw new QueryExecutionException(error, null, "Neo.ClientError.Procedure.ProcedureNotFound");
                     }
                 }, true);
+                CustomProcedureStorage.registeredProcedures.remove(signature);
                 return true;
             } catch (Exception e) {
                 log.error("Could not remove procedure: " + signature, e);
@@ -294,6 +333,7 @@ public class CypherProcedures {
                         }
                     }
                 }, true);
+                CustomProcedureStorage.registeredUserFunctions.add(signature);
                 return true;
             } catch (Exception e) {
                 log.error("Could not register function: " + signature + "\nwith: " + statement + "\n single result " + forceSingle, e);
@@ -318,6 +358,7 @@ public class CypherProcedures {
                         throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
                     }
                 }, true);
+                CustomProcedureStorage.registeredUserFunctions.remove(signature);
                 return true;
             } catch (Exception e) {
                 log.error("Could not remove function: " + signature, e);
@@ -508,6 +549,9 @@ public class CypherProcedures {
         public static Group REFRESH_GROUP = Group.STORAGE_MAINTENANCE;
         private JobHandle restoreProceduresHandle;
 
+        public static final Set<ProcedureSignature> registeredProcedures = Collections.synchronizedSet(new HashSet<>());
+        public static final Set<UserFunctionSignature> registeredUserFunctions = Collections.synchronizedSet(new HashSet<>());
+
         public CustomProcedureStorage(JobScheduler neo4jScheduler, GraphDatabaseAPI api, Log log) {
             this.scheduler = neo4jScheduler;
             this.api = api;
@@ -526,13 +570,23 @@ public class CypherProcedures {
             return api.getDependencyResolver().resolveDependency(EmbeddedProxySPI.class).newGraphPropertiesProxy();
         }
 
-        private void restoreProcedures() {
+        private synchronized void restoreProcedures() {
             if (getLastUpdate(properties) <= lastUpdate) return;
             lastUpdate = System.currentTimeMillis();
             CustomStatementRegistry registry = new CustomStatementRegistry(api, log);
             Map<String, Map<String, Map<String, Object>>> stored = readData(properties);
             Signatures sigs = new Signatures("custom");
+
+            final Set<ProcedureSignature> procedureToDelete = new HashSet<>(registeredProcedures);
+            final Set<UserFunctionSignature> userFunctionsToDelete = new HashSet<>(registeredUserFunctions);
+
+            registeredProcedures.clear();
+            registeredUserFunctions.clear();
+
             stored.get(FUNCTIONS).forEach((name, data) -> {
+                if (log.isDebugEnabled()) {
+                    log.debug("Restoring function `%s` with metadata `%s`", name, data);
+                }
                 String description = parseStoredDescription(data.get("description"));
                 if (data.containsKey("signature")) {
                     UserFunctionSignature userFunctionSignature = sigs.asFunctionSignature((String) data.get("signature"), description);
@@ -543,6 +597,9 @@ public class CypherProcedures {
                 }
             });
             stored.get(PROCEDURES).forEach((name, data) -> {
+                if (log.isDebugEnabled()) {
+                    log.debug("Restoring procedure `%s` with metadata `%s`", name, data);
+                }
                 String description = parseStoredDescription(data.get("description"));
                 if (data.containsKey("signature")) {
                     ProcedureSignature procedureSignature = sigs.asProcedureSignature((String) data.get("signature"), description, Mode.valueOf((String) data.get("mode")));
@@ -552,17 +609,12 @@ public class CypherProcedures {
                             (List<List<String>>) data.get("outputs"), (List<List<String>>) data.get("inputs"), description);
                 }
             });
-            stored.getOrDefault(REMOVED, emptyMap())
-                    .forEach((type, data) -> data.forEach((name, metadata) -> {
-                        switch (type) {
-                            case PROCEDURES:
-                                registry.removeProcedure(name, (Map<String, Object>) metadata);
-                                break;
-                            case FUNCTIONS:
-                                registry.removeFunction(name, (Map<String, Object>) metadata);
-                                break;
-                        }
-                    }));
+            procedureToDelete.removeAll(registeredProcedures);
+            userFunctionsToDelete.removeAll(registeredUserFunctions);
+
+            procedureToDelete.forEach(registry::removeProcedure);
+            userFunctionsToDelete.forEach(registry::removeFunction);
+
             clearQueryCaches(api);
         }
 
@@ -584,6 +636,8 @@ public class CypherProcedures {
                 restoreProceduresHandle.cancel(false);
             }
             properties = null;
+            registeredProcedures.clear();
+            registeredUserFunctions.clear();
         }
 
         public static Map<String, Object> storeProcedure(GraphDatabaseAPI api, String name, String statement, String mode, List<List<String>> outputs, List<List<String>> inputs, String description) {
@@ -620,9 +674,10 @@ public class CypherProcedures {
                     previous = procData.put(name, value);
                 } else {
                     previous = procData.remove(name);
-                    data.computeIfAbsent(REMOVED, (key) -> new HashMap<>())
-                            .computeIfAbsent(type, (key) -> new HashMap<>())
-                            .put(name, previous);
+                }
+                // we remove the `removed` field because we don't need it anymore
+                if (procData.containsKey(REMOVED)) {
+                    procData.remove(REMOVED);
                 }
                 if (value != null || previous != null) {
                     properties.setProperty(APOC_CUSTOM, Util.toJson(data));
@@ -659,6 +714,7 @@ public class CypherProcedures {
 
         public List<CustomProcedureInfo> list() {
             return readData(getProperties(api)).entrySet().stream()
+                    // we use this filter just for backwards compatibility
                     .filter(entry -> !REMOVED.equals(entry.getKey()))
                     .flatMap(entryProcedureType -> {
                         Map<String, Map<String, Object>> procedures = entryProcedureType.getValue();
@@ -683,3 +739,4 @@ public class CypherProcedures {
         }
     }
 }
+

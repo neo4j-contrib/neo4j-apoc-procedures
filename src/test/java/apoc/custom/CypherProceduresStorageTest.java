@@ -19,7 +19,6 @@ import org.neo4j.kernel.impl.core.GraphPropertiesProxy;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.scheduler.JobScheduler;
-import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +26,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 

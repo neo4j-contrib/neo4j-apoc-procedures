@@ -4,23 +4,27 @@ package apoc.custom;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import apoc.util.TestcontainersCausalCluster;
-import apoc.util.Util;
+import org.hamcrest.Matchers;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.exceptions.DatabaseException;
 import org.neo4j.helpers.collection.MapUtil;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static apoc.util.TestContainerUtil.cleanBuild;
-import static apoc.util.TestContainerUtil.executeGradleTasks;
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testCallInReadTransaction;
 import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
@@ -150,5 +154,65 @@ public class CypherProceduresClusterTest {
             assertEquals(expectedMessage, e.getMessage());
             throw e;
         }
+    }
+
+    @Test
+    public void overrideCallStatementWithNewArguments() throws Exception {
+        // given
+        // adding 2 procedures
+        cluster.getSession().run("call apoc.custom.asProcedure('answer','RETURN 42 as answer', 'read', [['answer', 'number']])");
+        cluster.getSession().run("call apoc.custom.asProcedure('answer2','RETURN 32 as answer', 'read', [['answer', 'number']])");
+        testCallInReadTransaction(cluster.getSession(), "call custom.answer() yield answer return answer", (row) -> assertEquals(42L, row.get("answer")));
+        testCallInReadTransaction(cluster.getSession(), "call custom.answer2() yield answer return answer", (row) -> assertEquals(32L, row.get("answer")));
+
+        // when
+        // removing one procedure
+        cluster.getSession().run("call apoc.custom.removeProcedure('answer')");
+        try {
+            org.neo4j.test.assertion.Assert.<Boolean, Exception>assertEventually(() ->
+                    cluster.getSession().readTransaction((tx) -> {
+                        List<Map<String, Object>> list = tx.run("call apoc.custom.list()")
+                                .stream()
+                                .map(Record::asMap)
+                                .collect(Collectors.toList());
+                        return list.stream().anyMatch(map -> "answer2".equals(map.get("name")));
+                    }), Matchers.equalTo(true), 1000, TimeUnit.MILLISECONDS);
+            cluster.getSession().run("call custom.answer()").consume();
+            Assert.fail("procedure not removed");
+        } catch (Exception e) {
+            assertTrue(e instanceof DatabaseException);
+        }
+        // creating a new one, this triggers the scheduler
+        cluster.getSession().run("call apoc.custom.asProcedure('answer','RETURN $input as answer','read',[['answer','number']],[['input','int','42']], 'Procedure that answer to the Ultimate Question of Life, the Universe, and Everything')");
+        org.neo4j.test.assertion.Assert.<Boolean, Exception>assertEventually(() ->
+                cluster.getSession().readTransaction((tx) -> {
+                    List<Map<String, Object>> list = tx.run("call apoc.custom.list()")
+                            .stream()
+                            .map(Record::asMap)
+                            .collect(Collectors.toList());
+                    return list.stream().anyMatch(map -> "answer".equals(map.get("name")) && "procedure".equals(map.get("type")))
+                            && list.stream().anyMatch(map -> "answer2".equals(map.get("name")));
+                }), Matchers.equalTo(true), 1000, TimeUnit.MILLISECONDS);
+
+        // then
+        // testing the new procedure
+        testCallInReadTransaction(cluster.getSession(), "call custom.answer(1)", (row) -> assertEquals(1L, row.get("answer")));
+        // we add a new function to trigger again the scheduler
+        cluster.getSession().run("call apoc.custom.asFunction('answer','RETURN 42','long')");
+        // waiting that the scheduler has been triggered
+        org.neo4j.test.assertion.Assert.<Boolean, Exception>assertEventually(() ->
+            cluster.getSession().readTransaction((tx) -> {
+                List<Map<String, Object>> list = tx.run("call apoc.custom.list()")
+                    .stream()
+                    .map(Record::asMap)
+                    .collect(Collectors.toList());
+                return list.stream().anyMatch(map -> "answer".equals(map.get("name")) && "function".equals(map.get("type")))
+                    && list.stream().anyMatch(map -> "answer".equals(map.get("name")) && "procedure".equals(map.get("type")))
+                    && list.stream().anyMatch(map -> "answer2".equals(map.get("name")));
+            }), Matchers.equalTo(true), 1000, TimeUnit.MILLISECONDS);
+
+
+        // testing again the procedure
+        testCallInReadTransaction(cluster.getSession(), "call custom.answer(1)", (row) -> assertEquals(1L, row.get("answer")));
     }
 }
