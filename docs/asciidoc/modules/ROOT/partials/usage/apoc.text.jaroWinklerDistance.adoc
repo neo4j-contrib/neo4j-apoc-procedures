@@ -1,0 +1,33 @@
+[source,cypher]
+----
+RETURN apoc.text.jaroWinklerDistance("Neo4j", "Neo4j") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| 1.0
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.jaroWinklerDistance("Neo4j", "Neoj4") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| 0.9533333333333333
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.jaroWinklerDistance("Neo4j Aura", "Neo4j Graph Database") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 0.8400000000000001
+|===

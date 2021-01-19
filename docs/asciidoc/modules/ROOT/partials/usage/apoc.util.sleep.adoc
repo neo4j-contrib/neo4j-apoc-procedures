@@ -1,0 +1,15 @@
+[source,cypher]
+----
+WITH apoc.date.currentTimestamp() AS start
+CALL apoc.util.sleep(1000)
+WITH start, apoc.date.currentTimestamp() AS end
+RETURN datetime({epochmillis: start}) AS start,
+       datetime({epochmillis: end}) AS end;
+----
+
+.Results
+[opts="header"]
+|===
+| start                    | end
+| 2021-01-19T12:19:11.978Z | 2021-01-19T12:19:12.978Z
+|===

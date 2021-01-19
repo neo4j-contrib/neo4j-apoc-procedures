@@ -1,0 +1,32 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (s1:Student {name: 'Priya'});
+----
+
+[source,cypher]
+----
+MATCH (s1:Student {name: 'Priya'})
+RETURN apoc.label.exists(s1, "Student") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| TRUE
+|===
+
+[source,cypher]
+----
+MATCH (s1:Student {name: 'Priya'})
+RETURN apoc.label.exists(s1, "Teacher") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| FALSE
+|===

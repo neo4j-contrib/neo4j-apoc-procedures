@@ -1,0 +1,65 @@
+.The following formats the current date:
+[source,cypher]
+----
+RETURN apoc.temporal.format( date(), 'YYYY-MM-dd') AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "2021-01-19"
+|===
+
+.The following formats the current datetime:
+[source,cypher]
+----
+RETURN apoc.temporal.format( datetime(), 'YYYY-MM-dd HH:mm:ss.SSSSZ') AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "2021-01-19 10:57:25.2140+0000"
+|===
+
+.The following formats the current time:
+[source,cypher]
+----
+RETURN apoc.temporal.format( localtime(), 'HH:mm:ss.SSSS') AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "10:57:57.8140"
+|===
+
+.The following formats a date:
+[source,cypher]
+----
+RETURN apoc.temporal.format( date( { year: 2018, month: 12, day: 10 } ), 'ISO_DATE' ) as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "2018-12-10"
+|===
+
+
+.The following formats a duration:
+[source,cypher]
+----
+RETURN apoc.temporal.format( duration.between( datetime.transaction(), datetime.realtime() ) , 'HH:mm:ss.SSSS') AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "00:00:00.0131"
+|===

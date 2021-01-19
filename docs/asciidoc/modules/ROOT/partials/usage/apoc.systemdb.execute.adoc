@@ -1,0 +1,13 @@
+[source,cypher]
+----
+CALL apoc.systemdb.execute("SHOW DATABASES");
+----
+
+.Results
+[opts="header"]
+|===
+| row
+| {default: TRUE, address: "localhost:7687", role: "standalone", currentStatus: "online", name: "neo4j", error: "", requestedStatus: "online"}
+| {default: FALSE, address: "localhost:7687", role: "standalone", currentStatus: "online", name: "system", error: "", requestedStatus: "online"}
+|===
+
