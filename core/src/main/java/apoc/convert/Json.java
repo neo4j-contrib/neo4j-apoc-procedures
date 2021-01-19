@@ -68,7 +68,7 @@ public class Json {
                 "type", "relationship",
                 "label", rel.getType().toString(),
                 "start", nodeToMap(rel.getStartNode(), false),
-                "end", nodeToMap(rel.getEndNode(), false));
+                "«end", nodeToMap(rel.getEndNode(), false));
 
         // todo - rel.getType().toString() e rel.getType().name() sono la stessa cosa??
 

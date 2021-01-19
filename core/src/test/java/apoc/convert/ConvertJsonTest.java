@@ -46,7 +46,7 @@ public class ConvertJsonTest {
     @Test
     public void testToJsonNode() throws Exception {
 	    testCall(db, "CREATE (a:Test {foo: 7}) RETURN apoc.convert.toJson(a) AS value",
-	             (row) -> assertNotNull(row.get("value")) );
+	             (row) -> assertEquals("{\"id\":\"5\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"],\"type\":\"node\"}", row.get("value")));
     }
 
     @Test
@@ -68,7 +68,7 @@ public class ConvertJsonTest {
     @Test
     public void testToJsonProperties() throws Exception {
         testCall(db, "CREATE (a:Test {foo: 7}) RETURN apoc.convert.toJson(properties(a)) AS value",
-                (row) -> assertNotNull(row.get("value")) );
+                (row) -> assertEquals("{\"foo\":7}", row.get("value")) );
     }
 
     @Test
@@ -88,9 +88,9 @@ public class ConvertJsonTest {
 
     @Test
     public void testToJsonPath() throws Exception {
-	    testCall(db, "CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baz {a:'b'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www', two:2, three: date('2020-20-20')}) RETURN apoc.convert.toJson(p) AS value",
+	    testCall(db, "CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baz {a:'b'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www', two:2, three: localdatetime('2020-01-01')}) RETURN apoc.convert.toJson(p) AS value",
 	             (row) -> assertEquals(
-	                     "[{\"id\":\"5\",\"type\":\"node\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},{\"start\":{\"id\":\"5\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},\"end\":{\"id\":\"6\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]},\"id\":\"1\",\"label\":\"TEST\",\"type\":\"relationship\"},{\"id\":\"6\",\"type\":\"node\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]},{\"start\":{\"id\":\"7\",\"properties\":{\"one\":\"www\",\"three\":\"2020-20-20T00:00:00.000Z\",\"two\":2},\"labels\":[\"Bar\"]},\"end\":{\"id\":\"6\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]},\"id\":\"2\",\"label\":\"TEST_2\",\"type\":\"relationship\",\"properties\":{\"aa\":\"bb\"}},{\"id\":\"7\",\"type\":\"node\",\"properties\":{\"one\":\"www\",\"three\":\"2021-01-19T11:00:52.243Z\",\"two\":2},\"labels\":[\"Bar\"]}]",
+	                     "[{\"id\":\"5\",\"type\":\"node\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},{\"start\":{\"id\":\"5\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},\"end\":{\"id\":\"6\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]},\"id\":\"1\",\"label\":\"TEST\",\"type\":\"relationship\"},{\"id\":\"6\",\"type\":\"node\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]},{\"start\":{\"id\":\"7\",\"properties\":{\"one\":\"www\",\"three\":\"2020-01-01T00:00\",\"two\":2},\"labels\":[\"Bar\"]},\"end\":{\"id\":\"6\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]},\"id\":\"2\",\"label\":\"TEST_2\",\"type\":\"relationship\",\"properties\":{\"aa\":\"bb\"}},{\"id\":\"7\",\"type\":\"node\",\"properties\":{\"one\":\"www\",\"three\":\"2020-01-01T00:00\",\"two\":2},\"labels\":[\"Bar\"]}]",
                          row.get("value")
                  ));
     }
