@@ -3,6 +3,7 @@ package apoc.custom;
 import apoc.Pools;
 import apoc.util.TestUtil;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -13,11 +14,15 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static apoc.custom.CypherProcedures.FUNCTION;
 import static apoc.custom.CypherProcedures.PROCEDURE;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -29,7 +34,10 @@ public class CypherProceduresTest {
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        db = new TestGraphDatabaseFactory()
+                .newImpermanentDatabaseBuilder()
+                .setConfig("apoc.custom.procedures.refresh", "100")
+                .newGraphDatabase();
         TestUtil.registerProcedure(db, CypherProcedures.class);
     }
 
@@ -254,5 +262,47 @@ public class CypherProceduresTest {
             assertEquals("Neo.ClientError.Statement.SyntaxError", e.getStatusCode());
             throw e;
         }
+    }
+
+    @Test
+    public void overrideCallStatementWithNewArguments() throws Exception {
+        // given
+        // adding 2 procedures
+        db.execute("call apoc.custom.asProcedure('answer','RETURN 42 as answer', 'read', [['answer', 'number']])").close();
+        db.execute("call apoc.custom.asProcedure('answer2','RETURN 32 as answer', 'read', [['answer', 'number']])").close();
+        TestUtil.testCall(db, "call custom.answer() yield answer return answer", (row) -> assertEquals(42L, row.get("answer")));
+        TestUtil.testCall(db, "call custom.answer2() yield answer return answer", (row) -> assertEquals(32L, row.get("answer")));
+
+        // when
+        // removing one procedure
+        db.execute("call apoc.custom.removeProcedure('answer')").close();
+        try {
+            Thread.sleep(1000);
+            System.out.println(db.execute("call custom.answer() yield answer return answer").resultAsString());
+            Assert.fail("procedure not removed");
+        } catch (Exception e) {
+            assertTrue(e instanceof QueryExecutionException);
+        }
+        // creating a new one, this triggers the scheduler
+        db.execute("call apoc.custom.asProcedure('answer','RETURN $input as answer','read',[['answer','number']],[['input','int','42']], 'Procedure that answer to the Ultimate Question of Life, the Universe, and Everything')");
+        // waiting that the scheduler has been triggered
+        Thread.sleep(1000);
+
+        // then
+        // testing the new procedure
+        TestUtil.testCall(db, "call custom.answer(1)", (row) -> assertEquals(1L, row.get("answer")));
+        // we add a new function to trigger again the scheduler
+        db.execute("call apoc.custom.asFunction('answer','RETURN 42','long')");
+        // waiting that the scheduler has been triggered
+        Thread.sleep(1000);
+        TestUtil.testResult(db, "call apoc.custom.list()", (result) -> {
+            List<Map<String, Object>> list = result.stream().collect(Collectors.toList());
+            assertEquals(3, list.size());
+            assertTrue(list.stream().anyMatch(map -> "answer".equals(map.get("name")) && "function".equals(map.get("type"))));
+            assertTrue(list.stream().anyMatch(map -> "answer".equals(map.get("name")) && "procedure".equals(map.get("type"))));
+            assertTrue(list.stream().anyMatch(map -> "answer2".equals(map.get("name"))));
+        });
+        // testing again the procedure
+        TestUtil.testCall(db, "call custom.answer(1)", (row) -> assertEquals(1L, row.get("answer")));
     }
 }
