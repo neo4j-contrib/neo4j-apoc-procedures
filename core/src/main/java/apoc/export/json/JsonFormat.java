@@ -210,7 +210,6 @@ public class JsonFormat implements Format {
         for (int col = 0; col < header.length; col++) {
             String keyName = header[col];
             Object value = row.get(keyName);
-            // TODO - VEDERE QUA CHE SUCCEDE
             write(reporter, jsonGenerator, config, keyName, value, true);
         }
         jsonGenerator.writeEndObject();
