@@ -1,0 +1,21 @@
+[source,cypher]
+----
+RETURN apoc.text.urlencode("Neo4j Aura") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "Neo4j+Aura"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.urlencode("GRANDstack: Build Fullstack GraphQL Applications With Ease") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "GRANDstack%3A+Build+Fullstack+GraphQL+Applications+With+Ease"
+|===

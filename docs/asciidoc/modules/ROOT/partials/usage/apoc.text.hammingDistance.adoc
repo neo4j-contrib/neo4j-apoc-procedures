@@ -1,0 +1,32 @@
+[source,cypher]
+----
+RETURN apoc.text.hammingDistance("Neo4j", "Neo4j") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| 0
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.hammingDistance("Neo4j", "Neoj4") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| 2
+|===
+
+The provided strings must be the same length, otherwise this procedure will throw an exception, as shown in the example below:
+
+[source,cypher]
+----
+RETURN apoc.text.hammingDistance("Neo4j Aura", "Neo4j Graph Database") AS output;
+----
+.Results
+|===
+| Failed to invoke function `apoc.text.hammingDistance`: Caused by: java.lang.IllegalArgumentException: CharSequences must have the same length
+|===

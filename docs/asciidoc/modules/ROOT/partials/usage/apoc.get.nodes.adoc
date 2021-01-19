@@ -1,0 +1,39 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (:Student {name: 'Alice', score: 71});
+CREATE (:Student {name: 'Mark', score: 95});
+CREATE (:Student {name: 'Andrea', score: 86});
+----
+
+We can return the internal IDs of these nodes using the `id` function:
+
+[source,cypher]
+----
+MATCH (s:Student)
+RETURN id(s) AS id;
+----
+
+.Results
+[opts="header"]
+|===
+| id
+| 3975
+| 3976
+| 3977
+|===
+
+[source,cypher]
+----
+CALL apoc.get.nodes([3975, 3976, 3977]);
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Student {name: "Alice", score: 71})
+| (:Student {name: "Mark", score: 95})
+| (:Student {name: "Andrea", score: 86})
+|===

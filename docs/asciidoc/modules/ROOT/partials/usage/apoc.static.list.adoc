@@ -1,0 +1,21 @@
+The example in this section assumes that we've first stored values in memory using xref::overview/apoc.static/apoc.static.set.adoc[]:
+
+[source,cypher]
+----
+CALL apoc.static.set("twitter.user", "Michael");
+CALL apoc.static.set("twitter.username", "mesirii");
+----
+
+.The following returns all static values under the `twitter` prefix:
+[source,cypher]
+----
+CALL apoc.static.list("twitter");
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| key        | value
+| "user"     | "Michael"
+| "username" | "mesirii"
+|===

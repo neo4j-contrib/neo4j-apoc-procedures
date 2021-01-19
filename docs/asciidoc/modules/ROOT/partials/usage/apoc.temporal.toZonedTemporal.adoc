@@ -1,0 +1,36 @@
+[source,cypher]
+----
+RETURN apoc.temporal.toZonedTemporal('2012-12-23 23:59:59',"yyyy-MM-dd HH:mm:ss") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 2012-12-23T23:59:59Z[UTC]
+|===
+
+[source,cypher]
+----
+RETURN apoc.temporal.toZonedTemporal('2012-12-23 23:59:59',"yyyy-MM-dd HH:mm:ss", "+04:30") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 2012-12-24T04:29:59+04:30
+|===
+
+[source,cypher]
+----
+RETURN apoc.temporal.toZonedTemporal('2012-12-23 23:59:59',"yyyy-MM-dd HH:mm:ss", "Pacific/Auckland") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+|  2012-12-23T23:59:59+13:00[Pacific/Auckland]
+|===
+

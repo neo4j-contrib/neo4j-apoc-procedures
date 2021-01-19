@@ -1,0 +1,20 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (:Person {json:'{a:[1,2,3]}'});
+----
+
+
+[source, cypher]
+----
+MATCH (p:Person)
+RETURN apoc.convert.getJsonPropertyMap(p, "json") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| {a: [1, 2, 3]}
+|===

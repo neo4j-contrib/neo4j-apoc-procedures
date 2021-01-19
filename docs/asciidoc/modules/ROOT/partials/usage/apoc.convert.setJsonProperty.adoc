@@ -1,0 +1,36 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (:Person {json:'{a:[1,2,3]}'});
+----
+
+
+[source, cypher]
+----
+MATCH (p:Person)
+CALL apoc.convert.setJsonProperty(p, 'json', {a: [4,5,6]})
+RETURN p
+----
+
+.Results
+[opts="header"]
+|===
+| p
+| (:Person {json: "{\"a\":[4,5,6]}"})
+|===
+
+We can extract the JSON value from the node using xref::overview/apoc.convert/apoc.convert.getJsonPropertyMap.adoc[]:
+
+[source, cypher]
+----
+MATCH (p:Person)
+RETURN apoc.convert.getJsonPropertyMap(p, "json") AS map;
+----
+
+.Results
+[opts="header"]
+|===
+| map
+|  {a: [4, 5, 6]}
+|===

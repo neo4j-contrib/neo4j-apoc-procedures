@@ -13,6 +13,8 @@ import org.reflections.util.ConfigurationBuilder;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
 import static apoc.ApocConfig.apocConfig;
@@ -48,6 +50,32 @@ public class DocsTest {
         new File(GENERATED_DOCUMENTATION_DIR).mkdirs();
         new File(GENERATED_PARTIALS_DOCUMENTATION_DIR).mkdirs();
         new File(GENERATED_OVERVIEW_DIR).mkdirs();
+    }
+
+    @Test
+    public void findMissingUsageDocs() {
+        Set<String> extended = readExtended();
+        Map<String, String> docs = docsMapping();
+        DocumentationGenerator documentationGenerator = new DocumentationGenerator(db, extended, docs);
+
+        Set<String> deprecated = documentationGenerator.getDeprecated();
+        System.out.println("deprecated = " + deprecated);
+
+        List<DocumentationGenerator.Row> allRows = documentationGenerator.getRows();
+
+        long done = allRows.stream().filter(row -> new File("../docs/asciidoc/modules/ROOT/partials/usage", row.getName() + ".adoc").exists()).count();
+
+        List<DocumentationGenerator.Row> missingRows = allRows.stream()
+                .sorted(Comparator.comparing(DocumentationGenerator.Row::getName))
+                .filter(row -> !new File("../docs/asciidoc/modules/ROOT/partials/usage", row.getName() + ".adoc").exists())
+                .collect(Collectors.toList());
+
+        System.out.println("done = " + done);
+        System.out.println("missing = " + missingRows.size()  + " (" + missingRows.stream().filter(row1 -> !deprecated.contains(row1.getName())).count() + ")");
+        System.out.println("deprecated = " + deprecated.size());
+        for (DocumentationGenerator.Row row : missingRows) {
+            System.out.println("procedure/function = " + row.getName() + (deprecated.contains(row.getName()) ? " (deprecated)" : ""));
+        }
     }
 
     @Test
