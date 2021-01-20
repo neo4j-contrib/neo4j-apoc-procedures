@@ -1,0 +1,63 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE  (rootA:Root{name:'A'}),
+        (rootB:Root{name:'B'}),
+        (n1:Node{name:'node1', id:1}),
+        (n2:Node{name:'node2', id:2}),
+        (n3:Node{name:'node3', id:3}),
+        (n4:Node{name:'node4', id:4}),
+        (n5:Node{name:'node5', id:5}),
+        (n6:Node{name:'node6', id:6}),
+        (n7:Node{name:'node7', id:7}),
+        (n8:Node{name:'node8', id:8}),
+        (n9:Node{name:'node9', id:9}),
+        (n10:Node{name:'node10', id:10}),
+        (n11:Node{name:'node11', id:11}),
+        (n12:Node{name:'node12', id:12})
+        CREATE (rootA)-[:LINK]->(n1)-[:LINK]->(n2)-[:LINK]->(n3)-[:LINK]->(n4)
+        CREATE                  (n1)-[:LINK]->(n5)-[:LINK]->(n6)<-[:LINK]-(n7)
+        CREATE                                (n5)-[:LINK]->(n8)
+        CREATE                                (n5)-[:LINK]->(n9)-[:DIFFERENT_LINK]->(n10)
+        CREATE (rootB)-[:LINK]->(n11);
+----
+
+.Graph before subgraph cloning
+image::apoc.refactor.cloneSubgraph-before.png[]
+
+
+This procedure clones a subgraph defined by a list of paths.
+This is useful when you want to ensure the cloned subgraph isn't connected to the original nodes, or to nodes outside the subgraph.
+
+The following query clones a subtree starting from rootA consisting of outgoing `:LINK` relationships, and attaches that subgraph to rootB. rootB acts as a standin for rootA, which is not cloned:
+
+[source,cypher]
+----
+MATCH  (rootA:Root{name:'A'}),
+       (rootB:Root{name:'B'})
+MATCH path = (rootA)-[:LINK*]->(node)
+WITH rootA, rootB, collect(path) as paths
+CALL apoc.refactor.cloneSubgraphFromPaths(paths, {
+    standinNodes:[[rootA, rootB]]
+})
+YIELD input, output, error
+RETURN input, output, error;
+----
+
+.Results
+[opts="header", cols="1,2,1"]
+|===
+| input | output                         | error
+| 31424 | (:Node {name: "node3", id: 3}) | NULL
+| 31425 | (:Node {name: "node4", id: 4}) | NULL
+| 31426 | (:Node {name: "node5", id: 5}) | NULL
+| 31427 | (:Node {name: "node6", id: 6}) | NULL
+| 31429 | (:Node {name: "node8", id: 8}) | NULL
+| 31430 | (:Node {name: "node9", id: 9}) | NULL
+| 31422 | (:Node {name: "node1", id: 1}) | NULL
+| 31423 | (:Node {name: "node2", id: 2}) | NULL
+|===
+
+.Graph after subgraph cloning
+image::apoc.refactor.cloneSubgraphFromPaths-after.png[]
