@@ -1,0 +1,47 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+WITH ["London", "Manchester", "Cardiff", "Birmingham", "Coventry", "Edinburgh"] AS cities
+UNWIND range(1, 10000) AS id
+MERGE (p:Person {id: id})
+WITH cities, p, toInteger(rand() * size(cities)) AS index
+SET p.city = cities[index];
+----
+
+If we want to convert the `city` property to a node, we can do this in batches of 1,000, by running the following query:
+
+[source,cypher]
+----
+CALL apoc.periodic.commit(
+  "MATCH (person:Person)
+   WHERE exists(person.city)
+   WITH person limit $limit
+   MERGE (city:City {name:person.city})
+   MERGE (person)-[:LIVES_IN]->(city)
+   REMOVE person.city
+   RETURN count(*)",
+  {limit:1000});
+----
+
+.Results
+[opts="header"]
+|===
+| updates | executions | runtime | batches | failedBatches | batchErrors | failedCommits | commitErrors | wasTerminated
+| 10000   | 10         | 0       | 11      | 0             | {}          | 0             | {}           | FALSE
+|===
+
+We can check that the refactoring has been done by running the following query:
+
+[source,cypher]
+----
+MATCH (p:Person)
+RETURN exists(p.city), count(*);
+----
+
+.Results
+[opts="header"]
+|===
+| exists(p.city) | count(*)
+| FALSE          | 10000
+|===
