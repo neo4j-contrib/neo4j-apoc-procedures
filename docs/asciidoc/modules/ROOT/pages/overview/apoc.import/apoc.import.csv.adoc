@@ -44,5 +44,9 @@ apoc.import.csv(nodes :: LIST? OF MAP?, relationships :: LIST? OF MAP?, config :
 |data|STRING?
 |===
 
+[[usage-apoc.import.csv]]
+== Usage Examples
+include::partial$usage/apoc.import.csv.adoc[]
+
 xref::import/import-csv.adoc[More documentation of apoc.import.csv,role=more information]
 
