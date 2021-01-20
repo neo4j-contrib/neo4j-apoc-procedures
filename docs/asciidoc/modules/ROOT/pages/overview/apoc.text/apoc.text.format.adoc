@@ -30,5 +30,3 @@ apoc.text.format(text :: STRING?, params :: LIST? OF ANY?, language = en :: STRI
 == Usage Examples
 include::partial$usage/apoc.text.format.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.format,role=more information]
-

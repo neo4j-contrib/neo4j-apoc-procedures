@@ -32,5 +32,10 @@ apoc.import.xml(url :: STRING?, config = {} :: MAP?) :: (node :: NODE?)
 |node|NODE?
 |===
 
-xref::import/xml.adoc[More documentation of apoc.import.xml,role=more information]
+== Reading from a file
+include::../../import/includes/enableFileImport.adoc[]
+
+[[usage-apoc.import.xml]]
+== Usage Examples
+include::partial$usage/apoc.import.xml.adoc[]
 

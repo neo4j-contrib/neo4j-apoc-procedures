@@ -29,5 +29,3 @@ apoc.text.hammingDistance(text1 :: STRING?, text2 :: STRING?) :: (INTEGER?)
 == Usage Examples
 include::partial$usage/apoc.text.hammingDistance.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.hammingDistance,role=more information]
-

@@ -44,5 +44,3 @@ include::partial$usage/config/apoc.meta.nodeTypeProperties.adoc[]
 == Usage Examples
 include::partial$usage/apoc.meta.nodeTypeProperties.adoc[]
 
-xref::database-introspection/meta.adoc[More documentation of apoc.meta.nodeTypeProperties,role=more information]
-

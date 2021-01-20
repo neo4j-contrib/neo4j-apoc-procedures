@@ -53,5 +53,3 @@ include::partial$usage/config/apoc.meta.data.adoc[]
 == Usage Examples
 include::partial$usage/apoc.meta.data.adoc[]
 
-xref::database-introspection/meta.adoc[More documentation of apoc.meta.data,role=more information]
-

@@ -51,5 +51,3 @@ include::partial$usage/config/apoc.periodic.iterate.adoc[]
 == Usage Examples
 include::partial$usage/apoc.periodic.iterate.adoc[]
 
-xref::graph-updates/periodic-execution.adoc#commit-batching[More documentation of apoc.periodic.iterate,role=more information]
-

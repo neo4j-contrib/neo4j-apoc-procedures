@@ -29,5 +29,3 @@ apoc.text.slug(text :: STRING?, delim = - :: STRING?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.text.slug.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.slug,role=more information]
-

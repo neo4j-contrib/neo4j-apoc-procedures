@@ -24,5 +24,3 @@ apoc.meta.types(properties :: ANY?) :: (MAP?)
 |properties|ANY?|null
 |===
 
-xref::database-introspection/meta.adoc[More documentation of apoc.meta.types,role=more information]
-

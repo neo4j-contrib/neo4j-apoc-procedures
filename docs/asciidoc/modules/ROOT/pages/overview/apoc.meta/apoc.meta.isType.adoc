@@ -25,5 +25,3 @@ apoc.meta.isType(value :: ANY?, type :: STRING?) :: (BOOLEAN?)
 |type|STRING?|null
 |===
 
-xref::database-introspection/meta.adoc[More documentation of apoc.meta.isType,role=more information]
-

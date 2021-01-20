@@ -28,5 +28,3 @@ apoc.text.decapitalizeAll(text :: STRING?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.text.decapitalizeAll.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.decapitalizeAll,role=more information]
-

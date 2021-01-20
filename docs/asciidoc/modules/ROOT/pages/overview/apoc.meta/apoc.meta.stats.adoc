@@ -36,5 +36,3 @@ apoc.meta.stats() :: (labelCount :: INTEGER?, relTypeCount :: INTEGER?, property
 == Usage Examples
 include::partial$usage/apoc.meta.stats.adoc[]
 
-xref::database-introspection/meta.adoc[More documentation of apoc.meta.stats,role=more information]
-

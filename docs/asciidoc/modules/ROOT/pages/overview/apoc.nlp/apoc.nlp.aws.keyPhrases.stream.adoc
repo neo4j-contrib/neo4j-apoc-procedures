@@ -44,5 +44,3 @@ include::partial$nlp-api-keys-apoc.nlp.aws.adoc[]
 == Usage Examples
 include::partial$usage/apoc.nlp.aws.keyPhrases.stream.adoc[]
 
-xref::nlp/aws.adoc[More documentation of apoc.nlp.aws.keyPhrases.stream,role=more information]
-

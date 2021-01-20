@@ -25,6 +25,9 @@ apoc.import.json(file :: STRING?, config = {} :: MAP?) :: (file :: STRING?, sour
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.import.json.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -42,6 +45,10 @@ apoc.import.json(file :: STRING?, config = {} :: MAP?) :: (file :: STRING?, sour
 |done|BOOLEAN?
 |data|STRING?
 |===
+
+[[usage-apoc.import.json]]
+== Usage Examples
+include::partial$usage/apoc.import.json.adoc[]
 
 xref::import/load-json.adoc[More documentation of apoc.import.json,role=more information]
 

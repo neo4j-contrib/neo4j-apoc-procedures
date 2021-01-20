@@ -28,5 +28,3 @@ apoc.meta.cypher.types(properties :: ANY?) :: (MAP?)
 == Usage Examples
 include::partial$usage/apoc.meta.cypher.types.adoc[]
 
-xref::database-introspection/meta.adoc[More documentation of apoc.meta.cypher.types,role=more information]
-

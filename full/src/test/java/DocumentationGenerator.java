@@ -295,7 +295,7 @@ class DocumentationGenerator {
 
     private final List<String> readsFromFile = Arrays.asList(
             "apoc.cypher.runFile", "apoc.cypher.runFiles", "apoc.cypher.runSchemaFile", "apoc.cypher.runSchemaFiles",
-            "apoc.load.json", "apoc.load.jsonParams", "apoc.load.csv"
+            "apoc.load.json", "apoc.load.jsonParams", "apoc.load.csv", "apoc.import.graphml", "apoc.import.xml"
     );
     private final List<String> writeToFile = Arrays.asList(
             "apoc.export.json.all", "apoc.export.json.data", "apoc.export.json.graph", "apoc.export.json.query",

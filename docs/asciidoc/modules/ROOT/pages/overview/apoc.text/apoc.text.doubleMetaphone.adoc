@@ -28,5 +28,3 @@ apoc.text.doubleMetaphone(value :: STRING?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.text.doubleMetaphone.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.doubleMetaphone,role=more information]
-
