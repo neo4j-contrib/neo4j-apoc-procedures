@@ -85,55 +85,20 @@ public class Schemas {
         Map<String, List<Object>> constraints = copyMapOfObjects(constraints0);
         List<AssertSchemaResult> result = new ArrayList<>(constraints.size());
         Schema schema = tx.schema();
-//        System.out.println("schema.getConstraints()");
-//        System.out.println(constraints + "| constraints");
-//        System.out.println(schema.getConstraints());
 
         for (ConstraintDefinition definition : schema.getConstraints()) {
             String label = definition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE) ? definition.getRelationshipType().name() : definition.getLabel().name();
             AssertSchemaResult info = new AssertSchemaResult(label, Iterables.asList(definition.getPropertyKeys())).unique();
-//            System.out.println("info ! " + info.key);
-//            System.out.println("info ! " + info.keys);
-//            System.out.println("info ! " + info.keys);
-//            System.out.println("label ! " + label);
-//            System.out.println("constraints.get(label) ! " + constraints.get(label));
-//            System.out.println("constraints.get(label) ! " + constraints.get(label));
-//            ArrayList<String> listOne = new ArrayList<>(Arrays.asList("a", "b"));
-
-
-
-//            if (constraints.get(label) != null) {
-//                constraints.get(label).removeIf(item -> {
-//                    if (item instanceof String) {
-//                        return item.equals(info.key);
-//                    } else {
-//                        Collections.sort(info.keys);
-//                        Collections.sort((List) item);
-//                        return info.keys.equals(item);
-//                    }
-//                });
-//            }
-
-
-
-//            if (!constraints.containsKey(label) /*|| !constraints.get(label).remove(info.key)  || !constraints.get(label).remove(info.keys) */) {
-//            if (!constraints.containsKey(label) /*|| !constraints.get(label).remove(info.key)*/) {
-            if (checkConstraint(label, constraints, info) /*|| !constraints.get(label).remove(info.key)*/) {
+            if (checkIfConstraintNotExists(label, constraints, info)) {
                 if (dropExisting) {
-                    System.out.println("dropExisting"); // todo - se c'è già la constraint "a mano" fa il dropExisting...
-                    System.out.println(definition);
-                    System.out.println(label);
                     definition.drop();
                     info.dropped();
                 }
             }
             result.add(info);
-            System.out.println("constraints0 = " + constraints0 + ", dropExisting = " + dropExisting);
         }
-        System.out.println(constraints + "| constraints 2");
+
         for (Map.Entry<String, List<Object>> constraint : constraints.entrySet()) {
-            System.out.println("constraints0 = " + constraints0 + ", dropExisting = " + dropExisting);
-            System.out.println(constraint + " - constraint");
             for (Object key : constraint.getValue()) {
                 if (key instanceof String) {
                     result.add(createUniqueConstraint(schema, constraint.getKey(), key.toString()));
@@ -142,14 +107,12 @@ public class Schemas {
                 }
             }
         }
-        System.out.println(result);
         return result;
     }
 
-    private boolean checkConstraint(String label, Map<String, List<Object>> constraints, AssertSchemaResult info) {
-        if (constraints.containsKey(label) ) {
-//            System.out.println("bbb");
-            boolean bbb = !constraints.get(label).removeIf(item -> {
+    private boolean checkIfConstraintNotExists(String label, Map<String, List<Object>> constraints, AssertSchemaResult info) {
+        if (constraints.containsKey(label)) {
+            return !constraints.get(label).removeIf(item -> {
                 if (item instanceof String) {
                     return item.equals(info.key);
                 } else {
@@ -158,18 +121,11 @@ public class Schemas {
                     return info.keys.equals(item);
                 }
             });
-            System.out.println(bbb);
-            return bbb;
-
-        } else {
-            System.out.println("aaa");
-            return true;
         }
-//        return true;
+        return true;
     }
 
     private AssertSchemaResult createNodeKeyConstraint(String lbl, List<Object> keys) {
-        System.out.println("lbl = " + lbl + ", keys = " + keys);
         String keyProperties = keys.stream()
                 .map( property -> String.format("n.`%s`", property))
                 .collect( Collectors.joining( "," ) );
@@ -179,7 +135,6 @@ public class Schemas {
     }
 
     private AssertSchemaResult createUniqueConstraint(Schema schema, String lbl, String key) {
-        System.out.println("schema = " + schema + ", lbl = " + lbl + ", key = " + key);
         schema.constraintFor(label(lbl)).assertPropertyIsUnique(key).create();
         return new AssertSchemaResult(lbl, key).unique().created();
     }
