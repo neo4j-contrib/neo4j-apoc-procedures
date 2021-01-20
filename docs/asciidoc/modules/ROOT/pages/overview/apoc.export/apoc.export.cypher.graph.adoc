@@ -47,5 +47,9 @@ apoc.export.cypher.graph(graph :: MAP?, file =  :: STRING?, config = {} :: MAP?)
 |cleanupStatements|STRING?
 |===
 
+[[usage-apoc.export.cypher.graph]]
+== Usage Examples
+include::partial$usage/apoc.export.cypher.graph.adoc[]
+
 xref::export/cypher.adoc[More documentation of apoc.export.cypher.graph,role=more information]
 

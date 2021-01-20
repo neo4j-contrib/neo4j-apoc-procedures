@@ -1,0 +1,14 @@
+[source,cypher]
+----
+CALL apoc.periodic.submit(
+  "create-person",
+  "CREATE (:Person {name: 'Michael Hunger'})"
+);
+----
+
+.Results
+[opts="header"]
+|===
+| name            | delay | rate | done  | cancelled
+| "create-person" | 0     | 0    | FALSE | FALSE
+|===

@@ -1,0 +1,99 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$createExportGraph.adoc[]
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::play-movies.png[title="Movies Graph Visualization"]
+
+The `apoc.export.cypher.graph` procedure exports a xref::virtual/index.adoc[virtual graph] to a CSV file or as a stream.
+
+The examples in this section are based on a virtual graph that contains all `PRODUCED` relationships and the nodes either side of that relationship.
+We can then export that virtual graph as Cypher statements to  `movies-producers.cypher`:
+
+[source,cypher]
+----
+MATCH path = (:Person)-[produced:PRODUCED]->(:Movie)
+WITH collect(path) AS paths
+CALL apoc.graph.fromPaths(paths, "producers", {})
+YIELD graph AS g
+CALL apoc.export.cypher.graph(g, "movies-producers.cypher", {})
+YIELD file, nodes, relationships, properties
+RETURN file, nodes, relationships, properties;
+----
+
+.Results
+[opts="header"]
+|===
+| file                      | nodes | relationships | properties
+| "movies-producers.cypher" | 2     | 1             | 5
+|===
+
+.movies-producers.cypher
+[source,cypher]
+----
+:begin
+CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+:commit
+:begin
+UNWIND [{_id:31450, properties:{tagline:"Welcome to the Real World", title:"The Matrix", released:1999}}] AS row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Movie;
+UNWIND [{_id:31457, properties:{born:1952, name:"Joel Silver"}}] AS row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Person;
+:commit
+:begin
+UNWIND [{start: {_id:31457}, end: {_id:31450}, properties:{}}] AS row
+MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})
+MATCH (end:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.end._id})
+CREATE (start)-[r:PRODUCED]->(end) SET r += row.properties;
+:commit
+:begin
+MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
+:commit
+:begin
+DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+:commit
+
+----
+
+The following query returns a streams of the virtual graph from static value storage to the `cypherStatements` column:
+
+[source,cypher]
+----
+MATCH path = (:Person)-[produced:PRODUCED]->(:Movie)
+WITH collect(path) AS paths
+CALL apoc.graph.fromPaths(paths, "producers", {})
+YIELD graph AS g
+CALL apoc.export.cypher.graph(g, null, {stream: true})
+YIELD file, nodes, relationships, properties, cypherStatements
+RETURN file, nodes, relationships, properties, cypherStatements;
+----
+
+.Results
+[opts="header"]
+|===
+| file | nodes | relationships | properties | cypherStatements
+| NULL | 2     | 1             | 5          |
+":begin
+CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+:commit
+:begin
+UNWIND [{_id:31450, properties:{tagline:\"Welcome to the Real World\", title:\"The Matrix\", released:1999}}] AS row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Movie;
+UNWIND [{_id:31457, properties:{born:1952, name:\"Joel Silver\"}}] AS row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Person;
+:commit
+:begin
+UNWIND [{start: {_id:31457}, end: {_id:31450}, properties:{}}] AS row
+MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})
+MATCH (end:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.end._id})
+CREATE (start)-[r:PRODUCED]->(end) SET r += row.properties;
+:commit
+:begin
+MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
+:commit
+:begin
+DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+:commit
+"
+|===

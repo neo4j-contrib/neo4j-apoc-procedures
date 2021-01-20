@@ -38,3 +38,7 @@ apoc.periodic.repeat(name :: STRING?, statement :: STRING?, rate :: INTEGER?, co
 |cancelled|BOOLEAN?
 |===
 
+[[usage-apoc.periodic.repeat]]
+== Usage Examples
+include::partial$usage/apoc.periodic.repeat.adoc[]
+
