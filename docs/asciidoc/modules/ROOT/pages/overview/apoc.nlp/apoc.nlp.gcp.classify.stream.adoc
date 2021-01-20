@@ -44,5 +44,3 @@ include::partial$nlp-api-keys-apoc.nlp.gcp.adoc[]
 == Usage Examples
 include::partial$usage/apoc.nlp.gcp.classify.stream.adoc[]
 
-xref::nlp/gcp.adoc[More documentation of apoc.nlp.gcp.classify.stream,role=more information]
-

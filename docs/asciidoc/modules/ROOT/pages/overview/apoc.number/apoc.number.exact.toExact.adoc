@@ -28,5 +28,3 @@ apoc.number.exact.toExact(number :: INTEGER?) :: (INTEGER?)
 == Usage Examples
 include::partial$usage/apoc.number.exact.toExact.adoc[]
 
-xref::mathematical/exact-math-functions.adoc[More documentation of apoc.number.exact.toExact,role=more information]
-

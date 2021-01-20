@@ -30,5 +30,3 @@ apoc.text.replace(text :: STRING?, regex :: STRING?, replacement :: STRING?) :: 
 == Usage Examples
 include::partial$usage/apoc.text.replace.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.replace,role=more information]
-

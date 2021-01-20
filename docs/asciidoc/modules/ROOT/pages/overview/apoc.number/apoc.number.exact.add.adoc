@@ -29,5 +29,3 @@ apoc.number.exact.add(stringA :: STRING?, stringB :: STRING?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.number.exact.add.adoc[]
 
-xref::mathematical/exact-math-functions.adoc[More documentation of apoc.number.exact.add,role=more information]
-
