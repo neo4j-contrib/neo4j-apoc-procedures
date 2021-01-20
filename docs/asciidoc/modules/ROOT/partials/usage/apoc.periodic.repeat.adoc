@@ -1,0 +1,34 @@
+We can create 10 `Person` nodes every second by running the following query:
+
+[source,cypher]
+----
+CALL apoc.periodic.repeat(
+  "create-people",
+  "UNWIND range(1,10) AS id CREATE (:Person {uuid: apoc.create.uuid()})",
+   1
+);
+----
+
+.Results
+[opts="header"]
+|===
+| name            | delay | rate | done  | cancelled
+| "create-people" | 0     | 1    | FALSE | FALSE
+|===
+
+We can check how many nodes have been created by running the following query:
+
+[source,cypher]
+----
+MATCH (:Person)
+RETURN count(*) AS count;
+----
+
+.Results
+[opts="header"]
+|===
+| count
+| 110
+|===
+
+If we want to cancel this job, we can use the xref::overview/apoc.periodic/apoc.periodic.cancel.adoc[] procedure.
