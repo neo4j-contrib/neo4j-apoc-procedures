@@ -1,0 +1,27 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '4.0.3'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+
+archivesBaseName = 'apoc-xls-dependencies'
+description = """APOC XLS Dependencies"""
+
+jar {
+    manifest {
+        attributes 'Implementation-Version': version
+    }
+}
+
+dependencies {
+    compile group: 'org.apache.poi', name: 'poi', version: '3.17'
+    compile group: 'org.apache.poi', name: 'poi-ooxml', version: '3.17'
+    compile group: 'org.apache.poi', name: 'poi-ooxml-schemas', version: '3.17'
+    compile group: 'org.apache.xmlbeans', name: 'xmlbeans', version: '2.6.0'
+    compile group: 'com.github.virtuald', name: 'curvesapi', version: '1.04'
+    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+}
