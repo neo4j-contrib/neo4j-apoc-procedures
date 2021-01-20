@@ -39,5 +39,3 @@ apoc.refactor.cloneSubgraph(nodes :: LIST? OF NODE?, rels = [] :: LIST? OF RELAT
 == Usage Examples
 include::partial$usage/apoc.refactor.cloneSubgraph.adoc[]
 
-xref::graph-updates/graph-refactoring/clone-nodes.adoc[More documentation of apoc.refactor.cloneSubgraph,role=more information]
-

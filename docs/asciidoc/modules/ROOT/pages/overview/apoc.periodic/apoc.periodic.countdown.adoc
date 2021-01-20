@@ -41,5 +41,3 @@ apoc.periodic.countdown(name :: STRING?, statement :: STRING?, rate :: INTEGER?)
 == Usage Examples
 include::partial$usage/apoc.periodic.countdown.adoc[]
 
-xref::background-operations/periodic-background.adoc[More documentation of apoc.periodic.countdown,role=more information]
-

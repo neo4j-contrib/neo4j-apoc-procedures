@@ -29,5 +29,3 @@ apoc.text.join(texts :: LIST? OF STRING?, delimiter :: STRING?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.text.join.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.join,role=more information]
-

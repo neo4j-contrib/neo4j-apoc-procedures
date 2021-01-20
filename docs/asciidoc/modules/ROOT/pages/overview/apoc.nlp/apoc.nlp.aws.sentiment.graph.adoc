@@ -42,5 +42,3 @@ include::partial$nlp-api-keys-apoc.nlp.aws.adoc[]
 == Usage Examples
 include::partial$usage/apoc.nlp.aws.sentiment.graph.adoc[]
 
-xref::nlp/aws.adoc[More documentation of apoc.nlp.aws.sentiment.graph,role=more information]
-

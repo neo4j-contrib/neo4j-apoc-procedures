@@ -36,5 +36,3 @@ apoc.meta.graph(config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships 
 == Usage Examples
 include::partial$usage/apoc.meta.graph.adoc[]
 
-xref::database-introspection/meta.adoc[More documentation of apoc.meta.graph,role=more information]
-

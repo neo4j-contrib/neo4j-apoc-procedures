@@ -36,5 +36,3 @@ apoc.meta.subGraph(config :: MAP?) :: (nodes :: LIST? OF NODE?, relationships ::
 == Usage Examples
 include::partial$usage/apoc.meta.subGraph.adoc[]
 
-xref::database-introspection/meta.adoc[More documentation of apoc.meta.subGraph,role=more information]
-

@@ -126,28 +126,16 @@ public class DocsTest {
         docs.put("apoc.gephi.*", "export/gephi.adoc");
         docs.put("apoc.load.json.*|apoc.import.json", "import/load-json.adoc");
         docs.put("apoc.load.csv", "import/load-csv.adoc");
-        docs.put("apoc.import.csv", "import/import-csv.adoc");
-        docs.put("apoc.import.graphml", "import/graphml.adoc");
         docs.put("apoc.create.v.*|apoc.create.virtual.*", "virtual/virtual-nodes-rels.adoc");
         docs.put("apoc.math.*|apoc.number.romanToArabic|apoc.number.arabicToRoman", "mathematical/math-functions.adoc");
-        docs.put("apoc.meta.*", "database-introspection/meta.adoc");
         docs.put("apoc.nodes.*|apoc.node.*|apoc.any.properties|apoc.any.property|apoc.label.exists", "graph-querying/node-querying.adoc");
-        docs.put("apoc.number.format.*|apoc.number.parseInt.*|apoc.number.parseFloat.*", "mathematical/number-conversions.adoc");
-        docs.put("apoc.number.exact.*", "mathematical/exact-math-functions.adoc");
         docs.put("apoc.path.*", "graph-querying/path-querying.adoc");
-        docs.put("apoc.text.*", "misc/text-functions.adoc");
         docs.put("apoc.util.md5|apoc.util.sha1", "misc/text-functions.adoc#text-functions-hashing");
         docs.put("apoc.mongodb.*", "database-integration/mongodb.adoc");
-        docs.put("apoc.nlp.aws.*", "nlp/aws.adoc");
-        docs.put("apoc.nlp.gcp.*", "nlp/gcp.adoc");
-        docs.put("apoc.nlp.azure.*", "nlp/azure.adoc");
         docs.put("apoc.neighbors.*", "graph-querying/neighborhood.adoc");
         docs.put("apoc.monitor.*", "database-introspection/monitoring.adoc");
-        docs.put("apoc.periodic.iterate", "graph-updates/periodic-execution.adoc#commit-batching");
-        docs.put("apoc.periodic.commit", "graph-updates/periodic-execution.adoc#periodic-commit");
         docs.put("apoc.periodic.rock_n_roll", "graph-updates/periodic-execution.adoc#periodic-rock-n-roll");
-        docs.put("apoc.refactor.clone.*", "graph-updates/graph-refactoring/clone-nodes.adoc");
-        docs.put("apoc.refactor.cloneSubgraph.*", "graph-updates/graph-refactoring/clone-subgraph.adoc");
+        docs.put("apoc.refactor.cloneNodesWithRelationships", "graph-updates/graph-refactoring/clone-nodes.adoc");
         docs.put("apoc.refactor.merge.*", "graph-updates/graph-refactoring/merge-nodes.adoc");
         docs.put("apoc.refactor.to|apoc.refactor.from", "graph-updates/graph-refactoring/redirect-relationship.adoc");
         docs.put("apoc.refactor.invert", "graph-updates/graph-refactoring/invert-relationship.adoc");
@@ -163,8 +151,6 @@ public class DocsTest {
         docs.put("apoc.hashing.*", "comparing-graphs/fingerprinting.adoc");
         docs.put("apoc.temporal.*", "temporal/temporal-conversions.adoc");
         docs.put("apoc.uuid.*", "graph-updates/uuid.adoc");
-        docs.put("apoc.systemdb.*", "database-introspection/systemdb.adoc");
-        docs.put("apoc.periodic.submit|apoc.periodic.schedule|apoc.periodic.list|apoc.periodic.countdown", "background-operations/periodic-background.adoc");
         docs.put("apoc.model.jdbc", "database-integration/database-modeling.adoc");
         docs.put("apoc.algo.*", "algorithms/path-finding-procedures.adoc");
         docs.put("apoc.atomic.*", "graph-updates/atomic-updates.adoc");
@@ -178,7 +164,7 @@ public class DocsTest {
         docs.put("apoc.generate.*", "graph-updates/graph-generators.adoc");
         docs.put("apoc.config.*", "database-introspection/config.adoc");
         docs.put("apoc.load.jdbc.*", "database-integration/load-jdbc.adoc");
-        docs.put("apoc.load.xml.*|apoc.import.xml|apoc.xml.parse", "import/xml.adoc");
+        docs.put("apoc.load.xml.*|apoc.xml.parse", "import/xml.adoc");
         docs.put("apoc.lock.*", "graph-updates/locking.adoc");
         return docs;
     }

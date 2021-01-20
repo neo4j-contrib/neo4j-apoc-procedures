@@ -30,5 +30,3 @@ apoc.text.rpad(text :: STRING?, count :: INTEGER?, delim =   :: STRING?) :: (STR
 == Usage Examples
 include::partial$usage/apoc.text.rpad.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.rpad,role=more information]
-

@@ -45,5 +45,3 @@ include::partial$usage/config/apoc.meta.relTypeProperties.adoc[]
 == Usage Examples
 include::partial$usage/apoc.meta.relTypeProperties.adoc[]
 
-xref::database-introspection/meta.adoc[More documentation of apoc.meta.relTypeProperties,role=more information]
-

@@ -29,5 +29,3 @@ apoc.text.jaroWinklerDistance(text1 :: STRING?, text2 :: STRING?) :: (FLOAT?)
 == Usage Examples
 include::partial$usage/apoc.text.jaroWinklerDistance.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.jaroWinklerDistance,role=more information]
-

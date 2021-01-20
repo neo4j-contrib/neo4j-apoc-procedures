@@ -33,5 +33,3 @@ apoc.systemdb.execute(DDL command :: STRING?, params = {} :: MAP?) :: (row :: MA
 == Usage Examples
 include::partial$usage/apoc.systemdb.execute.adoc[]
 
-xref::database-introspection/systemdb.adoc[More documentation of apoc.systemdb.execute,role=more information]
-

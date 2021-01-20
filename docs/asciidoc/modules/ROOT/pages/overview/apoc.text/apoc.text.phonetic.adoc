@@ -28,5 +28,3 @@ apoc.text.phonetic(value :: STRING?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.text.phonetic.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.phonetic,role=more information]
-
