@@ -50,7 +50,7 @@ public class SchemasEnterpriseFeaturesTest {
     }
 
     @Test
-    public void testDropNodeKeyConstraintAndCreateNodeKeyConstraintWhenUsingDropExisting1() {
+    public void testKeptNodeKeyAndUniqueConstraintIfExistsAndDropExistingIsFalse() {
 
         String query = "CALL apoc.schema.assert(null,{Foo:[['foo','bar']]}, false)";
         testResult(session, query, (result) -> {
