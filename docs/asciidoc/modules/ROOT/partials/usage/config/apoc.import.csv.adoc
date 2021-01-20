@@ -1,0 +1,11 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| readLabels | Boolean | false | Creates node labels based on the value in the `labels` property of `node` elements
+| defaultRelationshipType | String | RELATED | The default relationship type to use if none is specified in the GraphML file
+| storeNodeIds | Boolean | false | store the `id` property of `node` elements
+| batchSize | Integer | 20000 | The number of elements to process per transaction
+|===
