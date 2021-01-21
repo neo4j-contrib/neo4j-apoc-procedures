@@ -147,8 +147,7 @@ public class CypherProceduresTest  {
     @Test
     public void testStatementReturningNode() throws Exception {
         db.executeTransactionally("call apoc.custom.asProcedure('answer','create path=(node)-[relationship:FOO]->() return node, relationship, path','write', [['node','Node'], ['relationship','RELATIONSHIP'], ['path','PATH']], [])");
-        TestUtil.testCall(db, "call custom.answer()",
-                (row) -> {});
+        TestUtil.testCall(db, "call custom.answer()", (row) -> {});
     }
 
     @Test
