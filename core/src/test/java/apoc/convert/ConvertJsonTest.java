@@ -1,6 +1,9 @@
 package apoc.convert;
 
+import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
+import apoc.util.Util;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.hamcrest.MatcherAssert;
@@ -15,6 +18,8 @@ import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,13 +51,48 @@ public class ConvertJsonTest {
     @Test
     public void testToJsonNode() throws Exception {
 	    testCall(db, "CREATE (a:Test {foo: 7}) RETURN apoc.convert.toJson(a) AS value",
-	             (row) -> assertEquals("{\"id\":\"0\",\"type\":\"node\",\"labels\":[\"Test\"],\"properties\":{\"foo\":7}}", row.get("value")));
+	             (row) -> {
+	                Map<String, Object> valueAsMap = Util.readMap((String) row.get("value"));
+	                assertEquals("0", valueAsMap.get("id"));
+	                assertEquals("node", valueAsMap.get("type"));
+	                assertEquals(List.of("Test"), valueAsMap.get("labels"));
+	                Map<String, Object> expectedMap = Map.of("foo", 7L);
+	                Map<String, Object> properties = (Map<String, Object>) valueAsMap.get("properties");
+	                properties.entrySet().forEach(i -> assertEquals(expectedMap.get(i.getKey()), i.getValue() ));
+	                assertEquals(expectedMap.keySet(), properties.keySet());
+                 });
     }
 
     @Test
     public void testToJsonNodeWithoutLabel() throws Exception {
         testCall(db, "CREATE (a {pippo:'pluto'}) RETURN apoc.convert.toJson(a) AS value",
-                (row) -> assertEquals("{\"id\":\"0\",\"type\":\"node\",\"properties\":{\"pippo\":\"pluto\"}}", row.get("value")) );
+                (row) -> {
+                    Map<String, Object> valueAsMap = Util.readMap((String) row.get("value"));
+                    assertEquals("0", valueAsMap.get("id"));
+                    assertEquals("node", valueAsMap.get("type"));
+                    assertNull(valueAsMap.get("labels"));
+                    Map<String, Object> expectedMap = Map.of("pippo", "pluto");
+                    Map<String, Object> properties = (Map<String, Object>) valueAsMap.get("properties");
+                    properties.entrySet().forEach(i -> assertEquals(expectedMap.get(i.getKey()), i.getValue() ));
+                    assertEquals(expectedMap.keySet(), properties.keySet());
+                });
+    }
+
+    @Test
+    public void testToJsonCollectNodesArray() throws Exception {
+        db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})}),(b:User {name:'Jim',age:42}),(c:User {age:12}),(d:User),(e {pippo:'pluto'})");
+        String query = "MATCH (u) RETURN apoc.convert.toJson(\"['1','2']\") as list";
+        TestUtil.testCall(db, query, (row) -> {
+            List<Object> valueAsMap = Util.fromJson((String) row.get("list"), List.class);
+
+            assertNull(valueAsMap.get(0));
+                });
+//                assertEquals(
+//                        "[{\"id\":\"0\",\"type\":\"node\",\"labels\":[\"User\"],\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"male\":true,\"age\":42,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]}}," +
+//                                "{\"id\":\"1\",\"type\":\"node\",\"labels\":[\"User\"],\"properties\":{\"name\":\"Jim\",\"age\":42}},{\"id\":\"2\",\"type\":\"node\",\"labels\":[\"User\"],\"properties\":{\"age\":12}}," +
+//                                "{\"id\":\"3\",\"type\":\"node\",\"labels\":[\"User\"]},{\"id\":\"4\",\"type\":\"node\",\"properties\":{\"pippo\":\"pluto\"}}]",
+//                        row.get("list")
+//                ));
     }
 
     @Test
@@ -104,7 +144,7 @@ public class ConvertJsonTest {
 
     @Test
     public void testToJsonListOfPath() throws Exception {
-	    testCall(db, "CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baz {a:'b'}), q=(:Omega {alpha: 'beta'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www'}) RETURN apoc.convert.toJson(collect(p)+collect(q)) AS value",
+	    testCall(db, "CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baz {a:'b'}), q=(:Omega {alpha: 'beta'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www'}) RETURN apoc.convert.toJson([p+q]) AS value",
 	             (row) -> assertEquals(
 	                     "[[{\"id\":\"0\",\"type\":\"node\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},{\"start\":{\"id\":\"0\",\"properties\":{\"foo\":7},\"labels\":[\"Test\"]},\"end\":{\"id\":\"1\",\"properties\":{\"a\":\"b\"},\"labels\":[\"Baz\"]}," +
                                  "\"id\":\"0\",\"label\":\"TEST\",\"type\":\"relationship\"}," +

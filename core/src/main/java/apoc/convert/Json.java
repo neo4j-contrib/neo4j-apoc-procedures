@@ -30,7 +30,7 @@ public class Json {
                         .map(i-> i instanceof Node ? nodeToMap((Node) i, true) : relToMap((Relationship) i))
                         .collect(Collectors.toList()));
             case LIST:
-                return ((ArrayList) value).stream().map(this::writeJsonResult).collect(Collectors.toList());
+                return Convert.convertToList(value).stream().map(this::writeJsonResult).collect(Collectors.toList());
             case MAP:
                 return ((Map<String, Object>) value).entrySet()
                         .stream()
