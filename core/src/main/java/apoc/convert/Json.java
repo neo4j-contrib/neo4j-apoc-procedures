@@ -18,6 +18,10 @@ import static apoc.util.Util.map;
 
 public class Json {
 
+    // visible for testing
+    public static String NODE = "node";
+    public static String RELATIONSHIP = "relationship";
+
     private Object writeJsonResult(Object value) {
         Meta.Types type = Meta.Types.of(value);
         switch (type) {
@@ -44,7 +48,7 @@ public class Json {
     private Map<String,Object> relToMap(Relationship rel) {
         Map<String, Object> mapRel = map(
                 "id", String.valueOf(rel.getId()),
-                "type", "relationship",
+                "type", RELATIONSHIP,
                 "label", rel.getType().toString(),
                 "start", nodeToMap(rel.getStartNode(), false),
                 "end", nodeToMap(rel.getEndNode(), false));
@@ -56,7 +60,7 @@ public class Json {
         Map<String, Object> mapNode = map("id", String.valueOf(node.getId()));
 
         if (mapForNode) {
-            mapNode.put( "type", "node");
+            mapNode.put( "type", NODE);
         }
         if (node.getLabels().iterator().hasNext()) {
             mapNode.put("labels", labelStrings(node));
