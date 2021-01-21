@@ -9,10 +9,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -109,67 +106,49 @@ public class CypherProceduresTest  {
     }
 
     @Test
-    public void registerProcedureReturningNodeWithDefaultOutputType() throws Exception {
-        db.executeTransactionally("CREATE (i:Foo {value: 2});");
-        db.executeTransactionally("call apoc.custom.asProcedure('test','MATCH (t:Foo {value : 2}) RETURN t', 'read')");
-        TestUtil.testCall(db, "call custom.test()", (row) -> assertTrue(((Map<String, Object>) row.get("row")).get("t") instanceof Node));
-    }
-
-    @Test
-    public void registerProcedureReturningNodeWithOutputNode() throws Exception {
-        db.executeTransactionally("CREATE (i:Foo {value: 2});");
-        db.executeTransactionally("call apoc.custom.asProcedure('test','MATCH (t:Foo {value : 2}) RETURN t', 'read', [['t', 'NODE']])");
-        TestUtil.testCall(db, "call custom.test()", (row) -> assertTrue(row.get("t") instanceof Node));
-    }
-
-    @Test
-    public void testDeclareFunctionWithOutputMap() throws Exception {
-        db.executeTransactionally("UNWIND range(1, 5) as val CREATE (i:Target {value: val});");
-        db.executeTransactionally("CALL apoc.custom.declareFunction('fun(val :: INTEGER) :: MAP ', 'MATCH (t:Target {value : $val}) RETURN t')");
-        TestUtil.testCall(db, "RETURN custom.fun(2) as row", (row) -> assertTrue(((Map<String, Object>) row.get("row")).get("t") instanceof Node));
-    }
-
-    @Test
-    public void testDeclareFunctionWithOutputNode() throws Exception {
-        db.executeTransactionally("CREATE (i:Target {value: 2});");
-        db.executeTransactionally("CALL apoc.custom.declareFunction('fun(val :: INTEGER) :: NODE', 'MATCH (t:Target {value : $val}) RETURN t')");
-        TestUtil.testCall(db, "RETURN custom.fun(2) as row", (row) -> assertEquals(2L, ((Node) row.get("row")).getProperty("value")));
-    }
-
-    @Test
-    public void registerFunctionReturningNodeWithOutputDefaultType() throws Exception {
-        // default type: LIST OF MAP
-        db.executeTransactionally("CREATE (i:Target {value: 2});");
-        db.executeTransactionally("CALL apoc.custom.asFunction('fun', 'MATCH (t:Target {value : 2}) RETURN t')");
-        TestUtil.testCall(db, "RETURN custom.fun() as row", (row) -> {
-            List<Object> list = (List<Object>) row.get("row");
-            assertTrue(list.get(0) instanceof Map);
-            assertTrue(((Map<String, Object>) list.get(0)).get("t") instanceof Node);
+    public void testRegisterFunctionReturnTypes() {
+        // given
+        db.executeTransactionally("UNWIND range(1, 4) as val\n" +
+                "CREATE (i:Target {value: val});");
+        // when
+        db.executeTransactionally("CALL apoc.custom.asFunction('ret_node', 'MATCH (t:Target {value : $val}) RETURN t', 'NODE', [['val', 'INTEGER']])");
+        db.executeTransactionally("CALL apoc.custom.asFunction('ret_node_list', 'MATCH (t:Target {value : $val}) RETURN t', 'LIST OF NODE', [['val', 'INTEGER']])");
+        db.executeTransactionally("CALL apoc.custom.asFunction('ret_map', 'MATCH (t:Target {value : $val}) RETURN t', 'MAP', [['val', 'INTEGER']])");
+        db.executeTransactionally("CALL apoc.custom.asFunction('ret_map_list', 'MATCH (t:Target {value : $val}) RETURN t', 'LIST OF MAP', [['val', 'INTEGER']])");
+        // then
+        TestUtil.testResult(db, "RETURN custom.ret_node(1) AS val", (result) -> {
+            Node node = result.<Node>columnAs("val").next();
+            assertTrue(node.hasLabel(Label.label("Target")));
+            assertEquals(1L, node.getProperty("value"));
         });
-    }
-
-    @Test
-    public void registerFunctionReturningNodeWithOutputMapAnd() throws Exception {
-        db.executeTransactionally("UNWIND range(1, 5) as val CREATE (i:Target {value: val});");
-        db.executeTransactionally("CALL apoc.custom.asFunction('fun', 'MATCH (t:Target {value : $val}) RETURN t', 'MAP', [['val', 'INTEGER']])");
-        TestUtil.testCall(db, "RETURN custom.fun(2) as row", (row) -> {
-            assertTrue(row.get("row") instanceof Map);
-            assertTrue(((Map)row.get("row")).get("t") instanceof Node);
-            assertEquals(2L, ((Node) ((Map) row.get("row")).get("t")).getProperty("value"));
+        TestUtil.testResult(db, "RETURN custom.ret_node_list(2) AS val", (result) -> {
+            List<Map<String,Node>> nodes = result.<List<Map<String,Node>>>columnAs("val").next();
+            assertEquals(1, nodes.size());
+            Node t = nodes.get(0).get("t");
+            assertTrue(t.hasLabel(Label.label("Target")));
+            assertEquals(2L, t.getProperty("value"));
         });
-    }
-
-    @Test
-    public void testIssue1714() throws Exception {
-        db.executeTransactionally("UNWIND range(1, 5) as val CREATE (i:Target {value: val});");
-        db.executeTransactionally("CALL apoc.custom.asFunction('fun', 'MATCH (t:Target {value : $val}) RETURN t', 'NODE', [['val', 'INTEGER']])");
-        TestUtil.testCall(db, "RETURN custom.fun(2) as row", (row) -> assertEquals(2L, ((Node) row.get("row")).getProperty("value")));
+        TestUtil.testResult(db, "RETURN custom.ret_map(3) AS val", (result) -> {
+            Map<String,Node> map = result.<Map<String, Node>>columnAs("val").next();
+            assertEquals(1, map.size());
+            Node t = map.get("t");
+            assertTrue(t.hasLabel(Label.label("Target")));
+            assertEquals(3L, t.getProperty("value"));
+        });
+        TestUtil.testResult(db, "RETURN custom.ret_map_list(4) AS val", (result) -> {
+            List<Map<String, Node>> nodes = result.<List<Map<String, Node>>>columnAs("val").next();
+            assertEquals(1, nodes.size());
+            Node t = nodes.get(0).get("t");
+            assertTrue(t.hasLabel(Label.label("Target")));
+            assertEquals(4L, t.getProperty("value"));
+        });
     }
 
     @Test
     public void testStatementReturningNode() throws Exception {
         db.executeTransactionally("call apoc.custom.asProcedure('answer','create path=(node)-[relationship:FOO]->() return node, relationship, path','write', [['node','Node'], ['relationship','RELATIONSHIP'], ['path','PATH']], [])");
-        TestUtil.testCall(db, "call custom.answer()", (row) -> {});
+        TestUtil.testCall(db, "call custom.answer()",
+                (row) -> {});
     }
 
     @Test

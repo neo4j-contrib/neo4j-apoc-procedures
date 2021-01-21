@@ -401,6 +401,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                                     return ValueUtils.of(result.stream().map(row -> row.get(cols.get(0))).collect(Collectors.toList()));
                             } else {
                                 Map<String, Object> row = result.next();
+                                // We wrap the result only if we have a "true" map, and not NodeType or RelationshipType that extends MapType
                                 if (outType.getClass().equals(Neo4jTypes.MapType.class)) return ValueUtils.of(row);
                                 if (cols.size() == 1) return ValueUtils.of(row.get(cols.get(0)));
                             }
