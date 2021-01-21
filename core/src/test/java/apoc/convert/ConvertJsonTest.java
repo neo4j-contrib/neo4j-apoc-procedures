@@ -114,7 +114,6 @@ public class ConvertJsonTest {
                 (row) -> {
                     Map<String, Object> map = Util.fromJson((String) row.get("value"), Map.class);
                     List<String> test = List.of("Test");
-
                     assertJsonNode((Map<String, Object>) map.get("one"), "0", test, Map.of("foo", 7L), NODE );
                     assertJsonNode((Map<String, Object>) map.get("two"), "1", test, Map.of("bar", 9L), NODE );
                 });
@@ -126,7 +125,6 @@ public class ConvertJsonTest {
 	             (row) -> {
                      Map<String, Object> map = Util.fromJson((String) row.get("value"), Map.class);
                      List<String> user = List.of("User");
-
                      assertJsonNode((Map<String, Object>) map.get("start"), "0", user, Map.of("name", "Adam"), null);
                      assertJsonNode((Map<String, Object>) map.get("end"), "1", user, Map.of("name", "Jim", "age", 42L), null);
                      assertJsonRel(map, "0", "KNOWS", Map.of("since" , 1993.1D, "bffSince", "P5M1DT12H"), RELATIONSHIP);
@@ -534,5 +532,4 @@ public class ConvertJsonTest {
 
         db.executeTransactionally(createStatement);
     }
-
 }
