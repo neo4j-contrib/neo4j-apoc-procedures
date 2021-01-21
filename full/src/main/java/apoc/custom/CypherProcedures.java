@@ -101,7 +101,7 @@ public class CypherProcedures {
                 ProcedureSignature signature = procedureDescriptor.getSignature();
                 return new CustomProcedureInfo(
                         PROCEDURE,
-                        getFullStatement(signature.name()),
+                        signature.name().toString().replace(PREFIX + ".", ""),
                         signature.description().orElse(null),
                         signature.mode().toString().toLowerCase(),
                         procedureDescriptor.getStatement(),
@@ -113,7 +113,7 @@ public class CypherProcedures {
                 UserFunctionSignature signature = userFunctionDescriptor.getSignature();
                 return new CustomProcedureInfo(
                         FUNCTION,
-                        getFullStatement(signature.name()),
+                        signature.name().toString().replace(PREFIX + ".", ""),
                         signature.description().orElse(null),
                         null,
                         userFunctionDescriptor.getStatement(),
@@ -155,15 +155,6 @@ public class CypherProcedures {
             s = s.substring(0, s.length()-1);
         }
         return s;
-    }
-
-    private String getFullStatement(QualifiedName qualifiedName) {
-        String[] nameSpace = qualifiedName.namespace();
-        String name = nameSpace.length > 1
-                ? String.join(".", Arrays.copyOfRange(nameSpace, 1, nameSpace.length)) + "."
-                : "";
-
-        return name + qualifiedName.name();
     }
 
     public static class CustomProcedureInfo {
