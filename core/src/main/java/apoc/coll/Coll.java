@@ -52,13 +52,15 @@ public class Coll {
     @Context public Transaction tx;
 
     @UserFunction
-    @Description("apoc.coll.runningTotal(list1) - returns an accumulative array. For example apoc.coll.runningTotal([1,2,3.5]) return [1.0,3.0,6.5]")
-    public List<Double> runningTotal(@Name("list") List<Number> list) {
+    @Description("apoc.coll.runningTotal(list1) - returns an accumulative array. For example apoc.coll.runningTotal([1,2,3.5]) return [1,3,6.5]")
+    public List<Number> runningTotal(@Name("list") List<Number> list) {
         if (list == null || list.isEmpty()) return null;
         AtomicDouble sum = new AtomicDouble();
-        return list.stream()
-                .map(i -> sum.addAndGet(i.doubleValue()))
-                .collect(Collectors.toList());
+        return list.stream().map(i -> {
+                    double value = sum.addAndGet(i.doubleValue());
+                    if (value == sum.longValue()) return sum.longValue();
+                    return value;
+                }).collect(Collectors.toList());
     }
 
     @Procedure

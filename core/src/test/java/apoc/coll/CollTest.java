@@ -33,7 +33,7 @@ public class CollTest {
     @Test
     public void testRunningTotal() throws Exception {
         testCall(db, "RETURN apoc.coll.runningTotal([1,2,3,4,5.5,1]) as value",
-                (row) -> assertEquals(asList(1D, 3D, 6D, 10D, 15.5D, 16.5D), row.get("value")));
+                (row) -> assertEquals(asList(1L, 3L, 6L, 10L, 15.5D, 16.5D), row.get("value")));
     }
 
     @Test
