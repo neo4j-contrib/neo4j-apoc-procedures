@@ -1,0 +1,48 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$createExportGraph.adoc[]
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::play-movies.png[]
+
+The `apoc.export.xls.data` procedure exports the specified nodes and relationships to a XLS file.
+
+The following query exports all nodes with the `:Person` label with a `name` property that starts with `L` to the file `movies-l.csv`:
+
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.name STARTS WITH "L"
+WITH collect(person) AS people
+CALL apoc.export.xls.data(people, [], "movies-l.xls", {})
+YIELD file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+RETURN file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data;
+----
+
+.Results
+[opts="header"]
+|===
+| file           | source                    | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "movies-l.xls" | "data: nodes(3), rels(0)" | "xls"  | 3     | 0             | 6          | 10   | 3    | 20000     | 1       | TRUE | NULL
+|===
+
+`movies-l.xls` contains individual sheets for each node label and relationship type.
+In this case it contains a `Person` sheet.
+
+We can query the contents of those sheets using xref::overview/apoc.load/apoc.load.xls.adoc[].
+Let's have a look at the `Person` sheet:
+
+[source,cypher]
+----
+CALL apoc.load.xls("file://movies-l.xls", "Person");
+----
+
+.Results
+[opts="header"]
+|===
+| lineNo | list                            | map
+| 0      | [3, 1961, "Laurence Fishburne"] | {name: "Laurence Fishburne", `<nodeId>`: 3, born: 1961}
+| 1      | [5, 1967, "Lilly Wachowski"]    | {name: "Lilly Wachowski", `<nodeId>`: 5, born: 1967}
+| 2      | [6, 1965, "Lana Wachowski"]     | {name: "Lana Wachowski", `<nodeId>`: 6, born: 1965}
+|===

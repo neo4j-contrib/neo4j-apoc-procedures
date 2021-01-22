@@ -1,0 +1,46 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$createExportGraph.adoc[]
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::play-movies.png[]
+
+The `apoc.export.xls.query` procedure exports the results of a Cypher query to a XLS file.
+
+The following query exports all `DIRECTED` relationships and the nodes with `Person` and `Movie` labels on either side of that relationship to the file `movies-directed.csv`:
+
+[source,cypher]
+----
+WITH "MATCH path = (person:Person)-[:DIRECTED]->(movie)
+      RETURN person.name AS name, person.born AS born,
+             movie.title AS title, movie.tagline AS tagline, movie.released AS released" AS query
+CALL apoc.export.xls.query(query, "movies-directed.xls", {})
+YIELD file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+RETURN file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data;
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "movies-directed.xls" | "statement: cols(5)" | "xls"  | 0     | 0             | 0          | 12   | 0    | 20000     | 1       | TRUE | NULL
+|===
+
+`movies-directed.xls` contains one sheet with the name `Sheet0`.
+
+We can query the contents of this sheet using xref::overview/apoc.load/apoc.load.xls.adoc[].
+Let's have a look at a couple of the sheets:
+
+[source,cypher]
+----
+CALL apoc.load.xls("file://movies-directed.xls", "Sheet0");
+----
+
+.Results
+[opts="header"]
+|===
+| lineNo | list                                                                       | map
+| 0      | ["Lilly Wachowski", 1967, "The Matrix", "Welcome to the Real World", 1999] | {name: "Lilly Wachowski", tagline: "Welcome to the Real World", title: "The Matrix", released: 1999, born: 1967}
+| 1      | ["Lana Wachowski", 1965, "The Matrix", "Welcome to the Real World", 1999]  | {name: "Lana Wachowski", tagline: "Welcome to the Real World", title: "The Matrix", released: 1999, born: 1965}
+|===

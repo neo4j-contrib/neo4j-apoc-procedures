@@ -1,0 +1,4 @@
+The XLS procedures have dependencies on libraries that are not included in the APOC Library.
+
+These dependencies are included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-xls-dependencies-{apoc-release}.jar[apoc-xls-dependencies-{apoc-release}.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
+Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
