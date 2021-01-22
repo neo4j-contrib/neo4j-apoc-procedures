@@ -27,6 +27,9 @@ apoc.load.xls(url :: STRING?, selector :: STRING?, config = {} :: MAP?) :: (line
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.load.xls.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -35,4 +38,11 @@ apoc.load.xls(url :: STRING?, selector :: STRING?, config = {} :: MAP?) :: (line
 |list|LIST? OF ANY?
 |map|MAP?
 |===
+
+== Install Dependencies
+include::partial$xls-dependencies.adoc[]
+
+[[usage-apoc.load.xls]]
+== Usage Examples
+include::partial$usage/apoc.load.xls.adoc[]
 

@@ -284,6 +284,7 @@ class DocumentationGenerator {
             writeTTL(writer, procedure.name().toString());
             writeTrigger(writer, procedure.name().toString());
             writeNlpDependencies(writer, procedure.name().toString());
+            writeXlsDependencies(writer, procedure.name().toString());
             writeMongodbDependencies(writer, procedure.name().toString());
             writeUsageExample(writer, procedure.name().toString());
             writeExtraDocumentation(writer, procedure.name());
@@ -295,7 +296,7 @@ class DocumentationGenerator {
 
     private final List<String> readsFromFile = Arrays.asList(
             "apoc.cypher.runFile", "apoc.cypher.runFiles", "apoc.cypher.runSchemaFile", "apoc.cypher.runSchemaFiles",
-            "apoc.load.json", "apoc.load.jsonParams", "apoc.load.csv", "apoc.import.graphml", "apoc.import.xml"
+            "apoc.load.json", "apoc.load.jsonParams", "apoc.load.csv", "apoc.import.graphml", "apoc.import.xml", "apoc.load.xml"
     );
     private final List<String> writeToFile = Arrays.asList(
             "apoc.export.json.all", "apoc.export.json.data", "apoc.export.json.graph", "apoc.export.json.query",
@@ -366,6 +367,14 @@ class DocumentationGenerator {
         if(name.startsWith("apoc.mongodb")) {
             writer.write("== Install Dependencies\n");
             writer.write("include::partial$mongodb-dependencies.adoc[]\n\n");
+        }
+    }
+
+    private void writeXlsDependencies(Writer writer, String name) throws IOException {
+        // Commented until we do a release
+        if(name.startsWith("apoc.load.xls") || name.startsWith("apoc.export.xls")) {
+            writer.write("== Install Dependencies\n");
+            writer.write("include::partial$xls-dependencies.adoc[]\n\n");
         }
     }
 

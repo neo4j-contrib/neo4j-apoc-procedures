@@ -8,5 +8,5 @@ asciidoc:
     docs-version: "4.1"
     branch: "4.1"
     apoc-release-absolute: "4.1"
-    apoc-release: "4.1.0.4"
+    apoc-release: "4.1.0.5"
     page-product: "apoc"
