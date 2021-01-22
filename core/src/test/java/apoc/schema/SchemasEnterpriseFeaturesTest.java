@@ -65,7 +65,7 @@ public class SchemasEnterpriseFeaturesTest {
         testResult(session, query, (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("bar", "foo"), r.get("keys"));
+            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("KEPT", r.get("action"));
             assertFalse(result.hasNext());
@@ -81,7 +81,7 @@ public class SchemasEnterpriseFeaturesTest {
         testResult(session, "CALL apoc.schema.assert(null,{Foo:[['bar','foo'], 'baz'], Galileo: [['newton', 'tesla']]}, false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("bar", "foo"), r.get("keys"));
+            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("KEPT", r.get("action"));
             r = result.next();

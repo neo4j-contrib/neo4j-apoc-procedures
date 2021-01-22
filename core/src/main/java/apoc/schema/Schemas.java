@@ -116,9 +116,9 @@ public class Schemas {
                 if (item instanceof String) {
                     return item.equals(info.key);
                 } else {
-                    Collections.sort(info.keys);
-                    Collections.sort((List) item);
-                    return info.keys.equals(item);
+                    TreeSet<String> keys = new TreeSet<>(info.keys);
+                    TreeSet<String> items = new TreeSet<>((List<String>) item);
+                    return keys.equals(items);
                 }
             });
         }
