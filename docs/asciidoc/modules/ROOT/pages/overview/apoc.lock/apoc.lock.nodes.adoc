@@ -24,5 +24,9 @@ apoc.lock.nodes(nodes :: LIST? OF NODE?) :: VOID
 |nodes|LIST? OF NODE?|null
 |===
 
+[[usage-apoc.lock.nodes]]
+== Usage Examples
+include::partial$usage/apoc.lock.nodes.adoc[]
+
 xref::graph-updates/locking.adoc[More documentation of apoc.lock.nodes,role=more information]
 

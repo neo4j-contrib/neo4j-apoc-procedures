@@ -1,0 +1,30 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (:Person {name:'Alex'})
+CREATE (:Email {address:'alex@somewhere.com'});
+----
+
+We want to create exactly one `HAS_EMAIL` relationship between these nodes.
+We can use the `MERGE` clause to help us do this, but the `MERGE` clause isn't thread safe, so we could have a situation where two nodes write the `HAS_EMAIL` relationship at the same time.
+
+We can prevent this race condition by using the `apoc.lock.nodes` procedure, as shown below:
+
+
+[source,cypher]
+----
+MATCH (p:Person {name:'Alex'})
+MATCH (e:Email {address:'alex@somewhere.com'})
+CALL apoc.lock.nodes([p,e])
+MERGE (p)-[rel:HAS_EMAIL]->(e)
+RETURN rel;
+----
+
+.Results
+[options="header"]
+|===
+| rel
+| [:HAS_EMAIL]
+
+|===

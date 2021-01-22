@@ -35,3 +35,7 @@ apoc.search.multiSearchReduced(LabelPropertyMap :: ANY?, operator :: STRING?, va
 |values|MAP?
 |===
 
+[[usage-apoc.search.multiSearchReduced]]
+== Usage Examples
+include::partial$usage/apoc.search.multiSearchReduced.adoc[]
+

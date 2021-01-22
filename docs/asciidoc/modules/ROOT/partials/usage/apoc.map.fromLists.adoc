@@ -1,7 +1,6 @@
 The following creates a map from keys and values lists:
 
 [source,cypher]
-[source,cypher]
 ----
 RETURN apoc.map.fromLists(
     ["name", "dob"],

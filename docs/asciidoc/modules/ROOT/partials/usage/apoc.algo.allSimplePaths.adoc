@@ -1,0 +1,36 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE
+  (a:Loc{name:'A'}),
+  (b:Loc{name:'B'}),
+  (c:Loc{name:'C'}),
+  (d:Loc{name:'D'}),
+  (a)-[:ROAD {d:100}]->(d),
+  (a)-[:RAIL {d:5}]->(d),
+  (a)-[:ROAD {d:'10'}]->(b),
+  (b)-[:ROAD {d:20}]->(c),
+  (c)-[:ROAD]->(d),
+  (a)-[:ROAD {d:20}]->(c);
+----
+
+We can return all the paths between A and D, by running the following query:
+
+[source,cypher]
+----
+MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'})
+CALL apoc.algo.allSimplePaths(from, to, 'ROAD>', 3)
+YIELD path
+RETURN path ORDER BY length(path);
+----
+
+.Results
+[options="header", cols="3,1"]
+|===
+| path
+| (:Loc {name: "A"})-[:ROAD {d: 100}]->(:Loc {name: "D"})
+| (:Loc {name: "A"})-[:ROAD {d: 20}]->(:Loc {name: "C"})-[:ROAD]->(:Loc {name: "D"})
+| (:Loc {name: "A"})-[:ROAD {d: "10"}]->(:Loc {name: "B"})-[:ROAD {d: 20}]->(:Loc {name: "C"})-[:ROAD]->(:Loc {name: "D"})
+
+|===

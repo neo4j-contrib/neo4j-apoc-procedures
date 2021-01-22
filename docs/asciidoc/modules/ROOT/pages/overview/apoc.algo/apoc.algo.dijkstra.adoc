@@ -37,5 +37,9 @@ apoc.algo.dijkstra(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDir
 |weight|FLOAT?
 |===
 
+[[usage-apoc.algo.dijkstra]]
+== Usage Examples
+include::partial$usage/apoc.algo.dijkstra.adoc[]
+
 xref::algorithms/path-finding-procedures.adoc[More documentation of apoc.algo.dijkstra,role=more information]
 

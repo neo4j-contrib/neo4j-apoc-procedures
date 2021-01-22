@@ -27,5 +27,9 @@ apoc.xml.parse(data :: STRING?, path = / :: STRING?, config = {} :: MAP?, simple
 |simple|BOOLEAN?|false
 |===
 
+[[usage-apoc.xml.parse]]
+== Usage Examples
+include::partial$usage/apoc.xml.parse.adoc[]
+
 xref::import/xml.adoc[More documentation of apoc.xml.parse,role=more information]
 
