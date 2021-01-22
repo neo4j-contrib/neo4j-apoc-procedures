@@ -1,0 +1,65 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$createExportGraph.adoc[]
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::play-movies.png[title="Movies Graph Visualization"]
+
+The `apoc.export.xls.graph` procedure exports a xref::virtual/index.adoc[virtual graph] to a CSV file or as a stream.
+
+The examples in this section are based on a virtual graph that contains all `PRODUCED` relationships and the nodes either side of that relationship.
+We can then export that virtual graph to `movies-producers.xls`:
+
+[source,cypher]
+----
+MATCH path = (:Person)-[produced:PRODUCED]->(:Movie)
+WITH collect(path) AS paths
+CALL apoc.graph.fromPaths(paths, "producers", {})
+YIELD graph AS g
+CALL apoc.export.xls.graph(g, "movies-producers.xls", {})
+YIELD file, nodes, relationships, properties
+RETURN file, nodes, relationships, properties;
+----
+
+.Results
+[opts="header"]
+|===
+| file                      | nodes | relationships | properties
+| "movies-producers.xls" | 2     | 1             | 5
+|===
+
+`movies-producers.xls` contains individual sheets for each node label and relationship type.
+In this case it contains the following sheets:
+
+* Movie
+* Person
+* PRODUCED
+
+We can query the contents of those sheets using xref::overview/apoc.load/apoc.load.xls.adoc[].
+Let's have a look at a couple of the sheets:
+
+[source,cypher]
+----
+CALL apoc.load.xls("file://movies-producers.xls", "Person");
+----
+
+.Results
+[opts="header"]
+|===
+| lineNo | list                     | map
+| 0      | [7, 1952, "Joel Silver"] | {name: "Joel Silver", `<nodeId>`: 7, born: 1952}
+|===
+
+
+[source,cypher]
+----
+CALL apoc.load.xls("file://movies-producers.xls", "PRODUCED");
+----
+
+.Results
+[opts="header"]
+|===
+| lineNo | list                     | map
+| 0      | [6, 7, 0] | {`<startNodeId>`: 7, `<endNodeId>`: 0, `<relationshipId>`: 6} 
+|===

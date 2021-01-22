@@ -1,0 +1,96 @@
+
+[source,cypher,subs=attributes]
+----
+CALL apoc.load.xls("https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/full/src/test/resources/load_test.xls",
+  'Full',{ mapping: {
+  Integer:{type:'int'},
+  Array:{type:'int',array:true,arraySep:';'}
+}});
+----
+
+.Results
+[options="header"]
+|===
+| lineNo | list                              | map
+| 0      | ["Test", TRUE, 2, 1.5, [1, 2, 3]] | {Integer: 2, Array: [1, 2, 3], Float: 1.5, String: "Test", Boolean: TRUE}
+|===
+
+[source,cypher,subs=attributes]
+----
+CALL apoc.load.xls("https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/full/src/test/resources/load_test.xls",
+  'Kids'
+);
+----
+
+.Results
+[options="header"]
+|===
+| lineNo | list           | map
+| 0      | ["Selma", 8]   | {name: "Selma", age: 8}
+| 1      | ["Rana", 11]   | {name: "Rana", age: 11}
+| 2      | ["Selina", 18] | {name: "Selina", age: 18}
+|===
+
+Some examples with type/dateFormat and dateParse:
+
+[source,cypher,subs=attributes]
+----
+CALL apoc.load.xls('https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/full/src/test/resources/test_date.xlsx',
+  'sheet',{ mapping:{
+  Date:{type:'String'}
+}});
+----
+
+.Results
+[options="header",cols="1,3,3"]
+|===
+| lineNo | list                                                        | map
+| 0      | ["2018/05/10", "2018/10/05", "Alan"]                        | {Data: "2018/10/05", Date: "2018/05/10", Name: "Alan"}
+| 1      | ["2018-09-10T00:00:00", 2018-10-10T00:00, "Jack"]           | {Data: 2018-10-10T00:00, Date: "2018-09-10T00:00:00", Name: "Jack"}
+| 2      | ["2018/05/10 12:10:10", 2018-10-10T00:00, 2018-10-10T00:00] | {Data: 2018-10-10T00:00, Date: "2018/05/10 12:10:10", Name: 2018-10-10T00:00}
+| 3      | [NULL, 2018-10-10T00:00, 1899-12-31T12:01:10]               | {Data: 2018-10-10T00:00, Date: NULL, Name: 1899-12-31T12:01:10}
+| 4      | ["2011-01-01T12:00:00.05381+01:00", NULL, NULL]             | {Data: NULL, Date: "2011-01-01T12:00:00.05381+01:00", Name: NULL}
+
+|===
+
+
+[source,cypher,subs=attributes]
+----
+CALL apoc.load.xls('https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/full/src/test/resources/test_date.xlsx',
+  'sheet', { mapping: {
+    Date:{type:'String',dateFormat:'iso_date'}
+}});
+----
+
+.Results
+[options="header",cols="1,3,3"]
+|===
+| lineNo | list                                                        | map
+| 0      | ["2018/05/10", "2018/10/05", "Alan"]                        | {Data: "2018/10/05", Date: "2018/05/10", Name: "Alan"}
+| 1      | ["2018-09-10", 2018-10-10T00:00, "Jack"]                    | {Data: 2018-10-10T00:00, Date: "2018-09-10", Name: "Jack"}
+| 2      | ["2018/05/10 12:10:10", 2018-10-10T00:00, 2018-10-10T00:00] | {Data: 2018-10-10T00:00, Date: "2018/05/10 12:10:10", Name: 2018-10-10T00:00}
+| 3      | [NULL, 2018-10-10T00:00, 1899-12-31T12:01:10]               | {Data: 2018-10-10T00:00, Date: NULL, Name: 1899-12-31T12:01:10}
+| 4      | ["2011-01-01T12:00:00.05381+01:00", NULL, NULL]             | {Data: NULL, Date: "2011-01-01T12:00:00.05381+01:00", Name: NULL}
+
+
+|===
+
+[source,cypher,subs=attributes]
+----
+CALL apoc.load.xls('https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/full/src/test/resources/test_date.xlsx',
+  'sheet',{ mapping:{
+  Date:{type:'String',dateParse:["wrongPath", "dd-MM-yyyy", "dd/MM/yyyy", "yyyy/MM/dd", "yyyy/dd/MM", "yyyy-dd-MM'T'hh:mm:ss"]}
+}});
+----
+
+.Results
+[options="header",cols="1,3,3"]
+|===
+| lineNo | list                                                        | map
+| 0      | ["2018/05/10", "2018/10/05", "Alan"]                        | {Data: "2018/10/05", Date: "2018/05/10", Name: "Alan"}
+| 1      | ["2018-09-10T00:00:00", 2018-10-10T00:00, "Jack"]           | {Data: 2018-10-10T00:00, Date: "2018-09-10T00:00:00", Name: "Jack"}
+| 2      | ["2018/05/10 12:10:10", 2018-10-10T00:00, 2018-10-10T00:00] | {Data: 2018-10-10T00:00, Date: "2018/05/10 12:10:10", Name: 2018-10-10T00:00}
+| 3      | [NULL, 2018-10-10T00:00, 1899-12-31T12:01:10]               | {Data: 2018-10-10T00:00, Date: NULL, Name: 1899-12-31T12:01:10}
+| 4      | ["2011-01-01T12:00:00.05381+01:00", NULL, NULL]             | {Data: NULL, Date: "2011-01-01T12:00:00.05381+01:00", Name: NULL}
+
+|===

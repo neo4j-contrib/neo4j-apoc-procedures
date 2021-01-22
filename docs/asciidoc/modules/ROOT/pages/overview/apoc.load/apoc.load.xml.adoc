@@ -34,5 +34,12 @@ apoc.load.xml(url :: STRING?, path = / :: STRING?, config = {} :: MAP?, simple =
 |value|MAP?
 |===
 
+== Reading from a file
+include::../../import/includes/enableFileImport.adoc[]
+
+[[usage-apoc.load.xml]]
+== Usage Examples
+include::partial$usage/apoc.load.xml.adoc[]
+
 xref::import/xml.adoc[More documentation of apoc.load.xml,role=more information]
 
