@@ -154,15 +154,17 @@ public class MongoDB {
     }
 
     @Procedure("apoc.mongodb.get.byObjectId")
-    @Description("apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValueAsString, fieldName, default:'_id') - get the document by Object id value ")
-    public Stream<MapResult> byObjectId(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("objectIdValueAsString") String objectIdValueAsString, @Name(value = "fieldName", defaultValue = "_id") String fieldName) {
+    @Description("apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, fieldName (default:'_id'), config(default:{})) - get the document by Object id value ")
+    public Stream<MapResult> byObjectId(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("objectIdValue") String objectIdValue, @Name(value = "fieldName", defaultValue = "_id") String fieldName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 
-        return executeMongoQuery(hostOrKey, db, collection, false, false,
-                false, coll -> {
-                    Map<String, Object> result = coll.first(Map.of(fieldName, new ObjectId( objectIdValueAsString )));
+        MongoDbGetByIdConfig conf = new MongoDbGetByIdConfig(config);
+
+        return executeMongoQuery(hostOrKey, db, collection, conf.isCompatibleValues(), conf.isExtractReferences(), conf.isIdAsMap(),
+                coll -> {
+                    Map<String, Object> result = coll.first(Map.of(fieldName, new ObjectId( objectIdValue )));
                     return result == null || result.isEmpty() ? Stream.empty() : Stream.of(new MapResult(result));
                 },
-                e -> log.error("apoc.mongo.get.byObjectId - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], objectIdValueAsString = [" + objectIdValueAsString + "]",e));
+                e -> log.error("apoc.mongo.get.byObjectId - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], objectIdValue = [" + objectIdValue + "]",e));
 
     }
 

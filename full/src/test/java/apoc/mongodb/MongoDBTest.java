@@ -53,7 +53,6 @@ public class MongoDBTest {
     private static MongoCollection<Document> testCollection;
     private static MongoCollection<Document> productCollection;
     private static MongoCollection<Document> personCollection;
-    private static MongoCollection<Document> objIdCollection;
 
     private static MongoCollection<Document> collection;
 
@@ -70,7 +69,8 @@ public class MongoDBTest {
     private static final long NUM_OF_RECORDS = 10_000L;
 
     private static List<ObjectId> refs;
-    private static ObjectId sherlock = new ObjectId("507f191e810c19729de860ea");
+    private static ObjectId nameAsObjectId = new ObjectId("507f191e810c19729de860ea");
+    private static ObjectId idAsObjectId = new ObjectId();
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -95,7 +95,6 @@ public class MongoDBTest {
         testCollection = database.getCollection("test");
         productCollection = database.getCollection("product");
         personCollection = database.getCollection("person");
-        objIdCollection = database.getCollection("objId");
         testCollection.deleteMany(new Document());
         productCollection.deleteMany(new Document());
         LongStream.range(0, NUM_OF_RECORDS)
@@ -115,8 +114,13 @@ public class MongoDBTest {
                 "bought", refs,
                 "born", DateUtils.parseDate("11-10-1935", "dd-MM-yyyy"),
                 "coordinates", Arrays.asList(12.345, 67.890))));
-        objIdCollection.insertOne(new Document(map("name", sherlock,
-                "surname", "Holmes")));
+        personCollection.insertOne(new Document(map("name", nameAsObjectId,
+                "age", 40,
+                "bought", refs)));
+        personCollection.insertOne(new Document(map("_id", idAsObjectId,
+                "name", "Sherlock",
+                "age", 25,
+                "bought", refs)));
 
         TestUtil.registerProcedure(db, MongoDB.class, Graphs.class);
         mongoClient.close();
@@ -228,26 +232,52 @@ public class MongoDBTest {
 
     @Test
     public void testGetByObjectId() throws Exception {
-        ObjectId id = refs.get(0);
-        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host,$db,$collection,'" + id + "')",
-                map("host", HOST, "db", "test", "collection", "product", "id", id), r -> {
-            Map doc = (Map) r.get("value");
-            assertEquals(id.toString(), doc.get("_id"));
-            assertEquals("My Awesome Product", doc.get("name"));
-            assertEquals(800, doc.get("price"));
-            assertEquals(List.of("Tech", "Mobile", "Phone", "iOS"), doc.get("tags"));
+        List<String> refsIds = refs.stream().map(ObjectId::toString).collect(Collectors.toList());
+        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host,$db,$collection,$id)",
+                map("host", HOST, "db", "test", "collection", "person", "id", idAsObjectId.toString()), r -> {
+                    Map doc = (Map) r.get("value");
+                    assertTrue(doc.get("_id") instanceof Map);
+                    assertEquals(
+                            Set.of("date", "machineIdentifier","processIdentifier","counter","time","timestamp","timeSecond"),
+                            ((Map<String, Object>)doc.get("_id")).keySet()
+                    );
+                    assertEquals("Sherlock", doc.get("name"));
+                    assertEquals(25L, doc.get("age"));
+                    assertEquals(refsIds, doc.get("bought"));
         });
-    }
 
-    @Test
-    public void testGetByObjectIdCustom() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host,$db,$collection,'" + sherlock + "', 'name')",
-                map("host", HOST, "db", "test", "collection", "objId", "id", sherlock), r -> {
-            Map doc = (Map) r.get("value");
-            assertNotNull(doc.get("_id"));
-            assertEquals(sherlock, new ObjectId((String) doc.get("name")));
-            assertEquals("Holmes", doc.get("surname"));
+        // - with custom fieldName
+        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host, $db, $collection, $objectId, 'name')",
+                map("host", HOST, "db", "test", "collection", "person", "objectId", nameAsObjectId.toString()), r -> {
+                    Map doc = (Map) r.get("value");
+                    assertTrue(doc.get("_id") instanceof Map);
+                    assertEquals(
+                            Set.of("date", "machineIdentifier","processIdentifier","counter","time","timestamp","timeSecond"),
+                            ((Map<String, Object>)doc.get("_id")).keySet()
+                    );
+                    assertEquals(40L, doc.get("age"));
+                    assertEquals(refsIds, doc.get("bought"));
         });
+
+        // - with configs
+        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host, $db, $collection, $objectId, '_id', $config)",
+                map("host", HOST, "db", "test", "collection", "person", "objectId", idAsObjectId.toString(),
+                        "config", map("extractReferences", true, "idAsMap", true, "compatibleValues", false)), r -> {
+                    Map doc = (Map) r.get("value");
+                    assertEquals(idAsObjectId.toString(), doc.get("_id"));
+                    assertEquals(25, doc.get("age"));
+                    assertEquals("Sherlock", doc.get("name"));
+                    List<Object> boughtList = (List<Object>) doc.get("bought");
+                    Map<String, Object> firstBought = (Map<String, Object>) boughtList.get(0);
+                    Map<String, Object> secondBought = (Map<String, Object>) boughtList.get(1);
+                    assertEquals(refsIds.get(0), firstBought.get("_id"));
+                    assertEquals(refsIds.get(1), secondBought.get("_id"));
+                    assertEquals(800, firstBought.get("price"));
+                    assertEquals(1200, secondBought.get("price"));
+                    assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "iOS"), firstBought.get("tags"));
+                    assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "Android"), secondBought.get("tags"));
+        });
+
     }
 
     @Test
