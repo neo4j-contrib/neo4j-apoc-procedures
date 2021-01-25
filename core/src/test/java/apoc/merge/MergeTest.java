@@ -98,12 +98,13 @@ public class MergeTest {
     @Test
     public void testEscapeIdentityPropertiesWithSpecialCharactersShouldWork() {
         for (String key: new String[]{"normal", "i:d", "i-d", "i d"}) {
-            Map<String, String> identProps = MapUtil.map(key, "value");
+            Map<String, Object> identProps = MapUtil.map(key, "value");
             Map<String, Object> params = MapUtil.map("identProps", identProps);
             
             testCall(db, "CALL apoc.merge.node(['Person'], $identProps) YIELD node RETURN node", params,
                         (row) -> {
-                            assertTrue(row.get("node") instanceof Node);
+                            Node node = (Node) row.get("node");
+                            assertTrue(node instanceof Node);
                             assertTrue(node.hasProperty(key));
                             assertEquals("value", node.getProperty(key));
                         });
