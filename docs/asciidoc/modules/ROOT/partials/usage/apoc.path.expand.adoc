@@ -1,0 +1,142 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$expand-sample-graph.adoc[]
+
+Let's start by expanding paths from the Praveena node.
+We only want to consider the `KNOWS` relationship type, so we'll specify that as the relationship filter.
+
+.The following returns the paths to people that Praveena `KNOWS` from 1 to 2 hops
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.expand(p, "KNOWS", null, 1, 2)
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header", cols="4,1"]
+|===
+| path | hops
+| (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})                                                  | 1
+| (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"}) | 2
+| (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})         | 2
+| (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})       | 2
+|===
+
+Praveena only has a direct `KNOWS` relationship to Zhen, but Zhen has `KNOWS` relationships to 3 other people, which means they're 2 hops away from Praveena.
+
+We can also provide a node label filter to restrict the nodes that are returned.
+The following query only returns paths where every node has the `Engineering` label.
+
+.The following returns paths containing only `Engineering` people that Praveena `KNOWS` from 1 to 2 hops
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.expand(p, "KNOWS", "+Engineering", 1, 2)
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header", cols="4,1"]
+|===
+| path | hops
+| (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})                                                  | 1
+| (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"}) | 2
+|===
+
+We lose the paths that ended with Lju and Stefan because neither of those nodes had the `Engineering` label.
+
+We can specify multiple relationship types.
+The following query starts from the Alicia node, and then expands the `FOLLOWS` and `KNOWS` relationships:
+
+.The following returns paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.expand(p, "FOLLOWS>|KNOWS", "", 1, 3)
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header", cols="4,1"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                                     | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})                                                                                                   | 1
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})                                                                                                    | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                    | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})                                                | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                                         | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})                                                       | 2
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})                                                          | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:FOLLOWS]->(:Person:Product {name: "John"})       | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"})   | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"}) | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})           | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})         | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})      | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"}) | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})            | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:KNOWS]->(:Person:Product {name: "Jake"})              | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})             | 3
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})             | 3
+|===
+
+This query returns 19 paths, Alicia is very well connected!
+
+We can also specify traversal termination criteria using label filters.
+If we wanted to terminate a traversal as soon as the traversal encounters a node containing the `Engineering` label, we can use the `/Engineering` node filter.
+
+.The following returns paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, terminating as soon as a node with the `Engineering` label is reached
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.expand(p, "FOLLOWS>|KNOWS", "/Engineering", 1, 3)
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header", cols="4,1"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})     | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"}) | 2
+|===
+
+We're now down to only two paths.
+But this query doesn't capture all of the paths from Alicia that end in a node with the `Engineering` label.
+We can use the `>Engineering` node filter to define a traversal that:
+
+* only returns paths that terminate at nodes with the `Engineering` label
+* continues expansion to end nodes after that, looking for more paths that end with the `Engineering` label
+
+.The following returns paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, where paths end with a node with the `Engineering` label
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.expand(p, "FOLLOWS>|KNOWS", ">Engineering", 1, 3)
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header", cols="4,1"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                    | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})                                                | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"})   | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"}) | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"}) | 3
+|===
+
+Our query now also returns paths going through Praveena and Zhen, one going to Martin, and other others going back to Zhen and Praveena!

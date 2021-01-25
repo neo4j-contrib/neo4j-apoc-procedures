@@ -25,12 +25,19 @@ apoc.path.spanningTree(start :: ANY?, config :: MAP?) :: (path :: PATH?)
 |config|MAP?|null
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.path.spanningTree.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
 | Name | Type 
 |path|PATH?
 |===
+
+[[usage-apoc.path.spanningTree]]
+== Usage Examples
+include::partial$usage/apoc.path.spanningTree.adoc[]
 
 xref::graph-querying/path-querying.adoc[More documentation of apoc.path.spanningTree,role=more information]
 

@@ -1,0 +1,794 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$expand-config-sample-graph.adoc[]
+
+[[path-expander-paths-config-examples-label-relationship-filters]]
+=== Relationship Type and Node Label filters
+
+Let's start by expanding paths from the Praveena node.
+We only want to consider the `KNOWS` relationship type, so we'll specify that as the `relationshipFilter` parameter.
+
+.The following returns the paths to people that Praveena `KNOWS` from 1 to 2 hops
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.expandConfig(p, {
+	relationshipFilter: "KNOWS",
+    minLevel: 1,
+    maxLevel: 2
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})                                                  | 1
+| (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"}) | 2
+| (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})         | 2
+| (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})       | 2
+|===
+
+Praveena only has a direct `KNOWS` relationship to Zhen, but Zhen has `KNOWS` relationships to 3 other people, which means they're 2 hops away from Praveena.
+
+We can also provide a node label filter to restrict the nodes that are returned.
+If we want to only return paths where every node has the `Engineering` label, we'll provide the value `+Engineering` to the `labelFilter` parameter.
+
+.The following returns paths containing only `Engineering` people that Praveena `KNOWS` from 1 to 2 hops
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.expandConfig(p, {
+	relationshipFilter: "KNOWS",
+	labelFilter: "+Engineering",
+    minLevel: 1,
+    maxLevel: 2
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})                                                  | 1
+| (:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"}) | 2
+|===
+
+We lose the paths that ended with Lju and Stefan because neither of those nodes had the `Engineering` label.
+
+We can specify multiple relationship types.
+The following query starts from the Alicia node, and then expands the `FOLLOWS` and `KNOWS` relationships:
+
+.The following returns paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                                     | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})                                                                                                   | 1
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})                                                                                                    | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                    | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})                                                | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                                         | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})                                                       | 2
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})                                                          | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:FOLLOWS]->(:Person:Product {name: "John"})       | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"})   | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"}) | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})           | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})         | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})      | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"}) | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})            | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:KNOWS]->(:Person:Product {name: "Jake"})              | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})             | 3
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})             | 3
+|===
+
+This query returns 19 paths, Alicia is very well connected!
+
+We can see a Neo4j Browser visualization of the returned paths in <<viz-apoc-path-config-alicia>>.
+
+[[viz-apoc-path-config-alicia]]
+image::apoc.path.expandConfig.alicia.svg[title="Paths from Alicia"]
+
+We can also specify traversal termination criteria using label filters.
+If we wanted to terminate a traversal as soon as the traversal encounters a node containing the `Engineering` label, we can use the `/Engineering` node filter.
+
+.The following returns paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, terminating as soon as a node with the `Engineering` label is reached
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    labelFilter: "/Engineering",
+    minLevel: 1,
+    maxLevel: 3
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})     | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"}) | 2
+|===
+
+We're now down to only two paths.
+But this query doesn't capture all of the paths from Alicia that end in a node with the `Engineering` label.
+We can use the `>Engineering` node filter to define a traversal that:
+
+* only returns paths that terminate at nodes with the `Engineering` label
+* continues expansion to end nodes after that, looking for more paths that end with the `Engineering` label
+
+.The following returns paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, where paths end with a node with the `Engineering` label
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    labelFilter: ">Engineering",
+    minLevel: 1,
+    maxLevel: 3
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                    | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})                                                | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"})   | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"}) | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"}) | 3
+|===
+
+Our query now also returns paths going through Praveena and Zhen, one going to Martin, and other others going back to Zhen and Praveena!
+
+[[path-expander-paths-config-examples-end-nodes-terminator-nodes]]
+=== Terminator Nodes and End Nodes
+
+As well as specifying terminator and end labels for traversals, we can also specify terminator and end nodes.
+
+Let's build on the previous query that found people that Alicia `KNOWS` or `FOLLOWS`.
+We want any returned paths to stop as soon as the Joe node is encountered, which we can do by passing the Joe node to the `terminatorNodes` parameter.
+
+.The following returns paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, terminating as soon as Joe is reached
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (joe:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    terminatorNodes: [joe]
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                         | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})-[:FOLLOWS]->(:Person:Field {name: "Joe"}) | 3
+|===
+
+Alicia `FOLLOWS` Joe, but there's also another path that goes via Jonny and Anthony.
+
+The terminator nodes approach doesn't necessarily find all the paths that exist between Alicia and Joe.
+There might be other paths that go through the Joe node twice.
+We can find these paths by passing the Joe node to the `endNodes` parameter.
+If we use this parameter, all returned paths will end at the Joe node, but expansion will continue past this node to try and find other paths that end at Joe.
+
+
+.The following returns paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, where paths end when they reach Joe
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (joe:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    endNodes: [joe]
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                                | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"}) | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})        | 3
+|===
+
+We've got the two paths we got with the terminator nodes approach, from Alicia to Joe, and from Alicia to Jonny to Jonny to Joe.
+But we've also got an extra path that goes from Alicia to Joe to Praveena to Joe.
+
+[[path-expander-paths-config-examples-whitelist-blacklist]]
+=== Whitelist Nodes and Blacklist Nodes
+
+Whitelist and blacklist nodes can also be specified.
+
+Let's build on the previous query that found people that Alicia `KNOWS` or `FOLLOWS`.
+We want any returned paths to only include the nodes Mark, Joe, Zhen, and Praveena, which we can do by passing these nodes to the parameter `whitelistNodes`.
+
+.The following returns paths from Alicia following the `FOLLOWS` or `KNOWS` relationship types from 1 to 3 hops, only including paths that contain Mark, Joe, Zhen, and Praveena
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (whitelist:Person)
+WHERE whitelist.name IN ["Mark", "Joe", "Zhen", "Praveena"]
+WITH p, collect(whitelist) AS whitelistNodes
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    whitelistNodes: whitelistNodes
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                                     | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                    | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})                                                | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                                         | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"}) | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})      | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"}) | 3
+|===
+
+Out of the white list, the only person with a direct connection to Alicia is Joe, so all paths go through him.
+We then go from Joe to the others, and then between each other for the paths of 3 hops.
+
+We can see a Neo4j Browser visualization of the returned paths in <<viz-apoc-path-config-whitelist>>.
+
+[[viz-apoc-path-config-whitelist]]
+image::apoc.path.expandConfig.whitelist.svg[title="Paths from Alicia to Mark, Joe, Zhen, and Praveena"]
+
+A blacklist is used to exclude nodes from the returned paths.
+If we want to exclude paths that contain Joe, we can do this by passing the Joe node to the `blacklistNodes` parameter.
+
+.The following returns paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, excluding paths that include Joe
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (joe:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    blacklistNodes: [joe]
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})                                                                                       | 1
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})                                                                                        | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})                                           | 2
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})                                              | 2
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"}) | 3
+|===
+
+This returns a very small set of paths since Joe was a very pivotal node in connecting Alicia to the rest of the graph.
+
+We can see a Neo4j Browser visualization of the returned paths in <<viz-apoc-path-config-blacklist>>.
+
+[[viz-apoc-path-config-blacklist]]
+image::apoc.path.expandConfig.blacklist.svg[title="Paths from Alicia that don't include Joe"]
+
+[[path-expander-paths-config-examples-bfs-dfs]]
+=== Breadth First Search and Depth First Search
+
+We can control whether the traversal uses the Breadth First Search (BFS), by specifying `bfs: true`, or Depth First Search algorithm (DFS), by specifying `bfs: false`.
+This is often combined with the `limit` parameter to find the nearest nodes based on the chosen algorithm.
+
+.The following returns 10 paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, using BFS
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (joe:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 5,
+    bfs: true,
+    limit: 10
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                                   | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})                                                                                                 | 1
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})                                                                                                  | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                  | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})                                              | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                                       | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})                                                     | 2
+| (:Person:Product {name: "Alicia"})-[:KNOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})                                                        | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:FOLLOWS]->(:Person:Product {name: "John"})     | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"}) | 3
+|===
+
+From these results we can see that paths are completely expanded at each level before going onto the next one.
+For example, we first expand from:
+
+* Alicia `->` Joe
+* Alicia `->` Jonny
+* Alicia `->` Jake
+
+Before then following relationships from those nodes.
+And once it's expanded everything at level 2, it will then explore level 3.
+
+[[viz-apoc-path-config-alicia-bfs]]
+image::apoc.path.expandConfig.alicia.bfs.svg[title="Paths from Alicia using Breadth First Search"]
+
+If we use the Depth First Search algorithm, the traversal will go as far as it can (up to the `maxLevel` of hops) down a particular path, before going back up and exploring other ones.
+
+.The following returns 10 paths containing people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, using DFS
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (joe:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    bfs: false,
+    limit: 10
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                                     | 1
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                    | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})                                                | 2
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:FOLLOWS]->(:Person:Product {name: "John"})       | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"})   | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"}) | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})           | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})         | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})      | 3
+| (:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"}) | 3
+|===
+
+Now we have a different set of paths returned.
+We don't even see the paths from Alicia to Jonny or Alicia to Jake because our limit of 10 paths is completely taken up with paths going through Joe.
+
+We can see a Neo4j Browser visualization of the returned paths in <<viz-apoc-path-config-alicia-dfs>>.
+
+[[viz-apoc-path-config-alicia-dfs]]
+image::apoc.path.expandConfig.alicia.dfs.svg[title="Paths from Alicia using Depth First Search"]
+
+[[path-expander-paths-config-examples-uniqueness]]
+=== Uniqueness
+
+We can specify the uniqueness strategy to be used by the traversal through the `uniqueness` parameter.
+See <<path-expander-paths-config-config-uniqueness>> for a list of valid strategies.
+The default value is `RELATIONSHIP_PATH`.
+
+In this section we're going to write queries that start from Joe and traverse the `FOLLOWS` relationship.
+
+.The following returns the nodes in paths starting from Joe and traversing the `FOLLOWS` relationship type from 1 to 3 hops
+[source,cypher]
+----
+MATCH (p:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>",
+    minLevel: 1,
+    maxLevel: 3,
+    uniqueness: "RELATIONSHIP_PATH" // default
+})
+YIELD path
+RETURN [node in nodes(path) | node.name] AS nodes, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | hops
+| ["Joe", "Zhen"]                    | 1
+| ["Joe", "Praveena"]                | 1
+| ["Joe", "Mark"]                    | 1
+| ["Joe", "Zhen", "John"]            | 2
+| ["Joe", "Praveena", "Joe"]         | 2
+| ["Joe", "Mark", "Stefan"]          | 2
+| ["Joe", "Praveena", "Joe", "Zhen"] | 3
+| ["Joe", "Praveena", "Joe", "Mark"] | 3
+| ["Joe", "Mark", "Stefan", "Joe"]   | 3
+|===
+
+Several of the paths returned contain the Joe node twice.
+If we want to ensure that the nodes in a path are unique, we can use the `NODE_PATH` strategy.
+
+.The following returns the nodes in paths starting from Joe and traversing the `FOLLOWS` relationship type from 1 to 3 hops, using the `NODE_PATH` strategy
+[source,cypher]
+----
+MATCH (p:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+    relationshipFilter: "FOLLOWS>",
+    minLevel: 1,
+    maxLevel: 3,
+    uniqueness: "NODE_PATH"
+})
+YIELD path
+RETURN [node in nodes(path) | node.name] AS nodes, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | hops
+| ["Joe", "Zhen"]           | 1
+| ["Joe", "Praveena"]       | 1
+| ["Joe", "Mark"]           | 1
+| ["Joe", "Zhen", "John"]   | 2
+| ["Joe", "Mark", "Stefan"] | 2
+|===
+
+The paths returned now have unique lists of nodes.
+
+[[path-expander-paths-config-examples-sequence-rel-types]]
+=== Sequences of relationship types
+
+Sequences of relationship types can be specified by comma separating the values passed to `relationshipFilter`.
+
+For example, if we want to start from the Joe node and traverse a sequence of the `FOLLOWS` relationship in the outgoing direction and the `KNOWS` relationship in either direction, we can specify the relationship filter `FOLLOWS>,KNOWS`.
+
+.The following returns the paths of 1 to 4 hops from Joe where the relationship types alternate between `FOLLOWS` and `KNOWS`
+[source,cypher]
+----
+MATCH (p:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+	relationshipFilter: "FOLLOWS>,KNOWS",
+	beginSequenceAtStart: true,
+	minLevel: 1,
+	maxLevel: 4
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                                                                                                         | 1
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})                                                                                                                                     | 1
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                                                                                                                              | 1
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"})                                                                                        | 2
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"})                                                                                      | 2
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})                                                                                                | 2
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})                                                                                              | 2
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})                                                                                      | 2
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:KNOWS]->(:Person:Product {name: "Jake"})                                                                                                   | 2
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                            | 3
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})-[:FOLLOWS]->(:Person:Product {name: "Jake"})                                                   | 3
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                    | 3
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:FOLLOWS]->(:Person:Product {name: "John"})                                         | 3
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})-[:FOLLOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})         | 4
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})-[:FOLLOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:Product {name: "Alicia"})      | 4
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:FOLLOWS]->(:Person:Product {name: "John"})-[:KNOWS]->(:Person:Sales {name: "Rik"}) | 4
+|===
+
+The `minLevel` and `maxLevel` values refer to the number of relationships in the path.
+Using a `minLevel` of 1 means that paths one hop from Joe with the `FOLLOWS` relationship type will be returned.
+If we want to ensure that the relationship type sequence defined in this `relationshipFilter` is matched at least once, we need to use a `minLevel` of `2` since there are two relationship types in the filter.
+
+.The following returns the paths of 2 to 4 hops from Joe where the relationship types alternate between `FOLLOWS` and `KNOWS`
+[source,cypher]
+----
+MATCH (p:Person {name: "Joe"})
+CALL apoc.path.expandConfig(p, {
+	relationshipFilter: "FOLLOWS>,KNOWS",
+	beginSequenceAtStart: true,
+	minLevel: 2,
+	maxLevel: 4
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header"]
+|===
+| path | hops
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Martin"})                                                                                        | 2
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"})                                                                                      | 2
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})                                                                                                | 2
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})                                                                                              | 2
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})                                                                                      | 2
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:KNOWS]->(:Person:Product {name: "Jake"})                                                                                                   | 2
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                            | 3
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})-[:FOLLOWS]->(:Person:Product {name: "Jake"})                                                   | 3
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                    | 3
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:FOLLOWS]->(:Person:Product {name: "John"})                                         | 3
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})-[:FOLLOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})         | 4
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:DevRel {name: "Lju"})-[:FOLLOWS]->(:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:Product {name: "Alicia"})      | 4
+| (:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:FOLLOWS]->(:Person:Product {name: "John"})-[:KNOWS]->(:Person:Sales {name: "Rik"}) | 4
+|===
+
+This config can also be used in combination with `beginSequenceAtStart: false`, which means that the sequence will start one hop away from the starting node.
+If we use this config, it means that the first relationship type defined in `relationshipFilter` will only apply to the starting node.
+
+.The following returns the paths of 3 to 5 hops from Jake where the relationship types alternate between `FOLLOWS` and `KNOWS`, after first following `KNOWS` relationships from Jake
+[source,cypher]
+----
+MATCH (p:Person {name: "Jake"})
+CALL apoc.path.expandConfig(p, {
+	relationshipFilter: "KNOWS,FOLLOWS>,KNOWS",
+	beginSequenceAtStart: false,
+	minLevel: 3,
+	maxLevel: 7
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header", cols="4,1"]
+|===
+| path | hops
+| (:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})                                                                                      | 3
+| (:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})                                                                                       | 3
+| (:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:FOLLOWS]->(:Person:Product {name: "John"})                                         | 4
+| (:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:Product {name: "Alicia"})-[:FOLLOWS]->(:Person:Sales {name: "Jonny"})-[:KNOWS]->(:Person:Sales {name: "Anthony"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                             | 4
+| (:Person:Product {name: "Jake"})<-[:KNOWS]-(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"})-[:FOLLOWS]->(:Person:Product {name: "John"})-[:KNOWS]->(:Person:Sales {name: "Rik"}) | 5
+|===
+
+[[path-expander-paths-config-examples-sequence-node-labels]]
+=== Sequences of node labels
+
+Sequences of node labels can be specified by comma separating values passed to `labelFilter`.
+This is usually used in combination with `beginSequenceAtStart: false`, which means that sequences will start one hop away from the starting node.
+
+For example, if we start from the Praveena node and want to return the paths that contain alternating `Field` and `DevRel` nodes, we can specify a label filter of `"+Field,+DevRel"`.
+
+.The following returns the paths of 1 to 4 hops from Praveena where the nodes alternate between having the `Field` and `DevRel` labels.
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.expandConfig(p, {
+	labelFilter: "+Field,+DevRel",
+	beginSequenceAtStart: false,
+	minLevel: 1,
+	maxLevel: 4
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header", cols="4,1"]
+|===
+| path | hops
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})                                                                                          | 1
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})                                                                                          | 1
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                              | 2
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                              | 2
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"}) | 3
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"}) | 3
+|===
+
+The `minLevel` and `maxLevel` values refer to the number of relationships in the path.
+Using a `minLevel` of 1 means that paths where the node one hop from Praveena has the `Field` label will be returned.
+If we want to ensure that the label sequence defined in this `labelFilter` is matched at least once, we need to use a `minLevel` of `2`.
+
+.The following returns the paths of 2 to 4 hops from Praveena where the nodes alternate between having the `Field` and `DevRel` labels.
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.expandConfig(p, {
+	labelFilter: "+Field,+DevRel",
+	beginSequenceAtStart: false,
+	minLevel: 2,
+	maxLevel: 4
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header", cols="4,1"]
+|===
+| path | hops
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                              | 2
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                              | 2
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"}) | 3
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"}) | 3
+|===
+
+The paths that only contain a relationship from Praveena to Joe have now been filtered out.
+
+But what if we don't want to specify multiple labels exist, but instead want to find paths where a node doesn't have a label?
+To find paths that contain alternating `Field` and not `Field` nodes, we can specify a label filter of `"+Field,-Field"`.
+
+.The following returns the paths of 1 to 4 hops from Praveena where the nodes alternate between having the `Field` label and not having the `Field` label
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.expandConfig(p, {
+	labelFilter: "+Field,-Field",
+	beginSequenceAtStart: false,
+	minLevel: 2,
+	maxLevel: 4
+})
+YIELD path
+RETURN path, length(path) AS hops
+ORDER BY hops;
+----
+
+.Results
+[opts="header", cols="4,1"]
+|===
+| path | hops
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})<-[:FOLLOWS]-(:Person:Sales {name: "Anthony"})                                                                                           | 2
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                                                        | 2
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})<-[:FOLLOWS]-(:Person:Product {name: "Alicia"})                                                                                          | 2
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                                                                             | 2
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})<-[:FOLLOWS]-(:Person:Engineering {name: "Praveena"})                                                                                    | 2
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})<-[:FOLLOWS]-(:Person:Sales {name: "Anthony"})                                                                                           | 2
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})                                                                                        | 2
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})<-[:FOLLOWS]-(:Person:Product {name: "Alicia"})                                                                                          | 2
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Praveena"})                                                                                    | 2
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})                                                                                             | 2
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})                                             | 3
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})                                                | 3
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})                                             | 3
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})                                                | 3
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})<-[:FOLLOWS]-(:Person:DevRel {name: "Mark"}) | 4
+| (:Person:Engineering {name: "Praveena"})<-[:FOLLOWS]-(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"}) | 4
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:Engineering {name: "Zhen"})-[:KNOWS]->(:Person:Field {name: "Stefan"})<-[:FOLLOWS]-(:Person:DevRel {name: "Mark"}) | 4
+| (:Person:Engineering {name: "Praveena"})-[:FOLLOWS]->(:Person:Field {name: "Joe"})-[:FOLLOWS]->(:Person:DevRel {name: "Mark"})-[:FOLLOWS]->(:Person:Field {name: "Stefan"})<-[:KNOWS]-(:Person:Engineering {name: "Zhen"}) | 4
+|===
+
+We've got a lot more paths, with path lengths between 2 and 4 hops.
+These paths have the following labels:
+
+* 2 hops - `Field` -> Not `Field`
+* 3 hops - `Field` -> Not `Field` -> `Field`
+* 4 hops - `Field` -> Not `Field` -> `Field` -> Not `Field`
+
+These paths are a bit difficult to read, so we can simplify the output by using the `nodes` function to just return the nodes.
+We'll also filter the results so that we only return paths that match the complete `+Field,-Field` label filter.
+We can do this by only returning paths of even length:
+
+.The following returns nodes of paths of 1 to 4 hops from Praveena where the nodes alternate between having the `Field` label and not having the `Field` label
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.expandConfig(p, {
+	labelFilter: "+Field,-Field",
+	beginSequenceAtStart: false,
+	minLevel: 2,
+	maxLevel: 4
+})
+YIELD path
+WHERE length(path) % 2 = 0
+
+// Remove the Praveena node from the returned path
+RETURN nodes(path)[1..] AS nodes, length(path) AS hops
+
+ORDER BY hops;
+----
+
+.Results
+[opts="header", cols="4,1"]
+|===
+| nodes | hops
+| [(:Person:Field {name: "Joe"}), (:Person:Sales {name: "Anthony"})]                                                                       | 2
+| [(:Person:Field {name: "Joe"}), (:Person:Engineering {name: "Zhen"})]                                                                    | 2
+| [(:Person:Field {name: "Joe"}), (:Person:Product {name: "Alicia"})]                                                                      | 2
+| [(:Person:Field {name: "Joe"}), (:Person:DevRel {name: "Mark"})]                                                                         | 2
+| [(:Person:Field {name: "Joe"}), (:Person:Engineering {name: "Praveena"})]                                                                | 2
+| [(:Person:Field {name: "Joe"}), (:Person:Sales {name: "Anthony"})]                                                                       | 2
+| [(:Person:Field {name: "Joe"}), (:Person:Engineering {name: "Zhen"})]                                                                    | 2
+| [(:Person:Field {name: "Joe"}), (:Person:Product {name: "Alicia"})]                                                                      | 2
+| [(:Person:Field {name: "Joe"}), (:Person:Engineering {name: "Praveena"})]                                                                | 2
+| [(:Person:Field {name: "Joe"}), (:Person:DevRel {name: "Mark"})]                                                                         | 2
+| [(:Person:Field {name: "Joe"}), (:Person:Engineering {name: "Zhen"}), (:Person:Field {name: "Stefan"}), (:Person:DevRel {name: "Mark"})] | 4
+| [(:Person:Field {name: "Joe"}), (:Person:DevRel {name: "Mark"}), (:Person:Field {name: "Stefan"}), (:Person:Engineering {name: "Zhen"})] | 4
+| [(:Person:Field {name: "Joe"}), (:Person:Engineering {name: "Zhen"}), (:Person:Field {name: "Stefan"}), (:Person:DevRel {name: "Mark"})] | 4
+| [(:Person:Field {name: "Joe"}), (:Person:DevRel {name: "Mark"}), (:Person:Field {name: "Stefan"}), (:Person:Engineering {name: "Zhen"})] | 4
+|===
+
+The `\*` character can be used as a wildcard in a node sequence to indicate that any label can appear in that position.
+If we want to match a sequence of nodes with any label followed by one with the `DevRel` label, we can specify the label filter `*,+DevRel`
+
+.The following returns nodes of paths of 2 to 4 hops from Praveena where the nodes alternate between having any label and the `DevRel` label
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.expandConfig(p, {
+	labelFilter: "*,+DevRel",
+	beginSequenceAtStart: false,
+	minLevel: 2,
+	maxLevel: 4
+})
+YIELD path
+WHERE length(path) % 2 = 0
+
+// Remove the Praveena node from the returned path
+RETURN nodes(path)[1..] AS nodes, length(path) AS hops
+
+ORDER BY hops;
+----
+
+.Results
+[opts="header", cols="4,1"]
+|===
+| nodes | hops
+| [(:Person:Field {name: "Joe"}), (:Person:DevRel {name: "Mark"})]                                                                          | 2
+| [(:Person:Field {name: "Joe"}), (:Person:DevRel {name: "Mark"})]                                                                          | 2
+| [(:Person:Engineering {name: "Zhen"}), (:Person:DevRel {name: "Lju"})]                                                                    | 2
+| [(:Person:Field {name: "Joe"}), (:Person:DevRel {name: "Mark"}), (:Person:Product {name: "Jake"}), (:Person:DevRel {name: "Lju"})]        | 4
+| [(:Person:Field {name: "Joe"}), (:Person:DevRel {name: "Mark"}), (:Person:Product {name: "Jake"}), (:Person:DevRel {name: "Lju"})]        | 4
+| [(:Person:Engineering {name: "Zhen"}), (:Person:DevRel {name: "Lju"}), (:Person:Product {name: "Jake"}), (:Person:DevRel {name: "Mark"})] | 4
+|===
+

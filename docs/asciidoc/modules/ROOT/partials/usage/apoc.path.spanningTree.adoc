@@ -1,0 +1,270 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$expand-config-sample-graph.adoc[]
+
+[[expand-spanning-tree-examples-label-relationship-filters]]
+=== Relationship Type and Node Label filters
+
+Let's start by expanding paths from the Praveena node.
+We only want to consider the `KNOWS` relationship type, so we'll specify that as the `relationshipFilter` parameter.
+
+.The following returns the spanning tree starting from Praveena and traversing the `KNOWS` relationship type for 1 to 2 hops
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.spanningTree(p, {
+	relationshipFilter: "KNOWS",
+    minLevel: 1,
+    maxLevel: 2
+})
+YIELD path
+RETURN path;
+----
+
+We can see a Neo4j Browser visualization of the spanning tree in <<viz-apoc-path-subtree-praveena>>.
+
+[[viz-apoc-path-subtree-praveena]]
+image::apoc.path.subtree.praveena.svg[title="Spanning tree from Praveena"]
+
+The spanning tree contains 4 nodes apart from Praveena.
+Praveena only has a direct `KNOWS` relationship to Zhen, but Zhen has `KNOWS` relationships to 3 other people, which means they're also included in the spanning tree.
+
+We can also provide a node label filter to restrict the nodes that are returned.
+If we want to only return paths where every node has the `Engineering` label, we'll provide the value `+Engineering` to the `labelFilter` parameter.
+
+.The following returns the spanning tree starting from Praveena and traversing the `KNOWS` relationship type for 1 to 2 hops, only includin `Engineering` nodes
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.spanningTree(p, {
+	relationshipFilter: "KNOWS",
+	labelFilter: "+Engineering",
+    minLevel: 1,
+    maxLevel: 2
+})
+YIELD path
+RETURN path;
+----
+
+We can see a Neo4j Browser visualization of the spanning tree in <<viz-apoc-path-subtree-praveena-eng>>.
+
+[[viz-apoc-path-subtree-praveena-eng]]
+image::apoc.path.subtree.praveena-eng.svg[title="Spanning tree from Praveena to engineering nodes"]
+
+We lose Lju and Stefan from the spanning tree because neither of those nodes had the `Engineering` label.
+
+We can specify multiple relationship types.
+The following query starts from the Alicia node, and then expands the `FOLLOWS` and `KNOWS` relationships:
+
+.The following returns the spanning tree starting from Alicia and traversing the `FOLLOWS` or `KNOWS` relationship type for 1 to 3 hops
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.spanningTree(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3
+})
+YIELD path
+RETURN path;
+----
+
+We can see a Neo4j Browser visualization of the spanning tree in <<viz-apoc-path-subtree-alicia>>.
+
+[[viz-apoc-path-subtree-alicia]]
+image::apoc.path.subtree.alicia.svg[title="Spanning tree from Alicia"]
+
+This query returns paths to 11 of the 12 people in the graph, which indicates that Alicia is very well connected.
+
+We can also specify traversal termination criteria using label filters.
+If we wanted to terminate a traversal as soon as the traversal encounters a node containing the `Engineering` label, we can use the `/Engineering` node filter.
+
+.The following returns the spanning tree starting from Alicia and traversing the `FOLLOWS` or `KNOWS` relationship type for 1 to 3 hops, terminating as soon as a node with the `Engineering` label is reached
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.spanningTree(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    labelFilter: "/Engineering",
+    minLevel: 1,
+    maxLevel: 3
+})
+YIELD path
+RETURN path;
+----
+
+We can see a Neo4j Browser visualization of the spanning tree in <<viz-apoc-path-subtree-alicia-eng>>.
+
+[[viz-apoc-path-subtree-alicia-eng]]
+image::apoc.path.subtree.alicia-eng.svg[title="Spanning tree from Alicia terminating at `Engineering` nodes"]
+
+Our spanning tree has been reduced to only 3 other nodes apart from Alicia.
+But this query doesn't capture the complete spanning tree from Alicia containing nodes with the `Engineering` label.
+We can use the `>Engineering` node filter to define a traversal that:
+
+* only returns paths that terminate at nodes with the `Engineering` label
+* continues expansion to end nodes after that, looking for more paths that end with the `Engineering` label
+
+.The following returns the spanning tree starting from Alicia and traversing the `FOLLOWS` or `KNOWS` relationship type for 1 to 3 hops, where paths end with a node with the `Engineering` label
+
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.spanningTree(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    labelFilter: ">Engineering",
+    minLevel: 1,
+    maxLevel: 3
+})
+YIELD path
+RETURN path;
+----
+
+We can see a Neo4j Browser visualization of the spanning tree in <<viz-apoc-path-subtree-alicia-eng-end>>.
+
+[[viz-apoc-path-subtree-alicia-eng-end]]
+image::apoc.path.subtree.alicia-eng-end.svg[title="Spanning tree from Alicia to `Engineering` nodes"]
+
+The spanning tree now also reaches Martin, via a relationship from Zhen.
+
+[[expand-spanning-tree-examples-end-nodes-terminator-nodes]]
+=== Terminator Nodes and End Nodes
+
+As well as specifying terminator and end labels for traversals, we can also specify terminator and end nodes.
+
+Let's build on the previous query that found people that Alicia `KNOWS` or `FOLLOWS`.
+We want the returned spanning tree to stop as soon as the Mark, Joe, Zhen, or Praveena nodes are reached.
+We can do that by passing those nodes to the `terminatorNodes` parameter.
+
+.The following returns the spanning tree of people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, terminating as soon as Mark, Joe, Zhen, or Rik nodes are reached
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (terminator:Person)
+WHERE terminator.name IN ["Mark", "Joe", "Zhen", "Rik"]
+WITH p, collect(terminator) AS terminatorNodes
+CALL apoc.path.spanningTree(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    terminatorNodes: terminatorNodes
+})
+YIELD path
+RETURN path;
+----
+
+We can see a Neo4j Browser visualization of the spanning tree in <<viz-apoc-path-subtree-alicia-terminator>>.
+
+[[viz-apoc-path-subtree-alicia-terminator]]
+image::apoc.path.subtree.alicia-terminator.svg[title="Spanning tree from Alicia, terminating at Mark, Joe, Zhen, or Rik"]
+
+Mark and Joe are included in the spanning tree, but Rik and Zhen can't be reached.
+This could be because there is no path to Zhen and Rik that doesn't go through Mark and Joe, or it could mean that there's no path based on the other traversal criteria.
+
+We can find out whether Mark, Joe, Zhen, or Rik are reachable by passing these nodes to the `endNodes` parameter.
+
+.The following returns the spanning tree of people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, ending as soon as Mark, Joe, Zhen, or Rik nodes are reached
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (end:Person)
+WHERE end.name IN ["Mark", "Joe", "Zhen", "Rik"]
+WITH p, collect(end) AS endNodes
+CALL apoc.path.spanningTree(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    endNodes: endNodes
+})
+YIELD path
+RETURN path;
+----
+
+We can see a Neo4j Browser visualization of the returned spanning tree in <<viz-apoc-path-subtree-alicia-end>>.
+
+[[viz-apoc-path-subtree-alicia-end]]
+image::apoc.path.subtree.alicia-end.svg[title="Spanning tree from Alicia, ending at Mark, Joe, Zhen, or Rik"]
+
+Our spanning tree now includes Joe, Mark, and Zhen, but Rik is still unreachable.
+
+[[expand-spanning-tree-examples-whitelist-blacklist]]
+=== Whitelist Nodes and Blacklist Nodes
+
+Whitelist and blacklist nodes can also be specified.
+
+Let's build on the previous query that found people that Alicia `KNOWS` or `FOLLOWS`.
+We want any returned paths to only include the nodes Mark, Joe, Zhen, and Praveena, which we can do by passing these nodes to the parameter `whitelistNodes`.
+
+.The following returns the spanning tree reachable by the `FOLLOWS` or `KNOWS` relationship types at 1 to 3 hops from Alicia, where the paths to those nodes must only include Mark, Jonny, or Zhen
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (whitelist:Person)
+WHERE whitelist.name IN ["Jonny", "Mark", "Zhen"]
+WITH p, collect(whitelist) AS whitelistNodes
+CALL apoc.path.spanningTree(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    whitelistNodes: whitelistNodes
+})
+YIELD path
+RETURN path;
+----
+
+We can see a Neo4j Browser visualization of the returned spanning tree in <<viz-apoc-path-spanningTree-alicia-whitelist>>.
+
+[[viz-apoc-path-spanningTree-alicia-whitelist]]
+image::apoc.path.spanningTree.alicia-whitelist.svg[title="Spanning Tree from Alicia where paths to nodes include Mark, Jonny, or Zhen"]
+
+Only Jonny can be reached.
+We can therefore infer that Mark and Zhen are only reachable via another node that wasn't include in the whitelist.
+
+A blacklist is used to exclude nodes from the paths that lead to reachable nodes.
+If we want to return nodes that are reachable without going through Joe, we can do this by passing the Joe node to the `blacklistNodes` parameter.
+
+.The following returns the spanning tree reachable by the `FOLLOWS` or `KNOWS` relationship types at 1 to 3 hops from Alicia, where the paths to those nodes do not go through Joe
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (joe:Person {name: "Joe"})
+CALL apoc.path.spanningTree(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    blacklistNodes: [joe]
+})
+YIELD path
+RETURN path;
+----
+
+We can see a Neo4j Browser visualization of the returned spanning tree in <<viz-apoc-path-spanningTree-alicia-blacklist-joe>>.
+
+[[viz-apoc-path-spanningTree-alicia-blacklist-joe]]
+image::apoc.path.spanningTree.alicia-blacklist-joe.svg[title="Spanning tree from Alicia where paths to nodes can't go via Joe"]
+
+[[expand-spanning-tree-examples-sequence-rel-types]]
+=== Sequences of relationship types
+
+Sequences of relationship types can be specified by comma separating the values passed to `relationshipFilter`.
+
+For example, if we want to start from the Joe node and traverse a sequence of the `FOLLOWS` relationship in the outgoing direction and the `KNOWS` relationship in either direction, we can specify the relationship filter `FOLLOWS>,KNOWS`.
+
+.The following returns the reachable nodes by following the `FOLLOWS` and `KNOWS` relationship types alternately from Joe
+[source,cypher]
+----
+MATCH (p:Person {name: "Joe"})
+CALL apoc.path.spanningTree(p, {
+	relationshipFilter: "FOLLOWS>,KNOWS",
+	beginSequenceAtStart: true,
+	minLevel: 1,
+	maxLevel: 4
+})
+YIELD path
+RETURN path;
+----
+
+We can see a Neo4j Browser visualization of the returned spanning tree in <<viz-apoc-path-spanningTree-joe-rel-sequence>>.
+
+[[viz-apoc-path-spanningTree-joe-rel-sequence]]
+image::apoc.path.spanningTree.joe-sequence.svg[title="Spanning tree from Joe via alternate `FOLLOWS` and `KNOWS` relationship types"]

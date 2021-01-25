@@ -25,12 +25,19 @@ apoc.path.subgraphNodes(start :: ANY?, config :: MAP?) :: (node :: NODE?)
 |config|MAP?|null
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.path.subgraphNodes.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
 | Name | Type 
 |node|NODE?
 |===
+
+[[usage-apoc.path.subgraphNodes]]
+== Usage Examples
+include::partial$usage/apoc.path.subgraphNodes.adoc[]
 
 xref::graph-querying/path-querying.adoc[More documentation of apoc.path.subgraphNodes,role=more information]
 
