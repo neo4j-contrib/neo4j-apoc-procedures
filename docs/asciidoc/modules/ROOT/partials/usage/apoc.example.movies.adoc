@@ -1,0 +1,12 @@
+[source,cypher]
+----
+CALL apoc.example.movies();
+----
+
+.Results
+[opts="header"]
+|===
+| file            | source                                       | format   | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "movies.cypher" | "example movie database from themoviedb.org" | "cypher" | 169   | 250           | 558        | 955  | 0    | -1        | 0       | TRUE | NULL
+
+|===
