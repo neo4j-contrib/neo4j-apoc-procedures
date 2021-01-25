@@ -16,8 +16,6 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.*;
 
-import static apoc.util.TestUtil.testCall;
-
 public class MergeTest {
 
     @Rule
