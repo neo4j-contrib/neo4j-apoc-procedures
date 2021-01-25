@@ -25,12 +25,19 @@ apoc.path.expandConfig(start :: ANY?, config :: MAP?) :: (path :: PATH?)
 |config|MAP?|null
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.path.expandConfig.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
 | Name | Type 
 |path|PATH?
 |===
+
+[[usage-apoc.path.expandConfig]]
+== Usage Examples
+include::partial$usage/apoc.path.expandConfig.adoc[]
 
 xref::graph-querying/expand-paths-config.adoc[More documentation of apoc.path.expandConfig,role=more information]
 

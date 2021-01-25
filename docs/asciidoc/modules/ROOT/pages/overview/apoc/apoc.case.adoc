@@ -33,5 +33,9 @@ apoc.case(conditionals :: LIST? OF ANY?, elseQuery =  :: STRING?, params = {} ::
 |value|MAP?
 |===
 
+[[usage-apoc.case]]
+== Usage Examples
+include::partial$usage/apoc.case.adoc[]
+
 xref::cypher-execution/conditionals.adoc[More documentation of apoc.case,role=more information]
 
