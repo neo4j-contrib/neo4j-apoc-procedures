@@ -53,6 +53,7 @@ public class MongoDBTest {
     private static MongoCollection<Document> testCollection;
     private static MongoCollection<Document> productCollection;
     private static MongoCollection<Document> personCollection;
+    private static MongoCollection<Document> objIdCollection;
 
     private static MongoCollection<Document> collection;
 
@@ -67,6 +68,9 @@ public class MongoDBTest {
     private long numConnections = -1;
 
     private static final long NUM_OF_RECORDS = 10_000L;
+
+    private static List<ObjectId> refs;
+    private static ObjectId sherlock = new ObjectId("507f191e810c19729de860ea");
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -91,6 +95,7 @@ public class MongoDBTest {
         testCollection = database.getCollection("test");
         productCollection = database.getCollection("product");
         personCollection = database.getCollection("person");
+        objIdCollection = database.getCollection("objId");
         testCollection.deleteMany(new Document());
         productCollection.deleteMany(new Document());
         LongStream.range(0, NUM_OF_RECORDS)
@@ -103,13 +108,15 @@ public class MongoDBTest {
         productCollection.insertOne(new Document(map("name", "My Awesome Product 2",
                 "price", 1200,
                 "tags", Arrays.asList("Tech", "Mobile", "Phone", "Android"))));
-        List<ObjectId> refs = StreamSupport.stream(productCollection.find().spliterator(), false)
+        refs = StreamSupport.stream(productCollection.find().spliterator(), false)
                 .map(doc -> (ObjectId) doc.get("_id"))
                 .collect(Collectors.toList());
         personCollection.insertOne(new Document(map("name", "Andrea Santurbano",
                 "bought", refs,
                 "born", DateUtils.parseDate("11-10-1935", "dd-MM-yyyy"),
                 "coordinates", Arrays.asList(12.345, 67.890))));
+        objIdCollection.insertOne(new Document(map("name", sherlock,
+                "surname", "Holmes")));
 
         TestUtil.registerProcedure(db, MongoDB.class, Graphs.class);
         mongoClient.close();
@@ -216,6 +223,30 @@ public class MongoDBTest {
             Map doc = (Map) r.get("value");
             assertNotNull(doc.get("_id"));
             assertEquals("testDocument", doc.get("name"));
+        });
+    }
+
+    @Test
+    public void testGetByObjectId() throws Exception {
+        ObjectId id = refs.get(0);
+        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host,$db,$collection,'" + id + "')",
+                map("host", HOST, "db", "test", "collection", "product", "id", id), r -> {
+            Map doc = (Map) r.get("value");
+            assertEquals(id.toString(), doc.get("_id"));
+            assertEquals("My Awesome Product", doc.get("name"));
+            assertEquals(800, doc.get("price"));
+            assertEquals(List.of("Tech", "Mobile", "Phone", "iOS"), doc.get("tags"));
+        });
+    }
+
+    @Test
+    public void testGetByObjectIdCustom() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host,$db,$collection,'" + sherlock + "', 'name')",
+                map("host", HOST, "db", "test", "collection", "objId", "id", sherlock), r -> {
+            Map doc = (Map) r.get("value");
+            assertNotNull(doc.get("_id"));
+            assertEquals(sherlock, new ObjectId((String) doc.get("name")));
+            assertEquals("Holmes", doc.get("surname"));
         });
     }
 
