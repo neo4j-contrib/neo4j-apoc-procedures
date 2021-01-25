@@ -25,6 +25,9 @@ apoc.path.subgraphAll(start :: ANY?, config :: MAP?) :: (nodes :: LIST? OF NODE?
 |config|MAP?|null
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.path.subgraphAll.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -32,6 +35,10 @@ apoc.path.subgraphAll(start :: ANY?, config :: MAP?) :: (nodes :: LIST? OF NODE?
 |nodes|LIST? OF NODE?
 |relationships|LIST? OF RELATIONSHIP?
 |===
+
+[[usage-apoc.path.subgraphAll]]
+== Usage Examples
+include::partial$usage/apoc.path.subgraphAll.adoc[]
 
 xref::graph-querying/expand-subgraph.adoc[More documentation of apoc.path.subgraphAll,role=more information]
 

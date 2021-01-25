@@ -1,0 +1,33 @@
+[source,cypher]
+----
+CALL apoc.case([
+  false, 'RETURN "firstFalse" as b',
+  false, 'RETURN "secondFalse" as b',
+  true, 'RETURN "firstTrue" as b'
+]);
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| {b: "firstTrue"}
+|===
+
+[source,cypher]
+----
+CALL apoc.case([
+  false, 'RETURN "firstFalse" as b',
+  false, 'RETURN "secondFalse" as b',
+  false, 'RETURN "thirdFalse" as b'
+  ],
+  'RETURN "elseBranch" as b'
+);
+----
+
+.Results
+[opts="header"]
+|===
+| value
+|  {b: "elseBranch"}
+|===
