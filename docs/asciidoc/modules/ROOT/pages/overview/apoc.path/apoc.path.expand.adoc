@@ -35,5 +35,9 @@ apoc.path.expand(start :: ANY?, relationshipFilter :: STRING?, labelFilter :: ST
 |path|PATH?
 |===
 
+[[usage-apoc.path.expand]]
+== Usage Examples
+include::partial$usage/apoc.path.expand.adoc[]
+
 xref::graph-querying/expand-paths.adoc[More documentation of apoc.path.expand,role=more information]
 
