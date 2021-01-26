@@ -6,13 +6,9 @@ or a url defined into the apoc config `apoc.mongodb.myInstance.url=mongodb://<HO
 which can be invoked by simply passing `myInstance`
 - `db`: the db name
 - `collection`: the collection name
-- `query`: query params
 - `objectIdValue`: the `ObjectId` of the document to retrieve
-- `fieldName`: the `fieldName` of the `ObjectId` (default: `_id`)
 - `config`: the config map
 
-
-Following an example that could help to understand the behaviour of `extractReferences`, `compatibleValues` and `objectIdAsMap`:
 
 === Examples
 

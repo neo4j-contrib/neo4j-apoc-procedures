@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.mongodb.get.byObjectId(host :: STRING?, db :: STRING?, collection :: STRING?, objectIdValue :: STRING?, fieldName = _id :: STRING?, config = {} :: MAP?) :: (value :: MAP?)
+¦apoc.mongodb.get.byObjectId(host :: STRING?, db :: STRING?, collection :: STRING?, objectIdValue :: STRING?, config = {} :: MAP?) :: (value :: MAP?)

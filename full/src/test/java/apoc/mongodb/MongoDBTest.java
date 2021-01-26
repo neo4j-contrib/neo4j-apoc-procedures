@@ -247,7 +247,7 @@ public class MongoDBTest {
         });
 
         // - with custom fieldName
-        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host, $db, $collection, $objectId, 'name')",
+        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host, $db, $collection, $objectId, {fieldName: 'name'})",
                 map("host", HOST, "db", "test", "collection", "person", "objectId", nameAsObjectId.toString()), r -> {
                     Map doc = (Map) r.get("value");
                     assertTrue(doc.get("_id") instanceof Map);
@@ -260,7 +260,7 @@ public class MongoDBTest {
         });
 
         // - with configs
-        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host, $db, $collection, $objectId, '_id', $config)",
+        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host, $db, $collection, $objectId, $config)",
                 map("host", HOST, "db", "test", "collection", "person", "objectId", idAsObjectId.toString(),
                         "config", map("extractReferences", true, "idAsMap", true, "compatibleValues", false)), r -> {
                     Map doc = (Map) r.get("value");
