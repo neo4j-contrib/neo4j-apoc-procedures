@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.log/apoc.log.error.adoc[apoc.log.error icon:book[]] +
 
- - logs error message
+`apoc.log.error(message, params)` - logs error message
 ¦label:procedure[]
 ¦label:apoc-full[]

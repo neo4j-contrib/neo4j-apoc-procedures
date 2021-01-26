@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.monitor/apoc.monitor.kernel.adoc[apoc.monitor.kernel icon:book[]] +
 
-
+`apoc.monitor.kernel() returns informations about the neo4j kernel`
 ¦label:procedure[]
 ¦label:apoc-core[]

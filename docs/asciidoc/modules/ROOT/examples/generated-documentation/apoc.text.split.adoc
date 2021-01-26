@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.text/apoc.text.split.adoc[apoc.text.split icon:book[]] +
 
- - splits the given text around matches of the given regex.
+`apoc.text.split(text, regex, limit)` - splits the given text around matches of the given regex.
 ¦label:function[]
 ¦label:apoc-core[]

@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.refactor/apoc.refactor.cloneNodesWithRelationships.adoc[apoc.refactor.cloneNodesWithRelationships icon:book[]] +
 
-
+`apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) clone nodes with their labels, properties and relationships`
 ¦label:procedure[]
 ¦label:apoc-core[]

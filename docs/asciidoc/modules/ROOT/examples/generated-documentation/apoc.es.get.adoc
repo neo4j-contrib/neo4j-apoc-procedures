@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.es/apoc.es.get.adoc[apoc.es.get icon:book[]] +
 
- - perform a GET operation on elastic search
+`apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value` - perform a GET operation on elastic search
 ¦label:procedure[]
 ¦label:apoc-full[]

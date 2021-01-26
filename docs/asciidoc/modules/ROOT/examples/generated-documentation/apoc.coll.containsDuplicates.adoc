@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.coll/apoc.coll.containsDuplicates.adoc[apoc.coll.containsDuplicates icon:book[]] +
 
- - returns true if a collection contains duplicate elements
+`apoc.coll.containsDuplicates(coll)` - returns true if a collection contains duplicate elements
 ¦label:function[]
 ¦label:apoc-core[]
