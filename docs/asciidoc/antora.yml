@@ -10,3 +10,4 @@ asciidoc:
     apoc-release-absolute: "4.1"
     apoc-release: "4.1.0.4"
     page-product: "apoc"
+    page-pagination: true

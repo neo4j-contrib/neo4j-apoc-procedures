@@ -1,0 +1,5 @@
+¦xref::overview/apoc.nlp.azure.entities/apoc.nlp.azure.entities.graph.adoc[apoc.nlp.azure.entities.graph icon:book[]] +
+
+`Creates a (virtual) entity graph for provided text`
+¦label:procedure[]
+¦label:apoc-core[]

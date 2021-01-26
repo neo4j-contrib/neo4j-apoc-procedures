@@ -14,9 +14,10 @@ See xref::graph-querying/expand-paths-config.adoc[] if more control is required 
 
 The procedure is described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.path.expand.csv[]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.path.expand.adoc[]
 |===
 
 [[path-expander-paths-parameter-syntax]]

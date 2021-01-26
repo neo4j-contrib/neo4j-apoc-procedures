@@ -1,0 +1,5 @@
+¦xref::overview/apoc.nlp.azure.entities/apoc.nlp.azure.entities.stream.adoc[apoc.nlp.azure.entities.stream icon:book[]] +
+
+`Provides a entity analysis for provided text`
+¦label:procedure[]
+¦label:apoc-core[]

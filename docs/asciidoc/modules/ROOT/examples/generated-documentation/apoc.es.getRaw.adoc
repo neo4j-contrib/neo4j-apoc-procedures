@@ -1,0 +1,5 @@
+¦xref::overview/apoc.es/apoc.es.getRaw.adoc[apoc.es.getRaw icon:book[]] +
+
+`apoc.es.getRaw(host-or-port,path,payload-or-null) yield value` - perform a raw GET operation on elastic search
+¦label:procedure[]
+¦label:apoc-full[]

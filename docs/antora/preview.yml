@@ -1,0 +1,27 @@
+site:
+  title: Neo4j Labs
+  url: /developer
+
+content:
+  sources:
+  - url: ../../
+    start_path: docs/asciidoc
+    branches: HEAD
+    exclude:
+    - '!**/_includes/*'
+    - '!**/readme.adoc'
+    - '!**/README.adoc'
+ui:
+  bundle:
+    url: https://s3-eu-west-1.amazonaws.com/static-content.neo4j.com/build/ui-bundle.zip
+    snapshot: true
+
+urls:
+  html_extension_style: indexify
+asciidoc:
+  extensions:
+  - "@neo4j-documentation/remote-include"
+  - "@neo4j-documentation/macros"
+  attributes:
+    page-theme: labs
+    page-disabletracking: true

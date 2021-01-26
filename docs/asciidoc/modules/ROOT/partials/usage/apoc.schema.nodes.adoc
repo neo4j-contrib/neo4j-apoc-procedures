@@ -19,6 +19,6 @@ CALL apoc.schema.nodes();
 [opts="header"]
 |===
 | name            | label    | properties | status   | type         | failure      | populationProgress | size | valuesSelectivity | userDescription
-| ":Person(name)" | "Person" | ["name"]   | "ONLINE" | "UNIQUENESS" | "NO FAILURE" | 100.0              | 7    | 1.0               | "Index( id=1, name='personName', type='UNIQUE BTREE', schema=(:Person {name}), indexProvider='native-btree-1.0' )"
-| ":User(id)"     | "User"   | ["id"]     | "ONLINE" | "UNIQUENESS" | "NO FAILURE" | 100.0              | 0    | 1.0               | "Index( id=3, name='userId', type='UNIQUE BTREE', schema=(:User {id}), indexProvider='native-btree-1.0' )"
+| ":Person(name)" | "Person" | ["name"]   | "ONLINE" | "UNIQUENESS" | "NO FAILURE" | 100.0              | 7    | 1.0               | "Index( id=1, name='personName', type='UNIQUE BTREE', schema=(:Person \{name}), indexProvider='native-btree-1.0' )"
+| ":User(id)"     | "User"   | ["id"]     | "ONLINE" | "UNIQUENESS" | "NO FAILURE" | 100.0              | 0    | 1.0               | "Index( id=3, name='userId', type='UNIQUE BTREE', schema=(:User \{id}), indexProvider='native-btree-1.0' )"
 |===

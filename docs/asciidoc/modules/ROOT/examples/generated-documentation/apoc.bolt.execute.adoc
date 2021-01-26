@@ -1,0 +1,5 @@
+¦xref::overview/apoc.bolt/apoc.bolt.execute.adoc[apoc.bolt.execute icon:book[]] +
+
+`apoc.bolt.execute(url-or-key, kernelTransaction, params, config)` - access to other databases via bolt for read
+¦label:procedure[]
+¦label:apoc-full[]
