@@ -1,0 +1,7 @@
+[source,cypher]
+----
+CALL apoc.systemdb.graph();
+----
+
+.apoc.systemdb.graph Neo4j Browser Visualization
+image::apoc.systemdb.graph.svg[]

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.rel.endNode¦apoc.rel.endNode(rel :: RELATIONSHIP?) :: (NODE?)¦returns endNode for (virtual) relationships

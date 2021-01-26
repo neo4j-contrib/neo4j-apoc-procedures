@@ -22,5 +22,9 @@ apoc.trigger.propertiesByKey(propertyEntries :: MAP?, key :: STRING?) :: (LIST? 
 |key|STRING?|null
 |===
 
+[[usage-apoc.trigger.propertiesByKey]]
+== Usage Examples
+include::partial$usage/apoc.trigger.propertiesByKey.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.propertiesByKey,role=more information]
 

@@ -1,0 +1,15 @@
+If we want to remove the trigger created by the example in xref::overview/apoc.trigger/apoc.trigger.add.adoc[], we can run the following query:
+
+[source,cypher]
+----
+CALL apoc.trigger.remove("count-removals");
+----
+
+.Results
+[opts="header"]
+|===
+| name             | query                                                                                     | selector | params | installed | paused
+| "count-removals" | "MATCH (c:Counter)
+SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {}       | {}     | FALSE     | FALSE
+
+|===
