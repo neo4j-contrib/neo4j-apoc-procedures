@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.schema.relationship/apoc.schema.relationship.constraintExists.adoc[apoc.schema.relationship.constraintExists icon:book[]] +
 
-
+`RETURN apoc.schema.relationship.constraintExists(type, propertyNames)`
 ¦label:function[]
 ¦label:apoc-core[]

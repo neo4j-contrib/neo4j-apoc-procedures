@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.coll/apoc.coll.removeAll.adoc[apoc.coll.removeAll icon:book[]] +
 
- - returns first list with all elements of second list removed
+`apoc.coll.removeAll(first, second)` - returns first list with all elements of second list removed
 ¦label:function[]
 ¦label:apoc-core[]

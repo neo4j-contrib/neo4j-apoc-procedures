@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.text/apoc.text.repeat.adoc[apoc.text.repeat icon:book[]] +
 
- - string multiplication
+`apoc.text.repeat(item, count)` - string multiplication
 ¦label:function[]
 ¦label:apoc-core[]

@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.monitor/apoc.monitor.tx.adoc[apoc.monitor.tx icon:book[]] +
 
-
+`apoc.monitor.tx() returns informations about the neo4j transaction manager`
 ¦label:procedure[]
 ¦label:apoc-full[]

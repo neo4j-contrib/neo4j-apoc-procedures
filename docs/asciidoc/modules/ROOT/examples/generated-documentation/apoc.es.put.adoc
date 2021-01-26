@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.es/apoc.es.put.adoc[apoc.es.put icon:book[]] +
 
- - perform a PUT operation on elastic search
+`apoc.es.put(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value` - perform a PUT operation on elastic search
 ¦label:procedure[]
 ¦label:apoc-full[]
