@@ -2,4 +2,4 @@
 
 `apoc.bolt.execute(url-or-key, kernelTransaction, params, config)` - access to other databases via bolt for reads and writes
 ¦label:procedure[]
-¦label:apoc-core[]
+¦label:apoc-full[]

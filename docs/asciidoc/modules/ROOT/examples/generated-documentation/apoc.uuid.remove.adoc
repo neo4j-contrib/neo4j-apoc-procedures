@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.uuid/apoc.uuid.remove.adoc[apoc.uuid.remove icon:book[]] +
 
-
+`CALL apoc.uuid.remove(label) yield label, installed, properties | remove previously added uuid handler and returns uuid information. All the existing uuid properties are left as-is`
 ¦label:procedure[]
 ¦label:apoc-full[]

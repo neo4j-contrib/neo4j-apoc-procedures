@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.text/apoc.text.sorensenDiceSimilarity.adoc[apoc.text.sorensenDiceSimilarity icon:book[]] +
 
- - compare the given strings with the Sørensen–Dice coefficient formula, with the provided IETF language tag
+`apoc.text.sorensenDiceSimilarityWithLanguage(text1, text2, languageTag)` - compare the given strings with the Sørensen–Dice coefficient formula, with the provided IETF language tag
 ¦label:function[]
 ¦label:apoc-core[]

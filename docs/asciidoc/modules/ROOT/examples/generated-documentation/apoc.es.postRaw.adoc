@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.es/apoc.es.postRaw.adoc[apoc.es.postRaw icon:book[]] +
 
- - perform a raw POST operation on elastic search
+`apoc.es.postRaw(host-or-port,path,payload-or-null) yield value` - perform a raw POST operation on elastic search
 ¦label:procedure[]
 ¦label:apoc-full[]

@@ -1,5 +1,5 @@
-¦xref::overview/apoc.nlp/apoc.nlp.gcp.entities.stream.adoc[apoc.nlp.gcp.entities.stream icon:book[]] +
+¦xref::overview/apoc.nlp.gcp.entities/apoc.nlp.gcp.entities.stream.adoc[apoc.nlp.gcp.entities.stream icon:book[]] +
 
-
+`Returns a stream of entities for provided text`
 ¦label:procedure[]
 ¦label:apoc-full[]

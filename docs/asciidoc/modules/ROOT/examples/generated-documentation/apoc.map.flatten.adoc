@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.map/apoc.map.flatten.adoc[apoc.map.flatten icon:book[]] +
 
- - flattens nested items in map using dot notation
+`apoc.map.flatten(map, delimiter:'.') yield map` - flattens nested items in map using dot notation
 ¦label:function[]
 ¦label:apoc-core[]

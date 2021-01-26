@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.cypher/apoc.cypher.runFirstColumn.adoc[apoc.cypher.runFirstColumn icon:book[]] +
 
-
+`use either apoc.cypher.runFirstColumnMany for a list return or apoc.cypher.runFirstColumnSingle for returning the first row of the first column`
 ¦label:function[]
 ¦label:apoc-core[]

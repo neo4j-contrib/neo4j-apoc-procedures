@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.generate/apoc.generate.ba.adoc[apoc.generate.ba icon:book[]] +
 
- - generates a random graph according to the Barabasi-Albert model
+`apoc.generate.ba(noNodes, edgesPerNode, label, type)` - generates a random graph according to the Barabasi-Albert model
 ¦label:procedure[]
 ¦label:apoc-full[]
