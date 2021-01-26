@@ -1,0 +1,68 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (Keanu:Person {name:'Keanu Reeves', born:1964})
+CREATE (TomH:Person {name:'Tom Hanks', born:1956})
+
+CREATE (TheMatrix:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})
+CREATE (TheMatrixReloaded:Movie {title:'The Matrix Reloaded', released:2003, tagline:'Free your mind'})
+
+CREATE (YouveGotMail:Movie {title:"You've Got Mail", released:1998, tagline:'At odds in life... in love on-line.'})
+
+CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrix)
+CREATE (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrixReloaded)
+
+CREATE (TomH)-[:ACTED_IN {roles:['Joe Fox']}]->(YouveGotMail);
+----
+
+We can find all the `ACTED_IN` paths by running the following query:
+
+[source,cypher]
+----
+MATCH path = ()-[:ACTED_IN]->()
+RETURN path;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| path
+| (:Person {name: "Keanu Reeves", born: 1964})-[:ACTED_IN {roles: ["Neo"]}]->(:Movie {tagline: "Welcome to the Real World", title: "The Matrix", released: 1999})
+| (:Person {name: "Keanu Reeves", born: 1964})-[:ACTED_IN {roles: ["Neo"]}]->(:Movie {tagline: "Free your mind", title: "The Matrix Reloaded", released: 2003})
+| (:Person {name: "Tom Hanks", born: 1956})-[:ACTED_IN {roles: ["Joe Fox"]}]->(:Movie {tagline: "At odds in life... in love on-line.", title: "You've Got Mail", released: 1998})
+|===
+
+What if we want to take the first element from each path?
+We could try to do it like this:
+
+[source,cypher]
+----
+MATCH path = ()-[:ACTED_IN]->()
+RETURN path[0];
+----
+
+.Results
+[source,text]
+----
+Type mismatch: expected List<T> but was Path (line 3, column 8 (offset: 40))
+"RETURN path[0];"
+        ^
+----
+
+We can use `apoc.convert.toList` to convert the path to a list and then take the first item from that list:
+
+[source,cypher]
+----
+MATCH path = ()-[:ACTED_IN]->()
+RETURN apoc.convert.toList(path)[0];
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| apoc.convert.toList(path)[0]
+| (:Person {name: "Keanu Reeves", born: 1964})
+| (:Person {name: "Keanu Reeves", born: 1964})
+| (:Person {name: "Tom Hanks", born: 1956})
+|===

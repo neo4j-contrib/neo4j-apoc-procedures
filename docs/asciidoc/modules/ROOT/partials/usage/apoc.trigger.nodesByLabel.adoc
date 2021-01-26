@@ -1,0 +1,68 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+create constraint on (p:Person)
+assert p.id is unique;
+----
+
+This function is used inside a xref::overview/apoc.trigger/apoc.trigger.add.adoc[] Cypher statement.
+
+We can use it to conditionally run Cypher statements when labels are added or removed or when properties are added or removed.
+For example, we add an `id` property to all `Person` nodes that is the lower case value of the `name` property of that node, by defining the following trigger:
+
+[source,cypher]
+----
+CALL apoc.trigger.add(
+  'lowercase',
+  'UNWIND apoc.trigger.nodesByLabel($assignedLabels,"Person") AS n
+   SET n.id = toLower(n.name)',
+  {}
+);
+----
+
+Let's now create a `Person` node:
+
+[source,cypher]
+----
+CREATE (f:Person {name:'John Doe'});
+----
+
+And now let's find all `Person` nodes:
+
+[source,cypher]
+----
+MATCH (f:Person)
+RETURN f.id, f.name;
+----
+
+.Results
+[opts="header"]
+|===
+| f.id       | f.name
+| "john doe" | "John Doe"
+|===
+
+But if we create an `Animal` node instead:
+
+[source,cypher]
+----
+CREATE (:Animal {name: "Cow"});
+----
+
+An `id` property will not be added to that node.
+We can see that it hasn't been added, by running the following query:
+
+[source,cypher]
+----
+MATCH (n)
+RETURN n;
+----
+
+.Results
+[opts="header"]
+|===
+| n
+| (:Person {name: "John Doe", id: "john doe"})
+| (:Animal {name: "Cow"})
+|===

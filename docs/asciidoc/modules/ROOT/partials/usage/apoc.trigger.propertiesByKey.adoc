@@ -1,0 +1,40 @@
+This function is used inside a xref::overview/apoc.trigger/apoc.trigger.add.adoc[] Cypher statement.
+
+We can use it to conditionally run Cypher statements when properties are added or removed.
+For example, we can connect nodes with a `genre` property to a `Genre` node, with the following trigger:
+
+[source,cypher]
+----
+CALL apoc.trigger.add(
+  'triggerTest',
+  'UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, "genre") as prop
+   WITH prop.node as n
+   MERGE (g:Genre {name: n.genre})
+   MERGE (n)-[:HAS_GENRE]->(g)
+   ',
+  {}
+);
+----
+
+Let's now create a `Movie` node with a `genre` property:
+
+[source,cypher]
+----
+CREATE (:Movie {title: "The White Tiger", genre: "Crime"});
+----
+
+And now let's find all `HAS_GENRE` relationships:
+
+[source,cypher]
+----
+MATCH path = ()-[:HAS_GENRE]->()
+RETURN path;
+----
+
+.Results
+[opts="header"]
+|===
+| path
+| (:Movie {genre: "Crime", title: "The White Tiger"})-[:HAS_GENRE]->(:Genre {name: "Crime"})
+
+|===

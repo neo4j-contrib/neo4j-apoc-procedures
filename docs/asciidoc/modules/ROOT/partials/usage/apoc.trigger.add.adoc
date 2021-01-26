@@ -1,0 +1,57 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (:Counter {count:0})
+CREATE (f:Foo);
+----
+
+Let's create a trigger that keeps a count of the number of nodes that have been deleted:
+
+[source,cypher]
+----
+CALL apoc.trigger.add(
+  'count-removals',
+  'MATCH (c:Counter)
+   SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])',
+  {}
+);
+----
+
+.Results
+[opts="header"]
+|===
+| name             | query                                                                                     | selector | params | installed | paused
+| "count-removals" | "MATCH (c:Counter)
+SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {}       | {}     | TRUE      | FALSE
+|===
+
+We'll now delete the `Foo` node:
+
+[source,cypher]
+----
+MATCH (f:Foo)
+DELETE f;
+----
+
+.Results
+[source,text]
+----
+0 rows available after 20 ms, consumed after another 0 ms
+Deleted 1 nodes
+----
+
+And finally, let's check that the `count` property on our `Counter` node has been incremented:
+
+[source,cypher]
+----
+MATCH (c:Counter)
+RETURN c.count as count;
+----
+
+.Results
+[opts="header"]
+|===
+| count
+| 1
+|===
