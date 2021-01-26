@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.trigger/apoc.trigger.propertiesByKey.adoc[apoc.trigger.propertiesByKey icon:book[]] +
 
-
+``
 ¦label:function[]
 ¦label:apoc-full[]

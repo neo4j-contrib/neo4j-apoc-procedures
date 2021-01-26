@@ -1,5 +1,5 @@
-¦xref::overview/apoc.nlp/apoc.nlp.gcp.classify.stream.adoc[apoc.nlp.gcp.classify.stream icon:book[]] +
+¦xref::overview/apoc.nlp.gcp.classify/apoc.nlp.gcp.classify.stream.adoc[apoc.nlp.gcp.classify.stream icon:book[]] +
 
-
+`Classifies a document into categories.`
 ¦label:procedure[]
 ¦label:apoc-full[]

@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.load/apoc.load.html.adoc[apoc.load.html icon:book[]] +
 
- - Load Html page and return the result as a Map
+`apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value` - Load Html page and return the result as a Map
 ¦label:procedure[]
 ¦label:apoc-full[]

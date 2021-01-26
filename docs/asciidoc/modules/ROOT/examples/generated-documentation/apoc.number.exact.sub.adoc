@@ -1,5 +1,5 @@
-¦xref::overview/apoc.number/apoc.number.exact.sub.adoc[apoc.number.exact.sub icon:book[]] +
+¦xref::overview/apoc.number.exact/apoc.number.exact.sub.adoc[apoc.number.exact.sub icon:book[]] +
 
- - return the substraction's of two large numbers
+`apoc.number.exact.sub(stringA,stringB)` - return the substraction's of two large numbers
 ¦label:function[]
 ¦label:apoc-core[]

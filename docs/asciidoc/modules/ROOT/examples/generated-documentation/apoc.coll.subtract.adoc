@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.coll/apoc.coll.subtract.adoc[apoc.coll.subtract icon:book[]] +
 
- - returns unique set of first list with all elements of second list removed
+`apoc.coll.subtract(first, second)` - returns unique set of first list with all elements of second list removed
 ¦label:function[]
 ¦label:apoc-core[]

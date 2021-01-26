@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.coll/apoc.coll.pairWithOffset.adoc[apoc.coll.pairWithOffset icon:book[]] +
 
- - returns a list of pairs defined by the offset
+`apoc.coll.pairWithOffset(values, offset)` - returns a list of pairs defined by the offset
 ¦label:function[]
 ¦label:apoc-core[]

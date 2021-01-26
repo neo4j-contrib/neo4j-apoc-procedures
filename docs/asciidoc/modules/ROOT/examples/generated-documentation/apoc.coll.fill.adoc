@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.coll/apoc.coll.fill.adoc[apoc.coll.fill icon:book[]] +
 
- - returns a list with the given count of items
+`apoc.coll.fill(item, count)` - returns a list with the given count of items
 ¦label:function[]
 ¦label:apoc-core[]

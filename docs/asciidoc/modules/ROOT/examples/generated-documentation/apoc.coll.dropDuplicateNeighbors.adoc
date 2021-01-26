@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.coll/apoc.coll.dropDuplicateNeighbors.adoc[apoc.coll.dropDuplicateNeighbors icon:book[]] +
 
- - remove duplicate consecutive objects in a list
+`apoc.coll.dropDuplicateNeighbors(list)` - remove duplicate consecutive objects in a list
 ¦label:function[]
 ¦label:apoc-core[]
