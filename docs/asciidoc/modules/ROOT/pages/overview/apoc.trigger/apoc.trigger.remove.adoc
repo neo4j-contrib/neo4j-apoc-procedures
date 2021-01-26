@@ -39,5 +39,9 @@ apoc.trigger.remove(name :: STRING?) :: (name :: STRING?, query :: STRING?, sele
 == Enable Triggers
 include::partial$triggers.adoc[]
 
+[[usage-apoc.trigger.remove]]
+== Usage Examples
+include::partial$usage/apoc.trigger.remove.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.remove,role=more information]
 

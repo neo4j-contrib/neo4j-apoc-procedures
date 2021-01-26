@@ -1,0 +1,14 @@
+This example assumes that we've first added the trigger described in xref::overview/apoc.trigger/apoc.trigger.add.adoc[]:
+
+[source,cypher]
+----
+CALL apoc.trigger.list();
+----
+
+.Results
+[opts="header"]
+|===
+| name             | query                                                                                     | selector | params | installed | paused
+| "count-removals" | "MATCH (c:Counter)
+SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {}       | {}     | TRUE      | FALSE
+|===
