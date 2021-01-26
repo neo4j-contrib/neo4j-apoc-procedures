@@ -462,7 +462,9 @@ for the provided `label` and `uuidProperty`, in case the UUID handler is already
 ¦function¦apoc.path.create¦apoc.path.create(startNode :: NODE?, rels = [] :: LIST? OF RELATIONSHIP?) :: (PATH?)¦apoc.path.create(startNode,[rels]) - creates a path instance of the given elements¦true¦xref::graph-querying/path-querying.adoc
 ¦function¦apoc.path.elements¦apoc.path.elements(path :: PATH?) :: (LIST? OF ANY?)¦apoc.path.elements(path) - returns a list of node-relationship-node-...¦true¦xref::graph-querying/path-querying.adoc
 ¦function¦apoc.path.slice¦apoc.path.slice(path :: PATH?, offset = 0 :: INTEGER?, length = -1 :: INTEGER?) :: (PATH?)¦apoc.path.slice(path, [offset], [length]) - creates a sub-path with the given offset and length¦true¦xref::graph-querying/path-querying.adoc
+¦function¦apoc.rel.endNode¦apoc.rel.endNode(rel :: RELATIONSHIP?) :: (NODE?)¦returns endNode for (virtual) relationships¦true¦
 ¦function¦apoc.rel.id¦apoc.rel.id(rel :: RELATIONSHIP?) :: (INTEGER?)¦returns id for (virtual) relationships¦true¦
+¦function¦apoc.rel.startNode¦apoc.rel.startNode(rel :: RELATIONSHIP?) :: (NODE?)¦returns startNode for (virtual) relationships¦true¦
 ¦function¦apoc.rel.type¦apoc.rel.type(rel :: RELATIONSHIP?) :: (STRING?)¦returns type for (virtual) relationships¦true¦
 ¦function¦apoc.schema.node.constraintExists¦apoc.schema.node.constraintExists(labelName :: STRING?, propertyName :: LIST? OF STRING?) :: (BOOLEAN?)¦RETURN apoc.schema.node.constraintExists(labelName, propertyNames)¦true¦xref::indexes/schema-index-operations.adoc
 ¦function¦apoc.schema.node.indexExists¦apoc.schema.node.indexExists(labelName :: STRING?, propertyName :: LIST? OF STRING?) :: (BOOLEAN?)¦RETURN apoc.schema.node.indexExists(labelName, propertyNames)¦true¦xref::indexes/schema-index-operations.adoc

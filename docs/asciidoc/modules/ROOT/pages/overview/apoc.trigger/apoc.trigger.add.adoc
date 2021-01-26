@@ -42,5 +42,9 @@ apoc.trigger.add(name :: STRING?, kernelTransaction :: STRING?, selector :: MAP?
 == Enable Triggers
 include::partial$triggers.adoc[]
 
+[[usage-apoc.trigger.add]]
+== Usage Examples
+include::partial$usage/apoc.trigger.add.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.add,role=more information]
 

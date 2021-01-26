@@ -22,3 +22,7 @@ apoc.systemdb.graph() :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF REL
 |relationships|LIST? OF RELATIONSHIP?
 |===
 
+[[usage-apoc.systemdb.graph]]
+== Usage Examples
+include::partial$usage/apoc.systemdb.graph.adoc[]
+

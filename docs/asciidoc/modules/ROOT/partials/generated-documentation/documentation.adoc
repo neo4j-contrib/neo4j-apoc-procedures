@@ -2466,15 +2466,24 @@ apoc.refactor.setType(rel, 'NEW-TYPE') change relationship-type
 |label:apoc-core[]
 |===
 
-[discrete]
 == xref::overview/apoc.rel/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
 |===
 | Qualified Name | Type | Release
+|xref::overview/apoc.rel/apoc.rel.endNode.adoc[apoc.rel.endNode icon:book[]]
+
+returns endNode for (virtual) relationships
+|label:function[]
+|label:apoc-core[]
 |xref::overview/apoc.rel/apoc.rel.id.adoc[apoc.rel.id icon:book[]]
 
 returns id for (virtual) relationships
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.rel/apoc.rel.startNode.adoc[apoc.rel.startNode icon:book[]]
+
+returns startNode for (virtual) relationships
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.rel/apoc.rel.type.adoc[apoc.rel.type icon:book[]]

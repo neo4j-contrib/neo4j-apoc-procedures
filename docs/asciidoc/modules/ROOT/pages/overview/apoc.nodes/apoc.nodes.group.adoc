@@ -34,5 +34,9 @@ apoc.nodes.group(labels :: LIST? OF STRING?, groupByProperties :: LIST? OF STRIN
 |relationship|RELATIONSHIP?
 |===
 
+[[usage-apoc.nodes.group]]
+== Usage Examples
+include::partial$usage/apoc.nodes.group.adoc[]
+
 xref::graph-querying/node-querying.adoc[More documentation of apoc.nodes.group,role=more information]
 
