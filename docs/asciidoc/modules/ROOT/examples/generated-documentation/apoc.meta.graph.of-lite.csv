@@ -1,0 +1,2 @@
+¦signature
+¦apoc.meta.graph.of(graph = {} :: ANY?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)

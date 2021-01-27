@@ -1,0 +1,24 @@
+== Type of supported input graphs
+[.procedures, opts=header]
+|===
+| Type | Description
+|String|a Cypher query
+|Virtual Graph|a Virtual Graph returned by `apoc.graph.*`
+|Map|a map with two field `nodes` (a list of nodes, *mandatory*), `relationships` (a list of relationships)
+|===
+
+If you have a quite complex Graph, and you want to analyze and get some info about
+a specific sub-graph in it, you can leverage the `apoc.meta.graph.of` procedure.
+
+So for the given Graph Model:
+
+image::apoc.meta.graph.example.png[width=800]
+
+You can leverage the `apoc.meta.graph.of` procedure in this way:
+
+image::apoc.meta.graph.of.png[width=800]
+
+That will extract the Meta Graph of the provided query, with some stats like the `count`
+for each node involved into the query.
+
+If you want more details you can also look at xref::overview/apoc.meta/apoc.meta.graph.adoc[`apoc.meta.graph` documentation]
