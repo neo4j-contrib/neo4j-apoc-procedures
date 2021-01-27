@@ -24,12 +24,13 @@ endif::[]
 
 The table below describes the available procedures:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.load.json.csv[]
-include::example$generated-documentation/apoc.load.jsonParams.csv[lines=2:]
-include::example$generated-documentation/apoc.load.jsonArray.csv[lines=2:]
-include::example$generated-documentation/apoc.import.json.csv[lines=2:]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.load.json.adoc[]
+include::example$generated-documentation/apoc.load.jsonParams.adoc[]
+include::example$generated-documentation/apoc.load.jsonArray.adoc[]
+include::example$generated-documentation/apoc.import.json.adoc[]
 |===
 
 [[load-json-available-procedures-apoc.load.json]]
@@ -334,7 +335,7 @@ apoc.static.twitter.bearer=XXXX
 apoc.static.twitter.url=https://api.twitter.com/1.1/search/tweets.json?count=100&result_type=recent&lang=en&q=
 ----
 
-These values can then be retrieved using the functions described in 
+These values can then be retrieved using the functions described in
 
 static-values>>.
 

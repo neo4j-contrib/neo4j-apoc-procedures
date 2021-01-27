@@ -1,0 +1,6 @@
+¦xref::overview/apoc.uuid/apoc.uuid.install.adoc[apoc.uuid.install icon:book[]] +
+
+`CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult | it will add the uuid transaction handler
+for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one`
+¦label:procedure[]
+¦label:apoc-full[]

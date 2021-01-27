@@ -12,12 +12,13 @@ The conditional execution procedures simulate an if / else structure, where a su
 
 The available procedures and functions are described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.when.csv[]
-include::example$generated-documentation/apoc.do.when.csv[lines=2:]
-include::example$generated-documentation/apoc.case.csv[lines=2:]
-include::example$generated-documentation/apoc.do.case.csv[lines=2:]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.when.adoc[]
+include::example$generated-documentation/apoc.do.when.adoc[]
+include::example$generated-documentation/apoc.case.adoc[]
+include::example$generated-documentation/apoc.do.case.adoc[]
 |===
 
 [[conditionals-when]]

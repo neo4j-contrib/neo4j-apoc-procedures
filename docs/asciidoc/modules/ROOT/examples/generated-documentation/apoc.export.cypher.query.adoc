@@ -1,0 +1,5 @@
+¦xref::overview/apoc.export.cypher/apoc.export.cypher.query.adoc[apoc.export.cypher.query icon:book[]] +
+
+`apoc.export.cypher.query(query,file,config)` - exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file
+¦label:procedure[]
+¦label:apoc-core[]

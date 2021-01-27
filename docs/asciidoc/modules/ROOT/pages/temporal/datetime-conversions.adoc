@@ -26,21 +26,22 @@ If you need to manipulate Date object types into other formats, see xref::tempor
 
 The table below describes the available procedures:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.date.add.csv[]
-include::example$generated-documentation/apoc.date.convert.csv[lines=2:]
-include::example$generated-documentation/apoc.date.convertFormat.csv[lines=2:]
-include::example$generated-documentation/apoc.date.currentTimestamp.csv[lines=2:]
-include::example$generated-documentation/apoc.date.field.csv[lines=2:]
-include::example$generated-documentation/apoc.date.fields.csv[lines=2:]
-include::example$generated-documentation/apoc.date.format.csv[lines=2:]
-include::example$generated-documentation/apoc.date.fromISO8601.csv[lines=2:]
-include::example$generated-documentation/apoc.date.parse.csv[lines=2:]
-include::example$generated-documentation/apoc.date.parseAsZonedDateTime.csv[lines=2:]
-include::example$generated-documentation/apoc.date.systemTimezone.csv[lines=2:]
-include::example$generated-documentation/apoc.date.toISO8601.csv[lines=2:]
-include::example$generated-documentation/apoc.date.toYears.csv[lines=2:]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.date.add.adoc[]
+include::example$generated-documentation/apoc.date.convert.adoc[]
+include::example$generated-documentation/apoc.date.convertFormat.adoc[]
+include::example$generated-documentation/apoc.date.currentTimestamp.adoc[]
+include::example$generated-documentation/apoc.date.field.adoc[]
+include::example$generated-documentation/apoc.date.fields.adoc[]
+include::example$generated-documentation/apoc.date.format.adoc[]
+include::example$generated-documentation/apoc.date.fromISO8601.adoc[]
+include::example$generated-documentation/apoc.date.parse.adoc[]
+include::example$generated-documentation/apoc.date.parseAsZonedDateTime.adoc[]
+include::example$generated-documentation/apoc.date.systemTimezone.adoc[]
+include::example$generated-documentation/apoc.date.toISO8601.adoc[]
+include::example$generated-documentation/apoc.date.toYears.adoc[]
 |===
 
 [[datetime-available-procedures-apoc.date.add]]

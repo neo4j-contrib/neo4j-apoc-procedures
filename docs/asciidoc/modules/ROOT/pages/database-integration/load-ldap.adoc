@@ -14,7 +14,7 @@ include::example$generated-documentation/apoc.load.csv[lines=1;12]
 
 == Parameters
 
-[options="header",cols="a,3m,a"]
+[options="header",cols="a,a,3m"]
 |===
 |Parameter | Property | Description
 |\{connectionMap} | ldapHost | the ldapserver:port if port is omitted the default port 389 will be used
