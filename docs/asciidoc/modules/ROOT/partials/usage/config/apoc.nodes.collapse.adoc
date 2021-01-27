@@ -1,0 +1,17 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| properties | String | "discard" a| how to handle properties on the nodes being collapse. The following values are supported:
+
+* `overwrite` - if there is the same property in more node, in the new one will have the last relationship's/node's property value
+* `discard` - if there is the same property in more node, the new one will have the first relationship's/node's property value
+* `combine` - if there is the same property in more node, the new one a value's array with all relationship's/node's values
+
+| mergeVirtualRels | Boolean | true | give the possibility to merge relationships with same type and direction.
+| selfRel | Boolean | false | give the possibility to create the self relationship.
+| countMerge | Boolean | true | give the possibility count all the Nodes/Relationships merged.
+| collapsedLabel | Boolean | false | give the possibility to add the label `:Collapsed` to the virtualNode.
+|===

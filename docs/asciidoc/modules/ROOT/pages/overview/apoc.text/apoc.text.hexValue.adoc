@@ -28,5 +28,3 @@ apoc.text.hexValue(value :: INTEGER?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.text.hexValue.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.hexValue,role=more information]
-

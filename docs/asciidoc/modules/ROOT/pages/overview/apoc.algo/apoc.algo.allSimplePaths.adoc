@@ -34,5 +34,9 @@ apoc.algo.allSimplePaths(startNode :: NODE?, endNode :: NODE?, relationshipTypes
 |path|PATH?
 |===
 
+[[usage-apoc.algo.allSimplePaths]]
+== Usage Examples
+include::partial$usage/apoc.algo.allSimplePaths.adoc[]
+
 xref::algorithms/path-finding-procedures.adoc[More documentation of apoc.algo.allSimplePaths,role=more information]
 

@@ -1,0 +1,36 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (shambar:Recipe {name: "Shambar"})
+MERGE (cornedBeefPie:Recipe {name: "Corned beef pie"})
+
+MERGE (beef:Ingredient {name: "beef"})
+MERGE (pork:Ingredient {name: "pork"})
+MERGE (chickpea:Ingredient {name: "chickpea"})
+MERGE (potatoes:Ingredient {name: "potatoes"})
+
+MERGE (shambar)-[:CONTAINS_INGREDIENT]->(beef)
+MERGE (shambar)-[:CONTAINS_INGREDIENT]->(pork)
+MERGE (shambar)-[:CONTAINS_INGREDIENT]->(chickpea)
+
+MERGE (cornedBeefPie)-[:CONTAINS_INGREDIENT]->(beef)
+MERGE (cornedBeefPie)-[:CONTAINS_INGREDIENT]->(potatoes);
+----
+
+[source,cypher]
+----
+CALL apoc.search.nodeReduced(
+  {Recipe: "name", Ingredient: "name"},
+  "CONTAINS",
+  "beef"
+);
+----
+
+.Results
+[opts="header", cols="1,1,2"]
+|===
+| id | labels         | values
+| 1  | ["Recipe"]     | {name: "Corned beef pie"}
+| 2  | ["Ingredient"] | {name: "beef"}
+|===

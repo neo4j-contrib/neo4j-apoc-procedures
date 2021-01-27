@@ -1,0 +1,63 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$createExportGraph.adoc[]
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::play-movies.png[]
+
+The `apoc.export.xls.all` procedure exports the whole database to an XLS file.
+
+The following query exports the whole database to the file `movies.xls`:
+
+[source,cypher]
+----
+CALL apoc.export.xls.all("movies.xls", {});
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "movies.xls" | "database: nodes(8), rels(7)" | "xls"  | 8     | 7             | 21         | 102  | 15   | 20000     | 1       | TRUE | NULL
+|===
+
+`movies.xls` contains individual sheets for each node label and relationship type.
+In this case, it contains the following sheets:
+
+* Movie
+* Person
+* ACTED_IN
+* DIRECTED
+* PRODUCED
+
+We can query the contents of those sheets using xref::overview/apoc.load/apoc.load.xls.adoc[].
+Let's have a look at a couple of the sheets:
+
+[source,cypher]
+----
+CALL apoc.load.xls("file://movies.xls", "Movie");
+----
+
+.Results
+[opts="header"]
+|===
+| lineNo | list                                                 | map
+| 0      | [0, 1999, "Welcome to the Real World", "The Matrix"] | {tagline: "Welcome to the Real World", `<nodeId>`: 0, title: "The Matrix", released: 1999}
+|===
+
+[source,cypher]
+----
+CALL apoc.load.xls("file://movies.xls", "ACTED_IN");
+----
+
+.Results
+[opts="header"]
+|===
+| lineNo | list                     | map
+| 0      | [0, 1, 0, "Neo"]         | {`<startNodeId>`: 1, `<endNodeId>`: 0, `<relationshipId>`: 0, roles: "Neo"}
+| 1      | [1, 2, 0, "Trinity"]     | {`<startNodeId>`: 2, `<endNodeId>`: 0, `<relationshipId>`: 1, roles: "Trinity"}
+| 2      | [2, 3, 0, "Morpheus"]    | {`<startNodeId>`: 3, `<endNodeId>`: 0, `<relationshipId>`: 2, roles: "Morpheus"}
+| 3      | [3, 4, 0, "Agent Smith"] | {`<startNodeId>`: 4, `<endNodeId>`: 0, `<relationshipId>`: 3, roles: "Agent Smith"}
+
+|===

@@ -25,6 +25,9 @@ apoc.nodes.collapse(nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (from :: NO
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.nodes.collapse.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -33,6 +36,10 @@ apoc.nodes.collapse(nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (from :: NO
 |rel|RELATIONSHIP?
 |to|NODE?
 |===
+
+[[usage-apoc.nodes.collapse]]
+== Usage Examples
+include::partial$usage/apoc.nodes.collapse.adoc[]
 
 xref::graph-querying/node-querying.adoc[More documentation of apoc.nodes.collapse,role=more information]
 

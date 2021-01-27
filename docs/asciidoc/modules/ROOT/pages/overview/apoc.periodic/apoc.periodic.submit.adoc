@@ -40,5 +40,3 @@ apoc.periodic.submit(name :: STRING?, statement :: STRING?) :: (name :: STRING?,
 == Usage Examples
 include::partial$usage/apoc.periodic.submit.adoc[]
 
-xref::background-operations/periodic-background.adoc[More documentation of apoc.periodic.submit,role=more information]
-

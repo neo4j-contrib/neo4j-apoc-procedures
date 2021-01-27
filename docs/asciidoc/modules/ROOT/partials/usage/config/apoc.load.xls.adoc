@@ -1,0 +1,23 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| skip | boolean | none | skip result rows
+| limit | Long | none | limit result rows
+| header | booelan | true | indicates if file has a header
+| sep | String | ',' | separator character or 'TAB'
+| quoteChar | String | '"' | the char to use for quoted elements
+| arraySep | String |  ';' | array separator
+| ignore | List<String> | [] | which columns to ignore
+| nullValues | List<String> | [] | which values to treat as null, e.g. `['na',false]`
+| mapping | Map | {} | per field mapping, entry key is field name, .e.g `{mapping:{'<sheet>':{type:'<type>', dateFormat: '<format>', dateParse: [<formats>]}}}`
+|===
+
+`mapping` supports the following values:
+
+* `<sheet>` - name of the sheet
+* `<type>` - type of the conversion requested (`STRING`, `INTEGER`, `FLOAT`, `BOOLEAN`, `NULL`, `LIST`, `DATE`, `DATE_TIME`, `LOCAL_DATE`, `LOCAL_DATE_TIME`, `LOCAL_TIME`, `TIME`)
+* `dateFormat: <format>` - convert the Date into String (only String is allowed)
+* `dateParse: [<formats>]` - convert the String into Date (Array of strings are allowed)

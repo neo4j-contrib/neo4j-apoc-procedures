@@ -1,0 +1,267 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$expand-config-sample-graph.adoc[]
+
+[[expand-subgraph-examples-label-relationship-filters]]
+=== Relationship Type and Node Label filters
+
+Let's start by expanding paths from the Praveena node.
+We only want to consider the `KNOWS` relationship type, so we'll specify that as the `relationshipFilter` parameter.
+
+.The following returns the subgraph reachable by the `KNOWS` relationship at 1 to 2 hops from Praveena
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.subgraphAll(p, {
+	relationshipFilter: "KNOWS",
+    minLevel: 1,
+    maxLevel: 2
+})
+YIELD nodes, relationships
+RETURN nodes, relationships;
+----
+
+We can see a Neo4j Browser visualization of the returned subgraph in <<viz-apoc-path-subgraphAll-praveena>>.
+
+[[viz-apoc-path-subgraphAll-praveena]]
+image::apoc.path.subgraphAll.praveena.svg[title="Subgraph from Praveena"]
+
+
+We can also provide a node label filter to restrict the nodes that are returned.
+If we want to only return paths where every node has the `Engineering` label, we'll provide the value `+Engineering` to the `labelFilter` parameter.
+
+.The following returns the subgraph o `Engineering` people reachable by the `KNOWS` relationship at 1 to 2 hops from Praveena
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.subgraphAll(p, {
+	relationshipFilter: "KNOWS",
+	labelFilter: "+Engineering",
+    minLevel: 1,
+    maxLevel: 2
+})
+YIELD nodes, relationships
+RETURN nodes, relationships;
+----
+
+We can see a Neo4j Browser visualization of the returned subgraph in <<viz-apoc-path-subgraphAll-praveena-engineering>>.
+
+[[viz-apoc-path-subgraphAll-praveena-engineering]]
+image::apoc.path.subgraphAll.praveena-engineering.svg[title="Subgraph of `Engineering` nodes from Praveena"]
+
+We lose Lju and Stefan because those nodes don't have the `Engineering` label.
+
+We can specify multiple relationship types.
+The following query starts from the Alicia node, and then expands the `FOLLOWS` and `KNOWS` relationships:
+
+.The following returns the subgraph of people reachable by the `FOLLOWS` or `KNOWS` relationships at 1 to 3 hops from Alicia
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.subgraphAll(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3
+})
+YIELD nodes, relationships
+RETURN nodes, relationships;
+----
+
+We can see a Neo4j Browser visualization of the returned subgraph in <<viz-apoc-path-subgraphAll-alicia>>.
+
+[[viz-apoc-path-subgraphAll-alicia]]
+image::apoc.path.subgraphAll.alicia.svg[title="Subgraph from Alicia"]
+
+This subgraph includes all but one of the people in our graph, which means that Alicia is very well connected.
+
+We can also specify traversal termination criteria using label filters.
+If we wanted to terminate a traversal as soon as the traversal encounters a node containing the `Engineering` label, we can use the `/Engineering` node filter.
+
+.The following returns the subgraph reachable by the `FOLLOWS` or `KNOWS` relationships at 1 to 3 hops from Alicia, terminating as soon as a node with the `Engineering` label is reached
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.subgraphAll(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    labelFilter: "/Engineering",
+    minLevel: 1,
+    maxLevel: 3
+})
+YIELD nodes, relationships
+RETURN nodes, relationships;
+----
+
+We can see a Neo4j Browser visualization of the returned subgraph in <<viz-apoc-path-subgraphAll-alicia-engineering>>.
+
+[[viz-apoc-path-subgraphAll-alicia-engineering]]
+image::apoc.path.subgraphAll.alicia-engineering.svg[title="Subgraph from Alicia terminating at `Engineering` nodes"]
+
+We're now down to only 2 people - Zhen and Praveena.
+But this query doesn't capture all of the paths from Alicia that end in a node with the `Engineering` label.
+We can use the `>Engineering` node filter to define a traversal that:
+
+* only returns paths that terminate at nodes with the `Engineering` label
+* continues expansion to end nodes after that, looking for more paths that end with the `Engineering` label
+
+.The following returns the subgraph of `Engineering` people reachable by the `FOLLOWS` or `KNOWS` relationships at 1 to 3 hops from Alicia
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.subgraphAll(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    labelFilter: ">Engineering",
+    minLevel: 1,
+    maxLevel: 3
+})
+YIELD nodes, relationships
+RETURN nodes, relationships;
+----
+
+We can see a Neo4j Browser visualization of the returned subgraph in <<viz-apoc-path-subgraphAll-alicia-engineering-end>>.
+
+[[viz-apoc-path-subgraphAll-alicia-engineering-end]]
+image::apoc.path.subgraphAll.alicia-engineering-end.svg[title="Subgraph from Alicia ending at `Engineering` nodes"]
+
+Our subgraph now also includes Martin, who is reached via a relationship from Zhen.
+
+[[expand-subgraph-examples-end-nodes-terminator-nodes]]
+=== Terminator Nodes and End Nodes
+
+As well as specifying terminator and end labels for traversals, we can also specify terminator and end nodes.
+
+Let's build on the previous query that found people that Alicia `KNOWS` or `FOLLOWS`.
+We want the returned subgraph to stop as soon as the Mark, Joe, Zhen, or Praveena nodes are reached.
+We can do that by passing those nodes to the `terminatorNodes` parameter.
+
+.The following returns the subgraph of people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, terminating as soon as Mark, Joe, Zhen, or Rik nodes are reached
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (terminator:Person)
+WHERE terminator.name IN ["Mark", "Joe", "Zhen", "Rik"]
+WITH p, collect(terminator) AS terminatorNodes
+CALL apoc.path.subgraphAll(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    terminatorNodes: terminatorNodes
+})
+YIELD nodes, relationships
+RETURN nodes, relationships;
+----
+
+We can see a Neo4j Browser visualization of the returned subgraph in <<viz-apoc-path-subgraphAll-alicia-terminator>>.
+
+[[viz-apoc-path-subgraphAll-alicia-terminator]]
+image::apoc.path.subgraphAll.alicia-terminator.svg[title="Subgraph from Alicia terminating at Mark, Joe, Zhen, or Rik"]
+
+We have paths to Mark and Joe, but Zhen and Rik can't be reached
+This could be because there is no path to Zhen and Rik that doesn't go through Mark and Joe, or it could mean that there's no path based on the other traversal criteria.
+
+We can find out whether Mark, Joe, Zhen, or Rik are reachable by passing these nodes to the `endNodes` parameter.
+
+.The following returns the subgraph of people that Alicia `FOLLOWS` or `KNOWS` from 1 to 3 hops, ending as soon as Mark, Joe, Zhen, or Rik nodes are reached
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (end:Person)
+WHERE end.name IN ["Mark", "Joe", "Zhen", "Rik"]
+WITH p, collect(end) AS endNodes
+CALL apoc.path.subgraphAll(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    endNodes: endNodes
+})
+YIELD nodes, relationships
+RETURN nodes, relationships;
+----
+
+We can see a Neo4j Browser visualization of the returned subgraph in <<viz-apoc-path-subgraphAll-alicia-end>>.
+
+[[viz-apoc-path-subgraphAll-alicia-end]]
+image::apoc.path.subgraphAll.alicia-end.svg[title="Subgraph from Alicia ending at Mark, Joe, Zhen, or Rik"]
+
+We can now reach Joe, Mark, and Zhen, but Rik is still unreachable.
+
+[[expand-subgraph-examples-whitelist-blacklist]]
+=== Whitelist Nodes and Blacklist Nodes
+
+Whitelist and blacklist nodes can also be specified.
+
+Let's build on the previous query that found people that Alicia `KNOWS` or `FOLLOWS`.
+We want any returned paths to only include the nodes Mark, Joe, Zhen, and Praveena, which we can do by passing these nodes to the parameter `whitelistNodes`.
+
+.The following returns nodes reachable by the `FOLLOWS` or `KNOWS` relationship types at 1 to 3 hops from Alicia, where the paths to those nodes must only include Mark, Jonny, or Zhen
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (whitelist:Person)
+WHERE whitelist.name IN ["Jonny", "Mark", "Zhen"]
+WITH p, collect(whitelist) AS whitelistNodes
+CALL apoc.path.subgraphAll(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    whitelistNodes: whitelistNodes
+})
+YIELD nodes, relationships
+RETURN nodes, relationships;
+----
+
+We can see a Neo4j Browser visualization of the returned subgraph in <<viz-apoc-path-subgraphAll-alicia-whitelist>>.
+
+[[viz-apoc-path-subgraphAll-alicia-whitelist]]
+image::apoc.path.subgraphAll.alicia-whitelist.svg[title="Subgraph from Alicia where paths to nodes include Mark, Jonny, or Zhen"]
+
+Only Jonny can be reached.
+We can therefore infer that Mark and Zhen are only reachable via another node that wasn't include in the whitelist.
+
+A blacklist is used to exclude nodes from the paths that lead to reachable nodes.
+If we want to return nodes that are reachable without going through Joe, we can do this by passing the Joe node to the `blacklistNodes` parameter.
+
+.The following returns nodes reachable by the `FOLLOWS` or `KNOWS` relationship types at 1 to 3 hops from Alicia, where the paths to those nodes do not go through Joe
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (joe:Person {name: "Joe"})
+CALL apoc.path.subgraphAll(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    blacklistNodes: [joe]
+})
+YIELD nodes, relationships
+RETURN nodes, relationships;
+----
+
+We can see a Neo4j Browser visualization of the returned subgraph in <<viz-apoc-path-subgraphAll-alicia-blacklist-joe>>.
+
+[[viz-apoc-path-subgraphAll-alicia-blacklist-joe]]
+image::apoc.path.subgraphAll.alicia-blacklist-joe.svg[title="Subgraph from Alicia where paths to nodes can't go via Joe"]
+
+[[expand-subgraph-examples-sequence-rel-types]]
+=== Sequences of relationship types
+
+Sequences of relationship types can be specified by comma separating the values passed to `relationshipFilter`.
+
+For example, if we want to start from the Joe node and traverse a sequence of the `FOLLOWS` relationship in the outgoing direction and the `KNOWS` relationship in either direction, we can specify the relationship filter `FOLLOWS>,KNOWS`.
+
+.The following returns the reachable nodes by following the `FOLLOWS` and `KNOWS` relationship types alternately from Joe
+[source,cypher]
+----
+MATCH (p:Person {name: "Joe"})
+CALL apoc.path.subgraphAll(p, {
+	relationshipFilter: "FOLLOWS>,KNOWS",
+	beginSequenceAtStart: true,
+	minLevel: 1,
+	maxLevel: 4
+})
+YIELD nodes, relationships
+RETURN nodes, relationships;
+----
+
+We can see a Neo4j Browser visualization of the returned subgraph in <<viz-apoc-path-subgraphAll-joe-rel-sequence>>.
+
+[[viz-apoc-path-subgraphAll-joe-rel-sequence]]
+image::apoc.path.subgraphAll.joe-sequence.svg[title="Subgraph from Joe via alternate `FOLLOWS` and `KNOWS` relationship types"]

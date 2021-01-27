@@ -33,5 +33,9 @@ apoc.search.nodeAll(LabelPropertyMap :: ANY?, operator :: STRING?, value :: STRI
 |node|NODE?
 |===
 
+[[usage-apoc.search.nodeAll]]
+== Usage Examples
+include::partial$usage/apoc.search.nodeAll.adoc[]
+
 xref::graph-querying/parallel-node-search.adoc[More documentation of apoc.search.nodeAll,role=more information]
 

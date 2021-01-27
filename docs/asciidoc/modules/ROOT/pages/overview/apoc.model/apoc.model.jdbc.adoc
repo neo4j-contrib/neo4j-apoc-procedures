@@ -33,5 +33,9 @@ apoc.model.jdbc(jdbc :: STRING?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE
 |relationships|LIST? OF RELATIONSHIP?
 |===
 
+[[usage-apoc.model.jdbc]]
+== Usage Examples
+include::partial$usage/apoc.model.jdbc.adoc[]
+
 xref::database-integration/database-modeling.adoc[More documentation of apoc.model.jdbc,role=more information]
 

@@ -24,5 +24,3 @@ apoc.meta.typeName(value :: ANY?) :: (STRING?)
 |value|ANY?|null
 |===
 
-xref::database-introspection/meta.adoc[More documentation of apoc.meta.typeName,role=more information]
-

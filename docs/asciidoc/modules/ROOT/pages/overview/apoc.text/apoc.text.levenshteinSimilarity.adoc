@@ -29,5 +29,3 @@ apoc.text.levenshteinSimilarity(text1 :: STRING?, text2 :: STRING?) :: (FLOAT?)
 == Usage Examples
 include::partial$usage/apoc.text.levenshteinSimilarity.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.levenshteinSimilarity,role=more information]
-

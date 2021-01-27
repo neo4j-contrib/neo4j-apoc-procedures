@@ -28,5 +28,3 @@ apoc.text.urlencode(text :: STRING?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.text.urlencode.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.urlencode,role=more information]
-

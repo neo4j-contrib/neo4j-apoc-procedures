@@ -1,0 +1,29 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (Keanu:Person {name:'Keanu Reeves', born:1964})
+CREATE (Carrie:Person {name:'Carrie-Anne Moss', born:1967})
+CREATE (TomH:Person {name:'Tom Hanks', born:1956})
+
+CREATE (Keanu)-[:KNOWS]->(Carrie);
+CREATE (Tom)-[:KNOWS]->(Carrie);
+----
+
+
+[source,cypher]
+----
+match (p:Person)
+WHERE p.name IN ["Keanu Reeves", "Carrie-Anne Moss"]
+with collect(id(p)) as nodes
+CALL apoc.algo.cover(nodes)
+YIELD rel
+RETURN  startNode(rel), rel, endNode(rel);
+----
+
+.Results
+[opts="header"]
+|===
+| startNode(rel)                               | rel      | endNode(rel)
+| (:Person {name: "Keanu Reeves", born: 1964}) | [:KNOWS] | (:Person {name: "Carrie-Anne Moss", born: 1967})
+|===

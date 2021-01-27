@@ -35,5 +35,9 @@ apoc.search.nodeAllReduced(LabelPropertyMap :: ANY?, operator :: STRING?, value 
 |values|MAP?
 |===
 
+[[usage-apoc.search.nodeAllReduced]]
+== Usage Examples
+include::partial$usage/apoc.search.nodeAllReduced.adoc[]
+
 xref::graph-querying/parallel-node-search.adoc[More documentation of apoc.search.nodeAllReduced,role=more information]
 

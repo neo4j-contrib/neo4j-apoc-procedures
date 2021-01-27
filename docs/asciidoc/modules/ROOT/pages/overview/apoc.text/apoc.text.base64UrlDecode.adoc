@@ -28,5 +28,3 @@ apoc.text.base64UrlDecode(url :: STRING?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.text.base64UrlDecode.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.base64UrlDecode,role=more information]
-

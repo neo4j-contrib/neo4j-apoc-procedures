@@ -29,5 +29,3 @@ apoc.text.levenshteinDistance(text1 :: STRING?, text2 :: STRING?) :: (INTEGER?)
 == Usage Examples
 include::partial$usage/apoc.text.levenshteinDistance.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.levenshteinDistance,role=more information]
-

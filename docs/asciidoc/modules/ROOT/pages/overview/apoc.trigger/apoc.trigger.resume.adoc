@@ -39,5 +39,9 @@ apoc.trigger.resume(name :: STRING?) :: (name :: STRING?, query :: STRING?, sele
 == Enable Triggers
 include::partial$triggers.adoc[]
 
+[[usage-apoc.trigger.resume]]
+== Usage Examples
+include::partial$usage/apoc.trigger.resume.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.resume,role=more information]
 

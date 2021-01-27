@@ -1,0 +1,31 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (b:City {name:'Berlin',lat:52.52464,lon:13.40514})
+CREATE (m:City {name:'München',lat:48.1374,lon:11.5755})
+CREATE (f:City {name:'Frankfurt',lat:50.1167,lon:8.68333})
+CREATE (h:City {name:'Hamburg',lat:53.554423,lon:9.994583})
+CREATE (b)-[:DIRECT {dist:255.64*1000}]->(h)
+CREATE (b)-[:DIRECT {dist:504.47*1000}]->(m)
+CREATE (b)-[:DIRECT {dist:424.12*1000}]->(f)
+CREATE (f)-[:DIRECT {dist:304.28*1000}]->(m)
+CREATE (f)-[:DIRECT {dist:393.15*1000}]->(h);
+----
+
+We can find the shortest path from München to Hamburg, by running the following query:
+
+[source,cypher]
+----
+MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'})
+CALL apoc.algo.aStar(from, to, 'DIRECT', 'dist', 'lat', 'lon')
+YIELD path, weight
+RETURN path, weight;
+----
+
+.Results
+[options="header", cols="3,1"]
+|===
+| path                                                                                                                                                                                                                           | weight
+| (:City {name: "München", lon: 11.5755, lat: 48.1374})<-[:DIRECT {dist: 304280.0}]-(:City {name: "Frankfurt", lon: 8.68333, lat: 50.1167})-[:DIRECT {dist: 393150.0}]->(:City {name: "Hamburg", lon: 9.994583, lat: 53.554423}) | 697430.0
+|===

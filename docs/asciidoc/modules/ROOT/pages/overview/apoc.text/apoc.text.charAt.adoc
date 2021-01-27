@@ -29,5 +29,3 @@ apoc.text.charAt(text :: STRING?, index :: INTEGER?) :: (INTEGER?)
 == Usage Examples
 include::partial$usage/apoc.text.charAt.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.charAt,role=more information]
-
