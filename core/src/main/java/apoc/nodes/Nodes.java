@@ -4,20 +4,11 @@ import apoc.Pools;
 import apoc.create.Create;
 import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
-import apoc.result.LongResult;
-import apoc.result.NodeResult;
-import apoc.result.RelationshipResult;
-import apoc.result.VirtualNode;
-import apoc.result.VirtualPathResult;
+import apoc.result.*;
 import apoc.util.Util;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Entity;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.Transaction;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
+import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.CursorFactory;
@@ -45,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -81,6 +73,79 @@ public class Nodes {
                 node = next;
             }
         }
+    }
+
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.nodes.deleteAndReconnect([pathLinkedList], [nodesToRemove], {config}) - Removes some nodes from a linked list")
+    public Stream<GraphResult> deleteAndReconnect(@Name("path") Path path, @Name("nodes") List<Node> nodesToRemove, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
+
+        DeleteAndReconnectConfig conf = new DeleteAndReconnectConfig(config);
+
+        List<Node> nodeInPath = IterableUtils.toList(path.nodes());
+        List<Relationship> relInPath = IterableUtils.toList(path.relationships());
+
+        List<Node> allMatched = (List<Node>) CollectionUtils.subtract(nodesToRemove, nodeInPath);
+
+        final AtomicInteger nodeIndex = new AtomicInteger();
+
+        if (allMatched.isEmpty()) {
+            nodesToRemove.forEach(node -> {
+
+                List<Relationship> relationshipsIncoming = IterableUtils.toList(node.getRelationships(Direction.INCOMING));
+                List<Relationship> relationshipsOutgoing = IterableUtils.toList(node.getRelationships(Direction.OUTGOING));
+
+                Relationship relationshipIn = relationshipsIncoming.stream().filter(relInPath::contains).findFirst().orElse(null);
+                Relationship relationshipOut = relationshipsOutgoing.stream().filter(relInPath::contains).findFirst().orElse(null);
+
+                // if terminal node
+                if (relationshipIn == null || relationshipOut == null) {
+                    tx.execute("WITH $node as n DETACH DELETE n", Map.of("node", node));
+                    relInPath.remove(relationshipIn == null ? relationshipOut : relationshipIn );
+
+                } else {
+                    Node nodeBeforeThatToDelete = relationshipIn.getStartNode();
+                    Node nodeAfterThatToDelete = relationshipOut.getEndNode();
+
+                    RelationshipType relTypeToAdd;
+                    Map<String, Object> relPropsToAdd = new HashMap<>();
+                    List<Relationship> relsToAttachConf = conf.getRelsToAttach();
+                    List<String> relTypesToAttachConf = conf.getRelTypesToAttach();
+                    boolean typesIsEmpty = relTypesToAttachConf.isEmpty();
+
+                    if (!relsToAttachConf.isEmpty()) {
+                        Relationship singleRelTypeToAttach = relsToAttachConf.get(nodeIndex.get());
+                        relTypeToAdd = RelationshipType.withName(singleRelTypeToAttach.getType().toString());
+                        relPropsToAdd.putAll(singleRelTypeToAttach.getAllProperties());
+
+                    } else if (!typesIsEmpty) {
+                        relTypeToAdd = RelationshipType.withName(relTypesToAttachConf.get(nodeIndex.get()));
+                        relInPath.removeAll(List.of(relationshipIn, relationshipOut));
+
+                    } else if (conf.isAttachStartRel()) {
+                        relTypeToAdd = RelationshipType.withName(relationshipIn.getType().toString());
+                        relPropsToAdd.putAll(relationshipIn.getAllProperties());
+
+                    } else {
+                        relTypeToAdd = RelationshipType.withName(relationshipOut.getType().toString());
+                        relPropsToAdd.putAll(relationshipOut.getAllProperties());
+                    }
+                    tx.execute("WITH $node as n DETACH DELETE n", Map.of("node", node));
+
+                    Relationship relCreated = nodeBeforeThatToDelete.createRelationshipTo(nodeAfterThatToDelete, relTypeToAdd);
+                    relPropsToAdd.forEach(relCreated::setProperty);
+
+                    relInPath.add(relCreated);
+                    relInPath.removeAll(List.of(relationshipIn, relationshipOut));
+                }
+
+                nodeInPath.remove(node);
+                nodeIndex.incrementAndGet();
+            });
+
+        } else {
+            throw new RuntimeException("The nodes with ids: " + allMatched.stream().map(Entity::getId).collect(Collectors.toList()) + " are not present in the path");
+        }
+        return Stream.of(new GraphResult(nodeInPath, relInPath ));
     }
 
     @Procedure

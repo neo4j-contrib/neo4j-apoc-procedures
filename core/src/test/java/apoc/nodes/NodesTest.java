@@ -11,24 +11,19 @@ import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static apoc.util.Util.map;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.neo4j.graphdb.Label.label;
 import static org.neo4j.internal.helpers.collection.Iterators.asSet;
 
@@ -46,6 +41,172 @@ public class NodesTest {
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Nodes.class, Create.class);
     }
+
+    @Test
+    public void deleteAndReconnect() throws Exception {
+        db.executeTransactionally("CREATE (f:One)-[:ALPHA {a:'b'}]->(b:Two)-[:BETA {c:'d', e:'f'}]->(c:Three)-[:GAMMA]->(d:Four)-[:DELTA {aa: 'bb', cc: 'dd', ee: 'ff'}]->(e:Five {foo: 'bar', baz: 'baa'})");
+
+        TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(5L, row.get("result")));
+
+        TestUtil.testFail(db, "MATCH p=(f:One)-->(b:Two)-->(c:Three), (d:Four), (e:Five) WITH p, collect(d)+e as list CALL apoc.nodes.deleteAndReconnect(p, list) YIELD nodes, relationships RETURN nodes, relationships", RuntimeException.class);
+
+        TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(5L, row.get("result")));
+
+        TestUtil.testCall(db, "MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, collect(b)+d as list CALL apoc.nodes.deleteAndReconnect(p, list) YIELD nodes, relationships RETURN nodes, relationships",
+                (row) -> {
+                    List<Node> nodes = (List<Node>) row.get("nodes");
+                    assertEquals(3, nodes.size());
+                    Node node1 = nodes.get(0);
+                    assertEquals(singletonList(label("One")), node1.getLabels());
+                    assertTrue(node1.getAllProperties().isEmpty());
+                    Node node2 = nodes.get(1);
+                    assertEquals(singletonList(label("Three")), node2.getLabels());
+                    assertTrue(node2.getAllProperties().isEmpty());
+                    Node node3 = nodes.get(2);
+                    assertEquals(singletonList(label("Five")), node3.getLabels());
+                    assertEquals("bar", node3.getProperty("foo"));
+                    assertEquals("baa", node3.getProperty("baz"));
+                    List<Relationship> rels = (List<Relationship>) row.get("relationships");
+                    assertEquals(2, rels.size());
+                    Relationship rel1 = rels.get(0);
+                    assertEquals("ALPHA", rel1.getType().name());
+                    assertEquals("b", rel1.getProperty("a"));
+                    Relationship rel2 = rels.get(1);
+                    assertEquals("GAMMA", rel2.getType().name());
+                    assertTrue(rel2.getAllProperties().isEmpty());
+                    assertNotNull(row.get("nodes"));
+                });
+
+        TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(3L, row.get("result")));
+
+        // - terminal node
+        TestUtil.testCall(db, "MATCH p=(f:One)-->(c:Three)-->(e:Five) WITH p, f CALL apoc.nodes.deleteAndReconnect(p, [f]) YIELD nodes, relationships RETURN nodes, relationships",
+                (row) -> {
+                    List<Node> nodes = (List<Node>) row.get("nodes");
+                    assertEquals(2, nodes.size());
+                    Node node1 = nodes.get(0);
+                    assertEquals(singletonList(label("Three")), node1.getLabels());
+                    assertTrue(node1.getAllProperties().isEmpty());
+                    Node node2 = nodes.get(1);
+                    assertEquals(singletonList(label("Five")), node2.getLabels());
+                    assertEquals("bar", node2.getProperty("foo"));
+                    assertEquals("baa", node2.getProperty("baz"));
+                    List<Relationship> rels = (List<Relationship>) row.get("relationships");
+                    assertEquals(1, rels.size());
+                    Relationship rel = rels.get(0);
+                    assertEquals("GAMMA", rel.getType().name());
+                    assertTrue(rel.getAllProperties().isEmpty());
+                    assertNotNull(row.get("nodes"));
+                });
+
+        TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(2L, row.get("result")));
+    }
+
+    @Test
+    public void deleteAndReconnectWithStartRelConfig() throws Exception {
+        db.executeTransactionally("CREATE (f:One)-[:ALPHA {a:'b'}]->(b:Two)-[:BETA {c:'d', e:'f'}]->(c:Three)-[:GAMMA]->(d:Four)-[:DELTA {aa: 'bb', cc: 'dd', ee: 'ff'}]->(e:Five {foo: 'bar', baz: 'baa'})");
+
+        TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(5L, row.get("result")));
+
+        TestUtil.testCall(db, "MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, collect(b)+d as list CALL apoc.nodes.deleteAndReconnect(p, list, {attachStartRel: false}) YIELD nodes, relationships RETURN nodes, relationships",
+                (row) -> {
+                    List<Node> nodes = (List<Node>) row.get("nodes");
+                    assertEquals(3, nodes.size());
+                    Node node1 = nodes.get(0);
+                    assertEquals(singletonList(label("One")), node1.getLabels());
+                    assertTrue(node1.getAllProperties().isEmpty());
+                    Node node2 = nodes.get(1);
+                    assertEquals(singletonList(label("Three")), node2.getLabels());
+                    assertTrue(node2.getAllProperties().isEmpty());
+                    Node node3 = nodes.get(2);
+                    assertEquals(singletonList(label("Five")), node3.getLabels());
+                    assertEquals("bar", node3.getProperty("foo"));
+                    assertEquals("baa", node3.getProperty("baz"));
+                    List<Relationship> rels = (List<Relationship>) row.get("relationships");
+                    assertEquals(2, rels.size());
+                    Relationship rel1 = rels.get(0);
+                    assertEquals("BETA", rel1.getType().name());
+                    assertEquals("d", rel1.getProperty("c"));
+                    assertEquals("f", rel1.getProperty("e"));
+                    Relationship rel2 = rels.get(1);
+                    assertEquals("DELTA", rel2.getType().name());
+                    assertEquals("bb", rel2.getProperty("aa"));
+                    assertEquals("dd", rel2.getProperty("cc"));
+                    assertEquals("ff", rel2.getProperty("ee"));
+                    assertNotNull(row.get("nodes"));
+                });
+
+        TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(3L, row.get("result")));
+    }
+
+    @Test
+    public void deleteAndReconnectWithRelToAttachConfig() throws Exception {
+        db.executeTransactionally("CREATE (f:One)-[:ALPHA {a:'b'}]->(b:Two)-[:BETA {c:'d', e:'f'}]->(c:Three)-[:GAMMA]->(d:Four)-[:DELTA {aa: 'bb', cc: 'dd', ee: 'ff'}]->(e:Five {foo: 'bar', baz: 'baa'}), (:Other)-[:Pippo {goku: 'gohan', vegeta: 'trunks'}]->(:Other2), (:Other)-[:Pippo2 {krilin: 'maron'}]->(:Other2)");
+
+        TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(9L, row.get("result")));
+
+        TestUtil.testCall(db, "MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five), ()-[rel:Pippo]->(), ()-[rel2:Pippo2]->() WITH p, collect(b)+d as list, collect(rel)+rel2 as rels CALL apoc.nodes.deleteAndReconnect(p, list, {relsToAttach: rels}) YIELD nodes, relationships RETURN nodes, relationships",
+                (row) -> {
+                    List<Node> nodes = (List<Node>) row.get("nodes");
+                    assertEquals(3, nodes.size());
+                    Node node1 = nodes.get(0);
+                    assertEquals(singletonList(label("One")), node1.getLabels());
+                    assertTrue(node1.getAllProperties().isEmpty());
+                    Node node2 = nodes.get(1);
+                    assertEquals(singletonList(label("Three")), node2.getLabels());
+                    assertTrue(node2.getAllProperties().isEmpty());
+                    Node node3 = nodes.get(2);
+                    assertEquals(singletonList(label("Five")), node3.getLabels());
+                    assertEquals("bar", node3.getProperty("foo"));
+                    assertEquals("baa", node3.getProperty("baz"));
+                    List<Relationship> rels = (List<Relationship>) row.get("relationships");
+                    assertEquals(2, rels.size());
+                    Relationship rel1 = rels.get(0);
+                    assertEquals("Pippo", rel1.getType().name());
+                    assertEquals("gohan", rel1.getProperty("goku"));
+                    assertEquals("trunks", rel1.getProperty("vegeta"));
+                    Relationship rel2 = rels.get(1);
+                    assertEquals("Pippo2", rel2.getType().name());
+                    assertEquals("maron", rel2.getProperty("krilin"));
+                });
+
+        TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(7L, row.get("result")));
+    }
+
+    @Test
+    public void deleteAndReconnectWithRelTypesToAttachConfig() throws Exception {
+        db.executeTransactionally("CREATE (f:One)-[:ALPHA {a:'b'}]->(b:Two)-[:BETA {c:'d', e:'f'}]->(c:Three)-[:GAMMA]->(d:Four)-[:DELTA {aa: 'bb', cc: 'dd', ee: 'ff'}]->(e:Five {foo: 'bar', baz: 'baa'})");
+
+        TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(5L, row.get("result")));
+
+        TestUtil.testCall(db, "MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, collect(b)+d as list CALL apoc.nodes.deleteAndReconnect(p, list, {relTypesToAttach: ['one', 'two']}) YIELD nodes, relationships RETURN nodes, relationships",
+                (row) -> {
+                    List<Node> nodes = (List<Node>) row.get("nodes");
+                    assertEquals(3, nodes.size());
+                    Node node1 = nodes.get(0);
+                    assertEquals(singletonList(label("One")), node1.getLabels());
+                    assertTrue(node1.getAllProperties().isEmpty());
+                    Node node2 = nodes.get(1);
+                    assertEquals(singletonList(label("Three")), node2.getLabels());
+                    assertTrue(node2.getAllProperties().isEmpty());
+                    Node node3 = nodes.get(2);
+                    assertEquals(singletonList(label("Five")), node3.getLabels());
+                    assertEquals("bar", node3.getProperty("foo"));
+                    assertEquals("baa", node3.getProperty("baz"));
+                    List<Relationship> rels = (List<Relationship>) row.get("relationships");
+                    assertEquals(2, rels.size());
+                    Relationship rel1 = rels.get(0);
+                    assertEquals("one", rel1.getType().name());
+                    assertTrue(rel1.getAllProperties().isEmpty());
+                    Relationship rel2 = rels.get(1);
+                    assertEquals("two", rel2.getType().name());
+                    assertTrue(rel2.getAllProperties().isEmpty());
+                });
+
+        TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(3L, row.get("result")));
+    }
+
+
 
     @Test
     public void isDense() throws Exception {

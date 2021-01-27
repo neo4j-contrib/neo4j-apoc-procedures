@@ -1,6 +1,7 @@
 ¦type¦qualified name¦signature¦description
 ¦procedure¦apoc.nodes.collapse¦apoc.nodes.collapse(nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (from :: NODE?, rel :: RELATIONSHIP?, to :: NODE?)¦apoc.nodes.collapse([nodes...],[{properties:'overwrite' or 'discard' or 'combine'}]) yield from, rel, to merge nodes onto first in list
 ¦procedure¦apoc.nodes.delete¦apoc.nodes.delete(nodes :: ANY?, batchSize :: INTEGER?) :: (value :: INTEGER?)¦apoc.nodes.delete(node|nodes|id|[ids]) - quickly delete all nodes with these ids
+¦procedure¦apoc.nodes.deleteAndReconnect¦apoc.nodes.deleteAndReconnect(path :: PATH?, nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)¦apoc.nodes.deleteAndReconnect([pathLinkedList], [nodesToRemove], \{config}) - Removes some nodes from a linked list
 ¦procedure¦apoc.nodes.get¦apoc.nodes.get(nodes :: ANY?) :: (node :: NODE?)¦apoc.nodes.get(node|nodes|id|[ids]) - quickly returns all nodes with these ids
 ¦procedure¦apoc.nodes.group¦apoc.nodes.group(labels :: LIST? OF STRING?, groupByProperties :: LIST? OF STRING?, aggregations = [{*=count}, {*=count}] :: LIST? OF MAP?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?, node :: NODE?, relationship :: RELATIONSHIP?)¦
 ¦procedure¦apoc.nodes.link¦apoc.nodes.link(nodes :: LIST? OF NODE?, type :: STRING?) :: VOID¦apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last

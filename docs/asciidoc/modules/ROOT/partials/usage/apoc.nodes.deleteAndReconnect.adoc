@@ -1,0 +1,58 @@
+The examples in this section are based on the following sample graph:
+
+Let's suppose we have a simple dataset like:
+[source,cypher]
+----
+CREATE (f:One)-[:ALPHA {a:'b'}]->(b:Two)-[:BETA {c:'d', e:'f'}]->(c:Three)-[:GAMMA]->(d:Four)-[:DELTA {aa: 'bb', cc: 'dd', ee: 'ff'}]->(e:Five {foo: 'bar', baz: 'baa'}), (:Other)-[:Pippo {goku: 'gohan', vegeta: 'trunks'}]->(:Other2), (:Other)-[:Pippo2 {krilin: 'maron'}]->(:Other2)
+----
+
+So, we can execute:
+
+[source,cypher]
+----
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, collect(b)+d as list CALL apoc.nodes.deleteAndReconnect(p, list) YIELD nodes, relationships RETURN nodes, relationships;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | relationships
+| [{"identity":0,"labels":["One"],"properties":{}},{"identity":2,"labels":["Three"],"properties":{}},{"identity":4,"labels":["Five"],"properties":{"baz":"baa","foo":"bar"}}] | [{"identity":4,"start":0,"end":2,"type":"ALPHA","properties":{"a":"b"}},{"identity":5,"start":2,"end":4,"type":"GAMMA","properties":{}}]
+|===
+
+
+[source,cypher]
+----
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, collect(b)+d as list CALL apoc.nodes.deleteAndReconnect(p, list, {attachStartRel: false}) YIELD nodes, relationships RETURN nodes, relationships;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | relationships
+| [{"identity":1,"labels":["One"],"properties":{}},{"identity":0,"labels":["Three"],"properties":{}},{"identity":4,"labels":["Five"],"properties":{"baz":"baa","foo":"bar"}}] | [{"identity":6,"start":1,"end":0,"type":"BETA","properties":{"e":"f","c":"d"}},{"identity":7,"start":0,"end":4,"type":"DELTA","properties":{"aa":"bb","cc":"dd","ee":"ff"}}]
+|===
+
+[source,cypher]
+----
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, collect(b)+d as list CALL apoc.nodes.deleteAndReconnect(p, list, {relTypesToAttach: ['one', 'two']}) YIELD nodes, relationships RETURN nodes, relationships;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | relationships
+| [{"identity":2,"labels":["One"],"properties":{}},{"identity":0,"labels":["Three"],"properties":{}},{"identity":4,"labels":["Five"],"properties":{"baz":"baa","foo":"bar"}}] | [{"identity":6,"start":2,"end":0,"type":"one","properties":{}},{"identity":7,"start":0,"end":4,"type":"two","properties":{}}]
+|===
+
+[source,cypher]
+----
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five), ()-[rel:Pippo]->(), ()-[rel2:Pippo2]->() WITH p, collect(b)+d as list, collect(rel)+rel2 as rels CALL apoc.nodes.deleteAndReconnect(p, list, {relsToAttach: rels}) YIELD nodes, relationships RETURN nodes, relationships
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | relationships
+| [{"identity":1,"labels":["One"],"properties":{}},{"identity":0,"labels":["Three"],"properties":{}},{"identity":4,"labels":["Five"],"properties":{"baz":"baa","foo":"bar"}}] | [{"identity":6,"start":1,"end":0,"type":"Pippo","properties":{"vegeta":"trunks","goku":"gohan"}},{"identity":7,"start":0,"end":4,"type":"Pippo2","properties":{"krilin":"maron"}}]
+|===

@@ -1,6 +1,7 @@
 ¦signature
 ¦apoc.nodes.collapse(nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (from :: NODE?, rel :: RELATIONSHIP?, to :: NODE?)
 ¦apoc.nodes.delete(nodes :: ANY?, batchSize :: INTEGER?) :: (value :: INTEGER?)
+¦apoc.nodes.deleteAndReconnect(path :: PATH?, nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)
 ¦apoc.nodes.get(nodes :: ANY?) :: (node :: NODE?)
 ¦apoc.nodes.group(labels :: LIST? OF STRING?, groupByProperties :: LIST? OF STRING?, aggregations = [{*=count}, {*=count}] :: LIST? OF MAP?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?, node :: NODE?, relationship :: RELATIONSHIP?)
 ¦apoc.nodes.link(nodes :: LIST? OF NODE?, type :: STRING?) :: VOID
