@@ -51,6 +51,7 @@ apoc.gephi.add
 apoc.get.nodes
 apoc.get.rels
 apoc.load.csv
+apoc.load.csvParams
 apoc.load.driver
 apoc.load.html
 apoc.load.jdbc
@@ -100,3 +101,4 @@ apoc.static.get
 apoc.static.getAll
 apoc.trigger.nodesByLabel
 apoc.trigger.propertiesByKey
+apoc.ttl.config
