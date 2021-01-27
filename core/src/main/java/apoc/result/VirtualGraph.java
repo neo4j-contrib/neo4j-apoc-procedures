@@ -4,6 +4,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.internal.helpers.collection.MapUtil;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,5 +25,13 @@ public class VirtualGraph {
                 "relationships", relationships instanceof Set ? relationships : StreamSupport.stream(relationships.spliterator(), false)
                         .collect(Collectors.toSet()),
                 "properties", properties);
+    }
+
+    public Collection<Node> nodes() {
+        return (Collection<Node>) this.graph.get("nodes");
+    }
+
+    public Collection<Relationship> relationships() {
+        return (Collection<Relationship>) this.graph.get("relationships");
     }
 }

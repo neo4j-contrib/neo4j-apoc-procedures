@@ -2,6 +2,7 @@ package apoc.export.cypher.formatter;
 
 import apoc.export.util.FormatUtils;
 import apoc.util.Util;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.internal.helpers.collection.Iterables;
@@ -261,5 +262,9 @@ public class CypherFormatterUtils {
             result.append(toString(Array.get(value, i)));
         }
         return "[" + result.toString() + "]";
+    }
+
+    public static String cypherNode(Label label) {
+        return String.format("(%s)", label == null ? "" : ":" + Util.quote(label.name()));
     }
 }

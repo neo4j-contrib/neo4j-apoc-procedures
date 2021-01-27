@@ -1,5 +1,6 @@
 package apoc.meta;
 
+import apoc.util.Util;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -8,12 +9,13 @@ import java.util.*;
 
 public class MetaConfig {
 
-    private Set<String> includesLabels;
-    private Set<String> includesRels;
-    private Set<String> excludes;
-    private Set<String> excludeRels;
-    private long maxRels;
-    private long sample;
+    private final Set<String> includesLabels;
+    private final Set<String> includesRels;
+    private final Set<String> excludes;
+    private final Set<String> excludeRels;
+    private final long maxRels;
+    private final long sample;
+    private final boolean addRelationshipsBetweenNodes;
 
     /**
      * A map of values, with the following keys and meanings.
@@ -57,6 +59,7 @@ public class MetaConfig {
         this.excludeRels = new HashSet<>((Collection<String>)config.getOrDefault("excludeRels",Collections.EMPTY_SET));
         this.sample = (long) config.getOrDefault("sample", 1000L);
         this.maxRels = (long) config.getOrDefault("maxRels", 100L);
+        this.addRelationshipsBetweenNodes = Util.toBoolean(config.getOrDefault("addRelationshipsBetweenNodes", true));
     }
 
 
@@ -70,10 +73,6 @@ public class MetaConfig {
 
     public Set<String> getExcludes() {
         return excludes;
-    }
-
-    public void setExcludes(Set<String> excludes) {
-        this.excludes = excludes;
     }
 
     public Set<String> getExcludeRels() {
@@ -131,5 +130,9 @@ public class MetaConfig {
         if (getExcludeRels().contains(name)) { return false; }
         if (getIncludesRels().isEmpty()) { return true; }
         return getIncludesRels().contains(name);
+    }
+
+    public boolean isAddRelationshipsBetweenNodes() {
+        return addRelationshipsBetweenNodes;
     }
 }
