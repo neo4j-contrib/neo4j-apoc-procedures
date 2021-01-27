@@ -78,10 +78,29 @@ public class SchemasEnterpriseFeaturesTest {
             return null;
         });
 
-        testResult(session, "CALL apoc.schema.assert(null,{Foo:[['bar','foo'], 'baz'], Galileo: [['newton', 'tesla']]}, false)", (result) -> {
+        testResult(session, "CALL apoc.schema.assert(null,{Foo:[['bar','foo']]}, false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
             assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
+            assertEquals(true, r.get("unique"));
+            assertEquals("KEPT", r.get("action"));
+            r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("bar", "foo"), r.get("keys"));
+            assertEquals(true, r.get("unique"));
+            assertEquals("CREATED", r.get("action"));
+            assertFalse(result.hasNext());
+        });
+
+        testResult(session, "CALL apoc.schema.assert(null,{Galileo: [['newton', 'tesla'], 'curie']}, false)", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
+            assertEquals(true, r.get("unique"));
+            assertEquals("KEPT", r.get("action"));
+            r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("bar", "foo"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("KEPT", r.get("action"));
             r = result.next();
@@ -90,8 +109,8 @@ public class SchemasEnterpriseFeaturesTest {
             assertEquals(true, r.get("unique"));
             assertEquals("CREATED", r.get("action"));
             r = result.next();
-            assertEquals("Foo", r.get("label"));
-            assertEquals("baz", r.get("key"));
+            assertEquals("Galileo", r.get("label"));
+            assertEquals(expectedKeys("curie"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("CREATED", r.get("action"));
             assertFalse(result.hasNext());
@@ -99,15 +118,16 @@ public class SchemasEnterpriseFeaturesTest {
 
         session.readTransaction(tx -> {
             List<Record> result = tx.run("CALL db.constraints").list();
-            assertEquals(3, result.size());
+            assertEquals(4, result.size());
             tx.commit();
             return null;
         });
 
         session.writeTransaction(tx -> {
             tx.run("DROP CONSTRAINT ON (f:Foo) ASSERT (f.foo,f.bar) IS NODE KEY");
+            tx.run("DROP CONSTRAINT ON (f:Foo) ASSERT (f.bar,f.foo) IS NODE KEY");
             tx.run("DROP CONSTRAINT ON (f:Galileo) ASSERT (f.newton,f.tesla) IS NODE KEY");
-            tx.run("DROP CONSTRAINT ON (f:Foo) ASSERT (f.baz) IS UNIQUE");
+            tx.run("DROP CONSTRAINT ON (f:Galileo) ASSERT (f.curie) IS UNIQUE");
             tx.commit();
             return null;
         });

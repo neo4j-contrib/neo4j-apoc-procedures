@@ -116,9 +116,7 @@ public class Schemas {
                 if (item instanceof String) {
                     return item.equals(info.key);
                 } else {
-                    TreeSet<String> keys = new TreeSet<>(info.keys);
-                    TreeSet<String> items = new TreeSet<>((List<String>) item);
-                    return keys.equals(items);
+                    return info.keys.equals(item);
                 }
             });
         }
