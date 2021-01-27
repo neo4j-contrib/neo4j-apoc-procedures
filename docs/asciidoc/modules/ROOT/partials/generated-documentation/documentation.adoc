@@ -1805,9 +1805,19 @@ apoc.merge.relationship(startNode, relType,  identProps:{key:value, ...}, onCrea
 apoc.meta.data(\{config})  - examines a subset of the graph to provide a tabular meta information
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.data.of.adoc[apoc.meta.data.of icon:book[]]
+
+apoc.meta.data.of(\{graph}, \{config})  - examines a subset of the graph to provide a tabular meta information
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.graph.adoc[apoc.meta.graph icon:book[]]
 
 apoc.meta.graph - examines the full graph to create the meta-graph
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.graph.of.adoc[apoc.meta.graph.of icon:book[]]
+
+apoc.meta.graph.of(\{graph}, \{config})  - examines a subset of the graph to provide a graph meta information
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.graphSample.adoc[apoc.meta.graphSample icon:book[]]
@@ -1832,7 +1842,7 @@ apoc.meta.schema(\{config})  - examines a subset of the graph to provide a map-l
 |label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.stats.adoc[apoc.meta.stats icon:book[]]
 
-apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats \| returns the information stored in the transactional database statistics
+apoc.meta.stats yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats \| returns the information stored in the transactional database statistics
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.subGraph.adoc[apoc.meta.subGraph icon:book[]]

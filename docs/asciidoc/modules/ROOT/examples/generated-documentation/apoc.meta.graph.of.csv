@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.meta.graph.of¦apoc.meta.graph.of(graph = {} :: ANY?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)¦apoc.meta.graph.of(\{graph}, \{config})  - examines a subset of the graph to provide a graph meta information

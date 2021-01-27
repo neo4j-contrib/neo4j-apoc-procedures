@@ -1,0 +1,10 @@
+== Type of supported input graphs
+[.procedures, opts=header]
+|===
+| Type | Description
+|String|a Cypher query
+|Virtual Graph|a Virtual Graph returned by `apoc.graph.*`
+|Map|a map with two field `nodes` (a list of nodes, *mandatory*), `relationships` (a list of relationships)
+|===
+
+If you want more details you can look at xref::overview/apoc.meta/apoc.meta.data.adoc[`apoc.meta.data` documentation]
