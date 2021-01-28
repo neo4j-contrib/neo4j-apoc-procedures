@@ -210,33 +210,4 @@ public class TestUtil {
     public static <T> List<T> firstColumn(GraphDatabaseService db, String cypher) {
         return db.executeTransactionally(cypher , Collections.emptyMap(), result -> Iterators.asList(iteratorSingleColumn(result)));
     }
-
-    public static void assertMaps(Map<String, Object> expected, Map<String, Object> actual) {
-        if (expected == null) {
-            assertNull(actual);
-        } else {
-            actual.entrySet().forEach(i -> {
-                if (i.getValue() instanceof Map) {
-                    assertMaps((Map<String, Object>) expected.get(i.getKey()), (Map<String, Object>) i.getValue());
-                } else {
-                    assertEquals(expected.get(i.getKey()), i.getValue());
-                }
-            });
-            assertEquals(expected.keySet(), actual.keySet());
-        }
-    }
-
-    public static void assertJsonNode(Map<String, Object> node, String id, List<String> labels, Map<String, Object> properties, String type) {
-        assertEquals(id, node.get("id"));
-        assertEquals(labels, node.get("labels"));
-        assertMaps(properties, (Map<String, Object>) node.get("properties"));
-        assertEquals(type, node.get("type"));
-    }
-
-    public static void assertJsonRel(Map<String, Object> rel, String id, String label, Map<String, Object> properties, String type) {
-        assertEquals(id, rel.get("id"));
-        assertEquals(label, rel.get("label"));
-        assertMaps(properties, (Map<String, Object>) rel.get("properties"));
-        assertEquals(type, rel.get("type"));
-    }
 }
