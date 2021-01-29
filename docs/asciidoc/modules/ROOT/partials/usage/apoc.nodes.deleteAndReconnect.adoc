@@ -10,7 +10,7 @@ So, we can execute:
 
 [source,cypher]
 ----
-MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, collect(b)+d as list CALL apoc.nodes.deleteAndReconnect(p, list) YIELD nodes, relationships RETURN nodes, relationships;
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as list CALL apoc.nodes.deleteAndReconnect(p, list) YIELD nodes, relationships RETURN nodes, relationships;
 ----
 
 .Results
@@ -23,7 +23,7 @@ MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, collect(b)+d
 
 [source,cypher]
 ----
-MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, collect(b)+d as list CALL apoc.nodes.deleteAndReconnect(p, list, {attachStartRel: false}) YIELD nodes, relationships RETURN nodes, relationships;
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as list CALL apoc.nodes.deleteAndReconnect(p, list, {relationshipSelectionStrategy: 'END'}) YIELD nodes, relationships RETURN nodes, relationships;
 ----
 
 .Results
@@ -35,7 +35,19 @@ MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, collect(b)+d
 
 [source,cypher]
 ----
-MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, collect(b)+d as list CALL apoc.nodes.deleteAndReconnect(p, list, {relTypesToAttach: ['one', 'two']}) YIELD nodes, relationships RETURN nodes, relationships;
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as list CALL apoc.nodes.deleteAndReconnect(p, list, {relationshipSelectionStrategy: 'MERGE'}) YIELD nodes, relationships RETURN nodes, relationships;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | relationships
+| [{"identity":2,"labels":["One"],"properties":{}},{"identity":0,"labels":["Three"],"properties":{}},{"identity":4,"labels":["Five"],"properties":{"baz":"baa","foo":"bar"}}] | [{"identity":6,"start":2,"end":0,"type":"ALPHA_BETA","properties":{"a":"b","c":"d","e":"f"}},{"identity":7,"start":0,"end":4,"type":"GAMMA_DELTA","properties":{"aa":"bb","cc":"dd","ee":"ff"}}]
+|===
+
+[source,cypher]
+----
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as list CALL apoc.nodes.deleteAndReconnect(p, list, {relTypesToAttach: ['one', 'two']}) YIELD nodes, relationships RETURN nodes, relationships;
 ----
 
 .Results
@@ -47,7 +59,7 @@ MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, collect(b)+d
 
 [source,cypher]
 ----
-MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five), ()-[rel:Pippo]->(), ()-[rel2:Pippo2]->() WITH p, collect(b)+d as list, collect(rel)+rel2 as rels CALL apoc.nodes.deleteAndReconnect(p, list, {relsToAttach: rels}) YIELD nodes, relationships RETURN nodes, relationships
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five), ()-[rel:Pippo]->(), ()-[rel2:Pippo2]->() WITH p, [b,d] as list, collect(rel)+rel2 as rels CALL apoc.nodes.deleteAndReconnect(p, list, {relsToAttach: rels}) YIELD nodes, relationships RETURN nodes, relationships
 ----
 
 .Results

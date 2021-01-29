@@ -41,6 +41,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.nodes.DeleteAndReconnectConfig.RelationshipSelectionStrategy.END;
+import static apoc.nodes.DeleteAndReconnectConfig.RelationshipSelectionStrategy.START;
 import static apoc.path.RelationshipTypeAndDirections.format;
 import static apoc.path.RelationshipTypeAndDirections.parse;
 import static apoc.refactor.util.RefactorUtil.copyProperties;
@@ -91,11 +93,11 @@ public class Nodes {
         if (allMatched.isEmpty()) {
             nodesToRemove.forEach(node -> {
 
-                List<Relationship> relationshipsIncoming = IterableUtils.toList(node.getRelationships(Direction.INCOMING));
-                List<Relationship> relationshipsOutgoing = IterableUtils.toList(node.getRelationships(Direction.OUTGOING));
+                Relationship relationshipIn = StreamSupport.stream(node.getRelationships(Direction.INCOMING).spliterator(), false)
+                        .filter(relInPath::contains).findFirst().orElse(null);
 
-                Relationship relationshipIn = relationshipsIncoming.stream().filter(relInPath::contains).findFirst().orElse(null);
-                Relationship relationshipOut = relationshipsOutgoing.stream().filter(relInPath::contains).findFirst().orElse(null);
+                Relationship relationshipOut = StreamSupport.stream(node.getRelationships(Direction.OUTGOING).spliterator(), false)
+                        .filter(relInPath::contains).findFirst().orElse(null);
 
                 // if terminal node
                 if (relationshipIn == null || relationshipOut == null) {
@@ -103,8 +105,8 @@ public class Nodes {
                     relInPath.remove(relationshipIn == null ? relationshipOut : relationshipIn );
 
                 } else {
-                    Node nodeBeforeThatToDelete = relationshipIn.getStartNode();
-                    Node nodeAfterThatToDelete = relationshipOut.getEndNode();
+                    Node nodeStart = relationshipIn.getStartNode();
+                    Node nodeEnd = relationshipOut.getEndNode();
 
                     RelationshipType relTypeToAdd;
                     Map<String, Object> relPropsToAdd = new HashMap<>();
@@ -121,17 +123,22 @@ public class Nodes {
                         relTypeToAdd = RelationshipType.withName(relTypesToAttachConf.get(nodeIndex.get()));
                         relInPath.removeAll(List.of(relationshipIn, relationshipOut));
 
-                    } else if (conf.isAttachStartRel()) {
+                    } else if (conf.getRelationshipSelectionStrategy().equals(START)) {
                         relTypeToAdd = RelationshipType.withName(relationshipIn.getType().toString());
                         relPropsToAdd.putAll(relationshipIn.getAllProperties());
 
-                    } else {
+                    } else if (conf.getRelationshipSelectionStrategy().equals(END)) {
                         relTypeToAdd = RelationshipType.withName(relationshipOut.getType().toString());
                         relPropsToAdd.putAll(relationshipOut.getAllProperties());
+
+                    } else {
+                        relTypeToAdd = RelationshipType.withName(relationshipIn.getType() + "_" + relationshipOut.getType());
+                        relPropsToAdd.putAll(relationshipOut.getAllProperties());
+                        relPropsToAdd.putAll(relationshipIn.getAllProperties());
                     }
                     tx.execute("WITH $node as n DETACH DELETE n", Map.of("node", node));
 
-                    Relationship relCreated = nodeBeforeThatToDelete.createRelationshipTo(nodeAfterThatToDelete, relTypeToAdd);
+                    Relationship relCreated = nodeStart.createRelationshipTo(nodeEnd, relTypeToAdd);
                     relPropsToAdd.forEach(relCreated::setProperty);
 
                     relInPath.add(relCreated);
@@ -145,6 +152,7 @@ public class Nodes {
         } else {
             throw new RuntimeException("The nodes with ids: " + allMatched.stream().map(Entity::getId).collect(Collectors.toList()) + " are not present in the path");
         }
+
         return Stream.of(new GraphResult(nodeInPath, relInPath ));
     }
 
