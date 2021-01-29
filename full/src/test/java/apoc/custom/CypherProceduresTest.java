@@ -50,8 +50,7 @@ public class CypherProceduresTest  {
     public void registerSimpleStatementWithOneChar() throws Exception {
         db.executeTransactionally("call apoc.custom.asProcedure('a','RETURN 42 as answer')");
         TestUtil.testCall(db, "call custom.a()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
-        db.executeTransactionally("CALL apoc.custom.declareProcedure('b() :: (answer::INT)','RETURN 42 as answer')");
-        TestUtil.testCall(db, "call custom.b()", (row) -> assertEquals(42L, row.get("answer")));
+        TestUtil.testFail(db, "CALL apoc.custom.declareProcedure('b() :: (answer::INT)','RETURN 42 as answer')", QueryExecutionException.class);
     }
 
     @Test
@@ -162,8 +161,7 @@ public class CypherProceduresTest  {
     public void registerSimpleStatementFunctionWithOneChar() throws Exception {
         db.executeTransactionally("call apoc.custom.asFunction('a','RETURN 42 as answer')");
         TestUtil.testCall(db, "return custom.a() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
-        db.executeTransactionally("CALL apoc.custom.declareFunction('b() :: STRING','RETURN 42 as answer')");
-        TestUtil.testCall(db, "return custom.b() as row", (row) -> assertEquals(42L, row.get("row")));
+        TestUtil.testFail(db, "CALL apoc.custom.declareFunction('b() :: STRING','RETURN 42 as answer')", QueryExecutionException.class);
     }
 
     @Test
