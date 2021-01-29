@@ -35,6 +35,7 @@
 ¦apoc.coll.remove(coll :: LIST? OF ANY?, index :: INTEGER?, length = 1 :: INTEGER?) :: (LIST? OF ANY?)
 ¦apoc.coll.removeAll(first :: LIST? OF ANY?, second :: LIST? OF ANY?) :: (LIST? OF ANY?)
 ¦apoc.coll.reverse(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)
+¦apoc.coll.runningTotal(list :: LIST? OF NUMBER?) :: (LIST? OF ANY?)
 ¦apoc.coll.set(coll :: LIST? OF ANY?, index :: INTEGER?, value :: ANY?) :: (LIST? OF ANY?)
 ¦apoc.coll.shuffle(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)
 ¦apoc.coll.sort(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)

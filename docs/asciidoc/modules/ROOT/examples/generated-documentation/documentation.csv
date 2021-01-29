@@ -332,6 +332,7 @@ for the provided `label` and `uuidProperty`, in case the UUID handler is already
 ¦function¦apoc.coll.remove¦apoc.coll.remove(coll :: LIST? OF ANY?, index :: INTEGER?, length = 1 :: INTEGER?) :: (LIST? OF ANY?)¦apoc.coll.remove(coll, index, [length=1]) | remove range of values from index to length¦true¦
 ¦function¦apoc.coll.removeAll¦apoc.coll.removeAll(first :: LIST? OF ANY?, second :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.removeAll(first, second) - returns first list with all elements of second list removed¦true¦
 ¦function¦apoc.coll.reverse¦apoc.coll.reverse(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.reverse(coll) - returns reversed list¦true¦
+¦function¦apoc.coll.runningTotal¦apoc.coll.runningTotal(list :: LIST? OF NUMBER?) :: (LIST? OF ANY?)¦apoc.coll.runningTotal(list1) - returns an accumulative array. For example apoc.coll.runningTotal([1,2,3.5]) return [1,3,6.5]¦true¦
 ¦function¦apoc.coll.set¦apoc.coll.set(coll :: LIST? OF ANY?, index :: INTEGER?, value :: ANY?) :: (LIST? OF ANY?)¦apoc.coll.set(coll, index, value) | set index to value¦true¦
 ¦function¦apoc.coll.shuffle¦apoc.coll.shuffle(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.shuffle(coll) - returns the shuffled list¦true¦
 ¦function¦apoc.coll.sort¦apoc.coll.sort(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)¦apoc.coll.sort(coll) sort on Collections¦true¦

@@ -259,4 +259,8 @@ apoc.coll.unionAll(first, second) - creates the full union with duplicates of th
 apoc.coll.zip([list1],[list2])
 |label:function[]
 |label:apoc-core[]
->>>>>>> 04daa2d7... Table updates, general clean up
+|xref::overview/apoc.coll/apoc.coll.adoc[apoc.coll.runningTotal icon:book[]]
+
+apoc.coll.runningTotal(list :: LIST? OF NUMBER?) :: (LIST? OF ANY?)¦apoc.coll.runningTotal(list1) - returns an accumulative array. For example apoc.coll.runningTotal([1,2,3.5]) return [1,3,6.5]
+|label:function[]
+|label:apoc-core[]
