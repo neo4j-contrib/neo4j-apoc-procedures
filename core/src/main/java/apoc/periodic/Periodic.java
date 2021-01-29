@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.ToLongFunction;
@@ -255,45 +256,44 @@ public class Periodic {
     private Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, boolean parallel, boolean iterateList, long retries,
                   Iterator<Map<String, Object>> iterator, BiConsumer<Transaction, Map<String, Object>> consumer, int concurrency, int failedParams) {
 
-
         ExecutorService pool = parallel ? pools.getDefaultExecutorService() : pools.getSingleExecutorService();
         List<Future<Long>> futures = new ArrayList<>(concurrency);
         BatchAndTotalCollector collector = new BatchAndTotalCollector(terminationGuard, failedParams);
+        AtomicInteger activeFutures = new AtomicInteger(0);
+
         do {
             if (Util.transactionIsTerminated(terminationGuard)) break;
-            if (log.isDebugEnabled()) log.debug("execute in batch no %d batch size ", batchsize);
-            List<Map<String,Object>> batch = Util.take(iterator, batchsize);
-            final long currentBatchSize = batch.size();
-            ExecuteBatch executeBatch =
-                    iterateList ?
-                            new ListExecuteBatch(terminationGuard, collector, batch, consumer) :
-                            new OneByOneExecuteBatch(terminationGuard, collector, batch, consumer);
 
-            futures.add(Util.inTxFuture(log,
-                                        pool,
-                                        db,
-                                        executeBatch,
-                                        retries,
-                                        retryCount -> collector.incrementRetried(),
-                                        onComplete -> {
-                                            collector.incrementBatches();
-                                            executeBatch.release();
-                                        }));
-            /*  TODO: not sure if the block below is required
-            if (futures.size() > concurrency) {
-                while (futures.stream().noneMatch(Future::isDone)) { // none done yet, block for a bit
-                    LockSupport.parkNanos(1000);
-                }
-                Iterator<Future<Long>> it = futures.iterator();
-                while (it.hasNext()) {
-                    Future<Long> future = it.next();
-                    if (future.isDone()) {
-                        collector.incrementSuccesses(Util.getFuture(future, collector.getBatchErrors(), collector.getFailedBatches(), 0L));
-                        it.remove();
-                    }
-                }
-            }*/
-            collector.incrementCount(currentBatchSize);
+            if (activeFutures.get() < concurrency || !parallel) {
+                // we have capacity, add a new Future to the list
+                activeFutures.incrementAndGet();
+
+                if (log.isDebugEnabled()) log.debug("execute in batch no %d batch size ", batchsize);
+                List<Map<String,Object>> batch = Util.take(iterator, batchsize);
+                final long currentBatchSize = batch.size();
+                ExecuteBatch executeBatch =
+                        iterateList ?
+                                new ListExecuteBatch(terminationGuard, collector, batch, consumer) :
+                                new OneByOneExecuteBatch(terminationGuard, collector, batch, consumer);
+
+                futures.add(Util.inTxFuture(log,
+                        pool,
+                        db,
+                        executeBatch,
+                        retries,
+                        retryCount -> collector.incrementRetried(),
+                        onComplete -> {
+                            collector.incrementBatches();
+                            executeBatch.release();
+                            activeFutures.decrementAndGet();
+                        }));
+                collector.incrementCount(currentBatchSize);
+            } else {
+                // we can't block until the counter decrease as we might miss a cancellation, so
+                // let this thread be pre-empted for a bit before we check for cancellation or
+                // capacity.
+                LockSupport.parkNanos(1000);
+            }
         } while (iterator.hasNext());
 
         boolean wasTerminated = Util.transactionIsTerminated(terminationGuard);
