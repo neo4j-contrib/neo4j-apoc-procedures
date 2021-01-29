@@ -1,0 +1,2 @@
+¦signature
+¦apoc.coll.runningTotal(list :: LIST? OF NUMBER?) :: (LIST? OF ANY?)

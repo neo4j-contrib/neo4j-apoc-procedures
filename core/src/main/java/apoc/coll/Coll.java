@@ -1,6 +1,7 @@
 package apoc.coll;
 
 import apoc.result.ListResult;
+import com.google.common.util.concurrent.AtomicDouble;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.math3.util.Combinations;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -49,6 +50,18 @@ public class Coll {
     public GraphDatabaseService db;
 
     @Context public Transaction tx;
+
+    @UserFunction
+    @Description("apoc.coll.runningTotal(list1) - returns an accumulative array. For example apoc.coll.runningTotal([1,2,3.5]) return [1,3,6.5]")
+    public List<Number> runningTotal(@Name("list") List<Number> list) {
+        if (list == null || list.isEmpty()) return null;
+        AtomicDouble sum = new AtomicDouble();
+        return list.stream().map(i -> {
+                    double value = sum.addAndGet(i.doubleValue());
+                    if (value == sum.longValue()) return sum.longValue();
+                    return value;
+                }).collect(Collectors.toList());
+    }
 
     @Procedure
     @Description("apoc.coll.zipToRows(list1,list2) - creates pairs like zip but emits one row per pair")
