@@ -246,8 +246,8 @@ public class MongoDBTest {
                     assertEquals(refsIds, doc.get("bought"));
         });
 
-        // - with custom fieldName
-        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host, $db, $collection, $objectId, {fieldName: 'name'})",
+        // - with custom idFieldName
+        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host, $db, $collection, $objectId, {idFieldName: 'name'})",
                 map("host", HOST, "db", "test", "collection", "person", "objectId", nameAsObjectId.toString()), r -> {
                     Map doc = (Map) r.get("value");
                     assertTrue(doc.get("_id") instanceof Map);

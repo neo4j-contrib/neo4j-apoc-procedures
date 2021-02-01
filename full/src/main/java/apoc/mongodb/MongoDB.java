@@ -159,13 +159,12 @@ public class MongoDB {
 
         MongoDbConfig conf = new MongoDbConfig(config);
 
-        return executeMongoQuery(hostOrKey, db, collection, conf.isCompatibleValues(), conf.isExtractReferences(), conf.isIdAsMap(),
+        return executeMongoQuery(hostOrKey, db, collection, conf.isCompatibleValues(), conf.isExtractReferences(), conf.isObjectIdAsMap(),
                 coll -> {
-                    Map<String, Object> result = coll.first(Map.of(conf.getFieldName(), new ObjectId( objectIdValue )));
+                    Map<String, Object> result = coll.first(Map.of(conf.getIdFieldName(), new ObjectId(objectIdValue)));
                     return result == null || result.isEmpty() ? Stream.empty() : Stream.of(new MapResult(result));
                 },
                 e -> log.error("apoc.mongo.get.byObjectId - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], objectIdValue = [" + objectIdValue + "]",e));
-
     }
 
     private String getMongoDBUrl(String hostOrKey) {

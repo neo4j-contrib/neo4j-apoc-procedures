@@ -9,15 +9,15 @@ public class MongoDbConfig {
 
     private final boolean compatibleValues;
     private final boolean extractReferences;
-    private final boolean idAsMap;
-    private final String fieldName;
+    private final boolean objectIdAsMap;
+    private final String idFieldName;
 
     public MongoDbConfig(Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
         this.compatibleValues = Util.toBoolean(config.getOrDefault("compatibleValues", true));
         this.extractReferences = Util.toBoolean(config.getOrDefault("extractReferences", false));
-        this.idAsMap = Util.toBoolean(config.getOrDefault("objectIdAsMap", true));
-        this.fieldName = (String) config.getOrDefault("fieldName", "_id");
+        this.objectIdAsMap = Util.toBoolean(config.getOrDefault("objectIdAsMap", true));
+        this.idFieldName = (String) config.getOrDefault("idFieldName", "_id");
     }
 
     public boolean isCompatibleValues() {
@@ -28,11 +28,11 @@ public class MongoDbConfig {
         return extractReferences;
     }
 
-    public boolean isIdAsMap() {
-        return idAsMap;
+    public boolean isObjectIdAsMap() {
+        return objectIdAsMap;
     }
 
-    public String getFieldName() {
-        return fieldName;
+    public String getIdFieldName() {
+        return idFieldName;
     }
 }
