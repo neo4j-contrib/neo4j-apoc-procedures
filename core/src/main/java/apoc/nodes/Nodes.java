@@ -26,17 +26,8 @@ import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.UserFunction;
 import org.neo4j.storageengine.api.RelationshipSelection;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.*;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -83,77 +74,63 @@ public class Nodes {
 
         DeleteAndReconnectConfig conf = new DeleteAndReconnectConfig(config);
 
-        List<Node> nodeInPath = IterableUtils.toList(path.nodes());
-        List<Relationship> relInPath = IterableUtils.toList(path.relationships());
+        List<Node> nodes = IterableUtils.toList(path.nodes());
+        List<Relationship> rels = IterableUtils.toList(path.relationships());
 
-        List<Node> allMatched = (List<Node>) CollectionUtils.subtract(nodesToRemove, nodeInPath);
-
-        final AtomicInteger nodeIndex = new AtomicInteger();
-
-        if (allMatched.isEmpty()) {
-            nodesToRemove.forEach(node -> {
-
-                Relationship relationshipIn = StreamSupport.stream(node.getRelationships(Direction.INCOMING).spliterator(), false)
-                        .filter(relInPath::contains).findFirst().orElse(null);
-
-                Relationship relationshipOut = StreamSupport.stream(node.getRelationships(Direction.OUTGOING).spliterator(), false)
-                        .filter(relInPath::contains).findFirst().orElse(null);
-
-                // if terminal node
-                if (relationshipIn == null || relationshipOut == null) {
-                    tx.execute("WITH $node as n DETACH DELETE n", Map.of("node", node));
-                    relInPath.remove(relationshipIn == null ? relationshipOut : relationshipIn );
-
-                } else {
-                    Node nodeStart = relationshipIn.getStartNode();
-                    Node nodeEnd = relationshipOut.getEndNode();
-
-                    RelationshipType relTypeToAdd;
-                    Map<String, Object> relPropsToAdd = new HashMap<>();
-                    List<Relationship> relsToAttachConf = conf.getRelsToAttach();
-                    List<String> relTypesToAttachConf = conf.getRelTypesToAttach();
-                    boolean typesIsEmpty = relTypesToAttachConf.isEmpty();
-
-                    if (!relsToAttachConf.isEmpty()) {
-                        Relationship singleRelTypeToAttach = relsToAttachConf.get(nodeIndex.get());
-                        relTypeToAdd = RelationshipType.withName(singleRelTypeToAttach.getType().toString());
-                        relPropsToAdd.putAll(singleRelTypeToAttach.getAllProperties());
-
-                    } else if (!typesIsEmpty) {
-                        relTypeToAdd = RelationshipType.withName(relTypesToAttachConf.get(nodeIndex.get()));
-                        relInPath.removeAll(List.of(relationshipIn, relationshipOut));
-
-                    } else if (conf.getRelationshipSelectionStrategy().equals(START)) {
-                        relTypeToAdd = RelationshipType.withName(relationshipIn.getType().toString());
-                        relPropsToAdd.putAll(relationshipIn.getAllProperties());
-
-                    } else if (conf.getRelationshipSelectionStrategy().equals(END)) {
-                        relTypeToAdd = RelationshipType.withName(relationshipOut.getType().toString());
-                        relPropsToAdd.putAll(relationshipOut.getAllProperties());
-
-                    } else {
-                        relTypeToAdd = RelationshipType.withName(relationshipIn.getType() + "_" + relationshipOut.getType());
-                        relPropsToAdd.putAll(relationshipOut.getAllProperties());
-                        relPropsToAdd.putAll(relationshipIn.getAllProperties());
-                    }
-                    tx.execute("WITH $node as n DETACH DELETE n", Map.of("node", node));
-
-                    Relationship relCreated = nodeStart.createRelationshipTo(nodeEnd, relTypeToAdd);
-                    relPropsToAdd.forEach(relCreated::setProperty);
-
-                    relInPath.add(relCreated);
-                    relInPath.removeAll(List.of(relationshipIn, relationshipOut));
-                }
-
-                nodeInPath.remove(node);
-                nodeIndex.incrementAndGet();
-            });
-
-        } else {
-            throw new RuntimeException("The nodes with ids: " + allMatched.stream().map(Entity::getId).collect(Collectors.toList()) + " are not present in the path");
+        if (!nodes.containsAll(nodesToRemove)) {
+            throw new RuntimeException("Some nodes in nodesToRemove not present in the path");
         }
 
-        return Stream.of(new GraphResult(nodeInPath, relInPath ));
+        BiFunction <Node, Direction, Relationship> filterRel = (node, direction) -> StreamSupport
+                .stream(node.getRelationships(direction).spliterator(), false)
+                .filter(rels::contains)
+                .findFirst()
+                .orElse(null);
+
+        nodesToRemove.forEach(node -> {
+
+            Relationship relationshipIn = filterRel.apply(node, Direction.INCOMING);
+            Relationship relationshipOut = filterRel.apply(node, Direction.OUTGOING);
+
+            // if terminal node
+            if (relationshipIn == null || relationshipOut == null) {
+                rels.remove(relationshipIn == null ? relationshipOut : relationshipIn);
+
+            } else {
+                Node nodeStart = relationshipIn.getStartNode();
+                Node nodeEnd = relationshipOut.getEndNode();
+
+                RelationshipType newRelType;
+                Map<String, Object> newRelProps = new HashMap<>();
+
+                switch (conf.getRelationshipSelectionStrategy()) {
+                    case START:
+                        newRelType = relationshipIn.getType();
+                        newRelProps.putAll(relationshipIn.getAllProperties());
+                        break;
+                    case END:
+                        newRelType = relationshipOut.getType();
+                        newRelProps.putAll(relationshipOut.getAllProperties());
+                        break;
+                    default:
+                        newRelType = RelationshipType.withName(relationshipIn.getType() + "_" + relationshipOut.getType());
+                        newRelProps.putAll(relationshipOut.getAllProperties());
+                        newRelProps.putAll(relationshipIn.getAllProperties());
+                }
+
+                Relationship relCreated = nodeStart.createRelationshipTo(nodeEnd, newRelType);
+                newRelProps.forEach(relCreated::setProperty);
+
+                rels.add(relCreated);
+                rels.removeAll(List.of(relationshipIn, relationshipOut));
+            }
+
+            tx.execute("WITH $node as n DETACH DELETE n", Map.of("node", node));
+
+            nodes.remove(node);
+        });
+
+        return Stream.of(new GraphResult(nodes, rels));
     }
 
     @Procedure
