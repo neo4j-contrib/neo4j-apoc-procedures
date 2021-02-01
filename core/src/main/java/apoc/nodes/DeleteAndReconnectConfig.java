@@ -1,15 +1,9 @@
 package apoc.nodes;
 
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class DeleteAndReconnectConfig {
-
 
     enum RelationshipSelectionStrategy {START, END, MERGE}
 

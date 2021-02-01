@@ -98,6 +98,39 @@ public class NodesTest {
     }
 
     @Test
+    public void deleteAndReconnectConsecutiveNodes() throws Exception {
+        db.executeTransactionally("CREATE (f:Alpha)-[:REL_1 {a:'b'}]->(b:Beta)-[:REL_2 {c:'d', e:'f'}]->(c:Gamma)-[:REL_3]->(d:Delta)-[:REL_4 {aa: 'bb', cc: 'dd', ee: 'ff'}]->(e:Epsilon {foo: 'bar', baz: 'baa'})");
+
+        TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(5L, row.get("result")));
+
+        TestUtil.testCall(db, "MATCH p=(f:Alpha)-->(b:Beta)-->(c:Gamma)-->(d:Delta)-->(e:Epsilon) WITH p, [b,c] as list CALL apoc.nodes.deleteAndReconnect(p, list) YIELD nodes, relationships RETURN nodes, relationships",
+                (row) -> {
+                    List<Node> nodes = (List<Node>) row.get("nodes");
+                    assertEquals(3, nodes.size());
+                    Node node1 = nodes.get(0);
+                    assertEquals(singletonList(label("Alpha")), node1.getLabels());
+                    Node node2 = nodes.get(1);
+                    assertEquals(singletonList(label("Delta")), node2.getLabels());
+                    Node node3 = nodes.get(2);
+                    assertEquals(singletonList(label("Epsilon")), node3.getLabels());
+                    List<Relationship> rels = (List<Relationship>) row.get("relationships");
+                    assertEquals(2, rels.size());
+                    Relationship rel1 = rels.get(0);
+                    assertEquals("REL_4", rel1.getType().name());
+                    assertEquals("bb", rel1.getProperty("aa"));
+                    assertEquals("dd", rel1.getProperty("cc"));
+                    assertEquals("ff", rel1.getProperty("ee"));
+                    Relationship rel2 = rels.get(1);
+                    assertEquals("REL_1", rel2.getType().name());
+                    assertEquals("b", rel2.getProperty("a"));
+                    assertNotNull(row.get("nodes"));
+                });
+
+        TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(3L, row.get("result")));
+
+    }
+
+    @Test
     public void deleteAndReconnectWithEndRelConfig() throws Exception {
         db.executeTransactionally("CREATE (f:One)-[:ALPHA {a:'b'}]->(b:Two)-[:BETA {c:'d', e:'f'}]->(c:Three)-[:GAMMA]->(d:Four)-[:DELTA {aa: 'bb', cc: 'dd', ee: 'ff'}]->(e:Five {foo: 'bar', baz: 'baa'})");
 

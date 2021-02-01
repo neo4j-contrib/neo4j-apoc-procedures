@@ -32,8 +32,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.nodes.DeleteAndReconnectConfig.RelationshipSelectionStrategy.END;
-import static apoc.nodes.DeleteAndReconnectConfig.RelationshipSelectionStrategy.START;
 import static apoc.path.RelationshipTypeAndDirections.format;
 import static apoc.path.RelationshipTypeAndDirections.parse;
 import static apoc.refactor.util.RefactorUtil.copyProperties;
@@ -81,7 +79,7 @@ public class Nodes {
             throw new RuntimeException("Some nodes in nodesToRemove not present in the path");
         }
 
-        BiFunction <Node, Direction, Relationship> filterRel = (node, direction) -> StreamSupport
+        BiFunction<Node, Direction, Relationship> filterRel = (node, direction) -> StreamSupport
                 .stream(node.getRelationships(direction).spliterator(), false)
                 .filter(rels::contains)
                 .findFirst()
