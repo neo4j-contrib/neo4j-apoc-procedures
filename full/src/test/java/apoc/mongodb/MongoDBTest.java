@@ -262,7 +262,7 @@ public class MongoDBTest {
         // - with configs
         TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host, $db, $collection, $objectId, $config)",
                 map("host", HOST, "db", "test", "collection", "person", "objectId", idAsObjectId.toString(),
-                        "config", map("extractReferences", true, "idAsMap", true, "compatibleValues", false)), r -> {
+                        "config", map("extractReferences", true, "objectIdAsMap", false, "compatibleValues", false)), r -> {
                     Map doc = (Map) r.get("value");
                     assertEquals(idAsObjectId.toString(), doc.get("_id"));
                     assertEquals(25, doc.get("age"));

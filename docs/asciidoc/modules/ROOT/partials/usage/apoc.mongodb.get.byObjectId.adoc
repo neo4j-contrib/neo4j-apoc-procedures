@@ -47,7 +47,7 @@ With `CALL apoc.mongodb.get.byObjectId(<HOST>, <DB>, "product", "product1")`:
 }
 ```
 
-With `CALL apoc.mongodb.get.byObjectId(<HOST>, <DB>, "product", "product4", "name)`:
+With `CALL apoc.mongodb.get.byObjectId(<HOST>, <DB>, "product", "product4", {idFieldName: "name"})`:
 
 ```
 {
