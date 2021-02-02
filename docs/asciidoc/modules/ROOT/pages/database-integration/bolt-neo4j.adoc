@@ -7,10 +7,11 @@
 
 Bolt procedures allows to accessing other databases via bolt protocol.
 
-[cols="3m,2"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| CALL apoc.bolt.execute(urlOrKey, statement, params, config) YIELD row  | access to other databases via bolt for read and write
-| CALL apoc.bolt.load(urlOrKey, statement, params, config) YIELD row | access to other databases via bolt for read
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.bolt.execute.adoc[]
+include::example$generated-documentation/apoc.bolt.load.adoc[]
 |===
 
 **urlOrKey** param allows users to decide if send url by apoc or if put it into apoc.conf file.

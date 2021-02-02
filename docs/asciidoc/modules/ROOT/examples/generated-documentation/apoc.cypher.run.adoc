@@ -1,0 +1,5 @@
+¦xref::overview/apoc.cypher/apoc.cypher.run.adoc[apoc.cypher.run icon:book[]] +
+
+ - executes reading fragment with the given parameters
+¦label:procedure[]
+¦label:apoc-core[]

@@ -6,10 +6,12 @@
 
 The available procedures are described in the table below:
 
-[cols="5m,5"]
+
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| call apoc.refactor.to(rel, endNode) | redirect relationship to use new end-node
-| call apoc.refactor.from(rel, startNode) | redirect relationship to use new start-node
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.refactor.to.adoc[]
+include::example$generated-documentation/apoc.refactor.from.adoc[]
 |===
 
 == Example Usage

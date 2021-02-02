@@ -1,0 +1,5 @@
+¦xref::overview/apoc.model/apoc.model.jdbc.adoc[apoc.model.jdbc icon:book[]] +
+
+ - load schema from relational database
+¦label:procedure[]
+¦label:apoc-full[]

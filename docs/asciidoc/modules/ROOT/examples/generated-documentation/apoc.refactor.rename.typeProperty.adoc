@@ -1,0 +1,5 @@
+¦xref::overview/apoc.refactor/apoc.refactor.rename.typeProperty.adoc[apoc.refactor.rename.typeProperty icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

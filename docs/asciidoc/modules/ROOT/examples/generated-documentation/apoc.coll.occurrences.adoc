@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.occurrences.adoc[apoc.coll.occurrences icon:book[]] +
+
+ - returns the count of the given item in the collection
+¦label:function[]
+¦label:apoc-core[]

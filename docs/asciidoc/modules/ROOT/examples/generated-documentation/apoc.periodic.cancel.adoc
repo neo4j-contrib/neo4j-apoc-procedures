@@ -1,0 +1,5 @@
+¦xref::overview/apoc.periodic/apoc.periodic.cancel.adoc[apoc.periodic.cancel icon:book[]] +
+
+ - cancel job with the given name
+¦label:procedure[]
+¦label:apoc-core[]

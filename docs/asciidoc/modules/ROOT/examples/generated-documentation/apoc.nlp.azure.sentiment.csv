@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.nlp.azure.sentiment.graph¦apoc.nlp.azure.sentiment.graph(source :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)¦Creates a (virtual) sentiment graph for provided text
-¦procedure¦apoc.nlp.azure.sentiment.stream¦apoc.nlp.azure.sentiment.stream(source :: ANY?, config = {} :: MAP?) :: (node :: NODE?, value :: MAP?, error :: MAP?)¦Provides a sentiment analysis for provided text
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.nlp.azure.sentiment/apoc.nlp.adoc[apoc.nlp.azure.sentiment.graph icon:book[]]
+
+Creates a (virtual) sentiment graph for provided text
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.nlp.azure.sentiment/apoc.nlp.adoc[apoc.nlp.azure.sentiment.stream icon:book[]]
+
+Provides a sentiment analysis for provided text
+|label:procedure[]
+|label:apoc-core[]

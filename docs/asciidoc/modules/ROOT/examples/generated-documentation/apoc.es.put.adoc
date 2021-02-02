@@ -1,0 +1,5 @@
+¦xref::overview/apoc.es/apoc.es.put.adoc[apoc.es.put icon:book[]] +
+
+ - perform a PUT operation on elastic search
+¦label:procedure[]
+¦label:apoc-full[]

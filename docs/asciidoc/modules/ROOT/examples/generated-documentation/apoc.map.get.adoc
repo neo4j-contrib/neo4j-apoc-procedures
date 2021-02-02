@@ -1,0 +1,5 @@
+¦xref::overview/apoc.map/apoc.map.get.adoc[apoc.map.get icon:book[]] +
+
+ - returns value for key or throws exception if key doesn't exist and no default given
+¦label:function[]
+¦label:apoc-core[]

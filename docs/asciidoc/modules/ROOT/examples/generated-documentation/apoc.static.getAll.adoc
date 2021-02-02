@@ -1,0 +1,5 @@
+¦xref::overview/apoc.static/apoc.static.getAll.adoc[apoc.static.getAll icon:book[]] +
+
+ - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage
+¦label:function[]
+¦label:apoc-full[]

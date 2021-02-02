@@ -1,0 +1,5 @@
+¦xref::overview/apoc.es/apoc.es.query.adoc[apoc.es.query icon:book[]] +
+
+ - perform a SEARCH operation on elastic search
+¦label:procedure[]
+¦label:apoc-full[]

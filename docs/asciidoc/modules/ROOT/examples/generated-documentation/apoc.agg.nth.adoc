@@ -1,0 +1,5 @@
+¦xref::overview/apoc.agg/apoc.agg.nth.adoc[apoc.agg.nth icon:book[]] +
+
+ - returns value of nth row (or -1 for last)
+¦label:function[]
+¦label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.sortMaps.adoc[apoc.coll.sortMaps icon:book[]] +
+
+ - sort maps by property
+¦label:function[]
+¦label:apoc-core[]

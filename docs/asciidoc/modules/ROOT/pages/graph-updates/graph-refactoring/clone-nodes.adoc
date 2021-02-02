@@ -5,11 +5,11 @@
 
 
 The available procedures are described in the table below:
-
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| call apoc.refactor.cloneNodes([node1,node2,...]) |  clone nodes with their labels and properties
-| call apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) | clone nodes with their labels, properties and relationships
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.refactor.cloneNodes.adoc[]
+include::example$generated-documentation/apoc.refactor.cloneNodesWithRelationships.adoc[]
 |===
 
 

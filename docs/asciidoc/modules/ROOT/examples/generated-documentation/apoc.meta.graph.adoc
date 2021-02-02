@@ -1,0 +1,5 @@
+¦xref::overview/apoc.meta/apoc.meta.graph.adoc[apoc.meta.graph icon:book[]] +
+
+ - examines the full graph to create the meta-graph
+¦label:procedure[]
+¦label:apoc-core[]

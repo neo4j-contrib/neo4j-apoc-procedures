@@ -1,5 +1,21 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.case¦apoc.case(conditionals :: LIST? OF ANY?, elseQuery =  :: STRING?, params = {} :: MAP?) :: (value :: MAP?)¦apoc.case([condition, query, condition, query, ...], elseQuery:'', params:{}) yield value - given a list of conditional / read-only query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters
-¦procedure¦apoc.help¦apoc.help(proc :: STRING?) :: (type :: STRING?, name :: STRING?, text :: STRING?, signature :: STRING?, roles :: LIST? OF STRING?, writes :: BOOLEAN?, core :: BOOLEAN?)¦Provides descriptions of available procedures. To narrow the results, supply a search string. To also search in the description text, append + to the end of the search string.
-¦procedure¦apoc.when¦apoc.when(condition :: BOOLEAN?, ifQuery :: STRING?, elseQuery =  :: STRING?, params = {} :: MAP?) :: (value :: MAP?)¦apoc.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes read-only ifQuery or elseQuery with the given parameters
-¦function¦apoc.version¦apoc.version() :: (STRING?)¦RETURN apoc.version() | return the current APOC installed version
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc/apoc.adoc[apoc.case icon:book[]]
+
+apoc.case([condition, query, condition, query, ...], elseQuery:'', params:{}) yield value - given a list of conditional / read-only query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc/apoc.adoc[apoc.help icon:book[]]
+
+Provides descriptions of available procedures. To narrow the results, supply a search string. To also search in the description text, append + to the end of the search string.
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc/apoc.adoc[apoc.when icon:book[]]
+
+apoc.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes read-only ifQuery or elseQuery with the given parameters
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc/apoc.adoc[apoc.version icon:book[]]
+
+RETURN apoc.version() \| return the current APOC installed version
+|label:function[]
+|label:apoc-core[]

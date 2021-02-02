@@ -4,23 +4,43 @@
 
 Sometimes type information gets lost, these functions help you to coerce an "Any" value to the concrete type
 
-[cols="5m,5"]
+
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| xref::overview/apoc.convert/apoc.convert.toString.adoc[apoc.convert.toString(value)]  | tries its best to convert the value to a string
-| xref::overview/apoc.convert/apoc.convert.toMap.adoc[apoc.convert.toMap(value)] | tries its best to convert the value to a map
-| apoc.convert.toList(value) | tries its best to convert the value to a list
-| xref::overview/apoc.convert/apoc.convert.toBoolean.adoc[apoc.convert.toBoolean(value)] | tries its best to convert the value to a boolean
-| apoc.convert.toNode(value) | tries its best to convert the value to a node
-| apoc.convert.toRelationship(value) | tries its best to convert the value to a relationship
-| xref::overview/apoc.convert/apoc.convert.toSet.adoc[apoc.convert.toSet(value)] | tries its best to convert the value to a set
-| xref::overview/apoc.convert/apoc.convert.toFloat.adoc[apoc.convert.toFloat(value)] | tries its best to convert the value to a floating point value
-| xref::overview/apoc.convert/apoc.convert.toInteger.adoc[apoc.convert.toInteger(value)] | tries its best to convert the value to a integer value
-| xref::overview/apoc.convert/apoc.convert.toIntList.adoc[apoc.convert.toIntList(value)] | tries its best to convert the value to a list of integers
-| xref::overview/apoc.convert/apoc.convert.toStringList.adoc[apoc.convert.toStringList(value)] | tries its best to convert the value to a list of strings
-| xref::overview/apoc.convert/apoc.convert.toBooleanList.adoc[apoc.convert.toBooleanList(value)] | tries its best to convert the value to a list of booleans
-| apoc.convert.toNodeList(value) | tries its best to convert the value to a list of nodes
-| apoc.convert.toRelationshipList(value) | tries its best to convert the value to a list of relationships
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.convert.toString.adoc[]
+include::example$generated-documentation/apoc.convert.toMap.adoc[]
+include::example$generated-documentation/apoc.convert.toList.adoc[]
+include::example$generated-documentation/apoc.convert.toBoolean.adoc[]
+include::example$generated-documentation/apoc.convert.toNode.adoc[]
+include::example$generated-documentation/apoc.convert.toRelationship.adoc[]
+include::example$generated-documentation/apoc.convert.toSet.adoc[]
+include::example$generated-documentation/apoc.convert.toFloat.adoc[]
+include::example$generated-documentation/apoc.convert.toInteger.adoc[]
+include::example$generated-documentation/apoc.convert.toIntList.adoc[]
+include::example$generated-documentation/apoc.convert.toStringList.adoc[]
+include::example$generated-documentation/apoc.convert.toBooleanList.adoc[]
+include::example$generated-documentation/apoc.convert.toNodeList.adoc[]
+include::example$generated-documentation/apoc.convert.toRelationshipList.adoc[]
 |===
+
+// [cols="5m,5"]
+// |===
+// | xref::overview/apoc.convert/apoc.convert.toString.adoc[apoc.convert.toString(value)]  | tries its best to convert the value to a string
+// | xref::overview/apoc.convert/apoc.convert.toMap.adoc[apoc.convert.toMap(value)] | tries its best to convert the value to a map
+// | apoc.convert.toList(value) | tries its best to convert the value to a list
+// | xref::overview/apoc.convert/apoc.convert.toBoolean.adoc[apoc.convert.toBoolean(value)] | tries its best to convert the value to a boolean
+// | apoc.convert.toNode(value) | tries its best to convert the value to a node
+// | apoc.convert.toRelationship(value) | tries its best to convert the value to a relationship
+// | xref::overview/apoc.convert/apoc.convert.toSet.adoc[apoc.convert.toSet(value)] | tries its best to convert the value to a set
+// | xref::overview/apoc.convert/apoc.convert.toFloat.adoc[apoc.convert.toFloat(value)] | tries its best to convert the value to a floating point value
+// | xref::overview/apoc.convert/apoc.convert.toInteger.adoc[apoc.convert.toInteger(value)] | tries its best to convert the value to a integer value
+// | xref::overview/apoc.convert/apoc.convert.toIntList.adoc[apoc.convert.toIntList(value)] | tries its best to convert the value to a list of integers
+// | xref::overview/apoc.convert/apoc.convert.toStringList.adoc[apoc.convert.toStringList(value)] | tries its best to convert the value to a list of strings
+// | xref::overview/apoc.convert/apoc.convert.toBooleanList.adoc[apoc.convert.toBooleanList(value)] | tries its best to convert the value to a list of booleans
+// | apoc.convert.toNodeList(value) | tries its best to convert the value to a list of nodes
+// | apoc.convert.toRelationshipList(value) | tries its best to convert the value to a list of relationships
+// |===
 
 
 

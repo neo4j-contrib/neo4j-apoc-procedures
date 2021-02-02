@@ -1,0 +1,5 @@
+¦xref::overview/apoc.uuid/apoc.uuid.install.adoc[apoc.uuid.install icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-full[]

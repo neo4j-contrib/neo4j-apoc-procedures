@@ -1,0 +1,5 @@
+¦xref::overview/apoc.meta/apoc.meta.schema.adoc[apoc.meta.schema icon:book[]] +
+
+ - examines a subset of the graph to provide a map-like meta information
+¦label:procedure[]
+¦label:apoc-core[]

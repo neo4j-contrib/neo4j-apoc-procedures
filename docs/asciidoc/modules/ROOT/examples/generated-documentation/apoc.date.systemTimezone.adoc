@@ -1,0 +1,5 @@
+¦xref::overview/apoc.date/apoc.date.systemTimezone.adoc[apoc.date.systemTimezone icon:book[]] +
+
+ - returns the system timezone display name
+¦label:function[]
+¦label:apoc-core[]

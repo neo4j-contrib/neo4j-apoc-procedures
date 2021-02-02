@@ -7,8 +7,12 @@
 
 This new package provides a set of function in order to extract metadata information from different data sources such as RDBMS, JSON file etc
 
+[separator=¦,opts=header,cols="5,1m,1m"]
+|===
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.model.jdbc.adoc[]
+|===
 
- * `apoc.model.jdbc('key or url', {schema:'<schema>', write: <true/false>, filters: { tables:[], views: [], columns: []}) YIELD nodes, relationships`: load schema from relational databases
 
 == `apoc.model.jdbc`
 

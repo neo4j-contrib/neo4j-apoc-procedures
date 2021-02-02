@@ -1,0 +1,5 @@
+¦xref::overview/apoc.convert/apoc.convert.setJsonProperty.adoc[apoc.convert.setJsonProperty icon:book[]] +
+
+ - sets value serialized to JSON as property with the given name on the node
+¦label:procedure[]
+¦label:apoc-core[]

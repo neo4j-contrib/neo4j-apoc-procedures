@@ -1,0 +1,5 @@
+¦xref::overview/apoc.load/apoc.load.json.adoc[apoc.load.json icon:book[]] +
+
+ -  import JSON as stream of values if the JSON was an array or a single value if it was a map
+¦label:procedure[]
+¦label:apoc-core[]

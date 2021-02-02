@@ -1,13 +1,61 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.meta.data¦apoc.meta.data(config = {} :: MAP?) :: (label :: STRING?, property :: STRING?, count :: INTEGER?, unique :: BOOLEAN?, index :: BOOLEAN?, existence :: BOOLEAN?, type :: STRING?, array :: BOOLEAN?, sample :: LIST? OF ANY?, leftCount :: INTEGER?, rightCount :: INTEGER?, left :: INTEGER?, right :: INTEGER?, other :: LIST? OF STRING?, otherLabels :: LIST? OF STRING?, elementType :: STRING?)¦apoc.meta.data(\{config})  - examines a subset of the graph to provide a tabular meta information
-¦procedure¦apoc.meta.graph¦apoc.meta.graph(config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)¦apoc.meta.graph - examines the full graph to create the meta-graph
-¦procedure¦apoc.meta.graphSample¦apoc.meta.graphSample(config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)¦apoc.meta.graphSample() - examines the database statistics to build the meta graph, very fast, might report extra relationships
-¦procedure¦apoc.meta.nodeTypeProperties¦apoc.meta.nodeTypeProperties(config = {} :: MAP?) :: (nodeType :: STRING?, nodeLabels :: LIST? OF STRING?, propertyName :: STRING?, propertyTypes :: LIST? OF STRING?, mandatory :: BOOLEAN?, propertyObservations :: INTEGER?, totalObservations :: INTEGER?)¦apoc.meta.nodeTypeProperties()
-¦procedure¦apoc.meta.relTypeProperties¦apoc.meta.relTypeProperties(config = {} :: MAP?) :: (relType :: STRING?, sourceNodeLabels :: LIST? OF STRING?, targetNodeLabels :: LIST? OF STRING?, propertyName :: STRING?, propertyTypes :: LIST? OF STRING?, mandatory :: BOOLEAN?, propertyObservations :: INTEGER?, totalObservations :: INTEGER?)¦apoc.meta.relTypeProperties()
-¦procedure¦apoc.meta.schema¦apoc.meta.schema(config = {} :: MAP?) :: (value :: MAP?)¦apoc.meta.schema(\{config})  - examines a subset of the graph to provide a map-like meta information
-¦procedure¦apoc.meta.stats¦apoc.meta.stats() :: (labelCount :: INTEGER?, relTypeCount :: INTEGER?, propertyKeyCount :: INTEGER?, nodeCount :: INTEGER?, relCount :: INTEGER?, labels :: MAP?, relTypes :: MAP?, relTypesCount :: MAP?, stats :: MAP?)¦apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats | returns the information stored in the transactional database statistics
-¦procedure¦apoc.meta.subGraph¦apoc.meta.subGraph(config :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)¦apoc.meta.subGraph({labels:[labels],rels:[rel-types], excludes:[labels,rel-types]}) - examines a sample sub graph to create the meta-graph
-¦function¦apoc.meta.isType¦apoc.meta.isType(value :: ANY?, type :: STRING?) :: (BOOLEAN?)¦apoc.meta.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)
-¦function¦apoc.meta.type¦apoc.meta.type(value :: ANY?) :: (STRING?)¦apoc.meta.type(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)
-¦function¦apoc.meta.typeName¦apoc.meta.typeName(value :: ANY?) :: (STRING?)¦apoc.meta.typeName(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)
-¦function¦apoc.meta.types¦apoc.meta.types(properties :: ANY?) :: (MAP?)¦apoc.meta.types(node-relationship-map)  - returns a map of keys to types
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.data icon:book[]]
+
+apoc.meta.data(\{config})  - examines a subset of the graph to provide a tabular meta information
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.graph icon:book[]]
+
+apoc.meta.graph - examines the full graph to create the meta-graph
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.graphSample icon:book[]]
+
+apoc.meta.graphSample() - examines the database statistics to build the meta graph, very fast, might report extra relationships
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.nodeTypeProperties icon:book[]]
+
+apoc.meta.nodeTypeProperties()
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.relTypeProperties icon:book[]]
+
+apoc.meta.relTypeProperties()
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.schema icon:book[]]
+
+apoc.meta.schema(\{config})  - examines a subset of the graph to provide a map-like meta information
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.stats icon:book[]]
+
+apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats \| returns the information stored in the transactional database statistics
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.subGraph icon:book[]]
+
+apoc.meta.subGraph({labels:[labels],rels:[rel-types], excludes:[labels,rel-types]}) - examines a sample sub graph to create the meta-graph
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.isType icon:book[]]
+
+apoc.meta.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.type icon:book[]]
+
+apoc.meta.type(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.typeName icon:book[]]
+
+apoc.meta.typeName(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.types icon:book[]]
+
+apoc.meta.types(node-relationship-map)  - returns a map of keys to types
+|label:function[]
+|label:apoc-core[]

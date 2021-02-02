@@ -1,7 +1,31 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.atomic.add¦apoc.atomic.add(container :: ANY?, propertyName :: STRING?, number :: NUMBER?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)¦apoc.atomic.add(node/relatonship,propertyName,number) Sums the property's value with the 'number' value 
-¦procedure¦apoc.atomic.concat¦apoc.atomic.concat(container :: ANY?, propertyName :: STRING?, string :: STRING?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)¦apoc.atomic.concat(node/relatonship,propertyName,string) Concats the property's value with the 'string' value
-¦procedure¦apoc.atomic.insert¦apoc.atomic.insert(container :: ANY?, propertyName :: STRING?, position :: INTEGER?, value :: ANY?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)¦apoc.atomic.insert(node/relatonship,propertyName,position,value) insert a value into the property's array value at 'position'
-¦procedure¦apoc.atomic.remove¦apoc.atomic.remove(container :: ANY?, propertyName :: STRING?, position :: INTEGER?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)¦apoc.atomic.remove(node/relatonship,propertyName,position) remove the element at position 'position'
-¦procedure¦apoc.atomic.subtract¦apoc.atomic.subtract(container :: ANY?, propertyName :: STRING?, number :: NUMBER?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)¦apoc.atomic.subtract(node/relatonship,propertyName,number) Subtracts the 'number' value to the property's value
-¦procedure¦apoc.atomic.update¦apoc.atomic.update(container :: ANY?, propertyName :: STRING?, operation :: STRING?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)¦apoc.atomic.update(node/relatonship,propertyName,updateOperation) update a property's value with a cypher operation (ex. "n.prop1+n.prop2")
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.atomic/apoc.atomic.adoc[apoc.atomic.add icon:book[]]
+
+apoc.atomic.add(node/relatonship,propertyName,number) Sums the property's value with the 'number' value 
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.atomic/apoc.atomic.adoc[apoc.atomic.concat icon:book[]]
+
+apoc.atomic.concat(node/relatonship,propertyName,string) Concats the property's value with the 'string' value
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.atomic/apoc.atomic.adoc[apoc.atomic.insert icon:book[]]
+
+apoc.atomic.insert(node/relatonship,propertyName,position,value) insert a value into the property's array value at 'position'
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.atomic/apoc.atomic.adoc[apoc.atomic.remove icon:book[]]
+
+apoc.atomic.remove(node/relatonship,propertyName,position) remove the element at position 'position'
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.atomic/apoc.atomic.adoc[apoc.atomic.subtract icon:book[]]
+
+apoc.atomic.subtract(node/relatonship,propertyName,number) Subtracts the 'number' value to the property's value
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.atomic/apoc.atomic.adoc[apoc.atomic.update icon:book[]]
+
+apoc.atomic.update(node/relatonship,propertyName,updateOperation) update a property's value with a cypher operation (ex. "n.prop1+n.prop2")
+|label:procedure[]
+|label:apoc-core[]

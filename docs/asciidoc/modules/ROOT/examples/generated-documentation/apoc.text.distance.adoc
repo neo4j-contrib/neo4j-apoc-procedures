@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.distance.adoc[apoc.text.distance icon:book[]] +
+
+ - compare the given strings with the Levenshtein distance algorithm.
+¦label:function[]
+¦label:apoc-core[]

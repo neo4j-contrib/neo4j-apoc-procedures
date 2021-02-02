@@ -1,0 +1,5 @@
+¦xref::overview/apoc.agg/apoc.agg.graph.adoc[apoc.agg.graph icon:book[]] +
+
+ - returns map of graph {nodes, relationships} of all distinct nodes and relationships
+¦label:function[]
+¦label:apoc-core[]

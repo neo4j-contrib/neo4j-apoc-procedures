@@ -3,25 +3,34 @@
 :description: This section describes procedures that can be used to register triggers whenever data in Neo4j is created, updated, or deleted.
 
 
-
-
 In a trigger you register Cypher statements that are called when data in Neo4j is changed (created, updated, deleted).
 You can run them before or after commit.
 
 
 Enable `apoc.trigger.enabled=true` in `$NEO4J_HOME/conf/apoc.conf` first.
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed | add a trigger statement under a name,
-in the statement you can use `$createdNodes`, `$deletedNodes` etc., the selector is `{phase:'before/after/rollback/afterAsync'}`
-returns previous and new trigger information, please check **Trigger Phase Table** for more details
-| CALL apoc.trigger.remove(name) yield name, statement, installed | remove previously added trigger, returns trigger information
-| CALL apoc.trigger.removeAll() yield name, statement, installed | removes all previously added triggers , returns trigger information
-| CALL apoc.trigger.list() yield name, statement, installed | update and list all installed triggers
-| CALL apoc.trigger.pause(name) | it pauses the trigger
-| CALL apoc.trigger.resume(name) | it resumes the paused trigger
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.trigger.add.adoc[]
+include::example$generated-documentation/apoc.trigger.remove.adoc[]
+include::example$generated-documentation/apoc.trigger.removeAll.adoc[]
+include::example$generated-documentation/apoc.trigger.list.adoc[]
+include::example$generated-documentation/apoc.trigger.pause.adoc[]
+include::example$generated-documentation/apoc.trigger.resume.adoc[]
 |===
+
+// [cols="5m,5"]
+// |===
+// | CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed | add a trigger statement under a name,
+// in the statement you can use `$createdNodes`, `$deletedNodes` etc., the selector is `{phase:'before/after/rollback/afterAsync'}`
+// returns previous and new trigger information, please check **Trigger Phase Table** for more details
+// | CALL apoc.trigger.remove(name) yield name, statement, installed | remove previously added trigger, returns trigger information
+// | CALL apoc.trigger.removeAll() yield name, statement, installed | removes all previously added triggers , returns trigger information
+// | CALL apoc.trigger.list() yield name, statement, installed | update and list all installed triggers
+// | CALL apoc.trigger.pause(name) | it pauses the trigger
+// | CALL apoc.trigger.resume(name) | it resumes the paused trigger
+// |===
 
 The transaction data from Neo4j is turned into appropriate data structures to be consumed as parameters to your statement, i.e. `$createdNodes`.
 

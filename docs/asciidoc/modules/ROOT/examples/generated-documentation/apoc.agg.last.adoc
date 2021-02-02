@@ -1,0 +1,5 @@
+¦xref::overview/apoc.agg/apoc.agg.last.adoc[apoc.agg.last icon:book[]] +
+
+ - returns last value
+¦label:function[]
+¦label:apoc-core[]

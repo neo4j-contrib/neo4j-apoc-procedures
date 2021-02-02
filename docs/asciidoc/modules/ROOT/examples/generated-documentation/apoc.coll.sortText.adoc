@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.sortText.adoc[apoc.coll.sortText icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

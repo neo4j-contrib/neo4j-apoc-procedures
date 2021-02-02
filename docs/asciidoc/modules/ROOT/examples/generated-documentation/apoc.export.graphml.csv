@@ -1,5 +1,21 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.export.graphml.all¦apoc.export.graphml.all(file :: STRING?, config :: MAP?) :: (file :: STRING?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, batches :: INTEGER?, done :: BOOLEAN?, data :: STRING?)¦apoc.export.graphml.all(file,config) - exports whole database as graphml to the provided file
-¦procedure¦apoc.export.graphml.data¦apoc.export.graphml.data(nodes :: LIST? OF NODE?, rels :: LIST? OF RELATIONSHIP?, file :: STRING?, config :: MAP?) :: (file :: STRING?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, batches :: INTEGER?, done :: BOOLEAN?, data :: STRING?)¦apoc.export.graphml.data(nodes,rels,file,config) - exports given nodes and relationships as graphml to the provided file
-¦procedure¦apoc.export.graphml.graph¦apoc.export.graphml.graph(graph :: MAP?, file :: STRING?, config :: MAP?) :: (file :: STRING?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, batches :: INTEGER?, done :: BOOLEAN?, data :: STRING?)¦apoc.export.graphml.graph(graph,file,config) - exports given graph object as graphml to the provided file
-¦procedure¦apoc.export.graphml.query¦apoc.export.graphml.query(query :: STRING?, file :: STRING?, config :: MAP?) :: (file :: STRING?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, batches :: INTEGER?, done :: BOOLEAN?, data :: STRING?)¦apoc.export.graphml.query(query,file,config) - exports nodes and relationships from the cypher statement as graphml to the provided file
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.export.graphml/apoc.export.adoc[apoc.export.graphml.all icon:book[]]
+
+apoc.export.graphml.all(file,config) - exports whole database as graphml to the provided file
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.export.graphml/apoc.export.adoc[apoc.export.graphml.data icon:book[]]
+
+apoc.export.graphml.data(nodes,rels,file,config) - exports given nodes and relationships as graphml to the provided file
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.export.graphml/apoc.export.adoc[apoc.export.graphml.graph icon:book[]]
+
+apoc.export.graphml.graph(graph,file,config) - exports given graph object as graphml to the provided file
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.export.graphml/apoc.export.adoc[apoc.export.graphml.query icon:book[]]
+
+apoc.export.graphml.query(query,file,config) - exports nodes and relationships from the cypher statement as graphml to the provided file
+|label:procedure[]
+|label:apoc-core[]

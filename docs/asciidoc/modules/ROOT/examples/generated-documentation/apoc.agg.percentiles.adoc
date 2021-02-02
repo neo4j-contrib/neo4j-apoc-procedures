@@ -1,0 +1,5 @@
+¦xref::overview/apoc.agg/apoc.agg.percentiles.adoc[apoc.agg.percentiles icon:book[]] +
+
+ - returns given percentiles for values
+¦label:function[]
+¦label:apoc-core[]

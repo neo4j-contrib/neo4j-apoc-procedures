@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.urlencode.adoc[apoc.text.urlencode icon:book[]] +
+
+ - return the urlencoded text
+¦label:function[]
+¦label:apoc-core[]

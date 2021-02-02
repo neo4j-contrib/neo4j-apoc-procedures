@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.doubleMetaphone.adoc[apoc.text.doubleMetaphone icon:book[]] +
+
+ - Compute the Double Metaphone phonetic encoding of all words of the text value
+¦label:function[]
+¦label:apoc-core[]

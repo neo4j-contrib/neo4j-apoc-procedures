@@ -1,0 +1,5 @@
+¦xref::overview/apoc.monitor/apoc.monitor.kernel.adoc[apoc.monitor.kernel icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

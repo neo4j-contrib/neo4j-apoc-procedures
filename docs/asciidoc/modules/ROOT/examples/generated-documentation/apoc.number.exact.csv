@@ -1,8 +1,36 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.number.exact.add¦apoc.number.exact.add(stringA :: STRING?, stringB :: STRING?) :: (STRING?)¦apoc.number.exact.add(stringA,stringB) - return the sum's result of two large numbers
-¦function¦apoc.number.exact.div¦apoc.number.exact.div(stringA :: STRING?, stringB :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (STRING?)¦apoc.number.exact.div(stringA,stringB,[prec],[roundingModel]) - return the division's result of two large numbers
-¦function¦apoc.number.exact.mul¦apoc.number.exact.mul(stringA :: STRING?, stringB :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (STRING?)¦apoc.number.exact.mul(stringA,stringB,[prec],[roundingModel]) - return the multiplication's result of two large numbers 
-¦function¦apoc.number.exact.sub¦apoc.number.exact.sub(stringA :: STRING?, stringB :: STRING?) :: (STRING?)¦apoc.number.exact.sub(stringA,stringB) - return the substraction's of two large numbers
-¦function¦apoc.number.exact.toExact¦apoc.number.exact.toExact(number :: INTEGER?) :: (INTEGER?)¦apoc.number.exact.toExact(number) - return the exact value
-¦function¦apoc.number.exact.toFloat¦apoc.number.exact.toFloat(stringA :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (FLOAT?)¦apoc.number.exact.toFloat(string,[prec],[roundingMode]) - return the Float value of a large number
-¦function¦apoc.number.exact.toInteger¦apoc.number.exact.toInteger(stringA :: STRING?, precision = 0 :: INTEGER?, roundingMode = HALF_UP :: STRING?) :: (INTEGER?)¦apoc.number.exact.toInteger(string,[prec],[roundingMode]) - return the Integer value of a large number
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.number.exact/apoc.number.adoc[apoc.number.exact.add icon:book[]]
+
+apoc.number.exact.add(stringA,stringB) - return the sum's result of two large numbers
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.number.exact/apoc.number.adoc[apoc.number.exact.div icon:book[]]
+
+apoc.number.exact.div(stringA,stringB,[prec],[roundingModel]) - return the division's result of two large numbers
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.number.exact/apoc.number.adoc[apoc.number.exact.mul icon:book[]]
+
+apoc.number.exact.mul(stringA,stringB,[prec],[roundingModel]) - return the multiplication's result of two large numbers 
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.number.exact/apoc.number.adoc[apoc.number.exact.sub icon:book[]]
+
+apoc.number.exact.sub(stringA,stringB) - return the substraction's of two large numbers
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.number.exact/apoc.number.adoc[apoc.number.exact.toExact icon:book[]]
+
+apoc.number.exact.toExact(number) - return the exact value
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.number.exact/apoc.number.adoc[apoc.number.exact.toFloat icon:book[]]
+
+apoc.number.exact.toFloat(string,[prec],[roundingMode]) - return the Float value of a large number
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.number.exact/apoc.number.adoc[apoc.number.exact.toInteger icon:book[]]
+
+apoc.number.exact.toInteger(string,[prec],[roundingMode]) - return the Integer value of a large number
+|label:function[]
+|label:apoc-core[]

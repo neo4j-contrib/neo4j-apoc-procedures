@@ -1,0 +1,5 @@
+¦xref::overview/apoc.path/apoc.path.create.adoc[apoc.path.create icon:book[]] +
+
+ - creates a path instance of the given elements
+¦label:function[]
+¦label:apoc-core[]

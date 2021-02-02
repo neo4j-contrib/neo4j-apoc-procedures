@@ -1,0 +1,5 @@
+¦xref::overview/apoc.create/apoc.create.vRelationship.adoc[apoc.create.vRelationship icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

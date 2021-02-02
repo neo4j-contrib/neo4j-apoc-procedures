@@ -1,0 +1,5 @@
+¦xref::overview/apoc.meta/apoc.meta.subGraph.adoc[apoc.meta.subGraph icon:book[]] +
+
+ - examines a sample sub graph to create the meta-graph
+¦label:procedure[]
+¦label:apoc-core[]

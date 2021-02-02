@@ -1,5 +1,21 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.import.csv¦apoc.import.csv(nodes :: LIST? OF MAP?, relationships :: LIST? OF MAP?, config :: MAP?) :: (file :: STRING?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, batches :: INTEGER?, done :: BOOLEAN?, data :: STRING?)¦apoc.import.csv(nodes, relationships, config) - imports nodes and relationships from the provided CSV files with given labels and types
-¦procedure¦apoc.import.graphml¦apoc.import.graphml(file :: STRING?, config :: MAP?) :: (file :: STRING?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, batches :: INTEGER?, done :: BOOLEAN?, data :: STRING?)¦apoc.import.graphml(file,config) - imports graphml file
-¦procedure¦apoc.import.json¦apoc.import.json(file :: STRING?, config = {} :: MAP?) :: (file :: STRING?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, batches :: INTEGER?, done :: BOOLEAN?, data :: STRING?)¦apoc.import.json(file,config) - imports the json list to the provided file
-¦procedure¦apoc.import.xml¦apoc.import.xml(url :: STRING?, config = {} :: MAP?) :: (node :: NODE?)¦apoc.import.xml(file,config) - imports graph from provided file
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.import/apoc.import.adoc[apoc.import.csv icon:book[]]
+
+apoc.import.csv(nodes, relationships, config) - imports nodes and relationships from the provided CSV files with given labels and types
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.import/apoc.import.adoc[apoc.import.graphml icon:book[]]
+
+apoc.import.graphml(file,config) - imports graphml file
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.import/apoc.import.adoc[apoc.import.json icon:book[]]
+
+apoc.import.json(file,config) - imports the json list to the provided file
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.import/apoc.import.adoc[apoc.import.xml icon:book[]]
+
+apoc.import.xml(file,config) - imports graph from provided file
+|label:procedure[]
+|label:apoc-core[]

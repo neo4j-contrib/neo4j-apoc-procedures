@@ -3,9 +3,8 @@
 :description: This section describes a procedure that can be used to warm up the database.
 
 
-
-
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| CALL apoc.warmup.run([loadProperties],[loadDynamicProperties],[loadIndexes]) | Quickly warm up the page-caches by touching pages in paralle optionally load property-records, dynamic-properties, indexes
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.warmup.run.adoc[]
 |===

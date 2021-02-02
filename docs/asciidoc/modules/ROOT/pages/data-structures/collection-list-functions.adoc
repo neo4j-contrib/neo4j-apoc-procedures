@@ -12,56 +12,55 @@ ifdef::backend-html5[]
 ++++
 endif::[]
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| xref::overview/apoc.coll/apoc.coll.sum.adoc[+++apoc.coll.sum([0.5,1,2.3])+++] | sum of all values in a list
-| xref::overview/apoc.coll/apoc.coll.avg.adoc[+++apoc.coll.avg([0.5,1,2.3])+++] | avg of all values in a list
-| xref::overview/apoc.coll/apoc.coll.min.adoc[+++apoc.coll.min([0.5,1,2.3])+++] | minimum of all values in a list
-| xref::overview/apoc.coll/apoc.coll.max.adoc[+++apoc.coll.max([0.5,1,2.3])+++] | maximum of all values in a list
-| xref::overview/apoc.coll/apoc.coll.sumLongs.adoc[+++apoc.coll.sumLongs([1,3,3])+++] | sums all numeric values in a list
-| xref::overview/apoc.coll/apoc.coll.partition.adoc[+++apoc.coll.partition(list,batchSize)+++] | partitions a list into sublists of `batchSize`
-| xref::overview/apoc.coll/apoc.coll.zip.adoc[+++apoc.coll.zip([list1],[list2])+++] | all values in a list
-| xref::overview/apoc.coll/apoc.coll.pairs.adoc[+++apoc.coll.pairs([1,2,3]) YIELD value+++] | [1,2],[2,3],[3,null]
-| xref::overview/apoc.coll/apoc.coll.pairsMin.adoc[+++apoc.coll.pairsMin([1,2,3]) YIELD value+++] | [1,2],[2,3]
-| xref::overview/apoc.coll/apoc.coll.toSet.adoc[+++apoc.coll.toSet([list])+++] | returns a unique list backed by a set
-| xref::overview/apoc.coll/apoc.coll.sort.adoc[+++apoc.coll.sort(coll)+++] | sort on Collections
-| xref::overview/apoc.coll/apoc.coll.sortNodes.adoc[+++apoc.coll.sortNodes([nodes], 'name')+++] | sort nodes by property, ascending sorting by adding ^ in front of the sorting field
-| xref::overview/apoc.coll/apoc.coll.sortMaps.adoc[+++apoc.coll.sortMaps([maps], 'key')+++] | sort maps by map key, ascending sorting by adding ^ in front of the sorting field
-| xref::overview/apoc.coll/apoc.coll.reverse.adoc[+++apoc.coll.reverse(coll)+++] | returns the reversed list
-| xref::overview/apoc.coll/apoc.coll.contains.adoc[+++apoc.coll.contains(coll, value)+++] | returns true if collection contains the value
-| xref::overview/apoc.coll/apoc.coll.containsAll.adoc[+++apoc.coll.containsAll(coll, values)+++] | optimized contains-all operation (using a HashSet) returns true or false
-| xref::overview/apoc.coll/apoc.coll.containsSorted.adoc[+++apoc.coll.containsSorted(coll, value)+++] | optimized contains on a sorted list operation (Collections.binarySearch) (returns true or false)
-| xref::overview/apoc.coll/apoc.coll.containsAllSorted.adoc[+++apoc.coll.containsAllSorted(coll, value)+++] | optimized contains-all on a sorted list operation (Collections.binarySearch) (returns true or false)
-| xref::overview/apoc.coll/apoc.coll.isEqualCollection.adoc[+++apoc.coll.isEqualCollection(coll, values)+++] | return true if two collections contain the same elements with the same cardinality in any order (using a HashMap)
-| xref::overview/apoc.coll/apoc.coll.union.adoc[+++apoc.coll.union(first, second)+++] | creates the distinct union of the 2 lists
-| xref::overview/apoc.coll/apoc.coll.unionAll.adoc[+++apoc.coll.unionAll(first, second)+++] | creates the full union with duplicates of the two lists
-| xref::overview/apoc.coll/apoc.coll.subtract.adoc[+++apoc.coll.subtract(first, second)+++] | returns unique set of first list with all elements of second list removed
-| xref::overview/apoc.coll/apoc.coll.removeAll.adoc[+++apoc.coll.removeAll(first, second)+++] | returns first list with all elements of second list removed
-| xref::overview/apoc.coll/apoc.coll.intersection.adoc[+++apoc.coll.intersection(first, second)+++] | returns the unique intersection of the two lists
-| xref::overview/apoc.coll/apoc.coll.disjunction.adoc[+++apoc.coll.disjunction(first, second)+++] | returns the disjunct set of the two lists
-| xref::overview/apoc.coll/apoc.coll.split.adoc[+++apoc.coll.split(list,value)+++] | splits collection on given values rows of lists, value itself will not be part of resulting lists
-| xref::overview/apoc.coll/apoc.coll.indexOf.adoc[+++apoc.coll.indexOf(coll, value)+++] | position of value in the list
-| xref::overview/apoc.coll/apoc.coll.shuffle.adoc[+++apoc.coll.shuffle(coll)+++] | returns the shuffled list
-| xref::overview/apoc.coll/apoc.coll.randomItem.adoc[+++apoc.coll.randomItem(coll)+++] | returns a random item from the list
-| xref::overview/apoc.coll/apoc.coll.randomItems.adoc[+++apoc.coll.randomItems(coll, itemCount, allowRepick: false)+++] | returns a list of `itemCount` random items from the list, optionally allowing picked elements to be picked again
-| xref::overview/apoc.coll/apoc.coll.containsDuplicates.adoc[+++apoc.coll.containsDuplicates(coll)+++] | returns true if a collection contains duplicate elements
-| xref::overview/apoc.coll/apoc.coll.duplicates.adoc[+++apoc.coll.duplicates(coll)+++] | returns a list of duplicate items in the collection
-| xref::overview/apoc.coll/apoc.coll.duplicatesWithCount.adoc[+++apoc.coll.duplicatesWithCount(coll)+++] | returns a list of duplicate items in the collection and their count, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)
-| xref::overview/apoc.coll/apoc.coll.occurrences.adoc[+++apoc.coll.occurrences(coll, item)+++] | returns the count of the given item in the collection
-| xref::overview/apoc.coll/apoc.coll.frequencies.adoc[+++apoc.coll.frequencies(coll)+++] | returns a list of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}, {item:abc, count:1}]`)
-| xref::overview/apoc.coll/apoc.coll.frequenciesAsMap.adoc[+++apoc.coll.frequenciesAsMap(coll)+++] | return a map of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `{1: 2, 3: 2}`)
-| xref::overview/apoc.coll/apoc.coll.sortMulti.adoc[+++apoc.coll.sortMulti+++] | sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip
-| xref::overview/apoc.coll/apoc.coll.flatten.adoc[+++apoc.coll.flatten+++] | flattens a nested list
-| xref::overview/apoc.coll/apoc.coll.combinations.adoc[+++apoc.coll.combinations(coll, minSelect, maxSelect:minSelect)+++] | Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive
-| xref::overview/apoc.coll/apoc.coll.elements.adoc[+++CALL apoc.coll.elements(list,limit,offset) yield _1,_2,..,_10,_1s,_2i,_3f,_4m,_5l,_6n,_7r,_8p+++] | deconstruct subset of mixed list into identifiers of the correct type
-| xref::overview/apoc.coll/apoc.coll.set.adoc[+++apoc.coll.set(coll, index, value)+++] | set index to value
-| xref::overview/apoc.coll/apoc.coll.insert.adoc[+++apoc.coll.insert(coll, index, value)+++] | insert value at index
-| xref::overview/apoc.coll/apoc.coll.insertAll.adoc[+++apoc.coll.insertAll(coll, index, values)+++] | insert values at index
-| xref::overview/apoc.coll/apoc.coll.remove.adoc[+++apoc.coll.remove(coll, index, [length=1])+++] | remove range of values from index to length
-| xref::overview/apoc.coll/apoc.coll.different.adoc[+++apoc.coll.different(values)+++] | returns true if value are different
-| xref::overview/apoc.coll/apoc.coll.fill.adoc[+++apoc.coll.fill(item, count)+++] | returns a list with the given count of items
-| xref::overview/apoc.coll/apoc.coll.sortText.adoc[+++apoc.coll.sortText(coll, conf)+++] | sort on string based collections
-| xref::overview/apoc.coll/apoc.coll.pairWithOffset.adoc[+++apoc.coll.pairWithOffset(values, offset)+++] | returns a list of pairs defined by the offset
-| xref::overview/apoc.coll/apoc.coll.sortMaps.adoc[+++apoc.coll.sortMaps([maps], 'key')+++] | sort maps by map key, ascending sorting by adding ^ in front of the sorting field
-| xref::overview/apoc.coll/apoc.coll.reverse.adoc[+++apoc.coll.reverse(coll)+++] | returns the reversed list
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.coll.sum.adoc[]
+include::example$generated-documentation/apoc.coll.avg.adoc[]
+include::example$generated-documentation/apoc.coll.min.adoc[]
+include::example$generated-documentation/apoc.coll.max.adoc[]
+include::example$generated-documentation/apoc.coll.sumLongs.adoc[]
+include::example$generated-documentation/apoc.coll.partition.adoc[]
+include::example$generated-documentation/apoc.coll.zip.adoc[]
+include::example$generated-documentation/apoc.coll.pairs.adoc[]
+include::example$generated-documentation/apoc.coll.pairsMin.adoc[]
+include::example$generated-documentation/apoc.coll.toSet.adoc[]
+include::example$generated-documentation/apoc.coll.sort.adoc[]
+include::example$generated-documentation/apoc.coll.sortNodes.adoc[]
+include::example$generated-documentation/apoc.coll.sortMaps.adoc[]
+include::example$generated-documentation/apoc.coll.reverse.adoc[]
+include::example$generated-documentation/apoc.coll.contains.adoc[]
+include::example$generated-documentation/apoc.coll.containsAll.adoc[]
+include::example$generated-documentation/apoc.coll.containsSorted.adoc[]
+include::example$generated-documentation/apoc.coll.containsAllSorted.adoc[]
+include::example$generated-documentation/apoc.coll.isEqualCollection.adoc[]
+include::example$generated-documentation/apoc.coll.union.adoc[]
+include::example$generated-documentation/apoc.coll.unionAll.adoc[]
+include::example$generated-documentation/apoc.coll.subtract.adoc[]
+include::example$generated-documentation/apoc.coll.removeAll.adoc[]
+include::example$generated-documentation/apoc.coll.intersection.adoc[]
+include::example$generated-documentation/apoc.coll.disjunction.adoc[]
+include::example$generated-documentation/apoc.coll.split.adoc[]
+include::example$generated-documentation/apoc.coll.indexOf.adoc[]
+include::example$generated-documentation/apoc.coll.shuffle.adoc[]
+include::example$generated-documentation/apoc.coll.randomItem.adoc[]
+include::example$generated-documentation/apoc.coll.randomItems.adoc[]
+include::example$generated-documentation/apoc.coll.containsDuplicates.adoc[]
+include::example$generated-documentation/apoc.coll.duplicates.adoc[]
+include::example$generated-documentation/apoc.coll.duplicatesWithCount.adoc[]
+include::example$generated-documentation/apoc.coll.occurrences.adoc[]
+include::example$generated-documentation/apoc.coll.frequencies.adoc[]
+include::example$generated-documentation/apoc.coll.frequenciesAsMap.adoc[]
+include::example$generated-documentation/apoc.coll.sortMulti.adoc[]
+include::example$generated-documentation/apoc.coll.flatten.adoc[]
+include::example$generated-documentation/apoc.coll.combinations.adoc[]
+include::example$generated-documentation/apoc.coll.elements.adoc[]
+include::example$generated-documentation/apoc.coll.set.adoc[]
+include::example$generated-documentation/apoc.coll.insert.adoc[]
+include::example$generated-documentation/apoc.coll.insertAll.adoc[]
+include::example$generated-documentation/apoc.coll.remove.adoc[]
+include::example$generated-documentation/apoc.coll.different.adoc[]
+include::example$generated-documentation/apoc.coll.fill.adoc[]
+include::example$generated-documentation/apoc.coll.sortText.adoc[]
+include::example$generated-documentation/apoc.coll.pairWithOffset.adoc[]
 |===

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.number/apoc.number.exact.mul.adoc[apoc.number.exact.mul icon:book[]] +
+
+ - return the multiplication's result of two large numbers 
+¦label:function[]
+¦label:apoc-core[]

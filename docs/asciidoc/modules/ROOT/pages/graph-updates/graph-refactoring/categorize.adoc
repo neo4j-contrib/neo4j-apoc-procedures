@@ -6,9 +6,10 @@
 
 The available procedure is described in the table below:
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| CALL apoc.refactor.categorize(sourceKey, type, outgoing, label, targetKey, copiedKeys, batchSize) | turn each unique propertyKey into a category node and connect to it
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.refactor.categorize.adoc[]
 |===
 
 

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.zip.adoc[apoc.coll.zip icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.export/apoc.export.xls.graph.adoc[apoc.export.xls.graph icon:book[]] +
+
+ - exports given graph object as xls to the provided file
+¦label:procedure[]
+¦label:apoc-full[]

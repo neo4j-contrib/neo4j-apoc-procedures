@@ -1,0 +1,5 @@
+¦xref::overview/apoc.date/apoc.date.expireIn.adoc[apoc.date.expireIn icon:book[]] +
+
+ - expire node after specified length of time time by setting :TTL label and `ttl` property
+¦label:procedure[]
+¦label:apoc-full[]

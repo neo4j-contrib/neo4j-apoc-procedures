@@ -1,0 +1,5 @@
+¦xref::overview/apoc.meta/apoc.meta.type.adoc[apoc.meta.type icon:book[]] +
+
+ - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)
+¦label:function[]
+¦label:apoc-core[]

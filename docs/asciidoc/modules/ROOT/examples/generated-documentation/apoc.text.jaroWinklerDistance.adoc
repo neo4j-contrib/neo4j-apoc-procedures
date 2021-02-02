@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.jaroWinklerDistance.adoc[apoc.text.jaroWinklerDistance icon:book[]] +
+
+ - compare the given strings with the Jaro-Winkler distance algorithm.
+¦label:function[]
+¦label:apoc-core[]

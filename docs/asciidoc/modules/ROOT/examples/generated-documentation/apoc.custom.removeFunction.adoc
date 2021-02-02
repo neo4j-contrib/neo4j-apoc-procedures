@@ -1,0 +1,5 @@
+¦xref::overview/apoc.custom/apoc.custom.removeFunction.adoc[apoc.custom.removeFunction icon:book[]] +
+
+ - remove the targeted custom function
+¦label:procedure[]
+¦label:apoc-full[]

@@ -1,10 +1,46 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.periodic.cancel¦apoc.periodic.cancel(name :: STRING?) :: (name :: STRING?, delay :: INTEGER?, rate :: INTEGER?, done :: BOOLEAN?, cancelled :: BOOLEAN?)¦apoc.periodic.cancel(name) - cancel job with the given name
-¦procedure¦apoc.periodic.commit¦apoc.periodic.commit(statement :: STRING?, params = {} :: MAP?) :: (updates :: INTEGER?, executions :: INTEGER?, runtime :: INTEGER?, batches :: INTEGER?, failedBatches :: INTEGER?, batchErrors :: MAP?, failedCommits :: INTEGER?, commitErrors :: MAP?, wasTerminated :: BOOLEAN?)¦apoc.periodic.commit(statement,params) - runs the given statement in separate transactions until it returns 0
-¦procedure¦apoc.periodic.countdown¦apoc.periodic.countdown(name :: STRING?, statement :: STRING?, rate :: INTEGER?) :: (name :: STRING?, delay :: INTEGER?, rate :: INTEGER?, done :: BOOLEAN?, cancelled :: BOOLEAN?)¦apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) submit a repeatedly-called background statement until it returns 0
-¦procedure¦apoc.periodic.iterate¦apoc.periodic.iterate(cypherIterate :: STRING?, cypherAction :: STRING?, config :: MAP?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, wasTerminated :: BOOLEAN?, failedParams :: MAP?)¦apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:50,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows
-¦procedure¦apoc.periodic.list¦apoc.periodic.list() :: (name :: STRING?, delay :: INTEGER?, rate :: INTEGER?, done :: BOOLEAN?, cancelled :: BOOLEAN?)¦apoc.periodic.list - list all jobs
-¦procedure¦apoc.periodic.repeat¦apoc.periodic.repeat(name :: STRING?, statement :: STRING?, rate :: INTEGER?, config = {} :: MAP?) :: (name :: STRING?, delay :: INTEGER?, rate :: INTEGER?, done :: BOOLEAN?, cancelled :: BOOLEAN?)¦apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.
-¦procedure¦apoc.periodic.rock_n_roll¦apoc.periodic.rock_n_roll(cypherIterate :: STRING?, cypherAction :: STRING?, batchSize :: INTEGER?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, wasTerminated :: BOOLEAN?, failedParams :: MAP?)¦apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows
-¦procedure¦apoc.periodic.rock_n_roll_while¦apoc.periodic.rock_n_roll_while(cypherLoop :: STRING?, cypherIterate :: STRING?, cypherAction :: STRING?, batchSize :: INTEGER?) :: (loop :: ANY?, batches :: INTEGER?, total :: INTEGER?)¦apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows
-¦procedure¦apoc.periodic.submit¦apoc.periodic.submit(name :: STRING?, statement :: STRING?) :: (name :: STRING?, delay :: INTEGER?, rate :: INTEGER?, done :: BOOLEAN?, cancelled :: BOOLEAN?)¦apoc.periodic.submit('name',statement) - submit a one-off background statement
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.cancel icon:book[]]
+
+apoc.periodic.cancel(name) - cancel job with the given name
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.commit icon:book[]]
+
+apoc.periodic.commit(statement,params) - runs the given statement in separate transactions until it returns 0
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.countdown icon:book[]]
+
+apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) submit a repeatedly-called background statement until it returns 0
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.iterate icon:book[]]
+
+apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:50,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.list icon:book[]]
+
+apoc.periodic.list - list all jobs
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.repeat icon:book[]]
+
+apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.rock_n_roll icon:book[]]
+
+apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.rock_n_roll_while icon:book[]]
+
+apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.submit icon:book[]]
+
+apoc.periodic.submit('name',statement) - submit a one-off background statement
+|label:procedure[]
+|label:apoc-core[]

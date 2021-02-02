@@ -7,14 +7,15 @@
 Atomic procedures handle the concurrency, it's add a lock to the resource.
 If two users access to the same resource at the same time, with the parameter `times` (default value 5) we can determine how many time retry to modify the resource, until the lock is release.
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| CALL apoc.atomic.add(node/relationship, "property", number, [times]) YIELD oldValue, newValue  | adds the number to the value of the property
-| CALL apoc.atomic.subtract(node/relationship, "property", number, [times]) YIELD oldValue, newValue | subtracts the number to the value of the property
-| CALL apoc.atomic.concat(node/relationship, "property", "string", [times]) YIELD oldValue, newValue | concatenate the string to the property
-| CALL apoc.atomic.insert(node/relationship, "property", position, object, [times]) YIELD oldValue, newValue | inserts the object in the chosen position of the array
-| CALL apoc.atomic.remove(node/relationship, "property", position, [times]) YIELD oldValue, newValue | remove from the array the element to the position selected
-| CALL apoc.atomic.update(node/relationship, "property", "expression", [times]) YIELD oldValue, newValue | update the property with the result of the expression
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.atomic.add.adoc[]
+include::example$generated-documentation/apoc.atomic.subtract.adoc[]
+include::example$generated-documentation/apoc.atomic.concat.adoc[]
+include::example$generated-documentation/apoc.atomic.insert.adoc[]
+include::example$generated-documentation/apoc.atomic.remove.adoc[]
+include::example$generated-documentation/apoc.atomic.update.adoc[]
 |===
 
 .The following creates sample nodes:

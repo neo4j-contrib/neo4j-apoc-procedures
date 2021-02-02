@@ -1,0 +1,5 @@
+¦xref::overview/apoc.date/apoc.date.toISO8601.adoc[apoc.date.toISO8601 icon:book[]] +
+
+ - return string representation of time in ISO8601 format
+¦label:function[]
+¦label:apoc-core[]

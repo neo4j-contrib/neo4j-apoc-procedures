@@ -36,5 +36,5 @@ For more information on how to use these procedures, see:
 
 * xref::virtual/virtual-nodes-rels.adoc[]
 * xref::virtual/nodes-collapse.adoc[]
-* xref::virtual/virtual-graph.adoc[]
+* xref::virtual/virtual-graph.adoc[Virtual Graph]
 * xref::virtual/graph-grouping.adoc[]

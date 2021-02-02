@@ -1,0 +1,5 @@
+¦xref::overview/apoc.load/apoc.load.jdbcUpdate.adoc[apoc.load.jdbcUpdate icon:book[]] +
+
+ - update relational database, from a SQL statement with optional parameters
+¦label:procedure[]
+¦label:apoc-full[]

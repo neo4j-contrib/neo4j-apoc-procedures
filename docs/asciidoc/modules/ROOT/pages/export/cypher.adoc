@@ -21,9 +21,14 @@ If a node label does have a unique constraint, the property on which the unique 
 The table below describes the available procedures:
 
 // tag::export.cypher[]
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.export.cypher.csv[]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.export.cypher.all.adoc[]
+include::example$generated-documentation/apoc.export.cypher.data.adoc[]
+include::example$generated-documentation/apoc.export.cypher.graph.adoc[]
+include::example$generated-documentation/apoc.export.cypher.query.adoc[]
+include::example$generated-documentation/apoc.export.cypher.schema.adoc[]
 |===
 // end::export.cypher[]
 
@@ -246,7 +251,7 @@ RETURN nodes, relationships, properties, cypherStatements;
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,1m,1m,5"]
 |===
 | nodes | relationships | properties | cypherStatements
 | 16    | 0             | 34         a| ":begin
@@ -754,7 +759,7 @@ CALL apoc.cypher.runSchemaFile('/tmp/mysubset.schema.cypher');
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,8"]
 |===
 | row | result
 |  -1  | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 0, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 0, r
@@ -768,7 +773,7 @@ CALL apoc.cypher.runFiles(['/tmp/mysubset.nodes.cypher','/tmp/mysubset.relations
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,8"]
 |===
 | row | result
 | -1  | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 2, rows: 0, propertiesSet: 8, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 4, r
@@ -790,7 +795,7 @@ CALL apoc.cypher.runFile('/tmp/mysubset.cleanup.cypher');
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,8"]
 |===
 | row | result
 |  -1  | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 16, labelsRemoved: 16, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 0,
@@ -804,7 +809,7 @@ CALL apoc.cypher.runSchemaFile('/tmp/mysubset.cleanup.cypher');
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,8"]
 |===
 | row | result
 |  -1  | {constraintsRemoved: 1, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 0, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 0, r

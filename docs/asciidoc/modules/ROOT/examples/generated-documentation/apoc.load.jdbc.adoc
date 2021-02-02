@@ -1,0 +1,5 @@
+¦xref::overview/apoc.load/apoc.load.jdbc.adoc[apoc.load.jdbc icon:book[]] +
+
+ - load from relational database, from a full table or a sql statement
+¦label:procedure[]
+¦label:apoc-full[]

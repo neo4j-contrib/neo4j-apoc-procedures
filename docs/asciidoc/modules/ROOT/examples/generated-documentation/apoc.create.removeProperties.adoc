@@ -1,0 +1,5 @@
+¦xref::overview/apoc.create/apoc.create.removeProperties.adoc[apoc.create.removeProperties icon:book[]] +
+
+ - removes the given properties from the nodes(s)
+¦label:procedure[]
+¦label:apoc-core[]

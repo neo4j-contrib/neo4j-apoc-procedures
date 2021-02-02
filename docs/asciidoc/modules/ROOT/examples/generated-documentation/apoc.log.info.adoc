@@ -1,0 +1,5 @@
+¦xref::overview/apoc.log/apoc.log.info.adoc[apoc.log.info icon:book[]] +
+
+ - logs info message
+¦label:procedure[]
+¦label:apoc-full[]

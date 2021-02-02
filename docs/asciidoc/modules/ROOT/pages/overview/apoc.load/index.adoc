@@ -67,12 +67,12 @@ apoc.load.xls('url','selector',\{config}) YIELD lineNo, list, map - load XLS fom
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.xml.adoc[apoc.load.xml icon:book[]]
 
-apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.
+apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.xmlSimple.adoc[apoc.load.xmlSimple icon:book[]]
 
-apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _children fields. This method does intentionally not work with XML mixed content.
+apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _children fields. This method does intentionally not work with XML mixed content.
 |label:procedure[]
 |label:apoc-core[]
 |===

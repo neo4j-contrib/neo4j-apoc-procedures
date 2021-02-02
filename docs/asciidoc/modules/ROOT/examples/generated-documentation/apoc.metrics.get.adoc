@@ -1,0 +1,5 @@
+¦xref::overview/apoc.metrics/apoc.metrics.get.adoc[apoc.metrics.get icon:book[]] +
+
+ - retrieve a system metric by its metric name. Additional configuration options may be passed matching the options available for apoc.load.csv.
+¦label:procedure[]
+¦label:apoc-full[]

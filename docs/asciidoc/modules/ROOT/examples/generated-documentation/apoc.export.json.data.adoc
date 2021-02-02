@@ -1,0 +1,5 @@
+¦xref::overview/apoc.export/apoc.export.json.data.adoc[apoc.export.json.data icon:book[]] +
+
+ - exports given nodes and relationships as json to the provided file
+¦label:procedure[]
+¦label:apoc-core[]

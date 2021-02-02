@@ -1,0 +1,5 @@
+¦xref::overview/apoc.agg/apoc.agg.statistics.adoc[apoc.agg.statistics icon:book[]] +
+
+ - returns numeric statistics (percentiles, min,minNonZero,max,total,mean,stdev) for values
+¦label:function[]
+¦label:apoc-core[]

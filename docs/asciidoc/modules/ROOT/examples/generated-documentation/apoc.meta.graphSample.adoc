@@ -1,0 +1,5 @@
+¦xref::overview/apoc.meta/apoc.meta.graphSample.adoc[apoc.meta.graphSample icon:book[]] +
+
+ - examines the database statistics to build the meta graph, very fast, might report extra relationships
+¦label:procedure[]
+¦label:apoc-core[]

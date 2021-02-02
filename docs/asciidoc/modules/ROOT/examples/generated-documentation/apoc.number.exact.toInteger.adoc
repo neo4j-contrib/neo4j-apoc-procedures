@@ -1,0 +1,5 @@
+¦xref::overview/apoc.number/apoc.number.exact.toInteger.adoc[apoc.number.exact.toInteger icon:book[]] +
+
+ - return the Integer value of a large number
+¦label:function[]
+¦label:apoc-core[]

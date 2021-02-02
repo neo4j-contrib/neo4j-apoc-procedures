@@ -1,0 +1,5 @@
+¦xref::overview/apoc.periodic/apoc.periodic.commit.adoc[apoc.periodic.commit icon:book[]] +
+
+ - runs the given statement in separate transactions until it returns 0
+¦label:procedure[]
+¦label:apoc-core[]

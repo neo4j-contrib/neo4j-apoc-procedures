@@ -1,0 +1,5 @@
+¦xref::overview/apoc.load/apoc.load.html.adoc[apoc.load.html icon:book[]] +
+
+ - Load Html page and return the result as a Map
+¦label:procedure[]
+¦label:apoc-full[]

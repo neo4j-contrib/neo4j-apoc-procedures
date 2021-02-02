@@ -9,14 +9,18 @@ internal information, e.g. configured permissions. Those can be exposed by APOC.
 
 image::apoc.systemdb.graph.png[scaledwidth="100%"]
 
-WARN:: Do not rely on the data structures within `system` database. They are a non-public implementation details of Neo4j
+[CAUTION]
+====
+Do not rely on the data structures within `system` database. They are a non-public implementation details of Neo4j
 and might change within minor release updates.
+====
 
 .Procedures
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| apoc.systemdb.graph | returns a `nodes` and `relationships` stored in systemdb.
-| apoc.systemdb.execute | executes an DDL command on system db, yields `row` for further processing
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.systemdb.graph.adoc[]
+include::example$generated-documentation/apoc.systemdb.execute.adoc[]
 |===
 
 .isType example

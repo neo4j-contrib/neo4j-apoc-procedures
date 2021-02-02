@@ -9,12 +9,13 @@ They return the list of eventually impacted constraints and indexes, the user sh
 
 The available procedures are described in the table below:
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| call apoc.refactor.rename.label(oldLabel, newLabel, [nodes], config) | rename a label from 'oldLabel' to 'newLabel' for all nodes. If 'nodes' is provided renaming is applied to this set only
-| call apoc.refactor.rename.type(oldType, newType, [rels], config) | rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only
-| call apoc.refactor.rename.nodeProperty(oldName, newName, [nodes], config) | rename all node's property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only
-| call apoc.refactor.rename.typeProperty(oldName, newName, [rels], config) | rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.refactor.rename.label.adoc[]
+include::example$generated-documentation/apoc.refactor.rename.type.adoc[]
+include::example$generated-documentation/apoc.refactor.rename.nodeProperty.adoc[]
+include::example$generated-documentation/apoc.refactor.rename.typeProperty.adoc[]
 |===
 
 As the collection of data is processed in batch via `apoc.periodic.iterate` these procedures support the following config parameters:
@@ -25,7 +26,7 @@ As the collection of data is processed in batch via `apoc.periodic.iterate` thes
 | name | type | default | description
 | batchSize | Long | 10000 | run the specified number of operation statements in a single tx - params: {_count, _batch}
 | parallel | boolean | true | run operation statements in parallel (note that statements might deadlock if conflicting)
-| retries | Long | 0 | if the operation statement fails with an error, sleep 100ms and retry until retries-count is reached - param {_retry}
+| retries | Long | 0 | if the operation statement fails with an error, sleep 100ms and retry until retries-count is reached - param \{_retry}
 | batchMode | String | "BATCH" | how data-driven statements should be processed by operation statement. Valid values are:
 
 * "BATCH" - execute operation statement once per batchSize. Operation statement is prefixed with the following, which extracts each field returned in the data-driven statement from the `$_batch` parameter:

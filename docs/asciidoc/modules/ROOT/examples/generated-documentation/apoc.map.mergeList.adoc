@@ -1,0 +1,5 @@
+¦xref::overview/apoc.map/apoc.map.mergeList.adoc[apoc.map.mergeList icon:book[]] +
+
+ - merges all maps in the list into one
+¦label:function[]
+¦label:apoc-core[]

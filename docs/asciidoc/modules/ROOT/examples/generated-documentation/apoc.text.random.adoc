@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.random.adoc[apoc.text.random icon:book[]] +
+
+ - generate a random string
+¦label:function[]
+¦label:apoc-core[]

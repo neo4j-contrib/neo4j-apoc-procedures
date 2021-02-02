@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.shuffle.adoc[apoc.coll.shuffle icon:book[]] +
+
+ - returns the shuffled list
+¦label:function[]
+¦label:apoc-core[]

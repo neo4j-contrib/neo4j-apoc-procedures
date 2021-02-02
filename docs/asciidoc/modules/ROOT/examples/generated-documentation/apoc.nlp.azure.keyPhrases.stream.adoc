@@ -1,0 +1,5 @@
+¦xref::overview/apoc.nlp/apoc.nlp.azure.keyPhrases.stream.adoc[apoc.nlp.azure.keyPhrases.stream icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.schema/apoc.schema.properties.distinct.adoc[apoc.schema.properties.distinct icon:book[]] +
+
+ - quickly returns all distinct values for a given key
+¦label:procedure[]
+¦label:apoc-core[]

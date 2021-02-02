@@ -1,0 +1,5 @@
+¦xref::overview/apoc.meta/apoc.meta.types.adoc[apoc.meta.types icon:book[]] +
+
+ - returns a map of keys to types
+¦label:function[]
+¦label:apoc-core[]

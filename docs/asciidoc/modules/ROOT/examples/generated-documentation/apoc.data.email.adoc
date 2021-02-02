@@ -1,0 +1,5 @@
+¦xref::overview/apoc.data/apoc.data.email.adoc[apoc.data.email icon:book[]] +
+
+ - extract the personal name, user and domain as a map
+¦label:function[]
+¦label:apoc-core[]

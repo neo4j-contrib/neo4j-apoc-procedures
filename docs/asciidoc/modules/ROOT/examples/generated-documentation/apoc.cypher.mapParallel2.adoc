@@ -1,0 +1,5 @@
+¦xref::overview/apoc.cypher/apoc.cypher.mapParallel2.adoc[apoc.cypher.mapParallel2 icon:book[]] +
+
+ - executes fragment in parallel batches with the list segments being assigned to _
+¦label:procedure[]
+¦label:apoc-full[]

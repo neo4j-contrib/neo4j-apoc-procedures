@@ -37,11 +37,15 @@ endif::[]
 
 The procedures are described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.nlp.gcp.entities.csv[]
-include::example$generated-documentation/apoc.nlp.gcp.classify.csv[lines=2..3]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.nlp.gcp.entities.graph.adoc[]
+include::example$generated-documentation/apoc.nlp.gcp.entities.stream.adoc[]
+include::example$generated-documentation/apoc.nlp.gcp.classify.graph.adoc[]
+include::example$generated-documentation/apoc.nlp.gcp.classify.stream.adoc[]
 |===
+
 
 [[nlp-gcp-entities]]
 === Entity Extraction

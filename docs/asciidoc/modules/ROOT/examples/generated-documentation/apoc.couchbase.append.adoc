@@ -1,0 +1,5 @@
+¦xref::overview/apoc.couchbase/apoc.couchbase.append.adoc[apoc.couchbase.append icon:book[]] +
+
+ - append a couchbase json document to an existing one.
+¦label:procedure[]
+¦label:apoc-full[]

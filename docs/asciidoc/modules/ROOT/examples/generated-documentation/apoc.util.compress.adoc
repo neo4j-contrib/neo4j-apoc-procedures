@@ -1,0 +1,5 @@
+¦xref::overview/apoc.util/apoc.util.compress.adoc[apoc.util.compress icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.path/apoc.path.expand.adoc[apoc.path.expand icon:book[]] +
+
+ - expand from start node following the given relationships from min to max-level adhering to the label filters
+¦label:procedure[]
+¦label:apoc-core[]

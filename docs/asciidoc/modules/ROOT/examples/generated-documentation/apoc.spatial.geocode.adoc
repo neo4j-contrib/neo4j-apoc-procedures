@@ -1,0 +1,5 @@
+¦xref::overview/apoc.spatial/apoc.spatial.geocode.adoc[apoc.spatial.geocode icon:book[]] +
+
+ - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)
+¦label:procedure[]
+¦label:apoc-core[]
