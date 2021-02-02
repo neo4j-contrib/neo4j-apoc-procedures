@@ -20,17 +20,17 @@ CALL apoc.date.expire.in(node,time,'time-unit') - expire node after specified le
 |label:apoc-full[]
 |xref::overview/apoc.date/apoc.date.add.adoc[apoc.date.add icon:book[]]
 
-apoc.date.add(12345, 'ms', -365, 'd') given a timestamp in one time unit, adds a value of the specified time unit
+apoc.date.add(12345, 'ms', -365, 'd') - given a timestamp in one time unit, adds a value of the specified time unit
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.convert.adoc[apoc.date.convert icon:book[]]
 
-apoc.date.convert(12345, 'ms', 'd') convert a timestamp in one time unit into one of a different time unit
+apoc.date.convert(12345, 'ms', 'd') - convert a timestamp in one time unit into one of a different time unit
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.convertFormat.adoc[apoc.date.convertFormat icon:book[]]
 
-apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time', 'iso_date_time') convert a String of one date format into a String of another date format.
+apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time', 'iso_date_time') - convert a String of one date format into a String of another date format.
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.currentTimestamp.adoc[apoc.date.currentTimestamp icon:book[]]
@@ -50,37 +50,37 @@ apoc.date.fields('2012-12-23',('yyyy-MM-dd')) - return columns and a map represe
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.format.adoc[apoc.date.format icon:book[]]
 
-apoc.date.format(12345,('ms\|s\|m\|h\|d'),('yyyy-MM-dd HH:mm:ss zzz'),('TZ')) get string representation of time value optionally using the specified unit (default ms) using specified format (default ISO) and specified time zone (default current TZ)
+apoc.date.format(12345,('ms\|s\|m\|h\|d'),('yyyy-MM-dd HH:mm:ss zzz'),('TZ')) - get string representation of time value optionally using the specified unit (default ms) using specified format (default ISO) and specified time zone (default current TZ)
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.fromISO8601.adoc[apoc.date.fromISO8601 icon:book[]]
 
-apoc.date.fromISO8601('yyyy-MM-ddTHH:mm:ss.SSSZ') return number representation of time in EPOCH format
+apoc.date.fromISO8601('yyyy-MM-ddTHH:mm:ss.SSSZ') - return number representation of time in EPOCH format
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.parse.adoc[apoc.date.parse icon:book[]]
 
-apoc.date.parse('2012-12-23','ms\|s\|m\|h\|d','yyyy-MM-dd') parse date string using the specified format into the specified time unit
+apoc.date.parse('2012-12-23','ms\|s\|m\|h\|d','yyyy-MM-dd') - parse date string using the specified format into the specified time unit
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.parseAsZonedDateTime.adoc[apoc.date.parseAsZonedDateTime icon:book[]]
 
-apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') parse date string using the specified format to specified timezone
+apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') - parse date string using the specified format to specified timezone
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.systemTimezone.adoc[apoc.date.systemTimezone icon:book[]]
 
-apoc.date.systemTimezone() returns the system timezone display name
+apoc.date.systemTimezone() - returns the system timezone display name
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.toISO8601.adoc[apoc.date.toISO8601 icon:book[]]
 
-apoc.date.toISO8601(12345,('ms\|s\|m\|h\|d') return string representation of time in ISO8601 format
+apoc.date.toISO8601(12345,('ms\|s\|m\|h\|d') - return string representation of time in ISO8601 format
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.toYears.adoc[apoc.date.toYears icon:book[]]
 
-toYears(timestamp) or toYears(date[,format]) converts timestamp into floating point years
+toYears(timestamp) or toYears(date[,format]) - converts timestamp into floating point years
 |label:function[]
 |label:apoc-core[]
 |===

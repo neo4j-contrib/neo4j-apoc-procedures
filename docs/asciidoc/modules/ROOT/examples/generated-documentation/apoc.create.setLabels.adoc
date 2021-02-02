@@ -1,0 +1,5 @@
+¦xref::overview/apoc.create/apoc.create.setLabels.adoc[apoc.create.setLabels icon:book[]] +
+
+ - sets the given labels, non matching labels are removed on the node or nodes
+¦label:procedure[]
+¦label:apoc-core[]

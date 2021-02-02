@@ -1,0 +1,5 @@
+¦xref::overview/apoc.algo/apoc.algo.aStar.adoc[apoc.algo.aStar icon:book[]] +
+
+ - run A* with relationship property name as cost function
+¦label:procedure[]
+¦label:apoc-core[]

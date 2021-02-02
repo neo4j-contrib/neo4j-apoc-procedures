@@ -7,11 +7,12 @@
 The spatial procedures enable geographic capabilities on your data, and complement the https://neo4j.com/docs/cypher-manual/current/functions/spatial/[spatial functions^] that come with Neo4j.
 More extensive Spatial functionality can be found in the https://neo4j-contrib.github.io/spatial/0.24-neo4j-3.1/index.html[Neo4j Spatial Library^].
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData | look up geographic location of location from a geocoding service (the default one is OpenStreetMap)
-| CALL apoc.spatial.reverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description | look up address from latitude and longitude from a geocoding service (the default one is OpenStreetMap)
-| CALL apoc.spatial.sortPathsByDistance(Collection<Path>) YIELD path, distance | sort a given collection of paths by geographic distance based on lat/long properties on the path nodes
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.spatial.geocode.adoc[]
+include::example$generated-documentation/apoc.spatial.reverseGeocode.adoc[]
+include::example$generated-documentation/apoc.spatial.sortByDistance.adoc[]
 |===
 
 

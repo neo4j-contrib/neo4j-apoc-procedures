@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.decapitalize.adoc[apoc.text.decapitalize icon:book[]] +
+
+ - decapitalize the first letter of the word
+¦label:function[]
+¦label:apoc-core[]

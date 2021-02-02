@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.union.adoc[apoc.coll.union icon:book[]] +
+
+ - creates the distinct union of the 2 lists
+¦label:function[]
+¦label:apoc-core[]

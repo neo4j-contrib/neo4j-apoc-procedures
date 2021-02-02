@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.bytes.adoc[apoc.text.bytes icon:book[]] +
+
+ - return bytes of the text
+¦label:function[]
+¦label:apoc-core[]

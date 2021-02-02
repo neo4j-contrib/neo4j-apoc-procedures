@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.charAt.adoc[apoc.text.charAt icon:book[]] +
+
+ - the decimal value of the character at the given index
+¦label:function[]
+¦label:apoc-core[]

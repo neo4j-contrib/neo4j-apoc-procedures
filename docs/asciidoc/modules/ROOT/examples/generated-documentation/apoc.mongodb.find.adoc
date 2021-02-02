@@ -1,0 +1,5 @@
+¦xref::overview/apoc.mongodb/apoc.mongodb.find.adoc[apoc.mongodb.find icon:book[]] +
+
+ - perform a find,project,sort operation on mongodb collection
+¦label:procedure[]
+¦label:apoc-full[]

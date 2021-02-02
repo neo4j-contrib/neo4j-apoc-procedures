@@ -1,0 +1,5 @@
+¦xref::overview/apoc.map/apoc.map.fromValues.adoc[apoc.map.fromValues icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

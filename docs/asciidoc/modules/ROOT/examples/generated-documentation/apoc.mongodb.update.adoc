@@ -1,0 +1,5 @@
+¦xref::overview/apoc.mongodb/apoc.mongodb.update.adoc[apoc.mongodb.update icon:book[]] +
+
+ - updates the given documents from the mongodb collection and returns the number of affected documents
+¦label:procedure[]
+¦label:apoc-full[]

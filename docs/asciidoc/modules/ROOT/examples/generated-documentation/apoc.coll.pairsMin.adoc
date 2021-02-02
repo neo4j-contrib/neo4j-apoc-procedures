@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.pairsMin.adoc[apoc.coll.pairsMin icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

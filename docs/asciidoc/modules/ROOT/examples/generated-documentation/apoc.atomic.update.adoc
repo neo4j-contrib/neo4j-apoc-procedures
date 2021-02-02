@@ -1,0 +1,5 @@
+¦xref::overview/apoc.atomic/apoc.atomic.update.adoc[apoc.atomic.update icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

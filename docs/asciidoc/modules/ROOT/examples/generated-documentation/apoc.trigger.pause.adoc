@@ -1,0 +1,5 @@
+¦xref::overview/apoc.trigger/apoc.trigger.pause.adoc[apoc.trigger.pause icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

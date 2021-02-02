@@ -1,0 +1,5 @@
+¦xref::overview/apoc.map/apoc.map.setPairs.adoc[apoc.map.setPairs icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

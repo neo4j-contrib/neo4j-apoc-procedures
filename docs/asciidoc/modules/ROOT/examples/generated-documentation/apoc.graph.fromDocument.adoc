@@ -1,0 +1,5 @@
+¦xref::overview/apoc.graph/apoc.graph.fromDocument.adoc[apoc.graph.fromDocument icon:book[]] +
+
+ - transform JSON documents into graph structures
+¦label:procedure[]
+¦label:apoc-core[]

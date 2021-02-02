@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.indexesOf.adoc[apoc.text.indexesOf icon:book[]] +
+
+ - finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.
+¦label:function[]
+¦label:apoc-core[]

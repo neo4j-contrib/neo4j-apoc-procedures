@@ -1,16 +1,68 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.load.csv¦apoc.load.csv(url :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, list :: LIST? OF ANY?, strings :: LIST? OF STRING?, map :: MAP?, stringMap :: MAP?)¦apoc.load.csv('url',\{config}) YIELD lineNo, list, map - load CSV fom URL as stream of values,
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.load/apoc.load.adoc[apoc.load.csv icon:book[]]
+
+apoc.load.csv('url',\{config}) YIELD lineNo, list, map - load CSV fom URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
-¦procedure¦apoc.load.driver¦apoc.load.driver(driverClass :: STRING?) :: VOID¦apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database
-¦procedure¦apoc.load.html¦apoc.load.html(url :: STRING?, query = {} :: MAP?, config = {} :: MAP?) :: (value :: MAP?)¦apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map
-¦procedure¦apoc.load.jdbc¦apoc.load.jdbc(jdbc :: STRING?, tableOrSql :: STRING?, params = [] :: LIST? OF ANY?, config = {} :: MAP?) :: (row :: MAP?)¦apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement
-¦procedure¦apoc.load.jdbcParams¦apoc.load.jdbcParams(jdbc :: STRING?, sql :: STRING?, params :: LIST? OF ANY?, config = {} :: MAP?) :: (row :: MAP?)¦deprecated - please use: apoc.load.jdbc('key or url','',[params]) YIELD row - load from relational database, from a sql statement with parameters
-¦procedure¦apoc.load.jdbcUpdate¦apoc.load.jdbcUpdate(jdbc :: STRING?, query :: STRING?, params = [] :: LIST? OF ANY?, config = {} :: MAP?) :: (row :: MAP?)¦apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - update relational database, from a SQL statement with optional parameters
-¦procedure¦apoc.load.json¦apoc.load.json(url :: STRING?, path =  :: STRING?, config = {} :: MAP?) :: (value :: MAP?)¦apoc.load.json('url',path, config) YIELD value -  import JSON as stream of values if the JSON was an array or a single value if it was a map
-¦procedure¦apoc.load.jsonArray¦apoc.load.jsonArray(url :: STRING?, path =  :: STRING?) :: (value :: ANY?)¦apoc.load.jsonArray('url') YIELD value - load array from JSON URL (e.g. web-api) to import JSON as stream of values
-¦procedure¦apoc.load.jsonParams¦apoc.load.jsonParams(urlOrKey :: STRING?, headers :: MAP?, payload :: STRING?, path =  :: STRING?, config = {} :: MAP?) :: (value :: MAP?)¦apoc.load.jsonParams('url',{header:value},payload, config) YIELD value - load from JSON URL (e.g. web-api) while sending headers / payload to import JSON as stream of values if the JSON was an array or a single value if it was a map
-¦procedure¦apoc.load.ldap¦apoc.load.ldap(connection :: ANY?, search :: MAP?) :: (entry :: MAP?)¦apoc.load.ldap("key" or \{connectionMap},\{searchMap}) Load entries from an ldap source (yield entry)
-¦procedure¦apoc.load.xls¦apoc.load.xls(url :: STRING?, selector :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, list :: LIST? OF ANY?, map :: MAP?)¦apoc.load.xls('url','selector',\{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.adoc[apoc.load.driver icon:book[]]
+
+apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.adoc[apoc.load.html icon:book[]]
+
+apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.adoc[apoc.load.jdbc icon:book[]]
+
+apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.adoc[apoc.load.jdbcParams icon:book[]]
+
+deprecated - please use: apoc.load.jdbc('key or url','',[params]) YIELD row - load from relational database, from a sql statement with parameters
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.adoc[apoc.load.jdbcUpdate icon:book[]]
+
+apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - update relational database, from a SQL statement with optional parameters
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.adoc[apoc.load.json icon:book[]]
+
+apoc.load.json('url',path, config) YIELD value -  import JSON as stream of values if the JSON was an array or a single value if it was a map
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.load/apoc.load.adoc[apoc.load.jsonArray icon:book[]]
+
+apoc.load.jsonArray('url') YIELD value - load array from JSON URL (e.g. web-api) to import JSON as stream of values
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.load/apoc.load.adoc[apoc.load.jsonParams icon:book[]]
+
+apoc.load.jsonParams('url',{header:value},payload, config) YIELD value - load from JSON URL (e.g. web-api) while sending headers / payload to import JSON as stream of values if the JSON was an array or a single value if it was a map
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.load/apoc.load.adoc[apoc.load.ldap icon:book[]]
+
+apoc.load.ldap("key" or \{connectionMap},\{searchMap}) Load entries from an ldap source (yield entry)
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.adoc[apoc.load.xls icon:book[]]
+
+apoc.load.xls('url','selector',\{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
  config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false, dateFormat:'iso_date', dateParse:['dd-MM-yyyy']}}
-¦procedure¦apoc.load.xml¦apoc.load.xml(url :: STRING?, path = / :: STRING?, config = {} :: MAP?, simple = false :: BOOLEAN?) :: (value :: MAP?)¦apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.
-¦procedure¦apoc.load.xmlSimple¦apoc.load.xmlSimple(url :: STRING?) :: (value :: MAP?)¦apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _children fields. This method does intentionally not work with XML mixed content.
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.adoc[apoc.load.xml icon:book[]]
+
+apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.load/apoc.load.adoc[apoc.load.xmlSimple icon:book[]]
+
+apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _children fields. This method does intentionally not work with XML mixed content.
+|label:procedure[]
+|label:apoc-core[]

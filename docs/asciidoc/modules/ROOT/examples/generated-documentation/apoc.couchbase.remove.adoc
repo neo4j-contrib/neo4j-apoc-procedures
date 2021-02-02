@@ -1,0 +1,5 @@
+¦xref::overview/apoc.couchbase/apoc.couchbase.remove.adoc[apoc.couchbase.remove icon:book[]] +
+
+ - remove the couchbase json document identified by its unique ID.
+¦label:procedure[]
+¦label:apoc-full[]

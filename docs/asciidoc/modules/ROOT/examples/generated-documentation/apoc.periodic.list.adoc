@@ -1,0 +1,5 @@
+¦xref::overview/apoc.periodic/apoc.periodic.list.adoc[apoc.periodic.list icon:book[]] +
+
+ - list all jobs
+¦label:procedure[]
+¦label:apoc-core[]

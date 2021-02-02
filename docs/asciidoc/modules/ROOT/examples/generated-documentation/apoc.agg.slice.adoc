@@ -1,0 +1,5 @@
+¦xref::overview/apoc.agg/apoc.agg.slice.adoc[apoc.agg.slice icon:book[]] +
+
+ - returns subset of non-null values, start is 0 based and length can be -1
+¦label:function[]
+¦label:apoc-core[]

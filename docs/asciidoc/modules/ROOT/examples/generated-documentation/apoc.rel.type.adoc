@@ -1,0 +1,5 @@
+¦xref::overview/apoc.rel/apoc.rel.type.adoc[apoc.rel.type icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

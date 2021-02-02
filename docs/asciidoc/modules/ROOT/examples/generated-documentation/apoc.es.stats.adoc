@@ -1,0 +1,5 @@
+¦xref::overview/apoc.es/apoc.es.stats.adoc[apoc.es.stats icon:book[]] +
+
+ - elastic search statistics
+¦label:procedure[]
+¦label:apoc-full[]

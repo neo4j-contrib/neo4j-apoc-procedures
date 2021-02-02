@@ -1,0 +1,5 @@
+¦xref::overview/apoc.cypher/apoc.cypher.runFirstColumn.adoc[apoc.cypher.runFirstColumn icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

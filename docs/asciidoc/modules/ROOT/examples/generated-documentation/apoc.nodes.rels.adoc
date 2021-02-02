@@ -1,0 +1,5 @@
+¦xref::overview/apoc.nodes/apoc.nodes.rels.adoc[apoc.nodes.rels icon:book[]] +
+
+ - quickly returns all relationships with these ids
+¦label:procedure[]
+¦label:apoc-core[]

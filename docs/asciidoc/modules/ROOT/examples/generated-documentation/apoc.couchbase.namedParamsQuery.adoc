@@ -1,0 +1,5 @@
+¦xref::overview/apoc.couchbase/apoc.couchbase.namedParamsQuery.adoc[apoc.couchbase.namedParamsQuery icon:book[]] +
+
+ - executes a N1QL statement with named parameters.
+¦label:procedure[]
+¦label:apoc-full[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.cypher/apoc.cypher.parallel2.adoc[apoc.cypher.parallel2 icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-full[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.xml/apoc.xml.parse.adoc[apoc.xml.parse icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

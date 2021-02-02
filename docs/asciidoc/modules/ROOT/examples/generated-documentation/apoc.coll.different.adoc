@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.different.adoc[apoc.coll.different icon:book[]] +
+
+ - returns true if values are different
+¦label:function[]
+¦label:apoc-core[]

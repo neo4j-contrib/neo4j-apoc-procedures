@@ -1,0 +1,5 @@
+¦xref::overview/apoc.warmup/apoc.warmup.run.adoc[apoc.warmup.run icon:book[]] +
+
+ - quickly loads all nodes and rels into memory by skipping one page at a time
+¦label:procedure[]
+¦label:apoc-core[]

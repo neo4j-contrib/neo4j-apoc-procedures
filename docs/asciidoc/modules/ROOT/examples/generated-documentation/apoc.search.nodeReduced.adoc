@@ -1,0 +1,5 @@
+¦xref::overview/apoc.search/apoc.search.nodeReduced.adoc[apoc.search.nodeReduced icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

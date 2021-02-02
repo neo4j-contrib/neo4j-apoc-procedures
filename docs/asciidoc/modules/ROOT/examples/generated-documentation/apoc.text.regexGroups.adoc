@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.regexGroups.adoc[apoc.text.regexGroups icon:book[]] +
+
+ - return all matching groups of the regex on the given text.
+¦label:function[]
+¦label:apoc-core[]

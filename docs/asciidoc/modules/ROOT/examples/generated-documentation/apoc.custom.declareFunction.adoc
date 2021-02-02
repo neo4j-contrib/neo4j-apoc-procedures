@@ -1,0 +1,5 @@
+¦xref::overview/apoc.custom/apoc.custom.declareFunction.adoc[apoc.custom.declareFunction icon:book[]] +
+
+ - register a custom cypher function
+¦label:procedure[]
+¦label:apoc-full[]

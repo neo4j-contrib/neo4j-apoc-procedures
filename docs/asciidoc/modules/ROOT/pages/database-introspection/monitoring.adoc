@@ -3,15 +3,14 @@
 :description: This section describes procedures that can be used to monitor the database.
 
 
-
-
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| apoc.monitor.ids | node and relationships-ids in total and in use
-| apoc.monitor.kernel | store information such as kernel version, start time, read-only, database-name, store-log-version etc.
-| apoc.monitor.store | store size information for the different types of stores
-| apoc.monitor.tx | number of transactions total,opened,committed,concurrent,rolled-back,last-tx-id
-| apoc.monitor.locks(minWaitTime long) | db locking information such as avertedDeadLocks, lockCount, contendedLockCount and contendedLocks etc. (enterprise)
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.monitor.ids.adoc[]
+include::example$generated-documentation/apoc.monitor.kernel.adoc[]
+include::example$generated-documentation/apoc.monitor.store.adoc[]
+include::example$generated-documentation/apoc.monitor.tx.adoc[]
+// include::example$generated-documentation/apoc.monitor.locks.adoc[]
 |===
 
 

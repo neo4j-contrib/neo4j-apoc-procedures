@@ -1,0 +1,5 @@
+¦xref::overview/apoc.map/apoc.map.removeKey.adoc[apoc.map.removeKey icon:book[]] +
+
+ - remove the key from the map (recursively if recursive is true)
+¦label:function[]
+¦label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.export/apoc.export.xls.query.adoc[apoc.export.xls.query icon:book[]] +
+
+ - exports results from the cypher statement as xls to the provided file
+¦label:procedure[]
+¦label:apoc-full[]

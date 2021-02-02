@@ -1,0 +1,5 @@
+¦xref::overview/apoc.number/apoc.number.exact.add.adoc[apoc.number.exact.add icon:book[]] +
+
+ - return the sum's result of two large numbers
+¦label:function[]
+¦label:apoc-core[]

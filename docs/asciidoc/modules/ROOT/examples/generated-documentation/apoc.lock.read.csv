@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.lock.read.nodes¦apoc.lock.read.nodes(nodes :: LIST? OF NODE?) :: VOID¦apoc.lock.read.nodes([nodes]) acquires a read lock on the given nodes
-¦procedure¦apoc.lock.read.rels¦apoc.lock.read.rels(rels :: LIST? OF RELATIONSHIP?) :: VOID¦apoc.lock.read.rels([relationships]) acquires a read lock on the given relationship
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.lock.read/apoc.lock.adoc[apoc.lock.read.nodes icon:book[]]
+
+apoc.lock.read.nodes([nodes]) acquires a read lock on the given nodes
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.lock.read/apoc.lock.adoc[apoc.lock.read.rels icon:book[]]
+
+apoc.lock.read.rels([relationships]) acquires a read lock on the given relationship
+|label:procedure[]
+|label:apoc-core[]

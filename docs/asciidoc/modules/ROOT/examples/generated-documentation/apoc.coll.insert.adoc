@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.insert.adoc[apoc.coll.insert icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

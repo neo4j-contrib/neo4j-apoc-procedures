@@ -1,24 +1,20 @@
-
- [[virtual-graph]]
 = Virtual Graph
 :description: This section describes procedures that create virtual graphs from Cypher queries or JSON documents.
-
-
 
 Create a graph object (map) from information that's passed in.
 
 Its basic structure is: `+{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}+`
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| apoc.graph.from(data,'name',\{properties}) yield graph | creates a virtual graph object for later processing it tries its best to extract the graph information from the data you pass in
-| apoc.graph.fromData([nodes],[relationships],'name',\{properties}) | creates a virtual graph object for later processing
-| apoc.graph.fromPaths(path,'name',\{properties}) | creates a virtual graph object for later processing
-| apoc.graph.fromPaths([paths],'name',\{properties}) | creates a virtual graph object for later processing
-| apoc.graph.fromDB('name',\{properties}) | creates a virtual graph object for later processing
-| apoc.graph.fromCypher('statement',\{params},'name',\{properties}) | creates a virtual graph object for later processing
-| apoc.graph.fromDocument(\{json},\{config}) | transform JSON documents into graph structures
-| apoc.graph.validateDocument(\{json},\{config}) | validate the JSON and returns information about required fields violations
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.graph.from.adoc[]
+include::example$generated-documentation/apoc.graph.fromData.adoc[]
+include::example$generated-documentation/apoc.graph.fromPaths.adoc[]
+include::example$generated-documentation/apoc.graph.fromDB.adoc[]
+include::example$generated-documentation/apoc.graph.fromCypher.adoc[]
+include::example$generated-documentation/apoc.graph.fromDocument.adoc[]
+include::example$generated-documentation/apoc.graph.validateDocument.adoc[]
 |===
 
 == `apoc.graph.fromDocument`

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.export/apoc.export.json.graph.adoc[apoc.export.json.graph icon:book[]] +
+
+ - exports given graph object as json to the provided file
+¦label:procedure[]
+¦label:apoc-core[]

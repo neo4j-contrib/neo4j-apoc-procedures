@@ -1,0 +1,5 @@
+¦xref::overview/apoc.map/apoc.map.submap.adoc[apoc.map.submap icon:book[]] +
+
+ - returns submap for keys or throws exception if one of the key doesn't exist and no default value given at that position
+¦label:function[]
+¦label:apoc-core[]

@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.nlp.azure.entities.graph¦apoc.nlp.azure.entities.graph(source :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)¦Creates a (virtual) entity graph for provided text
-¦procedure¦apoc.nlp.azure.entities.stream¦apoc.nlp.azure.entities.stream(source :: ANY?, config = {} :: MAP?) :: (node :: NODE?, value :: MAP?, error :: MAP?)¦Provides a entity analysis for provided text
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.nlp.azure.entities/apoc.nlp.adoc[apoc.nlp.azure.entities.graph icon:book[]]
+
+Creates a (virtual) entity graph for provided text
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.nlp.azure.entities/apoc.nlp.adoc[apoc.nlp.azure.entities.stream icon:book[]]
+
+Provides a entity analysis for provided text
+|label:procedure[]
+|label:apoc-core[]

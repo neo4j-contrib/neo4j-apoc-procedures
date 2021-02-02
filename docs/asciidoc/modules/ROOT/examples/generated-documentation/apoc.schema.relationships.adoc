@@ -1,0 +1,5 @@
+¦xref::overview/apoc.schema/apoc.schema.relationships.adoc[apoc.schema.relationships icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

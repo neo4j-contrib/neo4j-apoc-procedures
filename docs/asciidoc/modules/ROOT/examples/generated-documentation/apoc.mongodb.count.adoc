@@ -1,0 +1,5 @@
+¦xref::overview/apoc.mongodb/apoc.mongodb.count.adoc[apoc.mongodb.count icon:book[]] +
+
+ - perform a find operation on mongodb collection
+¦label:procedure[]
+¦label:apoc-full[]

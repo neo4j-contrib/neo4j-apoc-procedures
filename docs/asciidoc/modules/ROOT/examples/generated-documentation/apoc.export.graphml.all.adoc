@@ -1,0 +1,5 @@
+¦xref::overview/apoc.export/apoc.export.graphml.all.adoc[apoc.export.graphml.all icon:book[]] +
+
+ - exports whole database as graphml to the provided file
+¦label:procedure[]
+¦label:apoc-core[]

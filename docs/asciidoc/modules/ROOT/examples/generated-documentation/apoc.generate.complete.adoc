@@ -1,0 +1,5 @@
+¦xref::overview/apoc.generate/apoc.generate.complete.adoc[apoc.generate.complete icon:book[]] +
+
+ - generates a random complete graph
+¦label:procedure[]
+¦label:apoc-full[]

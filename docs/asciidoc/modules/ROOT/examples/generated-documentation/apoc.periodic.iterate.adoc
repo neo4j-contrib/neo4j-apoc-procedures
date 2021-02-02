@@ -1,0 +1,5 @@
+¦xref::overview/apoc.periodic/apoc.periodic.iterate.adoc[apoc.periodic.iterate icon:book[]] +
+
+ - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows
+¦label:procedure[]
+¦label:apoc-core[]

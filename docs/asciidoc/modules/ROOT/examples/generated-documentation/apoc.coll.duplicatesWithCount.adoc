@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.duplicatesWithCount.adoc[apoc.coll.duplicatesWithCount icon:book[]] +
+
+ - returns a list of duplicate items in the collection and their count, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)
+¦label:function[]
+¦label:apoc-core[]

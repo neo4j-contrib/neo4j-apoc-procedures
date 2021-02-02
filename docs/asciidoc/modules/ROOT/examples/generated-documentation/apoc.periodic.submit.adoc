@@ -1,0 +1,5 @@
+¦xref::overview/apoc.periodic/apoc.periodic.submit.adoc[apoc.periodic.submit icon:book[]] +
+
+ - submit a one-off background statement
+¦label:procedure[]
+¦label:apoc-core[]

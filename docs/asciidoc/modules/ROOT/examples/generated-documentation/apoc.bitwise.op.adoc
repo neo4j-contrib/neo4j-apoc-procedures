@@ -1,0 +1,5 @@
+¦xref::overview/apoc.bitwise/apoc.bitwise.op.adoc[apoc.bitwise.op icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

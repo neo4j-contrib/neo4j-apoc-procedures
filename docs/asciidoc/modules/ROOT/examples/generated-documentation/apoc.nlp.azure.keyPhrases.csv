@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.nlp.azure.keyPhrases.graph¦apoc.nlp.azure.keyPhrases.graph(source :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)¦Creates a (virtual) key phrase graph for provided text
-¦procedure¦apoc.nlp.azure.keyPhrases.stream¦apoc.nlp.azure.keyPhrases.stream(source :: ANY?, config = {} :: MAP?) :: (node :: NODE?, value :: MAP?, error :: MAP?)¦Provides a entity analysis for provided text
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.nlp.azure.keyPhrases/apoc.nlp.adoc[apoc.nlp.azure.keyPhrases.graph icon:book[]]
+
+Creates a (virtual) key phrase graph for provided text
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.nlp.azure.keyPhrases/apoc.nlp.adoc[apoc.nlp.azure.keyPhrases.stream icon:book[]]
+
+Provides a entity analysis for provided text
+|label:procedure[]
+|label:apoc-core[]

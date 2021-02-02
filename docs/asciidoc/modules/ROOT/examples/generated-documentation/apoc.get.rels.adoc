@@ -1,0 +1,5 @@
+¦xref::overview/apoc.get/apoc.get.rels.adoc[apoc.get.rels icon:book[]] +
+
+ - quickly returns all relationships with these id's
+¦label:procedure[]
+¦label:apoc-full[]

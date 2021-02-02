@@ -1,0 +1,5 @@
+¦xref::overview/apoc.date/apoc.date.fromISO8601.adoc[apoc.date.fromISO8601 icon:book[]] +
+
+ - return number representation of time in EPOCH format
+¦label:function[]
+¦label:apoc-core[]

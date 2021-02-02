@@ -1,0 +1,5 @@
+¦xref::overview/apoc.meta/apoc.meta.relTypeProperties.adoc[apoc.meta.relTypeProperties icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

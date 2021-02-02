@@ -6,9 +6,10 @@
 
 The available procedure is described in the table below:
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| call apoc.refactor.extractNode([rel1,rel2,...], [labels], 'OUT','IN') | extract node from relationships
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.refactor.extractNode.adoc[]
 |===
 
 == Example Usage

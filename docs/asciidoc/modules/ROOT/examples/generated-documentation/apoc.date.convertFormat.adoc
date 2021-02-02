@@ -1,0 +1,5 @@
+¦xref::overview/apoc.date/apoc.date.convertFormat.adoc[apoc.date.convertFormat icon:book[]] +
+
+ - convert a String of one date format into a String of another date format.
+¦label:function[]
+¦label:apoc-core[]

@@ -3,15 +3,15 @@
 :description: This section describes procedures that can be used to run procedures in the background or asynchronously.
 
 
-
-
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| CALL apoc.periodic.list() | list all jobs
-| CALL apoc.periodic.submit('name',statement) | submit a one-off background statement
-| CALL apoc.periodic.schedule('name',statement,repeat-time-in-seconds) | submit a repeatedly-called background statement
-| CALL apoc.periodic.countdown('name',statement,delay-in-seconds) | submit a repeatedly-called background statement until it returns 0
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.periodic.list.adoc[]
+include::example$generated-documentation/apoc.periodic.submit.adoc[]
+// include::example$generated-documentation/apoc.periodic.schedule.adoc[]
+include::example$generated-documentation/apoc.periodic.countdown.adoc[]
 |===
+
 
 * there are also static methods `Jobs.submit`, and `Jobs.schedule` to be used from other procedures
 * jobs list is checked / cleared every 10s for finished jobs

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.meta/apoc.meta.cypher.type.adoc[apoc.meta.cypher.type icon:book[]] +
+
+ - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION)
+¦label:function[]
+¦label:apoc-core[]

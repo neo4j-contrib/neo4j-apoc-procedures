@@ -1,0 +1,5 @@
+¦xref::overview/apoc.couchbase/apoc.couchbase.query.adoc[apoc.couchbase.query icon:book[]] +
+
+ - executes a plain un-parameterized N1QL statement.
+¦label:procedure[]
+¦label:apoc-full[]

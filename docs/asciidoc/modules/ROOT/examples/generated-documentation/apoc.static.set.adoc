@@ -1,0 +1,5 @@
+¦xref::overview/apoc.static/apoc.static.set.adoc[apoc.static.set icon:book[]] +
+
+ - stores value under key for server lifetime storage, returns previously stored or configured value
+¦label:procedure[]
+¦label:apoc-full[]

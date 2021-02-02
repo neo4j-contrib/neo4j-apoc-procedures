@@ -52,7 +52,7 @@ public class Date {
 	);
 
 	@UserFunction
-	@Description("toYears(timestamp) or toYears(date[,format]) converts timestamp into floating point years")
+	@Description("toYears(timestamp) or toYears(date[,format]) - converts timestamp into floating point years")
 	public double toYears(@Name("value") Object value, @Name(value = "format", defaultValue = DEFAULT_FORMAT) String format) {
 		if (value instanceof Number) {
 			long time = ((Number) value).longValue();
@@ -142,32 +142,32 @@ public class Date {
 	}
 
 	@UserFunction
-	@Description("apoc.date.format(12345,('ms|s|m|h|d'),('yyyy-MM-dd HH:mm:ss zzz'),('TZ')) get string representation of time value optionally using the specified unit (default ms) using specified format (default ISO) and specified time zone (default current TZ)")
+	@Description("apoc.date.format(12345,('ms|s|m|h|d'),('yyyy-MM-dd HH:mm:ss zzz'),('TZ')) - get string representation of time value optionally using the specified unit (default ms) using specified format (default ISO) and specified time zone (default current TZ)")
 	public String format(final @Name("time") Long time, @Name(value = "unit", defaultValue = "ms") String unit, @Name(value = "format",defaultValue = DEFAULT_FORMAT) String format, @Name(value = "timezone",defaultValue = "") String timezone) {
 		return time == null ? null : parse(unit(unit).toMillis(time), format, timezone);
 	}
 
 	@UserFunction
-	@Description("apoc.date.toISO8601(12345,('ms|s|m|h|d') return string representation of time in ISO8601 format")
+	@Description("apoc.date.toISO8601(12345,('ms|s|m|h|d') - return string representation of time in ISO8601 format")
 	public String toISO8601(final @Name("time") Long time, @Name(value = "unit", defaultValue = "ms") String unit) {
 		return time == null ? null : parse(unit(unit).toMillis(time), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", null);
 	}
 
 	@UserFunction
-	@Description("apoc.date.fromISO8601('yyyy-MM-ddTHH:mm:ss.SSSZ') return number representation of time in EPOCH format")
+	@Description("apoc.date.fromISO8601('yyyy-MM-ddTHH:mm:ss.SSSZ') - return number representation of time in EPOCH format")
 	public Long fromISO8601(final @Name("time") String time) {
 		return time == null ? null : Instant.parse(time).toEpochMilli();
 	}
 
 	@UserFunction
-	@Description("apoc.date.parse('2012-12-23','ms|s|m|h|d','yyyy-MM-dd') parse date string using the specified format into the specified time unit")
+	@Description("apoc.date.parse('2012-12-23','ms|s|m|h|d','yyyy-MM-dd') - parse date string using the specified format into the specified time unit")
 	public Long parse(@Name("time") String time, @Name(value = "unit", defaultValue = "ms") String unit, @Name(value = "format",defaultValue = DEFAULT_FORMAT) String format, final @Name(value = "timezone", defaultValue = "") String timezone) {
 		Long value = parseOrThrow(time, getFormat(format, timezone));
 		return value == null ? null : unit(unit).convert(value, TimeUnit.MILLISECONDS);
 	}
 
 	@UserFunction(deprecatedBy = "apoc.temporal.toZonedTemporal")
-	@Description("apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') parse date string using the specified format to specified timezone")
+	@Description("apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') - parse date string using the specified format to specified timezone")
 	@Deprecated
 	public ZonedDateTime parseAsZonedDateTime(@Name("time") String time, @Name(value = "format", defaultValue = DEFAULT_FORMAT) String format, final @Name(value = "timezone", defaultValue = "UTC") String timezone) {
 		Long value = parseOrThrow(time, getFormat(format, timezone));
@@ -175,19 +175,19 @@ public class Date {
 	}
 
 	@UserFunction
-	@Description("apoc.date.systemTimezone() returns the system timezone display name")
+	@Description("apoc.date.systemTimezone() - returns the system timezone display name")
 	public String systemTimezone() {
 		return TimeZone.getDefault().getID();
 	}
 
 	@UserFunction
-	@Description("apoc.date.convert(12345, 'ms', 'd') convert a timestamp in one time unit into one of a different time unit")
+	@Description("apoc.date.convert(12345, 'ms', 'd') - convert a timestamp in one time unit into one of a different time unit")
 	public Long convert(@Name("time") long time, @Name(value = "unit") String unit, @Name(value = "toUnit") String toUnit) {
 		return unit(toUnit).convert(time, unit(unit));
 	}
 
 	@UserFunction
-	@Description("apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time', 'iso_date_time') convert a String of one date format into a String of another date format.")
+	@Description("apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time', 'iso_date_time') - convert a String of one date format into a String of another date format.")
 	public String convertFormat( @Name( "temporal" ) String input, @Name( value = "currentFormat" ) String currentFormat, @Name( value = "convertTo" , defaultValue = "yyyy-MM-dd" ) String convertTo )
 	{
 		if (input == null || input.isEmpty())
@@ -202,7 +202,7 @@ public class Date {
 	}
 
 	@UserFunction
-	@Description("apoc.date.add(12345, 'ms', -365, 'd') given a timestamp in one time unit, adds a value of the specified time unit")
+	@Description("apoc.date.add(12345, 'ms', -365, 'd') - given a timestamp in one time unit, adds a value of the specified time unit")
 	public Long add(@Name("time") long time, @Name(value = "unit") String unit, @Name(value = "addValue") long addValue, @Name(value = "addUnit") String addUnit) {
 		long valueToAdd = unit(unit).convert(addValue, unit(addUnit));
 		return time + valueToAdd;

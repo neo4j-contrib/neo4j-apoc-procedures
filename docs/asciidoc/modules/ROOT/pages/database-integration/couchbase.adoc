@@ -7,19 +7,17 @@
 
 // tag::couchbase[]
 
-[cols="3m,2"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| CALL apoc.couchbase.get(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content | Retrieves a couchbase json document by its unique ID
-| CALL apoc.couchbase.exists(hostOrKey, bucket, documentId) yield value | Check whether a couchbase json document with the given ID does exist
-| CALL apoc.couchbase.insert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Insert a couchbase json document with its unique ID
-| CALL apoc.couchbase.upsert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Insert or overwrite a couchbase json document with its unique ID
-| CALL apoc.couchbase.append(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Append a couchbase json document to an existing one
-| CALL apoc.couchbase.prepend(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Prepend a couchbase json document to an existing one
-| CALL apoc.couchbase.remove(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content | Remove the couchbase json document identified by its unique ID
-| CALL apoc.couchbase.replace(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Replace the content of the couchbase json document identified by its unique ID.
-| CALL apoc.couchbase.query(hostOrKey, bucket, statement) yield queryResult | Executes a plain un-parameterized N1QL statement.
-| CALL apoc.couchbase.posParamsQuery(hostOrKey, bucket, statement, params) yield queryResult | Executes a N1QL statement with positional parameters.
-| CALL apoc.couchbase.namedParamsQuery(hostOrKey, bucket, statement, paramNames, paramValues) yield queryResult | Executes a N1QL statement with named parameters.
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.couchbase.get.adoc[]
+include::example$generated-documentation/apoc.couchbase.exists.adoc[]
+include::example$generated-documentation/apoc.couchbase.upsert.adoc[]
+include::example$generated-documentation/apoc.couchbase.append.adoc[]
+include::example$generated-documentation/apoc.couchbase.prepend.adoc[]
+include::example$generated-documentation/apoc.couchbase.remove.adoc[]
+include::example$generated-documentation/apoc.couchbase.replace.adoc[]
+include::example$generated-documentation/apoc.couchbase.query.adoc[]
 |===
 
 Copy these jars into the plugins directory:

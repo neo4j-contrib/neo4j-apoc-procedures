@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.contains.adoc[apoc.coll.contains icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

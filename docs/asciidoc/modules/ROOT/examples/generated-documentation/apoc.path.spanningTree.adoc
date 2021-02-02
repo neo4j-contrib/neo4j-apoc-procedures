@@ -1,0 +1,5 @@
+¦xref::overview/apoc.path/apoc.path.spanningTree.adoc[apoc.path.spanningTree icon:book[]] +
+
+ - expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters
+¦label:procedure[]
+¦label:apoc-core[]

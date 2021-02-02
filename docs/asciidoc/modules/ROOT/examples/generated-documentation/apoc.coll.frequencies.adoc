@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.frequencies.adoc[apoc.coll.frequencies icon:book[]] +
+
+ - returns a list of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}, {item:abc, count:1}]`)
+¦label:function[]
+¦label:apoc-core[]

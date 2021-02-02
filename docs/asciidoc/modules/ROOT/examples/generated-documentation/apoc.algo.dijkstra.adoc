@@ -1,0 +1,5 @@
+¦xref::overview/apoc.algo/apoc.algo.dijkstra.adoc[apoc.algo.dijkstra icon:book[]] +
+
+ - run dijkstra with relationship property name as cost function
+¦label:procedure[]
+¦label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.hexValue.adoc[apoc.text.hexValue icon:book[]] +
+
+ - the hex value string of the given number
+¦label:function[]
+¦label:apoc-core[]

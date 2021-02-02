@@ -1,0 +1,5 @@
+¦xref::overview/apoc.nodes/apoc.nodes.relationship.types.adoc[apoc.nodes.relationship.types icon:book[]] +
+
+ - returns a list of maps where each one has two fields: `node` which is the node subject of the analysis and `types` which is a list of distinct relationship types
+¦label:function[]
+¦label:apoc-core[]

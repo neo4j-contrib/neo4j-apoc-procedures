@@ -1,0 +1,5 @@
+¦xref::overview/apoc.custom/apoc.custom.declareProcedure.adoc[apoc.custom.declareProcedure icon:book[]] +
+
+ - register a custom cypher procedure
+¦label:procedure[]
+¦label:apoc-full[]

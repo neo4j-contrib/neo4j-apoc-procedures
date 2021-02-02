@@ -1,0 +1,5 @@
+¦xref::overview/apoc.load/apoc.load.xml.adoc[apoc.load.xml icon:book[]] +
+
+ - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.
+¦label:procedure[]
+¦label:apoc-core[]

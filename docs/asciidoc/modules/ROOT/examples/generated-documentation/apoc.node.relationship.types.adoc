@@ -1,0 +1,5 @@
+¦xref::overview/apoc.node/apoc.node.relationship.types.adoc[apoc.node.relationship.types icon:book[]] +
+
+ - returns a list of distinct relationship types
+¦label:function[]
+¦label:apoc-core[]

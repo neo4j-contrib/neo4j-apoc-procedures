@@ -1,0 +1,5 @@
+¦xref::overview/apoc.data/apoc.data.domain.adoc[apoc.data.domain icon:book[]] +
+
+ - extract the domain name from a url or an email address. If nothing was found, yield null.
+¦label:function[]
+¦label:apoc-core[]

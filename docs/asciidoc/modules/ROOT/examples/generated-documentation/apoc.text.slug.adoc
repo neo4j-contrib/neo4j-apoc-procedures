@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.slug.adoc[apoc.text.slug icon:book[]] +
+
+ - slug the text with the given delimiter
+¦label:function[]
+¦label:apoc-core[]

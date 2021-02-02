@@ -1,0 +1,5 @@
+¦xref::overview/apoc.es/apoc.es.get.adoc[apoc.es.get icon:book[]] +
+
+ - perform a GET operation on elastic search
+¦label:procedure[]
+¦label:apoc-full[]

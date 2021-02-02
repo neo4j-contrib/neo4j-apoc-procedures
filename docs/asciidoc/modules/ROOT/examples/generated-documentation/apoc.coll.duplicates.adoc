@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.duplicates.adoc[apoc.coll.duplicates icon:book[]] +
+
+ - returns a list of duplicate items in the collection
+¦label:function[]
+¦label:apoc-core[]

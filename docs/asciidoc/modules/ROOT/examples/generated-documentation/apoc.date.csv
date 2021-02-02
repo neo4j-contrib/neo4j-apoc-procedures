@@ -1,16 +1,76 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.date.expire¦apoc.date.expire(node :: NODE?, time :: INTEGER?, timeUnit :: STRING?) :: VOID¦CALL apoc.date.expire(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property
-¦procedure¦apoc.date.expireIn¦apoc.date.expireIn(node :: NODE?, timeDelta :: INTEGER?, timeUnit :: STRING?) :: VOID¦CALL apoc.date.expire.in(node,time,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
-¦function¦apoc.date.add¦apoc.date.add(time :: INTEGER?, unit :: STRING?, addValue :: INTEGER?, addUnit :: STRING?) :: (INTEGER?)¦apoc.date.add(12345, 'ms', -365, 'd') given a timestamp in one time unit, adds a value of the specified time unit
-¦function¦apoc.date.convert¦apoc.date.convert(time :: INTEGER?, unit :: STRING?, toUnit :: STRING?) :: (INTEGER?)¦apoc.date.convert(12345, 'ms', 'd') convert a timestamp in one time unit into one of a different time unit
-¦function¦apoc.date.convertFormat¦apoc.date.convertFormat(temporal :: STRING?, currentFormat :: STRING?, convertTo = yyyy-MM-dd :: STRING?) :: (STRING?)¦apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time', 'iso_date_time') convert a String of one date format into a String of another date format.
-¦function¦apoc.date.currentTimestamp¦apoc.date.currentTimestamp() :: (INTEGER?)¦apoc.date.currentTimestamp() - returns System.currentTimeMillis() at the time it was called. The value is current throughout transaction execution, and is different from Cypher’s timestamp() function, which does not update within a transaction.
-¦function¦apoc.date.field¦apoc.date.field(time :: INTEGER?, unit = d :: STRING?, timezone = UTC :: STRING?) :: (INTEGER?)¦apoc.date.field(12345,('ms|s|m|h|d|month|year'),('TZ')
-¦function¦apoc.date.fields¦apoc.date.fields(date :: STRING?, pattern = yyyy-MM-dd HH:mm:ss :: STRING?) :: (MAP?)¦apoc.date.fields('2012-12-23',('yyyy-MM-dd')) - return columns and a map representation of date parsed with the given format with entries for years,months,weekdays,days,hours,minutes,seconds,zoneid
-¦function¦apoc.date.format¦apoc.date.format(time :: INTEGER?, unit = ms :: STRING?, format = yyyy-MM-dd HH:mm:ss :: STRING?, timezone =  :: STRING?) :: (STRING?)¦apoc.date.format(12345,('ms|s|m|h|d'),('yyyy-MM-dd HH:mm:ss zzz'),('TZ')) get string representation of time value optionally using the specified unit (default ms) using specified format (default ISO) and specified time zone (default current TZ)
-¦function¦apoc.date.fromISO8601¦apoc.date.fromISO8601(time :: STRING?) :: (INTEGER?)¦apoc.date.fromISO8601('yyyy-MM-ddTHH:mm:ss.SSSZ') return number representation of time in EPOCH format
-¦function¦apoc.date.parse¦apoc.date.parse(time :: STRING?, unit = ms :: STRING?, format = yyyy-MM-dd HH:mm:ss :: STRING?, timezone =  :: STRING?) :: (INTEGER?)¦apoc.date.parse('2012-12-23','ms|s|m|h|d','yyyy-MM-dd') parse date string using the specified format into the specified time unit
-¦function¦apoc.date.parseAsZonedDateTime¦apoc.date.parseAsZonedDateTime(time :: STRING?, format = yyyy-MM-dd HH:mm:ss :: STRING?, timezone = UTC :: STRING?) :: (DATETIME?)¦apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') parse date string using the specified format to specified timezone
-¦function¦apoc.date.systemTimezone¦apoc.date.systemTimezone() :: (STRING?)¦apoc.date.systemTimezone() returns the system timezone display name
-¦function¦apoc.date.toISO8601¦apoc.date.toISO8601(time :: INTEGER?, unit = ms :: STRING?) :: (STRING?)¦apoc.date.toISO8601(12345,('ms|s|m|h|d') return string representation of time in ISO8601 format
-¦function¦apoc.date.toYears¦apoc.date.toYears(value :: ANY?, format = yyyy-MM-dd HH:mm:ss :: STRING?) :: (FLOAT?)¦toYears(timestamp) or toYears(date[,format]) converts timestamp into floating point years
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.expire icon:book[]]
+
+CALL apoc.date.expire(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.expireIn icon:book[]]
+
+CALL apoc.date.expire.in(node,time,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.add icon:book[]]
+
+apoc.date.add(12345, 'ms', -365, 'd') - given a timestamp in one time unit, adds a value of the specified time unit
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.convert icon:book[]]
+
+apoc.date.convert(12345, 'ms', 'd') - convert a timestamp in one time unit into one of a different time unit
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.convertFormat icon:book[]]
+
+apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time', 'iso_date_time') - convert a String of one date format into a String of another date format.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.currentTimestamp icon:book[]]
+
+apoc.date.currentTimestamp() - returns System.currentTimeMillis() at the time it was called. The value is current throughout transaction execution, and is different from Cypher’s timestamp() function, which does not update within a transaction.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.field icon:book[]]
+
+apoc.date.field(12345,('ms\|s\|m\|h\|d\|month\|year'),('TZ')
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.fields icon:book[]]
+
+apoc.date.fields('2012-12-23',('yyyy-MM-dd')) - return columns and a map representation of date parsed with the given format with entries for years,months,weekdays,days,hours,minutes,seconds,zoneid
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.format icon:book[]]
+
+apoc.date.format(12345,('ms\|s\|m\|h\|d'),('yyyy-MM-dd HH:mm:ss zzz'),('TZ')) - get string representation of time value optionally using the specified unit (default ms) using specified format (default ISO) and specified time zone (default current TZ)
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.fromISO8601 icon:book[]]
+
+apoc.date.fromISO8601('yyyy-MM-ddTHH:mm:ss.SSSZ') - return number representation of time in EPOCH format
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.parse icon:book[]]
+
+apoc.date.parse('2012-12-23','ms\|s\|m\|h\|d','yyyy-MM-dd') - parse date string using the specified format into the specified time unit
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.parseAsZonedDateTime icon:book[]]
+
+apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') - parse date string using the specified format to specified timezone
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.systemTimezone icon:book[]]
+
+apoc.date.systemTimezone() - returns the system timezone display name
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.toISO8601 icon:book[]]
+
+apoc.date.toISO8601(12345,('ms\|s\|m\|h\|d') - return string representation of time in ISO8601 format
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.date/apoc.date.adoc[apoc.date.toYears icon:book[]]
+
+toYears(timestamp) or toYears(date[,format]) - converts timestamp into floating point years
+|label:function[]
+|label:apoc-core[]

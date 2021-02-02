@@ -1,0 +1,5 @@
+¦xref::overview/apoc.graph/apoc.graph.validateDocument.adoc[apoc.graph.validateDocument icon:book[]] +
+
+ - validates the json, return the result of the validation
+¦label:procedure[]
+¦label:apoc-core[]

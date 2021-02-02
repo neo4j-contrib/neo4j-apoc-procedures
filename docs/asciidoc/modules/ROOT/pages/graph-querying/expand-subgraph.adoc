@@ -14,9 +14,10 @@ It allows fine grained control over the traversals that expand these subgraphs.
 
 The procedure is described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.path.subgraphAll.csv[]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.path.subgraphAll.adoc[]
 |===
 
 [[expand-subgraph-config]]

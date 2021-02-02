@@ -1,0 +1,5 @@
+¦xref::overview/apoc.metrics/apoc.metrics.list.adoc[apoc.metrics.list icon:book[]] +
+
+ - get a list of available metrics
+¦label:procedure[]
+¦label:apoc-full[]

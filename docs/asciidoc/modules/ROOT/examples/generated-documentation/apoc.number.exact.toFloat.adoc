@@ -1,0 +1,5 @@
+¦xref::overview/apoc.number/apoc.number.exact.toFloat.adoc[apoc.number.exact.toFloat icon:book[]] +
+
+ - return the Float value of a large number
+¦label:function[]
+¦label:apoc-core[]

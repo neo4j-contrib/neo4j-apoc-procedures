@@ -1,0 +1,5 @@
+¦xref::overview/apoc.merge/apoc.merge.node.adoc[apoc.merge.node icon:book[]] +
+
+ - merge nodes with dynamic labels, with support for setting properties ON CREATE or ON MATCH
+¦label:procedure[]
+¦label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.nlp/apoc.nlp.azure.entities.graph.adoc[apoc.nlp.azure.entities.graph icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

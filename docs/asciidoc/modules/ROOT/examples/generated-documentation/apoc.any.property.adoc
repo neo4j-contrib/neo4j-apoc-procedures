@@ -1,0 +1,5 @@
+¦xref::overview/apoc.any/apoc.any.property.adoc[apoc.any.property icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

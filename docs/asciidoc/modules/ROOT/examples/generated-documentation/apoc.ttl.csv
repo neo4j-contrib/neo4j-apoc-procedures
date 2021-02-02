@@ -1,4 +1,16 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.ttl.expire¦apoc.ttl.expire(node :: NODE?, time :: INTEGER?, timeUnit :: STRING?) :: VOID¦CALL apoc.ttl.expire(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property
-¦procedure¦apoc.ttl.expireIn¦apoc.ttl.expireIn(node :: NODE?, timeDelta :: INTEGER?, timeUnit :: STRING?) :: VOID¦CALL apoc.ttl.expireIn(node,timeDelta,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
-¦function¦apoc.ttl.config¦apoc.ttl.config() :: (MAP?)¦
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.ttl/apoc.ttl.adoc[apoc.ttl.expire icon:book[]]
+
+CALL apoc.ttl.expire(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.ttl/apoc.ttl.adoc[apoc.ttl.expireIn icon:book[]]
+
+CALL apoc.ttl.expireIn(node,timeDelta,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.ttl/apoc.ttl.adoc[apoc.ttl.config icon:book[]]
+
+
+|label:function[]
+|label:apoc-core[]

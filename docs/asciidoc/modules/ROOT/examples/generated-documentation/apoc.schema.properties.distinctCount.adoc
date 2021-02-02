@@ -1,0 +1,5 @@
+¦xref::overview/apoc.schema/apoc.schema.properties.distinctCount.adoc[apoc.schema.properties.distinctCount icon:book[]] +
+
+ - quickly returns all distinct values and counts for a given key
+¦label:procedure[]
+¦label:apoc-core[]

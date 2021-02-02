@@ -1,0 +1,5 @@
+¦xref::overview/apoc.schema/apoc.schema.node.indexExists.adoc[apoc.schema.node.indexExists icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

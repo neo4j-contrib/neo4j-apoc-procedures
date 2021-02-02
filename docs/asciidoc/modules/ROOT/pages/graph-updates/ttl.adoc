@@ -13,9 +13,12 @@ A few procedures help with that.
 
 The table below describes the available procedures:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.ttl.csv[]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.ttl.expire.adoc[]
+include::example$generated-documentation/apoc.ttl.expireIn.adoc[]
+include::example$generated-documentation/apoc.ttl.config.adoc[]
 |===
 
 [[ttl-config-parameters]]
@@ -157,7 +160,7 @@ When using the procedure, the index is created 30 seconds after startup.
 MATCH (t:TTL) where t.ttl < timestamp() WITH t LIMIT 1000 DETACH DELETE t
 ----
 
-When using the procedure, the deletion statement to remove nodes past expiration will run every 60 seconds. 
+When using the procedure, the deletion statement to remove nodes past expiration will run every 60 seconds.
 You can also configure the schedule by adding the following setting in `apoc.conf`:
 
 
