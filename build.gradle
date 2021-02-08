@@ -131,6 +131,10 @@ task versions <<  {
                 version["md5"] =  checksums[apocVersion].md5
             }
 
+            version["config"] = [
+                "+:dbms.security.procedures.unrestricted": ["apoc.*"]
+            ]
+
             versions.add(version)
         }
     }
