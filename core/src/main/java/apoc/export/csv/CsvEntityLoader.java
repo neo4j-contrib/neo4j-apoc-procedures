@@ -84,7 +84,7 @@ public class CsvEntityLoader {
                         loadCsvCompatibleHeader, line, lineNo, false, mapping, Collections.emptyList(), results
                 );
 
-                final String nodeCsvId = result.map.get(idAttribute.get()).toString();
+                final String nodeCsvId = idField.isPresent() ? result.map.get(idAttribute.get()).toString() : null;
 
                 // if 'ignore duplicate nodes' is false, there is an id field and the mapping already has the current id,
                 // we either fail the loading process or skip it depending on the 'ignore duplicate nodes' setting
