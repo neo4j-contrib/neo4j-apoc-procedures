@@ -120,10 +120,12 @@ task versions <<  {
 
             def url = releases.find { it.tag_name == apocVersion}.assets.find { it.browser_download_url.contains("apoc-${apocVersion}")}.browser_download_url
 
-            def version = [ neo4j : neo4jRelease,
-                            apoc : apocVersion,
+            def version = [ neo4j : neo4jRelease, neo4jVersion : neo4jRelease,
+                            apoc : apocVersion, version: apocVersion,
                             url : "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/" + apocVersion,
-                            jar: url]
+                            homepageUrl : "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/" + apocVersion,
+                            jar: url, downloadUrl: url
+            ]
 
             if(checksums[apocVersion]) {
                 version["sha1"] =  checksums[apocVersion].sha1
