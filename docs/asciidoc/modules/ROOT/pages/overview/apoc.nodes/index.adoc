@@ -18,11 +18,6 @@ apoc.nodes.collapse([nodes...],[{properties:'overwrite' or 'discard' or 'combine
 apoc.nodes.delete(node\|nodes\|id\|[ids]) - quickly delete all nodes with these ids
 |label:procedure[]
 |label:apoc-core[]
-|xref::overview/apoc.nodes/apoc.nodes.deleteAndReconnect.adoc[apoc.nodes.deleteAndReconnect icon:book[]]
-
-apoc.nodes.deleteAndReconnect([pathLinkedList], [nodesToRemove], \{config}) - Removes some nodes from a linked list
-|label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.get.adoc[apoc.nodes.get icon:book[]]
 
 apoc.nodes.get(node\|nodes\|id\|[ids]) - quickly returns all nodes with these ids

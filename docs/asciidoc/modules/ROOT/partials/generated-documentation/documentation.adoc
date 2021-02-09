@@ -2166,11 +2166,6 @@ apoc.nodes.collapse([nodes...],[{properties:'overwrite' or 'discard' or 'combine
 apoc.nodes.delete(node\|nodes\|id\|[ids]) - quickly delete all nodes with these ids
 |label:procedure[]
 |label:apoc-core[]
-|xref::overview/apoc.nodes/apoc.nodes.deleteAndReconnect.adoc[apoc.nodes.deleteAndReconnect icon:book[]]
-
-apoc.nodes.deleteAndReconnect([pathLinkedList], [nodesToRemove], \{config}) - Removes some nodes from a linked list
-|label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.get.adoc[apoc.nodes.get icon:book[]]
 
 apoc.nodes.get(node\|nodes\|id\|[ids]) - quickly returns all nodes with these ids
@@ -2417,6 +2412,11 @@ apoc.refactor.cloneSubgraphFromPaths([path1, path2, ...], {standinNodes:[], skip
 |xref::overview/apoc.refactor/apoc.refactor.collapseNode.adoc[apoc.refactor.collapseNode icon:book[]]
 
 apoc.refactor.collapseNode([node1,node2],'TYPE') collapse node to relationship, node with one rel becomes self-relationship
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.deleteAndReconnect.adoc[apoc.refactor.deleteAndReconnect icon:book[]]
+
+apoc.refactor.deleteAndReconnect([pathLinkedList], [nodesToRemove], \{config}) - Removes some nodes from a linked list
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.refactor/apoc.refactor.extractNode.adoc[apoc.refactor.extractNode icon:book[]]
