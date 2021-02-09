@@ -2,6 +2,7 @@ package apoc.refactor;
 
 import apoc.Pools;
 import apoc.algo.Cover;
+import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
 import apoc.result.GraphResult;
 import apoc.result.NodeResult;
@@ -590,7 +591,7 @@ public class GraphRefactoring {
                 mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING);
             }
             if (delete) source.delete();
-            mergeProperties(properties, target, conf);
+            PropertiesManager.mergeProperties(properties, target, conf);
         } catch (NotFoundException e) {
             log.warn("skipping a node for merging: " + e.getCause().getMessage());
         }
