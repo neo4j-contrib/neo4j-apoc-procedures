@@ -236,7 +236,7 @@ public class ImportCsvTest {
                 "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
                 map(
                         "file", "file:/typeless.csv",
-                        "config", map("delimiter", '|', "ignoreDuplicateNodes", true)
+                        "config", map("delimiter", '|')
                 ),
                 (r) -> {
                     assertEquals(2L, r.get("nodes"));
