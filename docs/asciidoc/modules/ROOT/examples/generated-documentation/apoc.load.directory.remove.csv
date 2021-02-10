@@ -1,2 +1,2 @@
 ¦type¦qualified name¦signature¦description
-¦procedure¦apoc.load.directory.remove¦apoc.load.directory.remove(name :: STRING?) :: (name :: STRING?, cypher :: STRING?, pattern :: STRING?, urlDir :: STRING?)¦apoc.load.directory.remove(name) YIELD name, pattern, cypher, urlDir - Remove a folder listener by name
+¦procedure¦apoc.load.directory.remove¦apoc.load.directory.remove(name :: STRING?) :: (interval :: INTEGER?, eventKinds :: LIST? OF STRING?, pattern :: STRING?, cypher :: STRING?, name :: STRING?, urlDir :: STRING?)¦apoc.load.directory.remove(name) YIELD name, pattern, cypher, urlDir - Remove a folder listener by name and return remaining listener

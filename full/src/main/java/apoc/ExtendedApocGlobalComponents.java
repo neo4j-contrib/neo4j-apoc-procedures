@@ -49,7 +49,6 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
                 dependencies.globalProceduresRegistry()),
 
                 "directory", new LoadDirectoryHandler(db,
-                        dependencies.apocConfig(),
                         dependencies.log().getUserLog(LoadDirectory.class),
                         dependencies.pools()),
 

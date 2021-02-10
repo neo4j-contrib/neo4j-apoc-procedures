@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.load.directory.list() :: (name :: STRING?, cypher :: STRING?, pattern :: STRING?, urlDir :: STRING?)
+¦apoc.load.directory.list() :: (interval :: INTEGER?, eventKinds :: LIST? OF STRING?, pattern :: STRING?, cypher :: STRING?, name :: STRING?, urlDir :: STRING?)

@@ -10,16 +10,16 @@ import static java.nio.file.StandardWatchEventKinds.*;
 
 public class LoadDirectoryConfig {
 
-    private final Integer interval;
+    private final Long interval;
     private final List<String> eventKinds;
 
-    public LoadDirectoryConfig( Map<String, Object> config) {
+    public LoadDirectoryConfig(Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
-        this.interval = (Integer) config.getOrDefault("interval", 1000);
+        this.interval = (Long) config.getOrDefault("interval", 1000L);
         this.eventKinds = (List<String>) config.getOrDefault("eventKinds", List.of("ENTRY_CREATE", "ENTRY_DELETE", "ENTRY_MODIFY"));
     }
 
-    public Integer getInterval() {
+    public Long getInterval() {
         return interval;
     }
 
@@ -38,6 +38,10 @@ public class LoadDirectoryConfig {
         }).toArray(Kind[]::new);
 
         return kinds;
+    }
+
+    public List<String> getEventKindsAsString() {
+        return eventKinds;
     }
 
 }

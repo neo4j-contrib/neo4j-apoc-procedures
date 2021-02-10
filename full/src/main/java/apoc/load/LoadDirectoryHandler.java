@@ -1,6 +1,6 @@
 package apoc.load;
 
-import apoc.ApocConfig;
+
 import apoc.Pools;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -9,101 +9,74 @@ import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 
 import java.nio.file.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Stream;
 
-import static apoc.ApocConfig.*;
-import static apoc.periodic.Periodic.JobInfo;
 import static apoc.util.FileUtils.checkIfUrlEmptyAndGetFileUrl;
 import static apoc.util.FileUtils.getPathFromUrlString;
 
 public class LoadDirectoryHandler extends LifecycleAdapter {
 
-    public static final String NOT_ENABLED_ERROR = "Load directory listeners have not been enabled." +
-            " Set 'apoc.load.directory.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
-
-    public final ConcurrentHashMap<String, LoadDirectoryItem> directoryListenerList = new ConcurrentHashMap<>();
+    public final Map<LoadDirectoryItemResult, Future> storage = new ConcurrentHashMap<>();
 
     private final Log log;
     private final GraphDatabaseService db;
-    private final ApocConfig apocConfig;
     private final Pools pools;
 
-    public LoadDirectoryHandler(GraphDatabaseService db,
-                                ApocConfig apocConfig,
-                                Log log,
-                                Pools pools) {
+    public LoadDirectoryHandler(GraphDatabaseService db, Log log, Pools pools) {
         this.db = db;
-        this.apocConfig = apocConfig;
         this.log = log;
         this.pools = pools;
     }
 
     @Override
-    public void start() {
-        checkEnabled();
-    }
+    public void start() {}
 
     @Override
     public void stop() {
         removeAll();
     }
 
-    public LoadDirectoryItem remove(String name) {
-        checkEnabled();
+    public void remove(String name) {
 
-        LoadDirectoryItem removed = directoryListenerList.remove(name);
+        final LoadDirectoryItemResult loadDirectoryItemResult = new LoadDirectoryItemResult(name);
+        remove(loadDirectoryItemResult);
+    }
+
+    private void remove(LoadDirectoryItemResult loadDirectoryItemResult) {
+        Future removed = storage.remove(loadDirectoryItemResult);
         if (removed == null) {
+            String name = loadDirectoryItemResult.getName();
             throw new RuntimeException("Listener with name: " + name + " doesn't exists");
         }
-
-        pools.getJobList().get(new JobInfo(name)).cancel(true);
-        pools.getJobList().remove(new JobInfo(name));
-
-        return removed;
+        removed.cancel(true);
     }
 
+    public void add(LoadDirectoryItemWithConfig loadDirectoryItemWithConfig) {
 
-    public void checkEnabled() {
-        if (!apocConfig.getBoolean(APOC_LOAD_DIRECTORY_ENABLED)) {
-            throw new RuntimeException(NOT_ENABLED_ERROR);
-        }
-    }
+        String name = loadDirectoryItemWithConfig.getName();
+        final LoadDirectoryItemResult loadDirectoryItemResult = new LoadDirectoryItemResult(loadDirectoryItemWithConfig);
 
-    public void add(LoadDirectoryItem loadDirectoryItem) {
-        checkEnabled();
-
-        String name = loadDirectoryItem.getName();
-        if (directoryListenerList.get(name) != null) {
-            pools.getJobList().get(new JobInfo(name)).cancel(true);
+        if (storage.containsKey(loadDirectoryItemResult)) {
+            remove(name);
         }
 
-        pools.getJobList().put(
-                new JobInfo(name),
-                pools.getDefaultExecutorService().submit(executeListener(loadDirectoryItem))
-        );
-
-        directoryListenerList.put(loadDirectoryItem.getName(), loadDirectoryItem);
+        storage.put(loadDirectoryItemResult,
+                pools.getDefaultExecutorService().submit(executeListener(loadDirectoryItemWithConfig)));
     }
 
-    public ConcurrentHashMap<String, LoadDirectoryItem> list() {
-        checkEnabled();
-        return directoryListenerList;
+    public Stream<LoadDirectoryItemResult> list() {
+        return Collections.unmodifiableMap(storage).keySet().stream();
     }
 
-    public Map<String, LoadDirectoryItem> removeAll() {
-        checkEnabled();
+    public void removeAll() {
 
-        Map<String, LoadDirectoryItem> allToRemove = new HashMap<>(directoryListenerList);
-        directoryListenerList.clear();
-        pools.getJobList().forEach((key, value) -> value.cancel(true));
-        pools.getJobList().clear();
-
-        return allToRemove;
+        Set<LoadDirectoryItemResult> keys = new HashSet<>(storage.keySet());
+        keys.forEach(this::remove);
     }
 
-    private Runnable executeListener(LoadDirectoryItem item) {
+    private Runnable executeListener(LoadDirectoryItemWithConfig item) {
         return () -> {
             try (WatchService watcher = FileSystems.getDefault().newWatchService()) {
 
@@ -117,13 +90,19 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
                         watchKey.reset();
                         Path dir = (Path) watchKey.watchable();
                         for (WatchEvent event : watchKey.pollEvents()) {
-                            Path eventPath = dir.resolve((Path) event.context());
+                            Path filePath = dir.resolve((Path) event.context());
                             try {
                                 WildcardFileFilter fileFilter = new WildcardFileFilter(item.getPattern());
-                                boolean matchFilePattern = fileFilter.accept(dir.toFile(), eventPath.getFileName().toString());
+                                final String fileName = filePath.getFileName().toString();
+                                boolean matchFilePattern = fileFilter.accept(dir.toFile(), fileName);
                                 if (matchFilePattern) {
                                     try (Transaction tx = db.beginTx()) {
-                                        tx.execute(item.getCypher());
+                                        tx.execute(item.getCypher(),
+                                                Map.of("fileName", fileName,
+                                                        "filePath", filePath.toString(),
+                                                        "fileDirectory", dir.toString(),
+                                                        "eventKind", event.kind().name())
+                                        );
                                         tx.commit();
                                     }
                                 }
@@ -139,5 +118,4 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
             }
         };
     }
-
 }

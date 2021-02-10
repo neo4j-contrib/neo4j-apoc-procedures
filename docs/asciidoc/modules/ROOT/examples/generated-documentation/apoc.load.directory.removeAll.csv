@@ -1,2 +1,2 @@
 ¦type¦qualified name¦signature¦description
-¦procedure¦apoc.load.directory.removeAll¦apoc.load.directory.removeAll() :: (name :: STRING?, cypher :: STRING?, pattern :: STRING?, urlDir :: STRING?)¦apoc.load.directory.removeAll() YIELD name, pattern, cypher, urlDir - Remove all folder listeners
+¦procedure¦apoc.load.directory.removeAll¦apoc.load.directory.removeAll() :: (interval :: INTEGER?, eventKinds :: LIST? OF STRING?, pattern :: STRING?, cypher :: STRING?, name :: STRING?, urlDir :: STRING?)¦apoc.load.directory.removeAll() YIELD name, pattern, cypher, urlDir - Remove all folder listeners

@@ -14,16 +14,18 @@ apoc.load.directory.removeAll() YIELD name, pattern, cypher, urlDir - Remove all
 
 [source]
 ----
-apoc.load.directory.removeAll() :: (name :: STRING?, cypher :: STRING?, pattern :: STRING?, urlDir :: STRING?)
+apoc.load.directory.removeAll() :: (interval :: INTEGER?, eventKinds :: LIST? OF STRING?, pattern :: STRING?, cypher :: STRING?, name :: STRING?, urlDir :: STRING?)
 ----
 
 == Output parameters
 [.procedures, opts=header]
 |===
 | Name | Type 
-|name|STRING?
-|cypher|STRING?
+|interval|INTEGER?
+|eventKinds|LIST? OF STRING?
 |pattern|STRING?
+|cypher|STRING?
+|name|STRING?
 |urlDir|STRING?
 |===
 
