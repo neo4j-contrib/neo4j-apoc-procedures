@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.refactor.util.PropertiesManager.mergeProperties;
-import static apoc.refactor.util.RefactorConfig.RelationshipSelectionStrategy.merge;
+import static apoc.refactor.util.RefactorConfig.RelationshipSelectionStrategy.MERGE;
 import static apoc.refactor.util.RefactorUtil.*;
 
 public class GraphRefactoring {
@@ -495,12 +495,12 @@ public class GraphRefactoring {
 
                 final RefactorConfig.RelationshipSelectionStrategy strategy = refactorConfig.getRelationshipSelectionStrategy();
                 switch (strategy) {
-                    case start:
+                    case START:
                         newRelType = relationshipIn.getType();
                         newRelProps.putAll(relationshipIn.getAllProperties());
                         break;
 
-                    case end:
+                    case END:
                         newRelType = relationshipOut.getType();
                         newRelProps.putAll(relationshipOut.getAllProperties());
                         break;
@@ -513,7 +513,7 @@ public class GraphRefactoring {
                 Relationship relCreated = nodeStart.createRelationshipTo(nodeEnd, newRelType);
                 newRelProps.forEach(relCreated::setProperty);
 
-                if (strategy == merge) {
+                if (strategy == MERGE) {
                     newRelProps.forEach(relCreated::setProperty);
                     mergeProperties(relationshipOut.getAllProperties(), relCreated, refactorConfig);
                 }

@@ -12,7 +12,7 @@ import static apoc.util.Util.toBoolean;
  */
 public class RefactorConfig {
 
-	public enum RelationshipSelectionStrategy {start, end, merge}
+	public enum RelationshipSelectionStrategy {START, END, MERGE}
 
 	public static final String COMBINE = "combine";
 	public static final String DISCARD = "discard";
@@ -49,7 +49,7 @@ public class RefactorConfig {
 		this.collapsedLabel = toBoolean(config.get("collapsedLabel"));
 		this.singleElementAsArray = toBoolean(config.getOrDefault("singleElementAsArray", false));
 		this.relationshipSelectionStrategy = RelationshipSelectionStrategy.valueOf(
-				(String) config.getOrDefault("relationshipSelectionStrategy", RelationshipSelectionStrategy.start.toString()));
+				((String) config.getOrDefault("relationshipSelectionStrategy", RelationshipSelectionStrategy.START.toString())).toUpperCase() );
 	}
 
 	public String getMergeMode(String name){
