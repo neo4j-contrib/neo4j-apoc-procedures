@@ -13,9 +13,11 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.ApocConfig.*;
+import static apoc.ApocConfig.apocConfig;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
 import static apoc.util.TestUtil.testResult;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 
 public class LoadDirectoryTest {
