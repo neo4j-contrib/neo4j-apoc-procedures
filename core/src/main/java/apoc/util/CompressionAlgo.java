@@ -47,11 +47,10 @@ public enum CompressionAlgo {
     }
 
     public String decompress(byte[] byteArray, Charset charset) throws Exception {
-        try (ByteArrayInputStream stream = new ByteArrayInputStream(byteArray)) {
             Constructor<?> constructor = decompressor.getConstructor(InputStream.class);
-            try (InputStream inputStream = (InputStream) constructor.newInstance((InputStream) stream)) {
-                return IOUtils.toString(inputStream, charset);
-            }
+        try (ByteArrayInputStream stream = new ByteArrayInputStream(byteArray);
+                InputStream inputStream = (InputStream) constructor.newInstance((InputStream) stream)) {
+            return IOUtils.toString(inputStream, charset);
         }
     }
 }
