@@ -71,7 +71,7 @@ public class CypherProceduresStorageTest {
     }
 
     @Test
-    public void registerSimpleStatementWithDotInName() throws Exception {
+    public void registerSimpleProcedureWithDotInName() throws Exception {
         db.executeTransactionally("call apoc.custom.asProcedure('foo.bar.baz','RETURN 42 as answer')");
         TestUtil.testCall(db, "call custom.foo.bar.baz()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
         TestUtil.testCall(db, "call apoc.custom.list()", row -> {

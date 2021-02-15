@@ -243,10 +243,9 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         withSystemDb(tx -> {
             Node node = Util.mergeNode(tx, SystemLabels.ApocCypherProcedures, SystemLabels.Function,
                     Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
-                    Pair.of(SystemPropertyKeys.name.name(), signature.name().name())
+                    Pair.of(SystemPropertyKeys.name.name(), signature.name().name()),
+                    Pair.of(SystemPropertyKeys.prefix.name(), signature.name().namespace())
             );
-
-            node.setProperty(SystemPropertyKeys.prefix.name(), signature.name().namespace());
             node.setProperty(SystemPropertyKeys.description.name(), signature.description().orElse(null));
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
             node.setProperty(SystemPropertyKeys.inputs.name(), serializeSignatures(signature.inputSignature()));
@@ -263,9 +262,9 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         withSystemDb(tx -> {
             Node node = Util.mergeNode(tx, SystemLabels.ApocCypherProcedures, SystemLabels.Procedure,
                     Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
-                    Pair.of(SystemPropertyKeys.name.name(), signature.name().name())
+                    Pair.of(SystemPropertyKeys.name.name(), signature.name().name()),
+                    Pair.of(SystemPropertyKeys.prefix.name(), signature.name().namespace())
             );
-            node.setProperty(SystemPropertyKeys.prefix.name(), signature.name().namespace());
             node.setProperty(SystemPropertyKeys.description.name(), signature.description().orElse(null));
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
             node.setProperty(SystemPropertyKeys.inputs.name(), serializeSignatures(signature.inputSignature()));
