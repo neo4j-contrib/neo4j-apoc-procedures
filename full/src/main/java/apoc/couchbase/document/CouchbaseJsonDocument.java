@@ -19,7 +19,6 @@ import static apoc.couchbase.document.CouchbaseUtils.convertMutationTokenToMap;
  * 
  * @since 15.8.2016
  * @author inserpio
- * @see// JsonDocument
  * @see JsonObject
  */
 public class CouchbaseJsonDocument implements CouchbaseDocument<Map<String, Object>> {

@@ -101,7 +101,7 @@ public class Couchbase {
     }
 
     /**
-     * Checks if the given document ID exists
+     * Check whether a document with the given ID does exist.
      * <p/>
      * Example:
      * <code>CALL apoc.couchbase.exists('localhost', 'default', 'artist:vincent_van_gogh') yield value</code>
