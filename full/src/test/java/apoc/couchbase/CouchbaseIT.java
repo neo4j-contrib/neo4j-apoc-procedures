@@ -1,15 +1,7 @@
 package apoc.couchbase;
 
 import apoc.util.TestUtil;
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.bucket.BucketType;
-import com.couchbase.client.java.cluster.DefaultBucketSettings;
-import com.couchbase.client.java.document.JsonDocument;
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.env.CouchbaseEnvironment;
-import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
+import com.couchbase.client.java.json.JsonObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -17,74 +9,36 @@ import org.junit.Test;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-import org.testcontainers.couchbase.BucketDefinition;
-import org.testcontainers.couchbase.CouchbaseContainer;
 
 import java.util.List;
 import java.util.Map;
 
-import static apoc.ApocSettings.dynamic;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.couchbase.CouchbaseTestUtils.*;
-import static apoc.util.TestUtil.isTravis;
-import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.*;
 import static apoc.util.Util.map;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.*;
-import static org.neo4j.configuration.SettingValueParsers.STRING;
+import static org.junit.Assert.assertFalse;
 
-public class CouchbaseIT  {
-
-    private static String HOST = null;
+public class CouchbaseIT {
 
     @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule()
-//            .withSetting(dynamic(baseConfigKey + CouchbaseManager.URI_CONFIG_KEY, STRING), "localhost")
-//            .withSetting(dynamic(baseConfigKey + CouchbaseManager.USERNAME_CONFIG_KEY, STRING), USERNAME)
-//            .withSetting(dynamic(baseConfigKey + CouchbaseManager.PASSWORD_CONFIG_KEY, STRING),  PASSWORD)
-
-            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY, STRING),
-                    CONNECTION_TIMEOUT_CONFIG_VALUE)
-            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY, STRING),
-                    SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
-            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY, STRING),
-                    KV_TIMEOUT_CONFIG_VALUE)
-            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + IO_POOL_SIZE_CONFIG_KEY, STRING),
-                    IO_POOL_SIZE_CONFIG_VALUE)
-            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + COMPUTATION_POOL_SIZE_CONFIG_KEY, STRING),
-                    COMPUTATION_POOL_SIZE_CONFIG_VALUE);
-
-    private static Bucket couchbaseBucket;
-
-    public static CouchbaseContainer couchbase;
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     @BeforeClass
-    public static void setUp() throws Exception {
-        assumeFalse(isTravis());
-        TestUtil.ignoreException(() -> {
-            couchbase = new CouchbaseContainer()
-                    .withCredentials(USERNAME, PASSWORD)
-                    .withBucket(new BucketDefinition(BUCKET_NAME).withQuota(100));
-            couchbase.start();
-        }, Exception.class);
-        assumeNotNull(couchbase);
-        assumeTrue("couchbase must be running", couchbase.isRunning());
+    public static void setUp() {
+        createCouchbaseContainer();
 
-        CouchbaseEnvironment environment = DefaultCouchbaseEnvironment
-                .builder()
-                .bootstrapCarrierDirectPort(couchbase.getBootstrapCarrierDirectPort())
-                .bootstrapHttpDirectPort(couchbase.getBootstrapHttpDirectPort())
-                .build();
+        Map<String, Object> properties = Map.of(
+                BASE_CONFIG_KEY + CouchbaseManager.URI_CONFIG_KEY, "localhost",
+                BASE_CONFIG_KEY + CouchbaseManager.USERNAME_CONFIG_KEY, USERNAME,
+                BASE_CONFIG_KEY + CouchbaseManager.PASSWORD_CONFIG_KEY, PASSWORD,
+                BASE_APOC_CONFIG + CONNECTION_TIMEOUT_CONFIG_KEY, CONNECTION_TIMEOUT_CONFIG_VALUE,
+                BASE_APOC_CONFIG + KV_TIMEOUT_CONFIG_KEY, KV_TIMEOUT_CONFIG_VALUE,
+                BASE_APOC_CONFIG + IO_POOL_SIZE_CONFIG_KEY, IO_POOL_SIZE_CONFIG_VALUE
+        );
+        properties.forEach((key, value) -> apocConfig().setProperty(key, value));
 
-        Cluster cluster = CouchbaseCluster.create(
-                environment,
-                couchbase.getHost()
-        ).authenticate(USERNAME, PASSWORD);
-
-        boolean isFilled = fillDB(cluster);
-        assumeTrue("should fill Couchbase with data", isFilled);
-        HOST = getUrl(couchbase);
-        couchbaseBucket = getCouchbaseBucket(couchbase);
         TestUtil.registerProcedure(db, Couchbase.class);
     }
 
@@ -114,6 +68,12 @@ public class CouchbaseIT  {
     }
 
     @Test
+    public void testExistsViaCallEmptyResult() {
+        testCallEmpty(db, "CALL apoc.couchbase.get($host, $bucket, 'notExists')",
+                map("host", HOST, "bucket", BUCKET_NAME));
+    }
+
+    @Test
     public void testExistsViaCall() {
         testCall(db, "CALL apoc.couchbase.exists($host, $bucket, 'artist:vincent_van_gogh')",
                 map("host", HOST, "bucket", BUCKET_NAME),
@@ -135,8 +95,8 @@ public class CouchbaseIT  {
                             (String) content.get("secondName"),
                             (String) content.get("lastName"),
                             notableWorks);
-                    couchbaseBucket.remove("testInsertViaCall");
-                    assertFalse(couchbaseBucket.exists("testInsertViaCall"));
+                    collection.remove("testInsertViaCall");
+                    assertFalse(collection.exists("testInsertViaCall").exists());
                 });
     }
 
@@ -162,17 +122,17 @@ public class CouchbaseIT  {
                             (String) content.get("secondName"),
                             (String) content.get("lastName"),
                             notableWorks);
-                    couchbaseBucket.remove("testUpsertViaCall");
-                    assertFalse(couchbaseBucket.exists("testUpsertViaCall"));
+                    collection.remove("testUpsertViaCall");
+                    assertFalse(collection.exists("testUpsertViaCall").exists());
                 });
     }
 
     @Test
     public void testRemoveViaCall() {
-        couchbaseBucket.insert(JsonDocument.create("testRemove", JsonObject.empty()));
+        collection.insert("testRemove", JsonObject.create());
         testCall(db, "CALL apoc.couchbase.remove($host, $bucket, 'testRemove')",
                 map("host", HOST, "bucket", BUCKET_NAME),
-                r -> assertFalse(couchbaseBucket.exists("testRemove")));
+                r -> assertFalse(collection.exists("testRemove").exists()));
     }
 
     @Test
@@ -180,6 +140,12 @@ public class CouchbaseIT  {
         testCall(db, "CALL apoc.couchbase.query($host, $bucket, $query)",
                 map("host", HOST, "bucket", BUCKET_NAME, "query", "select * from " + BUCKET_NAME + " where lastName = \"Van Gogh\""),
                 r -> checkListResult(r));
+    }
+
+    @Test
+    public void testQueryViaCallEmptyResult() {
+        testCallEmpty(db, "CALL apoc.couchbase.query($host, $bucket, $query)",
+                map("host", HOST, "bucket", BUCKET_NAME, "query", "select * from " + BUCKET_NAME + " where lastName = 'notExists'"));
     }
 
     @Test

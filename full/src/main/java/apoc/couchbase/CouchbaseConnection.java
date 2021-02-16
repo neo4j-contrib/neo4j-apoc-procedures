@@ -1,20 +1,31 @@
 package apoc.couchbase;
 
+import com.couchbase.client.core.env.PasswordAuthenticator;
+import com.couchbase.client.core.env.SeedNode;
+import com.couchbase.client.java.BinaryCollection;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.auth.PasswordAuthenticator;
-import com.couchbase.client.java.document.Document;
-import com.couchbase.client.java.document.JsonDocument;
-import com.couchbase.client.java.document.json.JsonArray;
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.env.CouchbaseEnvironment;
+import com.couchbase.client.java.Collection;
+import com.couchbase.client.java.env.ClusterEnvironment;
+import com.couchbase.client.java.json.JsonArray;
+import com.couchbase.client.java.json.JsonObject;
+import com.couchbase.client.java.kv.GetResult;
+import com.couchbase.client.java.kv.MutationResult;
 import com.couchbase.client.java.query.*;
-import org.parboiled.common.StringUtils;
+import com.couchbase.client.core.error.DocumentNotFoundException;
+import org.apache.commons.configuration2.Configuration;
 
-import java.util.ArrayList;
+import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static apoc.couchbase.CouchbaseManager.*;
+import static com.couchbase.client.java.ClusterOptions.clusterOptions;
+import static com.couchbase.client.java.kv.GetOptions.getOptions;
+import static com.couchbase.client.java.query.QueryOptions.queryOptions;
 
 /**
  * A Couchbase Server connection.
@@ -32,170 +43,171 @@ import java.util.concurrent.TimeUnit;
  */
 public class CouchbaseConnection implements AutoCloseable {
 
+    private static final String SPLIT_URI_KEY = ",";
+
     private Cluster cluster;
     private Bucket bucket;
-    private PasswordAuthenticator passwordAuthenticator;
+    private Collection collection;
+    private BinaryCollection binaryCollection;
 
-    private CouchbaseEnvironment env;
+    private ClusterEnvironment env;
 
     /**
-     * @param nodes
+     * @param hostOrKey
      * @param authenticator
      * @param bucketName
-     * @param bucketPassword
      * @param env
      */
-    protected CouchbaseConnection(List<String> nodes, PasswordAuthenticator authenticator, String bucketName, String bucketPassword, CouchbaseEnvironment env) {
-        this.env = env;
-        this.cluster = CouchbaseCluster.create(env, nodes);
-        this.passwordAuthenticator = authenticator;
-        int couchbaseServerVersion = getMajorVersion();
+    protected CouchbaseConnection(String hostOrKey, PasswordAuthenticator authenticator, String bucketName, ClusterEnvironment env) {
 
-        if (couchbaseServerVersion == 4) {
-            /**
-             * First we need to disconnect and invalidate the authentication otherwise we get a mixed-mode authentication error
-             * This means that we cannot authenticate and then access to a bucket using a password because only one authentication method at time is allowed
-             * Even if the bucket has no password we cannot access it after calling the authenticate method
-             */
-            this.cluster.disconnect();
-            this.cluster = CouchbaseCluster.create(env, nodes);
-            if (StringUtils.isEmpty(bucketPassword)) {
-                this.bucket = cluster.openBucket(bucketName);
-            } else {
-                this.bucket = cluster.openBucket(bucketName, bucketPassword);
+        // get Set<SeedNode> by hostOrKey
+        Set<SeedNode> seedNodes = null;
+        URI singleHostURI = checkAndGetURI(hostOrKey);
+        String url;
+        if (singleHostURI == null || singleHostURI.getScheme() == null) {
+
+            Configuration couchbaseConfig = getKeyMap(hostOrKey);
+            int port = couchbaseConfig.getInt(PORT_CONFIG_KEY, -1);
+            url = couchbaseConfig.getString(URI_CONFIG_KEY, null);
+            if (url == null) {
+                throw new RuntimeException("Please check you 'apoc.couchbase." + hostOrKey + "' configuration, url is missing");
             }
+
+            // I can type apoc.couchbase.mykey.uri=host1,host2,host3
+            List<String> splitUrl = Arrays.asList(url.split(SPLIT_URI_KEY));
+
+            seedNodes = splitUrl.stream().map(singleUri ->
+                    SeedNode.create(singleUri,
+                            Optional.empty(),
+                            port != -1 ? Optional.of(port) : Optional.empty()))
+                    .collect(Collectors.toSet());
+        } else {
+            url = singleHostURI.getHost();
+            final int port = singleHostURI.getPort();
+            seedNodes = Set.of(SeedNode.create(url,
+                    Optional.empty(),
+                    port != -1 ? Optional.of(port) : Optional.empty()
+            ));
         }
 
-        /**
-         * With Couchbase Server 5.x we always need to authenticate and never need to use bucketPassword because authentication and access are user based.
-         * We don't need to authenticate again, it has been done checking major version
-         * TODO: check if all levels of user's authorizations allow the client to get cluster info and so version as well otherwise we need two pairs of credentials
-         */
-        if (couchbaseServerVersion == 5 || couchbaseServerVersion == 6) {
-            this.bucket = cluster.openBucket(bucketName);
-        }
+        this.env = env;
+        this.cluster = Cluster.connect(seedNodes, clusterOptions(authenticator).environment(env));
 
-        if (couchbaseServerVersion < 4) {
-            throw new RuntimeException("Couchbase (major) server version " + couchbaseServerVersion + " is not supported");
-        }
+        this.bucket = this.cluster.bucket(bucketName);
+        this.collection = this.bucket.defaultCollection();
+        this.binaryCollection = this.collection.binary();
     }
 
     /**
-     * Get the major version of Couchbase server, that is 4.x or 5.x
-     *
-     * @return
-     */
-    protected int getMajorVersion() {
-        return this.cluster.authenticate(this.passwordAuthenticator).clusterManager().info(5,TimeUnit.SECONDS).getMinVersion().major();
-    }
-
-    /**
-     * Disconnect and close all buckets.
+     * Disconnect the cluster and shuts down the environment
      *
      * @see java.lang.AutoCloseable#close()
      */
     @Override
     public void close() {
-//        if (!this.bucket.isClosed()) {
-//            this.bucket.close();
-//        }
         this.cluster.disconnect();
         this.env.shutdown();
     }
 
-    /**
-     * Retrieves a {@link JsonDocument} by its unique ID.
-     *
-     * @param documentId the unique ID of the document
-     * @return the found {@link JsonDocument} or null if not found
-     * @see Bucket#get(String)
-     */
-    public JsonDocument get(String documentId) {
-        return this.bucket.get(documentId);
+    public Collection getCollection() {
+        return collection;
     }
 
     /**
-     * Checks whether a {@link JsonDocument} with the given ID does exist.
+     * Retrieves a {@link GetResult} by its unique ID.
+     *
+     * @param documentId the unique ID of the document
+     * @return the found {@link GetResult} or null if not found
+     * @see Collection#get(String)
+     */
+    public GetResult get(String documentId) {
+        try {
+            return collection.get(documentId, getOptions().withExpiry(true));
+        } catch (DocumentNotFoundException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Checks whether a document with the given ID does exist.
      *
      * @param documentId the unique ID of the document
      * @return true if it exists, false otherwise.
-     * @see Bucket#exists(String)
+     * @see Collection#exists(String)
      */
     public boolean exists(String documentId) {
-        return this.bucket.exists(documentId);
+        return this.collection.exists(documentId).exists();
     }
 
     /**
-     * Inserts a {@link JsonDocument} if it does not exist already.
+     * Inserts a full document which does not exist yet.
      *
      * @param documentId the unique ID of the document
      * @param json       the JSON String representing the document to store
-     * @return the newly created {@link JsonDocument}
-     * @see Bucket#insert(Document)
+     * @return the newly created {@link MutationResult}
+     * @see Collection#insert(String, Object)
      */
-    public JsonDocument insert(String documentId, String json) {
-        return this.bucket.insert(JsonDocument.create(documentId, JsonObject.fromJson(json)));
+    public MutationResult insert(String documentId, String json) {
+        return this.collection.insert(documentId, JsonObject.fromJson(json));
     }
 
     /**
-     * Inserts or overwrites a {@link JsonDocument}.
+     * Inserts or overwrites a document.
      *
      * @param documentId the unique ID of the document
      * @param json       the JSON String representing the document to store
-     * @return the newly created or overwritten {@link JsonDocument}
-     * @see Bucket#upsert(Document)
+     * @return the newly created or overwritten {@link MutationResult}
+     * @see Collection#upsert(String, Object)
      */
-    public JsonDocument upsert(String documentId, String json) {
-        return this.bucket.upsert(JsonDocument.create(documentId, JsonObject.fromJson(json)));
+    public MutationResult upsert(String documentId, String json) {
+        return this.collection.upsert(documentId, JsonObject.fromJson(json));
     }
 
     /**
-     * Appends a {@link JsonDocument}'s content to an existing one.
+     * Appends a json content to an existing one.
      *
      * @param documentId the unique ID of the document
      * @param json       the JSON String representing the document to append
-     * @return the updated {@link Document}
-     * @see Bucket#append(Document)
+     * @return the updated {@link MutationResult}
+     * @see BinaryCollection#append(String, byte[])
      */
-    public JsonDocument append(String documentId, String json) {
-        this.bucket.append(JsonDocument.create(documentId, JsonObject.fromJson(json)));
-        return this.get(documentId);
+    public MutationResult append(String documentId, String json) {
+        return binaryCollection.append(documentId, JsonObject.fromJson(json).toBytes());
     }
 
     /**
-     * Prepends a {@link JsonDocument}'s content to an existing one.
+     * Prepends a json content to an existing one.
      *
      * @param documentId the unique ID of the document
      * @param json       the JSON String representing the document to prepend
-     * @return the updated {@link Document}
-     * @see Bucket#prepend(Document)
+     * @return the updated {@link MutationResult}
+     * @see BinaryCollection#prepend(String, byte[])
      */
-    public JsonDocument prepend(String documentId, String json) {
-        this.bucket.prepend(JsonDocument.create(documentId, JsonObject.fromJson(json)));
-        return this.get(documentId);
+    public MutationResult prepend(String documentId, String json) {
+        return binaryCollection.prepend(documentId, JsonObject.fromJson(json).toBytes());
     }
 
     /**
-     * Removes the {@link JsonDocument} identified by its unique ID.
+     * Removes the document identified by its unique ID.
      *
      * @param documentId the unique ID of the document
-     * @return the removed {@link JsonDocument}
-     * @see Bucket#remove(String)
+     * @return the removed document
+     * @see Collection#remove(String)
      */
-    public JsonDocument remove(String documentId) {
-        return this.bucket.remove(documentId);
+    public MutationResult remove(String documentId) {
+        return this.collection.remove(documentId);
     }
 
     /**
-     * Replaces a {@link JsonDocument} if it does already exist.
+     * Replaces a document if it does already exist.
      *
      * @param documentId the unique ID of the document
      * @param json       the JSON String representing the document to replace
-     * @return the replaced {@link Document}
-     * @see Bucket#replace(Document)
+     * @return the replaced {@link MutationResult}
+     * @see Collection#replace(String, Object)
      */
-    public JsonDocument replace(String documentId, String json) {
-        return this.bucket.replace(JsonDocument.create(documentId, JsonObject.fromJson(json)));
+    public MutationResult replace(String documentId, String json) {
+        return this.collection.replace(documentId, JsonObject.fromJson(json));
     }
 
     /**
@@ -203,11 +215,10 @@ public class CouchbaseConnection implements AutoCloseable {
      *
      * @param statement the raw kernelTransaction string to execute
      * @return the list of {@link JsonObject}s retrieved by this query
-     * @see N1qlQuery#simple(Statement)
+     * @see Cluster#query(String)
      */
     public List<JsonObject> executeStatement(String statement) {
-        SimpleN1qlQuery query = N1qlQuery.simple(statement);
-        return executeQuery(query);
+        return this.cluster.query(statement).rowsAsObject();
     }
 
     /**
@@ -217,12 +228,12 @@ public class CouchbaseConnection implements AutoCloseable {
      *                   placeholders: $1, $2, ...)
      * @param parameters the values for the positional placeholders in kernelTransaction
      * @return the list of {@link JsonObject}s retrieved by this query
-     * @see N1qlQuery#parameterized(Statement, JsonArray)
+     * @see Cluster#query(String, QueryOptions)
      */
     public List<JsonObject> executeParametrizedStatement(String statement, List<Object> parameters) {
         JsonArray positionalParams = JsonArray.from(parameters);
-        ParameterizedN1qlQuery query = N1qlQuery.parameterized(statement, positionalParams);
-        return executeQuery(query);
+        final QueryResult queryResult = this.cluster.query(statement, queryOptions().parameters(positionalParams));
+        return queryResult.rowsAsObject();
     }
 
     /**
@@ -233,7 +244,7 @@ public class CouchbaseConnection implements AutoCloseable {
      * @param parameterNames  the placeholders' names in kernelTransaction
      * @param parameterValues the values for the named placeholders in kernelTransaction
      * @return the list of {@link JsonObject}s retrieved by this query
-     * @see N1qlQuery#parameterized(Statement, JsonObject)
+     * @see Cluster#query(String, QueryOptions)
      */
     public List<JsonObject> executeParametrizedStatement(String statement, List<String> parameterNames,
                                                          List<Object> parameterValues) {
@@ -241,23 +252,7 @@ public class CouchbaseConnection implements AutoCloseable {
         for (int param = 0; param < parameterNames.size(); param++) {
             namedParams.put(parameterNames.get(param), parameterValues.get(param));
         }
-        ParameterizedN1qlQuery query = N1qlQuery.parameterized(statement, namedParams);
-        return executeQuery(query);
-    }
-
-    private List<JsonObject> executeQuery(N1qlQuery query) {
-        if(this.bucket.isClosed()){
-            throw new RuntimeException("bucket has been closed before performing the query");
-        }
-
-        N1qlQueryResult queryResult = this.bucket.query(query);
-        List<JsonObject> result = null;
-        if (queryResult != null && queryResult.info().errorCount() == 0 && queryResult.info().resultCount() > 0) {
-            result = new ArrayList<JsonObject>();
-            for (N1qlQueryRow queryRow : queryResult) {
-                result.add(queryRow.value());
-            }
-        }
-        return result;
+        QueryResult queryResult = this.cluster.query(statement, queryOptions().parameters(namedParams));
+        return queryResult.rowsAsObject();
     }
 }

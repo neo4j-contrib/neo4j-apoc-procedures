@@ -6,13 +6,13 @@ import apoc.couchbase.document.CouchbaseQueryResult;
 import apoc.couchbase.document.CouchbaseUtils;
 import apoc.result.BooleanResult;
 import apoc.util.MissingDependencyException;
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.document.Document;
-import com.couchbase.client.java.document.JsonDocument;
-import com.couchbase.client.java.document.json.JsonArray;
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.query.N1qlQuery;
-import com.couchbase.client.java.query.Statement;
+import com.couchbase.client.java.Collection;
+import com.couchbase.client.java.BinaryCollection;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.json.JsonObject;
+import com.couchbase.client.java.kv.GetResult;
+import com.couchbase.client.java.kv.MutationResult;
+import com.couchbase.client.java.query.QueryOptions;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -78,7 +78,7 @@ import java.util.stream.Stream;
 public class Couchbase {
 
     /**
-     * Retrieves a {@link JsonDocument} by its unique ID.
+     * Retrieves a {@link GetResult} by its unique ID.
      * <p/>
      * Example:
      * <code>call apoc.couchbase.get('localhost', 'default', 'artist:vincent_van_gogh') yield id, expiry, cas, mutationToken, content</code>
@@ -88,20 +88,20 @@ public class Couchbase {
      *                   bucket
      * @param documentId the unique ID of the document
      * @return the found {@link CouchbaseJsonDocument} or null if not found
-     * @see Bucket#get(String)
+     * @see Collection#get(String)
      */
     @Procedure
     @Description("apoc.couchbase.get(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content - retrieves a couchbase json document by its unique ID.")
     public Stream<CouchbaseJsonDocument> get(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
                                              @Name("documentId") String documentId) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            JsonDocument jsonDocument = couchbaseConnection.get(documentId);
-            return jsonDocument == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(jsonDocument));
+            final GetResult getResult = couchbaseConnection.get(documentId);
+            return getResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(getResult, documentId));
         }
     }
 
     /**
-     * Check whether a {@link JsonDocument} with the given ID does exist.
+     * Checks if the given document ID exists
      * <p/>
      * Example:
      * <code>CALL apoc.couchbase.exists('localhost', 'default', 'artist:vincent_van_gogh') yield value</code>
@@ -111,7 +111,7 @@ public class Couchbase {
      *                   bucket
      * @param documentId the unique ID of the document
      * @return true if it exists, false otherwise.
-     * @see Bucket#exists(String)
+     * @see Collection#exists(String)
      */
     @Procedure
     @Description("apoc.couchbase.exists(hostOrKey, bucket, documentId) yield value - check whether a couchbase json document with the given ID does exist.")
@@ -124,7 +124,7 @@ public class Couchbase {
     }
 
     /**
-     * Insert a {@link JsonDocument} if it does not exist already.
+     * Insert a document if it does not exist already.
      * <p/>
      * Example:
      * <code>CALL apoc.couchbase.insert('localhost', 'default', 'artist:vincent_van_gogh', '{"firstName":"Vincent","secondName":"Willem","lastName":"Van Gogh","notableWorks":["Starry Night","Sunflowers","Bedroom in Arles","Portrait of Dr Gachet","Sorrow"]}') yield id, expiry, cas, mutationToken, content</code>
@@ -134,21 +134,21 @@ public class Couchbase {
      *                   bucket
      * @param documentId the unique ID of the document
      * @param json       the JSON String representing the document to store
-     * @return the newly created {@link JsonDocument} or null in case of exception
-     * @see Bucket#insert(Document)
+     * @return the newly created document
+     * @see Collection#insert(String, Object)
      */
     @Procedure
     @Description("apoc.couchbase.insert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert a couchbase json document with its unique ID.")
     public Stream<CouchbaseJsonDocument> insert(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
                                                 @Name("documentId") String documentId, @Name("json") String json) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            JsonDocument jsonDocument = couchbaseConnection.insert(documentId, json);
-            return jsonDocument == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(jsonDocument));
+            final MutationResult mutationResult = couchbaseConnection.insert(documentId, json);
+            return mutationResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(mutationResult, documentId, couchbaseConnection.getCollection()));
         }
     }
 
     /**
-     * Insert or overwrite a {@link JsonDocument}.
+     * Insert or overwrite a document.
      * <p/>
      * Example:
      * <code>CALL apoc.couchbase.upsert('localhost', 'default', 'artist:vincent_van_gogh', '{"firstName":"Vincent","secondName":"Willem","lastName":"Van Gogh","notableWorks":["Starry Night","Sunflowers","Bedroom in Arles","Portrait of Dr Gachet","Sorrow"]}') yield id, expiry, cas, mutationToken, content</code>
@@ -158,22 +158,22 @@ public class Couchbase {
      *                   bucket
      * @param documentId the unique ID of the document
      * @param json       the JSON String representing the document to store
-     * @return the newly created or overwritten {@link JsonDocument} or null in
+     * @return the newly created or overwritten document or null in
      * case of exception
-     * @see Bucket#upsert(Document)
+     * @see Collection#upsert(String, Object)
      */
     @Procedure
     @Description("apoc.couchbase.upsert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert or overwrite a couchbase json document with its unique ID.")
     public Stream<CouchbaseJsonDocument> upsert(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
                                                 @Name("documentId") String documentId, @Name("json") String json) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            JsonDocument jsonDocument = couchbaseConnection.upsert(documentId, json);
-            return jsonDocument == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(jsonDocument));
+            final MutationResult mutationResult = couchbaseConnection.upsert(documentId, json);
+            return mutationResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(mutationResult, documentId, couchbaseConnection.getCollection()));
         }
     }
 
     /**
-     * Append a {@link JsonDocument}'s content to an existing one.
+     * Append a document's content to an existing one.
      * <p/>
      * Example:
      * <code>CALL apoc.couchbase.append('localhost', 'default', 'artist:vincent_van_gogh', '{"placeOfBirth":"Zundert","placeOfDeath":" Auvers-sur-Oise"}') yield id, expiry, cas, mutationToken, content</code>
@@ -183,21 +183,21 @@ public class Couchbase {
      *                   bucket
      * @param documentId the unique ID of the document
      * @param json       the JSON String representing the document to append
-     * @return the updated {@link JsonDocument} or null in case of exception
-     * @see Bucket#append(Document)
+     * @return the updated document or null in case of exception
+     * @see BinaryCollection#append(String, byte[])
      */
     @Procedure
     @Description("apoc.couchbase.append(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - append a couchbase json document to an existing one.")
     public Stream<CouchbaseJsonDocument> append(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
                                                 @Name("documentId") String documentId, @Name("json") String json) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            JsonDocument jsonDocument = couchbaseConnection.append(documentId, json);
-            return jsonDocument == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(jsonDocument));
+            final MutationResult mutationResult = couchbaseConnection.append(documentId, json); // TODO TODO TODO
+            return mutationResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(mutationResult, documentId, couchbaseConnection.getCollection()));
         }
     }
 
     /**
-     * Prepend a {@link JsonDocument}'s content to an existing one.
+     * Prepend a document's content to an existing one.
      * <p/>
      * Example:
      * <code>CALL apoc.couchbase.prepend('localhost', 'default', 'artist:vincent_van_gogh', '{"placeOfBirth":"Zundert","placeOfDeath":" Auvers-sur-Oise"}') yield id, expiry, cas, mutationToken, content</code>
@@ -207,8 +207,8 @@ public class Couchbase {
      *                   bucket
      * @param documentId the unique ID of the document
      * @param json       the JSON String representing the document to prepend
-     * @return the updated {@link JsonDocument} or null in case of exception
-     * @see Bucket#prepend(Document)
+     * @return the updated document or null in case of exception
+     * @see BinaryCollection#prepend(String, byte[])
      */
     @Procedure
     @Description("apoc.couchbase.prepend(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - prepend a couchbase json document to an existing one.")
@@ -216,13 +216,13 @@ public class Couchbase {
                                                  @Name("documentId") String documentId, @Name("json") String json) {
         Stream<CouchbaseJsonDocument> result = null;
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            JsonDocument jsonDocument = couchbaseConnection.prepend(documentId, json);
-            return jsonDocument == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(jsonDocument));
+            final MutationResult mutationResult = couchbaseConnection.prepend(documentId, json);
+            return mutationResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(mutationResult, documentId, couchbaseConnection.getCollection()));
         }
     }
 
     /**
-     * Removes the {@link JsonDocument} identified by its unique ID.
+     * Removes the document identified by its unique ID.
      * <p/>
      * Example:
      * <code>CALL apoc.couchbase.remove(['localhost'], 'default', 'artist:vincent_van_gogh') yield id, expiry, cas, mutationToken, content</code>
@@ -231,21 +231,21 @@ public class Couchbase {
      * @param bucket     the bucket to open; if null is passed then it's used the "default"
      *                   bucket
      * @param documentId the unique ID of the document
-     * @return the removed {@link JsonDocument}
-     * @see Bucket#remove(String)
+     * @return the removed document
+     * @see Collection#remove(String)
      */
     @Procedure
     @Description("apoc.couchbase.remove(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content - remove the couchbase json document identified by its unique ID.")
     public Stream<CouchbaseJsonDocument> remove(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
                                                 @Name("documentId") String documentId) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            JsonDocument jsonDocument = couchbaseConnection.remove(documentId);
-            return jsonDocument == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(jsonDocument));
+            final MutationResult mutationResult = couchbaseConnection.remove(documentId);
+            return mutationResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(mutationResult, documentId, couchbaseConnection.getCollection()));
         }
     }
 
     /**
-     * Replace the content of the {@link JsonDocument} identified by its unique
+     * Replace the content of the document identified by its unique
      * ID.
      * <p/>
      * Example:
@@ -256,16 +256,16 @@ public class Couchbase {
      *                   bucket
      * @param documentId the unique ID of the document
      * @param json       the JSON String representing the document to prepend
-     * @return the replaced {@link JsonDocument}
-     * @see Bucket#replace(Document)
+     * @return the replaced document
+     * @see Collection#replace(String, Object)
      */
     @Procedure
     @Description("apoc.couchbase.replace(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - replace the content of the couchbase json document identified by its unique ID.")
     public Stream<CouchbaseJsonDocument> replace(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
                                                  @Name("documentId") String documentId, @Name("json") String json) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            JsonDocument jsonDocument = couchbaseConnection.replace(documentId, json);
-            return jsonDocument == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(jsonDocument));
+            final MutationResult mutationResult = couchbaseConnection.replace(documentId, json);
+            return mutationResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(mutationResult, documentId, couchbaseConnection.getCollection()));
         }
     }
 
@@ -281,7 +281,7 @@ public class Couchbase {
      * @param statement the raw statement string to execute
      * @return the list of {@link JsonObject}s retrieved by this query in the form
      * of a {@link CouchbaseQueryResult}
-     * @see N1qlQuery#simple(Statement)
+     * @see Cluster#query(String)
      */
     @Procedure
     @Description("apoc.couchbase.query(hostOrKey, bucket, statement) yield queryResult - executes a plain un-parameterized N1QL statement.")
@@ -289,7 +289,8 @@ public class Couchbase {
                                               @Name("statement") String statement) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
             List<JsonObject> statementResult = couchbaseConnection.executeStatement(statement);
-            return statementResult == null ? Stream.empty() : Stream.of(CouchbaseUtils.convertToCouchbaseQueryResult(statementResult));
+            final CouchbaseQueryResult result = CouchbaseUtils.convertToCouchbaseQueryResult(statementResult);
+            return result == null ? Stream.empty() : Stream.of(result);
         }
     }
 
@@ -307,7 +308,7 @@ public class Couchbase {
      * @param params    the values for the positional placeholders in statement
      * @return the list of {@link JsonObject}s retrieved by this query in the form
      * of a {@link CouchbaseQueryResult}
-     * @see N1qlQuery#parameterized(Statement, JsonArray)
+     * @see Cluster#query(String, QueryOptions)
      */
     @Procedure
     @Description("apoc.couchbase.posParamsQuery(hostOrKey, bucket, statement, params) yield queryResult - executes a N1QL statement with positional parameters.")
@@ -315,7 +316,8 @@ public class Couchbase {
                                                        @Name("statement") String statement, @Name("params") List<Object> params) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
             List<JsonObject> statementResult = couchbaseConnection.executeParametrizedStatement(statement, params);
-            return statementResult == null ? Stream.empty() : Stream.of(CouchbaseUtils.convertToCouchbaseQueryResult(statementResult));
+            final CouchbaseQueryResult result = CouchbaseUtils.convertToCouchbaseQueryResult(statementResult);
+            return result == null ? Stream.empty() : Stream.of(result);
         }
     }
 
@@ -334,7 +336,7 @@ public class Couchbase {
      * @param paramValues the values for the named placeholders in statement
      * @return the list of {@link JsonObject}s retrieved by this query in the form
      * of a {@link CouchbaseQueryResult}
-     * @see N1qlQuery#parameterized(Statement, JsonObject)
+     * @see Cluster#query(String, QueryOptions)
      */
     @Procedure
     @Description("apoc.couchbase.namedParamsQuery(hostkOrKey, bucket, statement, paramNames, paramValues) yield queryResult - executes a N1QL statement with named parameters.")
@@ -344,7 +346,8 @@ public class Couchbase {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
             List<JsonObject> statementResult = couchbaseConnection.executeParametrizedStatement(statement, paramNames,
                     paramValues);
-            return statementResult == null ? Stream.empty() : Stream.of(CouchbaseUtils.convertToCouchbaseQueryResult(statementResult));
+            final CouchbaseQueryResult result = CouchbaseUtils.convertToCouchbaseQueryResult(statementResult);
+            return result == null ? Stream.empty() : Stream.of(result);
         }
     }
 

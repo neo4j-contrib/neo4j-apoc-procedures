@@ -1,37 +1,41 @@
 package apoc.couchbase.document;
 
-import java.util.HashMap;
+import java.time.Instant;
 import java.util.Map;
 
-import com.couchbase.client.java.document.Document;
-import com.couchbase.client.java.document.JsonDocument;
-import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.Collection;
+import com.couchbase.client.java.json.JsonObject;
+import com.couchbase.client.java.kv.GetResult;
+import com.couchbase.client.java.kv.MutationResult;
+
+import static apoc.couchbase.document.CouchbaseUtils.convertMutationTokenToMap;
 
 /**
- * Represents a {@link Document} that contains a <code>JSON object</code> as the
+ * Represents a {@link MutationResult} or a {@link GetResult} (in case of apoc.couchbase.get procedure)
+ * that contains a <code>JSON object</code> as the
  * content.
  * <p/>
  * The <code>JSON object</code> here comes in the form of a <code>Map</code>.
  * 
  * @since 15.8.2016
  * @author inserpio
- * @see JsonDocument
+ * @see// JsonDocument
  * @see JsonObject
  */
 public class CouchbaseJsonDocument implements CouchbaseDocument<Map<String, Object>> {
 
   /**
-   * The per-bucket unique ID of the {@link Document}.
+   * The per-bucket unique ID of the {@link GetResult} or the {@link MutationResult}.
    */
   public String id;
 
   /**
-   * The optional expiration time for the {@link Document} (0 if not set).
+   * The optional expiration time for the {@link GetResult} (0 if not set).
    */
   public long expiry;
 
   /**
-   * The last-known CAS (<i>Compare And Swap</i>) value for the {@link Document} (0 if not set).
+   * The last-known CAS (<i>Compare And Swap</i>) value for the {@link MutationResult} (0 if not set).
    */
   public long cas;
 
@@ -42,17 +46,33 @@ public class CouchbaseJsonDocument implements CouchbaseDocument<Map<String, Obje
   public Map<String, Object> mutationToken;
 
   /**
-   * The content of the {@link Document}.
+   * The content of the {@link GetResult}.
    */
   public Map<String, Object> content;
 
-  public CouchbaseJsonDocument(JsonDocument jsonDocument) {
-    this.id = jsonDocument.id();
-    this.expiry = jsonDocument.expiry();
-    this.cas = jsonDocument.cas();
-    this.mutationToken = CouchbaseUtils.convertMutationTokenToMap(jsonDocument.mutationToken());
-    this.content = (jsonDocument.content() != null) ? this.content = jsonDocument.content().toMap()
-        : new HashMap<String, Object>();
+  public CouchbaseJsonDocument(GetResult getResult, String id) {
+    this.id = id;
+    this.expiry = getResult.expiryTime().orElse(Instant.ofEpochMilli(0)).toEpochMilli();
+    this.cas = getResult.cas();
+    this.mutationToken = null;
+    this.content = getResult.contentAsObject().toMap();
+  }
+
+  public CouchbaseJsonDocument(MutationResult mutationResult, String id, Collection collection) {
+
+    GetResult getResult = collection.exists(id).exists() ? collection.get(id) : null;
+
+    this.id = id;
+    this.cas = mutationResult.cas();
+    if (getResult == null) {
+      this.expiry = 0;
+      this.mutationToken = null;
+      this.content = null;
+    } else {
+      this.expiry = getResult.expiryTime().orElse(Instant.ofEpochMilli(0)).toEpochMilli();
+      this.mutationToken = convertMutationTokenToMap(mutationResult.mutationToken().orElse(null));
+      this.content = getResult.contentAsObject().toMap();
+    }
   }
 
   @Override
