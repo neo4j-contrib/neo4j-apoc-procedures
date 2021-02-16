@@ -41,12 +41,12 @@ public class LoadDirectoryTest {
         // create temp files and subfolder
         temporaryFolder.newFile("Foo.csv");
         temporaryFolder.newFile("Bar.csv");
-        temporaryFolder.newFile("Baz.xsl");
+        temporaryFolder.newFile("Baz.xls");
         temporaryFolder.newFolder(IMPORT_DIR + File.separator + SUBFOLDER);
         temporaryFolder.newFile(IMPORT_DIR + File.separator + "TestCsv1.csv");
         temporaryFolder.newFile(IMPORT_DIR + File.separator + "TestCsv2.csv");
         temporaryFolder.newFile(IMPORT_DIR + File.separator + "TestCsv3.csv");
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + "Testxsl1.xsl");
+        temporaryFolder.newFile(IMPORT_DIR + File.separator + "TestXls1.xls");
         temporaryFolder.newFile(IMPORT_DIR + File.separator + "TestJson1.json");
         temporaryFolder.newFile(IMPORT_DIR + File.separator + SUBFOLDER + File.separator + "TestSubfolder.json");
         temporaryFolder.newFile(IMPORT_DIR + File.separator + SUBFOLDER + File.separator + "TestSubfolder.csv");
@@ -79,21 +79,21 @@ public class LoadDirectoryTest {
                     List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
                     assertTrue(rows.contains(rootTempFolder + File.separator + "Foo.csv"));
                     assertTrue(rows.contains(rootTempFolder + File.separator + "Bar.csv"));
-                    assertTrue(rows.contains(rootTempFolder + File.separator + "Baz.xsl"));
+                    assertTrue(rows.contains(rootTempFolder + File.separator + "Baz.xls"));
                     assertEquals(3, rows.size());
                 }
         );
     }
 
     @Test
-    public void testWithFileProtocolFilterXslAndRecursiveTrue() {
+    public void testWithFileProtocolFilterXlsAndRecursiveTrue() {
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
         File rootTempFolder = temporaryFolder.getRoot();
         String folderAsExternalUrl = "file://" + rootTempFolder;
-        testResult(db, "CALL apoc.load.directory('*.xsl', '" + folderAsExternalUrl + "', {recursive: true}) YIELD value RETURN value", result -> {
+        testResult(db, "CALL apoc.load.directory('*.xls', '" + folderAsExternalUrl + "', {recursive: true}) YIELD value RETURN value", result -> {
                     List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
-                    assertTrue(rows.contains(rootTempFolder + File.separator + "Baz.xsl"));
-                    assertTrue(rows.contains("Testxsl1.xsl"));
+                    assertTrue(rows.contains(rootTempFolder + File.separator + "Baz.xls"));
+                    assertTrue(rows.contains("TestXls1.xls"));
                     assertEquals(2, rows.size());
                 }
         );
@@ -108,7 +108,7 @@ public class LoadDirectoryTest {
                     assertTrue(rows.contains("TestCsv2.csv"));
                     assertTrue(rows.contains("TestCsv3.csv"));
                     assertTrue(rows.contains("TestJson1.json"));
-                    assertTrue(rows.contains("Testxsl1.xsl"));
+                    assertTrue(rows.contains("TestXls1.xls"));
                     assertEquals(5, rows.size());
                 }
         );
