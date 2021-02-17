@@ -240,7 +240,7 @@ public class XmlGraphMLReader {
                     if (name.equals("node")) {
                         tx.increment();
                         String id = getAttribute(element, ID);
-                        Node node = this.tx.createNode();
+                        Node node = tx.getTransaction().createNode();
                         if (this.labels) {
                             String labels = getAttribute(element, LABELS);
                             addLabels(node, labels);
@@ -258,8 +258,8 @@ public class XmlGraphMLReader {
                         String source = getAttribute(element, SOURCE);
                         String target = getAttribute(element, TARGET);
                         String label = getAttribute(element, LABEL);
-                        Node from = this.tx.getNodeById(cache.get(source));
-                        Node to = this.tx.getNodeById(cache.get(target));
+                        Node from = tx.getTransaction().getNodeById(cache.get(source));
+                        Node to = tx.getTransaction().getNodeById(cache.get(target));
 
                         RelationshipType relationshipType = label == null ? getRelationshipType(reader) : RelationshipType.withName(label);
                         Relationship relationship = from.createRelationshipTo(to, relationshipType);
