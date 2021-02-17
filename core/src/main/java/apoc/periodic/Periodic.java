@@ -63,7 +63,10 @@ public class Periodic {
         Map<String,Long> commitErrors = new ConcurrentHashMap<>();
         AtomicInteger failedBatches = new AtomicInteger();
         Map<String,Long> batchErrors = new ConcurrentHashMap<>();
-
+        String periodicId = UUID.randomUUID().toString();
+        if (log.isDebugEnabled()) {
+            log.debug("Starting periodic commit from `%s` in separate thread with id: `%s`", statement, periodicId);
+        }
         do {
             Map<String, Object> window = Util.map("_count", updates, "_total", total);
             updates = Util.getFuture(pools.getScheduledExecutorService().submit(() -> {
@@ -78,7 +81,13 @@ public class Periodic {
             }), commitErrors, failedCommits, 0L);
             total += updates;
             if (updates > 0) executions++;
+            if (log.isDebugEnabled()) {
+                log.debug("Processed in periodic commit with id %s, no %d executions", periodicId, executions);
+            }
         } while (updates > 0 && !Util.transactionIsTerminated(terminationGuard));
+        if (log.isDebugEnabled()) {
+            log.debug("Terminated periodic commit with id %s with %d executions", periodicId, executions);
+        }
         long timeTaken = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
         boolean wasTerminated = Util.transactionIsTerminated(terminationGuard);
         return Stream.of(new RundownResult(total,executions, timeTaken, batches.get(),failedBatches.get(),batchErrors, failedCommits.get(), commitErrors, wasTerminated));
@@ -239,9 +248,10 @@ public class Periodic {
             Pair<String,Boolean> prepared = PeriodicUtils.prepareInnerStatement(cypherAction, batchMode, result.columns(), "_batch");
             String innerStatement = prepared.first();
             boolean iterateList = prepared.other();
-            log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
+            String periodicId = UUID.randomUUID().toString();
+            log.info("Starting periodic iterate from `%s` operation using iteration `%s` in separate thread with id: `%s`", cypherIterate,cypherAction, periodicId);
             return iterateAndExecuteBatchedInSeparateThread((int)batchSize, parallel, iterateList, retries, result,
-                    (tx, p) -> Iterators.count(tx.execute(innerStatement, merge(params, p))), concurrency, failedParams);
+                    (tx, p) -> Iterators.count(tx.execute(innerStatement, merge(params, p))), concurrency, failedParams, periodicId);
         }
     }
 
@@ -254,7 +264,7 @@ public class Periodic {
     }
 
     private Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, boolean parallel, boolean iterateList, long retries,
-                  Iterator<Map<String, Object>> iterator, BiConsumer<Transaction, Map<String, Object>> consumer, int concurrency, int failedParams) {
+                  Iterator<Map<String, Object>> iterator, BiConsumer<Transaction, Map<String, Object>> consumer, int concurrency, int failedParams, String periodicId) {
 
 
         ExecutorService pool = parallel ? pools.getDefaultExecutorService() : pools.getSingleExecutorService();
@@ -269,7 +279,7 @@ public class Periodic {
                 // we have capacity, add a new Future to the list
                 activeFutures.incrementAndGet();
 
-                if (log.isDebugEnabled()) log.debug("execute in batch no %d batch size ", batchsize);
+                if (log.isDebugEnabled()) log.debug("Execute, in periodic iterate with id %s, no %d batch size ", periodicId, batchsize);
                 List<Map<String,Object>> batch = Util.take(iterator, batchsize);
                 final long currentBatchSize = batch.size();
                 ExecuteBatch executeBatch =
@@ -289,6 +299,9 @@ public class Periodic {
                             activeFutures.decrementAndGet();
                         }));
                 collector.incrementCount(currentBatchSize);
+                if (log.isDebugEnabled()) {
+                    log.debug("Processed in periodic iterate with id %s, %d iterations of %d total", periodicId, batchsize, collector.getCount());
+                }
             } else {
                 // we can't block until the counter decrease as we might miss a cancellation, so
                 // let this thread be pre-empted for a bit before we check for cancellation or
@@ -305,6 +318,9 @@ public class Periodic {
 
         Util.logErrors("Error during iterate.commit:", collector.getBatchErrors(), log);
         Util.logErrors("Error during iterate.execute:", collector.getOperationErrors(), log);
+        if (log.isDebugEnabled()) {
+            log.debug("Terminated periodic iterate with id %s with %d executions", periodicId, collector.getCount());
+        }
         return Stream.of(collector.getResult());
     }
 
