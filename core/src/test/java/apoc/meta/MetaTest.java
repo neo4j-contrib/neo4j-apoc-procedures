@@ -420,31 +420,6 @@ public class MetaTest {
     }
 
     @Test
-    public void testMetaSchemaNodeWithProps() {
-        db.executeTransactionally("CREATE (:Person:Actor:Director {foo: 'bar'})");
-        testCall(db, "CALL apoc.meta.schema()",
-                (row) -> {
-                    List<String> emptyList = new ArrayList<String>();
-                    List<String> fullList = Arrays.asList("Actor","Director");
-
-                    Map<String, Object> o = (Map<String, Object>) row.get("value");
-                    assertEquals(3, o.size());
-
-                    Map<String, Object>  person = (Map<String, Object>) o.get("Person");
-                    Map<String, Object>  personProperties = (Map<String, Object>) person.get("properties");
-                    Map<String, Object>  personFooProperty = (Map<String, Object>) personProperties.get("foo");
-                    assertNotNull(person);
-                    assertEquals("node", person.get("type"));
-                    assertEquals(1L, person.get("count"));
-                    assertEquals(emptyList, person.get("labels"));
-                    assertEquals("STRING", personFooProperty.get("type"));
-                    assertEquals(false, personFooProperty.get("existence"));
-                    assertEquals(false, personFooProperty.get("unique"));
-                    assertEquals(false, personFooProperty.get("indexed"));
-                });
-    }
-
-    @Test
     public void testSubGraphNoLimits() throws Exception {
         db.executeTransactionally("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)");
         testCall(db,"CALL apoc.meta.subGraph({})", (row) -> {
