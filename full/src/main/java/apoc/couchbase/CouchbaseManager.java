@@ -1,5 +1,6 @@
 package apoc.couchbase;
 
+import com.couchbase.client.core.env.IoEnvironment;
 import com.couchbase.client.core.env.PasswordAuthenticator;
 import com.couchbase.client.core.env.TimeoutConfig;
 import com.couchbase.client.java.env.ClusterEnvironment;
@@ -162,7 +163,10 @@ public class CouchbaseManager {
                 Duration.ofMillis(Integer.parseInt(getConfig("kvTimeout")))));
 
         builder.timeoutConfig(TimeoutConfig.connectTimeout(
-                Duration.ofSeconds(Long.parseLong(getConfig("connectTimeout")))));
+                Duration.ofMillis(Long.parseLong(getConfig("connectTimeout")))));
+
+        builder.ioEnvironment(IoEnvironment.builder().eventLoopThreadCount(
+                Integer.parseInt(getConfig("ioPoolSize"))));
 
         return builder.build();
     }

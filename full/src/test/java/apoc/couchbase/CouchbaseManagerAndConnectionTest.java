@@ -50,7 +50,8 @@ public class CouchbaseManagerAndConnectionTest {
                 BASE_CONFIG_KEY + CouchbaseManager.PASSWORD_CONFIG_KEY, PASSWORD,
                 BASE_CONFIG_KEY + CouchbaseManager.PORT_CONFIG_KEY, couchbase.getMappedPort(8091),
                 BASE_APOC_CONFIG + CONNECTION_TIMEOUT_CONFIG_KEY, CONNECTION_TIMEOUT_CONFIG_VALUE,
-                BASE_APOC_CONFIG + KV_TIMEOUT_CONFIG_KEY, KV_TIMEOUT_CONFIG_VALUE
+                BASE_APOC_CONFIG + KV_TIMEOUT_CONFIG_KEY, KV_TIMEOUT_CONFIG_VALUE,
+                BASE_APOC_CONFIG + IO_POOL_SIZE_CONFIG_KEY, IO_POOL_SIZE_CONFIG_VALUE
         );
         properties.forEach((key, value) -> apocConfig().setProperty(key, value));
     }
@@ -107,10 +108,11 @@ public class CouchbaseManagerAndConnectionTest {
         Assert.assertEquals(Arrays.asList("invalidOne", "localhost", "invalidTwo"), connectionObjectsFromHostOrKey.other());
     }
 
-    // TODO - DEVO TESTARE LE CONFIG TRAMITE ENV.TIMEOUTCONFIG() ETC ...???
     @Test
     public void testConfig() {
         Assert.assertEquals(CONNECTION_TIMEOUT_CONFIG_VALUE, CouchbaseManager.getConfig(CONNECTION_TIMEOUT_CONFIG_KEY));
+        Assert.assertEquals(IO_POOL_SIZE_CONFIG_VALUE, CouchbaseManager.getConfig(IO_POOL_SIZE_CONFIG_KEY));
+        Assert.assertEquals(KV_TIMEOUT_CONFIG_VALUE, CouchbaseManager.getConfig(KV_TIMEOUT_CONFIG_KEY));
     }
 
 
