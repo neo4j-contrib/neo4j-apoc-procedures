@@ -917,21 +917,6 @@ public class Util {
         thread.setDaemon(true);
         return thread;
     }
-
-    public static List<Long> convertFromBytesToList(byte[] bytes) {
-        List<Long> result = new ArrayList<>(bytes.length);
-        for (byte b : bytes) {
-            result.add((long)b & 0xFFL);
-        }
-        return result;
-    }
-
-    public static byte[] convertFromListToBytes(List<Long> list) {
-        return toPrimitive(list
-                .stream()
-                .map(Long::byteValue)
-                .toArray(Byte[]::new));
-    }
     
     public static String encodeUserColonPassToBase64(String userPass) {
         return new String(Base64.getEncoder().encode((userPass).getBytes()));
