@@ -15,6 +15,8 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -44,14 +46,19 @@ public class LoadHtml {
 
             Map<String, Object> output = new HashMap<>();
 
-            query.keySet().stream().forEach(key -> {
-                Elements elements = document.select(query.get(key));
+            query.keySet().forEach(key -> {
+                try {
+                    Elements elements = document.select(query.get(key));
 
-                output.put(key, getElements(elements, config));
+                    output.put(key, getElements(elements, config));
+
+                } catch (Exception e) {
+                    output.put(key, Collections.emptyMap());
+                }
             });
 
-            return Stream.of( new MapResult(output) );
-        } catch(Exception e){
+            return Stream.of(new MapResult(output));
+        } catch(Exception e) {
             throw new RuntimeException("Can't read the HTML from: "+ url);
         }
     }

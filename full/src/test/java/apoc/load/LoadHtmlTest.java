@@ -4,6 +4,7 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.testFail;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -121,5 +123,29 @@ public class LoadHtmlTest {
                     assertEquals("li", firstChild.get("tagName"));
                     assertEquals(1, ((List) firstChild.get("children")).size());
                 });
+    }
+
+    @Test
+    public void testQueryFailsSilently() {
+        Map<String, Object> query = map("a", "a", "h2", "h2");
+
+        testResult(db, "CALL apoc.load.html($url,$query)", map("url", new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
+                result -> {
+                    Map<String, Object> row = result.next();
+                    Map<String, Object> value = (Map<String, Object>) row.get("value");
+                    assertEquals(Collections.emptyMap(), value.get("a"));
+                    assertEquals(List.of(RESULT_QUERY_H2).toString().trim(), value.get("h2").toString().trim());
+                    assertFalse(result.hasNext());
+                });
+
+    }
+
+    @Test
+    public void testQueryWithExceptionIfIncorrectUrl() {
+
+        testFail(db,
+                "CALL apoc.load.html('" + new File("src/test/resources/wikipedia1.html").toURI().toString() + "',{a:'a'})",
+                QueryExecutionException.class);
+
     }
 }
