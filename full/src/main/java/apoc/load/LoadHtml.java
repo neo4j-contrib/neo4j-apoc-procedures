@@ -15,8 +15,6 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -57,7 +55,7 @@ public class LoadHtml {
                 }
             });
 
-            return Stream.of(new MapResult(output));
+            return Stream.of( new MapResult(output) );
         } catch(Exception e) {
             throw new RuntimeException("Can't read the HTML from: "+ url);
         }
