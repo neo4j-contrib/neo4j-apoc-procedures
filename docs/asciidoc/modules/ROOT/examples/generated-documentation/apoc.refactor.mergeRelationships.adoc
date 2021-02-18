@@ -1,0 +1,5 @@
+¦xref::overview/apoc.refactor/apoc.refactor.mergeRelationships.adoc[apoc.refactor.mergeRelationships icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

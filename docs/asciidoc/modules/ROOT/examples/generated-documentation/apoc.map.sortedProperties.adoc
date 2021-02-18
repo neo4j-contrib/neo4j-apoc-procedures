@@ -1,0 +1,5 @@
+¦xref::overview/apoc.map/apoc.map.sortedProperties.adoc[apoc.map.sortedProperties icon:book[]] +
+
+ - returns a list of key/value list pairs, with pairs sorted by keys alphabetically, with optional case sensitivity
+¦label:function[]
+¦label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.cypher/apoc.cypher.runSchemaFile.adoc[apoc.cypher.runSchemaFile icon:book[]] +
+
+ - allows only schema operations, runs each schema statement in the file, all semicolon separated
+¦label:procedure[]
+¦label:apoc-full[]

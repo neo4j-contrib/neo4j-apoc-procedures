@@ -1,0 +1,5 @@
+¦xref::overview/apoc.atomic/apoc.atomic.subtract.adoc[apoc.atomic.subtract icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

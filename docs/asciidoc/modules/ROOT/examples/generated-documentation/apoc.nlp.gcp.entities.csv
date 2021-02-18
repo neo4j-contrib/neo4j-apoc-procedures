@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.nlp.gcp.entities.graph¦apoc.nlp.gcp.entities.graph(source :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)¦Creates a (virtual) entity graph for provided text
-¦procedure¦apoc.nlp.gcp.entities.stream¦apoc.nlp.gcp.entities.stream(source :: ANY?, config = {} :: MAP?) :: (node :: NODE?, value :: MAP?, error :: MAP?)¦Returns a stream of entities for provided text
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.nlp.gcp.entities/apoc.nlp.adoc[apoc.nlp.gcp.entities.graph icon:book[]]
+
+Creates a (virtual) entity graph for provided text
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.nlp.gcp.entities/apoc.nlp.adoc[apoc.nlp.gcp.entities.stream icon:book[]]
+
+Returns a stream of entities for provided text
+|label:procedure[]
+|label:apoc-full[]

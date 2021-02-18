@@ -1,23 +1,111 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.convert.setJsonProperty¦apoc.convert.setJsonProperty(node :: NODE?, key :: STRING?, value :: ANY?) :: VOID¦apoc.convert.setJsonProperty(node,key,complexValue) - sets value serialized to JSON as property with the given name on the node
-¦procedure¦apoc.convert.toTree¦apoc.convert.toTree(paths :: LIST? OF PATH?, lowerCaseRels = true :: BOOLEAN?, config = {} :: MAP?) :: (value :: MAP?)¦apoc.convert.toTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the at least one root of these paths
-¦function¦apoc.convert.fromJsonList¦apoc.convert.fromJsonList(list :: STRING?, path =  :: STRING?) :: (LIST? OF ANY?)¦apoc.convert.fromJsonList('[1,2,3]'[,'json-path'])
-¦function¦apoc.convert.fromJsonMap¦apoc.convert.fromJsonMap(map :: STRING?, path =  :: STRING?) :: (MAP?)¦apoc.convert.fromJsonMap('{"a":42,"b":"foo","c":[1,2,3]}'[,'json-path'])
-¦function¦apoc.convert.getJsonProperty¦apoc.convert.getJsonProperty(node :: NODE?, key :: STRING?, path =  :: STRING?) :: (ANY?)¦apoc.convert.getJsonProperty(node,key[,'json-path']) - converts serialized JSON in property back to original object
-¦function¦apoc.convert.getJsonPropertyMap¦apoc.convert.getJsonPropertyMap(node :: NODE?, key :: STRING?, path =  :: STRING?) :: (MAP?)¦apoc.convert.getJsonPropertyMap(node,key[,'json-path']) - converts serialized JSON in property back to map
-¦function¦apoc.convert.toBoolean¦apoc.convert.toBoolean(bool :: ANY?) :: (BOOLEAN?)¦apoc.convert.toBoolean(value) | tries it's best to convert the value to a boolean
-¦function¦apoc.convert.toBooleanList¦apoc.convert.toBooleanList(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toBooleanList(value) | tries it's best to convert the value to a list of booleans
-¦function¦apoc.convert.toFloat¦apoc.convert.toFloat(object :: ANY?) :: (FLOAT?)¦apoc.convert.toFloat(value) | tries it's best to convert the value to a float
-¦function¦apoc.convert.toIntList¦apoc.convert.toIntList(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toIntList(value) | tries it's best to convert the value to a list of integers
-¦function¦apoc.convert.toInteger¦apoc.convert.toInteger(object :: ANY?) :: (INTEGER?)¦apoc.convert.toInteger(value) | tries it's best to convert the value to an integer
-¦function¦apoc.convert.toJson¦apoc.convert.toJson(value :: ANY?) :: (STRING?)¦apoc.convert.toJson([1,2,3]) or toJson({a:42,b:"foo",c:[1,2,3]})
-¦function¦apoc.convert.toList¦apoc.convert.toList(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toList(value) | tries it's best to convert the value to a list
-¦function¦apoc.convert.toMap¦apoc.convert.toMap(map :: ANY?) :: (MAP?)¦apoc.convert.toMap(value) | tries it's best to convert the value to a map
-¦function¦apoc.convert.toNode¦apoc.convert.toNode(node :: ANY?) :: (NODE?)¦apoc.convert.toNode(value) | tries it's best to convert the value to a node
-¦function¦apoc.convert.toNodeList¦apoc.convert.toNodeList(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toNodeList(value) | tries it's best to convert the value to a list of nodes
-¦function¦apoc.convert.toRelationship¦apoc.convert.toRelationship(relationship :: ANY?) :: (RELATIONSHIP?)¦apoc.convert.toRelationship(value) | tries it's best to convert the value to a relationship
-¦function¦apoc.convert.toRelationshipList¦apoc.convert.toRelationshipList(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toRelationshipList(value) | tries it's best to convert the value to a list of relationships
-¦function¦apoc.convert.toSet¦apoc.convert.toSet(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toSet(value) | tries it's best to convert the value to a set
-¦function¦apoc.convert.toSortedJsonMap¦apoc.convert.toSortedJsonMap(value :: ANY?, ignoreCase = true :: BOOLEAN?) :: (STRING?)¦apoc.convert.toSortedJsonMap(node|map, ignoreCase:true) - returns a JSON map with keys sorted alphabetically, with optional case sensitivity
-¦function¦apoc.convert.toString¦apoc.convert.toString(string :: ANY?) :: (STRING?)¦apoc.convert.toString(value) | tries it's best to convert the value to a string
-¦function¦apoc.convert.toStringList¦apoc.convert.toStringList(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toStringList(value) | tries it's best to convert the value to a list of strings
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.setJsonProperty icon:book[]]
+
+apoc.convert.setJsonProperty(node,key,complexValue) - sets value serialized to JSON as property with the given name on the node
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toTree icon:book[]]
+
+apoc.convert.toTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the at least one root of these paths
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.fromJsonList icon:book[]]
+
+apoc.convert.fromJsonList('[1,2,3]'[,'json-path'])
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.fromJsonMap icon:book[]]
+
+apoc.convert.fromJsonMap('{"a":42,"b":"foo","c":[1,2,3]}'[,'json-path'])
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.getJsonProperty icon:book[]]
+
+apoc.convert.getJsonProperty(node,key[,'json-path']) - converts serialized JSON in property back to original object
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.getJsonPropertyMap icon:book[]]
+
+apoc.convert.getJsonPropertyMap(node,key[,'json-path']) - converts serialized JSON in property back to map
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toBoolean icon:book[]]
+
+apoc.convert.toBoolean(value) \| tries it's best to convert the value to a boolean
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toBooleanList icon:book[]]
+
+apoc.convert.toBooleanList(value) \| tries it's best to convert the value to a list of booleans
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toFloat icon:book[]]
+
+apoc.convert.toFloat(value) \| tries it's best to convert the value to a float
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toIntList icon:book[]]
+
+apoc.convert.toIntList(value) \| tries it's best to convert the value to a list of integers
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toInteger icon:book[]]
+
+apoc.convert.toInteger(value) \| tries it's best to convert the value to an integer
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toJson icon:book[]]
+
+apoc.convert.toJson([1,2,3]) or toJson({a:42,b:"foo",c:[1,2,3]})
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toList icon:book[]]
+
+apoc.convert.toList(value) \| tries it's best to convert the value to a list
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toMap icon:book[]]
+
+apoc.convert.toMap(value) \| tries it's best to convert the value to a map
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toNode icon:book[]]
+
+apoc.convert.toNode(value) \| tries it's best to convert the value to a node
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toNodeList icon:book[]]
+
+apoc.convert.toNodeList(value) \| tries it's best to convert the value to a list of nodes
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toRelationship icon:book[]]
+
+apoc.convert.toRelationship(value) \| tries it's best to convert the value to a relationship
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toRelationshipList icon:book[]]
+
+apoc.convert.toRelationshipList(value) \| tries it's best to convert the value to a list of relationships
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toSet icon:book[]]
+
+apoc.convert.toSet(value) \| tries it's best to convert the value to a set
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toSortedJsonMap icon:book[]]
+
+apoc.convert.toSortedJsonMap(node\|map, ignoreCase:true) - returns a JSON map with keys sorted alphabetically, with optional case sensitivity
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toString icon:book[]]
+
+apoc.convert.toString(value) \| tries it's best to convert the value to a string
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.convert/apoc.convert.adoc[apoc.convert.toStringList icon:book[]]
+
+apoc.convert.toStringList(value) \| tries it's best to convert the value to a list of strings
+|label:function[]
+|label:apoc-core[]

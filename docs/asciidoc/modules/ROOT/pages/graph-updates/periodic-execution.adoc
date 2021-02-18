@@ -13,11 +13,12 @@ While during imports you can use `PERIODIC COMMIT` to control transaction sizes 
 
 The table below describes the available procedures:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.periodic.iterate.csv[]
-include::example$generated-documentation/apoc.periodic.commit.csv[lines=2:]
-include::example$generated-documentation/apoc.periodic.rock_n_roll.csv[lines=2:]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.periodic.iterate.adoc[]
+include::example$generated-documentation/apoc.periodic.commit.adoc[]
+include::example$generated-documentation/apoc.periodic.rock_n_roll.adoc[]
 |===
 
 include::partial$periodic-iterate.adoc[leveloffset=+1]

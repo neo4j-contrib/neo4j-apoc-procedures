@@ -1,15 +1,71 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.refactor.categorize¦apoc.refactor.categorize(sourceKey :: STRING?, type :: STRING?, outgoing :: BOOLEAN?, label :: STRING?, targetKey :: STRING?, copiedKeys :: LIST? OF STRING?, batchSize :: INTEGER?) :: VOID¦apoc.refactor.categorize(sourceKey, type, outgoing, label, targetKey, copiedKeys, batchSize) turn each unique propertyKey into a category node and connect to it
-¦procedure¦apoc.refactor.cloneNodes¦apoc.refactor.cloneNodes(nodes :: LIST? OF NODE?, withRelationships = false :: BOOLEAN?, skipProperties = [] :: LIST? OF STRING?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)¦apoc.refactor.cloneNodes([node1,node2,...]) clone nodes with their labels and properties
-¦procedure¦apoc.refactor.cloneNodesWithRelationships¦apoc.refactor.cloneNodesWithRelationships(nodes :: LIST? OF NODE?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)¦apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) clone nodes with their labels, properties and relationships
-¦procedure¦apoc.refactor.cloneSubgraph¦apoc.refactor.cloneSubgraph(nodes :: LIST? OF NODE?, rels = [] :: LIST? OF RELATIONSHIP?, config = {} :: MAP?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)¦apoc.refactor.cloneSubgraph([node1,node2,...], [rel1,rel2,...]:[], {standinNodes:[], skipProperties:[]}) YIELD input, output, error | clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map), and clone the given relationships (will exist between cloned nodes only). If no relationships are provided, all relationships between the given nodes will be cloned. Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.
-¦procedure¦apoc.refactor.cloneSubgraphFromPaths¦apoc.refactor.cloneSubgraphFromPaths(paths :: LIST? OF PATH?, config = {} :: MAP?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)¦apoc.refactor.cloneSubgraphFromPaths([path1, path2, ...], {standinNodes:[], skipProperties:[]}) YIELD input, output, error | from the subgraph formed from the given paths, clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map), and clone the relationships (will exist between cloned nodes only). Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.
-¦procedure¦apoc.refactor.collapseNode¦apoc.refactor.collapseNode(nodes :: ANY?, type :: STRING?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)¦apoc.refactor.collapseNode([node1,node2],'TYPE') collapse node to relationship, node with one rel becomes self-relationship
-¦procedure¦apoc.refactor.extractNode¦apoc.refactor.extractNode(relationships :: ANY?, labels :: LIST? OF STRING?, outType :: STRING?, inType :: STRING?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)¦apoc.refactor.extractNode([rel1,rel2,...], [labels],'OUT','IN') extract node from relationships
-¦procedure¦apoc.refactor.from¦apoc.refactor.from(relationship :: RELATIONSHIP?, newNode :: NODE?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)¦apoc.refactor.from(rel, startNode) redirect relationship to use new start-node
-¦procedure¦apoc.refactor.invert¦apoc.refactor.invert(relationship :: RELATIONSHIP?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)¦apoc.refactor.invert(rel) inverts relationship direction
-¦procedure¦apoc.refactor.mergeNodes¦apoc.refactor.mergeNodes(nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (node :: NODE?)¦apoc.refactor.mergeNodes([node1,node2],[{properties:'overwrite' or 'discard' or 'combine'}]) merge nodes onto first in list
-¦procedure¦apoc.refactor.mergeRelationships¦apoc.refactor.mergeRelationships(rels :: LIST? OF RELATIONSHIP?, config = {} :: MAP?) :: (rel :: RELATIONSHIP?)¦apoc.refactor.mergeRelationships([rel1,rel2]) merge relationships onto first in list
-¦procedure¦apoc.refactor.normalizeAsBoolean¦apoc.refactor.normalizeAsBoolean(entity :: ANY?, propertyKey :: STRING?, true_values :: LIST? OF ANY?, false_values :: LIST? OF ANY?) :: VOID¦apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) normalize/convert a property to be boolean
-¦procedure¦apoc.refactor.setType¦apoc.refactor.setType(relationship :: RELATIONSHIP?, newType :: STRING?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)¦apoc.refactor.setType(rel, 'NEW-TYPE') change relationship-type
-¦procedure¦apoc.refactor.to¦apoc.refactor.to(relationship :: RELATIONSHIP?, newNode :: NODE?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)¦  apoc.refactor.to(rel, endNode) redirect relationship to use new end-node
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.categorize icon:book[]]
+
+apoc.refactor.categorize(sourceKey, type, outgoing, label, targetKey, copiedKeys, batchSize) turn each unique propertyKey into a category node and connect to it
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.cloneNodes icon:book[]]
+
+apoc.refactor.cloneNodes([node1,node2,...]) clone nodes with their labels and properties
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.cloneNodesWithRelationships icon:book[]]
+
+apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) clone nodes with their labels, properties and relationships
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.cloneSubgraph icon:book[]]
+
+apoc.refactor.cloneSubgraph([node1,node2,...], [rel1,rel2,...]:[], {standinNodes:[], skipProperties:[]}) YIELD input, output, error \| clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map), and clone the given relationships (will exist between cloned nodes only). If no relationships are provided, all relationships between the given nodes will be cloned. Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.cloneSubgraphFromPaths icon:book[]]
+
+apoc.refactor.cloneSubgraphFromPaths([path1, path2, ...], {standinNodes:[], skipProperties:[]}) YIELD input, output, error \| from the subgraph formed from the given paths, clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map), and clone the relationships (will exist between cloned nodes only). Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.collapseNode icon:book[]]
+
+apoc.refactor.collapseNode([node1,node2],'TYPE') collapse node to relationship, node with one rel becomes self-relationship
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.extractNode icon:book[]]
+
+apoc.refactor.extractNode([rel1,rel2,...], [labels],'OUT','IN') extract node from relationships
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.from icon:book[]]
+
+apoc.refactor.from(rel, startNode) redirect relationship to use new start-node
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.invert icon:book[]]
+
+apoc.refactor.invert(rel) inverts relationship direction
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.mergeNodes icon:book[]]
+
+apoc.refactor.mergeNodes([node1,node2],[{properties:'overwrite' or 'discard' or 'combine'}]) merge nodes onto first in list
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.mergeRelationships icon:book[]]
+
+apoc.refactor.mergeRelationships([rel1,rel2]) merge relationships onto first in list
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.normalizeAsBoolean icon:book[]]
+
+apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) normalize/convert a property to be boolean
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.setType icon:book[]]
+
+apoc.refactor.setType(rel, 'NEW-TYPE') change relationship-type
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.to icon:book[]]
+
+  apoc.refactor.to(rel, endNode) redirect relationship to use new end-node
+|label:procedure[]
+|label:apoc-core[]

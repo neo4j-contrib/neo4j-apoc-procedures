@@ -4,7 +4,11 @@
 
 APOC provides a set of store procedures in order to add log functionality:
 
-xref::overview/apoc.log/apoc.log.info.adoc[`apoc.log.info`] :: logs info message
-xref::overview/apoc.log/apoc.log.error.adoc[`apoc.log.error`] :: logs error message
-xref::overview/apoc.log/apoc.log.warn.adoc[`apoc.log.warn`] :: logs warn message
-xref::overview/apoc.log/apoc.log.debug.adoc[`apoc.log.debug`] :: logs debug message
+[separator=¦,opts=header,cols="5,1m,1m"]
+|===
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.log.info.adoc[]
+include::example$generated-documentation/apoc.log.error.adoc[]
+include::example$generated-documentation/apoc.log.warn.adoc[]
+include::example$generated-documentation/apoc.log.debug.adoc[]
+|===

@@ -15,20 +15,21 @@ They automatically skip `:begin/:commit/:rollback` operations as they are execut
 
 The available procedures and functions are described in the following table:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.cypher.runFile.csv[]
-include::example$generated-documentation/apoc.cypher.runFiles.csv[lines=2:]
-include::example$generated-documentation/apoc.cypher.runSchemaFile.csv[lines=2:]
-include::example$generated-documentation/apoc.cypher.runSchemaFiles.csv[lines=2:]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.cypher.runFile.adoc[]
+include::example$generated-documentation/apoc.cypher.runFiles.adoc[]
+include::example$generated-documentation/apoc.cypher.runSchemaFile.adoc[]
+include::example$generated-documentation/apoc.cypher.runSchemaFiles.adoc[]
 |===
 
 
 [[run-cypher-scripts-data-operations]]
 == Data Operations only
 
-* `apoc.cypher.runFile(file or url,[{config}])`
-* `apoc.cypher.runFiles([files or urls],[{config})])`
+* `apoc.cypher.runFile(file or url,[\{config}])`
+* `apoc.cypher.runFiles([files or urls],[\{config})])`
 
 The `apoc.cypher.run*File(s)` procedures have some optional configuration:
 
@@ -38,6 +39,6 @@ The `apoc.cypher.run*File(s)` procedures have some optional configuration:
 [[run-cypher-scripts-schema-operations]]
 == Schema Operations only
 
-* `apoc.cypher.runSchemaFile(file or url,[{config}])`
-* `apoc.cypher.runSchemaFiles([files or urls],[{config})])`
+* `apoc.cypher.runSchemaFile(file or url,[\{config}])`
+* `apoc.cypher.runSchemaFiles([files or urls],[\{config})])`
 

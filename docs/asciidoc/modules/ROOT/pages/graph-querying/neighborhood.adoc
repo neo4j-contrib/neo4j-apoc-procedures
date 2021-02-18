@@ -11,12 +11,13 @@ The Neighborhood search procedures enable quick discovery of surrounding nodes b
 
 The table below describes the available procedures:
 
-[separator=¦,opts=header]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.neighbors.csv[]
-include::example$generated-documentation/apoc.neighbors.athop.csv[lines=2]
-include::example$generated-documentation/apoc.neighbors.byhop.csv[lines=2]
-include::example$generated-documentation/apoc.neighbors.tohop.csv[lines=2]
+¦Qualified Name¦Type¦Release
+// include::example$generated-documentation/apoc.neighbors.adoc[]
+include::example$generated-documentation/apoc.neighbors.athop.adoc[]
+include::example$generated-documentation/apoc.neighbors.byhop.adoc[]
+include::example$generated-documentation/apoc.neighbors.tohop.adoc[]
 |===
 
 [[neighborhood-search-rel-filters]]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.path/apoc.path.combine.adoc[apoc.path.combine icon:book[]] +
+
+ - combines the paths into one if the connecting node matches
+¦label:function[]
+¦label:apoc-core[]

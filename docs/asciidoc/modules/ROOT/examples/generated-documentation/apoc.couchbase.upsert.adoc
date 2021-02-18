@@ -1,0 +1,5 @@
+¦xref::overview/apoc.couchbase/apoc.couchbase.upsert.adoc[apoc.couchbase.upsert icon:book[]] +
+
+ - insert or overwrite a couchbase json document with its unique ID.
+¦label:procedure[]
+¦label:apoc-full[]

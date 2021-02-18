@@ -1,5 +1,21 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.refactor.rename.label¦apoc.refactor.rename.label(oldLabel :: STRING?, newLabel :: STRING?, nodes = [] :: LIST? OF NODE?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, constraints :: LIST? OF STRING?, indexes :: LIST? OF STRING?)¦apoc.refactor.rename.label(oldLabel, newLabel, [nodes]) | rename a label from 'oldLabel' to 'newLabel' for all nodes. If 'nodes' is provided renaming is applied to this set only
-¦procedure¦apoc.refactor.rename.nodeProperty¦apoc.refactor.rename.nodeProperty(oldName :: STRING?, newName :: STRING?, nodes = [] :: LIST? OF NODE?, config = {} :: MAP?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, constraints :: LIST? OF STRING?, indexes :: LIST? OF STRING?)¦apoc.refactor.rename.nodeProperty(oldName, newName, [nodes], \{config}) | rename all node's property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only
-¦procedure¦apoc.refactor.rename.type¦apoc.refactor.rename.type(oldType :: STRING?, newType :: STRING?, rels = [] :: LIST? OF RELATIONSHIP?, config = {} :: MAP?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, constraints :: LIST? OF STRING?, indexes :: LIST? OF STRING?)¦apoc.refactor.rename.type(oldType, newType, [rels], \{config}) | rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only
-¦procedure¦apoc.refactor.rename.typeProperty¦apoc.refactor.rename.typeProperty(oldName :: STRING?, newName :: STRING?, rels = [] :: LIST? OF RELATIONSHIP?, config = {} :: MAP?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, constraints :: LIST? OF STRING?, indexes :: LIST? OF STRING?)¦apoc.refactor.rename.typeProperty(oldName, newName, [rels], \{config}) | rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.refactor.rename/apoc.refactor.adoc[apoc.refactor.rename.label icon:book[]]
+
+apoc.refactor.rename.label(oldLabel, newLabel, [nodes]) \| rename a label from 'oldLabel' to 'newLabel' for all nodes. If 'nodes' is provided renaming is applied to this set only
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor.rename/apoc.refactor.adoc[apoc.refactor.rename.nodeProperty icon:book[]]
+
+apoc.refactor.rename.nodeProperty(oldName, newName, [nodes], \{config}) \| rename all node's property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor.rename/apoc.refactor.adoc[apoc.refactor.rename.type icon:book[]]
+
+apoc.refactor.rename.type(oldType, newType, [rels], \{config}) \| rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor.rename/apoc.refactor.adoc[apoc.refactor.rename.typeProperty icon:book[]]
+
+apoc.refactor.rename.typeProperty(oldName, newName, [rels], \{config}) \| rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only
+|label:procedure[]
+|label:apoc-core[]

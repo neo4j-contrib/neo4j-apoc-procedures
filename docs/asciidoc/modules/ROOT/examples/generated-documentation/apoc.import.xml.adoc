@@ -1,0 +1,5 @@
+¦xref::overview/apoc.import/apoc.import.xml.adoc[apoc.import.xml icon:book[]] +
+
+ - imports graph from provided file
+¦label:procedure[]
+¦label:apoc-core[]

@@ -41,9 +41,10 @@ The table below describes the available procedure:
 
 // tag::gephi[]
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.gephi.csv[]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.gephi.add.adoc[]
 |===
 
 // end::gephi[]

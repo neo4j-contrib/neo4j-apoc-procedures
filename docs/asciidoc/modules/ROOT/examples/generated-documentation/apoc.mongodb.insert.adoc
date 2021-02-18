@@ -1,0 +1,5 @@
+¦xref::overview/apoc.mongodb/apoc.mongodb.insert.adoc[apoc.mongodb.insert icon:book[]] +
+
+ - inserts the given documents into the mongodb collection
+¦label:procedure[]
+¦label:apoc-full[]

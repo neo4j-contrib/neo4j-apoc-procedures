@@ -1,0 +1,5 @@
+¦xref::overview/apoc.math/apoc.math.regr.adoc[apoc.math.regr icon:book[]] +
+
+ - It calculates the coefficient of determination (R-squared) for the values of propertyY and propertyX in the provided label
+¦label:procedure[]
+¦label:apoc-core[]

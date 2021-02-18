@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.disjunction.adoc[apoc.coll.disjunction icon:book[]] +
+
+ - returns the disjunct set of the two lists
+¦label:function[]
+¦label:apoc-core[]

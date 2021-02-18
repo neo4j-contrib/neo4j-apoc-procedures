@@ -1,0 +1,5 @@
+¦xref::overview/apoc.periodic/apoc.periodic.rock_n_roll.adoc[apoc.periodic.rock_n_roll icon:book[]] +
+
+ - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows
+¦label:procedure[]
+¦label:apoc-full[]

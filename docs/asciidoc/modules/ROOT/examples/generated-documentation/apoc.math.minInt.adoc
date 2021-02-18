@@ -1,0 +1,5 @@
+¦xref::overview/apoc.math/apoc.math.minInt.adoc[apoc.math.minInt icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

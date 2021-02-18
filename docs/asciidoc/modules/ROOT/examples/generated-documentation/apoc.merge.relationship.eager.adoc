@@ -1,0 +1,5 @@
+¦xref::overview/apoc.merge/apoc.merge.relationship.eager.adoc[apoc.merge.relationship.eager icon:book[]] +
+
+ - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH
+¦label:procedure[]
+¦label:apoc-core[]

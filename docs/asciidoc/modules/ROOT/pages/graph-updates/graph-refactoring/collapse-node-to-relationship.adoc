@@ -6,9 +6,10 @@
 
 The available procedure is described in the table below:
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| call apoc.refactor.collapseNode([node1,node2],'TYPE') | collapse nodes with 2 rels to relationship, node with one rel becomes self-relationship
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.refactor.collapseNode.adoc[]
 |===
 
 == Example Usage

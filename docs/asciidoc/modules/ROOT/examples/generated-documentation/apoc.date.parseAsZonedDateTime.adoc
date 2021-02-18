@@ -1,0 +1,5 @@
+¦xref::overview/apoc.date/apoc.date.parseAsZonedDateTime.adoc[apoc.date.parseAsZonedDateTime icon:book[]] +
+
+ - parse date string using the specified format to specified timezone
+¦label:function[]
+¦label:apoc-core[]

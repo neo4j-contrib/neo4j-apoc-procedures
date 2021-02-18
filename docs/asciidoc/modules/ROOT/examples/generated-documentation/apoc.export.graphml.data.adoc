@@ -1,0 +1,5 @@
+¦xref::overview/apoc.export/apoc.export.graphml.data.adoc[apoc.export.graphml.data icon:book[]] +
+
+ - exports given nodes and relationships as graphml to the provided file
+¦label:procedure[]
+¦label:apoc-core[]

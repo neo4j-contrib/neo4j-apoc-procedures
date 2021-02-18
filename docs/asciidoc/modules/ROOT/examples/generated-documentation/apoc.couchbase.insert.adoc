@@ -1,0 +1,5 @@
+¦xref::overview/apoc.couchbase/apoc.couchbase.insert.adoc[apoc.couchbase.insert icon:book[]] +
+
+ - insert a couchbase json document with its unique ID.
+¦label:procedure[]
+¦label:apoc-full[]

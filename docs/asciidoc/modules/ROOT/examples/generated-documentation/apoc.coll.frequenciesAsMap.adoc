@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.frequenciesAsMap.adoc[apoc.coll.frequenciesAsMap icon:book[]] +
+
+ - return a map of frequencies of the items in the collection, key `item`, value `count` (e.g., `{1:2, 2:1}`)
+¦label:function[]
+¦label:apoc-core[]

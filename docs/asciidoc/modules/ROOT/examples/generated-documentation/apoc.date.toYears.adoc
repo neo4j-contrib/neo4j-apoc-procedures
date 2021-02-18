@@ -1,0 +1,5 @@
+¦xref::overview/apoc.date/apoc.date.toYears.adoc[apoc.date.toYears icon:book[]] +
+
+ - converts timestamp into floating point years
+¦label:function[]
+¦label:apoc-core[]

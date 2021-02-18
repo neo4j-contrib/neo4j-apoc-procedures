@@ -1,0 +1,5 @@
+¦xref::overview/apoc.spatial/apoc.spatial.sortByDistance.adoc[apoc.spatial.sortByDistance icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

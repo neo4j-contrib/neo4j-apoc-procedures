@@ -1,5 +1,21 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.export.xls.all¦apoc.export.xls.all(file :: STRING?, config :: MAP?) :: (file :: STRING?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, batches :: INTEGER?, done :: BOOLEAN?, data :: STRING?)¦apoc.export.xls.all(file,config) - exports whole database as xls to the provided file
-¦procedure¦apoc.export.xls.data¦apoc.export.xls.data(nodes :: LIST? OF NODE?, rels :: LIST? OF RELATIONSHIP?, file :: STRING?, config :: MAP?) :: (file :: STRING?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, batches :: INTEGER?, done :: BOOLEAN?, data :: STRING?)¦apoc.export.xls.data(nodes,rels,file,config) - exports given nodes and relationships as xls to the provided file
-¦procedure¦apoc.export.xls.graph¦apoc.export.xls.graph(graph :: MAP?, file :: STRING?, config :: MAP?) :: (file :: STRING?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, batches :: INTEGER?, done :: BOOLEAN?, data :: STRING?)¦apoc.export.xls.graph(graph,file,config) - exports given graph object as xls to the provided file
-¦procedure¦apoc.export.xls.query¦apoc.export.xls.query(query :: STRING?, file :: STRING?, config :: MAP?) :: (file :: STRING?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, batches :: INTEGER?, done :: BOOLEAN?, data :: STRING?)¦apoc.export.xls.query(query,file,{config,...,params:\{params}}) - exports results from the cypher statement as xls to the provided file
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.export.xls/apoc.export.adoc[apoc.export.xls.all icon:book[]]
+
+apoc.export.xls.all(file,config) - exports whole database as xls to the provided file
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.export.xls/apoc.export.adoc[apoc.export.xls.data icon:book[]]
+
+apoc.export.xls.data(nodes,rels,file,config) - exports given nodes and relationships as xls to the provided file
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.export.xls/apoc.export.adoc[apoc.export.xls.graph icon:book[]]
+
+apoc.export.xls.graph(graph,file,config) - exports given graph object as xls to the provided file
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.export.xls/apoc.export.adoc[apoc.export.xls.query icon:book[]]
+
+apoc.export.xls.query(query,file,{config,...,params:\{params}}) - exports results from the cypher statement as xls to the provided file
+|label:procedure[]
+|label:apoc-full[]

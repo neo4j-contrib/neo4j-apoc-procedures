@@ -1,0 +1,5 @@
+¦xref::overview/apoc.number/apoc.number.exact.toExact.adoc[apoc.number.exact.toExact icon:book[]] +
+
+ - return the exact value
+¦label:function[]
+¦label:apoc-core[]

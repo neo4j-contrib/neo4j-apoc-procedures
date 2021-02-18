@@ -1,0 +1,5 @@
+¦xref::overview/apoc.couchbase/apoc.couchbase.posParamsQuery.adoc[apoc.couchbase.posParamsQuery icon:book[]] +
+
+ - executes a N1QL statement with positional parameters.
+¦label:procedure[]
+¦label:apoc-full[]

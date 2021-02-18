@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.partition.adoc[apoc.coll.partition icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.node/apoc.node.labels.adoc[apoc.node.labels icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

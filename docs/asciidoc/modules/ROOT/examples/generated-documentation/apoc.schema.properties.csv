@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.schema.properties.distinct¦apoc.schema.properties.distinct(label :: STRING?, key :: STRING?) :: (value :: LIST? OF ANY?)¦apoc.schema.properties.distinct(label, key) - quickly returns all distinct values for a given key
-¦procedure¦apoc.schema.properties.distinctCount¦apoc.schema.properties.distinctCount(label =  :: STRING?, key =  :: STRING?) :: (label :: STRING?, key :: STRING?, value :: ANY?, count :: INTEGER?)¦apoc.schema.properties.distinctCount([label], [key]) YIELD label, key, value, count - quickly returns all distinct values and counts for a given key
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.schema.properties/apoc.schema.adoc[apoc.schema.properties.distinct icon:book[]]
+
+apoc.schema.properties.distinct(label, key) - quickly returns all distinct values for a given key
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.schema.properties/apoc.schema.adoc[apoc.schema.properties.distinctCount icon:book[]]
+
+apoc.schema.properties.distinctCount([label], [key]) YIELD label, key, value, count - quickly returns all distinct values and counts for a given key
+|label:procedure[]
+|label:apoc-core[]

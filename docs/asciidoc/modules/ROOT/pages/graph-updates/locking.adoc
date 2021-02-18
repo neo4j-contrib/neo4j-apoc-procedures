@@ -4,7 +4,11 @@
 
 
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.lock.csv[]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.lock.all.adoc[]
+include::example$generated-documentation/apoc.lock.nodes.adoc[]
+include::example$generated-documentation/apoc.lock.rels.adoc[]
+// include::example$generated-documentation/apoc.lock.csv[]
 |===

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.repeat.adoc[apoc.text.repeat icon:book[]] +
+
+ - string multiplication
+¦label:function[]
+¦label:apoc-core[]

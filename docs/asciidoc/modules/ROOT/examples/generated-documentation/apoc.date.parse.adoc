@@ -1,0 +1,5 @@
+¦xref::overview/apoc.date/apoc.date.parse.adoc[apoc.date.parse icon:book[]] +
+
+ - parse date string using the specified format into the specified time unit
+¦label:function[]
+¦label:apoc-core[]

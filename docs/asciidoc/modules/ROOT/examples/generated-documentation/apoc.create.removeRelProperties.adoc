@@ -1,0 +1,5 @@
+¦xref::overview/apoc.create/apoc.create.removeRelProperties.adoc[apoc.create.removeRelProperties icon:book[]] +
+
+ - removes the given properties from the relationship(s)
+¦label:procedure[]
+¦label:apoc-core[]

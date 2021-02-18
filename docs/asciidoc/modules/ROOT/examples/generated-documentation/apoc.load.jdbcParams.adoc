@@ -1,0 +1,5 @@
+¦xref::overview/apoc.load/apoc.load.jdbcParams.adoc[apoc.load.jdbcParams icon:book[]] +
+
+ - please use: apoc.load.jdbc('key or url','',[params]) YIELD row
+¦label:procedure[]
+¦label:apoc-full[]

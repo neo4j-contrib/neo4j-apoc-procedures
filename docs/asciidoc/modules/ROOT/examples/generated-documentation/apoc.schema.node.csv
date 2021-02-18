@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.schema.node.constraintExists¦apoc.schema.node.constraintExists(labelName :: STRING?, propertyName :: LIST? OF STRING?) :: (BOOLEAN?)¦RETURN apoc.schema.node.constraintExists(labelName, propertyNames)
-¦function¦apoc.schema.node.indexExists¦apoc.schema.node.indexExists(labelName :: STRING?, propertyName :: LIST? OF STRING?) :: (BOOLEAN?)¦RETURN apoc.schema.node.indexExists(labelName, propertyNames)
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.schema.node/apoc.schema.adoc[apoc.schema.node.constraintExists icon:book[]]
+
+RETURN apoc.schema.node.constraintExists(labelName, propertyNames)
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.schema.node/apoc.schema.adoc[apoc.schema.node.indexExists icon:book[]]
+
+RETURN apoc.schema.node.indexExists(labelName, propertyNames)
+|label:function[]
+|label:apoc-core[]

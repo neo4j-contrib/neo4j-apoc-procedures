@@ -7,17 +7,18 @@
 Utility to find nodes in parallel (if possible).
 These procedures return a single list of nodes or a list of 'reduced' records with node id, labels, and the properties where the search was executed upon.
 
-[cols="5m,4"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| call apoc.search.node(labelPropertyMap, searchType, search ) yield node | A distinct set of Nodes will be returned.
-| call apoc.search.nodeAll(labelPropertyMap, searchType, search ) yield node | All the found Nodes will be returned.
-| call apoc.search.nodeReduced(labelPropertyMap, searchType, search ) yield id, labels, values | A merged set of 'minimal' Node information will be returned. One record per node (-id).
-| call apoc.search.nodeAllReduced(labelPropertyMap, searchType, search ) yield id, labels, values | All the found 'minimal' Node information will be returned. One record per label and property.
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.search.node.adoc[]
+include::example$generated-documentation/apoc.search.nodeAll.adoc[]
+include::example$generated-documentation/apoc.search.nodeReduced.adoc[]
+include::example$generated-documentation/apoc.search.nodeAllReduced.adoc[]
 |===
 
 These procedures are passed the following parameters:
 
-[cols="1m,4,3"]
+[cols="2m,4,3"]
 |===
 | labelPropertyMap |   `'{ label1 : "propertyOne", label2 :["propOne","propTwo"] }'` | (JSON or Map) For every Label-Property combination a search will be executed in parallel (if possible): Label1.propertyOne, label2.propOne and label2.propTwo.
 | searchType |  'exact' or 'contains' or 'starts with' or 'ends with' | Case insensitive string search operators

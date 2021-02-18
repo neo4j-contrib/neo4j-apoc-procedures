@@ -10,26 +10,27 @@ ifdef::backend-html5[]
 ++++
 endif::[]
 
-[cols="5m,5"]
-|===
-| xref::overview/apoc.map/apoc.map.flatten.adoc[+++apoc.map.flatten(map,delimiter:".")+++] | flatten a nested map into a single-level map, for example turning {parent:{child:1}} into {"parent.child":1}
-| xref::overview/apoc.map/apoc.map.fromNodes.adoc[+++apoc.map.fromNodes(label, property)+++] | creates map from nodes with this label grouped by property
-| xref::overview/apoc.map/apoc.map.fromPairs.adoc[+++apoc.map.fromPairs([[key,value],[key2,value2],...])+++] | creates map from list with key-value pairs
-| xref::overview/apoc.map/apoc.map.fromLists.adoc[+++apoc.map.fromLists([keys],[values])+++] | creates map from a keys and a values list
-| xref::overview/apoc.map/apoc.map.fromValues.adoc[+++apoc.map.fromValues([key,value,key1,value1])+++] | creates map from alternating keys and values in a list
-| xref::overview/apoc.map/apoc.map.merge.adoc[+++apoc.map.merge({first},{second}) yield value+++] | creates map from merging the two source maps
-| xref::overview/apoc.map/apoc.map.mergeList.adoc[+++apoc.map.mergeList([{maps}]) yield value+++] | merges all maps in the list into one
-| xref::overview/apoc.map/apoc.map.setKey.adoc[+++apoc.map.setKey(map,key,value)+++] | returns the map with the value for this key added or replaced
-| xref::overview/apoc.map/apoc.map.removeKey.adoc[+++apoc.map.removeKey(map,key,{recursive:true/false})+++] | returns the map with the key removed (recursively if recursive is true)
-| xref::overview/apoc.map/apoc.map.removeKeys.adoc[+++apoc.map.removeKeys(map,[keys],{recursive:true/false})+++] | returns the map with the keys removed (recursively if recursive is true)
-| xref::overview/apoc.map/apoc.map.clean.adoc[+++apoc.map.clean(map,[keys],[values]) yield value+++] | removes the keys and values (e.g. null-placeholders) contained in those lists, good for data cleaning from CSV/JSON
 
-| xref::overview/apoc.map/apoc.map.groupBy.adoc[+++apoc.map.groupBy([maps/nodes/relationships],'key') yield value+++] | creates a map of the list keyed by the given property, with single values
-| xref::overview/apoc.map/apoc.map.groupByMulti.adoc[+++apoc.map.groupByMulti([maps/nodes/relationships],'key') yield value+++] | creates a map of the list keyed by the given property, with list values
-| xref::overview/apoc.map/apoc.map.sortedProperties.adoc[+++apoc.map.sortedProperties(map, ignoreCase:true)+++] | returns a list of key/value list pairs, with pairs sorted by keys alphabetically, with optional case sensitivity
-| xref::overview/apoc.map/apoc.map.updateTree.adoc[+++apoc.map.updateTree(tree,key,[[value,{data}]])+++] | returns map - adds the \{data} map on each level of the nested tree, where the key-value pairs match
-| xref::overview/apoc.map/apoc.map.values.adoc[+++apoc.map.values(map, [key1,key2,key3,...],[addNullsForMissing])+++] | returns list of values indicated by the keys
-| xref::overview/apoc.map/apoc.map.submap.adoc[+++apoc.map.submap(map,keys,[[defaults]],[fail=true])+++] | returns submap for keys or throws exception if one of the key doesn't exist and no default value given at that position
-| xref::overview/apoc.map/apoc.map.mget.adoc[+++apoc.map.mget(map,keys,[[defaults]],[fail=true])+++] | returns list of values for keys or throws exception if one of the key doesn't exist and no default value given at that position
-| xref::overview/apoc.map/apoc.map.get.adoc[+++apoc.map.get(map,key,[default],[fail=true])+++] | returns value for key or throws exception if key doesn't exist and no default given
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.map.fromNodes.adoc[]
+include::example$generated-documentation/apoc.map.fromPairs.adoc[]
+include::example$generated-documentation/apoc.map.fromLists.adoc[]
+include::example$generated-documentation/apoc.map.fromValues.adoc[]
+include::example$generated-documentation/apoc.map.merge.adoc[]
+include::example$generated-documentation/apoc.map.mergeList.adoc[]
+include::example$generated-documentation/apoc.map.setKey.adoc[]
+include::example$generated-documentation/apoc.map.removeKey.adoc[]
+include::example$generated-documentation/apoc.map.removeKeys.adoc[]
+include::example$generated-documentation/apoc.map.clean.adoc[]
+include::example$generated-documentation/apoc.map.groupBy.adoc[]
+include::example$generated-documentation/apoc.map.groupByMulti.adoc[]
+include::example$generated-documentation/apoc.map.sortedProperties.adoc[]
+include::example$generated-documentation/apoc.map.updateTree.adoc[]
+include::example$generated-documentation/apoc.map.values.adoc[]
+include::example$generated-documentation/apoc.map.submap.adoc[]
+include::example$generated-documentation/apoc.map.mget.adoc[]
+include::example$generated-documentation/apoc.map.get.adoc[]
+|===
+

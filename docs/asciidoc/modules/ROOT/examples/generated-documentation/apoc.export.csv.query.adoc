@@ -1,0 +1,5 @@
+¦xref::overview/apoc.export/apoc.export.csv.query.adoc[apoc.export.csv.query icon:book[]] +
+
+ - exports results from the cypher statement as csv to the provided file
+¦label:procedure[]
+¦label:apoc-core[]

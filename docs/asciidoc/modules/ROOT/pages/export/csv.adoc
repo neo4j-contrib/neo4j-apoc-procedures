@@ -12,7 +12,7 @@ For `apoc.export.csv.all`, `apoc.export.csv.data` and `apoc.export.csv.graph`, n
 
 `_id,_labels,<list_nodes_properties_naturally_sorted>,_start,_end,_type,<list_rel_properties_naturally_sorted>`.
 
-For a graph containing node properties `age`, `city`, `kids`, `male`, `name`, and `street` and containing relationship propeties `bar` and `foo`, we'd have the following: 
+For a graph containing node properties `age`, `city`, `kids`, `male`, `name`, and `street` and containing relationship propeties `bar` and `foo`, we'd have the following:
 
 `_id,_labels,age,city,kids,male,name,street,_start,_end,_type,bar,foo`
 
@@ -25,9 +25,13 @@ The output of `labels()` function is not sorted, use it in combination with `apo
 
 The table below describes the available procedures:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.export.csv.csv[]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.export.csv.all.adoc[]
+include::example$generated-documentation/apoc.export.csv.data.adoc[]
+include::example$generated-documentation/apoc.export.csv.graph.adoc[]
+include::example$generated-documentation/apoc.export.csv.query.adoc[]
 |===
 
 [[export-csv-file-export]]
@@ -83,14 +87,14 @@ The `apoc.export.csv.all` procedure exports the whole database to a CSV file or 
 .The following query exports the whole database to the file `movies.csv`
 [source,cypher]
 ----
-CALL apoc.export.csv.all("movies.csv", {}) 
+CALL apoc.export.csv.all("movies.csv", {})
 ----
 
 .Results
 [opts="header"]
 |===
-| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
-| "movies.csv" | "database: nodes(8), rels(7)" | "csv"  | 8     | 7             | 21         | 39   | 15   | 20000     | 1       | TRUE | NULL 
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "movies.csv" | "database: nodes(8), rels(7)" | "csv"  | 8     | 7             | 21         | 39   | 15   | 20000     | 1       | TRUE | NULL
 |===
 
 The contents of `movies.csv` are shown below:
@@ -113,7 +117,7 @@ The contents of `movies.csv` are shown below:
 ,,,,,,,"192","188","ACTED_IN","[""Agent Smith""]"
 ,,,,,,,"193","188","DIRECTED",""
 ,,,,,,,"194","188","DIRECTED",""
-,,,,,,,"195","188","PRODUCED",""    
+,,,,,,,"195","188","PRODUCED",""
 ----
 
 .The following query returns a stream of the whole database in the `data` column
@@ -125,9 +129,9 @@ RETURN file, nodes, relationships, properties, data
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,1m,1m,1m,5"]
 |===
-| file         | nodes | relationships | properties | data 
+| file         | nodes | relationships | properties | data
 | NULL | 8     | 7             | 21         | "\"_id\",\"_labels\",\"born\",\"name\",\"released\",\"tagline\",\"title\",\"_start\",\"_end\",\"_type\",\"roles\"
 \"188\",\":Movie\",\"\",\"\",\"1999\",\"Welcome to the Real World\",\"The Matrix\",,,,
 \"189\",\":Person\",\"1964\",\"Keanu Reeves\",\"\",\"\",\"\",,,,
@@ -144,7 +148,7 @@ RETURN file, nodes, relationships, properties, data
 ,,,,,,,\"193\",\"188\",\"DIRECTED\",\"\"
 ,,,,,,,\"194\",\"188\",\"DIRECTED\",\"\"
 ,,,,,,,\"195\",\"188\",\"PRODUCED\",\"\"
-" 
+"
 
 |===
 
@@ -168,7 +172,7 @@ RETURN file, source, format, nodes, relationships, properties, time, rows, batch
 .Results
 [opts="header"]
 |===
-| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
 | "movies-l.csv" | "data: nodes(3), rels(0)" | "csv"  | 3     | 0             | 6          | 2    | 3    | 20000     | 1       | TRUE | NULL
 |===
 
@@ -196,8 +200,8 @@ RETURN file, source, format, nodes, relationships, properties, time, rows, batch
 .Results
 [opts="header"]
 |===
-| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
-| "movies-actedIn.csv" | "data: nodes(5), rels(4)" | "csv"  | 5     | 4             | 15         | 2    | 9    | 20000     | 1       | TRUE | NULL 
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "movies-actedIn.csv" | "data: nodes(5), rels(4)" | "csv"  | 5     | 4             | 15         | 2    | 9    | 20000     | 1       | TRUE | NULL
 |===
 
 The contents of `movies-actedIn.csv` are shown below:
@@ -227,9 +231,9 @@ RETURN file, nodes, relationships, properties, data
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,1m,1m,1m,5"]
 |===
-| file         | nodes | relationships | properties | data 
+| file         | nodes | relationships | properties | data
 | NULL | 5     | 4             | 15          | "\"_id\",\"_labels\",\"born\",\"name\",\"released\",\"tagline\",\"title\",\"_start\",\"_end\",\"_type\",\"roles\"
 \"190\",\":Person\",\"1967\",\"Carrie-Anne Moss\",\"\",\"\",\"\",,,,
 \"189\",\":Person\",\"1964\",\"Keanu Reeves\",\"\",\"\",\"\",,,,
@@ -279,8 +283,8 @@ CALL apoc.export.csv.graph(apoc.static.get("producers.cached"), "movies-producer
 .Results
 [opts="header"]
 |===
-| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
-| "movies-producers.csv" | "graph: nodes(2), rels(1)" | "csv"  | 2     | 1             | 5          | 2    | 3    | 20000     | 1       | TRUE | NULL 
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "movies-producers.csv" | "graph: nodes(2), rels(1)" | "csv"  | 2     | 1             | 5          | 2    | 3    | 20000     | 1       | TRUE | NULL
 |===
 
 The contents of `movies-producers.csv` are shown below:
@@ -302,14 +306,14 @@ RETURN file, nodes, relationships, properties, data
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,1m,1m,1m,5"]
 |===
-| file         | nodes | relationships | properties | data 
+| file         | nodes | relationships | properties | data
 | NULL | 2     | 1             | 5          | "\"_id\",\"_labels\",\"born\",\"name\",\"released\",\"tagline\",\"title\",\"_start\",\"_end\",\"_type\"
 \"195\",\":Person\",\"1952\",\"Joel Silver\",\"\",\"\",\"\",,,
 \"188\",\":Movie\",\"\",\"\",\"1999\",\"Welcome to the Real World\",\"The Matrix\",,,
 ,,,,,,,\"195\",\"188\",\"PRODUCED\"
-" 
+"
 |===
 
 
@@ -332,7 +336,7 @@ RETURN file, source, format, nodes, relationships, properties, time, rows, batch
 .Results
 [opts="header"]
 |===
-| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
 | "movies-directed.csv" | "statement: cols(5)" | "csv"  | 0     | 0             | 10         | 3    | 2    | 20000     | 1       | TRUE | NULL
 |===
 
@@ -357,9 +361,9 @@ RETURN file, nodes, relationships, properties, data;
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,1m,1m,1m,5"]
 |===
-| file       | nodes | relationships | properties | data 
+| file       | nodes | relationships | properties | data
 | NULL | 0     | 0             | 10         | "\"name\",\"born\",\"title\",\"tagline\",\"released\"
   \"Lilly Wachowski\",\"1967\",\"The Matrix\",\"Welcome to the Real World\",\"1999\"
   \"Lana Wachowski\",\"1965\",\"The Matrix\",\"Welcome to the Real World\",\"1999\"

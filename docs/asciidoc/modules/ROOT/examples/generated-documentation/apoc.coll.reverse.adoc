@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.reverse.adoc[apoc.coll.reverse icon:book[]] +
+
+ - returns reversed list
+¦label:function[]
+¦label:apoc-core[]

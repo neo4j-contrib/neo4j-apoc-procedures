@@ -7,10 +7,12 @@
 
 The available procedure is described in the table below:
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| CALL apoc.create.addLabels( [node,id,ids,nodes], ['Label',...]) | adds the given labels to the node or nodes
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.create.addLabels.adoc[]
 |===
+
 
 == Example Usage
 

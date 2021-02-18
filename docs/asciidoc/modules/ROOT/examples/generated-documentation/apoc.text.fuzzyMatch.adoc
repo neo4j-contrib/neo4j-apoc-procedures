@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.fuzzyMatch.adoc[apoc.text.fuzzyMatch icon:book[]] +
+
+ - check if 2 words can be matched in a fuzzy way. Depending on the length of the String it will allow more characters that needs to be edited to match the second String.
+¦label:function[]
+¦label:apoc-core[]

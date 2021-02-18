@@ -1,0 +1,5 @@
+¦xref::overview/apoc.cypher/apoc.cypher.runFirstColumnSingle.adoc[apoc.cypher.runFirstColumnSingle icon:book[]] +
+
+ - executes statement with given parameters, returns first element of the first column only, params are available as identifiers
+¦label:function[]
+¦label:apoc-core[]

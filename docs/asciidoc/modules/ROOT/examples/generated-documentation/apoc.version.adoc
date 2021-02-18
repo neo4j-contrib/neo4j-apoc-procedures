@@ -1,0 +1,5 @@
+¦xref::overview/apoc/apoc.version.adoc[apoc.version icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

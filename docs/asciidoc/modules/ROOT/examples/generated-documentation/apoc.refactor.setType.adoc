@@ -1,0 +1,5 @@
+¦xref::overview/apoc.refactor/apoc.refactor.setType.adoc[apoc.refactor.setType icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

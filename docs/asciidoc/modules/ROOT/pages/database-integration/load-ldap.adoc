@@ -10,14 +10,15 @@ The entries can then be used to update or create graph structures.
 
 Note this utility requires to have the link:https://mvnrepository.com/artifact/com.novell.ldap/jldap/2009-10-07[jldap] library to be placed the plugin directory.
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.load.csv[lines=1;12]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.load.ldap.adoc[]
 |===
 
 == Parameters
 
-[options="header",cols="a,3m,a"]
+[options="header",cols="a,a,3m"]
 |===
 |Parameter | Property | Description
 |{connectionMap} | ldapHost | the ldapserver:port if port is omitted the default port 389 will be used

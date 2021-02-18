@@ -3,7 +3,6 @@
 :description: This section gives an overview of procedures that can be used to load data from Web-APIs into Neo4j.
 
 
-
 Supported protocols are `file`, `http`, `https`, `s3`, `gs`, `hdfs` with redirect allowed.
 
 If no procedure is provided, this procedure will try to check whether the URL is actually a file.
@@ -21,7 +20,7 @@ If you want to remove these constraints please set `apoc.import.file.use_neo4j_c
 | CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, strings, map, stringMap | load CSV fom URL as stream of values +
 config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['aColumn'],arraySep:';',results:['map','list','strings','stringMap'], +
 nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false,nullValues:['n.A.']}}`
-| CALL apoc.load.xls('url','Sheet'/'Sheet!A2:B5',{config}) YIELD lineNo, list, map | load XLS fom URL as stream of values +
+| CALL apoc.load.xls('url','Sheet'/'Sheet!A2:B5',\{config}) YIELD lineNo, list, map | load XLS fom URL as stream of values +
 config contains any of: `{skip:1,limit:5,header:false,ignore:['aColumn'],arraySep:';'+
 nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false,nullValues:['n.A.']}}`
 |===

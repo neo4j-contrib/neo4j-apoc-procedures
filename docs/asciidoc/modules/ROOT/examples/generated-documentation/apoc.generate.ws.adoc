@@ -1,0 +1,5 @@
+¦xref::overview/apoc.generate/apoc.generate.ws.adoc[apoc.generate.ws icon:book[]] +
+
+ - generates a random graph according to the Watts-Strogatz model
+¦label:procedure[]
+¦label:apoc-full[]

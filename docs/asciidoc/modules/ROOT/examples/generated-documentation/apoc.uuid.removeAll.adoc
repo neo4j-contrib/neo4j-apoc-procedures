@@ -1,0 +1,5 @@
+¦xref::overview/apoc.uuid/apoc.uuid.removeAll.adoc[apoc.uuid.removeAll icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-full[]

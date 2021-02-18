@@ -1,0 +1,5 @@
+¦xref::overview/apoc.export/apoc.export.xls.all.adoc[apoc.export.xls.all icon:book[]] +
+
+ - exports whole database as xls to the provided file
+¦label:procedure[]
+¦label:apoc-full[]

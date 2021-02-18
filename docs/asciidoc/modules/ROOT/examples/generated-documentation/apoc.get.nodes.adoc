@@ -1,0 +1,5 @@
+¦xref::overview/apoc.get/apoc.get.nodes.adoc[apoc.get.nodes icon:book[]] +
+
+ - quickly returns all nodes with these id's
+¦label:procedure[]
+¦label:apoc-full[]

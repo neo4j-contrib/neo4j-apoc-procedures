@@ -1,0 +1,5 @@
+¦xref::overview/apoc.export/apoc.export.csv.all.adoc[apoc.export.csv.all icon:book[]] +
+
+ - exports whole database as csv to the provided file
+¦label:procedure[]
+¦label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.indexOf.adoc[apoc.text.indexOf icon:book[]] +
+
+ - find the first occurence of the lookup string in the text, from inclusive, to exclusive, -1 if not found, null if text is null.
+¦label:function[]
+¦label:apoc-core[]

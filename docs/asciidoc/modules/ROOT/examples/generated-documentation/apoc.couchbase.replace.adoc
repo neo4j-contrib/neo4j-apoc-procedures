@@ -1,0 +1,5 @@
+¦xref::overview/apoc.couchbase/apoc.couchbase.replace.adoc[apoc.couchbase.replace icon:book[]] +
+
+ - replace the content of the couchbase json document identified by its unique ID.
+¦label:procedure[]
+¦label:apoc-full[]

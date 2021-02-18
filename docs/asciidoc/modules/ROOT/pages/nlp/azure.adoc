@@ -17,11 +17,15 @@ Each procedure has two modes:
 
 The procedures are described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.nlp.azure.entities.csv[]
-include::example$generated-documentation/apoc.nlp.azure.keyPhrases.csv[lines=2;3]
-include::example$generated-documentation/apoc.nlp.azure.sentiment.csv[lines=2;3]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.nlp.azure.entities.graph.adoc[]
+include::example$generated-documentation/apoc.nlp.azure.entities.stream.adoc[]
+include::example$generated-documentation/apoc.nlp.azure.keyPhrases.graph.adoc[]
+include::example$generated-documentation/apoc.nlp.azure.keyPhrases.stream.adoc[]
+include::example$generated-documentation/apoc.nlp.azure.sentiment.graph.adoc[]
+include::example$generated-documentation/apoc.nlp.azure.sentiment.stream.adoc[]
 |===
 
 [[nlp-azure-entities]]

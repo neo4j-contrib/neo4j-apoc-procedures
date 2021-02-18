@@ -1,0 +1,5 @@
+¦xref::overview/apoc.nodes/apoc.nodes.connected.adoc[apoc.nodes.connected icon:book[]] +
+
+ - returns true when the node is connected to the other node, optimized for dense nodes
+¦label:function[]
+¦label:apoc-core[]

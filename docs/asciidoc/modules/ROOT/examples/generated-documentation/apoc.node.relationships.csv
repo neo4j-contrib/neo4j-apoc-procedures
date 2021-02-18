@@ -1,2 +1,6 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.node.relationships.exist¦apoc.node.relationships.exist(node :: NODE?, types =  :: STRING?) :: (MAP?)¦apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map with rel-pattern, boolean for the given relationship patterns
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.node.relationships/apoc.node.adoc[apoc.node.relationships.exist icon:book[]]
+
+apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map with rel-pattern, boolean for the given relationship patterns
+|label:function[]
+|label:apoc-core[]

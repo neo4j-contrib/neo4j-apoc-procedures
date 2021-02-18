@@ -1,2 +1,6 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.stats.degrees¦apoc.stats.degrees(types =  :: STRING?) :: (type :: STRING?, direction :: STRING?, total :: INTEGER?, p50 :: INTEGER?, p75 :: INTEGER?, p90 :: INTEGER?, p95 :: INTEGER?, p99 :: INTEGER?, p999 :: INTEGER?, max :: INTEGER?, min :: INTEGER?, mean :: FLOAT?)¦
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.stats/apoc.stats.adoc[apoc.stats.degrees icon:book[]]
+
+
+|label:procedure[]
+|label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.unionAll.adoc[apoc.coll.unionAll icon:book[]] +
+
+ - creates the full union with duplicates of the two lists
+¦label:function[]
+¦label:apoc-core[]

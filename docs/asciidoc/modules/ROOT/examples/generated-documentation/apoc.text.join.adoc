@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.join.adoc[apoc.text.join icon:book[]] +
+
+ - join the given strings with the given delimiter.
+¦label:function[]
+¦label:apoc-core[]

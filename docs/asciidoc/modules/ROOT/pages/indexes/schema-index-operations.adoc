@@ -6,15 +6,15 @@
 
 To drop or create index or constraint, you can use the following procedure:
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| apoc.schema.assert({indexLabel:[indexKeys],...},{constraintLabel:[constraintKeys],...}, dropExisting : true) yield label, key, unique, action | drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label.
-| apoc.schema.nodes([config]) yield name, label, properties, status, type | get all indexes and constraints information for all the node labels in your database, in optional config param could be define a set of labels to include or exclude
-| apoc.schema.relationships([config]) yield name, type, properties, status | return all the constraint information for all the relationship types in your database, in optional config param could be define a set of types to include or exclude
-| apoc.schema.node.constraintExists(labelName, properties) | return the constraints existence on node
-| apoc.schema.relationship.constraintExists(type, properties) | return the constraints existence on relationship
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.schema.assert.adoc[]
+include::example$generated-documentation/apoc.schema.nodes.adoc[]
+include::example$generated-documentation/apoc.schema.relationships.adoc[]
+include::example$generated-documentation/apoc.schema.node.constraintExists.adoc[]
+include::example$generated-documentation/apoc.schema.relationship.constraintExists.adoc[]
 |===
-
 
 [source,cypher]
 ----

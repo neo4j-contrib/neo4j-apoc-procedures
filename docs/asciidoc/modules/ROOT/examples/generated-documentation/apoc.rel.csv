@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.rel.id¦apoc.rel.id(rel :: RELATIONSHIP?) :: (INTEGER?)¦returns id for (virtual) relationships
-¦function¦apoc.rel.type¦apoc.rel.type(rel :: RELATIONSHIP?) :: (STRING?)¦returns type for (virtual) relationships
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.rel/apoc.rel.adoc[apoc.rel.id icon:book[]]
+
+returns id for (virtual) relationships
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.rel/apoc.rel.adoc[apoc.rel.type icon:book[]]
+
+returns type for (virtual) relationships
+|label:function[]
+|label:apoc-core[]

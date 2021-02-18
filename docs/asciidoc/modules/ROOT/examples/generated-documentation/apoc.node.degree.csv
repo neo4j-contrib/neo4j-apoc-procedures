@@ -1,2 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.node.degree¦apoc.node.degree(node :: NODE?, types =  :: STRING?) :: (INTEGER?)¦apoc.node.degree(node, rel-direction-pattern) - returns total degrees of the given relationships in the pattern, can use '>' or '<' for all outgoing or incoming relationships
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.node.degree/apoc.node.adoc[apoc.node.degree.in icon:book[]]
+
+apoc.node.degree.in(node, relationshipName) - returns total number number of incoming relationships
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.node.degree/apoc.node.adoc[apoc.node.degree.out icon:book[]]
+
+apoc.node.degree.out(node, relationshipName) - returns total number number of outgoing relationships
+|label:function[]
+|label:apoc-core[]

@@ -9,9 +9,16 @@
 
 // tag::mongodb[]
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.mongodb.csv[]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.mongodb.count.adoc[]
+include::example$generated-documentation/apoc.mongodb.delete.adoc[]
+include::example$generated-documentation/apoc.mongodb.find.adoc[]
+include::example$generated-documentation/apoc.mongodb.first.adoc[]
+include::example$generated-documentation/apoc.mongodb.get.adoc[]
+include::example$generated-documentation/apoc.mongodb.insert.adoc[]
+include::example$generated-documentation/apoc.mongodb.update.adoc[]
 |===
 
 [[mongodb-dependencies]]

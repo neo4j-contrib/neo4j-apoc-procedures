@@ -1,0 +1,6 @@
+¦xref::overview/apoc.load/apoc.load.csv.adoc[apoc.load.csv icon:book[]] +
+
+ - load CSV fom URL as stream of values,
+ config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
+¦label:procedure[]
+¦label:apoc-full[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.date/apoc.date.currentTimestamp.adoc[apoc.date.currentTimestamp icon:book[]] +
+
+ - returns System.currentTimeMillis() at the time it was called. The value is current throughout transaction execution, and is different from Cypher’s timestamp() function, which does not update within a transaction.
+¦label:function[]
+¦label:apoc-core[]

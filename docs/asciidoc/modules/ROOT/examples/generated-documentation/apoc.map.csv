@@ -1,24 +1,116 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.map.clean¦apoc.map.clean(map :: MAP?, keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :: (MAP?)¦apoc.map.clean(map,[skip,keys],[skip,values]) yield map filters the keys and values contained in those lists, good for data cleaning from CSV/JSON
-¦function¦apoc.map.flatten¦apoc.map.flatten(map :: MAP?, delimiter = . :: STRING?) :: (MAP?)¦apoc.map.flatten(map, delimiter:'.') yield map - flattens nested items in map using dot notation
-¦function¦apoc.map.fromLists¦apoc.map.fromLists(keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :: (MAP?)¦apoc.map.fromLists([keys],[values])
-¦function¦apoc.map.fromNodes¦apoc.map.fromNodes(label :: STRING?, property :: STRING?) :: (MAP?)¦apoc.map.fromNodes(label, property)
-¦function¦apoc.map.fromPairs¦apoc.map.fromPairs(pairs :: LIST? OF LIST? OF ANY?) :: (MAP?)¦apoc.map.fromPairs([[key,value],[key2,value2],...])
-¦function¦apoc.map.fromValues¦apoc.map.fromValues(values :: LIST? OF ANY?) :: (MAP?)¦apoc.map.fromValues([key1,value1,key2,value2,...])
-¦function¦apoc.map.get¦apoc.map.get(map :: MAP?, key :: STRING?, value = null :: ANY?, fail = true :: BOOLEAN?) :: (ANY?)¦apoc.map.get(map,key,[default],[fail=true]) - returns value for key or throws exception if key doesn't exist and no default given
-¦function¦apoc.map.groupBy¦apoc.map.groupBy(values :: LIST? OF ANY?, key :: STRING?) :: (MAP?)¦apoc.map.groupBy([maps/nodes/relationships],'key') yield value - creates a map of the list keyed by the given property, with single values
-¦function¦apoc.map.groupByMulti¦apoc.map.groupByMulti(values :: LIST? OF ANY?, key :: STRING?) :: (MAP?)¦apoc.map.groupByMulti([maps/nodes/relationships],'key') yield value - creates a map of the list keyed by the given property, with list values
-¦function¦apoc.map.merge¦apoc.map.merge(first :: MAP?, second :: MAP?) :: (MAP?)¦apoc.map.merge(first,second) - merges two maps
-¦function¦apoc.map.mergeList¦apoc.map.mergeList(maps :: LIST? OF MAP?) :: (MAP?)¦apoc.map.mergeList([\{maps}]) yield value - merges all maps in the list into one
-¦function¦apoc.map.mget¦apoc.map.mget(map :: MAP?, keys :: LIST? OF STRING?, values = [] :: LIST? OF ANY?, fail = true :: BOOLEAN?) :: (LIST? OF ANY?)¦apoc.map.mget(map,key,[defaults],[fail=true])  - returns list of values for keys or throws exception if one of the key doesn't exist and no default value given at that position
-¦function¦apoc.map.removeKey¦apoc.map.removeKey(map :: MAP?, key :: STRING?, config = {} :: MAP?) :: (MAP?)¦apoc.map.removeKey(map,key,{recursive:true/false}) - remove the key from the map (recursively if recursive is true)
-¦function¦apoc.map.removeKeys¦apoc.map.removeKeys(map :: MAP?, keys :: LIST? OF STRING?, config = {} :: MAP?) :: (MAP?)¦apoc.map.removeKeys(map,[keys],{recursive:true/false}) - remove the keys from the map (recursively if recursive is true)
-¦function¦apoc.map.setEntry¦apoc.map.setEntry(map :: MAP?, key :: STRING?, value :: ANY?) :: (MAP?)¦apoc.map.setEntry(map,key,value)
-¦function¦apoc.map.setKey¦apoc.map.setKey(map :: MAP?, key :: STRING?, value :: ANY?) :: (MAP?)¦apoc.map.setKey(map,key,value)
-¦function¦apoc.map.setLists¦apoc.map.setLists(map :: MAP?, keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :: (MAP?)¦apoc.map.setLists(map,[keys],[values])
-¦function¦apoc.map.setPairs¦apoc.map.setPairs(map :: MAP?, pairs :: LIST? OF LIST? OF ANY?) :: (MAP?)¦apoc.map.setPairs(map,[[key1,value1],[key2,value2])
-¦function¦apoc.map.setValues¦apoc.map.setValues(map :: MAP?, pairs :: LIST? OF ANY?) :: (MAP?)¦apoc.map.setValues(map,[key1,value1,key2,value2])
-¦function¦apoc.map.sortedProperties¦apoc.map.sortedProperties(map :: MAP?, ignoreCase = true :: BOOLEAN?) :: (LIST? OF ANY?)¦apoc.map.sortedProperties(map, ignoreCase:true) - returns a list of key/value list pairs, with pairs sorted by keys alphabetically, with optional case sensitivity
-¦function¦apoc.map.submap¦apoc.map.submap(map :: MAP?, keys :: LIST? OF STRING?, values = [] :: LIST? OF ANY?, fail = true :: BOOLEAN?) :: (MAP?)¦apoc.map.submap(map,keys,[defaults],[fail=true])  - returns submap for keys or throws exception if one of the key doesn't exist and no default value given at that position
-¦function¦apoc.map.updateTree¦apoc.map.updateTree(tree :: MAP?, key :: STRING?, data :: LIST? OF LIST? OF ANY?) :: (MAP?)¦apoc.map.updateTree(tree,key,[[value,\{data}]]) returns map - adds the \{data} map on each level of the nested tree, where the key-value pairs match
-¦function¦apoc.map.values¦apoc.map.values(map :: MAP?, keys = [] :: LIST? OF STRING?, addNullsForMissing = false :: BOOLEAN?) :: (LIST? OF ANY?)¦apoc.map.values(map, [key1,key2,key3,...],[addNullsForMissing]) returns list of values indicated by the keys
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.clean icon:book[]]
+
+apoc.map.clean(map,[skip,keys],[skip,values]) yield map filters the keys and values contained in those lists, good for data cleaning from CSV/JSON
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.flatten icon:book[]]
+
+apoc.map.flatten(map, delimiter:'.') yield map - flattens nested items in map using dot notation
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.fromLists icon:book[]]
+
+apoc.map.fromLists([keys],[values])
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.fromNodes icon:book[]]
+
+apoc.map.fromNodes(label, property)
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.fromPairs icon:book[]]
+
+apoc.map.fromPairs([[key,value],[key2,value2],...])
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.fromValues icon:book[]]
+
+apoc.map.fromValues([key1,value1,key2,value2,...])
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.get icon:book[]]
+
+apoc.map.get(map,key,[default],[fail=true]) - returns value for key or throws exception if key doesn't exist and no default given
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.groupBy icon:book[]]
+
+apoc.map.groupBy([maps/nodes/relationships],'key') yield value - creates a map of the list keyed by the given property, with single values
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.groupByMulti icon:book[]]
+
+apoc.map.groupByMulti([maps/nodes/relationships],'key') yield value - creates a map of the list keyed by the given property, with list values
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.merge icon:book[]]
+
+apoc.map.merge(first,second) - merges two maps
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.mergeList icon:book[]]
+
+apoc.map.mergeList([\{maps}]) yield value - merges all maps in the list into one
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.mget icon:book[]]
+
+apoc.map.mget(map,key,[defaults],[fail=true])  - returns list of values for keys or throws exception if one of the key doesn't exist and no default value given at that position
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.removeKey icon:book[]]
+
+apoc.map.removeKey(map,key,{recursive:true/false}) - remove the key from the map (recursively if recursive is true)
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.removeKeys icon:book[]]
+
+apoc.map.removeKeys(map,[keys],{recursive:true/false}) - remove the keys from the map (recursively if recursive is true)
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.setEntry icon:book[]]
+
+apoc.map.setEntry(map,key,value)
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.setKey icon:book[]]
+
+apoc.map.setKey(map,key,value)
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.setLists icon:book[]]
+
+apoc.map.setLists(map,[keys],[values])
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.setPairs icon:book[]]
+
+apoc.map.setPairs(map,[[key1,value1],[key2,value2])
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.setValues icon:book[]]
+
+apoc.map.setValues(map,[key1,value1,key2,value2])
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.sortedProperties icon:book[]]
+
+apoc.map.sortedProperties(map, ignoreCase:true) - returns a list of key/value list pairs, with pairs sorted by keys alphabetically, with optional case sensitivity
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.submap icon:book[]]
+
+apoc.map.submap(map,keys,[defaults],[fail=true])  - returns submap for keys or throws exception if one of the key doesn't exist and no default value given at that position
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.updateTree icon:book[]]
+
+apoc.map.updateTree(tree,key,[[value,\{data}]]) returns map - adds the \{data} map on each level of the nested tree, where the key-value pairs match
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.adoc[apoc.map.values icon:book[]]
+
+apoc.map.values(map, [key1,key2,key3,...],[addNullsForMissing]) returns list of values indicated by the keys
+|label:function[]
+|label:apoc-core[]

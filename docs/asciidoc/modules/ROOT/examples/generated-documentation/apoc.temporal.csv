@@ -1,4 +1,16 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.temporal.format¦apoc.temporal.format(temporal :: ANY?, format = yyyy-MM-dd :: STRING?) :: (STRING?)¦apoc.temporal.format(input, format) | Format a temporal value
-¦function¦apoc.temporal.formatDuration¦apoc.temporal.formatDuration(input :: ANY?, format :: STRING?) :: (STRING?)¦apoc.temporal.formatDuration(input, format) | Format a Duration
-¦function¦apoc.temporal.toZonedTemporal¦apoc.temporal.toZonedTemporal(time :: STRING?, format = yyyy-MM-dd HH:mm:ss :: STRING?, timezone = UTC :: STRING?) :: (DATETIME?)¦apoc.temporal.toZonedTemporal('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') parse date string using the specified format to specified timezone
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.temporal/apoc.temporal.adoc[apoc.temporal.format icon:book[]]
+
+apoc.temporal.format(input, format) \| Format a temporal value
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.temporal/apoc.temporal.adoc[apoc.temporal.formatDuration icon:book[]]
+
+apoc.temporal.formatDuration(input, format) \| Format a Duration
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.temporal/apoc.temporal.adoc[apoc.temporal.toZonedTemporal icon:book[]]
+
+apoc.temporal.toZonedTemporal('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') parse date string using the specified format to specified timezone
+|label:function[]
+|label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.bolt/apoc.bolt.load.adoc[apoc.bolt.load icon:book[]] +
+
+ - access to other databases via bolt for read
+¦label:procedure[]
+¦label:apoc-full[]

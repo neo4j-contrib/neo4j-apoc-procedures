@@ -1,0 +1,5 @@
+¦xref::overview/apoc.nlp/apoc.nlp.aws.sentiment.stream.adoc[apoc.nlp.aws.sentiment.stream icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-full[]

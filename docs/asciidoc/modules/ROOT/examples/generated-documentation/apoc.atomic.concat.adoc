@@ -1,0 +1,5 @@
+¦xref::overview/apoc.atomic/apoc.atomic.concat.adoc[apoc.atomic.concat icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

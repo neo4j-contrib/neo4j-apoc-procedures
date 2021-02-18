@@ -1,0 +1,5 @@
+¦xref::overview/apoc.create/apoc.create.uuid.adoc[apoc.create.uuid icon:book[]] +
+
+ - creates an UUID
+¦label:function[]
+¦label:apoc-core[]

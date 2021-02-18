@@ -1,0 +1,5 @@
+¦xref::overview/apoc.do/apoc.do.case.adoc[apoc.do.case icon:book[]] +
+
+ - given a list of conditional / writing query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters
+¦label:procedure[]
+¦label:apoc-core[]

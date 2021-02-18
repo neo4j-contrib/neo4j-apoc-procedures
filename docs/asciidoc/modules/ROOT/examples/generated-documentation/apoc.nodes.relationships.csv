@@ -1,2 +1,6 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.nodes.relationships.exist¦apoc.nodes.relationships.exist(ids :: ANY?, types =  :: STRING?) :: (LIST? OF ANY?)¦apoc.nodes.relationships.exist(node|nodes|id|[ids], rel-direction-pattern) - returns a list of maps where each one has two fields: `node` which is the node subject of the analysis and `exists` which is a map with rel-pattern, boolean for the given relationship patterns
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.nodes.relationships/apoc.nodes.adoc[apoc.nodes.relationships.exist icon:book[]]
+
+apoc.nodes.relationships.exist(node\|nodes\|id\|[ids], rel-direction-pattern) - returns a list of maps where each one has two fields: `node` which is the node subject of the analysis and `exists` which is a map with rel-pattern, boolean for the given relationship patterns
+|label:function[]
+|label:apoc-core[]
