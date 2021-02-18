@@ -1,0 +1,2 @@
+¦signature
+¦apoc.cypher.runWrite(cypher :: STRING?, params :: MAP?) :: (value :: MAP?)

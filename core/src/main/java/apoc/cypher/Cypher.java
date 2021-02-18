@@ -43,6 +43,7 @@ import static apoc.util.Util.quote;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
+import static org.neo4j.procedure.Mode.SCHEMA;
 import static org.neo4j.procedure.Mode.WRITE;
 
 /**
@@ -239,6 +240,18 @@ public class Cypher {
     @Procedure(mode = WRITE)
     @Description("apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with the given parameters")
     public Stream<MapResult> doIt(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
+        return runCypherQuery(tx, statement, params);
+    }
+
+    @Procedure(mode = WRITE)
+    @Description("apoc.cypher.runWrite(fragment, params) yield value - alias for apoc.cypher.doIt")
+    public Stream<MapResult> runWrite(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
+        return doIt(statement, params);
+    }
+
+    @Procedure(mode = SCHEMA)
+    @Description("apoc.cypher.runSchema(fragment, params) yield value - executes query schema fragment with the given parameters")
+    public Stream<MapResult> runSchema(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         return runCypherQuery(tx, statement, params);
     }
 

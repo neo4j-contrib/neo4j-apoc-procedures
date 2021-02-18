@@ -14,10 +14,12 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -32,6 +34,8 @@ import java.util.Map;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testCallEmpty;
+import static apoc.util.TestUtil.testFail;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static java.util.Collections.emptyMap;
@@ -39,6 +43,7 @@ import static java.util.Collections.singletonMap;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -66,9 +71,38 @@ public class CypherTest {
     public void clearDB() {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
         try (Transaction tx = db.beginTx()) {
-            tx.schema().getIndexes().forEach(IndexDefinition::drop);
             tx.schema().getConstraints().forEach(ConstraintDefinition::drop);
+            tx.schema().getIndexes().forEach(IndexDefinition::drop);
             tx.commit();
+        }
+    }
+
+    @Test
+    public void testDoIt() throws Exception {
+
+        testCallEmpty(db, "CALL apoc.cypher.doIt('CREATE (n:TestOne {a: $b})',{b: 32})", emptyMap());
+
+        testCall(db, "CALL apoc.cypher.doIt('Match (n:TestOne) return n',{})",
+                r -> assertEquals("TestOne", Iterables.single(((Node)((Map) r.get("value")).get("n")).getLabels()).name()));
+
+        testFail(db, "CALL apoc.cypher.doIt('CREATE INDEX test FOR (w:TestOne) ON (w.foo)',{})", QueryExecutionException.class);
+
+        testCallEmpty(db, "CALL apoc.cypher.runWrite('CREATE (n:TestTwo {a: $b})',{b: 32})", emptyMap());
+
+        testCall(db, "CALL apoc.cypher.runWrite('Match (n:TestTwo) return n',{})",
+                r -> assertEquals("TestTwo", Iterables.single(((Node)((Map) r.get("value")).get("n")).getLabels()).name()));
+
+        testFail(db, "CALL apoc.cypher.runWrite('CREATE INDEX test FOR (w:TestTwo) ON (w.foo)',{})", QueryExecutionException.class);
+    }
+
+    @Test
+    public void testRunSchema() throws Exception {
+        testCallEmpty(db, "CALL apoc.cypher.runSchema('CREATE INDEX test FOR (w:TestOne) ON (w.name)',{})", Collections.emptyMap());
+        testCallEmpty(db, "CALL apoc.cypher.runSchema('CREATE CONSTRAINT testConstraint ON (w:TestTwo) ASSERT w.baz IS UNIQUE',{})", Collections.emptyMap());
+
+        try (Transaction tx = db.beginTx()) {
+            assertNotNull(tx.schema().getConstraintByName("testConstraint"));
+            assertNotNull(tx.schema().getIndexByName("test"));
         }
     }
 
