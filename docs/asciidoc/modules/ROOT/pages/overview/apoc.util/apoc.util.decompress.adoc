@@ -14,14 +14,14 @@ apoc.util.decompress(compressed, \{config}) | return a string from a compressed 
 
 [source]
 ----
-apoc.util.decompress(data :: LIST? OF INTEGER?, config = {} :: MAP?) :: (STRING?)
+apoc.util.decompress(data :: BYTEARRAY?, config = {} :: MAP?) :: (STRING?)
 ----
 
 == Input parameters
 [.procedures, opts=header]
 |===
 | Name | Type | Default 
-|data|LIST? OF INTEGER?|null
+|data|BYTEARRAY?|null
 |config|MAP?|{}
 |===
 
