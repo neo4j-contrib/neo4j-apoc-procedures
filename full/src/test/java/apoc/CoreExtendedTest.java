@@ -1,22 +1,24 @@
 package apoc;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import org.junit.Test;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.internal.helpers.collection.MapUtil;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static apoc.ApocConfig.*;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 /*
  This test is just to verify if the APOC are correctly deployed
@@ -44,8 +46,10 @@ public class CoreExtendedTest {
 
             neo4jContainer.close();
         } catch (Exception ex) {
-            ex.printStackTrace();
-            fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+            if (TestContainerUtil.isDockerImageAvailable(ex)) {
+                ex.printStackTrace();
+                fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+            }
         }
     }
 
@@ -57,7 +61,7 @@ public class CoreExtendedTest {
 
             neo4jContainer.start();
 
-            assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+            assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
             Session session = neo4jContainer.getSession();
 
@@ -81,8 +85,10 @@ public class CoreExtendedTest {
 
             neo4jContainer.close();
         } catch (Exception ex) {
-            ex.printStackTrace();
-            fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+            if (TestContainerUtil.isDockerImageAvailable(ex)) {
+                ex.printStackTrace();
+                fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+            }
         }
     }
 }

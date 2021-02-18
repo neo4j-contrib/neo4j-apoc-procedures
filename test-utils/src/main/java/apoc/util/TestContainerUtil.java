@@ -1,5 +1,6 @@
 package apoc.util;
 
+import com.github.dockerjava.api.exception.NotFoundException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -8,6 +9,7 @@ import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+import org.testcontainers.containers.ContainerFetchException;
 import org.testcontainers.utility.MountableFile;
 
 import java.io.BufferedReader;
@@ -183,6 +185,12 @@ public class TestContainerUtil {
             tx.commit();
             return null;
         });
+    }
+
+    public static boolean isDockerImageAvailable(Exception ex) {
+        final Throwable cause = ex.getCause();
+        final Throwable rootCause = ExceptionUtils.getRootCause(ex);
+        return !(cause instanceof ContainerFetchException && rootCause instanceof NotFoundException);
     }
 
 }

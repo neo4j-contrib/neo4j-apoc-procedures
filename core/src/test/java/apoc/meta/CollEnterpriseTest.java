@@ -12,6 +12,7 @@ import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 public class CollEnterpriseTest {
 
@@ -27,12 +28,13 @@ public class CollEnterpriseTest {
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
+        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
         session = neo4jContainer.getSession();
     }
 
     @AfterAll
     public static void afterAll() {
-        if (neo4jContainer != null) {
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
             session.close();
             neo4jContainer.close();
         }
