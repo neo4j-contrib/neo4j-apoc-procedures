@@ -1,7 +1,9 @@
 package apoc.load;
 
 import apoc.util.TestUtil;
-import org.junit.*;
+import org.junit.ClassRule;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
@@ -10,12 +12,17 @@ import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
+import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.util.TestUtil.testResult;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
@@ -36,7 +43,8 @@ public class LoadDirectoryTest {
         DatabaseManagementService databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
 
-        TestUtil.registerProcedure(db, LoadDirectory.class);
+        TestUtil.registerProcedure(db, LoadDirectory.class, LoadCsv.class);
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
 
         // create temp files and subfolder
         temporaryFolder.newFile("Foo.csv");
@@ -93,7 +101,7 @@ public class LoadDirectoryTest {
         testResult(db, "CALL apoc.load.directory('*.xls', '" + folderAsExternalUrl + "', {recursive: true}) YIELD value RETURN value", result -> {
                     List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
                     assertTrue(rows.contains(rootTempFolder + File.separator + "Baz.xls"));
-                    assertTrue(rows.contains("TestXls1.xls"));
+                    assertTrue(rows.contains(rootTempFolder + File.separator + IMPORT_DIR + File.separator + "TestXls1.xls"));
                     assertEquals(2, rows.size());
                 }
         );
@@ -136,6 +144,30 @@ public class LoadDirectoryTest {
                     assertTrue(rows.contains("TestCsv3.csv"));
                     assertTrue(rows.contains(SUBFOLDER + File.separator + "TestSubfolder.csv"));
                     assertEquals(4, rows.size());
+                }
+        );
+    }
+
+    @Test
+    public void testLoadDirectoryConcatenatedWithLoadCsv() throws URISyntaxException {
+        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
+        File rootTempFolder = Paths.get(getUrlFileName("test.csv").toURI()).getParent().toFile();
+        String folderAsExternalUrl = "file://" + rootTempFolder;
+        testResult(db, "CALL apoc.load.directory('*.csv', '" + folderAsExternalUrl + "') YIELD value " +
+                "WITH value as url WHERE url ENDS WITH 'test.csv' OR url ENDS WITH 'test-pipe-column.csv' WITH url ORDER BY url DESC CALL apoc.load.csv(url, {results:['map']}) YIELD map RETURN map", result -> {
+                    Map<String, Object> firstRowFirstFile = (Map<String, Object>) result.next().get("map");
+                    assertEquals(Map.of("name", "Selma", "age", "8"), firstRowFirstFile);
+                    Map<String, Object> secondRowFirstFile = (Map<String, Object>) result.next().get("map");
+                    assertEquals(Map.of("name", "Rana", "age", "11"), secondRowFirstFile);
+                    Map<String, Object> thirdRowFirstFile = (Map<String, Object>) result.next().get("map");
+                    assertEquals(Map.of("name", "Selina", "age", "18"), thirdRowFirstFile);
+                    Map<String, Object> firstRowSecondFile = (Map<String, Object>) result.next().get("map");
+                    assertEquals(Map.of("name", "Selma", "beverage", "Soda"), firstRowSecondFile);
+                    Map<String, Object> secondRowSecondFile = (Map<String, Object>) result.next().get("map");
+                    assertEquals(Map.of("name", "Rana", "beverage", "Tea|Milk"), secondRowSecondFile);
+                    Map<String, Object> thirdRowSecondFile = (Map<String, Object>) result.next().get("map");
+                    assertEquals(Map.of("name", "Selina", "beverage", "Cola"), thirdRowSecondFile);
+                    assertFalse(result.hasNext());
                 }
         );
     }

@@ -21,7 +21,9 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.FileUtils.isImportUsingNeo4jConfig;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
+import static org.apache.commons.lang3.StringUtils.replaceOnce;
 
 @Extended
 public class LoadDirectory {
@@ -53,8 +55,8 @@ public class LoadDirectory {
 
         return files.stream().map(i -> {
             String urlFile = i.toString();
-            return new StringResult(apocConfig().isImportFolderConfigured()
-                    ? urlFile.replace(dirImport + File.separator, "")
+            return new StringResult(isImportUsingNeo4jConfig()
+                    ? replaceOnce(urlFile, dirImport + File.separator, "")
                     : urlFile);
         });
     }

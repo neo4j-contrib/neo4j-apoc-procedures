@@ -76,6 +76,7 @@ CALL apoc.load.directory("*.csv");
 
 Furthermore we can also set a path, like:
 
+[source, cypher]
 ----
 CALL apoc.load.directory("*.csv", "subfolder1");
 ----
@@ -86,6 +87,7 @@ CALL apoc.load.directory("*.csv", "subfolder1");
 | "subfolder1/5.csv"
 |===
 
+[source, cypher]
 ----
 CALL apoc.load.directory("*", "subfolder1");
 ----
@@ -101,6 +103,8 @@ CALL apoc.load.directory("*", "subfolder1");
 |===
 
 And we can search only in current folder:
+
+[source, cypher]
 ----
 CALL apoc.load.directory("*", "subfolder2", {recursive: false});
 ----
@@ -115,8 +119,51 @@ CALL apoc.load.directory("*", "subfolder2", {recursive: false});
 
 Instead, if we set `apoc.import.file.use_neo4j_config=false`, we can search with an absolute path:
 
+[source, cypher]
 ----
 CALL apoc.load.directory('*', 'file:///Users/username/Downloads', {recursive: false});
 ----
 
+We can concatenate this procedure with other procedures, for example with apoc.load.csv to obtain an aggregation of multiple results.
+Let's suppose we have this 2 files:
 
+.beta.csv
+----
+name,age
+Selma,8
+Rana,11
+Selina,18
+----
+
+and
+
+.alpha.csv
+----
+name,beverage
+Selma,Soda
+Rana,Tea|Milk
+Selina,Cola
+----
+
+so we can execute this query:
+
+[source, cypher]
+----
+CALL apoc.load.directory('*.csv', 'path/to/directory')
+YIELD value WITH value as url ORDER BY url DESC
+CALL apoc.load.csv(url, {results:['map']}) YIELD map RETURN map
+----
+
+with this result:
+
+.Results
+[opts="header"]
+|===
+| map
+| { "name": "Selma", "age": "8" }
+| { "name": "Rana", "age": "11" }
+| { "name": "Selina", "age": "18" }
+| { "name": "Selma", "beverage": "Soda" }
+| { "name": "Rana", "beverage": "Tea\|Milk" }
+| { "name": "Selina", "beverage": "Cola" }
+|===
