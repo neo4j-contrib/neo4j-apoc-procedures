@@ -3,14 +3,18 @@ package apoc.custom;
 import apoc.Extended;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
-import org.neo4j.internal.kernel.api.procs.FieldSignature;
-import org.neo4j.internal.kernel.api.procs.Neo4jTypes;
 import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
 import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
+import org.neo4j.internal.kernel.api.procs.FieldSignature;
+import org.neo4j.internal.kernel.api.procs.Neo4jTypes;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Mode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -104,7 +108,7 @@ public class CypherProcedures {
                 ProcedureSignature signature = procedureDescriptor.getSignature();
                 return new CustomProcedureInfo(
                         PROCEDURE,
-                        signature.name().name(),
+                        signature.name().toString().substring(PREFIX.length() + 1),
                         signature.description().orElse(null),
                         signature.mode().toString().toLowerCase(),
                         procedureDescriptor.getStatement(),
@@ -116,7 +120,7 @@ public class CypherProcedures {
                 UserFunctionSignature signature = userFunctionDescriptor.getSignature();
                 return new CustomProcedureInfo(
                         FUNCTION,
-                        signature.name().name(),
+                        signature.name().toString().substring(PREFIX.length() + 1),
                         signature.description().orElse(null),
                         null,
                         userFunctionDescriptor.getStatement(),
