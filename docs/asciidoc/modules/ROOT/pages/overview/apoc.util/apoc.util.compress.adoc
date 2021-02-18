@@ -14,7 +14,7 @@ apoc.util.compress(string, \{config}) | return a compressed byte[] in various fo
 
 [source]
 ----
-apoc.util.compress(data :: STRING?, config = {} :: MAP?) :: (LIST? OF ANY?)
+apoc.util.compress(data :: STRING?, config = {} :: MAP?) :: (BYTEARRAY?)
 ----
 
 == Input parameters
