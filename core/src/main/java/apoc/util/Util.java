@@ -875,7 +875,7 @@ public class Util {
                 .filter(n -> addtionalLabel!=null && n.hasLabel(addtionalLabel))
                 .filter( n -> {
                     for (int i=1; i<pairs.length; i++) {
-                        if (!pairs[i].other().equals(n.getProperty(pairs[i].first(), null))) {
+                        if (!Objects.deepEquals(pairs[i].other(), n.getProperty(pairs[i].first(), null))) {
                             return false;
                         }
                     }
