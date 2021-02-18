@@ -83,7 +83,7 @@ public class Merge {
     private String buildIdentPropsString(Map<String, Object> identProps) {
         if (identProps == null) return "";
         return identProps.keySet().stream().map(Util::quote)
-                .map(s -> "`"+s+"`:$identProps.`" + s+"`")
+                .map(s -> s + ":$identProps." + s)
                 .collect(Collectors.joining(","));
     }
 }
