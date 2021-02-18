@@ -125,7 +125,7 @@ CALL apoc.load.directory('*', 'file:///Users/username/Downloads', {recursive: fa
 ----
 
 We can concatenate this procedure with other procedures, for example with apoc.load.csv to obtain an aggregation of multiple results.
-Let's suppose we have this 2 files:
+Let's suppose we have these 2 files:
 
 .beta.csv
 ----
@@ -154,7 +154,7 @@ YIELD value WITH value as url ORDER BY url DESC
 CALL apoc.load.csv(url, {results:['map']}) YIELD map RETURN map
 ----
 
-with this result:
+with these results:
 
 .Results
 [opts="header"]
