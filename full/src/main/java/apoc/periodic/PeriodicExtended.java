@@ -75,10 +75,11 @@ public class PeriodicExtended {
                 if (!Util.toBoolean(value)) return allResults;
             }
 
-            log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
+            String periodicId = UUID.randomUUID().toString();
+            log.info("starting batched operation using iteration `%s` in separate thread with id: `%s`", cypherIterate, periodicId);
             try (Result result = tx.execute(cypherIterate)) {
                 Stream<BatchAndTotalResult> oneResult =
-                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, false, false,0, result, (tx, params) -> tx.execute(cypherAction, params), 50, -1);
+                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, false, false,0, result, (tx, params) -> tx.execute(cypherAction, params), 50, -1, periodicId);
                 final Object loopParam = value;
                 allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
             }
@@ -115,21 +116,22 @@ public class PeriodicExtended {
                 "cypherAction", cypherAction);
         validateQueries(fieldStatement);
 
+        String periodicId = UUID.randomUUID().toString();
         log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
         try (Result result = tx.execute(cypherIterate)) {
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, (tx, p) -> tx.execute(cypherAction, p), 50, -1);
+            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, (tx, p) -> tx.execute(cypherAction, p), 50, -1, periodicId);
         }
     }
 
     private Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, boolean parallel, boolean iterateList, long retries,
-                  Iterator<Map<String, Object>> iterator, BiConsumer<Transaction, Map<String, Object>> consumer, int concurrency, int failedParams) {
+                  Iterator<Map<String, Object>> iterator, BiConsumer<Transaction, Map<String, Object>> consumer, int concurrency, int failedParams, String periodicId) {
 
         ExecutorService pool = parallel ? pools.getDefaultExecutorService() : pools.getSingleExecutorService();
         List<Future<Long>> futures = new ArrayList<>(concurrency);
         BatchAndTotalCollector collector = new BatchAndTotalCollector(terminationGuard, failedParams);
         do {
             if (Util.transactionIsTerminated(terminationGuard)) break;
-            if (log.isDebugEnabled()) log.debug("execute in batch no %d batch size ", batchsize);
+            if (log.isDebugEnabled()) log.debug("Execute, in periodic rock_n_roll with id %s, no %d batch size ", periodicId, batchsize);
             List<Map<String,Object>> batch = Util.take(iterator, batchsize);
             final long currentBatchSize = batch.size();
             Function<Transaction, Long> task;
@@ -170,6 +172,9 @@ public class PeriodicExtended {
                 }
             }*/
             collector.incrementCount(currentBatchSize);
+            if (log.isDebugEnabled()) {
+                log.debug("Processed, in periodic rock_n_roll with id %s, %d iterations of %d total", periodicId, batchsize, collector.getCount());
+            }
         } while (iterator.hasNext());
 
         boolean wasTerminated = Util.transactionIsTerminated(terminationGuard);
@@ -180,6 +185,9 @@ public class PeriodicExtended {
 
         Util.logErrors("Error during iterate.commit:", collector.getBatchErrors(), log);
         Util.logErrors("Error during iterate.execute:", collector.getOperationErrors(), log);
+        if (log.isDebugEnabled()) {
+            log.debug("Terminated periodic rock_n_roll with id %s with %d executions", periodicId, collector.getCount());
+        }
         return Stream.of(collector.getResult());
     }
 
