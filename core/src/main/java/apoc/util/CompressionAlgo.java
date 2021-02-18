@@ -20,9 +20,6 @@ import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import static apoc.util.Util.convertFromBytesToList;
-import static apoc.util.Util.convertFromListToBytes;
-
 public enum CompressionAlgo {
 
     GZIP(GzipCompressorOutputStream.class, GzipCompressorInputStream.class),
@@ -39,22 +36,21 @@ public enum CompressionAlgo {
         this.decompressor = decompressor;
     }
 
-    public List<Long> compress(String string, Charset charset) throws Exception {
+    public byte[] compress(String string, Charset charset) throws Exception {
         Constructor<?> constructor = compressor.getConstructor(OutputStream.class);
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
             try (OutputStream outputStream = (OutputStream) constructor.newInstance((OutputStream) stream)) {
                 outputStream.write(string.getBytes(charset));
             }
-            return convertFromBytesToList(stream.toByteArray());
+            return stream.toByteArray();
         }
     }
 
-    public String decompress(List<Long> byteArray, Charset charset) throws Exception {
-        try (ByteArrayInputStream stream = new ByteArrayInputStream(convertFromListToBytes(byteArray))) {
+    public String decompress(byte[] byteArray, Charset charset) throws Exception {
             Constructor<?> constructor = decompressor.getConstructor(InputStream.class);
-            try (InputStream inputStream = (InputStream) constructor.newInstance((InputStream) stream)) {
-                return IOUtils.toString(inputStream, charset);
-            }
+        try (ByteArrayInputStream stream = new ByteArrayInputStream(byteArray);
+                InputStream inputStream = (InputStream) constructor.newInstance((InputStream) stream)) {
+            return IOUtils.toString(inputStream, charset);
         }
     }
 }

@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.Util.quote;
-import static apoc.util.Util.convertFromBytesToList;
 import static java.lang.Math.toIntExact;
 import static java.util.Arrays.asList;
 
@@ -96,7 +95,12 @@ public class Strings {
     @UserFunction
     @Description("apoc.text.bytes(text,[charset]) - return bytes of the text")
     public List<Long> bytes(final @Name("text") String text, @Name(value = "charset", defaultValue = "UTF-8") String charset) throws UnsupportedEncodingException {
-        return convertFromBytesToList(text.getBytes(charset));
+        byte[] bytes = text.getBytes(charset);
+        List<Long> result = new ArrayList<>(bytes.length);
+        for (byte b : bytes) {
+            result.add((long)b & 0xFFL);
+        }
+        return result;
     }
 
     @UserFunction

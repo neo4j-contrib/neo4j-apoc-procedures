@@ -1,6 +1,7 @@
 [source,cypher]
 ----
-RETURN apoc.util.decompress([31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 99, 96, 96, 240, 101, 96, 96, 120, 2, 196, 37, 64, 92, 4, 196, 153, 64, 92, 1, 196, 10, 64, 236, 9, 197, 64, 118, 200, 9, 48, 102, 252, 198, 2, 228, 27, 2, 177, 17, 16, 27, 3, 0, 113, 131, 223, 46, 64, 0, 0, 0], {charset: 'UTF-32'}) AS value
+WITH apoc.util.compress("Mätrix II 哈哈😄123", {charset: 'UTF-32'}) as compressed
+RETURN apoc.util.decompress(compressed, {charset: 'UTF-32'}) AS value
 ----
 
 .Results
@@ -12,7 +13,8 @@ RETURN apoc.util.decompress([31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 99, 96, 96, 240,
 
 [source,cypher]
 ----
-RETURN apoc.util.decompress([120, 156, 243, 61, 188, 164, 164, 40, 179, 66, 193, 211, 83, 225, 233, 228, 14, 32, 250, 48, 127, 70, 139, 161, 145, 49, 0, 145, 129, 11, 143], {compression: 'DEFLATE'}) AS value
+WITH apoc.util.compress("Mätrix II 哈哈😄123", {compression: 'DEFLATE'}) as compressed
+RETURN apoc.util.decompress(compressed, {compression: 'DEFLATE'}) AS value
 ----
 
 .Results
@@ -24,7 +26,8 @@ RETURN apoc.util.decompress([120, 156, 243, 61, 188, 164, 164, 40, 179, 66, 193,
 
 [source,cypher]
 ----
-Return apoc.util.decompress([31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 251, 247, 159, 193, 149, 161, 130, 33, 145, 33, 151, 161, 128, 33, 135, 33, 21, 0, 9, 100, 12, 147, 16, 0, 0, 0], {charset: 'UTF-16'}) AS value
+WITH apoc.util.compress("Example", {charset: 'UTF-16'}) as compressed
+RETURN apoc.util.decompress(compressed, {charset: 'UTF-16'}) AS value
 ----
 
 .Results

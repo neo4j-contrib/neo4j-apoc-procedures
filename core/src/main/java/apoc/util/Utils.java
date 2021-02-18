@@ -91,7 +91,7 @@ public class Utils {
 
     @UserFunction
     @Description("apoc.util.decompress(compressed, {config}) | return a string from a compressed byte[] in various format")
-    public String decompress(@Name("data") List<Long> data, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
+    public String decompress(@Name("data") byte[] data, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
         CompressionConfig conf = new CompressionConfig(config);
         return CompressionAlgo.valueOf(conf.getCompressionAlgo()).decompress(data, conf.getCharset());
@@ -99,7 +99,7 @@ public class Utils {
 
     @UserFunction
     @Description("apoc.util.compress(string, {config}) | return a compressed byte[] in various format from a string")
-    public List<Long> compress(@Name("data") String data, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
+    public byte[] compress(@Name("data") String data, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
         CompressionConfig conf = new CompressionConfig(config);
         return CompressionAlgo.valueOf(conf.getCompressionAlgo()).compress(data, conf.getCharset());
