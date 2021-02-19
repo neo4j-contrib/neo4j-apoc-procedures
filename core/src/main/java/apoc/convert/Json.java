@@ -29,12 +29,12 @@ public class Json {
         Meta.Types type = Meta.Types.of(value);
         switch (type) {
             case NODE:
-                return nodeToMap((Node) value, true);
+                return nodeToMap((Node) value);
             case RELATIONSHIP:
                 return relToMap((Relationship) value);
             case PATH:
                 return writeJsonResult(StreamSupport.stream(((Path)value).spliterator(),false)
-                        .map(i-> i instanceof Node ? nodeToMap((Node) i, true) : relToMap((Relationship) i))
+                        .map(i-> i instanceof Node ? nodeToMap((Node) i) : relToMap((Relationship) i))
                         .collect(Collectors.toList()));
             case LIST:
                 return Convert.convertToList(value).stream().map(this::writeJsonResult).collect(Collectors.toList());
@@ -53,18 +53,17 @@ public class Json {
                 "id", String.valueOf(rel.getId()),
                 "type", RELATIONSHIP,
                 "label", rel.getType().toString(),
-                "start", nodeToMap(rel.getStartNode(), false),
-                "end", nodeToMap(rel.getEndNode(), false));
+                "start", nodeToMap(rel.getStartNode()),
+                "end", nodeToMap(rel.getEndNode()));
 
         return mapWithOptionalProps(mapRel, rel.getAllProperties());
     }
 
-    private Map<String,Object> nodeToMap(Node node, boolean mapForNode) {
+    private Map<String,Object> nodeToMap(Node node) {
         Map<String, Object> mapNode = map("id", String.valueOf(node.getId()));
 
-        if (mapForNode) {
-            mapNode.put("type", NODE);
-        }
+        mapNode.put("type", NODE);
+
         if (node.getLabels().iterator().hasNext()) {
             mapNode.put("labels", labelStrings(node));
         }

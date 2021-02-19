@@ -51,7 +51,7 @@ public class ConvertJsonTest {
 	    testCall(db, "CREATE (a:Test {foo: 7}) RETURN apoc.convert.toJson(a) AS value",
 	             (row) -> {
 	                Map<String, Object> valueAsMap = Util.readMap((String) row.get("value"));
-	                assertJsonNode(valueAsMap, "0", List.of("Test"), Map.of("foo", 7L), NODE);
+	                assertJsonNode(valueAsMap, "0", List.of("Test"), Map.of("foo", 7L));
                  });
     }
 
@@ -60,7 +60,7 @@ public class ConvertJsonTest {
         testCall(db, "CREATE (a {pippo:'pluto'}) RETURN apoc.convert.toJson(a) AS value",
                 (row) -> {
                     Map<String, Object> valueAsMap = Util.readMap((String) row.get("value"));
-                    assertJsonNode(valueAsMap, "0", null, Map.of("pippo", "pluto"), NODE);
+                    assertJsonNode(valueAsMap, "0", null, Map.of("pippo", "pluto"));
                 });
     }
 
@@ -82,25 +82,25 @@ public class ConvertJsonTest {
                     "place", Map.of(
                             "latitude", 56.7, "longitude", 12.78, "crs", "wgs-84-3d", "height", 1.1
                     ));
-            assertJsonNode(nodeOne, "0", users, expectedMap, NODE);
+            assertJsonNode(nodeOne, "0", users, expectedMap);
 
             Map<String, Object> nodeTwo = (Map<String, Object>) valueAsList.get(1);
             Map<String, Object> expectedMapTwo = Map.of(
                     "name", "Jim",
                     "age", 42L);
-            assertJsonNode(nodeTwo, "1", users, expectedMapTwo, NODE);
+            assertJsonNode(nodeTwo, "1", users, expectedMapTwo);
 
             Map<String, Object> nodeThree = (Map<String, Object>) valueAsList.get(2);
             Map<String, Object> expectedMapThree = Map.of(
                     "age", 12L);
-            assertJsonNode(nodeThree, "2", users, expectedMapThree, NODE);
+            assertJsonNode(nodeThree, "2", users, expectedMapThree);
 
             Map<String, Object> nodeFour= (Map<String, Object>) valueAsList.get(3);
-            assertJsonNode(nodeFour, "3", users, null, NODE);
+            assertJsonNode(nodeFour, "3", users, null);
 
             Map<String, Object> nodeFive = (Map<String, Object>) valueAsList.get(4);
             Map<String, Object> expectedMapFive = Map.of("pippo", "pluto");
-            assertJsonNode(nodeFive, "4", null, expectedMapFive, NODE);
+            assertJsonNode(nodeFive, "4", null, expectedMapFive);
         });
     }
 
@@ -117,8 +117,8 @@ public class ConvertJsonTest {
                     Map<String, Object> map = Util.fromJson((String) row.get("value"), Map.class);
                     List<String> test = List.of("Test");
                     assertEquals(2, map.size());
-                    assertJsonNode((Map<String, Object>) map.get("one"), "0", test, Map.of("foo", 7L), NODE );
-                    assertJsonNode((Map<String, Object>) map.get("two"), "1", test, Map.of("bar", 9L), NODE );
+                    assertJsonNode((Map<String, Object>) map.get("one"), "0", test, Map.of("foo", 7L));
+                    assertJsonNode((Map<String, Object>) map.get("two"), "1", test, Map.of("bar", 9L));
                 });
     }
 
@@ -128,8 +128,8 @@ public class ConvertJsonTest {
 	             (row) -> {
                      Map<String, Object> map = Util.fromJson((String) row.get("value"), Map.class);
                      List<String> user = List.of("User");
-                     assertJsonNode((Map<String, Object>) map.get("start"), "0", user, Map.of("name", "Adam"), null);
-                     assertJsonNode((Map<String, Object>) map.get("end"), "1", user, Map.of("name", "Jim", "age", 42L), null);
+                     assertJsonNode((Map<String, Object>) map.get("start"), "0", user, Map.of("name", "Adam"));
+                     assertJsonNode((Map<String, Object>) map.get("end"), "1", user, Map.of("name", "Jim", "age", 42L));
                      assertJsonRel(map, "0", "KNOWS", Map.of("since" , 1993.1D, "bffSince", "P5M1DT12H"), RELATIONSHIP);
         });
     }
@@ -144,21 +144,21 @@ public class ConvertJsonTest {
                      List<Object> list = Util.fromJson((String) row.get("value"), List.class);
                      assertEquals(5, list.size());
 
-                     assertJsonNode((Map<String, Object>) list.get(0), "0", test, Map.of("foo", 7L), NODE);
+                     assertJsonNode((Map<String, Object>) list.get(0), "0", test, Map.of("foo", 7L));
 
                      Map<String, Object> firstRel = (Map<String, Object>) list.get(1);
-                     assertJsonNode((Map<String, Object>) firstRel.get("start"), "0", test, Map.of("foo", 7L), null);
-                     assertJsonNode((Map<String, Object>) firstRel.get("end"), "1", baz, Map.of("a", "b"), null);
+                     assertJsonNode((Map<String, Object>) firstRel.get("start"), "0", test, Map.of("foo", 7L));
+                     assertJsonNode((Map<String, Object>) firstRel.get("end"), "1", baz, Map.of("a", "b"));
                      assertJsonRel(firstRel, "0", "TEST", null, RELATIONSHIP);
 
-                     assertJsonNode((Map<String, Object>) list.get(2), "1", baz, Map.of("a", "b"), NODE);
+                     assertJsonNode((Map<String, Object>) list.get(2), "1", baz, Map.of("a", "b"));
 
                      Map<String, Object> secondRel = (Map<String, Object>) list.get(3);
-                     assertJsonNode((Map<String, Object>) secondRel.get("start"), "2", bar, Map.of("one", "www", "two", 2L, "three", "2020-01-01T00:00"), null);
-                     assertJsonNode((Map<String, Object>) secondRel.get("end"), "1", baz, Map.of("a", "b"), null);
+                     assertJsonNode((Map<String, Object>) secondRel.get("start"), "2", bar, Map.of("one", "www", "two", 2L, "three", "2020-01-01T00:00"));
+                     assertJsonNode((Map<String, Object>) secondRel.get("end"), "1", baz, Map.of("a", "b"));
                      assertJsonRel(secondRel, "1", "TEST_2", Map.of("aa" , "bb"), RELATIONSHIP);
 
-                     assertJsonNode((Map<String, Object>) list.get(4), "2", bar, Map.of("one", "www", "two", 2L, "three", "2020-01-01T00:00"), NODE);
+                     assertJsonNode((Map<String, Object>) list.get(4), "2", bar, Map.of("one", "www", "two", 2L, "three", "2020-01-01T00:00"));
 	    });
     }
 
@@ -176,20 +176,20 @@ public class ConvertJsonTest {
                      List<Object> secondSubList = (List<Object>) list.get(1);
 
                      assertEquals(3, firstSubList.size());
-                     assertJsonNode((Map<String, Object>) firstSubList.get(0), "0", test, Map.of("foo", 7L), NODE);
+                     assertJsonNode((Map<String, Object>) firstSubList.get(0), "0", test, Map.of("foo", 7L));
                      Map<String, Object> firstRel = (Map<String, Object>) firstSubList.get(1);
-                     assertJsonNode((Map<String, Object>) firstRel.get("start"), "0", test, Map.of("foo", 7L), null);
-                     assertJsonNode((Map<String, Object>) firstRel.get("end"), "1", bazBaa, Map.of("a", "b"), null);
+                     assertJsonNode((Map<String, Object>) firstRel.get("start"), "0", test, Map.of("foo", 7L));
+                     assertJsonNode((Map<String, Object>) firstRel.get("end"), "1", bazBaa, Map.of("a", "b"));
                      assertJsonRel(firstRel, "0", "TEST", null, RELATIONSHIP);
-                     assertJsonNode((Map<String, Object>) firstSubList.get(2), "1", bazBaa, Map.of("a", "b"), NODE);
+                     assertJsonNode((Map<String, Object>) firstSubList.get(2), "1", bazBaa, Map.of("a", "b"));
 
                      assertEquals(3, secondSubList.size());
-                     assertJsonNode((Map<String, Object>) secondSubList.get(0), "2", omega, Map.of("alpha", "beta"), NODE);
+                     assertJsonNode((Map<String, Object>) secondSubList.get(0), "2", omega, Map.of("alpha", "beta"));
                      Map<String, Object> secondRel = (Map<String, Object>) secondSubList.get(1);
-                     assertJsonNode((Map<String, Object>) secondRel.get("start"), "3", bar, Map.of("one", "www"), null);
-                     assertJsonNode((Map<String, Object>) secondRel.get("end"), "2", omega, Map.of("alpha", "beta"), null);
+                     assertJsonNode((Map<String, Object>) secondRel.get("start"), "3", bar, Map.of("one", "www"));
+                     assertJsonNode((Map<String, Object>) secondRel.get("end"), "2", omega, Map.of("alpha", "beta"));
                      assertJsonRel(secondRel, "1", "TEST_2", Map.of("aa" , "bb"), RELATIONSHIP);
-                     assertJsonNode((Map<String, Object>) secondSubList.get(2), "3", bar, Map.of("one", "www"), NODE);
+                     assertJsonNode((Map<String, Object>) secondSubList.get(2), "3", bar, Map.of("one", "www"));
                  });
     }
 
@@ -551,11 +551,11 @@ public class ConvertJsonTest {
         }
     }
 
-    public static void assertJsonNode(Map<String, Object> node, String id, List<String> labels, Map<String, Object> properties, String type) {
+    public static void assertJsonNode(Map<String, Object> node, String id, List<String> labels, Map<String, Object> properties) {
         assertEquals(id, node.get("id"));
         assertEquals(labels, node.get("labels"));
         assertMaps(properties, (Map<String, Object>) node.get("properties"));
-        assertEquals(type, node.get("type"));
+        assertEquals(NODE, node.get("type"));
     }
 
     public static void assertJsonRel(Map<String, Object> rel, String id, String label, Map<String, Object> properties, String type) {
