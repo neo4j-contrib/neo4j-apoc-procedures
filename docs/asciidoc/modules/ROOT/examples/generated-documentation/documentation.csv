@@ -356,7 +356,7 @@ for the provided `label` and `uuidProperty`, in case the UUID handler is already
 ¦function¦apoc.convert.toFloat¦apoc.convert.toFloat(object :: ANY?) :: (FLOAT?)¦apoc.convert.toFloat(value) | tries it's best to convert the value to a float¦true¦
 ¦function¦apoc.convert.toIntList¦apoc.convert.toIntList(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toIntList(value) | tries it's best to convert the value to a list of integers¦true¦
 ¦function¦apoc.convert.toInteger¦apoc.convert.toInteger(object :: ANY?) :: (INTEGER?)¦apoc.convert.toInteger(value) | tries it's best to convert the value to an integer¦true¦
-¦function¦apoc.convert.toJson¦apoc.convert.toJson(value :: ANY?) :: (STRING?)¦apoc.convert.toJson([1,2,3]) or toJson({a:42,b:"foo",c:[1,2,3]})¦true¦
+¦function¦apoc.convert.toJson¦apoc.convert.toJson(value :: ANY?) :: (STRING?)¦apoc.convert.toJson([1,2,3]) or toJson({a:42,b:"foo",c:[1,2,3]}) or toJson(NODE/REL/PATH)¦true¦
 ¦function¦apoc.convert.toList¦apoc.convert.toList(list :: ANY?) :: (LIST? OF ANY?)¦apoc.convert.toList(value) | tries it's best to convert the value to a list¦true¦
 ¦function¦apoc.convert.toMap¦apoc.convert.toMap(map :: ANY?) :: (MAP?)¦apoc.convert.toMap(value) | tries it's best to convert the value to a map¦true¦
 ¦function¦apoc.convert.toNode¦apoc.convert.toNode(node :: ANY?) :: (NODE?)¦apoc.convert.toNode(value) | tries it's best to convert the value to a node¦true¦

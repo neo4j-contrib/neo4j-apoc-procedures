@@ -1,5 +1,6 @@
 package apoc.convert;
 
+import apoc.meta.Meta;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
@@ -13,8 +14,68 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static apoc.util.Util.labelStrings;
+import static apoc.util.Util.map;
 
 public class Json {
+
+    // visible for testing
+    public static String NODE = "node";
+    public static String RELATIONSHIP = "relationship";
+
+    private Object writeJsonResult(Object value) {
+        Meta.Types type = Meta.Types.of(value);
+        switch (type) {
+            case NODE:
+                return nodeToMap((Node) value);
+            case RELATIONSHIP:
+                return relToMap((Relationship) value);
+            case PATH:
+                return writeJsonResult(StreamSupport.stream(((Path)value).spliterator(),false)
+                        .map(i-> i instanceof Node ? nodeToMap((Node) i) : relToMap((Relationship) i))
+                        .collect(Collectors.toList()));
+            case LIST:
+                return Convert.convertToList(value).stream().map(this::writeJsonResult).collect(Collectors.toList());
+            case MAP:
+                return ((Map<String, Object>) value).entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey,
+                                e -> writeJsonResult(e.getValue())));
+            default:
+                return value;
+        }
+    }
+
+    private Map<String,Object> relToMap(Relationship rel) {
+        Map<String, Object> mapRel = map(
+                "id", String.valueOf(rel.getId()),
+                "type", RELATIONSHIP,
+                "label", rel.getType().toString(),
+                "start", nodeToMap(rel.getStartNode()),
+                "end", nodeToMap(rel.getEndNode()));
+
+        return mapWithOptionalProps(mapRel, rel.getAllProperties());
+    }
+
+    private Map<String,Object> nodeToMap(Node node) {
+        Map<String, Object> mapNode = map("id", String.valueOf(node.getId()));
+
+        mapNode.put("type", NODE);
+
+        if (node.getLabels().iterator().hasNext()) {
+            mapNode.put("labels", labelStrings(node));
+        }
+        return mapWithOptionalProps(mapNode, node.getAllProperties());
+    }
+
+    private Map<String, Object> mapWithOptionalProps(Map<String,Object> mapEntity, Map<String,Object> props) {
+        if (!props.isEmpty()) {
+            mapEntity.put("properties", props);
+        }
+        return mapEntity;
+    }
 
     @Context
     public org.neo4j.graphdb.GraphDatabaseService db;
@@ -25,10 +86,10 @@ public class Json {
         return JsonUtil.parse(json,path,Object.class);
     }
     @UserFunction("apoc.convert.toJson")
-    @Description("apoc.convert.toJson([1,2,3]) or toJson({a:42,b:\"foo\",c:[1,2,3]})")
+    @Description("apoc.convert.toJson([1,2,3]) or toJson({a:42,b:\"foo\",c:[1,2,3]}) or toJson(NODE/REL/PATH)")
     public String toJson(@Name("value") Object value) {
         try {
-            return JsonUtil.OBJECT_MAPPER.writeValueAsString(value);
+            return JsonUtil.OBJECT_MAPPER.writeValueAsString(writeJsonResult(value));
         } catch (IOException e) {
             throw new RuntimeException("Can't convert " + value + " to json", e);
         }

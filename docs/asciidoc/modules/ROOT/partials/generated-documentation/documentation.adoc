@@ -569,7 +569,7 @@ apoc.convert.toInteger(value) \| tries it's best to convert the value to an inte
 |label:apoc-core[]
 |xref::overview/apoc.convert/apoc.convert.toJson.adoc[apoc.convert.toJson icon:book[]]
 
-apoc.convert.toJson([1,2,3]) or toJson({a:42,b:"foo",c:[1,2,3]})
+apoc.convert.toJson([1,2,3]) or toJson({a:42,b:"foo",c:[1,2,3]}) or toJson(NODE/REL/PATH)
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.convert/apoc.convert.toList.adoc[apoc.convert.toList icon:book[]]
