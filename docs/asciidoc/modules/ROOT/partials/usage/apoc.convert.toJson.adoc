@@ -27,3 +27,61 @@ RETURN apoc.convert.toJson(properties(node)) AS output;
 | Output
 |  "{\"name\":\"Foo\",\"id\":4}"
 |===
+
+.Convert node to JSON
+In case of node, will be returned a map with the id of the node, the array of labels and (if any) the properties.
+[source,cypher]
+----
+CREATE (a:Foo:Foo2 {bar: 'baz', name: 'Sherlock'})
+RETURN apoc.convert.toJson(a) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+|  "{"id":"3","type":"node","labels":["Foo","Foo2"],"properties":{"bar":"baz","name":"Sherlock"}}"
+|===
+
+.Convert relationship to JSON
+In case of node, will be returned a map with the id of the relationship, the relationship-type and (if any) the properties.
+[source,cypher]
+----
+CREATE (:Foo)-[r:MY_REL {name: "Sherlock", surname: "Holmes"}]->(:Bar)
+RETURN apoc.convert.toJson(r) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+|  "{"id":"0","type":"relationship","label":"MY_REL","start":{"id":"4","labels":["Foo"]},"end":{"id":"5","labels":["Bar"]},"properties":{"surname":"Holmes","name":"Sherlock"}}"
+|===
+
+.Convert path to JSON
+[source,cypher]
+----
+CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baz {a:'b'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www', two:2, three: localdatetime('2020-01-01')})
+RETURN apoc.convert.toJson(p) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+|  "[{"id":"6","type":"node","properties":{"foo":7},"labels":["Test"]},{"start":{"id":"6","properties":{"foo":7},"labels":["Test"]},"end":{"id":"7","properties":{"a":"b"},"labels":["Baz"]},"id":"1","label":"TEST","type":"relationship"},{"id":"7","type":"node","properties":{"a":"b"},"labels":["Baz"]},{"start":{"id":"8","properties":{"one":"www","two":2,"three":"2020-01-01T00:00"},"labels":["Bar"]},"end":{"id":"7","properties":{"a":"b"},"labels":["Baz"]},"id":"2","label":"TEST_2","type":"relationship","properties":{"aa":"bb"}},{"id":"8","type":"node","properties":{"one":"www","two":2,"three":"2020-01-01T00:00"},"labels":["Bar"]}]"
+|===
+
+.Convert list of nodes to JSON
+[source,cypher]
+----
+CREATE (a:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})}),(b:User {name:'Jim',age:42}),(c:User {age:12}),(d:User),(e {pippo:'pluto'})
+RETURN apoc.convert.toJson(collect(a)+b+c+d+e)
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+|  "[{"id":"23","type":"node","labels":["User"],"properties":{"born":"2015-07-04T19:32:24","name":"Adam","place":{"crs":"wgs-84","latitude":33.46789,"longitude":13.1,"height":null},"age":42,"male":true,"kids":["Sam","Anna","Grace"]}},{"id":"24","type":"node","labels":["User"],"properties":{"name":"Jim","age":42}},{"id":"25","type":"node","labels":["User"],"properties":{"age":12}},{"id":"26","type":"node","labels":["User"]},{"id":"27","type":"node","properties":{"pippo":"pluto"}}]"
+|===
