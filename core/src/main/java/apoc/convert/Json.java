@@ -4,7 +4,10 @@ import apoc.meta.Meta;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.procedure.*;
 
 import java.io.IOException;
@@ -60,7 +63,7 @@ public class Json {
         Map<String, Object> mapNode = map("id", String.valueOf(node.getId()));
 
         if (mapForNode) {
-            mapNode.put( "type", NODE);
+            mapNode.put("type", NODE);
         }
         if (node.getLabels().iterator().hasNext()) {
             mapNode.put("labels", labelStrings(node));

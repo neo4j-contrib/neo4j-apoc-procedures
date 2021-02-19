@@ -22,7 +22,8 @@ import java.util.Map;
 import static apoc.convert.Json.NODE;
 import static apoc.convert.Json.RELATIONSHIP;
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.*;
+import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
@@ -70,6 +71,7 @@ public class ConvertJsonTest {
         TestUtil.testCall(db, query, (row) -> {
             List<String> users = List.of("User");
             List<Object> valueAsList = Util.fromJson((String) row.get("list"), List.class);
+            assertEquals(5, valueAsList.size());
 
             Map<String, Object> nodeOne = (Map<String, Object>) valueAsList.get(0);
             Map<String, Object> expectedMap = Map.of("name", "Adam",
@@ -114,6 +116,7 @@ public class ConvertJsonTest {
                 (row) -> {
                     Map<String, Object> map = Util.fromJson((String) row.get("value"), Map.class);
                     List<String> test = List.of("Test");
+                    assertEquals(2, map.size());
                     assertJsonNode((Map<String, Object>) map.get("one"), "0", test, Map.of("foo", 7L), NODE );
                     assertJsonNode((Map<String, Object>) map.get("two"), "1", test, Map.of("bar", 9L), NODE );
                 });
@@ -139,6 +142,7 @@ public class ConvertJsonTest {
                      List<String> bar = List.of("Bar");
                      List<String> baz = List.of("Baz");
                      List<Object> list = Util.fromJson((String) row.get("value"), List.class);
+                     assertEquals(5, list.size());
 
                      assertJsonNode((Map<String, Object>) list.get(0), "0", test, Map.of("foo", 7L), NODE);
 
@@ -167,25 +171,24 @@ public class ConvertJsonTest {
                      List<String> bazBaa = List.of("Baa", "Baz");
                      List<String> omega = List.of("Omega");
                      List<Object> list = Util.fromJson((String) row.get("value"), List.class);
+                     assertEquals(2, list.size());
                      List<Object> firstSubList = (List<Object>) list.get(0);
                      List<Object> secondSubList = (List<Object>) list.get(1);
 
+                     assertEquals(3, firstSubList.size());
                      assertJsonNode((Map<String, Object>) firstSubList.get(0), "0", test, Map.of("foo", 7L), NODE);
-
                      Map<String, Object> firstRel = (Map<String, Object>) firstSubList.get(1);
                      assertJsonNode((Map<String, Object>) firstRel.get("start"), "0", test, Map.of("foo", 7L), null);
                      assertJsonNode((Map<String, Object>) firstRel.get("end"), "1", bazBaa, Map.of("a", "b"), null);
                      assertJsonRel(firstRel, "0", "TEST", null, RELATIONSHIP);
-
                      assertJsonNode((Map<String, Object>) firstSubList.get(2), "1", bazBaa, Map.of("a", "b"), NODE);
 
+                     assertEquals(3, secondSubList.size());
                      assertJsonNode((Map<String, Object>) secondSubList.get(0), "2", omega, Map.of("alpha", "beta"), NODE);
-
                      Map<String, Object> secondRel = (Map<String, Object>) secondSubList.get(1);
                      assertJsonNode((Map<String, Object>) secondRel.get("start"), "3", bar, Map.of("one", "www"), null);
                      assertJsonNode((Map<String, Object>) secondRel.get("end"), "2", omega, Map.of("alpha", "beta"), null);
                      assertJsonRel(secondRel, "1", "TEST_2", Map.of("aa" , "bb"), RELATIONSHIP);
-
                      assertJsonNode((Map<String, Object>) secondSubList.get(2), "3", bar, Map.of("one", "www"), NODE);
                  });
     }
