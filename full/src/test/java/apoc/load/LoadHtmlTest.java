@@ -43,9 +43,6 @@ public class LoadHtmlTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
-//    @Rule
-//    public ExpectedException exceptionRule = ExpectedException.none();
-
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, LoadHtml.class);
@@ -133,7 +130,7 @@ public class LoadHtmlTest {
 
     @Test
     public void testQueryWithFailsSilently() {
-        Map<String, Object> query = map("a", "a", "h2", "h2");
+        Map<String, Object> query = map("h2", "h2","a", "a");
 
         testResult(db, "CALL apoc.load.html($url,$query, {failSilently: true})",
                 map("url", new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
