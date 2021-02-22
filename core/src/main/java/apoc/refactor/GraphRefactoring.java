@@ -514,7 +514,6 @@ public class GraphRefactoring {
                 newRelProps.forEach(relCreated::setProperty);
 
                 if (strategy == MERGE) {
-                    newRelProps.forEach(relCreated::setProperty);
                     mergeProperties(relationshipOut.getAllProperties(), relCreated, refactorConfig);
                 }
 
