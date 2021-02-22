@@ -15,6 +15,9 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
+
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -34,9 +37,9 @@ public class LoadHtml {
         return readHtmlPage(url, query, config);
     }
 
-    private Stream<MapResult> readHtmlPage(String url, Map<String, String> query, Map<String, Object> config){
+    private Stream<MapResult> readHtmlPage(String url, Map<String, String> query, Map<String, Object> config) {
+        String charset = config.getOrDefault("charset", "UTF-8").toString();
         try {
-            String charset = config.getOrDefault("charset", "UTF-8").toString();
             // baseUri is used to resolve relative paths
             String baseUri = config.getOrDefault("baseUri", "").toString();
 
@@ -45,42 +48,50 @@ public class LoadHtml {
             Map<String, Object> output = new HashMap<>();
 
             query.keySet().forEach(key -> {
-                try {
-                    Elements elements = document.select(query.get(key));
-
-                    output.put(key, getElements(elements, config));
-
-                } catch (Exception e) {
-                    output.put(key, Collections.emptyMap());
-                }
+                        Elements elements = document.select(query.get(key));
+                        List<Map<String, Object>> elementsParsed = getElements(elements, config);
+                        output.put(key, elementsParsed == null ? Collections.emptyMap() : elementsParsed);
             });
 
-            return Stream.of( new MapResult(output) );
+            return Stream.of(new MapResult(output) );
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("File not found from: " + url);
+        } catch(UnsupportedEncodingException e) {
+            throw new RuntimeException("Unsupported charset: " + charset);
         } catch(Exception e) {
-            throw new RuntimeException("Can't read the HTML from: "+ url);
+            throw new RuntimeException("Can't read the HTML from: "+ url, e);
         }
     }
 
     private List<Map<String, Object>> getElements(Elements elements, Map<String, Object> config) {
+        boolean failSilently = Util.toBoolean(config.getOrDefault("failSilently", false));
         List<Map<String, Object>> elementList = new ArrayList<>();
 
         for (Element element : elements) {
-            Map<String, Object> result = new HashMap<>();
-            if(element.attributes().size() > 0) result.put("attributes", getAttributes(element));
-            if(!element.data().isEmpty()) result.put("data", element.data());
-            if(!element.val().isEmpty()) result.put("value", element.val());
-            if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
+            try {
+                    Map<String, Object> result = new HashMap<>();
+                    if(element.attributes().size() > 0) result.put("attributes", getAttributes(element));
+                    if(!element.data().isEmpty()) result.put("data", element.data());
+                    if(!element.val().isEmpty()) result.put("value", element.val());
+                    if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
 
-            if ( Util.toBoolean( config.getOrDefault("children", false) ) ) {
-                if(element.hasText())  result.put("text", element.ownText());
+                    if (Util.toBoolean(config.getOrDefault("children", false))) {
+                        if(element.hasText()) result.put("text", element.ownText());
 
-                result.put("children", getElements(element.children(), config));
+                        result.put("children", getElements(element.children(), config));
+                    }
+                    else {
+                        if(element.hasText()) result.put("text", element.text());
+                    }
+
+                    elementList.add(result);
+            } catch (Exception e) {
+                if (failSilently) {
+                    return null;
+                } else {
+                    throw new RuntimeException("Error during parsing element: " + element);
+                }
             }
-            else {
-                if(element.hasText()) result.put("text", element.text());
-            }
-
-            elementList.add(result);
         }
 
         return elementList;

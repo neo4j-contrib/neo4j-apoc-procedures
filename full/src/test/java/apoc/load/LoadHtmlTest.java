@@ -1,6 +1,7 @@
 package apoc.load;
 
 import apoc.util.TestUtil;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -14,9 +15,11 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.testFail;
+import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -39,6 +42,9 @@ public class LoadHtmlTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
+
+//    @Rule
+//    public ExpectedException exceptionRule = ExpectedException.none();
 
     @Before
     public void setup() {
@@ -126,10 +132,11 @@ public class LoadHtmlTest {
     }
 
     @Test
-    public void testQueryFailsSilently() {
+    public void testQueryWithFailsSilently() {
         Map<String, Object> query = map("a", "a", "h2", "h2");
 
-        testResult(db, "CALL apoc.load.html($url,$query)", map("url", new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
+        testResult(db, "CALL apoc.load.html($url,$query, {failSilently: true})",
+                map("url", new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
                 result -> {
                     Map<String, Object> row = result.next();
                     Map<String, Object> value = (Map<String, Object>) row.get("value");
@@ -140,12 +147,47 @@ public class LoadHtmlTest {
 
     }
 
-    @Test
+    @Test(expected = QueryExecutionException.class)
+    public void testQueryWithoutFailsSilently() {
+        final String url = new File("src/test/resources/wikipedia.html").toURI().toString();
+        try {
+            Map<String, Object> query = map("a", "a", "h2", "h2");
+            testCall(db, "CALL apoc.load.html($url,$query)", map("url", url, "query", query), (r) -> {});
+        } catch (Exception e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            String expectedMessage = "Error during parsing element: ";
+            assertThat(except.getMessage(), containsString(expectedMessage));
+            throw e;
+        }
+    }
+
+    @Test(expected = QueryExecutionException.class)
     public void testQueryWithExceptionIfIncorrectUrl() {
 
-        testFail(db,
-                "CALL apoc.load.html('" + new File("src/test/resources/wikipedia1.html").toURI().toString() + "',{a:'a'})",
-                QueryExecutionException.class);
+        final String filePath = new File("src/test/resources/wikipedia1.html").toURI().toString();
+        try {
+            String query = "CALL apoc.load.html('" + filePath + "',{a:'a'})";
+            testCall(db, query, (r) -> {});
+        } catch (Exception e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            String expectedMessage = "File not found from: " + filePath;
+            assertEquals(expectedMessage, except.getMessage());
+            throw e;
+        }
+    }
 
+    @Test(expected = QueryExecutionException.class)
+    public void testQueryWithExceptionIfIncorrectCharset() {
+        String invalidCharset = "notValid";
+
+        try {
+            String query = "CALL apoc.load.html('" + new File("src/test/resources/wikipedia.html").toURI().toString() + "',{a:'a'}, {charset: '" + invalidCharset + "'})";
+            testCall(db, query, (r) -> {});
+        } catch (Exception e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            String expectedMessage = "Unsupported charset: " + invalidCharset;
+            assertEquals(expectedMessage, except.getMessage());
+            throw e;
+        }
     }
 }
