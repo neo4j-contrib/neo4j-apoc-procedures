@@ -2,6 +2,7 @@ package apoc.load;
 
 import apoc.Pools;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
@@ -91,11 +92,11 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
             remove(loadDirectoryItem);
         }
 
-        storage.put(loadDirectoryItem, pools.getDefaultExecutorService().submit(executeListener(loadDirectoryItem)));
+        storage.put(loadDirectoryItem, pools.getDefaultExecutorService().submit(createListener(loadDirectoryItem)));
     }
 
-    public Stream<LoadDirectoryItem> list() {
-        return Collections.unmodifiableMap(storage).keySet().stream();
+    public Stream<LoadDirectoryItem.LoadDirectoryResult> list() {
+        return Collections.unmodifiableMap(storage).keySet().stream().map(LoadDirectoryItem::toResult);
     }
 
     public void removeAll() {
@@ -104,17 +105,16 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
         keys.forEach(this::remove);
     }
 
-    private Runnable executeListener(LoadDirectoryItem item) {
+    private Runnable createListener(LoadDirectoryItem item) {
         return () -> {
             try (WatchService watcher = FileSystems.getDefault().newWatchService()) {
 
-                final Map<String, Object> config = item.getConfig();
-                List<String> eventKinds = (List<String>) config.get(EVENT_KINDS);
-                Long interval = (Long) config.get(INTERVAL);
+                final LoadDirectoryItem.LoadDirectoryConfig config = item.getConfig();
 
                 String urlDir = checkIfUrlEmptyAndGetFileUrl(item.getUrlDir());
-                getPathFromUrlString(urlDir).register(watcher, fromListStringToKindArray(eventKinds));
+                getPathFromUrlString(urlDir).register(watcher, fromListStringToKindArray(config.getEventKinds()));
 
+                item.setStatusRunning();
                 while (true) {
                     WatchKey watchKey = watcher.take();
                     if (watchKey != null) {
@@ -142,10 +142,10 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
                             }
                         }
                     }
-                    Thread.sleep(interval);
+                    Thread.sleep(config.getInterval());
                 }
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                item.setError(ExceptionUtils.getStackTrace(e));
             }
         };
     }
