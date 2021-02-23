@@ -22,7 +22,6 @@ import java.util.function.Function;
 import java.util.function.ToLongFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.util.Util.merge;
@@ -227,14 +226,20 @@ public class Periodic {
         validateQuery(cypherIterate);
 
         long batchSize = Util.toLong(config.getOrDefault("batchSize", 10000));
+        if (batchSize < 1) {
+            throw new IllegalArgumentException("batchSize parameter must be > 0");
+        }
         int concurrency = Util.toInteger(config.getOrDefault("concurrency", 50));
+        if (concurrency < 1) {
+            throw new IllegalArgumentException("concurrency parameter must be > 0");
+        }
         boolean parallel = Util.toBoolean(config.getOrDefault("parallel", false));
+        long retries = Util.toLong(config.getOrDefault("retries", 0)); // todo sleep/delay or push to end of batch to try again or immediate ?
+        int failedParams = Util.toInteger(config.getOrDefault("failedParams", -1));
 
         BatchMode batchMode = BatchMode.fromConfig(config);
-
-        long retries = Util.toLong(config.getOrDefault("retries", 0)); // todo sleep/delay or push to end of batch to try again or immediate ?
         Map<String,Object> params = (Map<String, Object>) config.getOrDefault("params", Collections.emptyMap());
-        int failedParams = Util.toInteger(config.getOrDefault("failedParams", -1));
+
         try (Result result = tx.execute(slottedRuntime(cypherIterate),params)) {
             Pair<String,Boolean> prepared = PeriodicUtils.prepareInnerStatement(cypherAction, batchMode, result.columns(), "_batch");
             String innerStatement = prepared.first();

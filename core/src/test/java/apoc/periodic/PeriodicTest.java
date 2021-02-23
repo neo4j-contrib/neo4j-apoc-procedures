@@ -420,6 +420,21 @@ public class PeriodicTest {
         testFail(query);
     }
 
+    @Test(expected = QueryExecutionException.class, timeout = 1000)
+    public void testIterateQueryFailInvalidConcurrency() {
+        final String query = "CALL apoc.periodic.iterate('UNWIND range(0, 10) AS x RETURN x', " +
+                "'RETURN x', " +
+                "{concurrency:0 ,parallel:true})";
+        testFail(query);
+    }
+
+    @Test(expected = QueryExecutionException.class, timeout = 1000)
+    public void testIterateQueryFailInvalidBatchSize() {
+        final String query = "CALL apoc.periodic.iterate('UNWIND range(0, 10) AS x RETURN x', " +
+                "'RETURN x', " +
+                "{batchSize:0 ,parallel:true})";
+        testFail(query);
+    }
 
     private void testFail(String query) {
         testCall(db, query, row -> fail("The test should fail but it didn't"));
