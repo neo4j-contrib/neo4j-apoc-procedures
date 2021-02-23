@@ -1,6 +1,5 @@
 package apoc.load;
 
-
 import apoc.Pools;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.neo4j.graphdb.GraphDatabaseService;
