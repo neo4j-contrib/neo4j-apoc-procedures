@@ -19,7 +19,7 @@ apoc.load.csv('url',\{config}) YIELD lineNo, list, map - load CSV from URL as st
 apoc.load.csvParams('url', {httpHeader: value}, payload, \{config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.directory.adoc[apoc.load.directory icon:book[]]
 
 apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of all files in folder specified by urlDir or in import folder if urlDir string is empty or not specified
@@ -27,22 +27,22 @@ apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of 
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.directory.add.adoc[apoc.load.directory.add icon:book[]]
 
-apoc.load.directory.add(name, cypher, pattern, urlDir, {}) YIELD name, pattern, cypher, urlDir, interval, eventKind - Add or replace a folder listener with a specific name, pattern and url directory that execute the specified cypher query when an event is triggered and return listener list
+apoc.load.directory.add(name, cypher, pattern, urlDir, {}) YIELD name, pattern, cypher, urlDir, config - Add or replace a folder listener with a specific name, pattern and url directory that execute the specified cypher query when an event is triggered and return listener list
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.directory.list.adoc[apoc.load.directory.list icon:book[]]
 
-apoc.load.directory.list() YIELD name, pattern, cypher, interval, eventKinds, urlDir - List of all folder listeners
+apoc.load.directory.list() YIELD name, pattern, cypher, urlDir, config - List of all folder listeners
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.directory.remove.adoc[apoc.load.directory.remove icon:book[]]
 
-apoc.load.directory.remove(name) YIELD name, pattern, cypher, urlDir - Remove a folder listener by name and return remaining listener
+apoc.load.directory.remove(name) YIELD name, pattern, cypher, urlDir, config - Remove a folder listener by name and return remaining listener
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.directory.removeAll.adoc[apoc.load.directory.removeAll icon:book[]]
 
-apoc.load.directory.removeAll() YIELD name, pattern, cypher, urlDir - Remove all folder listeners
+apoc.load.directory.removeAll() - Remove all folder listeners
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.driver.adoc[apoc.load.driver icon:book[]]

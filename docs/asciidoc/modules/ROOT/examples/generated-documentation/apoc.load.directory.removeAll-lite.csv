@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.load.directory.removeAll() :: (interval :: INTEGER?, eventKinds :: LIST? OF STRING?, pattern :: STRING?, cypher :: STRING?, name :: STRING?, urlDir :: STRING?)
+¦apoc.load.directory.removeAll() :: (pattern :: STRING?, cypher :: STRING?, name :: STRING?, urlDir :: STRING?, config :: MAP?)
