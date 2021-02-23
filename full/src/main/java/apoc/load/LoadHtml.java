@@ -49,8 +49,7 @@ public class LoadHtml {
 
             query.keySet().forEach(key -> {
                         Elements elements = document.select(query.get(key));
-                        List<Map<String, Object>> elementsParsed = getElements(elements, config);
-                        output.put(key, elementsParsed == null ? Collections.emptyMap() : elementsParsed);
+                        output.put(key, getElements(elements, config));
             });
 
             return Stream.of(new MapResult(output) );
@@ -86,10 +85,11 @@ public class LoadHtml {
 
                     elementList.add(result);
             } catch (Exception e) {
+                final String parseError = "Error during parsing element: " + element;
                 if (failSilently) {
-                    return null;
+                    log.warn(parseError);
                 } else {
-                    throw new RuntimeException("Error during parsing element: " + element);
+                    throw new RuntimeException(parseError);
                 }
             }
         }

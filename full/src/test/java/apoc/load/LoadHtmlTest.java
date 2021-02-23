@@ -18,8 +18,6 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -130,18 +128,19 @@ public class LoadHtmlTest {
 
     @Test
     public void testQueryWithFailsSilently() {
-        Map<String, Object> query = map("h2", "h2","a", "a");
+        Map<String, Object> query = map("h2", "h2","a", "a", "invalid", "invalid");
 
         testResult(db, "CALL apoc.load.html($url,$query, {failSilently: true})",
                 map("url", new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
                 result -> {
                     Map<String, Object> row = result.next();
                     Map<String, Object> value = (Map<String, Object>) row.get("value");
-                    assertEquals(Collections.emptyMap(), value.get("a"));
+                    // number of <a> tags in html file minus the incorrect tag
+                    assertEquals(107, ((List) value.get("a")).size());
+                    assertEquals(Collections.emptyList(), value.get("invalid"));
                     assertEquals(List.of(RESULT_QUERY_H2).toString().trim(), value.get("h2").toString().trim());
                     assertFalse(result.hasNext());
                 });
-
     }
 
     @Test(expected = QueryExecutionException.class)
@@ -152,8 +151,8 @@ public class LoadHtmlTest {
             testCall(db, "CALL apoc.load.html($url,$query)", map("url", url, "query", query), (r) -> {});
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
-            String expectedMessage = "Error during parsing element: ";
-            assertThat(except.getMessage(), containsString(expectedMessage));
+            String expectedMessage = "Error during parsing element: <a hre f=\"#cite_ref-Simpson2018_1-0\"><sup><i><b>a</b></i></sup></a>";
+            assertEquals(expectedMessage, except.getMessage());
             throw e;
         }
     }
