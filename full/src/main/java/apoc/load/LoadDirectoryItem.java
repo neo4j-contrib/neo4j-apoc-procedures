@@ -15,13 +15,9 @@ public class LoadDirectoryItem {
     public static final List<String> DEFAULT_EVENT_KINDS = List.of("ENTRY_CREATE", "ENTRY_DELETE", "ENTRY_MODIFY");
 
     public static class LoadDirectoryConfig {
-        public List<String> getEventKinds() {
-            return eventKinds;
-        }
 
-        public Long getInterval() {
-            return interval;
-        }
+        private final List<String> eventKinds;
+        private final Long interval;
 
         public LoadDirectoryConfig( Map<String, Object> config) {
             if (config == null) config = Collections.emptyMap();
@@ -29,8 +25,13 @@ public class LoadDirectoryItem {
             this.eventKinds = (List<String>) config.getOrDefault("eventKinds", DEFAULT_EVENT_KINDS);
         }
 
-        private final List<String> eventKinds;
-        private final Long interval;
+        public List<String> getEventKinds() {
+            return eventKinds;
+        }
+
+        public Long getInterval() {
+            return interval;
+        }
     }
 
     public static class LoadDirectoryResult {
