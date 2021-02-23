@@ -1,17 +1,13 @@
 package apoc.periodic;
 
 import apoc.load.Jdbc;
-import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.TransientTransactionFailureException;
 import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.kernel.api.KernelTransactionHandle;
 import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.impl.api.KernelTransactions;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -19,36 +15,26 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.StreamSupport.stream;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class PeriodicExtendedTest {
-
-    public static final long RUNDOWN_COUNT = 1000;
-    public static final int BATCH_SIZE = 399;
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
-    public void initDb() throws Exception {
+    public void initDb() {
         TestUtil.registerProcedure(db, Periodic.class, PeriodicExtended.class, Jdbc.class);
     }
 
     @Test
-    public void testRock_n_roll() throws Exception {
+    public void testRock_n_roll() {
         // setup
         db.executeTransactionally("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})");
 
@@ -67,7 +53,7 @@ public class PeriodicExtendedTest {
     }
 
     @Test
-    public void testTerminateRockNRoll() throws Exception {
+    public void testTerminateRockNRoll() {
         PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.rock_n_roll('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: $id})', 10)");
     }
 
@@ -111,7 +97,7 @@ public class PeriodicExtendedTest {
     }
 
     @Test
-    public void testIterateErrors() throws Exception {
+    public void testIterateErrors() {
         testResult(db, "CALL apoc.periodic.rock_n_roll('UNWIND range(0,99) as id RETURN id', 'CREATE (:Foo {id: 1 / ($id % 10)})', 10)", result -> {
             Map<String, Object> row = Iterators.single(result);
             assertEquals(10L, row.get("batches"));
@@ -128,7 +114,7 @@ public class PeriodicExtendedTest {
 
 
     @Test
-    public void testIterateJDBC() throws Exception {
+    public void testIterateJDBC() {
         TestUtil.ignoreException(() -> {
             testResult(db, "CALL apoc.periodic.iterate('call apoc.load.jdbc(\"jdbc:mysql://localhost:3306/northwind?user=root\",\"customers\")', 'create (c:Customer) SET c += $row', {batchSize:10,parallel:true})", result -> {
                 Map<String, Object> row = Iterators.single(result);
@@ -144,7 +130,7 @@ public class PeriodicExtendedTest {
     }
 
     @Test
-    public void testRock_n_roll_while() throws Exception {
+    public void testRock_n_roll_while() {
         // setup
         db.executeTransactionally("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})");
 
@@ -205,6 +191,7 @@ public class PeriodicExtendedTest {
 
     @Test(expected = QueryExecutionException.class)
     public void testRockNRollWhileFail() {
+        final String newline = System.lineSeparator();
         final String query = "CALL apoc.periodic.rock_n_roll_while('return coalescence($previous, 3) - 1 as loop', " +
                 "'match (p:Person) return pp', " +
                 "'MATCH (p) where p = $p SET p.lastname = p.name', " +
@@ -212,11 +199,11 @@ public class PeriodicExtendedTest {
         try {
             testFail(query);
         } catch (QueryExecutionException e) {
-            String expected = "Failed to invoke procedure `apoc.periodic.rock_n_roll_while`: Caused by: java.lang.RuntimeException: Exception for field `cypherLoop`, message: Unknown function 'coalescence' (line 1, column 16 (offset: 15))\n" +
-                    "\"EXPLAIN return coalescence($previous, 3) - 1 as loop\"\n" +
-                    "                ^\n" +
-                    "Exception for field `cypherIterate`, message: Variable `pp` not defined (line 1, column 33 (offset: 32))\n" +
-                    "\"EXPLAIN match (p:Person) return pp\"\n" +
+            String expected = "Failed to invoke procedure `apoc.periodic.rock_n_roll_while`: Caused by: java.lang.RuntimeException: Exception for field `cypherLoop`, message: Unknown function 'coalescence' (line 1, column 16 (offset: 15))" + newline +
+                    "\"EXPLAIN return coalescence($previous, 3) - 1 as loop\"" + newline +
+                    "                ^\n" + // XXX: do not replace this newline (\n) with the native newline value
+                    "Exception for field `cypherIterate`, message: Variable `pp` not defined (line 1, column 33 (offset: 32))" + newline +
+                    "\"EXPLAIN match (p:Person) return pp\"" + newline +
                     "                                 ^";
             assertEquals(expected, e.getMessage());
             throw e;
