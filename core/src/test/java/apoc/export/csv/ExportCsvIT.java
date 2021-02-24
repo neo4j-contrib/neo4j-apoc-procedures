@@ -6,6 +6,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Session;
+import org.testcontainers.containers.startupcheck.OneShotStartupCheckStrategy;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,6 +35,7 @@ public class ExportCsvIT {
         assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             neo4jContainer = createEnterpriseDB(true);
+            neo4jContainer.setStartupCheckStrategy(new OneShotStartupCheckStrategy());
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);

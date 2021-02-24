@@ -8,6 +8,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+import org.testcontainers.containers.startupcheck.OneShotStartupCheckStrategy;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +37,7 @@ public class SchemasEnterpriseFeaturesTest {
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
             neo4jContainer = createEnterpriseDB(true);
+            neo4jContainer.setStartupCheckStrategy(new OneShotStartupCheckStrategy());
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
