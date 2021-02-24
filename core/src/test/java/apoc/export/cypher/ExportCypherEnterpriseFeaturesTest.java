@@ -20,6 +20,7 @@ import static apoc.util.TestUtil.readFileToString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author as
@@ -42,6 +43,7 @@ public class ExportCypherEnterpriseFeaturesTest {
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
+        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
         session = neo4jContainer.getSession();
     }
 

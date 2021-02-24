@@ -105,9 +105,15 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
     @Override
     public void stop() {
         if (withDriver) {
-            session.close();
-            driver.close();
+            closeSafely(session);
+            closeSafely(driver);
         }
         super.stop();
+    }
+
+    private static void closeSafely(AutoCloseable closeable) {
+        try {
+            if (closeable != null) closeable.close();
+        } catch (Exception ignoed) {}
     }
 }

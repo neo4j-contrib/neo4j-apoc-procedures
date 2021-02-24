@@ -1,11 +1,10 @@
 package apoc;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import org.junit.Test;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.Value;
-import org.testcontainers.containers.Container;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static org.junit.Assert.assertTrue;
@@ -39,8 +38,11 @@ public class StartupTest {
 
             neo4jContainer.close();
         } catch (Exception ex) {
-            ex.printStackTrace();
-            fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+            // if Testcontainers wasn't able to retrieve the docker image we ignore the test
+            if (TestContainerUtil.isDockerImageAvailable(ex)) {
+                ex.printStackTrace();
+                fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+            }
         }
     }
 }

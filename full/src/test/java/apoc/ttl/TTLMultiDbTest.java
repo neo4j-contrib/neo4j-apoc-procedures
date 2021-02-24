@@ -1,17 +1,28 @@
 package apoc.ttl;
 
-import apoc.util.*;
-import org.junit.*;
-import org.neo4j.driver.*;
+import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
+import apoc.util.TestUtil;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
 
-import java.util.List;
 import java.util.Map;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestUtil.isTravis;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 public class TTLMultiDbTest {
 
@@ -37,6 +48,7 @@ public class TTLMultiDbTest {
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
+        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
         driver = GraphDatabase.driver(neo4jContainer.getBoltUrl(), AuthTokens.basic("neo4j", "apoc"));
 
@@ -57,7 +69,7 @@ public class TTLMultiDbTest {
 
     @AfterClass
     public static void bringDownContainer() {
-        if (neo4jContainer != null) {
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
             neo4jContainer.close();
         }
     }
