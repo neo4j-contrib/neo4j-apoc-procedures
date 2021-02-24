@@ -73,7 +73,7 @@ subprojects {
         //exclude '**/CypherProceduresClusterTest.class'//, '**/AtomicTest.class'
 
         // neo4jDockerImage system property is used in TestContainerUtil
-        systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.3.0-drop02.0-enterprise', 'neo4jCommunityDockerImage': 'neo4j:4.3.0-drop02.0'
+        systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.3.0-drop03.0-enterprise', 'neo4jCommunityDockerImage': 'neo4j:4.3.0-drop03.0'
 
         maxHeapSize = "8G"
         forkEvery = 50

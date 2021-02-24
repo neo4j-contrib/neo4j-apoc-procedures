@@ -50,7 +50,7 @@ public class XmlTest {
                     assertEquals(XmlTestUtils.XML_AS_NESTED_MAP, row.get("value"));
                 });
     }
-    
+
     @Test
     public void testLoadXmlSimple() {
         testCall(db, "CALL apoc.load.xmlSimple('file:databases.xml')", //  YIELD value RETURN value
