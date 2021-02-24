@@ -4,6 +4,7 @@ import apoc.Pools;
 import apoc.util.Util;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
@@ -16,10 +17,8 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.LockSupport;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.ToLongFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -248,7 +247,11 @@ public class Periodic {
             return PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
                     db, terminationGuard, log, pools,
                     (int)batchSize, parallel, iterateList, retries, result,
-                    (tx, p) -> Iterators.count(tx.execute(innerStatement, merge(params, p))),
+                    (tx, p) -> {
+                        final Result r = tx.execute(innerStatement, merge(params, p));
+                        Iterators.count(r); // XXX: consume all results
+                        return r.getQueryStatistics();
+                    },
                     concurrency, failedParams);
         }
     }
@@ -268,12 +271,12 @@ public class Periodic {
         protected TerminationGuard terminationGuard;
         protected BatchAndTotalCollector collector;
         protected List<Map<String,Object>> batch;
-        protected BiConsumer<Transaction, Map<String, Object>> consumer;
+        protected BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer;
 
         ExecuteBatch(TerminationGuard terminationGuard,
                      BatchAndTotalCollector collector,
                      List<Map<String, Object>> batch,
-                     BiConsumer<Transaction, Map<String, Object>> consumer) {
+                     BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer) {
             this.terminationGuard = terminationGuard;
             this.collector = collector;
             this.batch = batch;
@@ -293,7 +296,7 @@ public class Periodic {
         ListExecuteBatch(TerminationGuard terminationGuard,
                          BatchAndTotalCollector collector,
                          List<Map<String, Object>> batch,
-                         BiConsumer<Transaction, Map<String, Object>> consumer) {
+                         BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer) {
             super(terminationGuard, collector, batch, consumer);
         }
 
@@ -310,7 +313,7 @@ public class Periodic {
         OneByOneExecuteBatch(TerminationGuard terminationGuard,
                              BatchAndTotalCollector collector,
                              List<Map<String, Object>> batch,
-                             BiConsumer<Transaction, Map<String, Object>> consumer) {
+                             BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer) {
             super(terminationGuard, collector, batch, consumer);
         }
 
@@ -329,13 +332,14 @@ public class Periodic {
         }
     }
 
-    private static long executeAndReportErrors(Transaction tx, BiConsumer<Transaction, Map<String, Object>> consumer, Map<String, Object> params,
+    private static long executeAndReportErrors(Transaction tx, BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer, Map<String, Object> params,
                                         List<Map<String, Object>> batch, int returnValue, AtomicLong localCount, BatchAndTotalCollector collector) {
         try {
-            consumer.accept(tx, params);
+            QueryStatistics statistics = consumer.apply(tx, params);
             if (localCount!=null) {
                 localCount.getAndIncrement();
             }
+            collector.updateStatistics(statistics);
             return returnValue;
         } catch (Exception e) {
             collector.incrementFailedOps(batch.size());

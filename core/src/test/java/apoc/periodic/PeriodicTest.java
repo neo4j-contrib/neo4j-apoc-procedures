@@ -227,6 +227,63 @@ public class PeriodicTest {
     }
 
     @Test
+    public void testIterateUpdateStats() {
+        testResult(db, "CALL apoc.periodic.iterate(" +
+                "'UNWIND range(1, 100) AS x RETURN x', " +
+                "'CREATE (n:Node {x:x})" +
+                "   SET n.y = 1 " +
+                " CREATE (n)-[:SELF]->(n)'," +
+                "{ batchSize:10, parallel:true })", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertNotNull(row.get("updateStatistics"));
+            Map<String, Long> updateStats = (Map<String, Long>) row.get("updateStatistics");
+            assertNotNull(updateStats);
+            assertEquals(100, (long) updateStats.get("nodesCreated"));
+            assertEquals(0, (long) updateStats.get("nodesDeleted"));
+            assertEquals(100, (long) updateStats.get("relationshipsCreated"));
+            assertEquals(0, (long) updateStats.get("relationshipsDeleted"));
+            assertEquals(200, (long) updateStats.get("propertiesSet"));
+            assertEquals(100, (long) updateStats.get("labelsAdded"));
+            assertEquals(0, (long) updateStats.get("labelsRemoved"));
+        });
+
+        testResult(db, "CALL apoc.periodic.iterate(" +
+                "'MATCH (n:Node) RETURN n', " +
+                "'REMOVE n:Node', " +
+                "{ batchSize:10, parallel:true })", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertNotNull(row.get("updateStatistics"));
+            Map<String, Long> updateStats = (Map<String, Long>) row.get("updateStatistics");
+            assertNotNull(updateStats);
+            assertEquals(0, (long) updateStats.get("nodesCreated"));
+            assertEquals(0, (long) updateStats.get("nodesDeleted"));
+            assertEquals(0, (long) updateStats.get("relationshipsCreated"));
+            assertEquals(0, (long) updateStats.get("relationshipsDeleted"));
+            assertEquals(0, (long) updateStats.get("propertiesSet"));
+            assertEquals(0, (long) updateStats.get("labelsAdded"));
+            assertEquals(100, (long) updateStats.get("labelsRemoved"));
+        });
+
+        testResult(db, "CALL apoc.periodic.iterate(" +
+                "'MATCH (n) RETURN n', " +
+                "'DETACH DELETE n', " +
+                "{ batchSize:10, parallel:true })", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertNotNull(row.get("updateStatistics"));
+            Map<String, Long> updateStats = (Map<String, Long>) row.get("updateStatistics");
+            assertNotNull(updateStats);
+            assertEquals(0, (long) updateStats.get("nodesCreated"));
+            assertEquals(100, (long) updateStats.get("nodesDeleted"));
+            assertEquals(0, (long) updateStats.get("relationshipsCreated"));
+            assertEquals(100, (long) updateStats.get("relationshipsDeleted"));
+            assertEquals(0, (long) updateStats.get("propertiesSet"));
+            assertEquals(0, (long) updateStats.get("labelsAdded"));
+            assertEquals(0, (long) updateStats.get("labelsRemoved"));
+        });
+
+    }
+
+    @Test
     public void testIteratePrefix() throws Exception {
         db.executeTransactionally("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})");
 

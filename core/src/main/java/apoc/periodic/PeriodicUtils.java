@@ -3,6 +3,7 @@ package apoc.periodic;
 import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.logging.Log;
@@ -17,6 +18,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.ToLongFunction;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -56,7 +58,7 @@ public class PeriodicUtils {
     public static Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(
             GraphDatabaseService db, TerminationGuard terminationGuard, Log log, Pools pools,
             int batchsize, boolean parallel, boolean iterateList, long retries,
-            Iterator<Map<String, Object>> iterator, BiConsumer<Transaction, Map<String, Object>> consumer,
+            Iterator<Map<String, Object>> iterator, BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer,
             int concurrency, int failedParams) {
 
         ExecutorService pool = parallel ? pools.getDefaultExecutorService() : pools.getSingleExecutorService();
