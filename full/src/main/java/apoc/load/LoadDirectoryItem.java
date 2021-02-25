@@ -19,7 +19,7 @@ public class LoadDirectoryItem {
         private final List<String> eventKinds;
         private final Long interval;
 
-        public LoadDirectoryConfig( Map<String, Object> config) {
+        public LoadDirectoryConfig(Map<String, Object> config) {
             if (config == null) config = Collections.emptyMap();
             this.interval = (Long) config.getOrDefault("interval", 1000L);
             this.eventKinds = (List<String>) config.getOrDefault("eventKinds", DEFAULT_EVENT_KINDS);
@@ -55,7 +55,7 @@ public class LoadDirectoryItem {
         }
     }
 
-    enum Status { RUNNING, STOPPED, ERROR }
+    enum Status { RUNNING, CREATED, ERROR }
 
     private final String pattern;
     private final String cypher;
@@ -75,7 +75,7 @@ public class LoadDirectoryItem {
         this.pattern = pattern;
         this.urlDir = urlDir;
         this.config = config;
-        this.status = new AtomicReference<>(Status.STOPPED);
+        this.status = new AtomicReference<>(Status.CREATED);
         this.error = new AtomicReference<>(StringUtils.EMPTY);
     }
 
