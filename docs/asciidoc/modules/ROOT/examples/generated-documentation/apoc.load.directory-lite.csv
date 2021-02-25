@@ -1,0 +1,2 @@
+¦signature
+¦apoc.load.directory(pattern = * :: STRING?, urlDir =  :: STRING?, config = {} :: MAP?) :: (value :: STRING?)
