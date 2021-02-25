@@ -190,7 +190,7 @@ public class FileUtils {
         }
     }
 
-    private static boolean isImportUsingNeo4jConfig() {
+    public static boolean isImportUsingNeo4jConfig() {
         return apocConfig().getBoolean(ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG);
     }
 
