@@ -1454,6 +1454,12 @@ apoc.load.csv('url',\{config}) YIELD lineNo, list, map - load CSV from URL as st
 
 apoc.load.csvParams('url', {httpHeader: value}, payload, \{config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
+
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.directory.adoc[apoc.load.directory icon:book[]]
+
+apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of all files in folder specified by urlDir or in import folder if urlDir string is empty or not specified
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.driver.adoc[apoc.load.driver icon:book[]]
