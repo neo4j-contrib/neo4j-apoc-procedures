@@ -396,6 +396,53 @@ public class MetaTest {
     }
 
     @Test
+    public void testMetaSchemaWithNodesAndRelsWithoutProps() {
+        db.executeTransactionally("CREATE (:Other), (:Other)-[:REL_1]->(:Movie)<-[:REL_2 {baz: 'baa'}]-(:Director), (:Director {alpha: 'beta'}), (:Actor {foo:'bar'}), (:Person)");
+        testCall(db, "CALL apoc.meta.schema()",
+                (row) -> {
+                    Map<String, Object> value = (Map<String, Object>) row.get("value");
+                    assertEquals(7, value.size());
+
+                    Map<String, Object>  other = (Map<String, Object>) value.get("Other");
+                    Map<String, Object>  otherProperties = (Map<String, Object>) other.get("properties");
+                    assertEquals(0, otherProperties.size());
+                    assertEquals("node", other.get("type"));
+                    assertEquals(2L, other.get("count"));
+                    Map<String, Object>  Movie = (Map<String, Object>) value.get("Movie");
+                    Map<String, Object>  movieProperties = (Map<String, Object>) Movie.get("properties");
+                    assertEquals(0, movieProperties.size());
+                    assertEquals("node", Movie.get("type"));
+                    assertEquals(1L, Movie.get("count"));
+                    Map<String, Object>  director = (Map<String, Object>) value.get("Director");
+                    Map<String, Object>  directorProperties = (Map<String, Object>) director.get("properties");
+                    assertEquals(1, directorProperties.size());
+                    assertEquals("node", director.get("type"));
+                    assertEquals(2L, director.get("count"));
+                    Map<String, Object>  person = (Map<String, Object>) value.get("Person");
+                    Map<String, Object>  personProperties = (Map<String, Object>) person.get("properties");
+                    assertEquals(0, personProperties.size());
+                    assertEquals("node", person.get("type"));
+                    assertEquals(1L, person.get("count"));
+                    Map<String, Object>  actor = (Map<String, Object>) value.get("Actor");
+                    Map<String, Object>  actorProperties = (Map<String, Object>) actor.get("properties");
+                    assertEquals(1, actorProperties.size());
+                    assertEquals("node", actor.get("type"));
+                    assertEquals(1L, actor.get("count"));
+
+                    Map<String, Object>  rel1 = (Map<String, Object>) value.get("REL_1");
+                    Map<String, Object>  rel1Properties = (Map<String, Object>) rel1.get("properties");
+                    assertEquals(0, rel1Properties.size());
+                    assertEquals("relationship", rel1.get("type"));
+                    assertEquals(1L, rel1.get("count"));
+                    Map<String, Object>  rel2 = (Map<String, Object>) value.get("REL_2");
+                    Map<String, Object>  rel2Properties = (Map<String, Object>) rel2.get("properties");
+                    assertEquals(1, rel2Properties.size());
+                    assertEquals("relationship", rel2.get("type"));
+                    assertEquals(1L, rel2.get("count"));
+                });
+    }
+
+    @Test
     public void testSubGraphNoLimits() throws Exception {
         db.executeTransactionally("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)");
         testCall(db,"CALL apoc.meta.subGraph({})", (row) -> {
