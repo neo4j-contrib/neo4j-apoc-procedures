@@ -96,7 +96,10 @@ public class ImportCsvTest {
                             "2|1||2016\n"),
                     new AbstractMap.SimpleEntry<>("typeless", ":ID|name\n" +
                             "1|John\n" +
-                            "2|Jane\n")
+                            "2|Jane\n"),
+                    new AbstractMap.SimpleEntry<>("personsWithoutIdField", "name:STRING\n" +
+                            "John\n" +
+                            "Jane\n")
             ).collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue)));
 
     @Before
@@ -243,6 +246,25 @@ public class ImportCsvTest {
 
         List<String> names = TestUtil.firstColumn(db, "MATCH (n:Person) RETURN n.name AS name ORDER BY name");
         assertThat(names, Matchers.containsInAnyOrder("Jane", "John"));
+    }
+
+    @Test
+    public void testCsvWithoutIdField() {
+        TestUtil.testCall(
+                db,
+                "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
+                map(
+                        "file", "file:/personsWithoutIdField.csv",
+                        "config", map()
+                ),
+                (r) -> {
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(0L, r.get("relationships"));
+                }
+        );
+
+        List<String> names = TestUtil.firstColumn(db, "MATCH (n:Person) RETURN n.name AS name ORDER BY name");
+        assertEquals(List.of("Jane", "John"), names);
     }
 
     @Test
