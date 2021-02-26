@@ -9,6 +9,7 @@ import apoc.load.util.Results;
 import apoc.util.FileUtils;
 import com.opencsv.CSVReader;
 import org.neo4j.graphdb.*;
+import org.neo4j.logging.Log;
 
 import java.io.IOException;
 import java.util.*;
@@ -19,14 +20,16 @@ public class CsvEntityLoader {
 
     private final CsvLoaderConfig clc;
     private final ProgressReporter reporter;
+    private final Log log;
 
     /**
      * @param clc configuration object
      * @param reporter
      */
-    public CsvEntityLoader(CsvLoaderConfig clc, ProgressReporter reporter) {
+    public CsvEntityLoader(CsvLoaderConfig clc, ProgressReporter reporter, Log log) {
         this.clc = clc;
         this.reporter = reporter;
+        this.log = log;
     }
 
     /**
@@ -50,6 +53,10 @@ public class CsvEntityLoader {
         final Optional<CsvHeaderField> idField = fields.stream()
                 .filter(f -> CsvLoaderConstants.ID_FIELD.equals(f.getType()))
                 .findFirst();
+
+        if (!idField.isPresent()) {
+            log.warn("Please note that if no ID is specified, the node will be imported but it will not be able to be connected by any relationships during the import");
+        }
 
         final Optional<String> idAttribute = idField.isPresent() ? Optional.of(idField.get().getName()) : Optional.empty();
         final String idSpace = idField.isPresent() ? idField.get().getIdSpace() : CsvLoaderConstants.DEFAULT_IDSPACE;
@@ -84,7 +91,7 @@ public class CsvEntityLoader {
                         loadCsvCompatibleHeader, line, lineNo, false, mapping, Collections.emptyList(), results
                 );
 
-                final String nodeCsvId = result.map.get(idAttribute.get()).toString();
+                final String nodeCsvId = (String) idAttribute.map(result.map::get).orElse(null);
 
                 // if 'ignore duplicate nodes' is false, there is an id field and the mapping already has the current id,
                 // we either fail the loading process or skip it depending on the 'ignore duplicate nodes' setting
