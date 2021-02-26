@@ -264,7 +264,7 @@ public class ImportCsvTest {
         );
 
         List<String> names = TestUtil.firstColumn(db, "MATCH (n:Person) RETURN n.name AS name ORDER BY name");
-        assertThat(names, Matchers.containsInAnyOrder("Jane", "John"));
+        assertEquals(List.of("Jane", "John"), names);
     }
 
     @Test
