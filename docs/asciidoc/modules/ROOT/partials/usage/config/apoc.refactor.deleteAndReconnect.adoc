@@ -4,7 +4,7 @@ The procedure support the following config parameters:
 [opts=header, cols="1,1,1,5"]
 |===
 | name | type | default | description
-| relationshipSelectionStrategy | Enum[start, end, merge] | true | if START, the incoming relationship will be attached to the next node, if END the outcoming relationship will be attached, if MERGE will be attacched a merge of start and end relatioships. With the same property name, takes precedence the start node.
+| relationshipSelectionStrategy | Enum[incoming, outcoming, merge] | true | if `incoming`, the incoming relationship will be attached to the next node, if `outcoming`, the outcoming relationship will be attached, if `merge` will be attacched a merge of start and end relatioships. With the same property name, takes precedence the start node.
 | properties | Enum | override | Will be considered only if relationshipSelectionStrategy is merge. See below
 |===
 
@@ -14,5 +14,5 @@ The procedure support the following config parameters:
 | type | operations
 | discard | start node property wins
 | overwrite / override | end node property wins
-| combine | if there is only one property between start and end node, it will be set / kept as single property otherwise create an array, tries to coerce values
+| combine | if there is only one property between incoming and outcoming node, it will be set / kept as single property otherwise create an array, tries to coerce values
 |===

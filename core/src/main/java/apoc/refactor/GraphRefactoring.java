@@ -487,20 +487,20 @@ public class GraphRefactoring {
                 rels.remove(relationshipIn == null ? relationshipOut : relationshipIn);
 
             } else {
-                Node nodeStart = relationshipIn.getStartNode();
-                Node nodeEnd = relationshipOut.getEndNode();
+                Node nodeIncoming = relationshipIn.getStartNode();
+                Node nodeOutcoming = relationshipOut.getEndNode();
 
                 RelationshipType newRelType;
                 Map<String, Object> newRelProps = new HashMap<>();
 
                 final RefactorConfig.RelationshipSelectionStrategy strategy = refactorConfig.getRelationshipSelectionStrategy();
                 switch (strategy) {
-                    case START:
+                    case INCOMING:
                         newRelType = relationshipIn.getType();
                         newRelProps.putAll(relationshipIn.getAllProperties());
                         break;
 
-                    case END:
+                    case OUTCOMING:
                         newRelType = relationshipOut.getType();
                         newRelProps.putAll(relationshipOut.getAllProperties());
                         break;
@@ -510,7 +510,7 @@ public class GraphRefactoring {
                         newRelProps.putAll(relationshipIn.getAllProperties());
                 }
 
-                Relationship relCreated = nodeStart.createRelationshipTo(nodeEnd, newRelType);
+                Relationship relCreated = nodeIncoming.createRelationshipTo(nodeOutcoming, newRelType);
                 newRelProps.forEach(relCreated::setProperty);
 
                 if (strategy == MERGE) {
