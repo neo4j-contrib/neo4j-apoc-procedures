@@ -68,7 +68,7 @@ public class GraphRefactoringTest {
 
         TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(5L, row.get("result")));
 
-        TestUtil.testFail(db, "MATCH p=(f:One)-->(b:Two)-->(c:Three), (d:Four), (e:Five) WITH p, [d,e] as list CALL apoc.refactor.deleteAndReconnect(p, list) YIELD nodes, relationships RETURN nodes, relationships", RuntimeException.class);
+        TestUtil.testCallEmpty(db, "MATCH p=(f:One)-->(b:Two)-->(c:Three), (d:Four), (e:Five) WITH p, [d,e] as list CALL apoc.refactor.deleteAndReconnect(p, list) YIELD nodes, relationships RETURN nodes, relationships", emptyMap());
 
         TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(5L, row.get("result")));
 
@@ -115,6 +115,15 @@ public class GraphRefactoringTest {
                 });
 
         TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(2L, row.get("result")));
+
+        TestUtil.testCall(db, "MATCH p=(f:Three) WITH p, [f] as list CALL apoc.refactor.deleteAndReconnect(p, list) YIELD nodes, relationships RETURN nodes, relationships",
+                (row) -> {
+                    assertEquals(0, ((List<Node>) row.get("nodes")).size());
+                    assertEquals(0, ((List<Node>) row.get("relationships")).size());
+                });
+
+        TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(1L, row.get("result")));
+
     }
 
     @Test

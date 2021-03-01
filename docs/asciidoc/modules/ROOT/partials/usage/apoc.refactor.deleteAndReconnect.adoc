@@ -1,6 +1,6 @@
 The examples in this section are based on the following sample graph:
 
-Let's suppose we have a simple dataset like:
+Let's suppose we have a simple data set like:
 [source,cypher]
 ----
 CREATE (f:One)-[:ALPHA {a:'b'}]->(b:Two)-[:BETA {a:'d', e:'f', g: 'h'}]->(c:Three)-[:GAMMA {aa: 'one'}]->(d:Four)-[:DELTA {aa: 'bb', cc: 'dd', ee: 'ff'}]->(e:Five {foo: 'bar', baz: 'baa'}), (:Other)-[:Pippo {goku: 'gohan', vegeta: 'trunks'}]->(:Other2), (:Other)-[:Pippo2 {krilin: 'maron'}]->(:Other2)

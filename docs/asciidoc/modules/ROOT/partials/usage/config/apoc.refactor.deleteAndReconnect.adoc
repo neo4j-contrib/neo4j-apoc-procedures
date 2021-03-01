@@ -1,10 +1,10 @@
-The procedure support the following config parameters:
+The procedure supports the following config parameters:
 
 .Config parameters
 [opts=header, cols="1,1,1,5"]
 |===
 | name | type | default | description
-| relationshipSelectionStrategy | Enum[incoming, outcoming, merge] | true | if `incoming`, the incoming relationship will be attached to the next node, if `outcoming`, the outcoming relationship will be attached, if `merge` will be attacched a merge of start and end relatioships. With the same property name, takes precedence the start node.
+| relationshipSelectionStrategy | Enum[incoming, outcoming, merge] | true | if `incoming`, the incoming relationship will be attached to the next node. If `outcoming`, the outcoming relationship will be attached. If `merge`, a merge of the incoming and outcoming relationships will be attached. If they share some property names, the incoming relationship properties have higher precedence by default.
 | properties | Enum | override | Will be considered only if relationshipSelectionStrategy is merge. See below
 |===
 

@@ -468,7 +468,7 @@ public class GraphRefactoring {
         Set<Relationship> rels = Iterables.asSet(path.relationships());
 
         if (!nodes.containsAll(nodesToRemove)) {
-            throw new RuntimeException("Some nodes in nodesToRemove not present in the path");
+            return Stream.empty();
         }
 
         BiFunction<Node, Direction, Relationship> filterRel = (node, direction) -> StreamSupport
@@ -482,7 +482,7 @@ public class GraphRefactoring {
             Relationship relationshipIn = filterRel.apply(node, Direction.INCOMING);
             Relationship relationshipOut = filterRel.apply(node, Direction.OUTGOING);
 
-            // if terminal node
+            // if initial or terminal node
             if (relationshipIn == null || relationshipOut == null) {
                 rels.remove(relationshipIn == null ? relationshipOut : relationshipIn);
 
