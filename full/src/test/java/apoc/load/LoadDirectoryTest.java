@@ -616,7 +616,7 @@ public class LoadDirectoryTest {
         File rootTempFolder = Paths.get(getUrlFileName("test.csv").toURI()).getParent().toFile();
         String folderAsExternalUrl = "file://" + rootTempFolder;
         testResult(db, "CALL apoc.load.directory('*.csv', '" + folderAsExternalUrl + "') YIELD value " +
-                        "WITH value as url WHERE url ENDS WITH 'test.csv' OR url ENDS WITH 'test-pipe-column.csv' WITH url ORDER BY url DESC CALL apoc.load.csv(url, {results:['map']}) YIELD map RETURN map", result -> {
+                "WITH value as url WHERE url ENDS WITH 'test.csv' OR url ENDS WITH 'test-pipe-column.csv' WITH url ORDER BY url DESC CALL apoc.load.csv(url, {results:['map']}) YIELD map RETURN map", result -> {
                     Map<String, Object> firstRowFirstFile = (Map<String, Object>) result.next().get("map");
                     assertEquals(Map.of("name", "Selma", "age", "8"), firstRowFirstFile);
                     Map<String, Object> secondRowFirstFile = (Map<String, Object>) result.next().get("map");

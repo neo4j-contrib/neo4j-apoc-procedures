@@ -74,15 +74,15 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
             tx.findNodes(SystemLabels.ApocTrigger,
                     SystemPropertyKeys.database.name(), db.databaseName()).forEachRemaining(
-                    node -> activeTriggers.put(
-                            (String) node.getProperty(SystemPropertyKeys.name.name()),
-                            MapUtil.map(
-                                    "statement", node.getProperty(SystemPropertyKeys.statement.name()),
-                                    "selector", Util.fromJson((String) node.getProperty(SystemPropertyKeys.selector.name()), Map.class),
-                                    "params", Util.fromJson((String) node.getProperty(SystemPropertyKeys.params.name()), Map.class),
-                                    "paused", node.getProperty(SystemPropertyKeys.paused.name())
-                            )
-                    )
+                node -> activeTriggers.put(
+                        (String) node.getProperty(SystemPropertyKeys.name.name()),
+                        MapUtil.map(
+                                "statement", node.getProperty(SystemPropertyKeys.statement.name()),
+                                "selector", Util.fromJson((String) node.getProperty(SystemPropertyKeys.selector.name()), Map.class),
+                                "params", Util.fromJson((String) node.getProperty(SystemPropertyKeys.params.name()), Map.class),
+                                "paused", node.getProperty(SystemPropertyKeys.paused.name())
+                        )
+                )
             );
             tx.commit();
         }
