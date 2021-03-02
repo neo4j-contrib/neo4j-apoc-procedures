@@ -5,7 +5,7 @@
 
 
 The export CSV procedures export data into a format more supported by Data Science libraries in the Python and R ecosystems.
-We may also want to export data into JSON format for importing into other tool sor for general sharing of query results.
+We may also want to export data into JSON format for importing into other tools or for general sharing of query results.
 The procedures described in this section support exporting to a file or as a stream.
 
 For `apoc.export.csv.all`, `apoc.export.csv.data` and `apoc.export.csv.graph`, nodes and relationships properties are ordered alphabetically, using the following structure:
