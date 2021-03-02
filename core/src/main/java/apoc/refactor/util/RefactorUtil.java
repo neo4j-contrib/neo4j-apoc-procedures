@@ -17,9 +17,13 @@ public class RefactorUtil {
                     .filter(list -> !list.isEmpty())
                     .forEach(list -> {
                         Relationship first = list.get(0);
-                        for (int i = 1; i < list.size(); i++) {
-                            Relationship relationship = list.get(i);
-                            mergeRels(relationship, first, true,  config);
+                        if (config.isExcludeSelfRel() && first.getStartNodeId() == first.getEndNodeId()) {
+                            list.forEach(Relationship::delete);
+                        } else {
+                            for (int i = 1; i < list.size(); i++) {
+                                Relationship relationship = list.get(i);
+                                mergeRels(relationship, first, true,  config);
+                            }
                         }
                     });
         }

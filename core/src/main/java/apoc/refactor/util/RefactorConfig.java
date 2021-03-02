@@ -30,6 +30,7 @@ public class RefactorConfig {
 	private boolean hasProperties;
 	private boolean collapsedLabel;
 	private boolean singleElementAsArray;
+	private boolean excludeSelfRel;
 
 	private final RelationshipSelectionStrategy relationshipSelectionStrategy;
 
@@ -37,7 +38,7 @@ public class RefactorConfig {
 		Object value = config.get("properties");
 		hasProperties = value != null;
 		if (value instanceof String) {
-			this.propertiesManagement = Collections.singletonMap(MATCH_ALL, value.toString());
+			setPropertiesManagement(value.toString());
 		} else if (value instanceof Map) {
 			this.propertiesManagement = (Map<String,String>)value;
 		}
@@ -48,6 +49,7 @@ public class RefactorConfig {
 		this.countMerge = toBoolean(config.getOrDefault("countMerge", true));
 		this.collapsedLabel = toBoolean(config.get("collapsedLabel"));
 		this.singleElementAsArray = toBoolean(config.getOrDefault("singleElementAsArray", false));
+		this.excludeSelfRel = toBoolean(config.getOrDefault("excludeSelfRel", false));
 		this.relationshipSelectionStrategy = RelationshipSelectionStrategy.valueOf(
 				((String) config.getOrDefault("relationshipSelectionStrategy", RelationshipSelectionStrategy.INCOMING.toString())).toUpperCase() );
 	}
@@ -94,6 +96,14 @@ public class RefactorConfig {
 
 	public boolean isSingleElementAsArray() {
 		return singleElementAsArray;
+	}
+
+	public boolean isExcludeSelfRel() {
+		return excludeSelfRel;
+	}
+
+	public void setPropertiesManagement(String value) {
+		this.propertiesManagement = Collections.singletonMap(MATCH_ALL, value);
 	}
 
 	public RelationshipSelectionStrategy getRelationshipSelectionStrategy() {

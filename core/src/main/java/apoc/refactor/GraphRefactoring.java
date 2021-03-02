@@ -583,8 +583,7 @@ public class GraphRefactoring {
             copyRelationships(source, copyLabels(source, target), delete);
             if (conf.getMergeRelsAllowed()) {
                 if(!conf.hasProperties()) {
-                    Map<String, Object> map = Collections.singletonMap("properties", "combine");
-                    conf = new RefactorConfig(map);
+                    conf.setPropertiesManagement("combine");
                 }
                 mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.OUTGOING);
                 mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING);
