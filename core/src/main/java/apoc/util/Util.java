@@ -957,4 +957,7 @@ public class Util {
         return Collections.emptyMap();
     }
 
+    public static boolean isSelfRel(Relationship rel) {
+        return rel.getStartNodeId() == rel.getEndNodeId();
+    }
 }

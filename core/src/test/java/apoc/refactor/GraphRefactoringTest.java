@@ -3,6 +3,7 @@ package apoc.refactor;
 import apoc.util.ArrayBackedList;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -21,13 +22,18 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
+import static apoc.util.Util.isSelfRel;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -36,6 +42,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -60,7 +67,6 @@ public class GraphRefactoringTest {
     public void tearDown() {
         db.shutdown();
     }
-
 
     @Test
     public void deleteAndReconnect() throws Exception {
@@ -993,6 +999,206 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
         final long relsCount = TestUtil.singleResultFirstColumn(db, "MATCH p = (c:Company)-[:OPERATES_IN]->(cc:Country) RETURN count(p) AS relsCount");
         assertEquals(8, relsCount);
         db.executeTransactionally("DROP CONSTRAINT ON (n:`" + label + "`) ASSERT n.`" + targetKey + "` IS UNIQUE");
+    }
+
+    @Test
+    public void testMergeNodeShouldNotCreateSelfRelationshipsInPreExistingSelfRel() {
+        db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:TEST_REL]->(b:TestNode {a:'b'})-[:TEST_REL]->(c:TestNode {a:'c'})\n" +
+                "WITH a, c CREATE (a)-[:TEST_REL {prop: 'one'}]->(a), (a)-[:TEST_REL {prop: 'two'}]->(a) WITH c CREATE (c)-[:TEST_REL]->(c);");
+        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, produceSelfRel: false}) yield node return node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    Iterator<Relationship> relIterator = node.getRelationships().iterator();
+                    final String expectedRelType = "TEST_REL";
+                    final Relationship firstRel = relIterator.next();
+                    assertSelfRel(firstRel, expectedRelType);
+                    assertEquals(Map.of("prop", "two"), firstRel.getAllProperties());
+                    final Relationship secondRel = relIterator.next();
+                    assertSelfRel(secondRel, expectedRelType);
+                    assertEquals(Map.of("prop", "one"), secondRel.getAllProperties());
+                    assertFalse(relIterator.hasNext());
+                });
+    }
+
+    @Test
+    public void testMergeNodeShouldNotCreateSelfRelationshipsAndCancelThePreExistingSelfRelAfterMerge() {
+        db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:TEST_REL]->(b:TestNode {a:'b'})-[:TEST_REL]->(c:TestNode {a:'c'})\n" +
+                "WITH a, c CREATE (a)-[:TEST_REL {prop: 'one'}]->(a), (a)-[:TEST_REL {prop: 'two'}]->(a) WITH c CREATE (c)-[:TEST_REL]->(c);");
+        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, produceSelfRel: false, preserveExistingSelfRels: false}) yield node return node",
+                (r) -> assertFalse(((Node) r.get("node")).getRelationships().iterator().hasNext()));
+    }
+
+    @Test
+    public void testMergeNodeShouldCreateSelfRelationshipsInPreExistingSelfRel() {
+        db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:TEST_REL]->(b:TestNode {a:'b'})-[:TEST_REL]->(c:TestNode {a:'c'})\n" +
+                "WITH a, c CREATE (a)-[:TEST_REL]->(a) WITH c CREATE (c)-[:TEST_REL]->(c);");
+        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, produceSelfRel: true}) yield node return node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    Iterator<Relationship> relIterator = node.getRelationships().iterator();
+                    final String expectedRelType = "TEST_REL";
+                    final Relationship firstRel = relIterator.next();
+                    assertSelfRel(firstRel, expectedRelType);
+                    assertTrue(firstRel.getAllProperties().isEmpty());
+                    final Relationship secondRel = relIterator.next();
+                    assertSelfRel(secondRel, expectedRelType);
+                    assertTrue(secondRel.getAllProperties().isEmpty());
+                    assertFalse(relIterator.hasNext());
+                });
+    }
+
+    @Test
+    public void testMergeNodeShouldNotCancelOtherRelsWithSelfRelsTrue() {
+        db.executeTransactionally("CREATE (a:A {a:'a'})-[:KNOWS {foo: 'bar'}]->(b:B {a:'b'})-[:KNOWS {baz: 'baa'}]->(c:C {a:'c'})\n" +
+                "WITH a,b,c CREATE (a)-[:KNOWS {self: 'rel'}]->(a) WITH a,b,c CREATE (a)-[:KNOWS {one: 'two'}]->(c) WITH c,b CREATE (c)-[:KNOWS {three: 'four'}]->(b);");
+        testCall(db, "MATCH (n:A), (m:B) WITH [n,m] as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, produceSelfRel: true}) yield node return node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    List<Relationship> relationships = IteratorUtils.toList(node.getRelationships().iterator());
+
+                    assertEquals(4, relationships.size());
+                    relationships.sort(Comparator.comparingLong(Relationship::getStartNodeId)
+                            .thenComparingLong(Relationship::getEndNodeId));
+
+                    // two A-A rels: the existing one and the new one after merge
+                    Relationship firstSelfRel = relationships.get(0);
+                    assertEquals("A", firstSelfRel.getStartNode().getLabels().iterator().next().name());
+                    assertEquals("A", firstSelfRel.getEndNode().getLabels().iterator().next().name());
+                    assertEquals("KNOWS", firstSelfRel.getType().name());
+                    assertEquals(Map.of("foo", "bar"), firstSelfRel.getAllProperties());
+
+                    Relationship secondSelfRel = relationships.get(1);
+                    assertEquals("A", secondSelfRel.getStartNode().getLabels().iterator().next().name());
+                    assertEquals("A", secondSelfRel.getEndNode().getLabels().iterator().next().name());
+                    assertEquals("KNOWS", secondSelfRel.getType().name());
+                    assertEquals(Map.of("self", "rel"), secondSelfRel.getAllProperties());
+
+                    // two A-C rels created with merge (with combined properties)
+                    Relationship firstNotSelfRel = relationships.get(2);
+                    assertEquals("A", firstNotSelfRel.getStartNode().getLabels().iterator().next().name());
+                    assertEquals("C", firstNotSelfRel.getEndNode().getLabels().iterator().next().name());
+                    assertEquals("KNOWS", firstNotSelfRel.getType().name());
+                    assertEquals(Map.of("one", "two", "baz", "baa"), firstNotSelfRel.getAllProperties());
+
+                    Relationship secondNotSelfRel = relationships.get(3);
+                    assertEquals("C", secondNotSelfRel.getStartNode().getLabels().iterator().next().name());
+                    assertEquals("A", secondNotSelfRel.getEndNode().getLabels().iterator().next().name());
+                    assertEquals("KNOWS", secondNotSelfRel.getType().name());
+                    assertEquals(Map.of("three", "four"), secondNotSelfRel.getAllProperties());
+                });
+    }
+
+    @Test
+    public void testMergeNodeShouldNotCancelOtherRelsWithSelfRelsFalseAndSingleNode() {
+        db.executeTransactionally("CREATE (a:A {a:'a'})-[:KNOWS]->(b:B {a:'b'})-[:KNOWS]->(c:C {a:'c'})\n" +
+                "WITH a,b,c CREATE (a)-[:KNOWS]->(a) WITH a,b,c CREATE (a)-[:KNOWS]->(c) WITH c,b CREATE (c)-[:KNOWS]->(b);");
+        testCall(db, "MATCH (n:A) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, produceSelfRel: false}) yield node return node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    List<Relationship> relationships = IteratorUtils.toList(node.getRelationships().iterator());
+
+                    assertEquals(3, relationships.size());
+                    relationships.sort(Comparator.comparingLong(Relationship::getStartNodeId)
+                            .thenComparingLong(Relationship::getEndNodeId));
+
+                    Relationship firstRel = relationships.get(0);
+                    assertEquals("A", firstRel.getStartNode().getLabels().iterator().next().name());
+                    assertEquals("A", firstRel.getEndNode().getLabels().iterator().next().name());
+                    assertEquals("KNOWS", firstRel.getType().name());
+
+                    Relationship secondRel = relationships.get(1);
+                    assertEquals("A", secondRel.getStartNode().getLabels().iterator().next().name());
+                    assertEquals("B", secondRel.getEndNode().getLabels().iterator().next().name());
+                    assertEquals("KNOWS", secondRel.getType().name());
+
+                    Relationship thirdRel = relationships.get(2);
+                    assertEquals("A", thirdRel.getStartNode().getLabels().iterator().next().name());
+                    assertEquals("C", thirdRel.getEndNode().getLabels().iterator().next().name());
+                    assertEquals("KNOWS", thirdRel.getType().name());
+                });
+    }
+
+    @Test
+    public void testMergeNodeShouldNotCreateSelfRelationshipsWithCircularPath() {
+        db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:TEST_REL]->(b:TestNode {a:'b'})-[:TEST_REL]->(c:TestNode {a:'c'})\n" +
+                "WITH a, c CREATE (c)-[:TEST_REL]->(a);");
+        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, produceSelfRel: false}) yield node return node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    assertFalse(node.getRelationships().iterator().hasNext());
+                });
+    }
+
+    @Test
+    public void testMergeNodeShouldCreateSelfRelationshipsWithCircularPath() {
+        db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:TEST_REL]->(b:TestNode {a:'b'})-[:TEST_REL]->(c:TestNode {a:'c'})\n" +
+                "WITH a, c CREATE (c)-[:TEST_REL]->(a);");
+        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, produceSelfRel: true}) yield node return node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    Iterator<Relationship> relIterator = node.getRelationships().iterator();
+                    assertSelfRel(relIterator.next(), "TEST_REL");
+                    assertFalse(relIterator.hasNext());
+                });
+    }
+
+    @Test
+    public void testMergeNodeShouldCreateSelfRelationshipsWithPathWithOtherRels() {
+        db.executeTransactionally("CREATE (a:One)-[:TEST_REL1]->(b:Two)-[:TEST_REL2]->(c:Three)\n" +
+                "WITH b, c CREATE (b)-[:ASD]->(q:Four), (b)-[:ZXC]->(w:Five) WITH b, c CREATE (b)-[:QWE]->(c)");
+        testCall(db, "match (a:One),(b:Two),(c:Three) with [a,b,c] as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true}) yield node return node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    List<String> relNodeList = IteratorUtils.toList(node.getRelationships().iterator()).stream().
+                            map(i-> i.getType().name()).collect(Collectors.toList());
+                    assertThat(relNodeList, Matchers.containsInAnyOrder("ASD", "QWE", "ZXC", "TEST_REL1", "TEST_REL2"));
+
+                    final Relationship relTestRel1 = node.getRelationships(RelationshipType.withName("TEST_REL1")).iterator().next();
+                    final Relationship relTestRel2 = node.getRelationships(RelationshipType.withName("TEST_REL2")).iterator().next();
+                    final Relationship relQwe = node.getRelationships(RelationshipType.withName("QWE")).iterator().next();
+                    assertSelfRel(relTestRel1);
+                    assertSelfRel(relTestRel2);
+                    assertSelfRel(relQwe);
+                });
+    }
+
+    @Test
+    public void testMergeRelsFalseAndProduceSelfRelFalse() {
+        db.executeTransactionally("CREATE (a:A), (b:B) CREATE (a)-[:T]->(b) CREATE (a)-[:T]->(b) CREATE (a)-[:Q]->(a)");
+        testCall(db, "MATCH (a:A), (b:B) CALL apoc.refactor.mergeNodes([a,b], {mergeRels: false, produceSelfRel: false}) YIELD node RETURN node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    final List<String> actual = StreamSupport.stream(node.getRelationships().spliterator(), false)
+                            .map(Relationship::getType)
+                            .map(RelationshipType::name)
+                            .sorted()
+                            .collect(Collectors.toList());
+                    assertEquals(List.of("Q", "T", "T"), actual);
+                });
+    }
+
+    @Test
+    public void testMergeRelsTrueAndProduceSelfRelFalse() {
+        db.executeTransactionally("CREATE (a:A), (b:B) CREATE (a)-[:T]->(b) CREATE (a)-[:T]->(b) CREATE (a)-[:T]->(b) CREATE (a)-[:Q]->(a)");
+        testCall(db, "MATCH (a:A), (b:B) CALL apoc.refactor.mergeNodes([a,b], {mergeRels: true, produceSelfRel: false}) YIELD node RETURN node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    Iterator<Relationship> relIterator = node.getRelationships().iterator();
+                    assertSelfRel(relIterator.next(), "Q");
+                    assertFalse(relIterator.hasNext());
+                });
+    }
+
+    private void assertSelfRel(Relationship next) {
+        assertSelfRel(next, null);
+    }
+
+    private void assertSelfRel(Relationship next, String expectedRelType) {
+        assertTrue(isSelfRel(next));
+        if (expectedRelType != null) {
+            String actualRelType = next.getType().name();
+            assertEquals(expectedRelType, actualRelType);
+        }
     }
 }
 

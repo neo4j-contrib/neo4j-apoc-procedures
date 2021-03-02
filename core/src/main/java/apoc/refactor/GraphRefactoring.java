@@ -26,6 +26,7 @@ import java.util.stream.StreamSupport;
 import static apoc.refactor.util.PropertiesManager.mergeProperties;
 import static apoc.refactor.util.RefactorConfig.RelationshipSelectionStrategy.MERGE;
 import static apoc.refactor.util.RefactorUtil.*;
+import static apoc.util.Util.isSelfRel;
 
 public class GraphRefactoring {
     @Context
@@ -53,7 +54,7 @@ public class GraphRefactoring {
 
                 Node copy = copyProperties(properties, newNode);
                 if (withRelationships) {
-                    copyRelationships(node, copy, false);
+                    copyRelationships(node, copy, false, true);
                 }
                 return result.withOther(copy);
             } catch (Exception e) {
@@ -282,8 +283,13 @@ public class GraphRefactoring {
         nodes.stream().distinct().sorted(Comparator.comparingLong(Node::getId)).forEach(tx::acquireWriteLock);
 
         final Node first = nodes.get(0);
+        final List<Long> existingRels = conf.isPreserveExistingSelfRels()
+                ? StreamSupport.stream(first.getRelationships().spliterator(), false).filter(Util::isSelfRel)
+                    .map(Entity::getId)
+                    .collect(Collectors.toList())
+                : Collections.emptyList();
 
-        nodes.stream().skip(1).distinct().forEach(node -> mergeNodes(node, first, true, conf));
+        nodes.stream().skip(1).distinct().forEach(node -> mergeNodes(node, first, true, conf, existingRels));
         return Stream.of(new NodeResult(first));
     }
 
@@ -577,17 +583,14 @@ public class GraphRefactoring {
         });
     }
 
-    private Node mergeNodes(Node source, Node target, boolean delete, RefactorConfig conf) {
+    private Node mergeNodes(Node source, Node target, boolean delete, RefactorConfig conf, List<Long> excludeRelIds) {
         try {
             Map<String, Object> properties = source.getAllProperties();
-            copyRelationships(source, copyLabels(source, target), delete);
+
+            copyRelationships(source, copyLabels(source, target), delete, conf.isProduceSelfRel());
             if (conf.getMergeRelsAllowed()) {
-                if(!conf.hasProperties()) {
-                    Map<String, Object> map = Collections.singletonMap("properties", "combine");
-                    conf = new RefactorConfig(map);
-                }
-                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.OUTGOING);
-                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING);
+                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.OUTGOING, excludeRelIds);
+                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING, excludeRelIds);
             }
             if (delete) source.delete();
             PropertiesManager.mergeProperties(properties, target, conf);
@@ -597,9 +600,11 @@ public class GraphRefactoring {
         return target;
     }
 
-    private Node copyRelationships(Node source, Node target, boolean delete) {
+    private Node copyRelationships(Node source, Node target, boolean delete, boolean isProduceSelfRel) {
         for (Relationship rel : source.getRelationships()) {
-            copyRelationship(rel, source, target);
+            if (isProduceSelfRel) {
+                copyRelationship(rel, source, target);
+            }
             if (delete) rel.delete();
         }
         return target;
