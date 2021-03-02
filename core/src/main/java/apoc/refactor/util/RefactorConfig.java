@@ -26,6 +26,8 @@ public class RefactorConfig {
 	private boolean mergeRelsAllowed;
 	private boolean mergeVirtualRels;
 	private boolean selfRel;
+	private boolean produceSelfRel;
+	private boolean preserveExistingSelfRels;
 	private boolean countMerge;
 	private boolean hasProperties;
 	private boolean collapsedLabel;
@@ -34,22 +36,27 @@ public class RefactorConfig {
 	private final RelationshipSelectionStrategy relationshipSelectionStrategy;
 
 	public RefactorConfig(Map<String,Object> config) {
+
+		this.mergeRelsAllowed = toBoolean(config.get("mergeRels"));
+		this.mergeVirtualRels = toBoolean(config.getOrDefault("mergeRelsVirtual", true));
+		this.selfRel = toBoolean(config.get("selfRel"));
+		this.produceSelfRel = toBoolean(config.getOrDefault("produceSelfRel", true));
+		this.preserveExistingSelfRels = toBoolean(config.getOrDefault("preserveExistingSelfRels", true));
+		this.countMerge = toBoolean(config.getOrDefault("countMerge", true));
+		this.collapsedLabel = toBoolean(config.get("collapsedLabel"));
+		this.singleElementAsArray = toBoolean(config.getOrDefault("singleElementAsArray", false));
+		this.relationshipSelectionStrategy = RelationshipSelectionStrategy.valueOf(
+				((String) config.getOrDefault("relationshipSelectionStrategy", RelationshipSelectionStrategy.INCOMING.toString())).toUpperCase() );
+
 		Object value = config.get("properties");
 		hasProperties = value != null;
 		if (value instanceof String) {
 			this.propertiesManagement = Collections.singletonMap(MATCH_ALL, value.toString());
 		} else if (value instanceof Map) {
 			this.propertiesManagement = (Map<String,String>)value;
+		} else if (mergeRelsAllowed && !hasProperties) {
+			this.propertiesManagement = Collections.singletonMap(MATCH_ALL, COMBINE);
 		}
-
-		this.mergeRelsAllowed = toBoolean(config.get("mergeRels"));
-		this.mergeVirtualRels = toBoolean(config.getOrDefault("mergeRelsVirtual", true));
-		this.selfRel = toBoolean(config.get("selfRel"));
-		this.countMerge = toBoolean(config.getOrDefault("countMerge", true));
-		this.collapsedLabel = toBoolean(config.get("collapsedLabel"));
-		this.singleElementAsArray = toBoolean(config.getOrDefault("singleElementAsArray", false));
-		this.relationshipSelectionStrategy = RelationshipSelectionStrategy.valueOf(
-				((String) config.getOrDefault("relationshipSelectionStrategy", RelationshipSelectionStrategy.INCOMING.toString())).toUpperCase() );
 	}
 
 	public String getMergeMode(String name){
@@ -77,6 +84,14 @@ public class RefactorConfig {
 	}
 
 	public boolean isSelfRel(){ return selfRel; }
+
+	public boolean isProduceSelfRel() {
+		return produceSelfRel;
+	}
+
+	public boolean isPreserveExistingSelfRels() {
+		return preserveExistingSelfRels;
+	}
 
 	public boolean hasProperties() {
 		return hasProperties;
