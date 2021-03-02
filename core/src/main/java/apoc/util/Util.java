@@ -3,6 +3,8 @@ package apoc.util;
 import apoc.Pools;
 import apoc.convert.Convert;
 import apoc.export.util.CountingInputStream;
+import apoc.result.VirtualNode;
+import apoc.result.VirtualRelationship;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
@@ -849,13 +851,12 @@ public class Util {
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }
 
-
     public static Node rebind(Transaction tx, Node node) {
-        return tx.getNodeById(node.getId());
+         return node instanceof VirtualNode ? node : tx.getNodeById(node.getId());
     }
 
     public static Relationship rebind(Transaction tx, Relationship rel) {
-        return tx.getRelationshipById(rel.getId());
+         return rel instanceof VirtualRelationship ? rel : tx.getRelationshipById(rel.getId());
     }
 
     public static Entity rebind(Transaction tx, Entity e) {
