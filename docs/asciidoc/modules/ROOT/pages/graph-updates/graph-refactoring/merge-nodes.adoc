@@ -41,6 +41,7 @@ In addition, mergeNodes supports the following config properties:
 |===
 | type | operations
 | mergeRels | true/false: give the possibility to merge relationships with same type and direction.
+| excludeSelfRel | true/false: is valid only with `mergeRels:true`. If true, the self-relationships will not be created into new node, if exist
 | singleElementAsArray | false/true: if is `false` (default) and `type` is `combine` in case the merge of two arrays is a new array with size 1 it extracts the single value.
 |===
 
