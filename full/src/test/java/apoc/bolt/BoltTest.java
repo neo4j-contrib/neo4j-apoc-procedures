@@ -24,6 +24,7 @@ import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 import static org.neo4j.driver.Values.isoDuration;
 import static org.neo4j.driver.Values.point;
 
@@ -51,6 +52,7 @@ public class BoltTest {
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
+        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
         BOLT_URL = "'" + "bolt://neo4j:neo4j2020@" + neo4jContainer.getContainerIpAddress() + ":" + neo4jContainer.getMappedPort(7687) + "'";
 
         TestUtil.registerProcedure(db, Bolt.class);

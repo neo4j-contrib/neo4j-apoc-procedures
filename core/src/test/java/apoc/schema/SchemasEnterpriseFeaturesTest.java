@@ -8,16 +8,19 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
-import org.testcontainers.containers.startupcheck.OneShotStartupCheckStrategy;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.TestContainerUtil.*;
+import static apoc.util.TestContainerUtil.createEnterpriseDB;
+import static apoc.util.TestContainerUtil.testCall;
+import static apoc.util.TestContainerUtil.testResult;
 import static apoc.util.TestUtil.isTravis;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
@@ -37,7 +40,6 @@ public class SchemasEnterpriseFeaturesTest {
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
             neo4jContainer = createEnterpriseDB(true);
-            neo4jContainer.setStartupCheckStrategy(new OneShotStartupCheckStrategy());
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
