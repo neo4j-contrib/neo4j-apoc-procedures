@@ -28,6 +28,8 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
 
     private boolean withDriver = true;
 
+    private boolean isRunning = false;
+
     public Neo4jContainerExtension() {
         super();
     }
@@ -57,6 +59,7 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
                 executeScript(filePath);
             }
         }
+        isRunning = true;
     }
 
     private void executeScript(String filePath) {
@@ -115,5 +118,10 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
         try {
             if (closeable != null) closeable.close();
         } catch (Exception ignoed) {}
+    }
+
+    @Override
+    public boolean isRunning() {
+        return super.isRunning() && isRunning;
     }
 }
