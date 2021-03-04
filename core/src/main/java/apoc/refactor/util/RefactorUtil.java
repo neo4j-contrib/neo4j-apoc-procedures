@@ -17,7 +17,7 @@ public class RefactorUtil {
                     .filter(list -> !list.isEmpty())
                     .forEach(list -> {
                         Relationship first = list.get(0);
-                        if (config.isExcludeSelfRel() && first.getStartNodeId() == first.getEndNodeId()) {
+                        if (first.getStartNodeId() == first.getEndNodeId() && !config.isSelfRel()) {
                             list.forEach(Relationship::delete);
                         } else {
                             for (int i = 1; i < list.size(); i++) {
