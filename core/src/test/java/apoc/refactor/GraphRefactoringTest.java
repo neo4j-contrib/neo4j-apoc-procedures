@@ -1001,7 +1001,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
     public void testMergeNodeShouldNotCreateSelfRelationshipsInPreExistingSelfRel() {
         db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:TEST_REL]->(b:TestNode {a:'b'})-[:TEST_REL]->(c:TestNode {a:'c'})\n" +
                 "WITH a, c CREATE (a)-[:TEST_REL]->(a) WITH c CREATE (c)-[:TEST_REL]->(c);");
-        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, excludeSelfRel: true}) yield node return node",
+        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, selfRel: false}) yield node return node",
                 (r) -> {
                     Node node = (Node) r.get("node");
                     assertFalse(node.getRelationships().iterator().hasNext());
@@ -1012,7 +1012,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
     public void testMergeNodeShouldCreateSelfRelationshipsInPreExistingSelfRel() {
         db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:TEST_REL]->(b:TestNode {a:'b'})-[:TEST_REL]->(c:TestNode {a:'c'})\n" +
                 "WITH a, c CREATE (a)-[:TEST_REL]->(a) WITH c CREATE (c)-[:TEST_REL]->(c);");
-        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, excludeSelfRel: false}) yield node return node",
+        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, selfRel: true}) yield node return node",
                 (r) -> {
                     Node node = (Node) r.get("node");
                     assertTrue(node.getRelationships().iterator().hasNext());
@@ -1023,7 +1023,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
     public void testMergeNodeShouldNotCreateSelfRelationshipsWithCircularPath() {
         db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:TEST_REL]->(b:TestNode {a:'b'})-[:TEST_REL]->(c:TestNode {a:'c'})\n" +
                 "WITH a, c CREATE (c)-[:TEST_REL]->(a);");
-        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, excludeSelfRel: true}) yield node return node",
+        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, selfRel: false}) yield node return node",
                 (r) -> {
                     Node node = (Node) r.get("node");
                     assertFalse(node.getRelationships().iterator().hasNext());
@@ -1034,7 +1034,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
     public void testMergeNodeShouldCreateSelfRelationshipsWithCircularPath() {
         db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:TEST_REL]->(b:TestNode {a:'b'})-[:TEST_REL]->(c:TestNode {a:'c'})\n" +
                 "WITH a, c CREATE (c)-[:TEST_REL]->(a);");
-        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, excludeSelfRel: false}) yield node return node",
+        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, selfRel: true}) yield node return node",
                 (r) -> {
                     Node node = (Node) r.get("node");
                     assertTrue(node.getRelationships().iterator().hasNext());
@@ -1045,7 +1045,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
     public void testMergeNodeShouldNotCreateSelfRelationshipsWithPathWithOtherRels() {
         db.executeTransactionally("CREATE (a:One)-[:TEST_REL1]->(b:Two)-[:TEST_REL2]->(c:Three)\n" +
                 "WITH b, c CREATE (b)-[:ASD]->(q:Four), (b)-[:ZXC]->(w:Five) WITH b, c CREATE (b)-[:QWE]->(c)");
-        testCall(db, "match (a:One),(b:Two),(c:Three) with [a,b,c] as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, excludeSelfRel: true}) yield node return node",
+        testCall(db, "match (a:One),(b:Two),(c:Three) with [a,b,c] as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, selfRel: false}) yield node return node",
                 (r) -> {
                     Node node = (Node) r.get("node");
                     List<String> relNodeList = IteratorUtils.toList(node.getRelationships().iterator()).stream().

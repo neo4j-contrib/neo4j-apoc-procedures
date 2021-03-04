@@ -189,6 +189,7 @@ public class Nodes {
         if (nodes == null || nodes.isEmpty()) return Stream.empty();
         if (nodes.size() == 1) return Stream.of(new VirtualPathResult(nodes.get(0), null, null));
         Set<Node> nodeSet = new LinkedHashSet<>(nodes);
+        config.putIfAbsent("selfRel", false);
         RefactorConfig conf = new RefactorConfig(config);
         VirtualNode first = createVirtualNode(nodeSet, conf);
         if (first.getRelationships().iterator().hasNext()) {

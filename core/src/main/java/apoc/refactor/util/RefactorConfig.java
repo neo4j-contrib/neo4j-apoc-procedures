@@ -30,7 +30,6 @@ public class RefactorConfig {
 	private boolean hasProperties;
 	private boolean collapsedLabel;
 	private boolean singleElementAsArray;
-	private boolean excludeSelfRel;
 
 	private final RelationshipSelectionStrategy relationshipSelectionStrategy;
 
@@ -45,11 +44,10 @@ public class RefactorConfig {
 
 		this.mergeRelsAllowed = toBoolean(config.get("mergeRels"));
 		this.mergeVirtualRels = toBoolean(config.getOrDefault("mergeRelsVirtual", true));
-		this.selfRel = toBoolean(config.get("selfRel"));
+		this.selfRel = toBoolean(config.getOrDefault("selfRel", true));
 		this.countMerge = toBoolean(config.getOrDefault("countMerge", true));
 		this.collapsedLabel = toBoolean(config.get("collapsedLabel"));
 		this.singleElementAsArray = toBoolean(config.getOrDefault("singleElementAsArray", false));
-		this.excludeSelfRel = toBoolean(config.getOrDefault("excludeSelfRel", false));
 		this.relationshipSelectionStrategy = RelationshipSelectionStrategy.valueOf(
 				((String) config.getOrDefault("relationshipSelectionStrategy", RelationshipSelectionStrategy.INCOMING.toString())).toUpperCase() );
 	}
@@ -96,10 +94,6 @@ public class RefactorConfig {
 
 	public boolean isSingleElementAsArray() {
 		return singleElementAsArray;
-	}
-
-	public boolean isExcludeSelfRel() {
-		return excludeSelfRel;
 	}
 
 	public void setPropertiesManagement(String value) {
