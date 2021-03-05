@@ -151,7 +151,7 @@ The `ttl` property holds the *time when the node is expired in milliseconds sinc
 CREATE INDEX ON :TTL(ttl)
 ----
 
-When using the procedure, the index is created 30 seconds after startup.
+When using the procedure, the index is created 30 seconds after startup/new database created.
 
 * Remove node(s) that have passed the expiration time or length of time
 
