@@ -12,7 +12,7 @@ import static apoc.util.Util.toBoolean;
  */
 public class RefactorConfig {
 
-	public enum RelationshipSelectionStrategy {INCOMING, OUTCOMING, MERGE}
+	public enum RelationshipSelectionStrategy {INCOMING, OUTGOING, MERGE}
 
 	public static final String COMBINE = "combine";
 	public static final String DISCARD = "discard";

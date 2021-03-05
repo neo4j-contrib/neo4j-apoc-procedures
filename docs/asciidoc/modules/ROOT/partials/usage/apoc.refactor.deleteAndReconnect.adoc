@@ -23,7 +23,7 @@ MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as lis
 
 [source,cypher]
 ----
-MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as list CALL apoc.refactor.deleteAndReconnect(p, list, {relationshipSelectionStrategy: 'outcoming'}) YIELD nodes, relationships RETURN nodes, relationships;
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as list CALL apoc.refactor.deleteAndReconnect(p, list, {relationshipSelectionStrategy: 'outgoing'}) YIELD nodes, relationships RETURN nodes, relationships;
 ----
 
 .Results

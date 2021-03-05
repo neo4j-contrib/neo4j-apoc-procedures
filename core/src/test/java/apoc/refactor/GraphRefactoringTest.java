@@ -94,16 +94,21 @@ public class GraphRefactoringTest {
                 });
 
         TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(3L, row.get("result")));
+    }
+
+    @Test
+    public void deleteAndReconnectWithTerminalNodes() throws Exception {
+        db.executeTransactionally("CREATE (f:One)-[:ALPHA {a:'b'}]->(c:Two)-[:GAMMA]->(e:Three {foo: 'bar', baz: 'baa'})");
 
         // - terminal node
-        TestUtil.testCall(db, "MATCH p=(f:One)-->(c:Three)-->(e:Five) WITH p, f CALL apoc.refactor.deleteAndReconnect(p, [f]) YIELD nodes, relationships RETURN nodes, relationships",
+        TestUtil.testCall(db, "MATCH p=(f:One)-->(c:Two)-->(e:Three) WITH p, f CALL apoc.refactor.deleteAndReconnect(p, [f]) YIELD nodes, relationships RETURN nodes, relationships",
                 (row) -> {
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     assertEquals(2, nodes.size());
                     Node node1 = nodes.get(0);
-                    assertEquals(singletonList(label("Three")), node1.getLabels());
+                    assertEquals(singletonList(label("Two")), node1.getLabels());
                     Node node2 = nodes.get(1);
-                    assertEquals(singletonList(label("Five")), node2.getLabels());
+                    assertEquals(singletonList(label("Three")), node2.getLabels());
                     assertEquals("bar", node2.getProperty("foo"));
                     assertEquals("baa", node2.getProperty("baz"));
                     List<Relationship> rels = (List<Relationship>) row.get("relationships");
@@ -123,7 +128,6 @@ public class GraphRefactoringTest {
                 });
 
         TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(1L, row.get("result")));
-
     }
 
     @Test
@@ -189,12 +193,12 @@ public class GraphRefactoringTest {
     }
 
     @Test
-    public void deleteAndReconnectWithOutcomingRelConfig() throws Exception {
+    public void deleteAndReconnectWithOutgoingRelConfig() throws Exception {
         db.executeTransactionally("CREATE (f:One)-[:ALPHA {a:'b'}]->(b:Two)-[:BETA {c:'d', e:'f'}]->(c:Three)-[:GAMMA]->(d:Four)-[:DELTA {aa: 'bb', cc: 'dd', ee: 'ff'}]->(e:Five {foo: 'bar', baz: 'baa'})");
 
         TestUtil.testCall(db, Util.NODE_COUNT, (row) -> assertEquals(5L, row.get("result")));
 
-        TestUtil.testCall(db, "MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as list CALL apoc.refactor.deleteAndReconnect(p, list, {relationshipSelectionStrategy: 'outcoming'}) YIELD nodes, relationships RETURN nodes, relationships",
+        TestUtil.testCall(db, "MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as list CALL apoc.refactor.deleteAndReconnect(p, list, {relationshipSelectionStrategy: 'outgoing'}) YIELD nodes, relationships RETURN nodes, relationships",
                 (row) -> {
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     assertEquals(3, nodes.size());
