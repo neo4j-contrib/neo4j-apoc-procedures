@@ -35,6 +35,8 @@ import java.util.Map;
 import static apoc.ApocConfig.*;
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.*;
+import static org.neo4j.configuration.GraphDatabaseSettings.TransactionStateMemoryAllocation.OFF_HEAP;
+import static org.neo4j.configuration.SettingValueParsers.BYTES;
 import static org.xmlunit.diff.ElementSelectors.byName;
 
 /**
@@ -148,6 +150,9 @@ public class ExportGraphMLTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
+                .withSetting(GraphDatabaseSettings.memory_tracking, true)
+                .withSetting(GraphDatabaseSettings.tx_state_memory_allocation, OFF_HEAP)
+                .withSetting(GraphDatabaseSettings.tx_state_max_off_heap_memory, BYTES.parse("200m"))
                 .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false)
                 .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
 
@@ -180,6 +185,22 @@ public class ExportGraphMLTest {
                 });
 
         TestUtil.testCall(db, "MATCH  (c:Bar {age: 12, values: [1,2,3]}) RETURN COUNT(c) AS c", null, (r) -> assertEquals(1L, r.get("c")));
+    }
+
+    @Test
+    public void testImportGraphMLLargeFile() {
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+
+        final String file = ClassLoader.getSystemResource("largeFile.graphml").toString();
+        TestUtil.testCall(db, "CALL apoc.import.graphml($file,{readLabels:true})", map("file", file),
+                (r) -> {
+                    assertEquals(335160L, r.get("nodes"));
+                    assertEquals(5666L, r.get("relationships"));
+                    assertEquals(737297L, r.get("properties"));
+                    assertEquals(file, r.get("file"));
+                    assertEquals("graphml", r.get("format"));
+                    assertEquals(true, r.get("done"));
+                });
     }
 
     @Test
