@@ -24,6 +24,11 @@ import java.util.stream.Stream;
 @Extended
 public class LoadHtml {
 
+    // public for test purpose
+    public static final String KEY_ERROR = "errorList";
+
+    private enum FailSilently { FALSE, WITH_LOG, WITH_LIST }
+
     @Context
     public GraphDatabaseService db;
 
@@ -46,11 +51,15 @@ public class LoadHtml {
             Document document = Jsoup.parse(Util.openInputStream(url, null, null), charset, baseUri);
 
             Map<String, Object> output = new HashMap<>();
+            List<String> errorList = new ArrayList<>();
 
             query.keySet().forEach(key -> {
                         Elements elements = document.select(query.get(key));
-                        output.put(key, getElements(elements, config));
+                        output.put(key, getElements(elements, config, errorList));
             });
+            if (!errorList.isEmpty()) {
+                output.put(KEY_ERROR, errorList);
+            }
 
             return Stream.of(new MapResult(output) );
         } catch (FileNotFoundException e) {
@@ -62,8 +71,9 @@ public class LoadHtml {
         }
     }
 
-    private List<Map<String, Object>> getElements(Elements elements, Map<String, Object> config) {
-        boolean failSilently = Util.toBoolean(config.getOrDefault("failSilently", false));
+    private List<Map<String, Object>> getElements(Elements elements, Map<String, Object> config, List<String> errorList) {
+
+        FailSilently failConfig = FailSilently.valueOf((String) config.getOrDefault("failSilently", "FALSE"));
         List<Map<String, Object>> elementList = new ArrayList<>();
 
         for (Element element : elements) {
@@ -77,7 +87,7 @@ public class LoadHtml {
                     if (Util.toBoolean(config.getOrDefault("children", false))) {
                         if(element.hasText()) result.put("text", element.ownText());
 
-                        result.put("children", getElements(element.children(), config));
+                        result.put("children", getElements(element.children(), config, errorList));
                     }
                     else {
                         if(element.hasText()) result.put("text", element.text());
@@ -86,10 +96,15 @@ public class LoadHtml {
                     elementList.add(result);
             } catch (Exception e) {
                 final String parseError = "Error during parsing element: " + element;
-                if (failSilently) {
-                    log.warn(parseError);
-                } else {
-                    throw new RuntimeException(parseError);
+                switch (failConfig) {
+                    case WITH_LOG:
+                        log.warn(parseError);
+                        break;
+                    case WITH_LIST:
+                        errorList.add(element.toString());
+                        break;
+                    default:
+                        throw new RuntimeException(parseError);
                 }
             }
         }
