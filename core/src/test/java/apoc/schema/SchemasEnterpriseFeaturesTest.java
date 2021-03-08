@@ -3,6 +3,7 @@ package apoc.schema;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -16,7 +17,11 @@ import java.util.Map;
 import static apoc.util.TestContainerUtil.*;
 import static apoc.util.TestUtil.isTravis;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 
@@ -49,9 +54,17 @@ public class SchemasEnterpriseFeaturesTest {
         }
     }
 
-    @Test
-    public void testKeptNodeKeyAndUniqueConstraintIfExistsAndDropExistingIsFalse() {
+    @After
+    public void removeAllConstraints() {
+        session.writeTransaction(tx -> {
+            tx.run("CALL apoc.schema.assert({},{})");
+            tx.commit();
+            return null;
+        });
+    }
 
+    @Test
+    public void testKeptNodeKeyAndUniqueConstraintIfExists() {
         String query = "CALL apoc.schema.assert(null,{Foo:[['foo','bar']]}, false)";
         testResult(session, query, (result) -> {
             Map<String, Object> r = result.next();
@@ -77,7 +90,19 @@ public class SchemasEnterpriseFeaturesTest {
             tx.commit();
             return null;
         });
+    }
 
+    @Test
+    public void testKeptNodeKeyAndUniqueConstraintIfExistsAndDropExistingIsFalse() {
+        String query = "CALL apoc.schema.assert(null,{Foo:[['foo','bar']]}, false)";
+        testResult(session, query, (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
+            assertEquals(true, r.get("unique"));
+            assertEquals("CREATED", r.get("action"));
+            assertFalse(result.hasNext());
+        });
         testResult(session, "CALL apoc.schema.assert(null,{Foo:[['bar','foo']]}, false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -95,17 +120,17 @@ public class SchemasEnterpriseFeaturesTest {
         testResult(session, "CALL apoc.schema.assert(null,{Galileo: [['newton', 'tesla'], 'curie']}, false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
+            assertThat((List<String>) r.get("keys"), containsInAnyOrder("foo", "bar"));
             assertEquals(true, r.get("unique"));
             assertEquals("KEPT", r.get("action"));
             r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("bar", "foo"), r.get("keys"));
+            assertThat((List<String>) r.get("keys"), containsInAnyOrder("foo", "bar"));
             assertEquals(true, r.get("unique"));
             assertEquals("KEPT", r.get("action"));
             r = result.next();
             assertEquals("Galileo", r.get("label"));
-            assertEquals(expectedKeys("newton", "tesla"), r.get("keys"));
+            assertThat((List<String>) r.get("keys"), containsInAnyOrder("newton", "tesla"));
             assertEquals(true, r.get("unique"));
             assertEquals("CREATED", r.get("action"));
             r = result.next();
@@ -122,15 +147,6 @@ public class SchemasEnterpriseFeaturesTest {
             tx.commit();
             return null;
         });
-
-        session.writeTransaction(tx -> {
-            tx.run("DROP CONSTRAINT ON (f:Foo) ASSERT (f.foo,f.bar) IS NODE KEY");
-            tx.run("DROP CONSTRAINT ON (f:Foo) ASSERT (f.bar,f.foo) IS NODE KEY");
-            tx.run("DROP CONSTRAINT ON (f:Galileo) ASSERT (f.newton,f.tesla) IS NODE KEY");
-            tx.run("DROP CONSTRAINT ON (f:Galileo) ASSERT (f.curie) IS UNIQUE");
-            tx.commit();
-            return null;
-        });
     }
 
     @Test
@@ -143,7 +159,7 @@ public class SchemasEnterpriseFeaturesTest {
         testResult(session, "CALL apoc.schema.assert(null,{Foo:[['bar','foo']]})", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("bar","foo"), r.get("keys"));
+            assertThat((List<String>) r.get("keys"), containsInAnyOrder("bar","foo"));
             assertEquals(true, r.get("unique"));
             assertEquals("KEPT", r.get("action"));
         });
@@ -151,13 +167,13 @@ public class SchemasEnterpriseFeaturesTest {
         testResult(session, "CALL apoc.schema.assert(null,{Foo:[['baa','baz']]})", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("bar","foo"), r.get("keys"));
+            assertThat((List<String>) r.get("keys"), containsInAnyOrder("bar","foo"));
             assertEquals(true, r.get("unique"));
             assertEquals("DROPPED", r.get("action"));
 
             r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("baa", "baz"), r.get("keys"));
+            assertThat((List<String>) r.get("keys"), containsInAnyOrder("baa","baz"));
             assertEquals(true, r.get("unique"));
             assertEquals("CREATED", r.get("action"));
 
@@ -167,12 +183,8 @@ public class SchemasEnterpriseFeaturesTest {
         session.readTransaction(tx -> {
             List<Record> result = tx.run("CALL db.constraints").list();
             assertEquals(1, result.size());
-            tx.commit();
-            return null;
-        });
-
-        session.writeTransaction(tx -> {
-            tx.run("DROP CONSTRAINT ON (f:Foo) ASSERT (f.baa,f.baz) IS NODE KEY").list();
+            Map<String, Object> firstResult = result.get(0).asMap();
+            assertEquals("CONSTRAINT ON ( foo:Foo ) ASSERT (foo.baa, foo.baz) IS NODE KEY", firstResult.get("description"));
             tx.commit();
             return null;
         });
