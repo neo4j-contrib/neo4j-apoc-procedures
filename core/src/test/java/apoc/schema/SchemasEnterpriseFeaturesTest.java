@@ -13,12 +13,11 @@ import org.neo4j.driver.Session;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static apoc.util.TestContainerUtil.*;
 import static apoc.util.TestUtil.isTravis;
 import static java.util.Arrays.asList;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -87,6 +86,8 @@ public class SchemasEnterpriseFeaturesTest {
         session.readTransaction(tx -> {
             List<Record> result = tx.run("CALL db.constraints").list();
             assertEquals(1, result.size());
+            Map<String, Object> firstResult = result.get(0).asMap();
+            assertEquals("CONSTRAINT ON ( foo:Foo ) ASSERT (foo.foo, foo.bar) IS NODE KEY", firstResult.get("description"));
             tx.commit();
             return null;
         });
@@ -120,17 +121,17 @@ public class SchemasEnterpriseFeaturesTest {
         testResult(session, "CALL apoc.schema.assert(null,{Galileo: [['newton', 'tesla'], 'curie']}, false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertThat((List<String>) r.get("keys"), containsInAnyOrder("foo", "bar"));
+            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("KEPT", r.get("action"));
             r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertThat((List<String>) r.get("keys"), containsInAnyOrder("foo", "bar"));
+            assertEquals(expectedKeys("bar", "foo"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("KEPT", r.get("action"));
             r = result.next();
             assertEquals("Galileo", r.get("label"));
-            assertThat((List<String>) r.get("keys"), containsInAnyOrder("newton", "tesla"));
+            assertEquals(expectedKeys("newton", "tesla"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("CREATED", r.get("action"));
             r = result.next();
@@ -144,6 +145,15 @@ public class SchemasEnterpriseFeaturesTest {
         session.readTransaction(tx -> {
             List<Record> result = tx.run("CALL db.constraints").list();
             assertEquals(4, result.size());
+            List<String> actualDescriptions = result.stream()
+                    .map(record -> (String) record.asMap().get("description"))
+                    .collect(Collectors.toList());
+            List<String> expectedDescriptions = List.of(
+                    "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.foo, foo.bar) IS NODE KEY",
+                    "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.bar, foo.foo) IS NODE KEY",
+                    "CONSTRAINT ON ( galileo:Galileo ) ASSERT (galileo.newton, galileo.tesla) IS NODE KEY",
+                    "CONSTRAINT ON ( galileo:Galileo ) ASSERT (galileo.curie) IS UNIQUE");
+            assertEquals(expectedDescriptions, actualDescriptions);
             tx.commit();
             return null;
         });
@@ -159,7 +169,7 @@ public class SchemasEnterpriseFeaturesTest {
         testResult(session, "CALL apoc.schema.assert(null,{Foo:[['bar','foo']]})", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertThat((List<String>) r.get("keys"), containsInAnyOrder("bar","foo"));
+            assertEquals(expectedKeys("bar","foo"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("KEPT", r.get("action"));
         });
@@ -167,13 +177,13 @@ public class SchemasEnterpriseFeaturesTest {
         testResult(session, "CALL apoc.schema.assert(null,{Foo:[['baa','baz']]})", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertThat((List<String>) r.get("keys"), containsInAnyOrder("bar","foo"));
+            assertEquals(expectedKeys("bar","foo"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("DROPPED", r.get("action"));
 
             r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertThat((List<String>) r.get("keys"), containsInAnyOrder("baa","baz"));
+            assertEquals(expectedKeys("baa","baz"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("CREATED", r.get("action"));
 

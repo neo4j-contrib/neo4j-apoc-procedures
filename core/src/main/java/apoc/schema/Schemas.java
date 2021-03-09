@@ -89,7 +89,7 @@ public class Schemas {
         for (ConstraintDefinition definition : schema.getConstraints()) {
             String label = definition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE) ? definition.getRelationshipType().name() : definition.getLabel().name();
             AssertSchemaResult info = new AssertSchemaResult(label, Iterables.asList(definition.getPropertyKeys())).unique();
-            if (!checkIfConstraintNotExists(label, constraints, info)) {
+            if (!checkIfConstraintExists(label, constraints, info)) {
                 if (dropExisting) {
                     definition.drop();
                     info.dropped();
@@ -110,7 +110,7 @@ public class Schemas {
         return result;
     }
 
-    private boolean checkIfConstraintNotExists(String label, Map<String, List<Object>> constraints, AssertSchemaResult info) {
+    private boolean checkIfConstraintExists(String label, Map<String, List<Object>> constraints, AssertSchemaResult info) {
         if (constraints.containsKey(label)) {
             return constraints.get(label).removeIf(item -> {
                 // when there is a constraint IS UNIQUE
