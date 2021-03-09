@@ -118,18 +118,25 @@ public class SchemasEnterpriseFeaturesTest {
             assertFalse(result.hasNext());
         });
 
+        session.readTransaction(tx -> {
+            List<Record> result = tx.run("CALL db.constraints").list();
+            assertEquals(2, result.size());
+            List<String> actualDescriptions = result.stream()
+                    .map(record -> (String) record.asMap().get("description"))
+                    .collect(Collectors.toList());
+            List<String> expectedDescriptions = List.of(
+                    "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.foo, foo.bar) IS NODE KEY",
+                    "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.bar, foo.foo) IS NODE KEY");
+            assertEquals(expectedDescriptions, actualDescriptions);
+            tx.commit();
+            return null;
+        });
+    }
+
+    @Test
+    public void testCreateUniqueAndIsNodeKeyConstraintInSameLabel() {
         testResult(session, "CALL apoc.schema.assert(null,{Galileo: [['newton', 'tesla'], 'curie']}, false)", (result) -> {
             Map<String, Object> r = result.next();
-            assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
-            assertEquals(true, r.get("unique"));
-            assertEquals("KEPT", r.get("action"));
-            r = result.next();
-            assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("bar", "foo"), r.get("keys"));
-            assertEquals(true, r.get("unique"));
-            assertEquals("KEPT", r.get("action"));
-            r = result.next();
             assertEquals("Galileo", r.get("label"));
             assertEquals(expectedKeys("newton", "tesla"), r.get("keys"));
             assertEquals(true, r.get("unique"));
@@ -144,13 +151,11 @@ public class SchemasEnterpriseFeaturesTest {
 
         session.readTransaction(tx -> {
             List<Record> result = tx.run("CALL db.constraints").list();
-            assertEquals(4, result.size());
+            assertEquals(2, result.size());
             List<String> actualDescriptions = result.stream()
                     .map(record -> (String) record.asMap().get("description"))
                     .collect(Collectors.toList());
             List<String> expectedDescriptions = List.of(
-                    "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.foo, foo.bar) IS NODE KEY",
-                    "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.bar, foo.foo) IS NODE KEY",
                     "CONSTRAINT ON ( galileo:Galileo ) ASSERT (galileo.newton, galileo.tesla) IS NODE KEY",
                     "CONSTRAINT ON ( galileo:Galileo ) ASSERT (galileo.curie) IS UNIQUE");
             assertEquals(expectedDescriptions, actualDescriptions);
