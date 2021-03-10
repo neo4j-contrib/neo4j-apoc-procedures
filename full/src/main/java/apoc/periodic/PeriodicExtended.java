@@ -10,17 +10,13 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static apoc.util.Util.merge;
 
 @Extended
 public class PeriodicExtended {
@@ -78,7 +74,10 @@ public class PeriodicExtended {
             log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
             try (Result result = tx.execute(cypherIterate)) {
                 Stream<BatchAndTotalResult> oneResult =
-                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, false, false,0, result, (tx, params) -> tx.execute(cypherAction, params), 50, -1);
+                    PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
+                            db, terminationGuard, log, pools,
+                            (int) batchSize, false, false, 0,
+                            result, (tx, params) -> tx.execute(cypherAction, params).getQueryStatistics(), 50, -1);
                 final Object loopParam = value;
                 allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
             }
@@ -117,70 +116,11 @@ public class PeriodicExtended {
 
         log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
         try (Result result = tx.execute(cypherIterate)) {
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, (tx, p) -> tx.execute(cypherAction, p), 50, -1);
+            return PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
+                    db, terminationGuard, log, pools,
+                    (int)batchSize, false, false, 0, result,
+                    (tx, p) -> tx.execute(cypherAction, p).getQueryStatistics(), 50, -1);
         }
-    }
-
-    private Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, boolean parallel, boolean iterateList, long retries,
-                  Iterator<Map<String, Object>> iterator, BiConsumer<Transaction, Map<String, Object>> consumer, int concurrency, int failedParams) {
-
-        ExecutorService pool = parallel ? pools.getDefaultExecutorService() : pools.getSingleExecutorService();
-        List<Future<Long>> futures = new ArrayList<>(concurrency);
-        BatchAndTotalCollector collector = new BatchAndTotalCollector(terminationGuard, failedParams);
-        do {
-            if (Util.transactionIsTerminated(terminationGuard)) break;
-            if (log.isDebugEnabled()) log.debug("execute in batch no %d batch size ", batchsize);
-            List<Map<String,Object>> batch = Util.take(iterator, batchsize);
-            final long currentBatchSize = batch.size();
-            Function<Transaction, Long> task;
-            if (iterateList) {
-                task = txInThread -> {
-                    if (Util.transactionIsTerminated(terminationGuard)) return 0L;
-                    Map<String, Object> params = Util.map("_count", collector.getCount(), "_batch", batch);
-                    long successes = executeAndReportErrors(txInThread, consumer, params, batch, batch.size(), null, collector);
-                    return successes;
-                };
-            } else {
-                task = txInThread -> {
-                    if (Util.transactionIsTerminated(terminationGuard)) return 0L;
-                    AtomicLong localCount = new AtomicLong(collector.getCount());
-                    return batch.stream().map(
-                            p -> {
-                                if (localCount.get() % 1000 == 0 && Util.transactionIsTerminated(terminationGuard)) {
-                                    return 0;
-                                }
-                                Map<String, Object> params = merge(p, Util.map("_count", localCount.get(), "_batch", batch));
-                                return executeAndReportErrors(txInThread, consumer, params, batch, 1, localCount, collector);
-                            }).mapToLong(n -> (Long) n).sum();
-                };
-            }
-            futures.add(Util.inTxFuture(log, pool, db, task, retries, aLong -> collector.incrementRetried(), _ignored -> collector.incrementBatches()));
-            /*  TODO: not sure if the block below is required
-            if (futures.size() > concurrency) {
-                while (futures.stream().noneMatch(Future::isDone)) { // none done yet, block for a bit
-                    LockSupport.parkNanos(1000);
-                }
-                Iterator<Future<Long>> it = futures.iterator();
-                while (it.hasNext()) {
-                    Future<Long> future = it.next();
-                    if (future.isDone()) {
-                        collector.incrementSuccesses(Util.getFuture(future, collector.getBatchErrors(), collector.getFailedBatches(), 0L));
-                        it.remove();
-                    }
-                }
-            }*/
-            collector.incrementCount(currentBatchSize);
-        } while (iterator.hasNext());
-
-        boolean wasTerminated = Util.transactionIsTerminated(terminationGuard);
-        ToLongFunction<Future<Long>> toLongFunction = wasTerminated ?
-                f -> Util.getFutureOrCancel(f, collector.getBatchErrors(), collector.getFailedBatches(), 0L) :
-                f -> Util.getFuture(f, collector.getBatchErrors(), collector.getFailedBatches(), 0L);
-        collector.incrementSuccesses(futures.stream().mapToLong(toLongFunction).sum());
-
-        Util.logErrors("Error during iterate.commit:", collector.getBatchErrors(), log);
-        Util.logErrors("Error during iterate.execute:", collector.getOperationErrors(), log);
-        return Stream.of(collector.getResult());
     }
 
     private long executeAndReportErrors(Transaction tx, BiConsumer<Transaction, Map<String, Object>> consumer, Map<String, Object> params,
