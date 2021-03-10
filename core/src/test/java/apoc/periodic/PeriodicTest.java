@@ -111,7 +111,8 @@ public class PeriodicTest {
 
 
     @Test
-    public void testPeriodicIterateErrors() throws Exception {
+    public void testPeriodicIterateErrors() {
+        final String newline = System.lineSeparator();
         testResult(db, "CALL apoc.periodic.iterate('UNWIND range(0,99) as id RETURN id', 'CREATE null', {batchSize:10,iterateList:true})", result -> {
             Map<String, Object> row = Iterators.single(result);
             assertEquals(10L, row.get("batches"));
@@ -119,13 +120,13 @@ public class PeriodicTest {
             assertEquals(0L, row.get("committedOperations"));
             assertEquals(100L, row.get("failedOperations"));
             assertEquals(10L, row.get("failedBatches"));
-            Map<String, Object> batchErrors = map("org.neo4j.graphdb.QueryExecutionException: Invalid input 'null': expected \"(\", \"allShortestPaths\" or \"shortestPath\" (line 1, column 55 (offset: 54))\n" +
-                    "\"UNWIND $_batch AS _batch WITH _batch.id AS id  CREATE null\"\n" +
+            Map<String, Object> batchErrors = map("org.neo4j.graphdb.QueryExecutionException: Invalid input 'null': expected \"shortestPath\", \"allShortestPaths\" or \"(\" (line 1, column 55 (offset: 54))" + newline +
+                    "\"UNWIND $_batch AS _batch WITH _batch.id AS id  CREATE null\"" + newline +
                     "                                                       ^", 10L);
 
             assertEquals(batchErrors, ((Map) row.get("batch")).get("errors"));
-            Map<String, Object> operationsErrors = map("Invalid input 'null': expected \"(\", \"allShortestPaths\" or \"shortestPath\" (line 1, column 55 (offset: 54))\n" +
-                    "\"UNWIND $_batch AS _batch WITH _batch.id AS id  CREATE null\"\n" +
+            Map<String, Object> operationsErrors = map("Invalid input 'null': expected \"shortestPath\", \"allShortestPaths\" or \"(\" (line 1, column 55 (offset: 54))" + newline +
+                    "\"UNWIND $_batch AS _batch WITH _batch.id AS id  CREATE null\"" + newline +
                     "                                                       ^", 10L);
             assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
         });
@@ -223,6 +224,63 @@ public class PeriodicTest {
                 "MATCH (p:Person) where p.lastname is not null return count(p) as count",
                 row -> assertEquals(100L, row.get("count"))
         );
+    }
+
+    @Test
+    public void testIterateUpdateStats() {
+        testResult(db, "CALL apoc.periodic.iterate(" +
+                "'UNWIND range(1, 100) AS x RETURN x', " +
+                "'CREATE (n:Node {x:x})" +
+                "   SET n.y = 1 " +
+                " CREATE (n)-[:SELF]->(n)'," +
+                "{ batchSize:10, parallel:true })", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertNotNull(row.get("updateStatistics"));
+            Map<String, Long> updateStats = (Map<String, Long>) row.get("updateStatistics");
+            assertNotNull(updateStats);
+            assertEquals(100, (long) updateStats.get("nodesCreated"));
+            assertEquals(0, (long) updateStats.get("nodesDeleted"));
+            assertEquals(100, (long) updateStats.get("relationshipsCreated"));
+            assertEquals(0, (long) updateStats.get("relationshipsDeleted"));
+            assertEquals(200, (long) updateStats.get("propertiesSet"));
+            assertEquals(100, (long) updateStats.get("labelsAdded"));
+            assertEquals(0, (long) updateStats.get("labelsRemoved"));
+        });
+
+        testResult(db, "CALL apoc.periodic.iterate(" +
+                "'MATCH (n:Node) RETURN n', " +
+                "'REMOVE n:Node', " +
+                "{ batchSize:10, parallel:true })", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertNotNull(row.get("updateStatistics"));
+            Map<String, Long> updateStats = (Map<String, Long>) row.get("updateStatistics");
+            assertNotNull(updateStats);
+            assertEquals(0, (long) updateStats.get("nodesCreated"));
+            assertEquals(0, (long) updateStats.get("nodesDeleted"));
+            assertEquals(0, (long) updateStats.get("relationshipsCreated"));
+            assertEquals(0, (long) updateStats.get("relationshipsDeleted"));
+            assertEquals(0, (long) updateStats.get("propertiesSet"));
+            assertEquals(0, (long) updateStats.get("labelsAdded"));
+            assertEquals(100, (long) updateStats.get("labelsRemoved"));
+        });
+
+        testResult(db, "CALL apoc.periodic.iterate(" +
+                "'MATCH (n) RETURN n', " +
+                "'DETACH DELETE n', " +
+                "{ batchSize:10, parallel:true })", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertNotNull(row.get("updateStatistics"));
+            Map<String, Long> updateStats = (Map<String, Long>) row.get("updateStatistics");
+            assertNotNull(updateStats);
+            assertEquals(0, (long) updateStats.get("nodesCreated"));
+            assertEquals(100, (long) updateStats.get("nodesDeleted"));
+            assertEquals(0, (long) updateStats.get("relationshipsCreated"));
+            assertEquals(100, (long) updateStats.get("relationshipsDeleted"));
+            assertEquals(0, (long) updateStats.get("propertiesSet"));
+            assertEquals(0, (long) updateStats.get("labelsAdded"));
+            assertEquals(0, (long) updateStats.get("labelsRemoved"));
+        });
+
     }
 
     @Test
@@ -421,6 +479,21 @@ public class PeriodicTest {
         testFail(query);
     }
 
+    @Test(expected = QueryExecutionException.class, timeout = 1000)
+    public void testIterateQueryFailInvalidConcurrency() {
+        final String query = "CALL apoc.periodic.iterate('UNWIND range(0, 10) AS x RETURN x', " +
+                "'RETURN x', " +
+                "{concurrency:0 ,parallel:true})";
+        testFail(query);
+    }
+
+    @Test(expected = QueryExecutionException.class, timeout = 1000)
+    public void testIterateQueryFailInvalidBatchSize() {
+        final String query = "CALL apoc.periodic.iterate('UNWIND range(0, 10) AS x RETURN x', " +
+                "'RETURN x', " +
+                "{batchSize:0 ,parallel:true})";
+        testFail(query);
+    }
 
     private void testFail(String query) {
         testCall(db, query, row -> fail("The test should fail but it didn't"));
