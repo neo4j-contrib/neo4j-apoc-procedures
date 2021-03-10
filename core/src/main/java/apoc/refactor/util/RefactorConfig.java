@@ -34,13 +34,6 @@ public class RefactorConfig {
 	private final RelationshipSelectionStrategy relationshipSelectionStrategy;
 
 	public RefactorConfig(Map<String,Object> config) {
-		Object value = config.get("properties");
-		hasProperties = value != null;
-		if (value instanceof String) {
-			setPropertiesManagement(value.toString());
-		} else if (value instanceof Map) {
-			this.propertiesManagement = (Map<String,String>)value;
-		}
 
 		this.mergeRelsAllowed = toBoolean(config.get("mergeRels"));
 		this.mergeVirtualRels = toBoolean(config.getOrDefault("mergeRelsVirtual", true));
@@ -50,6 +43,16 @@ public class RefactorConfig {
 		this.singleElementAsArray = toBoolean(config.getOrDefault("singleElementAsArray", false));
 		this.relationshipSelectionStrategy = RelationshipSelectionStrategy.valueOf(
 				((String) config.getOrDefault("relationshipSelectionStrategy", RelationshipSelectionStrategy.INCOMING.toString())).toUpperCase() );
+
+		Object value = config.get("properties");
+		hasProperties = value != null;
+		if (value instanceof String) {
+			this.propertiesManagement = Collections.singletonMap(MATCH_ALL, value.toString());
+		} else if (value instanceof Map) {
+			this.propertiesManagement = (Map<String,String>)value;
+		} else if (mergeRelsAllowed && !hasProperties) {
+			this.propertiesManagement = Collections.singletonMap(MATCH_ALL, COMBINE);
+		}
 	}
 
 	public String getMergeMode(String name){
@@ -94,10 +97,6 @@ public class RefactorConfig {
 
 	public boolean isSingleElementAsArray() {
 		return singleElementAsArray;
-	}
-
-	public void setPropertiesManagement(String value) {
-		this.propertiesManagement = Collections.singletonMap(MATCH_ALL, value);
 	}
 
 	public RelationshipSelectionStrategy getRelationshipSelectionStrategy() {
