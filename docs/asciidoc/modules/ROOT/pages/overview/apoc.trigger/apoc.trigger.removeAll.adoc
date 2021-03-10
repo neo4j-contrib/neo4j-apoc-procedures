@@ -20,7 +20,7 @@ apoc.trigger.removeAll() :: (name :: STRING?, query :: STRING?, selector :: MAP?
 == Output parameters
 [.procedures, opts=header]
 |===
-| Name | Type
+| Name | Type 
 |name|STRING?
 |query|STRING?
 |selector|MAP?

@@ -20,7 +20,7 @@ apoc.trigger.propertiesByKey(propertyEntries :: MAP?, key :: STRING?) :: (LIST? 
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default
+| Name | Type | Default 
 |propertyEntries|MAP?|null
 |key|STRING?|null
 |===

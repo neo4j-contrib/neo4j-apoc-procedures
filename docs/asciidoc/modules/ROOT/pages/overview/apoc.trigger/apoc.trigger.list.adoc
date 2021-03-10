@@ -20,7 +20,7 @@ apoc.trigger.list() :: (name :: STRING?, query :: STRING?, selector :: MAP?, par
 == Output parameters
 [.procedures, opts=header]
 |===
-| Name | Type
+| Name | Type 
 |name|STRING?
 |query|STRING?
 |selector|MAP?

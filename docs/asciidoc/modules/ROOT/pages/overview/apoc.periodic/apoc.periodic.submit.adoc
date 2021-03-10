@@ -20,7 +20,7 @@ apoc.periodic.submit(name :: STRING?, statement :: STRING?) :: (name :: STRING?,
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default
+| Name | Type | Default 
 |name|STRING?|null
 |statement|STRING?|null
 |===
@@ -28,7 +28,7 @@ apoc.periodic.submit(name :: STRING?, statement :: STRING?) :: (name :: STRING?,
 == Output parameters
 [.procedures, opts=header]
 |===
-| Name | Type
+| Name | Type 
 |name|STRING?
 |delay|INTEGER?
 |rate|INTEGER?
