@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static apoc.util.Util.isSelfRel;
+
 public class RefactorUtil {
 
     public static void mergeRelsWithSameTypeAndDirectionInMergeNodes(Node node, RefactorConfig config, Direction dir) {
@@ -17,7 +19,7 @@ public class RefactorUtil {
                     .filter(list -> !list.isEmpty())
                     .forEach(list -> {
                         Relationship first = list.get(0);
-                        if (first.getStartNodeId() == first.getEndNodeId() && !config.isSelfRel()) {
+                        if (isSelfRel(first) && !config.isSelfRel()) {
                             list.forEach(Relationship::delete);
                         } else {
                             for (int i = 1; i < list.size(); i++) {

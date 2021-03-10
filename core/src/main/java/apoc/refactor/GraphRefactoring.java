@@ -582,9 +582,6 @@ public class GraphRefactoring {
             Map<String, Object> properties = source.getAllProperties();
             copyRelationships(source, copyLabels(source, target), delete);
             if (conf.getMergeRelsAllowed()) {
-                if(!conf.hasProperties()) {
-                    conf.setPropertiesManagement("combine");
-                }
                 mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.OUTGOING);
                 mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING);
             }
