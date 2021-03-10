@@ -14,7 +14,7 @@ apoc.periodic.iterate('statement returning items', 'statement per item', {batchS
 
 [source]
 ----
-apoc.periodic.iterate(cypherIterate :: STRING?, cypherAction :: STRING?, config :: MAP?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, wasTerminated :: BOOLEAN?, failedParams :: MAP?)
+apoc.periodic.iterate(cypherIterate :: STRING?, cypherAction :: STRING?, config :: MAP?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, wasTerminated :: BOOLEAN?, failedParams :: MAP?, updateStatistics :: MAP?)
 ----
 
 == Input parameters
@@ -45,6 +45,7 @@ include::partial$usage/config/apoc.periodic.iterate.adoc[]
 |operations|MAP?
 |wasTerminated|BOOLEAN?
 |failedParams|MAP?
+|updateStatistics|MAP?
 |===
 
 [[usage-apoc.periodic.iterate]]
