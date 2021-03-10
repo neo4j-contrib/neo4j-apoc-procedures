@@ -14,7 +14,7 @@ apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on
 
 [source]
 ----
-apoc.periodic.rock_n_roll(cypherIterate :: STRING?, cypherAction :: STRING?, batchSize :: INTEGER?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, wasTerminated :: BOOLEAN?, failedParams :: MAP?)
+apoc.periodic.rock_n_roll(cypherIterate :: STRING?, cypherAction :: STRING?, batchSize :: INTEGER?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, wasTerminated :: BOOLEAN?, failedParams :: MAP?, updateStatistics :: MAP?)
 ----
 
 == Input parameters
@@ -42,6 +42,7 @@ apoc.periodic.rock_n_roll(cypherIterate :: STRING?, cypherAction :: STRING?, bat
 |operations|MAP?
 |wasTerminated|BOOLEAN?
 |failedParams|MAP?
+|updateStatistics|MAP?
 |===
 
 xref::graph-updates/periodic-execution.adoc#periodic-rock-n-roll[More documentation of apoc.periodic.rock_n_roll,role=more information]
