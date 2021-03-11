@@ -6,4 +6,5 @@ The procedure support the following config parameters:
 | name | type | default | description
 | charset | String | "UTF-8" | the character set of the page being scraped
 | baseUri | String | "" | Base URI used to resolve relative paths
+| failSilently | Enum [FALSE, WITH_LOG, WITH_LIST] | FALSE | If the parse fails with one or more elements, using `FALSE` it throws a `RuntimeException`, using `WITH_LOG` a `log.warn` is created for each incorrect item and using `WITH_LIST` an `errorList` key is added to the result with the failed tags.
 |===
