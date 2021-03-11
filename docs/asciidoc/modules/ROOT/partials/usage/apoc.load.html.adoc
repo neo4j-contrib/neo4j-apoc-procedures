@@ -143,3 +143,85 @@ a|
 }
 ----
 |===
+
+Let's suppose we have a `test.html` file like this:
+[source,html]
+----
+<!DOCTYPE html>
+<html class="client-nojs" lang="en" dir="ltr">
+  <h6 i d="error">test</h6>
+  <h6 id="correct">test</h6>
+</html>
+----
+
+We can handle the parse error caused by `i d` through `failSilently` configuration.
+So, we can execute:
+
+[source,cypher]
+----
+CALL apoc.load.html("test.html",{h6:"h6"});
+----
+.Results
+[opts="header"]
+|===
+| Failed to invoke procedure `apoc.load.html`: Caused by: java.lang.RuntimeException: Error during parsing element: <h6 i d="error">test</h6>
+|===
+
+or with failSilently `WITH_LIST`:
+
+[source,cypher]
+----
+CALL apoc.load.html("test.html",{h6:"h6"}, {failSilently: 'WITH_LIST'});
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+a|
+[source,json]
+----
+{
+  "errorList": [
+    "<h6 i d="error">test</h6>"
+  ],
+  "h6": [
+    {
+      "attributes": {
+        "id": "correct"
+      },
+      "text": "test",
+      "tagName": "h6"
+    }
+  ]
+}
+----
+|===
+
+or with failSilently `WITH_LOG` (note that will be created a `log.warn("Error during parsing element: <h6 i d="error">test</h6>")` ):
+
+[source,cypher]
+----
+CALL apoc.load.html("test.html",{h6:"h6"}, {failSilently: 'WITH_LOG'});
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+a|
+[source,json]
+----
+{
+  "h6": [
+    {
+      "attributes": {
+        "id": "correct"
+      },
+      "text": "test",
+      "tagName": "h6"
+    }
+  ]
+}
+----
+|===
