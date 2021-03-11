@@ -15,11 +15,19 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
+
 import java.util.*;
 import java.util.stream.Stream;
 
 @Extended
 public class LoadHtml {
+
+    // public for test purpose
+    public static final String KEY_ERROR = "errorList";
+
+    private enum FailSilently { FALSE, WITH_LOG, WITH_LIST }
 
     @Context
     public GraphDatabaseService db;
@@ -34,48 +42,71 @@ public class LoadHtml {
         return readHtmlPage(url, query, config);
     }
 
-    private Stream<MapResult> readHtmlPage(String url, Map<String, String> query, Map<String, Object> config){
+    private Stream<MapResult> readHtmlPage(String url, Map<String, String> query, Map<String, Object> config) {
+        String charset = config.getOrDefault("charset", "UTF-8").toString();
         try {
-            String charset = config.getOrDefault("charset", "UTF-8").toString();
             // baseUri is used to resolve relative paths
             String baseUri = config.getOrDefault("baseUri", "").toString();
 
             Document document = Jsoup.parse(Util.openInputStream(url, null, null), charset, baseUri);
 
             Map<String, Object> output = new HashMap<>();
+            List<String> errorList = new ArrayList<>();
 
-            query.keySet().stream().forEach(key -> {
-                Elements elements = document.select(query.get(key));
-
-                output.put(key, getElements(elements, config));
+            query.keySet().forEach(key -> {
+                        Elements elements = document.select(query.get(key));
+                        output.put(key, getElements(elements, config, errorList));
             });
+            if (!errorList.isEmpty()) {
+                output.put(KEY_ERROR, errorList);
+            }
 
-            return Stream.of( new MapResult(output) );
-        } catch(Exception e){
-            throw new RuntimeException("Can't read the HTML from: "+ url);
+            return Stream.of(new MapResult(output) );
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("File not found from: " + url);
+        } catch(UnsupportedEncodingException e) {
+            throw new RuntimeException("Unsupported charset: " + charset);
+        } catch(Exception e) {
+            throw new RuntimeException("Can't read the HTML from: "+ url, e);
         }
     }
 
-    private List<Map<String, Object>> getElements(Elements elements, Map<String, Object> config) {
+    private List<Map<String, Object>> getElements(Elements elements, Map<String, Object> config, List<String> errorList) {
+
+        FailSilently failConfig = FailSilently.valueOf((String) config.getOrDefault("failSilently", "FALSE"));
         List<Map<String, Object>> elementList = new ArrayList<>();
 
         for (Element element : elements) {
-            Map<String, Object> result = new HashMap<>();
-            if(element.attributes().size() > 0) result.put("attributes", getAttributes(element));
-            if(!element.data().isEmpty()) result.put("data", element.data());
-            if(!element.val().isEmpty()) result.put("value", element.val());
-            if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
+            try {
+                    Map<String, Object> result = new HashMap<>();
+                    if(element.attributes().size() > 0) result.put("attributes", getAttributes(element));
+                    if(!element.data().isEmpty()) result.put("data", element.data());
+                    if(!element.val().isEmpty()) result.put("value", element.val());
+                    if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
 
-            if ( Util.toBoolean( config.getOrDefault("children", false) ) ) {
-                if(element.hasText())  result.put("text", element.ownText());
+                    if (Util.toBoolean(config.getOrDefault("children", false))) {
+                        if(element.hasText()) result.put("text", element.ownText());
 
-                result.put("children", getElements(element.children(), config));
+                        result.put("children", getElements(element.children(), config, errorList));
+                    }
+                    else {
+                        if(element.hasText()) result.put("text", element.text());
+                    }
+
+                    elementList.add(result);
+            } catch (Exception e) {
+                final String parseError = "Error during parsing element: " + element;
+                switch (failConfig) {
+                    case WITH_LOG:
+                        log.warn(parseError);
+                        break;
+                    case WITH_LIST:
+                        errorList.add(element.toString());
+                        break;
+                    default:
+                        throw new RuntimeException(parseError);
+                }
             }
-            else {
-                if(element.hasText()) result.put("text", element.text());
-            }
-
-            elementList.add(result);
         }
 
         return elementList;
