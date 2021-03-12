@@ -1,33 +1,47 @@
 package apoc.bolt;
 
-import apoc.Extended;
 import apoc.result.RowResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.util.UriResolver;
 import apoc.util.Util;
-import org.neo4j.driver.*;
+import org.apache.commons.lang3.StringUtils;
+import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.Transaction;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.internal.InternalEntity;
 import org.neo4j.driver.internal.InternalPath;
-import org.neo4j.driver.internal.logging.JULogging;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 import org.neo4j.driver.types.Relationship;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
-import java.util.logging.Level;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.util.MapUtil.map;
@@ -36,31 +50,25 @@ import static apoc.util.MapUtil.map;
  * @author AgileLARUS
  * @since 29.08.17
  */
-@Extended
 public class Bolt {
+
+    @Context
+    public GraphDatabaseService db;
 
     @Procedure()
     @Description("apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read")
     public Stream<RowResult> load(@Name("url") String url, @Name("kernelTransaction") String statement, @Name(value = "params", defaultValue = "{}") Map<String, Object> params, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws URISyntaxException {
-        if (config == null) config = Collections.emptyMap();
-        boolean virtual = (boolean) config.getOrDefault("virtual", false);
-        boolean addStatistics = (boolean) config.getOrDefault("statistics", false);
-        boolean readOnly = (boolean) config.getOrDefault("readOnly", true);
-
-        Config driverConfig = toDriverConfig(config.getOrDefault("driverConfig", map()));
+        BoltConfig boltConfig = new BoltConfig(config);
         UriResolver uri = new UriResolver(url, "bolt");
         uri.initialize();
-
-        SessionConfig sessionConfig = SessionConfig.builder().withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE).build();
-
-        return withDriver(uri.getConfiguredUri(), uri.getToken(), driverConfig, driver ->
-                withSession(driver, sessionConfig, session -> {
-                    if (addStatistics) {
+        return withDriver(uri.getConfiguredUri(), uri.getToken(), boltConfig.getDriverConfig(), driver ->
+                withSession(driver, boltConfig.getSessionConfig(), session -> {
+                    if (boltConfig.isAddStatistics()) {
                         Result statementResult = session.run(statement, params);
                         SummaryCounters counters = statementResult.consume().counters();
                         return Stream.of(new RowResult(toMap(counters)));
                     } else
-                        return getRowResultStream(virtual, session, params, statement);
+                        return getRowResultStream(boltConfig.isVirtual(), session, params, statement);
                 }));
     }
 
@@ -82,6 +90,49 @@ public class Bolt {
     private <T> Stream<T> withTransaction(Session session, Function<Transaction, Stream<T>> function) {
         Transaction transaction = session.beginTransaction();
         return function.apply(transaction).onClose(() -> transaction.commit()).onClose(() -> transaction.close());
+    }
+
+    @Procedure(value = "apoc.bolt.load.fromLocal", mode = Mode.WRITE)
+    public Stream<RowResult> fromLocal(@Name("url") String url,
+                                       @Name("localStatement") String localStatement,
+                                       @Name("remoteStatement") String remoteStatement,
+                                       @Name(value = "config", defaultValue = "{}") Map<String, Object> config)  throws URISyntaxException {
+        BoltConfig boltConfig = new BoltConfig(config);
+        UriResolver uri = new UriResolver(url, "bolt");
+        uri.initialize();
+        return withDriver(uri.getConfiguredUri(), uri.getToken(), boltConfig.getDriverConfig(), driver ->
+                withSession(driver, boltConfig.getSessionConfig(), session -> {
+                    try (org.neo4j.graphdb.Transaction tx = db.beginTx()) {
+                        final org.neo4j.graphdb.Result localResult = tx.execute(localStatement, boltConfig.getLocalParams());
+                        String withColumns = "WITH " + localResult.columns().stream()
+                                .map(c -> "$" + c + " AS " + c)
+                                .collect(Collectors.joining(", ")) + "\n";
+                        Map<Long, Object> nodesCache = new HashMap<>();
+                        List<RowResult> response = new ArrayList<>();
+                        while (localResult.hasNext()) {
+                            final Result statementResult;
+                            Map<String, Object> row = localResult.next();
+                            if (boltConfig.isStreamStatements()) {
+                                final String statement = (String) row.get("statement");
+                                if (StringUtils.isBlank(statement)) continue;
+                                final Map<String, Object> params = Collections.singletonMap("params", row.getOrDefault("params", Collections.emptyMap()));
+                                statementResult = session.run(statement, params);
+                            } else {
+                                statementResult = session.run(withColumns + remoteStatement, row);
+                            }
+                            if (boltConfig.isStreamStatements()) {
+                                response.add(new RowResult(toMap(statementResult.consume().counters())));
+                            } else {
+                                response.addAll(
+                                        statementResult.stream()
+                                                .map(record -> buildRowResult(record, nodesCache, boltConfig.isVirtual()))
+                                                .collect(Collectors.toList())
+                                );
+                            }
+                        }
+                        return response.stream();
+                    }
+                }));
     }
 
     @Procedure()
@@ -163,60 +214,6 @@ public class Bolt {
         );
     }
 
-    private Config toDriverConfig(Object driverConfig) {
-        Map<String, Object> driverConfMap = (Map<String, Object>) driverConfig;
-        String logging = (String) driverConfMap.getOrDefault("logging", "INFO");
-        boolean encryption = (boolean) driverConfMap.getOrDefault("encryption", false);
-        boolean logLeakedSessions = (boolean) driverConfMap.getOrDefault("logLeakedSessions", true);
-        Long idleTimeBeforeConnectionTest = (Long) driverConfMap.getOrDefault("idleTimeBeforeConnectionTest", -1L);
-        String trustStrategy = (String) driverConfMap.getOrDefault("trustStrategy", "TRUST_ALL_CERTIFICATES");
-//        Long routingFailureLimit = (Long) driverConfMap.getOrDefault("routingFailureLimit", 1L);
-//        Long routingRetryDelayMillis = (Long) driverConfMap.getOrDefault("routingRetryDelayMillis", 5000L);
-        Long connectionTimeoutMillis = (Long) driverConfMap.get("connectionTimeoutMillis");
-        Long maxRetryTimeMs = (Long) driverConfMap.get("maxRetryTimeMs");
-        Long maxConnectionLifeTime = (Long) driverConfMap.get("maxConnectionLifeTime");
-        Long maxConnectionPoolSize = (Long) driverConfMap.get("maxConnectionPoolSize");
-        Long routingTablePurgeDelay = (Long) driverConfMap.get("routingTablePurgeDelay");
-        Long connectionAcquisitionTimeout = (Long) driverConfMap.get("connectionAcquisitionTimeout");
 
-        Config.ConfigBuilder config = Config.builder();
-
-        config.withLogging(new JULogging(Level.parse(logging)));
-        if(encryption) config.withEncryption();
-        config.withTrustStrategy(Config.TrustStrategy.trustAllCertificates());
-        if(!logLeakedSessions) config.withoutEncryption();
-
-        if (connectionAcquisitionTimeout!=null) {
-            config.withConnectionAcquisitionTimeout(connectionAcquisitionTimeout, TimeUnit.MILLISECONDS);
-        }
-        //config.withDriverMetrics();
-        if (maxConnectionLifeTime!=null) {
-            config.withMaxConnectionLifetime(maxConnectionLifeTime, TimeUnit.MILLISECONDS);
-        }
-        if (maxConnectionPoolSize!=null) {
-            config.withMaxConnectionPoolSize(maxConnectionPoolSize.intValue());
-        }
-        if (routingTablePurgeDelay!=null) {
-            config.withRoutingTablePurgeDelay(routingTablePurgeDelay, TimeUnit.MILLISECONDS);
-        }
-//        config.withRoutingFailureLimit(routingFailureLimit.intValue());
-//        config.withRoutingRetryDelay(routingRetryDelayMillis,TimeUnit.MILLISECONDS);
-        if (idleTimeBeforeConnectionTest!=null) {
-            config.withConnectionLivenessCheckTimeout(idleTimeBeforeConnectionTest, TimeUnit.MILLISECONDS);
-        }
-        if (connectionTimeoutMillis!=null) {
-            config.withConnectionTimeout(connectionTimeoutMillis, TimeUnit.MILLISECONDS);
-        }
-        if (maxRetryTimeMs!=null) {
-            config.withMaxTransactionRetryTime(maxRetryTimeMs, TimeUnit.MILLISECONDS);
-        }
-        if(trustStrategy.equals("TRUST_ALL_CERTIFICATES")) config.withTrustStrategy(Config.TrustStrategy.trustAllCertificates());
-        else if(trustStrategy.equals("TRUST_SYSTEM_CA_SIGNED_CERTIFICATES")) config.withTrustStrategy(Config.TrustStrategy.trustSystemCertificates());
-        else {
-            File file = new File(trustStrategy);
-            config.withTrustStrategy(Config.TrustStrategy.trustCustomCertificateSignedBy(file));
-        }
-        return config.build();
-    }
 
 }
