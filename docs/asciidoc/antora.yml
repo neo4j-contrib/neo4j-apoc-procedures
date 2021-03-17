@@ -8,6 +8,6 @@ asciidoc:
     docs-version: "4.2"
     branch: "4.2"
     apoc-release-absolute: "4.2"
-    apoc-release: "4.2.0.1"
+    apoc-release: "4.2.0.2"
     page-product: "apoc"
     page-pagination: true
