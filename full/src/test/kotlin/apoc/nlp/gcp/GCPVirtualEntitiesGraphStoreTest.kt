@@ -10,6 +10,8 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.junit.ClassRule
 import org.junit.Test
+import org.neo4j.configuration.SettingImpl
+import org.neo4j.configuration.SettingValueParsers
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.RelationshipType
 import org.neo4j.test.rule.ImpermanentDbmsRule
@@ -20,6 +22,8 @@ class GCPVirtualEntitiesGraphStoreTest {
         @ClassRule
         @JvmField
         val neo4j = ImpermanentDbmsRule()
+                .withSetting(SettingImpl.newBuilder("unsupported.dbms.debug.track_cursor_close", SettingValueParsers.BOOL, false).build(), false)
+                .withSetting(SettingImpl.newBuilder("unsupported.dbms.debug.trace_cursors", SettingValueParsers.BOOL, false).build(), false)
     }
 
     @Test

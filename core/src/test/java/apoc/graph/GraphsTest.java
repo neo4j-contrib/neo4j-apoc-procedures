@@ -9,6 +9,8 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.configuration.SettingImpl;
+import org.neo4j.configuration.SettingValueParsers;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Relationship;
@@ -49,7 +51,9 @@ public class GraphsTest {
     private static Map<String,Object> graph = map("name","test","properties",map("answer",42L));
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule();
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(SettingImpl.newBuilder("unsupported.dbms.debug.track_cursor_close", SettingValueParsers.BOOL, false).build(), false)
+            .withSetting(SettingImpl.newBuilder("unsupported.dbms.debug.trace_cursors", SettingValueParsers.BOOL, false).build(), false);
 
     @Before
     public void setUp() throws Exception {

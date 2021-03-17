@@ -17,12 +17,17 @@ import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.RelationshipType
 import org.neo4j.test.rule.ImpermanentDbmsRule
 import java.util.stream.Collectors
+import org.neo4j.configuration.SettingImpl.newBuilder;
+import org.neo4j.configuration.SettingValueParsers.BOOL;
 
 class AWSVirtualEntitiesGraphStoreTest {
     companion object {
         @ClassRule
         @JvmField
         val neo4j = ImpermanentDbmsRule()
+                .withSetting(newBuilder( "unsupported.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
+                .withSetting(newBuilder( "unsupported.dbms.debug.trace_cursors", BOOL, false ).build(), false)
+
     }
 
     @Test
