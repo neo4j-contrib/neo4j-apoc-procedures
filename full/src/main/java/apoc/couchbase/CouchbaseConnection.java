@@ -61,7 +61,7 @@ public class CouchbaseConnection implements AutoCloseable {
     protected CouchbaseConnection(String hostOrKey, PasswordAuthenticator authenticator, String bucketName, ClusterEnvironment env) {
 
         // get Set<SeedNode> by hostOrKey
-        Set<SeedNode> seedNodes = null;
+        Set<SeedNode> seedNodes;
         URI singleHostURI = checkAndGetURI(hostOrKey);
         String url;
         if (singleHostURI == null || singleHostURI.getScheme() == null) {

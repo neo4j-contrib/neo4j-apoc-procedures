@@ -26,32 +26,32 @@ public class CouchbaseJsonDocument implements CouchbaseDocument<Map<String, Obje
   /**
    * The per-bucket unique ID of the {@link GetResult} or the {@link MutationResult}.
    */
-  public String id;
+  public final String id;
 
   /**
    * The optional expiration time for the {@link GetResult} (0 if not set).
    */
-  public long expiry;
+  public final long expiry;
 
   /**
    * The last-known CAS (<i>Compare And Swap</i>) value for the {@link MutationResult} (0 if not set).
    */
-  public long cas;
+  public final long cas;
 
   /**
    * The optional, opaque mutation token set after a successful mutation and if
    * enabled on the environment.
    */
-  public Map<String, Object> mutationToken;
+  public final Map<String, Object> mutationToken;
 
   /**
    * The content of the {@link GetResult}.
    */
-  public Map<String, Object> content;
+  public final Map<String, Object> content;
 
   public CouchbaseJsonDocument(GetResult getResult, String id) {
     this.id = id;
-    this.expiry = getResult.expiryTime().orElse(Instant.ofEpochMilli(0)).toEpochMilli();
+    this.expiry = getExpiry(getResult);
     this.cas = getResult.cas();
     this.mutationToken = null;
     this.content = getResult.contentAsObject().toMap();
@@ -72,6 +72,10 @@ public class CouchbaseJsonDocument implements CouchbaseDocument<Map<String, Obje
       this.mutationToken = convertMutationTokenToMap(mutationResult.mutationToken().orElse(null));
       this.content = getResult.contentAsObject().toMap();
     }
+  }
+
+  private long getExpiry(GetResult getResult) {
+    return getResult.expiryTime().orElse(Instant.ofEpochMilli(0)).toEpochMilli();
   }
 
   @Override
