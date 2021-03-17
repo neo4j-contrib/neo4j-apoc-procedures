@@ -187,9 +187,9 @@ The trailing `<apoc>` part of the version number will be incremented with every 
 [opts=header]
 |===
 |apoc version | neo4j version
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.2.0.1[4.2.0.2#^] | 4.2.2 (4.2.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.2.0.1[4.2.0.2^] | 4.2.2 (4.2.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.1.0.4[4.1.0.4^] | 4.1.1 (4.1.x)
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.16[4.0.0.16#^] | 4.0.6 (4.0.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.16[4.0.0.16^] | 4.0.6 (4.0.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11[3.5.0.11^] | 3.5.16 (3.5.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.4[3.4.0.6^] | 3.4.12 (3.4.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.4[3.3.0.4^] | 3.3.6 (3.3.x)
