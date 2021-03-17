@@ -4,9 +4,10 @@ The second parameter is the cypher query that will be executed.
 The query can have the following parameters:
 
 * $fileName: the name of the file which triggered the event
-* $filePath: the absolute path of the file which triggered the event
-* $fileDirectory: the path directory of the file which triggered the event
-* $eventKind: the triggered event ("ENTRY_CREATE", "ENTRY_DELETE" or "ENTRY_MODIFY")
+TODO
+* $filePath: the absolute path of the file which triggered the event if `apoc.import.file.use_neo4j_config=false`, otherwise the relative path starting from ``$IMPORT_DIR`
+* $fileDirectory: the absolute path directory of the file which triggered the event if `apoc.import.file.use_neo4j_config=false`, otherwise the relative path starting from ``$IMPORT_DIR`
+* $listenEventType: the triggered event ("CREATE", "DELETE" or "MODIFY")
 
 
 The third parameter is the pattern of file to search for.
@@ -23,13 +24,13 @@ We can do the following procedure:
 
 [source,cypher]
 ----
-CALL apoc.load.directory.add('test', 'CREATE (n:Test)');
+CALL apoc.load.directory.async.add('test', 'CREATE (n:Test)');
 ----
 so every time, in `import` folder, a file is created/deleted/updated will be executed the query `CREATE (n:Test)`.
 
 We can listen only for specified event kinds, for example for file creation, and create an import report:
 ----
-CALL apoc.load.directory.add('test', 'CREATE (n:Import {fileName: $fileName})', '*', '', {eventKinds: ['ENTRY_CREATE']});
+CALL apoc.load.directory.async.add('test', 'CREATE (n:Import {fileName: $fileName})', '*', '', {eventKinds: ['ENTRY_CREATE']});
 ----
 to listen only for file creation. So, if we import two file "foo.csv" and "bar.csv", will be created 2 nodes: `(n:Import {fileName: 'foo.csv'})` and `(n:Import {fileName: 'bar.csv'})`.
 
@@ -38,13 +39,13 @@ Moreover, we can set a specific file pattern, for example:
 
 [source,cypher]
 ----
-CALL apoc.load.directory.add('test', 'CREATE (n:Test)', '*.csv');
+CALL apoc.load.directory.async.add('test', 'CREATE (n:Test)', '*.csv');
 ----
 in this case, every time in `import` folder, a file `.csv` is created/deleted/updated will be executed the query `CREATE (n:Test)`.
 
 Furthermore, we can also set a path, like:
 ----
-CALL apoc.load.directory.add('test', 'CREATE (n:Test)', '*.csv', 'subfolderImport');
+CALL apoc.load.directory.async.add('test', 'CREATE (n:Test)', '*.csv', 'subfolderImport');
 ----
 to listen in a subfolder called `subfolderImport` in `import` folder.
 
@@ -52,5 +53,5 @@ to listen in a subfolder called `subfolderImport` in `import` folder.
 
 Instead, if we set `apoc.import.file.use_neo4j_config=false`, we can search with an absolute path:
 ----
-CALL apoc.load.directory.add('test', 'CREATE (n:Test)', '*.csv', 'file:///Users/username/Downloads');
+CALL apoc.load.directory.async.add('test', 'CREATE (n:Test)', '*.csv', 'file:///Users/username/Downloads');
 ----

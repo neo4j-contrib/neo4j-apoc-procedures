@@ -1,0 +1,180 @@
+== Examples of interoperability with other procedures
+
+We can use as query parameter, another load procedure, like `apoc.load.csv` or `apoc.load.json`.
+
+Here is two examples.
+
+We can execute:
+
+[source,cypher]
+----
+CALL apoc.load.directory.async.add('csvImport',
+"CALL apoc.load.csv($filePath) yield list WITH list CREATE (n:CsvToNode {content: list, fileName: $fileName, fileDirectory: $fileDirectory, listenEventType: $listenEventType})",
+"*.csv", "csvFolder" ,{listenEventType: ["CREATE", "MODIFY"]})
+----
+
+where `$fileName` is the file created/modified,
+`$filePath` is the relative path of the file, that is `$IMPORT_DIR/csvFolder/[FILENAME.csv]`,
+`$fileDirectory` is the relative path of the directory, that is `$IMPORT_DIR/csvFolder`
+and `$listenEventType` is the triggered event, that is `CREATE` or `MODIFY`.
+
+
+If we upload the following file in `$IMPORT_DIR/csvFolder` folder:
+
+.test.csv
+[source,csv]
+----
+name,age
+Selma,8
+Rana,11
+Selina,18
+----
+
+and then, executing `MATCH (n:CsvToNode) RETURN properties(n) as props`:
+
+.Results
+[opts="header"]
+|===
+| props
+| {
+  "fileName": "test.csv",
+  "listenEventType": "CREATE",
+  "fileDirectory": "csvFolder",
+  "content": [
+    "Selma",
+    "8"
+  ]
+}
+| {
+  "fileName": "test.csv",
+  "listenEventType": "CREATE",
+  "fileDirectory": "csvFolder",
+  "content": [
+    "Rana",
+    "11"
+  ]
+}
+| {
+  "fileName": "test.csv",
+  "listenEventType": "CREATE",
+  "fileDirectory": "csvFolder",
+  "content": [
+    "Selina",
+    "18"
+  ]
+}
+|===
+
+If we modify the `test.csv` as follow:
+
+.test.csv
+[source,csv]
+----
+name,age
+Selma,80
+Rana,110
+Selina,180
+----
+
+we obtain 3 new nodes with these props:
+
+.Results
+[opts="header"]
+|===
+| props
+| {
+  "fileName": "test.csv",
+  "listenEventType": "MODIFY",
+  "fileDirectory": "csvFolder",
+  "content": [
+    "Selma",
+    "80"
+  ]
+}
+| {
+  "fileName": "test.csv",
+  "listenEventType": "MODIFY",
+  "fileDirectory": "csvFolder",
+  "content": [
+    "Rana",
+    "110"
+  ]
+}
+| {
+  "fileName": "test.csv",
+  "listenEventType": "MODIFY",
+  "fileDirectory": "csvFolder",
+  "content": [
+    "Selina",
+    "180"
+  ]
+}
+|===
+
+
+
+Or else, we can execute:
+
+[source,cypher]
+----
+CALL apoc.load.directory.async.add('jsonImport',
+"CALL apoc.load.json($filePath) yield value WITH value CREATE (n:JsonToNode {content: value['foo'], fileName: $fileName, fileDirectory: $fileDirectory})",
+"*.json", "jsonFolder", {listenEventType: ["CREATE"]})
+----
+
+If we upload the following files in `$IMPORT_DIR/jsonFolder` folder:
+
+.fileOne.json
+[source,json]
+----
+{ "foo":[1,2,3] }
+{ "foo":[4,5,6] }
+----
+
+and
+
+.fileTwo.json
+[source,json]
+----
+{ "foo":[11,22,33] }
+{ "foo":[41,51,61] }
+----
+
+We obtain this result calling `MATCH (n:JsonToNode) RETURN properties(n) as props`:
+
+.Results
+[opts="header"]
+|===
+| props
+| {
+  "fileName": "fileOne.json",
+  "fileDirectory": "jsonFolder",
+  "content": [ 1,2,3 ]
+}
+| {
+  "fileName": "fileOne.json",
+  "fileDirectory": "jsonFolder",
+  "content": [ 4,5,6 ]
+}
+| {
+  "fileName": "fileTwo.json",
+  "fileDirectory": "jsonFolder",
+  "content": [ 11,22,33 ]
+}
+| {
+  "fileName": "fileTwo.json",
+  "fileDirectory": "jsonFolder",
+  "content": [ 41,51,61 ]
+}
+|===
+
+== Error handling
+
+When for some reason, the listener fails, its `status` field change from `RUNNING` to `ERROR`, and the associated error is put
+so if we execute `call apoc.load.directory.async.list`, we obtain, for example:
+
+[opts=header, ,cols="1,1,1,1,1,1,3"]
+|===
+| name|	status|	pattern| cypher| urlDir| config| error
+| `listenerName` | `ERROR` | `*.csv` | `'create (n:Node)'` | `'path'` | `{}` | `"org.neo4j.graphdb.QueryExecutionException: Failed to invoke procedure apoc.load.csv: Caused by: java.io.FileNotFoundException ....`
+|====

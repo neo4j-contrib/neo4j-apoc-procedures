@@ -2,31 +2,33 @@ package apoc.load;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class LoadDirectoryItem {
 
-    public static final String EVENT_KINDS = "eventKinds";
+    public static final String LISTEN_EVENT_TYPE = "listenEventType";
     public static final String INTERVAL = "interval";
-    public static final List<String> DEFAULT_EVENT_KINDS = List.of("ENTRY_CREATE", "ENTRY_DELETE", "ENTRY_MODIFY");
+    public static final Set<String> DEFAULT_EVENT_TYPES = Set.of("CREATE", "DELETE", "MODIFY");
 
     public static class LoadDirectoryConfig {
 
-        private final List<String> eventKinds;
+        private final List<String> listenEventType;
         private final Long interval;
 
         public LoadDirectoryConfig(Map<String, Object> config) {
             if (config == null) config = Collections.emptyMap();
-            this.interval = (Long) config.getOrDefault("interval", 1000L);
-            this.eventKinds = (List<String>) config.getOrDefault("eventKinds", DEFAULT_EVENT_KINDS);
+            this.interval = (Long) config.getOrDefault(INTERVAL, 1000L);
+            this.listenEventType = (List<String>) config.getOrDefault(LISTEN_EVENT_TYPE, new ArrayList<>(DEFAULT_EVENT_TYPES));
         }
 
-        public List<String> getEventKinds() {
-            return eventKinds;
+        public List<String> getListenEventType() {
+            return listenEventType;
         }
 
         public Long getInterval() {
@@ -50,7 +52,7 @@ public class LoadDirectoryItem {
             this.pattern = pattern;
             this.cypher = cypher;
             this.urlDir = urlDir;
-            this.config = Map.of(EVENT_KINDS, configClass.getEventKinds(), INTERVAL, configClass.getInterval());
+            this.config = Map.of(LISTEN_EVENT_TYPE, configClass.getListenEventType(), INTERVAL, configClass.getInterval());
             this.error = error;
         }
     }

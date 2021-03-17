@@ -1,9 +1,0 @@
-The procedure support the following config parameters:
-
-.Config parameters
-[opts=header]
-|===
-| name | type | default | description
-| interval | Integer | 1000 | Time interval in ms after re-watch for directory changes
-| eventKinds | List<Enum> | List.of("ENTRY_CREATE", "ENTRY_DELETE", "ENTRY_MODIFY") | Types of event that execute the cypher query, that is creation (ENTRY_CREATE), deletion (ENTRY_DELETE) or editing (ENTRY_MODIFY) of a file in specified folder
-|===

@@ -23,10 +23,8 @@ import java.util.stream.Stream;
 import static apoc.ApocConfig.APOC_LOAD_DIRECTORY_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.FileUtils.checkIfUrlEmptyAndGetFileUrl;
-import static apoc.util.FileUtils.getDirImport;
+import static apoc.util.FileUtils.getPathDependingOnUseNeo4jConfig;
 import static apoc.util.FileUtils.getPathFromUrlString;
-import static apoc.util.FileUtils.isImportUsingNeo4jConfig;
-import static org.apache.commons.lang3.StringUtils.replaceOnce;
 
 @Extended
 public class LoadDirectory {
@@ -47,15 +45,14 @@ public class LoadDirectory {
     public Transaction tx;
 
 
-    @Procedure(name="apoc.load.directory.add", mode = Mode.WRITE)
-    @Description("apoc.load.directory.add(name, cypher, pattern, urlDir, {}) YIELD name, status, pattern, cypher, urlDir, config, error - Add or replace a folder listener with a specific name, pattern and url directory that execute the specified cypher query when an event is triggered and return listener list")
+    @Procedure(name="apoc.load.directory.async.add", mode = Mode.WRITE)
+    @Description("apoc.load.directory.async.add(name, cypher, pattern, urlDir, {}) YIELD name, status, pattern, cypher, urlDir, config, error - Add or replace a folder listener with a specific name, pattern and url directory that execute the specified cypher query when an event is triggered and return listener list")
     public Stream<LoadDirectoryItem.LoadDirectoryResult> add(@Name("name") String name,
                                                              @Name("cypher") String cypher,
                                                              @Name(value = "pattern", defaultValue = "*") String pattern,
                                                              @Name(value = "urlDir", defaultValue = "") String urlDir,
                                                              @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         checkEnabled();
-        Util.validateQuery(db, cypher);
 
         LoadDirectoryItem.LoadDirectoryConfig conf = new LoadDirectoryItem.LoadDirectoryConfig(config);
         LoadDirectoryItem loadDirectoryItem = new LoadDirectoryItem(name, pattern, cypher, urlDir, conf);
@@ -64,8 +61,8 @@ public class LoadDirectory {
         return loadDirectoryHandler.list();
     }
 
-    @Procedure("apoc.load.directory.remove")
-    @Description("apoc.load.directory.remove(name) YIELD name, status, pattern, cypher, urlDir, config, error - Remove a folder listener by name and return remaining listener")
+    @Procedure("apoc.load.directory.async.remove")
+    @Description("apoc.load.directory.async.remove(name) YIELD name, status, pattern, cypher, urlDir, config, error - Remove a folder listener by name and return remaining listener")
     public Stream<LoadDirectoryItem.LoadDirectoryResult> remove(@Name("name") String name) {
         checkEnabled();
 
@@ -73,8 +70,8 @@ public class LoadDirectory {
         return loadDirectoryHandler.list();
     }
 
-    @Procedure("apoc.load.directory.removeAll")
-    @Description("apoc.load.directory.removeAll() - Remove all folder listeners")
+    @Procedure("apoc.load.directory.async.removeAll")
+    @Description("apoc.load.directory.async.removeAll() - Remove all folder listeners")
     public Stream<LoadDirectoryItem.LoadDirectoryResult> removeAll() {
         checkEnabled();
 
@@ -82,8 +79,8 @@ public class LoadDirectory {
         return Stream.empty();
     }
 
-    @Procedure("apoc.load.directory.list")
-    @Description("apoc.load.directory.list() YIELD name, status, pattern, cypher, urlDir, config, error - List of all folder listeners")
+    @Procedure("apoc.load.directory.async.list")
+    @Description("apoc.load.directory.async.list() YIELD name, status, pattern, cypher, urlDir, config, error - List of all folder listeners")
     public Stream<LoadDirectoryItem.LoadDirectoryResult> list() {
         checkEnabled();
         return loadDirectoryHandler.list();
@@ -109,11 +106,10 @@ public class LoadDirectory {
 
         return files.stream().map(i -> {
             String urlFile = i.toString();
-            return new StringResult(isImportUsingNeo4jConfig()
-                    ? replaceOnce(urlFile, getDirImport() + File.separator, "")
-                    : urlFile);
+            return new StringResult(getPathDependingOnUseNeo4jConfig(urlFile));
         });
     }
+
 
     public void checkEnabled() {
         if (!apocConfig().getBoolean(APOC_LOAD_DIRECTORY_ENABLED)) {

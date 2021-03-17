@@ -8,8 +8,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 
-import static apoc.load.LoadDirectoryItem.EVENT_KINDS;
-import static apoc.load.LoadDirectoryItem.INTERVAL;
+import static apoc.util.FileUtils.getPathDependingOnUseNeo4jConfig;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
@@ -49,11 +48,11 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
     private static Kind[] fromListStringToKindArray(List<String> eventKinds) {
         Kind[] kinds = eventKinds.stream().map(item -> {
             switch (item) {
-                case "ENTRY_CREATE":
+                case "CREATE":
                     return ENTRY_CREATE;
-                case "ENTRY_MODIFY":
+                case "MODIFY":
                     return ENTRY_MODIFY;
-                case "ENTRY_DELETE":
+                case "DELETE":
                     return ENTRY_DELETE;
                 default:
                     throw new UnsupportedOperationException("Event Type not supported: " + item);
@@ -112,7 +111,7 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
                 final LoadDirectoryItem.LoadDirectoryConfig config = item.getConfig();
 
                 String urlDir = checkIfUrlEmptyAndGetFileUrl(item.getUrlDir());
-                getPathFromUrlString(urlDir).register(watcher, fromListStringToKindArray(config.getEventKinds()));
+                getPathFromUrlString(urlDir).register(watcher, fromListStringToKindArray(config.getListenEventType()));
 
                 item.setStatusRunning();
                 while (true) {
@@ -122,29 +121,31 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
                         Path dir = (Path) watchKey.watchable();
                         for (WatchEvent event : watchKey.pollEvents()) {
                             Path filePath = dir.resolve((Path) event.context());
-                            try {
                                 WildcardFileFilter fileFilter = new WildcardFileFilter(item.getPattern());
                                 final String fileName = filePath.getFileName().toString();
                                 boolean matchFilePattern = fileFilter.accept(dir.toFile(), fileName);
                                 if (matchFilePattern) {
                                     try (Transaction tx = db.beginTx()) {
+                                        final String stringFileDirectory = getPathDependingOnUseNeo4jConfig(dir.toString());
+                                        final String stringFilePath = getPathDependingOnUseNeo4jConfig(filePath.toString());
+
                                         tx.execute(item.getCypher(),
                                                 Map.of("fileName", fileName,
-                                                        "filePath", filePath.toString(),
-                                                        "fileDirectory", dir.toString(),
-                                                        "eventKind", event.kind().name())
+                                                        "filePath", stringFilePath,
+                                                        "fileDirectory", stringFileDirectory,
+                                                        "listenEventType", event.kind().name().replace("ENTRY_", ""))
                                         );
                                         tx.commit();
                                     }
                                 }
-                            } catch (Exception e) {
-                                log.error("Exception while executing strategy, full stack trace is:", e);
-                            }
                         }
                     }
                     Thread.sleep(config.getInterval());
                 }
             } catch (Exception e) {
+                log.warn(String.format("Error while executing procedure with name %s . " +
+                        "The status of the directory listener is changed to ERROR. " +
+                        "Type `call apoc.load.directory.async.list` to more details.", item.getName()));
                 item.setError(ExceptionUtils.getStackTrace(e));
             }
         };
