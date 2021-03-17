@@ -119,12 +119,12 @@ public class PeriodicTest {
             assertEquals(0L, row.get("committedOperations"));
             assertEquals(100L, row.get("failedOperations"));
             assertEquals(10L, row.get("failedBatches"));
-            Map<String, Object> batchErrors = map("org.neo4j.graphdb.QueryExecutionException: Invalid input 'null': expected \"shortestPath\", \"allShortestPaths\" or \"(\" (line 1, column 55 (offset: 54))\n" +
+            Map<String, Object> batchErrors = map("org.neo4j.graphdb.QueryExecutionException: Invalid input 'null': expected \"(\", \"allShortestPaths\" or \"shortestPath\" (line 1, column 55 (offset: 54))\n" +
                     "\"UNWIND $_batch AS _batch WITH _batch.id AS id  CREATE null\"\n" +
                     "                                                       ^", 10L);
 
             assertEquals(batchErrors, ((Map) row.get("batch")).get("errors"));
-            Map<String, Object> operationsErrors = map("Invalid input 'null': expected \"shortestPath\", \"allShortestPaths\" or \"(\" (line 1, column 55 (offset: 54))\n" +
+            Map<String, Object> operationsErrors = map("Invalid input 'null': expected \"(\", \"allShortestPaths\" or \"shortestPath\" (line 1, column 55 (offset: 54))\n" +
                     "\"UNWIND $_batch AS _batch WITH _batch.id AS id  CREATE null\"\n" +
                     "                                                       ^", 10L);
             assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
