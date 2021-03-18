@@ -26,6 +26,7 @@ import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.apocConfig;
 import static org.apache.commons.lang3.StringUtils.replaceOnce;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
+import static org.eclipse.jetty.util.URIUtil.encodeSpaces;
 
 /**
  * @author mh
@@ -108,7 +109,8 @@ public class FileUtils {
     }
 
     public static String changeFileUrlIfImportDirectoryConstrained(String urlNotEncoded) throws IOException {
-        final String url = encodePath(urlNotEncoded);
+        final String url = encodeExceptQM(urlNotEncoded);
+//        final String url = urlNotEncoded;
         if (isFile(url) && isImportUsingNeo4jConfig()) {
             if (!apocConfig().getBoolean(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM)) {
                 throw new RuntimeException("Import file "+url+" not enabled, please set dbms.security.allow_csv_import_from_file_urls=true in your neo4j.conf");
@@ -299,7 +301,7 @@ public class FileUtils {
     public static String checkIfUrlEmptyAndGetFileUrl(String urlDir) throws IOException {
         return urlDir.isEmpty()
                 ? encodePath(getDirImport())
-                : FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir);
+                : FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"));
     }
 
     public static String getDirImport() {
@@ -314,5 +316,10 @@ public class FileUtils {
         return isImportUsingNeo4jConfig()
                 ? replaceOnce(urlFile, getDirImport() + File.separator, "")
                 : urlFile;
+    }
+
+    // to exclude cases like 'testload.tar.gz?raw=true'
+    private static String encodeExceptQM(String url) {
+        return encodePath(url).replace("%3F", "?");
     }
 }

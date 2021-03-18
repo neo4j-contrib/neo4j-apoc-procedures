@@ -419,6 +419,18 @@ public class LoadDirectoryTest {
     @Test
     public void testFolderListenerNotMatchingPattern() throws IOException, InterruptedException {
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
+
+        final Map<String, Object> defaultConfig = Map.of("listenEventType", eventTypes, "interval", 1000L);
+        testCall(db, "CALL apoc.load.directory.async.add('test','CREATE (n:Test {file: $fileName})','*.json')", result -> {
+            assertEquals("test", result.get("name"));
+            assertEquals("*.json", result.get("pattern"));
+            assertEquals(StringUtils.EMPTY, result.get("urlDir"));
+            assertEquals("CREATE (n:Test {file: $fileName})", result.get("cypher"));
+            assertEquals(defaultConfig, result.get("config"));
+            assertEquals(LoadDirectoryItem.Status.CREATED.name(), result.get("status"));
+            assertEquals(StringUtils.EMPTY, result.get("error"));
+        });
+
         db.executeTransactionally("CALL apoc.load.directory.async.add('test','CREATE (n:Test {file: $fileName})','*.json') YIELD name RETURN name");
         Thread.sleep(2000);
 
@@ -485,7 +497,6 @@ public class LoadDirectoryTest {
 
         final String fileExe = "newFile.exe";
         final String relativePath = IMPORT_DIR + File.separator + fileExe;
-//        final String absolutePath = /*temporaryFolder.getRoot().getPath() + File.separator + */relativePath;
         final String queryCount = "MATCH (n:TestOnly {prop: $file}) RETURN count(n) AS count";
 
         testResult(db, queryCount, Map.of("file", fileExe), result -> assertEquals(0L, result.columnAs("count").next()));
@@ -539,7 +550,6 @@ public class LoadDirectoryTest {
         assertEventually(() -> db.executeTransactionally(queryCountLabelOne,
                 emptyMap(), (r) -> r.columnAs("count").next()),
                 value -> value.equals(1L), 30L, TimeUnit.SECONDS);
-
 
         testCall(db, "CALL apoc.load.directory.async.remove('testOne')", result -> {
             // remain 1st listener
@@ -633,6 +643,37 @@ public class LoadDirectoryTest {
         new File(temporaryFolder.getRoot() + File.separator + "newFile.csv").delete();
 
         testCallEmpty(db, "CALL apoc.load.directory.async.removeAll", emptyMap());
+    }
+
+    @Test
+    public void testListenerItemWithError() throws InterruptedException {
+        final Map<String, Object> defaultConfig = Map.of("listenEventType", eventTypes, "interval", 1000L);
+
+        testCall(db, "CALL apoc.load.directory.async.add('notExistent', 'CREATE (n:Node)', '*', 'pathNotExistent')", result -> {
+            assertEquals("notExistent", result.get("name"));
+            assertEquals("*", result.get("pattern"));
+            assertEquals("pathNotExistent", result.get("urlDir"));
+            assertEquals("CREATE (n:Node)", result.get("cypher"));
+            assertEquals(defaultConfig, result.get("config"));
+            assertEquals(LoadDirectoryItem.Status.CREATED.name(), result.get("status"));
+            assertEquals(StringUtils.EMPTY, result.get("error"));
+        });
+
+        // waiting for error (NoSuchFileException)
+        Thread.sleep(1000);
+
+        testCall(db, "CALL apoc.load.directory.async.list()", result -> {
+            assertEquals("notExistent", result.get("name"));
+            assertEquals("*", result.get("pattern"));
+            assertEquals("pathNotExistent", result.get("urlDir"));
+            assertEquals("CREATE (n:Node)", result.get("cypher"));
+            assertEquals(defaultConfig, result.get("config"));
+            assertEquals(LoadDirectoryItem.Status.ERROR.name(), result.get("status"));
+            assertTrue(((String) result.get("error")).contains("java.nio.file.NoSuchFileException"));
+        });
+
+        testCallEmpty(db, "CALL apoc.load.directory.async.remove('notExistent')", emptyMap());
+        testCallEmpty(db, "CALL apoc.load.directory.async.list", emptyMap());
     }
 
     @Test

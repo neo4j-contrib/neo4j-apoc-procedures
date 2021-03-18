@@ -87,6 +87,7 @@ import static apoc.ApocConfig.apocConfig;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
+import static org.eclipse.jetty.util.URIUtil.encodeSpaces;
 
 /**
  * @author mh
