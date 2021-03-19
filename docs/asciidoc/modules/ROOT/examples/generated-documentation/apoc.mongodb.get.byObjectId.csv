@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.mongodb.get.byObjectId¦apoc.mongodb.get.byObjectId(host :: STRING?, db :: STRING?, collection :: STRING?, objectIdValue :: STRING?, config = {} :: MAP?) :: (value :: MAP?)¦apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value 

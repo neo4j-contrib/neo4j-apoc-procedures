@@ -5,6 +5,7 @@ import apoc.result.LongResult;
 import apoc.result.MapResult;
 import apoc.util.MissingDependencyException;
 import apoc.util.UrlResolver;
+import org.bson.types.ObjectId;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -150,6 +151,20 @@ public class MongoDB {
         return executeMongoQuery(hostOrKey, db, collection, false,
                 false, false, coll -> Stream.of(new LongResult(coll.update(query, update))),
                 e -> log.error("apoc.mongodb.update - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], update = [" + update + "]",e));
+    }
+
+    @Procedure("apoc.mongodb.get.byObjectId")
+    @Description("apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value")
+    public Stream<MapResult> byObjectId(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("objectIdValue") String objectIdValue, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+
+        MongoDbConfig conf = new MongoDbConfig(config);
+
+        return executeMongoQuery(hostOrKey, db, collection, conf.isCompatibleValues(), conf.isExtractReferences(), conf.isObjectIdAsMap(),
+                coll -> {
+                    Map<String, Object> result = coll.first(Map.of(conf.getIdFieldName(), new ObjectId(objectIdValue)));
+                    return result == null || result.isEmpty() ? Stream.empty() : Stream.of(new MapResult(result));
+                },
+                e -> log.error("apoc.mongo.get.byObjectId - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], objectIdValue = [" + objectIdValue + "]",e));
     }
 
     private String getMongoDBUrl(String hostOrKey) {
