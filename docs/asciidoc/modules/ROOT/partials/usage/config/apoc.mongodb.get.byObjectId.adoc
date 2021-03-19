@@ -1,0 +1,11 @@
+The procedure supports the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| compatibleValues | boolean | true | converts MongoDB data types into Neo4j data types
+| extractReferences | boolean | false | if true and a field contains an ObjectId, it will include the related document instead of the ObjectId
+| objectIdAsMap | boolean | true | extract the `_id` as map
+| idFieldName | String | `_id` | the field name of the `ObjectId`
+|===
