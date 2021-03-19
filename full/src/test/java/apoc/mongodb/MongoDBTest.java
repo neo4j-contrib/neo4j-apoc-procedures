@@ -68,6 +68,10 @@ public class MongoDBTest {
 
     private static final long NUM_OF_RECORDS = 10_000L;
 
+    private static List<ObjectId> productReferences;
+    private static ObjectId nameAsObjectId = new ObjectId("507f191e810c19729de860ea");
+    private static ObjectId idAsObjectId = new ObjectId();
+
     @BeforeClass
     public static void setUp() throws Exception {
         assumeFalse(isTravis());
@@ -103,13 +107,20 @@ public class MongoDBTest {
         productCollection.insertOne(new Document(map("name", "My Awesome Product 2",
                 "price", 1200,
                 "tags", Arrays.asList("Tech", "Mobile", "Phone", "Android"))));
-        List<ObjectId> refs = StreamSupport.stream(productCollection.find().spliterator(), false)
+        productReferences = StreamSupport.stream(productCollection.find().spliterator(), false)
                 .map(doc -> (ObjectId) doc.get("_id"))
                 .collect(Collectors.toList());
         personCollection.insertOne(new Document(map("name", "Andrea Santurbano",
-                "bought", refs,
+                "bought", productReferences,
                 "born", DateUtils.parseDate("11-10-1935", "dd-MM-yyyy"),
                 "coordinates", Arrays.asList(12.345, 67.890))));
+        personCollection.insertOne(new Document(map("name", nameAsObjectId,
+                "age", 40,
+                "bought", productReferences)));
+        personCollection.insertOne(new Document(map("_id", idAsObjectId,
+                "name", "Sherlock",
+                "age", 25,
+                "bought", productReferences)));
 
         TestUtil.registerProcedure(db, MongoDB.class, Graphs.class);
         mongoClient.close();
@@ -217,6 +228,65 @@ public class MongoDBTest {
             assertNotNull(doc.get("_id"));
             assertEquals("testDocument", doc.get("name"));
         });
+    }
+
+    @Test
+    public void testGetByObjectId() throws Exception {
+        List<String> refsIds = productReferences.stream().map(ObjectId::toString).collect(Collectors.toList());
+        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host,$db,$collection,$id)",
+                map("host", HOST, "db", "test", "collection", "person", "id", idAsObjectId.toString()), r -> {
+                    Map doc = (Map) r.get("value");
+                    assertTrue(doc.get("_id") instanceof Map);
+                    assertEquals(
+                            Set.of("date", "machineIdentifier", "processIdentifier", "counter", "time", "timestamp", "timeSecond"),
+                            ((Map<String, Object>) doc.get("_id")).keySet()
+                    );
+                    assertEquals("Sherlock", doc.get("name"));
+                    assertEquals(25L, doc.get("age"));
+                    assertEquals(refsIds, doc.get("bought"));
+        });
+
+    }
+
+    @Test
+    public void testGetByObjectIdWithCustomIdFieldName() throws Exception {
+        List<String> refsIds = productReferences.stream().map(ObjectId::toString).collect(Collectors.toList());
+
+        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host, $db, $collection, $objectId, {idFieldName: 'name'})",
+                map("host", HOST, "db", "test", "collection", "person", "objectId", nameAsObjectId.toString()), r -> {
+                    Map doc = (Map) r.get("value");
+                    assertTrue(doc.get("_id") instanceof Map);
+                    assertEquals(
+                            Set.of("date", "machineIdentifier", "processIdentifier", "counter", "time", "timestamp", "timeSecond"),
+                            ((Map<String, Object>) doc.get("_id")).keySet()
+                    );
+                    assertEquals(40L, doc.get("age"));
+                    assertEquals(refsIds, doc.get("bought"));
+        });
+    }
+
+    @Test
+    public void testGetByObjectIdWithConfigs() throws Exception {
+        List<String> refsIds = productReferences.stream().map(ObjectId::toString).collect(Collectors.toList());
+
+        TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host, $db, $collection, $objectId, $config)",
+                map("host", HOST, "db", "test", "collection", "person", "objectId", idAsObjectId.toString(),
+                        "config", map("extractReferences", true, "objectIdAsMap", false, "compatibleValues", false)), r -> {
+                    Map doc = (Map) r.get("value");
+                    assertEquals(idAsObjectId.toString(), doc.get("_id"));
+                    assertEquals(25, doc.get("age"));
+                    assertEquals("Sherlock", doc.get("name"));
+                    List<Object> boughtList = (List<Object>) doc.get("bought");
+                    Map<String, Object> firstBought = (Map<String, Object>) boughtList.get(0);
+                    Map<String, Object> secondBought = (Map<String, Object>) boughtList.get(1);
+                    assertEquals(refsIds.get(0), firstBought.get("_id"));
+                    assertEquals(refsIds.get(1), secondBought.get("_id"));
+                    assertEquals(800, firstBought.get("price"));
+                    assertEquals(1200, secondBought.get("price"));
+                    assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "iOS"), firstBought.get("tags"));
+                    assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "Android"), secondBought.get("tags"));
+        });
+
     }
 
     @Test
