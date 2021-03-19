@@ -3,6 +3,7 @@ package apoc.schema;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -12,6 +13,7 @@ import org.neo4j.driver.Session;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
@@ -55,8 +57,119 @@ public class SchemasEnterpriseFeaturesTest {
         }
     }
 
+    @After
+    public void removeAllConstraints() {
+        session.writeTransaction(tx -> {
+            tx.run("CALL apoc.schema.assert({},{})");
+            tx.commit();
+            return null;
+        });
+    }
+
     @Test
-    public void testDropNodeKeyConstraintAndCreateNodeKeyConstraintWhenUsingDropExisting() {
+    public void testKeptNodeKeyAndUniqueConstraintIfExists() {
+        String query = "CALL apoc.schema.assert(null,{Foo:[['foo','bar']]}, false)";
+        testResult(session, query, (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
+            assertEquals(true, r.get("unique"));
+            assertEquals("CREATED", r.get("action"));
+            assertFalse(result.hasNext());
+        });
+
+        testResult(session, query, (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
+            assertEquals(true, r.get("unique"));
+            assertEquals("KEPT", r.get("action"));
+            assertFalse(result.hasNext());
+        });
+
+        session.readTransaction(tx -> {
+            List<Record> result = tx.run("CALL db.constraints").list();
+            assertEquals(1, result.size());
+            Map<String, Object> firstResult = result.get(0).asMap();
+            assertEquals("CONSTRAINT ON ( foo:Foo ) ASSERT (foo.foo, foo.bar) IS NODE KEY", firstResult.get("description"));
+            tx.commit();
+            return null;
+        });
+    }
+
+    @Test
+    public void testKeptNodeKeyAndUniqueConstraintIfExistsAndDropExistingIsFalse() {
+        String query = "CALL apoc.schema.assert(null,{Foo:[['foo','bar']]}, false)";
+        testResult(session, query, (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
+            assertEquals(true, r.get("unique"));
+            assertEquals("CREATED", r.get("action"));
+            assertFalse(result.hasNext());
+        });
+        testResult(session, "CALL apoc.schema.assert(null,{Foo:[['bar','foo']]}, false)", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
+            assertEquals(true, r.get("unique"));
+            assertEquals("KEPT", r.get("action"));
+            r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("bar", "foo"), r.get("keys"));
+            assertEquals(true, r.get("unique"));
+            assertEquals("CREATED", r.get("action"));
+            assertFalse(result.hasNext());
+        });
+
+        session.readTransaction(tx -> {
+            List<Record> result = tx.run("CALL db.constraints").list();
+            assertEquals(2, result.size());
+            List<String> actualDescriptions = result.stream()
+                    .map(record -> (String) record.asMap().get("description"))
+                    .collect(Collectors.toList());
+            List<String> expectedDescriptions = List.of(
+                    "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.foo, foo.bar) IS NODE KEY",
+                    "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.bar, foo.foo) IS NODE KEY");
+            assertEquals(expectedDescriptions, actualDescriptions);
+            tx.commit();
+            return null;
+        });
+    }
+
+    @Test
+    public void testCreateUniqueAndIsNodeKeyConstraintInSameLabel() {
+        testResult(session, "CALL apoc.schema.assert(null,{Galileo: [['newton', 'tesla'], 'curie']}, false)", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Galileo", r.get("label"));
+            assertEquals(expectedKeys("newton", "tesla"), r.get("keys"));
+            assertEquals(true, r.get("unique"));
+            assertEquals("CREATED", r.get("action"));
+            r = result.next();
+            assertEquals("Galileo", r.get("label"));
+            assertEquals(expectedKeys("curie"), r.get("keys"));
+            assertEquals(true, r.get("unique"));
+            assertEquals("CREATED", r.get("action"));
+            assertFalse(result.hasNext());
+        });
+
+        session.readTransaction(tx -> {
+            List<Record> result = tx.run("CALL db.constraints").list();
+            assertEquals(2, result.size());
+            List<String> actualDescriptions = result.stream()
+                    .map(record -> (String) record.asMap().get("description"))
+                    .collect(Collectors.toList());
+            List<String> expectedDescriptions = List.of(
+                    "CONSTRAINT ON ( galileo:Galileo ) ASSERT (galileo.newton, galileo.tesla) IS NODE KEY",
+                    "CONSTRAINT ON ( galileo:Galileo ) ASSERT (galileo.curie) IS UNIQUE");
+            assertEquals(expectedDescriptions, actualDescriptions);
+            tx.commit();
+            return null;
+        });
+    }
+
+    @Test
+    public void testDropNodeKeyConstraintAndCreateNodeKeyConstraintWhenUsingDropExistingOnlyIfNotExist() {
         session.writeTransaction(tx -> {
             tx.run("CREATE CONSTRAINT ON (f:Foo) ASSERT (f.bar,f.foo) IS NODE KEY");
             tx.commit();
@@ -67,24 +180,30 @@ public class SchemasEnterpriseFeaturesTest {
             assertEquals("Foo", r.get("label"));
             assertEquals(expectedKeys("bar","foo"), r.get("keys"));
             assertEquals(true, r.get("unique"));
+            assertEquals("KEPT", r.get("action"));
+        });
+
+        testResult(session, "CALL apoc.schema.assert(null,{Foo:[['baa','baz']]})", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("bar","foo"), r.get("keys"));
+            assertEquals(true, r.get("unique"));
             assertEquals("DROPPED", r.get("action"));
 
             r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("bar", "foo"), r.get("keys"));
+            assertEquals(expectedKeys("baa","baz"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("CREATED", r.get("action"));
+
+            assertFalse(result.hasNext());
         });
 
         session.readTransaction(tx -> {
             List<Record> result = tx.run("CALL db.constraints").list();
             assertEquals(1, result.size());
-            tx.commit();
-            return null;
-        });
-
-        session.writeTransaction(tx -> {
-            tx.run("DROP CONSTRAINT ON (f:Foo) ASSERT (f.bar,f.foo) IS NODE KEY").list();
+            Map<String, Object> firstResult = result.get(0).asMap();
+            assertEquals("CONSTRAINT ON ( foo:Foo ) ASSERT (foo.baa, foo.baz) IS NODE KEY", firstResult.get("description"));
             tx.commit();
             return null;
         });
