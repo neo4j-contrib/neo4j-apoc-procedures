@@ -1952,6 +1952,11 @@ apoc.mongodb.first(host-or-key,db,collection,query,[compatibleValues=false\|true
 apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false\|true],skip-or-null,limit-or-null,[extractReferences=false\|true],[objectIdAsMap=true\|false]) yield value - perform a find operation on mongodb collection
 |label:procedure[]
 |label:apoc-full[]
+|xref::overview/apoc.mongodb/apoc.mongodb.get.byObjectId.adoc[apoc.mongodb.get.byObjectId icon:book[]]
+
+apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value 
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.mongodb/apoc.mongodb.insert.adoc[apoc.mongodb.insert icon:book[]]
 
 apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection

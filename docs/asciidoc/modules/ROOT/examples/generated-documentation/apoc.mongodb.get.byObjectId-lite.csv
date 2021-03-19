@@ -1,0 +1,2 @@
+¦signature
+¦apoc.mongodb.get.byObjectId(host :: STRING?, db :: STRING?, collection :: STRING?, objectIdValue :: STRING?, config = {} :: MAP?) :: (value :: MAP?)
