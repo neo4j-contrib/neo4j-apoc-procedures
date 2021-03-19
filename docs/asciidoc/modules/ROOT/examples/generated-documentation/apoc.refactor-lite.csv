@@ -5,6 +5,7 @@
 ¦apoc.refactor.cloneSubgraph(nodes :: LIST? OF NODE?, rels = [] :: LIST? OF RELATIONSHIP?, config = {} :: MAP?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)
 ¦apoc.refactor.cloneSubgraphFromPaths(paths :: LIST? OF PATH?, config = {} :: MAP?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)
 ¦apoc.refactor.collapseNode(nodes :: ANY?, type :: STRING?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)
+¦apoc.refactor.deleteAndReconnect(path :: PATH?, nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)
 ¦apoc.refactor.extractNode(relationships :: ANY?, labels :: LIST? OF STRING?, outType :: STRING?, inType :: STRING?) :: (input :: INTEGER?, output :: NODE?, error :: STRING?)
 ¦apoc.refactor.from(relationship :: RELATIONSHIP?, newNode :: NODE?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)
 ¦apoc.refactor.invert(relationship :: RELATIONSHIP?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)

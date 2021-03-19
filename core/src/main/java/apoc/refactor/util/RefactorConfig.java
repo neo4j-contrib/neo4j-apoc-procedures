@@ -12,6 +12,8 @@ import static apoc.util.Util.toBoolean;
  */
 public class RefactorConfig {
 
+	public enum RelationshipSelectionStrategy {INCOMING, OUTGOING, MERGE}
+
 	public static final String COMBINE = "combine";
 	public static final String DISCARD = "discard";
 	public static final String OVERWRITE = "overwrite";
@@ -29,6 +31,8 @@ public class RefactorConfig {
 	private boolean collapsedLabel;
 	private boolean singleElementAsArray;
 
+	private final RelationshipSelectionStrategy relationshipSelectionStrategy;
+
 	public RefactorConfig(Map<String,Object> config) {
 		Object value = config.get("properties");
 		hasProperties = value != null;
@@ -44,6 +48,8 @@ public class RefactorConfig {
 		this.countMerge = toBoolean(config.getOrDefault("countMerge", true));
 		this.collapsedLabel = toBoolean(config.get("collapsedLabel"));
 		this.singleElementAsArray = toBoolean(config.getOrDefault("singleElementAsArray", false));
+		this.relationshipSelectionStrategy = RelationshipSelectionStrategy.valueOf(
+				((String) config.getOrDefault("relationshipSelectionStrategy", RelationshipSelectionStrategy.INCOMING.toString())).toUpperCase() );
 	}
 
 	public String getMergeMode(String name){
@@ -88,5 +94,9 @@ public class RefactorConfig {
 
 	public boolean isSingleElementAsArray() {
 		return singleElementAsArray;
+	}
+
+	public RelationshipSelectionStrategy getRelationshipSelectionStrategy() {
+		return relationshipSelectionStrategy;
 	}
 }

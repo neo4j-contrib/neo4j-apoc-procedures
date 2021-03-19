@@ -4,21 +4,27 @@ import apoc.Pools;
 import apoc.algo.Cover;
 import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
+import apoc.result.GraphResult;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
+import org.apache.commons.collections4.IterableUtils;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintType;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.refactor.util.PropertiesManager.mergeProperties;
+import static apoc.refactor.util.RefactorConfig.RelationshipSelectionStrategy.MERGE;
 import static apoc.refactor.util.RefactorUtil.*;
 
 public class GraphRefactoring {
@@ -450,6 +456,76 @@ public class GraphRefactoring {
         for (Future<Void> future : futures) {
             Pools.force(future);
         }
+    }
+
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.refactor.deleteAndReconnect([pathLinkedList], [nodesToRemove], {config}) - Removes some nodes from a linked list")
+    public Stream<GraphResult> deleteAndReconnect(@Name("path") Path path, @Name("nodes") List<Node> nodesToRemove, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
+
+        RefactorConfig refactorConfig = new RefactorConfig(config);
+
+        List<Node> nodes = IterableUtils.toList(path.nodes());
+        Set<Relationship> rels = Iterables.asSet(path.relationships());
+
+        if (!nodes.containsAll(nodesToRemove)) {
+            return Stream.empty();
+        }
+
+        BiFunction<Node, Direction, Relationship> filterRel = (node, direction) -> StreamSupport
+                .stream(node.getRelationships(direction).spliterator(), false)
+                .filter(rels::contains)
+                .findFirst()
+                .orElse(null);
+
+        nodesToRemove.forEach(node -> {
+
+            Relationship relationshipIn = filterRel.apply(node, Direction.INCOMING);
+            Relationship relationshipOut = filterRel.apply(node, Direction.OUTGOING);
+
+            // if initial or terminal node
+            if (relationshipIn == null || relationshipOut == null) {
+                rels.remove(relationshipIn == null ? relationshipOut : relationshipIn);
+
+            } else {
+                Node nodeIncoming = relationshipIn.getStartNode();
+                Node nodeOutgoing = relationshipOut.getEndNode();
+
+                RelationshipType newRelType;
+                Map<String, Object> newRelProps = new HashMap<>();
+
+                final RefactorConfig.RelationshipSelectionStrategy strategy = refactorConfig.getRelationshipSelectionStrategy();
+                switch (strategy) {
+                    case INCOMING:
+                        newRelType = relationshipIn.getType();
+                        newRelProps.putAll(relationshipIn.getAllProperties());
+                        break;
+
+                    case OUTGOING:
+                        newRelType = relationshipOut.getType();
+                        newRelProps.putAll(relationshipOut.getAllProperties());
+                        break;
+
+                    default:
+                        newRelType = RelationshipType.withName(relationshipIn.getType() + "_" + relationshipOut.getType());
+                        newRelProps.putAll(relationshipIn.getAllProperties());
+                }
+
+                Relationship relCreated = nodeIncoming.createRelationshipTo(nodeOutgoing, newRelType);
+                newRelProps.forEach(relCreated::setProperty);
+
+                if (strategy == MERGE) {
+                    mergeProperties(relationshipOut.getAllProperties(), relCreated, refactorConfig);
+                }
+
+                rels.add(relCreated);
+                rels.removeAll(List.of(relationshipIn, relationshipOut));
+            }
+
+            tx.execute("WITH $node as n DETACH DELETE n", Map.of("node", node));
+            nodes.remove(node);
+        });
+
+        return Stream.of(new GraphResult(nodes, List.copyOf(rels)));
     }
 
     private boolean isUniqueConstraintDefinedFor(String label, String key) {
