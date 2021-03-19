@@ -1,0 +1,18 @@
+The procedure supports the following config parameters:
+
+.Config parameters
+[opts=header, cols="1,1,1,5"]
+|===
+| name | type | default | description
+| relationshipSelectionStrategy | Enum[incoming, outgoing, merge] | true | if `incoming`, the incoming relationship will be attached to the next node. If `outgoing`, the outgoing relationship will be attached. If `merge`, a merge of the incoming and outgoing relationships will be attached. If they share some property names, the incoming relationship properties have higher precedence by default.
+| properties | Enum | override | Will be considered only if relationshipSelectionStrategy is merge. See below
+|===
+
+.Properties parameters
+[opts=header]
+|===
+| type | operations
+| discard | start node property wins
+| overwrite / override | end node property wins
+| combine | if there is only one property between incoming and outgoing node, it will be set / kept as single property otherwise create an array, tries to coerce values
+|===

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.refactor.deleteAndReconnect¦apoc.refactor.deleteAndReconnect(path :: PATH?, nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)¦apoc.refactor.deleteAndReconnect([pathLinkedList], [nodesToRemove], \{config}) - Removes some nodes from a linked list
