@@ -1,2 +1,6 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.bolt.load¦apoc.bolt.load(url :: STRING?, kernelTransaction :: STRING?, params = {} :: MAP?, config = {} :: MAP?) :: (row :: MAP?)¦apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.bolt.load/apoc.bolt.adoc[apoc.bolt.load.fromLocal icon:book[]]
+
+
+|label:procedure[]
+|label:apoc-core[]

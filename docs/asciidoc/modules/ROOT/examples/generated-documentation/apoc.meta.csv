@@ -31,7 +31,7 @@ apoc.meta.schema(\{config})  - examines a subset of the graph to provide a map-l
 |label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.stats icon:book[]]
 
-apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats \| returns the information stored in the transactional database statistics
+apoc.meta.stats yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats \| returns the information stored in the transactional database statistics
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.adoc[apoc.meta.subGraph icon:book[]]

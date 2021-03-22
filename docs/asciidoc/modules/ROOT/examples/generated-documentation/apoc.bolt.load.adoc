@@ -2,4 +2,4 @@
 
  - access to other databases via bolt for read
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-core[]
