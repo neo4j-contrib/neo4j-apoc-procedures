@@ -3,9 +3,9 @@
 
 apoc.bolt.execute(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-core[]
 |xref::overview/apoc.bolt/apoc.bolt.adoc[apoc.bolt.load icon:book[]]
 
 apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-core[]

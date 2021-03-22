@@ -6,7 +6,7 @@ CALL apoc.date.expire(node,time,'time-unit') - expire node at specified time by 
 |label:apoc-full[]
 |xref::overview/apoc.date/apoc.date.adoc[apoc.date.expireIn icon:book[]]
 
-CALL apoc.date.expire.in(node,time,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
+CALL apoc.date.expireIn(node,time,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.date/apoc.date.adoc[apoc.date.add icon:book[]]

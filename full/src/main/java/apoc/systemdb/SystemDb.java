@@ -70,7 +70,7 @@ public class SystemDb {
 
     @Procedure
     public Stream<RowResult> execute(@Name("DDL commands, either a string or a list of strings") Object ddlStringOrList, @Name(value="params", defaultValue = "{}") Map<String ,Object> params) {
-        Util.checkAdmin(securityContext,"apoc.systemdb.execute");
+        Util.checkAdmin(securityContext, callContext, "apoc.systemdb.execute");
 
         List<String> commands;
         if (ddlStringOrList instanceof String) {

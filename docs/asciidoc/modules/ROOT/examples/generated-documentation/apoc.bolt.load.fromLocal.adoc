@@ -1,0 +1,5 @@
+¦xref::overview/apoc.bolt/apoc.bolt.load.fromLocal.adoc[apoc.bolt.load.fromLocal icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

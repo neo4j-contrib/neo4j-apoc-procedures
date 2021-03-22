@@ -29,6 +29,11 @@ apoc.refactor.cloneSubgraphFromPaths([path1, path2, ...], {standinNodes:[], skip
 apoc.refactor.collapseNode([node1,node2],'TYPE') collapse node to relationship, node with one rel becomes self-relationship
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.deleteAndReconnect icon:book[]]
+
+apoc.refactor.deleteAndReconnect([pathLinkedList], [nodesToRemove], \{config}) - Removes some nodes from a linked list
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.refactor/apoc.refactor.adoc[apoc.refactor.extractNode icon:book[]]
 
 apoc.refactor.extractNode([rel1,rel2,...], [labels],'OUT','IN') extract node from relationships

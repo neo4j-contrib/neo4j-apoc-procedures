@@ -1,8 +1,8 @@
 package apoc.load;
 
 import apoc.util.TestUtil;
-import org.junit.ClassRule;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -18,13 +18,13 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.util.TestUtil.testResult;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 
 
 public class LoadDirectoryTest {
@@ -40,7 +40,7 @@ public class LoadDirectoryTest {
     @BeforeClass
     public static void setUp() throws Exception {
         File importFolder = new File(temporaryFolder.getRoot() + File.separator + IMPORT_DIR);
-        DatabaseManagementService databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder).build();
+        DatabaseManagementService databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder.toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
 
         TestUtil.registerProcedure(db, LoadDirectory.class, LoadCsv.class);

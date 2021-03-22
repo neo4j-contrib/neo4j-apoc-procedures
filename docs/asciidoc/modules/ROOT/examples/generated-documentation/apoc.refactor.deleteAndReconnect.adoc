@@ -1,0 +1,5 @@
+¦xref::overview/apoc.refactor/apoc.refactor.deleteAndReconnect.adoc[apoc.refactor.deleteAndReconnect icon:book[]] +
+
+ - Removes some nodes from a linked list
+¦label:procedure[]
+¦label:apoc-core[]

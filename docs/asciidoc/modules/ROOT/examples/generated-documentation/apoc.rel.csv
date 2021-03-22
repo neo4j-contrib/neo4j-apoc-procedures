@@ -1,12 +1,12 @@
 ¦Qualified Name¦Type¦Release
+|xref::overview/apoc.rel/apoc.rel.adoc[apoc.rel.endNode icon:book[]]
+
+returns endNode for (virtual) relationships
+|label:function[]
+|label:apoc-core[]
 |xref::overview/apoc.rel/apoc.rel.adoc[apoc.rel.id icon:book[]]
 
 returns id for (virtual) relationships
-|label:function[]
-|label:apoc-core[]
-|xref::overview/apoc.rel/apoc.rel.adoc[apoc.rel.type icon:book[]]
-
-returns type for (virtual) relationships
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.rel/apoc.rel.adoc[apoc.rel.startNode icon:book[]]
@@ -14,8 +14,8 @@ returns type for (virtual) relationships
 returns startNode for (virtual) relationships
 |label:function[]
 |label:apoc-core[]
-|xref::overview/apoc.rel/apoc.rel.adoc[apoc.rel.endNode icon:book[]]
+|xref::overview/apoc.rel/apoc.rel.adoc[apoc.rel.type icon:book[]]
 
-returns endNode for (virtual) relationships
+returns type for (virtual) relationships
 |label:function[]
 |label:apoc-core[]
