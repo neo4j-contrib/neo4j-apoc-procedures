@@ -9,7 +9,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -19,7 +23,10 @@ import java.util.Map;
 import static apoc.custom.CypherProceduresHandler.FUNCTION;
 import static apoc.custom.CypherProceduresHandler.PROCEDURE;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -194,11 +201,18 @@ public class CypherProceduresTest  {
         TestUtil.testCall(db, "return custom.answer2() as row", (row) -> assertEquals(42L, row.get("row")));
     }
 
-    @Test
+    @Test(expected = QueryExecutionException.class)
     public void registerSimpleStatementFunctionWithOneChar() throws Exception {
         db.executeTransactionally("call apoc.custom.asFunction('a','RETURN 42 as answer')");
         TestUtil.testCall(db, "return custom.a() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
-        TestUtil.testFail(db, "CALL apoc.custom.declareFunction('b() :: STRING','RETURN 42 as answer')", QueryExecutionException.class);
+        try {
+            db.executeTransactionally("CALL apoc.custom.declareFunction('b() :: STRING','RETURN 42 as answer')");
+        } catch (QueryExecutionException e) {
+            String expectedMessage = "Failed to invoke procedure `apoc.custom.declareFunction`: " +
+                    "Caused by: java.lang.IllegalStateException: Unsupported procedure name, the procedure must have at least two chars";
+            assertEquals(expectedMessage, e.getMessage());
+            throw e;
+        }
     }
 
     @Test
