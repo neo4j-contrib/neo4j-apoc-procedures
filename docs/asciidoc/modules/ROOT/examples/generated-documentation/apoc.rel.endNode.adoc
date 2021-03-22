@@ -1,0 +1,5 @@
+¦xref::overview/apoc.rel/apoc.rel.endNode.adoc[apoc.rel.endNode icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

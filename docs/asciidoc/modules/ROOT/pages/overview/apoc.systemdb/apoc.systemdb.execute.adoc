@@ -11,14 +11,14 @@ label:procedure[] label:apoc-full[]
 
 [source]
 ----
-apoc.systemdb.execute(DDL command :: STRING?, params = {} :: MAP?) :: (row :: MAP?)
+apoc.systemdb.execute(DDL commands, either a string or a list of strings :: ANY?, params = {} :: MAP?) :: (row :: MAP?)
 ----
 
 == Input parameters
 [.procedures, opts=header]
 |===
 | Name | Type | Default 
-|DDL command|STRING?|null
+|DDL commands, either a string or a list of strings|ANY?|null
 |params|MAP?|{}
 |===
 

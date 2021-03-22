@@ -84,9 +84,6 @@ public class UUIDMultiDbTest {
     @Test
     public void testWithDefaultDatabaseWithUUIDEnabled() throws InterruptedException {
         try (Session session = driver.session(SessionConfig.forDatabase("neo4j"))) {
-            session.writeTransaction(tx -> tx.run(
-                    "CREATE (d:Foo {name:'Test'})-[:WORK]->(l:Bar {name:'Baz'})")
-            );
 
             session.writeTransaction(tx -> tx.run(
                     "CREATE CONSTRAINT ON (foo:Foo) ASSERT foo.uuid IS UNIQUE")
@@ -94,6 +91,9 @@ public class UUIDMultiDbTest {
 
             session.writeTransaction(tx -> tx.run(
                     "CALL apoc.uuid.install('Foo') YIELD label RETURN label")
+            );
+            session.writeTransaction(tx -> tx.run(
+                    "CREATE (d:Foo {name:'Test'})-[:WORK]->(l:Bar {name:'Baz'})")
             );
 
             String call = "MATCH (n:Foo) RETURN n.uuid as uuid";
@@ -107,14 +107,13 @@ public class UUIDMultiDbTest {
             while (System.currentTimeMillis() < timeout && !nodeHasUUID.get()) {
                 session.writeTransaction(tx -> {
                     Map<String, Object> p = Collections.<String, Object>emptyMap();
-                    resultConsumer.accept(tx.run(call, p).list().stream().map(Record::asMap).collect(Collectors.toList()).iterator());
+                    resultConsumer.accept(tx.run(call, p).list()
+                            .stream()
+                            .map(Record::asMap)
+                            .collect(Collectors.toList()).iterator());
                     tx.commit();
                     return null;
                 });
-
-                if (!nodeHasUUID.get()) {
-                    Thread.sleep(100);
-                }
             }
             assertTrue("UUID not set on node after 5 seconds", nodeHasUUID.get());
         }
