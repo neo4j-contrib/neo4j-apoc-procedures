@@ -110,7 +110,7 @@ public class FileUtils {
 
     public static String changeFileUrlIfImportDirectoryConstrained(String urlNotEncoded) throws IOException {
         final String url = encodeExceptQM(urlNotEncoded);
-//        final String url = urlNotEncoded;
+
         if (isFile(url) && isImportUsingNeo4jConfig()) {
             if (!apocConfig().getBoolean(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM)) {
                 throw new RuntimeException("Import file "+url+" not enabled, please set dbms.security.allow_csv_import_from_file_urls=true in your neo4j.conf");

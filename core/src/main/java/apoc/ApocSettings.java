@@ -39,8 +39,6 @@ public class ApocSettings implements SettingsDeclaration {
 
     public static final Setting<Boolean> apoc_uuid_enabled = newBuilder(APOC_UUID_ENABLED, BOOL, false ).build();
 
-    public static final Setting<Boolean> apoc_load_directory_enabled = newBuilder(APOC_LOAD_DIRECTORY_ENABLED, BOOL, false ).build();
-
     @Deprecated
     public static final Setting<String> apoc_initializer_cypher = newBuilder(APOC_CONFIG_INITIALIZER_CYPHER, STRING, null).build();
 

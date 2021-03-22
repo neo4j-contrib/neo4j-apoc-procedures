@@ -177,4 +177,15 @@ so if we execute `call apoc.load.directory.async.list`, we obtain, for example:
 |===
 | name|	status|	pattern| cypher| urlDir| config| error
 | `listenerName` | `ERROR` | `*.csv` | `'create (n:Node)'` | `'path'` | `{}` | `"org.neo4j.graphdb.QueryExecutionException: Failed to invoke procedure apoc.load.csv: Caused by: java.io.FileNotFoundException ....`
-|====
+|===
+
+== Procedure enabling
+
+Please note that to use the `apoc.load.directory.async.*` procedures,
+we'll have to enable the following config option:
+
+.apoc.conf
+[source,properties]
+----
+apoc.import.file.enabled=true
+----

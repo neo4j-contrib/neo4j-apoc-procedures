@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-import static apoc.ApocConfig.APOC_LOAD_DIRECTORY_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.FileUtils.checkIfUrlEmptyAndGetFileUrl;
 import static apoc.util.FileUtils.getPathDependingOnUseNeo4jConfig;
@@ -28,9 +27,6 @@ import static apoc.util.FileUtils.getPathFromUrlString;
 
 @Extended
 public class LoadDirectory {
-
-    public static final String NOT_ENABLED_ERROR = "Load directory listeners have not been enabled." +
-            " Set 'apoc.load.directory.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
 
     @Context
     public Log log;
@@ -52,7 +48,7 @@ public class LoadDirectory {
                                                              @Name(value = "pattern", defaultValue = "*") String pattern,
                                                              @Name(value = "urlDir", defaultValue = "") String urlDir,
                                                              @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        checkEnabled();
+        apocConfig().checkReadAllowed();
 
         LoadDirectoryItem.LoadDirectoryConfig conf = new LoadDirectoryItem.LoadDirectoryConfig(config);
         LoadDirectoryItem loadDirectoryItem = new LoadDirectoryItem(name, pattern, cypher, urlDir, conf);
@@ -64,7 +60,7 @@ public class LoadDirectory {
     @Procedure("apoc.load.directory.async.remove")
     @Description("apoc.load.directory.async.remove(name) YIELD name, status, pattern, cypher, urlDir, config, error - Remove a folder listener by name and return remaining listener")
     public Stream<LoadDirectoryItem.LoadDirectoryResult> remove(@Name("name") String name) {
-        checkEnabled();
+        apocConfig().checkReadAllowed();
 
         loadDirectoryHandler.remove(name);
         return loadDirectoryHandler.list();
@@ -73,7 +69,7 @@ public class LoadDirectory {
     @Procedure("apoc.load.directory.async.removeAll")
     @Description("apoc.load.directory.async.removeAll() - Remove all folder listeners")
     public Stream<LoadDirectoryItem.LoadDirectoryResult> removeAll() {
-        checkEnabled();
+        apocConfig().checkReadAllowed();
 
         loadDirectoryHandler.removeAll();
         return Stream.empty();
@@ -82,7 +78,7 @@ public class LoadDirectory {
     @Procedure("apoc.load.directory.async.list")
     @Description("apoc.load.directory.async.list() YIELD name, status, pattern, cypher, urlDir, config, error - List of all folder listeners")
     public Stream<LoadDirectoryItem.LoadDirectoryResult> list() {
-        checkEnabled();
+        apocConfig().checkReadAllowed();
         return loadDirectoryHandler.list();
     }
 
@@ -108,12 +104,5 @@ public class LoadDirectory {
             String urlFile = i.toString();
             return new StringResult(getPathDependingOnUseNeo4jConfig(urlFile));
         });
-    }
-
-
-    public void checkEnabled() {
-        if (!apocConfig().getBoolean(APOC_LOAD_DIRECTORY_ENABLED)) {
-            throw new RuntimeException(NOT_ENABLED_ERROR);
-        }
     }
 }

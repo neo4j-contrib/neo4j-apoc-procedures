@@ -1,6 +1,8 @@
 package apoc.load;
 
 import apoc.util.TestUtil;
+import junit.framework.TestCase;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -12,6 +14,7 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
@@ -28,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_LOAD_DIRECTORY_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
 import static apoc.util.TestUtil.getUrlFileName;
@@ -77,7 +79,6 @@ public class LoadDirectoryTest {
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
 
         TestUtil.registerProcedure(db, LoadDirectory.class, LoadCsv.class, LoadJson.class);
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         apocConfig().setProperty(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, true);
 
         // create temp files and subfolder
@@ -99,7 +100,7 @@ public class LoadDirectoryTest {
 
     @Before
     public void before() throws Exception {
-        apocConfig().setProperty(APOC_LOAD_DIRECTORY_ENABLED, true);
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
     }
 
     @Test
@@ -113,14 +114,16 @@ public class LoadDirectoryTest {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = QueryExecutionException.class)
     public void testAddListenerWithApocLoadDirectoryNotEnabled() {
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
-        apocConfig().setProperty(APOC_LOAD_DIRECTORY_ENABLED, false);
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, false);
         try {
             db.executeTransactionally("CALL apoc.load.directory.async.add('test','CREATE (n:Test)', '*.csv', '', {}) YIELD name RETURN name");
-        } catch (RuntimeException e) {
-            assertEquals("Failed to invoke procedure `apoc.load.directory.async.add`: Caused by: java.lang.RuntimeException: " + LoadDirectory.NOT_ENABLED_ERROR, e.getMessage());
+        } catch (QueryExecutionException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            TestCase.assertTrue(except instanceof RuntimeException);
+            assertEquals("Import from files not enabled, please set apoc.import.file.enabled=true in your apoc.conf", except.getMessage());
             throw e;
         }
     }

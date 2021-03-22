@@ -55,7 +55,6 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_TRIGGER_ENABLED = "apoc.trigger.enabled";
     public static final String APOC_UUID_ENABLED = "apoc.uuid.enabled";
     public static final String APOC_UUID_ENABLED_DB = "apoc.uuid.enabled.%s";
-    public static final String APOC_LOAD_DIRECTORY_ENABLED = "apoc.load.directory.enabled";
     public static final String APOC_JSON_ZIP_URL = "apoc.json.zip.url";  // TODO: check if really needed
     public static final String APOC_JSON_SIMPLE_JSON_URL = "apoc.json.simpleJson.url"; // TODO: check if really needed
     public static final String APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM = "apoc.import.file.allow_read_from_filesystem";
@@ -244,7 +243,13 @@ public class ApocConfig extends LifecycleAdapter {
     }
 
     public void checkReadAllowed(String url) {
-        if (isFile(url) && !config.getBoolean(APOC_IMPORT_FILE_ENABLED)) {
+        if (isFile(url)) {
+            checkReadAllowed();
+        }
+    }
+
+    public void checkReadAllowed() {
+        if (!config.getBoolean(APOC_IMPORT_FILE_ENABLED)) {
             throw new RuntimeException("Import from files not enabled," +
                     " please set apoc.import.file.enabled=true in your apoc.conf");
         }

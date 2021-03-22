@@ -45,8 +45,8 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
         this.pools = pools;
     }
 
-    private static Kind[] fromListStringToKindArray(List<String> eventKinds) {
-        Kind[] kinds = eventKinds.stream().map(item -> {
+    private static Kind[] fromListStringToKindArray(List<String> listenEventType) {
+        Kind[] kinds = listenEventType.stream().map(item -> {
             switch (item) {
                 case "CREATE":
                     return ENTRY_CREATE;

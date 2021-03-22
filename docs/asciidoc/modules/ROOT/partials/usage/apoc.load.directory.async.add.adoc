@@ -4,10 +4,11 @@ The second parameter is the cypher query that will be executed.
 The query can have the following parameters:
 
 * $fileName: the name of the file which triggered the event
-TODO
-* $filePath: the absolute path of the file which triggered the event if `apoc.import.file.use_neo4j_config=false`, otherwise the relative path starting from ``$IMPORT_DIR`
-* $fileDirectory: the absolute path directory of the file which triggered the event if `apoc.import.file.use_neo4j_config=false`, otherwise the relative path starting from ``$IMPORT_DIR`
-* $listenEventType: the triggered event ("CREATE", "DELETE" or "MODIFY")
+* $filePath: the absolute path of the file which triggered the event if `apoc.import.file.use_neo4j_config=false`, otherwise the relative path starting from `$IMPORT_DIR`
+* $fileDirectory: the absolute path directory of the file which triggered the event if `apoc.import.file.use_neo4j_config=false`, otherwise the relative path starting from `$IMPORT_DIR`
+* $listenEventType: the triggered event ("CREATE", "DELETE" or "MODIFY"). The event "CREATE" happens when a file is inserted in the folder,
+"DELETE" when a file is removed from the folder and "MODIFY" when a file in the folder is changed.
+Please note that if a file is renamed, will be triggered 2 event, that is first "DELETE" and then"CREATE"
 
 
 The third parameter is the pattern of file to search for.
@@ -30,7 +31,7 @@ so every time, in `import` folder, a file is created/deleted/updated will be exe
 
 We can listen only for specified event kinds, for example for file creation, and create an import report:
 ----
-CALL apoc.load.directory.async.add('test', 'CREATE (n:Import {fileName: $fileName})', '*', '', {eventKinds: ['ENTRY_CREATE']});
+CALL apoc.load.directory.async.add('test', 'CREATE (n:Import {fileName: $fileName})', '*', '', {listenEventType: ['ENTRY_CREATE']});
 ----
 to listen only for file creation. So, if we import two file "foo.csv" and "bar.csv", will be created 2 nodes: `(n:Import {fileName: 'foo.csv'})` and `(n:Import {fileName: 'bar.csv'})`.
 
