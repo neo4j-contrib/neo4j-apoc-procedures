@@ -31,12 +31,12 @@ public class CouchbaseJsonDocument implements CouchbaseDocument<Map<String, Obje
   /**
    * The optional expiration time for the {@link GetResult} (0 if not set).
    */
-  public final long expiry;
+  public long expiry;
 
   /**
    * The last-known CAS (<i>Compare And Swap</i>) value for the {@link MutationResult} (0 if not set).
    */
-  public final long cas;
+  public long cas;
 
   /**
    * The optional, opaque mutation token set after a successful mutation and if
@@ -47,29 +47,31 @@ public class CouchbaseJsonDocument implements CouchbaseDocument<Map<String, Obje
   /**
    * The content of the {@link GetResult}.
    */
-  public final Map<String, Object> content;
+  public Map<String, Object> content;
+
+  public CouchbaseJsonDocument(Map<String, Object> mutationToken, String id) {
+    this.id = id;
+    this.mutationToken = mutationToken;
+  }
 
   public CouchbaseJsonDocument(GetResult getResult, String id) {
-    this.id = id;
+    this((Map<String, Object>) null, id);
     this.expiry = getExpiry(getResult);
     this.cas = getResult.cas();
-    this.mutationToken = null;
     this.content = getResult.contentAsObject().toMap();
   }
 
   public CouchbaseJsonDocument(MutationResult mutationResult, String id, Collection collection) {
+    this(convertMutationTokenToMap(mutationResult.mutationToken().orElse(null)), id);
 
     GetResult getResult = collection.exists(id).exists() ? collection.get(id) : null;
-
-    this.id = id;
     this.cas = mutationResult.cas();
+
     if (getResult == null) {
       this.expiry = 0;
-      this.mutationToken = null;
       this.content = null;
     } else {
-      this.expiry = getResult.expiryTime().orElse(Instant.ofEpochMilli(0)).toEpochMilli();
-      this.mutationToken = convertMutationTokenToMap(mutationResult.mutationToken().orElse(null));
+      this.expiry = getExpiry(getResult);
       this.content = getResult.contentAsObject().toMap();
     }
   }
