@@ -1,4 +1,23 @@
-== Examples of interoperability with other procedures
+The first parameter is the name of our custom watch listener.
+If I call a procedure with the same name as an existing one, this will be overwritten.
+The second parameter is the cypher query that will be executed.
+The query can have the following parameters:
+
+* $fileName: the name of the file which triggered the event
+* $filePath: the absolute path of the file which triggered the event if `apoc.import.file.use_neo4j_config=false`, otherwise the relative path starting from `$IMPORT_DIR`
+* $fileDirectory: the absolute path directory of the file which triggered the event if `apoc.import.file.use_neo4j_config=false`, otherwise the relative path starting from `$IMPORT_DIR`
+* $listenEventType: the triggered event ("CREATE", "DELETE" or "MODIFY"). The event "CREATE" happens when a file is inserted in the folder,
+"DELETE" when a file is removed from the folder and "MODIFY" when a file in the folder is changed.
+Please note that if a file is renamed, will be triggered 2 event, that is first "DELETE" and then"CREATE"
+
+
+The third parameter is the pattern of file to search for.
+By default is '*', that is, search all files.
+The fourth is the search path of directory.
+By default is an empty string, that is, search file in `import` directory.
+
+
+=== Examples of interoperability with other procedures
 
 We can use as query parameter, another load procedure, like `apoc.load.csv` or `apoc.load.json`.
 
@@ -168,7 +187,7 @@ We obtain this result calling `MATCH (n:JsonToNode) RETURN properties(n) as prop
 }
 |===
 
-== Error handling
+=== Error handling
 
 When for some reason, the listener fails, its `status` field change from `RUNNING` to `ERROR`, and the associated error is put
 so if we execute `call apoc.load.directory.async.list`, we obtain, for example:
@@ -179,7 +198,7 @@ so if we execute `call apoc.load.directory.async.list`, we obtain, for example:
 | `listenerName` | `ERROR` | `*.csv` | `'create (n:Node)'` | `'path'` | `{}` | `"org.neo4j.graphdb.QueryExecutionException: Failed to invoke procedure apoc.load.csv: Caused by: java.io.FileNotFoundException ....`
 |===
 
-== Procedure enabling
+=== Procedure enabling
 
 Please note that to use the `apoc.load.directory.async.*` procedures,
 we'll have to enable the following config option:

@@ -37,5 +37,7 @@ apoc.load.directory.async.remove(name :: STRING?) :: (name :: STRING?, status ::
 |error|STRING?
 |===
 
-xref::import/load-directory-async.adoc[More documentation of apoc.load.directory.async.remove,role=more information]
+[[usage-apoc.load.directory.async.remove]]
+== Usage Examples
+include::partial$usage/apoc.load.directory.async.remove.adoc[]
 

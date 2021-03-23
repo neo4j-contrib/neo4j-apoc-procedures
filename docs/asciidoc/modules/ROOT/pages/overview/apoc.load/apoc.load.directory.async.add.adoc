@@ -48,5 +48,3 @@ include::partial$usage/config/apoc.load.directory.async.add.adoc[]
 == Usage Examples
 include::partial$usage/apoc.load.directory.async.add.adoc[]
 
-xref::import/load-directory-async.adoc[More documentation of apoc.load.directory.async.add,role=more information]
-
