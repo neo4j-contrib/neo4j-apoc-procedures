@@ -43,6 +43,7 @@ public class Periodic {
     @Context public Pools pools;
     @Context public Transaction tx;
 
+    @Admin
     @Procedure(mode = Mode.SCHEMA)
     @Description("apoc.periodic.truncate({config}) - removes all entities (and optionally indexes) from db using the apoc.periodic.iterate under the hood")
     public void truncate(@Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
