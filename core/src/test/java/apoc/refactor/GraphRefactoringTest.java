@@ -22,6 +22,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -1015,7 +1016,62 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
         testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, selfRel: true}) yield node return node",
                 (r) -> {
                     Node node = (Node) r.get("node");
-                    assertTrue(node.getRelationships().iterator().hasNext());
+                    Iterator<Relationship> relIterator = node.getRelationships().iterator();
+                    String relName = relIterator.next().getType().name();
+                    assertEquals("TEST_REL", relName);
+                    assertFalse(relIterator.hasNext());
+                });
+    }
+
+    @Test
+    public void testMergeNodeShouldNotCancelOtherRelsWithSelfRelsFalse() {
+        db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:REL_NOT_TO_BE_DELETED]->(b:TestNodeOther {a:'b'})-[:ANOTHER_REL_NOT_TO_BE_DELETED]->(c:TestNode {a:'c'})\n" +
+                "WITH a, c CREATE (a)-[:TEST_REL]->(a) WITH c CREATE (c)-[:TEST_REL]->(c);");
+        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, selfRel: false}) yield node return node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    List<String> relNodeList = IteratorUtils.toList(node.getRelationships().iterator()).stream().
+                            map(i-> i.getType().name()).collect(Collectors.toList());
+                    assertThat(relNodeList, Matchers.containsInAnyOrder("REL_NOT_TO_BE_DELETED", "ANOTHER_REL_NOT_TO_BE_DELETED"));
+                });
+    }
+
+    @Test
+    public void testMergeNodeShouldNotCancelOtherRelsWithSelfRelsTrue() {
+        db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:REL_NOT_TO_BE_DELETED]->(b:TestNodeOther {a:'b'})-[:ANOTHER_REL_NOT_TO_BE_DELETED]->(c:TestNode {a:'c'})\n" +
+                "WITH a, c CREATE (a)-[:TEST_REL]->(a) WITH c CREATE (c)-[:TEST_REL]->(c);");
+        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, selfRel: true}) yield node return node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    List<String> relNodeList = IteratorUtils.toList(node.getRelationships().iterator()).stream().
+                            map(i-> i.getType().name()).collect(Collectors.toList());
+                    assertThat(relNodeList, Matchers.containsInAnyOrder("REL_NOT_TO_BE_DELETED", "ANOTHER_REL_NOT_TO_BE_DELETED", "TEST_REL"));
+                });
+    }
+
+    @Test
+    public void testMergeNodeShouldNotCancelOtherRelsWithSelfRelsFalseAndSingleNode() {
+        db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:REL_NOT_TO_BE_DELETED]->(b:TestNodeOther {a:'b'})-[:ANOTHER_REL]->(c:TestNodeOther {a:'c'})\n" +
+                "WITH a, c CREATE (a)-[:TEST_REL]->(a) WITH c CREATE (c)-[:TEST_REL]->(c);");
+        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, selfRel: false}) yield node return node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    List<String> relNodeList = IteratorUtils.toList(node.getRelationships().iterator()).stream().
+                            map(i-> i.getType().name()).collect(Collectors.toList());
+                    assertThat(relNodeList, Matchers.containsInAnyOrder("REL_NOT_TO_BE_DELETED", "TEST_REL"));
+                });
+    }
+
+    @Test
+    public void testMergeNodeShouldNotCancelOtherRelsWithSelfRelsTrueAndSingleNode() {
+        db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:REL_NOT_TO_BE_DELETED]->(b:TestNodeOther {a:'b'})-[:ANOTHER_REL_NOT_TO_BE_DELETED]->(c:TestNodeOther {a:'c'})\n" +
+                "WITH a, c CREATE (a)-[:TEST_REL]->(a) WITH c CREATE (c)-[:TEST_REL]->(c);");
+        testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, selfRel: true}) yield node return node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    List<String> relNodeList = IteratorUtils.toList(node.getRelationships().iterator()).stream().
+                            map(i-> i.getType().name()).collect(Collectors.toList());
+                    assertThat(relNodeList, Matchers.containsInAnyOrder("REL_NOT_TO_BE_DELETED", "TEST_REL"));
                 });
     }
 
@@ -1037,7 +1093,10 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
         testCall(db, "MATCH (n:TestNode) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes, {mergeRels: true, selfRel: true}) yield node return node",
                 (r) -> {
                     Node node = (Node) r.get("node");
-                    assertTrue(node.getRelationships().iterator().hasNext());
+                    Iterator<Relationship> relIterator = node.getRelationships().iterator();
+                    String relName = relIterator.next().getType().name();
+                    assertEquals("TEST_REL", relName);
+                    assertFalse(relIterator.hasNext());
                 });
     }
 
