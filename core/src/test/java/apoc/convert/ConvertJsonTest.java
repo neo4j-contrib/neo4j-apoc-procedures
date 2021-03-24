@@ -228,6 +228,24 @@ public class ConvertJsonTest {
                 (row) -> assertEquals(asList(1L,2L,3L), row.get("value")) );
     }
 
+    @Test public void testToTreeIssue1685() throws Exception {
+        String movies = Util.readResourceFile("movies.cypher");
+        db.executeTransactionally(movies);
+
+        testCall(db, "match path = (k:Person {name:'Keanu Reeves'})-[*..5]-(x) " +
+                        "with collect(path) as paths " +
+                        "call apoc.convert.toTree(paths) yield value " +
+                        "return value",
+                (row) -> {
+                    Map root = (Map) row.get("value");
+                    assertEquals("Person", root.get("_type"));
+                    List<Object> actedInList = (List<Object>) root.get("acted_in");
+                    assertEquals(7, actedInList.size());
+                    List<Object> innerList = (List) ((Map<String, Object>) actedInList.get(1)).get("acted_in");
+                    assertEquals(6, ((Map<String, Object>) innerList.get(0)).size());
+                });
+    }
+
     @Test public void testToTree() throws Exception {
         testCall(db, "CREATE p1=(m:Movie {title:'M'})<-[:ACTED_IN {role:'R1'}]-(:Actor {name:'A1'}), " +
                 " p2 = (m)<-[:ACTED_IN  {role:'R2'}]-(:Actor {name:'A2'}) WITH [p1,p2] as paths " +
