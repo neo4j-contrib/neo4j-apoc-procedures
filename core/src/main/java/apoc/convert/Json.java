@@ -141,7 +141,8 @@ public class Json {
         Map<String, List<String>> rels = conf.getRels();
 
         Map<Long, Map<String, Object>> maps = new HashMap<>(paths.size() * 100);
-        for (Path path : paths) {
+
+        paths.stream().sorted(Comparator.comparingInt(Path::length).reversed()).forEach(path -> {
             Iterator<Entity> it = path.iterator();
             while (it.hasNext()) {
                 Node n = (Node) it.next();
@@ -165,7 +166,8 @@ public class Json {
                     }
                 }
             }
-        }
+        });
+
         return paths.stream()
                 .map(Path::startNode)
                 .distinct()
