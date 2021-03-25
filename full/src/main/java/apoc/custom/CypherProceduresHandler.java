@@ -395,13 +395,15 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                             if (!forceSingle && outType instanceof Neo4jTypes.ListType) {
                                 Neo4jTypes.ListType listType = (Neo4jTypes.ListType) outType;
                                 Neo4jTypes.AnyType innerType = listType.innerType();
-                                if (innerType instanceof Neo4jTypes.MapType)
+                                // We wrap the result only if we have a "true" map, and not NodeType or RelationshipType that extends MapType
+                                if (innerType.getClass().equals(Neo4jTypes.MapType.class))
                                     return ValueUtils.of(result.stream().collect(Collectors.toList()));
                                 if (cols.size() == 1)
                                     return ValueUtils.of(result.stream().map(row -> row.get(cols.get(0))).collect(Collectors.toList()));
                             } else {
                                 Map<String, Object> row = result.next();
-                                if (outType instanceof Neo4jTypes.MapType) return ValueUtils.of(row);
+                                // We wrap the result only if we have a "true" map, and not NodeType or RelationshipType that extends MapType
+                                if (outType.getClass().equals(Neo4jTypes.MapType.class)) return ValueUtils.of(row);
                                 if (cols.size() == 1) return ValueUtils.of(row.get(cols.get(0)));
                             }
                             throw new IllegalStateException("Result mismatch " + cols + " output type is " + outType);
