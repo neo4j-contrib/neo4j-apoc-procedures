@@ -131,6 +131,7 @@ public class Signatures {
     }
 
     public String name(SignatureParser.NameContext ns) {
+        if(ns == null) throw new IllegalStateException("Unsupported procedure name, the procedure must have at least two chars");
         if (ns.IDENTIFIER() != null) return ns.IDENTIFIER().getText();
         if (ns.QUOTED_IDENTIFIER() != null) return ns.QUOTED_IDENTIFIER().getText(); // todo
         throw new IllegalStateException("Invalid Name " + ns);
