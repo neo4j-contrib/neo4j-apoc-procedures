@@ -21,12 +21,15 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.cypher.Cypher.isSchemaOperation;
 import static apoc.util.FileUtils.checkIfUrlEmptyAndGetFileUrl;
 import static apoc.util.FileUtils.getPathDependingOnUseNeo4jConfig;
 import static apoc.util.FileUtils.getPathFromUrlString;
 
 @Extended
 public class LoadDirectory {
+
+    public static final String ERROR_SCHEMA_LOAD_DIR = "Schema operations are not allowed for `apoc.load.directory.async.add` procedure";
 
     @Context
     public Log log;
@@ -49,6 +52,10 @@ public class LoadDirectory {
                                                              @Name(value = "urlDir", defaultValue = "") String urlDir,
                                                              @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         apocConfig().checkReadAllowed();
+        Util.validateQuery(db, cypher);
+        if (isSchemaOperation(cypher)) {
+            throw new RuntimeException(ERROR_SCHEMA_LOAD_DIR);
+        }
 
         LoadDirectoryItem.LoadDirectoryConfig conf = new LoadDirectoryItem.LoadDirectoryConfig(config);
         LoadDirectoryItem loadDirectoryItem = new LoadDirectoryItem(name, pattern, cypher, urlDir, conf);

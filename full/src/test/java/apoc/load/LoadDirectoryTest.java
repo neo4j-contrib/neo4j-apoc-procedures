@@ -33,6 +33,7 @@ import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
+import static apoc.load.LoadDirectory.ERROR_SCHEMA_LOAD_DIR;
 import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.load.LoadDirectoryItem.DEFAULT_EVENT_TYPES;
 import static apoc.util.TestUtil.testCall;
@@ -124,6 +125,30 @@ public class LoadDirectoryTest {
             Throwable except = ExceptionUtils.getRootCause(e);
             TestCase.assertTrue(except instanceof RuntimeException);
             assertEquals("Import from files not enabled, please set apoc.import.file.enabled=true in your apoc.conf", except.getMessage());
+            throw e;
+        }
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testNotAllowSchemaOperation() {
+        try {
+            db.executeTransactionally("CALL apoc.load.directory.async.add('test','CREATE INDEX FOR (a:Test) ON (a.name)', '*.csv', '', {}) YIELD name RETURN name");
+        } catch (QueryExecutionException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            TestCase.assertTrue(except instanceof RuntimeException);
+            assertEquals(ERROR_SCHEMA_LOAD_DIR, except.getMessage());
+            throw e;
+        }
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testInvalidQuery() {
+        try {
+            db.executeTransactionally("CALL apoc.load.directory.async.add('test','MATCH (n:Test) return invalid', '*.csv', '', {}) YIELD name RETURN name");
+        } catch (QueryExecutionException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            TestCase.assertTrue(except instanceof RuntimeException);
+            assertTrue(except.getMessage().contains("Variable `invalid` not defined"));
             throw e;
         }
     }
