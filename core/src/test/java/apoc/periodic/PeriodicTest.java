@@ -10,6 +10,8 @@ import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.TransientTransactionFailureException;
+import org.neo4j.graphdb.schema.ConstraintDefinition;
+import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.KernelTransactionHandle;
@@ -425,6 +427,30 @@ public class PeriodicTest {
 
     @Test
     public void testTruncate() {
+        createDatasetForTruncate();
+
+        TestUtil.testCallEmpty(db, "CALL apoc.periodic.truncate", Collections.emptyMap());
+        assertCountEntitiesAndIndexes(0, 0, 4,2);
+
+        try(Transaction tx = db.beginTx()) {
+            Schema schema = tx.schema();
+            schema.getConstraints().forEach(ConstraintDefinition::drop);
+            schema.getIndexes().forEach(IndexDefinition::drop);
+            tx.commit();
+        }
+
+        assertCountEntitiesAndIndexes(0, 0, 0,0);
+    }
+
+    @Test
+    public void testTruncateWithDropSchema() {
+        createDatasetForTruncate();
+
+        TestUtil.testCallEmpty(db, "CALL apoc.periodic.truncate({dropSchema: true})", Collections.emptyMap());
+        assertCountEntitiesAndIndexes(0, 0, 0,0);
+    }
+
+    private void createDatasetForTruncate() {
         db.executeTransactionally("UNWIND range(1,99999) AS x CREATE (:One{name:'Person_'+x})-[:FOO {id: x}]->(:Two {surname: 'Two'+x})<-[:BAR {idBar: x}]-(:Three {other: x+'Three'})");
 
         db.executeTransactionally("CREATE INDEX ON :One(name)");
@@ -434,16 +460,7 @@ public class PeriodicTest {
 
         final int expectedNodes = 99999 * 3;
         final int expectedRels = 99999 * 2;
-        assertCountEntitiesAndIndexes(expectedNodes, expectedRels, 4,2);
-
-        TestUtil.testCallEmpty(db, "CALL apoc.periodic.truncate", Collections.emptyMap());
-        assertCountEntitiesAndIndexes(0, 0, 4,2);
-
-        db.executeTransactionally("UNWIND range(1,99999) AS x CREATE (:One{name:'Person_'+x})-[:FOO {id: x}]->(:Two {surname: 'Two'+x})<-[:BAR {idBar: x}]-(:Three {other: x+'Three'})");
-        assertCountEntitiesAndIndexes(expectedNodes, expectedRels, 4,2);
-
-        TestUtil.testCallEmpty(db, "CALL apoc.periodic.truncate({dropSchema: true})", Collections.emptyMap());
-        assertCountEntitiesAndIndexes(0, 0, 0,0);
+        assertCountEntitiesAndIndexes(expectedNodes, expectedRels, 4, 2);
     }
 
     private void assertCountEntitiesAndIndexes(long expectedNodes, long expectedRels, long expectedIndexes, long expectedContraints) {
