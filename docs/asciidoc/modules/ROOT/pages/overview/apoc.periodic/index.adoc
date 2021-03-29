@@ -53,5 +53,10 @@ apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cy
 apoc.periodic.submit('name',statement) - submit a one-off background statement
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.periodic/apoc.periodic.truncate.adoc[apoc.periodic.truncate icon:book[]]
+
+apoc.periodic.truncate(\{config}) - removes all entities (and optionally indexes and constraints) from db using the apoc.periodic.iterate under the hood
+|label:procedure[]
+|label:apoc-core[]
 |===
 
