@@ -144,7 +144,7 @@ ORDER BY distance
 LIMIT 100
 ----
 
-=== sortPathsByDistance
+=== sortByDistance
 
 The second procedure enables you to sort a given collection of paths by the sum of their distance based on lat/long properties
 on the nodes.
@@ -171,7 +171,7 @@ Finding paths and sort them by distance
 MATCH (a:City {name:'bruges'}), (b:City {name:'dresden'})
 MATCH p=(a)-[*]->(b)
 WITH collect(p) as paths
-CALL apoc.spatial.sortPathsByDistance(paths) YIELD path, distance
+CALL apoc.spatial.sortByDistance(paths) YIELD path, distance
 RETURN path, distance
 ----
 
