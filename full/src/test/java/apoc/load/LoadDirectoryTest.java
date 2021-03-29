@@ -2,6 +2,7 @@ package apoc.load;
 
 import apoc.util.TestUtil;
 import junit.framework.TestCase;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
@@ -33,13 +34,13 @@ import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
-import static apoc.load.LoadDirectory.ERROR_SCHEMA_LOAD_DIR;
 import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.load.LoadDirectoryItem.DEFAULT_EVENT_TYPES;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Collections.emptyMap;
+import static org.eclipse.jetty.util.URIUtil.encodePath;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertEquals;
@@ -136,7 +137,7 @@ public class LoadDirectoryTest {
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             TestCase.assertTrue(except instanceof RuntimeException);
-            assertEquals(ERROR_SCHEMA_LOAD_DIR, except.getMessage());
+            assertEquals("Supported query types for the operation are [READ_WRITE, WRITE]", except.getMessage());
             throw e;
         }
     }
@@ -177,76 +178,20 @@ public class LoadDirectoryTest {
                 "(m:CsvToNode {fileName: '" + fileName + "', fileDirectory: '" + SUBFOLDER_1 + "', listenEventType: 'CREATE', content: ['Rana', '11']}), " +
                 "(l:CsvToNode {fileName: '" + fileName + "', fileDirectory: '" + SUBFOLDER_1 + "', listenEventType: 'CREATE', content: ['Selina', '18']}) " +
                 "RETURN count(n) + count(m) + count(l) AS count";
+        // we check that the load csv is not triggered yet
         testResult(db, queryCount, result -> assertEquals(0L, result.columnAs("count").next()));
 
-        csvFile.renameTo(temporaryFolder.newFile(IMPORT_DIR + File.separator + SUBFOLDER_1 + File.separator + fileName));
+        final File csvDestination = temporaryFolder.newFile(IMPORT_DIR + File.separator + SUBFOLDER_1 + File.separator + fileName);
+        csvFile.renameTo(csvDestination);
 
         assertEventually(() -> db.executeTransactionally(queryCount,
-                emptyMap(), (r) -> r.columnAs("count").next()),
-                value -> value.equals(3L), 20L, TimeUnit.SECONDS);
+                emptyMap(), (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 3L, 20L, TimeUnit.SECONDS);
 
         testCallEmpty(db, "CALL apoc.load.directory.async.removeAll", emptyMap());
         testCallEmpty(db, "CALL apoc.load.directory.async.list", emptyMap());
 
-        new File(importFolder + File.separator + SUBFOLDER_1 + File.separator + fileName).delete();
-    }
-
-    @Test
-    public void testAddFolderListenerWithLoadJson() throws IOException {
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
-        final String innerQuery = "CALL apoc.load.json($filePath) YIELD value WITH value " +
-                "CREATE (n:JsonToNode {content: value[\"foo\"], fileName: $fileName, fileDirectory: $fileDirectory, listenEventType: $listenEventType})";
-
-        testCall(db, "CALL apoc.load.directory.async.add('testRelativePath','" + innerQuery + "', '*.json', '" + SUBFOLDER_3 + "')",
-                r -> assertEquals("testRelativePath", r.get("name"))
-        );
-
-        final String fileName = "fileToMove.json";
-        File csvFile = temporaryFolder.newFile(IMPORT_DIR + File.separator + fileName);
-        try (FileWriter fileWriter = new FileWriter(csvFile)) {
-            final String content = "{ \"foo\":[11,22,33] } \n" +
-                    "{ \"foo\":[41,51,61] }";
-            fileWriter.write(content);
-        }
-
-        final String queryCount = "MATCH (n:JsonToNode {fileName: '" + fileName + "', fileDirectory: '" + SUBFOLDER_3 + "', listenEventType: 'CREATE', content: [11,22,33]}), " +
-                "(m:JsonToNode {fileName: '" + fileName + "', fileDirectory: '" + SUBFOLDER_3 + "', listenEventType: 'CREATE', content: [41,51,61]}) " +
-                "RETURN count(n) + count(m) AS count";
-        testResult(db, queryCount, result -> assertEquals(0L, result.columnAs("count").next()));
-
-        csvFile.renameTo(temporaryFolder.newFile(IMPORT_DIR + File.separator + SUBFOLDER_3 + File.separator + fileName));
-
-        assertEventually(() -> db.executeTransactionally(queryCount,
-                emptyMap(), (r) -> r.columnAs("count").next()),
-                value -> value.equals(2L), 20L, TimeUnit.SECONDS);
-
-        testCallEmpty(db, "CALL apoc.load.directory.async.removeAll", emptyMap());
-        testCallEmpty(db, "CALL apoc.load.directory.async.list", emptyMap());
-
-        new File(importFolder + File.separator + SUBFOLDER_3 + File.separator + fileName).delete();
-    }
-
-    @Test
-    public void testInnerSubFolder() throws IOException {
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
-
-        String innerFolder = SUBFOLDER_1 + File.separator + INNER_SUBFOLDER;
-        testCall(db, "CALL apoc.load.directory.async.add('testInnerFolder','CREATE (n:TestInnerFile {fileName: $fileName})', '*', '" + innerFolder + "')",
-                r -> assertEquals("testInnerFolder", r.get("name"))
-        );
-
-        final String queryCount = "MATCH (n:TestInnerFile) RETURN count(n) AS count";
-        testResult(db, queryCount, result -> assertEquals(0L, result.columnAs("count").next()));
-
-        final String fileName = "innerFile.js";
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + SUBFOLDER_1 + File.separator + INNER_SUBFOLDER + File.separator + fileName);
-
-        assertEventually(() -> db.executeTransactionally(queryCount,
-                Map.of("fileName", fileName), (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 20L, TimeUnit.SECONDS);
-
-        testCallEmpty(db, "CALL apoc.load.directory.async.removeAll", emptyMap());
-        new File(importFolder + File.separator + SUBFOLDER_1 + File.separator + File.separator + INNER_SUBFOLDER + fileName).delete();
+        FileUtils.forceDelete(csvDestination);
     }
 
     @Test
@@ -257,28 +202,28 @@ public class LoadDirectoryTest {
         final String queryCount = "MATCH (n:TestEntry) RETURN count(n) AS count";
         testResult(db, queryCount, result -> assertEquals(0L, result.columnAs("count").next()));
 
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + "newFile.csv");
+        final File fileCsv = temporaryFolder.newFile(IMPORT_DIR + File.separator + "newFile.csv");
 
         assertEventually(() -> db.executeTransactionally(queryCount,
-                emptyMap(), (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 30L, TimeUnit.SECONDS);
+                emptyMap(), (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 1L, 30L, TimeUnit.SECONDS);
 
-        new File(importFolder + File.separator + "newFile.csv").delete();
-
-        assertEventually(() -> db.executeTransactionally(queryCount,
-                emptyMap(), (r) -> r.columnAs("count").next()),
-                value -> value.equals(2L), 30L, TimeUnit.SECONDS);
-
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + "newFileTwo.csv");
+        FileUtils.forceDelete(fileCsv);
 
         assertEventually(() -> db.executeTransactionally(queryCount,
-                emptyMap(), (r) -> r.columnAs("count").next()),
-                value -> value.equals(3L), 30L, TimeUnit.SECONDS);
+                emptyMap(), (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 2L, 30L, TimeUnit.SECONDS);
+
+        final File fileCsv2 = temporaryFolder.newFile(IMPORT_DIR + File.separator + "newFileTwo.csv");
+
+        assertEventually(() -> db.executeTransactionally(queryCount,
+                emptyMap(), (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 3L, 30L, TimeUnit.SECONDS);
 
         testCallEmpty(db, "CALL apoc.load.directory.async.remove('testAllEvents')", emptyMap());
 
-        new File(importFolder + File.separator + "newFile.csv").delete();
-        new File(importFolder + File.separator + "newFileTwo.csv").delete();
+        FileUtils.forceDelete(fileCsv2);
+
     }
 
     @Test
@@ -290,89 +235,26 @@ public class LoadDirectoryTest {
         final String fileOne = "newFile.csv";
         testResult(db, queryCount, Map.of("fileName", fileOne), result -> assertEquals(0L, result.columnAs("count").next()));
 
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + fileOne);
+        final File file = temporaryFolder.newFile(IMPORT_DIR + File.separator + fileOne);
 
         assertEventually(() -> db.executeTransactionally(queryCount,
-                Map.of("fileName", fileOne), (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 30L, TimeUnit.SECONDS);
+                Map.of("fileName", fileOne), (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 1L, 30L, TimeUnit.SECONDS);
 
-        new File(importFolder + File.separator + fileOne).delete();
-        Thread.sleep(10000);
-
+        FileUtils.forceDelete(file);
+        // the DELETE event is not triggered
+        Thread.sleep(1000);
         testResult(db, queryCount, Map.of("fileName", fileOne), result -> assertEquals(1L, result.columnAs("count").next()));
 
         final String fileTwo = "newFileTwo.csv";
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + fileTwo);
+        final File file2 = temporaryFolder.newFile(IMPORT_DIR + File.separator + fileTwo);
 
         assertEventually(() -> db.executeTransactionally(queryCount,
-                Map.of("fileName", fileTwo), (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 30L, TimeUnit.SECONDS);
+                Map.of("fileName", fileTwo), (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 1L, 30L, TimeUnit.SECONDS);
 
         testCallEmpty(db, "CALL apoc.load.directory.async.remove('testSpecific')", emptyMap());
-        new File(importFolder + File.separator + fileTwo).delete();
-    }
-
-    @Test
-    public void testAddFolderListenerWithMultipleEventType() throws InterruptedException, IOException {
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
-        db.executeTransactionally("CALL apoc.load.directory.async.add('testMultiple','CREATE (n:TestEntry {fileName: $fileName})','*.txt', '', {listenEventType: ['MODIFY', 'DELETE']}) YIELD name RETURN name");
-
-        final String queryCount = "MATCH (n:TestEntry) RETURN count(n) AS count";
-        final String myFileString = "newFile.txt";
-
-        File myFile = temporaryFolder.newFile(IMPORT_DIR + File.separator + myFileString);
-
-        Thread.sleep(10000);
-        testResult(db, queryCount, result -> assertEquals(0L, result.columnAs("count").next()));
-
-        try (FileWriter fw = new FileWriter(myFile)) {
-            fw.write("FooBar");
-        }
-
-        assertEventually(() -> db.executeTransactionally(queryCount,
-                Map.of("fileName", myFileString), (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 20L, TimeUnit.SECONDS);
-
-
-        new File(importFolder + File.separator + myFileString).delete();
-
-        assertEventually(() -> db.executeTransactionally(queryCount,
-                Map.of("fileName", myFileString), (r) -> r.columnAs("count").next()),
-                value -> value.equals(2L), 20L, TimeUnit.SECONDS);
-
-        testCallEmpty(db, "CALL apoc.load.directory.async.remove('testMultiple')", emptyMap());
-        new File(importFolder + File.separator + myFile).delete();
-    }
-
-    @Test
-    public void testAddFolderListenerWithDeleteEventType() throws InterruptedException, IOException {
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
-        db.executeTransactionally("CALL apoc.load.directory.async.add('testSpecific','CREATE (n:TestEntry {fileName: $fileName})','*.csv', '', {listenEventType: ['CREATE']}) YIELD name RETURN name");
-
-        final String queryCount = "MATCH (n:TestEntry {fileName: $fileName}) RETURN count(n) AS count";
-        final String fileOne = "newFile.csv";
-        testResult(db, queryCount, Map.of("fileName", fileOne), result -> assertEquals(0L, result.columnAs("count").next()));
-
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + fileOne);
-
-        assertEventually(() -> db.executeTransactionally(queryCount,
-                Map.of("fileName", fileOne), (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 30L, TimeUnit.SECONDS);
-
-        new File(importFolder + File.separator + fileOne).delete();
-        Thread.sleep(10000);
-
-        testResult(db, queryCount, Map.of("fileName", fileOne), result -> assertEquals(1L, result.columnAs("count").next()));
-
-        final String fileTwo = "newFileTwo.csv";
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + fileTwo);
-
-        assertEventually(() -> db.executeTransactionally(queryCount,
-                Map.of("fileName", fileTwo), (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 30L, TimeUnit.SECONDS);
-
-        testCallEmpty(db, "CALL apoc.load.directory.async.remove('testSpecific')", emptyMap());
-        new File(importFolder + File.separator + fileTwo).delete();
+        FileUtils.forceDelete(file2);
     }
 
     @Test
@@ -394,13 +276,12 @@ public class LoadDirectoryTest {
         db.executeTransactionally("CALL apoc.load.directory.async.add('testOne','CREATE (n:Test)','*.csv','', {}) YIELD name RETURN name");
         db.executeTransactionally("CALL apoc.load.directory.async.add('testTwo','CREATE (n:Test)', '*.json', '', {}) YIELD name RETURN name");
 
-
         final Map<String, Object> defaultConfig = Map.of("listenEventType", eventTypes, "interval", 1000L);
         testResult(db, "CALL apoc.load.directory.async.list()", result -> {
             Map<String, Object> mapTestOne = result.next();
             assertThat(mapTestOne.get("name"), isOneOf("testOne", "testTwo"));
             assertThat(mapTestOne.get("pattern"), isOneOf("*.csv", "*.json"));
-            assertEquals("", mapTestOne.get("urlDir"));
+            assertEquals(encodePath(importFolder.getPath()), mapTestOne.get("urlDir"));
             assertEquals("CREATE (n:Test)", mapTestOne.get("cypher"));
             assertEquals(defaultConfig, mapTestOne.get("config"));
             assertEquals(LoadDirectoryItem.Status.RUNNING.name(), mapTestOne.get("status"));
@@ -408,7 +289,7 @@ public class LoadDirectoryTest {
             Map<String, Object> mapTestTwo = result.next();
             assertThat(mapTestTwo.get("name"), isOneOf("testOne", "testTwo"));
             assertThat(mapTestTwo.get("pattern"), isOneOf("*.csv", "*.json"));
-            assertEquals("", mapTestTwo.get("urlDir"));
+            assertEquals(encodePath(importFolder.getPath()), mapTestTwo.get("urlDir"));
             assertEquals("CREATE (n:Test)", mapTestTwo.get("cypher"));
             assertEquals(defaultConfig, mapTestTwo.get("config"));
             assertEquals(LoadDirectoryItem.Status.RUNNING.name(), mapTestTwo.get("status"));
@@ -420,7 +301,7 @@ public class LoadDirectoryTest {
             // remains 2nd listener
             assertEquals("testTwo", result.get("name"));
             assertEquals("*.json", result.get("pattern"));
-            assertEquals("", result.get("urlDir"));
+            assertEquals(encodePath(importFolder.getPath()), result.get("urlDir"));
             assertEquals("CREATE (n:Test)", result.get("cypher"));
             assertEquals(defaultConfig, result.get("config"));
             assertEquals(LoadDirectoryItem.Status.RUNNING.name(), result.get("status"));
@@ -452,7 +333,7 @@ public class LoadDirectoryTest {
         testCall(db, "CALL apoc.load.directory.async.add('test','CREATE (n:Test {file: $fileName})','*.json')", result -> {
             assertEquals("test", result.get("name"));
             assertEquals("*.json", result.get("pattern"));
-            assertEquals(StringUtils.EMPTY, result.get("urlDir"));
+            assertEquals(encodePath(importFolder.getPath()), result.get("urlDir"));
             assertEquals("CREATE (n:Test {file: $fileName})", result.get("cypher"));
             assertEquals(defaultConfig, result.get("config"));
             assertEquals(LoadDirectoryItem.Status.CREATED.name(), result.get("status"));
@@ -460,20 +341,19 @@ public class LoadDirectoryTest {
         });
 
         db.executeTransactionally("CALL apoc.load.directory.async.add('test','CREATE (n:Test {file: $fileName})','*.json') YIELD name RETURN name");
-        Thread.sleep(2000);
+        Thread.sleep(1000);
 
         final String queryCount = "MATCH (n:Test {file: $file}) RETURN count(n) AS count";
         testResult(db, queryCount, Map.of("file", "newFile.csv"), result -> assertEquals(0L, result.columnAs("count").next()));
 
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + "newFile.csv");
+        final File fileCsv = temporaryFolder.newFile(IMPORT_DIR + File.separator + "newFile.csv");
 
-        Thread.sleep(10000);
+        Thread.sleep(1000);
         testResult(db, queryCount, Map.of("file", "newFile.csv"), result -> assertEquals(0L, result.columnAs("count").next()));
 
         testCallEmpty(db, "CALL apoc.load.directory.async.remove('test')", emptyMap());
 
-        File file = new File(importFolder + File.separator + "newFile.csv");
-        file.delete();
+        FileUtils.forceDelete(fileCsv);
     }
 
     @Test
@@ -486,30 +366,30 @@ public class LoadDirectoryTest {
         testCall(db, "CALL apoc.load.directory.async.add('sameName','CREATE (n:TestTwo {event: $listenEventType, url: $fileDirectory, file: $fileName })','*csv','', {}) YIELD name RETURN name",
                 r -> assertEquals("sameName", r.get("name"))
         );
-        Thread.sleep(2000);
+        Thread.sleep(1000);
 
         final String queryCount = "MATCH (n:TestTwo {event: $event, url: $url, file: $file }) RETURN count(n) AS count";
         final Map<String, Object> queryParams = Map.of("file", "newFile.csv", "url", temporaryFolder.getRoot().getPath() + File.separator + IMPORT_DIR, "event", "CREATE");
 
         testResult(db, queryCount, queryParams, result -> assertEquals(0L, result.columnAs("count").next()));
 
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + "newFile.csv");
+        final File file = temporaryFolder.newFile(IMPORT_DIR + File.separator + "newFile.csv");
 
-        assertEventually(() -> db.executeTransactionally(queryCount, queryParams, (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 20L, TimeUnit.SECONDS);
+        assertEventually(() -> db.executeTransactionally(queryCount, queryParams, (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 1L, 20L, TimeUnit.SECONDS);
 
         testResult(db, "MATCH (n:Test) RETURN count(n) AS count", result -> assertEquals(0L, result.columnAs("count").next()));
 
         testCallEmpty(db, "CALL apoc.load.directory.async.remove('sameName')", emptyMap());
 
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + "newFileTwo.csv");
-        Thread.sleep(10000);
+        final File file2 = temporaryFolder.newFile(IMPORT_DIR + File.separator + "newFileTwo.csv");
+        Thread.sleep(1000);
 
         testResult(db, "MATCH (n:TestTwo) RETURN count(n) AS count", result -> assertEquals(1L, result.columnAs("count").next()));
         testResult(db, "MATCH (n:Test) RETURN count(n) AS count", result -> assertEquals(0L, result.columnAs("count").next()));
 
-        new File(importFolder + File.separator + "newFile.csv").delete();
-        new File(importFolder + File.separator + "newFileTwo.csv").delete();
+        FileUtils.forceDelete(file);
+        FileUtils.forceDelete(file2);
     }
 
     @Test
@@ -521,7 +401,7 @@ public class LoadDirectoryTest {
                     assertEquals("testOnlyNameAndCypher", row.get("name"));
                     assertFalse(result.hasNext());
                 });
-        Thread.sleep(2000);
+        Thread.sleep(1000);
 
         final String fileExe = "newFile.exe";
         final String relativePath = IMPORT_DIR + File.separator + fileExe;
@@ -529,14 +409,13 @@ public class LoadDirectoryTest {
 
         testResult(db, queryCount, Map.of("file", fileExe), result -> assertEquals(0L, result.columnAs("count").next()));
 
-        temporaryFolder.newFile(relativePath);
+        final File file = temporaryFolder.newFile(relativePath);
         assertEventually(() -> db.executeTransactionally(queryCount,
-                Map.of("file", fileExe), (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 20L, TimeUnit.SECONDS);
+                Map.of("file", fileExe), (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 1L,20L, TimeUnit.SECONDS);
 
         testCallEmpty(db, "CALL apoc.load.directory.async.removeAll", emptyMap());
-
-        new File(importFolder + File.separator + fileExe).delete();
+        FileUtils.forceDelete(file);
     }
 
     @Test
@@ -550,15 +429,14 @@ public class LoadDirectoryTest {
         testResult(db, queryCount, result -> assertEquals(0L, result.columnAs("count").next()));
 
 
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + SUBFOLDER_1 + File.separator + "newFile.kt");
+        final File file = temporaryFolder.newFile(IMPORT_DIR + File.separator + SUBFOLDER_1 + File.separator + "newFile.kt");
 
         assertEventually(() -> db.executeTransactionally(queryCount,
-                emptyMap(), (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 20L, TimeUnit.SECONDS);
+                emptyMap(), (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 1L, 20L, TimeUnit.SECONDS);
 
         testCallEmpty(db, "CALL apoc.load.directory.async.removeAll", emptyMap());
-
-        new File(importFolder + File.separator + SUBFOLDER_1 + File.separator + "newFile.kt").delete();
+        FileUtils.forceDelete(file);
     }
 
     @Test
@@ -573,72 +451,33 @@ public class LoadDirectoryTest {
         testResult(db, queryCountLabelOne, result -> assertEquals(0L, result.columnAs("count").next()));
         testResult(db, queryCountLabelTwo, result -> assertEquals(0L, result.columnAs("count").next()));
 
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + "newOtherFile.csv");
+        final File file = temporaryFolder.newFile(IMPORT_DIR + File.separator + "newOtherFile.csv");
 
         assertEventually(() -> db.executeTransactionally(queryCountLabelOne,
-                emptyMap(), (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 30L, TimeUnit.SECONDS);
+                emptyMap(), (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 1L, 30L, TimeUnit.SECONDS);
 
         testCall(db, "CALL apoc.load.directory.async.remove('testOne')", result -> {
             // remain 1st listener
             assertEquals("testTwo", result.get("name"));
             assertEquals("*.json", result.get("pattern"));
-            assertEquals("", result.get("urlDir"));
+            assertEquals(encodePath(importFolder.getPath()), result.get("urlDir"));
             assertEquals("CREATE (n:TestTwo)", result.get("cypher"));
             assertEquals("CREATE (n:TestTwo)", result.get("cypher"));
         });
 
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + "newOtherFile.json");
+        final File file2 = temporaryFolder.newFile(IMPORT_DIR + File.separator + "newOtherFile.json");
 
         assertEventually(() -> db.executeTransactionally(queryCountLabelTwo,
-                emptyMap(), (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 30L, TimeUnit.SECONDS);
+                emptyMap(), (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 1L, 30L, TimeUnit.SECONDS);
 
         testResult(db, queryCountLabelOne, result -> assertEquals(1L, result.columnAs("count").next()));
 
         testCallEmpty(db, "CALL apoc.load.directory.async.remove('testTwo')", emptyMap());
 
-        new File(importFolder + File.separator + "newFile.csv").delete();
-        new File(importFolder + File.separator + "newOtherFile.csv").delete();
-        new File(importFolder + File.separator + "newOtherFile.json").delete();
-    }
-
-    @Test
-    public void testAddFolderListener() throws InterruptedException, IOException {
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
-        testCall(db, "CALL apoc.load.directory.async.add('test','CREATE (n:Test)','*.csv','', {}) YIELD name RETURN name",
-                r -> assertEquals("test", r.get("name"))
-        );
-
-        final String queryCount = "MATCH (n:Test) RETURN count(n) AS count";
-        testResult(db, queryCount, result -> assertEquals(0L, result.columnAs("count").next()));
-
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + "newFile.csv");
-
-        assertEventually(() -> db.executeTransactionally(queryCount,
-                emptyMap(), (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 30L, TimeUnit.SECONDS);
-
-
-        try (Transaction tx = db.beginTx()) {
-            assertEquals(1, Iterators.count(tx.findNodes(Label.label("Test"))));
-            tx.commit();
-        }
-
-        new File(importFolder + File.separator + "newFile.csv").delete();
-
-        assertEventually(() -> db.executeTransactionally(queryCount,
-                emptyMap(), (r) -> r.columnAs("count").next()),
-                value -> value.equals(2L), 30L, TimeUnit.SECONDS);
-
-        testCallEmpty(db, "CALL apoc.load.directory.async.remove('test')", emptyMap());
-
-        temporaryFolder.newFile(IMPORT_DIR + File.separator + "newOtherFile.csv");
-
-        Thread.sleep(10000);
-        testResult(db, queryCount, result -> assertEquals(2L, result.columnAs("count").next()));
-
-        new File(importFolder + File.separator + "newOtherFile.csv").delete();
+        FileUtils.forceDelete(file);
+        FileUtils.forceDelete(file2);
     }
 
     @Test
@@ -653,34 +492,32 @@ public class LoadDirectoryTest {
                     assertEquals("testExternalUrl", row.get("name"));
                     assertFalse(result.hasNext());
                 });
-        Thread.sleep(2000);
+        Thread.sleep(1000);
         final String queryCount = "MATCH (n:TestExternalUrl {prop: 'newFile.csv'}) RETURN count(n) AS count";
         testResult(db, queryCount, result ->assertEquals(0L, result.columnAs("count").next()));
 
-        temporaryFolder.newFile("newFile.csv");
+        final File file = temporaryFolder.newFile("newFile.csv");
 
         assertEventually(() -> db.executeTransactionally(queryCount,
-                emptyMap(), (r) -> r.columnAs("count").next()),
-                value -> value.equals(1L), 20L, TimeUnit.SECONDS);
+                emptyMap(), (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 1L, 20L, TimeUnit.SECONDS);
 
         try (Transaction tx = db.beginTx()) {
             assertEquals(1, Iterators.count(tx.findNodes(Label.label("TestExternalUrl"))));
             tx.commit();
         }
 
-        new File(temporaryFolder.getRoot() + File.separator + "newFile.csv").delete();
-
+        FileUtils.forceDelete(file);
         testCallEmpty(db, "CALL apoc.load.directory.async.removeAll", emptyMap());
     }
 
     @Test
-    public void testListenerItemWithError() throws InterruptedException {
+    public void testListenerItemWithError() throws Exception, IOException {
         final Map<String, Object> defaultConfig = Map.of("listenEventType", eventTypes, "interval", 1000L);
 
         testCall(db, "CALL apoc.load.directory.async.add('notExistent', 'CREATE (n:Node)', '*', 'pathNotExistent')", result -> {
             assertEquals("notExistent", result.get("name"));
             assertEquals("*", result.get("pattern"));
-            assertEquals("pathNotExistent", result.get("urlDir"));
             assertEquals("CREATE (n:Node)", result.get("cypher"));
             assertEquals(defaultConfig, result.get("config"));
             assertEquals(LoadDirectoryItem.Status.CREATED.name(), result.get("status"));
@@ -693,7 +530,6 @@ public class LoadDirectoryTest {
         testCall(db, "CALL apoc.load.directory.async.list()", result -> {
             assertEquals("notExistent", result.get("name"));
             assertEquals("*", result.get("pattern"));
-            assertEquals("pathNotExistent", result.get("urlDir"));
             assertEquals("CREATE (n:Node)", result.get("cypher"));
             assertEquals(defaultConfig, result.get("config"));
             assertEquals(LoadDirectoryItem.Status.ERROR.name(), result.get("status"));

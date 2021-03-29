@@ -194,7 +194,7 @@ public class Cypher {
         return stmt;
     }
 
-    public static boolean isSchemaOperation(String stmt) {
+    private boolean isSchemaOperation(String stmt) {
         return stmt.matches("(?is).*(create|drop)\\s+(index|constraint).*");
     }
     private boolean isPeriodicOperation(String stmt) {

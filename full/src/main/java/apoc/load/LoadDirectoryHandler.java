@@ -8,12 +8,14 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 
-import static apoc.util.FileUtils.getPathDependingOnUseNeo4jConfig;
+import static apoc.util.FileUtils.getDirImport;
+import static apoc.util.FileUtils.isImportUsingNeo4jConfig;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.WatchEvent.Kind;
 
+import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
@@ -28,8 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
-import static apoc.util.FileUtils.checkIfUrlEmptyAndGetFileUrl;
 import static apoc.util.FileUtils.getPathFromUrlString;
+import static org.apache.commons.lang3.StringUtils.replaceOnce;
 
 public class LoadDirectoryHandler extends LifecycleAdapter {
 
@@ -86,12 +88,14 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
     }
 
     public void add(LoadDirectoryItem loadDirectoryItem) {
-
-        if (storage.containsKey(loadDirectoryItem)) {
-            remove(loadDirectoryItem);
-        }
-
-        storage.put(loadDirectoryItem, pools.getDefaultExecutorService().submit(createListener(loadDirectoryItem)));
+        storage.compute(loadDirectoryItem, (k, v) -> {
+            if (v != null) {
+                try {
+                    v.cancel(true);
+                } catch (Exception ignored) {}
+            }
+            return pools.getDefaultExecutorService().submit(createListener(loadDirectoryItem));
+        });
     }
 
     public Stream<LoadDirectoryItem.LoadDirectoryResult> list() {
@@ -110,8 +114,7 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
 
                 final LoadDirectoryItem.LoadDirectoryConfig config = item.getConfig();
 
-                String urlDir = checkIfUrlEmptyAndGetFileUrl(item.getUrlDir());
-                getPathFromUrlString(urlDir).register(watcher, fromListStringToKindArray(config.getListenEventType()));
+                getPathFromUrlString(item.getUrlDir()).register(watcher, fromListStringToKindArray(config.getListenEventType()));
 
                 item.setStatusRunning();
                 while (true) {
@@ -149,5 +152,11 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
                 item.setError(ExceptionUtils.getStackTrace(e));
             }
         };
+    }
+
+    public static String getPathDependingOnUseNeo4jConfig(String urlFile) {
+        return isImportUsingNeo4jConfig()
+                ? replaceOnce(urlFile, getDirImport() + File.separator, "")
+                : urlFile;
     }
 }

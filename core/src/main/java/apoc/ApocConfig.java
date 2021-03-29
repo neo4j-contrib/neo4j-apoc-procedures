@@ -243,13 +243,7 @@ public class ApocConfig extends LifecycleAdapter {
     }
 
     public void checkReadAllowed(String url) {
-        if (isFile(url)) {
-            checkReadAllowed();
-        }
-    }
-
-    public void checkReadAllowed() {
-        if (!config.getBoolean(APOC_IMPORT_FILE_ENABLED)) {
+        if (isFile(url) && !config.getBoolean(APOC_IMPORT_FILE_ENABLED)) {
             throw new RuntimeException("Import from files not enabled," +
                     " please set apoc.import.file.enabled=true in your apoc.conf");
         }

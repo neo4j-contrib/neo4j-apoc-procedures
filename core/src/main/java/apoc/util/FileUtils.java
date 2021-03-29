@@ -7,6 +7,7 @@ import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
 import apoc.util.s3.S3UploadUtils;
 import org.apache.commons.io.output.WriterOutputStream;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.configuration.GraphDatabaseSettings;
 
 import java.io.*;
@@ -298,24 +299,12 @@ public class FileUtils {
         }
     }
 
-    public static String checkIfUrlEmptyAndGetFileUrl(String urlDir) throws IOException {
-        return urlDir.isEmpty()
-                ? encodePath(getDirImport())
-                : FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"));
-    }
-
     public static String getDirImport() {
         return apocConfig().getString("dbms.directories.import", "import");
     }
 
     public static Path getPathFromUrlString(String urlDir) {
         return Paths.get(URI.create(urlDir).getPath());
-    }
-
-    public static String getPathDependingOnUseNeo4jConfig(String urlFile) {
-        return isImportUsingNeo4jConfig()
-                ? replaceOnce(urlFile, getDirImport() + File.separator, "")
-                : urlFile;
     }
 
     // to exclude cases like 'testload.tar.gz?raw=true'

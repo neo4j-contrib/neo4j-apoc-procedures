@@ -13,6 +13,7 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.QueryExecutionType;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
@@ -909,8 +910,14 @@ public class Util {
         return intersection;
     }
 
-    public static void validateQuery(GraphDatabaseService db, String statement) {
-        db.executeTransactionally("EXPLAIN " + statement);
+    public static void validateQuery(GraphDatabaseService db, String statement, QueryExecutionType.QueryType... supportedQueryTypes) {
+        final boolean isValid = db.executeTransactionally("EXPLAIN " + statement, Collections.emptyMap(), result ->
+                supportedQueryTypes == null || supportedQueryTypes.length == 0 || Stream.of(supportedQueryTypes)
+                        .anyMatch(sqt -> sqt.equals(result.getQueryExecutionType().queryType())));
+
+        if (!isValid) {
+            throw new RuntimeException("Supported query types for the operation are " + Arrays.toString(supportedQueryTypes));
+        }
     }
 
     /**
