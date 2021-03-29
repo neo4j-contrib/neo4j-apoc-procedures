@@ -8,7 +8,11 @@ import org.junit.Test;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.TransientTransactionFailureException;
+import org.neo4j.graphdb.schema.ConstraintDefinition;
+import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.KernelTransactionHandle;
 import org.neo4j.kernel.impl.api.KernelTransactions;
@@ -31,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
+import static org.neo4j.driver.internal.util.Iterables.count;
 
 public class PeriodicTest {
 
@@ -420,6 +425,53 @@ public class PeriodicTest {
         testFail(query);
     }
 
+    @Test
+    public void testTruncate() {
+        createDatasetForTruncate();
+
+        TestUtil.testCallEmpty(db, "CALL apoc.periodic.truncate", Collections.emptyMap());
+        assertCountEntitiesAndIndexes(0, 0, 4,2);
+
+        try(Transaction tx = db.beginTx()) {
+            Schema schema = tx.schema();
+            schema.getConstraints().forEach(ConstraintDefinition::drop);
+            schema.getIndexes().forEach(IndexDefinition::drop);
+            tx.commit();
+        }
+
+        assertCountEntitiesAndIndexes(0, 0, 0,0);
+    }
+
+    @Test
+    public void testTruncateWithDropSchema() {
+        createDatasetForTruncate();
+
+        TestUtil.testCallEmpty(db, "CALL apoc.periodic.truncate({dropSchema: true})", Collections.emptyMap());
+        assertCountEntitiesAndIndexes(0, 0, 0,0);
+    }
+
+    private void createDatasetForTruncate() {
+        db.executeTransactionally("UNWIND range(1,99999) AS x CREATE (:One{name:'Person_'+x})-[:FOO {id: x}]->(:Two {surname: 'Two'+x})<-[:BAR {idBar: x}]-(:Three {other: x+'Three'})");
+
+        db.executeTransactionally("CREATE INDEX ON :One(name)");
+        db.executeTransactionally("CREATE CONSTRAINT ON (a:Two) ASSERT a.surname IS UNIQUE");
+        db.executeTransactionally("CREATE INDEX ON :Three(other)");
+        db.executeTransactionally("CREATE CONSTRAINT ON (a:Actor) ASSERT a.name IS UNIQUE");
+
+        final int expectedNodes = 99999 * 3;
+        final int expectedRels = 99999 * 2;
+        assertCountEntitiesAndIndexes(expectedNodes, expectedRels, 4, 2);
+    }
+
+    private void assertCountEntitiesAndIndexes(long expectedNodes, long expectedRels, long expectedIndexes, long expectedContraints) {
+        try (Transaction tx = db.beginTx()) {
+            assertEquals(expectedNodes, count(tx.getAllNodes()));
+            assertEquals(expectedRels, count(tx.getAllRelationships()));
+            Schema schema = tx.schema();
+            assertEquals(expectedIndexes, count(schema.getIndexes()));
+            assertEquals(expectedContraints, count(schema.getConstraints()));
+        }
+    }
 
     private void testFail(String query) {
         testCall(db, query, row -> fail("The test should fail but it didn't"));
