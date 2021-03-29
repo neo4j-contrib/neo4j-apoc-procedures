@@ -78,21 +78,13 @@ public class CypherTest {
     }
 
     @Test
+    public void testRunWrite() throws Exception {
+        runWriteAndDoItCommons("runWrite");
+    }
+
+    @Test
     public void testDoIt() throws Exception {
-
-        testCallEmpty(db, "CALL apoc.cypher.doIt('CREATE (n:TestOne {a: $b})',{b: 32})", emptyMap());
-
-        testCall(db, "CALL apoc.cypher.doIt('Match (n:TestOne) return n',{})",
-                r -> assertEquals("TestOne", Iterables.single(((Node)((Map) r.get("value")).get("n")).getLabels()).name()));
-
-        testFail(db, "CALL apoc.cypher.doIt('CREATE INDEX test FOR (w:TestOne) ON (w.foo)',{})", QueryExecutionException.class);
-
-        testCallEmpty(db, "CALL apoc.cypher.runWrite('CREATE (n:TestTwo {a: $b})',{b: 32})", emptyMap());
-
-        testCall(db, "CALL apoc.cypher.runWrite('Match (n:TestTwo) return n',{})",
-                r -> assertEquals("TestTwo", Iterables.single(((Node)((Map) r.get("value")).get("n")).getLabels()).name()));
-
-        testFail(db, "CALL apoc.cypher.runWrite('CREATE INDEX test FOR (w:TestTwo) ON (w.foo)',{})", QueryExecutionException.class);
+        runWriteAndDoItCommons("doIt");
     }
 
     @Test
@@ -104,6 +96,8 @@ public class CypherTest {
             assertNotNull(tx.schema().getConstraintByName("testConstraint"));
             assertNotNull(tx.schema().getIndexByName("test"));
         }
+
+        testFail(db, "CALL apoc.cypher.runSchema('CREATE (n:Test {a: 1})',{})", QueryExecutionException.class);
     }
 
     @Test
@@ -307,6 +301,15 @@ public class CypherTest {
                     assertEquals(null, ((Map) r.get("value")).get("bName"));
                     assertEquals("C", ((Map) r.get("value")).get("cName"));
                 });
+    }
+
+    private void runWriteAndDoItCommons(String functionName) {
+        testCallEmpty(db, String.format("CALL apoc.cypher.%s('CREATE (n:TestOne {a: $b})',{b: 32})", functionName), emptyMap());
+
+        testCall(db, String.format("CALL apoc.cypher.%s('Match (n:TestOne) return n',{})", functionName),
+                r -> assertEquals("TestOne", Iterables.single(((Node)((Map) r.get("value")).get("n")).getLabels()).name()));
+
+        testFail(db, String.format("CALL apoc.cypher.%s('CREATE INDEX test FOR (w:TestOne) ON (w.foo)',{})", functionName), QueryExecutionException.class);
     }
 
 }
