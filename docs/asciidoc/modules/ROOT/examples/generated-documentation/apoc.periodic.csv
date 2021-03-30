@@ -46,6 +46,6 @@ apoc.periodic.submit('name',statement) - submit a one-off background statement
 |label:apoc-core[]
 |xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.truncate icon:book[]]
 
-apoc.periodic.truncate(config) - removes all entities (and optionally indexes and constraints) from db using the apoc.periodic.iterate under the hood
+apoc.periodic.truncate(\{config}) - removes all entities (and optionally indexes and constraints) from db using the apoc.periodic.iterate under the hood
 |label:procedure[]
 |label:apoc-core[]
