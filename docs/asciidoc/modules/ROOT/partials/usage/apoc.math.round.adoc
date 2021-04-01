@@ -1,3 +1,16 @@
+Taken from the https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/RoundingMode.html#enum.constant.summary[Java official API], these are the rounding mode options:
+
+|===
+|CEILING|Rounding mode to round towards positive infinity.
+|FLOOR|Rounding mode to round towards negative infinity.
+|UP|Rounding mode to round away from zero.
+|DOWN|Rounding mode to round towards zero.
+|HALF_EVEN|Rounding mode to round towards the "nearest neighbor" unless both neighbors are equidistant, in which case, round towards the even neighbor.
+|HALF_DOWN| Rounding mode to round towards "nearest neighbor" unless both neighbors are equidistant, in which case round down.
+|HALF_UP|Rounding mode to round towards "nearest neighbor" unless both neighbors are equidistant, in which case round up.
+|UNNECESSARY|Rounding mode to assert that the requested operation has an exact result, hence no rounding is necessary.  In cases where rounding would occur, a `java.lang.ArithmeticException` will be thrown.
+|===
+
 [source,cypher]
 ----
 RETURN apoc.math.round(1.783, 0, "HALF_UP") AS output;
