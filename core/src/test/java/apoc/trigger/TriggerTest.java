@@ -246,7 +246,7 @@ public class TriggerTest {
         db.executeTransactionally("CREATE (a:A {name: \"A\"})-[:R1]->(z:Z {name: \"Z\"}), (a)-[:R2]->(z)");
         db.executeTransactionally("CALL apoc.trigger.add('trigger-after-async', 'UNWIND $deletedRelationships AS r\n" +
                 "MATCH (a)-[r1:R1]->(z)\n" +
-                "SET r1.triggerAfterAsync = size($deletedRelationships) = 1, r1.deleted = type(r) RETURN *', {phase: 'afterAsync'})");
+                "SET r1.triggerAfterAsync = size($deletedRelationships) > 0, r1.size = size($deletedRelationships), r1.deleted = type(r) RETURN *', {phase: 'afterAsync'})");
         db.executeTransactionally("MATCH (a:A {name: \"A\"})-[r:R2]->(z:Z {name: \"Z\"})\n" +
                 "DELETE r");
 
