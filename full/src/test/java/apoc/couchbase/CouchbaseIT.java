@@ -15,7 +15,8 @@ import java.util.Map;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.couchbase.CouchbaseTestUtils.*;
-import static apoc.util.TestUtil.*;
+import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
