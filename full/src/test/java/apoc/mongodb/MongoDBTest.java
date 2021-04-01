@@ -222,6 +222,28 @@ public class MongoDBTest {
     }
 
     @Test
+    public void testGetWithExtendedJson()  {
+        final String bytes = Base64.getEncoder().encodeToString("fooBar".getBytes());
+        TestUtil.testResult(db, "CALL apoc.mongodb.get($host, $db, $collection, {binary: {`$binary`: $bytes, `$subType`: '00'}}, true, 0, 0, false, true, true)",
+                map("host", HOST, "db", "test", "collection", "person", "bytes", bytes),
+                res -> {
+                    int count = 0;
+                    while (res.hasNext()) {
+                        ++count;
+                        Map<String, Object> r = res.next();
+                        Map doc = (Map) r.get("value");
+                        assertTrue(doc.get("_id") instanceof Map);
+                        assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) doc.get("_id")).keySet());
+                        assertTrue(List.of("Al", "John").contains(doc.get("name")));
+                        assertTrue(List.of(25L, 45L).contains(doc.get("age")));
+                        final List<String> expectedObjIds = List.of("77e193d7a9cc81b4027498b4", "57e193d7a9cc81b4027499c4", "67e193d7a9cc81b4027518b4");
+                        assertTrue(expectedObjIds.contains(doc.get("foo")));
+                    }
+                    assertEquals(2, count);
+                });
+    }
+
+    @Test
     public void testFirst() throws Exception {
         TestUtil.testCall(db, "CALL apoc.mongodb.first($host,$db,$collection,{name:'testDocument'})", params, r -> {
             Map doc = (Map) r.get("value");
@@ -327,6 +349,15 @@ public class MongoDBTest {
     }
 
     @Test
+    public void testCountWithExtendedJson() throws Exception {
+        final String bytes = Base64.getEncoder().encodeToString("fooBar".getBytes());
+        TestUtil.testCall(db, "CALL apoc.mongodb.count($host,$db,$collection,{binary: {`$binary`: 'Zm9vQmFy', `$subType`: '00'}, int64: {`$numberLong`: '29'}}, true)",
+                map("host", HOST, "db", "test", "collection", "person", "bytes", bytes), r -> {
+            assertEquals(2L, r.get("value"));
+        });
+    }
+
+    @Test
     public void testCountAll() throws Exception {
         TestUtil.testCall(db, "CALL apoc.mongodb.count($host,$db,$collection,null)", params, r -> {
             assertEquals(NUM_OF_RECORDS, r.get("value"));
@@ -363,6 +394,21 @@ public class MongoDBTest {
             assertEquals(1L, affected);
         });
         TestUtil.testResult(db, "CALL apoc.mongodb.first($host,$db,$collection,{foo:'bar'})", params, r -> {
+        TestUtil.testResult(db, "CALL apoc.mongodb.first($host,$db,$collection,{foo:'bar'})", TEST_PARAMS, r -> {
+            assertFalse("should be empty", r.hasNext());
+        });
+    }
+
+    @Test
+    public void testDeleteWithExtendedJson() throws Exception {
+        TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,$collection,[{foo:'bar', myId: {`$oid` : '507f191e811c19729de960ea'}}], true)", PERSON_PARAMS, (r) -> {
+            assertFalse("should be empty", r.hasNext());
+        });
+        TestUtil.testCall(db, "CALL apoc.mongodb.delete($host,$db,$collection,{myId: {`$oid` : '507f191e811c19729de960ea'}}, true)", PERSON_PARAMS, r -> {
+            long affected = (long) r.get("value");
+            assertEquals(1L, affected);
+        });
+        TestUtil.testResult(db, "CALL apoc.mongodb.first($host,$db,$collection,{myId: {`$oid` : '507f191e811c19729de960ea'}}, true, false, false, true)", PERSON_PARAMS, r -> {
             assertFalse("should be empty", r.hasNext());
         });
     }
