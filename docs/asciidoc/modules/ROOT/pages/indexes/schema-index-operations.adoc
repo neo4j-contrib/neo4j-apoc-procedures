@@ -14,6 +14,7 @@ include::example$generated-documentation/apoc.schema.nodes.adoc[]
 include::example$generated-documentation/apoc.schema.relationships.adoc[]
 include::example$generated-documentation/apoc.schema.node.constraintExists.adoc[]
 include::example$generated-documentation/apoc.schema.relationship.constraintExists.adoc[]
+include::example$generated-documentation/apoc.schema.node.indexExists.adoc[]
 |===
 
 [source,cypher]
