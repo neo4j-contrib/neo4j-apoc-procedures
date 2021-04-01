@@ -1,7 +1,6 @@
 package apoc.couchbase;
 
 import apoc.couchbase.document.CouchbaseJsonDocument;
-import apoc.couchbase.document.CouchbaseQueryResult;
 import apoc.util.TestUtil;
 import com.couchbase.client.core.env.SeedNode;
 import com.couchbase.client.java.Bucket;
@@ -15,12 +14,10 @@ import com.couchbase.client.java.query.QueryScanConsistency;
 import org.testcontainers.couchbase.BucketDefinition;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static apoc.util.TestUtil.isTravis;
 import static com.couchbase.client.java.ClusterOptions.clusterOptions;
@@ -33,15 +30,6 @@ import static org.junit.Assume.assumeTrue;
 import static org.junit.Assume.assumeNotNull;
 
 public class CouchbaseTestUtils {
-
-    public static final String CONNECTION_TIMEOUT_CONFIG_KEY = "connectTimeout";
-    public static final String CONNECTION_TIMEOUT_CONFIG_VALUE = "60000";
-
-    public static final String KV_TIMEOUT_CONFIG_KEY = "kvTimeout";
-    public static final String KV_TIMEOUT_CONFIG_VALUE = "10000";
-
-    public static final String IO_POOL_SIZE_CONFIG_KEY = "ioPoolSize";
-    public static final String IO_POOL_SIZE_CONFIG_VALUE = "5";
 
     public static final String BUCKET_NAME = "mybucket";
 
@@ -85,17 +73,6 @@ public class CouchbaseTestUtils {
         assertEquals(1, listResult.size());
         assertTrue(listResult.get(0) instanceof Map);
         Map<String, Object> result = (Map<String, Object>) listResult.get(0);
-        checkResult(result);
-    }
-
-    public static void checkQueryResult(Stream<CouchbaseQueryResult> stream) {
-        Iterator<CouchbaseQueryResult> iterator = stream.iterator();
-        assertTrue(iterator.hasNext());
-        CouchbaseQueryResult queryResult = iterator.next();
-        assertNotNull(queryResult);
-        assertEquals(1, queryResult.queryResult.size());
-        assertTrue(queryResult.queryResult.get(0) instanceof Map);
-        Map<String, Object> result = (Map<String, Object>) queryResult.queryResult.get(0);
         checkResult(result);
     }
 

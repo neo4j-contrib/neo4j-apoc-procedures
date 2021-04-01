@@ -142,8 +142,9 @@ public class Couchbase {
     public Stream<CouchbaseJsonDocument> insert(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
                                                 @Name("documentId") String documentId, @Name("json") String json) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            final MutationResult mutationResult = couchbaseConnection.insert(documentId, json);
-            return mutationResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(mutationResult, documentId, couchbaseConnection.getCollection()));
+            final MutationResult insert = couchbaseConnection.insert(documentId, json);
+            GetResult getResult = couchbaseConnection.get(documentId);
+            return Stream.of(new CouchbaseJsonDocument(getResult, documentId, insert.mutationToken().orElse(null)));
         }
     }
 
@@ -167,8 +168,9 @@ public class Couchbase {
     public Stream<CouchbaseJsonDocument> upsert(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
                                                 @Name("documentId") String documentId, @Name("json") String json) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            final MutationResult mutationResult = couchbaseConnection.upsert(documentId, json);
-            return mutationResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(mutationResult, documentId, couchbaseConnection.getCollection()));
+            final MutationResult upsert = couchbaseConnection.upsert(documentId, json);
+            GetResult getResult = couchbaseConnection.get(documentId);
+            return Stream.of(new CouchbaseJsonDocument(getResult, documentId, upsert.mutationToken().orElse(null)));
         }
     }
 
@@ -191,8 +193,9 @@ public class Couchbase {
     public Stream<CouchbaseJsonDocument> append(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
                                                 @Name("documentId") String documentId, @Name("json") String json) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            final MutationResult mutationResult = couchbaseConnection.append(documentId, json); // TODO TODO TODO
-            return mutationResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(mutationResult, documentId, couchbaseConnection.getCollection()));
+            final MutationResult append = couchbaseConnection.append(documentId, json);
+            GetResult getResult = couchbaseConnection.get(documentId);
+            return Stream.of(new CouchbaseJsonDocument(getResult, documentId, append.mutationToken().orElse(null)));
         }
     }
 
@@ -214,10 +217,10 @@ public class Couchbase {
     @Description("apoc.couchbase.prepend(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - prepend a couchbase json document to an existing one.")
     public Stream<CouchbaseJsonDocument> prepend(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
                                                  @Name("documentId") String documentId, @Name("json") String json) {
-        Stream<CouchbaseJsonDocument> result = null;
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            final MutationResult mutationResult = couchbaseConnection.prepend(documentId, json);
-            return mutationResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(mutationResult, documentId, couchbaseConnection.getCollection()));
+            final MutationResult prepend = couchbaseConnection.prepend(documentId, json);
+            GetResult getResult = couchbaseConnection.get(documentId);
+            return Stream.of(new CouchbaseJsonDocument(getResult, documentId, prepend.mutationToken().orElse(null)));
         }
     }
 
@@ -239,8 +242,9 @@ public class Couchbase {
     public Stream<CouchbaseJsonDocument> remove(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
                                                 @Name("documentId") String documentId) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            final MutationResult mutationResult = couchbaseConnection.remove(documentId);
-            return mutationResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(mutationResult, documentId, couchbaseConnection.getCollection()));
+            GetResult getResult = couchbaseConnection.get(documentId);
+            final MutationResult remove = couchbaseConnection.remove(documentId);
+            return Stream.of(new CouchbaseJsonDocument(getResult, documentId, remove.mutationToken().orElse(null)));
         }
     }
 
@@ -264,8 +268,9 @@ public class Couchbase {
     public Stream<CouchbaseJsonDocument> replace(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
                                                  @Name("documentId") String documentId, @Name("json") String json) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            final MutationResult mutationResult = couchbaseConnection.replace(documentId, json);
-            return mutationResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(mutationResult, documentId, couchbaseConnection.getCollection()));
+            final MutationResult replace = couchbaseConnection.replace(documentId, json);
+            GetResult getResult = couchbaseConnection.get(documentId);
+            return Stream.of(new CouchbaseJsonDocument(getResult, documentId, replace.mutationToken().orElse(null)));
         }
     }
 

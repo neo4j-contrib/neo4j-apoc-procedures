@@ -3,6 +3,7 @@ package apoc.couchbase.document;
 import java.time.Instant;
 import java.util.Map;
 
+import com.couchbase.client.core.msg.kv.MutationToken;
 import com.couchbase.client.java.Collection;
 import com.couchbase.client.java.json.JsonObject;
 import com.couchbase.client.java.kv.GetResult;
@@ -31,12 +32,12 @@ public class CouchbaseJsonDocument implements CouchbaseDocument<Map<String, Obje
   /**
    * The optional expiration time for the {@link GetResult} (0 if not set).
    */
-  public long expiry;
+  public final long expiry;
 
   /**
    * The last-known CAS (<i>Compare And Swap</i>) value for the {@link MutationResult} (0 if not set).
    */
-  public long cas;
+  public final long cas;
 
   /**
    * The optional, opaque mutation token set after a successful mutation and if
@@ -49,34 +50,23 @@ public class CouchbaseJsonDocument implements CouchbaseDocument<Map<String, Obje
    */
   public Map<String, Object> content;
 
-  public CouchbaseJsonDocument(Map<String, Object> mutationToken, String id) {
+  public CouchbaseJsonDocument(String id, long expiry, long cas, Map<String, Object> mutationToken, Map<String, Object> content) {
     this.id = id;
+    this.expiry = expiry;
+    this.cas = cas;
     this.mutationToken = mutationToken;
+    this.content = content;
   }
 
   public CouchbaseJsonDocument(GetResult getResult, String id) {
-    this((Map<String, Object>) null, id);
-    this.expiry = getExpiry(getResult);
-    this.cas = getResult.cas();
-    this.content = getResult.contentAsObject().toMap();
+    this(getResult, id, null);
   }
 
-  public CouchbaseJsonDocument(MutationResult mutationResult, String id, Collection collection) {
-    this(convertMutationTokenToMap(mutationResult.mutationToken().orElse(null)), id);
-
-    GetResult getResult = collection.exists(id).exists() ? collection.get(id) : null;
-    this.cas = mutationResult.cas();
-
-    if (getResult == null) {
-      this.expiry = 0;
-      this.content = null;
-    } else {
-      this.expiry = getExpiry(getResult);
-      this.content = getResult.contentAsObject().toMap();
-    }
+  public CouchbaseJsonDocument(GetResult getResult, String id, MutationToken mutationToken) {
+    this(id, getExpiry(getResult), getResult.cas(), convertMutationTokenToMap(mutationToken), getResult.contentAsObject().toMap());
   }
 
-  private long getExpiry(GetResult getResult) {
+  private static long getExpiry(GetResult getResult) {
     return getResult.expiryTime().orElse(Instant.ofEpochMilli(0)).toEpochMilli();
   }
 
