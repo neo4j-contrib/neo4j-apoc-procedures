@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.mongodb.count(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?) :: (value :: INTEGER?)
+¦apoc.mongodb.count(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, useExtendedJson = false :: BOOLEAN?) :: (value :: INTEGER?)

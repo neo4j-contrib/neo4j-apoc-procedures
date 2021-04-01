@@ -14,7 +14,7 @@ apoc.mongodb.update(host-or-key,db,collection,query,update) - updates the given 
 
 [source]
 ----
-apoc.mongodb.update(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, update :: MAP?) :: (value :: INTEGER?)
+apoc.mongodb.update(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, update :: MAP?, useExtendedJson = false :: BOOLEAN?) :: (value :: INTEGER?)
 ----
 
 == Input parameters
@@ -26,6 +26,7 @@ apoc.mongodb.update(host :: STRING?, db :: STRING?, collection :: STRING?, query
 |collection|STRING?|null
 |query|MAP?|null
 |update|MAP?|null
+|useExtendedJson|BOOLEAN?|false
 |===
 
 == Output parameters

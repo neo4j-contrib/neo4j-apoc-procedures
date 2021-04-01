@@ -40,6 +40,7 @@ Once that file is downloaded, it should be placed in the `plugins` directory and
  - `objectIdAsMap` (true|false): extract the `ObjectId` as map
  - `documents`: the documents to insert
  - `update`: the updated params
+ - `useExtendedJson`: (false|true): support query params as Extended JSON. See https://github.com/mongodb/specifications/blob/master/source/extended-json.rst[Extended Json Specification]
 
 [[mongodb-examples]]
 == Examples
@@ -123,6 +124,33 @@ With the `extractReferences=false`, `compatibleValues=false` and `objectIdAsMap=
   "bought": ["product1", "product3"]
 }
 ```
+
+
+Given the following collection:
+
+```
+// Person
+...
+{"_id": ObjectId("person"), "name": ObjectId("97e193d7a9cc81b4027518b4"), "reg": BsonRegularExpression("foo*"), }
+...
+```
+
+with the `extractReferences=false`, `compatibleValues=true` and `objectIdAsMap=false` and `useExtendedJson=true`,
+and this query:
+
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name: {`$oid` : '97e193d7a9cc81b4027518b4' }}, true, false, false, true)
+----
+
+or this:
+
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{reg: {`$regularExpression`:{`pattern`:'foo*',options:''}}}, true, false, false, true)
+----
+
+we receive the previous document.
 
 
 

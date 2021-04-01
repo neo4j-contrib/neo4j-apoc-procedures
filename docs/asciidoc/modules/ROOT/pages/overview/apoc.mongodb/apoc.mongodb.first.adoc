@@ -14,7 +14,7 @@ apoc.mongodb.first(host-or-key,db,collection,query,[compatibleValues=false|true]
 
 [source]
 ----
-apoc.mongodb.first(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, compatibleValues = true :: BOOLEAN?, extractReferences = false :: BOOLEAN?, objectIdAsMap = true :: BOOLEAN?) :: (value :: MAP?)
+apoc.mongodb.first(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, compatibleValues = true :: BOOLEAN?, extractReferences = false :: BOOLEAN?, objectIdAsMap = true :: BOOLEAN?, useExtendedJson = false :: BOOLEAN?) :: (value :: MAP?)
 ----
 
 == Input parameters
@@ -28,6 +28,7 @@ apoc.mongodb.first(host :: STRING?, db :: STRING?, collection :: STRING?, query 
 |compatibleValues|BOOLEAN?|true
 |extractReferences|BOOLEAN?|false
 |objectIdAsMap|BOOLEAN?|true
+|useExtendedJson|BOOLEAN?|false
 |===
 
 == Output parameters

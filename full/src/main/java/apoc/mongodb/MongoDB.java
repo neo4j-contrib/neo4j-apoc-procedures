@@ -5,6 +5,7 @@ import apoc.result.LongResult;
 import apoc.result.MapResult;
 import apoc.util.MissingDependencyException;
 import apoc.util.UrlResolver;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.bson.types.ObjectId;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
@@ -55,7 +56,7 @@ public class MongoDB {
 
     @Deprecated
     @Procedure
-    @Description("apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find operation on mongodb collection")
+    @Description("apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false],[useExtendedJson=true|false]) yield value - perform a find operation on mongodb collection")
     public Stream<MapResult> get(@Name("host") String hostOrKey,
                                  @Name("db") String db,
                                  @Name("collection") String collection,
@@ -64,20 +65,21 @@ public class MongoDB {
                                  @Name(value = "skip", defaultValue = "0") Long skip,
                                  @Name(value = "limit", defaultValue = "0") Long limit,
                                  @Name(value = "extractReferences", defaultValue = "false") boolean extractReferences,
-                                 @Name(value = "objectIdAsMap", defaultValue = "true") boolean objectIdAsMap) {
+                                 @Name(value = "objectIdAsMap", defaultValue = "true") boolean objectIdAsMap,
+                                 @Name(value = "useExtendedJson", defaultValue = "false") boolean useExtendedJson) {
         return executeMongoQuery(hostOrKey, db, collection, compatibleValues,
-                extractReferences, objectIdAsMap, coll -> coll.all(query, skip, limit).map(MapResult::new),
+                extractReferences, objectIdAsMap, coll -> coll.all(query, skip, limit, useExtendedJson).map(MapResult::new),
                 e -> log.error("apoc.mongodb.get - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], compatibleValues = [" + compatibleValues + "], skip = [" + skip + "], limit = [" + limit + "]", e));
     }
 
     @Deprecated
     @Procedure
-    @Description("apoc.mongodb.count(host-or-key,db,collection,query) yield value - perform a find operation on mongodb collection")
-    public Stream<LongResult> count(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query) {
+    @Description("apoc.mongodb.count(host-or-key,db,collection,query,useExtendedJson) yield value - perform a find operation on mongodb collection")
+    public Stream<LongResult> count(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name(value = "useExtendedJson", defaultValue = "false") boolean useExtendedJson) {
         return executeMongoQuery(hostOrKey, db, collection, false,
                 false,
                 false, coll -> {
-                    long count = coll.count(query);
+                    long count = coll.count(query, useExtendedJson);
                     return Stream.of(new LongResult(count));
                 },
                 e -> log.error("apoc.mongodb.count - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "]",e));
@@ -91,14 +93,17 @@ public class MongoDB {
 
     @Deprecated
     @Procedure
-    @Description("apoc.mongodb.first(host-or-key,db,collection,query,[compatibleValues=false|true],[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a first operation on mongodb collection")
+    @Description("apoc.mongodb.first(host-or-key,db,collection,query,[compatibleValues=false|true],[extractReferences=false|true],[objectIdAsMap=true|false],[useExtendedJson=true|false]) yield value - perform a first operation on mongodb collection")
     public Stream<MapResult> first(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name(value = "compatibleValues", defaultValue = "true") boolean compatibleValues,
                                    @Name(value = "extractReferences", defaultValue = "false") boolean extractReferences,
-                                   @Name(value = "objectIdAsMap", defaultValue = "true") boolean objectIdAsMap) {
+                                   @Name(value = "objectIdAsMap", defaultValue = "true") boolean objectIdAsMap,
+                                   @Name(value = "useExtendedJson", defaultValue = "false") boolean useExtendedJson) {
+
         return executeMongoQuery(hostOrKey, db, collection, compatibleValues,
                 extractReferences,
                 objectIdAsMap, coll -> {
-                    Map<String, Object> result = coll.first(query);
+                    Map<String, Object> result = null;
+                    result = coll.first(query, useExtendedJson);
                     return result == null || result.isEmpty() ? Stream.empty() : Stream.of(new MapResult(result));
                 },
                 e -> log.error("apoc.mongodb.first - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], compatibleValues = [" + compatibleValues + "]",e));
@@ -106,7 +111,7 @@ public class MongoDB {
 
     @Deprecated
     @Procedure
-    @Description("apoc.mongodb.find(host-or-key,db,collection,query,projection,sort,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find,project,sort operation on mongodb collection")
+    @Description("apoc.mongodb.find(host-or-key,db,collection,query,projection,sort,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false],[useExtendedJson=true|false]) yield value - perform a find,project,sort operation on mongodb collection")
     public Stream<MapResult> find(@Name("host") String hostOrKey,
                                   @Name("db") String db,
                                   @Name("collection") String collection,
@@ -117,18 +122,19 @@ public class MongoDB {
                                   @Name(value = "skip", defaultValue = "0") Long skip,
                                   @Name(value = "limit", defaultValue = "0") Long limit,
                                   @Name(value = "extractReferences", defaultValue = "false") boolean extractReferences,
-                                  @Name(value = "objectIdAsMap", defaultValue = "true") boolean objectIdAsMap) {
+                                  @Name(value = "objectIdAsMap", defaultValue = "true") boolean objectIdAsMap,
+                                  @Name(value = "useExtendedJson", defaultValue = "false") boolean useExtendedJson) {
         return executeMongoQuery(hostOrKey, db, collection, compatibleValues,
-                extractReferences, objectIdAsMap, coll -> coll.find(query, project, sort, skip, limit).map(MapResult::new),
+                extractReferences, objectIdAsMap, coll -> coll.find(query, project, sort, skip, limit, useExtendedJson).map(MapResult::new),
                 e -> log.error("apoc.mongodb.find - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], project = [" + project + "], sort = [" + sort + "], compatibleValues = [" + compatibleValues + "], skip = [" + skip + "], limit = [" + limit + "]",e));
     }
 
     @Deprecated
     @Procedure
-    @Description("apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection")
-    public void insert(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("documents") List<Map<String, Object>> documents) {
+    @Description("apoc.mongodb.insert(host-or-key,db,collection,documents,useExtendedJson) - inserts the given documents into the mongodb collection")
+    public void insert(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("documents") List<Map<String, Object>> documents, @Name(value = "useExtendedJson", defaultValue = "false") boolean useExtendedJson) {
         try (Coll coll = getMongoColl(hostOrKey, db, collection, false, false, false)) {
-            coll.insert(documents);
+            coll.insert(documents, useExtendedJson);
         } catch (Exception e) {
             log.error("apoc.mongodb.insert - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], documents = [" + documents + "]",e);
             throw new RuntimeException(e);
@@ -137,19 +143,32 @@ public class MongoDB {
 
     @Deprecated
     @Procedure
-    @Description("apoc.mongodb.delete(host-or-key,db,collection,query) - delete the given documents from the mongodb collection and returns the number of affected documents")
-    public Stream<LongResult> delete(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query) {
+    @Description("apoc.mongodb.delete(host-or-key,db,collection,query,useExtendedJson) - delete the given documents from the mongodb collection and returns the number of affected documents")
+    public Stream<LongResult> delete(@Name("host") String hostOrKey,
+                                     @Name("db") String db,
+                                     @Name("collection") String collection,
+                                     @Name("query") Map<String, Object> query,
+                                     @Name(value = "useExtendedJson", defaultValue = "false") boolean useExtendedJson) {
         return executeMongoQuery(hostOrKey, db, collection, false,
-                false, false, coll -> Stream.of(new LongResult(coll.delete(query))),
+                false, false, coll -> Stream.of(new LongResult(coll.delete(query, useExtendedJson))),
                 e -> log.error("apoc.mongodb.delete - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "]",e));
     }
 
     @Deprecated
     @Procedure
     @Description("apoc.mongodb.update(host-or-key,db,collection,query,update) - updates the given documents from the mongodb collection and returns the number of affected documents")
-    public Stream<LongResult> update(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name("update") Map<String, Object> update) {
+    public Stream<LongResult> update(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection,
+                                     @Name("query") Map<String, Object> query, @Name("update") Map<String, Object> update,
+                                     @Name(value = "useExtendedJson", defaultValue = "false") boolean useExtendedJson) {
         return executeMongoQuery(hostOrKey, db, collection, false,
-                false, false, coll -> Stream.of(new LongResult(coll.update(query, update))),
+                false, false, coll -> {
+                    try {
+                        return Stream.of(new LongResult(coll.update(query, update, useExtendedJson)));
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                },
                 e -> log.error("apoc.mongodb.update - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], update = [" + update + "]",e));
     }
 
@@ -161,10 +180,11 @@ public class MongoDB {
 
         return executeMongoQuery(hostOrKey, db, collection, conf.isCompatibleValues(), conf.isExtractReferences(), conf.isObjectIdAsMap(),
                 coll -> {
-                    Map<String, Object> result = coll.first(Map.of(conf.getIdFieldName(), new ObjectId(objectIdValue)));
+                    Map<String, Object> result = null;
+                    result = coll.first(Map.of(conf.getIdFieldName(), new ObjectId(objectIdValue)), false);
                     return result == null || result.isEmpty() ? Stream.empty() : Stream.of(new MapResult(result));
                 },
-                e -> log.error("apoc.mongo.get.byObjectId - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], objectIdValue = [" + objectIdValue + "]",e));
+                e -> log.error("apoc.mongodb.get.byObjectId - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], objectIdValue = [" + objectIdValue + "]",e));
     }
 
     private String getMongoDBUrl(String hostOrKey) {
@@ -195,17 +215,19 @@ public class MongoDB {
     interface Coll extends Closeable {
         Map<String, Object> first(Map<String, Object> params);
 
-        Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit);
+        Map<String, Object> first(Map<String, Object> params, boolean useExtendedJson);
 
-        long count(Map<String, Object> query);
+        Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit, boolean useExtendedJson);
 
-        Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit);
+        long count(Map<String, Object> query, boolean useExtendedJson);
 
-        void insert(List<Map<String, Object>> docs);
+        Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit, boolean useExtendedJson);
 
-        long update(Map<String, Object> query, Map<String, Object> update);
+        void insert(List<Map<String, Object>> docs, boolean useExtendedJson);
 
-        long delete(Map<String, Object> query);
+        long update(Map<String, Object> query, Map<String, Object> update, boolean useExtendedJson) throws JsonProcessingException;
+
+        long delete(Map<String, Object> query, boolean useExtendedJson);
 
         default void safeClose() {
             try {

@@ -196,7 +196,6 @@ apoc.bitwise.op(60,'\|',13) bitwise operations a & b, a \| b, a ^ b, ~a, a >> b,
 |label:apoc-core[]
 |===
 
-[discrete]
 == xref::overview/apoc.bolt/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
@@ -212,6 +211,11 @@ apoc.bolt.execute(url-or-key, kernelTransaction, params, config) - access to oth
 apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read
 |label:procedure[]
 |label:apoc-full[]
+|xref::overview/apoc.bolt/apoc.bolt.load.fromLocal.adoc[apoc.bolt.load.fromLocal icon:book[]]
+
+
+|label:procedure[]
+|label:apoc-core[]
 |===
 
 [discrete]
@@ -1474,7 +1478,6 @@ apoc.load.csv('url',\{config}) YIELD lineNo, list, map - load CSV from URL as st
 
 apoc.load.csvParams('url', {httpHeader: value}, payload, \{config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
-
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.directory.adoc[apoc.load.directory icon:book[]]
@@ -1994,7 +1997,7 @@ apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false\|true],
 |label:apoc-full[]
 |xref::overview/apoc.mongodb/apoc.mongodb.get.byObjectId.adoc[apoc.mongodb.get.byObjectId icon:book[]]
 
-apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value 
+apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.mongodb/apoc.mongodb.insert.adoc[apoc.mongodb.insert icon:book[]]
@@ -3096,7 +3099,7 @@ CALL apoc.ttl.expireIn(node,timeDelta,'time-unit') - expire node after specified
 
 
 |label:function[]
-|label:apoc-core[]
+|label:apoc-full[]
 |===
 
 == xref::overview/apoc.util/index.adoc[]

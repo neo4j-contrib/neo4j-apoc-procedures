@@ -9,9 +9,16 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import org.bson.BsonNumber;
+import org.bson.BsonRegularExpression;
+import org.bson.BsonTimestamp;
 import org.bson.Document;
 import org.bson.types.Binary;
+import org.bson.types.Code;
+import org.bson.types.MaxKey;
+import org.bson.types.MinKey;
 import org.bson.types.ObjectId;
+import org.bson.types.Symbol;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -20,6 +27,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static apoc.util.Util.toJson;
 
 /**
  * @author mh
@@ -119,11 +128,29 @@ class MongoDBColl implements MongoDB.Coll {
             if (data instanceof Integer) {
                 return ((Integer) data).longValue();
             }
-            if (data instanceof Float) {
-                return ((Float) data).doubleValue();
+            if (data instanceof BsonNumber) {
+                return ((BsonNumber) data).longValue();
             }
             if (data instanceof Binary) {
                 return ((Binary) data).getData();
+            }
+            if (data instanceof Float) {
+                return ((Number) data).doubleValue();
+            }
+            if (data instanceof BsonTimestamp) {
+                return (long) ((BsonTimestamp) data).getTime();
+            }
+            if (data instanceof MinKey || data instanceof MaxKey) {
+                return data.toString();
+            }
+            if (data instanceof BsonRegularExpression) {
+                return ((BsonRegularExpression) data).getPattern();
+            }
+            if (data instanceof Code) {
+                return ((Code) data).getCode();
+            }
+            if (data instanceof Symbol) {
+                return ((Symbol) data).getSymbol();
             }
         }
 
@@ -147,21 +174,30 @@ class MongoDBColl implements MongoDB.Coll {
     }
 
     @Override
-    public Map<String, Object> first(Map<String, Object> query) {
-        return documentToPackableMap(collection.find(new Document(query)).first());
+    public Map<String, Object> first(Map<String, Object> query, boolean useExtendedJson) {
+        return documentToPackableMap(collection
+                .find(documentBasedOnUseExtJson(query, useExtendedJson))
+                .first());
     }
 
     @Override
-    public Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit) {
-        FindIterable<Document> documents = query == null ? collection.find() : collection.find(new Document(query));
+    public Map<String, Object> first(Map<String, Object> query){
+        return first(query, false);
+    }
+
+    @Override
+    public Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit, boolean useExtendedJson) {
+        FindIterable<Document> documents = query == null
+                ? collection.find()
+                : collection.find(documentBasedOnUseExtJson(query, useExtendedJson));
         if (skip != 0) documents = documents.skip(skip.intValue());
         if (limit != 0) documents = documents.limit(limit.intValue());
         return asStream(documents);
     }
 
     @Override
-    public long count(Map<String, Object> query) {
-        return query == null ? collection.count() : collection.count(new Document(query));
+    public long count(Map<String, Object> query, boolean useExtendedJson) {
+        return query == null ? collection.count() : collection.count(documentBasedOnUseExtJson(query, useExtendedJson));
     }
 
     private Stream<Map<String, Object>> asStream(FindIterable<Document> result) {
@@ -177,33 +213,46 @@ class MongoDBColl implements MongoDB.Coll {
     }
 
     @Override
-    public Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit) {
-        FindIterable<Document> documents = query == null ? collection.find() : collection.find(new Document(query));
-        if (project != null) documents = documents.projection(new Document(project));
-        if (sort != null) documents = documents.sort(new Document(sort));
+    public Stream<Map<String, Object>> find(Map<String, Object> query,
+                                            Map<String, Object> project,
+                                            Map<String, Object> sort,
+                                            Long skip,
+                                            Long limit,
+                                            boolean useExtendedJson) {
+        FindIterable<Document> documents = query == null
+                ? collection.find()
+                : collection.find(documentBasedOnUseExtJson(query, useExtendedJson));
+        if (project != null) documents = documents.projection(documentBasedOnUseExtJson(project, useExtendedJson));
+        if (sort != null) documents = documents.sort(documentBasedOnUseExtJson(sort, useExtendedJson));
         if (skip != 0) documents = documents.skip(skip.intValue());
         if (limit != 0) documents = documents.limit(limit.intValue());
         return asStream(documents);
     }
 
     @Override
-    public void insert(List<Map<String, Object>> docs) {
+    public void insert(List<Map<String, Object>> docs, boolean useExtendedJson) {
         for (Map<String, Object> doc : docs) {
-            collection.insertOne(new Document(doc));
+            collection.insertOne(documentBasedOnUseExtJson(doc, useExtendedJson));
         }
     }
 
     @Override
-    public long update(Map<String, Object> query, Map<String, Object> update) {
-        UpdateResult updateResult = collection.updateMany(new Document(query), new Document(update));
+    public long update(Map<String, Object> query, Map<String, Object> update, boolean useExtendedJson) {
+        UpdateResult updateResult = collection.updateMany(
+                documentBasedOnUseExtJson(query, useExtendedJson),
+                documentBasedOnUseExtJson(update, useExtendedJson)
+        );
         return updateResult.wasAcknowledged() ? updateResult.getModifiedCount() : -updateResult.getModifiedCount();
     }
 
     @Override
-    public long delete(Map<String, Object> query) {
-        DeleteResult result = collection.deleteMany(new Document(query));
+    public long delete(Map<String, Object> query, boolean useExtendedJson) {
+        DeleteResult result = collection.deleteMany(documentBasedOnUseExtJson(query, useExtendedJson));
         return result.wasAcknowledged() ? result.getDeletedCount() : -result.getDeletedCount();
     }
 
+    private Document documentBasedOnUseExtJson(Map<String, Object> query, boolean useExtendedJson) {
+        return useExtendedJson ? Document.parse(toJson(query)) : new Document(query);
+    }
 
 }
