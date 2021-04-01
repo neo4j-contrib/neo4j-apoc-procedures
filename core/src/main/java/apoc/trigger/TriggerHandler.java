@@ -4,17 +4,13 @@ import apoc.ApocConfig;
 import apoc.Pools;
 import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
-import apoc.convert.Convert;
 import apoc.util.Util;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.function.ThrowingFunction;
-import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.event.LabelEntry;
-import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventListener;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -26,18 +22,14 @@ import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
-import static apoc.util.Util.map;
 
 public class TriggerHandler extends LifecycleAdapter implements TransactionEventListener<Void> {
 
@@ -210,9 +202,9 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
 
     private void afterAsync(TransactionData txData) {
         if (hasPhase(Phase.afterAsync)) {
-            Map<String, Object> params = txDataParams(txData, Phase.afterAsync);
+            TriggerMetadata triggerMetadata = TriggerMetadata.from(txData, true);
             Util.inTxFuture(pools.getDefaultExecutorService(), db, (inner) -> {
-                executeTriggers(inner, params, Phase.afterAsync);
+                executeTriggers(inner, triggerMetadata.rebind(inner), Phase.afterAsync);
                 return null;
             });
         }
@@ -228,65 +220,6 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         }
     }
 
-    static <T extends Entity> Map<String,List<Map<String,Object>>> aggregatePropertyKeys(Iterable<PropertyEntry<T>> entries, boolean nodes, boolean removed) {
-        if (!entries.iterator().hasNext()) return Collections.emptyMap();
-        Map<String,List<Map<String,Object>>> result = new HashMap<>();
-        String entityType = nodes ? "node" : "relationship";
-        for (PropertyEntry<T> entry : entries) {
-            result.compute(entry.key(),
-                    (k, v) -> {
-                        if (v == null) v = new ArrayList<>(100);
-                        Map<String, Object> map = map("key", k, entityType, entry.entity(), "old", entry.previouslyCommittedValue());
-                        if (!removed) map.put("new", entry.value());
-                        v.add(map);
-                        return v;
-                    });
-        }
-        return result;
-    }
-
-    private Map<String, List<Node>> aggregateLabels(Iterable<LabelEntry> labelEntries) {
-        if (!labelEntries.iterator().hasNext()) return Collections.emptyMap();
-        Map<String,List<Node>> result = new HashMap<>();
-        for (LabelEntry entry : labelEntries) {
-            result.compute(entry.label().name(),
-                    (k, v) -> {
-                        if (v == null) v = new ArrayList<>(100);
-                        v.add(entry.node());
-                        return v;
-                    });
-        }
-        return result;
-    }
-
-    private Map<String, Object> txDataParams(TransactionData txData, Phase phase) {
-        final long txId, commitTime;
-        switch (phase) {
-            case after:
-            case afterAsync:
-                txId = txData.getTransactionId();
-                commitTime = txData.getCommitTime();
-                break;
-            default:
-                txId = -1;
-                commitTime = -1;
-        }
-        return map("transactionId", txId,
-                "commitTime", commitTime,
-                "createdNodes", Convert.convertToList(txData.createdNodes()),
-                "createdRelationships", Convert.convertToList(txData.createdRelationships()),
-                "deletedNodes", Convert.convertToList(txData.deletedNodes()),
-                "deletedRelationships", Convert.convertToList(txData.deletedRelationships()),
-                "removedLabels", aggregateLabels(txData.removedLabels()),
-                "removedNodeProperties", aggregatePropertyKeys(txData.removedNodeProperties(),true,true),
-                "removedRelationshipProperties", aggregatePropertyKeys(txData.removedRelationshipProperties(),false,true),
-                "assignedLabels", aggregateLabels(txData.assignedLabels()),
-                "assignedNodeProperties",aggregatePropertyKeys(txData.assignedNodeProperties(),true,false),
-                "assignedRelationshipProperties",aggregatePropertyKeys(txData.assignedRelationshipProperties(),false,false),
-                "metaData", txData.metaData()
-        );
-    }
-
     private boolean hasPhase(Phase phase) {
         return activeTriggers.values().stream()
                 .map(data -> (Map<String, Object>) data.get("selector"))
@@ -294,12 +227,13 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     }
 
     private void executeTriggers(Transaction tx, TransactionData txData, Phase phase) {
-        executeTriggers(tx, txDataParams(txData, phase), phase);
+        executeTriggers(tx, TriggerMetadata.from(txData, false), phase);
     }
 
-    private void executeTriggers(Transaction tx, Map<String, Object> params, Phase phase) {
+    private void executeTriggers(Transaction tx, TriggerMetadata triggerMetadata, Phase phase) {
         Map<String,String> exceptions = new LinkedHashMap<>();
         activeTriggers.forEach((name, data) -> {
+            Map<String, Object> params = triggerMetadata.toMap();
             if (data.get("params") != null) {
                 params.putAll((Map<String, Object>) data.get("params"));
             }
@@ -309,7 +243,6 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
                     params.put("trigger", name);
                     Result result = tx.execute((String) data.get("statement"), params);
                     Iterators.count(result);
-//                    result.close();
                 } catch (Exception e) {
                     log.warn("Error executing trigger " + name + " in phase " + phase, e);
                     exceptions.put(name, e.getMessage());

@@ -9,12 +9,11 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.Map;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocSettings.apoc_trigger_enabled;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.neo4j.internal.helpers.collection.MapUtil.map;
 
 /**
  * @author mh
@@ -64,6 +63,21 @@ public class TriggerExtendedTest {
 
         long count = TestUtil.singleResultFirstColumn(db, "MATCH (f:Man) RETURN count(*) as c");
         assertEquals(1L, count);
+    }
+
+
+    @Test
+    public void testTxIdAfterAsync() throws Exception {
+        db.executeTransactionally("CALL apoc.trigger.add('triggerTest','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, \"_executed\") as prop " +
+                "	WITH prop.node as n " +
+                "	CREATE (z:SON {father:id(n)}) " +
+                "	CREATE (n)-[:GENERATED]->(z)', " +
+                "{phase:'afterAsync'})");
+        db.executeTransactionally("CREATE (:TEST {name:'x', _executed:0})");
+        db.executeTransactionally("CREATE (:TEST {name:'y', _executed:0})");
+        org.neo4j.test.assertion.Assert.assertEventually(() -> db.executeTransactionally("MATCH p = ()-[r:GENERATED]->() RETURN count(p) AS count",
+                Collections.emptyMap(), (r) -> r.<Long>columnAs("count").next()),
+                (value) -> value == 2L, 30, TimeUnit.SECONDS);
     }
 
 }

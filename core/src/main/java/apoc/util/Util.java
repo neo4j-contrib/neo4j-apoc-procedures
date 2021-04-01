@@ -88,7 +88,6 @@ import java.util.zip.ZipInputStream;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
-import static org.apache.commons.lang.ArrayUtils.toPrimitive;
 
 /**
  * @author mh
@@ -861,12 +860,18 @@ public class Util {
          return rel instanceof VirtualRelationship ? rel : tx.getRelationshipById(rel.getId());
     }
 
-    public static Entity rebind(Transaction tx, Entity e) {
+    public static <T extends Entity> T rebind(Transaction tx, T e) {
         if (e instanceof Node) {
-            return rebind(tx, (Node) e);
+            return (T) rebind(tx, (Node) e);
         } else {
-            return rebind(tx, (Relationship)e);
+            return (T) rebind(tx, (Relationship) e);
         }
+    }
+
+    public static <T extends Entity> List<T> rebind(List<T> entities, Transaction tx) {
+        return entities.stream()
+                .map(n -> Util.rebind(tx, n))
+                .collect(Collectors.toList());
     }
 
     public static Node mergeNode(Transaction tx, Label primaryLabel, Label addtionalLabel,
