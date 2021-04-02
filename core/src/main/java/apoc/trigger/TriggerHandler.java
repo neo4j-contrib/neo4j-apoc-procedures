@@ -244,6 +244,7 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
                     Result result = tx.execute((String) data.get("statement"), params);
                     Iterators.count(result);
                 } catch (Exception e) {
+                    e.printStackTrace();
                     log.warn("Error executing trigger " + name + " in phase " + phase, e);
                     exceptions.put(name, e.getMessage());
                 }

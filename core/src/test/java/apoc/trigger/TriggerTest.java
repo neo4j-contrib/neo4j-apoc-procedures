@@ -257,7 +257,7 @@ public class TriggerTest {
                                     return (boolean) r.getProperty("triggerAfterAsync", false)
                                             && r.getProperty("deleted", "").equals("R2");
                                 })
-                , (value) -> value, 30L, TimeUnit.SECONDS);
+                , (value) -> value, 60L, TimeUnit.SECONDS);
     }
 
     @Test
