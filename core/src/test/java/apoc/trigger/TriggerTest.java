@@ -228,7 +228,7 @@ public class TriggerTest {
         db.executeTransactionally("CREATE (:A {name: \"A\"})-[:R1]->(:Z {name: \"Z\"})");
         db.executeTransactionally("CALL apoc.trigger.add('trigger-after-async', 'UNWIND $createdRelationships AS r\n" +
                 "MATCH (a:A)-[r]->(z:Z)\n" +
-                "WHERE type(r) IN [\"R1\", \"R3\"]\n" +
+                "WHERE type(r) IN [\"R2\", \"R3\"]\n" +
                 "MATCH (a)-[r1:R1]->(z)\n" +
                 "SET r1.triggerAfterAsync = true', {phase: 'afterAsync'})");
         db.executeTransactionally("MATCH (a:A {name: \"A\"})-[:R1]->(z:Z {name: \"Z\"})\n" +
