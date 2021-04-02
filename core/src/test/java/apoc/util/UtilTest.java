@@ -1,7 +1,5 @@
 package apoc.util;
 
-import junit.framework.TestCase;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -81,9 +79,9 @@ public class UtilTest {
     @Test(expected = QueryExecutionException.class)
     public void testValidateQuery() {
         try {
-            Util.validateQuery(db, "return");
+            Util.validateQuery(db, "Match (n) return m");
         } catch (QueryExecutionException e) {
-            assertTrue(e.getMessage().contains("Variable `invalid` not defined"));
+            assertTrue(e.getMessage().contains("Variable `m` not defined"));
             throw e;
         }
     }

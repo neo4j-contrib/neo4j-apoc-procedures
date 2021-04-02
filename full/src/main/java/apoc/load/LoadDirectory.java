@@ -33,8 +33,6 @@ import static org.neo4j.graphdb.QueryExecutionType.QueryType.WRITE;
 @Extended
 public class LoadDirectory {
 
-    public static final String ERROR_SCHEMA_LOAD_DIR = "Schema operations are not allowed for `apoc.load.directory.async.add` procedure";
-
     @Context
     public Log log;
 

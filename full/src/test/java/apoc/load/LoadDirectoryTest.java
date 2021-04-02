@@ -515,26 +515,10 @@ public class LoadDirectoryTest {
     public void testListenerItemWithError() throws Exception, IOException {
         final Map<String, Object> defaultConfig = Map.of("listenEventType", eventTypes, "interval", 1000L);
 
-        testCall(db, "CALL apoc.load.directory.async.add('notExistent', 'CREATE (n:Node)', '*', 'pathNotExistent')", result -> {
-            assertEquals("notExistent", result.get("name"));
-            assertEquals("*", result.get("pattern"));
-            assertEquals("CREATE (n:Node)", result.get("cypher"));
-            assertEquals(defaultConfig, result.get("config"));
-            assertEquals(LoadDirectoryItem.Status.CREATED.name(), result.get("status"));
-            assertEquals(StringUtils.EMPTY, result.get("error"));
-        });
+        testCall(db, "CALL apoc.load.directory.async.add('notExistent', 'CREATE (n:Node)', '*', 'pathNotExistent')",
+                result -> errorAssertions(defaultConfig, result));
 
-        // waiting for error (NoSuchFileException)
-        Thread.sleep(1000);
-
-        testCall(db, "CALL apoc.load.directory.async.list()", result -> {
-            assertEquals("notExistent", result.get("name"));
-            assertEquals("*", result.get("pattern"));
-            assertEquals("CREATE (n:Node)", result.get("cypher"));
-            assertEquals(defaultConfig, result.get("config"));
-            assertEquals(LoadDirectoryItem.Status.ERROR.name(), result.get("status"));
-            assertTrue(((String) result.get("error")).contains("java.nio.file.NoSuchFileException"));
-        });
+        testCall(db, "CALL apoc.load.directory.async.list()", result -> errorAssertions(defaultConfig, result));
 
         testCallEmpty(db, "CALL apoc.load.directory.async.remove('notExistent')", emptyMap());
         testCallEmpty(db, "CALL apoc.load.directory.async.list", emptyMap());
@@ -644,5 +628,14 @@ public class LoadDirectoryTest {
                     assertFalse(result.hasNext());
                 }
         );
+    }
+
+    private void errorAssertions(Map<String, Object> defaultConfig, Map<String, Object> result) {
+        assertEquals("notExistent", result.get("name"));
+        assertEquals("*", result.get("pattern"));
+        assertEquals("CREATE (n:Node)", result.get("cypher"));
+        assertEquals(defaultConfig, result.get("config"));
+        assertEquals(LoadDirectoryItem.Status.ERROR.name(), result.get("status"));
+        assertTrue(((String) result.get("error")).contains("java.nio.file.NoSuchFileException"));
     }
 }
