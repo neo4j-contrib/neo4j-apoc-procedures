@@ -254,8 +254,7 @@ public class TriggerTest {
                         db.executeTransactionally("MATCH ()-[r:R1]->() RETURN r", Map.of(),
                                 result -> {
                                     final Relationship r = result.<Relationship>columnAs("r").next();
-                                    return (boolean) r.getProperty("triggerAfterAsync", false)
-                                            && r.getProperty("deleted", "").equals("R2");
+                                    return (boolean) r.getProperty("triggerAfterAsync", false);
                                 })
                 , (value) -> value, 30L, TimeUnit.SECONDS);
     }
