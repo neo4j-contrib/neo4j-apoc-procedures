@@ -246,7 +246,7 @@ public class TriggerTest {
         db.executeTransactionally("CREATE (a:A {name: \"A\"})-[:R1]->(z:Z {name: \"Z\"}), (a)-[:R2]->(z)");
         db.executeTransactionally("CALL apoc.trigger.add('trigger-after-async', 'UNWIND $deletedRelationships AS r\n" +
                 "MATCH (a)-[r1:R1]->(z)\n" +
-                "SET r1.triggerAfterAsync = true, r1.deleted = type(r) RETURN *', {phase: 'afterAsync'})");
+                "SET r1.triggerAfterAsync = true RETURN *', {phase: 'afterAsync'})");
         db.executeTransactionally("MATCH (a:A {name: \"A\"})-[r:R2]->(z:Z {name: \"Z\"})\n" +
                 "DELETE r");
 
@@ -265,7 +265,7 @@ public class TriggerTest {
         db.executeTransactionally("CREATE (a:A {name: \"A\"})-[:R1]->(z:Z {name: \"Z\"}), (a)-[:R2]->(z)");
         db.executeTransactionally("CALL apoc.trigger.add('trigger-after', 'UNWIND $deletedRelationships AS r\n" +
                 "MERGE (a:AA{name: \"AA\"})\n" +
-                "SET a.triggerAfter = true, a.deleted = type(r)', {phase: 'after'})");
+                "SET a.triggerAfter = true', {phase: 'after'})");
         db.executeTransactionally("MATCH (a:A {name: \"A\"})-[r:R2]->(z:Z {name: \"Z\"})\n" +
                 "DELETE r");
 
@@ -273,8 +273,7 @@ public class TriggerTest {
                         db.executeTransactionally("MATCH (a:AA) RETURN a", Map.of(),
                                 result -> {
                                     final Node r = result.<Node>columnAs("a").next();
-                                    return (boolean) r.getProperty("triggerAfter", false)
-                                            && r.getProperty("deleted", "").equals("R2");
+                                    return (boolean) r.getProperty("triggerAfter", false);
                                 })
                 , (value) -> value, 30L, TimeUnit.SECONDS);
     }
