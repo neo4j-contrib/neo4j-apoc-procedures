@@ -18,3 +18,8 @@ RETURN count(*);
 ----
 
 image::linked-list-events.svg[scaledwidth="100%"]
+
+
+Moreover we can checking for relationship existence using the `checkExistence` parameter.
+That is, calling the previous query twice, 2 relations of type "NEXT" will be created between the nodes.
+Instead, with CALL apoc.nodes.link(events, "NEXT", true) only one relationship of type "NEXT" will remain.

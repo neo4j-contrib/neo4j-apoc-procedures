@@ -11,7 +11,9 @@ import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -62,6 +64,34 @@ public class NodesTest {
         long len = TestUtil.singleResultFirstColumn( db,"MATCH (n:Foo {id:1})-[r:BAR*9]->() RETURN size(r) as len");
         assertEquals(9L, len);
     }
+
+    @Test
+    public void linkWithNoCheckExistence() {
+        db.executeTransactionally("UNWIND range(1,10) as id CREATE (n:Foo {id:id}) WITH collect(n) as nodes call apoc.nodes.link(nodes,'BAR') RETURN 1");
+        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> checkNumberRels(result, 1, 2));
+
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes,'BAR') RETURN 1");
+        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> checkNumberRels(result, 2, 4));
+
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes,'FOO') RETURN 1");
+        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> checkNumberRels(result, 3, 6));
+    }
+
+    @Test
+    public void linkWithCheckExistence() {
+        db.executeTransactionally("UNWIND range(1,10) as id CREATE (n:Foo {id:id}) WITH collect(n) as nodes call apoc.nodes.link(nodes,'BAR', true) RETURN 1");
+        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> checkNumberRels(result, 1, 2));
+
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes, 'BAR', true) RETURN 1");
+        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> checkNumberRels(result, 1, 2));
+
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes,'FOO', true) RETURN 1");
+        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> checkNumberRels(result, 2, 4));
+
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes,'FOO', true) RETURN 1");
+        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> checkNumberRels(result, 2, 4));
+    }
+
     @Test
     public void delete() throws Exception {
         db.executeTransactionally("UNWIND range(1,100) as id CREATE (n:Foo {id:id})-[:X]->(n)");
@@ -585,5 +615,15 @@ public class NodesTest {
 
     private static Set<Label> labelSet(Node node) {
 	   return Iterables.asSet(node.getLabels());
+    }
+
+    private void checkNumberRels(Result result, int numberStartEnd, int numberInnerNode) {
+        final List<Node> nodes = Iterators.asList(result.columnAs("n"));
+        nodes.forEach(node -> {
+            final long actual = Iterables.count(node.getRelationships());
+            final long idNode = (long) node.getProperty("id");
+            final int expected = idNode == 1L || idNode == 10L ? numberStartEnd : numberInnerNode;
+            assertEquals(expected, actual);
+        });
     }
 }

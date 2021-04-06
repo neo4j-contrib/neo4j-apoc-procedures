@@ -69,15 +69,18 @@ public class Nodes {
     public Pools pools;
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last")
-    public void link(@Name("nodes") List<Node> nodes, @Name("type") String type) {
+    @Description("apoc.nodes.link([nodes],'REL_TYPE',checkExistence=false) - creates a linked list of nodes from first to last. If 'checkExistence=true' it does not create the relationship if it already exists")
+    public void link(@Name("nodes") List<Node> nodes, @Name("type") String type, @Name(value = "checkExistence", defaultValue = "false") boolean checkExistence) {
         Iterator<Node> it = nodes.iterator();
         if (it.hasNext()) {
             RelationshipType relType = RelationshipType.withName(type);
             Node node = it.next();
             while (it.hasNext()) {
                 Node next = it.next();
-                node.createRelationshipTo(next, relType);
+                final boolean checkAndNotExists = checkExistence && connected(node, next, type);
+                if (!checkAndNotExists) {
+                    node.createRelationshipTo(next, relType);
+                }
                 node = next;
             }
         }
