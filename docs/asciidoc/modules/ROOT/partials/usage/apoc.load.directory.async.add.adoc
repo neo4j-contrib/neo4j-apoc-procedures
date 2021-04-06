@@ -1,5 +1,5 @@
 The first parameter is the name of our custom watch listener.
-If I call a procedure with the same name as an existing one, this will be overwritten.
+If we use an already existing listener name, that listener will be overwritten.
 The second parameter is the cypher query that will be executed.
 The query can have the following parameters:
 
@@ -19,9 +19,9 @@ By default is an empty string, that is, search file in `import` directory.
 
 === Examples of interoperability with other procedures
 
-We can use as query parameter, another load procedure, like `apoc.load.csv` or `apoc.load.json`.
+We can use another load procedure as query parameter, like `apoc.load.csv` or `apoc.load.json`.
 
-Here is two examples.
+Here are two examples.
 
 We can execute:
 
@@ -189,8 +189,8 @@ We obtain this result calling `MATCH (n:JsonToNode) RETURN properties(n) as prop
 
 === Error handling
 
-When for some reason, the listener fails, its `status` field change from `RUNNING` to `ERROR`, and the associated error is put
-so if we execute `call apoc.load.directory.async.list`, we obtain, for example:
+When for some reason, the listener fails, its `status` field change from `RUNNING` to `ERROR`, and the associated error is output.
+If we execute `call apoc.load.directory.async.list`, we obtain, for example:
 
 [opts=header, ,cols="1,1,1,1,1,1,3"]
 |===

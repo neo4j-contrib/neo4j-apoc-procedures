@@ -1,4 +1,4 @@
-The procedure support the following config parameters:
+The procedure supports the following config parameters:
 
 .Config parameters
 [opts=header]

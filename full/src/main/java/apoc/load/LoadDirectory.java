@@ -64,7 +64,7 @@ public class LoadDirectory {
     }
 
     @Procedure("apoc.load.directory.async.remove")
-    @Description("apoc.load.directory.async.remove(name) YIELD name, status, pattern, cypher, urlDir, config, error - Remove a folder listener by name and return remaining listener")
+    @Description("apoc.load.directory.async.remove(name) YIELD name, status, pattern, cypher, urlDir, config, error - Remove a folder listener by name and return remaining listeners, if any")
     public Stream<LoadDirectoryItem.LoadDirectoryResult> remove(@Name("name") String name) {
         loadDirectoryHandler.remove(name);
         return loadDirectoryHandler.list();

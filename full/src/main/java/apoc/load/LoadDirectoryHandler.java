@@ -82,7 +82,7 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
         Future removed = storage.remove(loadDirectoryItem);
         if (removed == null) {
             String name = loadDirectoryItem.getName();
-            throw new RuntimeException("Listener with name: " + name + " doesn't exists");
+            throw new RuntimeException("Listener with name: " + name + " doesn't exist");
         }
         removed.cancel(true);
     }
