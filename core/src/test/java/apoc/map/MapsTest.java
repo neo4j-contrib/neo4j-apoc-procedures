@@ -318,6 +318,38 @@ public class MapsTest {
     }
 
     @Test
+    public void testUnflatten() {
+        Map<String, Object> innerNestedMap = map("somekey", "someValue", "somenumeric", 123);
+        Map<String, Object> nestedMap = map("anotherkey", "anotherValue", "nested", innerNestedMap);
+        Map<String, Object> map = map("string", "value",
+                "int", 10,
+                "nested.anotherkey", "anotherValue",
+                "nested.nested.somekey", "someValue",
+                "nested.nested.somenumeric", 123);
+
+        TestUtil.testCall(db, "RETURN apoc.map.unflatten($map) AS value", map("map", map),
+                (r) -> assertEquals(map("string", "value", "int", 10, "nested", nestedMap), r.get("value"))
+        );
+    }
+
+    @Test
+    public void testUnflattenWithDelimiter() {
+        final Map<String, Object> subInnerMap = map("innernumeric", 123, "innernumericTwo", 456);
+        Map<String, Object> innerNestedMap = map("somekey", "someValue", "somenumeric", subInnerMap);
+        Map<String, Object> nestedMap = map("anotherkey", "anotherValue", "nested", innerNestedMap);
+        Map<String, Object> map = map("string", "value",
+                "int", 10,
+                "nested--哈è._anotherkey", "anotherValue",
+                "nested--哈è._nested--哈è._somekey", "someValue",
+                "nested--哈è._nested--哈è._somenumeric--哈è._innernumeric", 123,
+                "nested--哈è._nested--哈è._somenumeric--哈è._innernumericTwo", 456);
+
+        TestUtil.testCall(db, "RETURN apoc.map.unflatten($map, '--哈è._') AS value", map("map", map),
+                (r) -> assertEquals(map("string", "value", "int", 10, "nested", nestedMap), r.get("value"))
+        );
+    }
+
+    @Test
     public void testSortedProperties() {
         TestUtil.testCall(db, "WITH {b:8, d:3, a:2, E: 12, C:9} as map RETURN apoc.map.sortedProperties(map, false) AS sortedProperties", (r) -> {
             List<List<String>> sortedProperties = (List<List<String>>)r.get("sortedProperties");

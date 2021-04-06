@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.regex.Pattern.quote;
+
 public class Maps {
 
     @Context
@@ -292,6 +294,32 @@ public class Maps {
              } else {
                  flattenedMap.put(prefix + entry.getKey(), entry.getValue());
              }
+        }
+    }
+
+    @UserFunction
+    @Description("apoc.map.unflatten(map, delimiter:'.') yield map - unflat from items separated by delimiter string to nested items (reverse of apoc.map.flatten function)")
+    public Map<String, Object> unflatten(@Name("map") Map<String, Object> map, @Name(value="delimiter", defaultValue = ".") String delimiter) {
+        Map<String, Object> unflattenedMap = new HashMap<>();
+        unflattenMapRecursively(unflattenedMap, map, delimiter == null ? "." : delimiter);
+        return unflattenedMap;
+    }
+
+    private void unflattenMapRecursively(Map<String, Object> unflattenedMap, Map<String, Object> map, String delimiter) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            putNestedValue(unflattenedMap, entry.getValue(), entry.getKey(), delimiter);
+        }
+    }
+
+    public static void putNestedValue(Map<String, Object> map, Object value, String key, String delimiter) {
+        final String[] keys = key.split(quote(delimiter), 2);
+        final String firstPart = keys[0];
+
+        if (keys.length == 1) {
+            map.put(firstPart, value);
+        } else {
+            final Map<String, Object> currentMap = (Map<String, Object>) map.computeIfAbsent(firstPart, k -> new HashMap<String, Object>());
+            putNestedValue(currentMap, value, keys[1], delimiter);
         }
     }
 
