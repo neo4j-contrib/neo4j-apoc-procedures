@@ -338,14 +338,14 @@ public class MapsTest {
         Map<String, Object> innerNestedMap = map("somekey", "someValue", "somenumeric", subInnerMap);
         Map<String, Object> nestedMap = map("anotherkey", "anotherValue", "nested", innerNestedMap);
         Map<String, Object> map = map("string", "value",
-                "int", 10,
+                "int", 99,
                 "nested--哈è._anotherkey", "anotherValue",
                 "nested--哈è._nested--哈è._somekey", "someValue",
                 "nested--哈è._nested--哈è._somenumeric--哈è._innernumeric", 123,
                 "nested--哈è._nested--哈è._somenumeric--哈è._innernumericTwo", 456);
 
         TestUtil.testCall(db, "RETURN apoc.map.unflatten($map, '--哈è._') AS value", map("map", map),
-                (r) -> assertEquals(map("string", "value", "int", 10, "nested", nestedMap), r.get("value"))
+                (r) -> assertEquals(map("string", "value", "int", 99, "nested", nestedMap), r.get("value"))
         );
     }
 
