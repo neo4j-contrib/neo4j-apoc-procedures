@@ -299,7 +299,7 @@ public class Maps {
 
     @UserFunction
     @Description("apoc.map.unflatten(map, delimiter:'.') yield map - unflat from items separated by delimiter string to nested items (reverse of apoc.map.flatten function)")
-    public Map<String, Object> unflatten(@Name("map") Map<String, Object> map, @Name(value="delimiter", defaultValue = ".") String delimiter) {
+    public Map<String, Object> unflatten(@Name("map") Map<String, Object> map, @Name(value = "delimiter", defaultValue = ".") String delimiter) {
         Map<String, Object> unflattenedMap = new HashMap<>();
         unflattenMapRecursively(unflattenedMap, map, delimiter == null ? "." : delimiter);
         return unflattenedMap;

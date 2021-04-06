@@ -1,4 +1,4 @@
-Using the following map with the default `.` delimiter:
+Using the following map and the default `.` delimiter:
 
 [source,cypher]
 ----
@@ -30,7 +30,7 @@ will be returned:
 ----
 |===
 
-Using the following map with a custom delimiter, that is `/é哈`:
+Using the following map and a custom delimiter, that is `/é哈`:
 
 [source,cypher]
 ----
