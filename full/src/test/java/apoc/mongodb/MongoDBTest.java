@@ -505,6 +505,33 @@ public class MongoDBTest {
     }
 
     @Test
+    public void testInsertRegexExtJsonGetFirstCorrectlyWithCompatibleValueTrueAndFailsIfFalse() {
+        TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,$collection,[{foo:{`$regex`: 'pattern', `$options`: ''}, myId: {`$oid` : '507f191e811c19729de960ea'}}], true)",
+                PERSON_PARAMS, (r) -> assertFalse("should be empty", r.hasNext()));
+
+        try {
+            TestUtil.testCall(db, "CALL apoc.mongodb.first($host,$db,$collection,{foo:{ `$regex`: 'pattern', `$options`: '' }}, false, true, true, true)",
+                    PERSON_PARAMS, r -> {});
+            fail();
+        } catch (Exception e) {
+            assertTrue(e.getMessage().contains("Failed to invoke procedure `apoc.mongodb.first`: Caused by: java.lang.IllegalArgumentException: Cannot convert BsonRegularExpression"));
+        }
+
+        TestUtil.testCall(db, "CALL apoc.mongodb.first($host,$db,$collection,{foo:{ `$regex`: 'pattern', `$options`: ''}}, true, false, true, true)", PERSON_PARAMS, r -> {
+            Map<String, Object> value = (Map<String, Object>) r.get("value");
+            assertEquals("pattern", value.get("foo"));
+            assertTrue(value.get("_id") instanceof Map);
+            assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) value.get("_id")).keySet());
+            assertEquals("507f191e811c19729de960ea", value.get("myId"));
+        });
+
+        TestUtil.testCall(db, "CALL apoc.mongodb.delete($host,$db,$collection,{foo:{ `$regex`: 'pattern', `$options`: ''}}, true)", PERSON_PARAMS, r -> {
+            long affected = (long) r.get("value");
+            assertEquals(1L, affected);
+        });
+    }
+
+    @Test
     public void testDeleteWithExtendedJson() throws Exception {
         TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,$collection,[{foo:'bar', myId: {`$oid` : '507f191e811c19729de960ea'}}], true)", PERSON_PARAMS, (r) -> {
             assertFalse("should be empty", r.hasNext());
