@@ -96,8 +96,6 @@ public class CypherTest {
             assertNotNull(tx.schema().getConstraintByName("testConstraint"));
             assertNotNull(tx.schema().getIndexByName("test"));
         }
-
-        testFail(db, "CALL apoc.cypher.runSchema('CREATE (n:Test {a: 1})',{})", QueryExecutionException.class);
     }
 
     @Test

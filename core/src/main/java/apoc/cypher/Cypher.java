@@ -252,9 +252,6 @@ public class Cypher {
     @Procedure(mode = SCHEMA)
     @Description("apoc.cypher.runSchema(statement, params) yield value - executes query schema statement with the given parameters")
     public Stream<MapResult> runSchema(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
-        if (!isSchemaOperation(statement)) {
-            throw new RuntimeException("This procedure is only for schema operations. If you want to execute write / read operation, use `apoc.cypher.runWrite` instead");
-        }
         return runCypherQuery(tx, statement, params);
     }
 
