@@ -1,6 +1,9 @@
 package apoc.monitor;
 
 import apoc.result.KernelInfoResult;
+
+import org.neo4j.common.DependencyResolver;
+import org.neo4j.configuration.helpers.DatabaseReadOnlyChecker;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.database.Database;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -34,13 +37,15 @@ public class Kernel {
     @Description("apoc.monitor.kernel() returns informations about the neo4j kernel")
     public Stream<KernelInfoResult> kernel() {
         GraphDatabaseAPI api = ((GraphDatabaseAPI) graphDatabaseService);
-        Database database = api.getDependencyResolver().resolveDependency(Database.class);
+        DependencyResolver resolver = api.getDependencyResolver();
+        Database database = resolver.resolveDependency(Database.class);
+        DatabaseReadOnlyChecker readOnlyChecker = resolver.resolveDependency( DatabaseReadOnlyChecker.class );
 
         RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
         Date startDate = new Date(runtimeBean.getStartTime());
 
         return Stream.of(new KernelInfoResult(
-                database.isReadOnly(),
+                readOnlyChecker.isReadOnly(),
                 Version.getKernelVersion(),
                 database.getStoreId().toString(),
                 startDate,
