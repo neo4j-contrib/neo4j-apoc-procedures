@@ -1,5 +1,6 @@
 package apoc.custom;
 
+import apoc.log.Neo4jLogStream;
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
@@ -9,14 +10,20 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.logging.AssertableLogProvider;
+import org.neo4j.logging.Log;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static apoc.ApocConfig.apocConfig;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * @author mh
@@ -30,9 +37,12 @@ public class CypherProceduresStorageTest {
     private GraphDatabaseService db;
     private DatabaseManagementService databaseManagementService;
 
+    public static AssertableLogProvider logProvider = new AssertableLogProvider(true);
+
     @Before
     public void setUp() throws Exception {
-        databaseManagementService = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot()).build();
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot())
+                .setUserLogProvider(logProvider).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         TestUtil.registerProcedure(db, CypherProcedures.class);
     }
@@ -41,8 +51,8 @@ public class CypherProceduresStorageTest {
         databaseManagementService.shutdown();
         databaseManagementService = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
-        assertTrue(db.isAvailable(1000));
-        TestUtil.registerProcedure(db, CypherProcedures.class);
+        assertTrue(db.isAvailable(60000));
+        TestUtil.registerProcedure(db, CypherProcedures.class, Neo4jLogStream.class);
     }
     @Test
     public void registerSimpleStatement() throws Exception {
@@ -193,5 +203,31 @@ public class CypherProceduresStorageTest {
         db.executeTransactionally("CALL apoc.custom.asFunction('n', 'MATCH (t:Target {value : $val}) RETURN t', 'NODE', [['val', 'INTEGER']])");
         restartDb();
         TestUtil.testCall(db, "RETURN custom.n(2) as row", (row) -> assertEquals(2L, ((Node) row.get("row")).getProperty("value")));
+    }
+
+    // TODO - METTERE LA PROCEDURA COMPLETA
+    @Test
+    public void testIssue1744() throws Exception {
+        db.executeTransactionally("CREATE (i:Target {value: 2});");
+        db.executeTransactionally("CALL apoc.custom.asProcedure('franco', 'RETURN \"1\" as resource', 'read', [['resource','STRING']]);");
+        restartDb();
+        TestUtil.testCall(db, "call custom.franco", (row) -> assertEquals("1", row.get("resource")));
+
+
+        final String serialize = logProvider.serialize();
+        assertFalse(serialize.contains("Could not register procedure"));
+//        final Log log = logProvider.getLog("");
+//         Could not register procedure:
+//        TestUtil.testResult(db, "call apoc.log.stream('neo4j.log')", (row) -> {
+//            final List<Map<String, Object>> maps = Iterators.asList(row);
+//            int intero = 0;
+//            while (row.hasNext()) {
+//                Map<String, Object> value = row.next();
+//                assertFalse(((String) value.get("line")).contains("Could not register procedure"));
+//                intero++;
+//                System.out.println("intero - " + intero);
+//            }
+//        });
+
     }
 }
