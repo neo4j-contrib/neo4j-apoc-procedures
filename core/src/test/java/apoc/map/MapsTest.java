@@ -318,35 +318,29 @@ public class MapsTest {
     }
 
     @Test
-    public void testUnflatten() {
+    public void testUnflattenWithAPreviouslyFlattedMap() {
         Map<String, Object> innerNestedMap = map("somekey", "someValue", "somenumeric", 123);
         Map<String, Object> nestedMap = map("anotherkey", "anotherValue", "nested", innerNestedMap);
-        Map<String, Object> map = map("string", "value",
-                "int", 10,
-                "nested.anotherkey", "anotherValue",
-                "nested.nested.somekey", "someValue",
-                "nested.nested.somenumeric", 123);
+        final Map<String, Object> expectedMap = map("string", "value", "int", 10, "nested", nestedMap);
 
-        TestUtil.testCall(db, "RETURN apoc.map.unflatten($map) AS value", map("map", map),
-                (r) -> assertEquals(map("string", "value", "int", 10, "nested", nestedMap), r.get("value"))
-        );
+        TestUtil.testCall(db, "WITH apoc.map.flatten($expectedMap) AS flattedMap RETURN apoc.map.unflatten(flattedMap) AS value",
+                map("expectedMap", expectedMap),
+                r -> assertEquals(expectedMap, r.get("value")));
     }
 
     @Test
-    public void testUnflattenWithDelimiter() {
+    public void testUnflattenWithDelimiterWithAPreviouslyFlattedMap() {
         final Map<String, Object> subInnerMap = map("innernumeric", 123, "innernumericTwo", 456);
         Map<String, Object> innerNestedMap = map("somekey", "someValue", "somenumeric", subInnerMap);
         Map<String, Object> nestedMap = map("anotherkey", "anotherValue", "nested", innerNestedMap);
-        Map<String, Object> map = map("string", "value",
-                "int", 99,
-                "nested--哈è._anotherkey", "anotherValue",
-                "nested--哈è._nested--哈è._somekey", "someValue",
-                "nested--哈è._nested--哈è._somenumeric--哈è._innernumeric", 123,
-                "nested--哈è._nested--哈è._somenumeric--哈è._innernumericTwo", 456);
+        final Map<String, Object> expectedMap = map("string", "value", "int", 99, "nested", nestedMap);
+        final String delimiter = "--哈è._";
 
-        TestUtil.testCall(db, "RETURN apoc.map.unflatten($map, '--哈è._') AS value", map("map", map),
-                (r) -> assertEquals(map("string", "value", "int", 99, "nested", nestedMap), r.get("value"))
-        );
+        TestUtil.testCall(db, "WITH apoc.map.flatten($expectedMap, $delimiter) AS flattedMap " +
+                        "RETURN apoc.map.unflatten(flattedMap, $delimiter) AS value",
+                map("expectedMap", expectedMap, "delimiter", delimiter),
+                r -> assertEquals(expectedMap, r.get("value")));
+
     }
 
     @Test
