@@ -1964,7 +1964,7 @@ apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false\|true],
 |label:apoc-full[]
 |xref::overview/apoc.mongodb/apoc.mongodb.get.byObjectId.adoc[apoc.mongodb.get.byObjectId icon:book[]]
 
-apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value 
+apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.mongodb/apoc.mongodb.insert.adoc[apoc.mongodb.insert icon:book[]]
@@ -2204,7 +2204,7 @@ apoc.nodes.get(node\|nodes\|id\|[ids]) - quickly returns all nodes with these id
 |label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.link.adoc[apoc.nodes.link icon:book[]]
 
-apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last
+apoc.nodes.link([nodes],'REL_TYPE', conf) - creates a linked list of nodes from first to last
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.rels.adoc[apoc.nodes.rels icon:book[]]

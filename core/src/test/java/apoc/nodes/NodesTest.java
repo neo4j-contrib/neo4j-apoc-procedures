@@ -66,7 +66,7 @@ public class NodesTest {
     }
 
     @Test
-    public void linkWithNoCheckExistence() {
+    public void linkWithAvoidDuplicateFalse() {
         db.executeTransactionally("UNWIND range(1,10) as id CREATE (n:Foo {id:id}) WITH collect(n) as nodes call apoc.nodes.link(nodes,'BAR') RETURN 1");
         TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> checkNumberRels(result, 1, 2));
 
@@ -78,17 +78,17 @@ public class NodesTest {
     }
 
     @Test
-    public void linkWithCheckExistence() {
-        db.executeTransactionally("UNWIND range(1,10) as id CREATE (n:Foo {id:id}) WITH collect(n) as nodes call apoc.nodes.link(nodes,'BAR', true) RETURN 1");
+    public void linkWithAvoidDuplicateTrue() {
+        db.executeTransactionally("UNWIND range(1,10) as id CREATE (n:Foo {id:id}) WITH collect(n) as nodes call apoc.nodes.link(nodes,'BAR', {avoidDuplicates: true}) RETURN 1");
         TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> checkNumberRels(result, 1, 2));
 
-        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes, 'BAR', true) RETURN 1");
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes, 'BAR', {avoidDuplicates: true}) RETURN 1");
         TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> checkNumberRels(result, 1, 2));
 
-        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes,'FOO', true) RETURN 1");
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes,'FOO', {avoidDuplicates: true}) RETURN 1");
         TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> checkNumberRels(result, 2, 4));
 
-        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes,'FOO', true) RETURN 1");
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes,'FOO', {avoidDuplicates: true}) RETURN 1");
         TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> checkNumberRels(result, 2, 4));
     }
 
