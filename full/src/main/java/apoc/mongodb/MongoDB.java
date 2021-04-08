@@ -85,7 +85,8 @@ public class MongoDB {
                 e -> log.error("apoc.mongodb.count - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "]",e));
     }
 
-    private Coll getColl(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection,
+    // TODO - METTERE IN UN MONGOUTIL.java
+    protected static Coll getColl(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection,
                          boolean compatibleValues, boolean extractReferences, boolean objectIdAsMap) {
         String url = getMongoDBUrl(hostOrKey);
         return Coll.Factory.create(url, db, collection, compatibleValues, extractReferences, objectIdAsMap);
@@ -187,11 +188,13 @@ public class MongoDB {
                 e -> log.error("apoc.mongodb.get.byObjectId - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], objectIdValue = [" + objectIdValue + "]",e));
     }
 
-    private String getMongoDBUrl(String hostOrKey) {
+    // TODO - METTERE IN UN MONGOUTIL.java
+    protected static String getMongoDBUrl(String hostOrKey) {
         return new UrlResolver("mongodb", "localhost", 27017).getUrl("mongodb", hostOrKey);
     }
 
-    private Coll getMongoColl(String hostOrKey, String db, String collection, boolean compatibleValues,
+    // TODO - METTERE IN UN MONGOUTIL.java
+    protected static Coll getMongoColl(String hostOrKey, String db, String collection, boolean compatibleValues,
                               boolean extractReferences, boolean objectIdAsMap) {
         Coll coll = null;
         try {
@@ -212,6 +215,7 @@ public class MongoDB {
         return coll;
     }
 
+    // TODO - RIUTILIZZARE QUESTA INTERFACCIA (METTERLA IN UN MONGOUTIL.JAVA)
     interface Coll extends Closeable {
         Map<String, Object> first(Map<String, Object> params);
 
@@ -250,7 +254,8 @@ public class MongoDB {
         }
     }
 
-    private <T> Stream<T> executeMongoQuery(String hostOrKey, String db, String collection, boolean compatibleValues,
+    // TODO - METTERE IN UN MONGOUTIL.java
+    protected static  <T> Stream<T> executeMongoQuery(String hostOrKey, String db, String collection, boolean compatibleValues,
                                             boolean extractReferences, boolean objectIdAsMap, Function<Coll, Stream<T>> execute, Consumer<Exception> onError) {
         Coll coll = null;
         try {

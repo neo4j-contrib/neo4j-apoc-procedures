@@ -49,6 +49,7 @@ class MongoDBColl implements MongoDB.Coll {
     public MongoDBColl(String url, String db, String coll) {
         MongoClientURI connectionString = new MongoClientURI(url);
         mongoClient = new MongoClient(connectionString);
+        connectionString.getDatabase()
         database = mongoClient.getDatabase(db);
         collection = database.getCollection(coll);
     }
