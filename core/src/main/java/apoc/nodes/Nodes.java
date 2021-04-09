@@ -78,8 +78,8 @@ public class Nodes {
             Node node = it.next();
             while (it.hasNext()) {
                 Node next = it.next();
-                final boolean checkAndNotExists = conf.isAvoidDuplicates() && connected(node, next, type);
-                if (!checkAndNotExists) {
+                final boolean createRelationship = !conf.isAvoidDuplicates() || (conf.isAvoidDuplicates() && !connected(node, next, type));
+                if (createRelationship) {
                     node.createRelationshipTo(next, relType);
                 }
                 node = next;
