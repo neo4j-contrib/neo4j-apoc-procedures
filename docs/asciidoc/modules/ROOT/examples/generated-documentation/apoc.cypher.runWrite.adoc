@@ -1,0 +1,5 @@
+¦xref::overview/apoc.cypher/apoc.cypher.runWrite.adoc[apoc.cypher.runWrite icon:book[]] +
+
+`apoc.cypher.runWrite(statement, params) yield value` - alias for apoc.cypher.doIt
+¦label:procedure[]
+¦label:apoc-core[]
