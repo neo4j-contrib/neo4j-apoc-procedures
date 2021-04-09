@@ -1,0 +1,11 @@
+[source,cypher]
+----
+CALL apoc.cypher.runSchema('CREATE INDEX test FOR (w:Test) ON (w.$name)',{})
+----
+
+or
+
+[source,cypher]
+----
+CALL apoc.cypher.runSchema('CREATE CONSTRAINT $name ON (w:Test) ASSERT w.baz IS UNIQUE',{})
+----
