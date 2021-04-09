@@ -79,6 +79,14 @@ class MongoDBColl implements MongoDB.Coll {
     public MongoDBColl(String url, MongoDbConfig conf) {
         // TODO ...
         MongoClientURI connectionString = new MongoClientURI(url);
+
+        if (connectionString.getDatabase() == null) {
+            throw new RuntimeException("The connection string must have db name");
+        }
+        if (connectionString.getCollection() == null) {
+            throw new RuntimeException("The connection string must have collection name");
+        }
+
         mongoClient = new MongoClient(connectionString);
         database = mongoClient.getDatabase(connectionString.getDatabase());
         // TODO - SE è NULL DARE UN ERRORE, SE NON LO FA L'URLRESOLVER
@@ -200,6 +208,10 @@ class MongoDBColl implements MongoDB.Coll {
 
     @Override
     public Map<String, Object> first(Map<String, Object> query, boolean useExtendedJson) {
+        FindIterable<Document> documents = query == null
+                ? collection.find()
+                : collection.find(documentBasedOnUseExtJson(query, useExtendedJson));
+        // todo - se metto null, cioè find() che succede?
         return documentToPackableMap(collection
                 .find(documentBasedOnUseExtJson(query, useExtendedJson))
                 .first());
@@ -242,9 +254,11 @@ class MongoDBColl implements MongoDB.Coll {
                                             Long skip,
                                             Long limit,
                                             boolean useExtendedJson) {
+        // todo - per coerenza metterei anche un count all...
         FindIterable<Document> documents = query == null
                 ? collection.find()
                 : collection.find(documentBasedOnUseExtJson(query, useExtendedJson));
+        // todo - con emptyMap() che succede?
         if (project != null) documents = documents.projection(documentBasedOnUseExtJson(project, useExtendedJson));
         if (sort != null) documents = documents.sort(documentBasedOnUseExtJson(sort, useExtendedJson));
         if (skip != 0) documents = documents.skip(skip.intValue());

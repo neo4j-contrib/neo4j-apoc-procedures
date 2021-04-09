@@ -204,7 +204,6 @@ public class MongoDB {
 
         long count(Map<String, Object> query);
         Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit);
-        // TODO - e se ci passassi direttamente conf?
         Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit, boolean useExtendedJson);
 
         Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit);
@@ -213,21 +212,17 @@ public class MongoDB {
 
         void insert(List<Map<String, Object>> docs);
         Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit);
-        // TODO - e se ci passassi direttamente conf?
         Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit, boolean useExtendedJson);
 
         long update(Map<String, Object> query, Map<String, Object> update);
         void insert(List<Map<String, Object>> docs);
-        // TODO - e se ci passassi direttamente conf?
         void insert(List<Map<String, Object>> docs, boolean useExtendedJson);
 
         long delete(Map<String, Object> query);
         long update(Map<String, Object> query, Map<String, Object> update);
-        // TODO - e se ci passassi direttamente conf?
         long update(Map<String, Object> query, Map<String, Object> update, boolean useExtendedJson);
 
         long delete(Map<String, Object> query);
-        // TODO - e se ci passassi direttamente conf?
         long delete(Map<String, Object> query, boolean useExtendedJson);
 
         default void safeClose() {
