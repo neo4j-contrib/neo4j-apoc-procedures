@@ -1,42 +1,23 @@
 package apoc.mongodb;
 
 import apoc.graph.Graphs;
-import apoc.util.JsonUtil;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.UrlResolver;
 import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang3.time.DateUtils;
-import org.bson.BsonInt64;
-import org.bson.BsonRegularExpression;
-import org.bson.BsonTimestamp;
 import org.bson.Document;
-import org.bson.types.Binary;
-import org.bson.types.Code;
-import org.bson.types.CodeWithScope;
-import org.bson.types.MaxKey;
-import org.bson.types.MinKey;
 import org.bson.types.ObjectId;
-import org.bson.types.Symbol;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.*;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
-import org.testcontainers.containers.Container;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
-import org.testcontainers.utility.Base58;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
@@ -44,71 +25,22 @@ import static apoc.util.TestUtil.isRunningInCI;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static org.junit.Assert.*;
-import static org.junit.Assume.*;
 
 /**
  * @author mh
  * @since 30.06.16
  */
-public class MongoDBTest {
-
-    private static int MONGO_DEFAULT_PORT = 27017;
-
-    public static GenericContainer mongo;
-
-    @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule();
-
-    private static MongoCollection<Document> testCollection;
-    private static MongoCollection<Document> productCollection;
-    private static MongoCollection<Document> personCollection;
-
-    private static final Date currentTime = new Date();
-
-    private static final long longValue = 10_000L;
-
-    private static String HOST = null;
-
-    public static Map<String, Object> PERSON_PARAMS;
-    private static Map<String, Object> TEST_PARAMS;
-
-    private long numConnections = -1;
-
-    private static final long NUM_OF_RECORDS = 10_000L;
-
-    private static List<ObjectId> productReferences;
-    private static ObjectId nameAsObjectId = new ObjectId("507f191e810c19729de860ea");
-    private static ObjectId fooAlAsObjectId = new ObjectId("77e193d7a9cc81b4027498b4");
-    private static ObjectId fooJohnAsObjectId = new ObjectId("57e193d7a9cc81b4027499c4");
-    private static ObjectId fooJackAsObjectId = new ObjectId("67e193d7a9cc81b4027518b4");
-    private static ObjectId idAlAsObjectId = new ObjectId("97e193d7a9cc81b4027519b4");
-    private static ObjectId idJackAsObjectId = new ObjectId("97e193d7a9cc81b4027518b4");
-    private static ObjectId idJohnAsObjectId = new ObjectId("07e193d7a9cc81b4027488c4");
-    private static ObjectId idAsObjectId = new ObjectId();
-
-    private static final Set<String> SET_OBJECT_ID_MAP = Set.of("date", "machineIdentifier", "processIdentifier", "counter", "time", "timestamp", "timeSecond");
+public class MongoDBTest extends MongoTestBase {
+    private static Map<String, Object> params;
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isRunningInCI());
-        TestUtil.ignoreException(() -> {
-            mongo = new GenericContainer("mongo:3")
-                    .withNetworkAliases("mongo-" + Base58.randomString(6))
-                    .withExposedPorts(MONGO_DEFAULT_PORT)
-                    .waitingFor(new HttpWaitStrategy()
-                            .forPort(MONGO_DEFAULT_PORT)
-                            .forStatusCodeMatching(response -> response == HTTP_OK || response == HTTP_UNAUTHORIZED)
-                            .withStartupTimeout(Duration.ofMinutes(2)));
-            mongo.start();
-
-        }, Exception.class);
-        assumeNotNull(mongo);
-        assumeTrue("Mongo DB must be running", mongo.isRunning());
+        createContainer(false);
         MongoClient mongoClient = new MongoClient(mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
         HOST = String.format("mongodb://%s:%s", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
-        TEST_PARAMS = map("host", HOST, "db", "test", "collection", "test");
-        PERSON_PARAMS = map("host", HOST, "db", "test", "collection", "person");
+        params = map("host", HOST, "db", "test", "collection", "test");
         MongoDatabase database = mongoClient.getDatabase("test");
+
         testCollection = database.getCollection("test");
         productCollection = database.getCollection("product");
         personCollection = database.getCollection("person");
@@ -116,7 +48,7 @@ public class MongoDBTest {
         productCollection.deleteMany(new Document());
         LongStream.range(0, NUM_OF_RECORDS)
                 .forEach(i -> testCollection.insertOne(new Document(map("name", "testDocument",
-                                    "date", currentTime, "longValue", longValue, "nullField", null))));
+                        "date", currentTime, "longValue", longValue, "nullField", null))));
 
         productCollection.insertOne(new Document(map("name", "My Awesome Product",
                 "price", 800,
@@ -138,62 +70,24 @@ public class MongoDBTest {
                 "name", "Sherlock",
                 "age", 25,
                 "bought", productReferences)));
-        personCollection.insertOne(new Document(map("_id", idAlAsObjectId,
-                "name", "Al",
-                "age", 25,
-                "foo", fooAlAsObjectId,
-                "date", new Date(1234567),
-                "int64", new BsonInt64(29L),
-                "double", 12.34,
-                "expr", new BsonRegularExpression("foo*"),
-                "binary", new Binary("fooBar".getBytes()),
-                "bought", productReferences)));
-        personCollection.insertOne(new Document(map("_id", idJohnAsObjectId,
-                "name", "John",
-                "age", 45,
-                "foo", fooJohnAsObjectId,
-                "code", new Code("function() {}"),
-                "sym", new Symbol("x"),
-                "codeWithScope", new CodeWithScope("function() {}", new Document("k", "v")),
-                "int64", new BsonInt64(29L),
-                "time", new BsonTimestamp(123, 4),
-                "minKey", new MinKey(),
-                "maxKey", new MaxKey(),
-                "expr", new BsonRegularExpression("foo*"),
-                "binary", new Binary("fooBar".getBytes()),
-                "bought", productReferences)));
-        personCollection.insertOne(new Document(map("_id", idJackAsObjectId,
-                "name", "Jack",
-                "age", 54,
-                "foo", fooJackAsObjectId,
-                "expr", new BsonRegularExpression("foo*"),
-                "minKey", new MinKey(),
-                "maxKey", new MaxKey(),
-                "bought", productReferences)));
 
         TestUtil.registerProcedure(db, MongoDB.class, Graphs.class);
         mongoClient.close();
     }
 
-    @AfterClass
-    public static void tearDown() {
-        if (mongo != null) {
-            mongo.stop();
-        }
-    }
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
     @Before
     public void before() {
-        numConnections = (long) getNumConnections().get("current");
+        numConnections = (long) getNumConnections(mongo, COMMANDS).get("current");
     }
 
     @After
     public void after() {
         // the connections active before must be equal to the connections active after
-        long numConnectionsAfter = (long) getNumConnections().get("current");
+        long numConnectionsAfter = (long) getNumConnections(mongo, COMMANDS).get("current");
         assertEquals(numConnections, numConnectionsAfter);
     }
 
@@ -260,63 +154,23 @@ public class MongoDBTest {
 
     @Test
     public void testGet()  {
-        TestUtil.testResult(db, "CALL apoc.mongodb.get($host,$db,$collection,null)", TEST_PARAMS,
+        TestUtil.testResult(db, "CALL apoc.mongodb.get($host,$db,$collection,null)", params,
                 res -> assertResult(res));
     }
 
     @Test
     public void testGetCompatible() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongodb.get($host,$db,$collection,null,true)", TEST_PARAMS,
+        TestUtil.testResult(db, "CALL apoc.mongodb.get($host,$db,$collection,null,true)", params,
                 res -> assertResult(res, LocalDateTime.from(currentTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())));
     }
 
     @Test
-    public void testGetWithExtendedJson()  {
-        final String bytes = Base64.getEncoder().encodeToString("fooBar".getBytes());
-        TestUtil.testResult(db, "CALL apoc.mongodb.get($host, $db, $collection, {binary: {`$binary`: $bytes, `$subType`: '00'}}, true, 0, 0, false, true, true)",
-                map("host", HOST, "db", "test", "collection", "person", "bytes", bytes),
-                res -> {
-                    int count = 0;
-                    while (res.hasNext()) {
-                        ++count;
-                        Map<String, Object> r = res.next();
-                        Map doc = (Map) r.get("value");
-                        assertTrue(doc.get("_id") instanceof Map);
-                        assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) doc.get("_id")).keySet());
-                        assertTrue(List.of("Al", "John").contains(doc.get("name")));
-                        assertTrue(List.of(25L, 45L).contains(doc.get("age")));
-                        final List<String> expectedObjIds = List.of("77e193d7a9cc81b4027498b4", "57e193d7a9cc81b4027499c4", "67e193d7a9cc81b4027518b4");
-                        assertTrue(expectedObjIds.contains(doc.get("foo")));
-                    }
-                    assertEquals(2, count);
-                });
-    }
-
-    @Test
     public void testFirst() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.first($host,$db,$collection,{name:'testDocument'})", TEST_PARAMS, r -> {
+        TestUtil.testCall(db, "CALL apoc.mongodb.first($host,$db,$collection,{name:'testDocument'})", params, r -> {
             Map doc = (Map) r.get("value");
             assertNotNull(doc.get("_id"));
             assertEquals("testDocument", doc.get("name"));
         });
-    }
-
-    @Test
-    public void testFirstWithExtendedJson() throws Exception {
-        List<String> refsIds = productReferences.stream().map(ObjectId::toString).collect(Collectors.toList());
-        TestUtil.testCall(db, "CALL apoc.mongodb.first($host,$db,$collection,{`_id`: {`$oid`: '97e193d7a9cc81b4027519b4'}}, true, false, true, true)",
-                map("host", HOST, "db", "test", "collection", "person", "objectId", nameAsObjectId.toString()), r -> {
-                    Map doc = (Map) r.get("value");
-                    assertTrue(doc.get("_id") instanceof Map);
-                    assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) doc.get("_id")).keySet());
-                    assertEquals(25L, doc.get("age"));
-                    assertEquals("foo*", doc.get("expr"));
-                    assertEquals("fooBar", new String((byte[]) doc.get("binary")));
-                    assertEquals(12.34, doc.get("double"));
-                    assertEquals( 29L, doc.get("int64") );
-                    assertEquals("77e193d7a9cc81b4027498b4", doc.get("foo") );
-                    assertEquals(refsIds, doc.get("bought"));
-                });
     }
 
     @Test
@@ -326,11 +180,14 @@ public class MongoDBTest {
                 map("host", HOST, "db", "test", "collection", "person", "id", idAsObjectId.toString()), r -> {
                     Map doc = (Map) r.get("value");
                     assertTrue(doc.get("_id") instanceof Map);
-                    assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) doc.get("_id")).keySet());
+                    assertEquals(
+                            Set.of("date", "machineIdentifier", "processIdentifier", "counter", "time", "timestamp", "timeSecond"),
+                            ((Map<String, Object>) doc.get("_id")).keySet()
+                    );
                     assertEquals("Sherlock", doc.get("name"));
                     assertEquals(25L, doc.get("age"));
                     assertEquals(refsIds, doc.get("bought"));
-        });
+                });
 
     }
 
@@ -348,7 +205,7 @@ public class MongoDBTest {
                     );
                     assertEquals(40L, doc.get("age"));
                     assertEquals(refsIds, doc.get("bought"));
-        });
+                });
     }
 
     @Test
@@ -371,36 +228,14 @@ public class MongoDBTest {
                     assertEquals(1200, secondBought.get("price"));
                     assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "iOS"), firstBought.get("tags"));
                     assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "Android"), secondBought.get("tags"));
-        });
+                });
+
     }
 
     @Test
     public void testFind() throws Exception {
         TestUtil.testResult(db, "CALL apoc.mongodb.find($host,$db,$collection,{name:'testDocument'},null,null)",
-                TEST_PARAMS, res -> assertResult(res));
-    }
-
-    @Test
-    public void testFindWithExtendedJson() throws Exception {
-        final String bytes = Base64.getEncoder().encodeToString("fooBar".getBytes());
-        TestUtil.testResult(db, "CALL apoc.mongodb.find($host,$db,$collection,{binary: {`$binary`: $bytes, `$subType`: '00'}},null,null,true,0,0,false,false,true)",
-                map("host", HOST, "db", "test", "collection", "person", "bytes", bytes),
-                res -> {
-                    int count = 0;
-                    while (res.hasNext()) {
-                        ++count;
-                        Map<String, Object> r = res.next();
-                        Map doc = (Map) r.get("value");
-                        assertTrue(List.of("Al", "John").contains(doc.get("name")));
-                        assertEquals("foo*", doc.get("expr"));
-                        assertTrue(List.of(25L, 45L).contains(doc.get("age")));
-                        final List<String> expectedObjIds = List.of("97e193d7a9cc81b4027519b4", "07e193d7a9cc81b4027488c4");
-                        assertTrue(expectedObjIds.contains(doc.get("_id")));
-                        final List<String> expectedObjIdsFooProp = List.of("77e193d7a9cc81b4027498b4", "57e193d7a9cc81b4027499c4");
-                        assertTrue(expectedObjIdsFooProp.contains(doc.get("foo")));
-                    }
-                    assertEquals(2, count);
-                });
+                params, res -> assertResult(res));
     }
 
     private void assertResult(Result res) {
@@ -424,55 +259,37 @@ public class MongoDBTest {
     @Test
     public void testFindSort() throws Exception {
         TestUtil.testResult(db, "CALL apoc.mongodb.find($host,$db,$collection,{name:'testDocument'},null,{name:1})",
-                TEST_PARAMS, res -> assertResult(res));
+                params, res -> assertResult(res));
     }
 
     @Test
     public void testCount() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.count($host,$db,$collection,{name:'testDocument'})", TEST_PARAMS, r -> {
+        TestUtil.testCall(db, "CALL apoc.mongodb.count($host,$db,$collection,{name:'testDocument'})", params, r -> {
             assertEquals(NUM_OF_RECORDS, r.get("value"));
         });
     }
 
     @Test
-    public void testCountWithExtendedJson() throws Exception {
-        final String bytes = Base64.getEncoder().encodeToString("fooBar".getBytes());
-        TestUtil.testCall(db, "CALL apoc.mongodb.count($host,$db,$collection,{binary: {`$binary`: 'Zm9vQmFy', `$subType`: '00'}, int64: {`$numberLong`: '29'}}, true)",
-                map("host", HOST, "db", "test", "collection", "person", "bytes", bytes), r -> {
-            assertEquals(2L, r.get("value"));
-        });
-    }
-
-    @Test
     public void testCountAll() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.count($host,$db,$collection,null)", TEST_PARAMS, r -> {
+        TestUtil.testCall(db, "CALL apoc.mongodb.count($host,$db,$collection,null)", params, r -> {
             assertEquals(NUM_OF_RECORDS, r.get("value"));
         });
     }
 
     @Test
     public void testUpdate() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.update($host,$db,$collection,{name:'testDocument'},{`$set`:{age:42}})", TEST_PARAMS, r -> {
+        TestUtil.testCall(db, "CALL apoc.mongodb.update($host,$db,$collection,{name:'testDocument'},{`$set`:{age:42}})", params, r -> {
             long affected = (long) r.get("value");
             assertEquals(NUM_OF_RECORDS, affected);
         });
     }
 
     @Test
-    public void testUpdateWithExtendedJson() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.update($host,$db,$collection,{foo: {`$oid`: '57e193d7a9cc81b4027499c4'}},{`$set`:{code: {`$code`: 'void 0'} }}, true)",
-                PERSON_PARAMS, r -> {
-            long affected = (long) r.get("value");
-            assertEquals(1, affected);
-        });
-    }
-
-    @Test
     public void testInsert() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,$collection,[{John:'Snow'}])", TEST_PARAMS, (r) -> {
+        TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,$collection,[{John:'Snow'}])", params, (r) -> {
             assertFalse("should be empty", r.hasNext());
         });
-        TestUtil.testCall(db, "CALL apoc.mongodb.first($host,$db,$collection,{John:'Snow'})", TEST_PARAMS, r -> {
+        TestUtil.testCall(db, "CALL apoc.mongodb.first($host,$db,$collection,{John:'Snow'})", params, r -> {
             Map doc = (Map) r.get("value");
             assertNotNull(doc.get("_id"));
             assertEquals("Snow", doc.get("John"));
@@ -480,67 +297,15 @@ public class MongoDBTest {
     }
 
     @Test
-    public void testInsertWithExtendedJson() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,$collection,[{secondId: {`$oid` : '507f191e811c19729de860ea'}, baz: 1}, {secondId: {`$oid` : '507f191e821c19729de860ef'}, baz: 1}], true)", PERSON_PARAMS, (r) -> {
-            assertFalse("should be empty", r.hasNext());
-        });
-        TestUtil.testCall(db, "CALL apoc.mongodb.count($host,$db,$collection,{baz:1})", PERSON_PARAMS, r -> {
-            long affected = (long) r.get("value");
-            assertEquals(2L, affected);
-        });
-    }
-
-    @Test
     public void testDelete() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,$collection,[{foo:'bar'}])", TEST_PARAMS, (r) -> {
+        TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,$collection,[{foo:'bar'}])", params, (r) -> {
             assertFalse("should be empty", r.hasNext());
         });
-        TestUtil.testCall(db, "CALL apoc.mongodb.delete($host,$db,$collection,{foo:'bar'})", TEST_PARAMS, r -> {
+        TestUtil.testCall(db, "CALL apoc.mongodb.delete($host,$db,$collection,{foo:'bar'})", params, r -> {
             long affected = (long) r.get("value");
             assertEquals(1L, affected);
         });
-        TestUtil.testResult(db, "CALL apoc.mongodb.first($host,$db,$collection,{foo:'bar'})", TEST_PARAMS, r -> {
-            assertFalse("should be empty", r.hasNext());
-        });
-    }
-
-    @Test
-    public void testInsertRegexExtJsonGetFirstCorrectlyWithCompatibleValueTrueAndFailsIfFalse() {
-        TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,$collection,[{foo:{`$regex`: 'pattern', `$options`: ''}, myId: {`$oid` : '507f191e811c19729de960ea'}}], true)",
-                PERSON_PARAMS, (r) -> assertFalse("should be empty", r.hasNext()));
-
-        try {
-            TestUtil.testCall(db, "CALL apoc.mongodb.first($host,$db,$collection,{foo:{ `$regex`: 'pattern', `$options`: '' }}, false, true, true, true)",
-                    PERSON_PARAMS, r -> {});
-            fail();
-        } catch (Exception e) {
-            assertTrue(e.getMessage().contains("Failed to invoke procedure `apoc.mongodb.first`: Caused by: java.lang.IllegalArgumentException: Cannot convert BsonRegularExpression"));
-        }
-
-        TestUtil.testCall(db, "CALL apoc.mongodb.first($host,$db,$collection,{foo:{ `$regex`: 'pattern', `$options`: ''}}, true, false, true, true)", PERSON_PARAMS, r -> {
-            Map<String, Object> value = (Map<String, Object>) r.get("value");
-            assertEquals("pattern", value.get("foo"));
-            assertTrue(value.get("_id") instanceof Map);
-            assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) value.get("_id")).keySet());
-            assertEquals("507f191e811c19729de960ea", value.get("myId"));
-        });
-
-        TestUtil.testCall(db, "CALL apoc.mongodb.delete($host,$db,$collection,{foo:{ `$regex`: 'pattern', `$options`: ''}}, true)", PERSON_PARAMS, r -> {
-            long affected = (long) r.get("value");
-            assertEquals(1L, affected);
-        });
-    }
-
-    @Test
-    public void testDeleteWithExtendedJson() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,$collection,[{foo:'bar', myId: {`$oid` : '507f191e811c19729de960ea'}}], true)", PERSON_PARAMS, (r) -> {
-            assertFalse("should be empty", r.hasNext());
-        });
-        TestUtil.testCall(db, "CALL apoc.mongodb.delete($host,$db,$collection,{myId: {`$oid` : '507f191e811c19729de960ea'}}, true)", PERSON_PARAMS, r -> {
-            long affected = (long) r.get("value");
-            assertEquals(1L, affected);
-        });
-        TestUtil.testResult(db, "CALL apoc.mongodb.first($host,$db,$collection,{myId: {`$oid` : '507f191e811c19729de960ea'}}, true, false, false, true)", PERSON_PARAMS, r -> {
+        TestUtil.testResult(db, "CALL apoc.mongodb.first($host,$db,$collection,{foo:'bar'})", params, r -> {
             assertFalse("should be empty", r.hasNext());
         });
     }
@@ -549,17 +314,17 @@ public class MongoDBTest {
     public void testInsertFailsDupKey() {
         // Three apoc.mongodb.insert each call gets the error: E11000 duplicate key error collection
         TestUtil.ignoreException(() -> {
-            TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", TEST_PARAMS, (r) -> {
+            TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", params, (r) -> {
                 assertFalse("should be empty", r.hasNext());
             });
         }, QueryExecutionException.class);
         TestUtil.ignoreException(() -> {
-            TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", TEST_PARAMS, (r) -> {
+            TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", params, (r) -> {
                 assertFalse("should be empty", r.hasNext());
             });
         }, QueryExecutionException.class);
         TestUtil.ignoreException(() -> {
-            TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", TEST_PARAMS, (r) -> {
+            TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", params, (r) -> {
                 assertFalse("should be empty", r.hasNext());
             });
         }, QueryExecutionException.class);
@@ -656,29 +421,4 @@ public class MongoDBTest {
                         "extractReferences", true),
                 r -> assertTrue(r.hasNext()));
     }
-
-    /**
-     * Get the number of active connections that can be used to check if them are managed correctly
-     * by invoking:
-     *  $ mongo test --eval db.serverStatus().connections
-     * into the container
-     * @return A Map<String, Long> with three fields three fields {current, available, totalCreated}
-     * @throws Exception
-     */
-    public static Map<String, Object> getNumConnections() {
-        try {
-            Container.ExecResult execResult = mongo.execInContainer("mongo", "test", "--eval", "db.serverStatus().connections");
-            assertTrue("stderr is empty", execResult.getStderr() == null || execResult.getStderr().isEmpty());
-            assertTrue("stdout is not empty", execResult.getStdout() != null && !execResult.getStdout().isEmpty());
-
-            List<String> lists = Stream.of(execResult.getStdout().split("\n"))
-                    .filter(s -> s != null || !s.isEmpty())
-                    .collect(Collectors.toList());
-            String jsonStr = lists.get(lists.size() - 1);
-            return JsonUtil.OBJECT_MAPPER.readValue(jsonStr, Map.class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 }

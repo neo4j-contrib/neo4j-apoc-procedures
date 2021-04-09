@@ -197,26 +197,21 @@ public class MongoDB {
         Map<String, Object> first(Map<String, Object> params, boolean useExtendedJson);
 
         Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit);
-        // TODO - e se ci passassi direttamente conf?
         Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit, boolean useExtendedJson);
 
         long count(Map<String, Object> query);
         long count(Map<String, Object> query, boolean useExtendedJson);
 
         Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit);
-        // TODO - e se ci passassi direttamente conf?
         Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit, boolean useExtendedJson);
 
         void insert(List<Map<String, Object>> docs);
-        // TODO - e se ci passassi direttamente conf?
         void insert(List<Map<String, Object>> docs, boolean useExtendedJson);
 
         long update(Map<String, Object> query, Map<String, Object> update);
-        // TODO - e se ci passassi direttamente conf?
         long update(Map<String, Object> query, Map<String, Object> update, boolean useExtendedJson);
 
         long delete(Map<String, Object> query);
-        // TODO - e se ci passassi direttamente conf?
         long delete(Map<String, Object> query, boolean useExtendedJson);
 
         default void safeClose() {
