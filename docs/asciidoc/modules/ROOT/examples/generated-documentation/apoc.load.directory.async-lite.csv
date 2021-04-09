@@ -1,0 +1,5 @@
+¦signature
+¦apoc.load.directory.async.add(name :: STRING?, cypher :: STRING?, pattern = * :: STRING?, urlDir =  :: STRING?, config = {} :: MAP?) :: (name :: STRING?, status :: STRING?, pattern :: STRING?, cypher :: STRING?, urlDir :: STRING?, config :: MAP?, error :: STRING?)
+¦apoc.load.directory.async.list() :: (name :: STRING?, status :: STRING?, pattern :: STRING?, cypher :: STRING?, urlDir :: STRING?, config :: MAP?, error :: STRING?)
+¦apoc.load.directory.async.remove(name :: STRING?) :: (name :: STRING?, status :: STRING?, pattern :: STRING?, cypher :: STRING?, urlDir :: STRING?, config :: MAP?, error :: STRING?)
+¦apoc.load.directory.async.removeAll() :: (name :: STRING?, status :: STRING?, pattern :: STRING?, cypher :: STRING?, urlDir :: STRING?, config :: MAP?, error :: STRING?)
