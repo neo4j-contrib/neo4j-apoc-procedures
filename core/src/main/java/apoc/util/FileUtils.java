@@ -7,6 +7,7 @@ import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
 import apoc.util.s3.S3UploadUtils;
 import org.apache.commons.io.output.WriterOutputStream;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.configuration.GraphDatabaseSettings;
 
 import java.io.*;
@@ -24,6 +25,9 @@ import java.util.regex.Pattern;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.apocConfig;
+import static org.apache.commons.lang3.StringUtils.replaceOnce;
+import static org.eclipse.jetty.util.URIUtil.encodePath;
+import static org.eclipse.jetty.util.URIUtil.encodeSpaces;
 
 /**
  * @author mh
@@ -106,10 +110,13 @@ public class FileUtils {
         return new CountingInputStream(file);
     }
 
-    public static String changeFileUrlIfImportDirectoryConstrained(String url) throws IOException {
+    public static String changeFileUrlIfImportDirectoryConstrained(String urlNotEncoded) throws IOException {
+        final String url = encodeExceptQM(urlNotEncoded);
+
         if (isFile(url) && isImportUsingNeo4jConfig()) {
-            if (!apocConfig().getBoolean(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM))
+            if (!apocConfig().getBoolean(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM)) {
                 throw new RuntimeException("Import file "+url+" not enabled, please set dbms.security.allow_csv_import_from_file_urls=true in your neo4j.conf");
+            }
 
             URI uri = URI.create(url);
             String path = uri.getPath();
@@ -291,5 +298,18 @@ public class FileUtils {
         if (reader != null) {
             try { reader.close(); } catch (IOException ignored) { }
         }
+    }
+
+    public static String getDirImport() {
+        return apocConfig().getString("dbms.directories.import", "import");
+    }
+
+    public static Path getPathFromUrlString(String urlDir) {
+        return Paths.get(URI.create(urlDir).getPath());
+    }
+
+    // to exclude cases like 'testload.tar.gz?raw=true'
+    private static String encodeExceptQM(String url) {
+        return encodePath(url).replace("%3F", "?");
     }
 }
