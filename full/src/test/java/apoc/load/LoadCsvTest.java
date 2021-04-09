@@ -218,6 +218,16 @@ RETURN m.col_1,m.col_2,m.col_3
                 });
     }
 
+    @Test public void testWithSpacesInFileName() throws Exception {
+        String url = "test pipe column with spaces in filename.csv";
+        testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings'],mapping:{name:{type:'string'},beverage:{array:true,arraySep:'|',type:'string'}}})", map("url",url.toString()), // 'file:test.csv'
+                (r) -> {
+                    assertEquals(asList("Selma", asList("Soda")), r.next().get("list"));
+                    assertEquals(asList("Rana", asList("Tea", "Milk")), r.next().get("list"));
+                    assertEquals(asList("Selina", asList("Cola")), r.next().get("list"));
+                });
+    }
+
     @Test public void testMapping() throws Exception {
         URL url = getUrlFileName("test-mapping.csv");
         testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings'],mapping:{name:{type:'string'},age:{type:'int'},kids:{array:true,arraySep:':',type:'int'},pass:{ignore:true}}})", map("url",url.toString()), // 'file:test.csv'

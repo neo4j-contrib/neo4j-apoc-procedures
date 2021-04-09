@@ -124,7 +124,7 @@ public class FileUtils {
         return new CountingInputStream(file);
     }
 
-    public static String changeFileUrlIfImportDirectoryConstrained(String urlNotEncoded) {
+    public static String changeFileUrlIfImportDirectoryConstrained(String urlNotEncoded) throws IOException {
         final String url = encodeExceptQM(urlNotEncoded);
 
         if (isFile(url) && isImportUsingNeo4jConfig()) {
@@ -326,7 +326,7 @@ public class FileUtils {
     private static String encodeExceptQM(String url) {
         return encodePath(url).replace("%3F", "?");
     }
-    
+
     public static CountingInputStream getInputStreamFromBinary(byte[] urlOrBinary, String compressionAlgo) {
         return CompressionAlgo.valueOf(compressionAlgo).toInputStream(urlOrBinary);
     }
