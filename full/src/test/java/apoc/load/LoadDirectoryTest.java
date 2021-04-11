@@ -57,12 +57,12 @@ public class LoadDirectoryTest {
     private static GraphDatabaseService db;
     private static File importFolder;
 
-    private static final String IMPORT_DIR = "Mätrix II ü 哈哈\uD83D\uDE04123 ; ? : @ & = + $ \\ ";
-    private static final String SUBFOLDER_1 = "sub folder 哈哈 ü Æ Èì € Œ Ō";
-    private static final String INNER_SUBFOLDER = "inner folder ü Æ Èì € Œ Ō 哈哈 ";
-    private static final String SUBFOLDER_2 = "sub folder Two αβγ";
-    private static final String SUBFOLDER_3 = "sub folder Three $ Ω";
-
+    private static final String IMPORT_DIR = "import";
+    private static final String SUBFOLDER_1 = "sub1";
+    private static final String INNER_SUBFOLDER = "innerSub1";
+    private static final String SUBFOLDER_2 = "sub2";
+    private static final String SUBFOLDER_3 = "sub3";
+    
     private static final String CSV_1 = "TestCsv1.csv";
     private static final String CSV_2_FILENAME_WITH_SPACES = "Test Csv 2.csv";
     private static final String CSV_3 = "TestCsv3.csv";
@@ -115,6 +115,7 @@ public class LoadDirectoryTest {
     @After
     public void clearDB() {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
+        db.executeTransactionally("CALL apoc.load.directory.async.removeAll()");
     }
 
     @Test(expected = QueryExecutionException.class)
@@ -515,8 +516,7 @@ public class LoadDirectoryTest {
     public void testListenerItemWithError() throws Exception, IOException {
         final Map<String, Object> defaultConfig = Map.of("listenEventType", eventTypes, "interval", 1000L);
 
-        testCall(db, "CALL apoc.load.directory.async.add('notExistent', 'CREATE (n:Node)', '*', 'pathNotExistent')",
-                result -> errorAssertions(defaultConfig, result));
+        db.executeTransactionally("CALL apoc.load.directory.async.add('notExistent', 'CREATE (n:Node)', '*', 'pathNotExistent')");
 
         testCall(db, "CALL apoc.load.directory.async.list()", result -> errorAssertions(defaultConfig, result));
 
