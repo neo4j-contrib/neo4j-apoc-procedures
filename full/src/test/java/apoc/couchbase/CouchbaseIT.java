@@ -1,7 +1,9 @@
 package apoc.couchbase;
 
 import apoc.util.TestUtil;
+import com.couchbase.client.java.codec.RawBinaryTranscoder;
 import com.couchbase.client.java.json.JsonObject;
+import com.couchbase.client.java.kv.InsertOptions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -18,6 +20,7 @@ import static apoc.couchbase.CouchbaseTestUtils.*;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.Util.map;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
@@ -95,6 +98,46 @@ public class CouchbaseIT {
                             notableWorks);
                     collection.remove("testInsertViaCall");
                     assertFalse(collection.exists("testInsertViaCall").exists());
+                });
+    }
+
+    @Test
+    public void testAppendViaCall() {
+        String input = "hello";
+        byte[] bytes = input.getBytes();
+
+        final String expectedId = "binaryId";
+        collection.insert(expectedId, bytes, InsertOptions.insertOptions().transcoder(RawBinaryTranscoder.INSTANCE));
+
+        testCall(db, "CALL apoc.couchbase.append($host, $bucket, 'binaryId', $data)",
+                map("host", HOST, "bucket", BUCKET_NAME, "data", " {from: 'world'}"),
+                r -> {
+                    final String actualContent = new String((byte[]) r.get("content"));
+                    final String actualId = (String) r.get("id");
+                    assertEquals(expectedId, actualId);
+                    assertEquals("hello {from: 'world'}", actualContent);
+                    collection.remove(expectedId);
+                    assertFalse(collection.exists(expectedId).exists());
+                });
+    }
+
+    @Test
+    public void testPrependViaCall() {
+        String input = " world";
+        byte[] bytes = input.getBytes();
+
+        final String expectedId = "binaryId";
+        collection.insert(expectedId, bytes, InsertOptions.insertOptions().transcoder(RawBinaryTranscoder.INSTANCE));
+
+        testCall(db, "CALL apoc.couchbase.prepend($host, $bucket, 'binaryId', $data)",
+                map("host", HOST, "bucket", BUCKET_NAME, "data", "hello"),
+                r -> {
+                    final String actualContent = new String((byte[]) r.get("content"));
+                    final String actualId = (String) r.get("id");
+                    assertEquals(expectedId, actualId);
+                    assertEquals("hello world", actualContent);
+                    collection.remove(expectedId);
+                    assertFalse(collection.exists(expectedId).exists());
                 });
     }
 

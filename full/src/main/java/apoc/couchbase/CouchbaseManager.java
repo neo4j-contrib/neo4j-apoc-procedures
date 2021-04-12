@@ -151,7 +151,7 @@ public class CouchbaseManager {
         // hostOrKey no longer necessary because bootstrapHttpDirectPort is configured via SeedNode in CouchbaseConnection
         ClusterEnvironment env = getEnv();
 
-        // The minimum cluster version supported by SDK 3 is Server 5.0, so is not supported bucket-level passwords
+        // The minimum cluster version supported by SDK 3 is Server 5.0, so bucket-level passwords are not supported anymore
         return new CouchbaseConnection(hostOrKey, passwordAuthenticator, bucketName, env);
     }
 

@@ -6,6 +6,7 @@ import com.couchbase.client.java.BinaryCollection;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.Collection;
+import com.couchbase.client.java.codec.RawBinaryTranscoder;
 import com.couchbase.client.java.env.ClusterEnvironment;
 import com.couchbase.client.java.json.JsonArray;
 import com.couchbase.client.java.json.JsonObject;
@@ -128,6 +129,14 @@ public class CouchbaseConnection implements AutoCloseable {
         }
     }
 
+    public GetResult getBinary(String documentId) {
+        try {
+            return collection.get(documentId, getOptions().transcoder(RawBinaryTranscoder.INSTANCE).withExpiry(true));
+        } catch (DocumentNotFoundException e) {
+            return null;
+        }
+    }
+
     /**
      * Checks whether a document with the given ID does exist.
      *
@@ -172,7 +181,7 @@ public class CouchbaseConnection implements AutoCloseable {
      * @see BinaryCollection#append(String, byte[])
      */
     public MutationResult append(String documentId, String json) {
-        return binaryCollection.append(documentId, JsonObject.fromJson(json).toBytes());
+        return binaryCollection.append(documentId, json.getBytes());
     }
 
     /**
@@ -184,7 +193,7 @@ public class CouchbaseConnection implements AutoCloseable {
      * @see BinaryCollection#prepend(String, byte[])
      */
     public MutationResult prepend(String documentId, String json) {
-        return binaryCollection.prepend(documentId, JsonObject.fromJson(json).toBytes());
+        return binaryCollection.prepend(documentId, json.getBytes());
     }
 
     /**
@@ -230,7 +239,7 @@ public class CouchbaseConnection implements AutoCloseable {
      * @return the list of {@link JsonObject}s retrieved by this query
      * @see Cluster#query(String, QueryOptions)
      */
-    public List<JsonObject> executeParametrizedStatement(String statement, List<Object> parameters) {
+    public List<JsonObject> executeParameterizedStatement(String statement, List<Object> parameters) {
         JsonArray positionalParams = JsonArray.from(parameters);
         final QueryResult queryResult = this.cluster.query(statement, queryOptions().parameters(positionalParams));
         return queryResult.rowsAsObject();
@@ -246,8 +255,8 @@ public class CouchbaseConnection implements AutoCloseable {
      * @return the list of {@link JsonObject}s retrieved by this query
      * @see Cluster#query(String, QueryOptions)
      */
-    public List<JsonObject> executeParametrizedStatement(String statement, List<String> parameterNames,
-                                                         List<Object> parameterValues) {
+    public List<JsonObject> executeParameterizedStatement(String statement, List<String> parameterNames,
+                                                          List<Object> parameterValues) {
         JsonObject namedParams = JsonObject.create();
         for (int param = 0; param < parameterNames.size(); param++) {
             namedParams.put(parameterNames.get(param), parameterValues.get(param));

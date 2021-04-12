@@ -194,8 +194,8 @@ public class Couchbase {
                                                 @Name("documentId") String documentId, @Name("json") String json) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
             final MutationResult append = couchbaseConnection.append(documentId, json);
-            GetResult getResult = couchbaseConnection.get(documentId);
-            return Stream.of(new CouchbaseJsonDocument(getResult, documentId, append.mutationToken().orElse(null)));
+            GetResult getResult = couchbaseConnection.getBinary(documentId);
+            return Stream.of(new CouchbaseJsonDocument(getResult, documentId, append.mutationToken().orElse(null), true));
         }
     }
 
@@ -219,8 +219,8 @@ public class Couchbase {
                                                  @Name("documentId") String documentId, @Name("json") String json) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
             final MutationResult prepend = couchbaseConnection.prepend(documentId, json);
-            GetResult getResult = couchbaseConnection.get(documentId);
-            return Stream.of(new CouchbaseJsonDocument(getResult, documentId, prepend.mutationToken().orElse(null)));
+            GetResult getResult = couchbaseConnection.getBinary(documentId);
+            return Stream.of(new CouchbaseJsonDocument(getResult, documentId, prepend.mutationToken().orElse(null), true));
         }
     }
 
@@ -320,7 +320,7 @@ public class Couchbase {
     public Stream<CouchbaseQueryResult> posParamsQuery(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
                                                        @Name("statement") String statement, @Name("params") List<Object> params) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            List<JsonObject> statementResult = couchbaseConnection.executeParametrizedStatement(statement, params);
+            List<JsonObject> statementResult = couchbaseConnection.executeParameterizedStatement(statement, params);
             final CouchbaseQueryResult result = CouchbaseUtils.convertToCouchbaseQueryResult(statementResult);
             return result == null ? Stream.empty() : Stream.of(result);
         }
@@ -349,7 +349,7 @@ public class Couchbase {
                                                          @Name("statement") String statement, @Name("paramNames") List<String> paramNames,
                                                          @Name("paramValues") List<Object> paramValues) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            List<JsonObject> statementResult = couchbaseConnection.executeParametrizedStatement(statement, paramNames,
+            List<JsonObject> statementResult = couchbaseConnection.executeParameterizedStatement(statement, paramNames,
                     paramValues);
             final CouchbaseQueryResult result = CouchbaseUtils.convertToCouchbaseQueryResult(statementResult);
             return result == null ? Stream.empty() : Stream.of(result);
