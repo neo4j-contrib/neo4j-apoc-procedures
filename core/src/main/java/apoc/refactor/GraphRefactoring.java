@@ -283,8 +283,13 @@ public class GraphRefactoring {
         nodes.stream().distinct().sorted(Comparator.comparingLong(Node::getId)).forEach(tx::acquireWriteLock);
 
         final Node first = nodes.get(0);
+        final List<Long> existingIdSelfRelsIfPreserveConfTrue = conf.isPreserveExistingSelfRels()
+                ? StreamSupport.stream(first.getRelationships().spliterator(), false).filter(Util::isSelfRel)
+                    .map(Entity::getId)
+                    .collect(Collectors.toList())
+                : Collections.emptyList();
 
-        nodes.stream().skip(1).distinct().forEach(node -> mergeNodes(node, first, true, conf));
+        nodes.stream().skip(1).distinct().forEach(node -> mergeNodes(node, first, true, conf, existingIdSelfRelsIfPreserveConfTrue));
         return Stream.of(new NodeResult(first));
     }
 
@@ -578,19 +583,14 @@ public class GraphRefactoring {
         });
     }
 
-    private Node mergeNodes(Node source, Node target, boolean delete, RefactorConfig conf) {
+    private Node mergeNodes(Node source, Node target, boolean delete, RefactorConfig conf, List<Long> excludeRelIds) {
         try {
             Map<String, Object> properties = source.getAllProperties();
 
-            final List<Long> existingIdSelfRelsIfPreserveConfTrue = StreamSupport.stream(target.getRelationships().spliterator(), false)
-                    .filter(rel -> isSelfRel(rel) && conf.isPreserveExistingSelfRels())
-                    .map(Entity::getId)
-                    .collect(Collectors.toList());
-
             copyRelationships(source, copyLabels(source, target), delete);
             if (conf.getMergeRelsAllowed()) {
-                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.OUTGOING, existingIdSelfRelsIfPreserveConfTrue);
-                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING, existingIdSelfRelsIfPreserveConfTrue);
+                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.OUTGOING, excludeRelIds);
+                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING, excludeRelIds);
             }
             if (delete) source.delete();
             PropertiesManager.mergeProperties(properties, target, conf);
