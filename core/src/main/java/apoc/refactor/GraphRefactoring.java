@@ -26,6 +26,7 @@ import java.util.stream.StreamSupport;
 import static apoc.refactor.util.PropertiesManager.mergeProperties;
 import static apoc.refactor.util.RefactorConfig.RelationshipSelectionStrategy.MERGE;
 import static apoc.refactor.util.RefactorUtil.*;
+import static apoc.util.Util.isSelfRel;
 
 public class GraphRefactoring {
     @Context
@@ -580,10 +581,16 @@ public class GraphRefactoring {
     private Node mergeNodes(Node source, Node target, boolean delete, RefactorConfig conf) {
         try {
             Map<String, Object> properties = source.getAllProperties();
+
+            final List<Long> existingIdSelfRelsIfPreserveConfTrue = StreamSupport.stream(target.getRelationships().spliterator(), false)
+                    .filter(rel -> isSelfRel(rel) && conf.isPreserveExistingSelfRels())
+                    .map(Entity::getId)
+                    .collect(Collectors.toList());
+
             copyRelationships(source, copyLabels(source, target), delete);
             if (conf.getMergeRelsAllowed()) {
-                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.OUTGOING);
-                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING);
+                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.OUTGOING, existingIdSelfRelsIfPreserveConfTrue);
+                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING, existingIdSelfRelsIfPreserveConfTrue);
             }
             if (delete) source.delete();
             PropertiesManager.mergeProperties(properties, target, conf);

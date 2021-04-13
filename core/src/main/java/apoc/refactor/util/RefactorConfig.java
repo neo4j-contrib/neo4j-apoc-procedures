@@ -26,6 +26,8 @@ public class RefactorConfig {
 	private boolean mergeRelsAllowed;
 	private boolean mergeVirtualRels;
 	private boolean selfRel;
+	private boolean produceSelfRel;
+	private boolean preserveExistingSelfRels;
 	private boolean countMerge;
 	private boolean hasProperties;
 	private boolean collapsedLabel;
@@ -37,7 +39,9 @@ public class RefactorConfig {
 
 		this.mergeRelsAllowed = toBoolean(config.get("mergeRels"));
 		this.mergeVirtualRels = toBoolean(config.getOrDefault("mergeRelsVirtual", true));
-		this.selfRel = toBoolean(config.getOrDefault("selfRel", true));
+		this.selfRel = toBoolean(config.get("selfRel"));
+		this.produceSelfRel = toBoolean(config.getOrDefault("produceSelfRel", true));
+		this.preserveExistingSelfRels = toBoolean(config.getOrDefault("preserveExistingSelfRels", true));
 		this.countMerge = toBoolean(config.getOrDefault("countMerge", true));
 		this.collapsedLabel = toBoolean(config.get("collapsedLabel"));
 		this.singleElementAsArray = toBoolean(config.getOrDefault("singleElementAsArray", false));
@@ -80,6 +84,14 @@ public class RefactorConfig {
 	}
 
 	public boolean isSelfRel(){ return selfRel; }
+
+	public boolean isProduceSelfRel() {
+		return produceSelfRel;
+	}
+
+	public boolean isPreserveExistingSelfRels() {
+		return preserveExistingSelfRels;
+	}
 
 	public boolean hasProperties() {
 		return hasProperties;
