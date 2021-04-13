@@ -1032,7 +1032,6 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
                     Iterator<Relationship> relIterator = node.getRelationships().iterator();
                     assertSelfRel(relIterator.next());
                     assertSelfRel(relIterator.next());
-                    assertSelfRel(relIterator.next());
                     assertFalse(relIterator.hasNext());
                 });
     }
@@ -1122,7 +1121,6 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
                 (r) -> {
                     Node node = (Node) r.get("node");
                     Iterator<Relationship> relIterator = node.getRelationships().iterator();
-                    assertSelfRel(relIterator.next());
                     assertSelfRel(relIterator.next());
                     assertFalse(relIterator.hasNext());
                 });
