@@ -1,10 +1,10 @@
 package apoc.mongodb;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.MongoCommandException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.Util.toJson;
+import static java.lang.String.format;
 
 /**
  * @author mh
@@ -47,10 +48,12 @@ class MongoDBColl implements MongoDB.Coll {
     private boolean extractReferences = false;
     private boolean objectIdAsMap = true;
 
-    public MongoDBColl(String url, String db, String coll) {
+    // visible for testing
+    public static final String ERROR_MESSAGE = "The connection string must have %s name";
+
+    private MongoDBColl(String url, String db, String coll) {
         MongoClientURI connectionString = new MongoClientURI(url);
         mongoClient = new MongoClient(connectionString);
-//        connectionString.getDatabase()
         database = mongoClient.getDatabase(db);
         collection = database.getCollection(coll);
     }
@@ -65,69 +68,50 @@ class MongoDBColl implements MongoDB.Coll {
     public MongoDBColl(String url, String db, String coll, boolean compatibleValues,
                        boolean extractReferences, boolean objectIdAsMap) {
         this(url, db, coll);
+        getConfigs(compatibleValues, extractReferences, objectIdAsMap);
+    }
+
+    private void getConfigs(boolean compatibleValues, boolean extractReferences, boolean objectIdAsMap) {
         this.compatibleValues = compatibleValues;
         this.extractReferences = extractReferences;
         this.objectIdAsMap = objectIdAsMap;
     }
 
-    // TODO - POSSO RICHIAMARE IL COSTRUTTORE QUI SOPRA!
     /**
      *
-     * @param url
-     * @param conf // TODO
+     * @param uri the string Uri to convert in connectionString
+     * @see MongoClientURI
+     * @param conf the configuration
+     * @see MongoDbConfig
      */
-    public MongoDBColl(String url, MongoDbConfig conf) {
-//        try {
+    public MongoDBColl(String uri, MongoDbConfig conf) {
 
-            // TODO ...
-            MongoClientURI connectionString = new MongoClientURI(url);
+        MongoClientURI connectionString = new MongoClientURI(uri);
 
-            if (connectionString.getDatabase() == null) {
-                throw new RuntimeException("The connection string must have db name");
-            }
-            if (connectionString.getCollection() == null) {
-                throw new RuntimeException("The connection string must have collection name");
-            }
+        if (connectionString.getDatabase() == null) {
+            throw new RuntimeException(format(ERROR_MESSAGE, "db"));
+        }
+        if (connectionString.getCollection() == null) {
+            throw new RuntimeException(format(ERROR_MESSAGE, "collection"));
+        }
 
-            mongoClient = new MongoClient(connectionString);
-            database = mongoClient.getDatabase(connectionString.getDatabase());
-            // TODO - SE è NULL DARE UN ERRORE, SE NON LO FA L'URLRESOLVER
-            collection = database.getCollection(connectionString.getCollection());
+        mongoClient = new MongoClient(connectionString);
+        database = mongoClient.getDatabase(connectionString.getDatabase());
 
-            // todo - check connection
-//            try {
-//                collection.count();
-//            } catch (Exception e) {
-//                throw new RuntimeException(e);
-////                this.safeClose();
-//            }
+        try {
+            // check if correctly authenticated
+            database.runCommand(new Document("listCollections", 1));
+        } catch (MongoCommandException e) {
+            mongoClient.close();
+            throw new RuntimeException(e);
+        }
+        collection = database.getCollection(connectionString.getCollection());
 
-            this.compatibleValues = conf.isCompatibleValues();
-            this.extractReferences = conf.isExtractReferences();
-            this.objectIdAsMap = conf.isObjectIdAsMap();
-//        } catch (Exception e) {
-//            System.out.println("MongoDBColl.MongoDBColl");
-//            MongoClientURI connectionString = new MongoClientURI(url);
-//
-//            if (connectionString.getDatabase() == null) {
-//                throw new RuntimeException("The connection string must have db name");
-//            }
-//            if (connectionString.getCollection() == null) {
-//                throw new RuntimeException("The connection string must have collection name");
-//            }
-//
-//            mongoClient = new MongoClient(connectionString);
-//            database = mongoClient.getDatabase(connectionString.getDatabase());
-//            // TODO - SE è NULL DARE UN ERRORE, SE NON LO FA L'URLRESOLVER
-//            collection = database.getCollection(connectionString.getCollection());
-//            this.compatibleValues = conf.isCompatibleValues();
-//            this.extractReferences = conf.isExtractReferences();
-//            this.objectIdAsMap = conf.isObjectIdAsMap();
-//        }
+        getConfigs(conf.isCompatibleValues(), conf.isExtractReferences(), conf.isObjectIdAsMap());
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         if (doorStop) return;
         mongoClient.close();
     }
@@ -238,10 +222,6 @@ class MongoDBColl implements MongoDB.Coll {
 
     @Override
     public Map<String, Object> first(Map<String, Object> query, boolean useExtendedJson) {
-        FindIterable<Document> documents = query == null
-                ? collection.find()
-                : collection.find(documentBasedOnUseExtJson(query, useExtendedJson));
-        // todo - se metto null, cioè find() che succede?
         return documentToPackableMap(collection
                 .find(documentBasedOnUseExtJson(query, useExtendedJson))
                 .first());
@@ -284,11 +264,9 @@ class MongoDBColl implements MongoDB.Coll {
                                             Long skip,
                                             Long limit,
                                             boolean useExtendedJson) {
-        // todo - per coerenza metterei anche un count all...
         FindIterable<Document> documents = query == null
                 ? collection.find()
                 : collection.find(documentBasedOnUseExtJson(query, useExtendedJson));
-        // todo - con emptyMap() che succede?
         if (project != null) documents = documents.projection(documentBasedOnUseExtJson(project, useExtendedJson));
         if (sort != null) documents = documents.sort(documentBasedOnUseExtJson(sort, useExtendedJson));
         if (skip != 0) documents = documents.skip(skip.intValue());
@@ -297,17 +275,15 @@ class MongoDBColl implements MongoDB.Coll {
     }
 
     private Stream<Map<String, Object>> asStream(FindIterable<Document> result) {
-        return Stream.of(Map.of("a", "b"));
-
-//        this.doorStop = true;
-//        Iterable<Document> it = () -> result.iterator();
-//        return StreamSupport
-//                .stream(it.spliterator(), false)
-//                .map(doc -> this.documentToPackableMap(doc))
-//                .onClose( () -> {
-//                    result.iterator().close();
-//                    mongoClient.close();
-//                } );
+        this.doorStop = true;
+        Iterable<Document> it = () -> result.iterator();
+        return StreamSupport
+                .stream(it.spliterator(), false)
+                .map(doc -> this.documentToPackableMap(doc))
+                .onClose( () -> {
+                    result.iterator().close();
+                    mongoClient.close();
+                } );
     }
 
     @Override

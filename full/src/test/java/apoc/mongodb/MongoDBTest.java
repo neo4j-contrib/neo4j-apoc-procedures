@@ -9,22 +9,32 @@ import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang3.time.DateUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.junit.*;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Result;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.isRunningInCI;
-import static java.net.HttpURLConnection.HTTP_OK;
-import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -75,21 +85,8 @@ public class MongoDBTest extends MongoTestBase {
         mongoClient.close();
     }
 
-
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
-    @Before
-    public void before() {
-        numConnections = (long) getNumConnections(mongo, COMMANDS).get("current");
-    }
-
-    @After
-    public void after() {
-        // the connections active before must be equal to the connections active after
-        long numConnectionsAfter = (long) getNumConnections(mongo, COMMANDS).get("current");
-        assertEquals(numConnections, numConnectionsAfter);
-    }
 
     @Test
     public void shouldExtractObjectIdsAsMaps() {
@@ -343,54 +340,7 @@ public class MongoDBTest extends MongoTestBase {
                         "compatibleValues", true,
                         "extractReferences", true,
                         "fromDocConfig", map("write", true, "skipValidation", true, "mappings", map("$", "Person:Customer{!name,bought,coordinates,born}", "$.bought", "Product{!name,price,tags}"))),
-                r -> {
-                    Map<String, Object> map = r.next();
-                    Map graph = (Map) map.get("g1");
-                    assertEquals("Graph", graph.get("name"));
-                    Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
-
-                    Map<String, List<Node>> nodeMap = nodes.stream()
-                            .collect(Collectors.groupingBy(e -> e.getLabels().iterator().next().name()));
-                    List<Node> persons = nodeMap.get("Person");
-                    assertEquals(1, persons.size());
-                    List<Node> products = nodeMap.get("Product");
-                    assertEquals(2, products.size());
-
-                    Node person = persons.get(0);
-                    Map<String, Object> personMap = map("name", "Andrea Santurbano",
-                            "born", LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()));
-                    assertEquals(personMap, person.getProperties("name", "born"));
-                    assertTrue(Arrays.equals(new double[] {12.345, 67.890}, (double[]) person.getProperty("coordinates")));
-                    assertEquals(Arrays.asList(Label.label("Person"), Label.label("Customer")), person.getLabels());
-
-                    Node product1 = products.get(0);
-                    Map<String, Object> product1Map = map("name", "My Awesome Product",
-                            "price", 800L);
-                    assertEquals(product1Map, product1.getProperties("name", "price"));
-                    assertArrayEquals(new String[]{"Tech", "Mobile", "Phone", "iOS"}, (String[]) product1.getProperty("tags"));
-                    assertEquals(Arrays.asList(Label.label("Product")), product1.getLabels());
-
-                    Node product2 = products.get(1);
-                    Map<String, Object> product2Map = map("name", "My Awesome Product 2",
-                            "price", 1200L);
-                    assertEquals(product2Map, product2.getProperties("name", "price"));
-                    assertArrayEquals(new String[]{"Tech", "Mobile", "Phone", "Android"}, (String[]) product2.getProperty("tags"));
-                    assertEquals(Arrays.asList(Label.label("Product")), product2.getLabels());
-
-
-                    Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
-                    assertEquals(2, rels.size());
-                    Iterator<Relationship> relIt = rels.iterator();
-                    Relationship rel1 = relIt.next();
-                    assertEquals(RelationshipType.withName("BOUGHT"), rel1.getType());
-                    assertEquals(person, rel1.getStartNode());
-                    assertEquals(product1, rel1.getEndNode());
-                    Relationship rel2 = relIt.next();
-                    assertEquals(RelationshipType.withName("BOUGHT"), rel2.getType());
-                    assertEquals(person, rel2.getStartNode());
-                    assertEquals(product2, rel2.getEndNode());
-
-                });
+                r -> assertionsInsertDataWithFromDocument(date, r));
     }
 
     @Ignore("this does not throw an exception")  //TODO: check why test is failing
