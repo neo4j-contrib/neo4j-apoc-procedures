@@ -8,6 +8,7 @@ import java.util.Map;
 public class MongoDbConfig {
 
     private final boolean compatibleValues;
+    // todo - test
     private final boolean extractReferences;
     private final boolean objectIdAsMap;
     private final boolean useExtendedJson;
@@ -18,7 +19,9 @@ public class MongoDbConfig {
     private final Map<String, Object> project;
     private final Map<String, Object> sort;
 
+    // todo - test
     private final long skip;
+    // todo - test
     private final long limit;
     public MongoDbConfig(Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
