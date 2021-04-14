@@ -2,10 +2,8 @@ package apoc.mongodb;
 
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
-import apoc.util.UrlResolver;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import com.mongodb.MongoQueryException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang3.time.DateUtils;
@@ -53,6 +51,8 @@ import java.util.stream.LongStream;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -60,18 +60,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-/**
- * @author mh
- * @since 30.06.16
- */
 public class MongoTest extends MongoTestBase {
-
-    // todo - vale la pena creare un cluster test?
 
     private static int MONGO_DEFAULT_PORT = 27017;
     private static final String[] COMMANDS = { "mongo", "admin", "--eval", "db.auth('user', 'pass'); db.serverStatus().connections;" };
-
-//    public static GenericContainer mongo;
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
@@ -112,27 +104,7 @@ public class MongoTest extends MongoTestBase {
     @BeforeClass
     public static void setUp() throws Exception {
         createContainer(true);
-        // todo - common class con entrambi
-//        assumeFalse(isTravis());
-//        TestUtil.ignoreException(() -> {
-//            mongo = new GenericContainer("mongo:3")
-//                    .withNetworkAliases("mongo-" + Base58.randomString(6))
-//                    .withExposedPorts(MONGO_DEFAULT_PORT)
-//                    .withEnv("MONGO_INITDB_ROOT_USERNAME", "user")
-//                    .withEnv("MONGO_INITDB_ROOT_PASSWORD", "pass")
-//                    .waitingFor(new HttpWaitStrategy()
-//                            .forPort(MONGO_DEFAULT_PORT)
-//                            .forStatusCodeMatching(response -> response == HTTP_OK || response == HTTP_UNAUTHORIZED)
-//                            .withStartupTimeout(Duration.ofMinutes(2)));
-//            mongo.start();
-//
-//        }, Exception.class);
-//        assumeNotNull(mongo);
-//        assumeTrue("Mongo DB must be running", mongo.isRunning());
-//        MongoClientURI clientURI = new
-//        MongoClient mongoClient = new MongoClient(mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
 
-        // TODO - METTERE STATICO
         final String host = mongo.getHost();
         final Integer port = mongo.getMappedPort(MONGO_DEFAULT_PORT);
         final String format = String.format("mongodb://user:pass@%s:%s", host, port);
@@ -261,72 +233,45 @@ public class MongoTest extends MongoTestBase {
 
 
     // todo - test connection without username e password --> che succede
+    @Test//(expected = QueryExecutionException.class)
+    public void shouldFailIfUriHasNotCredentials() {
+//        testResult(db, "CALL apoc.mongo.get($uri, {objectIdAsMap: false})",
+//                map("uri", String.format("mongodb://%s:%s/test.test?authSource=admin", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))),
+//                res -> {
+//            // todo
+//        });
 
-
-
-    // todo - test connection with admin database con user e passord
-
-    // todo - test connection without database
-
-    // todo - test connection without collection
-
-    // todo - test connection without collection
-
-    // todo - test connection with timeout e Thread.sleep
-
-
-
-    @Test
-    public void shouldExtractObjectIdsAsMaps() {
-        // todo - lo trasformo in procedura
-        boolean hasException = false;
-        String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
-                .getUrl("mongodb", mongo.getContainerIpAddress());
-
-        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "person", false, true, false)) {
-            Map<String, Object> document = coll.first(Collections.emptyMap());
-            assertTrue(document.get("_id") instanceof String);
-            assertEquals("Andrea Santurbano", document.get("name"));
-            assertEquals(Arrays.asList(12.345, 67.890), document.get("coordinates"));
-            assertEquals(LocalDateTime.of(1935,10,11, 0, 0), document.get("born"));
-            List<Map<String, Object>> bought = (List<Map<String, Object>>) document.get("bought");
-            assertEquals(2, bought.size());
-            Map<String, Object> product1 = bought.get(0);
-            Map<String, Object> product2 = bought.get(1);
-            assertTrue(product1.get("_id") instanceof String);
-            assertTrue(product2.get("_id") instanceof String);
-            assertEquals("My Awesome Product", product1.get("name"));
-            assertEquals("My Awesome Product 2", product2.get("name"));
-            assertEquals(800, product1.get("price"));
-            assertEquals(1200, product2.get("price"));
-            assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "iOS"), product1.get("tags"));
-            assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "Android"), product2.get("tags"));
+        final String bytes = Base64.getEncoder().encodeToString("fooBar".getBytes());
+        try {
+            testCall(db, "CALL apoc.mongo.get($uri, {query: {binary: {`$binary`: $bytes, `$subType`: '00'}}})",
+                    map("uri", String.format("mongodb://%s:%s/test.test?authSource=admin", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT)), "bytes", bytes),
+                    row -> {});
         } catch (Exception e) {
-            hasException = true;
+            assertTrue(e.getMessage().contains("not authorized on test to execute command"));
+//            throw e;
         }
-        assertFalse("should not have an exception", hasException);
-    }
 
-    @Test
-    public void testObjectIdToStringMapping() {
-        // todo - lo trasformo in procedura
-//        boolean hasException = false;
-//        String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
-//                .getUrl("mongodb", mongo.getContainerIpAddress());
-//        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "person", false, false, false)) {
-//            Map<String, Object> document = coll.first(map("name", "Andrea Santurbano"));
-//            assertTrue(document.get("_id") instanceof String);
-//            Collection<String> bought = (Collection<String>) document.get("bought");
-//            assertEquals(2, bought.size());
-//        } catch (Exception e) {
-//            hasException = true;
-//        }
-//        assertFalse("should not have an exception", hasException);
-    }
+//        testResult(db, "CALL apoc.mongo.get($uri, {query: {binary: {`$binary`: $bytes, `$subType`: '00'}}})",
+////        testResult(db, "CALL apoc.mongo.get($uri,{compatibleValues: true})",
+//                map("uri", String.format("mongodb://%s:%s/test.test?authSource=admin", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT)), "bytes", bytes),
+//                res -> {
+//                    int count = 0;
+//                    while (res.hasNext()) {
+//                        ++count;
+//                        Map<String, Object> r = res.next();
+//                        Map doc = (Map) r.get("value");
+//                        assertTrue(doc.get("_id") instanceof Map);
+//                        assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) doc.get("_id")).keySet());
+//                        assertTrue(List.of("Al", "John").contains(doc.get("name")));
+//                        assertTrue(List.of(25L, 45L).contains(doc.get("age")));
+//                        final List<String> expectedObjIds = List.of("77e193d7a9cc81b4027498b4", "57e193d7a9cc81b4027499c4", "67e193d7a9cc81b4027518b4");
+//                        assertTrue(expectedObjIds.contains(doc.get("foo")));
+//                    }
+//                    assertEquals(2, count);
+//                });
 
-    @Test
-    public void testCompatibleValues() {
-        // todo - lo trasformo in procedura
+
+        // todo - lista di valori non compatibili di person
 //        boolean hasException = false;
 //        String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
 //                .getUrl("mongodb", mongo.getContainerIpAddress());
@@ -341,39 +286,89 @@ public class MongoTest extends MongoTestBase {
 //        assertFalse("should not have an exception", hasException);
     }
 
+    @Test//(expected = QueryExecutionException.class)
+    public void shouldFailIfUriHasNotDatabase() {
+        try {
+            testCall(db, "CALL apoc.mongo.first($uri,{name:'testDocument'})",
+                    map("uri", String.format("mongodb://user:pass@%s:%s?authSource=admin", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))),
+                    r -> {});
+        } catch (Exception e) {
+            System.out.println("MongoTest.shouldFailIfUriHasNotDatabase");
+        }
+    }
+
+    // todo - test connection with admin database con user e passord
+
+    // todo - test connection without database
+
+    // todo - test connection without collection
+
+    // todo - test connection without collection
+
+    // todo - test connection with timeout e Thread.sleep
+
+    @Test
+    public void objectIdAsString() {
+        testResult(db, "CALL apoc.mongo.get($uri, {objectIdAsMap: false})", getParams("/test.person?authSource=admin"), res -> {
+            // todo
+        });
+    }
+
+    @Test
+    public void testCompatibleValues() {
+        // todo - lista di valori non compatibili di person
+//        boolean hasException = false;
+//        String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
+//                .getUrl("mongodb", mongo.getContainerIpAddress());
+//        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "test", true, false, true)) {
+//            Map<String, Object> document = coll.first(map("name", "testDocument"));
+//            assertNotNull(((Map<String, Object>) document.get("_id")).get("timestamp"));
+//            assertEquals(LocalDateTime.from(currentTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()), document.get("date"));
+//            assertEquals(longValue, document.get("longValue"));
+//        } catch (Exception e) {
+//            hasException = true;
+//        }
+//        assertFalse("should not have an exception", hasException);
+    }
+
+
+    @Test
+    public void testWithSkip() {
+
+    }
+
+    @Test
+    public void testWithLimit() {
+
+    }
+
+    @Test
+    public void testWithSkipAndLimit() {
+
+    }
+
+    @Test
+    public void testFindWithSkipAndLimit() {
+
+    }
+
+    @Test
+    public void testFindWithProject() {
+
+    }
+
     @Test
     public void testGet()  {
-
-        // TODO - CON AUTHSOURCE FUNZIONA, PROVARE IN UN ALTRO MODO PURE... https://dba.stackexchange.com/questions/185783/how-to-specify-authentication-database-and-target-database-separately-on-mongodb
-        //  tipo creando un db con un ruolo associato tipo così con un database a caso
-        /*
-        use admin
-            db.createUser(
-              {
-                user: 'admin',
-                pwd: 'password',
-                roles: [ { role: 'root', db: 'admin' } ]
-              }
-            );
-            exit;
-         */
-//        TestUtil.testResult(db, "CALL apoc.mongo.get($uri)", getParams("/test.test"), this::assertResult);
-        TestUtil.testResult(db, "CALL apoc.mongo.get($uri)", getParams("/test.test?authSource=admin"), this::assertResult);
+        testResult(db, "CALL apoc.mongo.get($uri)", getParams("/test.test?authSource=admin"), this::assertResult);
     }
 
     @Test
-    public void testGetCompatible() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongo.get($uri,$config)", getParams("/test.test?authSource=admin"),//"compatibleValues", true),
-                res -> assertResult(res, LocalDateTime.from(currentTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())));
-    }
-
-    @Test
-    // todo - test con questo falso e vedere che spacca
-    public void testGetWithExtendedJson()  {
+    // todo - fail
+    public void testGetWithComplexTypes()  {
         final String bytes = Base64.getEncoder().encodeToString("fooBar".getBytes());
-//        TestUtil.testResult(db, "CALL apoc.mongo.get($host, $db, $collection, {binary: {`$binary`: $bytes, `$subType`: '00'}}, true, 0, 0, false, true, true)",
-        TestUtil.testResult(db, "CALL apoc.mongo.get($uri,$config)",
-                map("host", URI, "db", "test", "collection", "person", "bytes", bytes),
+        testResult(db, "CALL apoc.mongo.get($uri, {query: {binary: {`$binary`: $bytes, `$subType`: '00'}}})",
+//        testResult(db, "CALL apoc.mongo.get($uri,{compatibleValues: true})",
+                map("uri", URI + "/test.person?authSource=admin", "bytes", bytes),
                 res -> {
                     int count = 0;
                     while (res.hasNext()) {
@@ -389,11 +384,13 @@ public class MongoTest extends MongoTestBase {
                     }
                     assertEquals(2, count);
                 });
+
+        // todo - get / find / first con altri tipi dato
     }
 
     @Test
     public void testFirst() {
-        TestUtil.testCall(db, "CALL apoc.mongo.first($host,$db,$collection,{name:'testDocument'})", TEST_PARAMS, r -> {
+        testCall(db, "CALL apoc.mongo.first($uri,{name:'testDocument'})", getParams("/test.test?authSource=admin"), r -> {
             Map<String, Object> doc = (Map<String, Object>) r.get("value");
             assertNotNull(doc.get("_id"));
             assertEquals("testDocument", doc.get("name"));
@@ -403,7 +400,7 @@ public class MongoTest extends MongoTestBase {
     @Test(expected = QueryExecutionException.class)
     public void testFailsWithExtendedJsonFalseWithObjectIdParam() {
         try {
-            TestUtil.testCall(db, "CALL apoc.mongo.first($uri,{query: {`_id`: {`$oid`: '97e193d7a9cc81b4027519b4'}}, useExtendedJson: false})",
+            testCall(db, "CALL apoc.mongo.first($uri,{query: {`_id`: {`$oid`: '97e193d7a9cc81b4027519b4'}}, useExtendedJson: false})",
                     getParams("/test.person?authSource=admin"), r -> {});
         } catch (QueryExecutionException e) {
             assertTrue(e.getMessage().contains("unknown operator: $oid"));
@@ -415,7 +412,7 @@ public class MongoTest extends MongoTestBase {
     // todo - test con questo vero e compatibleValue falso e vedere che fa boom
     public void testFirstWithExtendedJson() {
         List<String> refsIds = productReferences.stream().map(ObjectId::toString).collect(Collectors.toList());
-        TestUtil.testCall(db, "CALL apoc.mongo.first($uri,{query: {`_id`: {`$oid`: '97e193d7a9cc81b4027519b4'}}})",
+        testCall(db, "CALL apoc.mongo.first($uri,{query: {`_id`: {`$oid`: '97e193d7a9cc81b4027519b4'}}})",
                 getParams("/test.person?authSource=admin"), r -> {
                     Map doc = (Map) r.get("value");
                     assertTrue(doc.get("_id") instanceof Map);
@@ -432,14 +429,14 @@ public class MongoTest extends MongoTestBase {
 
     @Test
     public void testFind() throws Exception {
-//        TestUtil.testResult(db, "CALL apoc.mongodb.find($host,$db,$collection,{name:'testDocument'},null,null)",
-        TestUtil.testResult(db, "CALL apoc.mongo.find($uri)", getParams("/test.test?authSource=admin"), this::assertResult);
+//        testResult(db, "CALL apoc.mongodb.find($host,$db,$collection,{name:'testDocument'},null,null)",
+        testResult(db, "CALL apoc.mongo.find($uri)", getParams("/test.test?authSource=admin"), this::assertResult);
     }
 
     @Test
     public void testFindWithExtendedJson() throws Exception {
         final String bytes = Base64.getEncoder().encodeToString("fooBar".getBytes());
-        TestUtil.testResult(db, "CALL apoc.mongo.find($uri,{query: {binary: {`$binary`: $bytes, `$subType`: '00'}}})",
+        testResult(db, "CALL apoc.mongo.find($uri,{query: {binary: {`$binary`: $bytes, `$subType`: '00'}}})",
                 map("uri", URI + "/test.person?authSource=admin", "bytes", bytes),
 //                getParams("/person.test?authSource=admin", "bytes", bytes),
 //                map("host", URI, "db", "test", "collection", "person", "bytes", bytes),
@@ -482,13 +479,13 @@ public class MongoTest extends MongoTestBase {
 
     @Test
     public void testFindSort() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongo.find($uri,{query: {name:'testDocument'}, sort: {name:1}})", getParams("/test.person?authSource=admin"), this::assertResult);
+        testResult(db, "CALL apoc.mongo.find($uri,{query: {name:'testDocument'}, sort: {name:1}})", getParams("/test.test?authSource=admin"), this::assertResult);
     }
 
     @Test
     public void testCountWithExtendedJson() throws Exception {
         final String bytes = Base64.getEncoder().encodeToString("fooBar".getBytes());
-        TestUtil.testCall(db, "CALL apoc.mongo.count($uri,{query: {binary: {`$binary`: 'Zm9vQmFy', `$subType`: '00'}, int64: {`$numberLong`: '29'}}})",
+        testCall(db, "CALL apoc.mongo.count($uri,{query: {binary: {`$binary`: 'Zm9vQmFy', `$subType`: '00'}, int64: {`$numberLong`: '29'}}})",
                 map("uri", URI + "/test.person?authSource=admin", "bytes", bytes),
 //                map("host", URI, "db", "test", "collection", "person", "bytes", bytes),
                 r -> assertEquals(2L, r.get("value")));
@@ -496,15 +493,15 @@ public class MongoTest extends MongoTestBase {
 
     @Test
     public void testCountAll() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.count($host,$db,$collection,null)", TEST_PARAMS, r -> {
-            assertEquals(NUM_OF_RECORDS, r.get("value"));
-        });
+        // ?? perché 10001
+        testCall(db, "CALL apoc.mongo.count($uri,{query: {name: 'testDocument'}})", getParams("/test.test?authSource=admin"),
+                r -> assertEquals(NUM_OF_RECORDS, r.get("value")));
     }
 
     @Test
     public void testUpdateWithExtendedJson() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.update($host,$db,$collection,{foo: {`$oid`: '57e193d7a9cc81b4027499c4'}},{`$set`:{code: {`$code`: 'void 0'} }}, true)",
-                PERSON_PARAMS, r -> {
+        testCall(db, "CALL apoc.mongo.update($uri,{foo: {`$oid`: '57e193d7a9cc81b4027499c4'}},{`$set`:{code: {`$code`: 'void 0'}}})",
+                getParams("/test.person?authSource=admin"), r -> {
             long affected = (long) r.get("value");
             assertEquals(1, affected);
         });
@@ -512,11 +509,11 @@ public class MongoTest extends MongoTestBase {
 
     @Test
     public void testInsertWithExtendedJson() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongo.insert($uri,[{secondId: {`$oid` : '507f191e811c19729de860ea'}, baz: 1}, {secondId: {`$oid` : '507f191e821c19729de860ef'}, baz: 1}])",
+        testResult(db, "CALL apoc.mongo.insert($uri,[{secondId: {`$oid` : '507f191e811c19729de860ea'}, baz: 1}, {secondId: {`$oid` : '507f191e821c19729de860ef'}, baz: 1}])",
                 map("uri", URI + "/test.person?authSource=admin"), (r) -> {
             assertFalse("should be empty", r.hasNext());
         });
-        TestUtil.testCall(db, "CALL apoc.mongo.count($uri,{baz:1})", getParams(URI + "/test.person?authSource=admin"), r -> {
+        testCall(db, "CALL apoc.mongo.count($uri,{query: {baz:1}})", getParams("/test.person?authSource=admin"), r -> {
             long affected = (long) r.get("value");
             assertEquals(2L, affected);
         });
@@ -524,18 +521,17 @@ public class MongoTest extends MongoTestBase {
 
     @Test
     public void testInsertRegexExtJsonGetFirstCorrectlyWithCompatibleValueTrueAndFailsIfFalse() {
-        TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,$collection,[{foo:{`$regex`: 'pattern', `$options`: ''}, myId: {`$oid` : '507f191e811c19729de960ea'}}], true)",
-                PERSON_PARAMS, (r) -> assertFalse("should be empty", r.hasNext()));
-
+        testResult(db, "CALL apoc.mongo.insert($uri,[{foo:{`$regex`: 'pattern', `$options`: ''}, myId: {`$oid` : '507f191e811c19729de960ea'}}])",
+                getParams("/test.person?authSource=admin"), (r) -> assertFalse("should be empty", r.hasNext()));
         try {
-            TestUtil.testCall(db, "CALL apoc.mongo.first($uri,{query: {foo:{ `$regex`: 'pattern', `$options`: '' }}, compatibleValues: false})",
-                    getParams(URI + "/test.person?authSource=admin"), r -> {});
+            testCall(db, "CALL apoc.mongo.first($uri, {query: {foo:{ `$regex`: 'pattern', `$options`: '' }}, compatibleValues: false})",
+                    getParams("/test.person?authSource=admin"), r -> {});
             fail();
         } catch (Exception e) {
-            assertTrue(e.getMessage().contains("Failed to invoke procedure `apoc.mongodb.first`: Caused by: java.lang.IllegalArgumentException: Cannot convert BsonRegularExpression"));
+            assertTrue(e.getMessage().contains("java.lang.IllegalArgumentException: Cannot convert BsonRegularExpression"));
         }
 
-        TestUtil.testCall(db, "CALL apoc.mongo.first($uri,{query: {foo:{ `$regex`: 'pattern', `$options`: ''}}, compatibleValues: true})", getParams("/test.person?authSource=admin"), r -> {
+        testCall(db, "CALL apoc.mongo.first($uri, {query: {foo:{ `$regex`: 'pattern', `$options`: ''}}})", getParams("/test.person?authSource=admin"), r -> {
             Map<String, Object> value = (Map<String, Object>) r.get("value");
             assertEquals("pattern", value.get("foo"));
             assertTrue(value.get("_id") instanceof Map);
@@ -543,22 +539,25 @@ public class MongoTest extends MongoTestBase {
             assertEquals("507f191e811c19729de960ea", value.get("myId"));
         });
 
-        TestUtil.testCall(db, "CALL apoc.mongodb.delete($host,$db,$collection,{foo:{ `$regex`: 'pattern', `$options`: ''}}, true)", getParams("/test.person?authSource=admin"), r -> {
+        // todo
+        testCall(db, "CALL apoc.mongo.delete($uri, {foo: {`$regex`: 'pattern', `$options`: ''}})", getParams("/test.person?authSource=admin"), r -> {
             long affected = (long) r.get("value");
             assertEquals(1L, affected);
         });
     }
 
+    // todo
     @Test
-    public void testDeleteWithExtendedJson() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongo.insert($host,$db,$collection,[{foo:'bar', myId: {`$oid` : '507f191e811c19729de960ea'}}], true)", getParams("/test.person?authSource=admin"), (r) -> {
+    public void testGetInsertAndDeleteWithExtendedJson() throws Exception {
+        final String suffix = "/test.person?authSource=admin";
+        testResult(db, "CALL apoc.mongo.insert($uri,[{foo:'bar', myId: {`$oid` : '507f191e811c19729de960ea'}}])", getParams(suffix), (r) -> {
             assertFalse("should be empty", r.hasNext());
         });
-        TestUtil.testCall(db, "CALL apoc.mongo.delete($host,$db,$collection,{myId: {`$oid` : '507f191e811c19729de960ea'}}, true)", getParams("/test.person?authSource=admin"), r -> {
+        testCall(db, "CALL apoc.mongo.delete($uri,{foo: 'bar', myId: {`$oid` : '507f191e811c19729de960ea'}})", getParams(suffix), r -> {
             long affected = (long) r.get("value");
             assertEquals(1L, affected);
         });
-        TestUtil.testResult(db, "CALL apoc.mongo.first($host,$db,$collection,{myId: {`$oid` : '507f191e811c19729de960ea'}}, true, false, false, true)", getParams("/test.person?authSource=admin"), r -> {
+        testResult(db, "CALL apoc.mongo.first($uri,{query: {foo:'bar', myId: {`$oid` : '507f191e811c19729de960ea'}}})", getParams(suffix), r -> {
             assertFalse("should be empty", r.hasNext());
         });
     }
@@ -566,7 +565,7 @@ public class MongoTest extends MongoTestBase {
     @Test
     public void testInsertFailsDupKey() {
         try {
-            TestUtil.testResult(db, "CALL apoc.mongo.insert($uri,[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", getParams("/test.test?authSource=admin"), (r) -> {
+            testResult(db, "CALL apoc.mongo.insert($uri,[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", getParams("/test.test?authSource=admin"), (r) -> {
                 assertFalse("should be empty", r.hasNext());
             });
             fail("Should fail because of duplicate key");
@@ -579,7 +578,7 @@ public class MongoTest extends MongoTestBase {
     @Test
     public void shouldInsertDataIntoNeo4jWithFromDocument() throws Exception {
         Date date = DateUtils.parseDate("11-10-1935", "dd-MM-yyyy");
-        TestUtil.testResult(db, "CALL apoc.mongo.first($uri, {query: {}, extractReferences: true}) YIELD value " +
+        testResult(db, "CALL apoc.mongo.first($uri, {query: {}, extractReferences: true}) YIELD value " +
                         "CALL apoc.graph.fromDocument(value, $fromDocConfig) YIELD graph AS g1 " +
                         "RETURN g1",
                 map("uri", URI + "/test.person?authSource=admin",

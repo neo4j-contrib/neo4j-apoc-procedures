@@ -39,11 +39,11 @@ class MongoDBColl implements MongoDB.Coll {
 
     private static final ObjectMapper jsonMapper = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
     public static final String ID = "_id";
-    private final MongoCollection<Document> collection;
-    private final MongoClient mongoClient;
+    private  MongoCollection<Document> collection = null;
+    private  MongoClient mongoClient = null;
     private boolean compatibleValues = false;
     private boolean doorStop = false;
-    private final MongoDatabase database;
+    private MongoDatabase database = null;
     private boolean extractReferences = false;
     private boolean objectIdAsMap = true;
 
@@ -77,23 +77,53 @@ class MongoDBColl implements MongoDB.Coll {
      * @param conf // TODO
      */
     public MongoDBColl(String url, MongoDbConfig conf) {
-        // TODO ...
-        MongoClientURI connectionString = new MongoClientURI(url);
+//        try {
 
-        if (connectionString.getDatabase() == null) {
-            throw new RuntimeException("The connection string must have db name");
-        }
-        if (connectionString.getCollection() == null) {
-            throw new RuntimeException("The connection string must have collection name");
-        }
+            // TODO ...
+            MongoClientURI connectionString = new MongoClientURI(url);
 
-        mongoClient = new MongoClient(connectionString);
-        database = mongoClient.getDatabase(connectionString.getDatabase());
-        // TODO - SE è NULL DARE UN ERRORE, SE NON LO FA L'URLRESOLVER
-        collection = database.getCollection(connectionString.getCollection());
-        this.compatibleValues = conf.isCompatibleValues();
-        this.extractReferences = conf.isExtractReferences();
-        this.objectIdAsMap = conf.isObjectIdAsMap();
+            if (connectionString.getDatabase() == null) {
+                throw new RuntimeException("The connection string must have db name");
+            }
+            if (connectionString.getCollection() == null) {
+                throw new RuntimeException("The connection string must have collection name");
+            }
+
+            mongoClient = new MongoClient(connectionString);
+            database = mongoClient.getDatabase(connectionString.getDatabase());
+            // TODO - SE è NULL DARE UN ERRORE, SE NON LO FA L'URLRESOLVER
+            collection = database.getCollection(connectionString.getCollection());
+
+            // todo - check connection
+//            try {
+//                collection.count();
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+////                this.safeClose();
+//            }
+
+            this.compatibleValues = conf.isCompatibleValues();
+            this.extractReferences = conf.isExtractReferences();
+            this.objectIdAsMap = conf.isObjectIdAsMap();
+//        } catch (Exception e) {
+//            System.out.println("MongoDBColl.MongoDBColl");
+//            MongoClientURI connectionString = new MongoClientURI(url);
+//
+//            if (connectionString.getDatabase() == null) {
+//                throw new RuntimeException("The connection string must have db name");
+//            }
+//            if (connectionString.getCollection() == null) {
+//                throw new RuntimeException("The connection string must have collection name");
+//            }
+//
+//            mongoClient = new MongoClient(connectionString);
+//            database = mongoClient.getDatabase(connectionString.getDatabase());
+//            // TODO - SE è NULL DARE UN ERRORE, SE NON LO FA L'URLRESOLVER
+//            collection = database.getCollection(connectionString.getCollection());
+//            this.compatibleValues = conf.isCompatibleValues();
+//            this.extractReferences = conf.isExtractReferences();
+//            this.objectIdAsMap = conf.isObjectIdAsMap();
+//        }
     }
 
     @Override
@@ -267,15 +297,17 @@ class MongoDBColl implements MongoDB.Coll {
     }
 
     private Stream<Map<String, Object>> asStream(FindIterable<Document> result) {
-        this.doorStop = true;
-        Iterable<Document> it = () -> result.iterator();
-        return StreamSupport
-                .stream(it.spliterator(), false)
-                .map(doc -> this.documentToPackableMap(doc))
-                .onClose( () -> {
-                    result.iterator().close();
-                    mongoClient.close();
-                } );
+        return Stream.of(Map.of("a", "b"));
+
+//        this.doorStop = true;
+//        Iterable<Document> it = () -> result.iterator();
+//        return StreamSupport
+//                .stream(it.spliterator(), false)
+//                .map(doc -> this.documentToPackableMap(doc))
+//                .onClose( () -> {
+//                    result.iterator().close();
+//                    mongoClient.close();
+//                } );
     }
 
     @Override
