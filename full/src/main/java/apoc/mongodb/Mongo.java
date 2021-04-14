@@ -22,18 +22,11 @@ import static apoc.mongodb.MongoDB.Coll;
 
 public class Mongo {
 
-    /*
-    mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]
-     */
-
     @Context
     public Log log;
 
-
     @Procedure("apoc.mongo.get")
-    // todo - scrivere che l'host-or-key accetta una stringa tipo ..... mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database.collection][?options]]
-    //  mettere il link di javadoc
-    @Description("apoc.mongo.get(uri,$config) yield value - perform a find operation on mongodb collection")
+    @Description("apoc.mongo.get(uri, $config) yield value - perform a find operation on mongodb collection")
     public Stream<MapResult> get(@Name("uri") String uri, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         MongoDbConfig conf = new MongoDbConfig(config);
         return executeMongoQuery(uri, conf, coll -> coll.all(conf.getQuery(), conf.getSkip(), conf.getLimit(), conf.isUseExtendedJson()).map(MapResult::new),
@@ -41,7 +34,7 @@ public class Mongo {
     }
 
     @Procedure("apoc.mongo.count")
-    @Description("apoc.mongo.count(uri,$config) yield value - perform a find operation on mongodb collection")
+    @Description("apoc.mongo.count(uri, $config) yield value - perform a find operation on mongodb collection")
     public Stream<LongResult> count(@Name("uri") String uri, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         MongoDbConfig conf = new MongoDbConfig(config);
         return executeMongoQuery(uri, conf, coll -> {
@@ -50,11 +43,9 @@ public class Mongo {
                 }, getExceptionConsumer("apoc.mongo.count", uri, config));
     }
 
-
     // todo - teoricamente la query può essere null?
     @Procedure("apoc.mongo.first")
-    // todo - descr
-    @Description("apoc.mongo.first(uri,query,$config) yield value - perform a find operation on mongodb collection")
+    @Description("apoc.mongo.first(uri, $config) yield value - perform a find operation on mongodb collection")
     public Stream<MapResult> first(@Name("uri") String uri, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         MongoDbConfig conf = new MongoDbConfig(config);
         return executeMongoQuery(uri, conf, coll -> {
@@ -62,6 +53,48 @@ public class Mongo {
                     return result == null || result.isEmpty() ? Stream.empty() : Stream.of(new MapResult(result));
                 }, getExceptionConsumer("apoc.mongo.first", uri, config));
     }
+
+    @Procedure("apoc.mongo.find")
+    @Description("apoc.mongo.find(uri, $config) yield value - perform a find operation on mongodb collection")
+    public Stream<MapResult> find(@Name("uri") String uri, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        MongoDbConfig conf = new MongoDbConfig(config);
+        return executeMongoQuery(uri, conf,
+                coll -> coll.find(conf.getQuery(), conf.getProject(), conf.getSort(), conf.getSkip(), conf.getLimit(), conf.isUseExtendedJson()).map(MapResult::new),
+                getExceptionConsumer("apoc.mongo.find", uri, config));
+    }
+
+
+    @Procedure("apoc.mongo.insert")
+    @Description("apoc.mongo.insert(uri, documents, $config) yield value - inserts the given documents into the mongodb collection")
+    public void insert(@Name("uri") String uri, @Name("documents") List<Map<String, Object>> documents, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        MongoDbConfig conf = new MongoDbConfig(config);
+        // TODO - CAMBIARE NOME withSystemDb
+        try (Coll coll = withSystemDb(() -> getColl(uri, conf))) {
+            coll.insert(documents, conf.isUseExtendedJson());
+        } catch (Exception e) {
+            mongoErrorLog("apoc.mongo.insert", uri, config, e, "");
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Procedure("apoc.mongo.update")
+    @Description("apoc.mongo.update(uri, query, update, $config) - updates the given documents from the mongodb collection and returns the number of affected documents")
+    public Stream<LongResult> update(@Name("uri") String uri, @Name("query") Map<String, Object> query, @Name("update") Map<String, Object> update, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        MongoDbConfig conf = new MongoDbConfig(config);
+        return executeMongoQuery(uri, conf, coll -> Stream.of(new LongResult(coll.update(query, update, conf.isUseExtendedJson()))),
+                getExceptionConsumer("apoc.mongo.update", uri, config));
+
+    }
+
+    @Procedure("apoc.mongo.delete")
+    @Description("apoc.mongo.delete(uri, query, $config) - delete the given documents from the mongodb collection and returns the number of affected documents")
+    public Stream<LongResult> delete(@Name("uri") String uri, @Name("query") Map<String, Object> query, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        MongoDbConfig conf = new MongoDbConfig(config);
+        return executeMongoQuery(uri, conf, coll -> Stream.of(new LongResult(coll.delete(query, conf.isUseExtendedJson()))),
+                getExceptionConsumer("apoc.mongo.delete", uri, config));
+    }
+
+
 
     public Consumer<Exception> getExceptionConsumer(String procedureName, String uri, Map<String, Object> config) {
         return getExceptionConsumer(procedureName, uri, config, "");
@@ -75,52 +108,6 @@ public class Mongo {
         final String configString = config.entrySet().stream().map(entry -> "{" + entry.getKey() + ": " + entry.getValue() + "}").collect(Collectors.joining(", "));
         log.error(procedureName + " - uri = [" + uri + "] , config = {" + configString + "}" + others, e);
     }
-
-    @Procedure("apoc.mongo.find")
-    // todo - descr
-    @Description("apoc.mongo.find(uri,query,$config) yield value - perform a find operation on mongodb collection")
-    public Stream<MapResult> find(@Name("uri") String uri, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        MongoDbConfig conf = new MongoDbConfig(config);
-        return executeMongoQuery(uri, conf,
-                coll -> coll.find(conf.getQuery(), conf.getProject(), conf.getSort(), conf.getSkip(), conf.getLimit(), conf.isUseExtendedJson()).map(MapResult::new),
-                getExceptionConsumer("apoc.mongo.find", uri, config));
-    }
-
-
-    @Procedure("apoc.mongo.insert")
-    // todo - descr
-    @Description("apoc.mongo.insert(uri,query,$config) yield value - perform a find operation on mongodb collection")
-    public void insert(@Name("uri") String uri, @Name("documents") List<Map<String, Object>> documents, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        MongoDbConfig conf = new MongoDbConfig(config);
-        // TODO - CAMBIARE NOME withSystemDb
-        try (Coll coll = withSystemDb(() -> getColl(uri, conf))) {
-            coll.insert(documents, conf.isUseExtendedJson());
-        } catch (Exception e) {
-            mongoErrorLog("apoc.mongo.insert", uri, config, e, "");
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Procedure("apoc.mongo.update")
-    @Description("apoc.mongodb.update(host-or-key,db,collection,query,update) - updates the given documents from the mongodb collection and returns the number of affected documents")
-    public Stream<LongResult> update(@Name("uri") String uri, @Name("query") Map<String, Object> query, @Name("update") Map<String, Object> update, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        MongoDbConfig conf = new MongoDbConfig(config);
-
-        // todo - onError?
-        return executeMongoQuery(uri, conf, coll -> Stream.of(new LongResult(coll.update(query, update, conf.isUseExtendedJson()))),
-                getExceptionConsumer("apoc.mongo.update", uri, config));
-
-    }
-
-    @Procedure("apoc.mongo.delete")
-    @Description("apoc.mongo.delete(uri, query, $config) - delete the given documents from the mongodb collection and returns the number of affected documents")
-    public Stream<LongResult> delete(@Name("uri") String uri, @Name("query") Map<String, Object> query, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        MongoDbConfig conf = new MongoDbConfig(config);
-        // todo - onError?
-        return executeMongoQuery(uri, conf, coll -> Stream.of(new LongResult(coll.delete(query, conf.isUseExtendedJson()))),
-                getExceptionConsumer("apoc.mongo.delete", uri, config));
-    }
-
 
     private <T> Stream<T> executeMongoQuery(String uri, MongoDbConfig conf, Function<MongoDB.Coll, Stream<T>> execute, Consumer<Exception> onError) {
         MongoDB.Coll coll = null;
