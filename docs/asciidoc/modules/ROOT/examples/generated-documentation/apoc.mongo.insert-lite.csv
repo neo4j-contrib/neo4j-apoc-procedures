@@ -1,0 +1,2 @@
+¦signature
+¦apoc.mongo.insert(uri :: STRING?, documents :: LIST? OF MAP?, config = {} :: MAP?) :: VOID

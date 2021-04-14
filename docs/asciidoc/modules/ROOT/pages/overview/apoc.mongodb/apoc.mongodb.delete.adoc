@@ -14,7 +14,7 @@ apoc.mongodb.delete(host-or-key,db,collection,query) - delete the given document
 
 [source]
 ----
-apoc.mongodb.delete(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, useExtendedJson = false :: BOOLEAN?) :: (value :: INTEGER?)
+apoc.mongodb.delete(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?) :: (value :: INTEGER?)
 ----
 
 == Input parameters
@@ -25,7 +25,6 @@ apoc.mongodb.delete(host :: STRING?, db :: STRING?, collection :: STRING?, query
 |db|STRING?|null
 |collection|STRING?|null
 |query|MAP?|null
-|useExtendedJson|BOOLEAN?|false
 |===
 
 == Output parameters

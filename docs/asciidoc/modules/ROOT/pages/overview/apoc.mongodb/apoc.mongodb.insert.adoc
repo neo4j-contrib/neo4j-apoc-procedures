@@ -14,7 +14,7 @@ apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given doc
 
 [source]
 ----
-apoc.mongodb.insert(host :: STRING?, db :: STRING?, collection :: STRING?, documents :: LIST? OF MAP?, useExtendedJson = false :: BOOLEAN?) :: VOID
+apoc.mongodb.insert(host :: STRING?, db :: STRING?, collection :: STRING?, documents :: LIST? OF MAP?) :: VOID
 ----
 
 == Input parameters
@@ -25,7 +25,6 @@ apoc.mongodb.insert(host :: STRING?, db :: STRING?, collection :: STRING?, docum
 |db|STRING?|null
 |collection|STRING?|null
 |documents|LIST? OF MAP?|null
-|useExtendedJson|BOOLEAN?|false
 |===
 
 == Install Dependencies

@@ -14,7 +14,7 @@ apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false|true],s
 
 [source]
 ----
-apoc.mongodb.get(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, compatibleValues = false :: BOOLEAN?, skip = 0 :: INTEGER?, limit = 0 :: INTEGER?, extractReferences = false :: BOOLEAN?, objectIdAsMap = true :: BOOLEAN?, useExtendedJson = false :: BOOLEAN?) :: (value :: MAP?)
+apoc.mongodb.get(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, compatibleValues = false :: BOOLEAN?, skip = 0 :: INTEGER?, limit = 0 :: INTEGER?, extractReferences = false :: BOOLEAN?, objectIdAsMap = true :: BOOLEAN?) :: (value :: MAP?)
 ----
 
 == Input parameters
@@ -30,7 +30,6 @@ apoc.mongodb.get(host :: STRING?, db :: STRING?, collection :: STRING?, query ::
 |limit|INTEGER?|0
 |extractReferences|BOOLEAN?|false
 |objectIdAsMap|BOOLEAN?|true
-|useExtendedJson|BOOLEAN?|false
 |===
 
 == Output parameters

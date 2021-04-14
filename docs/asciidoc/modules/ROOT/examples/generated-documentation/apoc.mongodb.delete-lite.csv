@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.mongodb.delete(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, useExtendedJson = false :: BOOLEAN?) :: (value :: INTEGER?)
+¦apoc.mongodb.delete(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?) :: (value :: INTEGER?)
