@@ -43,7 +43,6 @@ public class Mongo {
                 }, getExceptionConsumer("apoc.mongo.count", uri, config));
     }
 
-    // todo - teoricamente la query può essere null?
     @Procedure("apoc.mongo.first")
     @Description("apoc.mongo.first(uri, $config) yield value - perform a find operation on mongodb collection")
     public Stream<MapResult> first(@Name("uri") String uri, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
@@ -63,13 +62,12 @@ public class Mongo {
                 getExceptionConsumer("apoc.mongo.find", uri, config));
     }
 
-
     @Procedure("apoc.mongo.insert")
     @Description("apoc.mongo.insert(uri, documents, $config) yield value - inserts the given documents into the mongodb collection")
     public void insert(@Name("uri") String uri, @Name("documents") List<Map<String, Object>> documents, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         MongoDbConfig conf = new MongoDbConfig(config);
         // TODO - CAMBIARE NOME withSystemDb
-        try (Coll coll = withSystemDb(() -> getColl(uri, conf))) {
+        try (Coll coll = withMongoColl(() -> getColl(uri, conf))) {
             coll.insert(documents, conf.isUseExtendedJson());
         } catch (Exception e) {
             mongoErrorLog("apoc.mongo.insert", uri, config, e, "");
@@ -95,7 +93,6 @@ public class Mongo {
     }
 
 
-
     public Consumer<Exception> getExceptionConsumer(String procedureName, String uri, Map<String, Object> config) {
         return getExceptionConsumer(procedureName, uri, config, "");
     }
@@ -112,8 +109,7 @@ public class Mongo {
     private <T> Stream<T> executeMongoQuery(String uri, MongoDbConfig conf, Function<MongoDB.Coll, Stream<T>> execute, Consumer<Exception> onError) {
         MongoDB.Coll coll = null;
         try {
-            coll = withSystemDb(() -> getColl(uri, conf));
-//            coll = getMongoColl(uri, conf);
+            coll = withMongoColl(() -> getColl(uri, conf));
             return execute.apply(coll).onClose(coll::safeClose);
         } catch (Exception e) {
             if (coll != null) {
@@ -124,7 +120,7 @@ public class Mongo {
         }
     }
 
-    private Coll withSystemDb(Supplier<Coll> action) {
+    private Coll withMongoColl(Supplier<Coll> action) {
         MongoDB.Coll coll = null;
         try {
             coll = action.get();
@@ -143,34 +139,9 @@ public class Mongo {
                     "jackson-annotations-x.y.z.jar\n\njackson-core-x.y.z.jar\n\njackson-databind-x.y.z.jar\n\nSee the documentation: https://neo4j.com/labs/apoc/%s/database-integration/mongodb/", version));
         } catch (Exception e) {
             throw new RuntimeException("Error during connection", e);
-//            System.out.println("Mongo.withSystemDb");
         }
-        System.out.println("coll - " + coll);
         return coll;
     }
-
-
-//    private MongoDB.Coll getMongoColl(String hostOrKey, MongoDbConfig conf) {
-//
-//        MongoDB.Coll coll;
-//        try {
-//            coll = getColl(hostOrKey, conf);
-//        } catch (NoClassDefFoundError e) {
-//            final String version = Version.class.getPackage().getImplementationVersion().substring(0, 3);
-//            throw new MissingDependencyException(String.format("Cannot find the jar into the plugins folder. \n" +
-//                    "Please put these jar in the plugins folder :\n\n" +
-//                    "bson-x.y.z.jar\n" +
-//                    "\n" +
-//                    "mongo-java-driver-x.y.z.jar\n" +
-//                    "\n" +
-//                    "mongodb-driver-x.y.z.jar\n" +
-//                    "\n" +
-//                    "mongodb-driver-core-x.y.z.jar\n" +
-//                    "\n" +
-//                    "jackson-annotations-x.y.z.jar\n\njackson-core-x.y.z.jar\n\njackson-databind-x.y.z.jar\n\nSee the documentation: https://neo4j.com/labs/apoc/%s/database-integration/mongodb/", version));
-//        }
-//        return coll;
-//    }
 
 
     protected static Coll getColl(@Name("url") String url, MongoDbConfig conf) {

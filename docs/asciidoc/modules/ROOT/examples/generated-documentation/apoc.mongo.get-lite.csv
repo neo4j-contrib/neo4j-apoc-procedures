@@ -1,0 +1,2 @@
+¦signature
+¦apoc.mongo.get(uri :: STRING?, config = {} :: MAP?) :: (value :: MAP?)

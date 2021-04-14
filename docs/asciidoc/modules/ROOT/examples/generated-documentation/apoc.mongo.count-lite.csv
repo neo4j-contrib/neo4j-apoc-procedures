@@ -1,0 +1,2 @@
+¦signature
+¦apoc.mongo.count(uri :: STRING?, config = {} :: MAP?) :: (value :: INTEGER?)
