@@ -283,13 +283,13 @@ public class GraphRefactoring {
         nodes.stream().distinct().sorted(Comparator.comparingLong(Node::getId)).forEach(tx::acquireWriteLock);
 
         final Node first = nodes.get(0);
-        final List<Long> existingIdSelfRelsIfPreserveConfTrue = conf.isPreserveExistingSelfRels()
+        final List<Long> existingRels = conf.isPreserveExistingSelfRels()
                 ? StreamSupport.stream(first.getRelationships().spliterator(), false).filter(Util::isSelfRel)
                     .map(Entity::getId)
                     .collect(Collectors.toList())
                 : Collections.emptyList();
 
-        nodes.stream().skip(1).distinct().forEach(node -> mergeNodes(node, first, true, conf, existingIdSelfRelsIfPreserveConfTrue));
+        nodes.stream().skip(1).distinct().forEach(node -> mergeNodes(node, first, true, conf, existingRels));
         return Stream.of(new NodeResult(first));
     }
 
