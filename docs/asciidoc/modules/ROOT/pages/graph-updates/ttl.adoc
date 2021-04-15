@@ -74,7 +74,7 @@ image::play-movies.png[title="Movies Graph Visualization"]
 [[ttl-expireAt]]
 === Expire node(s) at specified time
 
-The `apoc.ttl.expireAtInstant` procedure deletes a node or group of nodes after the datetime specified.
+The `apoc.ttl.expire` procedure deletes a node or group of nodes after the datetime specified.
 
 To remove a single node or set of nodes, we can use a selection query prior to calling the procedure that defines which nodes we want to apply the time-to-live label and property.
 We then call the procedure and pass in the selected node(s), the future datetime at which we want the nodes to be removed, and the specificity of the datetime (seconds, milliseconds, etc).
@@ -82,7 +82,7 @@ We then call the procedure and pass in the selected node(s), the future datetime
 [source,cypher]
 ----
 MATCH (movie:Movie)<-[produced:PRODUCED]-(person:Person)
-CALL apoc.ttl.expireAtInstant(person,1585176720,'s')
+CALL apoc.ttl.expire(person,1585176720,'s')
 RETURN movie, produced, person
 ----
 
@@ -105,23 +105,24 @@ RETURN movie, produced, person
 [[ttl-expireIn]]
 === Expire node(s) after specified time period
 
-The `apoc.ttl.expireAfterTimeLength` procedure deletes a node or group of nodes after the length of time specified.
+The `apoc.ttl.expireIn` procedure deletes a node or group of nodes after the length of time specified.
 //LEFT OFF HERE!
 Just as with the similar procedure above, we can use a selection query prior to calling the procedure that defines which nodes we want to apply the time-to-live label and property.
 We then call the procedure and pass in the selected node(s), the time delta from current time at which we want the nodes to be removed, and the specificity of the time amount (seconds, milliseconds, etc).
 
 [source,cypher]
 ----
-MATCH (movie:Movie)<-[produced:PRODUCED]-(person:Person)
-CALL apoc.ttl.expireAfterTimeLength(person,1585176720,'s')
-RETURN movie, produced, person
+MATCH (movie:Movie)<-[directed:DIRECTED]-(person:Person)
+CALL apoc.ttl.expireIn(person,120,'s')
+RETURN movie, directed, person
 ----
 
 .Results
 [opts="header"]
 |===
-| "movie" | "produced" | "person"
-| {"title":"The Matrix","tagline":"Welcome to the Real World","released":1999} | {} | {"name":"Joel Silver","ttl":120000,"born":1952}
+| "movie" | "directed" | "person"
+| {"title":"The Matrix","tagline":"Welcome to the Real World","released":1999} | {} | {"name":"Lana Wachowski","ttl":1618008344450,"born":1965}
+| {"title":"The Matrix","tagline":"Welcome to the Real World","released":1999} | {} | {"name":"Lilly Wachowski","ttl":1618008344450,"born":1967}
 |===
 
 After the length of time specified has passed (in this case, after `120 seconds`), the node(s) will be expired and deleted from the graph.
@@ -129,8 +130,8 @@ Running the statement below will return no results for our example graph.
 
 [source,cypher]
 ----
-MATCH (movie:Movie)<-[produced:PRODUCED]-(person:Person)
-RETURN movie, produced, person
+MATCH (movie:Movie)<-[directed:DIRECTED]-(person:Person)
+RETURN movie, directed, person
 ----
 
 [[ttl-process]]
