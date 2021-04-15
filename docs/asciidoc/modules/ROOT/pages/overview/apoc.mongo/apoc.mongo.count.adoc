@@ -32,3 +32,5 @@ apoc.mongo.count(uri :: STRING?, config = {} :: MAP?) :: (value :: INTEGER?)
 |value|INTEGER?
 |===
 
+xref::database-integration/mongo.adoc[More documentation of apoc.mongo.count,role=more information]
+

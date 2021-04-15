@@ -32,3 +32,5 @@ apoc.mongo.first(uri :: STRING?, config = {} :: MAP?) :: (value :: MAP?)
 |value|MAP?
 |===
 
+xref::database-integration/mongo.adoc[More documentation of apoc.mongo.first,role=more information]
+

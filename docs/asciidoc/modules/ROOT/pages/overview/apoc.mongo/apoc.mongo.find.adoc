@@ -32,3 +32,5 @@ apoc.mongo.find(uri :: STRING?, config = {} :: MAP?) :: (value :: MAP?)
 |value|MAP?
 |===
 
+xref::database-integration/mongo.adoc[More documentation of apoc.mongo.find,role=more information]
+

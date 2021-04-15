@@ -34,3 +34,5 @@ apoc.mongo.update(uri :: STRING?, query :: MAP?, update :: MAP?, config = {} :: 
 |value|INTEGER?
 |===
 
+xref::database-integration/mongo.adoc[More documentation of apoc.mongo.update,role=more information]
+

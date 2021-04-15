@@ -1,11 +1,6 @@
 [[mongodb]]
-= MongoDB (Deprecated)
+= MongoDB
 :description: This section describes procedures that can be used to interact with MongoDB.
-
-[NOTE]
-====
-This procedures are deprecated in favor of xref::database-integration/mongo.adoc[apoc.mongo.* procedures] .
-====
 
 
 [[mongodb-procedures]]
@@ -18,35 +13,60 @@ This procedures are deprecated in favor of xref::database-integration/mongo.adoc
 include::example$generated-documentation/apoc.mongodb.csv[]
 |===
 
+
+
 [[mongodb-dependencies]]
 == Install Dependencies
 
-The Mongo procedures have dependencies on a client library that is not included in the APOC Library.
+The `apoc.mongo.*` procedures have dependencies on a client library that is not included in the APOC Library.
 
-This dependency is included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-mongodb-dependencies-{apoc-release}.jar[apoc-mongodb-dependencies-{apoc-release}.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
-Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
+To use them, copy these jars into the plugins directory:
+
+* bson-3.4.2.jar
+* mongo-java-driver-3.4.2.jar
+* mongodb-driver-3.4.2.jar
+* mongodb-driver-core-3.4.2.jar
+
+You should be able to get them from https://mongodb.github.io/mongo-java-driver/[here], and https://mvnrepository.com/artifact/org.mongodb/bson/3.4.2[here (BSON)] (via Download)
+
+Or you can get them locally from your gradle build of apoc.
+
 
 [[mongodb-fields]]
 == Field description
 
- - `hostorkey`: the MongoDB host in the format `mongodb://<HOST_NAME>:<PORT>`
- or a url defined into the apoc config `apoc.mongodb.myInstance.url=mongodb://<HOST_NAME>:<PORT>`,
- which can be invoked by simply passing `myInstance`
- - `db`: the db name
- - `collection`: the collection name
- - `query`: query params
- - `projection`: projection params
- - `sort`: sort params
- - `compatibleValues` (false|true): converts MongoDB data types into Neo4j data types
- - `skip`: num of documents to skip
- - `limit`: num of documents to limit
- - `extractReferences` (false|true): if true and a field contains an `ObjectId` it will include the related document instead of the `ObjectId`
- - `objectIdAsMap` (true|false): extract the `ObjectId` as map
- - `documents`: the documents to insert
- - `update`: the updated params
+ - `uri`: TODO
+ - `query`: query parameter map (only for `apoc.mongo.update` and `apoc.mongo.delete`)
+ - `update`: update parameter map (only for `apoc.mongo.update`)
+ - `documents`: the documents to insert (only for `apoc.mongo.insert`)
+ - `config`: see below
+
+[[mongodb-config]]
+== Configuration parameters
+The procedures support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| minLevel | Long | -1 | the minimum number of hops in the traversal
+|===
+
 
 [[mongodb-examples]]
 == Examples
+
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDocument'})
+----
+
+If you need automatic conversion of *unpackable* values then the cypher query will be:
+
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDocument'},true)
+----
 
 Following an example that could help to understand the behaviour of `extractReferences`, `compatibleValues` and `objectIdAsMap`:
 
@@ -175,18 +195,5 @@ gradle copyRuntimeLibs
 cp lib/mongodb*.jar lib/bson*.jar $NEO4J_HOME/plugins/
 ----
 
-== Example
 
-[source,cypher]
-----
-CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDocument'})
-----
 
-If you need automatic conversion of *unpackable* values then the cypher query will be:
-
-[source,cypher]
-----
-CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDocument'},true)
-----
-
-// end::mongodb[]
