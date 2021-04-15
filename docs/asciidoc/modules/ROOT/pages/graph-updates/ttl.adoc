@@ -33,6 +33,10 @@ apoc.ttl.enabled=true
 
 # Optional: controls the repeat frequency
 # apoc.ttl.schedule=5
+
+# Optional: controls how many nodes are deleted in each batch
+# apoc.ttl.limit=5000
+
 ----
 
 In the available procedures listed above, there are several parameters with specific values.
