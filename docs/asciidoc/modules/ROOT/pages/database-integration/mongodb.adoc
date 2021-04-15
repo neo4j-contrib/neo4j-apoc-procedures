@@ -1,8 +1,12 @@
 [[mongodb]]
-= MongoDB
+= MongoDB (Deprecated)
 :description: This section describes procedures that can be used to interact with MongoDB.
 
-// TODO - SCRIVERE CHE ALCUNE SONO DEPRECATE
+[NOTE]
+====
+This procedures are deprecated in favor of xref::database-integration/mongo.adoc[apoc.mongo.* procedures] .
+====
+
 
 [[mongodb-procedures]]
 == Available Procedures

@@ -33,3 +33,5 @@ apoc.mongo.delete(uri :: STRING?, query :: MAP?, config = {} :: MAP?) :: (value 
 |value|INTEGER?
 |===
 
+xref::database-integration/mongo.adoc[More documentation of apoc.mongo.delete,role=more information]
+

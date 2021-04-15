@@ -26,3 +26,5 @@ apoc.mongo.insert(uri :: STRING?, documents :: LIST? OF MAP?, config = {} :: MAP
 |config|MAP?|{}
 |===
 
+xref::database-integration/mongo.adoc[More documentation of apoc.mongo.insert,role=more information]
+

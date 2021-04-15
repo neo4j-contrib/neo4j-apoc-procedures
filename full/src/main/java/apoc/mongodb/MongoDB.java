@@ -19,6 +19,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static apoc.mongodb.MongoDBUtils.withMongoColl;
+import static apoc.mongodb.MongoDBUtils.Coll;
+
 /*
  also see https://docs.mongodb.com/ecosystem/tools/http-interfaces/#simple-rest-api
 
@@ -44,8 +47,6 @@ ON CREATE SET u.location  = univ.location,
               u.shortName = univ.shortName,
               u.url       = univ.website
 MERGE (c)-[:OFFERED_BY]->(u)
-
-
  */
 @Extended
 public class MongoDB {
@@ -83,8 +84,7 @@ public class MongoDB {
                 e -> log.error("apoc.mongodb.count - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "]",e));
     }
 
-    // TODO - METTERE IN UN MONGOUTIL.java
-    protected static Coll getColl(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection,
+    private Coll getColl(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection,
                          boolean compatibleValues, boolean extractReferences, boolean objectIdAsMap) {
         String url = getMongoDBUrl(hostOrKey);
         return Coll.Factory.create(url, db, collection, compatibleValues, extractReferences, objectIdAsMap);
@@ -165,16 +165,14 @@ public class MongoDB {
                     Map<String, Object> result = coll.first(Map.of(conf.getIdFieldName(), new ObjectId(objectIdValue)));
                     return result == null || result.isEmpty() ? Stream.empty() : Stream.of(new MapResult(result));
                 },
-                e -> log.error("apoc.mongo.get.byObjectId - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], objectIdValue = [" + objectIdValue + "]",e));
+                e -> log.error("apoc.mongodb.get.byObjectId - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], objectIdValue = [" + objectIdValue + "]",e));
     }
 
-    // TODO - METTERE IN UN MONGOUTIL.java
-    protected static String getMongoDBUrl(String hostOrKey) {
+    private String getMongoDBUrl(String hostOrKey) {
         return new UrlResolver("mongodb", "localhost", 27017).getUrl("mongodb", hostOrKey);
     }
 
-    // TODO - METTERE IN UN MONGOUTIL.java
-    protected static Coll getMongoColl(String hostOrKey, String db, String collection, boolean compatibleValues,
+    private Coll getMongoColl(String hostOrKey, String db, String collection, boolean compatibleValues,
                               boolean extractReferences, boolean objectIdAsMap) {
         Coll coll = null;
         try {
@@ -195,63 +193,11 @@ public class MongoDB {
         return coll;
     }
 
-    // TODO - RIUTILIZZARE QUESTA INTERFACCIA (METTERLA IN UN MONGOUTIL.JAVA)
-    interface Coll extends Closeable {
-        Map<String, Object> first(Map<String, Object> params);
-
-        Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit);
-        Map<String, Object> first(Map<String, Object> params, boolean useExtendedJson);
-
-        long count(Map<String, Object> query);
-        Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit);
-        Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit, boolean useExtendedJson);
-
-        Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit);
-        long count(Map<String, Object> query);
-        long count(Map<String, Object> query, boolean useExtendedJson);
-
-        void insert(List<Map<String, Object>> docs);
-        Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit);
-        Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit, boolean useExtendedJson);
-
-        long update(Map<String, Object> query, Map<String, Object> update);
-        void insert(List<Map<String, Object>> docs);
-        void insert(List<Map<String, Object>> docs, boolean useExtendedJson);
-
-        long delete(Map<String, Object> query);
-        long update(Map<String, Object> query, Map<String, Object> update);
-        long update(Map<String, Object> query, Map<String, Object> update, boolean useExtendedJson);
-
-        long delete(Map<String, Object> query);
-        long delete(Map<String, Object> query, boolean useExtendedJson);
-
-        default void safeClose() {
-            try {
-                this.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        class Factory {
-            public static Coll create(String url, String db, String coll, boolean compatibleValues,
-                                      boolean extractReferences,
-                                      boolean objectIdAsMap) {
-                try {
-                    return new MongoDBColl(url, db, coll, compatibleValues, extractReferences, objectIdAsMap);
-                } catch (Exception e) {
-                    throw new RuntimeException("Could not create MongoDBClientWrapper instance", e);
-                }
-            }
-        }
-    }
-
-    // TODO - METTERE IN UN MONGOUTIL.java
-    protected static  <T> Stream<T> executeMongoQuery(String hostOrKey, String db, String collection, boolean compatibleValues,
+    private  <T> Stream<T> executeMongoQuery(String hostOrKey, String db, String collection, boolean compatibleValues,
                                             boolean extractReferences, boolean objectIdAsMap, Function<Coll, Stream<T>> execute, Consumer<Exception> onError) {
         Coll coll = null;
         try {
-            coll = getMongoColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap);
+            coll = withMongoColl(() -> getMongoColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap));
             return execute.apply(coll).onClose(coll::safeClose);
         } catch (Exception e) {
             if (coll != null) {

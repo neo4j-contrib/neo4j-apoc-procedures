@@ -1,8 +1,13 @@
 package apoc.mongodb;
 
+import apoc.graph.Graphs;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.apache.commons.lang3.time.DateUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.junit.After;
@@ -21,6 +26,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.utility.Base58;
 
+import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -30,14 +36,18 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.util.TestUtil.isRunningInCI;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
@@ -45,31 +55,28 @@ import static org.junit.Assume.assumeTrue;
 
 public class MongoTestBase {
 
-    public static int MONGO_DEFAULT_PORT = 27017;
-    public static String[] COMMANDS;
+    protected static int MONGO_DEFAULT_PORT = 27017;
+    protected static String[] COMMANDS;
 
-    public static GenericContainer mongo;
+    protected static GenericContainer mongo;
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
 
-    public static MongoCollection<Document> testCollection;
-    public static MongoCollection<Document> productCollection;
-    public static MongoCollection<Document> personCollection;
+    protected static MongoCollection<Document> testCollection;
+    protected static MongoCollection<Document> productCollection;
+    protected static MongoCollection<Document> personCollection;
 
-    public static final Date currentTime = new Date();
+    protected static final Date currentTime = new Date();
+    protected static final long longValue = 10_000L;
+    protected long numConnections = -1;
 
-    public static final long longValue = 10_000L;
+    protected static String HOST = null;
+    protected static final long NUM_OF_RECORDS = 10_000L;
 
-    public static String HOST = null;
-
-    public long numConnections = -1;
-
-    public static final long NUM_OF_RECORDS = 10_000L;
-
-    public static List<ObjectId> productReferences;
-    public static ObjectId nameAsObjectId = new ObjectId("507f191e810c19729de860ea");
-    public static ObjectId idAsObjectId = new ObjectId();
+    protected static List<ObjectId> productReferences;
+    protected static ObjectId nameAsObjectId = new ObjectId("507f191e810c19729de860ea");
+    protected static ObjectId idAsObjectId = new ObjectId();
 
     @AfterClass
     public static void tearDown() {
@@ -116,13 +123,45 @@ public class MongoTestBase {
         assumeTrue("Mongo DB must be running", mongo.isRunning());
     }
 
+    protected static void fillDb(MongoClient mongoClient) throws ParseException {
+        TestUtil.registerProcedure(db, Mongo.class, Graphs.class);
+        MongoDatabase database = mongoClient.getDatabase("test");
+        testCollection = database.getCollection("test");
+        productCollection = database.getCollection("product");
+        personCollection = database.getCollection("person");
+        testCollection.deleteMany(new Document());
+        productCollection.deleteMany(new Document());
+        LongStream.range(0, NUM_OF_RECORDS)
+                .forEach(i -> testCollection.insertOne(new Document(map("name", "testDocument",
+                        "date", currentTime, "longValue", longValue, "nullField", null))));
+        productCollection.insertOne(new Document(map("name", "My Awesome Product",
+                "price", 800,
+                "tags", Arrays.asList("Tech", "Mobile", "Phone", "iOS"))));
+        productCollection.insertOne(new Document(map("name", "My Awesome Product 2",
+                "price", 1200,
+                "tags", Arrays.asList("Tech", "Mobile", "Phone", "Android"))));
+        productReferences = StreamSupport.stream(productCollection.find().spliterator(), false)
+                .map(doc -> (ObjectId) doc.get("_id"))
+                .collect(Collectors.toList());
+        personCollection.insertOne(new Document(map("name", "Andrea Santurbano",
+                "bought", productReferences,
+                "born", DateUtils.parseDate("11-10-1935", "dd-MM-yyyy"),
+                "coordinates", Arrays.asList(12.345, 67.890))));
+        personCollection.insertOne(new Document(map("name", nameAsObjectId,
+                "age", 40,
+                "bought", productReferences)));
+        personCollection.insertOne(new Document(map("_id", idAsObjectId,
+                "name", "Sherlock",
+                "age", 25,
+                "bought", productReferences)));
+    }
+
     /**
      * Get the number of active connections that can be used to check if them are managed correctly
      * by invoking:
      *  $ mongo [dbName] --eval db.serverStatus().connections
      * into the container
      * @return A Map<String, Long> with three fields three fields {current, available, totalCreated}
-     * @throws Exception
      */
     public static Map<String, Object> getNumConnections(GenericContainer mongo, String ...commands) {
         try {
@@ -140,7 +179,25 @@ public class MongoTestBase {
         }
     }
 
-    public static void assertionsInsertDataWithFromDocument(Date date, Result r) {
+    protected static void assertResult(Result res) {
+        assertResult(res, currentTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+    }
+
+    protected static void assertResult(Result res, Object date) {
+        int count = 0;
+        while (res.hasNext()) {
+            ++count;
+            Map<String, Object> r = res.next();
+            Map doc = (Map) r.get("value");
+            assertNotNull(doc.get("_id"));
+            assertEquals("testDocument", doc.get("name"));
+            assertEquals(date, doc.get("date"));
+            assertEquals(longValue, doc.get("longValue"));
+        }
+        assertEquals(NUM_OF_RECORDS, count);
+    }
+
+    protected static void assertionsInsertDataWithFromDocument(Date date, Result r) {
         Map<String, Object> map = r.next();
         Map graph = (Map) map.get("g1");
         assertEquals("Graph", graph.get("name"));

@@ -18,7 +18,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.mongodb.MongoDB.Coll;
+import static apoc.mongodb.MongoDBUtils.Coll;
+import static apoc.mongodb.MongoDBUtils.withMongoColl;
 
 public class Mongo {
 
@@ -66,7 +67,6 @@ public class Mongo {
     @Description("apoc.mongo.insert(uri, documents, $config) yield value - inserts the given documents into the mongodb collection")
     public void insert(@Name("uri") String uri, @Name("documents") List<Map<String, Object>> documents, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         MongoDbConfig conf = new MongoDbConfig(config);
-        // TODO - CAMBIARE NOME withSystemDb
         try (Coll coll = withMongoColl(() -> getColl(uri, conf))) {
             coll.insert(documents, conf.isUseExtendedJson());
         } catch (Exception e) {
@@ -106,8 +106,8 @@ public class Mongo {
         log.error(procedureName + " - uri = [" + uri + "] , config = {" + configString + "}" + others, e);
     }
 
-    private <T> Stream<T> executeMongoQuery(String uri, MongoDbConfig conf, Function<MongoDB.Coll, Stream<T>> execute, Consumer<Exception> onError) {
-        MongoDB.Coll coll = null;
+    private <T> Stream<T> executeMongoQuery(String uri, MongoDbConfig conf, Function<MongoDBUtils.Coll, Stream<T>> execute, Consumer<Exception> onError) {
+        Coll coll = null;
         try {
             coll = withMongoColl(() -> getColl(uri, conf));
             return execute.apply(coll).onClose(coll::safeClose);
@@ -120,31 +120,7 @@ public class Mongo {
         }
     }
 
-    private Coll withMongoColl(Supplier<Coll> action) {
-        MongoDB.Coll coll = null;
-        try {
-            coll = action.get();
-        } catch (NoClassDefFoundError e) {
-            final String version = Version.class.getPackage().getImplementationVersion().substring(0, 3);
-            throw new MissingDependencyException(String.format("Cannot find the jar into the plugins folder. \n" +
-                    "Please put these jar in the plugins folder :\n\n" +
-                    "bson-x.y.z.jar\n" +
-                    "\n" +
-                    "mongo-java-driver-x.y.z.jar\n" +
-                    "\n" +
-                    "mongodb-driver-x.y.z.jar\n" +
-                    "\n" +
-                    "mongodb-driver-core-x.y.z.jar\n" +
-                    "\n" +
-                    "jackson-annotations-x.y.z.jar\n\njackson-core-x.y.z.jar\n\njackson-databind-x.y.z.jar\n\nSee the documentation: https://neo4j.com/labs/apoc/%s/database-integration/mongodb/", version));
-        } catch (Exception e) {
-            throw new RuntimeException("Error during connection", e);
-        }
-        return coll;
-    }
-
-
-    protected static Coll getColl(@Name("url") String url, MongoDbConfig conf) {
+    protected static MongoDBUtils.Coll getColl(@Name("url") String url, MongoDbConfig conf) {
         return Coll.Factory.create(url, conf);
     }
 

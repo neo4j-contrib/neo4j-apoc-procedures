@@ -49,39 +49,8 @@ public class MongoDBTest extends MongoTestBase {
         MongoClient mongoClient = new MongoClient(mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
         HOST = String.format("mongodb://%s:%s", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
         params = map("host", HOST, "db", "test", "collection", "test");
-        MongoDatabase database = mongoClient.getDatabase("test");
 
-        testCollection = database.getCollection("test");
-        productCollection = database.getCollection("product");
-        personCollection = database.getCollection("person");
-        testCollection.deleteMany(new Document());
-        productCollection.deleteMany(new Document());
-        LongStream.range(0, NUM_OF_RECORDS)
-                .forEach(i -> testCollection.insertOne(new Document(map("name", "testDocument",
-                        "date", currentTime, "longValue", longValue, "nullField", null))));
-
-        productCollection.insertOne(new Document(map("name", "My Awesome Product",
-                "price", 800,
-                "tags", Arrays.asList("Tech", "Mobile", "Phone", "iOS"))));
-        productCollection.insertOne(new Document(map("name", "My Awesome Product 2",
-                "price", 1200,
-                "tags", Arrays.asList("Tech", "Mobile", "Phone", "Android"))));
-        productReferences = StreamSupport.stream(productCollection.find().spliterator(), false)
-                .map(doc -> (ObjectId) doc.get("_id"))
-                .collect(Collectors.toList());
-        personCollection.insertOne(new Document(map("name", "Andrea Santurbano",
-                "bought", productReferences,
-                "born", DateUtils.parseDate("11-10-1935", "dd-MM-yyyy"),
-                "coordinates", Arrays.asList(12.345, 67.890))));
-        personCollection.insertOne(new Document(map("name", nameAsObjectId,
-                "age", 40,
-                "bought", productReferences)));
-        personCollection.insertOne(new Document(map("_id", idAsObjectId,
-                "name", "Sherlock",
-                "age", 25,
-                "bought", productReferences)));
-
-        TestUtil.registerProcedure(db, MongoDB.class, Graphs.class);
+        fillDb(mongoClient);
         mongoClient.close();
     }
 
@@ -93,7 +62,7 @@ public class MongoDBTest extends MongoTestBase {
         boolean hasException = false;
         String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
                 .getUrl("mongodb", mongo.getContainerIpAddress());
-        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "person", false, true, false)) {
+        try (MongoDBUtils.Coll coll = MongoDBUtils.Coll.Factory.create(url, "test", "person", false, true, false)) {
             Map<String, Object> document = coll.first(Collections.emptyMap());
             assertTrue(document.get("_id") instanceof String);
             assertEquals("Andrea Santurbano", document.get("name"));
@@ -122,7 +91,7 @@ public class MongoDBTest extends MongoTestBase {
         boolean hasException = false;
         String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
                 .getUrl("mongodb", mongo.getContainerIpAddress());
-        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "person", false, false, false)) {
+        try (MongoDBUtils.Coll coll = MongoDBUtils.Coll.Factory.create(url, "test", "person", false, false, false)) {
             Map<String, Object> document = coll.first(MapUtil.map("name", "Andrea Santurbano"));
             assertTrue(document.get("_id") instanceof String);
             Collection<String> bought = (Collection<String>) document.get("bought");
@@ -138,7 +107,7 @@ public class MongoDBTest extends MongoTestBase {
         boolean hasException = false;
         String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
                 .getUrl("mongodb", mongo.getContainerIpAddress());
-        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "test", true, false, true)) {
+        try (MongoDBUtils.Coll coll = MongoDBUtils.Coll.Factory.create(url, "test", "test", true, false, true)) {
             Map<String, Object> document = coll.first(MapUtil.map("name", "testDocument"));
             assertNotNull(((Map<String, Object>) document.get("_id")).get("timestamp"));
             assertEquals(LocalDateTime.from(currentTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()), document.get("date"));
@@ -233,24 +202,6 @@ public class MongoDBTest extends MongoTestBase {
     public void testFind() throws Exception {
         TestUtil.testResult(db, "CALL apoc.mongodb.find($host,$db,$collection,{name:'testDocument'},null,null)",
                 params, res -> assertResult(res));
-    }
-
-    private void assertResult(Result res) {
-        assertResult(res, currentTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
-    }
-
-    private void assertResult(Result res, Object date) {
-        int count = 0;
-        while (res.hasNext()) {
-            ++count;
-            Map<String, Object> r = res.next();
-            Map doc = (Map) r.get("value");
-            assertNotNull(doc.get("_id"));
-            assertEquals("testDocument", doc.get("name"));
-            assertEquals(date, doc.get("date"));
-            assertEquals(longValue, doc.get("longValue"));
-        }
-        assertEquals(NUM_OF_RECORDS, count);
     }
 
     @Test
