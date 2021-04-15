@@ -6,9 +6,10 @@
 
 The available procedure is described in the table below:
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| call apoc.refactor.setType(rel, 'NEW-TYPE') | change relationship-type
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.refactor.setType.adoc[]
 |===
 
 == Example Usage

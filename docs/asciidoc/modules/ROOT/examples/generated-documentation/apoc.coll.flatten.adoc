@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.flatten.adoc[apoc.coll.flatten icon:book[]] +
+
+ - flattens list (nested if recursive is true)
+¦label:function[]
+¦label:apoc-core[]

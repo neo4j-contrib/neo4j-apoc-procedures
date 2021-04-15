@@ -44,3 +44,10 @@ apoc.export.xls.query(query :: STRING?, file :: STRING?, config :: MAP?) :: (fil
 |data|STRING?
 |===
 
+== Install Dependencies
+include::partial$xls-dependencies.adoc[]
+
+[[usage-apoc.export.xls.query]]
+== Usage Examples
+include::partial$usage/apoc.export.xls.query.adoc[]
+

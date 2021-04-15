@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.sortMulti.adoc[apoc.coll.sortMulti icon:book[]] +
+
+ - sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip
+¦label:function[]
+¦label:apoc-core[]

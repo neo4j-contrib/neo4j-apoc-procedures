@@ -44,3 +44,10 @@ apoc.export.xls.graph(graph :: MAP?, file :: STRING?, config :: MAP?) :: (file :
 |data|STRING?
 |===
 
+== Install Dependencies
+include::partial$xls-dependencies.adoc[]
+
+[[usage-apoc.export.xls.graph]]
+== Usage Examples
+include::partial$usage/apoc.export.xls.graph.adoc[]
+

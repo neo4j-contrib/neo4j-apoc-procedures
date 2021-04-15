@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.base64Decode.adoc[apoc.text.base64Decode icon:book[]] +
+
+ - Decode Base64 encoded string
+¦label:function[]
+¦label:apoc-core[]

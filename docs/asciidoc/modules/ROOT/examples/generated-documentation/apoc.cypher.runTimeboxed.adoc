@@ -1,0 +1,5 @@
+¦xref::overview/apoc.cypher/apoc.cypher.runTimeboxed.adoc[apoc.cypher.runTimeboxed icon:book[]] +
+
+ - abort kernelTransaction after timeout ms if not finished
+¦label:procedure[]
+¦label:apoc-core[]

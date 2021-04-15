@@ -1,5 +1,3 @@
-apoc.bolt.execute
-apoc.bolt.load
 apoc.cluster.graph
 apoc.config.list
 apoc.config.map
@@ -51,6 +49,8 @@ apoc.gephi.add
 apoc.get.nodes
 apoc.get.rels
 apoc.load.csv
+apoc.load.csvParams
+apoc.load.directory
 apoc.load.driver
 apoc.load.html
 apoc.load.jdbc
@@ -71,6 +71,7 @@ apoc.mongodb.delete
 apoc.mongodb.find
 apoc.mongodb.first
 apoc.mongodb.get
+apoc.mongodb.get.byObjectId
 apoc.mongodb.insert
 apoc.mongodb.update
 apoc.nlp.aws.entities.graph
@@ -100,3 +101,4 @@ apoc.static.get
 apoc.static.getAll
 apoc.trigger.nodesByLabel
 apoc.trigger.propertiesByKey
+apoc.ttl.config

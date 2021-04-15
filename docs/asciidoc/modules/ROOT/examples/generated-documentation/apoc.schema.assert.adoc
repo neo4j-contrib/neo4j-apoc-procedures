@@ -1,0 +1,5 @@
+¦xref::overview/apoc.schema/apoc.schema.assert.adoc[apoc.schema.assert icon:book[]] +
+
+ - drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label. Non-constraint indexes can define compound indexes with label:[key1,key2...] pairings.
+¦label:procedure[]
+¦label:apoc-core[]

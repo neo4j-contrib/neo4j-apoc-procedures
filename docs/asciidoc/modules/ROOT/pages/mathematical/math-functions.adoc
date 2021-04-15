@@ -2,21 +2,20 @@
 = Math Functions
 :description: This section describes functions for common math operations.
 
-
-
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| apoc.math.round(value,[precision=0],mode=[HALF_UP,CEILING,FLOOR,UP,DOWN,HALF_EVEN,HALF_DOWN,DOWN,UNNECESSARY]) | rounds value with optionally given precision (default 0) and optional rounding mode (default HALF_UP)
-| apoc.math.maxLong() | return the maximum value a long can have
-| apoc.math.minLong() | return the minimum value a long can have
-| apoc.math.maxDouble() | return the largest positive finite value of type double
-| apoc.math.minDouble() | return the smallest positive nonzero value of type double
-| apoc.math.maxInt() | return the maximum value a int can have
-| apoc.math.minInt() | return the minimum value a int can have
-| apoc.math.maxByte() | return the maximum value a byte can have
-| apoc.math.minByte() | return the minimum value a byte can have
-| apoc.number.romanToArabic(romanNumber)  | convert roman numbers to arabic
-| apoc.number.arabicToRoman(number)  | convert arabic numbers to roman
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.math.round.adoc[]
+include::example$generated-documentation/apoc.math.maxLong.adoc[]
+include::example$generated-documentation/apoc.math.minLong.adoc[]
+include::example$generated-documentation/apoc.math.maxDouble.adoc[]
+include::example$generated-documentation/apoc.math.minDouble.adoc[]
+include::example$generated-documentation/apoc.math.maxInt.adoc[]
+include::example$generated-documentation/apoc.math.minInt.adoc[]
+include::example$generated-documentation/apoc.math.maxByte.adoc[]
+include::example$generated-documentation/apoc.math.minByte.adoc[]
+include::example$generated-documentation/apoc.number.romanToArabic.adoc[]
+include::example$generated-documentation/apoc.number.arabicToRoman.adoc[]
 |===
 
 .The following returns the maximum long value:

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.graph/apoc.graph.fromPaths.adoc[apoc.graph.fromPaths icon:book[]] +
+
+ - creates a virtual graph object for later processing
+¦label:procedure[]
+¦label:apoc-core[]

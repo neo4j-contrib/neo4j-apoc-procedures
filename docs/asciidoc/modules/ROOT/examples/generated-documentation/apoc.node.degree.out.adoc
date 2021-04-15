@@ -1,0 +1,5 @@
+¦xref::overview/apoc.node/apoc.node.degree.out.adoc[apoc.node.degree.out icon:book[]] +
+
+ - returns total number number of outgoing relationships
+¦label:function[]
+¦label:apoc-core[]

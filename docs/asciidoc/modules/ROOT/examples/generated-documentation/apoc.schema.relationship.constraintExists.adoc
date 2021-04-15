@@ -1,0 +1,5 @@
+¦xref::overview/apoc.schema/apoc.schema.relationship.constraintExists.adoc[apoc.schema.relationship.constraintExists icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

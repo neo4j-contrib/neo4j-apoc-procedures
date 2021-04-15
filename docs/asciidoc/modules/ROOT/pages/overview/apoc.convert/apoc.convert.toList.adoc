@@ -24,3 +24,7 @@ apoc.convert.toList(list :: ANY?) :: (LIST? OF ANY?)
 |list|ANY?|null
 |===
 
+[[usage-apoc.convert.toList]]
+== Usage Examples
+include::partial$usage/apoc.convert.toList.adoc[]
+

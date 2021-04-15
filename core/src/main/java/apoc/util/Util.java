@@ -1,7 +1,10 @@
 package apoc.util;
 
 import apoc.Pools;
+import apoc.convert.Convert;
 import apoc.export.util.CountingInputStream;
+import apoc.result.VirtualNode;
+import apoc.result.VirtualRelationship;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
@@ -37,6 +40,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -46,6 +50,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -146,14 +151,7 @@ public class Util {
     }
 
     public static Stream<Object> stream(Object values) {
-        if (values == null) return Stream.empty();
-        if (values instanceof Collection) return ((Collection)values).stream();
-        if (values instanceof Object[]) return Stream.of(((Object[])values));
-        if (values instanceof Iterable) {
-            Spliterator<Object> spliterator = ((Iterable) values).spliterator();
-            return StreamSupport.stream(spliterator,false);
-        }
-        return Stream.of(values);
+        return Convert.convertToList(values).stream();
     }
 
     public static Stream<Node> nodeStream(Transaction tx, Object ids) {
@@ -854,30 +852,35 @@ public class Util {
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }
 
-
     public static Node rebind(Transaction tx, Node node) {
-        return tx.getNodeById(node.getId());
+         return node instanceof VirtualNode ? node : tx.getNodeById(node.getId());
     }
 
     public static Relationship rebind(Transaction tx, Relationship rel) {
-        return tx.getRelationshipById(rel.getId());
+         return rel instanceof VirtualRelationship ? rel : tx.getRelationshipById(rel.getId());
     }
 
-    public static Entity rebind(Transaction tx, Entity e) {
+    public static <T extends Entity> T rebind(Transaction tx, T e) {
         if (e instanceof Node) {
-            return rebind(tx, (Node) e);
+            return (T) rebind(tx, (Node) e);
         } else {
-            return rebind(tx, (Relationship)e);
+            return (T) rebind(tx, (Relationship) e);
         }
+    }
+
+    public static <T extends Entity> List<T> rebind(List<T> entities, Transaction tx) {
+        return entities.stream()
+                .map(n -> Util.rebind(tx, n))
+                .collect(Collectors.toList());
     }
 
     public static Node mergeNode(Transaction tx, Label primaryLabel, Label addtionalLabel,
                                  Pair<String, Object>... pairs ) {
-        Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, pairs[0].first(), pairs[1].other()).stream()
+        Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, pairs[0].first(), pairs[0].other()).stream()
                 .filter(n -> addtionalLabel!=null && n.hasLabel(addtionalLabel))
                 .filter( n -> {
                     for (int i=1; i<pairs.length; i++) {
-                        if (!pairs[i].other().equals(n.getProperty(pairs[i].first(), null))) {
+                        if (!Objects.deepEquals(pairs[i].other(), n.getProperty(pairs[i].first(), null))) {
                             return false;
                         }
                     }
@@ -919,4 +922,30 @@ public class Util {
         thread.setDaemon(true);
         return thread;
     }
+    
+    public static String encodeUserColonPassToBase64(String userPass) {
+        return new String(Base64.getEncoder().encode((userPass).getBytes()));
+    }
+
+    public static Map<String, Object> extractCredentialsIfNeeded(String url, boolean failOnError) {
+        try {
+            URI uri = new URI(url);
+            String authInfo = uri.getUserInfo();
+            if (null != authInfo) {
+                String[] parts = authInfo.split(":");
+                if (2 == parts.length) {
+                    String token = encodeUserColonPassToBase64(authInfo);
+                    return MapUtil.map("Authorization", "Basic " + token);
+                }
+            }
+        } catch (Exception e) {
+            if(!failOnError)
+                return Collections.emptyMap();
+            else
+                throw new RuntimeException(e);
+        }
+
+        return Collections.emptyMap();
+    }
+
 }

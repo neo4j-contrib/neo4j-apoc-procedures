@@ -6,6 +6,8 @@ import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.internal.helpers.collection.Iterables;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.neo4j.internal.helpers.collection.Iterators.loop;
 
@@ -15,6 +17,7 @@ public class CypherResultSubGraph implements SubGraph
     private final SortedMap<Long, Node> nodes = new TreeMap<>();
     private final SortedMap<Long, Relationship> relationships = new TreeMap<>();
     private final Collection<Label> labels = new HashSet<>();
+    private final Collection<RelationshipType> types = new HashSet<>();
     private final Collection<IndexDefinition> indexes = new HashSet<>();
     private final Collection<ConstraintDefinition> constraints = new HashSet<>();
 
@@ -156,6 +159,7 @@ public class CypherResultSubGraph implements SubGraph
     void addRel( Long id, Relationship rel )
     {
         relationships.put( id, rel );
+        types.add(rel.getType());
     }
 
     @Override
@@ -176,4 +180,60 @@ public class CypherResultSubGraph implements SubGraph
         return constraints;
     }
 
+    @Override
+    public Iterable<ConstraintDefinition> getConstraints(Label label) {
+        return constraints.stream()
+                .filter(c -> c.getLabel().equals(label))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Iterable<ConstraintDefinition> getConstraints(RelationshipType type) {
+        return constraints.stream()
+                .filter(c -> c.getRelationshipType().equals(type))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Iterable<IndexDefinition> getIndexes(Label label) {
+        return indexes.stream()
+                .filter(idx -> StreamSupport.stream(idx.getLabels().spliterator(), false).anyMatch(lb -> lb.equals(label)))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Iterable<RelationshipType> getAllRelationshipTypesInUse() {
+        return Collections.unmodifiableCollection(types);
+    }
+
+    @Override
+    public Iterable<Label> getAllLabelsInUse() {
+        return Collections.unmodifiableCollection(labels);
+    }
+
+    @Override
+    public long countsForRelationship(Label start, RelationshipType type, Label end) {
+        return relationships.values().stream()
+                .filter(r -> {
+                    boolean matchType = r.getType().equals(type);
+                    boolean matchStart = start != null ? r.getStartNode().hasLabel(start) : true;
+                    boolean matchEnd = end != null ? r.getEndNode().hasLabel(end) : true;
+                    return matchType && matchStart && matchEnd;
+                })
+                .count();
+    }
+
+    @Override
+    public long countsForNode(Label label) {
+        return nodes.values().stream()
+                .filter(n -> n.hasLabel(label))
+                .count();
+    }
+
+    @Override
+    public Iterator<Node> findNodes(Label label) {
+        return nodes.values().stream()
+                .filter(n -> n.hasLabel(label))
+                .iterator();
+    }
 }

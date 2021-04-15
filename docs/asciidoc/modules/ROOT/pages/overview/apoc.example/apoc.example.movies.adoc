@@ -35,3 +35,7 @@ apoc.example.movies() :: (file :: STRING?, source :: STRING?, format :: STRING?,
 |data|STRING?
 |===
 
+[[usage-apoc.example.movies]]
+== Usage Examples
+include::partial$usage/apoc.example.movies.adoc[]
+

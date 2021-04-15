@@ -1,4 +1,16 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.meta.cypher.isType¦apoc.meta.cypher.isType(value :: ANY?, type :: STRING?) :: (BOOLEAN?)¦apoc.meta.cypher.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION)
-¦function¦apoc.meta.cypher.type¦apoc.meta.cypher.type(value :: ANY?) :: (STRING?)¦apoc.meta.cypher.type(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION)
-¦function¦apoc.meta.cypher.types¦apoc.meta.cypher.types(properties :: ANY?) :: (MAP?)¦apoc.meta.cypher.types(node-relationship-map)  - returns a map of keys to types
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.meta.cypher/apoc.meta.adoc[apoc.meta.cypher.isType icon:book[]]
+
+apoc.meta.cypher.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION)
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.meta.cypher/apoc.meta.adoc[apoc.meta.cypher.type icon:book[]]
+
+apoc.meta.cypher.type(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION)
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.meta.cypher/apoc.meta.adoc[apoc.meta.cypher.types icon:book[]]
+
+apoc.meta.cypher.types(node-relationship-map)  - returns a map of keys to types
+|label:function[]
+|label:apoc-core[]

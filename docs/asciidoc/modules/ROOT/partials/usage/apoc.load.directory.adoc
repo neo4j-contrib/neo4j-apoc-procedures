@@ -1,0 +1,169 @@
+The first parameter is the pattern of file to search for.
+By default is '*', that is, search all files.
+The second is the search path of directory.
+By default is an empty string, that is, search file in `import` directory.
+
+Let's suppose we have set the config option:
+----
+apoc.import.file.use_neo4j_config=true
+----
+
+and in the `import` directory the following files:
+
+.Files
+[opts=header]
+|===
+| fileName | path
+| db.json | /
+| 1.csv | /
+| 3.csv | /
+| 4.csv | /
+| 8.xls | /
+| 11.txt |  /
+| 5.csv | subfolder1
+| 6.xls | subfolder1
+| 7.xls | subfolder1
+| 20.xls | subfolder1/foo
+| 2.csv | subfolder2
+| 9.xls | subfolder2
+| 10.txt | subfolder2
+|===
+
+We can do the following query:
+
+[source,cypher]
+----
+CALL apoc.load.directory();
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| "4.csv"
+| "1.csv"
+| "db.json"
+| "3.csv"
+| "subfolder2/10.txt"
+| "subfolder2/2.csv"
+| "subfolder2/9.xls"
+| "11.txt"
+| "8.xls"
+| "subfolder1/5.csv"
+| "subfolder1/.DS_Store"
+| "subfolder1/7.xls"
+| "subfolder1/foo/20.xls"
+| "subfolder1/6.xls"
+|===
+
+We can set a file pattern, for example:
+
+[source,cypher]
+----
+CALL apoc.load.directory("*.csv");
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| "4.csv"
+| "1.csv"
+| "3.csv"
+| "subfolder2/2.csv"
+| "subfolder1/5.csv"
+|===
+
+Furthermore we can also set a path, like:
+
+[source, cypher]
+----
+CALL apoc.load.directory("*.csv", "subfolder1");
+----
+.Results
+[opts="header"]
+|===
+| value
+| "subfolder1/5.csv"
+|===
+
+[source, cypher]
+----
+CALL apoc.load.directory("*", "subfolder1");
+----
+.Results
+[opts="header"]
+|===
+| value
+| "subfolder1/5.csv"
+| "subfolder1/.DS_Store"
+| "subfolder1/7.xls"
+| "subfolder1/foo/20.xls"
+| "subfolder1/6.xls"
+|===
+
+And we can search only in current folder:
+
+[source, cypher]
+----
+CALL apoc.load.directory("*", "subfolder2", {recursive: false});
+----
+.Results
+[opts="header"]
+|===
+| value
+| "subfolder2/10.txt"
+| "subfolder2/2.csv"
+| "subfolder2/9.xls"
+|===
+
+Instead, if we set `apoc.import.file.use_neo4j_config=false`, we can search with an absolute path:
+
+[source, cypher]
+----
+CALL apoc.load.directory('*', 'file:///Users/username/Downloads', {recursive: false});
+----
+
+We can concatenate this procedure with other procedures, for example with apoc.load.csv to obtain an aggregation of multiple results.
+Let's suppose we have these 2 files:
+
+.beta.csv
+----
+name,age
+Selma,8
+Rana,11
+Selina,18
+----
+
+and
+
+.alpha.csv
+----
+name,beverage
+Selma,Soda
+Rana,Tea|Milk
+Selina,Cola
+----
+
+so we can execute this query:
+
+[source, cypher]
+----
+CALL apoc.load.directory('*.csv', 'path/to/directory')
+YIELD value WITH value as url ORDER BY url DESC
+CALL apoc.load.csv(url, {results:['map']}) YIELD map RETURN map
+----
+
+with these results:
+
+.Results
+[opts="header"]
+|===
+| map
+| { "name": "Selma", "age": "8" }
+| { "name": "Rana", "age": "11" }
+| { "name": "Selina", "age": "18" }
+| { "name": "Selma", "beverage": "Soda" }
+| { "name": "Rana", "beverage": "Tea\|Milk" }
+| { "name": "Selina", "beverage": "Cola" }
+|===

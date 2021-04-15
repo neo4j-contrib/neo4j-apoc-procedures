@@ -29,5 +29,3 @@ apoc.meta.cypher.isType(value :: ANY?, type :: STRING?) :: (BOOLEAN?)
 == Usage Examples
 include::partial$usage/apoc.meta.cypher.isType.adoc[]
 
-xref::database-introspection/meta.adoc[More documentation of apoc.meta.cypher.isType,role=more information]
-

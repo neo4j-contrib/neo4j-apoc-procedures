@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.capitalize.adoc[apoc.text.capitalize icon:book[]] +
+
+ - capitalise the first letter of the word
+¦label:function[]
+¦label:apoc-core[]

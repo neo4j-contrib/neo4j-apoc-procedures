@@ -1,0 +1,30 @@
+{
+  "name": "apoc-antora-preview",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run build && npm run serve & npm-watch build",
+    "serve": "node server.js",
+    "build": "antora --stacktrace preview.yml"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@antora/cli": "^2.3.3",
+    "@antora/site-generator-default": "^2.3.3",
+    "@neo4j-documentation/macros": "^1.0.0",
+    "@neo4j-documentation/remote-include": "^1.0.0",
+    "express": "^4.17.1",
+    "npm-watch": "^0.6.0"
+  },
+  "watch": {
+    "build": {
+      "patterns": [
+        "../asciidoc/modules"
+      ],
+      "extensions": "adoc"
+    }
+  }
+}

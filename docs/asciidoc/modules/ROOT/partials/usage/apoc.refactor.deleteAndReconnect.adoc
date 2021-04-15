@@ -1,0 +1,82 @@
+The examples in this section are based on the following sample graph:
+
+Let's suppose we have a simple data set like:
+[source,cypher]
+----
+CREATE (f:One)-[:ALPHA {a:'b'}]->(b:Two)-[:BETA {a:'d', e:'f', g: 'h'}]->(c:Three)-[:GAMMA {aa: 'one'}]->(d:Four)-[:DELTA {aa: 'bb', cc: 'dd', ee: 'ff'}]->(e:Five {foo: 'bar', baz: 'baa'}), (:Other)-[:Pippo {goku: 'gohan', vegeta: 'trunks'}]->(:Other2), (:Other)-[:Pippo2 {krilin: 'maron'}]->(:Other2)
+----
+
+So, we can execute:
+
+[source,cypher]
+----
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as list CALL apoc.refactor.deleteAndReconnect(p, list) YIELD nodes, relationships RETURN nodes, relationships;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | relationships
+| [{"identity":0,"labels":["One"],"properties":{}},{"identity":2,"labels":["Three"],"properties":{}},{"identity":4,"labels":["Five"],"properties":{"baz":"baa","foo":"bar"}}] | [{"identity":6,"start":0,"end":2,"type":"ALPHA","properties":{"a":"b"}},{"identity":7,"start":2,"end":4,"type":"GAMMA","properties":{"aa":"one"}}]
+|===
+
+
+[source,cypher]
+----
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as list CALL apoc.refactor.deleteAndReconnect(p, list, {relationshipSelectionStrategy: 'outgoing'}) YIELD nodes, relationships RETURN nodes, relationships;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | relationships
+| [{"identity":1,"labels":["One"],"properties":{}},{"identity":0,"labels":["Three"],"properties":{}},{"identity":4,"labels":["Five"],"properties":{"baz":"baa","foo":"bar"}}] | [{"identity":6,"start":1,"end":0,"type":"BETA","properties":{"a":"d","e":"f","g":"h"}},{"identity":7,"start":0,"end":4,"type":"DELTA","properties":{"aa":"bb","cc":"dd","ee":"ff"}}]
+|===
+
+[source,cypher]
+----
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as list CALL apoc.refactor.deleteAndReconnect(p, list, {relationshipSelectionStrategy: 'merge'}) YIELD nodes, relationships RETURN nodes, relationships;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | relationships
+| [{"identity":2,"labels":["One"],"properties":{}},{"identity":0,"labels":["Three"],"properties":{}},{"identity":4,"labels":["Five"],"properties":{"baz":"baa","foo":"bar"}}] | [{"identity":6,"start":2,"end":0,"type":"ALPHA_BETA","properties":{"a":"d","e":"f","g":"h"}},{"identity":7,"start":0,"end":4,"type":"GAMMA_DELTA","properties":{"aa":"bb","cc":"dd","ee":"ff"}}]
+|===
+
+[source,cypher]
+----
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as list CALL apoc.refactor.deleteAndReconnect(p, list, {properties: 'combine', relationshipSelectionStrategy: 'merge'}) YIELD nodes, relationships RETURN nodes, relationships;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | relationships
+| [{"identity":2,"labels":["One"],"properties":{}},{"identity":0,"labels":["Three"],"properties":{}},{"identity":4,"labels":["Five"],"properties":{"baz":"baa","foo":"bar"}}] | [{"identity":4,"start":2,"end":0,"type":"ALPHA_BETA","properties":{"a":["b","d"],"e":"f","g":"h"}},{"identity":5,"start":0,"end":4,"type":"GAMMA_DELTA","properties":{"aa":["one","bb"],"cc":"dd","ee":"ff"}}]
+|===
+
+[source,cypher]
+----
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five) WITH p, [b,d] as list CALL apoc.refactor.deleteAndReconnect(p, list, {relTypesToAttach: ['one', 'two']}) YIELD nodes, relationships RETURN nodes, relationships;
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | relationships
+| [{"identity":0,"labels":["One"],"properties":{}},{"identity":2,"labels":["Three"],"properties":{}},{"identity":4,"labels":["Five"],"properties":{"baz":"baa","foo":"bar"}}] | [{"identity":6,"start":1,"end":0,"type":"ALPHA","properties":{"a":"b"}},{"identity":7,"start":0,"end":4,"type":"GAMMA","properties":{"aa":"one"}}]
+|===
+
+[source,cypher]
+----
+MATCH p=(f:One)-->(b:Two)-->(c:Three)-->(d:Four)-->(e:Five), ()-[rel:Pippo]->(), ()-[rel2:Pippo2]->() WITH p, [b,d] as list, collect(rel)+rel2 as rels CALL apoc.refactor.deleteAndReconnect(p, list, {relsToAttach: rels}) YIELD nodes, relationships RETURN nodes, relationships
+----
+
+.Results
+[opts="header"]
+|===
+| nodes | relationships
+| [{"identity":1,"labels":["One"],"properties":{}},{"identity":0,"labels":["Three"],"properties":{}},{"identity":4,"labels":["Five"],"properties":{"baz":"baa","foo":"bar"}}] | [{"identity":4,"start":1,"end":0,"type":"ALPHA","properties":{"a":"b"}},{"identity":5,"start":0,"end":4,"type":"GAMMA","properties":{"aa":"one"}}]
+|===

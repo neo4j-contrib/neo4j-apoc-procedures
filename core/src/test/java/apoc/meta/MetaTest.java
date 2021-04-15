@@ -1,5 +1,7 @@
 package apoc.meta;
 
+import apoc.graph.Graphs;
+import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.Assert;
@@ -7,21 +9,38 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-import org.neo4j.values.storable.*;
+import org.neo4j.values.storable.CoordinateReferenceSystem;
+import org.neo4j.values.storable.DateTimeValue;
+import org.neo4j.values.storable.DateValue;
+import org.neo4j.values.storable.LocalDateTimeValue;
+import org.neo4j.values.storable.LocalTimeValue;
+import org.neo4j.values.storable.TimeValue;
+import org.neo4j.values.storable.Values;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -45,7 +64,7 @@ public class MetaTest {
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, Meta.class);
+        TestUtil.registerProcedure(db, Meta.class, Graphs.class);
     }
 
     /*
@@ -373,6 +392,53 @@ public class MetaTest {
                     assertEquals("STRING", actedInRoleProperty.get("type"));
                     assertEquals(false, actedInRoleProperty.get("array"));
                     assertEquals(false, actedInRoleProperty.get("existence"));
+                });
+    }
+
+    @Test
+    public void testMetaSchemaWithNodesAndRelsWithoutProps() {
+        db.executeTransactionally("CREATE (:Other), (:Other)-[:REL_1]->(:Movie)<-[:REL_2 {baz: 'baa'}]-(:Director), (:Director {alpha: 'beta'}), (:Actor {foo:'bar'}), (:Person)");
+        testCall(db, "CALL apoc.meta.schema()",
+                (row) -> {
+                    Map<String, Object> value = (Map<String, Object>) row.get("value");
+                    assertEquals(7, value.size());
+
+                    Map<String, Object>  other = (Map<String, Object>) value.get("Other");
+                    Map<String, Object>  otherProperties = (Map<String, Object>) other.get("properties");
+                    assertEquals(0, otherProperties.size());
+                    assertEquals("node", other.get("type"));
+                    assertEquals(2L, other.get("count"));
+                    Map<String, Object>  Movie = (Map<String, Object>) value.get("Movie");
+                    Map<String, Object>  movieProperties = (Map<String, Object>) Movie.get("properties");
+                    assertEquals(0, movieProperties.size());
+                    assertEquals("node", Movie.get("type"));
+                    assertEquals(1L, Movie.get("count"));
+                    Map<String, Object>  director = (Map<String, Object>) value.get("Director");
+                    Map<String, Object>  directorProperties = (Map<String, Object>) director.get("properties");
+                    assertEquals(1, directorProperties.size());
+                    assertEquals("node", director.get("type"));
+                    assertEquals(2L, director.get("count"));
+                    Map<String, Object>  person = (Map<String, Object>) value.get("Person");
+                    Map<String, Object>  personProperties = (Map<String, Object>) person.get("properties");
+                    assertEquals(0, personProperties.size());
+                    assertEquals("node", person.get("type"));
+                    assertEquals(1L, person.get("count"));
+                    Map<String, Object>  actor = (Map<String, Object>) value.get("Actor");
+                    Map<String, Object>  actorProperties = (Map<String, Object>) actor.get("properties");
+                    assertEquals(1, actorProperties.size());
+                    assertEquals("node", actor.get("type"));
+                    assertEquals(1L, actor.get("count"));
+
+                    Map<String, Object>  rel1 = (Map<String, Object>) value.get("REL_1");
+                    Map<String, Object>  rel1Properties = (Map<String, Object>) rel1.get("properties");
+                    assertEquals(0, rel1Properties.size());
+                    assertEquals("relationship", rel1.get("type"));
+                    assertEquals(1L, rel1.get("count"));
+                    Map<String, Object>  rel2 = (Map<String, Object>) value.get("REL_2");
+                    Map<String, Object>  rel2Properties = (Map<String, Object>) rel2.get("properties");
+                    assertEquals(1, rel2Properties.size());
+                    assertEquals("relationship", rel2.get("type"));
+                    assertEquals(1L, rel2.get("count"));
                 });
     }
 
@@ -935,5 +1001,81 @@ public class MetaTest {
 
         db.executeTransactionally(q);
         assertEquals(true, testDBCallEquivalence(db, "CALL apoc.meta.nodeTypeProperties()", "CALL db.schema.nodeTypeProperties()"));
+    }
+
+    @Test
+    public void testMetaDataOf() throws Exception {
+        db.executeTransactionally("create index on :Movie(title)");
+        db.executeTransactionally("create constraint on (a:Actor) assert a.name is unique");
+        db.executeTransactionally("CREATE (p:Person {name:'Tom Hanks'}), (m:Movie {title:'Forrest Gump'}), (pr:Product{name: 'Awesome Product'}), " +
+                "(p)-[:VIEWED]->(m), (p)-[:BOUGHT{quantity: 10}]->(pr)");
+        Set<Map<String, Object>> expectedResult = new HashSet<>();
+        expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","BOUGHT","right",0L,"type","INTEGER","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","quantity","elementType","relationship","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Product","right",0L,"type","STRING","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","BOUGHT","right",1L,"type","RELATIONSHIP","sample",null,"rightCount",1L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","Person","elementType","relationship","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","Person","right",1L,"type","RELATIONSHIP","sample",null,"rightCount",1L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","BOUGHT","elementType","node","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Person","right",0L,"type","STRING","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
+
+        String keys = expectedResult.stream()
+                .findAny()
+                .map(Map::keySet)
+                .map(s -> String.join(", ", s))
+                .get();
+
+        Consumer<Result> assertResult = (r) -> {
+            Set<Map<String, Object>> result = r.stream().collect(Collectors.toSet());
+            assertEquals(expectedResult, result);
+        };
+
+        TestUtil.testResult(db, "CALL apoc.meta.data.of('MATCH p = ()-[:BOUGHT]->() RETURN p')",
+                assertResult);
+
+        TestUtil.testResult(db, "MATCH p = ()-[:BOUGHT]->() " +
+                        "WITH {nodes: nodes(p), relationships: relationships(p)} AS graphMap " +
+                        String.format("CALL apoc.meta.data.of(graphMap) YIELD %s ", keys) +
+                        "RETURN " + keys,
+                assertResult);
+
+        TestUtil.testResult(db, "CALL apoc.graph.fromCypher('MATCH p = ()-[:BOUGHT]->() RETURN p', {}, '', {}) YIELD graph " +
+                        String.format("CALL apoc.meta.data.of(graph) YIELD %s ", keys) +
+                        "RETURN " + keys,
+                assertResult);
+    }
+
+    @Test
+    public void testMetaGraphOf() throws Exception {
+        db.executeTransactionally("CREATE (p:Person {name:'Tom Hanks'}), (m:Movie {title:'Forrest Gump'}), (pr:Product{name: 'Awesome Product'}), " +
+                "(p)-[:VIEWED]->(m), (p)-[:BOUGHT{quantity: 10}]->(pr)");
+
+        Consumer<Result> assertResult = (r) -> {
+            Map<String, Object> row = r.next();
+            List<Node> nodes = (List<Node>) row.get("nodes");
+            List<Relationship> relationships = (List<Relationship>) row.get("relationships");
+            assertEquals(2, nodes.size());
+            assertEquals(1, relationships.size());
+            Set<Set<String>> labels = nodes.stream()
+                    .map(n -> StreamSupport
+                            .stream(n.getLabels().spliterator(), false)
+                            .map(Label::name)
+                            .collect(Collectors.toSet()))
+                    .collect(Collectors.toSet());
+            assertEquals(2, labels.size());
+            assertEquals(Set.of(Set.of("Person"), Set.of("Product")), labels);
+            assertEquals(RelationshipType.withName("BOUGHT"), relationships.get(0).getType());
+        };
+
+        TestUtil.testResult(db, "CALL apoc.meta.graph.of('MATCH p = ()-[:BOUGHT]->() RETURN p')",
+                assertResult);
+
+        TestUtil.testResult(db, "MATCH p = ()-[:BOUGHT]->() " +
+                        "WITH {nodes: nodes(p), relationships: relationships(p)} AS graphMap " +
+                        "CALL apoc.meta.graph.of(graphMap) YIELD nodes, relationships " +
+                        "RETURN *",
+                assertResult);
+
+        TestUtil.testResult(db, "CALL apoc.graph.fromCypher('MATCH p = ()-[:BOUGHT]->() RETURN p', {}, '', {}) YIELD graph " +
+                        "CALL apoc.meta.graph.of(graph) YIELD nodes, relationships " +
+                        "RETURN *",
+                assertResult);
     }
 }

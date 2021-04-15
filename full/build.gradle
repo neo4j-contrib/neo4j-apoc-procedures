@@ -44,10 +44,8 @@ dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib"
     testCompile "org.jetbrains.kotlin:kotlin-stdlib"
 //    apt 'net.biville.florent:neo4j-sproc-compiler:1.2'  // temporarily disabled until byte[] is supported by sproc compiler
-    apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
-    compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
-    compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
-    testCompile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
+    apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
+//    compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
@@ -122,7 +120,7 @@ dependencies {
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
 
     testCompile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.3'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.5.1'
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compile group: 'com.opencsv', name: 'opencsv', version: '4.6'
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'

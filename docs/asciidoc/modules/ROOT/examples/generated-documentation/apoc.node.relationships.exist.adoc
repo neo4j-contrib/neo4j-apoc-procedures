@@ -1,0 +1,5 @@
+¦xref::overview/apoc.node/apoc.node.relationships.exist.adoc[apoc.node.relationships.exist icon:book[]] +
+
+ - returns a map with rel-pattern, boolean for the given relationship patterns
+¦label:function[]
+¦label:apoc-core[]

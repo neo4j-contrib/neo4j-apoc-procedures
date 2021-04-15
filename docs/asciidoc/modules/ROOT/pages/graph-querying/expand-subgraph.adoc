@@ -14,9 +14,10 @@ It allows fine grained control over the traversals that expand these subgraphs.
 
 The procedure is described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.path.subgraphAll.csv[]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.path.subgraphAll.adoc[]
 |===
 
 [[expand-subgraph-config]]
@@ -43,8 +44,8 @@ See <<expand-subgraph-label-filters>>.
 If set to `true`, a `null` value is yielded whenever the expansion would normally eliminate rows due to no results.
 | endNodes | List<Node> | null | only these nodes can end returned paths, and expansion will continue past these nodes, if possible.
 | terminatorNodes | List<Node> | null | Only these nodes can end returned paths, and expansion won't continue past these nodes.
-| whiteListNodes | List<Node> | null | Only these nodes are allowed in the expansion (though endNodes and terminatorNodes will also be allowed, if present).
-| blackListNodes | List<Node> | null | None of the paths returned will include these nodes.
+| whitelistNodes | List<Node> | null | Only these nodes are allowed in the expansion (though endNodes and terminatorNodes will also be allowed, if present).
+| blacklistNodes | List<Node> | null | None of the paths returned will include these nodes.
 |===
 
 It also has the following fixed parameter:

@@ -9,23 +9,18 @@
 
 // tag::elasticsearch[]
 
-[cols="3m,2"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| apoc.es.stats(host-url-Key) | elastic search statistics
-| apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value | perform a GET operation
-| apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value | perform a SEARCH operation
-| apoc.es.getRaw(host-or-port,path,payload-or-null) yield value | perform a raw GET operation
-| apoc.es.postRaw(host-or-port,path,payload-or-null) yield value | perform a raw POST operation
-| apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value | perform a POST operation
-| apoc.es.put(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value | perform a PUT operation
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.es.stats.adoc[]
+include::example$generated-documentation/apoc.es.get.adoc[]
+include::example$generated-documentation/apoc.es.query.adoc[]
+include::example$generated-documentation/apoc.es.getRaw.adoc[]
+include::example$generated-documentation/apoc.es.postRaw.adoc[]
+include::example$generated-documentation/apoc.es.post.adoc[]
+include::example$generated-documentation/apoc.es.put.adoc[]
 |===
-
 // end::elasticsearch[]
-
-[separator=¦,opts=header,cols="1,1m,1m,5"]
-|===
-include::example$generated-documentation/apoc.es.csv[]
-|===
 
 
 == Example
@@ -128,7 +123,7 @@ Query can be a map which is turned into a query string, a direct string or null 
 
 === payload parameter
 
-Payload can be a *map* which will be turned into a json payload or a string which will be sent directly or null. 
+Payload can be a *map* which will be turned into a json payload or a string which will be sent directly or null.
 
 
 === Results

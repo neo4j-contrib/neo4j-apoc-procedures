@@ -1,0 +1,5 @@
+¦xref::overview/apoc.nodes/apoc.nodes.isDense.adoc[apoc.nodes.isDense icon:book[]] +
+
+ - returns true if it is a dense node
+¦label:function[]
+¦label:apoc-core[]

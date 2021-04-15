@@ -1,0 +1,5 @@
+¦xref::overview/apoc.math/apoc.math.maxInt.adoc[apoc.math.maxInt icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

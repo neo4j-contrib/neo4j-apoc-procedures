@@ -1,0 +1,5 @@
+¦xref::overview/apoc.meta/apoc.meta.cypher.isType.adoc[apoc.meta.cypher.isType icon:book[]] +
+
+ - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION)
+¦label:function[]
+¦label:apoc-core[]

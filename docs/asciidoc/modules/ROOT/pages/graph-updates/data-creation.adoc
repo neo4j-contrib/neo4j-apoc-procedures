@@ -13,22 +13,22 @@ ifdef::backend-html5[]
 ++++
 endif::[]
 
-[cols="5m,5"]
+
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| CALL apoc.create.node(['Label'], {key:value,...}) | create node with dynamic labels
-| CALL apoc.create.nodes(['Label'], [{key:value,...}]) | create multiple nodes with dynamic labels
-| CALL apoc.create.addLabels( [node,id,ids,nodes], ['Label',...]) | adds the given labels to the node or nodes
-| CALL apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...]) | removes the given labels from the node or nodes
-| CALL apoc.create.setProperty( [node,id,ids,nodes], key, value) | sets the given property on the node(s)
-| CALL apoc.create.setProperties( [node,id,ids,nodes], [keys], [values]) | sets the given properties on the nodes(s)
-| CALL apoc.create.setRelProperty( [rel,id,ids,rels], key, value) | sets the given property on the relationship(s)
-| CALL apoc.create.setRelProperties( [rel,id,ids,rels], [keys], [values]) | sets the given properties on the relationship(s)
-| CALL apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) | create relationship with dynamic rel-type
-| CALL apoc.nodes.link([nodes],'REL_TYPE') | creates a linked list of nodes from first to last
-| CALL apoc.merge.node(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) | merge nodes with dynamic labels, with support for setting properties ON CREATE or ON MATCH
-| CALL apoc.merge.relationship(startNode, relType, identProps:{key:value, ...}, onCreateProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...}) | merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH
-| CALL apoc.create.removeProperties( [node,id,ids,nodes], [keys]) | removes the given properties from the nodes(s)
-| CALL apoc.create.removeRelProperties( [rel,id,ids,rels], [keys]) | removes the given properties from the relationship(s)
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.create.node.adoc[]
+include::example$generated-documentation/apoc.create.nodes.adoc[]
+include::example$generated-documentation/apoc.create.removeLabels.adoc[]
+include::example$generated-documentation/apoc.create.setProperty.adoc[]
+include::example$generated-documentation/apoc.create.setProperties.adoc[]
+include::example$generated-documentation/apoc.create.setRelProperty.adoc[]
+include::example$generated-documentation/apoc.create.setRelProperties.adoc[]
+include::example$generated-documentation/apoc.create.relationship.adoc[]
+include::example$generated-documentation/apoc.nodes.link.adoc[]
+include::example$generated-documentation/apoc.merge.relationship.adoc[]
+include::example$generated-documentation/apoc.create.removeProperties.adoc[]
+include::example$generated-documentation/apoc.create.removeRelProperties.adoc[]
 |===
 
 

@@ -1,12 +1,12 @@
 [[nodes-collapse]]
-= Nodes collapse
+= Collapse Nodes
 :description: This section describes a procedure that can be used to collapse a list of nodes into a virtual node.
 
 
-
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| apoc.nodes.collapse([<node>], {config}) | returns the list of nodes merged into a VirtualNode
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.nodes.collapse.adoc[]
 |===
 
 == Config:

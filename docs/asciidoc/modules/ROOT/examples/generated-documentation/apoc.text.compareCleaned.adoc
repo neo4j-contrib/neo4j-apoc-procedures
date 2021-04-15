@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.compareCleaned.adoc[apoc.text.compareCleaned icon:book[]] +
+
+ - compare the given strings stripped of everything except alpha numeric characters converted to lower case.
+¦label:function[]
+¦label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.mongodb/apoc.mongodb.first.adoc[apoc.mongodb.first icon:book[]] +
+
+ - perform a first operation on mongodb collection
+¦label:procedure[]
+¦label:apoc-full[]

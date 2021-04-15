@@ -1,0 +1,6 @@
+¦xref::overview/apoc.load/apoc.load.xls.adoc[apoc.load.xls icon:book[]] +
+
+ - load XLS fom URL as stream of row values,
+ config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false, dateFormat:'iso_date', dateParse:['dd-MM-yyyy']}}
+¦label:procedure[]
+¦label:apoc-full[]

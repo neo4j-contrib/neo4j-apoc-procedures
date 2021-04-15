@@ -11,3 +11,56 @@ RETURN g.nodes AS nodes, g.relationships AS rels;
 | nodes                                                                                                                                                                                                                                                    | rels
 | [(:Artist {name: "Genesis", id: 1, type: "artist", years: [1967, 1998, 1999, 2000, 2006], members: ["Tony Banks", "Mike Rutherford", "Phil Collins"]}), (:Album {producer: "Jonathan King", id: 1, type: "album", title: "From Genesis to Revelation"})] | +++[[:ALBUMS]]+++
 |===
+
+.Virtual graph from JSON with labelField
+[source,cypher]
+----
+CALL apoc.graph.fromDocument("{'id': 1,'type': 'artist','name':'Genesis','members': ['Tony Banks','Mike Rutherford','Phil Collins'],'years': [1967, 1998, 1999, 2000, 2006],'albums': [{'type': 'album','id': 1,'producer': 'Jonathan King','title': 'From Genesis to Revelation'}]}", {write: false})
+YIELD graph
+RETURN *
+----
+
+As a result we have a virtual graph with two nodes and one relationship:
+
+image::apoc.graph.fromDocument_1.png[scaledwidth="100%"]
+
+.Virtual graph from JSON with labelField
+
+[source,cypher]
+----
+CALL apoc.graph.fromDocument('{"id":10,"myCustomType":"labelArtist","name":"Genesis","albums":[{"myCustomType":"labelAlbum","producer":"Jonathan King","id":20,"title":"From Genesis to Revelation"}]}', {labelField: "myCustomType"})
+YIELD graph
+RETURN *
+----
+
+As a result we have a virtual graph with two nodes and one relationship:
+
+image::apoc.graph.fromDocument_with_label_type.png[scaledwidth="100%"]
+
+.Virtual graph from JSON with labelField and idField
+
+[source,cypher]
+----
+CALL apoc.graph.fromDocument('{"myCustomType":"labelArtist","name":"Genesis","myCustomId":1,"albums":[{"myCustomType":"labelAlbum","producer":"Jonathan King","myCustomId":1,"title":"From Genesis to Revelation"}]}',
+{labelField: "myCustomType", idField: "myCustomId"})
+YIELD graph
+RETURN *
+----
+
+As a result we have a virtual graph with two nodes and one relationship:
+
+image::apoc.graph.fromDocument_with_label_type_and_id_field.png[scaledwidth="100%"]
+
+.Virtual graph from JSON with mappings
+
+[source,cypher]
+----
+CALL apoc.graph.fromDocument('{"id":1,"type":"Person","name":"Andrea","sizes":{"weight":{"value":70,"um":"Kg"},"height":{"value":174,"um":"cm"},"array":["foo","bar"]},"books":[{"title":"Flow My Tears, the Policeman Said","released":1974},{"title":"The man in the High Castle","released":1962}]}',
+{mappings:{`$`:"Person:Reader{*,@sizes}",`$.books`:"Book{!title, released}"}})
+yield graph
+RETURN *
+----
+
+As a result we have a virtual graph with three nodes and two relationship:
+
+image::apoc.graph.fromDocument_with_mappings.png[scaledwidth="100%"]

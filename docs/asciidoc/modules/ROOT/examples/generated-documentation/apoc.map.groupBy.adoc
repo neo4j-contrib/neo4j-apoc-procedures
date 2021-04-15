@@ -1,0 +1,5 @@
+¦xref::overview/apoc.map/apoc.map.groupBy.adoc[apoc.map.groupBy icon:book[]] +
+
+ - creates a map of the list keyed by the given property, with single values
+¦label:function[]
+¦label:apoc-core[]

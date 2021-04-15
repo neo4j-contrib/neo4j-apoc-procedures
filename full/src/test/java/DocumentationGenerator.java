@@ -20,12 +20,21 @@ class DocumentationGenerator {
 
     class Row {
         private String type;
+        private String namespace;
         private String name;
         private String signature;
         private String description;
 
         public Row(String type, String name, String signature, String description) {
+            String[] parts = name.split("\\.");
+            int newLength = 2;
+
+            if ( parts.length == 2 ) {
+                newLength = 1;
+            }
+
             this.type = type;
+            this.namespace = String.join(".", Arrays.copyOf(parts, newLength));
             this.name = name;
             this.signature = signature;
             this.description = description;
@@ -95,10 +104,17 @@ class DocumentationGenerator {
 
         for (Map.Entry<String, List<Row>> record : namespaces.entrySet()) {
             try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(DocsTest.GENERATED_DOCUMENTATION_DIR, String.format("%s.csv", record.getKey()))), StandardCharsets.UTF_8)) {
-                writer.write("¦type¦qualified name¦signature¦description\n");
+                writer.write("¦Qualified Name¦Type¦Release\n");
                 for (Row row : record.getValue()) {
-                    String description = row.description.replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
-                    writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, description));
+                    String releaseType = extended.contains(row.name) ? "full" : "core";
+                    String description = row.description
+                            .replace("|", "\\|")
+                            .replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
+
+                    writer.write(String.format("|%s\n|%s\n|%s\n",
+                            String.format("xref::%s[%s icon:book[]]\n\n%s", "overview/" + record.getKey() + "/" + row.namespace + ".adoc", row.name, description),
+                            String.format("label:%s[]", row.type),
+                            String.format("label:apoc-%s[]", releaseType)));
                 }
 
             } catch (Exception e) {
@@ -284,6 +300,7 @@ class DocumentationGenerator {
             writeTTL(writer, procedure.name().toString());
             writeTrigger(writer, procedure.name().toString());
             writeNlpDependencies(writer, procedure.name().toString());
+            writeXlsDependencies(writer, procedure.name().toString());
             writeMongodbDependencies(writer, procedure.name().toString());
             writeUsageExample(writer, procedure.name().toString());
             writeExtraDocumentation(writer, procedure.name());
@@ -295,7 +312,7 @@ class DocumentationGenerator {
 
     private final List<String> readsFromFile = Arrays.asList(
             "apoc.cypher.runFile", "apoc.cypher.runFiles", "apoc.cypher.runSchemaFile", "apoc.cypher.runSchemaFiles",
-            "apoc.load.json", "apoc.load.jsonParams", "apoc.load.csv"
+            "apoc.load.json", "apoc.load.jsonParams", "apoc.load.csv", "apoc.import.graphml", "apoc.import.xml", "apoc.load.xml"
     );
     private final List<String> writeToFile = Arrays.asList(
             "apoc.export.json.all", "apoc.export.json.data", "apoc.export.json.graph", "apoc.export.json.query",
@@ -369,6 +386,14 @@ class DocumentationGenerator {
         }
     }
 
+    private void writeXlsDependencies(Writer writer, String name) throws IOException {
+        // Commented until we do a release
+        if(name.startsWith("apoc.load.xls") || name.startsWith("apoc.export.xls")) {
+            writer.write("== Install Dependencies\n");
+            writer.write("include::partial$xls-dependencies.adoc[]\n\n");
+        }
+    }
+
     private void writeEmailDependencies(Writer writer, String name) throws IOException {
         if(name.startsWith("apoc.data.email")) {
             writer.write("== Install Dependencies\n");
@@ -400,10 +425,37 @@ class DocumentationGenerator {
 
 
     private void writeRow(Row row) {
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(DocsTest.GENERATED_DOCUMENTATION_DIR, String.format("%s.csv", row.name))), StandardCharsets.UTF_8)) {
-            writer.write("¦type¦qualified name¦signature¦description\n");
-            String description = row.description.replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
-            writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, description));
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(DocsTest.GENERATED_DOCUMENTATION_DIR, String.format("%s.adoc", row.name))), StandardCharsets.UTF_8)) {
+            String releaseType = extended.contains(row.name) ? "full" : "core";
+            Pattern splitBy = Pattern.compile(" (-|\\|) ");
+            String[] parts = row.description
+                    .replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1")
+                    .split(" - ");
+
+            String description = "";
+
+            if ( parts.length > 0 ) {
+                String.format("`%s`", parts[0]);
+            }
+
+            // @AC
+            if ( parts.length > 1 ) {
+                description += " - " + parts[1];
+            }
+            if ( description == "``" ) {
+                description = "";
+            }
+
+            String link = row.namespace + "/" + row.name;
+
+            if ( row.name.split(".").length == 2  ) {
+                link = row.namespace;
+            }
+
+            writer.write(String.format("¦%s\n¦%s\n¦%s\n",
+                    String.format("xref::%s[%s icon:book[]] +\n\n%s", "overview/" + link + ".adoc", row.name, description),
+                    String.format("label:%s[]", row.type),
+                    String.format("label:apoc-%s[]", releaseType)));
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }

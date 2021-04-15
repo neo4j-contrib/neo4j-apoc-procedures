@@ -37,5 +37,5 @@ apoc.graph.fromPath(path :: PATH?, name :: STRING?, properties :: MAP?) :: (grap
 == Usage Examples
 include::partial$usage/apoc.graph.fromPath.adoc[]
 
-xref::export/gephi.adoc[More documentation of apoc.graph.fromPath,role=more information]
+xref::virtual/virtual-graph.adoc[More documentation of apoc.graph.fromDB,role=more information]
 

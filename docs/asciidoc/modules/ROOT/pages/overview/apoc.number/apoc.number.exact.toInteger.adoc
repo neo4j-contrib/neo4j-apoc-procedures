@@ -30,5 +30,3 @@ apoc.number.exact.toInteger(stringA :: STRING?, precision = 0 :: INTEGER?, round
 == Usage Examples
 include::partial$usage/apoc.number.exact.toInteger.adoc[]
 
-xref::mathematical/exact-math-functions.adoc[More documentation of apoc.number.exact.toInteger,role=more information]
-

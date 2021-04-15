@@ -1,0 +1,5 @@
+¦xref::overview/apoc.map/apoc.map.groupByMulti.adoc[apoc.map.groupByMulti icon:book[]] +
+
+ - creates a map of the list keyed by the given property, with list values
+¦label:function[]
+¦label:apoc-core[]

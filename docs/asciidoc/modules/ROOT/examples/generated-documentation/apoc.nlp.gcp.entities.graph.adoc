@@ -1,0 +1,5 @@
+¦xref::overview/apoc.nlp/apoc.nlp.gcp.entities.graph.adoc[apoc.nlp.gcp.entities.graph icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-full[]

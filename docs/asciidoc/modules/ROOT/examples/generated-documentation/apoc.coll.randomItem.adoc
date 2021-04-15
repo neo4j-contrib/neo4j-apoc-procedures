@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.randomItem.adoc[apoc.coll.randomItem icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

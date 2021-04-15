@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.elements.adoc[apoc.coll.elements icon:book[]] +
+
+ - deconstruct subset of mixed list into identifiers of the correct type
+¦label:procedure[]
+¦label:apoc-core[]

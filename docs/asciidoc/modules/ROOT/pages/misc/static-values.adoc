@@ -6,12 +6,14 @@
 
 The library has support for storing and retrieving static values, functionality that can be used to work with API credentials or cache query results.
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| apoc.static.get(name) | returns statically stored value from config (apoc.static.<key>) or server lifetime storage
-| apoc.static.getAll(prefix) |  returns statically stored values from config (apoc.static.<prefix>) or server lifetime storage
-| apoc.static.set(name, value) | stores value under key for server livetime storage, returns previously stored or configured value
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.static.get.adoc[]
+include::example$generated-documentation/apoc.static.getAll.adoc[]
+include::example$generated-documentation/apoc.static.set.adoc[]
 |===
+
 
 NOTE: `apoc.static.get` and `apoc.static.getAll` have been migrated to functions, the procedures have been deprecated.
 

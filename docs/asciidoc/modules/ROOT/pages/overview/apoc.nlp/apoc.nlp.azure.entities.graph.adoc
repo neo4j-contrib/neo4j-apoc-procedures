@@ -42,5 +42,3 @@ include::partial$nlp-api-keys-apoc.nlp.azure.adoc[]
 == Usage Examples
 include::partial$usage/apoc.nlp.azure.entities.graph.adoc[]
 
-xref::nlp/azure.adoc[More documentation of apoc.nlp.azure.entities.graph,role=more information]
-

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.convert/apoc.convert.getJsonProperty.adoc[apoc.convert.getJsonProperty icon:book[]] +
+
+ - converts serialized JSON in property back to original object
+¦label:function[]
+¦label:apoc-core[]

@@ -3,9 +3,8 @@
 :description: This section describes procedures that can be used to delete graph data
 
 
-
-.Procedures
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| CALL apoc.nodes.delete(node\|nodes\|id\|[ids]) | quickly delete all nodes with these ids
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.nodes.delete.adoc[]
 |===

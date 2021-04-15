@@ -2,36 +2,36 @@
 = Node Querying
 :description: This section describes functions that can be used to query nodes.
 
-
-
 .Functions
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| xref::overview/apoc.nodes/apoc.nodes.isDense.adoc[apoc.nodes.isDense(node)] | returns true if it is a dense node
-| xref::overview/apoc.nodes/apoc.nodes.connected.adoc[apoc.nodes.connected(start, end, rel-direction-pattern)] | returns true when the node is connected to the other node, optimized for dense nodes
-| xref::overview/apoc.node/apoc.node.relationship.exists.adoc[apoc.node.relationship.exists(node, rel-direction-pattern)] | returns true when the node has the relationships of the pattern
-| xref::overview/apoc.node/apoc.node.relationships.exist.adoc[apoc.node.relationships.exist(node, rel-direction-pattern)] | returns a map with rel-pattern, boolean for the given relationship patterns
-| xref::overview/apoc.node/apoc.node.relationships.exist.adoc[+++apoc.nodes.relationships.exist(node\|nodes\|id\|[ids], rel-direction-pattern)+++]| returns a list of maps where each one has two fields: `node` which is the node subject of the analysis and `exists` which is a map with <rel-pattern, boolean> for the given relationship patterns
-| xref::overview/apoc.node/apoc.node.relationship.types.adoc[apoc.node.relationship.types(node, rel-direction-pattern)] | returns a list of distinct relationship types
-| xref::overview/apoc.node/apoc.node.relationship.types.adoc[+++apoc.nodes.relationship.types(node\|nodes\|id\|[ids], rel-direction-pattern)+++] | returns a list of maps where each one has two fields: `node` which is the node subject of the analysis and `types` which is a list of distinct relationship types
-| xref::overview/apoc.node/apoc.node.degree.adoc[apoc.node.degree(node, rel-direction-pattern)] | returns total degrees of the given relationships in the pattern, can use `'>'` or `'<'` for all outgoing or incoming relationships
-| xref::overview/apoc.node/apoc.node.id.adoc[apoc.node.id(node)] | returns id for (virtual) nodes
-| xref::overview/apoc.node/apoc.node.degree.in.adoc[apoc.node.degree.in(node, relationshipName)] | returns total number of incoming relationship
-| xref::overview/apoc.node/apoc.node.degree.out.adoc[apoc.node.degree.out(node, relationshipName)] | returns total number of outgoing relationship
-| xref::overview/apoc.node/apoc.node.labels.adoc[apoc.node.labels(node)] | returns labels for (virtual) nodes
-| apoc.any.properties(node/map, [[keys]]) | returns properties for virtual and real nodes, and maps. Optionally restrict via keys.
-| apoc.any.property(node/map) | returns property for virtual and real nodes, and maps
-| apoc.label.exists(element, label) | returns true or false related to label existance
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.nodes.isDense.adoc[]
+include::example$generated-documentation/apoc.nodes.connected.adoc[]
+include::example$generated-documentation/apoc.node.relationship.exists.adoc[]
+include::example$generated-documentation/apoc.node.relationships.exist.adoc[]
+include::example$generated-documentation/apoc.nodes.relationships.exist.adoc[]
+include::example$generated-documentation/apoc.node.relationship.types.adoc[]
+include::example$generated-documentation/apoc.nodes.relationship.types.adoc[]
+include::example$generated-documentation/apoc.node.degree.adoc[]
+include::example$generated-documentation/apoc.node.id.adoc[]
+include::example$generated-documentation/apoc.node.degree.in.adoc[]
+include::example$generated-documentation/apoc.node.degree.out.adoc[]
+include::example$generated-documentation/apoc.node.labels.adoc[]
+include::example$generated-documentation/apoc.any.properties.adoc[]
+include::example$generated-documentation/apoc.any.property.adoc[]
+include::example$generated-documentation/apoc.label.exists.adoc[]
 |===
 
-rel-direction-pattern syntax:
+== Rel-direction-pattern Syntax:
 
 `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 
 Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in either direction, outgoing :MENTORS relationships, and incoming :REPORTS_TO relationships.
 
 .Procedures
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| CALL apoc.nodes.get(node\|nodes\|id\|[ids]) | quickly returns all nodes with these ids
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.nodes.get.adoc[]
 |===

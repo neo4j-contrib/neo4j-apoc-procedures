@@ -12,11 +12,12 @@ The Load XML procedures allow us to process these files.
 
 The table below describes the available procedures and functions:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.load.xml.csv[]
-include::example$generated-documentation/apoc.xml.parse.csv[lines=2:]
-include::example$generated-documentation/apoc.import.xml.csv[lines=2:]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.load.xml.adoc[]
+include::example$generated-documentation/apoc.xml.parse.adoc[]
+include::example$generated-documentation/apoc.import.xml.adoc[]
 |===
 
 [[load-xml-available-procedures-apoc.load.xml]]

@@ -1,2 +1,6 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.meta.graph¦apoc.meta.graph(config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)¦apoc.meta.graph - examines the full graph to create the meta-graph
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.meta.graph/apoc.meta.adoc[apoc.meta.graph.of icon:book[]]
+
+apoc.meta.graph.of(\{graph}, \{config})  - examines a subset of the graph to provide a graph meta information
+|label:procedure[]
+|label:apoc-core[]

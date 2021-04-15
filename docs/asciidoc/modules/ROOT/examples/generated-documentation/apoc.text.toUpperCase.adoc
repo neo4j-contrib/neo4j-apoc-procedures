@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.toUpperCase.adoc[apoc.text.toUpperCase icon:book[]] +
+
+ - Convert a string to UPPER_CASE
+¦label:function[]
+¦label:apoc-core[]

@@ -1,0 +1,41 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE
+ (alice:Person {name:'Alice', gender:'female', age:32, kids:1}),
+ (bob:Person   {name:'Bob',   gender:'male',   age:42, kids:3}),
+ (eve:Person   {name:'Eve',   gender:'female', age:28, kids:2}),
+ (graphs:Forum {name:'Graphs',    members:23}),
+ (dbs:Forum    {name:'Databases', members:42}),
+ (alice)-[:KNOWS {since:2017}]->(bob),
+ (eve)-[:KNOWS   {since:2018}]->(bob),
+ (alice)-[:MEMBER_OF]->(graphs),
+ (alice)-[:MEMBER_OF]->(dbs),
+ (bob)-[:MEMBER_OF]->(dbs),
+ (eve)-[:MEMBER_OF]->(graphs);
+----
+
+
+[source,cypher]
+----
+CALL apoc.nodes.group(
+  ['*'],
+  ['gender'],
+  [{`*`:'count', age:'min'}, {`*`:'count'} ]
+)
+YIELD relationships
+UNWIND relationships as rel
+RETURN apoc.rel.startNode(rel) AS start, rel, apoc.rel.endNode(rel) AS end;
+----
+
+.Results
+[opts="header"]
+|===
+| start                                                   | rel                         | end
+| (:Person {gender: "female", min_age: 28, `count_*`: 2}) | [:MEMBER_OF {`count_*`: 3}] | (:Forum {gender: NULL, `count_*`: 2})
+| (:Person {gender: "female", min_age: 28, `count_*`: 2}) | [:KNOWS {`count_*`: 2}]     | (:Person {gender: "male", min_age: 42, `count_*`: 1})
+| (:Person {gender: "female", min_age: 28, `count_*`: 2}) | [:KNOWS {`count_*`: 2}]     | (:Person {gender: "male", min_age: 42, `count_*`: 1})
+| (:Person {gender: "male", min_age: 42, `count_*`: 1})   | [:MEMBER_OF {`count_*`: 1}] | (:Forum {gender: NULL, `count_*`: 2})
+
+|===

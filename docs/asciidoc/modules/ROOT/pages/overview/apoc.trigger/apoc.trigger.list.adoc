@@ -32,5 +32,9 @@ apoc.trigger.list() :: (name :: STRING?, query :: STRING?, selector :: MAP?, par
 == Enable Triggers
 include::partial$triggers.adoc[]
 
+[[usage-apoc.trigger.list]]
+== Usage Examples
+include::partial$usage/apoc.trigger.list.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.list,role=more information]
 

@@ -2,7 +2,6 @@ package apoc.test;
 
 import apoc.test.annotations.Env;
 import apoc.test.annotations.EnvSetting;
-import org.jetbrains.annotations.NotNull;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
@@ -29,9 +28,8 @@ public class EnvSettingRule implements TestRule {
             })
             .around(env);
 
-    @NotNull
     @Override
-    public Statement apply(@NotNull Statement base, @NotNull Description description) {
+    public Statement apply(Statement base, Description description) {
         return delegate.apply(base, description);
     }
 

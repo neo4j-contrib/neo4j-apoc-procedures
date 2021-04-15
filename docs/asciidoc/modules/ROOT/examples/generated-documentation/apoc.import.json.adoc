@@ -1,0 +1,5 @@
+¦xref::overview/apoc.import/apoc.import.json.adoc[apoc.import.json icon:book[]] +
+
+ - imports the json list to the provided file
+¦label:procedure[]
+¦label:apoc-core[]

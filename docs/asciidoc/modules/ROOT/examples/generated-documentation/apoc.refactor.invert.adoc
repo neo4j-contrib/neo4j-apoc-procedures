@@ -1,0 +1,5 @@
+¦xref::overview/apoc.refactor/apoc.refactor.invert.adoc[apoc.refactor.invert icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

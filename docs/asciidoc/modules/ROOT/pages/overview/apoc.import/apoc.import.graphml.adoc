@@ -25,6 +25,9 @@ apoc.import.graphml(file :: STRING?, config :: MAP?) :: (file :: STRING?, source
 |config|MAP?|null
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.import.graphml.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
@@ -43,5 +46,10 @@ apoc.import.graphml(file :: STRING?, config :: MAP?) :: (file :: STRING?, source
 |data|STRING?
 |===
 
-xref::import/graphml.adoc[More documentation of apoc.import.graphml,role=more information]
+== Reading from a file
+include::../../import/includes/enableFileImport.adoc[]
+
+[[usage-apoc.import.graphml]]
+== Usage Examples
+include::partial$usage/apoc.import.graphml.adoc[]
 

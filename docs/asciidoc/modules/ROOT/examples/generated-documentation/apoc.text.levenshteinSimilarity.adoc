@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.levenshteinSimilarity.adoc[apoc.text.levenshteinSimilarity icon:book[]] +
+
+ - calculate the similarity (a value within 0 and 1) between two texts.
+¦label:function[]
+¦label:apoc-core[]

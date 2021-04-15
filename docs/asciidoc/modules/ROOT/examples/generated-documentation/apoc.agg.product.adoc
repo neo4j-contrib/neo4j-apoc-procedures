@@ -1,0 +1,5 @@
+¦xref::overview/apoc.agg/apoc.agg.product.adoc[apoc.agg.product icon:book[]] +
+
+ - returns given product for non-null values
+¦label:function[]
+¦label:apoc-core[]

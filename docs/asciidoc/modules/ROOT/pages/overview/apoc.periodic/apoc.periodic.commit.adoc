@@ -44,5 +44,3 @@ apoc.periodic.commit(statement :: STRING?, params = {} :: MAP?) :: (updates :: I
 == Usage Examples
 include::partial$usage/apoc.periodic.commit.adoc[]
 
-xref::graph-updates/periodic-execution.adoc#periodic-commit[More documentation of apoc.periodic.commit,role=more information]
-

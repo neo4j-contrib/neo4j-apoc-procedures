@@ -1,9 +1,41 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.nodes.collapse¦apoc.nodes.collapse(nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (from :: NODE?, rel :: RELATIONSHIP?, to :: NODE?)¦apoc.nodes.collapse([nodes...],[{properties:'overwrite' or 'discard' or 'combine'}]) yield from, rel, to merge nodes onto first in list
-¦procedure¦apoc.nodes.delete¦apoc.nodes.delete(nodes :: ANY?, batchSize :: INTEGER?) :: (value :: INTEGER?)¦apoc.nodes.delete(node|nodes|id|[ids]) - quickly delete all nodes with these ids
-¦procedure¦apoc.nodes.get¦apoc.nodes.get(nodes :: ANY?) :: (node :: NODE?)¦apoc.nodes.get(node|nodes|id|[ids]) - quickly returns all nodes with these ids
-¦procedure¦apoc.nodes.group¦apoc.nodes.group(labels :: LIST? OF STRING?, groupByProperties :: LIST? OF STRING?, aggregations = [{*=count}, {*=count}] :: LIST? OF MAP?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?, node :: NODE?, relationship :: RELATIONSHIP?)¦
-¦procedure¦apoc.nodes.link¦apoc.nodes.link(nodes :: LIST? OF NODE?, type :: STRING?) :: VOID¦apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last
-¦procedure¦apoc.nodes.rels¦apoc.nodes.rels(relationships :: ANY?) :: (rel :: RELATIONSHIP?)¦apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these ids
-¦function¦apoc.nodes.connected¦apoc.nodes.connected(start :: NODE?, start :: NODE?, types =  :: STRING?) :: (BOOLEAN?)¦apoc.nodes.connected(start, end, rel-direction-pattern) - returns true when the node is connected to the other node, optimized for dense nodes
-¦function¦apoc.nodes.isDense¦apoc.nodes.isDense(node :: NODE?) :: (BOOLEAN?)¦apoc.nodes.isDense(node) - returns true if it is a dense node
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.nodes/apoc.nodes.adoc[apoc.nodes.collapse icon:book[]]
+
+apoc.nodes.collapse([nodes...],[{properties:'overwrite' or 'discard' or 'combine'}]) yield from, rel, to merge nodes onto first in list
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.nodes/apoc.nodes.adoc[apoc.nodes.delete icon:book[]]
+
+apoc.nodes.delete(node\|nodes\|id\|[ids]) - quickly delete all nodes with these ids
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.nodes/apoc.nodes.adoc[apoc.nodes.get icon:book[]]
+
+apoc.nodes.get(node\|nodes\|id\|[ids]) - quickly returns all nodes with these ids
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.nodes/apoc.nodes.adoc[apoc.nodes.group icon:book[]]
+
+
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.nodes/apoc.nodes.adoc[apoc.nodes.link icon:book[]]
+
+apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.nodes/apoc.nodes.adoc[apoc.nodes.rels icon:book[]]
+
+apoc.get.rels(rel\|id\|[ids]) - quickly returns all relationships with these ids
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.nodes/apoc.nodes.adoc[apoc.nodes.connected icon:book[]]
+
+apoc.nodes.connected(start, end, rel-direction-pattern) - returns true when the node is connected to the other node, optimized for dense nodes
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.nodes/apoc.nodes.adoc[apoc.nodes.isDense icon:book[]]
+
+apoc.nodes.isDense(node) - returns true if it is a dense node
+|label:function[]
+|label:apoc-core[]

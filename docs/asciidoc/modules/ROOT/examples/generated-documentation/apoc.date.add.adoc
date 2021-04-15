@@ -1,0 +1,5 @@
+¦xref::overview/apoc.date/apoc.date.add.adoc[apoc.date.add icon:book[]] +
+
+ - given a timestamp in one time unit, adds a value of the specified time unit
+¦label:function[]
+¦label:apoc-core[]

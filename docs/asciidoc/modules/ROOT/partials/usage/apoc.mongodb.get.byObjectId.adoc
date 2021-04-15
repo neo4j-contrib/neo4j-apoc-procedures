@@ -1,0 +1,100 @@
+
+=== Field description
+
+- `host`: the MongoDB host in the format `mongodb://<HOST_NAME>:<PORT>`
+or a url defined into the apoc config `apoc.mongodb.myInstance.url=mongodb://<HOST_NAME>:<PORT>`,
+which can be invoked by simply passing `myInstance`
+- `db`: the db name
+- `collection`: the collection name
+- `objectIdValue`: the `ObjectId` of the document to retrieve
+- `config`: the config map
+
+
+=== Examples
+
+Given the following collections:
+
+```
+// Product
+...
+{"_id": ObjectId("product1"), "name": "Product 1", "price": 100}
+{"_id": ObjectId("product3"), "name": "Product 2", "price": 200}
+{"_id": ObjectId("product3"), "name": "Product 3", "price": 300}
+{"_id": ObjectId("product4"), "name": ObjectId("507f191e810c19729de860ea"), "price": 400}
+...
+```
+
+```
+// Person
+...
+{"_id": ObjectId("person"), "name": "Andrea", "bought": [ObjectId("product1"), ObjectId("product3")]}
+...
+```
+
+
+With `CALL apoc.mongodb.get.byObjectId(<HOST>, <DB>, "product", "product1")`:
+
+```
+{
+  "_id": {
+  	"timestamp": <...>,
+	"machineIdentifier": <...>,
+	"processIdentifier": <...>,
+	"counter": <...>,
+  }
+  "name": "Product 1",
+  "price": 100L
+}
+```
+
+With `CALL apoc.mongodb.get.byObjectId(<HOST>, <DB>, "product", "product4", {idFieldName: "name"})`:
+
+```
+{
+  "_id": {
+  	"timestamp": <...>,
+	"machineIdentifier": <...>,
+	"processIdentifier": <...>,
+	"counter": <...>,
+  }
+  "name": "507f191e810c19729de860ea",
+  "price": 400L
+}
+```
+
+With `CALL apoc.mongodb.get.byObjectId(<HOST>, <DB>, "product", "product1", "_id", {extractReferences: true, objectIdAsMap: true, compatibleValues: false})`:
+
+
+```
+{
+  "_id": {
+  	"timestamp": <...>,
+	"machineIdentifier": <...>,
+	"processIdentifier": <...>,
+	"counter": <...>,
+  },
+  "name": "Andrea",
+  "bought": [
+    {
+      "_id": {
+	  	"timestamp": <...>,
+		"machineIdentifier": <...>,
+		"processIdentifier": <...>,
+		"counter": <...>,
+	  },
+	  "name": "Product 1",
+	  "price": 100
+	},
+    {
+      "_id": {
+	  	"timestamp": <...>,
+		"machineIdentifier": <...>,
+		"processIdentifier": <...>,
+		"counter": <...>,
+	  },
+	  "name": "Product 3",
+	  "price": 300
+	},
+  ]
+}
+```

@@ -158,13 +158,14 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
         String name = (String) node.getProperty(SystemPropertyKeys.name.name());
         String description = (String) node.getProperty(SystemPropertyKeys.description.name(), null);
+        String[] prefix = (String[]) node.getProperty(SystemPropertyKeys.prefix.name(), new String[]{PREFIX});
 
         String property = (String) node.getProperty(SystemPropertyKeys.inputs.name());
         List<FieldSignature> inputs = deserializeSignatures(property);
 
         List<FieldSignature> outputSignature = deserializeSignatures((String) node.getProperty(SystemPropertyKeys.outputs.name()));
         return new ProcedureDescriptor(Signatures.createProcedureSignature(
-                new QualifiedName(new String[]{PREFIX}, name),
+                new QualifiedName(prefix, name),
                 inputs,
                 outputSignature,
                 Mode.valueOf((String) node.getProperty(SystemPropertyKeys.mode.name())),
@@ -185,13 +186,14 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
         String name = (String) node.getProperty(SystemPropertyKeys.name.name());
         String description = (String) node.getProperty(SystemPropertyKeys.description.name(), null);
+        String[] prefix = (String[]) node.getProperty(SystemPropertyKeys.prefix.name(), new String[]{PREFIX});
 
         String property = (String) node.getProperty(SystemPropertyKeys.inputs.name());
         List<FieldSignature> inputs = deserializeSignatures(property);
 
         boolean forceSingle = (boolean) node.getProperty(SystemPropertyKeys.forceSingle.name(), false);
         return new UserFunctionDescriptor(new UserFunctionSignature(
-                new QualifiedName(new String[]{PREFIX}, name),
+                new QualifiedName(prefix, name),
                 inputs,
                 typeof((String) node.getProperty(SystemPropertyKeys.output.name())),
                 null,
@@ -242,9 +244,9 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         withSystemDb(tx -> {
             Node node = Util.mergeNode(tx, SystemLabels.ApocCypherProcedures, SystemLabels.Function,
                     Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
-                    Pair.of(SystemPropertyKeys.name.name(), signature.name().name())
+                    Pair.of(SystemPropertyKeys.name.name(), signature.name().name()),
+                    Pair.of(SystemPropertyKeys.prefix.name(), signature.name().namespace())
             );
-
             node.setProperty(SystemPropertyKeys.description.name(), signature.description().orElse(null));
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
             node.setProperty(SystemPropertyKeys.inputs.name(), serializeSignatures(signature.inputSignature()));
@@ -261,7 +263,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         withSystemDb(tx -> {
             Node node = Util.mergeNode(tx, SystemLabels.ApocCypherProcedures, SystemLabels.Procedure,
                     Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
-                    Pair.of(SystemPropertyKeys.name.name(), signature.name().name())
+                    Pair.of(SystemPropertyKeys.name.name(), signature.name().name()),
+                    Pair.of(SystemPropertyKeys.prefix.name(), signature.name().namespace())
             );
             node.setProperty(SystemPropertyKeys.description.name(), signature.description().orElse(null));
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
@@ -601,30 +604,36 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public void removeProcedure(String name) {
         withSystemDb(tx -> {
-            Node node = Iterators.single(tx.findNodes(SystemLabels.ApocCypherProcedures,
+            QualifiedName qName = qualifiedName(name);
+            tx.findNodes(SystemLabels.ApocCypherProcedures,
                     SystemPropertyKeys.database.name(), api.databaseName(),
-                    SystemPropertyKeys.name.name(), name
-            ).stream().filter(n -> n.hasLabel(SystemLabels.Procedure)).iterator());
-            ProcedureDescriptor descriptor = procedureDescriptor(node);
-            registerProcedure(descriptor.getSignature(), null);
-            registeredProcedureSignatures.remove(descriptor.getSignature());
-            node.delete();
-            setLastUpdate(tx);
+                    SystemPropertyKeys.name.name(), qName.name(),
+                    SystemPropertyKeys.prefix.name(), qName.namespace()
+            ).stream().filter(n -> n.hasLabel(SystemLabels.Procedure)).forEach(node -> {
+                ProcedureDescriptor descriptor = procedureDescriptor(node);
+                registerProcedure(descriptor.getSignature(), null);
+                registeredProcedureSignatures.remove(descriptor.getSignature());
+                node.delete();
+                setLastUpdate(tx);
+            });
             return null;
         });
     }
 
     public void removeFunction(String name) {
         withSystemDb(tx -> {
-            Node node = Iterators.single(tx.findNodes(SystemLabels.ApocCypherProcedures,
+            QualifiedName qName = qualifiedName(name);
+            tx.findNodes(SystemLabels.ApocCypherProcedures,
                     SystemPropertyKeys.database.name(), api.databaseName(),
-                    SystemPropertyKeys.name.name(), name
-            ).stream().filter(n -> n.hasLabel(SystemLabels.Function)).iterator());
-            UserFunctionDescriptor descriptor = userFunctionDescriptor(node);
-            registerFunction(descriptor.getSignature(), null, false);
-            registeredUserFunctionSignatures.remove(descriptor.getSignature());
-            node.delete();
-            setLastUpdate(tx);
+                    SystemPropertyKeys.name.name(), qName.name(),
+                    SystemPropertyKeys.prefix.name(), qName.namespace()
+            ).stream().filter(n -> n.hasLabel(SystemLabels.Function)).forEach(node -> {
+                UserFunctionDescriptor descriptor = userFunctionDescriptor(node);
+                registerFunction(descriptor.getSignature(), null, false);
+                registeredUserFunctionSignatures.remove(descriptor.getSignature());
+                node.delete();
+                setLastUpdate(tx);
+            });
             return null;
         });
 

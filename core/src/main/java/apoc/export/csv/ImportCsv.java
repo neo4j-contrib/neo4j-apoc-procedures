@@ -5,6 +5,7 @@ import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
 import java.util.HashMap;
@@ -18,6 +19,9 @@ public class ImportCsv {
 
     @Context
     public Pools pools;
+
+    @Context
+    public Log log;
 
     public ImportCsv(GraphDatabaseService db) {
         this.db = db;
@@ -38,7 +42,7 @@ public class ImportCsv {
                     final ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo("progress.csv", "file", "csv"));
 
                     final CsvLoaderConfig clc = CsvLoaderConfig.from(config);
-                    final CsvEntityLoader loader = new CsvEntityLoader(clc, reporter);
+                    final CsvEntityLoader loader = new CsvEntityLoader(clc, reporter, log);
 
                     final Map<String, Map<String, Long>> idMapping = new HashMap<>();
                     for (Map<String, Object> node : nodes) {

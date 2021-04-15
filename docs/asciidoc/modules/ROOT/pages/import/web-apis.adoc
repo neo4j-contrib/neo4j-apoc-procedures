@@ -3,7 +3,6 @@
 :description: This section gives an overview of procedures that can be used to load data from Web-APIs into Neo4j.
 
 
-
 Supported protocols are `file`, `http`, `https`, `s3`, `gs`, `hdfs` with redirect allowed.
 
 If no procedure is provided, this procedure will try to check whether the URL is actually a file.
@@ -21,19 +20,19 @@ If you want to remove these constraints please set `apoc.import.file.use_neo4j_c
 | CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, strings, map, stringMap | load CSV fom URL as stream of values +
 config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['aColumn'],arraySep:';',results:['map','list','strings','stringMap'], +
 nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false,nullValues:['n.A.']}}`
-| CALL apoc.load.xls('url','Sheet'/'Sheet!A2:B5',{config}) YIELD lineNo, list, map | load XLS fom URL as stream of values +
+| CALL apoc.load.xls('url','Sheet'/'Sheet!A2:B5',\{config}) YIELD lineNo, list, map | load XLS fom URL as stream of values +
 config contains any of: `{skip:1,limit:5,header:false,ignore:['aColumn'],arraySep:';'+
 nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false,nullValues:['n.A.']}}`
 |===
 
 == Load Single File From Compressed File (zip/tar/tar.gz/tgz)
 
-When loading data from compressed files, we need to put the `!` character before the file name.
+When loading data from compressed files, we need to put the `!` character before the file name or path in the compressed file.
 For example:
 
 .Loading a compressed CSV file
 ----
-apoc.load.csv("pathToFile!csv/fileName.csv.tgz")
+apoc.load.csv("pathToCompressedFile/file.zip!pathToCsvFileInZip/fileName.csv")
 ----
 
 .Loading a compressed JSON file
@@ -55,16 +54,14 @@ Once those files have been copied we'll need to restart the database.
 
 The S3 URL must be in the following format:
 
-* `s3://accessKey:secretKey[:sessionToken]@endpoint:port/bucket/key`
-(sessionToken is optional) or
-* `s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey[&sessionToken=sessionToken]`
-(sessionToken is optional) or
-* `s3://endpoint:port/bucket/key`
-if the accessKey, secretKey, and the optional sessionToken are provided in the environment variables
+* `s3://accessKey:secretKey@endpoint:port/bucket/key`
+or
+* `s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey`
+
 
 == Using Google Cloud Storage
 
-In order to use https://cloud.google.com/storage/[Google Cloud Storage] you need that the following jars are included into the plugin dir:
+In order to use https://cloud.google.com/storage/[Google Cloud Storage], you need to add the following Google Cloud dependencies in the plugins directory:
 
 * api-common-1.8.1.jar
 * failureaccess-1.0.1.jar
@@ -97,14 +94,15 @@ You can use Google Cloud storage via the following url format:
 
 `gs://<bucket_name>/<file_path>`
 
-moreover you can also define the authorization type:
+Moreover, you can also specify the authorization type via an additional `authenticationType` query parameter:
 
-* `NONE`: for public buckets (it's the default behaviour so you don't need to specify this)
-* `SERVICE`: with Service authentication by setting the env variable GOOGLE_APPLICATION_CREDENTIALS as described here: https://cloopenud.google.com/storage/docs/reference/libraries#client-libraries-install-java
+* `NONE`: for public buckets (this is the default behavior if the parameter is not specified)
+* `GCP_ENVIRONMENT`: for passive authentication as a service account when Neo4j is running in the Google Cloud
+* `PRIVATE_KEY`: for using private keys generated for service accounts (requires setting `GOOGLE_APPLICATION_CREDENTIALS` environment variable pointing to a private key json file as described here: https://cloud.google.com/docs/authentication#strategies)
 
-Ex:
+Example:
 
-`gs://andrea-bucket-1/test-privato.csv?authenticationType=SERVICE`
+`gs://andrea-bucket-1/test-privato.csv?authenticationType=GCP_ENVIRONMENT`
 
 == failOnError
 

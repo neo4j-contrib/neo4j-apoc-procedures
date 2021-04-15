@@ -1,0 +1,5 @@
+¦xref::overview/apoc/apoc.when.adoc[apoc.when icon:book[]] +
+
+ - based on the conditional, executes read-only ifQuery or elseQuery with the given parameters
+¦label:procedure[]
+¦label:apoc-core[]

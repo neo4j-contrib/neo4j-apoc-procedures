@@ -43,3 +43,10 @@ apoc.export.xls.all(file :: STRING?, config :: MAP?) :: (file :: STRING?, source
 |data|STRING?
 |===
 
+== Install Dependencies
+include::partial$xls-dependencies.adoc[]
+
+[[usage-apoc.export.xls.all]]
+== Usage Examples
+include::partial$usage/apoc.export.xls.all.adoc[]
+

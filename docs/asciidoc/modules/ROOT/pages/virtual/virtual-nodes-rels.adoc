@@ -11,15 +11,40 @@ Please note that they have negative id's.
 
 == Function Overview
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| CALL apoc.create.vNode(['Label'], {key:value,...}) YIELD node | returns a virtual node
-| apoc.create.vNode(['Label'], {key:value,...}) | function returns a virtual node
-| CALL apoc.create.vNodes(['Label'], [{key:value,...}]) | returns virtual nodes
-| apoc.create.virtual.fromNode(node, [propertyNames]) | function returns a virtual node  built from an existing node with only the requested properties
-| CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) YIELD rel | returns a virtual relationship
-| apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) | function returns a virtual relationship
-| CALL apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) | returns a virtual pattern
+¦Qualified Name¦Type¦Release
+
+¦xref::overview/apoc.create/apoc.create.vNode.adoc[apoc.create.vNode icon:book[]] +
+`CALL apoc.create.vNode(['Label'], {key:value,...}) YIELD node` - returns a virtual node
+¦label:procedure[]
+¦label:apoc-core[]
+
+
+¦xref::overview/apoc.create/apoc.create.vNode.adoc[apoc.create.vNode icon:book[]] +
+`apoc.create.vNode(['Label'], {key:value,...})` - function returns a virtual node
+¦label:function[]
+¦label:apoc-core[]
+
+
+include::example$generated-documentation/apoc.create.vNodes.adoc[]
+
+¦xref::overview/apoc.create/apoc.create.virtual.fromNode.adoc[apoc.create.virtual.fromNode icon:book[]] +
+`apoc.create.virtual.fromNode(node, [propertyNames])` - function returns a virtual node  built from an existing node with only the requested properties
+¦label:function[]
+¦label:apoc-core[]
+
+¦xref::overview/apoc.create/apoc.create.vRelationship.adoc[apoc.create.vRelationship icon:book[]] +
+`CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) YIELD rel` - returns a virtual relationship
+¦label:procedure[]
+¦label:apoc-core[]
+
+¦xref::overview/apoc.create/apoc.create.vRelationship.adoc[apoc.create.vRelationship icon:book[]] +
+`apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) YIELD rel` - returns a virtual relationship
+¦label:function[]
+¦label:apoc-core[]
+
+include::example$generated-documentation/apoc.create.virtualPath.adoc[]
 |===
 
 // * TODO `CALL apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])

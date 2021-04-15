@@ -1,0 +1,5 @@
+¦xref::overview/apoc.coll/apoc.coll.combinations.adoc[apoc.coll.combinations icon:book[]] +
+
+ - Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive
+¦label:function[]
+¦label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.load/apoc.load.jsonParams.adoc[apoc.load.jsonParams icon:book[]] +
+
+ - load from JSON URL (e.g. web-api) while sending headers / payload to import JSON as stream of values if the JSON was an array or a single value if it was a map
+¦label:procedure[]
+¦label:apoc-core[]

@@ -1,0 +1,10 @@
+The procedure supports the same configurations as the xref::overview/apoc.periodic/apoc.periodic.iterate.adoc[apoc.periodic.iterate] procedure.
+
+Moreover, it supports the following config parameters:
+
+.Config parameters
+[opts=header, cols="1,1,1,3"]
+|===
+| name | type | default | description
+| dropSchema | boolean | true | drops all indexes and constraints
+|===

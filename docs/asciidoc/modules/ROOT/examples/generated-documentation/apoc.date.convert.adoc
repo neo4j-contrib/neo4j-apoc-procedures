@@ -1,0 +1,5 @@
+¦xref::overview/apoc.date/apoc.date.convert.adoc[apoc.date.convert icon:book[]] +
+
+ - convert a timestamp in one time unit into one of a different time unit
+¦label:function[]
+¦label:apoc-core[]

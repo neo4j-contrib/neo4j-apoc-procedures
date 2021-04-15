@@ -1,0 +1,5 @@
+¦xref::overview/apoc.node/apoc.node.degree.adoc[apoc.node.degree icon:book[]] +
+
+ - returns total degrees of the given relationships in the pattern, can use '>' or '<' for all outgoing or incoming relationships
+¦label:function[]
+¦label:apoc-core[]

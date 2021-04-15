@@ -1,12 +1,56 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.couchbase.append¦apoc.couchbase.append(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, json :: STRING?) :: (id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?, content :: MAP?)¦apoc.couchbase.append(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - append a couchbase json document to an existing one.
-¦procedure¦apoc.couchbase.exists¦apoc.couchbase.exists(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?) :: (value :: BOOLEAN?)¦apoc.couchbase.exists(hostOrKey, bucket, documentId) yield value - check whether a couchbase json document with the given ID does exist.
-¦procedure¦apoc.couchbase.get¦apoc.couchbase.get(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?) :: (id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?, content :: MAP?)¦apoc.couchbase.get(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content - retrieves a couchbase json document by its unique ID.
-¦procedure¦apoc.couchbase.insert¦apoc.couchbase.insert(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, json :: STRING?) :: (id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?, content :: MAP?)¦apoc.couchbase.insert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert a couchbase json document with its unique ID.
-¦procedure¦apoc.couchbase.namedParamsQuery¦apoc.couchbase.namedParamsQuery(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?, paramNames :: LIST? OF STRING?, paramValues :: LIST? OF ANY?) :: (queryResult :: LIST? OF MAP?)¦apoc.couchbase.namedParamsQuery(hostkOrKey, bucket, statement, paramNames, paramValues) yield queryResult - executes a N1QL statement with named parameters.
-¦procedure¦apoc.couchbase.posParamsQuery¦apoc.couchbase.posParamsQuery(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?, params :: LIST? OF ANY?) :: (queryResult :: LIST? OF MAP?)¦apoc.couchbase.posParamsQuery(hostOrKey, bucket, statement, params) yield queryResult - executes a N1QL statement with positional parameters.
-¦procedure¦apoc.couchbase.prepend¦apoc.couchbase.prepend(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, json :: STRING?) :: (id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?, content :: MAP?)¦apoc.couchbase.prepend(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - prepend a couchbase json document to an existing one.
-¦procedure¦apoc.couchbase.query¦apoc.couchbase.query(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?) :: (queryResult :: LIST? OF MAP?)¦apoc.couchbase.query(hostOrKey, bucket, statement) yield queryResult - executes a plain un-parameterized N1QL statement.
-¦procedure¦apoc.couchbase.remove¦apoc.couchbase.remove(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?) :: (id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?, content :: MAP?)¦apoc.couchbase.remove(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content - remove the couchbase json document identified by its unique ID.
-¦procedure¦apoc.couchbase.replace¦apoc.couchbase.replace(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, json :: STRING?) :: (id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?, content :: MAP?)¦apoc.couchbase.replace(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - replace the content of the couchbase json document identified by its unique ID.
-¦procedure¦apoc.couchbase.upsert¦apoc.couchbase.upsert(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, json :: STRING?) :: (id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?, content :: MAP?)¦apoc.couchbase.upsert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert or overwrite a couchbase json document with its unique ID.
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.couchbase/apoc.couchbase.adoc[apoc.couchbase.append icon:book[]]
+
+apoc.couchbase.append(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - append a couchbase json document to an existing one.
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.couchbase/apoc.couchbase.adoc[apoc.couchbase.exists icon:book[]]
+
+apoc.couchbase.exists(hostOrKey, bucket, documentId) yield value - check whether a couchbase json document with the given ID does exist.
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.couchbase/apoc.couchbase.adoc[apoc.couchbase.get icon:book[]]
+
+apoc.couchbase.get(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content - retrieves a couchbase json document by its unique ID.
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.couchbase/apoc.couchbase.adoc[apoc.couchbase.insert icon:book[]]
+
+apoc.couchbase.insert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert a couchbase json document with its unique ID.
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.couchbase/apoc.couchbase.adoc[apoc.couchbase.namedParamsQuery icon:book[]]
+
+apoc.couchbase.namedParamsQuery(hostkOrKey, bucket, statement, paramNames, paramValues) yield queryResult - executes a N1QL statement with named parameters.
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.couchbase/apoc.couchbase.adoc[apoc.couchbase.posParamsQuery icon:book[]]
+
+apoc.couchbase.posParamsQuery(hostOrKey, bucket, statement, params) yield queryResult - executes a N1QL statement with positional parameters.
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.couchbase/apoc.couchbase.adoc[apoc.couchbase.prepend icon:book[]]
+
+apoc.couchbase.prepend(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - prepend a couchbase json document to an existing one.
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.couchbase/apoc.couchbase.adoc[apoc.couchbase.query icon:book[]]
+
+apoc.couchbase.query(hostOrKey, bucket, statement) yield queryResult - executes a plain un-parameterized N1QL statement.
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.couchbase/apoc.couchbase.adoc[apoc.couchbase.remove icon:book[]]
+
+apoc.couchbase.remove(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content - remove the couchbase json document identified by its unique ID.
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.couchbase/apoc.couchbase.adoc[apoc.couchbase.replace icon:book[]]
+
+apoc.couchbase.replace(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - replace the content of the couchbase json document identified by its unique ID.
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.couchbase/apoc.couchbase.adoc[apoc.couchbase.upsert icon:book[]]
+
+apoc.couchbase.upsert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert or overwrite a couchbase json document with its unique ID.
+|label:procedure[]
+|label:apoc-full[]

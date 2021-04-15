@@ -8,6 +8,8 @@ Rana,12,Tea;Milk
 Selina,19,Cola
 ----
 
+We'll place this file into the `import` directory of our Neo4j instance.
+
 We can load this file and return the contents by running the following query:
 
 [source, cypher]

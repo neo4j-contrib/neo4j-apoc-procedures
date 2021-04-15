@@ -8,17 +8,17 @@ The `unit` parameter supports the following values:
 * `h`, `hour`, `hours`
 * `d`,  `day`, `days`
 
-The `format` parameter supports values defined https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/format/DateTimeFormatter.html[under Patterns for Formatting and Parsing of the Java DateTime formats^]
+The `format` parameter supports values defined https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/format/DateTimeFormatter.html[under Patterns for Formatting and Parsing of the Java DateTime formats^].
 
 The `timezone` parameter can be specified with GMT or database (text) name, as listed for https://en.wikipedia.org/wiki/List_of_tz_database_time_zones[timezones]
 ====
 
-The following converts a datetime in epoch millis to `YYYY-MM-dd` format:
+The following converts a datetime in epoch millis to `yyyy-MM-dd` format:
 
 [source,cypher]
 ----
 WITH datetime("2020-11-04T11:23:22").epochMillis AS datetime
-RETURN apoc.date.format(datetime, "ms", "YYYY-MM-dd") AS output;
+RETURN apoc.date.format(datetime, "ms", "yyyy-MM-dd") AS output;
 ----
 
 .Results
@@ -28,12 +28,12 @@ RETURN apoc.date.format(datetime, "ms", "YYYY-MM-dd") AS output;
 | "2020-11-04"
 |===
 
-The following converts a GMT datetime in epoch millis to `YYYY-MM-dd'T'HH:mm:ssz` format, using the `Australian/Sydney` timezone:
+The following converts a GMT datetime in epoch millis to `yyyy-MM-dd'T'HH:mm:ssz` format, using the `Australian/Sydney` timezone:
 
 [source,cypher]
 ----
 WITH datetime("2020-11-04T11:23:22+00:00").epochMillis AS datetime
-RETURN apoc.date.format(datetime, "ms", "YYYY-MM-dd'T'HH:mm:ssz", "Australia/Sydney") AS output;
+RETURN apoc.date.format(datetime, "ms", "yyyy-MM-dd'T'HH:mm:ssz", "Australia/Sydney") AS output;
 ----
 
 .Results

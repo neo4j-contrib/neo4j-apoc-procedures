@@ -1,0 +1,5 @@
+¦xref::overview/apoc.date/apoc.date.fields.adoc[apoc.date.fields icon:book[]] +
+
+ - return columns and a map representation of date parsed with the given format with entries for years,months,weekdays,days,hours,minutes,seconds,zoneid
+¦label:function[]
+¦label:apoc-core[]

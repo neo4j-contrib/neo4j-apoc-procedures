@@ -1,2 +1,6 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.create.virtual.fromNode¦apoc.create.virtual.fromNode(node :: NODE?, propertyNames :: LIST? OF STRING?) :: (NODE?)¦apoc.create.virtual.fromNode(node, [propertyNames]) returns a virtual node built from an existing node with only the requested properties
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.create.virtual/apoc.create.adoc[apoc.create.virtual.fromNode icon:book[]]
+
+apoc.create.virtual.fromNode(node, [propertyNames]) returns a virtual node built from an existing node with only the requested properties
+|label:function[]
+|label:apoc-core[]

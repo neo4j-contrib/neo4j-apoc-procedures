@@ -1,7 +1,31 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.algo.aStar¦apoc.algo.aStar(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, weightPropertyName :: STRING?, latPropertyName :: STRING?, lonPropertyName :: STRING?) :: (path :: PATH?, weight :: FLOAT?)¦apoc.algo.aStar(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 'distance','lat','lon') YIELD path, weight - run A* with relationship property name as cost function
-¦procedure¦apoc.algo.aStarConfig¦apoc.algo.aStarConfig(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, config :: MAP?) :: (path :: PATH?, weight :: FLOAT?)¦apoc.algo.aStar(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', {weight:'dist',default:10,x:'lon',y:'lat'}) YIELD path, weight - run A* with relationship property name as cost function
-¦procedure¦apoc.algo.allSimplePaths¦apoc.algo.allSimplePaths(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, maxNodes :: INTEGER?) :: (path :: PATH?)¦apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 5) YIELD path, weight - run allSimplePaths with relationships given and maxNodes
-¦procedure¦apoc.algo.cover¦apoc.algo.cover(nodes :: ANY?) :: (rel :: RELATIONSHIP?)¦apoc.algo.cover(nodes) yield rel - returns all relationships between this set of nodes
-¦procedure¦apoc.algo.dijkstra¦apoc.algo.dijkstra(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, weightPropertyName :: STRING?, defaultWeight = NaN :: FLOAT?, numberOfWantedPaths = 1 :: INTEGER?) :: (path :: PATH?, weight :: FLOAT?)¦apoc.algo.dijkstra(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 'distance', defaultValue, numberOfWantedResults) YIELD path, weight - run dijkstra with relationship property name as cost function
-¦procedure¦apoc.algo.dijkstraWithDefaultWeight¦apoc.algo.dijkstraWithDefaultWeight(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, weightPropertyName :: STRING?, defaultWeight :: FLOAT?) :: (path :: PATH?, weight :: FLOAT?)¦apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 'distance', 10) YIELD path, weight - run dijkstra with relationship property name as cost function and a default weight if the property does not exist
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.algo/apoc.algo.adoc[apoc.algo.aStar icon:book[]]
+
+apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance','lat','lon') YIELD path, weight - run A* with relationship property name as cost function
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.algo/apoc.algo.adoc[apoc.algo.aStarConfig icon:book[]]
+
+apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', {weight:'dist',default:10,x:'lon',y:'lat'}) YIELD path, weight - run A* with relationship property name as cost function
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.algo/apoc.algo.adoc[apoc.algo.allSimplePaths icon:book[]]
+
+apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 5) YIELD path, weight - run allSimplePaths with relationships given and maxNodes
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.algo/apoc.algo.adoc[apoc.algo.cover icon:book[]]
+
+apoc.algo.cover(nodes) yield rel - returns all relationships between this set of nodes
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.algo/apoc.algo.adoc[apoc.algo.dijkstra icon:book[]]
+
+apoc.algo.dijkstra(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance', defaultValue, numberOfWantedResults) YIELD path, weight - run dijkstra with relationship property name as cost function
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.algo/apoc.algo.adoc[apoc.algo.dijkstraWithDefaultWeight icon:book[]]
+
+apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance', 10) YIELD path, weight - run dijkstra with relationship property name as cost function and a default weight if the property does not exist
+|label:procedure[]
+|label:apoc-core[]

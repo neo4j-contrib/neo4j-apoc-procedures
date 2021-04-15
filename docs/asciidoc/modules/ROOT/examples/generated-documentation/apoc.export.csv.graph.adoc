@@ -1,0 +1,5 @@
+¦xref::overview/apoc.export/apoc.export.csv.graph.adoc[apoc.export.csv.graph icon:book[]] +
+
+ - exports given graph object as csv to the provided file
+¦label:procedure[]
+¦label:apoc-core[]

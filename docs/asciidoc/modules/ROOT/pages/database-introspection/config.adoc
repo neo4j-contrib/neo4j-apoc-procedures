@@ -3,9 +3,9 @@
 :description: This section describes procedures that can be used to list Neo4j configuration.
 
 
-
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| apoc.config.list | Lists the Neo4j configuration as key,value table
-| apoc.config.map | Lists the Neo4j configuration as map
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.config.list.adoc[]
+include::example$generated-documentation/apoc.config.map.adoc[]
 |===

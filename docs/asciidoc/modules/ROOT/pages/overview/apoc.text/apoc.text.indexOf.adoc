@@ -31,5 +31,3 @@ apoc.text.indexOf(text :: STRING?, lookup :: STRING?, from = 0 :: INTEGER?, to =
 == Usage Examples
 include::partial$usage/apoc.text.indexOf.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.indexOf,role=more information]
-

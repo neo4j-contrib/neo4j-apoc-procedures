@@ -11,11 +11,12 @@ UUIDs are generated using the https://docs.oracle.com/javase/7/docs/api/java/uti
 [[manual-uuids]]
 == Manual UUIDs
 
-.Functions
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| apoc.create.uuid() | returns a UUID string
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.create.uuid.adoc[]
 |===
+
 
 
 .The following generates a UUID
@@ -57,14 +58,13 @@ Please check the following documentation to an in-depth description.
 
 Enable `apoc.uuid.enabled=true` or `apoc.uuid.enabled.[DATABASE_NAME]=true` in `$NEO4J_HOME/config/apoc.conf` first.
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-|*procedure* | *description*
-| CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult | it will add the uuid transaction handler
-for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one
-| CALL apoc.uuid.remove(label) yield label, installed, properties | remove previously added uuid handler and returns uuid information. All the existing uuid properties are left as-is
-| CALL apoc.uuid.removeAll() yield label, installed, properties | removes all previously added uuid handlers and returns uuids information. All the existing uuid properties are left as-is
-| CALL apoc.uuid.list() yield label, installed, properties | provides a list of all the uuid handlers installed with the related configuration
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.uuid.install.adoc[]
+include::example$generated-documentation/apoc.uuid.remove.adoc[]
+include::example$generated-documentation/apoc.uuid.removeAll.adoc[]
+include::example$generated-documentation/apoc.uuid.list.adoc[]
 |===
 
 === Config

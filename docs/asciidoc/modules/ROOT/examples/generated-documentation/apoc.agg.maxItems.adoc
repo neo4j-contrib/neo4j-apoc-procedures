@@ -1,0 +1,5 @@
+¦xref::overview/apoc.agg/apoc.agg.maxItems.adoc[apoc.agg.maxItems icon:book[]] +
+
+ - returns a map {items:[], value:n} where `value` is the maximum value present, and `items` are all items with the same value. The number of items can be optionally limited.
+¦label:function[]
+¦label:apoc-core[]

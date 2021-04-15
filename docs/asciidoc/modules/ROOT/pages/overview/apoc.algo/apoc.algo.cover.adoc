@@ -31,5 +31,9 @@ apoc.algo.cover(nodes :: ANY?) :: (rel :: RELATIONSHIP?)
 |rel|RELATIONSHIP?
 |===
 
+[[usage-apoc.algo.cover]]
+== Usage Examples
+include::partial$usage/apoc.algo.cover.adoc[]
+
 xref::algorithms/path-finding-procedures.adoc[More documentation of apoc.algo.cover,role=more information]
 

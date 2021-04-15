@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦function¦apoc.coll.runningTotal¦apoc.coll.runningTotal(list :: LIST? OF NUMBER?) :: (LIST? OF ANY?)¦apoc.coll.runningTotal(list1) - returns an accumulative array. For example apoc.coll.runningTotal([1,2,3.5]) return [1,3,6.5]

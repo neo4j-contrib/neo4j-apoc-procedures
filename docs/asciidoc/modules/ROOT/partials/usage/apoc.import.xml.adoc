@@ -1,0 +1,49 @@
+The examples in this section are based on the Microsoft https://msdn.microsoft.com/en-us/library/ms762271%28v=vs.85%29.aspx[book.xml^] file.
+
+.book.xml
+[source,xml]
+----
+<?xml version="1.0"?>
+<catalog>
+   <book id="bk101">
+      <author>Gambardella, Matthew</author>
+      <title>XML Developer's Guide</title>
+      <genre>Computer</genre>
+      <price>44.95</price>
+      <publish_date>2000-10-01</publish_date>
+      <description>An in-depth look at creating applications
+      with XML.</description>
+   </book>
+   <book id="bk102">
+      <author>Ralls, Kim</author>
+      <title>Midnight Rain</title>
+      <genre>Fantasy</genre>
+      <price>5.95</price>
+      <publish_date>2000-12-16</publish_date>
+      <description>A former architect battles corporate zombies,
+...
+----
+
+This file can be downloaded from https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml[GitHub].
+
+We can write the following query to create a graph structure of the Microsoft books XML file.
+
+[source,cypher,subs=attributes]
+----
+CALL apoc.import.xml(
+  "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml",
+  {relType:'NEXT_WORD', label:'XmlWord'}
+)
+YIELD node
+RETURN node;
+----
+
+[options="header"]
+|===
+| node
+| (:XmlDocument {_xmlVersion: "1.0", _xmlEncoding: "UTF-8", url: "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/4.0/src/test/resources/xml/books.xml"})
+|===
+
+The Neo4j Browser visualization below shows the imported graph:
+
+image::apoc.import.xml.svg[width="800px"]

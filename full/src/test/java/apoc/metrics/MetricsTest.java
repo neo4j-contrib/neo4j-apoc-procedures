@@ -44,7 +44,16 @@ public class MetricsTest {
         assumeNotNull(neo4jContainer);
         assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
         session = neo4jContainer.getSession();
-        Thread.sleep(3000); // need to wait until metrics files get written initially
+
+        boolean metricsExist = false;
+        while (!metricsExist)  {
+            try {
+                neo4jContainer.copyFileFromContainer("/var/lib/neo4j/metrics/neo4j.bolt.connections_opened.csv", inputStream -> null);
+                metricsExist = true;
+            } catch (Exception e) {
+                Thread.sleep(200);
+            }
+        }
     }
 
     @AfterClass

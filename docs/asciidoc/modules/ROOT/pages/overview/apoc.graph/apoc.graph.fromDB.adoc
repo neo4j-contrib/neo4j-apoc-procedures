@@ -36,5 +36,5 @@ apoc.graph.fromDB(name :: STRING?, properties :: MAP?) :: (graph :: MAP?)
 == Usage Examples
 include::partial$usage/apoc.graph.fromDB.adoc[]
 
-xref::export/gephi.adoc[More documentation of apoc.graph.fromDB,role=more information]
+xref::virtual/virtual-graph.adoc[More documentation of apoc.graph.fromDB,role=more information]
 

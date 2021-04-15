@@ -2,9 +2,10 @@
 = Utilities
 :description: This section describes functions for validating predicates, and sleeping a query.
 
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| apoc.util.sleep(\{duration}) | sleeps for <duration> millis, transaction termination is honored
-| apoc.util.validate(predicate, message,[params]) | raises exception if predicate evaluates to true (Procedure)
-| apoc.util.validatePredicate(predicate, message,[params]) | raises exception if predicate evaluates to true (UserFunction)
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.util.sleep.adoc[]
+include::example$generated-documentation/apoc.util.validate.adoc[]
+include::example$generated-documentation/apoc.util.validatePredicate.adoc[]
 |===

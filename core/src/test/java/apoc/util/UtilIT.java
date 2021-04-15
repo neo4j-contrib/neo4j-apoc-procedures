@@ -2,7 +2,6 @@ package apoc.util;
 
 import apoc.ApocConfig;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.NotNull;
 import org.junit.*;
 import org.junit.rules.TestName;
 import org.testcontainers.containers.GenericContainer;
@@ -70,7 +69,6 @@ public class UtilIT {
         }
     }
 
-    @NotNull
     private String getServerUrl() {
         return String.format("http://%s:%s", httpServer.getContainerIpAddress(), httpServer.getMappedPort(8000));
     }

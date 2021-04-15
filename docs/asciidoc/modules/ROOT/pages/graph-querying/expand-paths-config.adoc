@@ -12,9 +12,10 @@ For a more basic version of the algorithm where fine grained control over traver
 
 The procedure is described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.path.expandConfig.csv[]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.path.expandConfig.adoc[]
 |===
 
 [[path-expander-paths-config-config]]

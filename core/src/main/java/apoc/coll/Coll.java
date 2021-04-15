@@ -1,6 +1,7 @@
 package apoc.coll;
 
 import apoc.result.ListResult;
+import com.google.common.util.concurrent.AtomicDouble;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.math3.util.Combinations;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -33,6 +34,7 @@ import java.util.Random;
 import java.util.RandomAccess;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -48,6 +50,18 @@ public class Coll {
     public GraphDatabaseService db;
 
     @Context public Transaction tx;
+
+    @UserFunction
+    @Description("apoc.coll.runningTotal(list1) - returns an accumulative array. For example apoc.coll.runningTotal([1,2,3.5]) return [1,3,6.5]")
+    public List<Number> runningTotal(@Name("list") List<Number> list) {
+        if (list == null || list.isEmpty()) return null;
+        AtomicDouble sum = new AtomicDouble();
+        return list.stream().map(i -> {
+                    double value = sum.addAndGet(i.doubleValue());
+                    if (value == sum.longValue()) return sum.longValue();
+                    return value;
+                }).collect(Collectors.toList());
+    }
 
     @Procedure
     @Description("apoc.coll.zipToRows(list1,list2) - creates pairs like zip but emits one row per pair")
@@ -901,8 +915,6 @@ public class Coll {
         return new HashSet(values).size() == values.size();
     }
 
-
-
     @UserFunction
     @Description("apoc.coll.dropDuplicateNeighbors(list) - remove duplicate consecutive objects in a list")
     public List<Object> dropDuplicateNeighbors(@Name("list") List<Object> list){
@@ -938,4 +950,28 @@ public class Coll {
         Collections.sort(sorted, collator);
         return sorted;
     }
+
+    @UserFunction("apoc.coll.pairWithOffset")
+    @Description("apoc.coll.pairWithOffset(values, offset) - returns a list of pairs defined by the offset")
+    public List<List<Object>> pairWithOffsetFn(@Name("values") List<Object> values, @Name("offset") long offset) {
+        if (values == null) return null;
+        BiFunction<List<Object>, Long, Object> extract = (list, index) -> index < list.size() && index >= 0 ? list.get(index.intValue()) : null;
+        final int length = Double.valueOf(Math.ceil((double) values.size() / Math.abs(offset))).intValue();
+        List<List<Object>> result = new ArrayList<>(length);
+        for (long i = 0; i < values.size(); i++) {
+            final List<Object> objects = asList(extract.apply(values, i), extract.apply(values, i + offset));
+            result.add(objects);
+        }
+        return result;
+    }
+
+    @Procedure
+    @Description("apoc.coll.pairWithOffset(values, offset) - returns a list of pairs defined by the offset")
+    public Stream<ListResult> pairWithOffset(@Name("values") List<Object> values, @Name("offset") long offset) {
+        return pairWithOffsetFn(values, offset).stream()
+                .map(ListResult::new);
+    }
+
+
+
 }

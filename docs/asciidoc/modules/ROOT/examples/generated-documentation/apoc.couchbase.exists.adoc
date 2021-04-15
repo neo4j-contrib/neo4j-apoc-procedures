@@ -1,0 +1,5 @@
+¦xref::overview/apoc.couchbase/apoc.couchbase.exists.adoc[apoc.couchbase.exists icon:book[]] +
+
+ - check whether a couchbase json document with the given ID does exist.
+¦label:procedure[]
+¦label:apoc-full[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.cypher/apoc.cypher.doIt.adoc[apoc.cypher.doIt icon:book[]] +
+
+ - executes writing fragment with the given parameters
+¦label:procedure[]
+¦label:apoc-core[]

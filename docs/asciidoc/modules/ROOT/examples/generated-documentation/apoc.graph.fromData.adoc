@@ -1,0 +1,5 @@
+¦xref::overview/apoc.graph/apoc.graph.fromData.adoc[apoc.graph.fromData icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-core[]

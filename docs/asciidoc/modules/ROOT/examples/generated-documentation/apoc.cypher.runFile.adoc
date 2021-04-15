@@ -1,0 +1,5 @@
+¦xref::overview/apoc.cypher/apoc.cypher.runFile.adoc[apoc.cypher.runFile icon:book[]] +
+
+ - runs each statement in the file, all semicolon separated
+¦label:procedure[]
+¦label:apoc-full[]

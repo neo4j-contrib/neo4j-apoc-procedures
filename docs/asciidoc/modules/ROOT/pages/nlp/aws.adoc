@@ -24,12 +24,17 @@ If we want to make parallel requests to the API and avoid out of memory errors f
 
 The procedures are described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.nlp.aws.entities.csv[]
-include::example$generated-documentation/apoc.nlp.aws.keyPhrases.csv[lines=2;3]
-include::example$generated-documentation/apoc.nlp.aws.sentiment.csv[lines=2;3]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.nlp.aws.entities.graph.adoc[]
+include::example$generated-documentation/apoc.nlp.aws.entities.stream.adoc[]
+include::example$generated-documentation/apoc.nlp.aws.keyPhrases.graph.adoc[]
+include::example$generated-documentation/apoc.nlp.aws.keyPhrases.stream.adoc[]
+include::example$generated-documentation/apoc.nlp.aws.sentiment.graph.adoc[]
+include::example$generated-documentation/apoc.nlp.aws.sentiment.stream.adoc[]
 |===
+
 
 [[nlp-aws-entities]]
 === Entity Extraction

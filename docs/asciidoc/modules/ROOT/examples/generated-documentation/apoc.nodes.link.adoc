@@ -1,0 +1,5 @@
+¦xref::overview/apoc.nodes/apoc.nodes.link.adoc[apoc.nodes.link icon:book[]] +
+
+ - creates a linked list of nodes from first to last
+¦label:procedure[]
+¦label:apoc-core[]

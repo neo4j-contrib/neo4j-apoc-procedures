@@ -1,0 +1,5 @@
+¦xref::overview/apoc.text/apoc.text.clean.adoc[apoc.text.clean icon:book[]] +
+
+ - strip the given string of everything except alpha numeric characters and convert it to lower case.
+¦label:function[]
+¦label:apoc-core[]

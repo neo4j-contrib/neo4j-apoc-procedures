@@ -1,9 +1,41 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.trigger.add¦apoc.trigger.add(name :: STRING?, kernelTransaction :: STRING?, selector :: MAP?, config = {} :: MAP?) :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)¦add a trigger kernelTransaction under a name, in the kernelTransaction you can use \{createdNodes}, \{deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information. Takes in an optional configuration.
-¦procedure¦apoc.trigger.list¦apoc.trigger.list() :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)¦list all installed triggers
-¦procedure¦apoc.trigger.pause¦apoc.trigger.pause(name :: STRING?) :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)¦CALL apoc.trigger.pause(name) | it pauses the trigger
-¦procedure¦apoc.trigger.remove¦apoc.trigger.remove(name :: STRING?) :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)¦remove previously added trigger, returns trigger information
-¦procedure¦apoc.trigger.removeAll¦apoc.trigger.removeAll() :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)¦removes all previously added trigger, returns trigger information
-¦procedure¦apoc.trigger.resume¦apoc.trigger.resume(name :: STRING?) :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)¦CALL apoc.trigger.resume(name) | it resumes the paused trigger
-¦function¦apoc.trigger.nodesByLabel¦apoc.trigger.nodesByLabel(labelEntries :: ANY?, label :: STRING?) :: (LIST? OF ANY?)¦
-¦function¦apoc.trigger.propertiesByKey¦apoc.trigger.propertiesByKey(propertyEntries :: MAP?, key :: STRING?) :: (LIST? OF ANY?)¦
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.trigger/apoc.trigger.adoc[apoc.trigger.add icon:book[]]
+
+add a trigger kernelTransaction under a name, in the kernelTransaction you can use \{createdNodes}, \{deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information. Takes in an optional configuration.
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.trigger/apoc.trigger.adoc[apoc.trigger.list icon:book[]]
+
+list all installed triggers
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.trigger/apoc.trigger.adoc[apoc.trigger.pause icon:book[]]
+
+CALL apoc.trigger.pause(name) \| it pauses the trigger
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.trigger/apoc.trigger.adoc[apoc.trigger.remove icon:book[]]
+
+remove previously added trigger, returns trigger information
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.trigger/apoc.trigger.adoc[apoc.trigger.removeAll icon:book[]]
+
+removes all previously added trigger, returns trigger information
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.trigger/apoc.trigger.adoc[apoc.trigger.resume icon:book[]]
+
+CALL apoc.trigger.resume(name) \| it resumes the paused trigger
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.trigger/apoc.trigger.adoc[apoc.trigger.nodesByLabel icon:book[]]
+
+
+|label:function[]
+|label:apoc-full[]
+|xref::overview/apoc.trigger/apoc.trigger.adoc[apoc.trigger.propertiesByKey icon:book[]]
+
+
+|label:function[]
+|label:apoc-full[]

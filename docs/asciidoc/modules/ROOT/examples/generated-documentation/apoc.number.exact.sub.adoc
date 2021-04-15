@@ -1,0 +1,5 @@
+¦xref::overview/apoc.number/apoc.number.exact.sub.adoc[apoc.number.exact.sub icon:book[]] +
+
+ - return the substraction's of two large numbers
+¦label:function[]
+¦label:apoc-core[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.meta/apoc.meta.isType.adoc[apoc.meta.isType icon:book[]] +
+
+ - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)
+¦label:function[]
+¦label:apoc-core[]

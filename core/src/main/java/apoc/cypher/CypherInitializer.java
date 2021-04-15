@@ -12,6 +12,8 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
 import java.util.Collection;
+import java.util.Collections;
+
 import java.util.ConcurrentModificationException;
 import java.util.Map;
 import java.util.TreeMap;

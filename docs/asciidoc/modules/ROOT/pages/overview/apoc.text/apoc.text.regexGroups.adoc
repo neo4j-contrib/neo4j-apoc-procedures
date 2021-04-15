@@ -29,5 +29,3 @@ apoc.text.regexGroups(text :: STRING?, regex :: STRING?) :: (LIST? OF ANY?)
 == Usage Examples
 include::partial$usage/apoc.text.regexGroups.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.regexGroups,role=more information]
-

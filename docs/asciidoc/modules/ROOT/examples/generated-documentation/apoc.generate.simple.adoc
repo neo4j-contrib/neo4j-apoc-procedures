@@ -1,0 +1,5 @@
+¦xref::overview/apoc.generate/apoc.generate.simple.adoc[apoc.generate.simple icon:book[]] +
+
+ - generates a simple random graph according to the given degree distribution
+¦label:procedure[]
+¦label:apoc-full[]

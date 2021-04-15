@@ -1,0 +1,52 @@
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (s1:Student {name: 'Priya'})
+CREATE (s2:Student {name: 'Joachim'})
+CREATE (s3:Student {name: 'Dominic'})
+CREATE (s4:Student {name: 'Amir'})
+CREATE (s5:Student {name: 'Natasha'})
+CREATE (s6:Student {name: 'Elena'})
+
+CREATE (t1:TestScore {score: 87})
+CREATE (t2:TestScore {score: 90})
+CREATE (t3:TestScore {score: 78})
+CREATE (t4:TestScore {score: 84})
+CREATE (t5:TestScore {score: 76})
+CREATE (t6:TestScore {score: 92})
+
+CREATE (a:Level {level: 'beginner'})
+CREATE (b:Level {level: 'intermediate'})
+CREATE (c:Level {level: 'advanced'})
+
+MERGE (s1)-[:HAS]->(t1)-[:ASSIGNED_TO]->(b)
+MERGE (s2)-[:HAS]->(t2)-[:ASSIGNED_TO]->(c)
+MERGE (s3)-[:HAS]->(t3)-[:ASSIGNED_TO]->(a)
+MERGE (s4)-[:HAS]->(t4)-[:ASSIGNED_TO]->(b)
+MERGE (s5)-[:HAS]->(t5)-[:ASSIGNED_TO]->(a)
+MERGE (s6)-[:HAS]->(t6)-[:ASSIGNED_TO]->(c);
+----
+
+If we create virtual relationships between students to see which students have the same understanding level of class material, we can use `apoc.rel.startNode` to return the relationship id of those virtual relationships:
+
+.apoc.create.vRelationship Procedure
+[source,cypher]
+----
+MATCH (s1:Student)-[:HAS]->(:TestScore)-[:ASSIGNED_TO]->(l:Level)<-[:ASSIGNED_TO]-(:TestScore)<-[:HAS]-(s2:Student)
+CALL apoc.create.vRelationship(s1,'SIMILAR_LEVEL',{level: l.level},s2)
+YIELD rel
+RETURN apoc.rel.endNode(rel) AS endNode;
+----
+
+.Results
+[opts="header"]
+|===
+| endNode
+| (:Student {name: "Amir"})
+| (:Student {name: "Elena"})
+| (:Student {name: "Natasha"})
+| (:Student {name: "Priya"})
+| (:Student {name: "Dominic"})
+| (:Student {name: "Joachim"})
+|===

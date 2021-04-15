@@ -6,6 +6,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.impl.coreapi.TransactionImpl;
@@ -14,6 +15,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocSettings.apoc_trigger_enabled;
 import static org.junit.Assert.assertEquals;
@@ -51,6 +53,7 @@ public class TriggerTest {
             assertEquals(true, row.get("installed"));
         });
     }
+
     @Test
     public void testRemoveNode() throws Exception {
         db.executeTransactionally("CREATE (:Counter {count:0})");
@@ -94,6 +97,7 @@ public class TriggerTest {
             assertEquals(false, row.get("installed"));
         });
     }
+
     @Test
     public void testRemoveAllTrigger() throws Exception {
         TestUtil.testCallCount(db, "CALL apoc.trigger.removeAll()", 0);
@@ -120,7 +124,7 @@ public class TriggerTest {
         db.executeTransactionally("CALL apoc.trigger.add('timestamp','UNWIND $createdNodes AS n SET n.ts = timestamp()',{})");
         db.executeTransactionally("CREATE (f:Foo)");
         TestUtil.testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
-            assertEquals(true, ((Node)row.get("f")).hasProperty("ts"));
+            assertEquals(true, ((Node) row.get("f")).hasProperty("ts"));
         });
     }
 
@@ -129,11 +133,11 @@ public class TriggerTest {
         db.executeTransactionally("CALL apoc.trigger.add('txinfo','UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime',{phase:'after'})");
         db.executeTransactionally("CREATE (f:Bar)");
         TestUtil.testCall(db, "MATCH (f:Bar) RETURN f", (row) -> {
-            assertEquals(true, (Long)((Node)row.get("f")).getProperty("txId") > -1L);
-            assertEquals(true, (Long)((Node)row.get("f")).getProperty("txTime") > start);
+            assertEquals(true, (Long) ((Node) row.get("f")).getProperty("txId") > -1L);
+            assertEquals(true, (Long) ((Node) row.get("f")).getProperty("txTime") > start);
         });
     }
-    
+
     @Test
     public void testMetaDataBefore() {
         testMetaData("before");
@@ -195,9 +199,9 @@ public class TriggerTest {
         db.executeTransactionally("CALL apoc.trigger.pause('test')");
         db.executeTransactionally("CREATE (f:Foo {name:'Michael'})");
         TestUtil.testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
-            assertEquals(false, ((Node)row.get("f")).hasProperty("txId"));
-            assertEquals(false, ((Node)row.get("f")).hasProperty("txTime"));
-            assertEquals(true, ((Node)row.get("f")).hasProperty("name"));
+            assertEquals(false, ((Node) row.get("f")).hasProperty("txId"));
+            assertEquals(false, ((Node) row.get("f")).hasProperty("txTime"));
+            assertEquals(true, ((Node) row.get("f")).hasProperty("name"));
         });
     }
 
@@ -208,9 +212,9 @@ public class TriggerTest {
         db.executeTransactionally("CALL apoc.trigger.resume('test')");
         db.executeTransactionally("CREATE (f:Foo {name:'Michael'})");
         TestUtil.testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
-            assertEquals(true, ((Node)row.get("f")).hasProperty("txId"));
-            assertEquals(true, ((Node)row.get("f")).hasProperty("txTime"));
-            assertEquals(true, ((Node)row.get("f")).hasProperty("name"));
+            assertEquals(true, ((Node) row.get("f")).hasProperty("txId"));
+            assertEquals(true, ((Node) row.get("f")).hasProperty("txTime"));
+            assertEquals(true, ((Node) row.get("f")).hasProperty("name"));
         });
     }
 
@@ -218,5 +222,62 @@ public class TriggerTest {
     public void showThrowAnException() throws Exception {
         db.executeTransactionally("CALL apoc.trigger.add('test','UNWIND $createdNodes AS n SET n.txId = , n.txTime = $commitTime',{})");
     }
+
+    @Test
+    public void testCreatedRelationshipsAsync() throws Exception {
+        db.executeTransactionally("CREATE (:A {name: \"A\"})-[:R1]->(:Z {name: \"Z\"})");
+        db.executeTransactionally("CALL apoc.trigger.add('trigger-after-async', 'UNWIND $createdRelationships AS r\n" +
+                "MATCH (a:A)-[r]->(z:Z)\n" +
+                "WHERE type(r) IN [\"R2\", \"R3\"]\n" +
+                "MATCH (a)-[r1:R1]->(z)\n" +
+                "SET r1.triggerAfterAsync = true', {phase: 'afterAsync'})");
+        db.executeTransactionally("MATCH (a:A {name: \"A\"})-[:R1]->(z:Z {name: \"Z\"})\n" +
+                "MERGE (a)-[:R2]->(z)");
+
+        org.neo4j.test.assertion.Assert.assertEventually(() ->
+            db.executeTransactionally("MATCH ()-[r:R1]->() RETURN r", Map.of(),
+                    result -> (boolean) result.<Relationship>columnAs("r").next()
+                            .getProperty("triggerAfterAsync", false))
+            , (value) -> value, 30L, TimeUnit.SECONDS);
+    }
+
+    @Test
+    public void testDeleteRelationshipsAsync() throws Exception {
+        db.executeTransactionally("CREATE (a:A {name: \"A\"})-[:R1]->(z:Z {name: \"Z\"}), (a)-[:R2]->(z)");
+        db.executeTransactionally("CALL apoc.trigger.add('trigger-after-async', 'UNWIND $deletedRelationships AS r\n" +
+                "MATCH (a)-[r1:R1]->(z)\n" +
+                "SET r1.triggerAfterAsync = size($deletedRelationships) > 0, r1.size = size($deletedRelationships), r1.deleted = type(r) RETURN *', {phase: 'afterAsync'})");
+        db.executeTransactionally("MATCH (a:A {name: \"A\"})-[r:R2]->(z:Z {name: \"Z\"})\n" +
+                "DELETE r");
+
+        org.neo4j.test.assertion.Assert.assertEventually(() ->
+                        db.executeTransactionally("MATCH ()-[r:R1]->() RETURN r", Map.of(),
+                                result -> {
+                                    final Relationship r = result.<Relationship>columnAs("r").next();
+                                    return (boolean) r.getProperty("triggerAfterAsync", false)
+                                            && r.getProperty("deleted", "").equals("R2");
+                                })
+                , (value) -> value, 30L, TimeUnit.SECONDS);
+    }
+
+    @Test
+    public void testDeleteRelationships() throws Exception {
+        db.executeTransactionally("CREATE (a:A {name: \"A\"})-[:R1]->(z:Z {name: \"Z\"}), (a)-[:R2]->(z)");
+        db.executeTransactionally("CALL apoc.trigger.add('trigger-after', 'UNWIND $deletedRelationships AS r\n" +
+                "MERGE (a:AA{name: \"AA\"})\n" +
+                "SET a.triggerAfter = size($deletedRelationships) = 1, a.deleted = type(r)', {phase: 'after'})");
+        db.executeTransactionally("MATCH (a:A {name: \"A\"})-[r:R2]->(z:Z {name: \"Z\"})\n" +
+                "DELETE r");
+
+        org.neo4j.test.assertion.Assert.assertEventually(() ->
+                        db.executeTransactionally("MATCH (a:AA) RETURN a", Map.of(),
+                                result -> {
+                                    final Node r = result.<Node>columnAs("a").next();
+                                    return (boolean) r.getProperty("triggerAfter", false)
+                                            && r.getProperty("deleted", "").equals("R2");
+                                })
+                , (value) -> value, 30L, TimeUnit.SECONDS);
+    }
+
 
 }

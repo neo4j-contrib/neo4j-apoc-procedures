@@ -42,7 +42,7 @@ class RealAzureClient(private val baseUrl: String, private val key: String, priv
         connection.setRequestProperty("Ocp-Apim-Subscription-Key", subscriptionKeyValue)
         connection.doOutput = true
 
-        connection.setRequestProperty("Content-Type", "text/json")
+        connection.setRequestProperty("Content-Type", "application/json")
         DataOutputStream(connection.outputStream).use { it.write(JsonUtil.writeValueAsBytes(mapOf("documents" to convertInput(data)))) }
 
         return connection.inputStream
