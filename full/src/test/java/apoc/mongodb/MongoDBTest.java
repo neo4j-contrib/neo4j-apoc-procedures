@@ -5,9 +5,7 @@ import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.UrlResolver;
 import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang3.time.DateUtils;
-import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -15,7 +13,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.graphdb.Result;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -27,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
-import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.assertEquals;
@@ -42,6 +37,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class MongoDBTest extends MongoTestBase {
     private static Map<String, Object> params;
+    private static String HOST;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -51,6 +47,8 @@ public class MongoDBTest extends MongoTestBase {
         params = map("host", HOST, "db", "test", "collection", "test");
 
         fillDb(mongoClient);
+
+        TestUtil.registerProcedure(db, MongoDB.class, Graphs.class);
         mongoClient.close();
     }
 
@@ -176,8 +174,6 @@ public class MongoDBTest extends MongoTestBase {
 
     @Test
     public void testGetByObjectIdWithConfigs() throws Exception {
-        List<String> refsIds = productReferences.stream().map(ObjectId::toString).collect(Collectors.toList());
-
         TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host, $db, $collection, $objectId, $config)",
                 map("host", HOST, "db", "test", "collection", "person", "objectId", idAsObjectId.toString(),
                         "config", map("extractReferences", true, "objectIdAsMap", false, "compatibleValues", false)), r -> {
@@ -185,17 +181,8 @@ public class MongoDBTest extends MongoTestBase {
                     assertEquals(idAsObjectId.toString(), doc.get("_id"));
                     assertEquals(25, doc.get("age"));
                     assertEquals("Sherlock", doc.get("name"));
-                    List<Object> boughtList = (List<Object>) doc.get("bought");
-                    Map<String, Object> firstBought = (Map<String, Object>) boughtList.get(0);
-                    Map<String, Object> secondBought = (Map<String, Object>) boughtList.get(1);
-                    assertEquals(refsIds.get(0), firstBought.get("_id"));
-                    assertEquals(refsIds.get(1), secondBought.get("_id"));
-                    assertEquals(800, firstBought.get("price"));
-                    assertEquals(1200, secondBought.get("price"));
-                    assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "iOS"), firstBought.get("tags"));
-                    assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "Android"), secondBought.get("tags"));
+                    assertBoughtReferences(doc, false, false);
                 });
-
     }
 
     @Test

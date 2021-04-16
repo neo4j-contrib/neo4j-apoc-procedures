@@ -3,7 +3,6 @@ package apoc.mongodb;
 import apoc.Extended;
 import apoc.result.LongResult;
 import apoc.result.MapResult;
-import apoc.util.MissingDependencyException;
 import apoc.util.UrlResolver;
 import org.bson.types.ObjectId;
 import org.neo4j.logging.Log;
@@ -12,14 +11,13 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.io.Closeable;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static apoc.mongodb.MongoDBUtils.withMongoColl;
+import static apoc.mongodb.MongoDBUtils.getMongoColl;
 import static apoc.mongodb.MongoDBUtils.Coll;
 
 /*
@@ -128,7 +126,7 @@ public class MongoDB {
     @Procedure
     @Description("apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection")
     public void insert(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("documents") List<Map<String, Object>> documents) {
-        try (Coll coll = getMongoColl(hostOrKey, db, collection, false, false, false)) {
+        try (Coll coll = getMongoColl(() -> getColl(hostOrKey, db, collection, false, false, false))) {
             coll.insert(documents);
         } catch (Exception e) {
             log.error("apoc.mongodb.insert - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], documents = [" + documents + "]",e);
@@ -172,32 +170,11 @@ public class MongoDB {
         return new UrlResolver("mongodb", "localhost", 27017).getUrl("mongodb", hostOrKey);
     }
 
-    private Coll getMongoColl(String hostOrKey, String db, String collection, boolean compatibleValues,
-                              boolean extractReferences, boolean objectIdAsMap) {
-        Coll coll = null;
-        try {
-            coll = getColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap);
-        } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException("Cannot find the jar into the plugins folder. \n" +
-                    "Please put these jar in the plugins folder :\n\n" +
-                    "bson-x.y.z.jar\n" +
-                    "\n" +
-                    "mongo-java-driver-x.y.z.jar\n" +
-                    "\n" +
-                    "mongodb-driver-x.y.z.jar\n" +
-                    "\n" +
-                    "mongodb-driver-core-x.y.z.jar\n" +
-                    "\n" +
-                    "jackson-annotations-x.y.z.jar\n\njackson-core-x.y.z.jar\n\njackson-databind-x.y.z.jar\n\nSee the documentation: https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_interacting_with_mongodb");
-        }
-        return coll;
-    }
-
     private  <T> Stream<T> executeMongoQuery(String hostOrKey, String db, String collection, boolean compatibleValues,
                                             boolean extractReferences, boolean objectIdAsMap, Function<Coll, Stream<T>> execute, Consumer<Exception> onError) {
         Coll coll = null;
         try {
-            coll = withMongoColl(() -> getMongoColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap));
+            coll = getMongoColl(() -> getColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap));
             return execute.apply(coll).onClose(coll::safeClose);
         } catch (Exception e) {
             if (coll != null) {

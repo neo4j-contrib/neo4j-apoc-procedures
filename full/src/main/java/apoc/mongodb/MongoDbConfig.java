@@ -8,7 +8,6 @@ import java.util.Map;
 public class MongoDbConfig {
 
     private final boolean compatibleValues;
-    // todo - test
     private final boolean extractReferences;
     private final boolean objectIdAsMap;
     private final boolean useExtendedJson;
@@ -19,10 +18,9 @@ public class MongoDbConfig {
     private final Map<String, Object> project;
     private final Map<String, Object> sort;
 
-    // todo - test
     private final long skip;
-    // todo - test
     private final long limit;
+
     public MongoDbConfig(Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
         this.compatibleValues = Util.toBoolean(config.getOrDefault("compatibleValues", true));
@@ -31,11 +29,10 @@ public class MongoDbConfig {
         this.useExtendedJson = Util.toBoolean(config.getOrDefault("useExtendedJson", true));
         this.idFieldName = (String) config.getOrDefault("idFieldName", "_id");
         this.query = (Map<String, Object>) config.getOrDefault("query", Collections.emptyMap());
-        this.project = (Map<String, Object>) config.get("project");
-        this.sort = (Map<String, Object>) config.get("sort");
-// todo - togliere       this.query = (String) config.getOrDefault("query", null);
-        this.skip = Util.toLong(config.getOrDefault("skip", 0));
-        this.limit = Util.toLong(config.getOrDefault("limit", 0));
+        this.project = (Map<String, Object>) config.getOrDefault("project", Collections.emptyMap());
+        this.sort = (Map<String, Object>) config.getOrDefault("sort", Collections.emptyMap());
+        this.skip = (long) config.getOrDefault("skip", 0L);
+        this.limit = (long) config.getOrDefault("limit", 0L);
     }
 
     public boolean isCompatibleValues() {
@@ -70,11 +67,11 @@ public class MongoDbConfig {
         return useExtendedJson;
     }
 
-    public Long getSkip() {
+    public long getSkip() {
         return skip;
     }
 
-    public Long getLimit() {
+    public long getLimit() {
         return limit;
     }
 }

@@ -21,7 +21,6 @@ import org.bson.types.MinKey;
 import org.bson.types.ObjectId;
 import org.bson.types.Symbol;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -40,11 +39,11 @@ class MongoDBColl implements MongoDBUtils.Coll {
 
     private static final ObjectMapper jsonMapper = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
     public static final String ID = "_id";
-    private  MongoCollection<Document> collection = null;
-    private  MongoClient mongoClient = null;
+    private final MongoCollection<Document> collection;
+    private final MongoClient mongoClient;
     private boolean compatibleValues = false;
     private boolean doorStop = false;
-    private MongoDatabase database = null;
+    private MongoDatabase database;
     private boolean extractReferences = false;
     private boolean objectIdAsMap = true;
 
@@ -69,12 +68,6 @@ class MongoDBColl implements MongoDBUtils.Coll {
                        boolean extractReferences, boolean objectIdAsMap) {
         this(url, db, coll);
         getConfigs(compatibleValues, extractReferences, objectIdAsMap);
-    }
-
-    private void getConfigs(boolean compatibleValues, boolean extractReferences, boolean objectIdAsMap) {
-        this.compatibleValues = compatibleValues;
-        this.extractReferences = extractReferences;
-        this.objectIdAsMap = objectIdAsMap;
     }
 
     /**
@@ -108,6 +101,12 @@ class MongoDBColl implements MongoDBUtils.Coll {
         collection = database.getCollection(connectionString.getCollection());
 
         getConfigs(conf.isCompatibleValues(), conf.isExtractReferences(), conf.isObjectIdAsMap());
+    }
+
+    private void getConfigs(boolean compatibleValues, boolean extractReferences, boolean objectIdAsMap) {
+        this.compatibleValues = compatibleValues;
+        this.extractReferences = extractReferences;
+        this.objectIdAsMap = objectIdAsMap;
     }
 
     @Override
@@ -216,27 +215,21 @@ class MongoDBColl implements MongoDBUtils.Coll {
     }
 
     @Override
-    public Map<String, Object> first(Map<String, Object> query){
-        return first(query, false);
+    public Map<String, Object> first(Map<String, Object> query) {
+        return first(query, Collections.emptyMap(), 0L, false);
     }
 
     @Override
-    public Map<String, Object> first(Map<String, Object> query, boolean useExtendedJson) {
-        return documentToPackableMap(collection
-                .find(documentBasedOnUseExtJson(query, useExtendedJson))
-                .first());
+    public Map<String, Object> first(Map<String, Object> query, Map<String, Object> project, Long skip, boolean useExtendedJson) {
+        final FindIterable<Document> documents = getDocuments(query, useExtendedJson)
+                .projection(documentBasedOnUseExtJson(project, useExtendedJson))
+                .skip(skip.intValue());
+        return documentToPackableMap(documents.first());
     }
 
     @Override
     public Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit) {
-        return all(query, skip, limit, false);
-    }
-
-    @Override
-    public Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit, boolean useExtendedJson) {
-        FindIterable<Document> documents = query == null
-                ? collection.find()
-                : collection.find(documentBasedOnUseExtJson(query, useExtendedJson));
+        FindIterable<Document> documents = query == null ? collection.find() : collection.find(new Document(query));
         if (skip != 0) documents = documents.skip(skip.intValue());
         if (limit != 0) documents = documents.limit(limit.intValue());
         return asStream(documents);
@@ -264,14 +257,18 @@ class MongoDBColl implements MongoDBUtils.Coll {
                                             Long skip,
                                             Long limit,
                                             boolean useExtendedJson) {
-        FindIterable<Document> documents = query == null
-                ? collection.find()
-                : collection.find(documentBasedOnUseExtJson(query, useExtendedJson));
+        FindIterable<Document> documents = getDocuments(query, useExtendedJson);
         if (project != null) documents = documents.projection(documentBasedOnUseExtJson(project, useExtendedJson));
         if (sort != null) documents = documents.sort(documentBasedOnUseExtJson(sort, useExtendedJson));
         if (skip != 0) documents = documents.skip(skip.intValue());
         if (limit != 0) documents = documents.limit(limit.intValue());
         return asStream(documents);
+    }
+
+    private FindIterable<Document> getDocuments(Map<String, Object> query, boolean useExtendedJson) {
+        return query == null
+                ? collection.find()
+                : collection.find(documentBasedOnUseExtJson(query, useExtendedJson));
     }
 
     private Stream<Map<String, Object>> asStream(FindIterable<Document> result) {
@@ -281,9 +278,9 @@ class MongoDBColl implements MongoDBUtils.Coll {
                 .stream(it.spliterator(), false)
                 .map(doc -> this.documentToPackableMap(doc))
                 .onClose( () -> {
-                    result.iterator().close();
-                    mongoClient.close();
-                } );
+                        result.iterator().close();
+                        mongoClient.close();
+                    } );
     }
 
     @Override
