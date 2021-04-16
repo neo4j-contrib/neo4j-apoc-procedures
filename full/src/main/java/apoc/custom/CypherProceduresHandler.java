@@ -363,12 +363,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                     }
                 }
             }, true);
-//            System.out.println("CypherProceduresHandler.registerProcedure1");
-            registeredProcedureSignatures.add(signature);
             return true;
         } catch (Exception e) {
-//            System.out.println("e.getCause().getMessage()" + e.getCause().getMessage());
-            System.out.println("e.getClass().getName()" + e.getClass().getName());
             log.error("Could not register procedure: " + signature.name() + " with " + statement + "\n accepting" + signature.inputSignature() + " resulting in " + signature.outputSignature() + " mode " + signature.mode(), e);
             return false;
         }
@@ -415,7 +411,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
                 }
             }, true);
-//            registeredUserFunctionSignatures.add(signature);
             return true;
         } catch (Exception e) {
             log.error("Could not register function: " + signature + "\nwith: " + statement + "\n single result " + forceSingle, e);
