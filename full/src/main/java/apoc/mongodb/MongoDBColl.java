@@ -43,7 +43,7 @@ class MongoDBColl implements MongoDBUtils.Coll {
     private final MongoClient mongoClient;
     private boolean compatibleValues = false;
     private boolean doorStop = false;
-    private MongoDatabase database;
+    private final MongoDatabase database;
     private boolean extractReferences = false;
     private boolean objectIdAsMap = true;
 

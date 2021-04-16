@@ -37,6 +37,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class MongoDBTest extends MongoTestBase {
     private static Map<String, Object> params;
+
     private static String HOST = null;
 
     @BeforeClass
