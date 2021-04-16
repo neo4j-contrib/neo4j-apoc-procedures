@@ -14,7 +14,7 @@ apoc.couchbase.replace(hostOrKey, bucket, documentId, jsonDocument) yield id, ex
 
 [source]
 ----
-apoc.couchbase.replace(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, json :: STRING?) :: (id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?, content :: MAP?)
+apoc.couchbase.replace(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, json :: STRING?) :: (content :: MAP?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)
 ----
 
 == Input parameters
@@ -31,11 +31,11 @@ apoc.couchbase.replace(hostOrKey :: STRING?, bucket :: STRING?, documentId :: ST
 [.procedures, opts=header]
 |===
 | Name | Type 
+|content|MAP?
 |id|STRING?
 |expiry|INTEGER?
 |cas|INTEGER?
 |mutationToken|MAP?
-|content|MAP?
 |===
 
 xref::database-integration/couchbase.adoc[More documentation of apoc.couchbase.replace,role=more information]

@@ -110,7 +110,7 @@ public class CouchbaseIT {
         collection.insert(expectedId, bytes, InsertOptions.insertOptions().transcoder(RawBinaryTranscoder.INSTANCE));
 
         testCall(db, "CALL apoc.couchbase.append($host, $bucket, 'binaryId', $data)",
-                map("host", HOST, "bucket", BUCKET_NAME, "data", " {from: 'world'}"),
+                map("host", HOST, "bucket", BUCKET_NAME, "data", " {from: 'world'}".getBytes()),
                 r -> {
                     final String actualContent = new String((byte[]) r.get("content"));
                     final String actualId = (String) r.get("id");
@@ -130,7 +130,7 @@ public class CouchbaseIT {
         collection.insert(expectedId, bytes, InsertOptions.insertOptions().transcoder(RawBinaryTranscoder.INSTANCE));
 
         testCall(db, "CALL apoc.couchbase.prepend($host, $bucket, 'binaryId', $data)",
-                map("host", HOST, "bucket", BUCKET_NAME, "data", "hello"),
+                map("host", HOST, "bucket", BUCKET_NAME, "data", "hello".getBytes()),
                 r -> {
                     final String actualContent = new String((byte[]) r.get("content"));
                     final String actualId = (String) r.get("id");

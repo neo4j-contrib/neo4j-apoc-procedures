@@ -176,24 +176,24 @@ public class CouchbaseConnection implements AutoCloseable {
      * Appends a json content to an existing one.
      *
      * @param documentId the unique ID of the document
-     * @param json       the JSON String representing the document to append
+     * @param content       the byte[] representing the document to append
      * @return the updated {@link MutationResult}
      * @see BinaryCollection#append(String, byte[])
      */
-    public MutationResult append(String documentId, String json) {
-        return binaryCollection.append(documentId, json.getBytes());
+    public MutationResult append(String documentId, byte[] content) {
+        return binaryCollection.append(documentId, content);
     }
 
     /**
      * Prepends a json content to an existing one.
      *
      * @param documentId the unique ID of the document
-     * @param json       the JSON String representing the document to prepend
+     * @param content       the byte[] representing the document to prepend
      * @return the updated {@link MutationResult}
      * @see BinaryCollection#prepend(String, byte[])
      */
-    public MutationResult prepend(String documentId, String json) {
-        return binaryCollection.prepend(documentId, json.getBytes());
+    public MutationResult prepend(String documentId, byte[] content) {
+        return binaryCollection.prepend(documentId, content);
     }
 
     /**

@@ -1,6 +1,7 @@
 package apoc.couchbase;
 
 import apoc.Extended;
+import apoc.couchbase.document.CouchbaseByteArrayDocument;
 import apoc.couchbase.document.CouchbaseJsonDocument;
 import apoc.couchbase.document.CouchbaseQueryResult;
 import apoc.couchbase.document.CouchbaseUtils;
@@ -178,24 +179,24 @@ public class Couchbase {
      * Append a document's content to an existing one.
      * <p/>
      * Example:
-     * <code>CALL apoc.couchbase.append('localhost', 'default', 'artist:vincent_van_gogh', '{"placeOfBirth":"Zundert","placeOfDeath":" Auvers-sur-Oise"}') yield id, expiry, cas, mutationToken, content</code>
+     * <code>CALL apoc.couchbase.append('localhost', 'default', 'artist:vincent_van_gogh', 'hello world'.getBytes()) yield id, expiry, cas, mutationToken, content</code>
      *
      * @param hostOrKey  a URI to use when connecting to the cluster reference or a configuration key
      * @param bucket     the bucket to open; if null is passed then it's used the "default"
      *                   bucket
      * @param documentId the unique ID of the document
-     * @param json       the JSON String representing the document to append
+     * @param content    the byte[] representing the document to append
      * @return the updated document or null in case of exception
      * @see BinaryCollection#append(String, byte[])
      */
     @Procedure
-    @Description("apoc.couchbase.append(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - append a couchbase json document to an existing one.")
-    public Stream<CouchbaseJsonDocument> append(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
-                                                @Name("documentId") String documentId, @Name("json") String json) {
+    @Description("apoc.couchbase.append(hostOrKey, bucket, documentId, content) yield id, expiry, cas, mutationToken, content - append a couchbase json document to an existing one.")
+    public Stream<CouchbaseByteArrayDocument> append(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
+                                                     @Name("documentId") String documentId, @Name("content") byte[] content) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            final MutationResult append = couchbaseConnection.append(documentId, json);
+            final MutationResult append = couchbaseConnection.append(documentId, content);
             GetResult getResult = couchbaseConnection.getBinary(documentId);
-            return Stream.of(new CouchbaseJsonDocument(getResult, documentId, append.mutationToken().orElse(null), true));
+            return Stream.of(new CouchbaseByteArrayDocument(getResult, documentId, append.mutationToken().orElse(null)));
         }
     }
 
@@ -203,24 +204,24 @@ public class Couchbase {
      * Prepend a document's content to an existing one.
      * <p/>
      * Example:
-     * <code>CALL apoc.couchbase.prepend('localhost', 'default', 'artist:vincent_van_gogh', '{"placeOfBirth":"Zundert","placeOfDeath":" Auvers-sur-Oise"}') yield id, expiry, cas, mutationToken, content</code>
+     * <code>CALL apoc.couchbase.prepend('localhost', 'default', 'artist:vincent_van_gogh', 'hello world'.getBytes()) yield id, expiry, cas, mutationToken, content</code>
      *
      * @param hostOrKey  a URI to use when connecting to the cluster reference or a configuration key
      * @param bucket     the bucket to open; if null is passed then it's used the "default"
      *                   bucket
      * @param documentId the unique ID of the document
-     * @param json       the JSON String representing the document to prepend
+     * @param content    the byte[] representing the document to prepend
      * @return the updated document or null in case of exception
      * @see BinaryCollection#prepend(String, byte[])
      */
     @Procedure
-    @Description("apoc.couchbase.prepend(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - prepend a couchbase json document to an existing one.")
-    public Stream<CouchbaseJsonDocument> prepend(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
-                                                 @Name("documentId") String documentId, @Name("json") String json) {
+    @Description("apoc.couchbase.prepend(hostOrKey, bucket, documentId, content) yield id, expiry, cas, mutationToken, content - prepend a couchbase json document to an existing one.")
+    public Stream<CouchbaseByteArrayDocument> prepend(@Name("hostOrKey") String hostOrKey, @Name("bucket") String bucket,
+                                                      @Name("documentId") String documentId, @Name("content") byte[] content) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket)) {
-            final MutationResult prepend = couchbaseConnection.prepend(documentId, json);
+            final MutationResult prepend = couchbaseConnection.prepend(documentId, content);
             GetResult getResult = couchbaseConnection.getBinary(documentId);
-            return Stream.of(new CouchbaseJsonDocument(getResult, documentId, prepend.mutationToken().orElse(null), true));
+            return Stream.of(new CouchbaseByteArrayDocument(getResult, documentId, prepend.mutationToken().orElse(null)));
         }
     }
 
