@@ -7,6 +7,8 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang3.time.DateUtils;
+import org.bson.BsonDouble;
+import org.bson.BsonInt32;
 import org.bson.BsonInt64;
 import org.bson.BsonRegularExpression;
 import org.bson.BsonTimestamp;
@@ -93,6 +95,8 @@ public class MongoTest extends MongoTestBase {
                     "sym", new Symbol("x"),
                     "codeWithScope", new CodeWithScope("function() {}", new Document("k", "v")),
                     "int64", new BsonInt64(29L),
+                    "int32", new BsonInt32(29),
+                    "bsonDouble", new BsonDouble(6.78),
                     "time", new BsonTimestamp(123, 4),
                     "minKey", new MinKey(),
                     "maxKey", new MaxKey(),
@@ -329,7 +333,7 @@ public class MongoTest extends MongoTestBase {
                     assertEquals(expectedKeySet, value.keySet());
                     assertEquals(45L, value.get("age"));
                     assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) value.get("_id")).keySet());
-                });
+        });
     }
 
     @Test
@@ -338,7 +342,7 @@ public class MongoTest extends MongoTestBase {
                 map("uri", PERSON_URI), r -> {
                     Map<String, Object> doc = (Map<String, Object>) r.get("value");
                     assertionsPersonAl(doc, false, true);
-                });
+        });
     }
 
     @Test
@@ -355,14 +359,14 @@ public class MongoTest extends MongoTestBase {
                 map("uri", PERSON_URI), r -> {
                     long affected = (long) r.get("value");
                     assertEquals(1, affected);
-                });
+        });
 
         // reset property as previously
         testCall(db, "CALL apoc.mongo.update($uri,{foo: {`$oid`: '57e193d7a9cc81b4027499c4'}},{`$set`:{code: {`$code`: 'function() {}'}}})",
                 map("uri", PERSON_URI), r -> {
                     long affected = (long) r.get("value");
                     assertEquals(1, affected);
-                });
+        });
     }
 
     @Test
@@ -487,6 +491,8 @@ public class MongoTest extends MongoTestBase {
         assertEquals("foo*", value.get("expr"));
         assertEquals(123L, value.get("time"));
         assertEquals(29L, value.get("int64"));
+        assertEquals(29L, value.get("int32"));
+        assertEquals(6.78, value.get("bsonDouble"));
         assertEquals("baa", value.get("baz"));
         assertDocumentIdAndRefs(value, extractReferences, idAsMap, idJohnAsObjectId);
     }
