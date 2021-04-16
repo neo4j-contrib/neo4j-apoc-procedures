@@ -1990,11 +1990,6 @@ apoc.mongo.find(uri, $config) yield value - perform a find operation on mongodb 
 apoc.mongo.first(uri, $config) yield value - perform a find operation on mongodb collection
 |label:procedure[]
 |label:apoc-core[]
-|xref::overview/apoc.mongo/apoc.mongo.get.adoc[apoc.mongo.get icon:book[]]
-
-apoc.mongo.get(uri, $config) yield value - perform a find operation on mongodb collection
-|label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.mongo/apoc.mongo.insert.adoc[apoc.mongo.insert icon:book[]]
 
 apoc.mongo.insert(uri, documents, $config) yield value - inserts the given documents into the mongodb collection

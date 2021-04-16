@@ -12,10 +12,9 @@ import java.util.stream.Stream;
 public class MongoDBUtils {
     interface Coll extends Closeable {
         Map<String, Object> first(Map<String, Object> params);
-        Map<String, Object> first(Map<String, Object> params, boolean useExtendedJson);
+        Map<String, Object> first(Map<String, Object> params, Map<String, Object> project, Long skip, boolean useExtendedJson);
 
         Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit);
-        Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit, boolean useExtendedJson);
 
         long count(Map<String, Object> query);
         long count(Map<String, Object> query, boolean useExtendedJson);
@@ -61,7 +60,7 @@ public class MongoDBUtils {
         }
     }
 
-    protected static MongoDBUtils.Coll withMongoColl(Supplier<Coll> action) {
+    protected static MongoDBUtils.Coll getMongoColl(Supplier<Coll> action) {
         Coll coll = null;
         try {
             coll = action.get();

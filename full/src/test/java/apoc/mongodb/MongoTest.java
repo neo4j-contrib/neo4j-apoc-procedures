@@ -6,7 +6,6 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.bson.BsonInt64;
 import org.bson.BsonRegularExpression;
@@ -20,13 +19,9 @@ import org.bson.types.MinKey;
 import org.bson.types.ObjectId;
 import org.bson.types.Symbol;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.graphdb.Result;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -34,12 +29,8 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.LongStream;
-import java.util.stream.StreamSupport;
 
 import static apoc.mongodb.MongoDBColl.ERROR_MESSAGE;
 import static apoc.util.MapUtil.map;
@@ -53,14 +44,8 @@ import static org.junit.Assert.fail;
 
 public class MongoTest extends MongoTestBase {
 
-//    @ClassRule
-//    public static DbmsRule db = new ImpermanentDbmsRule();
-
-    private static MongoCollection<Document> barCollection;
-
-    private static String URI = null;
-    private static List<String> BOUGHT_REFS;
-    private static final Set<String> SET_OBJECT_ID_MAP = Set.of("date", "machineIdentifier", "processIdentifier", "counter", "time", "timestamp", "timeSecond");
+    private static String PERSON_URI = null;
+    private static String TEST_URI = null;
 
     private static ObjectId fooAlAsObjectId = new ObjectId("77e193d7a9cc81b4027498b4");
     private static ObjectId fooJohnAsObjectId = new ObjectId("57e193d7a9cc81b4027499c4");
@@ -72,6 +57,7 @@ public class MongoTest extends MongoTestBase {
     @BeforeClass
     public static void setUp() throws Exception {
         createContainer(true);
+        TestUtil.registerProcedure(db, Mongo.class, Graphs.class);
 
         // readWrite user creation
         mongo.execInContainer("mongo", "admin", "--eval", "db.auth('admin', 'pass'); db.createUser({user: 'user', pwd: 'secret',roles: [{role: 'readWrite', db: 'test'}]});");
@@ -79,15 +65,18 @@ public class MongoTest extends MongoTestBase {
         final String host = mongo.getHost();
         final Integer port = mongo.getMappedPort(MONGO_DEFAULT_PORT);
         final String format = String.format("mongodb://admin:pass@%s:%s", host, port);
-        MongoClientURI uri = new MongoClientURI(format);
-        try(MongoClient mongoClient = new MongoClient(uri)) {
-            URI = String.format("mongodb://admin:pass@%s:%s", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
+        MongoClientURI clientURI = new MongoClientURI(format);
+        try (MongoClient mongoClient = new MongoClient(clientURI)) {
+            String uriPrefix = String.format("mongodb://admin:pass@%s:%s", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
+            PERSON_URI = uriPrefix + "/test.person?authSource=admin";
+            TEST_URI = uriPrefix + "/test.test?authSource=admin";
 
             fillDb(mongoClient);
 
             personCollection.insertOne(new Document(map("_id", idAlAsObjectId,
                     "name", "Al",
                     "age", 25,
+                    "baz", "baa",
                     "foo", fooAlAsObjectId,
                     "date", new Date(1234567),
                     "int64", new BsonInt64(29L),
@@ -98,6 +87,7 @@ public class MongoTest extends MongoTestBase {
             personCollection.insertOne(new Document(map("_id", idJohnAsObjectId,
                     "name", "John",
                     "age", 45,
+                    "baz", "baa",
                     "foo", fooJohnAsObjectId,
                     "code", new Code("function() {}"),
                     "sym", new Symbol("x"),
@@ -112,23 +102,19 @@ public class MongoTest extends MongoTestBase {
             personCollection.insertOne(new Document(map("_id", idJackAsObjectId,
                     "name", "Jack",
                     "age", 54,
+                    "baz", "baa",
                     "foo", fooJackAsObjectId,
                     "expr", new BsonRegularExpression("foo*"),
                     "minKey", new MinKey(),
                     "maxKey", new MaxKey(),
                     "bought", productReferences)));
-            personCollection.insertOne(new Document(map("baz", "baa", "age", 200)));
-            personCollection.insertOne(new Document(map("baz", "baa", "age", 1)));
+            personCollection.insertOne(new Document(map("name", "vvv", "baz", "baa", "age", 200)));
+            personCollection.insertOne(new Document(map("name", "zzz", "baz", "baa", "age", 1)));
 
-            BOUGHT_REFS = productReferences.stream().map(ObjectId::toString).collect(Collectors.toList());
             MongoDatabase databaseFoo = mongoClient.getDatabase("foo");
-            barCollection = databaseFoo.getCollection("bar");
+            MongoCollection<Document> barCollection = databaseFoo.getCollection("bar");
             barCollection.insertOne(new Document(map("name", nameAsObjectId, "age", 54)));
         }
-    }
-
-    private static Map<String, Object> getParams(String suffix) {
-        return map("uri", URI + suffix);
     }
 
     // - failing tests
@@ -137,7 +123,8 @@ public class MongoTest extends MongoTestBase {
         try {
             testCall(db, "CALL apoc.mongo.find($uri,{query: {age: 54}})",
                     map("uri", String.format("mongodb://user:secret@%s:%s/foo.bar?authSource=admin", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))),
-                    row -> {});
+                    row -> {
+                    });
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("not authorized on foo to execute command"));
             throw e;
@@ -158,9 +145,10 @@ public class MongoTest extends MongoTestBase {
     @Test(expected = QueryExecutionException.class)
     public void shouldFailIfUriHasNotCredentials() {
         try {
-            testCall(db, "CALL apoc.mongo.get($uri, {query: {foo: 'bar' }})",
+            testCall(db, "CALL apoc.mongo.find($uri, {query: {foo: 'bar' }})",
                     map("uri", String.format("mongodb://%s:%s/test.test?authSource=admin", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))),
-                    row -> {});
+                    row -> {
+                    });
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("not authorized on test to execute command"));
             throw e;
@@ -172,7 +160,8 @@ public class MongoTest extends MongoTestBase {
         try {
             testCall(db, "CALL apoc.mongo.first($uri,{name:'testDocument'})",
                     map("uri", String.format("mongodb://admin:pass@%s:%s/?authSource=admin", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))),
-                    r -> {});
+                    r -> {
+                    });
         } catch (Exception e) {
             assertTrue(e.getMessage().contains(String.format(ERROR_MESSAGE, "db")));
             throw e;
@@ -184,7 +173,8 @@ public class MongoTest extends MongoTestBase {
         try {
             testCall(db, "CALL apoc.mongo.first($uri,{name:'testDocument'})",
                     map("uri", String.format("mongodb://admin:pass@%s:%s/test?authSource=admin", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))),
-                    r -> {});
+                    r -> {
+                    });
         } catch (Exception e) {
             assertTrue(e.getMessage().contains(String.format(ERROR_MESSAGE, "collection")));
             throw e;
@@ -195,7 +185,8 @@ public class MongoTest extends MongoTestBase {
     public void testFailsWithExtendedJsonFalseWithObjectIdParam() {
         try {
             testCall(db, "CALL apoc.mongo.first($uri,{query: {`_id`: {`$oid`: '97e193d7a9cc81b4027519b4'}}, useExtendedJson: false})",
-                    getParams("/test.person?authSource=admin"), r -> {});
+                    map("uri", PERSON_URI), r -> {
+                    });
         } catch (QueryExecutionException e) {
             assertTrue(e.getMessage().contains("unknown operator: $oid"));
             throw e;
@@ -205,60 +196,70 @@ public class MongoTest extends MongoTestBase {
     @Test
     public void objectIdAsString() {
         final String bytes = Base64.getEncoder().encodeToString("fooBar".getBytes());
-        testResult(db, "CALL apoc.mongo.get($uri, {query: {binary: {`$binary`: $bytes, `$subType`: '00'}}, objectIdAsMap: false})",
-                map("uri", URI + "/test.person?authSource=admin", "bytes", bytes),
+        testResult(db, "CALL apoc.mongo.find($uri, {query: {binary: {`$binary`: $bytes, `$subType`: '00'}}, objectIdAsMap: false})",
+                map("uri", PERSON_URI, "bytes", bytes),
                 res -> {
-            final ResourceIterator<Map<String, Object>> values = res.columnAs("value");
-            assertionsPersonAl(values.next(), false);
-            assertionsPersonJohn(values.next(), false);
-            assertFalse(values.hasNext());
-        });
+                    final ResourceIterator<Map<String, Object>> values = res.columnAs("value");
+                    assertionsPersonAl(values.next(), false, false);
+                    assertionsPersonJohn(values.next(), false, false);
+                    assertFalse(values.hasNext());
+                });
     }
 
     @Test
     public void testWithSkip() {
-        // todo - variabile statica con questo...
-        testResult(db, "CALL apoc.mongo.get($uri, {query: {expr: {`$regex`: 'foo*', `$options`: ''} } , skip: 1})", getParams("/test.person?authSource=admin"), res -> {
+        testResult(db, "CALL apoc.mongo.find($uri, {query: {expr: {`$regex`: 'foo*', `$options`: ''}} , skip: 1})", map("uri", PERSON_URI), res -> {
             final ResourceIterator<Map<String, Object>> values = res.columnAs("value");
-            assertionsPersonJohn(values.next(), true);
-            assertionsPersonJack(values.next(), true);
+            assertionsPersonJohn(values.next(), true, false);
+            assertionsPersonJack(values.next(), true, false);
             assertFalse(values.hasNext());
         });
     }
 
     @Test
     public void testWithLimit() {
-        testResult(db, "CALL apoc.mongo.get($uri, {query: {expr: {`$regex`: 'foo*', `$options`: ''}} , limit: 2})", getParams("/test.person?authSource=admin"), res -> {
+        testResult(db, "CALL apoc.mongo.find($uri, {query: {expr: {`$regex`: 'foo*', `$options`: ''}}, limit: 2})", map("uri", PERSON_URI), res -> {
             final ResourceIterator<Map<String, Object>> values = res.columnAs("value");
-            assertionsPersonAl(values.next(), true);
-            assertionsPersonJohn(values.next(), true);
+            assertionsPersonAl(values.next(), true, false);
+            assertionsPersonJohn(values.next(), true, false);
             assertFalse(values.hasNext());
         });
     }
 
     @Test
     public void testWithSkipAndLimit() {
-        testResult(db, "CALL apoc.mongo.get($uri, {query: {expr: {`$regex`: 'foo*', `$options`: ''}} , skip: 1, limit: 1})", getParams("/test.person?authSource=admin"), res -> {
+        testResult(db, "CALL apoc.mongo.find($uri, {query: {expr: {`$regex`: 'foo*', `$options`: ''}}, skip: 1, limit: 1})", map("uri", PERSON_URI), res -> {
             final ResourceIterator<Map<String, Object>> value = res.columnAs("value");
-            assertionsPersonJohn(value.next(), true);
+            assertionsPersonJohn(value.next(), true, false);
             assertFalse(value.hasNext());
         });
     }
 
     @Test
     public void testFindSort() throws Exception {
-        testResult(db, "CALL apoc.mongo.find($uri,{query: {expr: {`$regex`: 'foo*', `$options`: ''}}, sort: {name: -1}  })", getParams("/test.person?authSource=admin"), res -> {
+        testResult(db, "CALL apoc.mongo.find($uri,{query: {expr: {`$regex`: 'foo*', `$options`: ''}}, sort: {name: -1} })", map("uri", PERSON_URI), res -> {
             final ResourceIterator<Map<String, Object>> value = res.columnAs("value");
-            assertionsPersonJohn(value.next(), true);
-            assertionsPersonJack(value.next(), true);
-            assertionsPersonAl(value.next(), true);
+            assertionsPersonJohn(value.next(), true, false);
+            assertionsPersonJack(value.next(), true, false);
+            assertionsPersonAl(value.next(), true, false);
+            assertFalse(value.hasNext());
+        });
+    }
+
+    @Test
+    public void testFindWithExtractReference() throws Exception {
+        testResult(db, "CALL apoc.mongo.find($uri,{query: {expr: {`$regex`: 'foo*', `$options`: ''}}, extractReferences: true})", map("uri", PERSON_URI), res -> {
+            final ResourceIterator<Map<String, Object>> value = res.columnAs("value");
+            assertionsPersonAl(value.next(), true, true);
+            assertionsPersonJohn(value.next(), true, true);
+            assertionsPersonJack(value.next(), true, true);
             assertFalse(value.hasNext());
         });
     }
 
     @Test
     public void testFindWithProject() {
-        testResult(db, "CALL apoc.mongo.find($uri,{query: {expr: {`$regex`: 'foo*', `$options`: ''}}, project: {age: 1}  })", getParams("/test.person?authSource=admin"), res -> {
+        testResult(db, "CALL apoc.mongo.find($uri,{query: {expr: {`$regex`: 'foo*', `$options`: ''}}, project: {age: 1}  })", map("uri", PERSON_URI), res -> {
             final ResourceIterator<Map<String, Object>> value = res.columnAs("value");
             final Set<String> expectedKeySet = Set.of("_id", "age");
             final Map<String, Object> first = value.next();
@@ -279,26 +280,29 @@ public class MongoTest extends MongoTestBase {
 
     @Test
     public void testFindWithManyConfigs() {
-        testResult(db, "CALL apoc.mongo.find($uri,{query: {baz: 'baa'}, project: {age: 1}, sort: {name: -1}, {objectIdAsMap: false}, {skip: 1}, {limit: 2}})", getParams("/test.person?authSource=admin"), res -> {
-            // todo
-            IteratorUtils.toList(res.columnAs("value"));
-        });
-    }
-
-    @Test
-    public void testFirstWithoutFilterQuery() {
-        testCall(db, "CALL apoc.mongo.first($uri)", getParams("/test.person?authSource=admin"), r -> {
-            Map<String, Object> doc = (Map<String, Object>) r.get("value");
-            assertEquals(Arrays.asList(12.345, 67.890), doc.get("coordinates"));
-            assertEquals(LocalDateTime.of(1935,10,11, 0, 0), doc.get("born"));
-            assertEquals("Andrea Santurbano", doc.get("name"));
-            assertEquals(BOUGHT_REFS, doc.get("bought"));
+        testResult(db, "CALL apoc.mongo.find($uri,{query: {baz: 'baa'}, project: {age: 1}, sort: {name: -1}, objectIdAsMap: false, skip: 1, limit: 3})",
+                map("uri", PERSON_URI), res -> {
+            final ResourceIterator<Map<String, Object>> value = res.columnAs("value");
+            final Set<String> expectedKeySet = Set.of("_id", "age");
+            final Map<String, Object> first = value.next();
+            assertEquals(expectedKeySet, first.keySet());
+            assertEquals(200L, first.get("age"));
+            assertTrue(first.get("_id") instanceof String);
+            final Map<String, Object> second = value.next();
+            assertEquals(expectedKeySet, second.keySet());
+            assertEquals(45L, second.get("age"));
+            assertEquals(idJohnAsObjectId.toString(), second.get("_id"));
+            final Map<String, Object> third = value.next();
+            assertEquals(expectedKeySet, third.keySet());
+            assertEquals(54L, third.get("age"));
+            assertEquals(idJohnAsObjectId.toString(), second.get("_id"));
+            assertFalse(value.hasNext());
         });
     }
 
     @Test
     public void testFirst() {
-        testCall(db, "CALL apoc.mongo.first($uri,{name:'testDocument'})", getParams("/test.test?authSource=admin"), r -> {
+        testCall(db, "CALL apoc.mongo.first($uri,{name:'testDocument'})", map("uri", TEST_URI), r -> {
             Map<String, Object> doc = (Map<String, Object>) r.get("value");
             assertNotNull(doc.get("_id"));
             assertEquals("testDocument", doc.get("name"));
@@ -306,20 +310,34 @@ public class MongoTest extends MongoTestBase {
     }
 
     @Test
-    public void testFirstWithExtendedJson() {
-        List<String> refsIds = productReferences.stream().map(ObjectId::toString).collect(Collectors.toList());
-        testCall(db, "CALL apoc.mongo.first($uri,{query: {`_id`: {`$oid`: '97e193d7a9cc81b4027519b4'}}})",
-                getParams("/test.person?authSource=admin"), r -> {
-                    Map doc = (Map) r.get("value");
-                    assertTrue(doc.get("_id") instanceof Map);
-                    assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) doc.get("_id")).keySet());
-                    assertEquals(25L, doc.get("age"));
-                    assertEquals("foo*", doc.get("expr"));
-                    assertEquals("fooBar", new String((byte[]) doc.get("binary")));
-                    assertEquals(12.34, doc.get("double"));
-                    assertEquals( 29L, doc.get("int64"));
-                    assertEquals("77e193d7a9cc81b4027498b4", doc.get("foo") );
-                    assertEquals(refsIds, doc.get("bought"));
+    public void testFirstWithoutFilterQuery() {
+        testCall(db, "CALL apoc.mongo.first($uri)", map("uri", PERSON_URI), r -> {
+            Map<String, Object> doc = (Map<String, Object>) r.get("value");
+            assertEquals(Arrays.asList(12.345, 67.890), doc.get("coordinates"));
+            assertEquals(LocalDateTime.of(1935, 10, 11, 0, 0), doc.get("born"));
+            assertEquals("Andrea Santurbano", doc.get("name"));
+            assertEquals(boughtListObjectIds, doc.get("bought"));
+        });
+    }
+
+    @Test
+    public void testFirstWithSkipAndProject() {
+        testCall(db, "CALL apoc.mongo.first($uri,{query: {expr: {`$regex`: 'foo*', `$options`: ''}}, skip: 1, project: {age: 1}})",
+                map("uri", PERSON_URI), r -> {
+                    final Set<String> expectedKeySet = Set.of("_id", "age");
+                    Map<String, Object> value = (Map<String, Object>) r.get("value");
+                    assertEquals(expectedKeySet, value.keySet());
+                    assertEquals(45L, value.get("age"));
+                    assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) value.get("_id")).keySet());
+                });
+    }
+
+    @Test
+    public void testFirstWithExtractReferencesTrue() {
+        testCall(db, "CALL apoc.mongo.first($uri,{query: {`_id`: {`$oid`: '97e193d7a9cc81b4027519b4'}}, extractReferences: true, objectIdAsMap: false})",
+                map("uri", PERSON_URI), r -> {
+                    Map<String, Object> doc = (Map<String, Object>) r.get("value");
+                    assertionsPersonAl(doc, false, true);
                 });
     }
 
@@ -327,33 +345,32 @@ public class MongoTest extends MongoTestBase {
     public void testCountWithComplexTypes() throws Exception {
         final String bytes = Base64.getEncoder().encodeToString("fooBar".getBytes());
         testCall(db, "CALL apoc.mongo.count($uri,{query: {binary: {`$binary`: 'Zm9vQmFy', `$subType`: '00'}, int64: {`$numberLong`: '29'}}})",
-                map("uri", URI + "/test.person?authSource=admin", "bytes", bytes),
+                map("uri", PERSON_URI, "bytes", bytes),
                 r -> assertEquals(2L, r.get("value")));
     }
 
     @Test
     public void testUpdate() throws Exception {
-        testCall(db, "CALL apoc.mongo.update($uri,{foo: {`$oid`: '57e193d7a9cc81b4027499c4'}},{`$set`:{code: {`$code`: 'void 0'}}})",
-                getParams("/test.person?authSource=admin"), r -> {
-            long affected = (long) r.get("value");
-            assertEquals(1, affected);
-        });
+        testCall(db, "CALL apoc.mongo.update($uri,{foo: {`$oid`: '57e193d7a9cc81b4027499c4'}}, {`$set`:{code: {`$code`: 'void 0'}}})",
+                map("uri", PERSON_URI), r -> {
+                    long affected = (long) r.get("value");
+                    assertEquals(1, affected);
+                });
 
         // reset property as previously
         testCall(db, "CALL apoc.mongo.update($uri,{foo: {`$oid`: '57e193d7a9cc81b4027499c4'}},{`$set`:{code: {`$code`: 'function() {}'}}})",
-                getParams("/test.person?authSource=admin"), r -> {
-            long affected = (long) r.get("value");
-            assertEquals(1, affected);
-        });
+                map("uri", PERSON_URI), r -> {
+                    long affected = (long) r.get("value");
+                    assertEquals(1, affected);
+                });
     }
 
     @Test
-    public void testInsert() throws Exception {
-        testResult(db, "CALL apoc.mongo.insert($uri,[{secondId: {`$oid` : '507f191e811c19729de860ea'}, baz: 1}, {secondId: {`$oid` : '507f191e821c19729de860ef'}, baz: 1}])",
-                map("uri", URI + "/test.person?authSource=admin"), (r) -> {
-            assertFalse("should be empty", r.hasNext());
-        });
-        testCall(db, "CALL apoc.mongo.count($uri,{query: {baz:1}})", getParams("/test.person?authSource=admin"), r -> {
+    public void testInsert() {
+        testResult(db, "CALL apoc.mongo.insert($uri,[{secondId: {`$oid`: '507f191e811c19729de860ea'}, baz: 1}, {secondId: {`$oid`: '507f191e821c19729de860ef'}, baz: 1}])",
+                map("uri", PERSON_URI), (r) -> assertFalse("should be empty", r.hasNext()));
+
+        testCall(db, "CALL apoc.mongo.count($uri,{query: {baz:1}})", map("uri", PERSON_URI), r -> {
             long affected = (long) r.get("value");
             assertEquals(2L, affected);
         });
@@ -361,17 +378,18 @@ public class MongoTest extends MongoTestBase {
 
     @Test
     public void testInsertRegexExtJsonGetFirstCorrectlyWithCompatibleValueTrueAndFailsIfFalse() {
-        testResult(db, "CALL apoc.mongo.insert($uri,[{foo:{`$regex`: 'pattern', `$options`: ''}, myId: {`$oid` : '507f191e811c19729de960ea'}}])",
-                getParams("/test.person?authSource=admin"), (r) -> assertFalse("should be empty", r.hasNext()));
+        testResult(db, "CALL apoc.mongo.insert($uri,[{foo:{`$regex`: 'pattern', `$options`: ''}, myId: {`$oid`: '507f191e811c19729de960ea'}}])",
+                map("uri", PERSON_URI), (r) -> assertFalse("should be empty", r.hasNext()));
         try {
             testCall(db, "CALL apoc.mongo.first($uri, {query: {foo:{ `$regex`: 'pattern', `$options`: '' }}, compatibleValues: false})",
-                    getParams("/test.person?authSource=admin"), r -> {});
+                    map("uri", PERSON_URI), r -> {
+                    });
             fail("Should fail because of BsonRegularExpression");
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("java.lang.IllegalArgumentException: Cannot convert BsonRegularExpression"));
         }
 
-        testCall(db, "CALL apoc.mongo.first($uri, {query: {foo:{ `$regex`: 'pattern', `$options`: ''}}})", getParams("/test.person?authSource=admin"), r -> {
+        testCall(db, "CALL apoc.mongo.first($uri, {query: {foo:{`$regex`: 'pattern', `$options`: ''}}})", map("uri", PERSON_URI), r -> {
             Map<String, Object> value = (Map<String, Object>) r.get("value");
             assertEquals("pattern", value.get("foo"));
             assertTrue(value.get("_id") instanceof Map);
@@ -379,7 +397,7 @@ public class MongoTest extends MongoTestBase {
             assertEquals("507f191e811c19729de960ea", value.get("myId"));
         });
 
-        testCall(db, "CALL apoc.mongo.delete($uri, {foo: {`$regex`: 'pattern', `$options`: ''}})", getParams("/test.person?authSource=admin"), r -> {
+        testCall(db, "CALL apoc.mongo.delete($uri, {foo: {`$regex`: 'pattern', `$options`: ''}})", map("uri", PERSON_URI), r -> {
             long affected = (long) r.get("value");
             assertEquals(1L, affected);
         });
@@ -387,15 +405,14 @@ public class MongoTest extends MongoTestBase {
 
     @Test
     public void testGetInsertAndDeleteWithObjectId() throws Exception {
-        final String suffix = "/test.person?authSource=admin";
-        testResult(db, "CALL apoc.mongo.insert($uri,[{foo:'bar', myId: {`$oid` : '507f191e811c19729de960ea'}}])", getParams(suffix), (r) -> {
+        testResult(db, "CALL apoc.mongo.insert($uri,[{foo:'bar', myId: {`$oid`: '507f191e811c19729de960ea'}}])", map("uri", PERSON_URI), (r) -> {
             assertFalse("should be empty", r.hasNext());
         });
-        testCall(db, "CALL apoc.mongo.delete($uri,{foo: 'bar', myId: {`$oid` : '507f191e811c19729de960ea'}})", getParams(suffix), r -> {
+        testCall(db, "CALL apoc.mongo.delete($uri,{foo: 'bar', myId: {`$oid`: '507f191e811c19729de960ea'}})", map("uri", PERSON_URI), r -> {
             long affected = (long) r.get("value");
             assertEquals(1L, affected);
         });
-        testResult(db, "CALL apoc.mongo.first($uri,{query: {foo:'bar', myId: {`$oid` : '507f191e811c19729de960ea'}}})", getParams(suffix), r -> {
+        testResult(db, "CALL apoc.mongo.first($uri,{query: {foo:'bar', myId: {`$oid`: '507f191e811c19729de960ea'}}})", map("uri", PERSON_URI), r -> {
             assertFalse("should be empty", r.hasNext());
         });
     }
@@ -403,24 +420,19 @@ public class MongoTest extends MongoTestBase {
     // -- tests similar to MongoDbTest.java to check consistency with old procedures
     @Test
     public void testFind() throws Exception {
-        testResult(db, "CALL apoc.mongo.find($uri)", getParams("/test.test?authSource=admin"), MongoTest::assertResult);
-    }
-
-    @Test
-    public void testGet()  {
-        testResult(db, "CALL apoc.mongo.get($uri)", getParams("/test.test?authSource=admin"), MongoTest::assertResult);
+        testResult(db, "CALL apoc.mongo.find($uri)", map("uri", TEST_URI), MongoTest::assertResult);
     }
 
     @Test
     public void testCountAll() throws Exception {
-        testCall(db, "CALL apoc.mongo.count($uri,{query: {name: 'testDocument'}})", getParams("/test.test?authSource=admin"),
+        testCall(db, "CALL apoc.mongo.count($uri,{query: {name: 'testDocument'}})", map("uri", TEST_URI),
                 r -> assertEquals(NUM_OF_RECORDS, r.get("value")));
     }
 
     @Test(expected = QueryExecutionException.class)
     public void testInsertFailsWithDuplicateKey() {
         try {
-            testResult(db, "CALL apoc.mongo.insert($uri,[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", getParams("/test.test?authSource=admin"), (r) -> {
+            testResult(db, "CALL apoc.mongo.insert($uri,[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", map("uri", TEST_URI), (r) -> {
                 assertFalse("should be empty", r.hasNext());
             });
         } catch (QueryExecutionException e) {
@@ -435,63 +447,60 @@ public class MongoTest extends MongoTestBase {
         testResult(db, "CALL apoc.mongo.first($uri, {extractReferences: true}) YIELD value " +
                         "CALL apoc.graph.fromDocument(value, $fromDocConfig) YIELD graph AS g1 " +
                         "RETURN g1",
-                map("uri", URI + "/test.person?authSource=admin",
+                map("uri", PERSON_URI,
                         "fromDocConfig", map("write", true, "skipValidation", true, "mappings",
                                 map("$", "Person:Customer{!name,bought,coordinates,born}", "$.bought", "Product{!name,price,tags}"))),
                 r -> assertionsInsertDataWithFromDocument(date, r));
     }
 
-
-    private void assertionsPersonAl(Map<String, Object> value, boolean idAsMap) {
+    private void assertionsPersonAl(Map<String, Object> value, boolean idAsMap, boolean extractReferences) {
         assertEquals(25L, value.get("age"));
         assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(1234567), ZoneId.systemDefault()), value.get("date"));
         assertEquals(29L, value.get("int64"));
         assertEquals(12.34, value.get("double"));
-        assertEquals(BOUGHT_REFS, value.get("bought"));
-        assertEquals(fooAlAsObjectId.toString(), value.get("foo"));
         assertEquals("fooBar", new String((byte[]) value.get("binary")));
         assertEquals("Al", value.get("name"));
         assertEquals("foo*", value.get("expr"));
-        if (idAsMap) {
-            assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) value.get("_id")).keySet());
-        } else {
-            assertEquals(idAlAsObjectId.toString(), value.get("_id"));
-        }
+        assertEquals("baa", value.get("baz"));
+        assertDocumentIdAndRefs(value, extractReferences, idAsMap, idAlAsObjectId);
     }
 
-    private void assertionsPersonJack(Map<String, Object> value, boolean idAsMap) {
+    private void assertionsPersonJack(Map<String, Object> value, boolean idAsMap, boolean extractReferences) {
         assertEquals(54L, value.get("age"));
         assertEquals("Jack", value.get("name"));
         assertEquals("MaxKey", value.get("maxKey"));
         assertEquals("MinKey", value.get("minKey"));
-        assertEquals(BOUGHT_REFS, value.get("bought"));
         assertEquals("foo*", value.get("expr"));
-        assertEquals(fooJackAsObjectId.toString(), value.get("foo"));
-        if (idAsMap) {
-            assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) value.get("_id")).keySet());
-        } else {
-            assertEquals(idJackAsObjectId.toString(), value.get("_id"));
-        }
+        assertEquals("baa", value.get("baz"));
+        assertDocumentIdAndRefs(value, extractReferences, idAsMap, idJackAsObjectId);
     }
 
-    private void assertionsPersonJohn(Map<String, Object> value, boolean idAsMap) {
+    private void assertionsPersonJohn(Map<String, Object> value, boolean idAsMap, boolean extractReferences) {
         assertEquals(45L, value.get("age"));
         assertEquals("John", value.get("name"));
         assertEquals("function() {}", value.get("code"));
         assertEquals("function() {}", value.get("codeWithScope"));
         assertEquals("x", value.get("sym"));
-        assertEquals(BOUGHT_REFS, value.get("bought"));
         assertEquals("MaxKey", value.get("maxKey"));
         assertEquals("MinKey", value.get("minKey"));
         assertEquals("fooBar", new String((byte[]) value.get("binary")));
         assertEquals("foo*", value.get("expr"));
         assertEquals(123L, value.get("time"));
-        assertEquals(fooJohnAsObjectId.toString(), value.get("foo"));
         assertEquals(29L, value.get("int64"));
+        assertEquals("baa", value.get("baz"));
+        assertDocumentIdAndRefs(value, extractReferences, idAsMap, idJohnAsObjectId);
+    }
+
+    private void assertDocumentIdAndRefs(Map<String, Object> value, boolean extractReferences, boolean idAsMap, ObjectId idAlAsObjectId) {
+        if (extractReferences) {
+            assertBoughtReferences(value, idAsMap, true);
+        } else {
+            assertEquals(boughtListObjectIds, value.get("bought"));
+        }
         if (idAsMap) {
             assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) value.get("_id")).keySet());
         } else {
-            assertEquals(idJohnAsObjectId.toString(), value.get("_id"));
+            assertEquals(idAlAsObjectId.toString(), value.get("_id"));
         }
     }
 }

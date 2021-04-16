@@ -1,10 +1,8 @@
 package apoc.mongodb;
 
-import apoc.graph.Graphs;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang3.time.DateUtils;
@@ -55,8 +53,11 @@ import static org.junit.Assume.assumeTrue;
 
 public class MongoTestBase {
 
-    protected static int MONGO_DEFAULT_PORT = 27017;
-    protected static String[] COMMANDS;
+    protected static final int MONGO_DEFAULT_PORT = 27017;
+    protected static final long NUM_OF_RECORDS = 10_000L;
+    protected static final Set<String> SET_OBJECT_ID_MAP = Set.of("date", "machineIdentifier", "processIdentifier", "counter", "time", "timestamp", "timeSecond");
+
+    protected static String[] commands;
 
     protected static GenericContainer mongo;
 
@@ -71,12 +72,10 @@ public class MongoTestBase {
     protected static final long longValue = 10_000L;
     protected long numConnections = -1;
 
-    protected static String HOST = null;
-    protected static final long NUM_OF_RECORDS = 10_000L;
-
     protected static List<ObjectId> productReferences;
     protected static ObjectId nameAsObjectId = new ObjectId("507f191e810c19729de860ea");
     protected static ObjectId idAsObjectId = new ObjectId();
+    protected static List<String> boughtListObjectIds;
 
     @AfterClass
     public static void tearDown() {
@@ -87,13 +86,13 @@ public class MongoTestBase {
 
     @Before
     public void before() {
-        numConnections = (long) getNumConnections(mongo, COMMANDS).get("current");
+        numConnections = (long) getNumConnections(mongo, commands).get("current");
     }
 
     @After
     public void after() {
         // the connections active before must be equal to the connections active after
-        long numConnectionsAfter = (long) getNumConnections(mongo, COMMANDS).get("current");
+        long numConnectionsAfter = (long) getNumConnections(mongo, commands).get("current");
         assertEquals(numConnections, numConnectionsAfter);
     }
 
@@ -112,9 +111,9 @@ public class MongoTestBase {
                 mongo.withEnv("MONGO_INITDB_ROOT_USERNAME", "admin")
                     .withEnv("MONGO_INITDB_ROOT_PASSWORD", "pass");
 
-                COMMANDS = new String[]{"mongo", "admin", "--eval", "db.auth('admin', 'pass'); db.serverStatus().connections;"};
+                commands = new String[]{"mongo", "admin", "--eval", "db.auth('admin', 'pass'); db.serverStatus().connections;"};
             } else {
-                COMMANDS = new String[]{"mongo", "test", "--eval", "db.serverStatus().connections"};
+                commands = new String[]{"mongo", "test", "--eval", "db.serverStatus().connections"};
             }
             mongo.start();
 
@@ -124,7 +123,6 @@ public class MongoTestBase {
     }
 
     protected static void fillDb(MongoClient mongoClient) throws ParseException {
-        TestUtil.registerProcedure(db, Mongo.class, Graphs.class);
         MongoDatabase database = mongoClient.getDatabase("test");
         testCollection = database.getCollection("test");
         productCollection = database.getCollection("product");
@@ -143,6 +141,8 @@ public class MongoTestBase {
         productReferences = StreamSupport.stream(productCollection.find().spliterator(), false)
                 .map(doc -> (ObjectId) doc.get("_id"))
                 .collect(Collectors.toList());
+        boughtListObjectIds = productReferences.stream().map(ObjectId::toString).collect(Collectors.toList());
+
         personCollection.insertOne(new Document(map("name", "Andrea Santurbano",
                 "bought", productReferences,
                 "born", DateUtils.parseDate("11-10-1935", "dd-MM-yyyy"),
@@ -197,6 +197,32 @@ public class MongoTestBase {
         assertEquals(NUM_OF_RECORDS, count);
     }
 
+    protected static void assertBoughtReferences(Map<String, Object> value, boolean idAsMap, boolean compatibleValues) {
+        List<Object> boughtList = (List<Object>) value.get("bought");
+        Map<String, Object> firstBought = (Map<String, Object>) boughtList.get(0);
+        Map<String, Object> secondBought = (Map<String, Object>) boughtList.get(1);
+        final Object firstId = firstBought.get("_id");
+        final Object secondId = secondBought.get("_id");
+        if (idAsMap) {
+            assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) firstId).keySet());
+            assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) secondId).keySet());
+        } else {
+            assertEquals(boughtListObjectIds.get(0), firstId);
+            assertEquals(boughtListObjectIds.get(1), secondId);
+        }
+        final Object firstPrice = firstBought.get("price");
+        final Object secondPrice = secondBought.get("price");
+        if (compatibleValues) {
+            assertEquals(800L, firstPrice);
+            assertEquals(1200L, secondPrice);
+        } else {
+            assertEquals(800, firstPrice);
+            assertEquals(1200, secondPrice);
+        }
+        assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "iOS"), firstBought.get("tags"));
+        assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "Android"), secondBought.get("tags"));
+    }
+
     protected static void assertionsInsertDataWithFromDocument(Date date, Result r) {
         Map<String, Object> map = r.next();
         Map graph = (Map) map.get("g1");
@@ -218,15 +244,13 @@ public class MongoTestBase {
         assertEquals(Arrays.asList(Label.label("Person"), Label.label("Customer")), person.getLabels());
 
         Node product1 = products.get(0);
-        Map<String, Object> product1Map = map("name", "My Awesome Product",
-                "price", 800L);
+        Map<String, Object> product1Map = map("name", "My Awesome Product", "price", 800L);
         assertEquals(product1Map, product1.getProperties("name", "price"));
         assertArrayEquals(new String[]{"Tech", "Mobile", "Phone", "iOS"}, (String[]) product1.getProperty("tags"));
         assertEquals(Arrays.asList(Label.label("Product")), product1.getLabels());
 
         Node product2 = products.get(1);
-        Map<String, Object> product2Map = map("name", "My Awesome Product 2",
-                "price", 1200L);
+        Map<String, Object> product2Map = map("name", "My Awesome Product 2", "price", 1200L);
         assertEquals(product2Map, product2.getProperties("name", "price"));
         assertArrayEquals(new String[]{"Tech", "Mobile", "Phone", "Android"}, (String[]) product2.getProperty("tags"));
         assertEquals(Arrays.asList(Label.label("Product")), product2.getLabels());

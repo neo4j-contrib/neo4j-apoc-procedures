@@ -6,11 +6,15 @@
 [[mongodb-procedures]]
 == Available Procedures
 
-// tag::mongodb[]
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header]
 |===
-include::example$generated-documentation/apoc.mongodb.csv[]
+¦signature
+¦apoc.mongo.count(uri, $config) yield value - perform a find operation on mongodb collection
+¦apoc.mongo.delete(uri, query, $config) - delete the given documents from the mongodb collection and returns the number of affected documents
+¦apoc.mongo.first(uri, $config) yield value - perform a find operation on mongodb collection
+¦apoc.mongo.insert(uri, documents, $config) yield value - inserts the given documents into the mongodb collection
+¦apoc.mongo.update(uri, query, update, $config) - updates the given documents from the mongodb collection and returns the number of affected documents
 |===
 
 
@@ -31,11 +35,18 @@ You should be able to get them from https://mongodb.github.io/mongo-java-driver/
 
 Or you can get them locally from your gradle build of apoc.
 
+----
+gradle copyRuntimeLibs
+cp lib/mongodb*.jar lib/bson*.jar $NEO4J_HOME/plugins/
+----
+
 
 [[mongodb-fields]]
 == Field description
 
- - `uri`: TODO
+ - `uri`: The https://docs.mongodb.com/v3.2/reference/connection-string/[connection String URI],
+    with scheme `mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]]/databaseName.collectionName[?options]`.
+    Note that this uri must necessarily have the database name and the collection name (for example `mongodb://user:pass@localhost:27017/myDb.myCollection?authSource=admin`)
  - `query`: query parameter map (only for `apoc.mongo.update` and `apoc.mongo.delete`)
  - `update`: update parameter map (only for `apoc.mongo.update`)
  - `documents`: the documents to insert (only for `apoc.mongo.insert`)
@@ -49,26 +60,20 @@ The procedures support the following config parameters:
 [opts=header]
 |===
 | name | type | default | description
-| minLevel | Long | -1 | the minimum number of hops in the traversal
+| compatibleValues | Boolean | true | converts MongoDB data types into Neo4j data types
+| extractReferences | Boolean | false | if true and a field contains an `ObjectId` it will include the related document instead of the `ObjectId`
+| objectIdAsMap | Boolean | true | if true extract the `ObjectId` as map
+| useExtendedJson | Boolean | true | if true, you can insert an Extended JSON as query parameter. See https://github.com/mongodb/specifications/blob/master/source/extended-json.rst[Extended Json Specification]
+| query | Map<K,V> | empty | the query parameters
+| project | Map<K,V> | empty | the projection parameters
+| sort | Map<K,V> | empty | the sort parameters
+| skip | Long | 0 | the number of documents to skip
+| limit | Long | 0 | the max number of documents to show
 |===
 
 
 [[mongodb-examples]]
 == Examples
-
-[source,cypher]
-----
-CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDocument'})
-----
-
-If you need automatic conversion of *unpackable* values then the cypher query will be:
-
-[source,cypher]
-----
-CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDocument'},true)
-----
-
-Following an example that could help to understand the behaviour of `extractReferences`, `compatibleValues` and `objectIdAsMap`:
 
 Given the following collections:
 
@@ -84,26 +89,72 @@ Given the following collections:
 ```
 // Person
 ...
-{"_id": ObjectId("person"), "name": "Andrea", "bought": [ObjectId("product1"), ObjectId("product3")]}
+{"_id": ObjectId("personAl"), "name": "Al", expr: BsonRegularExpression("foo*"), "bought": [ObjectId("product1"), ObjectId("product3")]}
+{"_id": ObjectId("personJohn"), "name": "John", "age": 40}
+{"_id": ObjectId("personJack"), "name": "Jack", expr: BsonRegularExpression("bar*"), "bought": [ObjectId("product1"), ObjectId("product2")]}
 ...
 ```
 
-With the `extractReferences=true`, `compatibleValues=true` and `objectIdAsMap=false`:
+we can run the following procedures.
 
-```
+=== `apoc.mongo.count`
+
+[source,cypher]
+----
+CALL apoc.mongodb.count('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin')
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| 3
+|===
+
+=== `apoc.mongo.first`
+
+If we want to extract the first `Person` with default parameter:
+
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin')
+----
+
+.Results
+[opts="header"]
+|===
+| value
+|
+``
 {
-  "_id": "person",
-  "name": "Andrea",
-  "bought": [
-    {"_id": "product1", "name": "Product 1", "price": 100},
-    {"_id": "product3", "name": "Product 3", "price": 300}
-  ]
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "name": "Al",
+  "expr": "foo*",
+  "bought": ["product1", "product3"]
 }
-```
+``
+|===
 
-With the `extractReferences=true`, `compatibleValues=true` and `objectIdAsMap=true`:
 
-```
+
+If we want to extract `bought` references:
+
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {extractReferences: true})
+----
+
+.Results
+[opts="header"]
+|===
+| value
+|
+``
 {
   "_id": {
   	"timestamp": <...>,
@@ -111,7 +162,8 @@ With the `extractReferences=true`, `compatibleValues=true` and `objectIdAsMap=tr
 	"processIdentifier": <...>,
 	"counter": <...>,
   },
-  "name": "Andrea",
+  "name": "Al",
+  "expr": "foo*",
   "bought": [
     {
       "_id": {
@@ -135,64 +187,287 @@ With the `extractReferences=true`, `compatibleValues=true` and `objectIdAsMap=tr
 	},
   ]
 }
-```
+``
+|===
 
+Moreover, we can retrieve the `ObjectId`s with theirs `HexString` representation:
 
-With the `extractReferences=false`, `compatibleValues=false` and `objectIdAsMap=false`:
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {objectIdAsMap: false, extractReferences: true})
+----
 
-```
+.Results
+[opts="header"]
+|===
+| value
+|
+``
 {
-  "_id": "person",
-  "name": "Andrea",
+  "_id": "personAl",
+  "name": "Al",
+  "expr": "foo*",
+  "bought": [
+    {"_id": "product1", "name": "Product 1", "price": 100},
+    {"_id": "product3", "name": "Product 3", "price": 300}
+  ]
+}
+``
+|===
+
+
+In addition to this, we can pass a query param like:
+
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {query: {expr: {`$regex`: 'bar*', `$options`: ''}}})
+----
+
+.Results
+[opts="header"]
+|===
+| value
+|
+``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "name": "Jack",
+  "expr": "bar*",
+  "bought": ["product1", "product2"]
+}
+``
+|===
+
+Furthermore, we can skip `n` values and pass a project parameter:
+
+[source,cypher]
+----
+CALL apoc.mongo.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {skip: 1, project: {age: 1}})
+----
+
+.Results
+[opts="header"]
+|===
+| value
+|
+``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "age": 40L,
+}
+``
+|===
+
+Moreover, we cannot convert the values into Noe4j compatible values (in this case the `age` property remains `Integer` instead of `Long`).
+Note that not all values can be returned,
+for example with `BsonRegularExpression("foo*")` will be thrown a `java.lang.IllegalArgumentException: Cannot convert BsonRegularExpression`:
+
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {skip: 1, project: {age: 1}, compatibleValues: false})
+----
+
+.Results
+[opts="header"]
+|===
+| value
+|
+``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "age": 40,
+}
+``
+|===
+
+
+=== `apoc.mongo.find`
+
+
+If we want to extract a list of `Person`s with default parameter:
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin')
+----
+
+.Results
+[opts="header"]
+|===
+| value
+|
+``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "name": "Al",
+  "expr": "foo*",
   "bought": ["product1", "product3"]
 }
-```
+``
+|
+``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "name": "John",
+  "age": 40L
+}
+``
+|
+``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "name": "Jack",
+  "expr": "bar*",
+  "bought": ["product1", "product2"]
+}
+``
+|===
 
+The `apoc.mongo.find` procedure accept all config parameters used by `apoc.mongo.first`,
+that is `skip`, `project`, `compatibleValues`, `objectIdAsMap` and `query`.
 
-Given the following collection:
-
-```
-// Person
-...
-{"_id": ObjectId("person"), "name": ObjectId("97e193d7a9cc81b4027518b4"), "reg": BsonRegularExpression("foo*"), }
-...
-```
-
-with the `extractReferences=false`, `compatibleValues=true` and `objectIdAsMap=false` and `useExtendedJson=true`,
-and this query:
+Furthermore, we can use the `limit` parameter, for example:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name: {`$oid` : '97e193d7a9cc81b4027518b4' }}, true, false, false, true)
+CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {limit: 2, objectIdAsMap: false, project: {name: 1}})
 ----
 
-or this:
+.Results
+[opts="header"]
+|===
+| value
+|
+``
+{
+  "_id": "personAl",
+  "name": "Al",
+}
+|
+``
+{
+  "_id": "personJohn",
+  "name": "John",
+}
+|
+``
+{
+  "_id": "personJack",
+  "name": "Jack",
+}
+``
+|===
+
+
+Furthermore, we can pass a `sort` parameter, for example:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{reg: {`$regularExpression`:{`pattern`:'foo*',options:''}}}, true, false, false, true)
+CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {sort: {name: -1}, objectIdAsMap: false, project: {name: 1}})
 ----
 
-we receive the previous document.
+.Results
+[opts="header"]
+|===
+| value
+|
+``
+{
+  "_id": "personJohn",
+  "name": "John",
+}
+|
+``
+{
+  "_id": "personJack",
+  "name": "Jack",
+}
+|
+``
+{
+  "_id": "personAl",
+  "name": "Al",
+}
+``
+|===
 
 
+=== `apoc.mongo.update`
 
-== Dependencies
+To update the `age` property of the `John` document:
 
-Copy these jars into the plugins directory:
-
-* bson-3.4.2.jar
-* mongo-java-driver-3.4.2.jar
-* mongodb-driver-3.4.2.jar
-* mongodb-driver-core-3.4.2.jar
-
-You should be able to get them from https://mongodb.github.io/mongo-java-driver/[here], and https://mvnrepository.com/artifact/org.mongodb/bson/3.4.2[here (BSON)] (via Download)
-
-Or you get them locally from your gradle build of apoc.
-
+[source,cypher]
 ----
-gradle copyRuntimeLibs
-cp lib/mongodb*.jar lib/bson*.jar $NEO4J_HOME/plugins/
+CALL apoc.mongodb.update('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {name: "John"}, {`$set`: {age:99}})
+----
+
+with the number of row affected as result:
+
+.Results
+[opts="header"]
+|===
+| value
+| 1
+|===
+
+
+
+=== `apoc.mongo.delete`
+
+To delete the `John` document:
+
+[source,cypher]
+----
+CALL apoc.mongodb.update('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {name: "John"})
+----
+
+with the number of row affected as result:
+
+.Results
+[opts="header"]
+|===
+| value
+| 1
+|===
+
+
+=== `apoc.mongo.insert`
+
+To insert 2 document `{"secondId": ObjectId("507f191e811c19729de860ea"), "baz": 1}` and  `{"secondId": ObjectId("507f191e821c19729de860ef"), "baz": 1}`
+in a `Person` collection (in this case the procedure return `void`):
+
+[source,cypher]
+----
+CALL apoc.mongo.insert('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', [{secondId: {`$oid`: '507f191e811c19729de860ea'}, baz: 1}, {secondId: {`$oid`: '507f191e821c19729de860ef'}, baz: 1}])
 ----
 
 
