@@ -52,6 +52,7 @@ import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
 public class MongoTestBase {
+    private long numConnections = -1;
 
     protected static final int MONGO_DEFAULT_PORT = 27017;
     protected static final long NUM_OF_RECORDS = 10_000L;
@@ -70,7 +71,6 @@ public class MongoTestBase {
 
     protected static final Date currentTime = new Date();
     protected static final long longValue = 10_000L;
-    protected long numConnections = -1;
 
     protected static List<ObjectId> productReferences;
     protected static ObjectId nameAsObjectId = new ObjectId("507f191e810c19729de860ea");
