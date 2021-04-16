@@ -37,7 +37,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class MongoDBTest extends MongoTestBase {
     private static Map<String, Object> params;
-    private static String HOST;
+    private static String HOST = null;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -151,7 +151,7 @@ public class MongoDBTest extends MongoTestBase {
                     assertEquals("Sherlock", doc.get("name"));
                     assertEquals(25L, doc.get("age"));
                     assertEquals(refsIds, doc.get("bought"));
-                });
+        });
 
     }
 
@@ -169,7 +169,7 @@ public class MongoDBTest extends MongoTestBase {
                     );
                     assertEquals(40L, doc.get("age"));
                     assertEquals(refsIds, doc.get("bought"));
-                });
+        });
     }
 
     @Test
