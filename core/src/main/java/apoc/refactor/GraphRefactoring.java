@@ -54,7 +54,7 @@ public class GraphRefactoring {
 
                 Node copy = copyProperties(properties, newNode);
                 if (withRelationships) {
-                    copyRelationships(node, copy, false);
+                    copyRelationships(node, copy, false, true);
                 }
                 return result.withOther(copy);
             } catch (Exception e) {
@@ -587,7 +587,7 @@ public class GraphRefactoring {
         try {
             Map<String, Object> properties = source.getAllProperties();
 
-            copyRelationships(source, copyLabels(source, target), delete);
+            copyRelationships(source, copyLabels(source, target), delete, conf.isProduceSelfRel());
             if (conf.getMergeRelsAllowed()) {
                 mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.OUTGOING, excludeRelIds);
                 mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING, excludeRelIds);
@@ -600,9 +600,11 @@ public class GraphRefactoring {
         return target;
     }
 
-    private Node copyRelationships(Node source, Node target, boolean delete) {
+    private Node copyRelationships(Node source, Node target, boolean delete, boolean isProduceSelfRel) {
         for (Relationship rel : source.getRelationships()) {
-            copyRelationship(rel, source, target);
+            if (isProduceSelfRel) {
+                copyRelationship(rel, source, target);
+            }
             if (delete) rel.delete();
         }
         return target;
