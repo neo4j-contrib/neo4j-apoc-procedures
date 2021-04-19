@@ -135,8 +135,8 @@ dependencies {
 
     compile group: 'xerces', name: 'xercesImpl', version: '2.12.1'
 
-    compileOnly group: 'org.apache.arrow', name: 'arrow-vector', version: '3.0.0'
-    compileOnly group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '3.0.0'
+    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '3.0.0'
+    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '3.0.0'
     testCompile group: 'org.apache.arrow', name: 'arrow-vector', version: '3.0.0'
     testCompile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '3.0.0'
 

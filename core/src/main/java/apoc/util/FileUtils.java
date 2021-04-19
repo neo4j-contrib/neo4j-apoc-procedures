@@ -6,14 +6,27 @@ import apoc.export.util.CountingReader;
 import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
 import apoc.util.s3.S3UploadUtils;
+import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.configuration.GraphDatabaseSettings;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,9 +38,7 @@ import java.util.regex.Pattern;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.apocConfig;
-import static org.apache.commons.lang3.StringUtils.replaceOnce;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
-import static org.eclipse.jetty.util.URIUtil.encodeSpaces;
 
 /**
  * @author mh
@@ -64,6 +75,7 @@ public class FileUtils {
         }
         return readFile(fileName);
     }
+
     public static CountingInputStream inputStreamFor(String fileName) throws IOException {
         apocConfig().checkReadAllowed(fileName);
         if (fileName==null) return null;
@@ -76,6 +88,25 @@ public class FileUtils {
             }
         }
         return readFileStream(fileName);
+    }
+
+    public static SeekableByteChannel seekableByteChannelFor(String fileName) throws IOException {
+        apocConfig().checkReadAllowed(fileName);
+        if (fileName==null) return null;
+        fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
+        if (fileName.matches("^\\w+:/.+")) {
+            if (isHdfs(fileName)) {
+                return new SeekableInMemoryByteChannel(readHdfsStream(fileName).readAllBytes());
+            } else {
+                if (fileName.startsWith("file:")) {
+                    return new FileInputStream(URI.create(fileName).toURL().getFile()).getChannel();
+                } else {
+                    return new SeekableInMemoryByteChannel(Util.openInputStream(fileName,null,null).readAllBytes());
+                }
+            }
+
+        }
+        return new FileInputStream(fileName).getChannel();
     }
 
     private static CountingInputStream readHdfsStream(String fileName) {
@@ -136,7 +167,7 @@ public class FileUtils {
             } else {
                 result = normalized.toFile();
             }
-            return result.toURI().toString();
+            return result.toString();
         }
         return url;
     }
