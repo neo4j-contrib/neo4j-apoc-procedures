@@ -20,7 +20,7 @@ apoc.trigger.add(name :: STRING?, kernelTransaction :: STRING?, selector :: MAP?
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default
+| Name | Type | Default 
 |name|STRING?|null
 |kernelTransaction|STRING?|null
 |selector|MAP?|null
@@ -30,7 +30,7 @@ apoc.trigger.add(name :: STRING?, kernelTransaction :: STRING?, selector :: MAP?
 == Output parameters
 [.procedures, opts=header]
 |===
-| Name | Type
+| Name | Type 
 |name|STRING?
 |query|STRING?
 |selector|MAP?

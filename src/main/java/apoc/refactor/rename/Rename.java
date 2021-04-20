@@ -1,8 +1,8 @@
 package apoc.refactor.rename;
 
 import apoc.Pools;
+import apoc.periodic.BatchAndTotalResult;
 import apoc.periodic.Periodic;
-import apoc.periodic.Periodic.BatchAndTotalResult;
 import apoc.util.MapUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;

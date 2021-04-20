@@ -14,7 +14,7 @@ apoc.periodic.iterate('statement returning items', 'statement per item', {batchS
 
 [source]
 ----
-apoc.periodic.iterate(cypherIterate :: STRING?, cypherAction :: STRING?, config :: MAP?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, wasTerminated :: BOOLEAN?, failedParams :: MAP?)
+apoc.periodic.iterate(cypherIterate :: STRING?, cypherAction :: STRING?, config :: MAP?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, wasTerminated :: BOOLEAN?, failedParams :: MAP?, updateStatistics :: MAP?)
 ----
 
 == Input parameters
@@ -42,6 +42,7 @@ apoc.periodic.iterate(cypherIterate :: STRING?, cypherAction :: STRING?, config 
 |operations|MAP?
 |wasTerminated|BOOLEAN?
 |failedParams|MAP?
+|updateStatistics|MAP?
 |===
 
 xref::graph-updates/periodic-execution.adoc#commit-batching[More documentation of apoc.periodic.iterate,role=more information]

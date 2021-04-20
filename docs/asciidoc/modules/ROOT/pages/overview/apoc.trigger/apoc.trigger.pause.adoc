@@ -20,14 +20,14 @@ apoc.trigger.pause(name :: STRING?) :: (name :: STRING?, query :: STRING?, selec
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default
+| Name | Type | Default 
 |name|STRING?|null
 |===
 
 == Output parameters
 [.procedures, opts=header]
 |===
-| Name | Type
+| Name | Type 
 |name|STRING?
 |query|STRING?
 |selector|MAP?

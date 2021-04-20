@@ -12,7 +12,6 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.TransientTransactionFailureException;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.KernelTransactionHandle;
-import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.impl.api.KernelTransactions;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.rule.DbmsRule;
@@ -26,6 +25,7 @@ import java.util.Optional;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
+import static apoc.periodic.PeriodicTestUtils.terminateQuery;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
@@ -34,6 +34,7 @@ import static java.util.stream.StreamSupport.stream;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -87,7 +88,7 @@ public class PeriodicTest {
     }
     @Test
     public void testTerminateCommit() throws Exception {
-        testTerminatePeriodicQuery("CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (:Foo {id: id}) limit 1000', {})");
+        PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (:Foo {id: id}) limit 1000', {})");
     }
 
     @Test(expected = QueryExecutionException.class)
@@ -108,92 +109,17 @@ public class PeriodicTest {
         assertEquals(RUNDOWN_COUNT, (long)db.executeTransactionally("MATCH (p:Processed) RETURN COUNT(*) AS c", Collections.emptyMap(), result -> Iterators.single(result.columnAs("c"))));
     }
 
-    @Test
-    public void testRock_n_roll() throws Exception {
-        // setup
-        db.executeTransactionally("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})");
 
-        // when&then
-
-        testResult(db, "CALL apoc.periodic.rock_n_roll('match (p:Person) return p', 'WITH $p as p SET p.lastname =p.name REMOVE p.name', 10)", result -> {
-            Map<String, Object> row = Iterators.single(result);
-            assertEquals(10L, row.get("batches"));
-            assertEquals(100L, row.get("total"));
-        });
-        // then
-        testCall(db,
-                "MATCH (p:Person) where p.lastname is not null return count(p) as count",
-                row -> assertEquals(100L, row.get("count"))
-        );
-    }
-
-    @Test
-    public void testTerminateRockNRoll() throws Exception {
-        testTerminatePeriodicQuery("CALL apoc.periodic.rock_n_roll('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: $id})', 10)");
-    }
-
-    public void testTerminatePeriodicQuery(String periodicQuery) {
-        killPeriodicQueryAsync();
-        try {
-            testResult(db, periodicQuery, result -> {
-                Map<String, Object> row = Iterators.single(result);
-                assertEquals( periodicQuery + " result: " + row.toString(), true, row.get("wasTerminated"));
-            });
-            fail("Should have terminated");
-        } catch(Exception tfe) {
-            assertEquals(tfe.getMessage(),true, tfe.getMessage().contains("terminated"));
-        }
-    }
 
     private final static String KILL_PERIODIC_QUERY = "call dbms.listQueries() yield queryId, query, status\n" +
             "with * where query contains ('apoc.' + 'periodic')\n" +
             "call dbms.killQuery(queryId) yield queryId as killedId\n" +
             "return killedId";
 
-    public void killPeriodicQueryAsync() {
-        new Thread(() -> {
-            int retries = 10;
-            try {
-                while (retries-- > 0 && !terminateQuery("apoc.periodic")) {
-                    Thread.sleep(10);
-                }
-            } catch (InterruptedException e) {
-                // ignore
-            }
-        }).start();
-    }
-
-    boolean terminateQuery(String pattern) {
-        DependencyResolver dependencyResolver = ((GraphDatabaseAPI) db).getDependencyResolver();
-        KernelTransactions kernelTransactions = dependencyResolver.resolveDependency(KernelTransactions.class);
-        long numberOfKilledTransactions = kernelTransactions.activeTransactions().stream()
-                .filter(kernelTransactionHandle ->
-                        kernelTransactionHandle.executingQuery().map(query -> query.queryText().contains(pattern))
-                                .orElse(false)
-                )
-                .map(kernelTransactionHandle -> kernelTransactionHandle.markForTermination(Status.Transaction.Terminated))
-                .count();
-        return numberOfKilledTransactions > 0;
-    }
 
     @Test
-    public void testIterateErrors() throws Exception {
-        testResult(db, "CALL apoc.periodic.rock_n_roll('UNWIND range(0,99) as id RETURN id', 'CREATE (:Foo {id: 1 / ($id % 10)})', 10)", result -> {
-            Map<String, Object> row = Iterators.single(result);
-            assertEquals(10L, row.get("batches"));
-            assertEquals(100L, row.get("total"));
-            assertEquals(0L, row.get("committedOperations"));
-            assertEquals(100L, row.get("failedOperations"));
-            assertEquals(10L, row.get("failedBatches"));
-            Map<String, Object> batchErrors = map("org.neo4j.graphdb.QueryExecutionException: / by zero", 10L);
-            assertEquals(batchErrors, ((Map) row.get("batch")).get("errors"));
-            Map<String, Object> operationsErrors = map("/ by zero", 10L);
-            assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
-        });
-    }
-
-    @Test
-    public void testPeriodicIterateErrors() throws Exception {
+    public void testPeriodicIterateErrors() {
+        final String newline = System.lineSeparator();
         testResult(db, "CALL apoc.periodic.iterate('UNWIND range(0,99) as id RETURN id', 'CREATE null', {batchSize:10,iterateList:true})", result -> {
             Map<String, Object> row = Iterators.single(result);
             assertEquals(10L, row.get("batches"));
@@ -201,13 +127,13 @@ public class PeriodicTest {
             assertEquals(0L, row.get("committedOperations"));
             assertEquals(100L, row.get("failedOperations"));
             assertEquals(10L, row.get("failedBatches"));
-            Map<String, Object> batchErrors = map("org.neo4j.graphdb.QueryExecutionException: Parentheses are required to identify nodes in patterns, i.e. (null) (line 1, column 55 (offset: 54))\n" +
-                    "\"UNWIND $_batch AS _batch WITH _batch.id AS id  CREATE null\"\n" +
+            Map<String, Object> batchErrors = map("org.neo4j.graphdb.QueryExecutionException: Parentheses are required to identify nodes in patterns, i.e. (null) (line 1, column 55 (offset: 54))" + newline +
+                    "\"UNWIND $_batch AS _batch WITH _batch.id AS id  CREATE null\"" + newline +
                     "                                                       ^", 10L);
 
             assertEquals(batchErrors, ((Map) row.get("batch")).get("errors"));
-            Map<String, Object> operationsErrors = map("Parentheses are required to identify nodes in patterns, i.e. (null) (line 1, column 55 (offset: 54))\n" +
-                    "\"UNWIND $_batch AS _batch WITH _batch.id AS id  CREATE null\"\n" +
+            Map<String, Object> operationsErrors = map("Parentheses are required to identify nodes in patterns, i.e. (null) (line 1, column 55 (offset: 54))" + newline +
+                    "\"UNWIND $_batch AS _batch WITH _batch.id AS id  CREATE null\"" + newline +
                     "                                                       ^", 10L);
             assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
         });
@@ -215,9 +141,9 @@ public class PeriodicTest {
 
     @Test
     public void testTerminateIterate() throws Exception {
-        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:1,parallel:true})");
-        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:true})");
-        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:false})");
+        PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:1,parallel:true})");
+        PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:true})");
+        PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:false})");
     }
 
     /**
@@ -262,7 +188,7 @@ public class PeriodicTest {
             Thread.sleep(200);
         }
 
-        killPeriodicQueryAsync();
+        PeriodicTestUtils.killPeriodicQueryAsync(db);
         thread.join();
     }
 
@@ -305,6 +231,63 @@ public class PeriodicTest {
                 "MATCH (p:Person) where p.lastname is not null return count(p) as count",
                 row -> assertEquals(100L, row.get("count"))
         );
+    }
+
+    @Test
+    public void testIterateUpdateStats() {
+        testResult(db, "CALL apoc.periodic.iterate(" +
+                "'UNWIND range(1, 100) AS x RETURN x', " +
+                "'CREATE (n:Node {x:x})" +
+                "   SET n.y = 1 " +
+                " CREATE (n)-[:SELF]->(n)'," +
+                "{ batchSize:10, parallel:true })", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertNotNull(row.get("updateStatistics"));
+            Map<String, Long> updateStats = (Map<String, Long>) row.get("updateStatistics");
+            assertNotNull(updateStats);
+            assertEquals(100, (long) updateStats.get("nodesCreated"));
+            assertEquals(0, (long) updateStats.get("nodesDeleted"));
+            assertEquals(100, (long) updateStats.get("relationshipsCreated"));
+            assertEquals(0, (long) updateStats.get("relationshipsDeleted"));
+            assertEquals(200, (long) updateStats.get("propertiesSet"));
+            assertEquals(100, (long) updateStats.get("labelsAdded"));
+            assertEquals(0, (long) updateStats.get("labelsRemoved"));
+        });
+
+        testResult(db, "CALL apoc.periodic.iterate(" +
+                "'MATCH (n:Node) RETURN n', " +
+                "'REMOVE n:Node', " +
+                "{ batchSize:10, parallel:true })", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertNotNull(row.get("updateStatistics"));
+            Map<String, Long> updateStats = (Map<String, Long>) row.get("updateStatistics");
+            assertNotNull(updateStats);
+            assertEquals(0, (long) updateStats.get("nodesCreated"));
+            assertEquals(0, (long) updateStats.get("nodesDeleted"));
+            assertEquals(0, (long) updateStats.get("relationshipsCreated"));
+            assertEquals(0, (long) updateStats.get("relationshipsDeleted"));
+            assertEquals(0, (long) updateStats.get("propertiesSet"));
+            assertEquals(0, (long) updateStats.get("labelsAdded"));
+            assertEquals(100, (long) updateStats.get("labelsRemoved"));
+        });
+
+        testResult(db, "CALL apoc.periodic.iterate(" +
+                "'MATCH (n) RETURN n', " +
+                "'DETACH DELETE n', " +
+                "{ batchSize:10, parallel:true })", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertNotNull(row.get("updateStatistics"));
+            Map<String, Long> updateStats = (Map<String, Long>) row.get("updateStatistics");
+            assertNotNull(updateStats);
+            assertEquals(0, (long) updateStats.get("nodesCreated"));
+            assertEquals(100, (long) updateStats.get("nodesDeleted"));
+            assertEquals(0, (long) updateStats.get("relationshipsCreated"));
+            assertEquals(100, (long) updateStats.get("relationshipsDeleted"));
+            assertEquals(0, (long) updateStats.get("propertiesSet"));
+            assertEquals(0, (long) updateStats.get("labelsAdded"));
+            assertEquals(0, (long) updateStats.get("labelsRemoved"));
+        });
+
     }
 
     @Test
@@ -417,45 +400,7 @@ public class PeriodicTest {
         );
     }
 
-    @Test
-    public void testIterateJDBC() throws Exception {
-        TestUtil.ignoreException(() -> {
-            testResult(db, "CALL apoc.periodic.iterate('call apoc.load.jdbc(\"jdbc:mysql://localhost:3306/northwind?user=root\",\"customers\")', 'create (c:Customer) SET c += $row', {batchSize:10,parallel:true})", result -> {
-                Map<String, Object> row = Iterators.single(result);
-                assertEquals(3L, row.get("batches"));
-                assertEquals(29L, row.get("total"));
-            });
 
-            testCall(db,
-                    "MATCH (p:Customer) return count(p) as count",
-                    row -> assertEquals(29L, row.get("count"))
-            );
-        }, SQLException.class);
-    }
-
-    @Test
-    public void testRock_n_roll_while() throws Exception {
-        // setup
-        db.executeTransactionally("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})");
-
-        // when&then
-        testResult(db, "CALL apoc.periodic.rock_n_roll_while('return coalesce($previous,3)-1 as loop', 'match (p:Person) return p', 'MATCH (p) where p=$p SET p.lastname =p.name', 10)", result -> {
-            long l = 0;
-            while (result.hasNext()) {
-                Map<String, Object> row = result.next();
-                assertEquals(2L - l, row.get("loop"));
-                assertEquals(10L, row.get("batches"));
-                assertEquals(100L, row.get("total"));
-                l += 1;
-            }
-            assertEquals(2L, l);
-        });
-        // then
-        testCall(db,
-                "MATCH (p:Person) where p.lastname is not null return count(p) as count",
-                row -> assertEquals(100L, row.get("count"))
-        );
-    }
 
     @Test
     public void testCountdown() {
@@ -531,6 +476,144 @@ public class PeriodicTest {
         testFail(query);
     }
 
+
+    @Test(expected = QueryExecutionException.class)
+    public void testIterateQueryFail() {
+        final String query = "CALL apoc.periodic.iterate('UNWIND range(0, 1000) as id RETURN ids', " +
+                "'WITH $id as id CREATE (:Foo {id: $id})', " +
+                "{batchSize:1,parallel:true})";
+        testFail(query);
+    }
+
+    @Test(expected = QueryExecutionException.class, timeout = 1000)
+    public void testIterateQueryFailInvalidConcurrency() {
+        final String query = "CALL apoc.periodic.iterate('UNWIND range(0, 10) AS x RETURN x', " +
+                "'RETURN x', " +
+                "{concurrency:0 ,parallel:true})";
+        testFail(query);
+    }
+
+    @Test(expected = QueryExecutionException.class, timeout = 1000)
+    public void testIterateQueryFailInvalidBatchSize() {
+        final String query = "CALL apoc.periodic.iterate('UNWIND range(0, 10) AS x RETURN x', " +
+                "'RETURN x', " +
+                "{batchSize:0 ,parallel:true})";
+        testFail(query);
+    }
+
+    private void testFail(String query) {
+        testCall(db, query, row -> fail("The test should fail but it didn't"));
+    }
+
+    @Test
+    public void testRock_n_roll() {
+        // setup
+        db.executeTransactionally("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})");
+
+        // when&then
+
+        testResult(db, "CALL apoc.periodic.rock_n_roll('match (p:Person) return p', 'WITH $p as p SET p.lastname =p.name REMOVE p.name', 10)", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertEquals(10L, row.get("batches"));
+            assertEquals(100L, row.get("total"));
+        });
+        // then
+        testCall(db,
+                "MATCH (p:Person) where p.lastname is not null return count(p) as count",
+                row -> assertEquals(100L, row.get("count"))
+        );
+    }
+
+    @Test
+    public void testTerminateRockNRoll() {
+        PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.rock_n_roll('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: $id})', 10)");
+    }
+
+    public void testTerminatePeriodicQuery(String periodicQuery) {
+        killPeriodicQueryAsync();
+        try {
+            testResult(db, periodicQuery, result -> {
+                Map<String, Object> row = Iterators.single(result);
+                assertEquals( periodicQuery + " result: " + row.toString(), true, row.get("wasTerminated"));
+            });
+            fail("Should have terminated");
+        } catch(Exception tfe) {
+            assertEquals(tfe.getMessage(),true, tfe.getMessage().contains("terminated"));
+        }
+    }
+
+    public void killPeriodicQueryAsync() {
+        new Thread(() -> {
+            int retries = 10;
+            try {
+                while (retries-- > 0 && !terminateQuery("apoc.periodic", db)) {
+                    Thread.sleep(10);
+                }
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }).start();
+    }
+
+
+    @Test
+    public void testIterateErrors() {
+        testResult(db, "CALL apoc.periodic.rock_n_roll('UNWIND range(0,99) as id RETURN id', 'CREATE (:Foo {id: 1 / ($id % 10)})', 10)", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertEquals(10L, row.get("batches"));
+            assertEquals(100L, row.get("total"));
+            assertEquals(0L, row.get("committedOperations"));
+            assertEquals(100L, row.get("failedOperations"));
+            assertEquals(10L, row.get("failedBatches"));
+            Map<String, Object> batchErrors = map("org.neo4j.graphdb.QueryExecutionException: / by zero", 10L);
+            assertEquals(batchErrors, ((Map) row.get("batch")).get("errors"));
+            Map<String, Object> operationsErrors = map("/ by zero", 10L);
+            assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
+        });
+    }
+
+
+    @Test
+    public void testIterateJDBC() {
+        TestUtil.ignoreException(() -> {
+            testResult(db, "CALL apoc.periodic.iterate('call apoc.load.jdbc(\"jdbc:mysql://localhost:3306/northwind?user=root\",\"customers\")', 'create (c:Customer) SET c += $row', {batchSize:10,parallel:true})", result -> {
+                Map<String, Object> row = Iterators.single(result);
+                assertEquals(3L, row.get("batches"));
+                assertEquals(29L, row.get("total"));
+            });
+
+            testCall(db,
+                    "MATCH (p:Customer) return count(p) as count",
+                    row -> assertEquals(29L, row.get("count"))
+            );
+        }, SQLException.class);
+    }
+
+    @Test
+    public void testRock_n_roll_while() {
+        // setup
+        db.executeTransactionally("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})");
+
+        // when&then
+        testResult(db, "CALL apoc.periodic.rock_n_roll_while('return coalesce($previous,3)-1 as loop', 'match (p:Person) return p', 'MATCH (p) where p=$p SET p.lastname =p.name', 10)", result -> {
+            long l = 0;
+            while (result.hasNext()) {
+                Map<String, Object> row = result.next();
+                assertEquals(2L - l, row.get("loop"));
+                assertEquals(10L, row.get("batches"));
+                assertEquals(100L, row.get("total"));
+                l += 1;
+            }
+            assertEquals(2L, l);
+        });
+        // then
+        testCall(db,
+                "MATCH (p:Person) where p.lastname is not null return count(p) as count",
+                row -> assertEquals(100L, row.get("count"))
+        );
+    }
+
+
     @Test(expected = QueryExecutionException.class)
     public void testRockNRollWhileLoopFail() {
         final String query = "CALL apoc.periodic.rock_n_roll_while('return coalescence($previous, 3) - 1 as loop', " +
@@ -549,13 +632,6 @@ public class PeriodicTest {
         testFail(query);
     }
 
-    @Test(expected = QueryExecutionException.class)
-    public void testIterateQueryFail() {
-        final String query = "CALL apoc.periodic.iterate('UNWIND range(0, 1000) as id RETURN ids', " +
-                "'WITH $id as id CREATE (:Foo {id: $id})', " +
-                "{batchSize:1,parallel:true})";
-        testFail(query);
-    }
 
     @Test(expected = QueryExecutionException.class)
     public void testRockNRollIterateFail() {
@@ -575,6 +651,7 @@ public class PeriodicTest {
 
     @Test(expected = QueryExecutionException.class)
     public void testRockNRollWhileFail() {
+        final String newline = System.lineSeparator();
         final String query = "CALL apoc.periodic.rock_n_roll_while('return coalescence($previous, 3) - 1 as loop', " +
                 "'match (p:Person) return pp', " +
                 "'MATCH (p) where p = $p SET p.lastname = p.name', " +
@@ -582,18 +659,15 @@ public class PeriodicTest {
         try {
             testFail(query);
         } catch (QueryExecutionException e) {
-            String expected = "Failed to invoke procedure `apoc.periodic.rock_n_roll_while`: Caused by: java.lang.RuntimeException: Exception for field `cypherLoop`, message: Unknown function 'coalescence' (line 1, column 16 (offset: 15))\n" +
-                    "\"EXPLAIN return coalescence($previous, 3) - 1 as loop\"\n" +
-                    "                ^\n" +
-                    "Exception for field `cypherIterate`, message: Variable `pp` not defined (line 1, column 33 (offset: 32))\n" +
-                    "\"EXPLAIN match (p:Person) return pp\"\n" +
+            String expected = "Failed to invoke procedure `apoc.periodic.rock_n_roll_while`: Caused by: java.lang.RuntimeException: Exception for field `cypherLoop`, message: Unknown function 'coalescence' (line 1, column 16 (offset: 15))" + newline +
+                    "\"EXPLAIN return coalescence($previous, 3) - 1 as loop\"" + newline +
+                    "                ^\n" + // XXX: do not replace this newline (\n) with the native newline value
+                    "Exception for field `cypherIterate`, message: Variable `pp` not defined (line 1, column 33 (offset: 32))" + newline +
+                    "\"EXPLAIN match (p:Person) return pp\"" + newline +
                     "                                 ^";
             assertEquals(expected, e.getMessage());
             throw e;
         }
     }
 
-    private void testFail(String query) {
-        testCall(db, query, row -> fail("The test should fail but it didn't"));
-    }
 }

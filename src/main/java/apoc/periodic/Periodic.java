@@ -4,6 +4,7 @@ import apoc.Pools;
 import apoc.util.Util;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
@@ -17,8 +18,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.ToLongFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -38,6 +39,109 @@ public class Periodic {
     @Context public Log log;
     @Context public Pools pools;
     @Context public Transaction tx;
+
+    /**
+     * as long as cypherLoop does not return 0, null, false, or the empty string as 'value' do:
+     *
+     * invoke cypherAction in batched transactions being feeded from cypherIteration running in main thread
+     *
+     * @param cypherLoop
+     * @param cypherIterate
+     * @param cypherAction
+     * @param batchSize
+     */
+    @Procedure(mode = Mode.WRITE)
+    @Deprecated
+    @Description("apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
+    public Stream<LoopingBatchAndTotalResult> rock_n_roll_while(
+            @Name("cypherLoop") String cypherLoop,
+            @Name("cypherIterate") String cypherIterate,
+            @Name("cypherAction") String cypherAction,
+            @Name("batchSize") long batchSize) {
+        Map<String, String> fieldStatement = Util.map(
+                "cypherLoop", cypherLoop,
+                "cypherIterate", cypherIterate);
+        validateQueries(fieldStatement);
+        Stream<LoopingBatchAndTotalResult> allResults = Stream.empty();
+
+        Map<String,Object> loopParams = new HashMap<>(1);
+        Object value = null;
+
+        while (true) {
+            loopParams.put("previous", value);
+
+            try (Result result = tx.execute(cypherLoop, loopParams)) {
+                value = result.next().get("loop");
+                if (!Util.toBoolean(value)) return allResults;
+            }
+
+            log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
+            try (Result result = tx.execute(cypherIterate)) {
+                Stream<BatchAndTotalResult> oneResult =
+                        PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
+                                db, terminationGuard, log, pools,
+                                (int) batchSize, false, false, 0,
+                                result, (tx, params) -> tx.execute(cypherAction, params).getQueryStatistics(), 50, -1);
+                final Object loopParam = value;
+                allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
+            }
+        }
+    }
+
+    private void validateQueries(Map<String, String> fieldStatement) {
+        String error = fieldStatement.entrySet()
+                .stream()
+                .map(e -> {
+                    try {
+                        validateQuery(e.getValue());
+                        return null;
+                    } catch (Exception exception) {
+                        return String.format("Exception for field `%s`, message: %s", e.getKey(), exception.getMessage());
+                    }
+                })
+                .filter(e -> e != null)
+                .collect(Collectors.joining("\n"));
+        if (!error.isEmpty()) {
+            throw new RuntimeException(error);
+        }
+    }
+
+    @Deprecated
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
+    public Stream<BatchAndTotalResult> rock_n_roll(
+            @Name("cypherIterate") String cypherIterate,
+            @Name("cypherAction") String cypherAction,
+            @Name("batchSize") long batchSize) {
+        Map<String, String> fieldStatement = Util.map(
+                "cypherIterate", cypherIterate,
+                "cypherAction", cypherAction);
+        validateQueries(fieldStatement);
+
+        log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
+        try (Result result = tx.execute(cypherIterate)) {
+            return PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
+                    db, terminationGuard, log, pools,
+                    (int)batchSize, false, false, 0, result,
+                    (tx, p) -> tx.execute(cypherAction, p).getQueryStatistics(), 50, -1);
+        }
+    }
+
+    private long executeAndReportErrors(Transaction tx, BiConsumer<Transaction, Map<String, Object>> consumer, Map<String, Object> params,
+                                        List<Map<String, Object>> batch, int returnValue, AtomicLong localCount, BatchAndTotalCollector collector) {
+        try {
+            consumer.accept(tx, params);
+            if (localCount!=null) {
+                localCount.getAndIncrement();
+            }
+            return returnValue;
+        } catch (Exception e) {
+            collector.incrementFailedOps(batch.size());
+            collector.amendFailedParamsMap(batch);
+            recordError(collector.getOperationErrors(), e);
+            throw e;
+        }
+    }
 
     @Procedure
     @Description("apoc.periodic.list - list all jobs")
@@ -213,70 +317,7 @@ public class Periodic {
     }
 
     /**
-     * as long as cypherLoop does not return 0, null, false, or the empty string as 'value' do:
-     *
-     * invoke cypherAction in batched transactions being feeded from cypherIteration running in main thread
-     *
-     * @param cypherLoop
-     * @param cypherIterate
-     * @param cypherAction
-     * @param batchSize
-     */
-    @Procedure(mode = Mode.WRITE)
-    @Deprecated
-    @Description("apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
-    public Stream<LoopingBatchAndTotalResult> rock_n_roll_while(
-            @Name("cypherLoop") String cypherLoop,
-            @Name("cypherIterate") String cypherIterate,
-            @Name("cypherAction") String cypherAction,
-            @Name("batchSize") long batchSize) {
-        Map<String, String> fieldStatement = Util.map(
-                "cypherLoop", cypherLoop,
-                "cypherIterate", cypherIterate);
-        validateQueries(fieldStatement);
-        Stream<LoopingBatchAndTotalResult> allResults = Stream.empty();
-
-        Map<String,Object> loopParams = new HashMap<>(1);
-        Object value = null;
-
-        while (true) {
-            loopParams.put("previous", value);
-
-            try (Result result = tx.execute(cypherLoop, loopParams)) {
-                value = result.next().get("loop");
-                if (!Util.toBoolean(value)) return allResults;
-            }
-
-            log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
-            try (Result result = tx.execute(cypherIterate)) {
-                Stream<BatchAndTotalResult> oneResult =
-                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, false, false,0, result, (tx, params) -> tx.execute(cypherAction, params), 50, -1);
-                final Object loopParam = value;
-                allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
-            }
-        }
-    }
-
-    private void validateQueries(Map<String, String> fieldStatement) {
-        String error = fieldStatement.entrySet()
-                .stream()
-                .map(e -> {
-                    try {
-                        validateQuery(e.getValue());
-                        return null;
-                    } catch (Exception exception) {
-                        return String.format("Exception for field `%s`, message: %s", e.getKey(), exception.getMessage());
-                    }
-                })
-                .filter(e -> e != null)
-                .collect(Collectors.joining("\n"));
-        if (!error.isEmpty()) {
-            throw new RuntimeException(error);
-        }
-    }
-
-    /**
-     * invoke cypherAction in batched transactions being feeded from cypherIteration running in main thread
+     * Invoke cypherAction in batched transactions being fed from cypherIteration running in main thread
      * @param cypherIterate
      * @param cypherAction
      */
@@ -289,21 +330,34 @@ public class Periodic {
         validateQuery(cypherIterate);
 
         long batchSize = Util.toLong(config.getOrDefault("batchSize", 10000));
+        if (batchSize < 1) {
+            throw new IllegalArgumentException("batchSize parameter must be > 0");
+        }
         int concurrency = Util.toInteger(config.getOrDefault("concurrency", 50));
+        if (concurrency < 1) {
+            throw new IllegalArgumentException("concurrency parameter must be > 0");
+        }
         boolean parallel = Util.toBoolean(config.getOrDefault("parallel", false));
+        long retries = Util.toLong(config.getOrDefault("retries", 0)); // todo sleep/delay or push to end of batch to try again or immediate ?
+        int failedParams = Util.toInteger(config.getOrDefault("failedParams", -1));
 
         BatchMode batchMode = BatchMode.fromConfig(config);
-
-        long retries = Util.toLong(config.getOrDefault("retries", 0)); // todo sleep/delay or push to end of batch to try again or immediate ?
         Map<String,Object> params = (Map<String, Object>) config.getOrDefault("params", Collections.emptyMap());
-        int failedParams = Util.toInteger(config.getOrDefault("failedParams", -1));
+
         try (Result result = tx.execute(slottedRuntime(cypherIterate),params)) {
             Pair<String,Boolean> prepared = PeriodicUtils.prepareInnerStatement(cypherAction, batchMode, result.columns(), "_batch");
             String innerStatement = prepared.first();
             boolean iterateList = prepared.other();
             log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, parallel, iterateList, retries, result,
-                    (tx, p) -> Iterators.count(tx.execute(innerStatement, merge(params, p))), concurrency, failedParams);
+            return PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
+                    db, terminationGuard, log, pools,
+                    (int)batchSize, parallel, iterateList, retries, result,
+                    (tx, p) -> {
+                        final Result r = tx.execute(innerStatement, merge(params, p));
+                        Iterators.count(r); // XXX: consume all results
+                        return r.getQueryStatistics();
+                    },
+                    concurrency, failedParams);
         }
     }
 
@@ -317,95 +371,17 @@ public class Periodic {
 
 
 
-    @Deprecated
-    @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
-    public Stream<BatchAndTotalResult> rock_n_roll(
-            @Name("cypherIterate") String cypherIterate,
-            @Name("cypherAction") String cypherAction,
-            @Name("batchSize") long batchSize) {
-        Map<String, String> fieldStatement = Util.map(
-                "cypherIterate", cypherIterate,
-                "cypherAction", cypherAction);
-        validateQueries(fieldStatement);
-
-        log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
-        try (Result result = tx.execute(cypherIterate)) {
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, (tx, p) -> tx.execute(cypherAction, p), 50, -1);
-        }
-    }
-
-    private Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize,
-                                                                                 boolean parallel,
-                                                                                 boolean iterateList,
-                                                                                 long retries,
-                                                                                 Iterator<Map<String, Object>> iterator,
-                                                                                 BiConsumer<Transaction, Map<String, Object>> consumer,
-                                                                                 int concurrency,
-                                                                                 int failedParams) {
-
-        ExecutorService pool = parallel ? pools.getDefaultExecutorService() : pools.getSingleExecutorService();
-        List<Future<Long>> futures = new ArrayList<>(concurrency);
-        BatchAndTotalCollector collector = new BatchAndTotalCollector(terminationGuard, failedParams);
-        do {
-            if (Util.transactionIsTerminated(terminationGuard)) break;
-            if (log.isDebugEnabled()) log.debug("execute in batch no %d batch size ", batchsize);
-            List<Map<String,Object>> batch = Util.take(iterator, batchsize);
-            final long currentBatchSize = batch.size();
-            ExecuteBatch executeBatch =
-                    iterateList ?
-                            new ListExecuteBatch(terminationGuard, collector, batch, consumer) :
-                            new OneByOneExecuteBatch(terminationGuard, collector, batch, consumer);
-
-            futures.add(Util.inTxFuture(log,
-                                        pool,
-                                        db,
-                                        executeBatch,
-                                        retries,
-                                        retryCount -> collector.incrementRetried(),
-                                        onComplete -> {
-                                            collector.incrementBatches();
-                                            executeBatch.release();
-                                        }));
-            /*  TODO: not sure if the block below is required
-            if (futures.size() > concurrency) {
-                while (futures.stream().noneMatch(Future::isDone)) { // none done yet, block for a bit
-                    LockSupport.parkNanos(1000);
-                }
-                Iterator<Future<Long>> it = futures.iterator();
-                while (it.hasNext()) {
-                    Future<Long> future = it.next();
-                    if (future.isDone()) {
-                        collector.incrementSuccesses(Util.getFuture(future, collector.getBatchErrors(), collector.getFailedBatches(), 0L));
-                        it.remove();
-                    }
-                }
-            }*/
-            collector.incrementCount(currentBatchSize);
-        } while (iterator.hasNext());
-
-        boolean wasTerminated = Util.transactionIsTerminated(terminationGuard);
-        ToLongFunction<Future<Long>> toLongFunction = wasTerminated ?
-                f -> Util.getFutureOrCancel(f, collector.getBatchErrors(), collector.getFailedBatches(), 0L) :
-                f -> Util.getFuture(f, collector.getBatchErrors(), collector.getFailedBatches(), 0L);
-        collector.incrementSuccesses(futures.stream().mapToLong(toLongFunction).sum());
-
-        Util.logErrors("Error during iterate.commit:", collector.getBatchErrors(), log);
-        Util.logErrors("Error during iterate.execute:", collector.getOperationErrors(), log);
-        return Stream.of(collector.getResult());
-    }
-
-    private static abstract class ExecuteBatch implements Function<Transaction, Long> {
+    static abstract class ExecuteBatch implements Function<Transaction, Long> {
 
         protected TerminationGuard terminationGuard;
         protected BatchAndTotalCollector collector;
         protected List<Map<String,Object>> batch;
-        protected BiConsumer<Transaction, Map<String, Object>> consumer;
+        protected BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer;
 
         ExecuteBatch(TerminationGuard terminationGuard,
                      BatchAndTotalCollector collector,
                      List<Map<String, Object>> batch,
-                     BiConsumer<Transaction, Map<String, Object>> consumer) {
+                     BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer) {
             this.terminationGuard = terminationGuard;
             this.collector = collector;
             this.batch = batch;
@@ -420,12 +396,12 @@ public class Periodic {
         }
     }
 
-    private static class ListExecuteBatch extends ExecuteBatch {
+    static class ListExecuteBatch extends ExecuteBatch {
 
         ListExecuteBatch(TerminationGuard terminationGuard,
                          BatchAndTotalCollector collector,
                          List<Map<String, Object>> batch,
-                         BiConsumer<Transaction, Map<String, Object>> consumer) {
+                         BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer) {
             super(terminationGuard, collector, batch, consumer);
         }
 
@@ -437,12 +413,12 @@ public class Periodic {
         }
     }
 
-    private static class OneByOneExecuteBatch extends ExecuteBatch {
+    static class OneByOneExecuteBatch extends ExecuteBatch {
 
         OneByOneExecuteBatch(TerminationGuard terminationGuard,
                              BatchAndTotalCollector collector,
                              List<Map<String, Object>> batch,
-                             BiConsumer<Transaction, Map<String, Object>> consumer) {
+                             BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer) {
             super(terminationGuard, collector, batch, consumer);
         }
 
@@ -461,145 +437,20 @@ public class Periodic {
         }
     }
 
-    private static long executeAndReportErrors(Transaction tx, BiConsumer<Transaction, Map<String, Object>> consumer, Map<String, Object> params,
+    private static long executeAndReportErrors(Transaction tx, BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer, Map<String, Object> params,
                                         List<Map<String, Object>> batch, int returnValue, AtomicLong localCount, BatchAndTotalCollector collector) {
         try {
-            consumer.accept(tx, params);
+            QueryStatistics statistics = consumer.apply(tx, params);
             if (localCount!=null) {
                 localCount.getAndIncrement();
             }
+            collector.updateStatistics(statistics);
             return returnValue;
         } catch (Exception e) {
             collector.incrementFailedOps(batch.size());
             collector.amendFailedParamsMap(batch);
             recordError(collector.getOperationErrors(), e);
             throw e;
-        }
-    }
-
-    public static class BatchAndTotalCollector {
-        private final int failedParams;
-        private long start = System.nanoTime();
-        private AtomicLong batches = new AtomicLong();
-        private long successes = 0;
-        private AtomicLong count = new AtomicLong();
-        private AtomicLong failedOps = new AtomicLong();
-        private AtomicLong retried = new AtomicLong();
-        private Map<String, Long> operationErrors = new ConcurrentHashMap<>();
-        private AtomicInteger failedBatches = new AtomicInteger();
-        private Map<String, Long> batchErrors = new HashMap<>();
-        private Map<String, List<Map<String, Object>>> failedParamsMap = new ConcurrentHashMap<>();
-        private final boolean wasTerminated;
-
-        public BatchAndTotalCollector(TerminationGuard terminationGuard, int failedParams) {
-            this.failedParams = failedParams;
-            wasTerminated = Util.transactionIsTerminated(terminationGuard);
-        }
-
-        public BatchAndTotalResult getResult() {
-            long timeTaken = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
-            return new BatchAndTotalResult(batches.get(), count.get(), timeTaken, successes, failedOps.get(), failedBatches.get(), retried.get(), operationErrors, batchErrors, wasTerminated, failedParamsMap);
-        }
-
-        public long getBatches() {
-            return batches.get();
-        }
-
-        public long getCount() {
-            return count.get();
-        }
-
-        public void incrementFailedOps(long size) {
-            failedOps.addAndGet(size);
-        }
-
-        public void incrementBatches() {
-            batches.incrementAndGet();
-        }
-
-        public void incrementSuccesses(long increment) {
-            successes += increment;
-        }
-
-        public void incrementCount(long currentBatchSize) {
-            count.addAndGet(currentBatchSize);
-        }
-
-        public Map<String, Long> getBatchErrors() {
-            return batchErrors;
-        }
-
-        public Map<String, Long> getOperationErrors() {
-            return operationErrors;
-        }
-
-        public Map<String, List<Map<String, Object>>> getFailedParamsMap() {
-            return failedParamsMap;
-        }
-
-        public void amendFailedParamsMap(List<Map<String, Object>> batch) {
-            if (failedParams >= 0) {
-                failedParamsMap.put(
-                        Long.toString(batches.get()),
-                        new ArrayList<>(batch.subList(0, Math.min(failedParams + 1, batch.size())))
-                );
-            }
-        }
-
-        public AtomicInteger getFailedBatches() {
-            return failedBatches;
-        }
-
-        public void incrementRetried() {
-            retried.incrementAndGet();
-        }
-    }
-
-    public static class BatchAndTotalResult {
-        public final long batches;
-        public final long total;
-        public final long timeTaken;
-        public final long committedOperations;
-        public final long failedOperations;
-        public final long failedBatches;
-        public final long retries;
-        public final Map<String,Long> errorMessages;
-        public final Map<String,Object> batch;
-        public final Map<String,Object> operations;
-        public final boolean wasTerminated;
-        public final Map<String, List<Map<String,Object>>> failedParams;
-
-        public BatchAndTotalResult(long batches, long total, long timeTaken, long committedOperations,
-                                   long failedOperations, long failedBatches, long retries,
-                                   Map<String, Long> operationErrors, Map<String, Long> batchErrors, boolean wasTerminated, Map<String, List<Map<String, Object>>> failedParams) {
-            this.batches = batches;
-            this.total = total;
-            this.timeTaken = timeTaken;
-            this.committedOperations = committedOperations;
-            this.failedOperations = failedOperations;
-            this.failedBatches = failedBatches;
-            this.retries = retries;
-            this.errorMessages = operationErrors;
-            this.wasTerminated = wasTerminated;
-            this.failedParams = failedParams;
-            this.batch = Util.map("total",batches,"failed",failedBatches,"committed",batches-failedBatches,"errors",batchErrors);
-            this.operations = Util.map("total",total,"failed",failedOperations,"committed", committedOperations,"errors",operationErrors);
-        }
-
-        public LoopingBatchAndTotalResult inLoop(Object loop) {
-            return new LoopingBatchAndTotalResult(loop, batches, total);
-        }
-    }
-
-    public static class LoopingBatchAndTotalResult {
-        public Object loop;
-        public long batches;
-        public long total;
-
-        public LoopingBatchAndTotalResult(Object loop, long batches, long total) {
-            this.loop = loop;
-            this.batches = batches;
-            this.total = total;
         }
     }
 
