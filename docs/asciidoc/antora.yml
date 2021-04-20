@@ -11,3 +11,5 @@ asciidoc:
     apoc-release: "4.1.0.6"
     page-product: "apoc"
     page-pagination: true
+    page-type: APOC Manual
+    page-canonical-root: /labs
