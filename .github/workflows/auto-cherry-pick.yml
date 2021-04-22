@@ -9,7 +9,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target-branch: ['4.2', '4.3']
+        target-branch: [
+          {name: '4.2', comment: '824917952'},
+          {name: '4.3', comment: '824917996'}
+        ]
     runs-on: ubuntu-latest
     name: cherry-pick
     if: github.event.pull_request.merged == true
@@ -19,8 +22,15 @@ jobs:
       - name: Create PR to branch ${{ matrix.target-branch }}
         uses: conker84/github-action-cherry-pick@0.1.1
         with:
-          pr_branch: ${{ matrix.target-branch }}
+          pr_branch: ${{ matrix.target-branch.name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           #          GITBOT_EMAIL: <BOT_EMAIL>
           DRY_RUN: false
+      - name: Add commit-id to comment in case the previous step fails
+        uses: peter-evans/create-or-update-comment@v1.4.4
+        if: ${{ failure() }}
+        with:
+          comment-id: ${{ matrix.target-branch.comment }}
+          body: |
+            - `git cherry-pick ${{ github.sha }}`
