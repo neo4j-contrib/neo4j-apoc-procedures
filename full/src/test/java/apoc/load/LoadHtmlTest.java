@@ -67,6 +67,18 @@ public class LoadHtmlTest {
                     assertEquals(asList(RESULT_QUERY_METADATA).toString().trim(), metadata.toString().trim());
                     assertEquals(asList(RESULT_QUERY_H2).toString().trim(), h2.toString().trim());
                 });
+
+        testResult(db, "CALL apoc.load.html($url,$query, $config)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", Map.of("withGeneratedJs", "CHROME")),
+                result -> {
+                    Map<String, Object> row = result.next();
+                    Map<String, Object> value = (Map<String, Object>) row.get("value");
+
+                    List<Map<String, Object>> metadata = (List<Map<String, Object>>) value.get("metadata");
+                    List<Map<String, Object>> h2 = (List<Map<String, Object>>) value.get("h2");
+
+                    assertEquals(asList(RESULT_QUERY_METADATA).toString().trim(), metadata.toString().trim());
+                    assertEquals(asList(RESULT_QUERY_H2).toString().trim(), h2.toString().trim());
+                });
     }
 
     @Test
@@ -79,7 +91,52 @@ public class LoadHtmlTest {
                     assertEquals(map("metadata",asList(RESULT_QUERY_METADATA)).toString().trim(), row.get("value").toString().trim());
                     assertFalse(result.hasNext());
                 });
+
+        testResult(db, "CALL apoc.load.html($url,$query, {withGeneratedJs: 'CHROME'})", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
+                result -> {
+                    Map<String, Object> row = result.next();
+                    assertEquals(map("metadata",asList(RESULT_QUERY_METADATA)).toString().trim(), row.get("value").toString().trim());
+                    assertFalse(result.hasNext());
+                });
     }
+
+
+    @Test
+    public void testQueryAllTODO(){
+        Map<String, Object> query = map("td", "td");
+
+        testResult(db, "CALL apoc.load.html($url,$query,$config)", map("url",new File("src/test/resources/wikipediaWithJs.html").toURI().toString(), "query", query,
+                "config", map("withGeneratedJs", "CHROME")),
+                result -> {
+                    Map<String, Object> row = result.next();
+                    Map<String, Object> value = (Map<String, Object>) row.get("value");
+
+                    List<Map<String, Object>> td = (List<Map<String, Object>>) value.get("td");
+                    List<Map<String, Object>> td2 = (List<Map<String, Object>>) value.get("td");
+//                    List<Map<String, Object>> h2 = (List<Map<String, Object>>) value.get("h2");
+
+                    assertEquals(asList(RESULT_QUERY_METADATA).toString().trim(), td.toString().trim());
+//                    assertEquals(asList(RESULT_QUERY_H2).toString().trim(), h2.toString().trim());
+                });
+    }
+
+//
+//    @Test
+//    public void testQueryAllTODOISSIMO(){
+//        Map<String, Object> query = map("h1", "h1");
+//
+//        testResult(db, "CALL apoc.load.html($url,$query, $config)", map("url", "https://kb.vmware.com/s/article/2143832", "query", query, "config", map("withGeneratedJs", true)),
+//                result -> {
+//                    Map<String, Object> row = result.next();
+//                    Map<String, Object> value = (Map<String, Object>) row.get("value");
+//
+//                    List<Map<String, Object>> h1 = (List<Map<String, Object>>) value.get("h1");
+////                    List<Map<String, Object>> h2 = (List<Map<String, Object>>) value.get("h2");
+//
+//                    assertEquals(asList(RESULT_QUERY_METADATA).toString().trim(), h1.toString().trim());
+////                    assertEquals(asList(RESULT_QUERY_H2).toString().trim(), h2.toString().trim());
+//                });
+//    }
 
     @Test
     public void testQueryH2(){

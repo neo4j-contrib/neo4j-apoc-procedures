@@ -81,6 +81,24 @@ dependencies {
     testCompile group: 'org.neo4j', name: 'log-test-utils', version: neo4jVersionEffective // , classifier: "tests"
 
 
+
+
+
+    compileOnly group: 'net.sourceforge.htmlunit', name: 'htmlunit', version: '2.36.0'
+    compileOnly group: 'net.sourceforge.htmlunit', name: 'htmlunit-core-js', version: '2.36.0'
+    compileOnly group: 'net.sourceforge.htmlunit', name: 'htmlunit-cssparser', version: '1.7.0'
+    compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-htmlunit-driver', version: '2.36.0'
+
+    testCompile group: 'net.sourceforge.htmlunit', name: 'htmlunit', version: '2.36.0'
+    testCompile group: 'net.sourceforge.htmlunit', name: 'htmlunit-core-js', version: '2.36.0'
+    testCompile group: 'net.sourceforge.htmlunit', name: 'htmlunit-cssparser', version: '1.7.0'
+    testCompile group: 'org.seleniumhq.selenium', name: 'selenium-htmlunit-driver', version: '2.36.0'
+
+    compile group: 'net.sourceforge.htmlunit', name: 'htmlunit', version: '2.36.0'
+    compile group: 'net.sourceforge.htmlunit', name: 'htmlunit-core-js', version: '2.36.0'
+    compile group: 'net.sourceforge.htmlunit', name: 'htmlunit-cssparser', version: '1.7.0'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-htmlunit-driver', version: '2.36.0'
+
     testCompile group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
 
