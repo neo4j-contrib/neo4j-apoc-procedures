@@ -21,7 +21,7 @@ public class RefactorUtil {
                     .filter(list -> !list.isEmpty())
                     .forEach(list -> {
                         Relationship first = list.get(0);
-                        if (isSelfRel(first) && !config.isProduceSelfRel()) {
+                        if (isSelfRel(first) && !config.isCreatingNewSelfRel()) {
                             list.forEach(Relationship::delete);
                         } else {
                             for (int i = 1; i < list.size(); i++) {

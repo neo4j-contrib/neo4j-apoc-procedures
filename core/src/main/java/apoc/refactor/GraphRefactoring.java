@@ -26,7 +26,6 @@ import java.util.stream.StreamSupport;
 import static apoc.refactor.util.PropertiesManager.mergeProperties;
 import static apoc.refactor.util.RefactorConfig.RelationshipSelectionStrategy.MERGE;
 import static apoc.refactor.util.RefactorUtil.*;
-import static apoc.util.Util.isSelfRel;
 
 public class GraphRefactoring {
     @Context
@@ -283,13 +282,13 @@ public class GraphRefactoring {
         nodes.stream().distinct().sorted(Comparator.comparingLong(Node::getId)).forEach(tx::acquireWriteLock);
 
         final Node first = nodes.get(0);
-        final List<Long> existingRels = conf.isPreserveExistingSelfRels()
+        final List<Long> existingSelfRelIds = conf.isPreservingExistingSelfRels()
                 ? StreamSupport.stream(first.getRelationships().spliterator(), false).filter(Util::isSelfRel)
                     .map(Entity::getId)
                     .collect(Collectors.toList())
                 : Collections.emptyList();
 
-        nodes.stream().skip(1).distinct().forEach(node -> mergeNodes(node, first, true, conf, existingRels));
+        nodes.stream().skip(1).distinct().forEach(node -> mergeNodes(node, first, conf, existingSelfRelIds));
         return Stream.of(new NodeResult(first));
     }
 
@@ -583,31 +582,27 @@ public class GraphRefactoring {
         });
     }
 
-    private Node mergeNodes(Node source, Node target, boolean delete, RefactorConfig conf, List<Long> excludeRelIds) {
+    private void mergeNodes(Node source, Node target, RefactorConfig conf, List<Long> excludeRelIds) {
         try {
             Map<String, Object> properties = source.getAllProperties();
 
-            copyRelationships(source, copyLabels(source, target), delete, conf.isProduceSelfRel());
+            copyRelationships(source, copyLabels(source, target), true, conf.isCreatingNewSelfRel());
             if (conf.getMergeRelsAllowed()) {
                 mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.OUTGOING, excludeRelIds);
                 mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING, excludeRelIds);
             }
-            if (delete) source.delete();
+            source.delete();
             PropertiesManager.mergeProperties(properties, target, conf);
         } catch (NotFoundException e) {
             log.warn("skipping a node for merging: " + e.getCause().getMessage());
         }
-        return target;
     }
 
-    private Node copyRelationships(Node source, Node target, boolean delete, boolean isProduceSelfRel) {
+    private void copyRelationships(Node source, Node target, boolean delete, boolean createNewSelfRel) {
         for (Relationship rel : source.getRelationships()) {
-            if (isProduceSelfRel) {
-                copyRelationship(rel, source, target);
-            }
+            copyRelationship(rel, source, target, createNewSelfRel);
             if (delete) rel.delete();
         }
-        return target;
     }
 
     private Node copyLabels(Node source, Node target) {
@@ -619,9 +614,13 @@ public class GraphRefactoring {
         return target;
     }
 
-    private Relationship copyRelationship(Relationship rel, Node source, Node target) {
+    private void copyRelationship(Relationship rel, Node source, Node target, boolean createNewSelfRelf) {
         Node startNode = rel.getStartNode();
         Node endNode = rel.getEndNode();
+
+        if (startNode.getId() == endNode.getId() && !createNewSelfRelf) {
+            return;
+        }
 
         if (startNode.getId() == source.getId()) {
             startNode = target;
@@ -632,7 +631,7 @@ public class GraphRefactoring {
         }
 
         Relationship newrel = startNode.createRelationshipTo(endNode, rel.getType());
-        return copyProperties(rel, newrel);
+        copyProperties(rel, newrel);
     }
 
 }
