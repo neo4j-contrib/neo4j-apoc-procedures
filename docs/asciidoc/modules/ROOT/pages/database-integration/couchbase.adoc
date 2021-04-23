@@ -57,11 +57,9 @@ CALL apoc.couchbase.get('mykey', 'default', 'artist:vincent_van_gogh')
 You can also define some CouchbaseEnvironment parameters in the apoc.conf:
 ----
 apoc.couchbase.connectTimeout=<default=5000>
-apoc.couchbase.socketConnectTimeout=<default=1500>
 apoc.couchbase.kvTimeout=<default=2500>
 apoc.couchbase.ioPoolSize=<default=3>
-apoc.couchbase.computationPoolSize=<default=3>
 ----
-In order to get an in-depth description of these configuration params please refer to the https://docs.couchbase.com/java-sdk/2.7/client-settings.html[Official Couchbase Documentation]
+In order to get an in-depth description of these configuration params please refer to the https://docs.couchbase.com/java-sdk/current/ref/client-settings.html[Official Couchbase Documentation]
 
 // end::couchbase[]
