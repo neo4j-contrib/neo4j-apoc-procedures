@@ -1,14 +1,21 @@
 package apoc.couchbase;
 
-import com.couchbase.client.java.auth.PasswordAuthenticator;
-import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
+import com.couchbase.client.core.env.IoEnvironment;
+import com.couchbase.client.core.env.PasswordAuthenticator;
+import com.couchbase.client.core.env.TimeoutConfig;
+import com.couchbase.client.java.env.ClusterEnvironment;
 import org.apache.commons.configuration2.Configuration;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.parboiled.common.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Collections;
+import java.util.List;
+import java.util.Arrays;
 
 import static apoc.ApocConfig.apocConfig;
 
@@ -36,10 +43,8 @@ public class CouchbaseManager {
     static {
         Map<String, Object> cfg = new HashMap<>();
         cfg.put("connectTimeout", 5000L);
-        cfg.put("socketConnectTimeout", 1500);
         cfg.put("kvTimeout", 2500);
         cfg.put("ioPoolSize", 3);
-        cfg.put("computationPoolSize", 3);
         DEFAULT_CONFIG = Collections.unmodifiableMap(cfg);
 
     }
@@ -87,7 +92,7 @@ public class CouchbaseManager {
         }
 
         return Pair.of(
-                new PasswordAuthenticator(username.toString(), password.toString()),
+                PasswordAuthenticator.create(username.toString(), password.toString()),
                 Arrays.asList(url.toString().split(","))
         );
     }
@@ -110,7 +115,7 @@ public class CouchbaseManager {
         String[] credentials = host.getUserInfo().split(":");
 
         return Pair.of(
-                new PasswordAuthenticator(credentials[0], credentials[1]),
+                PasswordAuthenticator.create(credentials[0], credentials[1]),
                 nodes
         );
     }
@@ -138,57 +143,32 @@ public class CouchbaseManager {
     /**
      * @param hostOrKey
      * @param bucketName
-     * @return
+     * @return the {@link CouchbaseConnection}
      */
     public static CouchbaseConnection getConnection(String hostOrKey, String bucketName) {
         PasswordAuthenticator passwordAuthenticator = getPasswordAuthenticator(hostOrKey);
-        List<String> nodes = getNodes(hostOrKey);
-        DefaultCouchbaseEnvironment env = getEnv(hostOrKey);
 
+        // hostOrKey no longer necessary because bootstrapHttpDirectPort is configured via SeedNode in CouchbaseConnection
+        ClusterEnvironment env = getEnv();
 
-        String[] bucketCredentials = bucketName.split(":");
-        return new CouchbaseConnection(nodes, passwordAuthenticator, bucketCredentials[0], bucketCredentials.length == 2 ? bucketCredentials[1] : null, env);
+        // The minimum cluster version supported by SDK 3 is Server 5.0, so bucket-level passwords are not supported anymore
+        return new CouchbaseConnection(hostOrKey, passwordAuthenticator, bucketName, env);
     }
 
-    private static DefaultCouchbaseEnvironment getEnv(String hostOrKey) {
-        URI singleHostURI = checkAndGetURI(hostOrKey);
+    private static ClusterEnvironment getEnv() {
 
-        DefaultCouchbaseEnvironment.Builder builder = DefaultCouchbaseEnvironment.builder();
+        ClusterEnvironment.Builder builder = ClusterEnvironment.builder();
 
-        builder.connectTimeout(Long.parseLong(getConfig("connectTimeout")));
-        builder.socketConnectTimeout(Integer.parseInt(getConfig("socketConnectTimeout")));
-        builder.kvTimeout(Integer.parseInt(getConfig("kvTimeout")));
-        builder.ioPoolSize(Integer.parseInt(getConfig("ioPoolSize")));
-        builder.computationPoolSize(Integer.parseInt(getConfig("computationPoolSize")));
-        if (singleHostURI == null || singleHostURI.getScheme() == null) {
-            Configuration couchbaseConfig = getKeyMap(hostOrKey);
+        builder.timeoutConfig(TimeoutConfig.kvTimeout(
+                Duration.ofMillis(Integer.parseInt(getConfig("kvTimeout")))));
 
-            int port;
-            if (( port = couchbaseConfig.getInt(PORT_CONFIG_KEY, -1)) != -1) {
-                builder.bootstrapHttpDirectPort(port);
-            }
-        } else {
-            if (singleHostURI.getPort() != -1) {
-                builder.bootstrapHttpDirectPort(singleHostURI.getPort());
-            }
-        }
+        builder.timeoutConfig(TimeoutConfig.connectTimeout(
+                Duration.ofMillis(Long.parseLong(getConfig("connectTimeout")))));
+
+        builder.ioEnvironment(IoEnvironment.builder().eventLoopThreadCount(
+                Integer.parseInt(getConfig("ioPoolSize"))));
+
         return builder.build();
-    }
-
-    private static List<String> getNodes(String hostOrKey) {
-        URI singleHostURI = checkAndGetURI(hostOrKey);
-        String url;
-        if (singleHostURI == null || singleHostURI.getScheme() == null) {
-            Configuration couchbaseConfig = getKeyMap(hostOrKey);
-
-            url = couchbaseConfig.getString(URI_CONFIG_KEY, null);
-            if (url == null)  {
-                throw new RuntimeException("Please check you 'apoc.couchbase." + hostOrKey + "' configuration, url is missing");
-            }
-        } else {
-            url = singleHostURI.getHost();
-        }
-        return Arrays.asList(url.split(","));
     }
 
     private static PasswordAuthenticator getPasswordAuthenticator(String hostOrKey) {
@@ -202,14 +182,14 @@ public class CouchbaseManager {
                 throw new RuntimeException("Please check you 'apoc.couchbase." + hostOrKey + "' configuration, username and password are missing");
             }
 
-            return new PasswordAuthenticator(username.toString(), password.toString());
+            return PasswordAuthenticator.create(username.toString(), password.toString());
         } else {
             String[] userInfo = singleHostURI.getUserInfo().split(":");
-            return new PasswordAuthenticator(userInfo[0], userInfo[1]);
+            return PasswordAuthenticator.create(userInfo[0], userInfo[1]);
         }
     }
 
-    private static Configuration getKeyMap(String hostOrKey) {
+    protected static Configuration getKeyMap(String hostOrKey) {
         Configuration couchbaseConfig = apocConfig().getConfig().subset("apoc." + COUCHBASE_CONFIG_KEY + hostOrKey);
 
         if (couchbaseConfig.isEmpty()) {
