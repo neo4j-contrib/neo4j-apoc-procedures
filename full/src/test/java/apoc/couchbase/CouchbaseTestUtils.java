@@ -1,53 +1,50 @@
 package apoc.couchbase;
 
 import apoc.couchbase.document.CouchbaseJsonDocument;
-import apoc.couchbase.document.CouchbaseQueryResult;
+import apoc.util.TestUtil;
+import com.couchbase.client.core.env.SeedNode;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.document.JsonDocument;
-import com.couchbase.client.java.document.json.JsonArray;
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.env.CouchbaseEnvironment;
-import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
-import com.couchbase.client.java.query.N1qlParams;
-import com.couchbase.client.java.query.N1qlQuery;
-import com.couchbase.client.java.query.N1qlQueryResult;
-import com.couchbase.client.java.query.consistency.ScanConsistency;
+import com.couchbase.client.java.Collection;
+import com.couchbase.client.java.json.JsonArray;
+import com.couchbase.client.java.json.JsonObject;
+import com.couchbase.client.java.env.ClusterEnvironment;
+import com.couchbase.client.java.query.QueryResult;
+import com.couchbase.client.java.query.QueryScanConsistency;
+import org.testcontainers.couchbase.BucketDefinition;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
+import java.util.Set;
+import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static apoc.util.TestUtil.isTravis;
+import static com.couchbase.client.java.ClusterOptions.clusterOptions;
+import static com.couchbase.client.java.query.QueryOptions.queryOptions;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
+import static org.junit.Assume.assumeNotNull;
 
 public class CouchbaseTestUtils {
-
-    public static final String CONNECTION_TIMEOUT_CONFIG_KEY = "connectTimeout";
-    public static final String CONNECTION_TIMEOUT_CONFIG_VALUE = "60000";
-
-    public static final String SOCKET_CONNECT_TIMEOUT_CONFIG_KEY = "socketConnectTimeout";
-    public static final String SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE = "10000";
-
-    public static final String KV_TIMEOUT_CONFIG_KEY = "kvTimeout";
-    public static final String KV_TIMEOUT_CONFIG_VALUE = "10000";
-
-    public static final String IO_POOL_SIZE_CONFIG_KEY = "ioPoolSize";
-    public static final String IO_POOL_SIZE_CONFIG_VALUE = "5";
-
-    public static final String COMPUTATION_POOL_SIZE_CONFIG_KEY = "computationPoolSize";
-    public static final String COMPUTATION_POOL_SIZE_CONFIG_VALUE = "5";
 
     public static final String BUCKET_NAME = "mybucket";
 
     public static final String USERNAME = "admin";
-
     public static final String PASSWORD = "secret";
 
     private static final String QUERY = "select * from %s where lastName = 'Van Gogh'";
+
+    protected static final String COUCHBASE_CONFIG_KEY = "demo";
+    protected static final String BASE_APOC_CONFIG = "apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY;
+    protected static final String BASE_CONFIG_KEY = BASE_APOC_CONFIG + COUCHBASE_CONFIG_KEY + ".";
+
+    protected static CouchbaseContainer couchbase;
+    protected static Collection collection;
+    protected static String HOST = null;
 
     public static final JsonObject VINCENT_VAN_GOGH = JsonObject.create()
             .put("firstName", "Vincent")
@@ -56,11 +53,12 @@ public class CouchbaseTestUtils {
             .put("notableWorks", JsonArray.from("Starry Night", "Sunflowers", "Bedroom in Arles", "Portrait of Dr Gachet", "Sorrow"));
 
     public static boolean fillDB(Cluster cluster) {
-        Bucket couchbaseBucket = cluster.openBucket(BUCKET_NAME);
-        couchbaseBucket.insert(JsonDocument.create("artist:vincent_van_gogh", VINCENT_VAN_GOGH));
-        N1qlQueryResult queryResult = couchbaseBucket.query(N1qlQuery.simple(String.format(QUERY, BUCKET_NAME), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
-        couchbaseBucket.close();
-        return queryResult.info().resultCount() == 1;
+        Bucket couchbaseBucket = cluster.bucket(BUCKET_NAME);
+        Collection collection = couchbaseBucket.defaultCollection();
+        collection.insert("artist:vincent_van_gogh", VINCENT_VAN_GOGH);
+        QueryResult queryResult = cluster.query(String.format(QUERY, BUCKET_NAME),
+                queryOptions().scanConsistency(QueryScanConsistency.REQUEST_PLUS));
+        return queryResult.rowsAsObject().size() == 1;
     }
 
     public static String getUrl(CouchbaseContainer couchbaseContainer) {
@@ -75,17 +73,6 @@ public class CouchbaseTestUtils {
         assertEquals(1, listResult.size());
         assertTrue(listResult.get(0) instanceof Map);
         Map<String, Object> result = (Map<String, Object>) listResult.get(0);
-        checkResult(result);
-    }
-
-    public static void checkQueryResult(Stream<CouchbaseQueryResult> stream) {
-        Iterator<CouchbaseQueryResult> iterator = stream.iterator();
-        assertTrue(iterator.hasNext());
-        CouchbaseQueryResult queryResult = iterator.next();
-        assertNotNull(queryResult);
-        assertEquals(1, queryResult.queryResult.size());
-        assertTrue(queryResult.queryResult.get(0) instanceof Map);
-        Map<String, Object> result = (Map<String, Object>) queryResult.queryResult.get(0);
         checkResult(result);
     }
 
@@ -123,49 +110,30 @@ public class CouchbaseTestUtils {
         assertEquals(jsonDocumentCreatedForThisTest.mutationToken, mutationToken);
     }
 
-    public static Bucket getCouchbaseBucket(CouchbaseContainer couchbase) {
-        CouchbaseEnvironment environment = DefaultCouchbaseEnvironment
-                .builder()
-                .bootstrapCarrierDirectPort(couchbase.getBootstrapCarrierDirectPort())
-                .bootstrapHttpDirectPort(couchbase.getBootstrapHttpDirectPort())
-                .build();
+    protected static void createCouchbaseContainer() {
+        assumeFalse(isTravis());
+        TestUtil.ignoreException(() -> {
+            couchbase = new CouchbaseContainer()
+                    .withCredentials(USERNAME, PASSWORD)
+                    .withBucket(new BucketDefinition(BUCKET_NAME));
+            couchbase.start();
+        }, Exception.class);
+        assumeNotNull(couchbase);
+        assumeTrue("couchbase must be running", couchbase.isRunning());
 
-        Cluster cluster = CouchbaseCluster.create(
-                environment,
-                couchbase.getHost()
-        );
+        ClusterEnvironment environment = ClusterEnvironment.create();
 
-        int version = getVersion(couchbase);
-        if (version == 4) {
-            return cluster.openBucket(BUCKET_NAME, PASSWORD);
-        } else {
-            return cluster.authenticate(USERNAME, PASSWORD).openBucket(BUCKET_NAME);
-        }
+        Set<SeedNode> seedNodes = Set.of(SeedNode.create(couchbase.getHost(),
+                Optional.of(couchbase.getBootstrapCarrierDirectPort()),
+                Optional.of(couchbase.getBootstrapHttpDirectPort())));
 
-    }
+        Cluster cluster = Cluster.connect(seedNodes, clusterOptions(USERNAME, PASSWORD).environment(environment));
 
-    public static int getVersion(CouchbaseContainer couchbase) {
-        CouchbaseEnvironment environment = DefaultCouchbaseEnvironment
-                .builder()
-                .bootstrapCarrierDirectPort(couchbase.getBootstrapCarrierDirectPort())
-                .bootstrapHttpDirectPort(couchbase.getBootstrapHttpDirectPort())
-                .build();
-
-        Cluster cluster = CouchbaseCluster.create(
-                environment,
-                couchbase.getHost()
-        );
-
-        return cluster.clusterManager(USERNAME, PASSWORD).info(1, TimeUnit.SECONDS).getMinVersion().major();
-    }
-
-    public static String getBucketName(CouchbaseContainer couchbase) {
-        int version = getVersion(couchbase);
-        if (version == 4) {
-            return BUCKET_NAME + ":" + PASSWORD;
-        } else {
-            return BUCKET_NAME;
-        }
+        boolean isFilled = fillDB(cluster);
+        assumeTrue("should fill Couchbase with data", isFilled);
+        HOST = getUrl(couchbase);
+        Bucket bucket = cluster.bucket(BUCKET_NAME);
+        collection = bucket.defaultCollection();
     }
 
 }
