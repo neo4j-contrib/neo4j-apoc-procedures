@@ -1,7 +1,6 @@
 package apoc.load;
 
 import apoc.Extended;
-import apoc.export.util.CountingInputStream;
 import apoc.result.MapResult;
 import apoc.util.Util;
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -16,20 +15,18 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
-import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 
@@ -38,6 +35,9 @@ public class LoadHtml {
 
     // public for test purpose
     public static final String KEY_ERROR = "errorList";
+    public static final String INVALID_CONFIG = "Invalid config: ";
+    public static final String FILE_NOT_FOUND_FROM = "File not found from: ";
+    public static final String UNSUPPORTED_CHARSET = "Unsupported charset: ";
 
     private enum FailSilently { FALSE, WITH_LOG, WITH_LIST }
 
@@ -65,9 +65,8 @@ public class LoadHtml {
 
             Document document;
 
-            final CountingInputStream in = Util.openInputStream(url, null, null);
             if (withBrowser == WithBrowser.NONE) {
-                document = Jsoup.parse(in, charset, baseUri);
+                document = Jsoup.parse(Util.openInputStream(url, null, null), charset, baseUri);
             } else {
                 WebDriver driver;
                 if (withBrowser == WithBrowser.CHROME) {
@@ -85,15 +84,9 @@ public class LoadHtml {
                     firefoxOptions.setAcceptInsecureCerts(true);
                     driver = new FirefoxDriver(firefoxOptions);
                 }
-                // todo - base url...
-                if (!baseUri.isBlank()) {
-                    url = baseUri + File.separator + url;
-                }
+                // we cannot read a .html from a compressed file because we cannot interpret external js-scripts
                 driver.get(url);
                 String pageSource = driver.getPageSource();
-
-//                final WebElement element = driver.findElement(By.xpath("//meta[@name=’description’]"));
-
                 document = Jsoup.parse(pageSource, baseUri);
                 driver.close();
             }
@@ -112,40 +105,16 @@ public class LoadHtml {
 
             return Stream.of(new MapResult(output));
         } catch (IllegalArgumentException | ClassCastException e) {
-            throw new RuntimeException("Invalid config", e);
+            throw new RuntimeException(INVALID_CONFIG + config);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException("File not found from: " + url);
+            throw new RuntimeException(FILE_NOT_FOUND_FROM + url);
         } catch(UnsupportedEncodingException e) {
-            throw new RuntimeException("Unsupported charset: " + charset);
+            throw new RuntimeException(UNSUPPORTED_CHARSET + charset);
         } catch(Exception e) {
             throw new RuntimeException("Can't read the HTML from: "+ url, e);
         }
     }
 
-
-//    private static Document renderPage(String filePath) {
-//        System.setProperty("phantomjs.binary.path", "libs/phantomjs"); // path to bin file. NOTE: platform dependent
-//        WebDriver ghostDriver = new PhantomJSDriver();
-//        try {
-//            ghostDriver.get(filePath);
-//            return Jsoup.parse(ghostDriver.getPageSource());
-//        } finally {
-//            ghostDriver.quit();
-//        }
-//    }
-
-    /*
-    webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
-
-    IterableUtils.size(((Iterable)
-    ( (DomElement)    ((List) ((HtmlPage) webClient.getPage(
-                new URL(url)
-        //        "file:/" + Path.of(url).toString().replace("file:", "")
-        )).getElementsByTagName("h2")).get(0)
-    ).getChildElements()))
-
-
-     */
 
     private List<Map<String, Object>> getElements(Elements elements, Map<String, Object> config, List<String> errorList) {
 
@@ -191,7 +160,11 @@ public class LoadHtml {
     private Map<String, String> getAttributes(Element element) {
         Map<String, String> attributes = new HashMap<>();
         for (Attribute attribute : element.attributes()) {
-            if(!attribute.getValue().isEmpty()) attributes.put(attribute.getKey(), attribute.getValue());
+            if(!attribute.getValue().isEmpty()) {
+                final String key = attribute.getKey();
+                final boolean attributeHasLink = key.equals("href") || key.equals("src");
+                attributes.put(key, attributeHasLink ? element.absUrl(key) : attribute.getValue());
+            }
         }
 
         return attributes;

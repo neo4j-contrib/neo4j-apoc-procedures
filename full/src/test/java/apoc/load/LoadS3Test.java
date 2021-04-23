@@ -64,21 +64,6 @@ public class LoadS3Test {
         });
     }
 
-    @Test
-    public void testLoadHtmlS3() throws Exception {
-        String url = minio.putFile("src/test/resources/wikipedia.html");
-        testResult(db, "CALL apoc.load.html($url, {h1: 'h1'}, {withGeneratedJs: 'FIREFOX'})", map("url", url), (r) -> {
-//            final ResourceIterator<Object> value = r.columnAs("value");
-            final Map<String, Object> next = (Map<String, Object>) r.columnAs("value").next();
-            System.out.println("LoadS3Test.testLoadHtmlS3");
-
-//            assertRow(r, "Selma", "8", 0L);
-//            assertRow(r, "Rana", "11", 1L);
-//            assertRow(r, "Selina", "18", 2L);
-//            assertEquals(false, r.hasNext());
-        });
-    }
-
     @Test public void testLoadJsonS3() throws Exception {
         String url = minio.putFile("src/test/resources/map.json");
 

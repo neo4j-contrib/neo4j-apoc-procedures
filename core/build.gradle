@@ -39,7 +39,7 @@ dependencies {
     testCompile project(':test-utils')
 
 //    apt 'net.biville.florent:neo4j-sproc-compiler:1.2'  // temporarily disabled until byte[] is supported by sproc compiler
-    apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective	
+    apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
     compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     testCompile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
@@ -56,7 +56,6 @@ dependencies {
     // testCompile "org.antlr:antlr4-runtime:4.7.2"
 
     compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
-    compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7'
     compile(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7') {
         exclude group: "org.yaml"
         exclude module: "snakeyaml"
@@ -80,24 +79,6 @@ dependencies {
     testCompile group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective // , classifier: "tests"
     testCompile group: 'org.neo4j', name: 'log-test-utils', version: neo4jVersionEffective // , classifier: "tests"
 
-
-
-
-
-    compileOnly group: 'net.sourceforge.htmlunit', name: 'htmlunit', version: '2.36.0'
-    compileOnly group: 'net.sourceforge.htmlunit', name: 'htmlunit-core-js', version: '2.36.0'
-    compileOnly group: 'net.sourceforge.htmlunit', name: 'htmlunit-cssparser', version: '1.7.0'
-    compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-htmlunit-driver', version: '2.36.0'
-
-    testCompile group: 'net.sourceforge.htmlunit', name: 'htmlunit', version: '2.36.0'
-    testCompile group: 'net.sourceforge.htmlunit', name: 'htmlunit-core-js', version: '2.36.0'
-    testCompile group: 'net.sourceforge.htmlunit', name: 'htmlunit-cssparser', version: '1.7.0'
-    testCompile group: 'org.seleniumhq.selenium', name: 'selenium-htmlunit-driver', version: '2.36.0'
-
-    compile group: 'net.sourceforge.htmlunit', name: 'htmlunit', version: '2.36.0'
-    compile group: 'net.sourceforge.htmlunit', name: 'htmlunit-core-js', version: '2.36.0'
-    compile group: 'net.sourceforge.htmlunit', name: 'htmlunit-cssparser', version: '1.7.0'
-    compile group: 'org.seleniumhq.selenium', name: 'selenium-htmlunit-driver', version: '2.36.0'
 
     testCompile group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
@@ -161,19 +142,19 @@ dependencies {
 
 // tweaks for travis
 if (System.env.TRAVIS == 'true') {
-  allprojects {
-    tasks.withType(GroovyCompile) {
-      groovyOptions.fork = false
+    allprojects {
+        tasks.withType(GroovyCompile) {
+            groovyOptions.fork = false
+        }
+        tasks.withType(Test) {
+            // containers (currently) have 2 dedicated cores and 4GB of memory
+            maxParallelForks = 2
+            minHeapSize = '128m'
+        }
     }
-    tasks.withType(Test) {
-      // containers (currently) have 2 dedicated cores and 4GB of memory
-      maxParallelForks = 2
-      minHeapSize = '128m'
-    }
-  }
 }
 
 task copyRuntimeLibs(type: Copy) {
     into "lib"
-    from configurations.testRuntime 
+    from configurations.testRuntime
 }

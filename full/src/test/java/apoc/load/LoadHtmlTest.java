@@ -5,22 +5,20 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static apoc.load.LoadHtml.FILE_NOT_FOUND_FROM;
+import static apoc.load.LoadHtml.INVALID_CONFIG;
 import static apoc.load.LoadHtml.KEY_ERROR;
+import static apoc.load.LoadHtml.UNSUPPORTED_CHARSET;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -28,11 +26,12 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
-@RunWith(Parameterized.class)
+
 public class LoadHtmlTest {
 
-    private static final String RESULT_QUERY_METADATA = ("{attributes={charset=UTF-8}, tagName=meta}, " +
+    protected static final String RESULT_QUERY_METADATA = ("{attributes={charset=UTF-8}, tagName=meta}, " +
             "{attributes={name=ResourceLoaderDynamicStyles}, tagName=meta}, " +
             "{attributes={name=generator, content=MediaWiki 1.32.0-wmf.18}, tagName=meta}, " +
             "{attributes={name=referrer, content=origin}, tagName=meta}, " +
@@ -40,26 +39,16 @@ public class LoadHtmlTest {
             "{attributes={name=referrer, content=origin-when-cross-origin}, tagName=meta}, " +
             "{attributes={property=og:image, content=https://upload.wikimedia.org/wikipedia/en/e/ea/Aap_Kaa_Hak_titles.jpg}, tagName=meta}");
 
-    private static final String RESULT_QUERY_H2 = ("{text=Contents, tagName=h2}, " +
+    protected static final String RESULT_QUERY_H2 = ("{text=Contents, tagName=h2}, " +
             "{text=Origins[edit], tagName=h2}, " +
             "{text=Content[edit], tagName=h2}, " +
             "{text=Legacy[edit], tagName=h2}, " +
             "{text=References[edit], tagName=h2}, " +
             "{text=Navigation menu, tagName=h2}");
 
-    private static final String INVALID_PATH = new File("src/test/resources/wikipedia1.html").toURI().toString();
-    private static final String VALID_PATH = new File("src/test/resources/wikipedia.html").toURI().toString();
-    private static final String INVALID_CHARSET = "notValid";
-
-
-    @Parameters
-    public static Collection<Object> data() {
-        return List.of("notSet", "NONE", "CHROME", "FIREFOX");// Arrays.asList(new Object[] {"FRANCO", "OSVALDO"});
-    }
-
-    @Parameter
-    public String browser;
-
+    protected static final String INVALID_PATH = new File("src/test/resources/wikipedia1.html").toURI().toString();
+    protected static final String VALID_PATH = new File("src/test/resources/wikipedia.html").toURI().toString();
+    protected static final String INVALID_CHARSET = "notValid";
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
@@ -69,23 +58,45 @@ public class LoadHtmlTest {
         TestUtil.registerProcedure(db, LoadHtml.class);
     }
 
+
     @Test
-    public void testQueryAll(){
-        Map<String, Object> query = map("metadata", "meta", "h2", "h2");
+    public void testParseGeneratedJs() {
+        testCallGeneratedJsWithBrowser("FIREFOX");
+        testCallGeneratedJsWithBrowser("CHROME");
+    }
 
-        Map<String, Object> config = Map.of("baseUri", new File("OSVALDONE").toURI().toString());
-//        Map<String, Object> config = browser.equals("notSet") ? Collections.emptyMap() : Map.of("withGeneratedJs", "NONE");
-        testResult(db, "CALL apoc.load.html($url,$query, $config)", map("url",new File("../wikipedia.html").toURI().toString(),
-                "query", query, "config", config),
+    @Test
+    public void testWithBaseUriConfig() {
+        Map<String, Object> query = map("urlTest", ".urlTest");
+
+        final String baseUri = new File("src/test/resources").toURI().toString();
+        testCall(db, "CALL apoc.load.html($url,$query, $config)",
+                map("url", new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString(),
+                        "query", query,
+                        "config", map("baseUri", baseUri)),
                 result -> {
-                    Map<String, Object> row = result.next();
-                    Map<String, Object> value = (Map<String, Object>) row.get("value");
-
-                    List<Map<String, Object>> metadata = (List<Map<String, Object>>) value.get("metadata");
-                    List<Map<String, Object>> h2 = (List<Map<String, Object>>) value.get("h2");
-
-                    assertEquals(asList(RESULT_QUERY_METADATA).toString().trim(), metadata.toString().trim());
-                    assertEquals(asList(RESULT_QUERY_H2).toString().trim(), h2.toString().trim());
+                    Map<String, Object> value = (Map<String, Object>) result.get("value");
+                    final List<Map<String, Object>> urlTestList = (List<Map<String, Object>>) value.get("urlTest");
+                    urlTestList.forEach(tag -> {
+                        assertEquals("a", tag.get("tagName"));
+                        final String href = (String) ((Map<String, Object>) tag.get("attributes")).get("href");
+                        switch ((String) tag.get("text")) {
+                            case "backUrl":
+                                assertEquals(baseUri.replace("test/resources/", "backUrl.js"), href);
+                                break;
+                            case "forwardUrl":
+                                assertEquals("file:/test.js", href);
+                                break;
+                            case "urlSamePath":
+                                assertEquals(baseUri + "this.js", href);
+                                break;
+                            case "absoluteUrl":
+                                assertEquals("https://foundation.wikimedia.org/wiki/Privacy_policy", href);
+                                break;
+                            default:
+                                fail();
+                        }
+                    });
                 });
     }
 
@@ -100,7 +111,7 @@ public class LoadHtmlTest {
                     assertFalse(result.hasNext());
                 });
 
-        testResult(db, "CALL apoc.load.html($url,$query, {withGeneratedJs: 'CHROME'})", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
+        testResult(db, "CALL apoc.load.html($url,$query, {withBrowser: 'CHROME'})", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
                 result -> {
                     Map<String, Object> row = result.next();
                     assertEquals(map("metadata",asList(RESULT_QUERY_METADATA)).toString().trim(), row.get("value").toString().trim());
@@ -117,45 +128,6 @@ public class LoadHtmlTest {
                     Map<String, Object> row = result.next();
                     assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
                     assertFalse(result.hasNext());
-                });
-    }
-
-    @Test
-    public void testQueryH2WithConfig(){
-        Map<String, Object> query = map("h2", "h2");
-        Map<String, Object> config = map("charset", "UTF-8", "baseUri", new File("src/test/resources/wikipedia.html").toURI().toString(), "");
-
-        testResult(db, "CALL apoc.load.html($url,$query, $config)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
-                result -> {
-                    Map<String, Object> row = result.next();
-                    assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
-                    assertFalse(result.hasNext());
-                });
-    }
-
-    @Test
-    public void testQueryWithChildren() {
-        Map<String, Object> query = map("toc", ".toc ul");
-        Map<String, Object> config = map("children", true);
-
-        testResult(db, "CALL apoc.load.html($url,$query, $config)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
-                result -> {
-                    Map<String, Object> row = result.next();
-                    Map<String, Object> value = (Map<String, Object>) row.get("value");
-
-                    List<Map<String, Object>> toc = (List) value.get("toc");
-                    Map<String, Object> first = toc.get(0);
-
-                    // Should be <ul>
-                    assertEquals("ul", first.get("tagName"));
-
-                    // Should have four children
-                    assertEquals(4, ((List) first.get("children")).size());
-
-                    Map<String, Object> firstChild = (Map)((List) first.get("children")).get(0);
-
-                    assertEquals("li", firstChild.get("tagName"));
-                    assertEquals(1, ((List) firstChild.get("children")).size());
                 });
     }
 
@@ -232,17 +204,17 @@ public class LoadHtmlTest {
 
     @Test(expected = QueryExecutionException.class)
     public void testQueryWithExceptionIfIncorrectUrl() {
-        testIncorrectUrl("CALL apoc.load.html('" + INVALID_PATH + "',{a:'a'}, {withBrowser: 'CHROME'})");
+        testIncorrectUrl("CALL apoc.load.html('" + INVALID_PATH + "',{a:'a'})");
     }
 
     @Test(expected = QueryExecutionException.class)
     public void testQueryWithFailsSilentlyWithLogWithExceptionIfIncorrectUrl() {
-        testIncorrectUrl("CALL apoc.load.html('" + INVALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LOG', withBrowser: 'CHROME'})");
+        testIncorrectUrl("CALL apoc.load.html('" + INVALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LOG'})");
     }
 
     @Test(expected = QueryExecutionException.class)
     public void testQueryWithFailsSilentlyWithListWithExceptionIfIncorrectUrl() {
-        testIncorrectUrl("CALL apoc.load.html('" + INVALID_PATH + "',{failSilently: 'WITH_LIST', a:'a'})");
+        testIncorrectUrl("CALL apoc.load.html('" + INVALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LIST'})");
     }
 
     @Test(expected = QueryExecutionException.class)
@@ -260,12 +232,25 @@ public class LoadHtmlTest {
         testIncorrectCharset("CALL apoc.load.html('" + VALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LIST', charset: '" + INVALID_CHARSET + "'})");
     }
 
+    @Test(expected = QueryExecutionException.class)
+    public void testFailsWithIncorrectCharset() {
+        final Map<String, String> config = Map.of("withBrowser", "NOT_VALID");
+        try {
+            testCall(db, "CALL apoc.load.html('" + VALID_PATH + "',{a:'a'}, $config)", Map.of("config", config), (r) -> {});
+        } catch (Exception e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            String expectedMessage = INVALID_CONFIG + config;
+            assertEquals(expectedMessage, except.getMessage());
+            throw e;
+        }
+    }
+
     private void testIncorrectCharset(String query) {
         try {
             testCall(db, query, (r) -> {});
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
-            String expectedMessage = "Unsupported charset: " + INVALID_CHARSET;
+            String expectedMessage = UNSUPPORTED_CHARSET + INVALID_CHARSET;
             assertEquals(expectedMessage, except.getMessage());
             throw e;
         }
@@ -276,9 +261,32 @@ public class LoadHtmlTest {
             testCall(db, query, (r) -> {});
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
-            String expectedMessage = "File not found from: " + INVALID_PATH;
+            String expectedMessage = FILE_NOT_FOUND_FROM + INVALID_PATH;
             assertEquals(expectedMessage, except.getMessage());
             throw e;
         }
+    }
+
+    private void testCallGeneratedJsWithBrowser(String browser) {
+        testCall(db, "CALL apoc.load.html($url,$query,$config)",
+                map("url",new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString(),
+                        "query", map("td", "td", "strong", "strong"),
+                        "config", map("withBrowser", browser)),
+                result -> {
+                    Map<String, Object> value = (Map<String, Object>) result.get("value");
+                    List<Map<String, Object>> tdList = (List<Map<String, Object>>) value.get("td");
+                    List<Map<String, Object>> strongList = (List<Map<String, Object>>) value.get("strong");
+                    assertEquals(4, tdList.size());
+                    final String templateString = "foo bar - baz";
+                    AtomicInteger integer = new AtomicInteger();
+                    tdList.forEach(tag -> {
+                        assertEquals("td", tag.get("tagName"));
+                        assertEquals(integer.getAndIncrement() + templateString, tag.get("text"));
+                    });
+                    assertEquals(1, strongList.size());
+                    final Map<String, Object> tagStrong = strongList.get(0);
+                    assertEquals("This is a new text node", tagStrong.get("text"));
+                    assertEquals("strong", tagStrong.get("tagName"));
+                });
     }
 }
