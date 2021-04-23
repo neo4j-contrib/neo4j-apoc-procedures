@@ -15,10 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static apoc.load.LoadHtml.FILE_NOT_FOUND_FROM;
-import static apoc.load.LoadHtml.INVALID_CONFIG;
 import static apoc.load.LoadHtml.KEY_ERROR;
-import static apoc.load.LoadHtml.UNSUPPORTED_CHARSET;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -65,6 +62,35 @@ public class LoadHtmlTest {
         testCallGeneratedJsWithBrowser("CHROME");
     }
 
+
+
+
+
+
+
+
+//    @Test
+//    public void TODOTESTDACANCELLARE(){
+//        Map<String, Object> query = map("metadata", "meta");
+//
+//        testResult(db, "CALL apoc.load.html($url,$query, {withBrowser: 'FIREFOX'})", map("url", "https://kb.vmware.com/s/article/2143832", "query", query),
+//                result -> {
+//                    Map<String, Object> row = result.next();
+//                    assertEquals(map("metadata",asList(RESULT_QUERY_METADATA)).toString().trim(), row.get("value").toString().trim());
+//                    assertFalse(result.hasNext());
+//                });
+//    }
+
+
+
+
+
+
+
+
+
+
+
     @Test
     public void testWithBaseUriConfig() {
         Map<String, Object> query = map("urlTest", ".urlTest");
@@ -105,13 +131,6 @@ public class LoadHtmlTest {
         Map<String, Object> query = map("metadata", "meta");
 
         testResult(db, "CALL apoc.load.html($url,$query)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
-                result -> {
-                    Map<String, Object> row = result.next();
-                    assertEquals(map("metadata",asList(RESULT_QUERY_METADATA)).toString().trim(), row.get("value").toString().trim());
-                    assertFalse(result.hasNext());
-                });
-
-        testResult(db, "CALL apoc.load.html($url,$query, {withBrowser: 'CHROME'})", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
                 result -> {
                     Map<String, Object> row = result.next();
                     assertEquals(map("metadata",asList(RESULT_QUERY_METADATA)).toString().trim(), row.get("value").toString().trim());
@@ -239,7 +258,7 @@ public class LoadHtmlTest {
             testCall(db, "CALL apoc.load.html('" + VALID_PATH + "',{a:'a'}, $config)", Map.of("config", config), (r) -> {});
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
-            String expectedMessage = INVALID_CONFIG + config;
+            String expectedMessage = "Invalid config: " + config;
             assertEquals(expectedMessage, except.getMessage());
             throw e;
         }
@@ -250,7 +269,7 @@ public class LoadHtmlTest {
             testCall(db, query, (r) -> {});
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
-            String expectedMessage = UNSUPPORTED_CHARSET + INVALID_CHARSET;
+            String expectedMessage = "Unsupported charset: " + INVALID_CHARSET;
             assertEquals(expectedMessage, except.getMessage());
             throw e;
         }
@@ -261,7 +280,7 @@ public class LoadHtmlTest {
             testCall(db, query, (r) -> {});
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
-            String expectedMessage = FILE_NOT_FOUND_FROM + INVALID_PATH;
+            String expectedMessage = "File not found from: " + INVALID_PATH;
             assertEquals(expectedMessage, except.getMessage());
             throw e;
         }

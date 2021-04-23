@@ -15,32 +15,35 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.Wait;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.stream.Stream;
-
 
 @Extended
 public class LoadHtml {
 
     // public for test purpose
     public static final String KEY_ERROR = "errorList";
-    public static final String INVALID_CONFIG = "Invalid config: ";
-    public static final String FILE_NOT_FOUND_FROM = "File not found from: ";
-    public static final String UNSUPPORTED_CHARSET = "Unsupported charset: ";
 
     private enum FailSilently { FALSE, WITH_LOG, WITH_LIST }
-
     private enum WithBrowser { NONE, CHROME, FIREFOX }
 
     @Context
@@ -86,8 +89,13 @@ public class LoadHtml {
                 }
                 // we cannot read a .html from a compressed file because we cannot interpret external js-scripts
                 driver.get(url);
+                Wait<WebDriver> wait = new WebDriverWait(driver, 20);
+                // to make sure that the page is completely loaded
+                wait.until(webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
+
                 String pageSource = driver.getPageSource();
                 document = Jsoup.parse(pageSource, baseUri);
+
                 driver.close();
             }
 
@@ -105,16 +113,15 @@ public class LoadHtml {
 
             return Stream.of(new MapResult(output));
         } catch (IllegalArgumentException | ClassCastException e) {
-            throw new RuntimeException(INVALID_CONFIG + config);
+            throw new RuntimeException("Invalid config: " + config);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(FILE_NOT_FOUND_FROM + url);
+            throw new RuntimeException("File not found from: " + url);
         } catch(UnsupportedEncodingException e) {
-            throw new RuntimeException(UNSUPPORTED_CHARSET + charset);
+            throw new RuntimeException("Unsupported charset: " + charset);
         } catch(Exception e) {
             throw new RuntimeException("Can't read the HTML from: "+ url, e);
         }
     }
-
 
     private List<Map<String, Object>> getElements(Elements elements, Map<String, Object> config, List<String> errorList) {
 
@@ -162,6 +169,7 @@ public class LoadHtml {
         for (Attribute attribute : element.attributes()) {
             if(!attribute.getValue().isEmpty()) {
                 final String key = attribute.getKey();
+                // with href/src attribute we prepend baseUri path
                 final boolean attributeHasLink = key.equals("href") || key.equals("src");
                 attributes.put(key, attributeHasLink ? element.absUrl(key) : attribute.getValue());
             }
