@@ -35,6 +35,8 @@ public class SimpleXmlTest {
 
     @Test
     public void testParseTextIntoPartsAndDelimiters() {
+        System.out.println("input:" + input);
+        System.out.println("expected:" + expected);
         Xml cut = new Xml();
         List<String> result = cut.parseTextIntoPartsAndDelimiters(input, Pattern.compile("\\s"));
 

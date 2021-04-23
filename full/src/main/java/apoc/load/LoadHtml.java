@@ -4,10 +4,6 @@ import apoc.Extended;
 import apoc.export.util.CountingInputStream;
 import apoc.result.MapResult;
 import apoc.util.Util;
-import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.WebRequest;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
@@ -20,18 +16,19 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -44,7 +41,7 @@ public class LoadHtml {
 
     private enum FailSilently { FALSE, WITH_LOG, WITH_LIST }
 
-    private enum WithGeneratedJs { NONE, CHROME, FIREFOX }
+    private enum WithBrowser { NONE, CHROME, FIREFOX }
 
     @Context
     public GraphDatabaseService db;
@@ -56,7 +53,6 @@ public class LoadHtml {
     @Procedure
     @Description("apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map")
     public Stream<MapResult> html(@Name("url") String url, @Name(value = "query",defaultValue = "{}") Map<String, String> query, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
-        System.out.println("PORCO DIO!");
         return readHtmlPage(url, query, config);
     }
 
@@ -65,117 +61,42 @@ public class LoadHtml {
         try {
             // baseUri is used to resolve relative paths
             String baseUri = config.getOrDefault("baseUri", "").toString();
-            WithGeneratedJs withGeneratedJs = WithGeneratedJs.valueOf((String) config.getOrDefault("withGeneratedJs", "NONE"));
+            WithBrowser withBrowser = WithBrowser.valueOf((String) config.getOrDefault("withBrowser", "NONE"));
 
             Document document;
 
             final CountingInputStream in = Util.openInputStream(url, null, null);
-            if (withGeneratedJs == WithGeneratedJs.NONE) {
+            if (withBrowser == WithBrowser.NONE) {
                 document = Jsoup.parse(in, charset, baseUri);
             } else {
                 WebDriver driver;
-
-                // TODO - TESTARE CON BASE URI
-
-                final byte[] bytes = in.readAllBytes();
-                String stringona = new String(bytes);
-                System.out.println(stringona);
-
-                if (withGeneratedJs == WithGeneratedJs.CHROME) {
+                if (withBrowser == WithBrowser.CHROME) {
                     WebDriverManager.chromedriver().setup();
-                    ChromeOptions options = new ChromeOptions();
-                    options.setHeadless(true);
-                    driver = new ChromeDriver(options);
+                    ChromeOptions chromeOptions = new ChromeOptions();
+                    chromeOptions.setHeadless(true);
+                    chromeOptions.addArguments("--no-sandbox");
+                    chromeOptions.setAcceptInsecureCerts(true);
+                    driver = new ChromeDriver(chromeOptions);
                 } else {
                     WebDriverManager.firefoxdriver().setup();
-                    FirefoxOptions options = new FirefoxOptions();
-                    options.setHeadless(true);
-                    driver = new FirefoxDriver(options);
+                    FirefoxOptions firefoxOptions = new FirefoxOptions();
+                    firefoxOptions.setHeadless(true);
+                    firefoxOptions.addArguments("--no-sandbox");
+                    firefoxOptions.setAcceptInsecureCerts(true);
+                    driver = new FirefoxDriver(firefoxOptions);
                 }
-
+                // todo - base url...
+                if (!baseUri.isBlank()) {
+                    url = baseUri + File.separator + url;
+                }
                 driver.get(url);
-                final String pageSource = driver.getPageSource();
+                String pageSource = driver.getPageSource();
+
+//                final WebElement element = driver.findElement(By.xpath("//meta[@name=’description’]"));
+
                 document = Jsoup.parse(pageSource, baseUri);
                 driver.close();
             }
-//            if (withGeneratedJs) {
-//                try {
-
-//                    System.out.println("LoadHtml.readHtmlPage");
-
-//                    try(final WebClient webClient = new WebClient()) {
-//                        webClient.setJavaScriptTimeout();
-
-//                        WebDriverManager.chromedriver().setup();
-
-
-//DesiredCapabilities caps = new DesiredCapabilities();
-//caps.setJavascriptEnabled(true);
-//caps.
-
-//                        ChromeOptions options = new ChromeOptions();
-//                        options.setHeadless(true);
-//                        options.addArguments("--headless", "--disable-gpu", "--window-size=1920,1200","--ignore-certificate-errors");
-
-//                        WebDriver ghostDriver = new ChromeDriver(options);
-//                        ghostDriver.get(url);
-
-//                        final String pageSource = ghostDriver.getPageSource();
-
-//                        final HtmlPage page1 = webClient.getPage(new URL(url));
-//
-//                        webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
-//                        webClient.getOptions().setThrowExceptionOnScriptError(false);
-//                        webClient.getOptions().setJavaScriptEnabled(true);
-//                        webClient.getOptions().setCssEnabled(true);
-//                        webClient.getOptions().setUseInsecureSSL(true);
-//                        webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
-//                        webClient.getCookieManager().setCookiesEnabled(true);
-//            webClient.waitForBackgroundJavaScript(15000);
-//                webClient.setAjaxController(new NicelyResynchronizingAjaxController());
-////
-////
-//                final HtmlPage page = webClient.getPage(url);
-//
-//                // TODO TODOISSIMO --> COSI FUNZIONA ((HtmlPage) webClient.getPage(url)).asXml()
-//
-//                        final WebRequest request = new WebRequest(new URL(url));
-//                        request.setCharset(Charset.forName(charset));
-//                        final HtmlPage page = webClient.getPage(request);
-//                        webClient.waitForBackgroundJavaScript(10 * 1000);
-//                        final String s = page.asXml();
-//                        System.out.println(s);
-////            final Document parse = Jsoup.parse(s, baseUri);
-////            parse.select("td");
-//
-////
-//////            synchronized (page) {
-//////                try {
-//////                    page.wait(15000);
-//////                } catch (InterruptedException e) {
-//////                    e.printStackTrace();
-//////                }
-//////            }
-////
-//                System.out.println(page);
-//
-//
-//                        document = Jsoup.parse(pageSource, baseUri);
-
-                        // todo - autoclosable?
-
-//                    }
-//                    document = Jsoup.parse(Util.openInputStream(url, null, null), charset, baseUri);
-//                } catch (Exception e) {
-//                    System.out.println("ERRORONE!!!!!!");
-//                    throw new RuntimeException(e);
-//                }
-//            } else {
-
-
-
-//                document = Jsoup.parse(Util.openInputStream(url, null, null), charset, baseUri);
-//            }
 
             Map<String, Object> output = new HashMap<>();
             List<String> errorList = new ArrayList<>();

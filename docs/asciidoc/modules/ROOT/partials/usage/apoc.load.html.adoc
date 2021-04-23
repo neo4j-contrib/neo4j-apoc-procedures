@@ -1,3 +1,6 @@
+// TODO auto-encoding detection in caso di browser
+
+
 We can extract the metadata and h2 heading from the https://en.wikipedia.org/[Wikipedia home page^], by running the following query:
 
 [source,cypher]

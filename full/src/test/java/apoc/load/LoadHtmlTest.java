@@ -5,11 +5,17 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +29,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
+@RunWith(Parameterized.class)
 public class LoadHtmlTest {
 
     private static final String RESULT_QUERY_METADATA = ("{attributes={charset=UTF-8}, tagName=meta}, " +
@@ -44,6 +51,16 @@ public class LoadHtmlTest {
     private static final String VALID_PATH = new File("src/test/resources/wikipedia.html").toURI().toString();
     private static final String INVALID_CHARSET = "notValid";
 
+
+    @Parameters
+    public static Collection<Object> data() {
+        return List.of("notSet", "NONE", "CHROME", "FIREFOX");// Arrays.asList(new Object[] {"FRANCO", "OSVALDO"});
+    }
+
+    @Parameter
+    public String browser;
+
+
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
@@ -56,19 +73,10 @@ public class LoadHtmlTest {
     public void testQueryAll(){
         Map<String, Object> query = map("metadata", "meta", "h2", "h2");
 
-        testResult(db, "CALL apoc.load.html($url,$query, $config)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", Collections.emptyMap()),
-                result -> {
-                    Map<String, Object> row = result.next();
-                    Map<String, Object> value = (Map<String, Object>) row.get("value");
-
-                    List<Map<String, Object>> metadata = (List<Map<String, Object>>) value.get("metadata");
-                    List<Map<String, Object>> h2 = (List<Map<String, Object>>) value.get("h2");
-
-                    assertEquals(asList(RESULT_QUERY_METADATA).toString().trim(), metadata.toString().trim());
-                    assertEquals(asList(RESULT_QUERY_H2).toString().trim(), h2.toString().trim());
-                });
-
-        testResult(db, "CALL apoc.load.html($url,$query, $config)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", Map.of("withGeneratedJs", "CHROME")),
+        Map<String, Object> config = Map.of("baseUri", new File("OSVALDONE").toURI().toString());
+//        Map<String, Object> config = browser.equals("notSet") ? Collections.emptyMap() : Map.of("withGeneratedJs", "NONE");
+        testResult(db, "CALL apoc.load.html($url,$query, $config)", map("url",new File("../wikipedia.html").toURI().toString(),
+                "query", query, "config", config),
                 result -> {
                     Map<String, Object> row = result.next();
                     Map<String, Object> value = (Map<String, Object>) row.get("value");
@@ -100,44 +108,6 @@ public class LoadHtmlTest {
                 });
     }
 
-
-    @Test
-    public void testQueryAllTODO(){
-        Map<String, Object> query = map("td", "td");
-
-        testResult(db, "CALL apoc.load.html($url,$query,$config)", map("url",new File("src/test/resources/wikipediaWithJs.html").toURI().toString(), "query", query,
-                "config", map("withGeneratedJs", "CHROME")),
-                result -> {
-                    Map<String, Object> row = result.next();
-                    Map<String, Object> value = (Map<String, Object>) row.get("value");
-
-                    List<Map<String, Object>> td = (List<Map<String, Object>>) value.get("td");
-                    List<Map<String, Object>> td2 = (List<Map<String, Object>>) value.get("td");
-//                    List<Map<String, Object>> h2 = (List<Map<String, Object>>) value.get("h2");
-
-                    assertEquals(asList(RESULT_QUERY_METADATA).toString().trim(), td.toString().trim());
-//                    assertEquals(asList(RESULT_QUERY_H2).toString().trim(), h2.toString().trim());
-                });
-    }
-
-//
-//    @Test
-//    public void testQueryAllTODOISSIMO(){
-//        Map<String, Object> query = map("h1", "h1");
-//
-//        testResult(db, "CALL apoc.load.html($url,$query, $config)", map("url", "https://kb.vmware.com/s/article/2143832", "query", query, "config", map("withGeneratedJs", true)),
-//                result -> {
-//                    Map<String, Object> row = result.next();
-//                    Map<String, Object> value = (Map<String, Object>) row.get("value");
-//
-//                    List<Map<String, Object>> h1 = (List<Map<String, Object>>) value.get("h1");
-////                    List<Map<String, Object>> h2 = (List<Map<String, Object>>) value.get("h2");
-//
-//                    assertEquals(asList(RESULT_QUERY_METADATA).toString().trim(), h1.toString().trim());
-////                    assertEquals(asList(RESULT_QUERY_H2).toString().trim(), h2.toString().trim());
-//                });
-//    }
-
     @Test
     public void testQueryH2(){
         Map<String, Object> query = map("h2", "h2");
@@ -153,7 +123,7 @@ public class LoadHtmlTest {
     @Test
     public void testQueryH2WithConfig(){
         Map<String, Object> query = map("h2", "h2");
-        Map<String, Object> config = map("charset", "UTF-8", "baserUri", "");
+        Map<String, Object> config = map("charset", "UTF-8", "baseUri", new File("src/test/resources/wikipedia.html").toURI().toString(), "");
 
         testResult(db, "CALL apoc.load.html($url,$query, $config)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
                 result -> {
@@ -262,12 +232,12 @@ public class LoadHtmlTest {
 
     @Test(expected = QueryExecutionException.class)
     public void testQueryWithExceptionIfIncorrectUrl() {
-        testIncorrectUrl("CALL apoc.load.html('" + INVALID_PATH + "',{a:'a'})");
+        testIncorrectUrl("CALL apoc.load.html('" + INVALID_PATH + "',{a:'a'}, {withBrowser: 'CHROME'})");
     }
 
     @Test(expected = QueryExecutionException.class)
     public void testQueryWithFailsSilentlyWithLogWithExceptionIfIncorrectUrl() {
-        testIncorrectUrl("CALL apoc.load.html('" + INVALID_PATH + "',{failSilently: 'WITH_LOG', a:'a'})");
+        testIncorrectUrl("CALL apoc.load.html('" + INVALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LOG', withBrowser: 'CHROME'})");
     }
 
     @Test(expected = QueryExecutionException.class)
