@@ -6,11 +6,8 @@ import apoc.util.Util;
 import apoc.xml.XmlTestUtils;
 import org.junit.*;
 import org.neo4j.driver.internal.util.Iterables;
-import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.Map;
 
 import static apoc.load.LoadCsvTest.assertRow;
 import static apoc.util.MapUtil.map;
@@ -40,7 +37,7 @@ public class LoadS3Test {
     }
 
     @Before public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class, LoadHtml.class, Xml.class);
+        TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class, Xml.class);
         minio = new MinioSetUp("dddbucketddd");
     }
 
