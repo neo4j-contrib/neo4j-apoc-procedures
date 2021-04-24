@@ -4,9 +4,12 @@ The procedure support the following config parameters:
 [opts="header",cols="1m,2m,1m,4"]
 |===
 | name | type | default | description
-| withBrowser | Enum [NONE, CHROME, FIREFOX] | NONE | If it is set to "CRHOME" or "FIREFOX", is used https://www.selenium.dev/documentation/en/webdriver/[Selenium Web Driver] to read the dynamically generated js.
+| withBrowser | Enum [NONE, CHROME, FIREFOX] | NONE | If it is set to "CHROME" or "FIREFOX", is used https://www.selenium.dev/documentation/en/webdriver/[Selenium Web Driver] to read the dynamically generated js.
     In case it is "NONE" (default), it is not possible to read dynamic contents.
-    Note that to use the chrome or firefox driver, you need to have them installed on your machine.
+    Note that to use the Chrome or Firefox driver, you need to have them installed on your machine.
+| waitUntil | long | 0 | If greater than 0, it waits until it finds at least one element for each of those entered in the query parameter
+    (up to a maximum of defined seconds, otherwise it continues execution).
+    Useful to handle elements which can be rendered after the page is loaded (i.e. slow asynchronous calls).
 | charset | String | "UTF-8" | the character set of the page being scraped, if `http-equiv` meta-tag is not set. In case the config `withBrowser` is not `NONE`, the implicit auto-detection encoding in the browser is used, so this property is ignored.
 | baseUri | String | "" | Base URI used to resolve relative paths
 | failSilently | Enum [FALSE, WITH_LOG, WITH_LIST] | FALSE | If the parse fails with one or more elements, using `FALSE` it throws a `RuntimeException`, using `WITH_LOG` a `log.warn` is created for each incorrect item and using `WITH_LIST` an `errorList` key is added to the result with the failed tags.

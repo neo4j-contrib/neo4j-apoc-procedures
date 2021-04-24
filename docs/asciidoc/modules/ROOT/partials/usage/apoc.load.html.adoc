@@ -225,3 +225,56 @@ a|
 }
 ----
 |===
+
+If we have a `.html` file with a jQuery script like:
+
+[source,html]
+----
+<!DOCTYPE html>
+<head>
+    <script type="text/javascript">
+    $(() => {
+        var newP = document.createElement("strong");
+        var textNode = document.createTextNode("This is a new text node");
+        newP.appendChild(textNode);
+        document.getElementById("appendStuff").appendChild(newP);
+    });
+    </script>
+    <meta charset="UTF-8"/>
+</head>
+<body onLoad="loadData()" class="mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns-subject page-Aap_Kaa_Hak rootpage-Aap_Kaa_Hak skin-vector action-view">
+	<div id="appendStuff"></div>
+</body>
+</html>
+----
+
+we can read the generated js through the `withBrowser` config:
+
+[source,cypher]
+----
+CALL apoc.load.html("test.html",{strong: "strong"}, {withBrowser: "FIREFOX"});
+----
+.Results
+[opts="header"]
+|===
+| Output
+a|
+[source,json]
+----
+{
+  "strong": [
+    {
+      "tagName": "strong",
+      "text": "This is a new text node"
+    }
+  ]
+}
+----
+|===
+
+If we can parse a tag from a slow async call, we can use `waitUntil` config to waiting for 10 second (in this example):
+
+[source,cypher]
+----
+CALL apoc.load.html("test.html",{asyncTag: "#asyncTag"}, {withBrowser: "FIREFOX", waitUntil: 10});
+----

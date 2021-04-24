@@ -3,6 +3,7 @@ package apoc.load;
 import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.Util;
+import com.google.common.base.Function;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
@@ -15,14 +16,15 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
-import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -33,8 +35,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.logging.Level;
 import java.util.stream.Stream;
 
 @Extended
@@ -76,23 +76,27 @@ public class LoadHtml {
                     WebDriverManager.chromedriver().setup();
                     ChromeOptions chromeOptions = new ChromeOptions();
                     chromeOptions.setHeadless(true);
-                    chromeOptions.addArguments("--no-sandbox");
                     chromeOptions.setAcceptInsecureCerts(true);
                     driver = new ChromeDriver(chromeOptions);
                 } else {
                     WebDriverManager.firefoxdriver().setup();
                     FirefoxOptions firefoxOptions = new FirefoxOptions();
                     firefoxOptions.setHeadless(true);
-                    firefoxOptions.addArguments("--no-sandbox");
                     firefoxOptions.setAcceptInsecureCerts(true);
                     driver = new FirefoxDriver(firefoxOptions);
                 }
-                // we cannot read a .html from a compressed file because we cannot interpret external js-scripts
                 driver.get(url);
-                Wait<WebDriver> wait = new WebDriverWait(driver, 20);
-                // to make sure that the page is completely loaded
-                wait.until(webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
 
+                long waitUntil = Util.toLong(config.getOrDefault("waitUntil", 0));
+                if (waitUntil > 0) {
+                    Wait<WebDriver> wait = new WebDriverWait(driver, waitUntil);
+                    try {
+                        wait.until(webDriver -> query.values().stream()
+                                .noneMatch(selector -> webDriver.findElements(By.cssSelector(selector)).isEmpty()));
+                    } catch (org.openqa.selenium.TimeoutException ignored) {
+                        // We continue the execution even if 1 or more elements were not found
+                    }
+                }
                 String pageSource = driver.getPageSource();
                 document = Jsoup.parse(pageSource, baseUri);
 

@@ -23,6 +23,7 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 
@@ -55,41 +56,29 @@ public class LoadHtmlTest {
         TestUtil.registerProcedure(db, LoadHtml.class);
     }
 
-
     @Test
     public void testParseGeneratedJs() {
         testCallGeneratedJsWithBrowser("FIREFOX");
         testCallGeneratedJsWithBrowser("CHROME");
     }
 
-
-
-
-
-
-
-
-//    @Test
-//    public void TODOTESTDACANCELLARE(){
-//        Map<String, Object> query = map("metadata", "meta");
-//
-//        testResult(db, "CALL apoc.load.html($url,$query, {withBrowser: 'FIREFOX'})", map("url", "https://kb.vmware.com/s/article/2143832", "query", query),
-//                result -> {
-//                    Map<String, Object> row = result.next();
-//                    assertEquals(map("metadata",asList(RESULT_QUERY_METADATA)).toString().trim(), row.get("value").toString().trim());
-//                    assertFalse(result.hasNext());
-//                });
-//    }
-
-
-
-
-
-
-
-
-
-
+    @Test
+    public void testWithWaitUntilAndOneElementNotFound() {
+        testCall(db, "CALL apoc.load.html($url,$query,$config)",
+                map("url",new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString(),
+                        "query", map("elementExistent", "strong", "elementNotExistent", ".asdfgh"),
+                        "config", map("withBrowser", "CHROME", "waitUntil", 5)),
+                result -> {
+                    Map<String, Object> value = (Map<String, Object>) result.get("value");
+                    List<Map<String, Object>> notExistent = (List<Map<String, Object>>) value.get("elementNotExistent");
+                    List<Map<String, Object>> existent = (List<Map<String, Object>>) value.get("elementExistent");
+                    assertTrue(notExistent.isEmpty());
+                    assertEquals(1, existent.size());
+                    final Map<String, Object> tag = existent.get(0);
+                    assertEquals("This is a new text node", tag.get("text"));
+                    assertEquals("strong", tag.get("tagName"));
+                });
+    }
 
     @Test
     public void testWithBaseUriConfig() {
@@ -123,7 +112,7 @@ public class LoadHtmlTest {
                                 fail();
                         }
                     });
-                });
+        });
     }
 
     @Test
