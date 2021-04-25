@@ -3214,3 +3214,4 @@ RETURN apoc.xml.parse(<xml string>, <xPath string>, config, false) AS value
 |label:function[]
 |label:apoc-core[]
 |===
+
