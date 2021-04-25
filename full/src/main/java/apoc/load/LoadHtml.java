@@ -3,7 +3,6 @@ package apoc.load;
 import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.Util;
-import com.google.common.base.Function;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
@@ -17,10 +16,7 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -30,7 +26,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -87,11 +82,11 @@ public class LoadHtml {
                 }
                 driver.get(url);
 
-                long waitUntil = Util.toLong(config.getOrDefault("waitUntil", 0));
-                if (waitUntil > 0) {
-                    Wait<WebDriver> wait = new WebDriverWait(driver, waitUntil);
+                long wait = Util.toLong(config.getOrDefault("wait", 0));
+                if (wait > 0) {
+                    Wait<WebDriver> driverWait = new WebDriverWait(driver, wait);
                     try {
-                        wait.until(webDriver -> query.values().stream()
+                        driverWait.until(webDriver -> query.values().stream()
                                 .noneMatch(selector -> webDriver.findElements(By.cssSelector(selector)).isEmpty()));
                     } catch (org.openqa.selenium.TimeoutException ignored) {
                         // We continue the execution even if 1 or more elements were not found

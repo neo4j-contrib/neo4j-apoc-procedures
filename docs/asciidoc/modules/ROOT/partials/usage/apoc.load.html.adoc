@@ -272,9 +272,9 @@ a|
 ----
 |===
 
-If we can parse a tag from a slow async call, we can use `waitUntil` config to waiting for 10 second (in this example):
+If we can parse a tag from a slow async call, we can use `wait` config to waiting for 10 second (in this example):
 
 [source,cypher]
 ----
-CALL apoc.load.html("test.html",{asyncTag: "#asyncTag"}, {withBrowser: "FIREFOX", waitUntil: 10});
+CALL apoc.load.html("test.html",{asyncTag: "#asyncTag"}, {withBrowser: "FIREFOX", wait: 10});
 ----

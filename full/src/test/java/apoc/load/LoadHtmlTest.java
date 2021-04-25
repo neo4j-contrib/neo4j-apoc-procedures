@@ -67,7 +67,7 @@ public class LoadHtmlTest {
         testCall(db, "CALL apoc.load.html($url,$query,$config)",
                 map("url",new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString(),
                         "query", map("elementExistent", "strong", "elementNotExistent", ".asdfgh"),
-                        "config", map("withBrowser", "CHROME", "waitUntil", 5)),
+                        "config", map("withBrowser", "CHROME", "wait", 5)),
                 result -> {
                     Map<String, Object> value = (Map<String, Object>) result.get("value");
                     List<Map<String, Object>> notExistent = (List<Map<String, Object>>) value.get("elementNotExistent");

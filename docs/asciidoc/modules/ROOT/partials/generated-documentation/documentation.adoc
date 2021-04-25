@@ -196,6 +196,7 @@ apoc.bitwise.op(60,'\|',13) bitwise operations a & b, a \| b, a ^ b, ~a, a >> b,
 |label:apoc-core[]
 |===
 
+[discrete]
 == xref::overview/apoc.bolt/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
@@ -211,11 +212,6 @@ apoc.bolt.execute(url-or-key, kernelTransaction, params, config) - access to oth
 apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read
 |label:procedure[]
 |label:apoc-full[]
-|xref::overview/apoc.bolt/apoc.bolt.load.fromLocal.adoc[apoc.bolt.load.fromLocal icon:book[]]
-
-
-|label:procedure[]
-|label:apoc-core[]
 |===
 
 [discrete]
@@ -1478,6 +1474,7 @@ apoc.load.csv('url',\{config}) YIELD lineNo, list, map - load CSV from URL as st
 
 apoc.load.csvParams('url', {httpHeader: value}, payload, \{config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
+
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.directory.adoc[apoc.load.directory icon:book[]]
@@ -2289,7 +2286,7 @@ apoc.number.exact.div(stringA,stringB,[prec],[roundingModel]) - return the divis
 |label:apoc-core[]
 |xref::overview/apoc.number/apoc.number.exact.mul.adoc[apoc.number.exact.mul icon:book[]]
 
-apoc.number.exact.mul(stringA,stringB,[prec],[roundingModel]) - return the multiplication's result of two large numbers 
+apoc.number.exact.mul(stringA,stringB,[prec],[roundingModel]) - return the multiplication's result of two large numbers
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.number/apoc.number.exact.sub.adoc[apoc.number.exact.sub icon:book[]]
@@ -2346,7 +2343,7 @@ apoc.path.expand(startNode <id>\|Node\|list, 'TYPE\|TYPE_OUT>\|<TYPE_IN', '+YesL
 |label:apoc-core[]
 |xref::overview/apoc.path/apoc.path.expandConfig.adoc[apoc.path.expandConfig icon:book[]]
 
-apoc.path.expandConfig(startNode <id>\|Node\|list, {minLevel,maxLevel,uniqueness,relationshipFilter,labelFilter,uniqueness:'RELATIONSHIP_PATH',bfs:true, filterStartNode:false, limit:-1, optional:false, endNodes:[], terminatorNodes:[], sequence, beginSequenceAtStart:true}) yield path - expand from start node following the given relationships from min to max-level adhering to the label filters. 
+apoc.path.expandConfig(startNode <id>\|Node\|list, {minLevel,maxLevel,uniqueness,relationshipFilter,labelFilter,uniqueness:'RELATIONSHIP_PATH',bfs:true, filterStartNode:false, limit:-1, optional:false, endNodes:[], terminatorNodes:[], sequence, beginSequenceAtStart:true}) yield path - expand from start node following the given relationships from min to max-level adhering to the label filters.
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.path/apoc.path.spanningTree.adoc[apoc.path.spanningTree icon:book[]]
@@ -2659,7 +2656,7 @@ Do a parallel search over multiple indexes returning nodes. usage apoc.search.no
 |label:apoc-core[]
 |xref::overview/apoc.search/apoc.search.nodeAllReduced.adoc[apoc.search.nodeAllReduced icon:book[]]
 
-Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched property. apoc.search.nodeShortAll( map of label and properties which will be searched upon, operator: EXACT / CONTAINS / STARTS WITH \| ENDS WITH / = / <> / < / > ..., value ). All 'hits' are returned.
+Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched property. apoc.search.nodeShortAll( map of label and properties which will be searched upon, operator: EXACT / CONTAINS / STARTS WITH \| ENDS WITH / = / <> / < / > ..., value ). All 'hits' are returned.
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.search/apoc.search.nodeReduced.adoc[apoc.search.nodeReduced icon:book[]]
@@ -2691,7 +2688,7 @@ apoc.spatial.reverseGeocode(latitude,longitude) YIELD location, latitude, longit
 |label:apoc-core[]
 |xref::overview/apoc.spatial/apoc.spatial.sortByDistance.adoc[apoc.spatial.sortByDistance icon:book[]]
 
-apoc.spatial.sortByDistance(List<Path>) sort the given paths based on the geo informations (lat/long) in ascending order
+apoc.spatial.sortPathsByDistance(List<Path>) sort the given paths based on the geo informations (lat/long) in ascending order
 |label:procedure[]
 |label:apoc-core[]
 |===
@@ -3099,7 +3096,7 @@ CALL apoc.ttl.expireIn(node,timeDelta,'time-unit') - expire node after specified
 
 
 |label:function[]
-|label:apoc-full[]
+|label:apoc-core[]
 |===
 
 == xref::overview/apoc.util/index.adoc[]
@@ -3217,4 +3214,3 @@ RETURN apoc.xml.parse(<xml string>, <xPath string>, config, false) AS value
 |label:function[]
 |label:apoc-core[]
 |===
-

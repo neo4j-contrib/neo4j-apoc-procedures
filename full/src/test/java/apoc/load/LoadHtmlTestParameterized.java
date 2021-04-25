@@ -28,7 +28,8 @@ import static org.junit.Assert.assertFalse;
 
 @RunWith(Parameterized.class)
 public class LoadHtmlTestParameterized {
-    // To check that `withBrowser` configuration preserve the result
+    // Tests from LoadHtmlTest.java.
+    // To check that `withBrowser` configuration preserve the result.
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
@@ -52,7 +53,7 @@ public class LoadHtmlTestParameterized {
     public void testQueryAll() {
         Map<String, Object> query = map("metadata", "meta", "h2", "h2");
 
-        Map<String, Object> config = browserSet() ? emptyMap() : Map.of("withBrowser", browser);
+        Map<String, Object> config = browserSet() ? Map.of("withBrowser", browser) : emptyMap();
         testResult(db, "CALL apoc.load.html($url,$query, $config)",
                 map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
                 result -> {
@@ -89,9 +90,7 @@ public class LoadHtmlTestParameterized {
     public void testQueryWithChildren() {
         Map<String, Object> query = map("toc", ".toc ul");
         final List<Object> confList = newArrayList("children", true);
-        if (!browserSet()) {
-            confList.addAll(List.of("withBrowser", browser));
-        }
+        addWithBrowserIfSet(confList);
         Map<String, Object> config = map(confList.toArray());
 
         testResult(db, "CALL apoc.load.html($url,$query, $config)",
@@ -116,7 +115,13 @@ public class LoadHtmlTestParameterized {
                 });
     }
 
+    private void addWithBrowserIfSet(List<Object> confList) {
+        if (browserSet()) {
+            confList.addAll(List.of("withBrowser", browser));
+        }
+    }
+
     private boolean browserSet() {
-        return browser.equals("notSet");
+        return !browser.equals("notSet");
     }
 }

@@ -7,7 +7,7 @@ The procedure support the following config parameters:
 | withBrowser | Enum [NONE, CHROME, FIREFOX] | NONE | If it is set to "CHROME" or "FIREFOX", is used https://www.selenium.dev/documentation/en/webdriver/[Selenium Web Driver] to read the dynamically generated js.
     In case it is "NONE" (default), it is not possible to read dynamic contents.
     Note that to use the Chrome or Firefox driver, you need to have them installed on your machine.
-| waitUntil | long | 0 | If greater than 0, it waits until it finds at least one element for each of those entered in the query parameter
+| wait | long | 0 | If greater than 0, it waits until it finds at least one element for each of those entered in the query parameter
     (up to a maximum of defined seconds, otherwise it continues execution).
     Useful to handle elements which can be rendered after the page is loaded (i.e. slow asynchronous calls).
 | charset | String | "UTF-8" | the character set of the page being scraped, if `http-equiv` meta-tag is not set. In case the config `withBrowser` is not `NONE`, the implicit auto-detection encoding in the browser is used, so this property is ignored.
