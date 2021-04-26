@@ -28,7 +28,7 @@ import static org.junit.Assert.assertFalse;
 
 @RunWith(Parameterized.class)
 public class LoadHtmlTestParameterized {
-    // Tests from LoadHtmlTest.java.
+    // Tests taken from LoadHtmlTest.java.
     // To check that `withBrowser` configuration preserve the result.
 
     @Rule
