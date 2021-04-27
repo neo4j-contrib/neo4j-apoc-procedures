@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -1167,9 +1168,12 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
         testCall(db, "MATCH (a:A), (b:B) CALL apoc.refactor.mergeNodes([a,b], {mergeRels: false, produceSelfRel: false}) YIELD node RETURN node",
                 (r) -> {
                     Node node = (Node) r.get("node");
-                    Iterator<Relationship> relIterator = node.getRelationships().iterator();
-                    assertSelfRel(relIterator.next(), "Q");
-                    assertFalse(relIterator.hasNext());
+                    final List<String> actual = StreamSupport.stream(node.getRelationships().spliterator(), false)
+                            .map(Relationship::getType)
+                            .map(RelationshipType::name)
+                            .sorted()
+                            .collect(Collectors.toList());
+                    assertEquals(List.of("Q", "T", "T"), actual);
                 });
     }
 
