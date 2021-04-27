@@ -659,8 +659,15 @@ public class Util {
         }
     }
 
-    public static void checkAdmin(SecurityContext securityContext, ProcedureCallContext callContext, String procedureName) {
-        if (!securityContext.allowExecuteAdminProcedure(callContext.id())) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
+    public static void checkAdmin( SecurityContext securityContext, ProcedureCallContext callContext, String procedureName )
+    {
+        switch ( securityContext.allowExecuteAdminProcedure( callContext.id() ) )
+        {
+        case EXPLICIT_GRANT:
+            return;
+        default:
+            throw new RuntimeException( "This procedure " + procedureName + " is only available to admin users" );
+        }
     }
 
     public static void sleep(int millis) {
