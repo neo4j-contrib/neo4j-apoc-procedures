@@ -215,7 +215,7 @@ public class CypherProceduresStorageTest {
                 "  [['areaName', 'STRING']],\n" +
                 "  \"Get vantage points within an area and all included areas\");");
 
-        // function analogue to procedure
+        // function analogous to procedure
         db.executeTransactionally("CALL apoc.custom.asFunction('vantagepoint_within_area',\n" +
                 "  \"MATCH (start:Area {name: $areaName} )\n" +
                 "    CALL apoc.path.expand(start,'CONTAINS>|<SEES|CURRENT','',0,100) YIELD path\n" +
