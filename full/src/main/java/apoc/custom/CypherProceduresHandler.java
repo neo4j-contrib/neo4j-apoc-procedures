@@ -249,7 +249,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
             setLastUpdate(tx);
             registerFunction(signature, statement, forceSingle);
-            registeredUserFunctionSignatures.add(signature);
             return null;
         });
     }
@@ -268,7 +267,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             node.setProperty(SystemPropertyKeys.mode.name(), signature.mode().name());
             setLastUpdate(tx);
             registerProcedure(signature, statement);
-            registeredProcedureSignatures.add(signature);
             return null;
         });
     }
