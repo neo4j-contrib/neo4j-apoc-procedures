@@ -12,8 +12,9 @@ import java.math.RoundingMode;
  * @since 12.12.16
  */
 public class Maths {
-    @UserFunction
-    @Description("apoc.math.round(value,[precision],mode=['CEILING','FLOOR','UP','DOWN','HALF_EVEN','HALF_DOWN','HALF_UP','DOWN','UNNECESSARY'])")
+    @UserFunction(deprecatedBy = "Neo4j round() function. This function will be removed in version 5.0")
+    @Deprecated
+    @Description("apoc.math.round(value,[prec],mode=[CEILING,FLOOR,UP,DOWN,HALF_EVEN,HALF_DOWN,HALF_UP,DOWN,UNNECESSARY])")
     public Double round(@Name("value") Double value,
                         @Name(value = "precision", defaultValue = "0") long precision,
                         @Name(value = "mode", defaultValue = "HALF_UP") String mode) {
