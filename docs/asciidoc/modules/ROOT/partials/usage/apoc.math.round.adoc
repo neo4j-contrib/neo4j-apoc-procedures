@@ -34,3 +34,8 @@ RETURN apoc.math.round(1.783, 0, "DOWN") AS output;
 | output
 | 1.0
 |===
+
+[NOTE]
+====
+This function has been deprecated and will be removed in version 5.0. Use Neo4j's `round()` function, which has the same signature since Neo4j 4.2, instead.
+====
