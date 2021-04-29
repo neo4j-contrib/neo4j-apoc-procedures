@@ -32,6 +32,13 @@ This section includes the following:
     ** <<nlp-gcp-examples-classify>>
 endif::[]
 
+[NOTE]
+====
+At the moment, GCP Natural Language API supports text input in more than 10 languages.  
+For better results, make sure that your text is one of the https://cloud.google.com/natural-language/docs/languages[supported languages by Natural Language API].
+If we input a text of an unsupported language, you might get a "HTTP response code: 400" error.
+====
+
 [[nlp-gcp-overview]]
 == Procedure Overview
 
