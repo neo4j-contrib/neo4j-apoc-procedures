@@ -35,6 +35,12 @@ include::example$generated-documentation/apoc.nlp.aws.sentiment.graph.adoc[]
 include::example$generated-documentation/apoc.nlp.aws.sentiment.stream.adoc[]
 |===
 
+[NOTE]
+====
+At the moment, Amazon Comprehend API supports text input in more than 10 languages.  
+For better results, make sure that your text is one of the https://docs.aws.amazon.com/comprehend/latest/dg/supported-languages.html[supported languages by Amazon Comprehend].
+====
+
 
 [[nlp-aws-entities]]
 === Entity Extraction
