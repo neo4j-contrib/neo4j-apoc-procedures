@@ -90,6 +90,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public static final String CUSTOM_PROCEDURES_REFRESH = "apoc.custom.procedures.refresh";
     public static final List<FieldSignature> DEFAULT_INPUTS = singletonList(FieldSignature.inputField("params", NTMap, DefaultParameterValue.ntMap(Collections.emptyMap())));
     public static final List<FieldSignature> DEFAULT_MAP_OUTPUT = singletonList(FieldSignature.inputField("row", NTMap));
+    public static final String ERROR_INVALID_TYPE = "Invalid type name. \n " +
+            "Check the documentation to see possible values: https://neo4j.com/labs/apoc/4.1/cypher-execution/cypher-based-procedures-functions/";
 
     private final GraphDatabaseAPI api;
     private final Log log;
@@ -453,6 +455,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         if (typeName.startsWith("LIST OF ")) return NTList(typeof(typeName.substring(8)));
         if (typeName.startsWith("LIST ")) return NTList(typeof(typeName.substring(5)));
         switch (typeName) {
+        // todo - bytearray
             case "ANY":
                 return NTAny;
             case "MAP":
@@ -506,7 +509,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             case "TEXT":
                 return NTString;
             default:
-                return NTString;
+            // todo - farlo spaccare? oppure boh...
+                throw new RuntimeException(ERROR_INVALID_TYPE);
         }
     }
 
@@ -599,13 +603,17 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public Map<String, Object> params(AnyValue[] input, List<FieldSignature> fieldSignatures, ValueMapper valueMapper) {
         if (input == null || input.length == 0) return Collections.emptyMap();
 
-        if (fieldSignatures == null || fieldSignatures.isEmpty() || fieldSignatures.equals(DEFAULT_INPUTS))
+        if (isInputSignatureEmptyOrDefault(fieldSignatures))
             return (Map<String, Object>) input[0].map(valueMapper);
         Map<String, Object> params = new HashMap<>(input.length);
         for (int i = 0; i < input.length; i++) {
             params.put(fieldSignatures.get(i).name(), input[i].map(valueMapper));
         }
         return params;
+    }
+
+    protected static boolean isInputSignatureEmptyOrDefault(List<FieldSignature> fieldSignatures) {
+        return fieldSignatures == null || fieldSignatures.isEmpty() || fieldSignatures.equals(DEFAULT_INPUTS);
     }
 
     public void removeProcedure(String name) {

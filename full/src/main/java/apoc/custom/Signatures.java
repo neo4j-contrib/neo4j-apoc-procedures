@@ -16,6 +16,8 @@ import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.*;
 
 public class Signatures {
 
+    public static final String SIGNATURE_SYNTAX_ERROR = "Syntax error in signature definition %s. " +
+            "Note that procedure/function name, input and output names must have at least 2 character";
     private final String prefix;
 
     public Signatures(String prefix) {
@@ -27,11 +29,19 @@ public class Signatures {
     }
 
     public SignatureParser.ProcedureContext parseProcedure(String procedureSignatureText) {
-        return parse(procedureSignatureText).procedure();
+        final SignatureParser.ProcedureContext signatureParsed = parse(procedureSignatureText).procedure();
+        if (signatureParsed.results() == null) {
+            throw new RuntimeException(String.format(SIGNATURE_SYNTAX_ERROR, procedureSignatureText));
+        }
+        return signatureParsed;
     }
 
     public SignatureParser.FunctionContext parseFunction(String functionSignatureText) {
-        return parse(functionSignatureText).function();
+        final SignatureParser.FunctionContext signatureParsed = parse(functionSignatureText).function();
+        if (signatureParsed.type() == null) {
+            throw new RuntimeException(String.format(SIGNATURE_SYNTAX_ERROR, functionSignatureText));
+        }
+        return signatureParsed;
     }
 
     public SignatureParser parse(String signatureText) {
@@ -57,10 +67,6 @@ public class Signatures {
     public ProcedureSignature toProcedureSignature(SignatureParser.ProcedureContext signature, String description, Mode mode) {
         QualifiedName name = new QualifiedName(namespace(signature.namespace()), name(signature.name()));
 
-        if (signature.results() == null) {
-            System.out.println("signature = " + signature);
-            return null;
-        }
         List<FieldSignature> outputSignature =
                 signature.results().empty() != null ? Collections.emptyList() :
                         signature.results().result().stream().map(p ->
@@ -90,11 +96,6 @@ public class Signatures {
 
     public UserFunctionSignature toFunctionSignature(SignatureParser.FunctionContext signature, String description) {
         QualifiedName name = new QualifiedName(namespace(signature.namespace()), name(signature.name()));
-
-        if (signature.type() == null) {
-            System.out.println("signature = " + signature);
-            return null;
-        }
 
         Neo4jTypes.AnyType type = type(signature.type());
 
@@ -131,7 +132,6 @@ public class Signatures {
     }
 
     public String name(SignatureParser.NameContext ns) {
-        if(ns == null) throw new IllegalStateException("Unsupported procedure name, the procedure must have at least two chars");
         if (ns.IDENTIFIER() != null) return ns.IDENTIFIER().getText();
         if (ns.QUOTED_IDENTIFIER() != null) return ns.QUOTED_IDENTIFIER().getText(); // todo
         throw new IllegalStateException("Invalid Name " + ns);
@@ -148,6 +148,7 @@ public class Signatures {
     }
 
     private Neo4jTypes.AnyType type(SignatureParser.Opt_typeContext opt_type) {
+        // todo.....
         switch (opt_type.base_type().getText()) {
             case "ANY":
                 return NTAny;

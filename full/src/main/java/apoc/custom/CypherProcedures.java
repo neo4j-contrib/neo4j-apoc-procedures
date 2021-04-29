@@ -8,6 +8,7 @@ import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
 import org.neo4j.internal.kernel.api.procs.FieldSignature;
 import org.neo4j.internal.kernel.api.procs.Neo4jTypes;
 import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
@@ -20,9 +21,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.custom.CypherProceduresHandler.*;
+import static java.util.Collections.emptyMap;
 
 /**
  * @author mh
@@ -31,6 +36,10 @@ import static apoc.custom.CypherProceduresHandler.*;
 @Extended
 public class CypherProcedures {
 
+    // visible for testing
+    public static final String ERROR_DUPLICATED_INPUT = "There are duplicated input parameter name";
+    public static final String ERROR_MISMATCHED_INPUTS = "Required query parameters and input parameters don't correspond.";
+    
     @Context
     public GraphDatabaseAPI api;
 
@@ -59,6 +68,7 @@ public class CypherProcedures {
                             @Name(value= "description", defaultValue = "") String description
     ) throws ProcedureException {
         ProcedureSignature signature = cypherProceduresHandler.procedureSignature(name, mode, outputs, inputs, description);
+        validateInputs(statement, signature.inputSignature());
         cypherProceduresHandler.storeProcedure(signature, statement);
     }
 
@@ -69,6 +79,7 @@ public class CypherProcedures {
                                  @Name(value = "description", defaultValue = "") String description
     ) {
         ProcedureSignature procedureSignature = new Signatures(PREFIX).asProcedureSignature(signature, description, cypherProceduresHandler.mode(mode));
+        validateInputs(statement, procedureSignature.inputSignature());
         if (!cypherProceduresHandler.registerProcedure(procedureSignature, statement)) {
             throw new IllegalStateException("Error registering procedure " + procedureSignature.name() + ", see log.");
         }
@@ -85,15 +96,17 @@ public class CypherProcedures {
                            @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
                            @Name(value = "description", defaultValue = "") String description) throws ProcedureException {
         UserFunctionSignature signature = cypherProceduresHandler.functionSignature(name, output, inputs, description);
+        validateInputs(statement, signature.inputSignature());
         cypherProceduresHandler.storeFunction(signature, statement, forceSingle);
     }
 
     @Procedure(value = "apoc.custom.declareFunction", mode = Mode.WRITE)
     @Description("apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function")
-    public void asFunction(@Name("signature") String signature, @Name("statement") String statement,
+    public void declareFunction(@Name("signature") String signature, @Name("statement") String statement,
                            @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
                            @Name(value = "description", defaultValue = "") String description) throws ProcedureException {
         UserFunctionSignature userFunctionSignature = new Signatures(PREFIX).asFunctionSignature(signature, description);
+        validateInputs(statement, userFunctionSignature.inputSignature());
         if (!cypherProceduresHandler.registerFunction(userFunctionSignature, statement, forceSingle)) {
             throw new IllegalStateException("Error registering function " + signature + ", see log.");
         }
@@ -146,6 +159,37 @@ public class CypherProcedures {
     public void removeFunction(@Name("name") String name) {
         Objects.requireNonNull(name, "name");
         cypherProceduresHandler.removeFunction(name);
+    }
+    
+    private void validateInputs(String statement, List<FieldSignature> inputSignatures) {
+        if (isInputSignatureEmptyOrDefault(inputSignatures)) {
+            return;
+        }
+        final Set<String> collect = inputSignatures.stream().map(FieldSignature::name).collect(Collectors.toSet());
+        if (collect.size() != inputSignatures.size()) {
+            throw new RuntimeException(ERROR_DUPLICATED_INPUT);
+        }
+        api.executeTransactionally("EXPLAIN " + statement, emptyMap(), result -> {
+            StreamSupport.stream(result.getNotifications().spliterator(), false)
+                    .filter(i -> i.getCode().equals(Status.Statement.ParameterMissing.code().serialize()))
+                    .findFirst()
+                    .ifPresent(missingParamNotification -> {
+                        final String missingParamDescription = missingParamNotification.getDescription();
+                        final String missingParamPrepend = "Missing parameters: ";
+                        // we get set of all missing parameters
+                        final String stringMissingParam = missingParamDescription
+                                .substring(missingParamDescription.indexOf(missingParamPrepend) + missingParamPrepend.length())
+                                .replace(")", "");
+                        final Set<String> split = Set.of(stringMissingParam.split(", "));
+
+                        if (!split.equals(collect)) {
+                            throw new RuntimeException(ERROR_MISMATCHED_INPUTS +
+                                    "\nRequired params: " + split +
+                                    "\nInput params: " + collect); 
+                        } 
+                    });
+            return null;
+        });
     }
 
     private List<List<String>> convertInputSignature(List<FieldSignature> signatures) {
