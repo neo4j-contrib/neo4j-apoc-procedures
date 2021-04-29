@@ -92,6 +92,7 @@ dependencies {
     compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     testCompile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
+    compile group: 'net.minidev', name: 'json-smart', version: '2.4.2'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.7.3'
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
