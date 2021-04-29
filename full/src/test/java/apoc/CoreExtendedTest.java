@@ -6,13 +6,11 @@ import org.junit.Test;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.internal.helpers.collection.MapUtil;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static apoc.ApocConfig.*;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
@@ -27,7 +25,7 @@ public class CoreExtendedTest {
     @Test
     public void checkForCoreAndExtended() {
         try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isTravis())
+            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
                     .withNeo4jConfig("dbms.transaction.timeout", "60s")
                     .withNeo4jConfig(APOC_IMPORT_FILE_ENABLED, "true");
 
@@ -52,7 +50,7 @@ public class CoreExtendedTest {
     @Test
     public void matchesSpreadsheet() {
         try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isTravis())
+            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
                     .withNeo4jConfig("dbms.transaction.timeout", "5s");
 
             neo4jContainer.start();
