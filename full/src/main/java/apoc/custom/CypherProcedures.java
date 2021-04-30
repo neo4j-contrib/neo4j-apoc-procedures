@@ -183,9 +183,7 @@ public class CypherProcedures {
                         final Set<String> split = Set.of(stringMissingParam.split(", "));
 
                         if (!split.equals(collect)) {
-                            throw new RuntimeException(ERROR_MISMATCHED_INPUTS +
-                                    "\nRequired params: " + split +
-                                    "\nInput params: " + collect); 
+                            throw new RuntimeException(ERROR_MISMATCHED_INPUTS); 
                         } 
                     });
             return null;

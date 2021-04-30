@@ -615,73 +615,34 @@ public class CypherProceduresTest  {
         TestUtil.singleResultFirstColumn(db, "return custom.answer()");
     }
 
-    @Test(expected = QueryExecutionException.class)
-    public void shouldFailWithInvalidInputParameter() {
-        try {
-            testCall(db, "call apoc.custom.asFunction('answer','RETURN $input as answer','long',[['ajeje','number']])", r -> fail(""));
-        } catch (QueryExecutionException e) {
-            Throwable except = ExceptionUtils.getRootCause(e);
-            TestCase.assertTrue(except instanceof RuntimeException);
-            assertTrue(except.getMessage().contains(ERROR_MISMATCHED_INPUTS));
-            throw e;
-        }
+    @Test
+    public void shouldFailWithMismatchedInputParameters() {
+        assertProcedureFails(ERROR_MISMATCHED_INPUTS,
+                "call apoc.custom.asFunction('answer','RETURN $input as answer','long',[['ajeje','number']])");
+        assertProcedureFails(ERROR_MISMATCHED_INPUTS,
+                "call apoc.custom.asProcedure('answer','RETURN $one as one, $two as two','read',null,[['one','number']])");
+        assertProcedureFails(ERROR_MISMATCHED_INPUTS,
+                "call apoc.custom.declareFunction('double(wrong::INT) :: INT','RETURN $input*2 as answer')");
+        assertProcedureFails(ERROR_MISMATCHED_INPUTS,
+                "call apoc.custom.declareProcedure('sum(input::INT, invalid::INT) :: (answer::INT)','RETURN $first + $second AS sum')");
     }
-
-    @Test(expected = QueryExecutionException.class)
-    public void shouldFailWithInvalidInputParameter2() {
-        try {
-            testCall(db, "call apoc.custom.asProcedure('answer','RETURN $one as one, $two as two','read',null,[['one','number']])", r -> fail(""));
-        } catch (QueryExecutionException e) {
-            Throwable except = ExceptionUtils.getRootCause(e);
-            TestCase.assertTrue(except instanceof RuntimeException);
-            assertTrue(except.getMessage().contains(ERROR_MISMATCHED_INPUTS));
-            throw e;
-        }
-    }
-
-    @Test(expected = QueryExecutionException.class)
-    public void shouldFailWithInvalidInputParameter34() {
-        try {
-            testCall(db, "call apoc.custom.declareFunction('double(wrong::INT) :: INT','RETURN $input*2 as answer')", r -> fail(""));
-        } catch (QueryExecutionException e) {
-            Throwable except = ExceptionUtils.getRootCause(e);
-            TestCase.assertTrue(except instanceof RuntimeException);
-            assertTrue(except.getMessage().contains(ERROR_MISMATCHED_INPUTS));
-            throw e;
-        }
-    }
-
-    @Test(expected = QueryExecutionException.class)
-    public void shouldFailWithInvalidInputParameter3() {
-        try {
-            testCall(db, "call apoc.custom.declareProcedure('sum(input::INT, invalid::INT) :: (answer::INT)','RETURN $first + $second AS sum')", r -> fail(""));
-        } catch (QueryExecutionException e) {
-            Throwable except = ExceptionUtils.getRootCause(e);
-            TestCase.assertTrue(except instanceof RuntimeException);
-            assertTrue(except.getMessage().contains(ERROR_MISMATCHED_INPUTS));
-            throw e;
-        }
-    }
-
-//    @Test(expected = QueryExecutionException.class)
-//    public void shouldFailWithInvalidInputParameter344() {
-//        try {
-//            testFail("call apoc.custom.declareFunction('double(wrong::INT) :: INT','RETURN $input*2 as answer')");
-//        } catch (QueryExecutionException e) {
-//            Throwable except = ExceptionUtils.getRootCause(e);
-//            TestCase.assertTrue(except instanceof RuntimeException);
-//            assertTrue(except.getMessage().contains(ERROR_MISMATCHED_INPUTS));
-//            throw e;
-//        }
-//    }
-
-//    @Test
-//    public void shouldFailWithInvalidInputParametersName() {
-//        TODO
-//    }
 
     @Test
-    public void shouldFailWithInvalidOutputParameters() {
+    public void shouldFailWithInvalidInputParameterNames() {
+        assertProcedureFails(ERROR_INVALID_TYPE,
+                "call apoc.custom.asFunction('answer','RETURN $input as answer','long',[['input','INVALID']])");
+        assertProcedureFails(ERROR_INVALID_TYPE,
+                "call apoc.custom.asProcedure('answer','RETURN $one as one','read',null,[['one','INVALID']])");
+        final String functionStatement = "double(input :: INVALID) :: INT";
+        final String procedureStatement = "sum(input:: INVALID) :: (answer::INT)";
+        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, procedureStatement),
+                "call apoc.custom.declareProcedure('" + procedureStatement + "','RETURN $input AS input')");
+        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, functionStatement),
+                "call apoc.custom.declareFunction('" + functionStatement + "','RETURN $input*2 as answer')");
+    }
+    
+    @Test
+    public void shouldFailWithInvalidOutputParameterNames() {
         assertProcedureFails(ERROR_INVALID_TYPE, 
                 "call apoc.custom.asProcedure('answer','RETURN $one as one','read',null,[['one','INVALID']])");
         assertProcedureFails(ERROR_INVALID_TYPE, 
@@ -695,11 +656,6 @@ public class CypherProceduresTest  {
                 "CALL apoc.custom.declareFunction('" + functionStatement + "', 'RETURN $val')");
     }
 
-//    @Test
-//    public void shouldFailWithNotCorrespondingOutputParameters() {
-//        
-//    }
-
     @Test
     public void shouldFailWithDuplicatedInputParameters() {
         assertProcedureFails(ERROR_DUPLICATED_INPUT, 
@@ -711,31 +667,22 @@ public class CypherProceduresTest  {
         assertProcedureFails(ERROR_DUPLICATED_INPUT, 
                 "call apoc.custom.asProcedure('testAnother','RETURN $input as answer, $another as another','read', null, [['input','int','42'], ['another','int','42'], ['input','int','43']])");
     }
-//
-//    private void assertFailsWithDuplicatedInput(String query) {
-//        try {
-//            testCall(db, query, row -> fail("The test should fail but it didn't"));
-//        } catch (QueryExecutionException e) {
-//            Throwable except = ExceptionUtils.getRootCause(e);
-//            TestCase.assertTrue(except instanceof RuntimeException);
-//            assertTrue(except.getMessage().contains(ERROR_DUPLICATED_INPUT));
-//        }
-//    }
 
-//    private void assertFailsDeclareFunctionWithInvalidInput(String query, String statement) {
-//        try {
-//            testCall(db, query, row -> fail("The test should TODO TODO "));
-//        } catch (QueryExecutionException e) {
-//            Throwable except = ExceptionUtils.getRootCause(e);
-//            TestCase.assertTrue(except instanceof RuntimeException);
-//            assertEquals(SIGNATURE_SYNTAX_ERROR + statement, except.getMessage());
-//        }
-//    }
+    @Test
+    public void shouldCreateFunctionWithDefaultInputParameter() {
+        db.executeTransactionally("CALL apoc.custom.declareFunction('multiParDeclareFun(params = {} :: MAP) :: INT ', 'RETURN $one + $two as sum')");
+        TestUtil.testCall(db, "return custom.multiParDeclareFun({one:2, two: 3}) as row", (row) -> assertEquals(5L, row.get("row")));
+        
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('multiParDeclareProc(params = {} :: MAP) :: (sum :: INT) ', 'RETURN $one + $two + $three as sum')");
+        TestUtil.testCall(db, "call custom.multiParDeclareProc({one:2, two: 3, three: 4})", (row) -> assertEquals(9L, row.get("sum")));
+        
+        db.executeTransactionally("call apoc.custom.asFunction('multiParFun','RETURN $one + $two as sum', 'long')");
+        TestUtil.testCall(db, "return custom.multiParFun({one:2, two: 4}) as row", (row) -> assertEquals(6L, row.get("row")));
+        
+        db.executeTransactionally("call apoc.custom.asProcedure('multiParProc','RETURN $one + $two as sum', 'read', [['sum', 'int']])");
+        TestUtil.testCall(db, "call custom.multiParProc({one:2, two: 3})", (row) -> assertEquals(5L, row.get("sum")));
+    }
     
-    
-    // todo - CALL apoc.custom.declareFunction('ret_map_list1(a :: INTEGER) :: INTEGER', 'RETURN $a as a')
-    
-    // todo - CALL apoc.custom.declareFunction('ret_node(params = {} :: MAP) :: INT ', 'RETURN $a + $b as a')
 
     private void assertProcedureFails(String expectedMessage, String query) {
         try {
@@ -746,9 +693,4 @@ public class CypherProceduresTest  {
             assertEquals(expectedMessage, except.getMessage());
         }
     }
-
-
-//    private void testFail(String query) {
-//        testCall(db, query, row -> fail("The test should fail but it didn't"));
-//    }
 }
