@@ -1,6 +1,6 @@
 name: APOC Auto Cherry Picking
 on:
-  pull_request:
+  pull_request_target:
     types: [closed]
     branches:
       - '4.3'
