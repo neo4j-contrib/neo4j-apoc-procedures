@@ -111,7 +111,7 @@ public class TestcontainersCausalCluster {
                                                           String initialDiscoveryMembers,
                                                           Map<String, Object> neo4jConfig,
                                                           Map<String, String> envSettings)  {
-        Neo4jContainerExtension container =  TestContainerUtil.createEnterpriseDB(!TestUtil.isTravis())
+        Neo4jContainerExtension container =  TestContainerUtil.createEnterpriseDB(!TestUtil.isRunningInCI())
                 .withLabel("memberType", instanceType.toString())
                 .withNetwork(network)
                 .withNetworkAliases(name)

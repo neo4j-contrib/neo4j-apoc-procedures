@@ -16,10 +16,10 @@ import org.neo4j.driver.SessionConfig;
 import java.util.Map;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
-import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
@@ -36,9 +36,9 @@ public class TTLMultiDbTest {
 
     @BeforeClass
     public static void setupContainer() {
-        assumeFalse(isTravis());
+        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
-            neo4jContainer = createEnterpriseDB(!TestUtil.isTravis())
+            neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
                     .withEnv(Map.of("apoc.ttl.enabled." + DB_TEST, "false",
                             "apoc.ttl.enabled", "true",
                             "apoc.ttl.schedule", "2",

@@ -22,7 +22,7 @@ public class GeocodeTest {
 
     @Before
     public void initDb() throws Exception {
-        assumeTravis();
+        assumeRunningInCI();
         apocConfig().setProperty("apoc.spatial.geocode.provider", "opencage");
         apocConfig().setProperty("apoc.spatial.geocode.opencage.key", "<YOUR_API_KEY>");
         apocConfig().setProperty("apoc.spatial.geocode.opencage.url", "https://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY");
@@ -34,7 +34,7 @@ public class GeocodeTest {
 
     @Before
     public void setUp() throws Exception {
-        assumeTravis();
+        assumeRunningInCI();
     }
 
     @Test

@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testResult;
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isRunningInCI;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -38,7 +38,7 @@ public class SchemasEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isTravis());
+        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
             neo4jContainer = createEnterpriseDB(true);

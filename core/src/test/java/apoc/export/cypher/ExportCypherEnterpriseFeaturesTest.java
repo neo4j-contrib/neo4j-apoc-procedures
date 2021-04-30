@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.*;
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.TestUtil.readFileToString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeFalse;
@@ -35,10 +35,10 @@ public class ExportCypherEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isTravis());
+        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
-            neo4jContainer = createEnterpriseDB(!TestUtil.isTravis())
+            neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
                     .withInitScript("init_neo4j_export_csv.cypher");
             neo4jContainer.start();
         }, Exception.class);
@@ -142,6 +142,6 @@ public class ExportCypherEnterpriseFeaturesTest {
     }
 
     private void assertExportStatement(String expectedStatement, Map<String, Object> result, String fileName) {
-        assertEquals(expectedStatement, isTravis() ? result.get("cypherStatements") : readFileToString(new File(directory, fileName)));
+        assertEquals(expectedStatement, isRunningInCI() ? result.get("cypherStatements") : readFileToString(new File(directory, fileName)));
     }
 }

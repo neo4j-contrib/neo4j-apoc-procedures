@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -47,9 +47,9 @@ public class BoltTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isTravis());
+        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
-            neo4jContainer = TestContainerUtil.createEnterpriseDB(isTravis())
+            neo4jContainer = TestContainerUtil.createEnterpriseDB(isRunningInCI())
                     .withInitScript("init_neo4j_bolt.cypher")
                     .withLogging()
                     .withAdminPassword("neo4j2020");

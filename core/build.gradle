@@ -141,8 +141,8 @@ dependencies {
 }
 
 
-// tweaks for travis
-if (System.env.TRAVIS == 'true') {
+// tweaks for CI
+if (System.env.CI == 'true') {
   allprojects {
     tasks.withType(GroovyCompile) {
       groovyOptions.fork = false

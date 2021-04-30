@@ -80,7 +80,7 @@ subprojects {
         forkEvery = 50
         maxParallelForks = 1 //Runtime.runtime.availableProcessors().intdiv(2) + 1
 
-        if (System.env.TRAVIS !=null) {
+        if (System.env.CI != null) {
             minHeapSize = "128m"
             maxHeapSize = "512m"
         }
