@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v1
-      - name: Create PR to branch ${{ matrix.target-branch }}
+      - name: Create PR to branch ${{ matrix.target-branch.name }}
         uses: conker84/github-action-cherry-pick@0.1.1
         with:
           pr_branch: ${{ matrix.target-branch.name }}
