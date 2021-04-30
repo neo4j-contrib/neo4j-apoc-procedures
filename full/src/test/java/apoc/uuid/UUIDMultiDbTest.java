@@ -14,8 +14,7 @@ import java.util.stream.Collectors;
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
 import static apoc.ApocConfig.APOC_UUID_ENABLED_DB;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
-import static apoc.util.TestContainerUtil.testResult;
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.uuid.UuidHandler.NOT_ENABLED_ERROR;
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeFalse;
@@ -29,9 +28,9 @@ public class UUIDMultiDbTest {
 
     @BeforeClass
     public static void setupContainer() {
-        assumeFalse(isTravis());
+        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
-            neo4jContainer = createEnterpriseDB(!TestUtil.isTravis())
+            neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
                     .withEnv(Map.of(String.format(APOC_UUID_ENABLED_DB, dbTest), "false",
                             APOC_UUID_ENABLED, "true"));
             neo4jContainer.start();

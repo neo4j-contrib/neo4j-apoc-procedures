@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Optional;
 
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isRunningInCI;
 import static com.couchbase.client.java.ClusterOptions.clusterOptions;
 import static com.couchbase.client.java.query.QueryOptions.queryOptions;
 import static org.junit.Assert.assertTrue;
@@ -111,7 +111,7 @@ public class CouchbaseTestUtils {
     }
 
     protected static void createCouchbaseContainer() {
-        assumeFalse(isTravis());
+        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             couchbase = new CouchbaseContainer()
                     .withCredentials(USERNAME, PASSWORD)

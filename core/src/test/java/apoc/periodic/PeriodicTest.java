@@ -21,6 +21,7 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -513,15 +514,19 @@ public class PeriodicTest {
     }
 
     private void createDatasetForTruncate() {
-        db.executeTransactionally("UNWIND range(1,99999) AS x CREATE (:One{name:'Person_'+x})-[:FOO {id: x}]->(:Two {surname: 'Two'+x})<-[:BAR {idBar: x}]-(:Three {other: x+'Three'})");
+        int iterations = 999;
+        Map<String, Object> parameters = new HashMap<>(1);
+        parameters.put("iterations", iterations);
+        db.executeTransactionally("UNWIND range(1,$iterations) AS x CREATE (:One{name:'Person_'+x})-[:FOO {id: x}]->(:Two {surname: 'Two'+x})<-[:BAR {idBar: x}]-(:Three {other: x+'Three'})",
+                parameters);
 
         db.executeTransactionally("CREATE INDEX ON :One(name)");
         db.executeTransactionally("CREATE CONSTRAINT ON (a:Two) ASSERT a.surname IS UNIQUE");
         db.executeTransactionally("CREATE INDEX ON :Three(other)");
         db.executeTransactionally("CREATE CONSTRAINT ON (a:Actor) ASSERT a.name IS UNIQUE");
 
-        final int expectedNodes = 99999 * 3;
-        final int expectedRels = 99999 * 2;
+        final int expectedNodes = iterations * 3;
+        final int expectedRels = iterations * 2;
         assertCountEntitiesAndIndexes(expectedNodes, expectedRels, 4, 2);
     }
     

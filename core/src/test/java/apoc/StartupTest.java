@@ -4,8 +4,6 @@ import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.junit.Test;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.Value;
-import org.testcontainers.containers.Container;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static org.junit.Assert.assertTrue;
@@ -20,7 +18,7 @@ public class StartupTest {
     @Test
     public void test() {
         try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isTravis())
+            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
                     .withNeo4jConfig("dbms.transaction.timeout", "5s");
 
 
