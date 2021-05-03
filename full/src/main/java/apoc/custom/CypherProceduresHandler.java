@@ -455,7 +455,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         if (typeName.startsWith("LIST OF ")) return NTList(typeof(typeName.substring(8)));
         if (typeName.startsWith("LIST ")) return NTList(typeof(typeName.substring(5)));
         switch (typeName) {
-        // todo - bytearray
             case "ANY":
                 return NTAny;
             case "MAP":
@@ -509,7 +508,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             case "TEXT":
                 return NTString;
             default:
-            // todo - farlo spaccare? oppure boh...
                 throw new RuntimeException(ERROR_INVALID_TYPE);
         }
     }
@@ -603,17 +601,13 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public Map<String, Object> params(AnyValue[] input, List<FieldSignature> fieldSignatures, ValueMapper valueMapper) {
         if (input == null || input.length == 0) return Collections.emptyMap();
 
-        if (isInputSignatureEmptyOrDefault(fieldSignatures))
+        if (fieldSignatures == null || fieldSignatures.isEmpty() || fieldSignatures.equals(DEFAULT_INPUTS))
             return (Map<String, Object>) input[0].map(valueMapper);
         Map<String, Object> params = new HashMap<>(input.length);
         for (int i = 0; i < input.length; i++) {
             params.put(fieldSignatures.get(i).name(), input[i].map(valueMapper));
         }
         return params;
-    }
-
-    protected static boolean isInputSignatureEmptyOrDefault(List<FieldSignature> fieldSignatures) {
-        return fieldSignatures == null || fieldSignatures.isEmpty() || fieldSignatures.equals(DEFAULT_INPUTS);
     }
 
     public void removeProcedure(String name) {

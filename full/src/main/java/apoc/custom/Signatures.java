@@ -148,7 +148,6 @@ public class Signatures {
     }
 
     private Neo4jTypes.AnyType type(SignatureParser.Opt_typeContext opt_type) {
-        // todo.....
         switch (opt_type.base_type().getText()) {
             case "ANY":
                 return NTAny;
