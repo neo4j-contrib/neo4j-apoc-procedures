@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.custom.CypherProcedures.ERROR_DUPLICATED_INPUT;
+import static apoc.custom.CypherProcedures.ERROR_DUPLICATED_OUTPUT;
 import static apoc.custom.CypherProcedures.ERROR_MISMATCHED_INPUTS;
 import static apoc.custom.CypherProceduresHandler.ERROR_INVALID_TYPE;
 import static apoc.custom.CypherProceduresHandler.FUNCTION;
@@ -658,14 +659,17 @@ public class CypherProceduresTest  {
 
     @Test
     public void shouldFailWithDuplicatedInputParameters() {
-        assertProcedureFails(ERROR_DUPLICATED_INPUT, 
+        assertProcedureFails(ERROR_DUPLICATED_INPUT,
                 "call apoc.custom.declareProcedure('sum(input::INT, input::INT) :: (answer::INT)','RETURN $first + $second AS sum')");
-        assertProcedureFails(ERROR_DUPLICATED_INPUT, 
+        assertProcedureFails(ERROR_DUPLICATED_INPUT,
                 "CALL apoc.custom.declareFunction('iiiiii(val :: INTEGER, val :: INTEGER) :: INTEGER ', 'RETURN $val')");
-        assertProcedureFails(ERROR_DUPLICATED_INPUT, 
+        assertProcedureFails(ERROR_DUPLICATED_INPUT,
                 "call apoc.custom.asFunction('answer', 'RETURN $input as answer','long', [['input','number'], ['another','number'], ['input','string']])");
-        assertProcedureFails(ERROR_DUPLICATED_INPUT, 
+        assertProcedureFails(ERROR_DUPLICATED_INPUT,
                 "call apoc.custom.asProcedure('testAnother','RETURN $input as answer, $another as another','read', null, [['input','int','42'], ['another','int','42'], ['input','int','43']])");
+        // duplicated output - only for asProcedure, because for declareProcedure this error is handled through SignatureParser
+        assertProcedureFails(ERROR_DUPLICATED_OUTPUT,
+                "call apoc.custom.asProcedure('testAnother','RETURN $input as answer, $another as another','read', [['input','int'], ['another','int'], ['input','int']], [['another','int'], ['input','int']])");
     }
 
     @Test

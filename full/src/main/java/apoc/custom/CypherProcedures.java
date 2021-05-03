@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.custom.CypherProceduresHandler.*;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
 /**
@@ -38,7 +39,9 @@ public class CypherProcedures {
 
     // visible for testing
     public static final String ERROR_DUPLICATED_INPUT = "There are duplicated input parameter name";
-    public static final String ERROR_MISMATCHED_INPUTS = "Required query parameters and input parameters don't correspond.";
+    public static final String ERROR_DUPLICATED_OUTPUT = "There are duplicated output parameter name";
+    public static final String ERROR_MISMATCHED_INPUTS = "Required query parameters and input parameters provided don't correspond.";
+    public static final String ERROR_MISMATCHED_OUTPUTS = "Query results and output parameters provided don't correspond.";
     
     @Context
     public GraphDatabaseAPI api;
@@ -68,7 +71,7 @@ public class CypherProcedures {
                             @Name(value= "description", defaultValue = "") String description
     ) throws ProcedureException {
         ProcedureSignature signature = cypherProceduresHandler.procedureSignature(name, mode, outputs, inputs, description);
-        validateInputs(statement, signature.inputSignature());
+        validateInputsAndOutputs(statement, signature.inputSignature(), signature.outputSignature());
         cypherProceduresHandler.storeProcedure(signature, statement);
     }
 
@@ -79,7 +82,7 @@ public class CypherProcedures {
                                  @Name(value = "description", defaultValue = "") String description
     ) {
         ProcedureSignature procedureSignature = new Signatures(PREFIX).asProcedureSignature(signature, description, cypherProceduresHandler.mode(mode));
-        validateInputs(statement, procedureSignature.inputSignature());
+        validateInputsAndOutputs(statement, procedureSignature.inputSignature());
         if (!cypherProceduresHandler.registerProcedure(procedureSignature, statement)) {
             throw new IllegalStateException("Error registering procedure " + procedureSignature.name() + ", see log.");
         }
@@ -96,7 +99,7 @@ public class CypherProcedures {
                            @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
                            @Name(value = "description", defaultValue = "") String description) throws ProcedureException {
         UserFunctionSignature signature = cypherProceduresHandler.functionSignature(name, output, inputs, description);
-        validateInputs(statement, signature.inputSignature());
+        validateInputsAndOutputs(statement, signature.inputSignature());
         cypherProceduresHandler.storeFunction(signature, statement, forceSingle);
     }
 
@@ -106,7 +109,7 @@ public class CypherProcedures {
                            @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
                            @Name(value = "description", defaultValue = "") String description) throws ProcedureException {
         UserFunctionSignature userFunctionSignature = new Signatures(PREFIX).asFunctionSignature(signature, description);
-        validateInputs(statement, userFunctionSignature.inputSignature());
+        validateInputsAndOutputs(statement, userFunctionSignature.inputSignature());
         if (!cypherProceduresHandler.registerFunction(userFunctionSignature, statement, forceSingle)) {
             throw new IllegalStateException("Error registering function " + signature + ", see log.");
         }
@@ -160,32 +163,53 @@ public class CypherProcedures {
         Objects.requireNonNull(name, "name");
         cypherProceduresHandler.removeFunction(name);
     }
+
+    private void validateInputsAndOutputs(String statement, List<FieldSignature> inputSignatures) {
+        validateInputsAndOutputs(statement, inputSignatures, null);
+    }
     
-    private void validateInputs(String statement, List<FieldSignature> inputSignatures) {
-        if (isInputSignatureEmptyOrDefault(inputSignatures)) {
+    private void validateInputsAndOutputs(String statement, List<FieldSignature> inputSignatures, List<FieldSignature> outputSignatures) {
+        boolean defaultOutputs = outputSignatures == null || outputSignatures.equals(DEFAULT_MAP_OUTPUT);
+        boolean defaultInputs = inputSignatures.equals(DEFAULT_INPUTS);
+        
+        if (defaultOutputs && defaultInputs) {
             return;
         }
-        final Set<String> collect = inputSignatures.stream().map(FieldSignature::name).collect(Collectors.toSet());
-        if (collect.size() != inputSignatures.size()) {
+        
+        final Set<String> inputSet = inputSignatures.stream().map(FieldSignature::name).collect(Collectors.toSet());
+        if (!defaultInputs && inputSet.size() != inputSignatures.size()) {
             throw new RuntimeException(ERROR_DUPLICATED_INPUT);
         }
-        api.executeTransactionally("EXPLAIN " + statement, emptyMap(), result -> {
-            StreamSupport.stream(result.getNotifications().spliterator(), false)
-                    .filter(i -> i.getCode().equals(Status.Statement.ParameterMissing.code().serialize()))
-                    .findFirst()
-                    .ifPresent(missingParamNotification -> {
-                        final String missingParamDescription = missingParamNotification.getDescription();
-                        final String missingParamPrepend = "Missing parameters: ";
-                        // we get set of all missing parameters
-                        final String stringMissingParam = missingParamDescription
-                                .substring(missingParamDescription.indexOf(missingParamPrepend) + missingParamPrepend.length())
-                                .replace(")", "");
-                        final Set<String> split = Set.of(stringMissingParam.split(", "));
 
-                        if (!split.equals(collect)) {
-                            throw new RuntimeException(ERROR_MISMATCHED_INPUTS); 
-                        } 
-                    });
+        final Set<String> outputSet = outputSignatures == null ? null 
+                : outputSignatures.stream().map(FieldSignature::name).collect(Collectors.toSet());
+        if (!defaultOutputs && outputSet.size() != outputSignatures.size()) {
+            throw new RuntimeException(ERROR_DUPLICATED_OUTPUT);
+        }
+        
+        api.executeTransactionally("EXPLAIN " + statement, emptyMap(), result -> {
+            final boolean outputMismatched = !(defaultOutputs || Set.copyOf(result.columns()).equals(outputSet));
+            if (outputMismatched) {
+                throw new RuntimeException(ERROR_MISMATCHED_OUTPUTS);
+            }
+            if (!defaultInputs) {
+                StreamSupport.stream(result.getNotifications().spliterator(), false)
+                        .filter(i -> i.getCode().equals(Status.Statement.ParameterMissing.code().serialize()))
+                        .findFirst()
+                        .ifPresent(missingParamNotification -> {
+                            final String missingParamDescription = missingParamNotification.getDescription();
+                            final String missingParamPrepend = "Missing parameters: ";
+                            // we get set of all missing parameters
+                            final String stringMissingParam = missingParamDescription
+                                    .substring(missingParamDescription.indexOf(missingParamPrepend) + missingParamPrepend.length())
+                                    .replace(")", "");
+                            final Set<String> split = Set.of(stringMissingParam.split(", "));
+
+                            if (!split.equals(inputSet)) {
+                                throw new RuntimeException(ERROR_MISMATCHED_INPUTS);
+                            }
+                        });
+            }
             return null;
         });
     }
