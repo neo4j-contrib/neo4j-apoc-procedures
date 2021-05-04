@@ -20,6 +20,6 @@ RETURN count(*);
 image::linked-list-events.svg[scaledwidth="100%"]
 
 
-Moreover we can checking for relationship existence using the `{avoidDuplicates: true}` configuration.
-That is, calling the previous query twice, 2 relations of type "NEXT" will be created between the nodes.
-Instead, with CALL apoc.nodes.link(events, "NEXT", {avoidDuplicates: true}) only one relationship of type "NEXT" will remain.
+We can check for relationship existence using the `{avoidDuplicates: true}` configuration;
+calling the previous query twice, 2 relations of type "NEXT" will be created between the nodes,
+instead, by executing `CALL apoc.nodes.link(events, "NEXT", {avoidDuplicates: true})` only one relationship of type "NEXT" will be created.
