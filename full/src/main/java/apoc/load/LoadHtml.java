@@ -4,6 +4,7 @@ import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.Util;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
@@ -25,6 +26,8 @@ import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,51 +62,14 @@ public class LoadHtml {
         try {
             // baseUri is used to resolve relative paths
             String baseUri = config.getOrDefault("baseUri", "").toString();
-            WithBrowser withBrowser = WithBrowser.valueOf((String) config.getOrDefault("withBrowser", "NONE"));
 
-            Document document;
-
-            if (withBrowser == WithBrowser.NONE) {
-                document = Jsoup.parse(Util.openInputStream(url, null, null), charset, baseUri);
-            } else {
-                WebDriver driver;
-                if (withBrowser == WithBrowser.CHROME) {
-                    WebDriverManager.chromedriver().setup();
-                    ChromeOptions chromeOptions = new ChromeOptions();
-                    chromeOptions.setHeadless(true);
-                    chromeOptions.setAcceptInsecureCerts(true);
-                    driver = new ChromeDriver(chromeOptions);
-                } else {
-                    WebDriverManager.firefoxdriver().setup();
-                    FirefoxOptions firefoxOptions = new FirefoxOptions();
-                    firefoxOptions.setHeadless(true);
-                    firefoxOptions.setAcceptInsecureCerts(true);
-                    driver = new FirefoxDriver(firefoxOptions);
-                }
-                driver.get(url);
-
-                long wait = Util.toLong(config.getOrDefault("wait", 0));
-                if (wait > 0) {
-                    Wait<WebDriver> driverWait = new WebDriverWait(driver, wait);
-                    try {
-                        driverWait.until(webDriver -> query.values().stream()
-                                .noneMatch(selector -> webDriver.findElements(By.cssSelector(selector)).isEmpty()));
-                    } catch (org.openqa.selenium.TimeoutException ignored) {
-                        // We continue the execution even if 1 or more elements were not found
-                    }
-                }
-                String pageSource = driver.getPageSource();
-                document = Jsoup.parse(pageSource, baseUri);
-
-                driver.close();
-            }
+            Document document = Jsoup.parse(getHtmlInputStream(url, query, config, charset), charset, baseUri);
 
             Map<String, Object> output = new HashMap<>();
             List<String> errorList = new ArrayList<>();
-            Document finalDocument = document;
 
             query.keySet().forEach(key -> {
-                        Elements elements = finalDocument.select(query.get(key));
+                        Elements elements = document.select(query.get(key));
                         output.put(key, getElements(elements, config, errorList));
             });
             if (!errorList.isEmpty()) {
@@ -120,6 +86,45 @@ public class LoadHtml {
         } catch(Exception e) {
             throw new RuntimeException("Can't read the HTML from: "+ url, e);
         }
+    }
+    
+    private InputStream getHtmlInputStream(String url, Map<String, String> query, Map<String, Object> config, String charset) throws IOException {
+        WithBrowser withBrowser = WithBrowser.valueOf((String) config.getOrDefault("withBrowser", "NONE"));
+        
+        switch (withBrowser) {
+            case FIREFOX:
+                WebDriverManager.firefoxdriver().setup();
+                FirefoxOptions firefoxOptions = new FirefoxOptions();
+                firefoxOptions.setHeadless(true);
+                firefoxOptions.setAcceptInsecureCerts(true);
+                return getInputStreamWithBrowser(url, query, config, charset, new FirefoxDriver(firefoxOptions));
+            case CHROME:
+                WebDriverManager.chromedriver().setup();
+                ChromeOptions chromeOptions = new ChromeOptions();
+                chromeOptions.setHeadless(true);
+                chromeOptions.setAcceptInsecureCerts(true);
+                return getInputStreamWithBrowser(url, query, config, charset, new ChromeDriver(chromeOptions));
+            default:
+                return Util.openInputStream(url, null, null);
+        }
+    }
+
+    private InputStream getInputStreamWithBrowser(String url, Map<String, String> query, Map<String, Object> config, String charset, WebDriver driver) throws IOException {
+        driver.get(url);
+
+        long wait = Util.toLong(config.getOrDefault("wait", 0));
+        if (wait > 0) {
+            Wait<WebDriver> driverWait = new WebDriverWait(driver, wait);
+            try {
+                driverWait.until(webDriver -> query.values().stream()
+                        .noneMatch(selector -> webDriver.findElements(By.cssSelector(selector)).isEmpty()));
+            } catch (org.openqa.selenium.TimeoutException ignored) {
+                // We continue the execution even if 1 or more elements were not found
+            }
+        }
+        InputStream stream = IOUtils.toInputStream(driver.getPageSource(), charset);
+        driver.close();
+        return stream;
     }
 
     private List<Map<String, Object>> getElements(Elements elements, Map<String, Object> config, List<String> errorList) {

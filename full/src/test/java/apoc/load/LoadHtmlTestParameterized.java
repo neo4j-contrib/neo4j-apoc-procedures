@@ -71,13 +71,11 @@ public class LoadHtmlTestParameterized {
     @Test
     public void testQueryH2WithConfig() {
         Map<String, Object> query = map("h2", "h2");
-        final List<String> confList = newArrayList("charset", "UTF-8", "baseUri", "");
-        if (!browserSet()) {
-            confList.addAll(List.of("withBrowser", browser));
-        }
+        final List<Object> confList = newArrayList("charset", "UTF-8", "baseUri", "");
+        addWithBrowserIfSet(confList);
         Map<String, Object> config = map(confList.toArray());
 
-        testResult(db, "CALL apoc.load.html($url,$query, $config)",
+        testResult(db, "CALL apoc.load.html($url, $query, $config)",
                 map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
                 result -> {
                     Map<String, Object> row = result.next();
@@ -93,7 +91,7 @@ public class LoadHtmlTestParameterized {
         addWithBrowserIfSet(confList);
         Map<String, Object> config = map(confList.toArray());
 
-        testResult(db, "CALL apoc.load.html($url,$query, $config)",
+        testResult(db, "CALL apoc.load.html($url, $query, $config)",
                 map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
                 result -> {
                     Map<String, Object> row = result.next();
