@@ -378,5 +378,15 @@
         "sha1": "be3b48166ec38935c0066a911e1393bb48065887",
         "sha256": "ecd93a8cb4d67ff4062cc38896f0ecfda9bb6ef3d13ff9f992154812c3ca2e7a",
         "md5": "5787b372f3457c8d4692afef2be810a5"
+    },
+    "4.1.0.7": {
+        "sha1": "bc68d763422a8790f826ac073f61257c8788addf",
+        "sha256": "347686e9eaebae72e6739f7a7aa5ea6220c95d700855a33a5753c0ab07303c73",
+        "md5": "84b48a4a56d03fb82ea0459ce1074b45"
+    },
+    "4.2.0.3": {
+        "sha1": "8e717e7338e8d452007aed858b1fb2413540df05",
+        "sha256": "5e3d40290dc3d5fecd070763be0e009d202b72d7f094b8cfbc60f491fb91bcc3",
+        "md5": "8a348542e61885eeb60dff6a0070bc26"
     }
 }
