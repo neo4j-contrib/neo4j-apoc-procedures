@@ -1,6 +1,7 @@
 package apoc.map;
 
 import apoc.util.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -300,18 +301,18 @@ public class Maps {
     @UserFunction
     @Description("apoc.map.unflatten(map, delimiter:'.') yield map - unflat from items separated by delimiter string to nested items (reverse of apoc.map.flatten function)")
     public Map<String, Object> unflatten(@Name("map") Map<String, Object> map, @Name(value = "delimiter", defaultValue = ".") String delimiter) {
-        Map<String, Object> unflattenedMap = new HashMap<>();
-        unflattenMapRecursively(unflattenedMap, map, delimiter == null ? "." : delimiter);
-        return unflattenedMap;
+        return unflattenMapRecursively(map, StringUtils.isBlank(delimiter) ? "." : delimiter);
     }
 
-    private void unflattenMapRecursively(Map<String, Object> unflattenedMap, Map<String, Object> map, String delimiter) {
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            putNestedValue(unflattenedMap, entry.getValue(), entry.getKey(), delimiter);
+    private Map<String, Object> unflattenMapRecursively(Map<String, Object> inputMap, String delimiter) {
+        Map<String, Object> resultMap = new HashMap<>();
+        for (Map.Entry<String, Object> entry : inputMap.entrySet()) {
+            unflatEntry(resultMap, entry.getValue(), entry.getKey(), delimiter);
         }
+        return resultMap;
     }
 
-    public static void putNestedValue(Map<String, Object> map, Object value, String key, String delimiter) {
+    public static void unflatEntry(Map<String, Object> map, Object value, String key, String delimiter) {
         final String[] keys = key.split(quote(delimiter), 2);
         final String firstPart = keys[0];
 
@@ -319,7 +320,7 @@ public class Maps {
             map.put(firstPart, value);
         } else {
             final Map<String, Object> currentMap = (Map<String, Object>) map.computeIfAbsent(firstPart, k -> new HashMap<String, Object>());
-            putNestedValue(currentMap, value, keys[1], delimiter);
+            unflatEntry(currentMap, value, keys[1], delimiter);
         }
     }
 

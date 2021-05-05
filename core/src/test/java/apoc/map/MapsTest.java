@@ -319,8 +319,10 @@ public class MapsTest {
 
     @Test
     public void testUnflattenWithAPreviouslyFlattedMap() {
-        Map<String, Object> innerNestedMap = map("somekey", "someValue", "somenumeric", 123);
-        Map<String, Object> nestedMap = map("anotherkey", "anotherValue", "nested", innerNestedMap);
+        List<Map<String, Object>> innerNestedListMap = List.of(map("somekey", "someValue", "somenumeric", 123), 
+                map("keyFoo", "valueFoo"),
+                map("keyBar", "valueBar"));
+        Map<String, Object> nestedMap = map("anotherkey", "anotherValue", "nested", innerNestedListMap);
         final Map<String, Object> expectedMap = map("string", "value", "int", 10, "nested", nestedMap);
 
         TestUtil.testCall(db, "WITH apoc.map.flatten($expectedMap) AS flattedMap RETURN apoc.map.unflatten(flattedMap) AS value",
@@ -330,8 +332,10 @@ public class MapsTest {
 
     @Test
     public void testUnflattenWithDelimiterWithAPreviouslyFlattedMap() {
-        final Map<String, Object> subInnerMap = map("innernumeric", 123, "innernumericTwo", 456);
-        Map<String, Object> innerNestedMap = map("somekey", "someValue", "somenumeric", subInnerMap);
+        List<Map<String, Object>> subInnerListMap = List.of(map("innernumeric", 123, "innernumericTwo", 456),
+                map("keyBar", "valueBar", "keyBaz", "valueBaz"),
+                map("keyFoo", "valueFoo"));
+        Map<String, Object> innerNestedMap = map("somekey", "someValue", "somenumeric", subInnerListMap);
         Map<String, Object> nestedMap = map("anotherkey", "anotherValue", "nested", innerNestedMap);
         final Map<String, Object> expectedMap = map("string", "value", "int", 99, "nested", nestedMap);
         final String delimiter = "--哈è._";
