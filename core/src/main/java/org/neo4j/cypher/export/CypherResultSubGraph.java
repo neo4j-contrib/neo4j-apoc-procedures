@@ -61,12 +61,15 @@ public class CypherResultSubGraph implements SubGraph
         }
         for ( IndexDefinition def : tx.schema().getIndexes() )
         {
-            for ( Label label : def.getLabels() )
+            if ( def.isNodeIndex() )
             {
-                if ( graph.getLabels().contains( label ) )
+                for ( Label label : def.getLabels() )
                 {
-                    graph.addIndex( def );
-                    break;
+                    if ( graph.getLabels().contains( label ) )
+                    {
+                        graph.addIndex( def );
+                        break;
+                    }
                 }
             }
         }
