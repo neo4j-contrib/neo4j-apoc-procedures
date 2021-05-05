@@ -133,7 +133,7 @@ dependencies {
     }
 
     // there is a compatibility problem between the Guava Library used by HDFS, Google Cloud Storage and Reflections; the only version that fits for all is the following
-    testCompile group: 'com.google.guava', name: 'guava', version: '20.0'
+    compile group: 'com.google.guava', name: 'guava', version: '20.0'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
