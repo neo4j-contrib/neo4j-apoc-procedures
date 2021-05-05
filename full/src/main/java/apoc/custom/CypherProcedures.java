@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.custom.CypherProceduresHandler.*;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
 /**
@@ -37,9 +36,11 @@ import static java.util.Collections.emptyMap;
 @Extended
 public class CypherProcedures {
 
+    private static final String ERROR_DUPLICATED_PARAMETERS = "There are duplicated %s parameter names";
+    
     // visible for testing
-    public static final String ERROR_DUPLICATED_INPUT = "There are duplicated input parameter name";
-    public static final String ERROR_DUPLICATED_OUTPUT = "There are duplicated output parameter name";
+    public static final String ERROR_DUPLICATED_INPUTS = String.format(ERROR_DUPLICATED_PARAMETERS, "input");
+    public static final String ERROR_DUPLICATED_OUTPUTS = String.format(ERROR_DUPLICATED_PARAMETERS, "output");
     public static final String ERROR_MISMATCHED_INPUTS = "Required query parameters and input parameters provided don't correspond.";
     public static final String ERROR_MISMATCHED_OUTPUTS = "Query results and output parameters provided don't correspond.";
     
@@ -82,7 +83,7 @@ public class CypherProcedures {
                                  @Name(value = "description", defaultValue = "") String description
     ) {
         ProcedureSignature procedureSignature = new Signatures(PREFIX).asProcedureSignature(signature, description, cypherProceduresHandler.mode(mode));
-        validateInputsAndOutputs(statement, procedureSignature.inputSignature());
+        validateInputsAndOutputs(statement, procedureSignature.inputSignature(), procedureSignature.outputSignature());
         if (!cypherProceduresHandler.registerProcedure(procedureSignature, statement)) {
             throw new IllegalStateException("Error registering procedure " + procedureSignature.name() + ", see log.");
         }
@@ -169,30 +170,31 @@ public class CypherProcedures {
     }
     
     private void validateInputsAndOutputs(String statement, List<FieldSignature> inputSignatures, List<FieldSignature> outputSignatures) {
-        boolean defaultOutputs = outputSignatures == null || outputSignatures.equals(DEFAULT_MAP_OUTPUT);
-        boolean defaultInputs = inputSignatures.equals(DEFAULT_INPUTS);
-        
-        if (defaultOutputs && defaultInputs) {
+        // we check outputs only if is a custom procedure
+        boolean isDefaultOutputs = outputSignatures == null || outputSignatures.equals(DEFAULT_MAP_OUTPUT);
+        boolean isDefaultInputs = inputSignatures.equals(DEFAULT_INPUTS);
+
+        // with default values, there is no need to validate
+        if (isDefaultOutputs && isDefaultInputs) {
             return;
         }
         
         final Set<String> inputSet = inputSignatures.stream().map(FieldSignature::name).collect(Collectors.toSet());
-        if (!defaultInputs && inputSet.size() != inputSignatures.size()) {
-            throw new RuntimeException(ERROR_DUPLICATED_INPUT);
-        }
+        checkForDuplicatedParameters(inputSignatures, isDefaultInputs, inputSet, ERROR_DUPLICATED_INPUTS);
 
         final Set<String> outputSet = outputSignatures == null ? null 
                 : outputSignatures.stream().map(FieldSignature::name).collect(Collectors.toSet());
-        if (!defaultOutputs && outputSet.size() != outputSignatures.size()) {
-            throw new RuntimeException(ERROR_DUPLICATED_OUTPUT);
-        }
-        
+        checkForDuplicatedParameters(outputSignatures, isDefaultOutputs, outputSet, ERROR_DUPLICATED_OUTPUTS);
+
         api.executeTransactionally("EXPLAIN " + statement, emptyMap(), result -> {
-            final boolean outputMismatched = !(defaultOutputs || Set.copyOf(result.columns()).equals(outputSet));
+            // check if, in case of output params is not default or null, the column names of result query and output parameters
+            final boolean outputMismatched = !(isDefaultOutputs || Set.copyOf(result.columns()).equals(outputSet));
             if (outputMismatched) {
                 throw new RuntimeException(ERROR_MISMATCHED_OUTPUTS);
             }
-            if (!defaultInputs) {
+            if (!isDefaultInputs) {
+                // check if from EXPLAIN query there is a warning due to missing parameters
+                // if yes, I extract the missing parameters and compare them with the inputs entered by the user
                 StreamSupport.stream(result.getNotifications().spliterator(), false)
                         .filter(i -> i.getCode().equals(Status.Statement.ParameterMissing.code().serialize()))
                         .findFirst()
@@ -205,6 +207,7 @@ public class CypherProcedures {
                                     .replace(")", "");
                             final Set<String> split = Set.of(stringMissingParam.split(", "));
 
+                            // check if missing parameters and input parameters coincide
                             if (!split.equals(inputSet)) {
                                 throw new RuntimeException(ERROR_MISMATCHED_INPUTS);
                             }
@@ -212,6 +215,12 @@ public class CypherProcedures {
             }
             return null;
         });
+    }
+
+    private void checkForDuplicatedParameters(List<FieldSignature> signatures, boolean isDefault, Set<String> parameterSet, String error) {
+        if (!isDefault && parameterSet.size() != signatures.size()) {
+            throw new RuntimeException(error);
+        }
     }
 
     private List<List<String>> convertInputSignature(List<FieldSignature> signatures) {

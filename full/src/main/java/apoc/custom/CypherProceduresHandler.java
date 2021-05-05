@@ -508,7 +508,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             case "TEXT":
                 return NTString;
             default:
-                throw new RuntimeException(ERROR_INVALID_TYPE);
+                return NTString;
         }
     }
 

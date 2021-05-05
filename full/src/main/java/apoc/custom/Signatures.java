@@ -30,7 +30,9 @@ public class Signatures {
 
     public SignatureParser.ProcedureContext parseProcedure(String procedureSignatureText) {
         final SignatureParser.ProcedureContext signatureParsed = parse(procedureSignatureText).procedure();
-        if (signatureParsed.results() == null) {
+        // when output is empty because of parse error and not not because it is a query with empty result
+        if (signatureParsed.results() == null
+                || signatureParsed.results().empty() == null && signatureParsed.results().result().isEmpty()) {
             throw new RuntimeException(String.format(SIGNATURE_SYNTAX_ERROR, procedureSignatureText));
         }
         return signatureParsed;
@@ -66,9 +68,9 @@ public class Signatures {
 
     public ProcedureSignature toProcedureSignature(SignatureParser.ProcedureContext signature, String description, Mode mode) {
         QualifiedName name = new QualifiedName(namespace(signature.namespace()), name(signature.name()));
-
+// signatureParsed.results().empty()
         List<FieldSignature> outputSignature =
-                signature.results().empty() != null ? Collections.emptyList() :
+                signature.results().empty() != null ? ProcedureSignature.VOID :
                         signature.results().result().stream().map(p ->
                                 FieldSignature.outputField(name(p.name()), type(p.type()))).collect(Collectors.toList());
         // todo deprecated + default value

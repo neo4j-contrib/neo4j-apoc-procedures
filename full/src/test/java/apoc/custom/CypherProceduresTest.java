@@ -23,10 +23,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.custom.CypherProcedures.ERROR_DUPLICATED_INPUT;
-import static apoc.custom.CypherProcedures.ERROR_DUPLICATED_OUTPUT;
+import static apoc.custom.CypherProcedures.ERROR_DUPLICATED_INPUTS;
+import static apoc.custom.CypherProcedures.ERROR_DUPLICATED_OUTPUTS;
 import static apoc.custom.CypherProcedures.ERROR_MISMATCHED_INPUTS;
-import static apoc.custom.CypherProceduresHandler.ERROR_INVALID_TYPE;
+import static apoc.custom.CypherProcedures.ERROR_MISMATCHED_OUTPUTS;
 import static apoc.custom.CypherProceduresHandler.FUNCTION;
 import static apoc.custom.CypherProceduresHandler.PROCEDURE;
 import static apoc.custom.Signatures.SIGNATURE_SYNTAX_ERROR;
@@ -43,7 +43,7 @@ import static org.junit.Assert.fail;
  * @since 18.08.18
  */
 public class CypherProceduresTest  {
-
+    
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
@@ -215,9 +215,9 @@ public class CypherProceduresTest  {
     public void registerSimpleStatementFunctionWithOneChar() throws Exception {
         db.executeTransactionally("call apoc.custom.asFunction('a','RETURN 42 as answer')");
         TestUtil.testCall(db, "return custom.a() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
-        final String statement = "b() :: STRING";
-        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, statement),
-                "CALL apoc.custom.declareFunction('" + statement + "','RETURN 42 as answer')");
+        final String procedureSignature = "b() :: STRING";
+        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, procedureSignature),
+                "CALL apoc.custom.declareFunction('" + procedureSignature + "','RETURN 42 as answer')");
     }
 
     @Test
@@ -617,7 +617,8 @@ public class CypherProceduresTest  {
     }
 
     @Test
-    public void shouldFailWithMismatchedInputParameters() {
+    public void shouldFailWithMismatchedParameters() {
+        // input mismatch
         assertProcedureFails(ERROR_MISMATCHED_INPUTS,
                 "call apoc.custom.asFunction('answer','RETURN $input as answer','long',[['ajeje','number']])");
         assertProcedureFails(ERROR_MISMATCHED_INPUTS,
@@ -625,55 +626,64 @@ public class CypherProceduresTest  {
         assertProcedureFails(ERROR_MISMATCHED_INPUTS,
                 "call apoc.custom.declareFunction('double(wrong::INT) :: INT','RETURN $input*2 as answer')");
         assertProcedureFails(ERROR_MISMATCHED_INPUTS,
-                "call apoc.custom.declareProcedure('sum(input::INT, invalid::INT) :: (answer::INT)','RETURN $first + $second AS sum')");
+                "call apoc.custom.declareProcedure('sum(input::INT, invalid::INT) :: (answer::INT)','RETURN $first + $second AS answer')");
+        // output mismatch
+        assertProcedureFails(ERROR_MISMATCHED_OUTPUTS,
+                "call apoc.custom.asProcedure('answer','RETURN $one as one, $two as two','read',[['one','number']],[['one','number'], ['two','number']])");
+        assertProcedureFails(ERROR_MISMATCHED_OUTPUTS,
+                "call apoc.custom.declareProcedure('sum(first::INT, second::INT) :: (something::INT)','RETURN $first + $second AS answer')");
     }
 
-    @Test
-    public void shouldFailWithInvalidInputParameterNames() {
-        assertProcedureFails(ERROR_INVALID_TYPE,
-                "call apoc.custom.asFunction('answer','RETURN $input as answer','long',[['input','INVALID']])");
-        assertProcedureFails(ERROR_INVALID_TYPE,
-                "call apoc.custom.asProcedure('answer','RETURN $one as one','read',null,[['one','INVALID']])");
-        final String functionStatement = "double(input :: INVALID) :: INT";
-        final String procedureStatement = "sum(input:: INVALID) :: (answer::INT)";
-        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, procedureStatement),
-                "call apoc.custom.declareProcedure('" + procedureStatement + "','RETURN $input AS input')");
-        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, functionStatement),
-                "call apoc.custom.declareFunction('" + functionStatement + "','RETURN $input*2 as answer')");
+    @Test(expected = QueryExecutionException.class)
+    public void shouldCreateAVoidProcedure() {
+        // I create a function to pass later in VOID query 
+        final String functionName = "toDelete";
+        final String queryFunction = String.format("RETURN custom.%s() AS num", functionName);
+        db.executeTransactionally("call apoc.custom.asFunction('" + functionName + "', 'return 10', 'INT')");
+        testCall(db, queryFunction, row -> assertEquals(10L, row.get("num")));
+
+        // now I create a custom procedure with VOID return 
+        db.executeTransactionally("call apoc.custom.declareProcedure('myVoidProc(name :: STRING) :: VOID','call apoc.custom.removeFunction($name)')");
+        db.executeTransactionally("CALL custom.myVoidProc('" + functionName + "')");
+        db.executeTransactionally("call db.clearQueryCaches()");
+        testCall(db, queryFunction, row -> fail("Should fail because of unknown function"));
     }
     
     @Test
-    public void shouldFailWithInvalidOutputParameterNames() {
-        assertProcedureFails(ERROR_INVALID_TYPE, 
-                "call apoc.custom.asProcedure('answer','RETURN $one as one','read',null,[['one','INVALID']])");
-        assertProcedureFails(ERROR_INVALID_TYPE, 
-                "call apoc.custom.asFunction('answer','RETURN $input as answer','INVALID',[['input','number']])");
-    
-        final String functionStatement = "myFunc(val :: INVALID) :: INTEGER";
-        final String procedureStatement = "myProc(input :: DUNNO) :: (answer :: INT)";
-        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, procedureStatement), 
-                "call apoc.custom.declareProcedure('" + procedureStatement + "','RETURN $input AS sum')");
-        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, functionStatement),
-                "CALL apoc.custom.declareFunction('" + functionStatement + "', 'RETURN $val')");
+    public void shouldFailDeclareFunctionAndProcedureWithInvalidParameterTypes() {
+        final String procedureStatementInvalidInput = "sum(input:: INVALID) :: (answer::INT)";
+        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, procedureStatementInvalidInput),
+                "call apoc.custom.declareProcedure('" + procedureStatementInvalidInput + "','RETURN $input AS input')");
+        final String functionStatementInvalidInput = "double(input :: INVALID) :: INT";
+        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, functionStatementInvalidInput),
+                "call apoc.custom.declareFunction('" + functionStatementInvalidInput + "','RETURN $input*2 as answer')");
+
+        final String procedureStatementInvalidOutput = "myProc(input :: INTEGER) :: (sum :: DUNNO)";
+        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, procedureStatementInvalidOutput), 
+                "call apoc.custom.declareProcedure('" + procedureStatementInvalidOutput + "','RETURN $input AS sum')");
+        final String functionStatementInvalidOutput = "myFunc(val :: INTEGER) :: DUNNO";
+        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, functionStatementInvalidOutput),
+                "CALL apoc.custom.declareFunction('" + functionStatementInvalidOutput + "', 'RETURN $val')");
     }
 
     @Test
-    public void shouldFailWithDuplicatedInputParameters() {
-        assertProcedureFails(ERROR_DUPLICATED_INPUT,
+    public void shouldFailWithDuplicatedParameters() {
+        assertProcedureFails(ERROR_DUPLICATED_INPUTS,
                 "call apoc.custom.declareProcedure('sum(input::INT, input::INT) :: (answer::INT)','RETURN $first + $second AS sum')");
-        assertProcedureFails(ERROR_DUPLICATED_INPUT,
-                "CALL apoc.custom.declareFunction('iiiiii(val :: INTEGER, val :: INTEGER) :: INTEGER ', 'RETURN $val')");
-        assertProcedureFails(ERROR_DUPLICATED_INPUT,
+        assertProcedureFails(ERROR_DUPLICATED_INPUTS,
+                "CALL apoc.custom.declareFunction('anotherFun(val :: INTEGER, val :: INTEGER) :: INTEGER ', 'RETURN $val')");
+        assertProcedureFails(ERROR_DUPLICATED_INPUTS,
                 "call apoc.custom.asFunction('answer', 'RETURN $input as answer','long', [['input','number'], ['another','number'], ['input','string']])");
-        assertProcedureFails(ERROR_DUPLICATED_INPUT,
+        assertProcedureFails(ERROR_DUPLICATED_INPUTS,
                 "call apoc.custom.asProcedure('testAnother','RETURN $input as answer, $another as another','read', null, [['input','int','42'], ['another','int','42'], ['input','int','43']])");
         // duplicated output - only for asProcedure, because for declareProcedure this error is handled through SignatureParser
-        assertProcedureFails(ERROR_DUPLICATED_OUTPUT,
+        assertProcedureFails(ERROR_DUPLICATED_OUTPUTS,
                 "call apoc.custom.asProcedure('testAnother','RETURN $input as answer, $another as another','read', [['input','int'], ['another','int'], ['input','int']], [['another','int'], ['input','int']])");
     }
 
     @Test
-    public void shouldCreateFunctionWithDefaultInputParameter() {
+    public void shouldCreateFunctionWithDefaultParameters() {
+        // default inputs
         db.executeTransactionally("CALL apoc.custom.declareFunction('multiParDeclareFun(params = {} :: MAP) :: INT ', 'RETURN $one + $two as sum')");
         TestUtil.testCall(db, "return custom.multiParDeclareFun({one:2, two: 3}) as row", (row) -> assertEquals(5L, row.get("row")));
         
@@ -685,6 +695,13 @@ public class CypherProceduresTest  {
         
         db.executeTransactionally("call apoc.custom.asProcedure('multiParProc','RETURN $one + $two as sum', 'read', [['sum', 'int']])");
         TestUtil.testCall(db, "call custom.multiParProc({one:2, two: 3})", (row) -> assertEquals(5L, row.get("sum")));
+        
+        // default outputs
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('declareDefaultOut(one :: INTEGER, two :: INTEGER) :: (row :: MAP) ', 'RETURN $one + $two as sum')");
+        TestUtil.testCall(db, "call custom.declareDefaultOut(5, 3)", (row) -> assertEquals(8L, ((Map<String, Object>)row.get("row")).get("sum")));
+
+        db.executeTransactionally("call apoc.custom.asProcedure('asDefaultOut','RETURN $one + $two as sum', 'read', [['row', 'MAP']], [['one', 'INTEGER'], ['two', 'INTEGER']])");
+        TestUtil.testCall(db, "call custom.asDefaultOut(6,4)", (row) -> assertEquals(10L, ((Map<String, Object>)row.get("row")).get("sum")));
     }
     
 
