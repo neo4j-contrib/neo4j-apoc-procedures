@@ -4,6 +4,7 @@ import apoc.graph.Graphs;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -49,6 +50,8 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.SettingImpl.newBuilder;
 import static org.neo4j.configuration.SettingValueParsers.BOOL;
 import static org.neo4j.driver.Values.isoDuration;
@@ -657,10 +660,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:Person {name:'Jeff', surname:'Logan'})");
         TestUtil.testResult(db, "CALL apoc.meta.data({sample:2})",
                 (r) -> {
-                    Map<String, Object>  personNameProperty = r.next();
-                    Map<String, Object>  personSurnameProperty = r.next();
-                    assertEquals("name", personNameProperty.get("property"));
-                    assertEquals("surname", personSurnameProperty.get("property"));
+                    Assertions.assertThat( r.stream().map( m -> m.get( "property" ) ) ).containsExactlyInAnyOrder( "name", "surname" );
                 });
     }
 
@@ -716,8 +716,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:Person {name:'Tom'})");
         TestUtil.testResult(db, "CALL apoc.meta.data({sample:5})",
                 (r) -> {
-                    Map<String, Object>  personNameProperty = r.next();
-                    assertEquals("name", personNameProperty.get("property"));
+                    Assertions.assertThat( r.stream().map( m -> m.get("property") ) ).contains( "name" );
                     r.close();
                 });
     }
