@@ -13,7 +13,7 @@ configure(subprojects) {
 
 
 subprojects {
-    version = '4.1.0.7'
+    version = '4.1.0.8'
     group = 'org.neo4j.contrib'
 }
 
