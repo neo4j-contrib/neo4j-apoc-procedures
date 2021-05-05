@@ -3,6 +3,7 @@ package org.neo4j.cypher.export;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.graphdb.schema.IndexType;
 import org.neo4j.internal.helpers.collection.Iterables;
 
 import java.util.*;
@@ -61,7 +62,7 @@ public class CypherResultSubGraph implements SubGraph
         }
         for ( IndexDefinition def : tx.schema().getIndexes() )
         {
-            if ( def.isNodeIndex() )
+            if ( def.isNodeIndex() && def.getIndexType() != IndexType.LOOKUP )
             {
                 for ( Label label : def.getLabels() )
                 {
