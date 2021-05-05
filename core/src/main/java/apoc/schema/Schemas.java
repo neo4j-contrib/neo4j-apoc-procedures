@@ -3,6 +3,7 @@ package apoc.schema;
 import apoc.result.AssertSchemaResult;
 import apoc.result.ConstraintRelationshipInfo;
 import apoc.result.IndexConstraintNodeInfo;
+import org.antlr.v4.runtime.atn.SemanticContext;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.common.TokenNameLookup;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -12,6 +13,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.graphdb.schema.IndexType;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.kernel.api.InternalIndexState;
@@ -145,6 +147,10 @@ public class Schemas {
         List<AssertSchemaResult> result = new ArrayList<>(indexes.size());
 
         for (IndexDefinition definition : schema.getIndexes()) {
+            if (!definition.isNodeIndex())
+                continue;
+            if (definition.getIndexType() == IndexType.LOOKUP)
+                continue;
             if (definition.isConstraintIndex())
                 continue;
 
@@ -300,6 +306,7 @@ public class Schemas {
                 indexesIterator = StreamSupport.stream(
                         Spliterators.spliteratorUnknownSize(allIndex, Spliterator.ORDERED),
                         false)
+                        .filter(index -> !index.isTokenIndex())
                         .filter(index -> Arrays.stream(index.schema().getEntityTokenIds()).noneMatch(id -> {
                     try {
                         return excludeLabels.contains(tokenRead.nodeLabelName(id));
