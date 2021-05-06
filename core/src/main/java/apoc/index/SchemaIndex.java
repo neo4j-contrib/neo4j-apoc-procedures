@@ -14,6 +14,7 @@ import org.neo4j.internal.schema.IndexDescriptor;
 import org.neo4j.internal.schema.IndexOrder;
 import org.neo4j.internal.schema.LabelSchemaDescriptor;
 import org.neo4j.internal.schema.SchemaDescriptor;
+import org.neo4j.io.pagecache.context.CursorContext;
 import org.neo4j.io.pagecache.tracing.cursor.PageCursorTracer;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.impl.api.KernelStatement;
@@ -103,7 +104,7 @@ public class SchemaIndex {
     }
 
     private void scanIndex(BlockingQueue<PropertyValueCount> queue, IndexDefinition indexDefinition, String key, Read read, CursorFactory cursors, IndexDescriptor indexDescriptor, KernelTransaction ktx) {
-        try (NodeValueIndexCursor cursor = cursors.allocateNodeValueIndexCursor(PageCursorTracer.NULL, ktx.memoryTracker())) {
+        try (NodeValueIndexCursor cursor = cursors.allocateNodeValueIndexCursor( CursorContext.NULL, ktx.memoryTracker())) {
             // we need to using IndexOrder.NONE here to prevent an exception
             // however the index guarantees to be scanned in order unless
             // there are writes done in the same tx beforehand - which we don't do.
