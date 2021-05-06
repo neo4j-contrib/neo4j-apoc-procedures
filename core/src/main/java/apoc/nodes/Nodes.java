@@ -113,7 +113,7 @@ public class Nodes {
     public boolean hasRelationship(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types) {
         if (types == null || types.isEmpty()) return node.hasRelationship();
         long id = node.getId();
-        try ( NodeCursor nodeCursor = ktx.cursors().allocateNodeCursor(ktx.pageCursorTracer())) {
+        try ( NodeCursor nodeCursor = ktx.cursors().allocateNodeCursor(ktx.cursorContext())) {
 
             ktx.dataRead().singleNode(id, nodeCursor);
             nodeCursor.next();
@@ -159,8 +159,8 @@ public class Nodes {
         TokenRead tokenRead = ktx.tokenRead();
         CursorFactory cursors = ktx.cursors();
 
-        try (NodeCursor startNodeCursor = cursors.allocateNodeCursor(ktx.pageCursorTracer());
-             NodeCursor endNodeCursor = cursors.allocateNodeCursor(ktx.pageCursorTracer())) {
+        try (NodeCursor startNodeCursor = cursors.allocateNodeCursor(ktx.cursorContext());
+             NodeCursor endNodeCursor = cursors.allocateNodeCursor(ktx.cursorContext())) {
 
             dataRead.singleNode(startId, startNodeCursor);
             if (!startNodeCursor.next()) {
@@ -266,7 +266,7 @@ public class Nodes {
      * @return
      */
     private boolean connected(NodeCursor start, long end, int[][] typedDirections) {
-        try (RelationshipTraversalCursor relationship = ktx.cursors().allocateRelationshipTraversalCursor(ktx.pageCursorTracer())) {
+        try (RelationshipTraversalCursor relationship = ktx.cursors().allocateRelationshipTraversalCursor(ktx.cursorContext())) {
             start.relationships(relationship, RelationshipSelection.selection(Direction.BOTH));
             while (relationship.next()) {
                 if (relationship.otherNodeReference() ==end) {
@@ -577,7 +577,7 @@ public class Nodes {
     @UserFunction
     @Description("apoc.nodes.isDense(node) - returns true if it is a dense node")
     public boolean isDense(@Name("node") Node node) {
-        try (NodeCursor nodeCursor = ktx.cursors().allocateNodeCursor(ktx.pageCursorTracer())) {
+        try (NodeCursor nodeCursor = ktx.cursors().allocateNodeCursor(ktx.cursorContext())) {
             final long id = node.getId();
             ktx.dataRead().singleNode(id, nodeCursor);
             if (nodeCursor.next()) {
