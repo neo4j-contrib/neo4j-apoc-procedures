@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.graphdb.schema.IndexType;
 import org.neo4j.internal.helpers.collection.Iterables;
 
 import java.io.PrintWriter;
@@ -230,6 +231,9 @@ public class MultiStatementCypherSubGraphExporter {
     private List<String> exportIndexes() {
         return db.executeTransactionally("CALL db.indexes()", Collections.emptyMap(), result -> result.stream()
                 .map(map -> {
+                    if ("LOOKUP".equals(map.get("type"))) {
+                        return "";
+                    }
                     List<String> props = (List<String>) map.get("properties");
                     List<String> tokenNames = (List<String>) map.get("labelsOrTypes");
                     String name = (String) map.get("name");
@@ -345,6 +349,12 @@ public class MultiStatementCypherSubGraphExporter {
 
     private void gatherUniqueConstraints() {
         for (IndexDefinition indexDefinition : graph.getIndexes()) {
+            if (!indexDefinition.isNodeIndex()) {
+                continue;
+            }
+            if (indexDefinition.getIndexType() == IndexType.LOOKUP) {
+                continue;
+            }
             Set<String> label = StreamSupport.stream(indexDefinition.getLabels().spliterator(), false)
                     .map(Label::name)
                     .collect(Collectors.toSet());

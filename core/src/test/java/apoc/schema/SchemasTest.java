@@ -91,6 +91,7 @@ public class SchemasTest {
 
     @Test
     public void testCreateIndex() throws Exception {
+        dropSchema();
         testCall(db, "CALL apoc.schema.assert({Foo:['bar']},null)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals("bar", r.get("key"));
