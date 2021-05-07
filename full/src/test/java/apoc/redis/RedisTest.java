@@ -12,18 +12,15 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.GenericContainer;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class RedisTest {
     
-    // TODO
-    // TODO
-    // TODO : TEST NUMERO DI CONNESSIONI!!
-    // TODO
-    // TODO
 
     private static int REDIS_DEFAULT_PORT = 6379;
 
@@ -35,7 +32,7 @@ public class RedisTest {
     @Rule
     public GenericContainer redis = new GenericContainer("redis:6.2.3")
             // TODO - METTERE ANCHE LE CREDENZIALI e vedere se va...
-//            .withCommand("redis-server --requirepass SUPER_SECRET")// command: redis-server --requirepass SUPER_SECRET
+            .withCommand("redis-server --requirepass SUPER_SECRET")// command: redis-server --requirepass SUPER_SECRET
             .withExposedPorts(REDIS_DEFAULT_PORT);
     
     // todo
@@ -69,6 +66,13 @@ public class RedisTest {
 //            throw new RuntimeException(e);
 //        }
     }
+    
+    
+    
+    // todo
+    // todo - vedere se riesco a fare un test con timeout...
+    // todo
+    
 
     private int getNumConnections() {
         try {
@@ -97,8 +101,29 @@ public class RedisTest {
     }
 
 
+
+    @Test
+    public void command() {
+//        db.executeTransactionally("CALL apoc.redis.dispatch($host)", Map.of("host", getUrl()));
+
+        TestUtil.testCall(db, "CALL apoc.redis.dispatch($host, 'LPUSH', 'IntegerOutput', ['2'], ['3', '4'])", Map.of("host", getUrl()), r->{});
+
+        TestUtil.testCall(db, "CALL apoc.redis.lrange($host, '2', 0, 1)", Map.of("host", getUrl()), r -> {
+//            Map doc = (Map) r.get("value");
+//            assertNotNull(doc.get("1"));
+            assertEquals(Set.of(), r.get("value"));
+        });
+    }
+    
+    
+    @Test
+    public void testList() {
+        // TODO...
+    }
+
+
     private String getUrl() {
-//        return String.format("redis://%s@%s:%s", "SUPER_SECRET", redis.getHost(), redis.getMappedPort(REDIS_DEFAULT_PORT));
-        return String.format("redis://%s:%s", redis.getHost(), redis.getMappedPort(REDIS_DEFAULT_PORT));
+        return String.format("redis://%s@%s:%s", "SUPER_SECRET", redis.getHost(), redis.getMappedPort(REDIS_DEFAULT_PORT));
+//        return String.format("redis://%s:%s", redis.getHost(), redis.getMappedPort(REDIS_DEFAULT_PORT));
     }
 }
