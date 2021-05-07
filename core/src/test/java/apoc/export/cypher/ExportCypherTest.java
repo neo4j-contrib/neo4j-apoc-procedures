@@ -587,6 +587,7 @@ public class ExportCypherTest {
                 });
     }
 
+    @Ignore("It doesn't fail anymore because it skips not supported indexes")
     @Test(expected = QueryExecutionException.class)
     public void shouldFailExportMultiTokenIndexForRelationship() {
         // given
