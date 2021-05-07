@@ -5,6 +5,10 @@
 :neo4j-version: 4.1.0
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/images
 
+https://community.neo4j.com[image:https://img.shields.io/discourse/users?logo=discourse&server=https%3A%2F%2Fcommunity.neo4j.com[Discourse users]]
+https://discord.gg/neo4j[image:https://img.shields.io/discord/787399249741479977?logo=discord&logoColor=white[Discord]]
+
+
 = Awesome Procedures for Neo4j {branch}.x
 
 // tag::readme[]
