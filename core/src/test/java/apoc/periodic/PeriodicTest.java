@@ -511,12 +511,7 @@ public class PeriodicTest {
         TestUtil.testCallEmpty(db, "CALL apoc.periodic.truncate", Collections.emptyMap());
         assertCountEntitiesAndIndexes(0, 0, 4,2);
 
-        try(Transaction tx = db.beginTx()) {
-            Schema schema = tx.schema();
-            schema.getConstraints().forEach(ConstraintDefinition::drop);
-            schema.getIndexes().forEach(IndexDefinition::drop);
-            tx.commit();
-        }
+        dropSchema();
 
         assertCountEntitiesAndIndexes(0, 0, 0,0);
     }
@@ -529,7 +524,20 @@ public class PeriodicTest {
         assertCountEntitiesAndIndexes(0, 0, 0,0);
     }
 
+    private void dropSchema()
+    {
+        try(Transaction tx = db.beginTx()) {
+            Schema schema = tx.schema();
+            schema.getConstraints().forEach(ConstraintDefinition::drop);
+            schema.getIndexes().forEach(IndexDefinition::drop);
+            tx.commit();
+        }
+    }
+
     private void createDatasetForTruncate() {
+        // drop schema to remove existing default token indexes if any
+        dropSchema();
+
         db.executeTransactionally("UNWIND range(1,99999) AS x CREATE (:One{name:'Person_'+x})-[:FOO {id: x}]->(:Two {surname: 'Two'+x})<-[:BAR {idBar: x}]-(:Three {other: x+'Three'})");
 
         db.executeTransactionally("CREATE INDEX ON :One(name)");

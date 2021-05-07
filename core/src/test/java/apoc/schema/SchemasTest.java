@@ -1,6 +1,7 @@
 package apoc.schema;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -12,6 +13,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -49,7 +51,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        assertEquals("Index( id=1, name='index_70bffdab', type='GENERAL BTREE', schema=(:Foo {bar}), indexProvider='native-btree-1.0' )", r.get("userDescription"));
+        Assertions.assertThat( r.get( "userDescription").toString() ).contains("name='index_70bffdab', type='GENERAL BTREE', schema=(:Foo {bar}), indexProvider='native-btree-1.0' )");
 
         assertTrue(!result.hasNext());
     }
@@ -65,7 +67,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        assertEquals("Index( id=1, name='index_70bffdab', type='GENERAL BTREE', schema=(:Foo {bar}), indexProvider='native-btree-1.0' )", r.get("userDescription"));
+        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index_70bffdab', type='GENERAL BTREE', schema=(:Foo {bar}), indexProvider='native-btree-1.0' )" );
 
         r = result.next();
 
@@ -77,7 +79,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        assertEquals("Index( id=3, name='index_5c0607ad', type='GENERAL BTREE', schema=(:Person {name}), indexProvider='native-btree-1.0' )", r.get("userDescription"));
+        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index_5c0607ad', type='GENERAL BTREE', schema=(:Person {name}), indexProvider='native-btree-1.0' )" );
 
         assertTrue(!result.hasNext());
     }
@@ -123,6 +125,7 @@ public class SchemasTest {
 
     @Test
     public void testDropIndexWhenUsingDropExisting() throws Exception {
+        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testCall(db, "CALL apoc.schema.assert(null,null)", (r) -> {
             assertEquals("Foo", r.get("label"));
@@ -138,6 +141,7 @@ public class SchemasTest {
 
     @Test
     public void testDropIndexAndCreateIndexWhenUsingDropExisting() throws Exception {
+        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testResult(db, "CALL apoc.schema.assert({Bar:['foo']},null)", (result) -> {
             Map<String, Object> r = result.next();
@@ -160,6 +164,7 @@ public class SchemasTest {
 
     @Test
     public void testRetainIndexWhenNotUsingDropExisting() throws Exception {
+        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testResult(db, "CALL apoc.schema.assert({Bar:['foo', 'bar']}, null, false)", (result) -> {
             Map<String, Object> r = result.next();
@@ -253,6 +258,7 @@ public class SchemasTest {
 
     @Test
     public void testKeepIndex() throws Exception {
+        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testResult(db, "CALL apoc.schema.assert({Foo:['bar', 'foo']},null,false)", (result) -> { 
             Map<String, Object> r = result.next();
@@ -312,7 +318,7 @@ public class SchemasTest {
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(100d, r.get("populationProgress"));
             assertEquals(1d, r.get("valuesSelectivity"));
-            assertEquals("Index( id=1, name='index_70bffdab', type='GENERAL BTREE', schema=(:Foo {bar}), indexProvider='native-btree-1.0' )", r.get("userDescription"));
+            Assertions.assertThat(r.get("userDescription").toString()).contains("name='index_70bffdab', type='GENERAL BTREE', schema=(:Foo {bar}), indexProvider='native-btree-1.0' )");
 
             assertFalse(result.hasNext());
         });
@@ -380,6 +386,7 @@ public class SchemasTest {
 
     @Test
     public void testDropCompoundIndexWhenUsingDropExisting() throws Exception {
+        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert(null,null,true)", (result) -> {
@@ -397,6 +404,7 @@ public class SchemasTest {
 
     @Test
     public void testDropCompoundIndexAndRecreateWithDropExisting() throws Exception {
+        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,true)", (result) -> {
@@ -415,6 +423,7 @@ public class SchemasTest {
 
     @Test
     public void testDoesntDropCompoundIndexWhenSupplyingSameCompoundIndex() throws Exception {
+        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,false)", (result) -> {
@@ -434,6 +443,7 @@ public class SchemasTest {
     */
     @Test
     public void testKeepCompoundIndex() throws Exception {
+        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa'], ['foo','faa']]},null,false)", (result) -> {
@@ -457,6 +467,7 @@ public class SchemasTest {
 
     @Test
     public void testDropIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
+        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Bar:[['foo','bar']]},null)", (result) -> {
@@ -480,6 +491,7 @@ public class SchemasTest {
 
     @Test
     public void testDropCompoundIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
+        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null)", (result) -> {
@@ -587,6 +599,15 @@ public class SchemasTest {
             assertEquals("Parameters relationships and excluderelationships are both valuated. Please check parameters and valuate only one.", except.getMessage());
             throw e;
         }
+    }
 
+    private void dropSchema()
+    {
+        try(Transaction tx = db.beginTx()) {
+            Schema schema = tx.schema();
+            schema.getConstraints().forEach(ConstraintDefinition::drop);
+            schema.getIndexes().forEach(IndexDefinition::drop);
+            tx.commit();
+        }
     }
 }
