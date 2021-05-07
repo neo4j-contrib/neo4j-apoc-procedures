@@ -4,7 +4,7 @@ The following creates a map from keys and values lists:
 [source,cypher]
 ----
 RETURN apoc.map.fromLists(
-    ["name", "dob"],
+    ["name", "age"],
     ["Cristiano Ronaldo", date("1985-02-05")]
 ) AS output;
 ----
