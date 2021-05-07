@@ -11,6 +11,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.kernel.impl.index.schema.RelationshipTypeScanStoreSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -27,22 +28,22 @@ import static org.junit.Assert.assertEquals;
 public class ExportCsvNeo4jAdminTest {
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_TYPES_NODE = String
-            .format(":ID;born_3D:point;localtime:localtime;time:time;localDateTime:localdatetime;duration:duration;dateTime:datetime;born_2D:point;date:date;:LABEL%n");
+            .format(":ID;born_2D:point;dateTime:datetime;duration:duration;localtime:localtime;time:time;born_3D:point;localDateTime:localdatetime;date:date;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_TYPES_NODE = String
-            .format("6;{crs:wgs-84-3d,latitude:56.7,longitude:12.78,height:100.0};12:50:35.556;12:50:35.556+01:00;2018-10-30T19:32:24;P5M1DT12H;2018-10-30T12:50:35.556+01:00;{crs:cartesian,x:2.3,y:4.5};2018-10-30;Types%n");
+            .format("6;{crs:cartesian,x:2.3,y:4.5};2018-10-30T12:50:35.556+01:00;P5M1DT12H;12:50:35.556;12:50:35.556+01:00;{crs:wgs-84-3d,latitude:56.7,longitude:12.78,height:100.0};2018-10-30T19:32:24;2018-10-30;Types%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS = String
             .format(":ID;name;street;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS1 = String
-            .format(":ID;street;name;city;:LABEL%n");
+            .format(":ID;street;city;name;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER = String
             .format(":ID;name;age:long;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER1 = String
-            .format(":ID;name;age:long;male:boolean;kids;:LABEL%n");
+            .format(":ID;kids;male:boolean;name;age:long;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_RELATIONSHIP_KNOWS = String
             .format(":START_ID;:END_ID;:TYPE%n");
@@ -55,14 +56,14 @@ public class ExportCsvNeo4jAdminTest {
                     "5;;via Benni;Address%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS1 = String
-            .format("3;Via Garibaldi, 7;Andrea;Milano;\"Address1;Address\"%n");
+            .format("3;Via Garibaldi, 7;Milano;Andrea;\"Address1;Address\"%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER = String
             .format("1;bar;42;User%n" +
                     "2;;12;User%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER1 = String
-            .format("0;foo;42;true;[a,b,c];\"User1;User\"%n");
+            .format("0;[a,b,c];true;foo;42;\"User1;User\"%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_KNOWS = String
             .format("0;1;KNOWS%n");
@@ -79,6 +80,7 @@ public class ExportCsvNeo4jAdminTest {
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath())
+            .withSetting( RelationshipTypeScanStoreSettings.enable_scan_stores_as_token_indexes, true )
             .withSetting(ApocSettings.apoc_export_file_enabled, true);
 
     @BeforeClass
@@ -201,10 +203,10 @@ public class ExportCsvNeo4jAdminTest {
                             ((long) r.get("time")) >= 0);
 
                     String file = dir.getParent() + File.separator;
-                    String expectedNodesLarus = String.format(":ID,name,id:long,:LABEL%n"
-                            + "%s,Andrea,1,User;Larus%n", map.get("sourceId"));
-                    String expectedNodesNeo4j = String.format(":ID,name,id:long,:LABEL%n"
-                            +"%s,Michael,2,User;Neo4j%n", map.get("targetId"));
+                    String expectedNodesLarus = String.format(":ID,id:long,name,:LABEL%n"
+                            + "%s,1,Andrea,User;Larus%n", map.get("sourceId"));
+                    String expectedNodesNeo4j = String.format(":ID,id:long,name,:LABEL%n"
+                            +"%s,2,Michael,User;Neo4j%n", map.get("targetId"));
                     String expectedRelsNeo4j = String.format(":START_ID,:END_ID,:TYPE,id:long%n"
                             + "%s,%s,KNOWS,10%n", map.get("sourceId"), map.get("targetId"));
 
