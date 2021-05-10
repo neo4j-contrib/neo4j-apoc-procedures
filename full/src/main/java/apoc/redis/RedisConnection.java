@@ -10,6 +10,9 @@ import io.lettuce.core.codec.StringCodec;
 import io.lettuce.core.output.CommandOutput;
 import io.lettuce.core.protocol.CommandArgs;
 import io.lettuce.core.protocol.CommandType;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.ListUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -17,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-// TODO - MAGARI EVAL LO METTO IN UN ALTRO .. poi vedo
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 public class RedisConnection implements AutoCloseable {
     
@@ -26,8 +29,7 @@ public class RedisConnection implements AutoCloseable {
     private final RedisConfig conf;
     private final RedisCodec<String, String> codec;
 
-    public RedisConnection(String uri, Map<String, Object> config) { // todo - magari metto il Charset configurabile...
-        // todo - così se mi serve in altri metodi ce l'ho
+    public RedisConnection(String uri, Map<String, Object> config) {
         this.conf = new RedisConfig(config);
         this.client = RedisClient.create(uri);
         this.client.setDefaultTimeout(conf.getTimeout());
@@ -48,8 +50,8 @@ public class RedisConnection implements AutoCloseable {
     }
 
 
-    // todo - conversione in qualche modo?
     public String get(String key) {
+        // GetExArgs args ?
         return this.commands.get(key);
     }
     
@@ -71,58 +73,6 @@ public class RedisConnection implements AutoCloseable {
         return this.commands.decrby(key, amount);
     }
     
-
-    
-    /*
-    REDIS STRING COMMANDS
-        Long append(K key, V value);
-    Long bitcount(K key, long start, long end);
-    List<Long> bitfield(K key, BitFieldArgs bitFieldArgs);
-    Long bitpos(K key, boolean state, long start, long end);
-    
-    
-    ??     Long bitopAnd(K destination, K... keys);
-    ??      Long bitopNot(K destination, K source);
-?    Long bitopOr(K destination, K... keys);
-?    Long bitopXor(K destination, K... keys);
-
-    Long decrby(K key, long amount);
-    V get(K key);
-    Long getbit(K key, long offset);
-
-    V getex(K key, GetExArgs args);
-    V getrange(K key, long start, long end);
-
-
-
-    V getset(K key, V value);
-
-
-    Double incrbyfloat(K key, double amount);
-
-
-// todo - forse bastano questi...
-    List<KeyValue<K, V>> mget(K... keys);
-    String mset(Map<K, V> map);
-
-    // forse con config??
-    Boolean msetnx(Map<K, V> map);
-
-
-    V setGet(K key, V value, SetArgs setArgs);
-    String psetex(K key, long milliseconds, V value);
-
-    // in pratica questo è un insert... faccio con config?
-    Boolean setnx(K key, V value);
-
-
-    Long setrange(K key, long offset, V value);
-
-
-    Long strlen(K key);
-
-     */
-
     
     public long hdel(String key, String... fields) {
         return this.commands.hdel(key, fields);
@@ -136,75 +86,36 @@ public class RedisConnection implements AutoCloseable {
         return this.commands.hget(key, field);
     }
 
-    public double hincrby(String key, String field, long amount) {
+    public long hincrby(String key, String field, long amount) {
         return this.commands.hincrby(key, field, amount);
     }
 
-    public Boolean hset(String key, String field, String value) {
-        return this.commands.hset(key, field, value);
+    public Long hset(String key, Map<String, String> mapFields) {
+        return this.commands.hset(key, mapFields);
     }
 
     public Map<String, Object> hgetall(String key) {
         return Collections.unmodifiableMap(this.commands.hgetall(key));
     }
 
-//    public Long lpush(String key, String... values) {
-//        return this.commands.lpush(key, values);
-//    }
-
     public String pop(String key) {
-        // TODO - SWITCH CASE !!! spop, lpop, rpop
-        return this.commands.spop(key);
+        return this.conf.isRight()
+                ? this.commands.rpop(key) 
+                : this.commands.lpop(key);
     }
-    /*
-    REDIS Hashes COMMANDS
-    Long hdel(K key, K... fields);
-    Boolean hexists(K key, K field);
-        V hget(K key, K field);
-    Double hincrbyfloat(K key, K field, double amount);
-    Map<K, V> hgetall(K key);
-    List<KeyValue<K, V>> hmget(K key, K... fields);
-    
-    // todo - simili...
-    String hmset(K key, Map<K, V> map);
-    Long hset(K key, Map<K, V> map);
-
-     */
-        
-    /*
-    REDIS Lists COMMANDS
-        Long lpush(K key, V... values);
-        Long lpushx(K key, V... values);
-    Long lrange(ValueStreamingChannel<V> channel, K key, long start, long stop);
-        List<V> lpop(K key, long count);
-    List<V> rpop(K key, long count);
-
-    Long rpush(K key, V... values);
-    Long rpushx(K key, V... values);
-     */
-    
-    /*
-    REDIS Sets COMMANDS
-    Long sadd(K key, V... members);
-        Long scard(K key);
-    Set<V> spop(K key, long count);
-    Set<V> smembers(K key);
-    Set<V> sunion(K... keys);
-
-     */
 
     public Long push(String key, String... values) {
-        // TODO TODO swith case
-        return this.commands.rpush(key, values);
+        return this.conf.isRight() 
+                ? this.commands.rpush(key, values) 
+                : this.commands.lpush(key, values);
     }
-
-//    public String pop(String key) {
-//        // TODO TODO swith case
-//        return this.commands.rpop(key);
-//    }
 
     public Long sadd(String key, String... members) {
         return this.commands.sadd(key, members);
+    }
+
+    public String spop(String key) {
+        return this.commands.spop(key);
     }
 
     public Long scard(String key) {
@@ -222,45 +133,29 @@ public class RedisConnection implements AutoCloseable {
     public List<Object> lrange(String key, long start, long stop) {
         return new ArrayList<>(this.commands.lrange(key, start, stop));
     }
-    /*
-    REDIS Sorted Sets COMMANDS
-            Long zadd(K key, Object... scoresAndValues);
-    Long zcard(K key);
-    List<V> zrangebyscore(K key, Range<? extends Number> range);
+    
 
-
-     */
-
-
-    public long zadd(String key, Object... scoresAndValues) {
-        return this.commands.zadd(key, scoresAndValues);
+    public long zadd(String key, Object... scoresAndMembers) {
+        return this.commands.zadd(key, scoresAndMembers);
     }
-
-    // todo - non ho capito perché range è parametrizzato, un long non va bene?
+    
     public Long zcard(String key) {
         return this.commands.zcard(key);
     }
-
-
-    // todo - non ho capito perché range è parametrizzato, un long non va bene?
-    public List<Object> zrangebyscore(String source, long lower, long upper) {
-        return new ArrayList<>(this.commands.zrangebyscore(source, Range.create(lower, upper)));
+    
+    public List<Object> zrangebyscore(String source, long min, long max) {
+        return new ArrayList<>(this.commands.zrangebyscore(source, Range.create(min, max)));
+    }
+    
+    public long zrem(String source, String... members) {
+        return this.commands.zrem(source, members);
     }
     
     /*
     REDIS SCRIPT COMMANDS
-        <T> T eval(String script, ScriptOutputType type, K... keys);
      */
-
-    
-    public boolean eval(String script) {
-        /*
-        *  * Synchronous executed commands for Scripting. {@link java.lang.String Lua scripts} are encoded by using the configured
-         * {@link io.lettuce.core.ClientOptions#getScriptCharset() charset}.
-        * */
-        
-        // mettere un config con expire at?
-        return this.commands.eval(script, conf.getScriptOutputType());
+    public boolean eval(String script, String... keys) {
+        return this.commands.eval(script, this.conf.getScriptOutputType(), keys);
     }
     
     public Object dispatch(String command, String output, List<String> keys, List<String> values, Map<String, String> arguments) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -269,47 +164,33 @@ public class RedisConnection implements AutoCloseable {
         Class<?> clazz = Class.forName(CommandOutput.class.getPackageName() + "." + output);
         CommandOutput cons = (CommandOutput) clazz.getConstructor(RedisCodec.class).newInstance(this.codec);
 
-        final CommandArgs<String, String> commandArgs = new CommandArgs<>(this.codec)
-                .addKeys(keys)
-                .addValues(values)
-                .add(arguments);
+        final CommandArgs<String, String> commandArgs = new CommandArgs<>(this.codec);
+        if (CollectionUtils.isNotEmpty(keys)) {
+            commandArgs.addKeys(keys);
+        }
+        if (CollectionUtils.isNotEmpty(values)) {
+            commandArgs.addValues(values);
+        }
+        if (MapUtils.isNotEmpty(arguments)) {
+            commandArgs.add(arguments);
+        }
         
         return this.commands.dispatch(CommandType.valueOf(command), cons, commandArgs);
     }
-        
-    /*
-    REDIS KEY COMMANDS
-        Boolean copy(K source, K destination, CopyArgs copyArgs);
-        Long unlink(K... keys);
-    Long exists(K... keys);
-    Boolean pexpire(K key, long milliseconds);
-    Boolean pexpireat(K key, long timestamp);
-       Boolean persist(K key);
-    Long pttl(K key);
-    Boolean renamenx(K key, K newKey);
-    List<V> sort(K key);
 
-
-
-    public String configSet(String key, String fields) {
-        return this.commands.configSet(key, fields);
-    }
-
-     */
-
-
+    // -- key
     public boolean copy(String source, String destination) {
         return this.commands.copy(source, destination);
     }
 
     public long exists(String... key) {
-        // mettere un config con expire at?
         return this.commands.exists(key);
     }
 
     public boolean pexpire(String key, long time) {
-        // mettere un config con expire at?
-        return this.commands.pexpire(key, time);
+        return this.conf.isExpireAt()
+                ? this.commands.pexpireat(key, time)
+                : this.commands.pexpire(key, time);
     }
     
     public boolean persist(String key) {
@@ -320,32 +201,16 @@ public class RedisConnection implements AutoCloseable {
         return this.commands.pttl(key);
     }
     
-        
-    /*
-    REDIS SERVER COMMANDS
-    bgsave
-        Map<String, String> configGet(String parameter);
-    String configSet(String parameter, String value);
-    String info();
-    String bgsave();
-
-     */
-    
+    // -- server
     public String info() {
         return this.commands.info();
     }
 
-    // todo -- sto coso che fa?
-    public String bgSave() {
-        return this.commands.bgsave();
+    public String configSet(String parameter, String value) {
+        return this.commands.configSet(parameter, value);
     }
 
-    public String configSet(String key, String fields) {
-        return this.commands.configSet(key, fields);
+    public Map<String, Object> configGet(String parameter) {
+        return Collections.unmodifiableMap(this.commands.configGet(parameter));
     }
-
-    public Map<String, Object> configGet(String key) {
-        return Collections.unmodifiableMap(this.commands.configGet(key));
-    }
-    
 }

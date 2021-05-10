@@ -18,6 +18,7 @@ public class RedisConfig {
 
     private final boolean autoReconnect;
     private final boolean right;
+    private final boolean expireAt;
 
     private final ScriptOutputType scriptOutputType;
 
@@ -31,9 +32,13 @@ public class RedisConfig {
         this.scriptOutputType = ScriptOutputType.valueOf((String) config.getOrDefault("scriptOutputType", "MULTI"));
         this.autoReconnect = Util.toBoolean(config.getOrDefault("autoReconnect", true));
         this.right = Util.toBoolean(config.getOrDefault("right", true));
+        this.expireAt = Util.toBoolean(config.getOrDefault("expireAt", true));
     }
 
-    // TODO!!
+    public boolean isExpireAt() {
+        return expireAt;
+    }
+
     public boolean isRight() {
         return right;
     }
