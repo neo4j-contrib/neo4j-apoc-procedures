@@ -66,7 +66,7 @@ public class LoadHtmlTest {
         testCall(db, "CALL apoc.load.html($url,$query,$config)",
                 map("url",new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString(),
                         "query", map("elementExistent", "strong", "elementNotExistent", ".asdfgh"),
-                        "config", map("withBrowser", "CHROME", "wait", 5)),
+                        "config", map("browser", "CHROME", "wait", 5)),
                 result -> {
                     Map<String, Object> value = (Map<String, Object>) result.get("value");
                     List<Map<String, Object>> notExistent = (List<Map<String, Object>>) value.get("elementNotExistent");
@@ -240,13 +240,14 @@ public class LoadHtmlTest {
     }
 
     @Test(expected = QueryExecutionException.class)
-    public void testFailsWithIncorrectCharset() {
-        final Map<String, String> config = Map.of("withBrowser", "NOT_VALID");
+    public void testFailsWithIncorrectBrowser() {
+        final String invalidValue = "NOT_VALID";
+        final Map<String, String> config = Map.of("browser", invalidValue);
         try {
             testCall(db, "CALL apoc.load.html('" + VALID_PATH + "',{a:'a'}, $config)", Map.of("config", config), (r) -> {});
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
-            String expectedMessage = "Invalid config: " + config;
+            String expectedMessage = "No enum constant " + LoadHtmlConfig.Browser.class.getCanonicalName() + "." + invalidValue;
             assertEquals(expectedMessage, except.getMessage());
             throw e;
         }
@@ -278,7 +279,7 @@ public class LoadHtmlTest {
         testCall(db, "CALL apoc.load.html($url,$query,$config)",
                 map("url",new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString(),
                         "query", map("td", "td", "strong", "strong"),
-                        "config", map("withBrowser", browser)),
+                        "config", map("browser", browser)),
                 result -> {
                     Map<String, Object> value = (Map<String, Object>) result.get("value");
                     List<Map<String, Object>> tdList = (List<Map<String, Object>>) value.get("td");

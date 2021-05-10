@@ -41,8 +41,6 @@ public class LoadHtml {
     // public for test purpose
     public static final String KEY_ERROR = "errorList";
 
-    private enum FailSilently { FALSE, WITH_LOG, WITH_LIST }
-    private enum WithBrowser { NONE, CHROME, FIREFOX }
 
     @Context
     public GraphDatabaseService db;
@@ -54,16 +52,13 @@ public class LoadHtml {
     @Procedure
     @Description("apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map")
     public Stream<MapResult> html(@Name("url") String url, @Name(value = "query",defaultValue = "{}") Map<String, String> query, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
-        return readHtmlPage(url, query, config);
+        return readHtmlPage(url, query, new LoadHtmlConfig(config));
     }
 
-    private Stream<MapResult> readHtmlPage(String url, Map<String, String> query, Map<String, Object> config) {
-        String charset = config.getOrDefault("charset", "UTF-8").toString();
+    private Stream<MapResult> readHtmlPage(String url, Map<String, String> query, LoadHtmlConfig config) {
         try {
             // baseUri is used to resolve relative paths
-            String baseUri = config.getOrDefault("baseUri", "").toString();
-
-            Document document = Jsoup.parse(getHtmlInputStream(url, query, config, charset), charset, baseUri);
+            Document document = Jsoup.parse(getHtmlInputStream(url, query, config), config.getCharset(), config.getBaseUri());
 
             Map<String, Object> output = new HashMap<>();
             List<String> errorList = new ArrayList<>();
@@ -82,37 +77,38 @@ public class LoadHtml {
         } catch (FileNotFoundException e) {
             throw new RuntimeException("File not found from: " + url);
         } catch(UnsupportedEncodingException e) {
-            throw new RuntimeException("Unsupported charset: " + charset);
+            throw new RuntimeException("Unsupported charset: " + config.getCharset());
         } catch(Exception e) {
             throw new RuntimeException("Can't read the HTML from: "+ url, e);
         }
     }
     
-    private InputStream getHtmlInputStream(String url, Map<String, String> query, Map<String, Object> config, String charset) throws IOException {
-        WithBrowser withBrowser = WithBrowser.valueOf((String) config.getOrDefault("withBrowser", "NONE"));
-        
-        switch (withBrowser) {
+    private InputStream getHtmlInputStream(String url, Map<String, String> query, LoadHtmlConfig config) throws IOException {
+
+        final boolean isHeadless = config.isHeadless();
+        final boolean isAcceptInsecureCerts = config.isAcceptInsecureCerts();
+        switch (config.getBrowser()) {
             case FIREFOX:
                 WebDriverManager.firefoxdriver().setup();
                 FirefoxOptions firefoxOptions = new FirefoxOptions();
-                firefoxOptions.setHeadless(true);
-                firefoxOptions.setAcceptInsecureCerts(true);
-                return getInputStreamWithBrowser(url, query, config, charset, new FirefoxDriver(firefoxOptions));
+                firefoxOptions.setHeadless(isHeadless);
+                firefoxOptions.setAcceptInsecureCerts(isAcceptInsecureCerts);
+                return getInputStreamWithBrowser(url, query, config, new FirefoxDriver(firefoxOptions));
             case CHROME:
                 WebDriverManager.chromedriver().setup();
                 ChromeOptions chromeOptions = new ChromeOptions();
-                chromeOptions.setHeadless(true);
-                chromeOptions.setAcceptInsecureCerts(true);
-                return getInputStreamWithBrowser(url, query, config, charset, new ChromeDriver(chromeOptions));
+                chromeOptions.setHeadless(isHeadless);
+                chromeOptions.setAcceptInsecureCerts(isAcceptInsecureCerts);
+                return getInputStreamWithBrowser(url, query, config, new ChromeDriver(chromeOptions));
             default:
                 return Util.openInputStream(url, null, null);
         }
     }
 
-    private InputStream getInputStreamWithBrowser(String url, Map<String, String> query, Map<String, Object> config, String charset, WebDriver driver) throws IOException {
+    private InputStream getInputStreamWithBrowser(String url, Map<String, String> query, LoadHtmlConfig config, WebDriver driver) throws IOException {
         driver.get(url);
 
-        long wait = Util.toLong(config.getOrDefault("wait", 0));
+        final long wait = config.getWait();
         if (wait > 0) {
             Wait<WebDriver> driverWait = new WebDriverWait(driver, wait);
             try {
@@ -122,14 +118,13 @@ public class LoadHtml {
                 // We continue the execution even if 1 or more elements were not found
             }
         }
-        InputStream stream = IOUtils.toInputStream(driver.getPageSource(), charset);
+        InputStream stream = IOUtils.toInputStream(driver.getPageSource(), config.getCharset());
         driver.close();
         return stream;
     }
 
-    private List<Map<String, Object>> getElements(Elements elements, Map<String, Object> config, List<String> errorList) {
+    private List<Map<String, Object>> getElements(Elements elements, LoadHtmlConfig conf, List<String> errorList) {
 
-        FailSilently failConfig = FailSilently.valueOf((String) config.getOrDefault("failSilently", "FALSE"));
         List<Map<String, Object>> elementList = new ArrayList<>();
 
         for (Element element : elements) {
@@ -140,10 +135,10 @@ public class LoadHtml {
                     if(!element.val().isEmpty()) result.put("value", element.val());
                     if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
 
-                    if (Util.toBoolean(config.getOrDefault("children", false))) {
+                    if (conf.isChildren()) {
                         if(element.hasText()) result.put("text", element.ownText());
 
-                        result.put("children", getElements(element.children(), config, errorList));
+                        result.put("children", getElements(element.children(), conf, errorList));
                     }
                     else {
                         if(element.hasText()) result.put("text", element.text());
@@ -152,7 +147,7 @@ public class LoadHtml {
                     elementList.add(result);
             } catch (Exception e) {
                 final String parseError = "Error during parsing element: " + element;
-                switch (failConfig) {
+                switch (conf.getFailSilently()) {
                     case WITH_LOG:
                         log.warn(parseError);
                         break;

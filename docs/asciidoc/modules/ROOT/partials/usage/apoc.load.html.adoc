@@ -248,11 +248,11 @@ If we have a `.html` file with a jQuery script like:
 </html>
 ----
 
-we can read the generated js through the `withBrowser` config:
+we can read the generated js through the `browser` config:
 
 [source,cypher]
 ----
-CALL apoc.load.html("test.html",{strong: "strong"}, {withBrowser: "FIREFOX"});
+CALL apoc.load.html("test.html",{strong: "strong"}, {browser: "FIREFOX"});
 ----
 .Results
 [opts="header"]
@@ -276,5 +276,5 @@ If we can parse a tag from a slow async call, we can use `wait` config to waitin
 
 [source,cypher]
 ----
-CALL apoc.load.html("test.html",{asyncTag: "#asyncTag"}, {withBrowser: "FIREFOX", wait: 10});
+CALL apoc.load.html("test.html",{asyncTag: "#asyncTag"}, {browser: "FIREFOX", wait: 10});
 ----

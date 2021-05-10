@@ -29,7 +29,7 @@ import static org.junit.Assert.assertFalse;
 @RunWith(Parameterized.class)
 public class LoadHtmlTestParameterized {
     // Tests taken from LoadHtmlTest.java.
-    // To check that `withBrowser` configuration preserve the result.
+    // To check that `browser` configuration preserve the result.
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
@@ -53,7 +53,7 @@ public class LoadHtmlTestParameterized {
     public void testQueryAll() {
         Map<String, Object> query = map("metadata", "meta", "h2", "h2");
 
-        Map<String, Object> config = browserSet() ? Map.of("withBrowser", browser) : emptyMap();
+        Map<String, Object> config = browserSet() ? Map.of("browser", browser) : emptyMap();
         testResult(db, "CALL apoc.load.html($url,$query, $config)",
                 map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
                 result -> {
@@ -72,7 +72,7 @@ public class LoadHtmlTestParameterized {
     public void testQueryH2WithConfig() {
         Map<String, Object> query = map("h2", "h2");
         final List<Object> confList = newArrayList("charset", "UTF-8", "baseUri", "");
-        addWithBrowserIfSet(confList);
+        addBrowserIfSet(confList);
         Map<String, Object> config = map(confList.toArray());
 
         testResult(db, "CALL apoc.load.html($url, $query, $config)",
@@ -88,7 +88,7 @@ public class LoadHtmlTestParameterized {
     public void testQueryWithChildren() {
         Map<String, Object> query = map("toc", ".toc ul");
         final List<Object> confList = newArrayList("children", true);
-        addWithBrowserIfSet(confList);
+        addBrowserIfSet(confList);
         Map<String, Object> config = map(confList.toArray());
 
         testResult(db, "CALL apoc.load.html($url, $query, $config)",
@@ -113,9 +113,9 @@ public class LoadHtmlTestParameterized {
                 });
     }
 
-    private void addWithBrowserIfSet(List<Object> confList) {
+    private void addBrowserIfSet(List<Object> confList) {
         if (browserSet()) {
-            confList.addAll(List.of("withBrowser", browser));
+            confList.addAll(List.of("browser", browser));
         }
     }
 

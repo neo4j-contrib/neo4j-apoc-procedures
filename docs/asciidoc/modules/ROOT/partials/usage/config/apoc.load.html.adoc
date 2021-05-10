@@ -4,13 +4,16 @@ The procedure support the following config parameters:
 [opts="header",cols="1m,2m,1m,4"]
 |===
 | name | type | default | description
-| withBrowser | Enum [NONE, CHROME, FIREFOX] | NONE | If it is set to "CHROME" or "FIREFOX", is used https://www.selenium.dev/documentation/en/webdriver/[Selenium Web Driver] to read the dynamically generated js.
+| browser | Enum [NONE, CHROME, FIREFOX] | NONE | If it is set to "CHROME" or "FIREFOX", is used https://www.selenium.dev/documentation/en/webdriver/[Selenium Web Driver] to read the dynamically generated js.
     In case it is "NONE" (default), it is not possible to read dynamic contents.
     Note that to use the Chrome or Firefox driver, you need to have them installed on your machine.
 | wait | long | 0 | If greater than 0, it waits until it finds at least one element for each of those entered in the query parameter
     (up to a maximum of defined seconds, otherwise it continues execution).
     Useful to handle elements which can be rendered after the page is loaded (i.e. slow asynchronous calls).
 | charset | String | "UTF-8" | the character set of the page being scraped, if `http-equiv` meta-tag is not set.
+| headless | boolean | true | Valid with `browser` not equal to `NONE`, allow to run browser in https://chromium.googlesource.com/chromium/src/+/lkgr/headless/README.md[headless mode], 
+    that is without actually opening the browser UI (recommended).
+| acceptInsecureCerts | boolean | true | If true, allow to read html from insecure certificates
 | baseUri | String | "" | Base URI used to resolve relative paths
 | failSilently | Enum [FALSE, WITH_LOG, WITH_LIST] | FALSE | If the parse fails with one or more elements, using `FALSE` it throws a `RuntimeException`, using `WITH_LOG` a `log.warn` is created for each incorrect item and using `WITH_LIST` an `errorList` key is added to the result with the failed tags.
 |===
