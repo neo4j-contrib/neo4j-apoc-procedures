@@ -66,30 +66,17 @@ public class NodesTest {
     }
 
     @Test
-    public void linkWithAvoidDuplicateFalse() {
-        db.executeTransactionally("UNWIND range(1,10) as id CREATE (n:Foo {id:id}) WITH collect(n) as nodes call apoc.nodes.link(nodes,'BAR') RETURN 1");
-        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> assertRelCountPerNode(result, 1, 2));
-
-        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes,'BAR') RETURN 1");
-        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> assertRelCountPerNode(result, 2, 4));
-
-        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes,'FOO') RETURN 1");
-        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> assertRelCountPerNode(result, 3, 6));
-    }
-
-    @Test
     public void linkWithAvoidDuplicateTrue() {
-        db.executeTransactionally("UNWIND range(1,10) as id CREATE (n:Foo {id:id}) WITH collect(n) as nodes call apoc.nodes.link(nodes,'BAR', {avoidDuplicates: true}) RETURN 1");
-        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> assertRelCountPerNode(result, 1, 2));
+        db.executeTransactionally("CREATE (n:Foo {id:1}), (m:Foo {id:2}) WITH [n,m] as nodes CALL apoc.nodes.link(nodes,'BAR') RETURN 1");
+        TestUtil.testCall(db, "MATCH (n:Foo)-[r]->() RETURN count(r) as count", row -> assertEquals(1L, row.get("count")));
 
-        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes, 'BAR', {avoidDuplicates: true}) RETURN 1");
-        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> assertRelCountPerNode(result, 1, 2));
+        // with avoidDuplicates
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes CALL apoc.nodes.link(nodes,'BAR', {avoidDuplicates: true}) RETURN 1");
+        TestUtil.testCall(db, "MATCH (n:Foo)-[r]->() RETURN count(r) as count", row -> assertEquals(1L, row.get("count")));
 
-        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes,'FOO', {avoidDuplicates: true}) RETURN 1");
-        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> assertRelCountPerNode(result, 2, 4));
-
-        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.link(nodes,'FOO', {avoidDuplicates: true}) RETURN 1");
-        TestUtil.testResult(db, "MATCH (n:Foo) RETURN n", result -> assertRelCountPerNode(result, 2, 4));
+        // without avoidDuplicates
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes CALL apoc.nodes.link(nodes,'BAR') RETURN 1");
+        TestUtil.testCall(db, "MATCH (n:Foo)-[r]->() RETURN count(r) as count", row -> assertEquals(2L, row.get("count")));
     }
 
     @Test
@@ -615,15 +602,5 @@ public class NodesTest {
 
     private static Set<Label> labelSet(Node node) {
 	   return Iterables.asSet(node.getLabels());
-    }
-
-    private void assertRelCountPerNode(Result result, int expectedRelCountTerminalNode, int expectedRelCountInnerNode) {
-        final List<Node> nodes = Iterators.asList(result.columnAs("n"));
-        nodes.forEach(node -> {
-            final long actual = Iterables.count(node.getRelationships());
-            final long idNode = (long) node.getProperty("id");
-            final int expected = idNode == 1L || idNode == 10L ? expectedRelCountTerminalNode : expectedRelCountInnerNode;
-            assertEquals(expected, actual);
-        });
     }
 }
