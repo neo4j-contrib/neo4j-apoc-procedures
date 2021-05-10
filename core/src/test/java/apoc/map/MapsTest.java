@@ -318,7 +318,7 @@ public class MapsTest {
     }
 
     @Test
-    public void testUnflattenWithAPreviouslyFlattedMap() {
+    public void testUnflattenRoundrip() {
         List<Map<String, Object>> innerNestedListMap = List.of(map("somekey", "someValue", "somenumeric", 123), 
                 map("keyFoo", "valueFoo"),
                 map("keyBar", "valueBar"));
@@ -331,7 +331,7 @@ public class MapsTest {
     }
 
     @Test
-    public void testUnflattenWithDelimiterWithAPreviouslyFlattedMap() {
+    public void testUnflattenRoundripWithCustomDelimeter() {
         List<Map<String, Object>> subInnerListMap = List.of(map("innernumeric", 123, "innernumericTwo", 456),
                 map("keyBar", "valueBar", "keyBaz", "valueBaz"),
                 map("keyFoo", "valueFoo"));
