@@ -1,5 +1,0 @@
-¦xref::overview/apoc.mongo/apoc.mongo.first.adoc[apoc.mongo.first icon:book[]] +
-
-`apoc.mongo.first(uri, $config) yield value` - perform a find operation on mongodb collection
-¦label:procedure[]
-¦label:apoc-core[]

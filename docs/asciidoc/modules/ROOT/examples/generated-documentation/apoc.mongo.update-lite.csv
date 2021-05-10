@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.mongo.update(uri :: STRING?, query :: MAP?, update :: MAP?, config = {} :: MAP?) :: (value :: INTEGER?)
+¦apoc.mongo.update(uri :: STRING?, query :: ANY?, update :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)

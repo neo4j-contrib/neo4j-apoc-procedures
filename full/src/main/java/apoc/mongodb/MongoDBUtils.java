@@ -1,7 +1,9 @@
 package apoc.mongodb;
 
+import apoc.util.JsonUtil;
 import apoc.util.MissingDependencyException;
 import apoc.version.Version;
+import org.bson.Document;
 
 import java.io.Closeable;
 import java.util.List;
@@ -12,24 +14,23 @@ import java.util.stream.Stream;
 public class MongoDBUtils {
     interface Coll extends Closeable {
         Map<String, Object> first(Map<String, Object> params);
-        Map<String, Object> first(Map<String, Object> params, Map<String, Object> project, Long skip, boolean useExtendedJson);
 
         Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit);
 
         long count(Map<String, Object> query);
-        long count(Map<String, Object> query, boolean useExtendedJson);
+        long count(Document query);
 
         Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit);
-        Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit, boolean useExtendedJson);
+        Stream<Map<String, Object>> find(Document query, Document project, Document sort, int skip, int limit);
 
         void insert(List<Map<String, Object>> docs);
-        void insert(List<Map<String, Object>> docs, boolean useExtendedJson);
+        void insertDocs(List<Document> docs);
 
         long update(Map<String, Object> query, Map<String, Object> update);
-        long update(Map<String, Object> query, Map<String, Object> update, boolean useExtendedJson);
+        long update(Document query, Document update);
 
         long delete(Map<String, Object> query);
-        long delete(Map<String, Object> query, boolean useExtendedJson);
+        long delete(Document query);
 
         default void safeClose() {
             try {
@@ -81,5 +82,14 @@ public class MongoDBUtils {
             throw new RuntimeException("Error during connection", e);
         }
         return coll;
+    }
+
+    protected static Document getDocument(Object query) {
+        if (query == null) {
+            return new Document();
+        }
+        return Document.parse(query instanceof String
+                ? (String) query
+                : JsonUtil.writeValueAsString(query));
     }
 }

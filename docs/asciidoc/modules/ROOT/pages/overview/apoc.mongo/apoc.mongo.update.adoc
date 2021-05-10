@@ -14,7 +14,7 @@ apoc.mongo.update(uri, query, update, $config) - updates the given documents fro
 
 [source]
 ----
-apoc.mongo.update(uri :: STRING?, query :: MAP?, update :: MAP?, config = {} :: MAP?) :: (value :: INTEGER?)
+apoc.mongo.update(uri :: STRING?, query :: ANY?, update :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
 ----
 
 == Input parameters
@@ -22,8 +22,8 @@ apoc.mongo.update(uri :: STRING?, query :: MAP?, update :: MAP?, config = {} :: 
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|query|MAP?|null
-|update|MAP?|null
+|query|ANY?|null
+|update|ANY?|null
 |config|MAP?|{}
 |===
 

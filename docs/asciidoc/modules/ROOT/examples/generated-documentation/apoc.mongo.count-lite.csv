@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.mongo.count(uri :: STRING?, config = {} :: MAP?) :: (value :: INTEGER?)
+¦apoc.mongo.count(uri :: STRING?, query :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
