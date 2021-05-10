@@ -30,8 +30,8 @@ public class MongoDbConfig {
         this.objectIdAsMap = Util.toBoolean(config.getOrDefault("objectIdAsMap", true));
         this.idFieldName = (String) config.getOrDefault("idFieldName", "_id");
         this.collection = (String) config.getOrDefault("collection", "");
-        this.project = getDocument(config.getOrDefault("project", Collections.emptyMap()));
-        this.sort = getDocument(config.getOrDefault("sort", Collections.emptyMap()));
+        this.project = getDocument(config.get("project"));
+        this.sort = getDocument(config.get("sort"));
         this.skip = Util.toInteger(config.getOrDefault("skip", 0));
         this.limit = Util.toInteger(config.getOrDefault("limit", 0));
     }
