@@ -10,9 +10,9 @@
 [separator=¦,opts=header]
 |===
 ¦signature
-¦apoc.mongo.count(uri, $config) yield value - perform a find operation on mongodb collection
+¦apoc.mongo.count(uri, query, $config) yield value - perform a count operation on mongodb collection
+¦apoc.mongo.find(uri, query, $config) yield value - perform a find operation on mongodb collection
 ¦apoc.mongo.delete(uri, query, $config) - delete the given documents from the mongodb collection and returns the number of affected documents
-¦apoc.mongo.first(uri, $config) yield value - perform a find operation on mongodb collection
 ¦apoc.mongo.insert(uri, documents, $config) yield value - inserts the given documents into the mongodb collection
 ¦apoc.mongo.update(uri, query, update, $config) - updates the given documents from the mongodb collection and returns the number of affected documents
 |===
@@ -46,8 +46,8 @@ cp lib/mongodb*.jar lib/bson*.jar $NEO4J_HOME/plugins/
 
  - `uri`: The https://docs.mongodb.com/v3.2/reference/connection-string/[connection String URI],
     with scheme `mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]]/databaseName.collectionName[?options]`.
-    Note that this uri must necessarily have the database name and the collection name (for example `mongodb://user:pass@localhost:27017/myDb.myCollection?authSource=admin`)
- - `query`: query parameter map (only for `apoc.mongo.update` and `apoc.mongo.delete`)
+    Note that this uri must necessarily have the database name and (if the `collection` config parameter is not explicit) the collection name (for example `mongodb://user:pass@localhost:27017/myDb.myCollection?authSource=admin`)
+ - `query`: query parameter map (can be a map or a json string)
  - `update`: update parameter map (only for `apoc.mongo.update`)
  - `documents`: the documents to insert (only for `apoc.mongo.insert`)
  - `config`: see below
@@ -57,18 +57,17 @@ cp lib/mongodb*.jar lib/bson*.jar $NEO4J_HOME/plugins/
 The procedures support the following config parameters:
 
 .Config parameters
-[opts=header]
+[opts=header, cols="1,1,1,4"]
 |===
 | name | type | default | description
-| compatibleValues | Boolean | true | converts MongoDB data types into Neo4j data types
-| extractReferences | Boolean | false | if true and a field contains an `ObjectId` it will include the related document instead of the `ObjectId`
-| objectIdAsMap | Boolean | true | if true extract the `ObjectId` as map
-| useExtendedJson | Boolean | true | if true, you can insert an Extended JSON as query parameter. See https://github.com/mongodb/specifications/blob/master/source/extended-json.rst[Extended Json Specification]
-| query | Map<K,V> | empty | the query parameters
-| project | Map<K,V> | empty | the projection parameters
-| sort | Map<K,V> | empty | the sort parameters
-| skip | Long | 0 | the number of documents to skip
-| limit | Long | 0 | the max number of documents to show
+| compatibleValues | `Boolean` | true | Converts MongoDB data types into Neo4j data types
+| extractReferences | `Boolean` | false | If true and a field contains an `ObjectId` it will include the related document instead of the `ObjectId`
+| objectIdAsMap | `Boolean` | true | If true extract the `ObjectId` as map
+| project | `Map<K,V>` OR `String` | empty | The projection parameters (can be a map or a json string)
+| sort | `Map<K,V>` OR `String` | empty | The sort parameters (can be a map or a json string)
+| skip | `Long` | 0 | The number of documents to skip
+| limit | `Long` | 0 | The max number of documents to show
+| collection | `String` | empty | The collection name (takes precedence over the collection passed with `uri` parameter
 |===
 
 
@@ -90,8 +89,8 @@ Given the following collections:
 // Person
 ...
 {"_id": ObjectId("personAl"), "name": "Al", expr: BsonRegularExpression("foo*"), "bought": [ObjectId("product1"), ObjectId("product3")]}
-{"_id": ObjectId("personJohn"), "name": "John", "age": 40}
-{"_id": ObjectId("personJack"), "name": "Jack", expr: BsonRegularExpression("bar*"), "bought": [ObjectId("product1"), ObjectId("product2")]}
+{"_id": ObjectId("personJohn"), "name": "John", "age": 40, "foo", "bar"}
+{"_id": ObjectId("personJack"), "name": "Jack", "age": 50, "foo", "bar", expr: BsonRegularExpression("bar*"), "bought": [ObjectId("product1"), ObjectId("product2")]}
 ...
 ```
 
@@ -111,13 +110,84 @@ CALL apoc.mongodb.count('mongodb://user:pass@localhost:27017/myDb.Person?authSou
 | 3
 |===
 
-=== `apoc.mongo.first`
-
-If we want to extract the first `Person` with default parameter:
+We can also pass the collection name through the config parameter:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin')
+CALL apoc.mongodb.count('mongodb://user:pass@localhost:27017/myDb?authSource=admin', {collection: 'Person'})
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| 3
+|===
+
+
+
+=== `apoc.mongo.find`
+
+If we want to extract the all `Person`s with default parameter:
+
+[source,cypher]
+----
+CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin')
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| ``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "name": "Al",
+  "expr": "foo*",
+  "bought": ["product1", "product3"]
+}
+``
+| ``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "name": "John",
+  "foo": "bar",
+  "age": 40L
+}
+``
+| ``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "name": "Jack",
+  "age": 50L,
+  "foo": "bar",
+  "expr": "bar*",
+  "bought": ["product1", "product2"]
+}
+``
+|===
+
+
+In addition, we can pass the query param like:
+
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {expr: {`$regex`: 'bar*', `$options`: ''}})
 ----
 
 .Results
@@ -133,20 +203,21 @@ CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSou
     "processIdentifier": <...>,
     "counter": <...>,
   },
-  "name": "Al",
-  "expr": "foo*",
-  "bought": ["product1", "product3"]
+  "name": "Jack",
+  "foo": "bar",
+  "expr": "bar*",
+  "bought": ["product1", "product2"]
 }
 ``
 |===
 
 
 
-If we want to extract `bought` references:
+If we want to extract `bought` references, through config parameter:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {extractReferences: true})
+CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {expr: {`$regex`: 'foo*', `$options`: ''}}, {extractReferences: true})
 ----
 
 .Results
@@ -190,11 +261,11 @@ CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSou
 ``
 |===
 
-Moreover, we can retrieve the `ObjectId`s with theirs `HexString` representation:
+Moreover, we can retrieve the `ObjectId` s with theirs `HexString` representation through `objectIdAsMap` config:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {objectIdAsMap: false, extractReferences: true})
+CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {expr: {`$regex`: 'foo*', `$options`: ''}}, {objectIdAsMap: false, extractReferences: true})
 ----
 
 .Results
@@ -216,11 +287,11 @@ CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSou
 |===
 
 
-In addition to this, we can pass a query param like:
+Furthermore, we can skip `n` values and pass a project parameter:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {query: {expr: {`$regex`: 'bar*', `$options`: ''}}})
+CALL apoc.mongo.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', null, {skip: 2, project: {age: 1}})
 ----
 
 .Results
@@ -236,18 +307,16 @@ CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSou
     "processIdentifier": <...>,
     "counter": <...>,
   },
-  "name": "Jack",
-  "expr": "bar*",
-  "bought": ["product1", "product2"]
+  "age": 50L,
 }
 ``
 |===
 
-Furthermore, we can skip `n` values and pass a project parameter:
+We can pass `query`, `skip` and `sort` parameter as stringified values, for example:
 
 [source,cypher]
 ----
-CALL apoc.mongo.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {skip: 1, project: {age: 1}})
+CALL apoc.mongo.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', '{foo: "bar"}', {sort: '{name: -1}', project: '{age: 1}'})
 ----
 
 .Results
@@ -266,23 +335,69 @@ CALL apoc.mongo.first('mongodb://user:pass@localhost:27017/myDb.Person?authSourc
   "age": 40L,
 }
 ``
+|
+``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "age": 50L,
+}
+``
 |===
 
-Moreover, we cannot convert the values into Noe4j compatible values (in this case the `age` property remains `Integer` instead of `Long`).
+
+Moreover, we can choose not to convert the values into Neo4j compatible values (in this case the `age` property remains `Integer` instead of `Long`).
 Note that not all values can be returned,
 for example with `BsonRegularExpression("foo*")` will be thrown a `java.lang.IllegalArgumentException: Cannot convert BsonRegularExpression`:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {skip: 1, project: {age: 1}, compatibleValues: false})
+CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', null, {skip: 1, project: {age: 1}, compatibleValues: false})
 ----
 
 .Results
 [opts="header"]
 |===
 | value
-|
+| ``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "age": 40,
+}
 ``
+| ``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "age": 50,
+}
+``
+|===
+
+Furthermore, we can use the `limit` parameter, for example:
+
+----
+CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', null, {skip: 1, limit: 1, project: {age: 1}, compatibleValues: false})
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| ``
 {
   "_id": {
     "timestamp": <...>,
@@ -296,103 +411,11 @@ CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSou
 |===
 
 
-=== `apoc.mongo.find`
-
-
-If we want to extract a list of `Person`s with default parameter:
-[source,cypher]
-----
-CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin')
-----
-
-.Results
-[opts="header"]
-|===
-| value
-|
-``
-{
-  "_id": {
-    "timestamp": <...>,
-    "machineIdentifier": <...>,
-    "processIdentifier": <...>,
-    "counter": <...>,
-  },
-  "name": "Al",
-  "expr": "foo*",
-  "bought": ["product1", "product3"]
-}
-``
-|
-``
-{
-  "_id": {
-    "timestamp": <...>,
-    "machineIdentifier": <...>,
-    "processIdentifier": <...>,
-    "counter": <...>,
-  },
-  "name": "John",
-  "age": 40L
-}
-``
-|
-``
-{
-  "_id": {
-    "timestamp": <...>,
-    "machineIdentifier": <...>,
-    "processIdentifier": <...>,
-    "counter": <...>,
-  },
-  "name": "Jack",
-  "expr": "bar*",
-  "bought": ["product1", "product2"]
-}
-``
-|===
-
-The `apoc.mongo.find` procedure accept all config parameters used by `apoc.mongo.first`,
-that is `skip`, `project`, `compatibleValues`, `objectIdAsMap` and `query`.
-
-Furthermore, we can use the `limit` parameter, for example:
-
-[source,cypher]
-----
-CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {limit: 2, objectIdAsMap: false, project: {name: 1}})
-----
-
-.Results
-[opts="header"]
-|===
-| value
-|
-``
-{
-  "_id": "personAl",
-  "name": "Al",
-}
-|
-``
-{
-  "_id": "personJohn",
-  "name": "John",
-}
-|
-``
-{
-  "_id": "personJack",
-  "name": "Jack",
-}
-``
-|===
-
-
 Furthermore, we can pass a `sort` parameter, for example:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {sort: {name: -1}, objectIdAsMap: false, project: {name: 1}})
+CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', null, {sort: {name: -1}, objectIdAsMap: false, project: {name: 1}})
 ----
 
 .Results
@@ -469,6 +492,4 @@ in a `Person` collection (in this case the procedure return `void`):
 ----
 CALL apoc.mongo.insert('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', [{secondId: {`$oid`: '507f191e811c19729de860ea'}, baz: 1}, {secondId: {`$oid`: '507f191e821c19729de860ef'}, baz: 1}])
 ----
-
-
 

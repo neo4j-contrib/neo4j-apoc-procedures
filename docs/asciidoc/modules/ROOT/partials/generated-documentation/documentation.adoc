@@ -1972,7 +1972,7 @@ apoc.model.jdbc('key or url', {schema:'<schema>', write: <true/false>, filters: 
 | Qualified Name | Type | Release
 |xref::overview/apoc.mongo/apoc.mongo.count.adoc[apoc.mongo.count icon:book[]]
 
-apoc.mongo.count(uri, $config) yield value - perform a find operation on mongodb collection
+apoc.mongo.count(uri, query, $config) yield value - perform a count operation on mongodb collection
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.mongo/apoc.mongo.delete.adoc[apoc.mongo.delete icon:book[]]
@@ -1982,12 +1982,7 @@ apoc.mongo.delete(uri, query, $config) - delete the given documents from the mon
 |label:apoc-core[]
 |xref::overview/apoc.mongo/apoc.mongo.find.adoc[apoc.mongo.find icon:book[]]
 
-apoc.mongo.find(uri, $config) yield value - perform a find operation on mongodb collection
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.mongo/apoc.mongo.first.adoc[apoc.mongo.first icon:book[]]
-
-apoc.mongo.first(uri, $config) yield value - perform a find operation on mongodb collection
+apoc.mongo.find(uri, query, $config) yield value - perform a find operation on mongodb collection
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.mongo/apoc.mongo.insert.adoc[apoc.mongo.insert icon:book[]]

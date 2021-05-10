@@ -14,7 +14,7 @@ apoc.mongo.delete(uri, query, $config) - delete the given documents from the mon
 
 [source]
 ----
-apoc.mongo.delete(uri :: STRING?, query :: MAP?, config = {} :: MAP?) :: (value :: INTEGER?)
+apoc.mongo.delete(uri :: STRING?, query :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
 ----
 
 == Input parameters
@@ -22,7 +22,7 @@ apoc.mongo.delete(uri :: STRING?, query :: MAP?, config = {} :: MAP?) :: (value 
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|query|MAP?|null
+|query|ANY?|null
 |config|MAP?|{}
 |===
 

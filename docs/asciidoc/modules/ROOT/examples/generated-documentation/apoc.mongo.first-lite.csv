@@ -1,2 +1,0 @@
-¦signature
-¦apoc.mongo.first(uri :: STRING?, config = {} :: MAP?) :: (value :: MAP?)
