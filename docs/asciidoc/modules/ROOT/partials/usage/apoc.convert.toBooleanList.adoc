@@ -10,3 +10,23 @@ return apoc.convert.toBooleanList(["true", 0, 1.1]) AS output;
 | Output
 | [TRUE, FALSE, TRUE]
 |===
+
+[NOTE]
+====
+This function has been deprecated and will be removed in version 5.0. This functionality is replaced by Neo4j's `toBooleanList()` which has similar functionality.
+The following table is intended to assist migration by highlighting the differences:
+====
+
+.Migration Path to toBooelanList()
+[opts="header", cols="3"]
+|===
+|Input|`apoc.convert.toBooleanList()`|`toBooleanList()`
+|`null`|`null`|`null`
+|`[true,false,true]`|`[true, false, true`]|`[true, false, true]`
+|`[0, 1, 2]`|`[false, true, true`]|`[false, true, true]`
+|`[0.1,1.1,2.1]`|`[false, true, true`]|`[null, null, null]` footnote:[Use `toBooleanList(toIntegerList())`]
+|`["true", "false", "true"]`|`[true, false, true`]|`[true, false, true]`
+|`\[[true, false, true]]`|`[true]`|[`null`]
+|"not-a-list"|`[true]`|Error
+|{a:"map"}|`[true]`|Error
+|===
