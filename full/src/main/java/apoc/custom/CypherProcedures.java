@@ -72,7 +72,7 @@ public class CypherProcedures {
                             @Name(value= "description", defaultValue = "") String description
     ) throws ProcedureException {
         ProcedureSignature signature = cypherProceduresHandler.procedureSignature(name, mode, outputs, inputs, description);
-        validateInputsAndOutputs(statement, signature.inputSignature(), signature.outputSignature());
+        validate(statement, signature.inputSignature(), signature.outputSignature());
         cypherProceduresHandler.storeProcedure(signature, statement);
     }
 
@@ -83,7 +83,7 @@ public class CypherProcedures {
                                  @Name(value = "description", defaultValue = "") String description
     ) {
         ProcedureSignature procedureSignature = new Signatures(PREFIX).asProcedureSignature(signature, description, cypherProceduresHandler.mode(mode));
-        validateInputsAndOutputs(statement, procedureSignature.inputSignature(), procedureSignature.outputSignature());
+        validate(statement, procedureSignature.inputSignature(), procedureSignature.outputSignature());
         if (!cypherProceduresHandler.registerProcedure(procedureSignature, statement)) {
             throw new IllegalStateException("Error registering procedure " + procedureSignature.name() + ", see log.");
         }
@@ -100,7 +100,7 @@ public class CypherProcedures {
                            @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
                            @Name(value = "description", defaultValue = "") String description) throws ProcedureException {
         UserFunctionSignature signature = cypherProceduresHandler.functionSignature(name, output, inputs, description);
-        validateInputsAndOutputs(statement, signature.inputSignature());
+        validate(statement, signature.inputSignature());
         cypherProceduresHandler.storeFunction(signature, statement, forceSingle);
     }
 
@@ -110,7 +110,7 @@ public class CypherProcedures {
                            @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
                            @Name(value = "description", defaultValue = "") String description) throws ProcedureException {
         UserFunctionSignature userFunctionSignature = new Signatures(PREFIX).asFunctionSignature(signature, description);
-        validateInputsAndOutputs(statement, userFunctionSignature.inputSignature());
+        validate(statement, userFunctionSignature.inputSignature());
         if (!cypherProceduresHandler.registerFunction(userFunctionSignature, statement, forceSingle)) {
             throw new IllegalStateException("Error registering function " + signature + ", see log.");
         }
@@ -165,26 +165,26 @@ public class CypherProcedures {
         cypherProceduresHandler.removeFunction(name);
     }
 
-    private void validateInputsAndOutputs(String statement, List<FieldSignature> inputSignatures) {
-        validateInputsAndOutputs(statement, inputSignatures, null);
+    private void validate(String statement, List<FieldSignature> input) {
+        validate(statement, input, null);
     }
     
-    private void validateInputsAndOutputs(String statement, List<FieldSignature> inputSignatures, List<FieldSignature> outputSignatures) {
+    private void validate(String statement, List<FieldSignature> input, List<FieldSignature> output) {
         // we check outputs only if is a custom procedure
-        boolean isDefaultOutputs = outputSignatures == null || outputSignatures.equals(DEFAULT_MAP_OUTPUT);
-        boolean isDefaultInputs = inputSignatures.equals(DEFAULT_INPUTS);
+        boolean isDefaultOutputs = output == null || output.equals(DEFAULT_MAP_OUTPUT);
+        boolean isDefaultInputs = input.equals(DEFAULT_INPUTS);
 
         // with default values, there is no need to validate
         if (isDefaultOutputs && isDefaultInputs) {
             return;
         }
         
-        final Set<String> inputSet = inputSignatures.stream().map(FieldSignature::name).collect(Collectors.toSet());
-        checkForDuplicatedParameters(inputSignatures, isDefaultInputs, inputSet, ERROR_DUPLICATED_INPUTS);
+        final Set<String> inputSet = input.stream().map(FieldSignature::name).collect(Collectors.toSet());
+        checkForDuplicatedParameters(input, isDefaultInputs, inputSet, ERROR_DUPLICATED_INPUTS);
 
-        final Set<String> outputSet = outputSignatures == null ? null 
-                : outputSignatures.stream().map(FieldSignature::name).collect(Collectors.toSet());
-        checkForDuplicatedParameters(outputSignatures, isDefaultOutputs, outputSet, ERROR_DUPLICATED_OUTPUTS);
+        final Set<String> outputSet = output == null ? null 
+                : output.stream().map(FieldSignature::name).collect(Collectors.toSet());
+        checkForDuplicatedParameters(output, isDefaultOutputs, outputSet, ERROR_DUPLICATED_OUTPUTS);
 
         api.executeTransactionally("EXPLAIN " + statement, emptyMap(), result -> {
             // check if, in case of output params is not default or null, the column names of result query and output parameters
