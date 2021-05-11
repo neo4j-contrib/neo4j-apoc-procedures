@@ -3,6 +3,7 @@ package apoc.redis;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.Range;
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.codec.RedisCodec;
@@ -49,15 +50,12 @@ public class RedisConnection implements AutoCloseable {
         this.client.shutdown();
     }
 
-
+    // -- String
     public String get(String key) {
-        // GetExArgs args ?
         return this.commands.get(key);
     }
     
     public String setGet(String key, String value) {
-        // FORSE E MEGLIO METTERE SETGET E BASTA..., metto SetArgs con degli if vari e faccio un test...
-
         return this.commands.setGet(key, value);
     }
 
@@ -72,8 +70,8 @@ public class RedisConnection implements AutoCloseable {
     public long decrby(String key, long amount) {
         return this.commands.decrby(key, amount);
     }
-    
-    
+
+    // -- Hashes
     public long hdel(String key, String... fields) {
         return this.commands.hdel(key, fields);
     }
@@ -98,18 +96,24 @@ public class RedisConnection implements AutoCloseable {
         return Collections.unmodifiableMap(this.commands.hgetall(key));
     }
 
-    public String pop(String key) {
-        return this.conf.isRight()
-                ? this.commands.rpop(key) 
-                : this.commands.lpop(key);
-    }
-
+    // -- Lists
     public Long push(String key, String... values) {
         return this.conf.isRight() 
                 ? this.commands.rpush(key, values) 
                 : this.commands.lpush(key, values);
     }
 
+    public String pop(String key) {
+        return this.conf.isRight()
+                ? this.commands.rpop(key)
+                : this.commands.lpop(key);
+    }
+
+    public List<Object> lrange(String key, long start, long stop) {
+        return new ArrayList<>(this.commands.lrange(key, start, stop));
+    }
+
+    // -- Sets
     public Long sadd(String key, String... members) {
         return this.commands.sadd(key, members);
     }
@@ -129,12 +133,8 @@ public class RedisConnection implements AutoCloseable {
     public List<Object> sunion(String... keys) {
         return new ArrayList<>(this.commands.sunion(keys));
     }
-    
-    public List<Object> lrange(String key, long start, long stop) {
-        return new ArrayList<>(this.commands.lrange(key, start, stop));
-    }
-    
 
+    // -- Sorted Sets
     public long zadd(String key, Object... scoresAndMembers) {
         return this.commands.zadd(key, scoresAndMembers);
     }
@@ -151,16 +151,12 @@ public class RedisConnection implements AutoCloseable {
         return this.commands.zrem(source, members);
     }
     
-    /*
-    REDIS SCRIPT COMMANDS
-     */
-    public boolean eval(String script, String... keys) {
-        return this.commands.eval(script, this.conf.getScriptOutputType(), keys);
+    // -- Script
+    public Object eval(String script, ScriptOutputType outputType, String[] keys, String... values) {
+        return this.commands.eval(script, outputType, keys, values);
     }
     
     public Object dispatch(String command, String output, List<String> keys, List<String> values, Map<String, String> arguments) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        // TODO - LINKO STA PAGINA https://lettuce.io/core/6.0.0.RELEASE/api/io/lettuce/core/output/CommandOutput.html E BUONANOTTE
-        
         Class<?> clazz = Class.forName(CommandOutput.class.getPackageName() + "." + output);
         CommandOutput cons = (CommandOutput) clazz.getConstructor(RedisCodec.class).newInstance(this.codec);
 
@@ -178,7 +174,7 @@ public class RedisConnection implements AutoCloseable {
         return this.commands.dispatch(CommandType.valueOf(command), cons, commandArgs);
     }
 
-    // -- key
+    // -- Key
     public boolean copy(String source, String destination) {
         return this.commands.copy(source, destination);
     }
@@ -187,8 +183,8 @@ public class RedisConnection implements AutoCloseable {
         return this.commands.exists(key);
     }
 
-    public boolean pexpire(String key, long time) {
-        return this.conf.isExpireAt()
+    public boolean pexpire(String key, long time, boolean isExpireAt) {
+        return isExpireAt
                 ? this.commands.pexpireat(key, time)
                 : this.commands.pexpire(key, time);
     }
@@ -200,8 +196,8 @@ public class RedisConnection implements AutoCloseable {
     public long pttl(String key) {
         return this.commands.pttl(key);
     }
-    
-    // -- server
+
+    // -- Server
     public String info() {
         return this.commands.info();
     }

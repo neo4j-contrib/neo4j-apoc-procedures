@@ -1,0 +1,5 @@
+¦xref::overview/apoc.redis/apoc.redis.dispatch.adoc[apoc.redis.dispatch icon:book[]] +
+
+`apoc.redis.dispatch(uri, command, output, keys, values, arguments, \{config}) | Execute a custom command based on https://lettuce.io/ BaseRedisCommands.dispatch(...)`
+¦label:procedure[]
+¦label:apoc-core[]

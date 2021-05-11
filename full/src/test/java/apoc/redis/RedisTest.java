@@ -19,16 +19,13 @@ import java.util.Set;
 
 import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
 public class RedisTest {
-    // todo
-    // todo - vedere se riesco a fare un test con timeout...
-    // todo
-
     private static int REDIS_DEFAULT_PORT = 6379;
     private static String URI;
 
@@ -73,50 +70,50 @@ public class RedisTest {
     @Test
     public void testStringsCommands() {
         TestUtil.testCall(db, "CALL apoc.redis.setGet($uri, 'myKey', 'myValue')", Map.of("uri", URI),
+                r -> assertNull(r.get("value")));
+        
+        TestUtil.testCall(db, "CALL apoc.redis.setGet($uri, 'myKey', 'myNewValue')", Map.of("uri", URI),
                 r -> assertEquals("myValue", r.get("value")));
 
-        TestUtil.testCall(db, "CALL apoc.redis.get($uri, 'myKey'')", Map.of("uri", URI),
-                r -> assertEquals("myValue", r.get("value")));
+        TestUtil.testCall(db, "CALL apoc.redis.get($uri, 'myKey')", Map.of("uri", URI),
+                r -> assertEquals("myNewValue", r.get("value")));
 
         TestUtil.testCall(db, "CALL apoc.redis.append($uri, 'myKey', '2')", Map.of("uri", URI),
-                r -> assertEquals("myValue2".length(), r.get("value")));
+                r -> assertEquals((long) "myNewValue2".length(), r.get("value")));
 
         // incrby - decrby
         TestUtil.testCall(db, "CALL apoc.redis.setGet($uri, 'myKey', '1')", Map.of("uri", URI),
-                r -> assertEquals("1", r.get("value")));
+                r -> assertEquals("myNewValue2", r.get("value")));
 
         TestUtil.testCall(db, "CALL apoc.redis.incrby($uri, 'myKey', 2)", Map.of("uri", URI),
                 r -> assertEquals(3L, r.get("value")));
-
-        TestUtil.testCall(db, "CALL apoc.redis.decrby($uri, 'myKey', 2)", Map.of("uri", URI),
-                r -> assertEquals(1L, r.get("value")));
     }
 
     @Test
     public void testListsCommands() {
         TestUtil.testCall(db, "CALL apoc.redis.push($uri, 'myListKey', ['foo','bar','baz'])", Map.of("uri", URI),
-                r -> assertEquals(1, r.get("value")));
+                r -> assertEquals(3L, r.get("value")));
         
         TestUtil.testCall(db, "CALL apoc.redis.lrange($uri, 'myListKey', 0 , 10)", Map.of("uri", URI),
                 r -> assertEquals(List.of("foo", "bar", "baz"), r.get("value")));
 
-        TestUtil.testCall(db, "CALL apoc.redis.push($uri, 'myListKey', ['prefix1', 'prefix2'], {right: false})", Map.of("uri", URI),
-                r -> assertEquals(1L, r.get("value")));
+        TestUtil.testCall(db, "CALL apoc.redis.push($uri, 'myListKey', ['prefix1'], {right: false})", Map.of("uri", URI),
+                r -> assertEquals(4L, r.get("value")));
 
         TestUtil.testCall(db, "CALL apoc.redis.lrange($uri, 'myListKey', 0 , 10)", Map.of("uri", URI),
-                r -> assertEquals(List.of("prefix1", "prefix2", "foo", "bar", "baz"), r.get("value")));
+                r -> assertEquals(List.of("prefix1", "foo", "bar", "baz"), r.get("value")));
         
         TestUtil.testCall(db, "CALL apoc.redis.pop($uri, 'myListKey')", Map.of("uri", URI),
-                r -> assertEquals(1L, r.get("value")));
+                r -> assertEquals("baz", r.get("value")));
 
         TestUtil.testCall(db, "CALL apoc.redis.lrange($uri, 'myListKey', 0 , 10)", Map.of("uri", URI),
-                r -> assertEquals(List.of("prefix1", "prefix2", "foo", "bar"), r.get("value")));
+                r -> assertEquals(List.of("prefix1", "foo", "bar"), r.get("value")));
 
         TestUtil.testCall(db, "CALL apoc.redis.pop($uri, 'myListKey', {right: false})", Map.of("uri", URI),
-                r -> assertEquals(1L, r.get("value")));
+                r -> assertEquals("prefix1", r.get("value")));
 
         TestUtil.testCall(db, "CALL apoc.redis.lrange($uri, 'myListKey', 0 , 10)", Map.of("uri", URI),
-                r -> assertEquals(List.of("prefix2", "foo", "bar"), r.get("value")));
+                r -> assertEquals(List.of("foo", "bar"), r.get("value")));
     }
 
     @Test
@@ -163,10 +160,10 @@ public class RedisTest {
 
     @Test
     public void testHashesCommands() {
-        TestUtil.testCall(db, "CALL apoc.redis.hset($uri, 'mapKey', {alpha: 'beta', gamma, 'delta', epsilon, 'zeta', number, '1'})", Map.of("uri", URI),
-                r -> assertEquals(3L, r.get("value")));
+        TestUtil.testCall(db, "CALL apoc.redis.hset($uri, 'mapKey', {alpha: 'beta', gamma: 'delta', epsilon: 'zeta', number: '1'})", Map.of("uri", URI),
+                r -> assertEquals(4L, r.get("value")));
 
-        TestUtil.testCall(db, "CALL apoc.redis.hdel($uri, 'mapKey', ['alpha', 'beta'])", Map.of("uri", URI),
+        TestUtil.testCall(db, "CALL apoc.redis.hdel($uri, 'mapKey', ['alpha', 'gamma'])", Map.of("uri", URI),
                 r -> assertEquals(2L, r.get("value")));
 
         TestUtil.testCall(db, "CALL apoc.redis.hexists($uri, 'mapKey', 'epsilon')", Map.of("uri", URI),
@@ -176,7 +173,7 @@ public class RedisTest {
                 r -> assertEquals("zeta", r.get("value")));
 
         TestUtil.testCall(db, "CALL apoc.redis.hincrby($uri, 'mapKey', 'number', 3)", Map.of("uri", URI),
-                r -> assertEquals(1L, r.get("value")));
+                r -> assertEquals(4L, r.get("value")));
 
         TestUtil.testCall(db, "CALL apoc.redis.hgetall($uri, 'mapKey')", Map.of("uri", URI),
                 r -> assertEquals(Map.of("epsilon", "zeta", "number", "4"), r.get("value")));
@@ -199,16 +196,15 @@ public class RedisTest {
 
     @Test
     public void testEvalCommand() {
-        TestUtil.testCall(db, "CALL apoc.redis.setGet($uri, 'testEval', '1')", Map.of("uri", URI),
-                r -> assertEquals("1", r.get("value")));
-        TestUtil.testCall(db, "CALL apoc.redis.eval($uri, 'return redis.call('get','foo')', ['0'])", Map.of("uri", URI),
-                r -> assertEquals(1L, r.get("value")));
+        TestUtil.testCall(db, "CALL apoc.redis.setGet($uri, 'testEval', 'valueEval')", Map.of("uri", URI), r -> assertNull(r.get("value")));
+        TestUtil.testCall(db, "CALL apoc.redis.eval($uri, 'return redis.call(\"get\", KEYS[1])', 'VALUE', ['testEval'], ['key:name'])", Map.of("uri", URI),
+                r -> assertEquals("valueEval", r.get("value")));
     }
 
     @Test
     public void testKeysCommand() {
         TestUtil.testCall(db, "CALL apoc.redis.setGet($uri, 'from', 'one')", Map.of("uri", URI),
-                r -> assertEquals("one", r.get("value")));
+                r -> assertNull(r.get("value")));
         
         TestUtil.testCall(db, "CALL apoc.redis.copy($uri, 'from', 'to')", Map.of("uri", URI),
                 r -> assertEquals(true, r.get("value")));
@@ -216,10 +212,10 @@ public class RedisTest {
         TestUtil.testCall(db, "CALL apoc.redis.get($uri, 'to')", Map.of("uri", URI),
                 r -> assertEquals("one", r.get("value")));
         
-        TestUtil.testCall(db, "CALL apoc.redis.exists($uri, 'to')", Map.of("uri", URI),
-                r -> assertEquals("one", r.get("value")));
+        TestUtil.testCall(db, "CALL apoc.redis.exists($uri, ['to'])", Map.of("uri", URI),
+                r -> assertEquals(1L, r.get("value")));
         
-        TestUtil.testCall(db, "CALL apoc.redis.pexpire($uri, 'to', 100, {expireAt: false})", Map.of("uri", URI),
+        TestUtil.testCall(db, "CALL apoc.redis.pexpire($uri, 'to', 100, false)", Map.of("uri", URI),
                 r -> assertEquals(true, r.get("value")));
         
         TestUtil.testCall(db, "CALL apoc.redis.pttl($uri, 'to')", Map.of("uri", URI),
@@ -232,23 +228,23 @@ public class RedisTest {
                 r -> assertEquals(true, r.get("value")));
         
         TestUtil.testCall(db, "CALL apoc.redis.pttl($uri, 'to')", Map.of("uri", URI),
-                r -> assertTrue((long) r.get("value") == 0L));
+                r -> assertEquals(-1L, (long) r.get("value")));
     }
 
     @Test
     public void testServersCommand() {
         TestUtil.testCall(db, "CALL apoc.redis.info($uri)", Map.of("uri", URI),
-                r -> assertEquals(true, r.get("value")));
+                r -> assertTrue(((String) r.get("value")).contains("redis_version:6.2.3")));
 
-        final String keyConfig = "always-show-logo";
+        final String keyConfig = "slowlog-max-len";
         TestUtil.testCall(db, "CALL apoc.redis.configGet($uri, $keyConfig)", Map.of("uri", URI, "keyConfig", keyConfig),
-                r -> assertEquals(Map.of(keyConfig, "no"), r.get("value")));
+                r -> assertEquals(Map.of(keyConfig, "128"), r.get("value")));
         
-        TestUtil.testCall(db, "CALL apoc.redis.configSet($uri, $keyConfig, 'yes')", Map.of("uri", URI, "keyConfig", keyConfig),
+        TestUtil.testCall(db, "CALL apoc.redis.configSet($uri, $keyConfig, '64')", Map.of("uri", URI, "keyConfig", keyConfig),
                 r -> assertEquals("OK", r.get("value")));
         
         TestUtil.testCall(db, "CALL apoc.redis.configGet($uri, $keyConfig)", Map.of("uri", URI, "keyConfig", keyConfig),
-                r -> assertEquals(Map.of(keyConfig, "yes"), r.get("value")));
+                r -> assertEquals(Map.of(keyConfig, "64"), r.get("value")));
     }
 
     private int getNumConnections() {

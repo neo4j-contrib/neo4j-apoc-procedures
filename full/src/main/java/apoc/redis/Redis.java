@@ -1,13 +1,13 @@
 package apoc.redis;
 
 import apoc.result.BooleanResult;
-import apoc.result.DoubleResult;
 import apoc.result.ListResult;
 import apoc.result.LongResult;
 import apoc.result.MapResult;
 import apoc.result.ObjectResult;
 import apoc.result.StringResult;
 import apoc.util.MissingDependencyException;
+import io.lettuce.core.ScriptOutputType;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -15,10 +15,8 @@ import org.neo4j.procedure.Procedure;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// TODO -> creare classe RedisConnection
 public class Redis {
 
     // -- String
@@ -31,8 +29,6 @@ public class Redis {
     @Procedure
     @Description("apoc.redis.get(uri, key, {config}) | Execute the 'GET key' command")
     public Stream<StringResult> get(@Name("uri") String uri, @Name("key") String key, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        // String mset(Map<K, V> map);
-        // String msetnx(Map<K, V> map); --> config
         return withConnection(uri, config, connection -> Stream.of(new StringResult(connection.get(key))));
     }
 
@@ -48,12 +44,6 @@ public class Redis {
         return withConnection(uri, config, connection -> Stream.of(new LongResult(connection.incrby(key, amount))));
     }
 
-    @Procedure
-    @Description("apoc.redis.decrby(uri, key, amount, {config}) | Execute the 'DECRBY key increment' command")
-    public Stream<LongResult> decrby(@Name("uri") String uri, @Name("key") String key, @Name("amount") long amount, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        return withConnection(uri, config, connection -> Stream.of(new LongResult(connection.decrby(key, amount))));
-    }
-
     // -- Hashes
     @Procedure
     @Description("apoc.redis.hdel(uri, key, fields, {config}) | Execute the 'HDEL key fields' command")
@@ -62,7 +52,7 @@ public class Redis {
     }
 
     @Procedure
-    @Description("apoc.redis.hexists(uri, key, field, {config}) | Execute the 'HDEL key field' command")
+    @Description("apoc.redis.hexists(uri, key, field, {config}) | Execute the 'HEXISTS key field' command")
     public Stream<BooleanResult> hexists(@Name("uri") String uri, @Name("key") String key, @Name("field") String field, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return withConnection(uri, config, connection -> Stream.of(new BooleanResult(connection.hexists(key, field))));
     }
@@ -81,7 +71,7 @@ public class Redis {
 
     @Procedure
     @Description("apoc.redis.hgetall(uri, key, {config}) | Execute the 'HGETALL key' command")
-    public Stream<MapResult> hgetall(@Name("uri") String uri, @Name("key") String key, @Name("value") String value, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<MapResult> hgetall(@Name("uri") String uri, @Name("key") String key, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return withConnection(uri, config, connection -> Stream.of(new MapResult(connection.hgetall(key))));
     }
 
@@ -169,9 +159,11 @@ public class Redis {
 
     // -- Script
     @Procedure
-    @Description("apoc.redis.eval(uri, script, keys, {config}) | Execute the 'EVAL script' command")
-    public Stream<BooleanResult> eval(@Name("uri") String uri, @Name("script") String script,  @Name("keys") List<String> keys, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        return withConnection(uri, config, connection -> Stream.of(new BooleanResult(connection.eval(script, keys.toArray(String[]::new)))));
+    @Description("apoc.redis.eval(uri, script, outputType, keys, values, {config}) | Execute the 'EVAL script' command")
+    public Stream<ObjectResult> eval(@Name("uri") String uri, @Name("script") String script, @Name("outputType") String outputType, @Name("keys") List<String> keys, @Name("values") List<String> values, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        // todo - dire che script può essere BOOLEAN, INTEGER, MULTI, STATUS o VALUE
+        return withConnection(uri, config, connection -> Stream.of(new ObjectResult(
+                connection.eval(script, ScriptOutputType.valueOf(outputType), keys.toArray(String[]::new), values.toArray(String[]::new)))));
     }
 
     @Procedure
@@ -204,9 +196,9 @@ public class Redis {
     }
 
     @Procedure
-    @Description("apoc.redis.pexpire(uri, key, time, {config}) | Execute the 'PEXPIRE key time' command, or the 'PEPXPIREAT' if the config expireAt=true (default)")
-    public Stream<BooleanResult> pexpire(@Name("uri") String uri, @Name("key") String key, @Name("time") long time, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        return withConnection(uri, config, connection -> Stream.of(new BooleanResult(connection.pexpire(key, time))));
+    @Description("apoc.redis.pexpire(uri, key, time, isExpireAt {config}) | Execute the 'PEXPIRE key time' command, or the 'PEPXPIREAT' if isExpireAt=true")
+    public Stream<BooleanResult> pexpire(@Name("uri") String uri, @Name("key") String key, @Name("time") long time, @Name("isExpireAt") boolean isExpireAt, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        return withConnection(uri, config, connection -> Stream.of(new BooleanResult(connection.pexpire(key, time, isExpireAt))));
     }
 
     @Procedure

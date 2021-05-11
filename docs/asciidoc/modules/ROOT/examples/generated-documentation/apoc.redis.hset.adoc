@@ -1,0 +1,5 @@
+¦xref::overview/apoc.redis/apoc.redis.hset.adoc[apoc.redis.hset icon:book[]] +
+
+`apoc.redis.hset(uri, key, value, \{config}) | Execute the 'HSET key mapFields' command, where mapFields is a map of field1, value1, field2, value2,...`
+¦label:procedure[]
+¦label:apoc-core[]
