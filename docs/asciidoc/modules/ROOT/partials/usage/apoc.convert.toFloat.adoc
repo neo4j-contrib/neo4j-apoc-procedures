@@ -44,4 +44,7 @@ The Neo4j functions do not have exactly the same behavior as the APOC ones - the
 |`{a:'a'}`|`null`|Error|`null`
 |`true`|`1.0`|Error|`null` footnote:[Use `toFloat(toInteger())`]
 |`datetime("2000-01-01T00:00:00.000+0000")`|`null`|Error|`null`
+|Node|`null`|Error|`null`
+|Relationship|`null`|Error|`null`
+|Path `()-[]-()`|`null`|Error|`null`
 |===

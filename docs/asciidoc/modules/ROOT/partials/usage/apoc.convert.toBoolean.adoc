@@ -41,8 +41,11 @@ The Neo4j functions do not have exactly the same behavior as the APOC ones - the
 |`1`|`true`|`true`|`true`
 |`0`|`false`|`false`|`false`
 |`1.0`|`true`|Error|`null` footnote:[Use `toBoolean(toInteger())`]
-|`{a:'a'}` footnote:[Composite objects are not supported in the Neo4j functions]|true|Error|`null`
+|`{a:'a'}` footnote:composite[There is no Neo4j equivalent toBoolean for these types]|true|Error|`null`
 |`"no"` footnote:strings[Strings other than `true` and `false` are not recognised by the Neo4j functions]|`false`|`null`|`null`
 |`"yes"` footnote:strings[]|`true`|`null`|`null`
-|`datetime("2000-01-01T00:00:00.000+0000")` footnote:[Not supported in Neo4j functions]|`true`|Error|`null`
+|`datetime("2000-01-01T00:00:00.000+0000")` footnote:composite[]|`true`|Error|`null`
+|Node footnote:composite[]|`true`|Error|`null`
+|Relationship footnote:composite[]|`true`|Error|`null`
+|Path `()-[]-()` footnote:composite[]|`true`|Error|`null`
 |===

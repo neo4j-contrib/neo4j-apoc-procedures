@@ -26,5 +26,8 @@ The following table is intended to assist migration by highlighting the differen
 |`["a","b","c"]`|`["a","b","c"]`|`["a","b","c"]`
 |`[1,2.3,-4]`|`["1", "2.3", "-4"]`|`["1", "2.3", "-4"]`
 |`[["a","b","c"]]`|`[["a","b","c"]]`|`[null]`
-|`"not-a-list"`|`["not-a-list"]`|Error
-|`{a:"map"}`|`["{a=map}"]`|Error
+|`"not-a-list"`footnote:composite[There is no Neo4j equivalent toStringList for these types]|`["not-a-list"]`|Error
+|`{a:"map"}` footnote:composite[]|`["{a=map}"]`|Error
+|Node footnote:composite[]|`["Node[0]"]`|Error
+|Relationship footnote:composite[]|`["(94)-[LEFT_BY,112]->(0)"]`|Error
+|Path `()-[]-()` footnote:composite[]|`["Node[0]", "(94)-[TYPE,112]->(0)", "Node[94]"]`|Error|
