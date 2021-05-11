@@ -81,7 +81,7 @@ public class RedisTest {
         TestUtil.testCall(db, "CALL apoc.redis.append($uri, 'myKey', '2')", Map.of("uri", URI),
                 r -> assertEquals((long) "myNewValue2".length(), r.get("value")));
 
-        // incrby - decrby
+        // incrby
         TestUtil.testCall(db, "CALL apoc.redis.setGet($uri, 'myKey', '1')", Map.of("uri", URI),
                 r -> assertEquals("myNewValue2", r.get("value")));
 
