@@ -6,7 +6,6 @@ import apoc.meta.tablesforlabels.PropertyTracker;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
-import org.neo4j.graphdb.schema.*;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -123,26 +122,6 @@ public class Tables4LabelsProfile {
         }
     }
 
-    public boolean compareLabelLists(Map<String, List<String>> a, Map<String, List<String>> b) {
-        boolean equal = true;
-        for (Map.Entry<String, List<String>> comp : a.entrySet()) {
-            List<String> list1 = comp.getValue();
-            Collections.sort(list1);
-            if (b.containsKey(comp.getKey())) {
-                List<String> list2 = b.get(comp.getKey());
-                Collections.sort(list2);
-                if (!list1.equals(list2)) {
-                    equal = false;
-                }
-            }
-        }
-        if (equal) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     public static String labelJoin(Iterable<Label> labels) {
         return StreamSupport.stream(labels.spliterator(), true)
         .map(Label::name)
@@ -171,20 +150,10 @@ public class Tables4LabelsProfile {
         OrderedLabels labels = new OrderedLabels(n.getLabels());
         PropertyContainerProfile localNodeProfile = getNodeProfile(labels);
 
-        Set<String> excludes = config.getExcludes();
-        Set<String> includesRels = config.getIncludesRels();
-
         // Only descend and look at properties if it's in our match list.
         if (config.matches(n.getLabels())) {
             sawNode(labels);
             localNodeProfile.observe(n, true);
-        }
-
-        for (RelationshipType type : n.getRelationshipTypes()) {
-            String labelString = "";
-            for (Label label : n.getLabels()) {
-                labelString += "@@@" + label.name();
-            }
         }
 
         // Even if the node isn't in our match list, do rel processing.  This
@@ -234,7 +203,7 @@ public class Tables4LabelsProfile {
 
     public Stream<NodeTypePropertiesEntry> asNodeStream() {
         Set<OrderedLabels> labels = labelMap.keySet();
-        List<NodeTypePropertiesEntry> results = new ArrayList<NodeTypePropertiesEntry>(100);
+        List<NodeTypePropertiesEntry> results = new ArrayList<>( 100 );
 
         for(OrderedLabels ol : labels) {
             PropertyContainerProfile prof = labelMap.get(ol);
