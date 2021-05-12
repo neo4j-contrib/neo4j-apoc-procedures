@@ -69,12 +69,10 @@ import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonMap;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_LABEL;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 
-public class    Meta {
+public class Meta {
 
     @Context
     public Transaction tx;
@@ -245,8 +243,6 @@ public class    Meta {
         }
     }
 
-    static final int SAMPLE = 100;
-
     @Deprecated
     @UserFunction
     @Description("apoc.meta.type(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
@@ -326,7 +322,6 @@ public class    Meta {
         }
     }
 
-
     @UserFunction("apoc.meta.cypher.types")
     @Description("apoc.meta.cypher.types(node-relationship-map)  - returns a map of keys to types")
     public Map<String,Object> typesCypher(@Name("properties") Object target) {
@@ -345,7 +340,6 @@ public class    Meta {
 
         return result;
     }
-
 
     public static class MetaStats {
         public final long labelCount;
@@ -560,40 +554,45 @@ public class    Meta {
         return Stream.of(new MapResult(nodes));
     }
 
-
-    // Start new code
-
     /**
      * This procedure is intended to replicate what's in the core Neo4j product, but with the crucial difference that it
      * supports flexible sampling options, and does not scan the entire database.  The result is producing a table of
      * metadata that is useful for generating "Tables 4 Labels" schema designs for RDBMSs, but in a more performant way.
      */
     @Procedure
-    @Description("apoc.meta.nodeTypeProperties()")
-    public Stream<Tables4LabelsProfile.NodeTypePropertiesEntry> nodeTypeProperties(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
-        MetaConfig metaConfig = new MetaConfig(config);
-        try {
-            return collectTables4LabelsProfile(metaConfig).asNodeStream();
-        } catch (Exception e) {
-            log.debug("meta.nodeTypeProperties(): Failed to return stream", e);
-            throw new RuntimeException(e);
+    @Description( "apoc.meta.nodeTypeProperties()" )
+    public Stream<Tables4LabelsProfile.NodeTypePropertiesEntry> nodeTypeProperties( @Name( value = "config", defaultValue = "{}" ) Map<String,Object> config )
+    {
+        MetaConfig metaConfig = new MetaConfig( config );
+        try
+        {
+            return collectTables4LabelsProfile( metaConfig ).asNodeStream();
+        }
+        catch ( Exception e )
+        {
+            log.debug( "apoc.meta.nodeTypeProperties(): Failed to return stream", e );
+            throw new RuntimeException( e );
         }
     }
 
     /**
-     * This procedure is intended to replicate what's in the core Neo4j product, but with the crucial difference that it
-     * supports flexible sampling options, and does not scan the entire database.  The result is producing a table of
-     * metadata that is useful for generating "Tables 4 Labels" schema designs for RDBMSs, but in a more performant way.
+     * This procedure is intended to replicate what's in the core Neo4j product, but with the crucial difference that it supports flexible sampling options, and
+     * does not scan the entire database.  The result is producing a table of metadata that is useful for generating "Tables 4 Labels" schema designs for
+     * RDBMSs, but in a more performant way.
      */
     @Procedure
-    @Description("apoc.meta.relTypeProperties()")
-    public Stream<Tables4LabelsProfile.RelTypePropertiesEntry> relTypeProperties(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
-        MetaConfig metaConfig = new MetaConfig(config);
-        try {
-            return collectTables4LabelsProfile(metaConfig).asRelStream();
-        } catch (Exception e) {
-            log.debug("meta.relTypeProperties(): Failed to return stream", e);
-            throw new RuntimeException(e);
+    @Description( "apoc.meta.relTypeProperties()" )
+    public Stream<Tables4LabelsProfile.RelTypePropertiesEntry> relTypeProperties( @Name( value = "config", defaultValue = "{}" ) Map<String,Object> config )
+    {
+        MetaConfig metaConfig = new MetaConfig( config );
+        try
+        {
+            return collectTables4LabelsProfile( metaConfig ).asRelStream();
+        }
+        catch ( Exception e )
+        {
+            log.debug( "apoc.meta.relTypeProperties(): Failed to return stream", e );
+            throw new RuntimeException( e );
         }
     }
 
@@ -604,7 +603,7 @@ public class    Meta {
 
         for (ConstraintDefinition cd : schema.getConstraints()) {
             if (cd.isConstraintType(ConstraintType.NODE_PROPERTY_EXISTENCE)) {
-                List<String> props = new ArrayList<String>(10);
+                List<String> props = new ArrayList<>( 10 );
                 if (ConstraintTracker.nodeConstraints.containsKey(cd.getLabel().name())) {
                     props = ConstraintTracker.nodeConstraints.get(cd.getLabel().name());
                 }
@@ -612,8 +611,8 @@ public class    Meta {
                 ConstraintTracker.nodeConstraints.put(cd.getLabel().name(),props);
 
             } else if (cd.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE)) {
-                List<ConstraintDefinition> tcd = new ArrayList<ConstraintDefinition>(10);
-                List<String> props = new ArrayList<String>(10);
+                List<ConstraintDefinition> tcd = new ArrayList<>( 10 );
+                List<String> props = new ArrayList<>( 10 );
                 if (ConstraintTracker.relConstraints.containsKey(cd.getRelationshipType().name())) {
                     props = ConstraintTracker.relConstraints.get(cd.getRelationshipType().name());
                 }
@@ -715,7 +714,7 @@ public class    Meta {
     }
 
     private Map<String, Long> getLabelCountStore() {
-        List<String> labels = Iterables.stream(tx.getAllLabelsInUse()).map(label -> label.name()).collect(Collectors.toList());
+        List<String> labels = Iterables.stream(tx.getAllLabelsInUse()).map( Label::name ).collect( Collectors.toList());
         TokenRead tokenRead = kernelTx.tokenRead();
         return labels
                 .stream()
@@ -1206,80 +1205,5 @@ public class    Meta {
         }
         if (increment > 0 ) vNode.setProperty("count",(((Number)vNode.getProperty("count",0L)).longValue())+increment);
         return vNode;
-    }
-
-    private void addRel(Map<List<String>, Relationship> rels, Map<String, Node> labels, Relationship rel, boolean strict) {
-        String typeName = rel.getType().name();
-        Node startNode = rel.getStartNode();
-        Node endNode = rel.getEndNode();
-        for (Label labelA : startNode.getLabels()) {
-            Node nodeA = strict ? labels.get(labelA.name()) : mergeMetaNode(labelA,labels,0);
-            if (nodeA == null) continue;
-            for (Label labelB : endNode.getLabels()) {
-                List<String> key = asList(labelA.name(), labelB.name(), typeName);
-                Relationship vRel = rels.get(key);
-                if (vRel==null) {
-                    Node nodeB = strict ? labels.get(labelB.name()) : mergeMetaNode(labelB,labels,0);
-                    if (nodeB == null) continue;
-                    vRel = new VirtualRelationship(nodeA,nodeB,rel.getType()).withProperties(singletonMap("type",typeName));
-                    rels.put(key,vRel);
-                }
-                vRel.setProperty("count",((long)vRel.getProperty("count",0L))+1);
-            }
-        }
-    }
-
-    static class RelInfo {
-        final Set<String> properties = new HashSet<>();
-        final NodeInfo from,to;
-        final String type;
-        int count;
-
-        public RelInfo(NodeInfo from, NodeInfo to, String type) {
-            this.from = from;
-            this.to = to;
-            this.type = type;
-        }
-        public void add(Relationship relationship) {
-            for (String key : relationship.getPropertyKeys()) properties.add(key);
-            count++;
-        }
-    }
-    static class NodeInfo {
-        final Set<String> labels=new HashSet<>();
-        final Set<String> properties = new HashSet<>();
-        long count, minDegree, maxDegree, sumDegree;
-
-        private void add(Node node) {
-            count++;
-            int degree = node.getDegree();
-            sumDegree += degree;
-            if (degree > maxDegree) maxDegree = degree;
-            if (degree < minDegree) minDegree = degree;
-
-            for (Label label : node.getLabels()) labels.add(label.name());
-            for (String key : node.getPropertyKeys()) properties.add(key);
-        }
-        Map<String,Object> toMap() {
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("labels",labels.toArray());
-            map.put("properties",properties.toArray());
-            map.put("count",count);
-            map.put("minDegree",minDegree);
-            map.put("maxDegree",maxDegree);
-            map.put("avgDegree",sumDegree/count);
-            return map;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return this == o || o instanceof NodeInfo && labels.equals(((NodeInfo) o).labels);
-
-        }
-
-        @Override
-        public int hashCode() {
-            return labels.hashCode();
-        }
     }
 }
