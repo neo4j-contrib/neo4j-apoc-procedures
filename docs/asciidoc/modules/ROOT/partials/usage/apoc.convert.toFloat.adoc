@@ -42,7 +42,7 @@ The Neo4j functions do not have exactly the same behavior as the APOC ones - the
 |`1.0`|`1.0`|`1.0`|`1.0`
 |`"not-a-number"`|`null`|`null`|`null`
 |`{a:'a'}`|`null`|Error|`null`
-|`true`|`1.0`|Error|`null` footnote:[Use `toFloat(toInteger())`]
+|`true`|`1.0` footnote:[Use `toFloat(toInteger())` for this behaviour in Neo4j]|Error|`null`
 |`datetime("2000-01-01T00:00:00.000+0000")`|`null`|Error|`null`
 |Node|`null`|Error|`null`
 |Relationship|`null`|Error|`null`

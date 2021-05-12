@@ -56,6 +56,7 @@ The Neo4j functions do not have exactly the same behavior as the APOC ones - the
 |`true`|`"true"`|`"true"`|`"true"`
 |`false`|`"false"`|`"false"`|`"false"`
 |`datetime("2000-01-01T00:00:00.000+0000")`|`"2000-01-01T00:00Z"`|`"2000-01-01T00:00Z"`|`"2000-01-01T00:00Z"`
+|`Point({x:0.0, y:0.0})`|`"point({x: 0.0, y: 0.0, crs: 'cartesian'})"`|`"point({x: 0.0, y: 0.0, crs: 'cartesian'})"`|`"point({x: 0.0, y: 0.0, crs: 'cartesian'})"`
 |Node footnote:composite[]|`"Node[0]"`|Error|`null`
 |Relationship footnote:composite[]|`"(94)-[TYPE,112]->(0)"`|Error|`null`
 |Path `()-[]-()` footnote:composite[]|`"(0)-[TYPE,1194]->(335)"`|Error|`null`

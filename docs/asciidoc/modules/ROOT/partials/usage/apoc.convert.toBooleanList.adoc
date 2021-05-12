@@ -24,7 +24,7 @@ The following table is intended to assist migration by highlighting the differen
 |`null`|`null`|`null`
 |`[true,false,true]`|`[true, false, true`]|`[true, false, true]`
 |`[0, 1, 2]`|`[false, true, true`]|`[false, true, true]`
-|`[0.1,1.1,2.1]`|`[false, true, true`]|`[null, null, null]` footnote:[Use `toBooleanList(toIntegerList())`]
+|`[0.1,1.1,2.1]`|`[false, true, true`]footnote:[Use `toBooleanList(toIntegerList())` for this behavior in Neo4j]|`[null, null, null]`
 |`["true", "false", "true"]`|`[true, false, true`]|`[true, false, true]`
 |`\[[true, false, true]]`|`[true]`|[`null`]
 |"not-a-list"|`[true]`|Error
