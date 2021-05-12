@@ -22,7 +22,7 @@ public class ExportUuid implements ExportMetadata {
         map.put("uuidProperty", property);
         final String uuidConfig = toCypherMap(map);
         // add constraint - TODO: might be worth add config to export or not this file
-        String schemaStatement = String.format("CREATE CONSTRAINT IF NOT EXISTS ON (n:%s) ASSERT n.%s IS UNIQUE;\n", labelName, property);
+        String schemaStatement = String.format("CREATE CONSTRAINT %1$s_%2$s IF NOT EXISTS ON (n:%1$s) ASSERT n.%2$s IS UNIQUE;\n", labelName, property);
         final String statement = String.format("CALL apoc.uuid.install('%s', %s);", labelName, uuidConfig);
         progressReporter.nextRow();
         return List.of(
