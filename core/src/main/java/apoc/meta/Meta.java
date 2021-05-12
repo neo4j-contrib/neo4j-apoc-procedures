@@ -73,6 +73,9 @@ import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 
 public class    Meta {
 
+    private static final String RELATIONSHIP_SUFFIX = " (relationship)";
+    private static final String NODE_SUFFIX = " (node)";
+    
     @Context
     public Transaction tx;
 
@@ -624,6 +627,11 @@ public class    Meta {
         for (Label label : graph.getAllLabelsInUse()) {
             Map<String,MetaResult> nodeMeta = new LinkedHashMap<>(50);
             String labelName = label.name();
+            // workaround in case of duplicated keys
+            if (metaData.containsKey(labelName)) {
+                metaData.put(labelName + RELATIONSHIP_SUFFIX, metaData.remove(labelName));
+                labelName += NODE_SUFFIX;
+            }
             metaData.put(labelName, nodeMeta);
             Iterable<ConstraintDefinition> constraints = graph.getConstraints(label);
             Set<String> indexed = new LinkedHashSet<>();
@@ -711,9 +719,12 @@ public class    Meta {
                 }
             }
             if (isNode) {
+                final String normalizedEntityName = entityName.replace(NODE_SUFFIX, "");
                 nodes.put(entityName, MapUtil.map(
                         "type", "node",
-                        "count", metaStats.labels.get(entityName),
+                        "count", metaStats.relTypesCount.containsKey(normalizedEntityName) 
+                                ? metaStats.labels.get(normalizedEntityName) 
+                                : metaStats.labels.get(entityName),
                         "labels", labels,
                         "properties", entityProperties,
                         "relationships", entityRelationships
@@ -768,9 +779,12 @@ public class    Meta {
                 }
             }
             if (isRelationship) {
+                final String normalizedEntityName = entityName.replace(RELATIONSHIP_SUFFIX, "");
                 relationships.put(entityName, MapUtil.map(
                         "type", "relationship",
-                        "count", metaStats.relTypesCount.get(entityName),
+                        "count", metaStats.labels.containsKey(normalizedEntityName)
+                                ? metaStats.relTypesCount.get(normalizedEntityName) 
+                                : metaStats.relTypesCount.get(entityName),
                         "properties", entityProperties));
             }
         }
@@ -800,6 +814,11 @@ public class    Meta {
                     if (out == 0) return;
 
                     String typeName = type.name();
+                    // workaround in case of duplicated keys
+                    final boolean metaContainsSuffix = metaData.containsKey(typeName + RELATIONSHIP_SUFFIX);
+                    if (metaContainsSuffix) {
+                        typeName += RELATIONSHIP_SUFFIX;
+                    }
 
                     Iterable<ConstraintDefinition> constraints = relConstraints.get(typeName);
                     if (!nodeMeta.containsKey(typeName)) nodeMeta.put(typeName, new MetaResult(labelName,typeName));
@@ -808,11 +827,11 @@ public class    Meta {
                     Map<String, MetaResult> typeMeta = metaData.get(typeName);
                     if (!typeMeta.containsKey(labelName)) typeMeta.put(labelName,new MetaResult(typeName,labelName));
                     MetaResult relMeta = nodeMeta.get(typeName);
-                    addOtherNodeInfo(node, labelName, out, type, relMeta , typeMeta, constraints);
+                    addOtherNodeInfo(node, labelName, out, type, relMeta , typeMeta, constraints, metaContainsSuffix); // todo qui dentro metto pure le relazioni
                 });
     }
 
-    private void addOtherNodeInfo(Node node, String labelName, int out, RelationshipType type, MetaResult relMeta, Map<String, MetaResult> typeMeta, Iterable<ConstraintDefinition> relConstraints) {
+    private void addOtherNodeInfo(Node node, String labelName, int out, RelationshipType type, MetaResult relMeta, Map<String, MetaResult> typeMeta, Iterable<ConstraintDefinition> relConstraints, boolean metaContainsSuffix) {
         MetaResult relNodeMeta = typeMeta.get(labelName);
         relMeta.elementType(Types.of(node).name());
         for (Relationship rel : node.getRelationships(Direction.OUTGOING, type)) {
@@ -821,7 +840,8 @@ public class    Meta {
             int in = endNode.getDegree(type, Direction.INCOMING);
             relMeta.inc().other(labels).rel(out , in);
             relNodeMeta.inc().other(labels).rel(out,in);
-            addProperties(typeMeta, type.name(), relConstraints, Collections.emptySet(), rel, node);
+            final String typeName = type.name();
+            addProperties(typeMeta, metaContainsSuffix ? typeName + RELATIONSHIP_SUFFIX : typeName, relConstraints, Collections.emptySet(), rel, node);
             relNodeMeta.elementType(Types.RELATIONSHIP.name());
         }
     }
