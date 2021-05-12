@@ -827,7 +827,7 @@ public class    Meta {
                     Map<String, MetaResult> typeMeta = metaData.get(typeName);
                     if (!typeMeta.containsKey(labelName)) typeMeta.put(labelName,new MetaResult(typeName,labelName));
                     MetaResult relMeta = nodeMeta.get(typeName);
-                    addOtherNodeInfo(node, labelName, out, type, relMeta , typeMeta, constraints, metaContainsSuffix); // todo qui dentro metto pure le relazioni
+                    addOtherNodeInfo(node, labelName, out, type, relMeta , typeMeta, constraints, metaContainsSuffix);
                 });
     }
 
