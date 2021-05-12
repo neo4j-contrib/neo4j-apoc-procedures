@@ -9,6 +9,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.event.LabelEntry;
 import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventListener;
@@ -91,14 +92,16 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     @Override
     public Void beforeCommit(TransactionData txData, Transaction transaction, GraphDatabaseService databaseService) throws Exception {
 
-        Iterable<Node> createdNodes = txData.createdNodes();
+        // assignedLabels handles both created nodes and set labels of existing nodes
+        Iterable<LabelEntry> assignedLabels = txData.assignedLabels();
         Iterable<PropertyEntry<Node>> assignedNodeProperties = txData.assignedNodeProperties();
         Iterable<PropertyEntry<Node>> removedNodeProperties = txData.removedNodeProperties();
 
         configuredLabelAndPropertyNames.forEach((label, propertyName) -> {
             try {
-                if (createdNodes.iterator().hasNext()) {
-                    createdNodes.forEach(node -> {
+                if (assignedLabels.iterator().hasNext()) {
+                    assignedLabels.forEach(labelEntry -> {
+                        Node node = labelEntry.node();
                         if (node.hasLabel(Label.label(label)) && !node.hasProperty(propertyName)) {
                             String uuid = UUID.randomUUID().toString();
                             node.setProperty(propertyName, uuid);

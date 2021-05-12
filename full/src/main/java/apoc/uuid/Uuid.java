@@ -26,7 +26,7 @@ public class Uuid {
     @Context
     public Transaction tx;
 
-    @Procedure(mode = Mode.DBMS)
+    @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult | it will add the uuid transaction handler\n" +
             "for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one")
     public Stream<UuidInstallInfo> install(@Name("label") String label, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {

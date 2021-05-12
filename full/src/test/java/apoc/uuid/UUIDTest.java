@@ -7,7 +7,6 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -61,6 +60,26 @@ public class UUIDTest {
             assertTrue(person.getAllProperties().get("uuid").toString().matches(UUID_TEST_REGEXP));
             tx.commit();
         }
+    }
+    
+    @Test
+    public void testUUIDWithSetLabel() {
+        // given
+        db.executeTransactionally("CREATE CONSTRAINT ON (p:Mario) ASSERT p.uuid IS UNIQUE");
+        db.executeTransactionally("CALL apoc.uuid.install('Mario') YIELD label RETURN label");
+        // when
+        db.executeTransactionally("CREATE (p:Luigi {foo:'bar'}) SET p:Mario");
+        // then
+        TestUtil.testCall(db, "MATCH (a:Luigi:Mario) RETURN a.uuid as uuid",
+                row -> assertTrue(((String) row.get("uuid")).matches(UUID_TEST_REGEXP)));
+
+        // - set after creation
+        db.executeTransactionally("CREATE (:Peach)");
+        // when
+        db.executeTransactionally("CREATE (p:Peach) SET p:Mario");
+        // then
+        TestUtil.testCall(db, "MATCH (a:Peach:Mario) RETURN a.uuid as uuid", 
+                row -> assertTrue(((String) row.get("uuid")).matches(UUID_TEST_REGEXP)));
     }
 
     @Test
@@ -152,7 +171,7 @@ public class UUIDTest {
                         Util.map("uuidProperty", "uuid")));
     }
 
-    @Test @Ignore("temporary ignore due to failure update existing nodes with uuids")
+    @Test
     public void testUUIDListAddToExistingNodes() {
         // given
         db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.uuid IS UNIQUE");
@@ -201,7 +220,7 @@ public class UUIDTest {
         }
     }
 
-    @Test @Ignore("temporary ignore due to failure update existing nodes with uuids")
+    @Test
     public void testAddToExistingNodes() {
         // given
         db.executeTransactionally("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})");
@@ -219,7 +238,7 @@ public class UUIDTest {
         }
     }
 
-    @Test @Ignore("temporary ignore due to failure update existing nodes with uuids")
+    @Test
     public void testAddToExistingNodesBatchResult() {
         // given
         db.executeTransactionally("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})");
