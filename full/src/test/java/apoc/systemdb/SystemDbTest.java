@@ -128,7 +128,7 @@ public class SystemDbTest {
         String declareStatementFromProcedure = "CALL apoc.custom.declareProcedure('procName(input = 42 :: INTEGER?) :: (answer :: NUMBER?)', 'RETURN $input as answer', 'READ', 'Procedure that answer to the Ultimate Question of Life, the Universe, and Everything');";
 
         // We test uuid, we also need to export the related constraint (in another file)
-        final String constraintForUuid = "CREATE CONSTRAINT IF NOT EXISTS ON (n:Person) ASSERT n.alpha IS UNIQUE;";
+        final String constraintForUuid = "CREATE CONSTRAINT Person_alpha IF NOT EXISTS ON (n:Person) ASSERT n.alpha IS UNIQUE;";
         db.executeTransactionally(constraintForUuid);
         final String uuidStatement = "CALL apoc.uuid.install('Person', {addToSetLabels:true, uuidProperty:\"alpha\"});";
         db.executeTransactionally(uuidStatement);
@@ -151,7 +151,7 @@ public class SystemDbTest {
         assertEquals(Set.of(dvStatement), readFileLines("metadata.DataVirtualizationCatalog.neo4j.cypher", directory));
         
         // -- with config and uuid constrain dropped
-        db.executeTransactionally("DROP CONSTRAINT ON (p:Person) ASSERT p.alpha IS UNIQUE");
+        db.executeTransactionally("DROP CONSTRAINT Person_alpha");
         TestUtil.testCall(db, "CALL apoc.systemdb.export.metadata($config)", 
                 Map.of("config", Map.of(FILENAME_KEY, "custom", FEATURES_KEY, Set.of(ExportMetadata.Type.Uuid.name()))), 
                 row -> {
