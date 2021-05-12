@@ -100,6 +100,11 @@ subprojects {
     compileJava {
         options.annotationProcessorPath = configurations.apt
         options.compilerArgs += ["-AIgnoreContextWarnings"]
+        options.encoding = "UTF-8"
+    }
+
+    compileTestJava {
+        options.encoding = "UTF-8"
     }
 
 }
