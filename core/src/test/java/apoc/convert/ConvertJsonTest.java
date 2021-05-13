@@ -4,6 +4,7 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.assertj.core.util.Arrays;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -16,6 +17,7 @@ import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +55,17 @@ public class ConvertJsonTest {
 	                Map<String, Object> valueAsMap = Util.readMap((String) row.get("value"));
 	                assertJsonNode(valueAsMap, "0", List.of("Test"), Map.of("foo", 7L));
                  });
+    }
+
+    @Test public void testToJsonWithNullValues() {
+        testCall(db, "RETURN apoc.convert.toJson({a: null, b: 'myString', c: [1,'2',null]}) as value",
+                (row) -> {
+                    final Map<String, Object> value = Util.fromJson((String) row.get("value"), Map.class);
+                    assertNull(value.get("a"));
+                    assertEquals("myString", value.get("b"));
+                    final HashSet<Object> expectedSet = new HashSet<>(Arrays.asList(new Object[]{ 1L, "2", null }));
+                    assertEquals(expectedSet, new HashSet<>((List<Object>) value.get("c")));
+                });
     }
 
     @Test
@@ -120,7 +133,8 @@ public class ConvertJsonTest {
                     assertJsonNode((Map<String, Object>) map.get("one"), "0", test, Map.of("foo", 7L));
                     assertJsonNode((Map<String, Object>) map.get("two"), "1", test, Map.of("bar", 9L));
                 });
-    }
+    }s
+    
 
     @Test
     public void testToJsonRel() throws Exception {

@@ -41,8 +41,9 @@ public class Json {
             case MAP:
                 return ((Map<String, Object>) value).entrySet()
                         .stream()
-                        .collect(Collectors.toMap(Map.Entry::getKey,
-                                e -> writeJsonResult(e.getValue())));
+                        .collect(HashMap::new, 
+                                (mapAccumulator, entry) -> mapAccumulator.put(entry.getKey(), writeJsonResult(entry.getValue())), 
+                                HashMap::putAll);  // workaround for https://bugs.openjdk.java.net/browse/JDK-8148463
             default:
                 return value;
         }
@@ -90,6 +91,7 @@ public class Json {
     public String toJson(@Name("value") Object value) {
         try {
             return JsonUtil.OBJECT_MAPPER.writeValueAsString(writeJsonResult(value));
+//            return JsonUtil.OBJECT_MAPPER.writeValueAsString(value);
         } catch (IOException e) {
             throw new RuntimeException("Can't convert " + value + " to json", e);
         }
