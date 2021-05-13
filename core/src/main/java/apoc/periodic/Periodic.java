@@ -150,12 +150,13 @@ public class Periodic {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.submit('name',statement) - submit a one-off background statement")
-    public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement) {
+    @Description("apoc.periodic.submit('name',statement,config) - submit a one-off background statement; parameter 'config' is optional and can contain 'params' entry for nested statement")
+    public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
         validateQuery(statement);
+        Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
         JobInfo info = submit(name, () -> {
             try {
-                db.executeTransactionally(statement);
+                db.executeTransactionally(statement, params);
             } catch(Exception e) {
                 log.warn("in background task via submit", e);
                 throw new RuntimeException(e);
