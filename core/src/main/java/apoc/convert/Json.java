@@ -41,9 +41,9 @@ public class Json {
             case MAP:
                 return ((Map<String, Object>) value).entrySet()
                         .stream()
-                        .collect(HashMap::new, 
+                        .collect(HashMap::new, // workaround for https://bugs.openjdk.java.net/browse/JDK-8148463
                                 (mapAccumulator, entry) -> mapAccumulator.put(entry.getKey(), writeJsonResult(entry.getValue())), 
-                                HashMap::putAll);  // workaround for https://bugs.openjdk.java.net/browse/JDK-8148463
+                                HashMap::putAll);  
             default:
                 return value;
         }
