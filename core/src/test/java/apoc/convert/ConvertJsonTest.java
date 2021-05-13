@@ -20,6 +20,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static apoc.convert.Json.NODE;
 import static apoc.convert.Json.RELATIONSHIP;
@@ -63,7 +64,7 @@ public class ConvertJsonTest {
                     final Map<String, Object> value = Util.fromJson((String) row.get("value"), Map.class);
                     assertNull(value.get("a"));
                     assertEquals("myString", value.get("b"));
-                    final HashSet<Object> expectedSet = new HashSet<>(Arrays.asList(new Object[]{ 1L, "2", null }));
+                    final Set<Object> expectedSet = new HashSet<>(Arrays.asList(new Object[]{ 1L, "2", null }));
                     assertEquals(expectedSet, new HashSet<>((List<Object>) value.get("c")));
                 });
     }
@@ -133,9 +134,8 @@ public class ConvertJsonTest {
                     assertJsonNode((Map<String, Object>) map.get("one"), "0", test, Map.of("foo", 7L));
                     assertJsonNode((Map<String, Object>) map.get("two"), "1", test, Map.of("bar", 9L));
                 });
-    }s
+    }
     
-
     @Test
     public void testToJsonRel() throws Exception {
         testCall(db, "CREATE (f:User {name:'Adam'})-[rel:KNOWS {since: 1993.1, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42}) RETURN apoc.convert.toJson(rel) as value",
