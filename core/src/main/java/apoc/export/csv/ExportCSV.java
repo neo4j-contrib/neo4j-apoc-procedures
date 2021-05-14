@@ -97,6 +97,11 @@ public class ExportCSV {
         ProgressInfo progressInfo = new ProgressInfo(fileName, source, format);
         progressInfo.batchSize = exportConfig.getBatchSize();
         ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
+//        final ResourceIterator<Object> signature = db.executeTransactionally("CALL dbms.procedures()", Collections.emptyMap(), result -> result.columnAs("signature"));
+//        db.executeTransactionally("CALL apoc.meta.nodeTypeProperties({})", Collections.emptyMap()/* Map.of("config", configNew)*/, result -> {
+//            System.out.println("MetaInformation.getAllNodePropertyKeys");
+//            return null;
+//        });
         CsvFormat exporter = new CsvFormat(db);
 
         ExportFileManager cypherFileManager = FileManagerFactory

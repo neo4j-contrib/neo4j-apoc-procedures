@@ -6,6 +6,7 @@ import apoc.export.util.Format;
 import apoc.export.util.FormatUtils;
 import apoc.export.util.MetaInformation;
 import apoc.export.util.Reporter;
+import apoc.meta.Meta;
 import apoc.result.ProgressInfo;
 import com.opencsv.CSVWriter;
 import org.neo4j.cypher.export.SubGraph;
@@ -37,6 +38,8 @@ import java.util.stream.StreamSupport;
 import static apoc.export.util.BulkImportUtil.formatHeader;
 import static apoc.export.util.MetaInformation.collectPropTypesForNodes;
 import static apoc.export.util.MetaInformation.collectPropTypesForRelationships;
+import static apoc.export.util.MetaInformation.getAllNodePropertyKeys;
+import static apoc.export.util.MetaInformation.getAllRelPropertyKeys;
 import static apoc.export.util.MetaInformation.getLabelsString;
 import static apoc.export.util.MetaInformation.updateKeyTypes;
 import static apoc.util.Util.joinLabels;
@@ -144,16 +147,30 @@ public class CsvFormat implements Format {
     }
 
     public void writeAll(SubGraph graph, Reporter reporter, ExportConfig config, CSVWriter out) {
-        Map<String,Class> nodePropTypes = collectPropTypesForNodes(graph);
-        Map<String,Class> relPropTypes = collectPropTypesForRelationships(graph);
+//        db.executeTransactionally("CALL apoc.meta.nodeTypeProperties()", Collections.emptyMap()/* Map.of("config", configNew)*/, result -> {
+//            System.out.println("MetaInformation.getAllNodePropertyKeys");
+//            return null;
+//        });
+        
+        Map<String, Class> nodePropTypes = getAllNodePropertyKeys(graph, db, config);
+        Map<String, Class> relPropTypes = getAllRelPropertyKeys(graph, db, config);
+        // todo - che serve la Map<String,Class> perché Class?
+//        Map<String,Class> nodePropTypes = collectPropTypesForNodes(graph);
+        // mappa nomeProp - classe
+        
+//        Map<String,Class> relPropTypes = collectPropTypesForRelationships(graph);
         List<String> nodeHeader = generateHeader(nodePropTypes, config.useTypes(), NODE_HEADER_FIXED_COLUMNS);
+
         List<String> relHeader = generateHeader(relPropTypes, config.useTypes(), REL_HEADER_FIXED_COLUMNS);
         List<String> header = new ArrayList<>(nodeHeader);
+
         header.addAll(relHeader);
         out.writeNext(header.toArray(new String[header.size()]), applyQuotesToAll);
         int cols = header.size();
 
         writeNodes(graph, out, reporter, nodeHeader.subList(NODE_HEADER_FIXED_COLUMNS.length, nodeHeader.size()), cols, config.getBatchSize(), config.getDelim());
+        
+        // TODO TODOISSIMO --> FARE LE RELAZIONI
         writeRels(graph, out, reporter, relHeader.subList(REL_HEADER_FIXED_COLUMNS.length, relHeader.size()), cols, nodeHeader.size(), config.getBatchSize(), config.getDelim());
     }
 
@@ -264,36 +281,26 @@ public class CsvFormat implements Format {
         }
     }
 
-    public void writeAll2(SubGraph graph, Reporter reporter, ExportConfig config, CSVWriter out) {
-        writeNodes(graph, out, reporter,config);
-        writeRels(graph, out, reporter,config);
-    }
-
     private List<String> generateHeader(Map<String, Class> propTypes, boolean useTypes, String... starters) {
         List<String> result = new ArrayList<>();
         if (useTypes) {
+            // va qua lo starter con questo false... ma non me ne fotte
             Collections.addAll(result, starters);
         } else {
             result.addAll(Stream.of(starters).map(s -> s.split(":")[0]).collect(Collectors.toList()));
         }
+        // todo - se invece di Map<String, Class> propTypes, ci passo direttamente la stringa del tipo?
         result.addAll(propTypes.entrySet().stream()
                 .map(entry -> {
                     String type = MetaInformation.typeFor(entry.getValue(), null);
                     return (type == null || type.equals("string") || !useTypes)
                             ? entry.getKey() : entry.getKey() + ":" + type;
+
+                    // todo - come caisce :label?
                 })
                 .sorted()
                 .collect(Collectors.toList()));
         return result;
-    }
-
-    private void writeNodes(SubGraph graph, CSVWriter out, Reporter reporter, ExportConfig config) {
-        Map<String,Class> nodePropTypes = collectPropTypesForNodes(graph);
-        List<String> nodeHeader = generateHeader(nodePropTypes, config.useTypes(), NODE_HEADER_FIXED_COLUMNS);
-        String[] header = nodeHeader.toArray(new String[nodeHeader.size()]);
-        out.writeNext(header, applyQuotesToAll); // todo types
-        int cols = header.length;
-        writeNodes(graph, out, reporter, nodeHeader.subList(NODE_HEADER_FIXED_COLUMNS.length, nodeHeader.size()), cols, config.getBatchSize(), config.getDelim());
     }
 
     private void writeNodes(SubGraph graph, CSVWriter out, Reporter reporter, List<String> header, int cols, int batchSize, String delimiter) {
@@ -326,15 +333,6 @@ public class CsvFormat implements Format {
             }
             offset++;
         }
-    }
-
-    private void writeRels(SubGraph graph, CSVWriter out, Reporter reporter, ExportConfig config) {
-        Map<String,Class> relPropTypes = collectPropTypesForRelationships(graph);
-        List<String> header = generateHeader(relPropTypes, config.useTypes(), REL_HEADER_FIXED_COLUMNS);
-        out.writeNext(header.toArray(new String[header.size()]), applyQuotesToAll);
-        int cols = header.size();
-        int offset = 0;
-        writeRels(graph, out, reporter, header.subList(REL_HEADER_FIXED_COLUMNS.length, header.size()), cols, offset, config.getBatchSize(), config.getDelim());
     }
 
     private void writeRels(SubGraph graph, CSVWriter out, Reporter reporter, List<String> relHeader, int cols, int offset, int batchSize, String delimiter) {
