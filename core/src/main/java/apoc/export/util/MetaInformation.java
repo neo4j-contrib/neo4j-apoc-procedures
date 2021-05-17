@@ -8,13 +8,11 @@ import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResultTransformer;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +31,7 @@ public class MetaInformation {
     
     private static final Map<String, String> REVERSED_TYPE_MAP = MapUtils.invertMap(typeMappings);
     
-    public static Map<String, Class> getAllNodePropertyKeys(SubGraph graph, GraphDatabaseService db, ExportConfig config) {
+    public static Map<String, Class> collectPropTypesForNodes(SubGraph graph, GraphDatabaseService db, ExportConfig config) {
         final Map<String, Object> conf = new HashMap<>(config.getConfig());
         conf.put("includeLabels", stream(graph.getAllLabelsInUse()).map(Label::name).collect(Collectors.toList()));
         
@@ -41,7 +39,7 @@ public class MetaInformation {
                 Map.of("conf", conf), getMapResultTransformer()); 
     }
 
-    public static Map<String, Class> getAllRelPropertyKeys(SubGraph graph, GraphDatabaseService db, ExportConfig config) {
+    public static Map<String, Class> collectPropTypesForRelationships(SubGraph graph, GraphDatabaseService db, ExportConfig config) {
         final Map<String, Object> conf = new HashMap<>(config.getConfig());
         conf.put("includeRels", stream(graph.getAllRelationshipTypesInUse()).map(RelationshipType::name).collect(Collectors.toList()));
 
@@ -61,22 +59,7 @@ public class MetaInformation {
                             } catch (ClassNotFoundException e) {
                                 throw new RuntimeException(e);
                             }
-                        }, (e1, e2) -> e2)); // todo - serve questo merge finale? (e1, e2) -> e2
-    }
-
-    public static Map<String,Class> collectPropTypesForNodes(SubGraph graph) {
-        Map<String,Class> propTypes = new LinkedHashMap<>();
-        for (Node node : graph.getNodes()) {
-            updateKeyTypes(propTypes, node);
-        }
-        return propTypes;
-    }
-    public static Map<String,Class> collectPropTypesForRelationships(SubGraph graph) {
-        Map<String,Class> propTypes = new LinkedHashMap<>();
-        for (Relationship node : graph.getRelationships()) {
-            updateKeyTypes(propTypes, node);
-        }
-        return propTypes;
+                        }, (e1, e2) -> e2));
     }
 
     public static void updateKeyTypes(Map<String, Class> keyTypes, Entity pc) {
@@ -93,21 +76,12 @@ public class MetaInformation {
     }
 
     public final static Set<String> GRAPHML_ALLOWED = new HashSet<>(asList("boolean", "int", "long", "float", "double", "string"));
-
-    // todo - può essere null...
+    
     public static String typeFor(Class value, Set<String> allowed) {
         if (value == void.class) return null; // Is this necessary?
         Meta.Types type = Meta.Types.of(value);
         String name = (value.isArray() ? value.getComponentType() : value).getSimpleName().toLowerCase();
         boolean isAllowed = allowed != null && allowed.contains(name);
-        return getStringType(type, name, isAllowed);
-    }
-
-    public static String getStringType(Meta.Types type) {
-        return getStringType(type, null, false);
-    }
-
-    private static String getStringType(Meta.Types type, String name, boolean isAllowed) {
         switch (type) {
             case NULL:
                 return null;
