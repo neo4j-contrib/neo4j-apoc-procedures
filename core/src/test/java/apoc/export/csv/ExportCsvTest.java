@@ -296,10 +296,10 @@ public class ExportCsvTest {
     }
 
     private void assertResults(String fileName, Map<String, Object> r, final String source, 
-                               Long expectedNodes, Long expectedRelationships, Long expectedProperties, boolean assertEquals) {
+                               Long expectedNodes, Long expectedRelationships, Long expectedProperties, boolean assertPropEquality) {
         assertEquals(expectedNodes, r.get("nodes"));
         assertEquals(expectedRelationships, r.get("relationships"));
-        if (assertEquals) {
+        if (assertPropEquality) {
             assertEquals(expectedProperties, r.get("properties"));
         } else {
             assertTrue((Long) r.get("properties") < expectedProperties);
