@@ -17,10 +17,8 @@ import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static apoc.convert.Json.NODE;
 import static apoc.convert.Json.RELATIONSHIP;
@@ -58,14 +56,15 @@ public class ConvertJsonTest {
                  });
     }
 
-    @Test public void testToJsonWithNullValues() {
+    @Test
+    public void testToJsonWithNullValues() {
         testCall(db, "RETURN apoc.convert.toJson({a: null, b: 'myString', c: [1,'2',null]}) as value",
                 (row) -> {
                     final Map<String, Object> value = Util.fromJson((String) row.get("value"), Map.class);
                     assertNull(value.get("a"));
                     assertEquals("myString", value.get("b"));
-                    final Set<Object> expectedSet = new HashSet<>(Arrays.asList(new Object[]{ 1L, "2", null }));
-                    assertEquals(expectedSet, new HashSet<>((List<Object>) value.get("c")));
+                    final List<Object> expected = Arrays.asList(new Object[]{ 1L, "2", null });
+                    assertEquals(expected, value.get("c"));
                 });
     }
 
@@ -135,7 +134,7 @@ public class ConvertJsonTest {
                     assertJsonNode((Map<String, Object>) map.get("two"), "1", test, Map.of("bar", 9L));
                 });
     }
-    
+
     @Test
     public void testToJsonRel() throws Exception {
         testCall(db, "CREATE (f:User {name:'Adam'})-[rel:KNOWS {since: 1993.1, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42}) RETURN apoc.convert.toJson(rel) as value",
