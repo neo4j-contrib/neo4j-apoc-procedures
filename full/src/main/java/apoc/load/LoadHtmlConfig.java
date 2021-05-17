@@ -28,8 +28,8 @@ public class LoadHtmlConfig {
         this.children = Util.toBoolean(config.getOrDefault("children", false));
         this.charset = (String) config.getOrDefault("charset", "UTF-8"); 
         this.baseUri = (String) config.getOrDefault("baseUri", ""); 
-        this.browser = Browser.valueOf((String) config.getOrDefault("browser", "NONE"));
-        this.failSilently = FailSilently.valueOf((String) config.getOrDefault("failSilently", "FALSE"));
+        this.browser = Browser.valueOf((String) config.getOrDefault("browser", Browser.NONE.toString()));
+        this.failSilently = FailSilently.valueOf((String) config.getOrDefault("failSilently", FailSilently.FALSE.toString()));
         this.wait = Util.toLong(config.getOrDefault("wait", 0));
     }
 
