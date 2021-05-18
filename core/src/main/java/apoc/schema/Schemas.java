@@ -28,6 +28,7 @@ import org.neo4j.procedure.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -338,13 +339,13 @@ public class Schemas {
 
 
             Stream<IndexConstraintNodeInfo> constraintNodeInfoStream = StreamSupport.stream(constraintsIterator.spliterator(), false)
-                    .filter(constraintDescriptor -> constraintDescriptor.type().equals(org.neo4j.internal.schema.ConstraintType.EXISTS))
+                    .filter(constraintDescriptor -> constraintDescriptor.isNodePropertyExistenceConstraint())
                     .map(constraintDescriptor -> this.nodeInfoFromConstraintDescriptor(constraintDescriptor, tokenRead))
-                    .sorted(Comparator.comparing(i -> i.label));
+                    .sorted(Comparator.comparing(i -> i.label.toString()));
 
             Stream<IndexConstraintNodeInfo> indexNodeInfoStream = StreamSupport.stream(indexesIterator.spliterator(), false)
                     .map(indexDescriptor -> this.nodeInfoFromIndexDefinition(indexDescriptor, schemaRead, tokenRead))
-                    .sorted(Comparator.comparing(i -> i.label));
+                    .sorted(Comparator.comparing(i -> i.label.toString()));
 
             return Stream.of(constraintNodeInfoStream, indexNodeInfoStream).flatMap(e -> e);
         }
@@ -377,12 +378,11 @@ public class Schemas {
             } else {
                 Iterable<ConstraintDefinition> allConstraints = schema.getConstraints();
                 constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
-                        .filter(index -> !excludeRelationships.contains(index.getRelationshipType().name()))
+                        .filter(index -> index.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE) && !excludeRelationships.contains(index.getRelationshipType().name()))
                         .collect(Collectors.toList());
             }
 
             Stream<ConstraintRelationshipInfo> constraintRelationshipInfoStream = StreamSupport.stream(constraintsIterator.spliterator(), false)
-                    .filter(constraintDefinition -> constraintDefinition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE))
                     .map(this::relationshipInfoFromConstraintDefinition);
 
             return constraintRelationshipInfoStream;
@@ -397,6 +397,9 @@ public class Schemas {
      * @return
      */
     private IndexConstraintNodeInfo nodeInfoFromConstraintDescriptor(ConstraintDescriptor constraintDescriptor, TokenNameLookup tokens) {
+        System.out.println("nodeInfoFromConstraintDescriptor - getSchema");
+        System.out.println(constraintDescriptor.schema());
+        
         String labelName =  tokens.labelGetName(constraintDescriptor.schema().getLabelId());
         List<String> properties = new ArrayList<>();
         Arrays.stream(constraintDescriptor.schema().getPropertyIds()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
@@ -425,14 +428,15 @@ public class Schemas {
      */
     private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexDescriptor indexDescriptor, SchemaRead schemaRead, TokenNameLookup tokens){
         int[] labelIds = indexDescriptor.schema().getEntityTokenIds();
-        if (labelIds.length != 1) throw new IllegalStateException("Index with more than one label");
-        String labelName =  tokens.labelGetName(labelIds[0]);
+        Object labelName = labelIds.length > 1 ? IntStream.of(labelIds).boxed().map(tokens::labelGetName).sorted().collect(Collectors.toList()) : tokens.labelGetName(labelIds[0]);
         List<String> properties = new ArrayList<>();
         Arrays.stream(indexDescriptor.schema().getPropertyIds()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
+        final String labelAsString = labelName instanceof String ? (String) labelName : StringUtils.join(labelName, ",");
+        final String indexName = String.format(":%s(%s)", labelAsString, StringUtils.join(properties, ","));
         try {
             return new IndexConstraintNodeInfo(
                     // Pretty print for index name
-                    String.format(":%s(%s)", labelName, StringUtils.join(properties, ",")),
+                    indexName,
                     labelName,
                     properties,
                     schemaRead.indexGetState(indexDescriptor).toString(),
@@ -446,7 +450,7 @@ public class Schemas {
         } catch(IndexNotFoundKernelException e) {
             return new IndexConstraintNodeInfo(
                     // Pretty print for index name
-                    String.format(":%s(%s)", labelName, StringUtils.join(properties, ",")),
+                    indexName,
                     labelName,
                     properties,
                     "NOT_FOUND",

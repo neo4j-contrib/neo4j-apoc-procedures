@@ -373,6 +373,30 @@ public class SchemasEnterpriseFeaturesTest {
             return null;
         });
     }
+    
+    @Test
+    public void testSchemaNodeWithRelationshipsConstraintsAndViceVersa() {
+        session.writeTransaction(tx -> {
+            tx.run("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
+            tx.commit();
+            return null;
+        });
+        testResult(session, "CALL apoc.schema.nodes()", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("CONSTRAINT ON ()-[liked:LIKED]-() ASSERT exists(liked.day)", r.get("name"));
+            assertEquals("RELATIONSHIP_PROPERTY_EXISTENCE", r.get("type"));
+            assertEquals(asList("day"), r.get("properties"));
+            assertEquals(StringUtils.EMPTY, r.get("status"));
+            assertFalse(result.hasNext());
+        });
+        session.writeTransaction(tx -> {
+            tx.run("DROP CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
+            tx.commit();
+            return null;
+        });
+        
+        // todo - vice versa
+    }
 
     private List<String> expectedKeys(String... keys){
         return asList(keys);

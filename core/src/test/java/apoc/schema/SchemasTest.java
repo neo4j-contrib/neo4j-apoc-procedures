@@ -585,4 +585,28 @@ public class SchemasTest {
         }
 
     }
+
+    @Test
+    public void testConstraintsRelationshipsAndExcludeRelationshipsValuatedShouldFail2() {
+        db.executeTransactionally("call db.index.fulltext.createNodeIndex('test', ['Blah', 'Moon'], ['weightProp'])");
+        awaitIndexesOnline();
+        testResult(db, "CALL apoc.schema.nodes()", (result) -> {
+            // Get the index info
+            Map<String, Object> r = result.next();
+
+            assertEquals(":[Blah, Moon],(weightProp)", r.get("name"));
+            assertEquals("ONLINE", r.get("status"));
+            assertEquals(List.of("Blah", "Moon"), r.get("label"));
+            assertEquals("INDEX", r.get("type"));
+            assertEquals(List.of("weightProp"), r.get("properties"));
+            assertEquals("NO FAILURE", r.get("failure"));
+            assertEquals(100d, r.get("populationProgress"));
+            assertEquals(1d, r.get("valuesSelectivity"));
+            assertEquals("Index( id=1, name='test', type='GENERAL FULLTEXT', schema=(:Blah:Moon {weightProp}), indexProvider='fulltext-1.0' )", r.get("userDescription"));
+
+            assertFalse(result.hasNext());
+        });
+    }
+    
+    // todo - testare l'ordinamento con più indexes
 }
