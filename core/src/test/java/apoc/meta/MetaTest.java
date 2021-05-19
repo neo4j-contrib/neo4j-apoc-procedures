@@ -127,11 +127,13 @@ public class MetaTest {
             testSet.set(gatherRecords(r));
         });
 
-//        System.out.println("COMPARE TO:");
-//        System.out.println(toCSV(compareTo.get()));
-//
-//        System.out.println("TEST SET:");
-//        System.out.println(toCSV(testSet.get()));
+        // Uncomment this for debugging purposes
+        /*
+        System.out.println("COMPARE TO:");
+        System.out.println(toCSV(compareTo.get()));
+        System.out.println("TEST SET:");
+        System.out.println(toCSV(testSet.get()));
+        */
 
         return resultSetsEquivalent(compareTo.get(), testSet.get());
     }
