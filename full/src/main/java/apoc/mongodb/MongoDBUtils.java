@@ -20,7 +20,7 @@ public class MongoDBUtils {
         long count(Map<String, Object> query);
         long count(Document query);
 
-        Stream<Map<String, Object>> aggregate(List<Document> pipelines);
+        Stream<Map<String, Object>> aggregate(List<Document> pipeline);
 
         Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit);
         Stream<Map<String, Object>> find(Document query, Document project, Document sort, int skip, int limit);

@@ -248,8 +248,8 @@ class MongoDBColl implements MongoDBUtils.Coll {
     }
 
     @Override
-    public Stream<Map<String, Object>> aggregate(List<Document> pipelines) {
-        return asStream(collection.aggregate(pipelines));
+    public Stream<Map<String, Object>> aggregate(List<Document> pipeline) {
+        return asStream(collection.aggregate(pipeline));
     }
 
     @Override
