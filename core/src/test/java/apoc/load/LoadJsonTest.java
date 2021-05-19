@@ -4,11 +4,14 @@ import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.assertj.core.util.Arrays;
 import org.junit.*;
 import org.mockserver.client.server.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -18,6 +21,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.*;
+import static apoc.convert.ConvertJsonTest.EXPECTED_COLUMNS_MAP;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -25,6 +29,7 @@ import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
 import static org.mockserver.model.HttpRequest.request;
@@ -101,6 +106,27 @@ public class LoadJsonTest {
                     assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
                 });
     }
+    
+    @Test
+    public void testLoadJsonWithPathOptions() throws Exception {
+        URL url = ClassLoader.getSystemResource("columns.json");
+        final List<Object> expectedValuesDefaultOpts = Arrays.asList(new Object[]{ EXPECTED_COLUMNS_MAP, null, null, null });
+        
+        testResult(db, "CALL apoc.load.json($url, '$..columns')", map("url",url.toString()),
+                (res) -> assertEquals(expectedValuesDefaultOpts, Iterators.asList(res.columnAs("value"))));
+        
+        testResult(db, "CALL apoc.load.json($url, '$..columns', $config)", 
+                map("url",url.toString(), "config", map("pathOptions", List.of("ALWAYS_RETURN_LIST"))),
+                (res) -> assertEquals(List.of(EXPECTED_COLUMNS_MAP), Iterators.asList(res.columnAs("value"))));
+
+        testResult(db, "CALL apoc.load.jsonArray($url, '$..columns')", map("url",url.toString()),
+                (res) -> assertEquals(expectedValuesDefaultOpts, Iterators.asList(res.columnAs("value"))));
+        
+        testResult(db, "CALL apoc.load.jsonArray($url, '$..columns', $config)",
+                map("url",url.toString(), "config", map("pathOptions", List.of("ALWAYS_RETURN_LIST"))),
+                (res) -> assertEquals(List.of(EXPECTED_COLUMNS_MAP), Iterators.asList(res.columnAs("value"))));
+    }
+    
     @Test public void testLoadJsonArrayPath() throws Exception {
 		URL url = ClassLoader.getSystemResource("map.json");
 		testCall(db, "CALL apoc.load.jsonArray($url,'$.foo')",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value

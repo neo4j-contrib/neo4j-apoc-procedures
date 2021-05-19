@@ -4,6 +4,7 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.assertj.core.util.Arrays;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -21,6 +22,7 @@ import java.util.Map;
 
 import static apoc.convert.Json.NODE;
 import static apoc.convert.Json.RELATIONSHIP;
+import static apoc.util.JsonUtil.PATH_OPTIONS_ERROR_MESSAGE;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -28,12 +30,33 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
 public class ConvertJsonTest {
-
+    public static final Map<String, Object> EXPECTED_COLUMNS_MAP = Map.of("row", Map.of("poiType", "Governorate", "poi", 772L), "col2", Map.of("_id", "772col2"));
+    
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
 	@Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Json.class);
+    }
+    
+    @Test
+    public void testJsonPath() throws Exception {
+        // json extracted from issue #1445
+        String json = "{\"columns\":{\"row\":{\"poiType\":\"Governorate\",\"poi\":772},\"col2\":{\"_id\":\"772col2\"}}}";
+
+        testCall(db, "RETURN apoc.json.path($json, '$..columns') AS path", Map.of("json", json),
+                (row) -> assertEquals(Arrays.asList(new Object[]{ EXPECTED_COLUMNS_MAP, null, null, null }), row.get("path")));
+
+        testCall(db, "RETURN apoc.json.path($json, '$..columns', ['ALWAYS_RETURN_LIST']) AS path", Map.of("json", json),
+                (row) -> assertEquals(List.of(EXPECTED_COLUMNS_MAP), row.get("path")));
+        
+        try {
+            testCall(db, "RETURN apoc.json.path($json, '$..columns', ['INVALID']) AS path", Map.of("json", json),
+                    (row) -> fail("Should fail because of invalid pathOptions"));
+        } catch (Exception e) {
+            final String expectedMsg = "Failed to invoke function `apoc.json.path`: Caused by: java.lang.RuntimeException: " + PATH_OPTIONS_ERROR_MESSAGE;
+            assertEquals(expectedMsg, e.getMessage());
+        }
     }
 
     @Test public void testToJsonList() throws Exception {
