@@ -421,8 +421,6 @@ public class Schemas {
      * @return
      */
     private IndexConstraintNodeInfo nodeInfoFromConstraintDescriptor(ConstraintDescriptor constraintDescriptor, TokenNameLookup tokens) {
-        System.out.println("nodeInfoFromConstraintDescriptor - getSchema");
-        System.out.println(constraintDescriptor.schema());
         
         String labelName =  tokens.labelGetName(constraintDescriptor.schema().getLabelId());
         List<String> properties = new ArrayList<>();
@@ -456,11 +454,10 @@ public class Schemas {
         List<String> properties = new ArrayList<>();
         Arrays.stream(indexDescriptor.schema().getPropertyIds()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
         final String labelAsString = labelName instanceof String ? (String) labelName : StringUtils.join(labelName, ",");
-        final String indexName = String.format(":%s(%s)", labelAsString, StringUtils.join(properties, ","));
         try {
             return new IndexConstraintNodeInfo(
                     // Pretty print for index name
-                    indexName,
+                    String.format(":%s(%s)", labelAsString, StringUtils.join(properties, ",")),
                     labelName,
                     properties,
                     schemaRead.indexGetState(indexDescriptor).toString(),
@@ -474,7 +471,7 @@ public class Schemas {
         } catch(IndexNotFoundKernelException e) {
             return new IndexConstraintNodeInfo(
                     // Pretty print for index name
-                    indexName,
+                    String.format(":%s(%s)", labelAsString, StringUtils.join(properties, ",")),
                     labelName,
                     properties,
                     "NOT_FOUND",
