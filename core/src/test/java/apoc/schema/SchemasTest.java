@@ -614,6 +614,4 @@ public class SchemasTest {
             assertFalse(result.hasNext());
         });
     }
-    
-    // todo - testare l'ordinamento con più indexes --> confrontare solo liste di nomi tirate fuori con columsAs
 }
