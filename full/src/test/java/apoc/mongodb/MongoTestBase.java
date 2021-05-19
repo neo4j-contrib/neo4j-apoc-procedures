@@ -99,7 +99,7 @@ public class MongoTestBase {
     public static void createContainer(boolean withAuth) {
         assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
-            mongo = new GenericContainer("mongo:3")
+            mongo = new GenericContainer("mongo:4")
                     .withNetworkAliases("mongo-" + Base58.randomString(6))
                     .withExposedPorts(MONGO_DEFAULT_PORT)
                     .waitingFor(new HttpWaitStrategy()
