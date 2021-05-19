@@ -5,6 +5,7 @@ import apoc.util.TestUtil;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -40,6 +41,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.isRunningInCI;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
@@ -170,9 +172,10 @@ public class MongoTestBase {
             assertTrue("stdout is not empty", execResult.getStdout() != null && !execResult.getStdout().isEmpty());
 
             List<String> lists = Stream.of(execResult.getStdout().split("\n"))
-                    .filter(s -> s != null || !s.isEmpty())
+                    .filter(StringUtils::isNotBlank)
                     .collect(Collectors.toList());
-            String jsonStr = lists.get(lists.size() - 1);
+            lists = lists.subList(lists.indexOf("{"), lists.size());
+            String jsonStr = String.join("", lists);
             return JsonUtil.OBJECT_MAPPER.readValue(jsonStr, Map.class);
         } catch (Exception e) {
             throw new RuntimeException(e);

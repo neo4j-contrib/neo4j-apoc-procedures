@@ -153,7 +153,7 @@ public class MongoTest extends MongoTestBase {
                     map("uri", String.format("mongodb://%s:%s/test.test?authSource=admin", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))),
                     row -> {});
         } catch (Exception e) {
-            assertTrue(e.getMessage().contains("not authorized on test to execute command"));
+            assertTrue(e.getMessage().contains("Command failed with error 13"));
             throw e;
         }
     }
