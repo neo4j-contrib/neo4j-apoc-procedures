@@ -9,13 +9,13 @@ public class ConstraintRelationshipInfo {
 
     public final String name;
 
-    public final String type;
+    public final Object type;
 
     public final List<String> properties;
 
     public final String status;
 
-    public ConstraintRelationshipInfo(String name, String type, List<String> properties, String status) {
+    public ConstraintRelationshipInfo(String name, Object type, List<String> properties, String status) {
         this.name = name;
         this.type = type;
         this.properties = properties;

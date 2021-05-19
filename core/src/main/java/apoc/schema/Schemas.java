@@ -4,6 +4,7 @@ import apoc.result.AssertSchemaResult;
 import apoc.result.ConstraintRelationshipInfo;
 import apoc.result.IndexConstraintNodeInfo;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.common.EntityType;
 import org.neo4j.common.TokenNameLookup;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -27,6 +28,7 @@ import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -298,16 +300,14 @@ public class Schemas {
 
                 Iterator<IndexDescriptor> allIndex = schemaRead.indexesGetAll();
 
-                indexesIterator = StreamSupport.stream(
-                        Spliterators.spliteratorUnknownSize(allIndex, Spliterator.ORDERED),
-                        false)
-                        .filter(index -> Arrays.stream(index.schema().getEntityTokenIds()).noneMatch(id -> {
+
+                indexesIterator = getIndexesFromSchema(allIndex, index -> index.schema().entityType().equals(EntityType.NODE) && Arrays.stream(index.schema().getEntityTokenIds()).noneMatch(id -> {
                     try {
                         return excludeLabels.contains(tokenRead.nodeLabelName(id));
                     } catch (LabelNotFoundKernelException e) {
                         return false;
                     }
-                })).collect(Collectors.toList());
+                }));
 
                 Iterable<ConstraintDescriptor> allConstraints = () -> schemaRead.constraintsGetAll();
                 constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
@@ -350,6 +350,11 @@ public class Schemas {
         }
     }
 
+    private List<IndexDescriptor> getIndexesFromSchema(Iterator<IndexDescriptor> allIndex, Predicate<IndexDescriptor> indexDescriptorPredicate) {
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(allIndex, Spliterator.ORDERED), false)
+                .filter(indexDescriptorPredicate).collect(Collectors.toList());
+    }
+
     /**
      * Collects constraints for relationships
      *
@@ -364,13 +369,12 @@ public class Schemas {
 
         try ( Statement ignore = ktx.acquireStatement() ) {
             TokenRead tokenRead = ktx.tokenRead();
+            SchemaRead schemaRead = ktx.schemaRead();
             
             Iterable<ConstraintDefinition> constraintsIterator;
             Iterable<IndexDescriptor> indexesIterator;
 
             if(!includeRelationships.isEmpty()) {
-                SchemaRead schemaRead = ktx.schemaRead();
-                
                 constraintsIterator = includeRelationships.stream()
                         .filter(type -> !excludeRelationships.contains(type) && tokenRead.relationshipType(type) != -1)
                         .flatMap(type -> {
@@ -387,23 +391,25 @@ public class Schemas {
                         })
                         .collect(Collectors.toList());
             } else {
-                SchemaRead schemaRead = ktx.schemaRead();
-                
                 Iterable<ConstraintDefinition> allConstraints = schema.getConstraints();
                 constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
                         .filter(index -> index.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE) && !excludeRelationships.contains(index.getRelationshipType().name()))
                         .collect(Collectors.toList());
-
-                Iterable<IndexDescriptor> allIndexes = schemaRead.indexesGetAll();
-                indexesIterator = StreamSupport.stream(allIndexes.spliterator(),false)
-                        .filter(index -> index.isRelationshipIndex())
-                        .collect(Collectors.toList());
+                
+                Iterator<IndexDescriptor> allIndex = schemaRead.indexesGetAll();
+                
+                indexesIterator = getIndexesFromSchema(allIndex, index -> index.schema().entityType().equals(EntityType.RELATIONSHIP)
+                        && Arrays.stream(index.schema().getEntityTokenIds())
+                        .noneMatch(id -> excludeRelationships.contains(tokenRead.relationshipTypeGetName(id))));
             }
 
             Stream<ConstraintRelationshipInfo> constraintRelationshipInfoStream = StreamSupport.stream(constraintsIterator.spliterator(), false)
                     .map(this::relationshipInfoFromConstraintDefinition);
+            
+            Stream<ConstraintRelationshipInfo> indexRelationshipInfoStream = StreamSupport.stream(indexesIterator.spliterator(), false)
+                    .map(index -> relationshipInfoFromIndexDescription(index, tokenRead));
 
-            return constraintRelationshipInfoStream;
+            return Stream.of(constraintRelationshipInfoStream, indexRelationshipInfoStream).flatMap(e -> e);
         }
     }
 
@@ -493,5 +499,20 @@ public class Schemas {
                 Iterables.asList(constraintDefinition.getPropertyKeys()),
                 ""
         );
+    }
+    
+    private ConstraintRelationshipInfo relationshipInfoFromIndexDescription(IndexDescriptor indexDescriptor, TokenNameLookup tokens) {
+        int[] labelIds = indexDescriptor.schema().getEntityTokenIds();
+        Object labelName = labelIds.length > 1 ? IntStream.of(labelIds).boxed().map(tokens::relationshipTypeGetName).sorted().collect(Collectors.toList()) : tokens.relationshipTypeGetName(labelIds[0]);
+        final List<String> properties = Arrays.stream(indexDescriptor.schema().getPropertyIds())
+                .mapToObj(tokens::propertyKeyGetName)
+                .collect(Collectors.toList());
+        
+        
+        final String labelAsString = labelName instanceof String ? (String) labelName : StringUtils.join(labelName, ",");
+        final String indexName = String.format(":%s(%s)", labelAsString, StringUtils.join(properties, ","));
+        
+        
+        return new ConstraintRelationshipInfo(indexName, labelName, properties, "");
     }
 }
