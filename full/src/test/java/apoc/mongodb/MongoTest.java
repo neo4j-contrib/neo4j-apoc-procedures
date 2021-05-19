@@ -112,8 +112,11 @@ public class MongoTest extends MongoTestBase {
                     "minKey", new MinKey(),
                     "maxKey", new MaxKey(),
                     "bought", productReferences)));
-            personCollection.insertOne(new Document(map("name", "vvv", "baz", "baa", "age", 200)));
-            personCollection.insertOne(new Document(map("name", "zzz", "baz", "baa", "age", 1)));
+            personCollection.insertOne(new Document(map("name", "vvv", "baz", "baa", "foo", "custom", "age", 200)));
+            personCollection.insertOne(new Document(map("name", "zzz", "baz", "baa", "foo", "custom","age", 1)));
+            personCollection.insertOne(new Document(map("name", "another", "foo", "custom","age", 666)));
+            personCollection.insertOne(new Document(map("name", "one", "foo", "custom", "age", 777)));
+            personCollection.insertOne(new Document(map("name", "two", "foo", "custom", "age", 11)));
 
             MongoDatabase databaseFoo = mongoClient.getDatabase("foo");
             MongoCollection<Document> barCollection = databaseFoo.getCollection("bar");
@@ -232,7 +235,29 @@ public class MongoTest extends MongoTestBase {
     }
 
     @Test
-    public void testFindSort() throws Exception {
+    public void testAggregation() {
+        testResult(db, "CALL apoc.mongo.aggregate($uri, [{`$match`: {foo: 'custom'}}, {`$sort`: {name: -1}}, {`$skip`: 1}, {`$limit`: 2}, {`$set`: {aggrField: 'Y'} }], $conf)", 
+                map("uri", PERSON_URI, "conf", map("objectIdAsMap", false)), res -> {
+            final ResourceIterator<Map<String, Object>> value = res.columnAs("value");
+            final Map<String, Object> first = value.next();
+            assertEquals("custom", first.get("foo"));
+            assertEquals("vvv", first.get("name"));
+            assertEquals("baa", first.get("baz"));
+            assertEquals("Y", first.get("aggrField"));
+            assertEquals(200L, first.get("age"));
+            assertTrue(first.get("_id") instanceof String);
+            final Map<String, Object> second = value.next();
+            assertEquals("custom", second.get("foo"));
+            assertEquals("two", second.get("name"));
+            assertEquals("Y", second.get("aggrField"));
+            assertEquals(11L, second.get("age"));
+            assertTrue(second.get("_id") instanceof String);
+            assertFalse(value.hasNext());
+        });
+    }
+
+    @Test
+    public void testFindSort() {
         testResult(db, "CALL apoc.mongo.find($uri, {expr: {`$regex`: 'foo*', `$options`: ''}}, {sort: {name: -1} })", map("uri", PERSON_URI), res -> {
             final ResourceIterator<Map<String, Object>> value = res.columnAs("value");
             assertionsPersonJohn(value.next(), true, false);
@@ -243,7 +268,7 @@ public class MongoTest extends MongoTestBase {
     }
 
     @Test
-    public void testFindWithExtractReference() throws Exception {
+    public void testFindWithExtractReference() {
         testResult(db, "CALL apoc.mongo.find($uri, {expr: {`$regex`: 'foo*', `$options`: ''}}, {extractReferences: true})", map("uri", PERSON_URI), res -> {
             final ResourceIterator<Map<String, Object>> value = res.columnAs("value");
             assertionsPersonAl(value.next(), true, true);
@@ -314,7 +339,7 @@ public class MongoTest extends MongoTestBase {
     }
 
     @Test
-    public void testCountWithComplexTypes() throws Exception {
+    public void testCountWithComplexTypes() {
         final String bytes = Base64.getEncoder().encodeToString("fooBar".getBytes());
         testCall(db, "CALL apoc.mongo.count($uri, {binary: {`$binary`: 'Zm9vQmFy', `$subType`: '00'}, int64: {`$numberLong`: '29'}})",
                 map("uri", PERSON_URI, "bytes", bytes),
@@ -322,7 +347,7 @@ public class MongoTest extends MongoTestBase {
     }
 
     @Test
-    public void testUpdate() throws Exception {
+    public void testUpdate() {
         testCall(db, "CALL apoc.mongo.update($uri, {foo: {`$oid`: '57e193d7a9cc81b4027499c4'}}, {`$set`:{code: {`$code`: 'void 0'}}})",
                 map("uri", PERSON_URI), r -> {
                     long affected = (long) r.get("value");
@@ -376,7 +401,7 @@ public class MongoTest extends MongoTestBase {
     }
 
     @Test
-    public void testGetInsertAndDeleteWithObjectId() throws Exception {
+    public void testGetInsertAndDeleteWithObjectId() {
         testResult(db, "CALL apoc.mongo.insert($uri,[{foo:'bar', myId: {`$oid`: '507f191e811c19729de960ea'}}])", map("uri", PERSON_URI), (r) -> {
             assertFalse("should be empty", r.hasNext());
         });
@@ -391,12 +416,12 @@ public class MongoTest extends MongoTestBase {
 
     // -- tests similar to MongoDbTest.java to check consistency with old procedures
     @Test
-    public void testFind() throws Exception {
+    public void testFind() {
         testResult(db, "CALL apoc.mongo.find($uri)", map("uri", TEST_URI), MongoTest::assertResult);
     }
 
     @Test
-    public void testCountAll() throws Exception {
+    public void testCountAll() {
         testCall(db, "CALL apoc.mongo.count($uri, {name: 'testDocument'})", map("uri", TEST_URI),
                 r -> assertEquals(NUM_OF_RECORDS, r.get("value")));
     }

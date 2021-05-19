@@ -24,6 +24,14 @@ public class Mongo {
     @Context
     public Log log;
 
+    @Procedure("apoc.mongo.aggregate")
+    @Description("apoc.mongo.aggregate(uri, pipeline, $config) yield value - perform an aggregate operation on mongodb collection")
+    public Stream<MapResult> aggregate(@Name("uri") String uri, @Name("pipeline") List<Map<String, Object>> pipeline, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        MongoDbConfig conf = new MongoDbConfig(config);
+        return executeMongoQuery(uri, conf, 
+                coll -> coll.aggregate(pipeline.stream().map(MongoDBUtils::getDocument).collect(Collectors.toList())).map(MapResult::new), 
+                getExceptionConsumer("apoc.mongo.aggregate", uri, config));
+    }
 
     @Procedure("apoc.mongo.count")
     @Description("apoc.mongo.count(uri, query, $config) yield value - perform a count operation on mongodb collection")
@@ -39,7 +47,7 @@ public class Mongo {
     @Description("apoc.mongo.find(uri, query, $config) yield value - perform a find operation on mongodb collection")
     public Stream<MapResult> find(@Name("uri") String uri, @Name(value = "query", defaultValue = "null") Object query, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         MongoDbConfig conf = new MongoDbConfig(config);
-        return executeMongoQuery(uri, conf,
+        return executeMongoQuery(uri, conf, 
                 coll -> coll.find(getDocument(query), conf.getProject(), conf.getSort(), conf.getSkip(), conf.getLimit()).map(MapResult::new),
                 getExceptionConsumer("apoc.mongo.find", uri, config));
     }

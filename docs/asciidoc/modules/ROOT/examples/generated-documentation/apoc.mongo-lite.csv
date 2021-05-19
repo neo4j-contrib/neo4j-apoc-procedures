@@ -1,4 +1,5 @@
 ¦signature
+¦apoc.mongo.aggregate(uri :: STRING?, pipeline :: LIST? OF MAP?, config = {} :: MAP?) :: (value :: MAP?)
 ¦apoc.mongo.count(uri :: STRING?, query :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
 ¦apoc.mongo.delete(uri :: STRING?, query :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
 ¦apoc.mongo.find(uri :: STRING?, query = null :: ANY?, config = {} :: MAP?) :: (value :: MAP?)

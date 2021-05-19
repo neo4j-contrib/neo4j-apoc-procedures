@@ -10,6 +10,7 @@
 [separator=¦,opts=header]
 |===
 ¦signature
+¦apoc.mongo.aggregate(uri, pipeline, $config) yield value - perform an aggregate operation on mongodb collection
 ¦apoc.mongo.count(uri, query, $config) yield value - perform a count operation on mongodb collection
 ¦apoc.mongo.find(uri, query, $config) yield value - perform a find operation on mongodb collection
 ¦apoc.mongo.delete(uri, query, $config) - delete the given documents from the mongodb collection and returns the number of affected documents
@@ -95,6 +96,50 @@ Given the following collections:
 ```
 
 we can run the following procedures.
+
+=== `apoc.mongo.aggregate`
+
+[source,cypher]
+----
+CALL apoc.mongodb.aggregate('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', [{`$match`: {foo: 'bar'}}, {`$set`: {aggrField: 'Y'} }])
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| ``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "name": "John",
+  "foo": "bar",
+  "age": 40L,
+  "aggrField": "Y",
+}
+``
+| ``
+{
+  "_id": {
+    "timestamp": <...>,
+    "machineIdentifier": <...>,
+    "processIdentifier": <...>,
+    "counter": <...>,
+  },
+  "name": "Jack",
+  "age": 50L,
+  "foo": "bar",
+  "expr": "bar*",
+  "bought": ["product1", "product2"],
+  "aggrField": "Y",
+}
+``
+|===
+
 
 === `apoc.mongo.count`
 
