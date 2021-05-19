@@ -337,9 +337,8 @@ public class Schemas {
                         .collect(Collectors.toList());
             }
 
-
             Stream<IndexConstraintNodeInfo> constraintNodeInfoStream = StreamSupport.stream(constraintsIterator.spliterator(), false)
-                    .filter(constraintDescriptor -> constraintDescriptor.isNodePropertyExistenceConstraint())
+                    .filter(ConstraintDescriptor::isNodePropertyExistenceConstraint)
                     .map(constraintDescriptor -> this.nodeInfoFromConstraintDescriptor(constraintDescriptor, tokenRead))
                     .sorted(Comparator.comparing(i -> i.label.toString()));
 
@@ -365,9 +364,13 @@ public class Schemas {
 
         try ( Statement ignore = ktx.acquireStatement() ) {
             TokenRead tokenRead = ktx.tokenRead();
+            
             Iterable<ConstraintDefinition> constraintsIterator;
+            Iterable<IndexDescriptor> indexesIterator;
 
             if(!includeRelationships.isEmpty()) {
+                SchemaRead schemaRead = ktx.schemaRead();
+                
                 constraintsIterator = includeRelationships.stream()
                         .filter(type -> !excludeRelationships.contains(type) && tokenRead.relationshipType(type) != -1)
                         .flatMap(type -> {
@@ -375,10 +378,25 @@ public class Schemas {
                             return StreamSupport.stream(constraintsForType.spliterator(), false);
                         })
                         .collect(Collectors.toList());
+                
+                indexesIterator = includeRelationships.stream()
+                        .filter(type -> !excludeRelationships.contains(type) && tokenRead.relationshipType(type) != -1)
+                        .flatMap(type -> {
+                            Iterable<IndexDescriptor> indexesForLabel = () -> schemaRead.indexesGetForRelationshipType(tokenRead.relationshipType(type));
+                            return StreamSupport.stream(indexesForLabel.spliterator(), false);
+                        })
+                        .collect(Collectors.toList());
             } else {
+                SchemaRead schemaRead = ktx.schemaRead();
+                
                 Iterable<ConstraintDefinition> allConstraints = schema.getConstraints();
                 constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
                         .filter(index -> index.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE) && !excludeRelationships.contains(index.getRelationshipType().name()))
+                        .collect(Collectors.toList());
+
+                Iterable<IndexDescriptor> allIndexes = schemaRead.indexesGetAll();
+                indexesIterator = StreamSupport.stream(allIndexes.spliterator(),false)
+                        .filter(index -> index.isRelationshipIndex())
                         .collect(Collectors.toList());
             }
 

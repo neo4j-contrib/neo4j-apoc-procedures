@@ -587,13 +587,13 @@ public class SchemasTest {
     }
 
     @Test
-    public void testConstraintsRelationshipsAndExcludeRelationshipsValuatedShouldFail2() {
-        db.executeTransactionally("call db.index.fulltext.createNodeIndex('test', ['Blah', 'Moon'], ['weightProp'])");
+    public void testIndexesWithMultipleLabels() {
+        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('fullIdxNode', ['Blah', 'Moon'], ['weightProp'])");
+        db.executeTransactionally("CALL db.index.fulltext.createRelationshipIndex('fullIdxRel', ['TYPE_1', 'TYPE_2'], ['alpha', 'beta'])");
+
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
-            // Get the index info
             Map<String, Object> r = result.next();
-
             assertEquals(":[Blah, Moon],(weightProp)", r.get("name"));
             assertEquals("ONLINE", r.get("status"));
             assertEquals(List.of("Blah", "Moon"), r.get("label"));
@@ -602,8 +602,22 @@ public class SchemasTest {
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(100d, r.get("populationProgress"));
             assertEquals(1d, r.get("valuesSelectivity"));
-            assertEquals("Index( id=1, name='test', type='GENERAL FULLTEXT', schema=(:Blah:Moon {weightProp}), indexProvider='fulltext-1.0' )", r.get("userDescription"));
-
+            assertEquals("Index( id=1, name='fullIdxNode', type='GENERAL FULLTEXT', schema=(:Blah:Moon {weightProp}), indexProvider='fulltext-1.0' )", r.get("userDescription"));
+            assertFalse(result.hasNext());
+        });
+        
+        awaitIndexesOnline();
+        testResult(db, "CALL apoc.schema.relationships()", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals(":[TYPE_1, TYPE_2],([alpha, beta])", r.get("name"));
+            assertEquals("ONLINE", r.get("status"));
+            assertEquals(List.of("TYPE_1", "TYPE_2"), r.get("label"));
+            assertEquals("INDEX", r.get("type"));
+            assertEquals(List.of("weightProp"), r.get("properties"));
+            assertEquals("NO FAILURE", r.get("failure"));
+            assertEquals(100d, r.get("populationProgress"));
+            assertEquals(1d, r.get("valuesSelectivity"));
+            assertEquals("Index( id=1, name='fullIdxNode', type='GENERAL FULLTEXT', schema=(:Blah:Moon {weightProp}), indexProvider='fulltext-1.0' )", r.get("userDescription"));
             assertFalse(result.hasNext());
         });
     }
