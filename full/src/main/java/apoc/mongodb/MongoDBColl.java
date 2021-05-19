@@ -8,6 +8,7 @@ import com.mongodb.MongoCommandException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoIterable;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.apache.commons.lang.StringUtils;
@@ -29,7 +30,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.util.Util.toJson;
 import static java.lang.String.format;
 
 /**
@@ -248,6 +248,11 @@ class MongoDBColl implements MongoDBUtils.Coll {
     }
 
     @Override
+    public Stream<Map<String, Object>> aggregate(List<Document> pipelines) {
+        return asStream(collection.aggregate(pipelines));
+    }
+
+    @Override
     public Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit) {
         FindIterable<Document> documents = query == null ? collection.find() : collection.find(new Document(query));
         if (project != null) documents = documents.projection(new Document(project));
@@ -271,7 +276,7 @@ class MongoDBColl implements MongoDBUtils.Coll {
                 : collection.find(new Document(query));
     }
 
-    private Stream<Map<String, Object>> asStream(FindIterable<Document> result) {
+    private Stream<Map<String, Object>> asStream(MongoIterable<Document> result) {
         this.doorStop = true;
         Iterable<Document> it = () -> result.iterator();
         return StreamSupport

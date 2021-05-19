@@ -1,0 +1,5 @@
+¦xref::overview/apoc.mongo/apoc.mongo.aggregate.adoc[apoc.mongo.aggregate icon:book[]] +
+
+`apoc.mongo.aggregate(uri, pipeline, $config) yield value` - perform an aggregate operation on mongodb collection
+¦label:procedure[]
+¦label:apoc-core[]
