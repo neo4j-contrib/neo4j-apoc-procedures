@@ -111,6 +111,7 @@ public class LoadJsonTest {
     public void testLoadJsonWithPathOptions() throws Exception {
         URL url = ClassLoader.getSystemResource("columns.json");
 
+        // -- load.json
         testResult(db, "CALL apoc.load.json($url, '$..columns')", map("url", url.toString()),
                 (res) -> assertEquals(EXPECTED_PATH_WITH_NULLS, Iterators.asList(res.columnAs("value"))));
 
@@ -122,6 +123,7 @@ public class LoadJsonTest {
                 map("url", url.toString(), "config", map("pathOptions", List.of("AS_PATH_LIST"))),
                 (res) -> assertEquals(List.of(Map.of("result", EXPECTED_AS_PATH_LIST)), Iterators.asList(res.columnAs("value"))));
 
+        // -- load.jsonArray
         testResult(db, "CALL apoc.load.jsonArray($url, '$..columns')", map("url", url.toString()),
                 (res) -> assertEquals(EXPECTED_PATH_WITH_NULLS, Iterators.asList(res.columnAs("value"))));
         
