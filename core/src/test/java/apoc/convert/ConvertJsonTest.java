@@ -7,6 +7,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.assertj.core.util.Arrays;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,6 +32,10 @@ import static org.junit.Assert.*;
 
 public class ConvertJsonTest {
     public static final Map<String, Object> EXPECTED_COLUMNS_MAP = Map.of("row", Map.of("poiType", "Governorate", "poi", 772L), "col2", Map.of("_id", "772col2"));
+    public static final List<String> EXPECTED_PATH_LIST = List.of("$['columns']");
+    
+    // json extracted from issue #1445
+    public static final String JSON = "{\"columns\":{\"row\":{\"poiType\":\"Governorate\",\"poi\":772},\"col2\":{\"_id\":\"772col2\"}}}";
     
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
@@ -39,23 +44,79 @@ public class ConvertJsonTest {
         TestUtil.registerProcedure(db, Json.class);
     }
     
+	@After 
+    public void clear() {
+        db.executeTransactionally("MATCH (n) DETACH DELETE n;");
+    }
+    
     @Test
-    public void testJsonPath() throws Exception {
-        // json extracted from issue #1445
-        String json = "{\"columns\":{\"row\":{\"poiType\":\"Governorate\",\"poi\":772},\"col2\":{\"_id\":\"772col2\"}}}";
-
-        testCall(db, "RETURN apoc.json.path($json, '$..columns') AS path", Map.of("json", json),
+    public void testJsonPath() {
+        // -- json.path
+        testCall(db, "RETURN apoc.json.path($json, '$..columns') AS path", Map.of("json", JSON),
                 (row) -> assertEquals(Arrays.asList(new Object[]{ EXPECTED_COLUMNS_MAP, null, null, null }), row.get("path")));
 
-        testCall(db, "RETURN apoc.json.path($json, '$..columns', ['ALWAYS_RETURN_LIST']) AS path", Map.of("json", json),
+        testCall(db, "RETURN apoc.json.path($json, '$..columns', ['AS_PATH_LIST']) AS path", Map.of("json", JSON),
+                (row) -> assertEquals(EXPECTED_PATH_LIST, row.get("path")));
+
+        testCall(db, "RETURN apoc.json.path($json, '$..columns', []) AS path", Map.of("json", JSON),
                 (row) -> assertEquals(List.of(EXPECTED_COLUMNS_MAP), row.get("path")));
+
+        // -- convert.fromJsonList
+        testCall(db, "RETURN apoc.convert.fromJsonList($json, '$..columns') AS path", Map.of("json", JSON),
+                (row) -> assertEquals(Arrays.asList(new Object[]{ EXPECTED_COLUMNS_MAP, null, null, null }), row.get("path")));
+
+        testCall(db, "RETURN apoc.convert.fromJsonList($json, '$..columns', ['AS_PATH_LIST']) AS path", Map.of("json", JSON),
+                (row) -> assertEquals(EXPECTED_PATH_LIST, row.get("path")));
+
+        testCall(db, "RETURN apoc.convert.fromJsonList($json, '$..columns', []) AS path", Map.of("json", JSON),
+                (row) -> assertEquals(List.of(EXPECTED_COLUMNS_MAP), row.get("path")));
+
+
+        db.executeTransactionally("CREATE (n:JsonPathNode {prop: $prop})", Map.of("prop", JSON));
         
+        // -- convert.getJsonProperty
+        testCall(db, "MATCH (n:JsonPathNode) RETURN apoc.convert.getJsonProperty(n, 'prop', '$..columns') AS path", Map.of("json", JSON),
+                (row) -> assertEquals(Arrays.asList(new Object[]{ EXPECTED_COLUMNS_MAP, null, null, null }), row.get("path")));
+
+        testCall(db, "MATCH (n:JsonPathNode) RETURN apoc.convert.getJsonProperty(n, 'prop', '$..columns', ['AS_PATH_LIST']) AS path", Map.of("json", JSON),
+                (row) -> assertEquals(EXPECTED_PATH_LIST, row.get("path")));
+
+        testCall(db, "MATCH (n:JsonPathNode) RETURN apoc.convert.getJsonProperty(n, 'prop', '$..columns', []) AS path", Map.of("json", JSON),
+                (row) -> assertEquals(List.of(EXPECTED_COLUMNS_MAP), row.get("path")));
+
+        // -- invalid option
         try {
-            testCall(db, "RETURN apoc.json.path($json, '$..columns', ['INVALID']) AS path", Map.of("json", json),
+            testCall(db, "RETURN apoc.json.path($json, '$..columns', ['INVALID']) AS path", Map.of("json", JSON),
                     (row) -> fail("Should fail because of invalid pathOptions"));
-        } catch (Exception e) {
+        } catch (QueryExecutionException e) {
             final String expectedMsg = "Failed to invoke function `apoc.json.path`: Caused by: java.lang.RuntimeException: " + PATH_OPTIONS_ERROR_MESSAGE;
             assertEquals(expectedMsg, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testJsonPathWithMapFunctions() {
+        // apoc.convert.getJsonPropertyMap and apoc.convert.fromJsonMap must failed with "ALWAYS_RETURN_LIST" because should return a Map.
+        testCall(db, "RETURN apoc.convert.fromJsonMap($json, '$.columns.col2') AS path", Map.of("json", JSON),
+                (row) -> assertEquals(Map.of("_id", "772col2"), row.get("path")));
+        
+        try {
+            testCall(db, "RETURN apoc.convert.fromJsonMap($json, '$.columns.col2', ['ALWAYS_RETURN_LIST']) AS path", Map.of("json", JSON),
+                    (row) -> fail("Should fail because of MismatchedInputException"));
+        } catch (QueryExecutionException e) {
+            assertTrue(e.getMessage().contains("com.fasterxml.jackson.databind.exc.MismatchedInputException: Cannot deserialize instance of `java.util.LinkedHashMap<java.lang.Object,java.lang.Object>` out of START_ARRAY token"));
+        }
+        
+        db.executeTransactionally("CREATE (n:JsonPathNode {prop: $prop})", Map.of("prop", JSON));
+        
+        testCall(db, "MATCH (n:JsonPathNode) RETURN apoc.convert.getJsonPropertyMap(n, 'prop', '$.columns.col2') AS path", Map.of("json", JSON),
+                (row) -> assertEquals(Map.of("_id", "772col2"), row.get("path")));
+        
+        try {
+            testCall(db, "MATCH (n:JsonPathNode) RETURN apoc.convert.getJsonPropertyMap(n, 'prop', '$.columns.col2', ['ALWAYS_RETURN_LIST']) AS path", Map.of("json", JSON),
+                    (row) -> fail("Should fail because of MismatchedInputException"));
+        } catch (QueryExecutionException e) {
+            assertTrue(e.getMessage().contains("com.fasterxml.jackson.databind.exc.MismatchedInputException: Cannot deserialize instance of `java.util.LinkedHashMap<java.lang.Object,java.lang.Object>` out of START_ARRAY token"));
         }
     }
 

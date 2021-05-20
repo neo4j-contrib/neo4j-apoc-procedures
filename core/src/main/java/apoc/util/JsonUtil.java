@@ -36,7 +36,7 @@ import static apoc.ApocConfig.apocConfig;
  * @since 04.05.16
  */
 public class JsonUtil {
-    private final static Option[] defaultJsonPathOptions = {Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS};
+    private final static Option[] defaultJsonPathOptions = { Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS };
     
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     public static final String PATH_OPTIONS_ERROR_MESSAGE = "Invalid pathOptions. The allowed values are: " + EnumSet.allOf(Option.class);
@@ -69,7 +69,7 @@ public class JsonUtil {
 
     private static Configuration getJsonPathConfig(List<String> options) {
         try {
-            Option[] opts = CollectionUtils.isEmpty(options) ? defaultJsonPathOptions : options.stream().map(Option::valueOf).toArray(Option[]::new);
+            Option[] opts = options == null ? defaultJsonPathOptions : options.stream().map(Option::valueOf).toArray(Option[]::new);
             return Configuration.builder()
                     .options(opts)
                     .jsonProvider(new JacksonJsonProvider(OBJECT_MAPPER))

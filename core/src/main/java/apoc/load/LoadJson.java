@@ -28,8 +28,7 @@ public class LoadJson {
     @Procedure
     @Description("apoc.load.jsonArray('url') YIELD value - load array from JSON URL (e.g. web-api) to import JSON as stream of values")
     public Stream<ObjectResult> jsonArray(@Name("url") String url, @Name(value = "path",defaultValue = "") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
-        List<String> pathOptions = (List<String>) config.getOrDefault("pathOptions", Collections.emptyList());
-        return JsonUtil.loadJson(url, null, null, path, true, pathOptions)
+        return JsonUtil.loadJson(url, null, null, path, true, (List<String>) config.get("pathOptions"))
                 .flatMap((value) -> {
                     if (value instanceof List) {
                         List list = (List) value;
@@ -53,7 +52,7 @@ public class LoadJson {
     public Stream<MapResult> jsonParams(@Name("urlOrKey") String urlOrKey, @Name("headers") Map<String,Object> headers, @Name("payload") String payload, @Name(value = "path",defaultValue = "") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
-        List<String> pathOptions = (List<String>) config.getOrDefault("pathOptions", Collections.emptyList());
+        List<String> pathOptions = (List<String>) config.get("pathOptions");
         return loadJsonStream(urlOrKey, headers, payload, path, failOnError, pathOptions);
     }
 
