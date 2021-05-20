@@ -99,7 +99,7 @@ public class ConvertJsonTest {
     
     @Test
     public void testJsonPathWithMapFunctions() {
-        // apoc.convert.getJsonPropertyMap and apoc.convert.fromJsonMap must failed with "ALWAYS_RETURN_LIST" because should return a Map.
+        // apoc.convert.getJsonPropertyMap and apoc.convert.fromJsonMap must fail with "ALWAYS_RETURN_LIST" because should return a Map.
         final Map<String, String> expectedMap = Map.of("_id", "772col2");
         final String expectedError = "com.fasterxml.jackson.databind.exc.MismatchedInputException: Cannot deserialize instance of `java.util.LinkedHashMap<java.lang.Object,java.lang.Object>` out of START_ARRAY token";
 
