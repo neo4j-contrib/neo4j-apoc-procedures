@@ -16,7 +16,6 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.kernel.impl.index.schema.RelationshipTypeScanStoreSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.xmlunit.builder.DiffBuilder;

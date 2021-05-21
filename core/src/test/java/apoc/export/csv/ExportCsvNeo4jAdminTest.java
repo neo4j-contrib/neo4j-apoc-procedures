@@ -11,7 +11,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.kernel.impl.index.schema.RelationshipTypeScanStoreSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -80,7 +79,6 @@ public class ExportCsvNeo4jAdminTest {
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath())
-            .withSetting( RelationshipTypeScanStoreSettings.enable_scan_stores_as_token_indexes, true )
             .withSetting(ApocSettings.apoc_export_file_enabled, true);
 
     @BeforeClass

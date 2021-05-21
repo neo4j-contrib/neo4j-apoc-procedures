@@ -9,7 +9,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import org.neo4j.kernel.impl.index.schema.RelationshipTypeScanStoreSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -21,7 +20,6 @@ public class ExportStreamsStatementsTest {
 
     @ClassRule
     static public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting( RelationshipTypeScanStoreSettings.enable_scan_stores_as_token_indexes, true )
             .withSetting(newBuilder( "unsupported.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
             .withSetting(newBuilder( "unsupported.dbms.debug.trace_cursors", BOOL, false ).build(), false);
 

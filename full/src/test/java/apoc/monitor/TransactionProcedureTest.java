@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.neo4j.kernel.impl.index.schema.RelationshipTypeScanStoreSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -15,8 +14,7 @@ import static org.junit.Assert.assertEquals;
 public class TransactionProcedureTest {
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting( RelationshipTypeScanStoreSettings.enable_scan_stores_as_token_indexes, true );
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setup() {
