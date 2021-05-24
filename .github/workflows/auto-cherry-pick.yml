@@ -3,15 +3,14 @@ on:
   pull_request_target:
     types: [closed]
     branches:
-      - '4.3'
+      - 'dev'
 jobs:
   cherry-pick:
     strategy:
       fail-fast: false
       matrix:
         target-branch: [
-          {name: '4.1', comment: '824917901'},
-          {name: '4.2', comment: '824917952'}
+          {name: '4.3', comment: '824917996'}
         ]
     runs-on: ubuntu-latest
     name: cherry-pick
