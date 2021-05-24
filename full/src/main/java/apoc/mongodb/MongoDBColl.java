@@ -12,6 +12,9 @@ import com.mongodb.client.MongoIterable;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.apache.commons.lang.StringUtils;
+import org.bson.BsonDouble;
+import org.bson.BsonInt32;
+import org.bson.BsonInt64;
 import org.bson.BsonNumber;
 import org.bson.BsonRegularExpression;
 import org.bson.BsonTimestamp;
@@ -179,14 +182,17 @@ class MongoDBColl implements MongoDBUtils.Coll {
             if (data instanceof Integer) {
                 return ((Integer) data).longValue();
             }
-            if (data instanceof BsonNumber) {
+            if (data instanceof BsonInt64 || data instanceof BsonInt32) {
                 return ((BsonNumber) data).longValue();
+            }
+            if (data instanceof BsonDouble) {
+                return ((BsonDouble) data).doubleValue();
             }
             if (data instanceof Binary) {
                 return ((Binary) data).getData();
             }
             if (data instanceof Float) {
-                return ((Number) data).doubleValue();
+                return ((Float) data).doubleValue();
             }
             if (data instanceof BsonTimestamp) {
                 return (long) ((BsonTimestamp) data).getTime();
