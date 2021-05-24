@@ -9,6 +9,9 @@ This procedure supports the following config parameters:
 | importIdName | String | `neo4jImportId` | the name of the property to be populated with the "id" field present into the json. For example a row `{"type":"node", "labels":["Language"], "id":"10"}`, with importIdName:`foo`, will create a node `(:User {foo: "10"})`
 | nodePropertyMappings | Map | `{}` | The mapping label/property name/property type for Custom Neo4j types (point date). I.e. { User: { born: 'Point', dateOfBirth: 'Datetime' } }
 | relPropertyMappings | Map | `{}` | The mapping rel type/property name/property type for Custom Neo4j types (point date). I.e. { KNOWS: { since: 'Datetime' } }
+| binary | `Enum[BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]`` | `null` | If not null, allow to take binary data instead of a file name/url as first parameter.
+    See xref::partial$usage/apoc.import.json.adoc[Binary file example]
+| binaryCharset | java.nio.charset.Charset | `UTF_8` | The optional charset, with `binary` config not null and with string as file
 |===
 
 `nodePropertyMappings` and `relPropertyMappings` support the following Neo4j types:

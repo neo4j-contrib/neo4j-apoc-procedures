@@ -10,11 +10,14 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class LoadJson {
 
@@ -42,27 +45,31 @@ public class LoadJson {
 
     @Procedure
     @Description("apoc.load.json('url',path, config) YIELD value -  import JSON as stream of values if the JSON was an array or a single value if it was a map")
-    public Stream<MapResult> json(@Name("url") String url, @Name(value = "path",defaultValue = "") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+    public Stream<MapResult> json(@Name("url") Object url, @Name(value = "path",defaultValue = "") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         return jsonParams(url,null,null, path, config);
     }
 
     @SuppressWarnings("unchecked")
     @Procedure
     @Description("apoc.load.jsonParams('url',{header:value},payload, config) YIELD value - load from JSON URL (e.g. web-api) while sending headers / payload to import JSON as stream of values if the JSON was an array or a single value if it was a map")
-    public Stream<MapResult> jsonParams(@Name("urlOrKey") String urlOrKey, @Name("headers") Map<String,Object> headers, @Name("payload") String payload, @Name(value = "path",defaultValue = "") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+    public Stream<MapResult> jsonParams(@Name("urlOrKey") Object urlOrKey, @Name("headers") Map<String,Object> headers, @Name("payload") String payload, @Name(value = "path",defaultValue = "") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
+        String binary = (String) config.get("binary");
+        Charset binaryCharset = Charset.forName((String) config.getOrDefault("binaryCharset", UTF_8.name()));
         List<String> pathOptions = (List<String>) config.get("pathOptions");
-        return loadJsonStream(urlOrKey, headers, payload, path, failOnError, pathOptions);
+        return loadJsonStream(urlOrKey, headers, payload, path, failOnError, binary, binaryCharset, pathOptions);
     }
 
-    public static Stream<MapResult> loadJsonStream(@Name("url") String url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload) {
-        return loadJsonStream(url, headers, payload, "", true, null);
+    public static Stream<MapResult> loadJsonStream(@Name("url") Object url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload) {
+        return loadJsonStream(url, headers, payload, "", true, null, null, null);
     }
-    public static Stream<MapResult> loadJsonStream(@Name("url") String url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload, String path, boolean failOnError, List<String> pathOptions) {
-        headers = null != headers ? headers : new HashMap<>();
-        headers.putAll(Util.extractCredentialsIfNeeded(url, failOnError));
-        Stream<Object> stream = JsonUtil.loadJson(url,headers,payload, path, failOnError, pathOptions);
+    public static Stream<MapResult> loadJsonStream(@Name("url") Object url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload, String path, boolean failOnError, String binary, Charset binaryCharset, List<String> pathOptions) {
+        if (binary == null) {
+            headers = null != headers ? headers : new HashMap<>();
+            headers.putAll(Util.extractCredentialsIfNeeded((String) url, failOnError));
+        }
+        Stream<Object> stream = JsonUtil.loadJson(url,headers,payload, path, failOnError, binary, binaryCharset, pathOptions);
         return stream.flatMap((value) -> {
             if (value instanceof Map) {
                 return Stream.of(new MapResult((Map) value));

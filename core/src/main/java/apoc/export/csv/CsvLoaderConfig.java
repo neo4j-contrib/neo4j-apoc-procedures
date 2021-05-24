@@ -1,12 +1,14 @@
 package apoc.export.csv;
 
+import apoc.util.ImportCommonConfig;
+
 import java.util.Map;
 
 /**
  * Config class to store the configuration for loading the CSV file. Names and defaults are based on the import tool's
  * <a href="http://neo4j.com/docs/operations-manual/current/tools/import/command-line-usage/">command line options</a>.
  */
-public class CsvLoaderConfig {
+public class CsvLoaderConfig extends ImportCommonConfig {
 
     public static final String DELIMITER = "delimiter";
     private static final String ARRAY_DELIMITER = "arrayDelimiter";
@@ -101,6 +103,7 @@ public class CsvLoaderConfig {
     }
 
     public static CsvLoaderConfig from(Map<String, Object> config) {
+        config = fromCommon(config);
         Builder builder = builder();
 
         if (config.get(DELIMITER) != null) builder.delimiter(getCharacterOrString(config, DELIMITER));

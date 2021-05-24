@@ -1,7 +1,9 @@
 package apoc.export.csv;
 
 import apoc.ApocSettings;
+import apoc.util.BinaryFileType;
 import apoc.util.TestUtil;
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,7 +26,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.MapUtil.map;
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -32,13 +36,14 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 public class ImportCsvTest {
-
+    public static final String BASE_URL_FILES = "src/test/resources/csv-inputs";
+    
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_import_file_enabled, true)
             .withSetting(ApocSettings.apoc_export_file_enabled, true)
             .withSetting(GraphDatabaseSettings.allow_file_urls, true)
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File("src/test/resources/csv-inputs").toPath().toAbsolutePath());
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File(BASE_URL_FILES).toPath().toAbsolutePath());
 
     final Map<String, String> testCsvs = Collections
             .unmodifiableMap(Stream.of(
@@ -77,7 +82,7 @@ public class ImportCsvTest {
                             "1|John\n" +
                             "1|Jane\n"),
                     new AbstractMap.SimpleEntry<>("ignore-nodes", ":ID|firstname:STRING|lastname:IGNORE|age:INT\n" +
-                            "1|John|Doe|25\n" +
+                            "1|İnanç Esasları|Doe|25\n" +
                             "2|Jane|Doe|26\n"),
                     new AbstractMap.SimpleEntry<>("ignore-relationships", ":START_ID|:END_ID|prop1:IGNORE|prop2:INT\n" +
                             "1|2|a|3\n" +
@@ -425,17 +430,45 @@ public class ImportCsvTest {
 
     @Test
     public void ignoreFieldType() {
+        final String query = "CALL apoc.import.csv([{fileName: $nodeFile, labels: ['Person']}], [{fileName: $relFile, type: 'KNOWS'}], $config)";
+        final Map<String, Object> config = map("nodeFile", "file:/ignore-nodes.csv",
+                "relFile", "file:/ignore-relationships.csv",
+                "config", map("delimiter", '|', "batchSize", 1)
+        );
+        commonAssertionIgnoreFieldType(config, query, true);
+    }
+
+    @Test
+    public void ignoreFieldTypeWithByteArrayFile() {
+        final Map<String, Object> config = map("nodeFile", fileToBinary(new File(BASE_URL_FILES, "ignore-nodes.csv"), BinaryFileType.BYTES.name()),
+                "relFile", fileToBinary(new File(BASE_URL_FILES, "ignore-relationships.csv"), BinaryFileType.BYTES.name()),
+                "config", map("delimiter", '|', "batchSize", 1, "binary", BinaryFileType.BYTES.name())
+        );
+        final String query = "CALL apoc.import.csv([{data: $nodeFile, labels: ['Person']}], [{data: $relFile, type: 'KNOWS'}], $config)";
+        commonAssertionIgnoreFieldType(config, query, false);
+    }
+
+    @Test
+    public void ignoreFieldTypeWithStringAndCustomCharset() throws IOException {
+        final Map<String, Object> config = map("nodeFile", FileUtils.readFileToString(new File(BASE_URL_FILES, "ignore-nodes.csv"), ISO_8859_1),
+                "relFile", FileUtils.readFileToString(new File(BASE_URL_FILES, "ignore-relationships.csv"), ISO_8859_1),
+                "config", map("delimiter", '|', "batchSize", 1, "binary", BinaryFileType.BYTES.name(), "binaryCharset", ISO_8859_1.name())
+        );
+        final String query = "CALL apoc.import.csv([{data: $nodeFile, labels: ['Person']}], [{data: $relFile, type: 'KNOWS'}], $config)";
+        commonAssertionIgnoreFieldType(config, query, false);
+    }
+
+    private void commonAssertionIgnoreFieldType(Map<String, Object> config, String query, boolean isFile) {
         TestUtil.testCall(
                 db,
-                "CALL apoc.import.csv([{fileName: $nodeFile, labels: ['Person']}], [{fileName: $relFile, type: 'KNOWS'}], $config)",
-                map(
-                        "nodeFile", "file:/ignore-nodes.csv",
-                        "relFile", "file:/ignore-relationships.csv",
-                        "config", map("delimiter", '|', "batchSize", 1)
-                ),
+                query,
+                config,
                 (r) -> {
                     assertEquals(2L, r.get("nodes"));
                     assertEquals(2L, r.get("relationships"));
+                    assertEquals(isFile ? "progress.csv" : null, r.get("file"));
+                    assertEquals(isFile ? "file" : "binary", r.get("source"));
+                    assertEquals(8L, r.get("properties"));
                 }
         );
 
@@ -448,7 +481,7 @@ public class ImportCsvTest {
                 "  AND k.prop1 IS NULL\n" +
                 "RETURN p1.firstname + ' ' + p1.age + ' <' + k.prop2 + '> ' + p2.firstname + ' ' + p2.age AS pair ORDER BY pair"
         );
-        assertThat(pairs, Matchers.contains("Jane 26 <6> John 25", "John 25 <3> Jane 26"));
+        assertThat(pairs, Matchers.contains("Jane 26 <6> İnanç Esasları 25", "İnanç Esasları 25 <3> Jane 26"));
     }
 
     @Test(expected = QueryExecutionException.class)

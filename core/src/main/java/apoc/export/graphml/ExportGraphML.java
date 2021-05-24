@@ -9,6 +9,7 @@ import apoc.export.util.ExportUtils;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
+import apoc.util.BinaryFileType;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.neo4j.cypher.export.CypherResultSubGraph;
@@ -54,12 +55,19 @@ public class ExportGraphML {
     public TerminationGuard terminationGuard;
 
     @Procedure(name = "apoc.import.graphml",mode = Mode.WRITE)
-    @Description("apoc.import.graphml(file,config) - imports graphml file")
-    public Stream<ProgressInfo> file(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
+    @Description("apoc.import.graphml(fileOrBinary,config) - imports graphml file")
+    public Stream<ProgressInfo> file(@Name("fileOrBinary") Object fileOrBinary, @Name("config") Map<String, Object> config) throws Exception {
         ProgressInfo result =
         Util.inThread(pools, () -> {
             ExportConfig exportConfig = new ExportConfig(config);
-            ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, "file", "graphml"));
+            String file =  null;
+            String source = "binary";
+            final boolean isFileUrl = exportConfig.isFileUrl();
+            if (isFileUrl) {
+                file = (String) fileOrBinary;
+                source = "file";
+            }
+            ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, source, "graphml"));
             XmlGraphMLReader graphMLReader = new XmlGraphMLReader(db, tx).reporter(reporter)
                     .batchSize(exportConfig.getBatchSize())
                     .relType(exportConfig.defaultRelationshipType())
@@ -67,8 +75,9 @@ public class ExportGraphML {
 
             if (exportConfig.storeNodeIds()) graphMLReader.storeNodeIds();
 
-
-            graphMLReader.parseXML(FileUtils.readerFor(fileName));
+            graphMLReader.parseXML(isFileUrl 
+                    ? FileUtils.readerFor(file) 
+                    : BinaryFileType.valueOf(exportConfig.getBinary()).toInputStream(fileOrBinary, exportConfig.getBinaryCharset()).asReader());
             return reporter.getTotal();
         });
         return Stream.of(result);

@@ -35,6 +35,7 @@ import java.util.Map;
 import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
@@ -297,16 +298,27 @@ public class ExportGraphMLTest {
         File output = new File(directory, "importNodeEdges.graphml");
         FileWriter fw = new FileWriter(output);
         fw.write(EXPECTED_READ_NODE_EDGE); fw.close();
-        TestUtil.testCall(db, "CALL apoc.import.graphml($file,{readLabels:true})", map("file", output.getAbsolutePath()),
+        final String query = "CALL apoc.import.graphml($file,{readLabels:true, batchSize: 1, unwindBatchSize: 1})";
+        final String absolutePath = output.getAbsolutePath();
+        commonAssertionImportNodeEdge(absolutePath, query, map("file", absolutePath));
+    }
+
+    @Test
+    public void testImportGraphMLNodeEdgeWithBinary() throws Exception {
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+        
+        commonAssertionImportNodeEdge(null, "CALL apoc.import.graphml($file,{readLabels:true, binary: 'DEFLATE'})",
+                map("file", fileToBinary(new File(directory, "importNodeEdges.graphml"), "DEFLATE")));
+    }
+
+    private void commonAssertionImportNodeEdge(String isBinary, String query, Map<String, Object> config) {
+        TestUtil.testCall(db, query, config,
                 (r) -> {
                     assertEquals(3L, r.get("nodes"));
                     assertEquals(3L, r.get("relationships"));
                     assertEquals(5L, r.get("properties"));
-                    assertEquals(output.getAbsolutePath(), r.get("file"));
-                    if (r.get("source").toString().contains(":"))
-                        assertEquals("database: nodes(3), rels(3)", r.get("source"));
-                    else
-                        assertEquals("file", r.get("source"));
+                    assertEquals(isBinary, r.get("file"));
+                    assertEquals(isBinary == null ? "binary" : "file", r.get("source"));
                     assertEquals("graphml", r.get("format"));
                     assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
                 });

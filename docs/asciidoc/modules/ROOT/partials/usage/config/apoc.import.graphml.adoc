@@ -8,4 +8,7 @@ The procedure support the following config parameters:
 | defaultRelationshipType | String | RELATED | The default relationship type to use if none is specified in the GraphML file
 | storeNodeIds | Boolean | false | store the `id` property of `node` elements
 | batchSize | Integer | 20000 | The number of elements to process per transaction
+| binary | `Enum[BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]`` | `null` | If not null, allow to take binary data instead of a file name/url as first parameter.
+Similar to xref::partial$usage/apoc.import.json.adoc[Binary file example]
+| binaryCharset | java.nio.charset.Charset | `UTF_8` | The optional charset, with `binary` config not null and with string as file
 |===

@@ -40,6 +40,9 @@ public class ProgressReporter implements Reporter {
     public void progress(String msg) {
         long now = System.currentTimeMillis();
         // todo report percentages back
+        
+        
+        // TODO - VEDERE COME/QUANDO/SE ARRIVA QUA
         println(String.format(msg + " %d. %d%%: %s time %d ms total %d ms", counter++, percent(), progressInfo, now - time, now - start));
         time = now;
     }

@@ -21,3 +21,23 @@ CALL apoc.import.json("file:///all.json")
 | file               | source | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
 | "file:///all.json" | "file" | "json" | 3     | 1             | 15         | 105  | 4    | -1        | 0       | TRUE | NULL
 |===
+
+
+== Binary file
+
+You can also import a file from a binary `byte[]` (not compressed) or a compressed file (allowed compression algos are: `GZIP`, `BZIP2`, `DEFLATE`, `BLOCK_LZ4`, `FRAMED_SNAPPY`).
+The binary file it can also be a string, in this case the string will be converted in byte[] using the `String.getBytes(CHARSET)` method,
+where CHARSET depends on optional `binaryCharset` config (with default `UTF-8`).
+For example:
+
+[source,cypher]
+----
+CALL apoc.import.json(`binaryGzipByteArray`, {binary: 'GZIP'})
+----
+
+or:
+
+[source,cypher]
+----
+CALL apoc.import.json(`file as String With ISO-8859-1 Charset`, {binary: 'BYTES', binaryCharset: 'ISO-8859-1'})
+----

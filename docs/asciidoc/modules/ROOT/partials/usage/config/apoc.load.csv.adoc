@@ -13,4 +13,7 @@ The procedure support the following config parameters:
 | ignore | List<String> | [] | which columns to ignore
 | nullValues | List<String> | [] | which values to treat as null, e.g. `['na',false]`
 | mapping | Map | {} | per field mapping, entry key is field name, .e.g `{years:{....}` see below
+| binary | `Enum[BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]`` | `null` | If not null, allow to take binary data instead of a file name/url as first parameter.
+Similar to xref::partial$usage/apoc.import.json.adoc[Binary file example]
+| binaryCharset | java.nio.charset.Charset | `UTF_8` | The optional charset, with `binary` config not null and with string as file
 |===
