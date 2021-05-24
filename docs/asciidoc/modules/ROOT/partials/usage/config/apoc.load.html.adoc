@@ -6,7 +6,7 @@ The procedure support the following config parameters:
 | name | type | default | description
 | browser | Enum [NONE, CHROME, FIREFOX] | NONE | If it is set to "CHROME" or "FIREFOX", is used https://www.selenium.dev/documentation/en/webdriver/[Selenium Web Driver] to read the dynamically generated js.
     In case it is "NONE" (default), it is not possible to read dynamic contents.
-    Note that to use the Chrome or Firefox driver, you need to have them installed on your machine.
+    Note that to use the Chrome or Firefox driver, you need to have them installed on your machine and you have to download additional jars into the plugin folder. <<selenium-depencencies, See below>>
 | wait | long | 0 | If greater than 0, it waits until it finds at least one element for each of those entered in the query parameter
     (up to a maximum of defined seconds, otherwise it continues execution).
     Useful to handle elements which can be rendered after the page is loaded (i.e. slow asynchronous calls).

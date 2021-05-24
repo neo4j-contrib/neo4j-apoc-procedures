@@ -2,9 +2,8 @@ package apoc.load;
 
 import apoc.Extended;
 import apoc.result.MapResult;
+import apoc.util.MissingDependencyException;
 import apoc.util.Util;
-import io.github.bonigarcia.wdm.WebDriverManager;
-import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
@@ -16,14 +15,6 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions;
-import org.openqa.selenium.support.ui.Wait;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,14 +24,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
+
+import static apoc.load.LoadHtmlBrowser.getChromeInputStream;
+import static apoc.load.LoadHtmlBrowser.getFirefoxInputStream;
 
 @Extended
 public class LoadHtml {
 
     // public for test purpose
     public static final String KEY_ERROR = "errorList";
-
 
     @Context
     public GraphDatabaseService db;
@@ -89,38 +83,12 @@ public class LoadHtml {
         final boolean isAcceptInsecureCerts = config.isAcceptInsecureCerts();
         switch (config.getBrowser()) {
             case FIREFOX:
-                WebDriverManager.firefoxdriver().setup();
-                FirefoxOptions firefoxOptions = new FirefoxOptions();
-                firefoxOptions.setHeadless(isHeadless);
-                firefoxOptions.setAcceptInsecureCerts(isAcceptInsecureCerts);
-                return getInputStreamWithBrowser(url, query, config, new FirefoxDriver(firefoxOptions));
+                return withSeleniumBrowser(() -> getFirefoxInputStream(url, query, config, isHeadless, isAcceptInsecureCerts));
             case CHROME:
-                WebDriverManager.chromedriver().setup();
-                ChromeOptions chromeOptions = new ChromeOptions();
-                chromeOptions.setHeadless(isHeadless);
-                chromeOptions.setAcceptInsecureCerts(isAcceptInsecureCerts);
-                return getInputStreamWithBrowser(url, query, config, new ChromeDriver(chromeOptions));
+                return withSeleniumBrowser(() -> getChromeInputStream(url, query, config, isHeadless, isAcceptInsecureCerts));
             default:
                 return Util.openInputStream(url, null, null);
         }
-    }
-
-    private InputStream getInputStreamWithBrowser(String url, Map<String, String> query, LoadHtmlConfig config, WebDriver driver) throws IOException {
-        driver.get(url);
-
-        final long wait = config.getWait();
-        if (wait > 0) {
-            Wait<WebDriver> driverWait = new WebDriverWait(driver, wait);
-            try {
-                driverWait.until(webDriver -> query.values().stream()
-                        .noneMatch(selector -> webDriver.findElements(By.cssSelector(selector)).isEmpty()));
-            } catch (org.openqa.selenium.TimeoutException ignored) {
-                // We continue the execution even if 1 or more elements were not found
-            }
-        }
-        InputStream stream = IOUtils.toInputStream(driver.getPageSource(), config.getCharset());
-        driver.close();
-        return stream;
     }
 
     private List<Map<String, Object>> getElements(Elements elements, LoadHtmlConfig conf, List<String> errorList) {
@@ -177,5 +145,13 @@ public class LoadHtml {
         return attributes;
     }
 
+    private InputStream withSeleniumBrowser(Supplier<InputStream> action) {
+        try {
+            return action.get();
+        } catch (NoClassDefFoundError e) {
+            throw new MissingDependencyException("Cannot find jars into the plugins folder.\n" +
+                    "See the documentation: https://neo4j.com/labs/apoc/4.1/overview/apoc.load/apoc.load.html/#selenium-depencencies");
+        }
+    }
 
 }
