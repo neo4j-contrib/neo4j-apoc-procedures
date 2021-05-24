@@ -485,7 +485,7 @@ public class MongoTest extends MongoTestBase {
         assertEquals(123L, value.get("time"));
         assertEquals(29L, value.get("int64"));
         assertEquals(29L, value.get("int32"));
-        assertEquals(6.78, value.get("bsonDouble"));
+        assertEquals(6.78D, value.get("bsonDouble"));
         assertEquals("baa", value.get("baz"));
         assertDocumentIdAndRefs(value, extractReferences, idAsMap, idJohnAsObjectId);
     }
