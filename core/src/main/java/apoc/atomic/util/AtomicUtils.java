@@ -1,6 +1,5 @@
 package apoc.atomic.util;
 
-
 /**
  * @author AgileLARUS
  *
