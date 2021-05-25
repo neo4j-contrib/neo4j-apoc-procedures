@@ -35,6 +35,40 @@ public class AtomicTest {
 	}
 
 	@Test
+	public void testAddAndSubIngeger(){
+		db.executeTransactionally("CREATE (p:Person {name:'Tom'})");
+		try(Transaction tx = db.beginTx()){
+			final Node node = tx.getAllNodes().stream().findFirst().orElse(null);
+			node.setProperty("age", 1);
+			tx.commit();
+		}
+		testCall(db, "MATCH (n:Person {name:'Tom'}) CALL apoc.atomic.add(n,$property,$value) YIELD container RETURN count(*)",map("property","age","value",10), (r) -> {});
+		int age = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age");
+		assertEquals(11, age);
+		testCall(db, "MATCH (n:Person {name:'Tom'}) CALL apoc.atomic.subtract(n,$property,$value) YIELD container RETURN count(*)",map("property","age","value",5), (r) -> {});
+		int ageSub = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age");
+		assertEquals(6, ageSub);
+	}
+
+	@Test
+	public void testAddAndSubFloat() {
+		db.executeTransactionally("CREATE (p:Person {name:'Tom'})");
+		try(Transaction tx = db.beginTx()){
+			final Node node = tx.getAllNodes().stream().findFirst().orElse(null);
+			node.setProperty("age", 2.4F);
+			tx.commit();
+		}
+
+		testCall(db, "MATCH (n:Person {name:'Tom'}) CALL apoc.atomic.add(n,$property,$value) YIELD container RETURN count(*)",map("property","age","value",1.5F), (r) -> {});
+		float age = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age");
+		assertEquals(3.9F, age, 0);
+		
+		testCall(db, "MATCH (n:Person {name:'Tom'}) CALL apoc.atomic.subtract(n,$property,$value) YIELD container RETURN count(*)",map("property","age","value",0.5F), (r) -> {});
+		float ageSub = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age");
+		assertEquals(3.4F, ageSub, 0);
+	}
+
+	@Test
 	public void testAddLong(){
 		db.executeTransactionally("CREATE (p:Person {name:'Tom',age: 40}) CREATE (c:Person {name:'John',age: 40}) CREATE (a:Person {name:'Anne',age: 22})");
 		testCall(db, "MATCH (n:Person {name:'Tom'}) CALL apoc.atomic.add(n,$property,$value) YIELD container RETURN count(*)",map("property","age","value",10), (r) -> {});
