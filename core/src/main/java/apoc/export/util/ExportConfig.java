@@ -45,7 +45,7 @@ public class ExportConfig {
     private OptimizationType optimizationType;
     private int unwindBatchSize;
     private long awaitForIndexes;
-    private final long sample;
+    private final Map<String, Object> samplingConfig;
 
     public int getBatchSize() {
         return batchSize;
@@ -100,7 +100,7 @@ public class ExportConfig {
         this.optimizations = (Map<String, Object>) config.getOrDefault("useOptimizations", Collections.emptyMap());
         this.optimizationType = OptimizationType.valueOf(optimizations.getOrDefault("type", OptimizationType.UNWIND_BATCH.toString()).toString().toUpperCase());
         this.batchSize = ((Number)config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE)).intValue();
-        this.sample = Util.toLong(config.getOrDefault("sample", DEFAULT_BATCH_SIZE));
+        this.samplingConfig = (Map<String, Object>) config.getOrDefault("samplingConfig", new HashMap<>());
         this.unwindBatchSize = ((Number)getOptimizations().getOrDefault("unwindBatchSize", DEFAULT_UNWIND_BATCH_SIZE)).intValue();
         this.awaitForIndexes = ((Number)config.getOrDefault("awaitForIndexes", 300)).longValue();
         validate();
@@ -197,7 +197,7 @@ public class ExportConfig {
         return awaitForIndexes;
     }
 
-    public Map<String, Object> getConfig() {
-        return config;
+    public Map<String, Object> getSamplingConfig() {
+        return samplingConfig;
     }
 }

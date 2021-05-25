@@ -32,16 +32,16 @@ public class MetaInformation {
     private static final Map<String, String> REVERSED_TYPE_MAP = MapUtils.invertMap(typeMappings);
     
     public static Map<String, Class> collectPropTypesForNodes(SubGraph graph, GraphDatabaseService db, ExportConfig config) {
-        final Map<String, Object> conf = new HashMap<>(config.getConfig());
-        conf.put("includeLabels", stream(graph.getAllLabelsInUse()).map(Label::name).collect(Collectors.toList()));
+        final Map<String, Object> conf = config.getSamplingConfig();
+        conf.putIfAbsent("includeLabels", stream(graph.getAllLabelsInUse()).map(Label::name).collect(Collectors.toList()));
         
         return db.executeTransactionally("CALL apoc.meta.nodeTypeProperties($conf)", 
                 Map.of("conf", conf), getMapResultTransformer()); 
     }
 
     public static Map<String, Class> collectPropTypesForRelationships(SubGraph graph, GraphDatabaseService db, ExportConfig config) {
-        final Map<String, Object> conf = new HashMap<>(config.getConfig());
-        conf.put("includeRels", stream(graph.getAllRelationshipTypesInUse()).map(RelationshipType::name).collect(Collectors.toList()));
+        final Map<String, Object> conf = config.getSamplingConfig();
+        conf.putIfAbsent("includeRels", stream(graph.getAllRelationshipTypesInUse()).map(RelationshipType::name).collect(Collectors.toList()));
 
         return db.executeTransactionally("CALL apoc.meta.relTypeProperties($conf)", 
                 Map.of("conf", conf), getMapResultTransformer());
@@ -53,6 +53,7 @@ public class MetaInformation {
                 .collect(Collectors.toMap(map -> (String) map.get("propertyName"),
                         map -> {
                             final String propertyTypes = ((List<String>) map.get("propertyTypes")).get(0);
+                            // take the className from the result, inversely to the meta.relTypeProperties/nodeTypeProperties procedures
                             String className = REVERSED_TYPE_MAP.get(propertyTypes);
                             try {
                                 return ClassUtils.getClass(className);

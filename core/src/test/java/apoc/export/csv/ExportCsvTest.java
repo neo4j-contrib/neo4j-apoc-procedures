@@ -173,7 +173,7 @@ public class ExportCsvTest {
         assertEquals(EXP_SAMPLE, readFile(fileName));
 
         // quotes: 'none' to simplify header testing
-        TestUtil.testCall(db, "CALL apoc.export.csv.all($file,{sample: 1, quotes: 'none'})", map("file", fileName),
+        TestUtil.testCall(db, "CALL apoc.export.csv.all($file, {samplingConfig: {sample: 1}, quotes: 'none'})", map("file", fileName),
                 (r) -> assertResults(fileName, r, "database", totalNodes, totalRels, totalProps, false));
         
         final String[] s = Files.lines(new File(directory, fileName).toPath()).findFirst().get().split(",");
