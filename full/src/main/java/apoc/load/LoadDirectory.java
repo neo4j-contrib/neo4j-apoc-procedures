@@ -18,6 +18,8 @@ import org.neo4j.procedure.Name;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -26,6 +28,7 @@ import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadDirectoryHandler.getPathDependingOnUseNeo4jConfig;
 import static apoc.util.FileUtils.getDirImport;
 import static apoc.util.FileUtils.getPathFromUrlString;
+import static org.apache.commons.lang3.StringUtils.chop;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_WRITE;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType.WRITE;
@@ -109,9 +112,11 @@ public class LoadDirectory {
 
     // visible for test purpose
     public static String checkIfUrlBlankAndGetFileUrl(String urlDir) throws IOException {
-        return StringUtils.isBlank(urlDir)
-                ? encodePath(getDirImport())
-                : FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"));
+        if (StringUtils.isBlank(urlDir)) {
+            final Path pathImport = Paths.get(getDirImport()).toAbsolutePath();
+            return chop(encodePath(pathImport.toUri().toString()));
+        }
+        return FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"));
     }
 
 }

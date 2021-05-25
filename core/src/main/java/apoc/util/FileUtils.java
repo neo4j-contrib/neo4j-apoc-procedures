@@ -304,7 +304,11 @@ public class FileUtils {
     }
 
     public static Path getPathFromUrlString(String urlDir) {
-        return Paths.get(URI.create(urlDir).getPath());
+        final URI uri = URI.create(urlDir);
+        if(uri.isAbsolute()) {
+            return Paths.get(uri);
+        }
+        return Paths.get(uri.getPath());
     }
 
     // to exclude cases like 'testload.tar.gz?raw=true'
