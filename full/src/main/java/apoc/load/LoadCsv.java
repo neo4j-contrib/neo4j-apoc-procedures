@@ -108,7 +108,6 @@ public class LoadCsv {
         private final boolean ignoreErrors;
         long lineNo;
 
-        // todo - ma l'url mi serve a ben poco... boh a sto punto passo null se è binario
         public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results, boolean ignoreErrors) throws IOException {
             super(Long.MAX_VALUE, Spliterator.ORDERED);
             this.csv = csv;

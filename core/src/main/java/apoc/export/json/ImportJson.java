@@ -26,8 +26,6 @@ public class ImportJson {
 
     @Context
     public Pools pools;
-
-    // todo - il primo parametro può essere anche un byte[]
     
     @Context
     public TerminationGuard terminationGuard;

@@ -57,7 +57,6 @@ public class Xml {
     @Context
     public Log log;
 
-    // TODO - TRAMITE CONFIG
     @Procedure
     @Description("apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.")
     public Stream<MapResult> xml(@Name("urlOrBinary") Object urlOrBinary, @Name(value = "path", defaultValue = "/") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config, @Name(value = "simple", defaultValue = "false") boolean simpleMode) throws Exception {
@@ -84,9 +83,7 @@ public class Xml {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
         try {
-            //            // todo - se fuziona mergiare con primo try
             CountingInputStream is;
-            // todo - common: mettere if exportConfig.getBinary().equal("NONE")
             final String binary = (String) config.get("binary");
             if (binary == null) {
                 String url = (String) urlOrBinary;
@@ -577,8 +574,9 @@ public class Xml {
         org.neo4j.graphdb.Node root = tx.createNode(Label.label("XmlDocument"));
         setPropertyIfNotNull(root, "_xmlVersion", xml.getVersion());
         setPropertyIfNotNull(root, "_xmlEncoding", xml.getEncoding());
-        root.setProperty("urlOrBinary", urlOrBinary);
-
+        if (importConfig.isFileUrl()) {
+            root.setProperty("url", urlOrBinary);
+        }
         ImportState state = new ImportState(root);
         state.push(new ParentAndChildPair(root));
 
