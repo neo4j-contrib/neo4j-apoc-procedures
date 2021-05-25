@@ -447,13 +447,13 @@ public class MetaTest {
             Map<String, Object> value = (Map<String, Object>) row.get("value");
             assertEquals(2, value.size());
             
-            Map<String, Object>  personRelationship = (Map<String, Object>) value.get("person (relationship)");
+            Map<String, Object>  personRelationship = (Map<String, Object>) value.get("person (RELATIONSHIP)");
             assertEquals(1L, personRelationship.get("count"));
             assertEquals("relationship", personRelationship.get("type"));
             Map<String, Object>  relationshipProps = (Map<String, Object>) personRelationship.get("properties");
             assertEquals(Set.of("alfa"), relationshipProps.keySet());
             
-            Map<String, Object>  personNode = (Map<String, Object>) value.get("person (node)");
+            Map<String, Object> personNode = (Map<String, Object>) value.get("person");
             assertEquals(2L, personNode.get("count"));
             assertEquals("node", personNode.get("type"));
             Map<String, Object>  nodeProps = (Map<String, Object>) personNode.get("properties");
