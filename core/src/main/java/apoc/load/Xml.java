@@ -5,9 +5,9 @@ import apoc.export.util.CountingInputStream;
 import apoc.generate.config.InvalidConfigException;
 import apoc.result.MapResult;
 import apoc.result.NodeResult;
-import apoc.util.BinaryFileType;
+import apoc.util.CompressionAlgo;
+import apoc.util.CompressionConfig;
 import apoc.util.FileUtils;
-import apoc.util.ImportCommonConfig;
 import apoc.util.Util;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -15,9 +15,17 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.UserFunction;
 import org.w3c.dom.CharacterData;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import javax.xml.namespace.QName;
@@ -31,18 +39,38 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static apoc.util.CompressionConfig.COMPRESSION;
+import static apoc.util.FileUtils.getInputStreamFromBinary;
+import static apoc.util.FileUtils.checkDataTypeAndGetResult;
 import static apoc.util.Util.cleanUrl;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static javax.xml.stream.XMLStreamConstants.*;
+import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
+import static javax.xml.stream.XMLStreamConstants.END_DOCUMENT;
+import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
+import static javax.xml.stream.XMLStreamConstants.START_DOCUMENT;
+import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 
 public class Xml {
 
@@ -83,18 +111,15 @@ public class Xml {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
         try {
-            CountingInputStream is;
-            final String binary = (String) config.get("binary");
-            if (binary == null) {
-                String url = (String) urlOrBinary;
-                apocConfig.checkReadAllowed(url);
-                url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
-                Map<String, Object> headers = (Map) config.getOrDefault("headers", Collections.emptyMap());
-                is = Util.openInputStream(url, headers, null);
-            } else {
-                Charset binaryCharset = Charset.forName((String) config.getOrDefault("binaryCharset", UTF_8.name()));
-                is = BinaryFileType.valueOf(binary).toInputStream(urlOrBinary, binaryCharset);
-            }
+            Map<String, Object> finalConfig = config;
+            CountingInputStream is = checkDataTypeAndGetResult(urlOrBinary, 
+                    binary -> getInputStreamFromBinary(binary, (String) finalConfig.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name())), 
+                    url -> {
+                        apocConfig.checkReadAllowed(url);
+                        url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
+                        Map<String, Object> headers = (Map) finalConfig.getOrDefault("headers", Collections.emptyMap());
+                        return Util.openInputStream(url, headers, null); 
+            });
             return parse(is, simpleMode, path, failOnError);
         } catch (Exception e){
             if(!failOnError)
@@ -162,16 +187,12 @@ public class Xml {
     }
 
     private XMLStreamReader getXMLStreamReader(Object urlOrBinary, XmlImportConfig config) throws IOException, XMLStreamException {
-        InputStream inputStream;
-        if (config.isFileUrl()) {
-            String url = (String) urlOrBinary;
+        InputStream inputStream = checkDataTypeAndGetResult(urlOrBinary, binary -> getInputStreamFromBinary(binary, config.getCompressionAlgo()), url -> {
             apocConfig.checkReadAllowed(url);
             url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
             URLConnection urlConnection = new URL(url).openConnection();
-            inputStream = urlConnection.getInputStream();
-        } else {
-            inputStream = BinaryFileType.valueOf(config.getBinary()).toInputStream(urlOrBinary, config.getBinaryCharset());
-        }
+            return urlConnection.getInputStream();
+        });
         if (config.isFilterLeadingWhitespace()) {
             inputStream = new SkipWhitespaceInputStream(inputStream);
         }
@@ -431,7 +452,7 @@ public class Xml {
         }
     }
 
-    private static class XmlImportConfig extends ImportCommonConfig {
+    private static class XmlImportConfig extends CompressionConfig {
 
         private boolean connectCharacters;
         private Pattern delimiter;
@@ -441,7 +462,10 @@ public class Xml {
         final private boolean filterLeadingWhitespace;
 
         public XmlImportConfig(Map<String, Object> config) {
-            config = fromCommon(config);
+            super(config);
+            if (config == null) {
+                config = Collections.emptyMap();
+            }
             connectCharacters = BooleanUtils.toBoolean((Boolean) config.get("connectCharacters"));
             filterLeadingWhitespace = BooleanUtils.toBoolean((Boolean) config.get("filterLeadingWhitespace"));
 
@@ -574,7 +598,7 @@ public class Xml {
         org.neo4j.graphdb.Node root = tx.createNode(Label.label("XmlDocument"));
         setPropertyIfNotNull(root, "_xmlVersion", xml.getVersion());
         setPropertyIfNotNull(root, "_xmlEncoding", xml.getEncoding());
-        if (importConfig.isFileUrl()) {
+        if (urlOrBinary instanceof String) {
             root.setProperty("url", urlOrBinary);
         }
         ImportState state = new ImportState(root);

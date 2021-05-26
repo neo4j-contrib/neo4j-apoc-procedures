@@ -43,8 +43,7 @@ public class ImportCsv {
                     final CsvLoaderConfig clc = CsvLoaderConfig.from(config);
                     String file = null;
                     String source = "binary";
-                    final boolean isFileUrl = clc.isFileUrl();
-                    if (isFileUrl) {
+                    if (nodes.stream().anyMatch(node -> node.containsKey("fileName"))) {
                         file =  "progress.csv";
                         source = "file";
                     }
@@ -53,11 +52,15 @@ public class ImportCsv {
 
                     final Map<String, Map<String, Long>> idMapping = new HashMap<>();
                     for (Map<String, Object> node : nodes) {
-                        loader.loadNodes(node, db, idMapping);
+                        final Object data = node.getOrDefault("fileName", node.get("data"));
+                        final List<String> labels = (List<String>) node.get("labels");
+                        loader.loadNodes(data, labels, db, idMapping);
                     }
 
                     for (Map<String, Object> relationship : relationships) {
-                        loader.loadRelationships(relationship, db, idMapping);
+                        final Object fileName = relationship.getOrDefault("fileName", relationship.get("data"));
+                        final String type = (String) relationship.get("type");
+                        loader.loadRelationships(fileName, type, db, idMapping);
                     }
 
                     return reporter.getTotal();

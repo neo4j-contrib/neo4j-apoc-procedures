@@ -22,7 +22,6 @@ import org.neo4j.values.storable.DurationValue;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.time.temporal.Temporal;
 import java.util.EnumSet;
 import java.util.List;
@@ -32,6 +31,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.FileUtils.getInputStreamFromBinary;
+import static apoc.util.FileUtils.checkDataTypeAndGetResult;
 
 /**
  * @author mh
@@ -83,41 +84,38 @@ public class JsonUtil {
     }
     
     public static Stream<Object> loadJson(String url, Map<String,Object> headers, String payload) {
-        return loadJson(url,headers,payload,"", true, null, null, null);
+        return loadJson(url,headers,payload,"", true, null, null);
     }
     
     public static Stream<Object> loadJson(Object urlOrBinary, Map<String,Object> headers, String payload, String path, boolean failOnError, List<String> options) {
-        return loadJson(urlOrBinary, headers, payload, path, failOnError, null, null, options);
+        return loadJson(urlOrBinary, headers, payload, path, failOnError, null, options);
     }
     
-    public static Stream<Object> loadJson(Object urlOrBinary, Map<String,Object> headers, String payload, String path, boolean failOnError, String binary, Charset binaryCharset, List<String> options) {
-        final boolean isFile = binary == null;
+    public static Stream<Object> loadJson(Object urlOrBinary, Map<String,Object> headers, String payload, String path, boolean failOnError, String compressionAlgo, List<String> options) {
         try {
-            InputStream input;
-            if (isFile) {
+            if (urlOrBinary instanceof String) {
                 String url = (String) urlOrBinary;
                 url = Util.getLoadUrlByConfigFile("json", url, "url").orElse(url);
                 apocConfig().checkReadAllowed(url);
-                url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
-                input = Util.openInputStream(url, headers, payload);
-            } else {
-                input = BinaryFileType.valueOf(binary).toInputStream(urlOrBinary, binaryCharset);    
+                urlOrBinary = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
             }
+            InputStream input = Util.openInputStream(urlOrBinary, headers, payload, compressionAlgo);
             JsonParser parser = OBJECT_MAPPER.getFactory().createParser(input);
             MappingIterator<Object> it = OBJECT_MAPPER.readValues(parser, Object.class);
             Stream<Object> stream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(it, 0), false);
             return StringUtils.isBlank(path) ? stream  : stream.map((value) -> JsonPath.parse(value, getJsonPathConfig(options)).read(path));
         } catch (IOException e) {
-            String u = isFile ? Util.cleanUrl((String) urlOrBinary) : "";
-            if(!failOnError)
+            String u = urlOrBinary instanceof String ? Util.cleanUrl((String) urlOrBinary) : null;
+            if(!failOnError) {
                 return Stream.of();
-            else
-                throw new RuntimeException("Can't read binary, url or key " + u + " as json: "+e.getMessage());
+            } else { 
+                throw new RuntimeException("Can't read binary, url or key " + u + " as json: " + e.getMessage());
+            }
         }
     }
 
     public static Stream<Object> loadJson(String url) {
-        return loadJson(url,null,null,"", true, null, null, null);
+        return loadJson(url,null,null,"", true, null, null);
     }
 
     public static <T> T parse(String json, String path, Class<T> type) {

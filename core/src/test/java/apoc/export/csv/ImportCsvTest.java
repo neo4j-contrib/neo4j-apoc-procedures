@@ -1,7 +1,7 @@
 package apoc.export.csv;
 
 import apoc.ApocSettings;
-import apoc.util.BinaryFileType;
+import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.util.BinaryTestUtil.fileToBinary;
+import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.MapUtil.map;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static org.junit.Assert.assertArrayEquals;
@@ -440,19 +441,9 @@ public class ImportCsvTest {
 
     @Test
     public void ignoreFieldTypeWithByteArrayFile() {
-        final Map<String, Object> config = map("nodeFile", fileToBinary(new File(BASE_URL_FILES, "ignore-nodes.csv"), BinaryFileType.BYTES.name()),
-                "relFile", fileToBinary(new File(BASE_URL_FILES, "ignore-relationships.csv"), BinaryFileType.BYTES.name()),
-                "config", map("delimiter", '|', "batchSize", 1, "binary", BinaryFileType.BYTES.name())
-        );
-        final String query = "CALL apoc.import.csv([{data: $nodeFile, labels: ['Person']}], [{data: $relFile, type: 'KNOWS'}], $config)";
-        commonAssertionIgnoreFieldType(config, query, false);
-    }
-
-    @Test
-    public void ignoreFieldTypeWithStringAndCustomCharset() throws IOException {
-        final Map<String, Object> config = map("nodeFile", FileUtils.readFileToString(new File(BASE_URL_FILES, "ignore-nodes.csv"), ISO_8859_1),
-                "relFile", FileUtils.readFileToString(new File(BASE_URL_FILES, "ignore-relationships.csv"), ISO_8859_1),
-                "config", map("delimiter", '|', "batchSize", 1, "binary", BinaryFileType.BYTES.name(), "binaryCharset", ISO_8859_1.name())
+        final Map<String, Object> config = map("nodeFile", fileToBinary(new File(BASE_URL_FILES, "ignore-nodes.csv"), CompressionAlgo.NONE.name()),
+                "relFile", fileToBinary(new File(BASE_URL_FILES, "ignore-relationships.csv"), CompressionAlgo.NONE.name()),
+                "config", map("delimiter", '|', "batchSize", 1, COMPRESSION, CompressionAlgo.NONE.name())
         );
         final String query = "CALL apoc.import.csv([{data: $nodeFile, labels: ['Person']}], [{data: $relFile, type: 'KNOWS'}], $config)";
         commonAssertionIgnoreFieldType(config, query, false);

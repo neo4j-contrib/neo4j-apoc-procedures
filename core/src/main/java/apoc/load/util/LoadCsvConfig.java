@@ -1,7 +1,7 @@
 package apoc.load.util;
 
 import apoc.load.Mapping;
-import apoc.util.ImportCommonConfig;
+import apoc.util.CompressionConfig;
 import apoc.util.Util;
 
 import java.util.*;
@@ -10,7 +10,7 @@ import static apoc.util.Util.parseCharFromConfig;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
-public class LoadCsvConfig extends ImportCommonConfig {
+public class LoadCsvConfig extends CompressionConfig {
 
     public static final char DEFAULT_ARRAY_SEP = ';';
     public static final char DEFAULT_SEP = ',';
@@ -35,7 +35,10 @@ public class LoadCsvConfig extends ImportCommonConfig {
     private Map<String, Mapping> mappings;
 
     public LoadCsvConfig(Map<String, Object> config) {
-        config = fromCommon(config);
+        super(config);
+        if (config == null) {
+            config = Collections.emptyMap();
+        }
         ignoreErrors = Util.toBoolean(config.getOrDefault("ignoreErrors", false));
         separator = parseCharFromConfig(config, "sep", DEFAULT_SEP);
         arraySep = parseCharFromConfig(config, "arraySep", DEFAULT_ARRAY_SEP);

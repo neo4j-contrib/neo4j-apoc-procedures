@@ -4,7 +4,6 @@ import apoc.Pools;
 import apoc.export.util.CountingReader;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
-import apoc.util.BinaryFileType;
 import apoc.util.FileUtils;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
@@ -38,16 +37,13 @@ public class ImportJson {
                     ImportJsonConfig importJsonConfig = new ImportJsonConfig(config);
                     String file = null;
                     String source = "binary";
-                    final boolean isFileUrl = importJsonConfig.isFileUrl();
-                    if (isFileUrl) {
+                    if (fileOrBinary instanceof String) {
                         file =  (String) fileOrBinary;
                         source = "file";
                     }
                     ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, source, "json"));
 
-                    try (final CountingReader reader = isFileUrl
-                            ? FileUtils.readerFor(file) 
-                            : BinaryFileType.valueOf(importJsonConfig.getBinary()).toInputStream(fileOrBinary, importJsonConfig.getBinaryCharset()).asReader();
+                    try (final CountingReader reader = FileUtils.readerFor(fileOrBinary, importJsonConfig.getCompressionAlgo());
                          final Scanner scanner = new Scanner(reader).useDelimiter("\n|\r");
                          JsonImporter jsonImporter = new JsonImporter(importJsonConfig, db, reporter)) {
                         while (scanner.hasNext() && !Util.transactionIsTerminated(terminationGuard)) {

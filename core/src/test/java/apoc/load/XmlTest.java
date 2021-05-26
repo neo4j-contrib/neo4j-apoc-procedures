@@ -1,10 +1,9 @@
 package apoc.load;
 
 import apoc.ApocSettings;
-import apoc.util.BinaryFileType;
+import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
 import apoc.xml.XmlTestUtils;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
@@ -18,10 +17,7 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.xml.sax.SAXParseException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static apoc.util.BinaryTestUtil.fileToBinary;
+import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
@@ -76,8 +73,8 @@ public class XmlTest {
     @Test
     public void testMixedContentWithBinary()  {
         testCall(db, "CALL apoc.load.xml($data, null, $config)",
-                map("data", fileToBinary(new File("src/test/resources/xml/mixedcontent.xml"), BinaryFileType.BLOCK_LZ4.name()),
-                        "config", map("binary", BinaryFileType.BLOCK_LZ4.name())),
+                map("data", fileToBinary(new File("src/test/resources/xml/mixedcontent.xml"), CompressionAlgo.BLOCK_LZ4.name()),
+                        "config", map(COMPRESSION, CompressionAlgo.BLOCK_LZ4.name())),
                 this::commonAssertionsMixedContent);
     }
 
@@ -253,8 +250,8 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlWithNextWordRelsWithBinaryFile() {
-        final String query = "call apoc.import.xml($data, {binary: 'FRAMED_SNAPPY', relType: 'NEXT_WORD', label: 'XmlWord', filterLeadingWhitespace: true}) yield node";
-        final Map<String, Object> config = Map.of("data", fileToBinary(new File(FILE_SHORTENED), BinaryFileType.FRAMED_SNAPPY.name()));
+        final String query = "call apoc.import.xml($data, {compression: 'FRAMED_SNAPPY', relType: 'NEXT_WORD', label: 'XmlWord', filterLeadingWhitespace: true}) yield node";
+        final Map<String, Object> config = Map.of("data", fileToBinary(new File(FILE_SHORTENED), CompressionAlgo.FRAMED_SNAPPY.name()));
         commonAssertionsWithNextWordRels(query, config);
     }
 

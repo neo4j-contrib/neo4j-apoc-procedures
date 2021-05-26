@@ -1,6 +1,6 @@
 package apoc.load;
 
-import apoc.util.BinaryFileType;
+import apoc.util.CompressionAlgo;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.*;
 import static apoc.util.BinaryTestUtil.fileToBinary;
+import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.convert.ConvertJsonTest.EXPECTED_AS_PATH_LIST;
 import static apoc.convert.ConvertJsonTest.EXPECTED_PATH;
 import static apoc.convert.ConvertJsonTest.EXPECTED_PATH_WITH_NULLS;
@@ -77,8 +78,8 @@ public class LoadJsonTest {
     @Test 
     public void testLoadMultiJsonWithBinary() {
         testResult(db, "CALL apoc.load.jsonParams($url, null, null, null, $config)",
-                map("url", fileToBinary(new File(ClassLoader.getSystemResource("multi.json").getPath()), BinaryFileType.FRAMED_SNAPPY.name()), 
-                        "config", map("binary", BinaryFileType.FRAMED_SNAPPY.name())),
+                map("url", fileToBinary(new File(ClassLoader.getSystemResource("multi.json").getPath()), CompressionAlgo.FRAMED_SNAPPY.name()), 
+                        "config", map(COMPRESSION, CompressionAlgo.FRAMED_SNAPPY.name())),
                 this::commonAssertionsLoadJsonMulti);
     }
 
@@ -302,7 +303,7 @@ public class LoadJsonTest {
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
-            assertEquals("Can't read url or key invalid URL (foo) as json: no protocol: foo", except.getMessage());
+            assertEquals("Can't read binary, url or key invalid URL (foo) as json: no protocol: foo", except.getMessage());
             throw e;
         }
     }

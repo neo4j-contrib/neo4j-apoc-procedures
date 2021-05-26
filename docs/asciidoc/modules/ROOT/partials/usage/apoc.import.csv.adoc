@@ -103,20 +103,18 @@ RETURN path;
 
 You can also import a file from a binary `byte[]` (not compressed) or a compressed file (allowed compression algos are: `GZIP`, `BZIP2`, `DEFLATE`, `BLOCK_LZ4`, `FRAMED_SNAPPY`).
 The binary file it can also be a string, in this case the string will be converted in byte[] using the `String.getBytes(CHARSET)` method,
-where CHARSET depends on optional `binaryCharset` config (with default `UTF-8`).
+where CHARSET depends on optional `charset` config (with default `UTF-8`).
 Note that in this case, for both `relations` and `nodes` parameter maps, the key for the file is `data` instead of `fileName`.
 For example:
 
 [source,cypher]
 ----
-CALL apoc.import.csv([{data: `binaryGzipByteArray`, labels: ['Person']}], [{data: `binaryGzipByteArray`, type: 'KNOWS'}], {binary: 'GZIP'})
+CALL apoc.import.csv([{data: `binaryGzipByteArray`, labels: ['Person']}], [{data: `binaryGzipByteArray`, type: 'KNOWS'}], {compression: 'GZIP'})
 ----
 
 or:
 
 [source,cypher]
 ----
-CALL apoc.import.csv([{data: `file as String With ISO-8859-1 Charset`, labels: ['Person']}], 
-    [{data: `file in String With ISO-8859-1 Charset`, type: 'KNOWS'}], 
-    {binary: 'BYTES', binaryCharset: 'ISO-8859-1'})
+CALL apoc.import.csv([{data: `binaryFileNotCompressed`, labels: ['Person']}], [{data: `binaryFileNotCompressed`, type: 'KNOWS'}], {compression: 'NONE'})
 ----

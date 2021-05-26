@@ -3,7 +3,6 @@ package apoc.load;
 import apoc.Extended;
 import apoc.export.util.CountingReader;
 import apoc.load.util.LoadCsvConfig;
-import apoc.util.BinaryFileType;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import com.opencsv.CSVParserBuilder;
@@ -45,21 +44,19 @@ public class LoadCsv {
         CountingReader reader = null;
         try {
             String url = null;
-            if (config.isFileUrl()) {
+            if (urlOrBinary instanceof String) {
                 url = (String) urlOrBinary;
                 httpHeaders = httpHeaders != null ? httpHeaders : new HashMap<>();
                 httpHeaders.putAll(Util.extractCredentialsIfNeeded(url, true));
-                reader = FileUtils.readerFor(url, httpHeaders, payload);
-            } else {
-                reader = BinaryFileType.valueOf(config.getBinary()).toInputStream(urlOrBinary, config.getBinaryCharset()).asReader();
             }
+            reader = FileUtils.readerFor(urlOrBinary, httpHeaders, payload, config.getCompressionAlgo());
             return streamCsv(url, config, reader);
         } catch (IOException e) {
             closeReaderSafely(reader);
             if(!config.isFailOnError())
                 return Stream.of(new CSVResult(new String[0], new String[0], 0, true, Collections.emptyMap(), emptyList(), EnumSet.noneOf(Results.class)));
             else
-                throw new RuntimeException("Can't read CSV " + (config.isFileUrl() ? "from URL " + cleanUrl((String) urlOrBinary) : "from binary"), e);
+                throw new RuntimeException("Can't read CSV " + (urlOrBinary instanceof String ? "from URL " + cleanUrl((String) urlOrBinary) : "from binary"), e);
         }
     }
 

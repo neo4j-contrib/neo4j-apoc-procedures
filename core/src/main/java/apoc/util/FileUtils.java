@@ -9,6 +9,7 @@ import apoc.util.s3.S3UploadUtils;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.function.ThrowingFunction;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -20,14 +21,14 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.apocConfig;
-import static org.apache.commons.lang3.StringUtils.replaceOnce;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
-import static org.eclipse.jetty.util.URIUtil.encodeSpaces;
 
 /**
  * @author mh
@@ -47,22 +48,32 @@ public class FileUtils {
 
     private static final List<String> NON_FILE_PROTOCOLS = Arrays.asList(HTTP_PROTOCOL, S3_PROTOCOL, GCS_PROTOCOL, HDFS_PROTOCOL);
 
-    public static CountingReader readerFor(String fileName) throws IOException {
-        return readerFor(fileName, null, null);
+    public static CountingReader readerFor(Object fileName) throws IOException {
+        return readerFor(fileName, null, null, CompressionAlgo.NONE.name());
     }
 
-    public static CountingReader readerFor(String fileName, Map<String, Object> headers, String payload) throws IOException {
-        apocConfig().checkReadAllowed(fileName);
-        if (fileName==null) return null;
-        fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
-        if (fileName.matches("^\\w+:/.+")) {
-            if (isHdfs(fileName)) {
-                return readHdfs(fileName);
-            } else {
-                return Util.openInputStream(fileName, headers, payload).asReader();
-            }
-        }
-        return readFile(fileName);
+    public static CountingReader readerFor(Object fileName, String compressionAlgo) throws IOException {
+        return readerFor(fileName, null, null, compressionAlgo);
+    }
+
+    public static CountingReader readerFor(Object input, Map<String, Object> headers, String payload) throws IOException {
+        return readerFor(input, headers, payload, CompressionAlgo.NONE.name());
+    }
+
+    public static CountingReader readerFor(Object input, Map<String, Object> headers, String payload, String compressionAlgo) throws IOException {
+            return checkDataTypeAndGetResult(input, binary -> getReaderFromBinary(binary, compressionAlgo), fileName -> {
+                apocConfig().checkReadAllowed(fileName);
+                if (fileName == null) return null;
+                fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
+                if (fileName.matches("^\\w+:/.+")) {
+                    if (isHdfs(fileName)) {
+                        return readHdfs(fileName);
+                    } else {
+                        return Util.openInputStream(fileName, headers, payload).asReader();
+                    }
+                }
+                return readFile(fileName);
+            });
     }
     public static CountingInputStream inputStreamFor(String fileName) throws IOException {
         apocConfig().checkReadAllowed(fileName);
@@ -109,7 +120,7 @@ public class FileUtils {
         return new CountingInputStream(file);
     }
 
-    public static String changeFileUrlIfImportDirectoryConstrained(String urlNotEncoded) throws IOException {
+    public static String changeFileUrlIfImportDirectoryConstrained(String urlNotEncoded) {
         final String url = encodeExceptQM(urlNotEncoded);
 
         if (isFile(url) && isImportUsingNeo4jConfig()) {
@@ -310,5 +321,26 @@ public class FileUtils {
     // to exclude cases like 'testload.tar.gz?raw=true'
     private static String encodeExceptQM(String url) {
         return encodePath(url).replace("%3F", "?");
+    }
+    public static CountingInputStream getInputStreamFromBinary(byte[] urlOrBinary, String compressionAlgo) {
+        return CompressionAlgo.valueOf(compressionAlgo).toInputStream(urlOrBinary);
+    }
+
+    public static CountingReader getReaderFromBinary(byte[] urlOrBinary, String compressionAlgo) {
+        try {
+            return getInputStreamFromBinary(urlOrBinary, compressionAlgo).asReader();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <T> T checkDataTypeAndGetResult(Object urlOrBinary, Function<byte[], T> binaryFunction, ThrowingFunction<String, T, IOException> stringFunction) throws IOException {
+        if (urlOrBinary instanceof String) {
+            return stringFunction.apply((String) urlOrBinary);
+        } else if (urlOrBinary instanceof byte[]) {
+            return binaryFunction.apply((byte[]) urlOrBinary);
+        } else {
+            throw new RuntimeException("Only byte[] or String allowed");
+        }
     }
 }

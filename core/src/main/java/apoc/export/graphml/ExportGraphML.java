@@ -9,7 +9,6 @@ import apoc.export.util.ExportUtils;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
-import apoc.util.BinaryFileType;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.neo4j.cypher.export.CypherResultSubGraph;
@@ -62,8 +61,7 @@ public class ExportGraphML {
             ExportConfig exportConfig = new ExportConfig(config);
             String file =  null;
             String source = "binary";
-            final boolean isFileUrl = exportConfig.isFileUrl();
-            if (isFileUrl) {
+            if (fileOrBinary instanceof String) {
                 file = (String) fileOrBinary;
                 source = "file";
             }
@@ -74,10 +72,8 @@ public class ExportGraphML {
                     .nodeLabels(exportConfig.readLabels());
 
             if (exportConfig.storeNodeIds()) graphMLReader.storeNodeIds();
-
-            graphMLReader.parseXML(isFileUrl 
-                    ? FileUtils.readerFor(file) 
-                    : BinaryFileType.valueOf(exportConfig.getBinary()).toInputStream(fileOrBinary, exportConfig.getBinaryCharset()).asReader());
+            
+            graphMLReader.parseXML(FileUtils.readerFor(fileOrBinary, exportConfig.getCompressionAlgo()));
             return reporter.getTotal();
         });
         return Stream.of(result);

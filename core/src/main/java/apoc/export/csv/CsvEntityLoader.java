@@ -6,7 +6,6 @@ import apoc.export.util.ProgressReporter;
 import apoc.load.CSVResult;
 import apoc.load.Mapping;
 import apoc.load.util.Results;
-import apoc.util.BinaryFileType;
 import apoc.util.FileUtils;
 import com.opencsv.CSVReader;
 import org.neo4j.graphdb.*;
@@ -35,21 +34,19 @@ public class CsvEntityLoader {
 
     /**
      * Loads nodes from a CSV file with given labels to an online database, and fills the {@code idMapping},
-     * which will be used by the {@link #loadRelationships(Map, GraphDatabaseService, Map)}
+     * which will be used by the {@link #loadRelationships(Object, String, GraphDatabaseService, Map)}
      * method.
      *
-     * @param nodeMap, which contains a key fileName (URI of the CSV file representing the node) or data (the binary file)
-     *  and a key labels, that is the list of node labels to be applied to each node
+     * @param fileName URI/Binary of the CSV file representing the node
+     * @param labels list of node labels to be applied to each node
      * @param db running database instance
      * @param idMapping to be filled with the mapping between the CSV ids and the DB's internal node ids
      * @throws IOException
      */
-    public void loadNodes(final Map<String, Object> nodeMap, final GraphDatabaseService db,
+    public void loadNodes(final Object fileName, final List<String> labels, final GraphDatabaseService db,
                           final Map<String, Map<String, Long>> idMapping) throws IOException {
-        try (final CountingReader reader = clc.isFileUrl()
-                ? FileUtils.readerFor((String) nodeMap.get("fileName"))
-                : BinaryFileType.valueOf(clc.getBinary()).toInputStream(nodeMap.get("data"), clc.getBinaryCharset()).asReader()) {
-            final List<String> labels = (List<String>) nodeMap.get("labels");
+        
+        try (final CountingReader reader = FileUtils.readerFor(fileName, clc.getCompressionAlgo())) {
             final String header = readFirstLine(reader);
             reader.skip(clc.getSkipLines() - 1);
             final List<CsvHeaderField> fields = CsvHeaderFields.processHeader(header, clc.getDelimiter(), clc.getQuotationCharacter());
@@ -153,23 +150,22 @@ public class CsvEntityLoader {
     /**
      * Loads relationships from a CSV file with given relationship types to an online database,
      * using the {@code idMapping} created by the
-     * {@link #loadNodes(Map, GraphDatabaseService, Map)} method.
+     * * {@link #loadNodes(Object, List, GraphDatabaseService, Map)} method.
      *
-     * @param relationship  which contains a key fileName (URI of the CSV file representing the node) or data (the binary file)
+     * @param data URI / Binary of the CSV file representing the relationship
+     * @param type relationship type to be applied to each relationships
      *      and a key type, that is the relationship type to be applied to each relationships
      * @param db running database instance
      * @param idMapping stores mapping between the CSV ids and the DB's internal node ids
      * @throws IOException
      */
     public void loadRelationships(
-            final Map<String, Object> relationship,
+            final Object data, 
+            final String type,
             final GraphDatabaseService db,
             final Map<String, Map<String, Long>> idMapping) throws IOException {
         
-        try (final CountingReader reader = clc.isFileUrl()
-                ? FileUtils.readerFor((String) relationship.get("fileName"))
-                : BinaryFileType.valueOf(clc.getBinary()).toInputStream(relationship.get("data"), clc.getBinaryCharset()).asReader()) {
-            final String type = (String) relationship.get("type");
+        try (final CountingReader reader = FileUtils.readerFor(data, clc.getCompressionAlgo())) {
             final String header = readFirstLine(reader);
             final List<CsvHeaderField> fields = CsvHeaderFields.processHeader(header, clc.getDelimiter(), clc.getQuotationCharacter());
 

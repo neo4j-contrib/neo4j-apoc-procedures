@@ -3,6 +3,7 @@ package apoc.export.json;
 import apoc.ApocSettings;
 import apoc.schema.Schemas;
 import apoc.util.BinaryFileType;
+import apoc.util.CompressionAlgo;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -35,6 +36,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.util.BinaryTestUtil.fileToBinary;
+import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR_MSG;
 import static apoc.util.MapUtil.map;
 import static java.lang.String.format;
@@ -60,8 +62,7 @@ public class ImportJsonTest {
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, ImportJson.class, Utils.class);
-        TestUtil.registerProcedure(db, ImportJson.class, Schemas.class);
+        TestUtil.registerProcedure(db, ImportJson.class, Schemas.class, Utils.class);
     }
 
     @Test
@@ -293,8 +294,8 @@ public class ImportJsonTest {
     @Test
     public void shouldImportAllJsonToBinary()  {
         TestUtil.testCall(db, "CALL apoc.import.json($file, $config)",
-                map("config", map("binary", BinaryFileType.DEFLATE.name()),
-                        "file", fileToBinary(new File(directory, "all.json"), BinaryFileType.DEFLATE.name())),
+                map("config", map(COMPRESSION, CompressionAlgo.DEFLATE.name()),
+                        "file", fileToBinary(new File(directory, "all.json"), CompressionAlgo.DEFLATE.name())),
                 (r) -> assertionsAllJson(r, true));
     }
 

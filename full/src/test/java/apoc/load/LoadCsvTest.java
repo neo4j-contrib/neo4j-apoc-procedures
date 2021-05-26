@@ -1,7 +1,7 @@
 package apoc.load;
 
 import apoc.ApocSettings;
-import apoc.util.BinaryFileType;
+import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static apoc.util.BinaryTestUtil.fileToBinary;
+import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
@@ -80,8 +81,8 @@ public class LoadCsvTest {
     @Test
     public void testLoadCsvWithBinary() {
         testResult(db, "CALL apoc.load.csvParams($file, null, null, $conf)", 
-                map("file", fileToBinary(new File(getUrlFileName("test.csv").getPath()), BinaryFileType.DEFLATE.name()),
-                        "conf", map("binary", BinaryFileType.DEFLATE.name(), "results", List.of("map", "list", "stringMap", "strings"))),
+                map("file", fileToBinary(new File(getUrlFileName("test.csv").getPath()), CompressionAlgo.DEFLATE.name()),
+                        "conf", map(COMPRESSION, CompressionAlgo.DEFLATE.name(), "results", List.of("map", "list", "stringMap", "strings"))),
                 this::commonAssertionsLoadCsv);
     }
 
