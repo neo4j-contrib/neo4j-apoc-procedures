@@ -4,7 +4,6 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.assertj.core.util.Arrays;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -26,7 +25,6 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
-import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
 public class ConvertJsonTest {
@@ -63,7 +61,7 @@ public class ConvertJsonTest {
                     final Map<String, Object> value = Util.fromJson((String) row.get("value"), Map.class);
                     assertNull(value.get("a"));
                     assertEquals("myString", value.get("b"));
-                    final List<Object> expected = Arrays.asList(new Object[]{ 1L, "2", null });
+                    final List<Object> expected = asList(1L, "2", null);
                     assertEquals(expected, value.get("c"));
                 });
     }
