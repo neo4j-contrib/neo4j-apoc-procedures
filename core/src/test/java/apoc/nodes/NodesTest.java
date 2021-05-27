@@ -11,7 +11,9 @@ import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -62,6 +64,21 @@ public class NodesTest {
         long len = TestUtil.singleResultFirstColumn( db,"MATCH (n:Foo {id:1})-[r:BAR*9]->() RETURN size(r) as len");
         assertEquals(9L, len);
     }
+
+    @Test
+    public void linkWithAvoidDuplicateTrue() {
+        db.executeTransactionally("CREATE (n:Foo {id:1}), (m:Foo {id:2}) WITH [n,m] as nodes CALL apoc.nodes.link(nodes,'BAR') RETURN 1");
+        TestUtil.testCall(db, "MATCH (n:Foo)-[r]->() RETURN count(r) as count", row -> assertEquals(1L, row.get("count")));
+
+        // with avoidDuplicates
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes CALL apoc.nodes.link(nodes,'BAR', {avoidDuplicates: true}) RETURN 1");
+        TestUtil.testCall(db, "MATCH (n:Foo)-[r]->() RETURN count(r) as count", row -> assertEquals(1L, row.get("count")));
+
+        // without avoidDuplicates
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes CALL apoc.nodes.link(nodes,'BAR') RETURN 1");
+        TestUtil.testCall(db, "MATCH (n:Foo)-[r]->() RETURN count(r) as count", row -> assertEquals(2L, row.get("count")));
+    }
+
     @Test
     public void delete() throws Exception {
         db.executeTransactionally("UNWIND range(1,100) as id CREATE (n:Foo {id:id})-[:X]->(n)");
