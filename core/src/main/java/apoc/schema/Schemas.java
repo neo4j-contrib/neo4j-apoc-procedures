@@ -1,6 +1,5 @@
 package apoc.schema;
 
-import apoc.Pools;
 import apoc.result.AssertSchemaResult;
 import apoc.result.IndexConstraintNodeInfo;
 import apoc.result.IndexConstraintRelationshipInfo;
@@ -34,7 +33,17 @@ import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.UserFunction;
 import org.neo4j.token.api.TokenConstants;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -368,11 +377,11 @@ public class Schemas {
             Stream<IndexConstraintNodeInfo> constraintNodeInfoStream = StreamSupport.stream(constraintsIterator.spliterator(), false)
                     .filter(constraintDescriptor -> constraintDescriptor.type().equals(org.neo4j.internal.schema.ConstraintType.EXISTS))
                     .map(constraintDescriptor -> this.nodeInfoFromConstraintDescriptor(constraintDescriptor, tokenRead))
-                    .sorted(Comparator.comparing(i -> i.label));
+                    .sorted(Comparator.comparing(i -> i.label.toString()));
 
             Stream<IndexConstraintNodeInfo> indexNodeInfoStream = StreamSupport.stream(indexesIterator.spliterator(), false)
                     .map(indexDescriptor -> this.nodeInfoFromIndexDefinition(indexDescriptor, schemaRead, tokenRead))
-                    .sorted(Comparator.comparing(i -> i.label));
+                    .sorted(Comparator.comparing(i -> i.label.toString()));
 
             return Stream.of(constraintNodeInfoStream, indexNodeInfoStream).flatMap(e -> e);
         }
