@@ -2242,7 +2242,7 @@ apoc.nodes.get(node\|nodes\|id\|[ids]) - quickly returns all nodes with these id
 |label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.link.adoc[apoc.nodes.link icon:book[]]
 
-apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last
+apoc.nodes.link([nodes],'REL_TYPE', conf) - creates a linked list of nodes from first to last
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.rels.adoc[apoc.nodes.rels icon:book[]]
