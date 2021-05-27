@@ -281,7 +281,7 @@ public class FileUtils {
     //
     // More likely, they'll be largely similar metrics.
     public static final List<String> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = Arrays.asList(
-            "dbms.directories.certificates",
+//            "dbms.directories.certificates",  // not in 4.x version
             "dbms.directories.data",
             "dbms.directories.import",
             "dbms.directories.lib",
@@ -290,7 +290,7 @@ public class FileUtils {
             "dbms.directories.plugins",
             "dbms.directories.run",
             "dbms.directories.tx_log",
-            "unsupported.dbms.directories.neo4j_home"
+            "dbms.directories.neo4j_home"
     );
 
     public static void closeReaderSafely(CountingReader reader) {
