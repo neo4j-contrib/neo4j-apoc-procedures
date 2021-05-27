@@ -32,6 +32,7 @@ public class RefactorConfig {
 	private boolean hasProperties;
 	private boolean collapsedLabel;
 	private boolean singleElementAsArray;
+	private boolean avoidDuplicates;
 
 	private final RelationshipSelectionStrategy relationshipSelectionStrategy;
 
@@ -45,6 +46,7 @@ public class RefactorConfig {
 		this.countMerge = toBoolean(config.getOrDefault("countMerge", true));
 		this.collapsedLabel = toBoolean(config.get("collapsedLabel"));
 		this.singleElementAsArray = toBoolean(config.getOrDefault("singleElementAsArray", false));
+		this.avoidDuplicates = toBoolean(config.getOrDefault("avoidDuplicates", false));
 		this.relationshipSelectionStrategy = RelationshipSelectionStrategy.valueOf(
 				((String) config.getOrDefault("relationshipSelectionStrategy", RelationshipSelectionStrategy.INCOMING.toString())).toUpperCase() );
 
@@ -109,6 +111,10 @@ public class RefactorConfig {
 
 	public boolean isSingleElementAsArray() {
 		return singleElementAsArray;
+	}
+
+	public boolean isAvoidDuplicates() {
+		return avoidDuplicates;
 	}
 
 	public RelationshipSelectionStrategy getRelationshipSelectionStrategy() {
