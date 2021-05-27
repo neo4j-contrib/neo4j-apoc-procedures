@@ -81,6 +81,8 @@ public class ApocConfig extends LifecycleAdapter {
             plugin_dir,
             logical_logs_location,
             transaction_logs_root_path,
+            run_directory,
+            lib_directory,
             neo4j_home
     ));
     private static final String DEFAULT_PATH = ".";
