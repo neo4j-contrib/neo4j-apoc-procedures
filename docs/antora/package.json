@@ -17,6 +17,7 @@
     "@neo4j-documentation/macros": "^1.0.0",
     "@neo4j-documentation/remote-include": "^1.0.0",
     "express": "^4.17.1",
+    "handlebars": ">=4.7.7",
     "npm-watch": "^0.6.0"
   },
   "watch": {
