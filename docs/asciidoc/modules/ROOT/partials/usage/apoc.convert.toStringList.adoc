@@ -10,3 +10,24 @@ return apoc.convert.toStringList([1, "2", 3, "Four"]) AS output;
 | Output
 | ["1", "2", "3", "Four"]
 |===
+
+[NOTE]
+====
+This function has been deprecated and will be removed in version 5.0. This functionality is replaced by Neo4j's `toStringList()` which has similar functionality.
+The following table is intended to assist migration by highlighting the differences:
+====
+
+.Migration Path to toStringList()
+[opts="header", cols="3"]
+|===
+|Input|`apoc.convert.toStringList()`|`toStringList()`
+|`null`|`null`|`null`
+|`[true,false]`|`["true", "false"]`|["true", "false"]
+|`["a","b","c"]`|`["a","b","c"]`|`["a","b","c"]`
+|`[1,2.3,-4]`|`["1", "2.3", "-4"]`|`["1", "2.3", "-4"]`
+|`[["a","b","c"]]`|`[["a","b","c"]]`|`[null]`
+|`"not-a-list"`footnote:composite[There is no Neo4j equivalent toStringList for these types]|`["not-a-list"]`|Error
+|`{a:"map"}` footnote:composite[]|`["{a=map}"]`|Error
+|Node footnote:composite[]|`["Node[0]"]`|Error
+|Relationship footnote:composite[]|`["(94)-[LEFT_BY,112]->(0)"]`|Error
+|Path `()-[]-()` footnote:composite[]|`["Node[0]", "(94)-[TYPE,112]->(0)", "Node[94]"]`|Error|
