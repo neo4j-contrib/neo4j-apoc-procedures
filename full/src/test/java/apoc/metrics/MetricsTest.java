@@ -6,12 +6,18 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Session;
+import org.neo4j.internal.helpers.collection.Iterators;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static apoc.util.FileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
+import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testResult;
 import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.Util.map;
@@ -60,6 +66,32 @@ public class MetricsTest {
                     assertEquals(Stream.of("timestamp", "metric", "map").collect(Collectors.toSet()), map.keySet());
                     assertEquals(metricKey, map.get("metric"));
                 });
+    }
+
+    @Test
+    public void shouldRetrieveStorageMetrics() {
+
+        final Set<String> expectedSet = Stream.of("setting", "freeSpaceBytes", "totalSpaceBytes", "usableSpaceBytes", "percentFree")
+                .collect(Collectors.toSet());
+
+        NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.forEach(setting ->
+                testCall(session, "CALL apoc.metrics.storage($setting)", map("setting", setting), (res) -> {
+                    assertEquals(expectedSet, res.keySet());
+                    assertEquals(setting, res.get("setting"));
+                })
+        );
+
+        // all metrics with null
+        testResult(session, "CALL apoc.metrics.storage(null)", (res) -> {
+            final List<Map<String, Object>> maps = Iterators.asList(res);
+            final Set<String> setSetting = maps.stream().map(item -> {
+                assertEquals(expectedSet, item.keySet());
+
+                return (String) item.get("setting");
+            }).collect(Collectors.toSet());
+
+            assertEquals(new HashSet<>(NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES), setSetting);
+        });
     }
 
     @Test
