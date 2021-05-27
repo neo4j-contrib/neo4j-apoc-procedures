@@ -45,7 +45,8 @@ Here is a list of all available Redis procedures:
 == Install Dependencies
 
 The Redis procedures have dependencies on a client library that is not included in the APOC Library.
-Download it from https://github.com/lettuce-io/lettuce-core/releases/tag/6.1.1.RELEASE[this url].
+You can download it from https://github.com/lettuce-io/lettuce-core/releases/tag/6.1.1.RELEASE[the lettuce-core repository] 
+or https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-redis-dependencies-{apoc-release}.jar[apoc repository]
 Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
 
 [[redis-uri]]

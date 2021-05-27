@@ -26,6 +26,7 @@ import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
 public class RedisTest {
+    private static int BEFORE_CONNECTION = 0;
     private static int REDIS_DEFAULT_PORT = 6379;
     private static String URI;
 
@@ -48,6 +49,7 @@ public class RedisTest {
         assumeNotNull(redis);
         assumeTrue("Redis must be running", redis.isRunning());
         URI = String.format("redis://%s@%s:%s", "SUPER_SECRET", redis.getHost(), redis.getMappedPort(REDIS_DEFAULT_PORT));
+        BEFORE_CONNECTION = getNumConnections();
     }
 
     @AfterClass
@@ -57,14 +59,9 @@ public class RedisTest {
         }
     }
 
-    @Before
-    public void setUp() {
-        assertEquals(1, getNumConnections());
-    }
-
     @After
     public void after() {
-        assertEquals(1, getNumConnections());
+        assertEquals(BEFORE_CONNECTION, getNumConnections());
     }
 
     @Test
@@ -247,7 +244,7 @@ public class RedisTest {
                 r -> assertEquals(Map.of(keyConfig, "64"), r.get("value")));
     }
 
-    private int getNumConnections() {
+    private static int getNumConnections() {
         try {
             return StringUtils.countMatches(redis.execInContainer("redis-cli", "CLIENT", "LIST").getStdout(),
                     System.lineSeparator());

@@ -1,5 +1,9 @@
 package apoc.redis;
 
+//import com.google.common.reflect.ClassPath;
+
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.Reflection;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.Range;
 import io.lettuce.core.RedisClient;
@@ -15,6 +19,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.ListUtils;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -156,10 +161,14 @@ public class RedisConnection implements AutoCloseable {
         return this.commands.eval(script, outputType, keys, values);
     }
     
-    public Object dispatch(String command, String output, List<String> keys, List<String> values, Map<String, String> arguments) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        Class<?> clazz = Class.forName(CommandOutput.class.getPackageName() + "." + output);
-        CommandOutput cons = (CommandOutput) clazz.getConstructor(RedisCodec.class).newInstance(this.codec);
-
+    public Object dispatch(String command, String output, List<String> keys, List<String> values, Map<String, String> arguments) {
+        CommandOutput cons;
+        try {
+            Class<?> clazz = Class.forName(CommandOutput.class.getPackageName() + "." + output);
+            cons = (CommandOutput) clazz.getConstructor(RedisCodec.class).newInstance(this.codec);
+        } catch (Exception e) {
+            throw new UnsupportedOperationException("Output type not supported: " + output);
+        }
         final CommandArgs<String, String> commandArgs = new CommandArgs<>(this.codec);
         if (CollectionUtils.isNotEmpty(keys)) {
             commandArgs.addKeys(keys);
