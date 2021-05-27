@@ -48,12 +48,12 @@ public class FileUtils {
 
     private static final List<String> NON_FILE_PROTOCOLS = Arrays.asList(HTTP_PROTOCOL, S3_PROTOCOL, GCS_PROTOCOL, HDFS_PROTOCOL);
 
-    public static CountingReader readerFor(Object fileName) throws IOException {
-        return readerFor(fileName, null, null, CompressionAlgo.NONE.name());
+    public static CountingReader readerFor(Object input) throws IOException {
+        return readerFor(input, null, null, CompressionAlgo.NONE.name());
     }
 
-    public static CountingReader readerFor(Object fileName, String compressionAlgo) throws IOException {
-        return readerFor(fileName, null, null, compressionAlgo);
+    public static CountingReader readerFor(Object input, String compressionAlgo) throws IOException {
+        return readerFor(input, null, null, compressionAlgo);
     }
 
     public static CountingReader readerFor(Object input, Map<String, Object> headers, String payload) throws IOException {
@@ -322,6 +322,7 @@ public class FileUtils {
     private static String encodeExceptQM(String url) {
         return encodePath(url).replace("%3F", "?");
     }
+    
     public static CountingInputStream getInputStreamFromBinary(byte[] urlOrBinary, String compressionAlgo) {
         return CompressionAlgo.valueOf(compressionAlgo).toInputStream(urlOrBinary);
     }

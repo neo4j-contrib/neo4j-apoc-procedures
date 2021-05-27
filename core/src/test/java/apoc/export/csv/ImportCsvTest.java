@@ -3,7 +3,6 @@ package apoc.export.csv;
 import apoc.ApocSettings;
 import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
-import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
@@ -83,7 +82,7 @@ public class ImportCsvTest {
                             "1|John\n" +
                             "1|Jane\n"),
                     new AbstractMap.SimpleEntry<>("ignore-nodes", ":ID|firstname:STRING|lastname:IGNORE|age:INT\n" +
-                            "1|İnanç Esasları|Doe|25\n" +
+                            "1|John|Doe|25\n" +
                             "2|Jane|Doe|26\n"),
                     new AbstractMap.SimpleEntry<>("ignore-relationships", ":START_ID|:END_ID|prop1:IGNORE|prop2:INT\n" +
                             "1|2|a|3\n" +
@@ -472,7 +471,7 @@ public class ImportCsvTest {
                 "  AND k.prop1 IS NULL\n" +
                 "RETURN p1.firstname + ' ' + p1.age + ' <' + k.prop2 + '> ' + p2.firstname + ' ' + p2.age AS pair ORDER BY pair"
         );
-        assertThat(pairs, Matchers.contains("Jane 26 <6> İnanç Esasları 25", "İnanç Esasları 25 <3> Jane 26"));
+        assertThat(pairs, Matchers.contains("Jane 26 <6> John 25", "John 25 <3> Jane 26"));
     }
 
     @Test(expected = QueryExecutionException.class)
