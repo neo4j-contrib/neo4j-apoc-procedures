@@ -62,11 +62,7 @@ dependencies {
     }
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.26'
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
-    compile(group: 'org.apache.commons', name: 'commons-lang3') {
-        version {
-            strictly '3.11'
-        }
-    }
+
     testCompile 'net.sourceforge.jexcelapi:jxl:2.6.12'
 
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
@@ -134,6 +130,8 @@ dependencies {
 
     // there is a compatibility problem between the Guava Library used by HDFS, Google Cloud Storage and Reflections; the only version that fits for all is the following
     compile group: 'com.google.guava', name: 'guava', version: '20.0'
+
+    compile group: 'xerces', name: 'xercesImpl', version: '2.12.1'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
