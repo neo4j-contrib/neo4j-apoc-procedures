@@ -13,6 +13,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static apoc.load.LoadHtml.KEY_ERROR;
@@ -24,7 +25,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class LoadHtmlTest {
 
@@ -91,26 +91,20 @@ public class LoadHtmlTest {
                 result -> {
                     Map<String, Object> value = (Map<String, Object>) result.get("value");
                     final List<Map<String, Object>> urlTestList = (List<Map<String, Object>>) value.get("urlTest");
-                    urlTestList.forEach(tag -> {
-                        assertEquals("a", tag.get("tagName"));
-                        final String href = (String) ((Map<String, Object>) tag.get("attributes")).get("href");
-                        switch ((String) tag.get("text")) {
-                            case "backUrl":
-                                assertEquals(baseUri.replace("test/resources/", "backUrl.js"), href);
-                                break;
-                            case "forwardUrl":
-                                assertEquals("file:/test.js", href);
-                                break;
-                            case "urlSamePath":
-                                assertEquals(baseUri + "this.js", href);
-                                break;
-                            case "absoluteUrl":
-                                assertEquals("https://foundation.wikimedia.org/wiki/Privacy_policy", href);
-                                break;
-                            default:
-                                fail();
-                        }
-                    });
+                    Map<String, Object> absoluteUrlTag = map("tagName", "a", "text", "absoluteUrl",
+                            "attributes", map("href", "https://foundation.wikimedia.org/wiki/Privacy_policy", "class", "urlTest"));
+
+                    Map<String, Object> urlSameUrlTag = map("tagName", "a", "text", "urlSamePath",
+                            "attributes", map("href", baseUri + "this.js", "class", "urlTest"));
+
+                    Map<String, Object> forwardUrlTag = map("tagName", "a", "text", "forwardUrl",
+                            "attributes", map("href", "file:/test.js", "class", "urlTest"));
+
+                    Map<String, Object> backUrlTag = map("tagName", "a", "text", "backUrl",
+                            "attributes", map("href", baseUri.replace("test/resources/", "backUrl.js"), "class", "urlTest"));
+
+                    final Set<Map<String, Object>> expectedSetList = Set.of(absoluteUrlTag, urlSameUrlTag, forwardUrlTag, backUrlTag);
+                    assertEquals(expectedSetList, Set.copyOf(urlTestList));
         });
     }
 
