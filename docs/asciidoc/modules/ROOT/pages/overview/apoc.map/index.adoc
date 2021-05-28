@@ -113,6 +113,11 @@ apoc.map.sortedProperties(map, ignoreCase:true) - returns a list of key/value li
 apoc.map.submap(map,keys,[defaults],[fail=true])  - returns submap for keys or throws exception if one of the key doesn't exist and no default value given at that position
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.unflatten.adoc[apoc.map.unflatten icon:book[]]
+
+apoc.map.unflatten(map, delimiter:'.') yield map - unflat from items separated by delimiter string to nested items (reverse of apoc.map.flatten function)
+|label:function[]
+|label:apoc-core[]
 |xref::overview/apoc.map/apoc.map.updateTree.adoc[apoc.map.updateTree icon:book[]]
 
 apoc.map.updateTree(tree,key,[[value,\{data}]]) returns map - adds the \{data} map on each level of the nested tree, where the key-value pairs match
