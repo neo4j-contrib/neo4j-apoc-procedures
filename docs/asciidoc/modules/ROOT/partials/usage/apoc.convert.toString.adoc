@@ -36,3 +36,28 @@ RETURN apoc.convert.toString({key: "value"}) AS output;
 | Output
 | "{key=value}"
 |===
+
+[NOTE]
+====
+This function has been deprecated and will be removed in version 5.0. The functionality is replaced by the Neo4j functions `toString(value)` and the more permissive `toStringOrNull(value)`.
+The Neo4j functions do not have exactly the same behavior as the APOC ones - the following table is intended to assist migration by highlighting the differences:
+====
+
+.Migration Path to toString() / toStringOrNull()
+[opts="header", cols="4"]
+|===
+|Input|`apoc.convert.toString()`|`toString()`|`toStringOrNull()`
+|`null`|`null`|`null`|`null`
+|`0`|`"0"`|`"0"`|`"0"`
+|`1.5`|`"1"`|`"1"`|`"1"`
+|`"string"`|`"string"`|`"string"`|`"string"`
+|`[1,2,3]` footnote:composite[There is no Neo4j equivalent toString for these types]|`"[1,2,3]"`|Error|`null`
+|`{a:'map'}` footnote:composite[]|`"{a=map}"`|Error|`null`
+|`true`|`"true"`|`"true"`|`"true"`
+|`false`|`"false"`|`"false"`|`"false"`
+|`datetime("2000-01-01T00:00:00.000+0000")`|`"2000-01-01T00:00Z"`|`"2000-01-01T00:00Z"`|`"2000-01-01T00:00Z"`
+|`Point({x:0.0, y:0.0})`|`"point({x: 0.0, y: 0.0, crs: 'cartesian'})"`|`"point({x: 0.0, y: 0.0, crs: 'cartesian'})"`|`"point({x: 0.0, y: 0.0, crs: 'cartesian'})"`
+|Node footnote:composite[]|`"Node[0]"`|Error|`null`
+|Relationship footnote:composite[]|`"(94)-[TYPE,112]->(0)"`|Error|`null`
+|Path `()-[]-()` footnote:composite[]|`"(0)-[TYPE,1194]->(335)"`|Error|`null`
+|===

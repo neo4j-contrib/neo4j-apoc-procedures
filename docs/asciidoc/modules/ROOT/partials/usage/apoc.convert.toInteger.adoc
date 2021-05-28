@@ -24,3 +24,30 @@ return apoc.convert.toInteger(1.2) AS output;
 | Output
 | 1
 |===
+
+[NOTE]
+====
+This function has been deprecated and will be removed in version 5.0. The functionality is replaced by the Neo4j functions `toInteger(value)` and the more permissive `toIntegerOrNull(value)`.
+The Neo4j functions do not have exactly the same behavior as the APOC ones - the following table is intended to assist migration by highlighting the differences:
+====
+
+.Migration Path to toInteger() / toIntegerOrNull()
+[opts="header", cols="4"]
+|===
+|Input|`apoc.convert.toInteger()`|`toInteger()`|`toIntegerOrNull()`
+|`null`|`null`|`null`|`null`
+|`""`|`null`|`null`|`null`
+|`0`|`0`|`0`|`0`
+|`1.5`|`1`|`1`|`1`
+|`"1"`|`1`|`1`|`1`
+|`"1.5"`|`1`|`1`|`1`
+|`"not-a-number"`|`null`|`null`|`null`
+|`[1,2,3]`|`null`|Error|`null`
+|`{a:'a'}`|`null`|Error|`null`
+|`true`|`1`|`1`|`1`
+|`false`|`0`|`0`|`0`
+|`datetime("2000-01-01T00:00:00.000+0000")`|`null`|Error|`null`
+|Node|`null`|Error|`null`
+|Relationship|`null`|Error|`null`
+|Path `()-[]-()`|`null`|Error|`null`
+|===

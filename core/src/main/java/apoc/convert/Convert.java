@@ -47,8 +47,9 @@ public class Convert {
         }
     }
 
-    @UserFunction
+    @UserFunction(deprecatedBy = "Neo4j toString(value) / toStringOrNull(value) functions. This function will be removed in 5.0")
     @Description("apoc.convert.toString(value) | tries it's best to convert the value to a string")
+    @Deprecated
     public String toString(@Name("string") Object string) {
         return string  == null ? null : string.toString();
     }
@@ -59,8 +60,9 @@ public class Convert {
         return convertToList(list);
     }
 
-    @UserFunction
+    @UserFunction(deprecatedBy = "Neo4j toBoolean(value) / toBooleanOrNull(value) functions. This function will be removed in 5.0")
     @Description("apoc.convert.toBoolean(value) | tries it's best to convert the value to a boolean")
+    @Deprecated
     public Boolean toBoolean(@Name("bool") Object bool) {
         return Util.toBoolean(bool);
     }
@@ -143,23 +145,26 @@ public class Convert {
         return list == null ? null : new SetBackedList(new LinkedHashSet<>(list));
     }
     
-	@UserFunction
+	@UserFunction(deprecatedBy = "Neo4j toIntegerList(value) function. This function will be removed in 5.0")
     @Description("apoc.convert.toIntList(value) | tries it's best to convert "
     		+ "the value to a list of integers")
+    @Deprecated
     public List<Long> toIntList(@Name("list") Object list) {
         return convertToList(list, Long.class);
     }
 
-	@UserFunction
+	@UserFunction(deprecatedBy = "Neo4j toStringList(value) function. This function will be removed in 5.0")
 	@Description("apoc.convert.toStringList(value) | tries it's best to convert "
 			+ "the value to a list of strings")
+    @Deprecated
 	public List<String> toStringList(@Name("list") Object list) {
         return convertToList(list, String.class);
 	}
 
-	@UserFunction
+	@UserFunction(deprecatedBy = "Neo4j toBooleanList(value) function. This function will be removed in 5.0")
 	@Description("apoc.convert.toBooleanList(value) | tries it's best to convert "
 			+ "the value to a list of booleans")
+    @Deprecated
 	public List<Boolean> toBooleanList(@Name("list") Object list) {
         return convertToList(list, Boolean.class);
 	}
@@ -178,8 +183,9 @@ public class Convert {
         return convertToList(list, Relationship.class);
 	}
 
-    @UserFunction
+    @UserFunction(deprecatedBy = "Neo4j toInteger(value) / toIntegerOrNull(value) functions. This function will be removed in 5.0")
     @Description("apoc.convert.toInteger(value) | tries it's best to convert the value to an integer")
+    @Deprecated
     public Long toInteger(@Name("object") Object obj) {
         if (obj == null || obj.equals("")) {
             return null;
@@ -219,8 +225,9 @@ public class Convert {
         return null;
     }
 
-    @UserFunction
+    @UserFunction(deprecatedBy = "Neo4j toFloat(value) / toFloatOrNull(value) functions. This function will be removed in 5.0")
     @Description("apoc.convert.toFloat(value) | tries it's best to convert the value to a float")
+    @Deprecated
     public Double toFloat(@Name("object") Object obj) {
         if (obj == null || obj.equals("")) {
             return null;
