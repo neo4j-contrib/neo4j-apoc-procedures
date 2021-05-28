@@ -325,7 +325,7 @@ public class MapsTest {
         Map<String, Object> nestedMap = map("anotherkey", "anotherValue", "nested", innerNestedListMap);
         final Map<String, Object> expectedMap = map("string", "value", "int", 10, "nested", nestedMap);
 
-        TestUtil.testCall(db, "WITH apoc.map.flatten($expectedMap) AS flattedMap RETURN apoc.map.unflatten(flattedMap) AS value",
+        TestUtil.testCall(db, "WITH apoc.map.flatten($expectedMap) AS flattenedMap RETURN apoc.map.unflatten(flattenedMap) AS value",
                 map("expectedMap", expectedMap),
                 r -> assertEquals(expectedMap, r.get("value")));
     }
