@@ -1,6 +1,7 @@
 package apoc.map;
 
 import apoc.util.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -10,6 +11,8 @@ import org.neo4j.procedure.UserFunction;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.regex.Pattern.quote;
 
 public class Maps {
 
@@ -292,6 +295,32 @@ public class Maps {
              } else {
                  flattenedMap.put(prefix + entry.getKey(), entry.getValue());
              }
+        }
+    }
+
+    @UserFunction
+    @Description("apoc.map.unflatten(map, delimiter:'.') yield map - unflat from items separated by delimiter string to nested items (reverse of apoc.map.flatten function)")
+    public Map<String, Object> unflatten(@Name("map") Map<String, Object> map, @Name(value = "delimiter", defaultValue = ".") String delimiter) {
+        return unflattenMapRecursively(map, StringUtils.isBlank(delimiter) ? "." : delimiter);
+    }
+
+    private Map<String, Object> unflattenMapRecursively(Map<String, Object> inputMap, String delimiter) {
+        Map<String, Object> resultMap = new HashMap<>();
+        for (Map.Entry<String, Object> entry : inputMap.entrySet()) {
+            unflatEntry(resultMap, entry.getValue(), entry.getKey(), delimiter);
+        }
+        return resultMap;
+    }
+
+    public static void unflatEntry(Map<String, Object> map, Object value, String key, String delimiter) {
+        final String[] keys = key.split(quote(delimiter), 2);
+        final String firstPart = keys[0];
+
+        if (keys.length == 1) {
+            map.put(firstPart, value);
+        } else {
+            final Map<String, Object> currentMap = (Map<String, Object>) map.computeIfAbsent(firstPart, k -> new HashMap<String, Object>());
+            unflatEntry(currentMap, value, keys[1], delimiter);
         }
     }
 
