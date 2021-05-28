@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static apoc.util.FileUtils.isFile;
-import static org.neo4j.configuration.ExternalSettings.lib_directory;
-import static org.neo4j.configuration.ExternalSettings.run_directory;
+import static org.neo4j.configuration.BootloaderSettings.lib_directory;
+import static org.neo4j.configuration.BootloaderSettings.run_directory;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.data_directory;
 import static org.neo4j.configuration.GraphDatabaseSettings.load_csv_file_url_root;
