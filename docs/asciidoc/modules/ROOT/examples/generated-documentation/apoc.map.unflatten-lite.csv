@@ -1,0 +1,2 @@
+¦signature
+¦apoc.map.unflatten(map :: MAP?, delimiter = . :: STRING?) :: (MAP?)

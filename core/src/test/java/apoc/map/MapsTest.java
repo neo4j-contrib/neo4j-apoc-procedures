@@ -318,6 +318,36 @@ public class MapsTest {
     }
 
     @Test
+    public void testUnflattenRoundrip() {
+        List<Map<String, Object>> innerNestedListMap = List.of(map("somekey", "someValue", "somenumeric", 123), 
+                map("keyFoo", "valueFoo"),
+                map("keyBar", "valueBar"));
+        Map<String, Object> nestedMap = map("anotherkey", "anotherValue", "nested", innerNestedListMap);
+        final Map<String, Object> expectedMap = map("string", "value", "int", 10, "nested", nestedMap);
+
+        TestUtil.testCall(db, "WITH apoc.map.flatten($expectedMap) AS flattenedMap RETURN apoc.map.unflatten(flattenedMap) AS value",
+                map("expectedMap", expectedMap),
+                r -> assertEquals(expectedMap, r.get("value")));
+    }
+
+    @Test
+    public void testUnflattenRoundtripWithCustomDelimiter() {
+        List<Map<String, Object>> subInnerListMap = List.of(map("innernumeric", 123, "innernumericTwo", 456),
+                map("keyBar", "valueBar", "keyBaz", "valueBaz"),
+                map("keyFoo", "valueFoo"));
+        Map<String, Object> innerNestedMap = map("somekey", "someValue", "somenumeric", subInnerListMap);
+        Map<String, Object> nestedMap = map("anotherkey", "anotherValue", "nested", innerNestedMap);
+        final Map<String, Object> expectedMap = map("string", "value", "int", 99, "nested", nestedMap);
+        final String delimiter = "--哈è._";
+
+        TestUtil.testCall(db, "WITH apoc.map.flatten($expectedMap, $delimiter) AS flattedMap " +
+                        "RETURN apoc.map.unflatten(flattedMap, $delimiter) AS value",
+                map("expectedMap", expectedMap, "delimiter", delimiter),
+                r -> assertEquals(expectedMap, r.get("value")));
+
+    }
+
+    @Test
     public void testSortedProperties() {
         TestUtil.testCall(db, "WITH {b:8, d:3, a:2, E: 12, C:9} as map RETURN apoc.map.sortedProperties(map, false) AS sortedProperties", (r) -> {
             List<List<String>> sortedProperties = (List<List<String>>)r.get("sortedProperties");

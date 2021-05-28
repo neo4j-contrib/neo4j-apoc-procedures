@@ -1,0 +1,65 @@
+Using the following map and the default `.` delimiter:
+
+[source,cypher]
+----
+RETURN apoc.map.unflatten({
+  `person.name`: "Cristiano Ronaldo",
+  `person.club.founded`: 1897,
+  `person.club.name`: "Juventus"
+}) AS output;
+----
+
+will be returned:
+
+.Results
+[opts="header",cols="a"]
+|===
+| Output
+|
+[source,json]
+----
+{
+  "person": {
+    "club": {
+      "founded": 1897,
+      "name": "Juventus"
+    },
+    "name": "Cristiano Ronaldo"
+  }
+}
+----
+|===
+
+Using the following map and a custom delimiter, that is `/é哈`:
+
+[source,cypher]
+----
+RETURN apoc.map.unflatten({
+  `person/é哈firstName`: "Cristiano",
+  `person/é哈lastName`: "Ronaldo",
+  `person/é哈club/é哈founded`: 1897,
+  `person/é哈club/é哈name`: "Juventus"
+}, '/é哈') AS output;
+----
+
+will be returned:
+
+.Results
+[opts="header",cols="a"]
+|===
+| Output
+|
+[source,json]
+----
+{
+  "person": {
+    "club": {
+      "name": "Juventus",
+      "founded": 1897
+    },
+    "firstName": "Cristiano",
+    "lastName": "Ronaldo"
+  }
+}
+----
+|===
