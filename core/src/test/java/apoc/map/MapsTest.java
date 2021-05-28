@@ -331,7 +331,7 @@ public class MapsTest {
     }
 
     @Test
-    public void testUnflattenRoundripWithCustomDelimeter() {
+    public void testUnflattenRoundtripWithCustomDelimiter() {
         List<Map<String, Object>> subInnerListMap = List.of(map("innernumeric", 123, "innernumericTwo", 456),
                 map("keyBar", "valueBar", "keyBaz", "valueBaz"),
                 map("keyFoo", "valueFoo"));
