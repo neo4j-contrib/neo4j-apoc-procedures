@@ -82,6 +82,8 @@ subprojects {
             maxHeapSize = "512m"
         }
 
+        testLogging.showStandardStreams = true
+        testLogging.exceptionFormat = 'full'
     }
 
     configurations {
