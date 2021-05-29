@@ -7,10 +7,12 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runners.MethodSorters;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -22,9 +24,9 @@ import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,8 +36,8 @@ import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
 import static apoc.ApocConfig.apocConfig;
-import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.load.LoadDirectoryItem.DEFAULT_EVENT_TYPES;
+import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
@@ -48,6 +50,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LoadDirectoryTest {
 
     @ClassRule
@@ -103,7 +106,7 @@ public class LoadDirectoryTest {
     @Before
     public void before() throws Exception {
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
+        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
     }
 
     @Test
@@ -519,7 +522,19 @@ public class LoadDirectoryTest {
 
         db.executeTransactionally("CALL apoc.load.directory.async.add('notExistent', 'CREATE (n:Node)', '*', 'pathNotExistent')");
 
-        testCall(db, "CALL apoc.load.directory.async.list()", result -> errorAssertions(defaultConfig, result));
+//        testCall(db, "CALL apoc.load.directory.async.list()", result -> errorAssertions(defaultConfig, result));
+
+        assertEventually(() -> db.executeTransactionally("CALL apoc.load.directory.async.list()",
+                emptyMap(), (r) -> {
+                    Map<String, Object> result = r.next();
+                    return "notExistent".equals(result.get("name")) &&
+                        "*".equals(result.get("pattern")) &&
+                        "CREATE (n:Node)".equals(result.get("cypher")) &&
+                        defaultConfig.equals(result.get("config")) &&
+                        LoadDirectoryItem.Status.ERROR.name().equals(result.get("status")) &&
+                        ((String) result.get("error")).contains("java.nio.file.NoSuchFileException");
+                }),
+                value -> value, 20L, TimeUnit.SECONDS);
 
         testCallEmpty(db, "CALL apoc.load.directory.async.remove('notExistent')", emptyMap());
         testCallEmpty(db, "CALL apoc.load.directory.async.list", emptyMap());

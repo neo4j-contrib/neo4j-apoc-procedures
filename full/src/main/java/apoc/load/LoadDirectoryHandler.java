@@ -72,7 +72,6 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
     }
 
     public void remove(String name) {
-
         final LoadDirectoryItem loadDirectoryItem = new LoadDirectoryItem(name);
         remove(loadDirectoryItem);
     }
