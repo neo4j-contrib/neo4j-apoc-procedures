@@ -29,7 +29,6 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
-import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
 public class ConvertJsonTest {
@@ -140,6 +139,18 @@ public class ConvertJsonTest {
 	                Map<String, Object> valueAsMap = Util.readMap((String) row.get("value"));
 	                assertJsonNode(valueAsMap, "0", List.of("Test"), Map.of("foo", 7L));
                  });
+    }
+
+    @Test
+    public void testToJsonWithNullValues() {
+        testCall(db, "RETURN apoc.convert.toJson({a: null, b: 'myString', c: [1,'2',null]}) as value",
+                (row) -> {
+                    final Map<String, Object> value = Util.fromJson((String) row.get("value"), Map.class);
+                    assertNull(value.get("a"));
+                    assertEquals("myString", value.get("b"));
+                    final List<Object> expected = asList(1L, "2", null);
+                    assertEquals(expected, value.get("c"));
+                });
     }
 
     @Test
