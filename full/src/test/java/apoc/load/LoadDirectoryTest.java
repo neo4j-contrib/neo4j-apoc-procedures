@@ -103,6 +103,7 @@ public class LoadDirectoryTest {
     @Before
     public void before() throws Exception {
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
     }
 
     @Test
