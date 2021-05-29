@@ -82,11 +82,6 @@ subprojects {
             maxHeapSize = "512m"
         }
 
-//        filter {
-//            setFailOnNoMatchingTests(false)
-//        }
-
-        // ignoreFailures(true)
     }
 
     configurations {
