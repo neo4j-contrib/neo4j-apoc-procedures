@@ -66,7 +66,7 @@ public class UUIDTest {
     public void testUUIDWithSetLabel() {
         // given
         db.executeTransactionally("CREATE CONSTRAINT ON (p:Mario) ASSERT p.uuid IS UNIQUE");
-        db.executeTransactionally("CALL apoc.uuid.install('Mario') YIELD label RETURN label");
+        db.executeTransactionally("CALL apoc.uuid.install('Mario', {addToSetLabels: true}) YIELD label RETURN label");
         // when
         db.executeTransactionally("CREATE (p:Luigi {foo:'bar'}) SET p:Mario");
         // then
@@ -76,10 +76,14 @@ public class UUIDTest {
         // - set after creation
         db.executeTransactionally("CREATE (:Peach)");
         // when
-        db.executeTransactionally("CREATE (p:Peach) SET p:Mario");
+        db.executeTransactionally("MATCH (p:Peach) SET p:Mario");
         // then
         TestUtil.testCall(db, "MATCH (a:Peach:Mario) RETURN a.uuid as uuid", 
                 row -> assertTrue(((String) row.get("uuid")).matches(UUID_TEST_REGEXP)));
+
+        TestUtil.testCall(db, "CALL apoc.uuid.remove('Mario')",
+                (row) -> assertResult(row, "Mario", false,
+                        Util.map("uuidProperty", "uuid", "addToSetLabels", true)));
     }
 
     @Test
@@ -168,7 +172,7 @@ public class UUIDTest {
         // then
         TestUtil.testCall(db, "CALL apoc.uuid.list()",
                 (row) -> assertResult(row, "Bar", true,
-                        Util.map("uuidProperty", "uuid")));
+                        Util.map("uuidProperty", "uuid", "addToSetLabels", false)));
     }
 
     @Test
@@ -197,10 +201,10 @@ public class UUIDTest {
         // then
         TestUtil.testCall(db, "CALL apoc.uuid.list()",
                 (row) -> assertResult(row, "Test", true,
-                        Util.map("uuidProperty", "foo")));
+                        Util.map("uuidProperty", "foo", "addToSetLabels", false)));
         TestUtil.testCall(db, "CALL apoc.uuid.remove('Test')",
                 (row) -> assertResult(row, "Test", false,
-                        Util.map("uuidProperty", "foo")));
+                        Util.map("uuidProperty", "foo", "addToSetLabels", false)));
     }
 
     @Test
@@ -272,10 +276,10 @@ public class UUIDTest {
                     // then
                     Map<String, Object> row = result.next();
                     assertResult(row, "Test", false,
-                            Util.map("uuidProperty", "foo"));
+                            Util.map("uuidProperty", "foo", "addToSetLabels", false));
                     row = result.next();
                     assertResult(row, "Bar", false,
-                            Util.map("uuidProperty", "uuid"));
+                            Util.map("uuidProperty", "uuid", "addToSetLabels", false));
                 });
     }
 
