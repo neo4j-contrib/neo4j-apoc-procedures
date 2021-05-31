@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.util.Util.closeSafely;
 import static java.lang.String.format;
 
 /**
@@ -113,7 +114,8 @@ class MongoDBColl implements MongoDBUtils.Coll {
         }
         this.collection = database.getCollection(collectionName);
 
-        getConfigs(conf.isCompatibleValues(), conf.isExtractReferences(), conf.isObjectIdAsMap());
+        // with new procedure we return always Neo4j values
+        getConfigs(true, conf.isExtractReferences(), conf.isObjectIdAsMap());
     }
 
     private void getConfigs(boolean compatibleValues, boolean extractReferences, boolean objectIdAsMap) {
@@ -288,10 +290,10 @@ class MongoDBColl implements MongoDBUtils.Coll {
         return StreamSupport
                 .stream(it.spliterator(), false)
                 .map(doc -> this.documentToPackableMap(doc))
-                .onClose( () -> {
-                        result.iterator().close();
-                        mongoClient.close();
-                    } );
+                .onClose(() -> {
+                        closeSafely(result.iterator());
+                        closeSafely(mongoClient);
+                });
     }
 
     @Override
@@ -314,7 +316,7 @@ class MongoDBColl implements MongoDBUtils.Coll {
     @Override
     public long update(Document query, Document update) {
         UpdateResult updateResult = collection.updateMany(query, update);
-        return updateResult.wasAcknowledged() ? updateResult.getModifiedCount() : -updateResult.getModifiedCount();
+        return updateResult.getModifiedCount();
     }
 
     @Override
@@ -325,7 +327,6 @@ class MongoDBColl implements MongoDBUtils.Coll {
     @Override
     public long delete(Document query) {
         DeleteResult result = collection.deleteMany(query);
-        return result.wasAcknowledged() ? result.getDeletedCount() : -result.getDeletedCount();
+        return result.getDeletedCount();
     }
-
 }

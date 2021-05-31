@@ -61,7 +61,6 @@ The procedures support the following config parameters:
 [opts=header, cols="1,1,1,4"]
 |===
 | name | type | default | description
-| compatibleValues | `Boolean` | true | Converts MongoDB data types into Neo4j data types
 | extractReferences | `Boolean` | false | If true and a field contains an `ObjectId` it will include the related document instead of the `ObjectId`
 | objectIdAsMap | `Boolean` | true | If true extract the `ObjectId` as map
 | project | `Map<K,V>` OR `String` | empty | The projection parameters (can be a map or a json string)
@@ -395,47 +394,10 @@ CALL apoc.mongo.first('mongodb://user:pass@localhost:27017/myDb.Person?authSourc
 |===
 
 
-Moreover, we can choose not to convert the values into Neo4j compatible values (in this case the `age` property remains `Integer` instead of `Long`).
-Note that not all values can be returned,
-for example with `BsonRegularExpression("foo*")` will be thrown a `java.lang.IllegalArgumentException: Cannot convert BsonRegularExpression`:
-
-[source,cypher]
-----
-CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', null, {skip: 1, project: {age: 1}, compatibleValues: false})
-----
-
-.Results
-[opts="header"]
-|===
-| value
-| ``
-{
-  "_id": {
-    "timestamp": <...>,
-    "machineIdentifier": <...>,
-    "processIdentifier": <...>,
-    "counter": <...>,
-  },
-  "age": 40,
-}
-``
-| ``
-{
-  "_id": {
-    "timestamp": <...>,
-    "machineIdentifier": <...>,
-    "processIdentifier": <...>,
-    "counter": <...>,
-  },
-  "age": 50,
-}
-``
-|===
-
 Furthermore, we can use the `limit` parameter, for example:
 
 ----
-CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', null, {skip: 1, limit: 1, project: {age: 1}, compatibleValues: false})
+CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', null, {skip: 1, limit: 1, project: {age: 1}})
 ----
 
 .Results
