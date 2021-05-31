@@ -374,17 +374,9 @@ public class MongoTest extends MongoTestBase {
     }
 
     @Test
-    public void testInsertRegexExtJsonGetFirstCorrectlyWithCompatibleValueTrueAndFailsIfFalse() {
+    public void testInsertWithRegex() {
         testResult(db, "CALL apoc.mongo.insert($uri,[{foo:{`$regex`: 'pattern', `$options`: ''}, myId: {`$oid`: '507f191e811c19729de960ea'}}])",
                 map("uri", PERSON_URI), (r) -> assertFalse("should be empty", r.hasNext()));
-        try {
-            testCall(db, "CALL apoc.mongo.find($uri, {foo: {`$regex`: 'pattern', `$options`: ''}}, {compatibleValues: false})",
-                    map("uri", PERSON_URI), r -> {
-                    });
-            fail("Should fail because of BsonRegularExpression");
-        } catch (Exception e) {
-            assertTrue(e.getMessage().contains("java.lang.IllegalArgumentException: Cannot convert BsonRegularExpression"));
-        }
 
         testCall(db, "CALL apoc.mongo.find($uri, {foo: {`$regex`: 'pattern', `$options`: ''}})", map("uri", PERSON_URI), r -> {
             Map<String, Object> value = (Map<String, Object>) r.get("value");

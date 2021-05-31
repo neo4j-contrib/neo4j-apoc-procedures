@@ -758,6 +758,10 @@ public class Util {
         close(closeable, null);
     }
 
+    public static void closeSafely(Closeable closeable) {
+        close(closeable, Throwable::printStackTrace);
+    }
+
     public static boolean isNotNullOrEmpty(String s) {
         return s!=null && s.trim().length()!=0;
     }

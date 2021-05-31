@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static apoc.util.Util.closeSafely;
+
 public class MongoDBUtils {
     interface Coll extends Closeable {
         Map<String, Object> first(Map<String, Object> params);
@@ -35,11 +37,7 @@ public class MongoDBUtils {
         long delete(Document query);
 
         default void safeClose() {
-            try {
-                this.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            closeSafely(this);
         }
 
         class Factory {

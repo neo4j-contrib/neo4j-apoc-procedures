@@ -52,7 +52,7 @@ public class MongoDB {
     public Log log;
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.find")
     @Description("apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find operation on mongodb collection")
     public Stream<MapResult> get(@Name("host") String hostOrKey,
                                  @Name("db") String db,
@@ -69,7 +69,7 @@ public class MongoDB {
     }
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.count")
     @Description("apoc.mongodb.count(host-or-key,db,collection,query) yield value - perform a find operation on mongodb collection")
     public Stream<LongResult> count(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query) {
         return executeMongoQuery(hostOrKey, db, collection, false,
@@ -88,7 +88,7 @@ public class MongoDB {
     }
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.find")
     @Description("apoc.mongodb.first(host-or-key,db,collection,query,[compatibleValues=false|true],[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a first operation on mongodb collection")
     public Stream<MapResult> first(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name(value = "compatibleValues", defaultValue = "true") boolean compatibleValues,
                                    @Name(value = "extractReferences", defaultValue = "false") boolean extractReferences,
@@ -103,7 +103,7 @@ public class MongoDB {
     }
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.find")
     @Description("apoc.mongodb.find(host-or-key,db,collection,query,projection,sort,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find,project,sort operation on mongodb collection")
     public Stream<MapResult> find(@Name("host") String hostOrKey,
                                   @Name("db") String db,
@@ -122,7 +122,7 @@ public class MongoDB {
     }
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.insert")
     @Description("apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection")
     public void insert(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("documents") List<Map<String, Object>> documents) {
         try (Coll coll = getMongoColl(() -> getColl(hostOrKey, db, collection, false, false, false))) {
@@ -134,7 +134,7 @@ public class MongoDB {
     }
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.delete")
     @Description("apoc.mongodb.delete(host-or-key,db,collection,query) - delete the given documents from the mongodb collection and returns the number of affected documents")
     public Stream<LongResult> delete(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query) {
         return executeMongoQuery(hostOrKey, db, collection, false,
@@ -143,7 +143,7 @@ public class MongoDB {
     }
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.update")
     @Description("apoc.mongodb.update(host-or-key,db,collection,query,update) - updates the given documents from the mongodb collection and returns the number of affected documents")
     public Stream<LongResult> update(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name("update") Map<String, Object> update) {
         return executeMongoQuery(hostOrKey, db, collection, false,
