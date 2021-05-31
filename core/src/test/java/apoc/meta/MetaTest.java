@@ -805,13 +805,11 @@ public class MetaTest {
     // Tests for T4L
 
     @Test
-    public void testRelTypePropertiesBasic()
-    {
+    public void testRelTypePropertiesBasic() {
         db.executeTransactionally( "CREATE (:Base)-[:RELTYPE { a: 1, d: null }]->(:Target)" );
         db.executeTransactionally( "CREATE (:Base)-[:RELTYPE { a: 2, b: 2, c: 2, d: 4 }]->(:Target);" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties()", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties()", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
 
 //            System.out.println("REL TYPE PROPERTIES");
@@ -840,13 +838,11 @@ public class MetaTest {
     }
 
     @Test
-    public void testRelTypePropertiesIncludes()
-    {
+    public void testRelTypePropertiesIncludes() {
         db.executeTransactionally( "CREATE (:A)-[:CATCHME { c: 1 }]->(:B)" );
         db.executeTransactionally( "CREATE (:A)-[:IGNOREME { d: 1 }]->(:B)" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeRels: ['CATCHME'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeRels: ['CATCHME'] })", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() );
             assertEquals( records.get( 0 ).get( "propertyName" ).equals( "c" ), true );
@@ -854,13 +850,11 @@ public class MetaTest {
     }
 
     @Test
-    public void testNodeTypePropertiesNodeExcludes()
-    {
+    public void testNodeTypePropertiesNodeExcludes() {
         db.executeTransactionally( "CREATE (:ExcludeMe)" );
         db.executeTransactionally( "CREATE (:IncludeMe)" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ excludeLabels: ['ExcludeMe'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ excludeLabels: ['ExcludeMe'] })", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() );
             assertEquals( ":`IncludeMe`", records.get( 0 ).get( "nodeType" ) );
@@ -868,13 +862,11 @@ public class MetaTest {
     }
 
     @Test
-    public void testNodeTypePropertiesNodeIncludes()
-    {
+    public void testNodeTypePropertiesNodeIncludes() {
         db.executeTransactionally( "CREATE (:ExcludeMe)" );
         db.executeTransactionally( "CREATE (:IncludeMe)" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeLabels: ['IncludeMe'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeLabels: ['IncludeMe'] })", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() );
             assertEquals( ":`IncludeMe`", records.get( 0 ).get( "nodeType" ) );
@@ -882,23 +874,18 @@ public class MetaTest {
     }
 
     @Test
-    public void testNodeTypePropertiesRelExcludes()
-    {
+    public void testNodeTypePropertiesRelExcludes() {
         db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
         db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ excludeRels: ['RELA'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ excludeRels: ['RELA'] })", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 2, records.size() );
-            for ( Map<String,Object> rec : records )
-            {
-                if ( rec.get( "nodeType" ).equals( ":`A`" ) )
-                {
+            for ( Map<String,Object> rec : records ) {
+                if ( rec.get( "nodeType" ).equals( ":`A`" ) ) {
                     assertEquals( ":`B`", rec.get( "nodeType" ) );
                 }
-                if ( rec.get( "nodeType" ).equals( ":`C`" ) )
-                {
+                if ( rec.get( "nodeType" ).equals( ":`C`" ) ) {
                     assertEquals( ":`D`", rec.get( "nodeType" ) );
                 }
             }
@@ -906,23 +893,18 @@ public class MetaTest {
     }
 
     @Test
-    public void testNodeTypePropertiesRelIncludes()
-    {
+    public void testNodeTypePropertiesRelIncludes() {
         db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
         db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeRels: ['RELA'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeRels: ['RELA'] })", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 2, records.size() );
-            for ( Map<String,Object> rec : records )
-            {
-                if ( rec.get( "nodeType" ).equals( ":`A`" ) )
-                {
+            for ( Map<String,Object> rec : records ) {
+                if ( rec.get( "nodeType" ).equals( ":`A`" ) ) {
                     assertEquals( ":`A`", rec.get( "nodeType" ) );
                 }
-                if ( rec.get( "nodeType" ).equals( ":`C`" ) )
-                {
+                if ( rec.get( "nodeType" ).equals( ":`C`" ) ) {
                     assertEquals( ":`C`", rec.get( "nodeType" ) );
                 }
             }
@@ -930,24 +912,19 @@ public class MetaTest {
     }
 
     @Test
-    public void testNodeTypePropertiesWithWeirdConfig()
-    {
+    public void testNodeTypePropertiesWithWeirdConfig() {
         db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
         db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeRels: ['RELA'], stupidInput: ['RELB'] })", r ->
-                // should ignore all unknown input
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeRels: ['RELA'], stupidInput: ['RELB'] })", r -> {
+                // should ignore all unknown input{
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 2, records.size() );
-            for ( Map<String,Object> rec : records )
-            {
-                if ( rec.get( "nodeType" ).equals( ":`A`" ) )
-                {
+            for ( Map<String,Object> rec : records ) {
+                if ( rec.get( "nodeType" ).equals( ":`A`" ) ) {
                     assertEquals( ":`A`", rec.get( "nodeType" ) );
                 }
-                if ( rec.get( "nodeType" ).equals( ":`C`" ) )
-                {
+                if ( rec.get( "nodeType" ).equals( ":`C`" ) ) {
                     assertEquals( ":`C`", rec.get( "nodeType" ) );
                 }
             }
@@ -955,19 +932,15 @@ public class MetaTest {
     }
 
     @Test
-    public void testRelTypePropertiesWithWeirdConfig()
-    {
+    public void testRelTypePropertiesWithWeirdConfig() {
         db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
         db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'], stupidInput: ['B'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'], stupidInput: ['B'] })", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() );
-            for ( Map<String,Object> rec : records )
-            {
-                if ( rec.get( "relType" ).equals( ":`RELA`" ) )
-                {
+            for ( Map<String,Object> rec : records ) {
+                if ( rec.get( "relType" ).equals( ":`RELA`" ) ) {
                     assertEquals( ":`RELA`", rec.get( "relType" ) );
                 }
             }
@@ -975,13 +948,11 @@ public class MetaTest {
     }
 
     @Test
-    public void testRelTypePropertiesRelExcludes()
-    {
+    public void testRelTypePropertiesRelExcludes() {
         db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
         db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ excludeRels: ['RELA'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ excludeRels: ['RELA'] })", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() );
             assertEquals( ":`RELB`", records.get( 0 ).get( "relType" ) );
@@ -989,13 +960,11 @@ public class MetaTest {
     }
 
     @Test
-    public void testRelTypePropertiesRelIncludes()
-    {
+    public void testRelTypePropertiesRelIncludes() {
         db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
         db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeRels: ['RELA'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeRels: ['RELA'] })", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() );
             assertEquals( ":`RELA`", records.get( 0 ).get( "relType" ) );
@@ -1003,19 +972,15 @@ public class MetaTest {
     }
 
     @Test
-    public void testRelTypePropertiesNodeExcludes()
-    {
+    public void testRelTypePropertiesNodeExcludes() {
         db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
         db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ excludeLabels: ['A'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ excludeLabels: ['A'] })", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() );
-            for ( Map<String,Object> rec : records )
-            {
-                if ( rec.get( "relType" ).equals( ":`RELB`" ) )
-                {
+            for ( Map<String,Object> rec : records ) {
+                if ( rec.get( "relType" ).equals( ":`RELB`" ) ) {
                     assertEquals( ":`RELB`", rec.get( "relType" ) );
                 }
             }
@@ -1023,19 +988,15 @@ public class MetaTest {
     }
 
     @Test
-    public void testRelTypePropertiesNodeIncludes()
-    {
+    public void testRelTypePropertiesNodeIncludes() {
         db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
         db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'] })", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() );
-            for ( Map<String,Object> rec : records )
-            {
-                if ( rec.get( "relType" ).equals( ":`RELA`" ) )
-                {
+            for ( Map<String,Object> rec : records ) {
+                if ( rec.get( "relType" ).equals( ":`RELA`" ) ) {
                     assertEquals( ":`RELA`", rec.get( "relType" ) );
                 }
             }
@@ -1043,32 +1004,26 @@ public class MetaTest {
     }
 
     @Test
-    public void testNodeTypePropertiesNodeIncludesRelIncludes1()
-    {
+    public void testNodeTypePropertiesNodeIncludesRelIncludes1() {
         db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
         db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
         // both together contract the data model and it should result in 0 results
-        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeLabels: ['A'], includeRels: ['RELB'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeLabels: ['A'], includeRels: ['RELB'] })", r -> {
             assertEquals( 0, gatherRecords( r ).size() );
         } );
     }
 
     @Test
-    public void testNodeTypePropertiesNodeIncludesRelIncludes2()
-    {
+    public void testNodeTypePropertiesNodeIncludesRelIncludes2() {
         db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
         db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeLabels: ['A'], includeRels: ['RELA'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeLabels: ['A'], includeRels: ['RELA'] })", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() ); // why not A and C? The label has to be on the start of the rel
-            for ( Map<String,Object> rec : records )
-            {
-                if ( rec.get( "nodeType" ).equals( ":`A`" ) )
-                {
+            for ( Map<String,Object> rec : records ) {
+                if ( rec.get( "nodeType" ).equals( ":`A`" ) ) {
                     assertEquals( ":`A`", rec.get( "nodeType" ) );
                 }
             }
@@ -1076,32 +1031,26 @@ public class MetaTest {
     }
 
     @Test
-    public void testRelTypePropertiesNodeIncludesAndRelsInclude1()
-    {
+    public void testRelTypePropertiesNodeIncludesAndRelsInclude1() {
         db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
         db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
         // both together contract the data model and it should result in 0 results
-        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'], includeRels: ['RELB'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'], includeRels: ['RELB'] })", r -> {
             assertEquals( 0, gatherRecords( r ).size() );
         } );
     }
 
     @Test
-    public void testRelTypePropertiesNodeIncludesAndRelsInclude2()
-    {
+    public void testRelTypePropertiesNodeIncludesAndRelsInclude2() {
         db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
         db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'], includeRels: ['RELA'] })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'], includeRels: ['RELA'] })", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() );
-            for ( Map<String,Object> rec : records )
-            {
-                if ( rec.get( "relType" ).equals( ":`RELA`" ) )
-                {
+            for ( Map<String,Object> rec : records ) {
+                if ( rec.get( "relType" ).equals( ":`RELA`" ) ) {
                     assertEquals( ":`RELA`", rec.get( "relType" ) );
                 }
             }
@@ -1109,17 +1058,14 @@ public class MetaTest {
     }
 
     @Test
-    public void testNodeTypePropertiesCompleteResult()
-    {
+    public void testNodeTypePropertiesCompleteResult() {
         db.executeTransactionally( "CREATE (:Foo { z: 'hej' });" );
         db.executeTransactionally( "CREATE (:Foo { z: 1 });" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties()", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties()", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() );
-            for ( Map<String,Object> rec : records )
-            {
+            for ( Map<String,Object> rec : records ) {
                 assertEquals( ":`Foo`", rec.get( "nodeType" ) );
                 assertEquals( List.of( "Foo" ), rec.get( "nodeLabels" ) );
                 assertEquals( "z", rec.get( "propertyName" ) );
@@ -1132,17 +1078,14 @@ public class MetaTest {
     }
 
     @Test
-    public void testRelTypePropertiesCompleteResult()
-    {
+    public void testRelTypePropertiesCompleteResult() {
         db.executeTransactionally( "CREATE (:A)-[:Foo { z: 'hej' }]->(:B);" );
         db.executeTransactionally( "CREATE (:A)-[:Foo { z: 1 }]->(:B);" );
 
-        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties()", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties()", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() );
-            for ( Map<String,Object> rec : records )
-            {
+            for ( Map<String,Object> rec : records ) {
                 assertEquals( ":`Foo`", rec.get( "relType" ) );
                 assertEquals( List.of( "A" ), rec.get( "sourceNodeLabels" ) );
                 assertEquals( List.of( "B" ), rec.get( "targetNodeLabels" ) );
@@ -1156,20 +1099,17 @@ public class MetaTest {
     }
 
     @Test
-    public void testNodeTypePropertiesWithSpecialSampleSize()
-    {
+    public void testNodeTypePropertiesWithSpecialSampleSize() {
         db.executeTransactionally( "CREATE (:Foo { z: 'hej' });" );
         db.executeTransactionally( "CREATE (:Foo { z: 1 });" );
         db.executeTransactionally( "CREATE (:Foo { z: true });" );
         db.executeTransactionally( "CREATE (:Foo { z: 1.5 });" );
 
         // sample = -1 scans all entities
-        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ pollingPeriod: -1})", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ pollingPeriod: -1})", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() );
-            for ( Map<String,Object> rec : records )
-            {
+            for ( Map<String,Object> rec : records ) {
                 assertEquals( ":`Foo`", rec.get( "nodeType" ) );
                 assertEquals( "z", rec.get( "propertyName" ) );
                 assertEquals( 4L, rec.get( "propertyObservations" ) );
@@ -1178,12 +1118,10 @@ public class MetaTest {
         } );
 
         // not scan all of them, might not reach maxSampleSize
-        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ pollingPeriod: 1 })", r ->
-        {
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ pollingPeriod: 1 })", r -> {
             List<Map<String,Object>> records = gatherRecords( r );
             assertEquals( 1, records.size() );
-            for ( Map<String,Object> rec : records )
-            {
+            for ( Map<String,Object> rec : records ) {
                 assertEquals( ":`Foo`", rec.get( "nodeType" ) );
                 assertEquals( "z", rec.get( "propertyName" ) );
                 assertTrue( (long) rec.get( "propertyObservations" ) <=4L );
@@ -1193,8 +1131,7 @@ public class MetaTest {
     }
 
     @Test
-    public void testNodeTypePropertiesEquivalenceAdvanced()
-    {
+    public void testNodeTypePropertiesEquivalenceAdvanced() {
         db.executeTransactionally( "CREATE (:Foo { l: 1, s: 'foo', d: datetime(), ll: ['a', 'b'], dl: [2.0, 3.0] });" );
         // Missing all properties to make everything non-mandatory.
         db.executeTransactionally( "CREATE (:Foo { z: 1 });" );
@@ -1202,8 +1139,7 @@ public class MetaTest {
     }
 
     @Test
-    public void testRelTypePropertiesEquivalenceAdvanced()
-    {
+    public void testRelTypePropertiesEquivalenceAdvanced() {
         db.executeTransactionally( "CREATE (:Foo)-[:REL { l: 1, s: 'foo', d: datetime(), ll: ['a', 'b'], dl: [2.0, 3.0] }]->();" );
         // Missing all properties to make everything non-mandatory.
         db.executeTransactionally( "CREATE (:Foo)-[:REL { z: 1 }]->();" );
@@ -1211,8 +1147,7 @@ public class MetaTest {
     }
 
     @Test
-    public void testNodeTypePropertiesEquivalenceTypeMapping()
-    {
+    public void testNodeTypePropertiesEquivalenceTypeMapping() {
         String q =
                 "CREATE (:Test {" +
                 "    longProp: 1," +
@@ -1235,8 +1170,7 @@ public class MetaTest {
     }
 
     @Test
-    public void testRelTypePropertiesEquivalenceTypeMapping()
-    {
+    public void testRelTypePropertiesEquivalenceTypeMapping() {
         String q =
                 "CREATE (t:Test)-[:REL{" +
                 "    longProp: 1," +

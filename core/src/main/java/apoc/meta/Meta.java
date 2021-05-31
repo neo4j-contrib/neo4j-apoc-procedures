@@ -499,15 +499,12 @@ public class Meta {
      */
     @Procedure
     @Description( "apoc.meta.nodeTypeProperties()" )
-    public Stream<Tables4LabelsProfile.NodeTypePropertiesEntry> nodeTypeProperties( @Name( value = "config", defaultValue = "{}" ) Map<String,Object> config )
-    {
+    public Stream<Tables4LabelsProfile.NodeTypePropertiesEntry> nodeTypeProperties( @Name( value = "config", defaultValue = "{}" ) Map<String,Object> config ) {
         MetaConfig metaConfig = new MetaConfig( config );
-        try
-        {
+        try {
             return collectTables4LabelsProfile( metaConfig ).asNodeStream();
         }
-        catch ( Exception e )
-        {
+        catch ( Exception e ) {
             log.debug( "apoc.meta.nodeTypeProperties(): Failed to return stream", e );
             throw new RuntimeException( e );
         }
@@ -520,15 +517,12 @@ public class Meta {
      */
     @Procedure
     @Description( "apoc.meta.relTypeProperties()" )
-    public Stream<Tables4LabelsProfile.RelTypePropertiesEntry> relTypeProperties( @Name( value = "config", defaultValue = "{}" ) Map<String,Object> config )
-    {
+    public Stream<Tables4LabelsProfile.RelTypePropertiesEntry> relTypeProperties( @Name( value = "config", defaultValue = "{}" ) Map<String,Object> config ) {
         MetaConfig metaConfig = new MetaConfig( config );
-        try
-        {
+        try {
             return collectTables4LabelsProfile( metaConfig ).asRelStream();
         }
-        catch ( Exception e )
-        {
+        catch ( Exception e ) {
             log.debug( "apoc.meta.relTypeProperties(): Failed to return stream", e );
             throw new RuntimeException( e );
         }
