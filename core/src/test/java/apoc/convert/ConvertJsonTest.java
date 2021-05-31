@@ -91,9 +91,8 @@ public class ConvertJsonTest {
         try {
             testCall(db, "RETURN apoc.json.path($json, '$..columns', ['INVALID']) AS path", Map.of("json", JSON),
                     (row) -> fail("Should fail because of invalid pathOptions"));
-        } catch (QueryExecutionException e) {
-            final String expectedMsg = "Failed to invoke function `apoc.json.path`: Caused by: java.lang.RuntimeException: " + PATH_OPTIONS_ERROR_MESSAGE;
-            assertEquals(expectedMsg, e.getMessage());
+        } catch (RuntimeException e) {
+            assertTrue(ExceptionUtils.getStackTrace(e).contains(PATH_OPTIONS_ERROR_MESSAGE));
         }
     }
     

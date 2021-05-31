@@ -15,6 +15,7 @@ import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.spatial.Point;
 import org.neo4j.values.storable.DurationValue;
 
@@ -76,7 +77,7 @@ public class JsonUtil {
                     .mappingProvider(new JacksonMappingProvider(OBJECT_MAPPER))
                     .build();
         } catch (Exception e) {
-            throw new RuntimeException(PATH_OPTIONS_ERROR_MESSAGE);
+            throw new RuntimeException(PATH_OPTIONS_ERROR_MESSAGE, e);
         }
     }
     
@@ -97,7 +98,7 @@ public class JsonUtil {
             JsonParser parser = OBJECT_MAPPER.getFactory().createParser(input);
             MappingIterator<Object> it = OBJECT_MAPPER.readValues(parser, Object.class);
             Stream<Object> stream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(it, 0), false);
-            return (path==null||path.isEmpty()) ? stream  : stream.map((value) -> JsonPath.parse(value, getJsonPathConfig(options)).read(path));
+            return StringUtils.isBlank(path) ? stream  : stream.map((value) -> JsonPath.parse(value, getJsonPathConfig(options)).read(path));
         } catch (IOException e) {
             String u = Util.cleanUrl(url);
             if(!failOnError)
