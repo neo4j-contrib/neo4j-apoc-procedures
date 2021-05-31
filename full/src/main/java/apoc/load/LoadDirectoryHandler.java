@@ -143,6 +143,9 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
                     Thread.sleep(config.getInterval());
                 }
             } catch (Exception e) {
+                if (e instanceof InterruptedException) {
+                    return;
+                }
                 log.warn(String.format("Error while executing procedure with name %s . " +
                         "The status of the directory listener is changed to ERROR. " +
                         "Type `call apoc.load.directory.async.list` to more details.", item.getName()));

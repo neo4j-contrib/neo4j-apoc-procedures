@@ -9,10 +9,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runners.MethodSorters;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -50,7 +48,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LoadDirectoryTest {
 
     @ClassRule
@@ -117,8 +114,8 @@ public class LoadDirectoryTest {
 
     @After
     public void clearDB() {
-        db.executeTransactionally("MATCH (n) DETACH DELETE n");
         db.executeTransactionally("CALL apoc.load.directory.async.removeAll()");
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
 
     @Test(expected = QueryExecutionException.class)
@@ -204,16 +201,8 @@ public class LoadDirectoryTest {
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
         db.executeTransactionally("CALL apoc.load.directory.async.add('testAllEvents','CREATE (n:TestEntry)','*.csv') YIELD name RETURN name");
 
-        assertEventually(() -> db.executeTransactionally("CALL apoc.load.directory.async.list()",
-                emptyMap(), (r) -> {
-                    Map<String, Object> result = r.next();
-                    if (result.containsKey("error") && StringUtils.isNotBlank((String) result.get("error"))) {
-                        System.out.println("result.get(\"error\") = " + result.get("error"));
-                    }
-                    return "testAllEvents".equals(result.get("name")) &&
-                            LoadDirectoryItem.Status.RUNNING.name().equals(result.get("status"));
-                }),
-                value -> value, 30L, TimeUnit.SECONDS);
+        final String name = "testAllEvents";
+        assertIsRunning(name);
 
         final String queryCount = "MATCH (n:TestEntry) RETURN count(n) AS count";
         testResult(db, queryCount, result -> assertEquals(0L, result.columnAs("count").next()));
@@ -242,11 +231,23 @@ public class LoadDirectoryTest {
 
     }
 
+    private void assertIsRunning(String name) {
+        assertEventually(() -> db.executeTransactionally("CALL apoc.load.directory.async.list() YIELD name, status " +
+                        "WHERE name = $name " +
+                        "RETURN *",
+                Map.of("name", name), (r) -> {
+                    Map<String, Object> result = r.next();
+                    return LoadDirectoryItem.Status.RUNNING.name().equals(result.get("status"));
+                }),
+                value -> value, 30L, TimeUnit.SECONDS);
+    }
+
     @Test
     public void testAddFolderListenerWithCreateEventType() throws InterruptedException, IOException {
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
         db.executeTransactionally("CALL apoc.load.directory.async.add('testSpecific','CREATE (n:TestEntry {fileName: $fileName})', '*.csv', '', {listenEventType: ['CREATE']}) YIELD name RETURN name");
 
+        assertIsRunning("testSpecific");
         final String queryCount = "MATCH (n:TestEntry {fileName: $fileName}) RETURN count(n) AS count";
         final String fileOne = "newFile.csv";
         testResult(db, queryCount, Map.of("fileName", fileOne), result -> assertEquals(0L, result.columnAs("count").next()));
@@ -292,6 +293,8 @@ public class LoadDirectoryTest {
         db.executeTransactionally("CALL apoc.load.directory.async.add('testOne','CREATE (n:Test)','*.csv','', {}) YIELD name RETURN name");
         db.executeTransactionally("CALL apoc.load.directory.async.add('testTwo','CREATE (n:Test)', '*.json', '', {}) YIELD name RETURN name");
 
+        assertIsRunning("testOne");
+        assertIsRunning("testTwo");
         final Map<String, Object> defaultConfig = Map.of("listenEventType", eventTypes, "interval", 1000L);
         testResult(db, "CALL apoc.load.directory.async.list()", result -> {
             Map<String, Object> mapTestOne = result.next();
@@ -440,6 +443,8 @@ public class LoadDirectoryTest {
         testCall(db, "CALL apoc.load.directory.async.add('testRelativePath','CREATE (n:TestRelativePath)', '*', '" + SUBFOLDER_1 + "')",
                 r -> assertEquals("testRelativePath", r.get("name"))
         );
+
+        assertIsRunning("testRelativePath");
 
         final String queryCount = "MATCH (n:TestRelativePath) RETURN count(n) AS count";
         testResult(db, queryCount, result -> assertEquals(0L, result.columnAs("count").next()));
