@@ -204,6 +204,14 @@ public class LoadDirectoryTest {
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
         db.executeTransactionally("CALL apoc.load.directory.async.add('testAllEvents','CREATE (n:TestEntry)','*.csv') YIELD name RETURN name");
 
+        assertEventually(() -> db.executeTransactionally("CALL apoc.load.directory.async.list()",
+                emptyMap(), (r) -> {
+                    Map<String, Object> result = r.next();
+                    return "testAllEvents".equals(result.get("name")) &&
+                            LoadDirectoryItem.Status.RUNNING.name().equals(result.get("status"));
+                }),
+                value -> value, 30L, TimeUnit.SECONDS);
+
         final String queryCount = "MATCH (n:TestEntry) RETURN count(n) AS count";
         testResult(db, queryCount, result -> assertEquals(0L, result.columnAs("count").next()));
 
@@ -522,8 +530,6 @@ public class LoadDirectoryTest {
 
         db.executeTransactionally("CALL apoc.load.directory.async.add('notExistent', 'CREATE (n:Node)', '*', 'pathNotExistent')");
 
-//        testCall(db, "CALL apoc.load.directory.async.list()", result -> errorAssertions(defaultConfig, result));
-
         assertEventually(() -> db.executeTransactionally("CALL apoc.load.directory.async.list()",
                 emptyMap(), (r) -> {
                     Map<String, Object> result = r.next();
@@ -644,14 +650,5 @@ public class LoadDirectoryTest {
                     assertFalse(result.hasNext());
                 }
         );
-    }
-
-    private void errorAssertions(Map<String, Object> defaultConfig, Map<String, Object> result) {
-        assertEquals("notExistent", result.get("name"));
-        assertEquals("*", result.get("pattern"));
-        assertEquals("CREATE (n:Node)", result.get("cypher"));
-        assertEquals(defaultConfig, result.get("config"));
-        assertEquals(LoadDirectoryItem.Status.ERROR.name(), result.get("status"));
-        assertTrue(((String) result.get("error")).contains("java.nio.file.NoSuchFileException"));
     }
 }
