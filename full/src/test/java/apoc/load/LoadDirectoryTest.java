@@ -207,6 +207,9 @@ public class LoadDirectoryTest {
         assertEventually(() -> db.executeTransactionally("CALL apoc.load.directory.async.list()",
                 emptyMap(), (r) -> {
                     Map<String, Object> result = r.next();
+                    if (result.containsKey("error") && StringUtils.isNotBlank((String) result.get("error"))) {
+                        System.out.println("result.get(\"error\") = " + result.get("error"));
+                    }
                     return "testAllEvents".equals(result.get("name")) &&
                             LoadDirectoryItem.Status.RUNNING.name().equals(result.get("status"));
                 }),
