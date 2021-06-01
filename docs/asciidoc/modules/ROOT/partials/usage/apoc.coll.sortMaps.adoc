@@ -40,7 +40,7 @@ RETURN apoc.coll.sortMaps([
     {name: "Lionel Messi"},
     {name: "Cristiano Ronaldo"},
     {name: "Wayne Rooney"}
-], "name^") AS output;
+], "^name") AS output;
 ----
 
 .Results
