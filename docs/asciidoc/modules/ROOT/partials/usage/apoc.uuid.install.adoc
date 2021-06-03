@@ -63,7 +63,7 @@ RETURN p;
 | (:Person {name: "Tom Hanks", uuid: "cec34337-9709-46af-bbb7-9e0742d8aaa7"})
 |===
 
-The `uuid` property will be created also with a label `SET`. For example:
+The `uuid` property will be created also with a label `SET` when the `addToSetLabels` configuration is set to true. For example:
 
 [source,cypher]
 ----
