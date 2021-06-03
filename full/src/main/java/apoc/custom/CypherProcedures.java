@@ -186,6 +186,10 @@ public class CypherProcedures {
                 : output.stream().map(FieldSignature::name).collect(Collectors.toSet());
         checkForDuplicatedParameters(output, isDefaultOutputs, outputSet, ERROR_DUPLICATED_OUTPUTS);
 
+        checkConsistencyParams(statement, isDefaultOutputs, isDefaultInputs, inputSet, outputSet);
+    }
+
+    private void checkConsistencyParams(String statement, boolean isDefaultOutputs, boolean isDefaultInputs, Set<String> inputSet, Set<String> outputSet) {
         api.executeTransactionally("EXPLAIN " + statement, emptyMap(), result -> {
             // check if, in case of output params is not default or null, the column names of result query and output parameters
             final boolean outputMismatched = !(isDefaultOutputs || Set.copyOf(result.columns()).equals(outputSet));
