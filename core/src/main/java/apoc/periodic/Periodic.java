@@ -151,7 +151,7 @@ public class Periodic {
 
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.submit('name',statement,params) - submit a one-off background statement; parameter 'params' is optional and can contain query parameters for Cypher statement")
-    public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
+    public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement, @Name(value = "params", defaultValue = "{}") Map<String,Object> config) {
         validateQuery(statement);
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
         JobInfo info = submit(name, () -> {
