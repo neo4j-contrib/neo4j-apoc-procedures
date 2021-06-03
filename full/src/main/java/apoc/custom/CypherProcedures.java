@@ -49,8 +49,9 @@ public class CypherProcedures {
      * allow to register proper return columns
      * allow to register mode
      */
-    @Procedure(value = "apoc.custom.asProcedure",mode = Mode.WRITE)
+    @Procedure(value = "apoc.custom.asProcedure",mode = Mode.WRITE, deprecatedBy = "apoc.custom.declareProcedure")
     @Description("apoc.custom.asProcedure(name, statement, mode, outputs, inputs, description) - register a custom cypher procedure")
+    @Deprecated
     public void asProcedure(@Name("name") String name, @Name("statement") String statement,
                             @Name(value = "mode",defaultValue = "read") String mode,
                             @Name(value= "outputs", defaultValue = "null") List<List<String>> outputs,
@@ -75,8 +76,9 @@ public class CypherProcedures {
     }
 
 
-    @Procedure(value = "apoc.custom.asFunction",mode = Mode.WRITE)
+    @Procedure(value = "apoc.custom.asFunction",mode = Mode.WRITE, deprecatedBy = "apoc.custom.declareFunction")
     @Description("apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description) - register a custom cypher function")
+    @Deprecated
     public void asFunction(@Name("name") String name, @Name("statement") String statement,
                            @Name(value= "outputs", defaultValue = "") String output,
                            @Name(value= "inputs", defaultValue = "null") List<List<String>> inputs,
