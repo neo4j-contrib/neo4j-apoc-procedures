@@ -4,6 +4,7 @@ import apoc.Extended;
 import apoc.result.StringResult;
 import apoc.util.FileUtils;
 import apoc.util.Util;
+import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang.StringUtils;
@@ -98,7 +99,7 @@ public class LoadDirectory {
         Collection<File> files = org.apache.commons.io.FileUtils.listFiles(
                 getPathFromUrlString(urlDir).toFile(),
                 new WildcardFileFilter(pattern),
-                isRecursive ? TrueFileFilter.TRUE : null
+                isRecursive ? TrueFileFilter.TRUE : FileFileFilter.INSTANCE
         );
 
         return files.stream().map(i -> {
