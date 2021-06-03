@@ -2,6 +2,8 @@ package apoc.mongodb;
 
 import apoc.result.LongResult;
 import apoc.result.MapResult;
+import apoc.util.JsonUtil;
+import org.bson.Document;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -29,7 +31,10 @@ public class Mongo {
     public Stream<MapResult> aggregate(@Name("uri") String uri, @Name("pipeline") List<Map<String, Object>> pipeline, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         MongoDbConfig conf = new MongoDbConfig(config);
         return executeMongoQuery(uri, conf, 
-                coll -> coll.aggregate(pipeline.stream().map(MongoDBUtils::getDocument).collect(Collectors.toList())).map(MapResult::new), 
+                coll -> {
+                    final List<Document> pipelineDocs = pipeline.stream().map(MongoDBUtils::getDocument).collect(Collectors.toList());
+                    return coll.aggregate(pipelineDocs).map(MapResult::new);
+                }, 
                 getExceptionConsumer("apoc.mongo.aggregate", uri, config));
     }
 
@@ -89,8 +94,7 @@ public class Mongo {
     }
 
     private void mongoErrorLog(String procedureName, String uri, Map<String, Object> config, Exception e, String optionalOthers) {
-        final String configString = config.entrySet().stream().map(entry -> "{" + entry.getKey() + ": " + entry.getValue() + "}").collect(Collectors.joining(", "));
-        log.error(procedureName + " - uri = '" + uri + "', " + optionalOthers + " config = {" + configString + "}", e);
+        log.error(procedureName + " - uri = '" + uri + "', " + optionalOthers + " config = " + JsonUtil.writeValueAsString(config), e);
     }
 
     private <T> Stream<T> executeMongoQuery(String uri, MongoDbConfig conf, Function<MongoDBUtils.Coll, Stream<T>> execute, Consumer<Exception> onError) {

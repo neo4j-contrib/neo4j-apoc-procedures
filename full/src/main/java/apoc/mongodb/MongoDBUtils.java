@@ -2,6 +2,7 @@ package apoc.mongodb;
 
 import apoc.util.JsonUtil;
 import apoc.util.MissingDependencyException;
+import apoc.util.Util;
 import apoc.version.Version;
 import org.bson.Document;
 
@@ -10,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
-import static apoc.util.Util.closeSafely;
 
 public class MongoDBUtils {
     interface Coll extends Closeable {
@@ -37,7 +36,7 @@ public class MongoDBUtils {
         long delete(Document query);
 
         default void safeClose() {
-            closeSafely(this);
+            Util.close(this);
         }
 
         class Factory {
