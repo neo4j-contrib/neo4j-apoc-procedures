@@ -1,5 +1,6 @@
 package apoc.mongodb;
 
+import apoc.util.Util;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.MongoClient;
@@ -33,7 +34,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.util.Util.closeSafely;
 import static java.lang.String.format;
 
 /**
@@ -291,8 +291,8 @@ class MongoDBColl implements MongoDBUtils.Coll {
                 .stream(it.spliterator(), false)
                 .map(doc -> this.documentToPackableMap(doc))
                 .onClose(() -> {
-                        closeSafely(result.iterator());
-                        closeSafely(mongoClient);
+                        Util.close(result.iterator());
+                        Util.close(mongoClient);
                 });
     }
 
