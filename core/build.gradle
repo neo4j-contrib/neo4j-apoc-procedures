@@ -115,6 +115,9 @@ dependencies {
     compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.7.5', withoutServers
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+    // explicit update comomns.io version
+    compile group: 'commons-io', name: 'commons-io', version: '2.9.0'
+
     //compileOnly group: 'org.apache.commons', name: 'commons-text', version: '1.7'
 //    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
 //    jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
