@@ -4,6 +4,7 @@ import apoc.Extended;
 import apoc.result.StringResult;
 import apoc.util.FileUtils;
 import apoc.util.Util;
+import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.neo4j.logging.Log;
@@ -50,7 +51,7 @@ public class LoadDirectory {
         Collection<File> files = org.apache.commons.io.FileUtils.listFiles(
                 Paths.get(URI.create(urlDir).getPath()).toFile(),
                 new WildcardFileFilter(pattern),
-                isRecursive ? TrueFileFilter.TRUE : null
+                isRecursive ? TrueFileFilter.TRUE : FileFileFilter.INSTANCE
         );
 
         return files.stream().map(i -> {
