@@ -11,6 +11,7 @@ import org.neo4j.graphdb.schema.IndexDefinition;
 import java.util.Iterator;
 
 import static apoc.export.cypher.formatter.CypherFormatterUtils.cypherNode;
+import static apoc.util.Util.quote;
 
 public class DatabaseSubGraph implements SubGraph
 {
@@ -85,7 +86,7 @@ public class DatabaseSubGraph implements SubGraph
     public long countsForRelationship(Label start, RelationshipType type, Label end) {
         String startNode = cypherNode(start);
         String endNode = cypherNode(end);
-        String relationship = String.format("[r:%s]", type.name());
+        String relationship = String.format("[r:%s]", quote(type.name()));
         return transaction.execute(String.format("MATCH %s-%s->%s RETURN count(r) AS count", startNode, relationship, endNode))
                 .<Long>columnAs("count")
                 .next();
@@ -93,7 +94,7 @@ public class DatabaseSubGraph implements SubGraph
 
     @Override
     public long countsForNode(Label label) {
-        return transaction.execute(String.format("MATCH (n:%s) RETURN count(n) AS count", label.name()))
+        return transaction.execute(String.format("MATCH (n:%s) RETURN count(n) AS count", quote(label.name())))
                 .<Long>columnAs("count")
                 .next();
     }
