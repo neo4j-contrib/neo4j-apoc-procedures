@@ -120,7 +120,7 @@ public class GraphsConfig {
         defaultLabel = config.getOrDefault("defaultLabel", "DocNode").toString();
         mappings = toMappings((Map<String, String>) config.getOrDefault("mappings", Collections.emptyMap()));
         skipValidation = toBoolean(config.getOrDefault("skipValidation", false));
-        relMapping = MapUtils.emptyIfNull((Map<String, String>) config.get("relMapping"));//  (Map<String, String>) config.getOrDefault("relMapping", Collections.emptyMap());
+        relMapping = MapUtils.emptyIfNull((Map<String, String>) config.get("relMapping"));
     }
 
     private Map<String, GraphMapping> toMappings(Map<String, String> mappings) {
