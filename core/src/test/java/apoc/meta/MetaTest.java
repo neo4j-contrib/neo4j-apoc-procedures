@@ -1267,4 +1267,20 @@ public class MetaTest {
                         "RETURN *",
                 assertResult);
     }
+    
+    @Test
+    public void testMetaStatsWithTwoDots() {
+        db.executeTransactionally("CREATE (n:`My:Label` {id:1})-[r:`http://www.w3.org/2000/01/rdf-schema#isDefinedBy` {alpha: 'beta'}]->(s:Another)");
+        TestUtil.testCall(db, "CALL apoc.meta.stats()", row -> {
+            assertEquals(map("My:Label", 1L, "Another", 1L), row.get("labels"));
+            assertEquals(2L, row.get("labelCount"));
+            assertEquals(map("http://www.w3.org/2000/01/rdf-schema#isDefinedBy", 1L), row.get("relTypesCount"));
+            assertEquals(2L, row.get("propertyKeyCount"));
+            assertEquals(map("()-[:http://www.w3.org/2000/01/rdf-schema#isDefinedBy]->(:Another)", 1L,
+                    "()-[:http://www.w3.org/2000/01/rdf-schema#isDefinedBy]->()", 1L,
+                    "(:My:Label)-[:http://www.w3.org/2000/01/rdf-schema#isDefinedBy]->()",1L),
+                    row.get("relTypes"));
+        });
+
+    }
 }
