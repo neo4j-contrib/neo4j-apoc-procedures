@@ -97,7 +97,6 @@ public class    Meta {
     }
 
     public enum Types {
-        // todo ... Ah ecco... questi non ci stanno...
         INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,ANY,MAP,LIST,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION;
 
         private String typeOfList = "ANY";
