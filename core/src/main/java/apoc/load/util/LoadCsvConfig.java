@@ -14,11 +14,13 @@ public class LoadCsvConfig {
     public static final char DEFAULT_ARRAY_SEP = ';';
     public static final char DEFAULT_SEP = ',';
     public static final char DEFAULT_QUOTE_CHAR = '"';
+    public static final char DEFAULT_ESCAPE_CHAR = '\\';
 
     private final boolean ignoreErrors;
     private char separator;
     private char arraySep;
     private char quoteChar;
+    private char escapeChar;
     private long skip;
     private boolean hasHeader;
     private long limit;
@@ -41,6 +43,7 @@ public class LoadCsvConfig {
         separator = parseCharFromConfig(config, "sep", DEFAULT_SEP);
         arraySep = parseCharFromConfig(config, "arraySep", DEFAULT_ARRAY_SEP);
         quoteChar = parseCharFromConfig(config,"quoteChar", DEFAULT_QUOTE_CHAR);
+        escapeChar = parseCharFromConfig(config,"escapeChar", DEFAULT_ESCAPE_CHAR);
         long skip = (long) config.getOrDefault("skip", 0L);
         this.skip = skip > -1 ? skip : 0L;
         hasHeader = (boolean) config.getOrDefault("header", true);
@@ -116,6 +119,10 @@ public class LoadCsvConfig {
 
     public char getQuoteChar() {
         return quoteChar;
+    }
+
+    public char getEscapeChar() {
+        return escapeChar;
     }
 
     public boolean getIgnoreErrors() {

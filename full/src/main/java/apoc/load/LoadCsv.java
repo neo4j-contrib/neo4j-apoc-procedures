@@ -60,6 +60,7 @@ public class LoadCsv {
 
         CSVReader csv = new CSVReaderBuilder(reader)
                 .withCSVParser(new CSVParserBuilder()
+                        .withEscapeChar(config.getEscapeChar())
                         .withQuoteChar(config.getQuoteChar())
                         .withIgnoreQuotations( config.isIgnoreQuotations() )
                         .withSeparator(config.getSeparator())
