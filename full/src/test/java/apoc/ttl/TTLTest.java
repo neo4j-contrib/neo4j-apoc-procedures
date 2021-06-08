@@ -3,15 +3,17 @@ package apoc.ttl;
 import apoc.ApocSettings;
 import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
-import org.junit.*;
+import org.junit.ClassRule;
+import org.junit.Test;
+
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertTrue;
 
@@ -21,11 +23,6 @@ public class TTLTest {
     public static DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_ttl_schedule, Duration.ofMillis(3000))
             .withSetting(ApocSettings.apoc_ttl_enabled, true);
-
-    @Before
-    public void setUp() {
-        db.shutdown();
-    }
 
     @Test
     public void testExpireManyNodes() throws Exception {
