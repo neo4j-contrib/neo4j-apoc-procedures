@@ -4,7 +4,10 @@ import java.util.regex.Pattern;
 
 public class CsvLoaderConstants {
 
-    public static final Pattern FIELD_PATTERN = Pattern.compile("^(?<name>[^:]*)(:(?<type>\\w+))?(\\((?<idspace>[-a-zA-Z_0-9]+)\\))?(?<array>\\[\\])?$");
+    public static final Pattern FIELD_PATTERN = Pattern.compile("^(?<name>[^:]*)(:(?<type>\\w+))?(?<optPar>\\{.*})?(\\((?<idspace>[-a-zA-Z_0-9]+)\\))?(?<array>\\[\\])?$");
+    public static final Pattern KEY_VALUE_PATTERN =
+            Pattern.compile( "(?:\\A|,)\\s*+(?<key>[a-z_A-Z]\\w*+)\\s*:\\s*(?<value>[^\\s,]+)" );
+    
     public static final String ARRAY_PATTERN = "[]";
 
     public static final String IGNORE_FIELD = "IGNORE";
