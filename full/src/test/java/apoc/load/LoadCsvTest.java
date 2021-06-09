@@ -179,7 +179,7 @@ RETURN m.col_1,m.col_2,m.col_3
         testResult(db, "CALL apoc.load.csv($url,$config)",
                 map("url", url.toString(), "config", map("results", results, "escapeChar", "NONE")),
                 (r) -> {
-                    assertRow(r, 0L,"name", "Narut\\o", "surname","Uzu\\maki");
+                    assertRow(r, 0L,"name", "Narut\\o\\", "surname","Uzu\\maki");
                     assertRow(r, 1L,"name", "Minat\\o", "surname","Nami\\kaze");
                     assertFalse(r.hasNext());
                 });
