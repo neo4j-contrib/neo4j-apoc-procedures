@@ -36,7 +36,9 @@ generateGrammarSource {
 }
 
 dependencies {
+
     testCompile project(':test-utils')
+    apt project(':processor')
 
 //    apt 'net.biville.florent:neo4j-sproc-compiler:1.2'  // temporarily disabled until byte[] is supported by sproc compiler
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective	
