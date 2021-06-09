@@ -64,17 +64,7 @@ public class ExportCsvTest {
             "\"5\",\":Address\",\"\",\"\",\"\",\"\",\"\",\"via Benni\",,,%n" +
             ",,,,,,,,\"0\",\"1\",\"KNOWS\"%n" +
             ",,,,,,,,\"3\",\"4\",\"NEXT_DELIVERY\"%n");
-    
-    private static final String EXPECTED_WITH_TYPES = "\"_id:id\",\"_labels:label\",\"age:int\",\"city\",\"kids\",\"male\",\"name\",\"street\",\"_start:id\",\"_end:id\",\"_type:label\"\n" +
-            "\"0\",\":User:User1\",\"42\",\"\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"true\",\"foo\",\"\",,,\n" +
-            "\"1\",\":User\",\"42\",\"\",\"\",\"\",\"bar\",\"\",,,\n" +
-            "\"2\",\":User\",\"12\",\"\",\"\",\"\",\"\",\"\",,,\n" +
-            "\"3\",\":Address:Address1\",\"\",\"Milano\",\"\",\"\",\"Andrea\",\"Via Garibaldi, 7\",,,\n" +
-            "\"4\",\":Address\",\"\",\"\",\"\",\"\",\"Bar Sport\",\"\",,,\n" +
-            "\"5\",\":Address\",\"\",\"\",\"\",\"\",\"\",\"via Benni\",,,\n" +
-            ",,,,,,,,\"0\",\"1\",\"KNOWS\"\n" +
-            ",,,,,,,,\"3\",\"4\",\"NEXT_DELIVERY\"\n";
-    
+
     private static final String EXP_SAMPLE = "\"_id\",\"_labels\",\"address\",\"age\",\"baz\",\"city\",\"foo\",\"kids\",\"last:Name\",\"male\",\"name\",\"street\",\"_start\",\"_end\",\"_type\",\"one\",\"three\"\n" +
             "\"0\",\":User:User1\",\"\",\"42\",\"\",\"\",\"\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"\",\"true\",\"foo\",\"\",,,,,\n" +
             "\"1\",\":User\",\"\",\"42\",\"\",\"\",\"\",\"\",\"\",\"\",\"bar\",\"\",,,,,\n" +
@@ -150,14 +140,6 @@ public class ExportCsvTest {
         TestUtil.testCall(db, "CALL apoc.export.csv.all($file,null)", map("file", fileName),
                 (r) -> assertResults(fileName, r, "database"));
         assertEquals(EXPECTED, readFile(fileName));
-    }
-
-    @Test
-    public void testExportAllCsvWithUseTypes() {
-        String fileName = "all.csv";
-        TestUtil.testCall(db, "CALL apoc.export.csv.all($file, {useTypes: true})", map("file", fileName),
-                (r) -> assertResults(fileName, r, "database"));
-        assertEquals(EXPECTED_WITH_TYPES, readFile(fileName));
     }
 
     @Test
