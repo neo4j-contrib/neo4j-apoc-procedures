@@ -1,9 +1,5 @@
 package apoc.redis;
 
-//import com.google.common.reflect.ClassPath;
-
-import com.google.common.reflect.ClassPath;
-import com.google.common.reflect.Reflection;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.Range;
 import io.lettuce.core.RedisClient;
@@ -17,16 +13,14 @@ import io.lettuce.core.protocol.CommandArgs;
 import io.lettuce.core.protocol.CommandType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.collections4.ListUtils;
+import org.reflections.Reflections;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 public class RedisConnection implements AutoCloseable {
     
@@ -162,25 +156,29 @@ public class RedisConnection implements AutoCloseable {
     }
     
     public Object dispatch(String command, String output, List<String> keys, List<String> values, Map<String, String> arguments) {
-        CommandOutput cons;
         try {
-            Class<?> clazz = Class.forName(CommandOutput.class.getPackageName() + "." + output);
-            cons = (CommandOutput) clazz.getConstructor(RedisCodec.class).newInstance(this.codec);
-        } catch (Exception e) {
-            throw new UnsupportedOperationException("Output type not supported: " + output);
+            final CommandOutput commandOutput = new Reflections(CommandOutput.class.getPackageName()).getSubTypesOf(CommandOutput.class)
+                    .stream()
+                    .filter(ci -> ci.getSimpleName().equalsIgnoreCase(output))
+                    .findFirst()
+                    .orElseThrow(() -> new UnsupportedOperationException("Output type not supported: " + output))
+                    .getConstructor(RedisCodec.class)
+                    .newInstance(this.codec);
+            
+            final CommandArgs<String, String> commandArgs = new CommandArgs<>(this.codec);
+            if (CollectionUtils.isNotEmpty(keys)) {
+                commandArgs.addKeys(keys);
+            }
+            if (CollectionUtils.isNotEmpty(values)) {
+                commandArgs.addValues(values);
+            }
+            if (MapUtils.isNotEmpty(arguments)) {
+                commandArgs.add(arguments);
+            }
+            return this.commands.dispatch(CommandType.valueOf(command), commandOutput, commandArgs);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
         }
-        final CommandArgs<String, String> commandArgs = new CommandArgs<>(this.codec);
-        if (CollectionUtils.isNotEmpty(keys)) {
-            commandArgs.addKeys(keys);
-        }
-        if (CollectionUtils.isNotEmpty(values)) {
-            commandArgs.addValues(values);
-        }
-        if (MapUtils.isNotEmpty(arguments)) {
-            commandArgs.add(arguments);
-        }
-        
-        return this.commands.dispatch(CommandType.valueOf(command), cons, commandArgs);
     }
 
     // -- Key
