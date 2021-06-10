@@ -54,3 +54,5 @@ RETURN value;
 | {node: (:Tag)}
 | {node: (:Location)}
 |===
+
+Please note that if you want to use schema operation, you have to use xref::overview/apoc.cypher/apoc.cypher.runSchema.adoc[apoc.cypher.runSchema] procedure
