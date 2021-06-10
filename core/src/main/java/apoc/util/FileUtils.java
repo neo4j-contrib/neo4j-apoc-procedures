@@ -235,10 +235,10 @@ public class FileUtils {
     }
 
     /**
-     * @returns a File pointing to Neo4j's log directory, if it exists and is readable, null otherwise.
+     * @return a File pointing to Neo4j's log directory, if it exists and is readable, null otherwise.
      */
     public static File getLogDirectory() {
-        String neo4jHome = apocConfig().getString("unsupported.dbms.directories.neo4j_home", "");
+        String neo4jHome = apocConfig().getString("dbms.directories.neo4j_home", "");
         String logDir = apocConfig().getString("dbms.directories.logs", "");
 
         File logs = logDir.isEmpty() ? new File(neo4jHome, "logs") : new File(logDir);
