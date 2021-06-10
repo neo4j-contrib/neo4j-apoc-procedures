@@ -74,3 +74,13 @@ apoc.cypher.runFirstColumnMany(statement, params) - executes statement with give
 apoc.cypher.runFirstColumnSingle(statement, params) - executes statement with given parameters, returns first element of the first column only, params are available as identifiers
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runSchema icon:book[]]
+
+apoc.cypher.runSchema(statement, params) yield value - executes query schema statement with the given parameters
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runWrite icon:book[]]
+
+apoc.cypher.runWrite(statement, params) yield value - alias for apoc.cypher.doIt
+|label:procedure[]
+|label:apoc-core[]
