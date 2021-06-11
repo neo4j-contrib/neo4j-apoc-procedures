@@ -101,7 +101,9 @@ public class SorensenDiceCoefficient {
     }
 
     public boolean lessThan(Bigram other) {
-      if (this.first < other.first) {return true;}
+      if (this.first < other.first) {
+          return true;
+      }
       return this.first == other.first && this.second < other.second;
     }
 
@@ -110,9 +112,15 @@ public class SorensenDiceCoefficient {
     }
 
     @Override public int compareTo(Bigram other) {
-      if (this == other || other == null) {return 0;}
-      if (this.first == other.first && this.second == other.second) {return 0;}
-      if (this.lessThan(other)) {return -1;}
+      if (this == other) {
+          return 0;
+      }
+      if (this.first == other.first && this.second == other.second) {
+          return 0;
+      }
+      if (this.lessThan(other)) {
+          return -1;
+      }
       return 1;
     }
   }
