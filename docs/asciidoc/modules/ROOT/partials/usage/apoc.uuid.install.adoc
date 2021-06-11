@@ -63,6 +63,15 @@ RETURN p;
 | (:Person {name: "Tom Hanks", uuid: "cec34337-9709-46af-bbb7-9e0742d8aaa7"})
 |===
 
+The `uuid` property will be created also with a label `SET` when the `addToSetLabels` configuration is set to true. For example:
+
+[source,cypher]
+----
+CREATE (:AnotherLabel {name: "Tom Hanks"});
+// ...
+MATCH (n:AnotherLabel) SET n:Person;
+----
+
 If we want to use a different property key for our UUID value, we can pass in the `uuidProperty` key, not forgetting to first setup a constraint:
 
 [source,cypher]
