@@ -68,7 +68,7 @@ image::apoc.graph.fromDocument_with_mappings.png[scaledwidth="100%"]
 
 .Virtual graph from JSON with `relMapping`
 
-We can pass a `relMapping` to customize relationship name, passing a map with the relationships you want to change as keys.
+We can pass a `relMapping` to customize relationship names, passing a map with the relationships you want to change as keys.
 For example:
 [source,cypher]
 ----
