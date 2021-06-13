@@ -1,6 +1,7 @@
 package apoc.create;
 
 import apoc.util.TestUtil;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,6 +14,9 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Map;
 
+import static apoc.result.VirtualNode.ERROR_NODE_NULL;
+import static apoc.result.VirtualRelationship.ERROR_END_NODE_NULL;
+import static apoc.result.VirtualRelationship.ERROR_START_NODE_NULL;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.*;
@@ -227,6 +231,25 @@ public class CreateTest {
                     assertEquals("Vincent", node.getProperty("name"));
                     assertNull(node.getProperty("born"));
                 });
+    }
+
+    @Test
+    public void testValidationNodes() {
+        extracted(ERROR_NODE_NULL,"RETURN apoc.create.virtual.fromNode(null, ['name']) as node");
+        extracted(ERROR_START_NODE_NULL, "CREATE (n) WITH n CALL apoc.create.relationship(null,'KNOWS',{}, n) YIELD rel RETURN rel");
+        extracted(ERROR_END_NODE_NULL, "CREATE (n) WITH n CALL apoc.create.relationship(n,'KNOWS',{}, null) YIELD rel RETURN rel");
+        extracted(ERROR_START_NODE_NULL, "CREATE (m) RETURN apoc.create.vRelationship(null,'KNOWS',{}, m) AS rel");
+        extracted(ERROR_END_NODE_NULL, "CREATE (n) WITH n CALL apoc.create.vRelationship(n,'KNOWS',{}, null) YIELD rel RETURN rel");
+    }
+
+    private void extracted(String expectedMessage, String query) {
+        try {
+            testCall(db, query, (row) -> fail("Should fail because of " + expectedMessage));
+        } catch (Exception e) {
+            Throwable rootCause = ExceptionUtils.getRootCause(e);
+            assertEquals(expectedMessage, rootCause.getMessage());
+            assertTrue(rootCause instanceof RuntimeException);
+        }
     }
 
 }
