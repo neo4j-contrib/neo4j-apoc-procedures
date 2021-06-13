@@ -235,14 +235,14 @@ public class CreateTest {
 
     @Test
     public void testValidationNodes() {
-        extracted(ERROR_NODE_NULL,"RETURN apoc.create.virtual.fromNode(null, ['name']) as node");
-        extracted(ERROR_START_NODE_NULL, "CREATE (n) WITH n CALL apoc.create.relationship(null,'KNOWS',{}, n) YIELD rel RETURN rel");
-        extracted(ERROR_END_NODE_NULL, "CREATE (n) WITH n CALL apoc.create.relationship(n,'KNOWS',{}, null) YIELD rel RETURN rel");
-        extracted(ERROR_START_NODE_NULL, "CREATE (m) RETURN apoc.create.vRelationship(null,'KNOWS',{}, m) AS rel");
-        extracted(ERROR_END_NODE_NULL, "CREATE (n) WITH n CALL apoc.create.vRelationship(n,'KNOWS',{}, null) YIELD rel RETURN rel");
+        assertionsError(ERROR_NODE_NULL,"RETURN apoc.create.virtual.fromNode(null, ['name']) as node");
+        assertionsError(ERROR_START_NODE_NULL, "CREATE (n) WITH n CALL apoc.create.relationship(null,'KNOWS',{}, n) YIELD rel RETURN rel");
+        assertionsError(ERROR_END_NODE_NULL, "CREATE (n) WITH n CALL apoc.create.relationship(n,'KNOWS',{}, null) YIELD rel RETURN rel");
+        assertionsError(ERROR_START_NODE_NULL, "CREATE (m) RETURN apoc.create.vRelationship(null,'KNOWS',{}, m) AS rel");
+        assertionsError(ERROR_END_NODE_NULL, "CREATE (n) WITH n CALL apoc.create.vRelationship(n,'KNOWS',{}, null) YIELD rel RETURN rel");
     }
 
-    private void extracted(String expectedMessage, String query) {
+    private void assertionsError(String expectedMessage, String query) {
         try {
             testCall(db, query, (row) -> fail("Should fail because of " + expectedMessage));
         } catch (Exception e) {
