@@ -5,7 +5,11 @@ import apoc.util.TestUtil;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -40,5 +44,32 @@ public class StartupTest {
             ex.printStackTrace();
             fail("Should not have thrown exception when trying to start Neo4j: " + ex);
         }
+    }
+
+    @Test
+    public void check_extension_deployment() {
+        try (Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())) {
+            neo4jContainer.start();
+
+            assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+
+            try (Session session = neo4jContainer.getSession()) {
+                List<String> procedureNames = session.run("CALL dbms.procedures() YIELD name WHERE name STARTS WITH 'apoc' RETURN name ORDER BY name ASC")
+                        .list(record -> record.get("name").asString());
+                List<String> functionNames = session.run("CALL dbms.functions() YIELD name WHERE name STARTS WITH 'apoc' RETURN name ORDER BY name ASC")
+                        .list(record -> record.get("name").asString());
+
+
+                assertEquals(sorted(ApocSignatures.PROCEDURES), procedureNames);
+                assertEquals(sorted(ApocSignatures.FUNCTIONS), functionNames);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+        }
+    }
+
+    private List<String> sorted(List<String> signatures) {
+        return signatures.stream().sorted().collect(Collectors.toList());
     }
 }
