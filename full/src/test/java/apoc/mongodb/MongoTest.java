@@ -139,7 +139,7 @@ public class MongoTest extends MongoTestBase {
     }
 
     @Test
-    public void shouldNotFailIfUriHasNonRootUserNotAuthorizedInDb() {
+    public void shouldNotFailIfUriHasRootUser() {
         testCall(db, "CALL apoc.mongo.find($uri, {age: 54})",
                 map("uri", String.format("mongodb://admin:pass@%s:%s/foo.bar?authSource=admin", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))),
                 row -> {
