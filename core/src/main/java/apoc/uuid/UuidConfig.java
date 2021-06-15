@@ -8,10 +8,12 @@ import static apoc.util.Util.toBoolean;
 public class UuidConfig {
 
     private boolean addToExistingNodes;
+    private boolean addToSetLabels;
     private String uuidProperty;
 
     private static final String DEFAULT_UUID_PROPERTY = "uuid";
     private static final boolean DEFAULT_ADD_TO_EXISTING_NODES = true;
+    private static final boolean DEFAULT_ADD_TO_SET_LABELS = false;
 
 
     public UuidConfig(Map<String, Object> config) {
@@ -19,6 +21,7 @@ public class UuidConfig {
             config = Collections.emptyMap();
         }
         this.addToExistingNodes = toBoolean(config.getOrDefault("addToExistingNodes", DEFAULT_ADD_TO_EXISTING_NODES));
+        this.addToSetLabels = toBoolean(config.getOrDefault("addToSetLabels", DEFAULT_ADD_TO_SET_LABELS));
         this.uuidProperty = config.getOrDefault("uuidProperty", DEFAULT_UUID_PROPERTY).toString();
 
     }
@@ -41,4 +44,7 @@ public class UuidConfig {
         this.uuidProperty = uuidProperty;
     }
 
+    public boolean isAddToSetLabels() {
+        return addToSetLabels;
+    }
 }
