@@ -1,5 +1,6 @@
 package apoc.text;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.hamcrest.number.IsCloseTo.closeTo;
@@ -48,6 +49,15 @@ public class SorensenDiceCoefficientTest {
     int commonPairs     =                       countOf("yo","or");
     double expectedScore = 2.0 * commonPairs / (text1PairCount + text2PairCount);
     assertThat(score, closeTo((expectedScore), 0.00001));
+  }
+
+  @Test
+  public void testScoreRepeatingCharactersCorrectly() {
+    double score = SorensenDiceCoefficient.compute("aa", "aaaaaa");
+    assertThat(score, closeTo(0.333333, 0.00001));
+
+    score = SorensenDiceCoefficient.compute("aaaaaa", "aa");
+    assertThat(score, closeTo(0.333333, 0.00001));
   }
 
   private int countOf(String... pairs) {
