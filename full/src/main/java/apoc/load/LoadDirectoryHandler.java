@@ -72,7 +72,6 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
     }
 
     public void remove(String name) {
-
         final LoadDirectoryItem loadDirectoryItem = new LoadDirectoryItem(name);
         remove(loadDirectoryItem);
     }
@@ -102,7 +101,6 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
     }
 
     public void removeAll() {
-
         Set<LoadDirectoryItem> keys = new HashSet<>(storage.keySet());
         keys.forEach(this::remove);
     }
@@ -145,6 +143,9 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
                     Thread.sleep(config.getInterval());
                 }
             } catch (Exception e) {
+                if (e instanceof InterruptedException) {
+                    return;
+                }
                 log.warn(String.format("Error while executing procedure with name %s . " +
                         "The status of the directory listener is changed to ERROR. " +
                         "Type `call apoc.load.directory.async.list` to more details.", item.getName()));
