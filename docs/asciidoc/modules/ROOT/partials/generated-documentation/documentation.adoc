@@ -196,12 +196,12 @@ apoc.bitwise.op(60,'\|',13) bitwise operations a & b, a \| b, a ^ b, ~a, a >> b,
 |label:apoc-core[]
 |===
 
+[discrete]
 == xref::overview/apoc.bolt/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
 |===
 | Qualified Name | Type | Release
-[discrete]
 |xref::overview/apoc.bolt/apoc.bolt.execute.adoc[apoc.bolt.execute icon:book[]]
 
 apoc.bolt.execute(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read
