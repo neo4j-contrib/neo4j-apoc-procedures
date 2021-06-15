@@ -4,7 +4,7 @@
 
 [NOTE]
 ====
-This procedures are deprecated in favor of xref::database-integration/mongo.adoc[apoc.mongo.* procedures] .
+These procedures are deprecated in favor of xref::database-integration/mongo.adoc[apoc.mongo.* procedures] .
 ====
 
 
