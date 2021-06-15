@@ -26,10 +26,12 @@ public class TTLTest {
 
     @Test
     public void testExpireManyNodes() throws Exception {
+        int fooCount = 200;
+        int barCount = 300;
         restartAndRegister(db);
-        db.executeTransactionally("UNWIND range(1,2000) as range CREATE (:Baz)-[:REL_TEST]->(n:Foo:TTL {id: range, ttl: timestamp() + 100});");
-        db.executeTransactionally("UNWIND range(1,3000) as range CREATE (n:Bar:TTL {id: range, ttl: timestamp() + 100});");
-        assertTrue(isNodeCountConsistent(2000, 3000));
+        db.executeTransactionally("UNWIND range(1," + fooCount + ") as range CREATE (:Baz)-[:REL_TEST]->(n:Foo:TTL {id: range, ttl: timestamp() + 100});");
+        db.executeTransactionally("UNWIND range(1," + barCount + ") as range CREATE (n:Bar:TTL {id: range, ttl: timestamp() + 100});");
+        assertTrue(isNodeCountConsistent(fooCount, barCount));
         org.neo4j.test.assertion.Assert.assertEventually(() -> isNodeCountConsistent(0, 0), (value) -> value, 30L, TimeUnit.SECONDS);
     }
 

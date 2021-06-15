@@ -55,7 +55,6 @@ dependencies {
     // testCompile "org.antlr:antlr4-runtime:4.7.2"
 
     compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
-    compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7'
     compile(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7') {
         exclude group: "org.yaml"
         exclude module: "snakeyaml"

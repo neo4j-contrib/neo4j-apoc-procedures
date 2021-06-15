@@ -273,7 +273,7 @@ public class LoadDirectoryTest {
     @Test
     public void testRemoveListenerWithNotExistingName() {
         try {
-            testResult(db, "CALL apoc.load.directory.async.remove('notExisting') YIELD name, pattern, cypher RETURN name, pattern, cypher", result -> {
+            testResult(db, "CALL apoc.load.directory.async.remove('notExisting')", result -> {
             });
         } catch (RuntimeException e) {
             String expectedMessage = "Listener with name: notExisting doesn't exists";
