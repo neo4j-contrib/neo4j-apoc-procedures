@@ -87,7 +87,12 @@ subprojects {
             setFailOnNoMatchingTests(false)
         }
 
-        ignoreFailures(true)
+        // in TC we don't have the CI env so we can manage it in this way
+        if (System.env.TEAMCITY_VERSION != null) {
+            ignoreFailures(true)
+        }
+        testLogging.showStandardStreams = true
+        testLogging.exceptionFormat = 'full'
     }
 
     configurations {
