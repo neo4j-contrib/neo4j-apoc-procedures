@@ -23,7 +23,7 @@ public class Neo4jLogStreamTest {
     @Before
     public void setUp() throws Exception {
         DatabaseManagementService dbManagementService = new TestDatabaseManagementServiceBuilder(
-                Paths.get("target").toAbsolutePath()).build();
+                Paths.get("target").toFile()).build();
         apocConfig().setProperty("dbms.directories.logs", "");
         db = dbManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         TestUtil.registerProcedure(db, Neo4jLogStream.class);
