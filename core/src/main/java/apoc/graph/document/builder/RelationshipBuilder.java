@@ -9,6 +9,7 @@ import org.neo4j.graphdb.RelationshipType;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -21,7 +22,9 @@ public class RelationshipBuilder {
     }
 
     public Collection<Relationship> buildRelation(Node parent, Node child, String relationName) {
-        RelationshipType type = RelationshipType.withName(relationName.toUpperCase());
+        
+        RelationshipType type = RelationshipType
+                .withName(config.getRelMapping().getOrDefault(relationName, relationName.toUpperCase()));
 
         // check if already exists
         // find only relation between parent and child node
