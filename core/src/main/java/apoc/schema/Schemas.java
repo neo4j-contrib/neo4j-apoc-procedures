@@ -71,6 +71,12 @@ public class Schemas {
         return indexExists(labelName, propertyNames);
     }
 
+    @UserFunction(value = "apoc.schema.relationship.indexExists")
+    @Description("RETURN apoc.schema.relationship.indexExists(relName, propertyNames)")
+    public Boolean indexExistsOnRelationship(@Name("labelName") String relName, @Name("propertyName") List<String> propertyNames) {
+        return indexExistsForRelationship(relName, propertyNames);
+    }
+
     @UserFunction(value = "apoc.schema.node.constraintExists")
     @Description("RETURN apoc.schema.node.constraintExists(labelName, propertyNames)")
     public Boolean constraintExistsOnNode(@Name("labelName") String labelName, @Name("propertyName") List<String> propertyNames) {
@@ -224,16 +230,31 @@ public class Schemas {
      * @return true if the index exists otherwise it returns false
      */
     private Boolean indexExists(String labelName, List<String> propertyNames) {
-        Schema schema = tx.schema();
+        Iterable<IndexDefinition> nodeIndexes = tx.schema().getIndexes(label(labelName));
+        return isIndexExistent(propertyNames, nodeIndexes);
+    }
 
-        for (IndexDefinition indexDefinition : Iterables.asList(schema.getIndexes(Label.label(labelName)))) {
+    /**
+     * Checks if an index exists for a given rel type and a list of properties
+     * This method checks for index on nodes
+     *
+     * @param relName
+     * @param propertyNames
+     * @return true if the index exists otherwise it returns false
+     */
+    private Boolean indexExistsForRelationship(String relName, List<String> propertyNames) {
+        Iterable<IndexDefinition> relIndexes = tx.schema().getIndexes(RelationshipType.withName(relName));
+        return isIndexExistent(propertyNames, relIndexes);
+    }
+
+    private Boolean isIndexExistent(List<String> propertyNames, Iterable<IndexDefinition> indexes) {
+        for (IndexDefinition indexDefinition : indexes) {
             List<String> properties = Iterables.asList(indexDefinition.getPropertyKeys());
 
             if (properties.equals(propertyNames)) {
                 return true;
             }
         }
-
         return false;
     }
 

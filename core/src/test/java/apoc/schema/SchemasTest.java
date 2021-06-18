@@ -342,8 +342,19 @@ public class SchemasTest {
             assertEquals(false, r.entrySet().iterator().next().getValue());
         });
     }
-
-
+    
+    @Test
+    public void testRelationshipExists() {
+        db.executeTransactionally("CREATE INDEX rel_index_simple FOR ()-[r:KNOWS]-() ON (r.since)");
+        db.executeTransactionally("CREATE INDEX rel_index_composite FOR ()-[r:PURCHASED]-() ON (r.date, r.amount)");
+        awaitIndexesOnline();
+        
+        assertTrue(singleResultFirstColumn(db, "RETURN apoc.schema.relationship.indexExists('KNOWS', ['since'])"));
+        assertFalse(singleResultFirstColumn(db, "RETURN apoc.schema.relationship.indexExists('KNOWS', ['dunno'])"));
+        // - composite index
+        assertTrue(singleResultFirstColumn(db, "RETURN apoc.schema.relationship.indexExists('PURCHASED', ['date', 'amount'])"));
+        assertFalse(singleResultFirstColumn(db, "RETURN apoc.schema.relationship.indexExists('PURCHASED', ['date', 'another'])"));
+    }
 
     @Test
     public void testUniquenessConstraintOnNode() {
