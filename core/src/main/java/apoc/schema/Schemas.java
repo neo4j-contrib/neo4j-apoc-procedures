@@ -233,15 +233,7 @@ public class Schemas {
         Iterable<IndexDefinition> nodeIndexes = tx.schema().getIndexes(label(labelName));
         return isIndexExistent(propertyNames, nodeIndexes);
     }
-
-    /**
-     * Checks if an index exists for a given rel type and a list of properties
-     * This method checks for index on nodes
-     *
-     * @param relName
-     * @param propertyNames
-     * @return true if the index exists otherwise it returns false
-     */
+    
     private Boolean indexExistsForRelationship(String relName, List<String> propertyNames) {
         Iterable<IndexDefinition> relIndexes = tx.schema().getIndexes(RelationshipType.withName(relName));
         return isIndexExistent(propertyNames, relIndexes);
