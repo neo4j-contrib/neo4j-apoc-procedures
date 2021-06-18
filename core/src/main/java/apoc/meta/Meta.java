@@ -74,7 +74,7 @@ import static org.neo4j.internal.kernel.api.TokenRead.ANY_LABEL;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 
 public class    Meta {
-    
+
     @Context
     public Transaction tx;
 
