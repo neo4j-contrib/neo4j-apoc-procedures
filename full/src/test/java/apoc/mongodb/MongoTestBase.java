@@ -47,6 +47,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
@@ -269,5 +270,6 @@ public class MongoTestBase {
         assertEquals(RelationshipType.withName("BOUGHT"), rel2.getType());
         assertEquals(person, rel2.getStartNode());
         assertEquals(product2, rel2.getEndNode());
+        assertFalse(r.hasNext());
     }
 }

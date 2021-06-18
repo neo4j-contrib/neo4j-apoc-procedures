@@ -46,7 +46,7 @@ public class MongoDBUtils {
                 try {
                     return new MongoDBColl(url, db, coll, compatibleValues, extractReferences, objectIdAsMap);
                 } catch (Exception e) {
-                    throw new RuntimeException("Could not create MongoDBClientWrapper instance", e);
+                    throw new RuntimeException("Could not create MongoDBColl instance", e);
                 }
             }
 
@@ -54,7 +54,7 @@ public class MongoDBUtils {
                 try {
                     return new MongoDBColl(url, conf);
                 } catch (Exception e) {
-                    throw new RuntimeException("Could not create MongoDBClientWrapper instance", e);
+                    throw new RuntimeException("Could not create MongoDBColl instance", e);
                 }
             }
         }

@@ -433,7 +433,7 @@ public class MongoTest extends MongoTestBase {
     @Test
     public void shouldInsertDataIntoNeo4jWithFromDocument() throws Exception {
         Date date = DateUtils.parseDate("11-10-1935", "dd-MM-yyyy");
-        testResult(db, "CALL apoc.mongo.find($uri, null, {extractReferences: true}) YIELD value " +
+        testResult(db, "CALL apoc.mongo.find($uri, {name: 'Andrea Santurbano'}, {extractReferences: true}) YIELD value " +
                         "CALL apoc.graph.fromDocument(value, $fromDocConfig) YIELD graph AS g1 " +
                         "RETURN g1",
                 map("uri", PERSON_URI,
