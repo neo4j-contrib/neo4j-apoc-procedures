@@ -310,7 +310,6 @@ public class Schemas {
 
                 Iterator<IndexDescriptor> allIndex = schemaRead.indexesGetAll();
 
-
                 indexesIterator = StreamSupport.stream(
                         Spliterators.spliteratorUnknownSize(allIndex, Spliterator.ORDERED),
                         false)
@@ -362,11 +361,6 @@ public class Schemas {
 
             return Stream.of(constraintNodeInfoStream, indexNodeInfoStream).flatMap(e -> e);
         }
-    }
-
-    private List<IndexDescriptor> getIndexesFromSchema(Iterator<IndexDescriptor> allIndex, Predicate<IndexDescriptor> indexDescriptorPredicate) {
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(allIndex, Spliterator.ORDERED), false)
-                .filter(indexDescriptorPredicate).collect(Collectors.toList());
     }
 
     /**
