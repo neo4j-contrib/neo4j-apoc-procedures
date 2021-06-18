@@ -478,6 +478,8 @@ public class SchemasTest {
     public void testAssertWithFullTextIndexes() {
         db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('fullIdxNode', ['Moon', 'Blah'], ['weightProp', 'anotherProp'])");
         db.executeTransactionally("CALL db.index.fulltext.createRelationshipIndex('fullIdxRel', ['TYPE_1', 'TYPE_2'], ['alpha', 'beta'])");
+        // fulltext with single label, should return label field as string
+        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('fullIdxNodeSingle', ['Asd'], ['uno', 'due'])");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Bar:[['foo','bar']]}, {One:['two']}) " +
                 "YIELD label, key, keys, unique, action RETURN * ORDER BY label", (result) -> {
@@ -490,6 +492,12 @@ public class SchemasTest {
             r = result.next();
             assertEquals(expectedKeys("TYPE_1", "TYPE_2"), r.get("label"));
             assertEquals(expectedKeys("alpha", "beta"), r.get("keys"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("DROPPED", r.get("action"));
+
+            r = result.next();
+            assertEquals("Asd", r.get("label"));
+            assertEquals(expectedKeys("uno", "due"), r.get("keys"));
             assertEquals(false, r.get("unique"));
             assertEquals("DROPPED", r.get("action"));
 
