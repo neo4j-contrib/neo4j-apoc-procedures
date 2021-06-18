@@ -11,11 +11,8 @@ import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.kernel.api.*;
 import org.neo4j.internal.schema.IndexDescriptor;
-import org.neo4j.internal.schema.IndexOrder;
-import org.neo4j.internal.schema.LabelSchemaDescriptor;
-import org.neo4j.internal.schema.SchemaDescriptor;
+import org.neo4j.internal.schema.SchemaDescriptors;
 import org.neo4j.io.pagecache.context.CursorContext;
-import org.neo4j.io.pagecache.tracing.cursor.PageCursorTracer;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.impl.api.KernelStatement;
 import org.neo4j.kernel.impl.coreapi.InternalTransaction;
@@ -93,7 +90,7 @@ public class SchemaIndex {
                             .mapToInt(name -> tokenRead.propertyKey(name))
                             .toArray();
                     String label = Iterables.single(indexDefinition.getLabels()).name();
-                    LabelSchemaDescriptor schema = SchemaDescriptor.forLabel(tokenRead.nodeLabel(label), propertyKeyIds);
+                    var schema = SchemaDescriptors.forLabel(tokenRead.nodeLabel(label), propertyKeyIds);
                     IndexDescriptor indexDescriptor = Iterators.single(schemaRead.index(schema));
                     scanIndex(queue, indexDefinition, key, read, cursors, indexDescriptor, ktx);
                 }
