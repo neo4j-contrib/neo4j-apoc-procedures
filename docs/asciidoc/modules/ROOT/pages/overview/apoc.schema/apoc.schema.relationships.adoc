@@ -14,7 +14,7 @@ CALL apoc.schema.relationships([config]) yield name, startLabel, type, endLabel,
 
 [source]
 ----
-apoc.schema.relationships(config = {} :: MAP?) :: (name :: STRING?, type :: ANY?, properties :: LIST? OF STRING?, status :: STRING?)
+apoc.schema.relationships(config = {} :: MAP?) :: (name :: STRING?, type :: STRING?, properties :: LIST? OF STRING?, status :: STRING?)
 ----
 
 == Input parameters

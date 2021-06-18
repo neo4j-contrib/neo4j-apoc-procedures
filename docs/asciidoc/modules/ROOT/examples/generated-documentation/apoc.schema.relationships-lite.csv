@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.schema.relationships(config = {} :: MAP?) :: (name :: STRING?, type :: ANY?, properties :: LIST? OF STRING?, status :: STRING?)
+¦apoc.schema.relationships(config = {} :: MAP?) :: (name :: STRING?, type :: STRING?, properties :: LIST? OF STRING?, status :: STRING?)

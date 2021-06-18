@@ -475,6 +475,47 @@ public class SchemasTest {
     }
 
     @Test
+    public void testAssertWithFullTextIndexes() {
+        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('fullIdxNode', ['Moon', 'Blah'], ['weightProp', 'anotherProp'])");
+        db.executeTransactionally("CALL db.index.fulltext.createRelationshipIndex('fullIdxRel', ['TYPE_1', 'TYPE_2'], ['alpha', 'beta'])");
+        awaitIndexesOnline();
+        testResult(db, "CALL apoc.schema.assert({Bar:[['foo','bar']]}, {One:['two']}) " +
+                "YIELD label, key, keys, unique, action RETURN * ORDER BY label", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals(expectedKeys("Moon", "Blah"), r.get("label"));
+            assertEquals(expectedKeys("weightProp", "anotherProp"), r.get("keys"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("DROPPED", r.get("action"));
+
+            r = result.next();
+            assertEquals(expectedKeys("TYPE_1", "TYPE_2"), r.get("label"));
+            assertEquals(expectedKeys("alpha", "beta"), r.get("keys"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("DROPPED", r.get("action"));
+
+            r = result.next();
+            assertEquals("Bar", r.get("label"));
+            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("CREATED", r.get("action"));
+
+            r = result.next();
+            assertEquals("One", r.get("label"));
+            assertEquals("two", r.get("key"));
+            assertEquals(true, r.get("unique"));
+            assertEquals("CREATED", r.get("action"));
+            assertFalse(result.hasNext());
+        });
+        try (Transaction tx = db.beginTx()) {
+            List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
+            assertEquals(2, indexes.size());
+            List<ConstraintDefinition> constraints = Iterables.asList(tx.schema().getConstraints());
+            assertEquals(1, constraints.size());
+        }
+
+    }
+
+    @Test
     public void testDropCompoundIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         awaitIndexesOnline();
@@ -603,14 +644,6 @@ public class SchemasTest {
             assertEquals(100d, r.get("populationProgress"));
             assertEquals(1d, r.get("valuesSelectivity"));
             assertEquals("Index( id=1, name='fullIdxNode', type='GENERAL FULLTEXT', schema=(:Blah:Moon {weightProp, anotherProp}), indexProvider='fulltext-1.0' )", r.get("userDescription"));
-            assertFalse(result.hasNext());
-        });
-        testResult(db, "CALL apoc.schema.relationships()", (result) -> {
-            Map<String, Object> r = result.next();
-            assertEquals(":[TYPE_1, TYPE_2],(alpha,beta)", r.get("name"));
-            assertEquals("", r.get("status"));
-            assertEquals(List.of("TYPE_1", "TYPE_2"), r.get("type"));
-            assertEquals(List.of("alpha", "beta"), r.get("properties"));
             assertFalse(result.hasNext());
         });
     }
