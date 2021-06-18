@@ -28,7 +28,6 @@ import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadDirectoryHandler.getPathDependingOnUseNeo4jConfig;
 import static apoc.util.FileUtils.getDirImport;
 import static apoc.util.FileUtils.getPathFromUrlString;
-import static org.apache.commons.lang3.StringUtils.chop;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_WRITE;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType.WRITE;
@@ -114,7 +113,8 @@ public class LoadDirectory {
     public static String checkIfUrlBlankAndGetFileUrl(String urlDir) throws IOException {
         if (StringUtils.isBlank(urlDir)) {
             final Path pathImport = Paths.get(getDirImport()).toAbsolutePath();
-            return chop(encodePath(pathImport.toUri().toString()));
+            // with replaceAll we remove final "/" from path
+            return encodePath(pathImport.toUri().toString()).replaceAll(".$", "");
         }
         return FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"));
     }
