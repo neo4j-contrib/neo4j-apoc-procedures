@@ -45,10 +45,12 @@ import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -1296,6 +1298,74 @@ public class MetaTest {
                     row.get("relTypes"));
         });
 
+    }
+
+    @Test
+    public void testMetaDataWithRelIndexes() {
+        datasetWithNodeRelIdxs();
+
+        testResult(db, "CALL apoc.meta.data() YIELD label, property, index, type " +
+                        "\nWHERE type='STRING' RETURN label, property, index ORDER BY property", (res) -> {
+                    Map<String, Object> aProp = res.next();
+                    assertEquals("Person", aProp.get("label"));
+                    assertEquals("a", aProp.get("property"));
+                    assertFalse((boolean) aProp.get("index"));
+
+                    Map<String, Object> bProp = res.next();
+                    assertEquals("Movie", bProp.get("label"));
+                    assertEquals("b", bProp.get("property"));
+                    assertTrue((boolean) bProp.get("index"));
+
+                    Map<String, Object> fooProp = res.next();
+                    assertEquals("ACTED_IN", fooProp.get("label"));
+                    assertEquals("foo", fooProp.get("property"));
+                    assertFalse((boolean) fooProp.get("index"));
+
+                    Map<String, Object> idProp = res.next();
+                    assertEquals("ACTED_IN", idProp.get("label"));
+                    assertEquals("id", idProp.get("property"));
+                    assertTrue((boolean) idProp.get("index"));
+
+                    Map<String, Object> rolesProp = res.next();
+                    assertEquals("ACTED_IN", rolesProp.get("label"));
+                    assertEquals("roles", rolesProp.get("property"));
+                    assertTrue((boolean) rolesProp.get("index"));
+                    assertFalse(res.hasNext());
+        });
+    }
+
+    @Test
+    public void testMetaSchemaWithRelIndexes() {
+        datasetWithNodeRelIdxs();
+
+        TestUtil.testCall(db, "CALL apoc.meta.schema()",
+                (row) -> {
+                    Map<String, Object> value = (Map<String, Object>) row.get("value");
+                    Map<String, Object> relData = (Map<String, Object>) value.get("ACTED_IN");
+                    Map<String, Object> relProperties = (Map<String, Object>) relData.get("properties");
+                    Map<String, Object> rolesProp = (Map<String, Object>) relProperties.get("roles");
+                    assertTrue((boolean) rolesProp.get("indexed"));
+                    Map<String, Object> fooProp = (Map<String, Object>) relProperties.get("foo");
+                    assertFalse((boolean) fooProp.get("indexed"));
+                    Map<String, Object> idProp = (Map<String, Object>) relProperties.get("id");
+                    assertTrue((boolean) idProp.get("indexed"));
+
+                    Map<String, Object> movieData = (Map<String, Object>) value.get("Movie");
+                    Map<String, Object> movieProperties = (Map<String, Object>) movieData.get("properties");
+                    Map<String, Object> bProp = (Map<String, Object>) movieProperties.get("b");
+                    assertTrue((boolean) bProp.get("indexed"));
+
+                    Map<String, Object> personData = (Map<String, Object>) value.get("Person");
+                    Map<String, Object> personProperties = (Map<String, Object>) personData.get("properties");
+                    Map<String, Object> aProp = (Map<String, Object>) personProperties.get("a");
+                    assertFalse((boolean) aProp.get("indexed"));
+        });
+    }
+
+    private void datasetWithNodeRelIdxs() {
+        db.executeTransactionally("CREATE INDEX node_index_name FOR (n:Movie) ON (n.b)");
+        db.executeTransactionally("CREATE INDEX rel_index_name FOR ()-[r:ACTED_IN]-() ON (r.roles, r.id)");
+        db.executeTransactionally("CREATE (:Person {a: '11'})-[:ACTED_IN {roles:'Forrest', id:'123', foo: 'bar'}]->(:Movie {b: '1'})");
     }
 
     @Test

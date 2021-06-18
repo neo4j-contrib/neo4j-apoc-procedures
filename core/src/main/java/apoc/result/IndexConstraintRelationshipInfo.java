@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Created by alberto.delazzari on 04/07/17.
  */
-public class ConstraintRelationshipInfo {
+public class IndexConstraintRelationshipInfo {
 
     public final String name;
 
@@ -15,7 +15,7 @@ public class ConstraintRelationshipInfo {
 
     public final String status;
 
-    public ConstraintRelationshipInfo(String name, String type, List<String> properties, String status) {
+    public IndexConstraintRelationshipInfo(String name, String type, List<String> properties, String status) {
         this.name = name;
         this.type = type;
         this.properties = properties;
