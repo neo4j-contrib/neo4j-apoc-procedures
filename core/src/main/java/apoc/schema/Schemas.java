@@ -63,7 +63,7 @@ public class Schemas {
     @Procedure(value = "apoc.schema.relationships", mode = Mode.SCHEMA)
     @Description("CALL apoc.schema.relationships([config]) yield name, startLabel, type, endLabel, properties, status")
     public Stream<ConstraintRelationshipInfo> relationships(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
-        return indexesAndConstraintsForRelationships(config);
+        return constraintsForRelationship(config);
     }
 
     @UserFunction(value = "apoc.schema.node.indexExists")
@@ -321,7 +321,7 @@ public class Schemas {
                     } catch (LabelNotFoundKernelException e) {
                         return false;
                     }
-                })).collect(Collectors.toList());;
+                })).collect(Collectors.toList());
 
                 Iterable<ConstraintDescriptor> allConstraints = () -> schemaRead.constraintsGetAll();
                 constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
@@ -374,7 +374,7 @@ public class Schemas {
      *
      * @return
      */
-    private Stream<ConstraintRelationshipInfo> indexesAndConstraintsForRelationships(Map<String,Object> config) {
+    private Stream<ConstraintRelationshipInfo> constraintsForRelationship(Map<String,Object> config) {
         Schema schema = tx.schema();
 
         SchemaConfig schemaConfig = new SchemaConfig(config);
@@ -383,7 +383,6 @@ public class Schemas {
 
         try ( Statement ignore = ktx.acquireStatement() ) {
             TokenRead tokenRead = ktx.tokenRead();
-
             Iterable<ConstraintDefinition> constraintsIterator;
 
             if(!includeRelationships.isEmpty()) {
