@@ -64,3 +64,16 @@ RETURN *
 As a result we have a virtual graph with three nodes and two relationship:
 
 image::apoc.graph.fromDocument_with_mappings.png[scaledwidth="100%"]
+
+
+.Virtual graph from JSON with `relMapping`
+
+We can pass a `relMapping` to customize relationship names, passing a map with the relationships you want to change as keys.
+For example:
+[source,cypher]
+----
+CALL apoc.graph.fromDocument("{'id': 1,'type': 'artist','name':'Genesis','members': ['Tony Banks','Mike Rutherford','Phil Collins'],'years': [1967, 1998, 1999, 2000, 2006],'albums': [{'type': 'album','id': 1,'producer': 'Jonathan King','title': 'From Genesis to Revelation'}]}", 
+{relMapping: {albums: "CUSTOM_REL"}});
+----
+
+image::apoc.graph.fromDocument_with_relMapping.png[scaledwidth="100%"]
