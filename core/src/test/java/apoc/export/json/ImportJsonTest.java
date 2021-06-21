@@ -4,6 +4,7 @@ import apoc.ApocSettings;
 import apoc.schema.Schemas;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import junit.framework.TestCase;
@@ -48,6 +49,8 @@ import static org.junit.Assert.fail;
 
 public class ImportJsonTest {
 
+    private static final long NODES_BIG_JSON = 1042L;
+    private static final long RELS_BIG_JSON = 4L;
     private static File directory = new File("../docs/asciidoc/modules/ROOT/examples/data/exportJSON");
 
     @Rule
@@ -204,31 +207,49 @@ public class ImportJsonTest {
     public void shouldTerminateImportWhenTransactionIsTimedOut() throws Exception {
         restartDb(Duration.ofMillis(1));
 
-        createConstraints("neo4jImportId", List.of("Stream", "User", "Game", "Team", "Language"));
+        createConstraints(List.of("Stream", "User", "Game", "Team", "Language"));
 
         String filename = "big.json";
-
         try {
             TestUtil.testCall(db, "CALL apoc.import.json($file)",
-                    map("file", filename), (r) -> fail("Should fail due to timeout exception"));
+                    map("file", filename), (r) -> {});
+            fail("Should fail due to timeout exception");
         } catch (Exception e) {
-            String expected = "The transaction has been terminated. Retry your operation in a new transaction, and you should see a successful result.";
-            assertTrue(e.getMessage().contains(expected));
+            String expectedMsg = "The transaction has been terminated. " +
+                    "Retry your operation in a new transaction, and you should see a successful result. " +
+                    "The transaction has not completed within the specified timeout (dbms.transaction.timeout). You may want to retry with a longer timeout. ";
+            assertRootMessage(expectedMsg, e);
         }
         
         try (Transaction tx = db.beginTx()) {
             // check that not all nodes have been imported
-            assertTrue(count(tx.getAllNodes()) < 1042);
+            assertTrue(count(tx.getAllNodes()) < NODES_BIG_JSON);
         }
 
         restartDb(Duration.ZERO);
+    }
+
+    @Test
+    public void shouldImportAllNodesAndRels() {
+        createConstraints(List.of("Stream", "User", "Game", "Team", "Language", "$User", "$Stream"));
+        assertEntities(0L, 0L);
+
+        String filename = "big.json";
+        
+        TestUtil.testCall(db, "CALL apoc.import.json($file)", 
+                map("file", filename), (r) -> { 
+                    assertEquals(NODES_BIG_JSON, r.get("nodes"));
+                    assertEquals(RELS_BIG_JSON, r.get("relationships"));
+        });
+        
+        assertEntities(NODES_BIG_JSON, RELS_BIG_JSON);
     }
     
     @Test
     public void shouldFailBecauseOfMissingConstraintException() {
         String customId = "customId";
-        createConstraints(customId, List.of("Stream", "Game"));
-        assertNoRel();
+        createConstraints(List.of("Stream", "Game", "$User"), customId);
+        assertEntities(0L, 0L);
 
         String filename = "big.json";
         try {
@@ -236,26 +257,37 @@ public class ImportJsonTest {
                     map("file", filename, "importIdName", customId),
                     (r) -> fail("Should fail due to missing constraint")
             );
-        } catch (RuntimeException e) {
-            Throwable except = ExceptionUtils.getRootCause(e);
-            TestCase.assertTrue(except instanceof RuntimeException);
-            String expectedMsg = MISSING_CONSTRAINT_ERROR_MSG 
-                    + format(CREATE_CONSTRAINT_TEMPLATE, "User", customId) + "\n"
-                    + format(CREATE_CONSTRAINT_TEMPLATE, "Language", customId);
-            assertEquals(expectedMsg, except.getMessage());
+        } catch (Exception e) {
+            List<String> constraints = List.of(format(CREATE_CONSTRAINT_TEMPLATE, "User", customId),
+                    format(CREATE_CONSTRAINT_TEMPLATE, "Language", customId),
+                    format(CREATE_CONSTRAINT_TEMPLATE, "`$Stream`", customId));
+            String expectedMsg = MISSING_CONSTRAINT_ERROR_MSG + String.join("\n", constraints);
+            assertRootMessage(expectedMsg, e);
         }
 
         // check that no rels created after constraint exception
-        assertNoRel();
+        assertEntities(NODES_BIG_JSON, 0L);
     }
 
-    private void createConstraints(String customId, List<String> labels) {
-        labels.forEach(label -> db.executeTransactionally(format(CREATE_CONSTRAINT_TEMPLATE, label, customId)));
+    private void assertRootMessage(String expectedMsg, Exception e) {
+        Throwable except = ExceptionUtils.getRootCause(e);
+        TestCase.assertTrue(except instanceof RuntimeException);
+        assertEquals(expectedMsg, except.getMessage());
     }
 
-    private void assertNoRel() {
+    private void createConstraints(List<String> labels, String customId) {
+        labels.forEach(
+                label -> db.executeTransactionally(format(CREATE_CONSTRAINT_TEMPLATE, Util.quote(label), customId)));
+    }
+
+    private void createConstraints(List<String> labels) {
+        createConstraints(labels, "neo4jImportId");
+    }
+
+    private void assertEntities(long expectedNodes, long expectedRels) {
         try (Transaction tx = db.beginTx()) {
-            assertEquals(0L, count(tx.getAllRelationships()));
+            assertEquals(expectedNodes, count(tx.getAllNodes()));
+            assertEquals(expectedRels, count(tx.getAllRelationships()));
         }
     }
 
