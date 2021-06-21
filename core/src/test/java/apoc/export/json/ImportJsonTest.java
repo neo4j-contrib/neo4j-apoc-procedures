@@ -29,8 +29,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR;
+import static apoc.export.json.JsonImporter.CREATE_CONSTRAINT_TEMPLATE;
+import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR_MSG;
 import static apoc.util.MapUtil.map;
+import static java.lang.String.format;
 import static org.neo4j.driver.internal.util.Iterables.count;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -197,58 +199,59 @@ public class ImportJsonTest {
     public void shouldTerminateImportWhenTransactionIsTimedOut() throws Exception {
         restartDb(Duration.ofMillis(1));
 
-        db.executeTransactionally("create constraint on (g:Stream) assert g.neo4jImportId is unique");
-        db.executeTransactionally("create constraint on (g:User) assert g.neo4jImportId is unique");
-        db.executeTransactionally("create constraint on (g:Game) assert g.neo4jImportId is unique");
-        db.executeTransactionally("create constraint on (g:Team) assert g.neo4jImportId is unique");
-        db.executeTransactionally("create constraint on (g:Language) assert g.neo4jImportId is unique");
+        db.executeTransactionally("CREATE CONSTRAINT ON (g:Stream) assert g.neo4jImportId IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT ON (g:User) assert g.neo4jImportId IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT ON (g:Game) assert g.neo4jImportId IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT ON (g:Team) assert g.neo4jImportId IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT ON (g:Language) assert g.neo4jImportId IS UNIQUE");
 
-        assertCleanDb();
         String filename = "big.json";
 
         try {
             TestUtil.testCall(db, "CALL apoc.import.json($file)",
-                    map("file", filename),
-                    (r) -> fail("Should fail due to transaction timeout")
-            );
-        } catch (RuntimeException e) {
-            String expected = "The transaction has been terminated. " +
-                    "Retry your operation in a new transaction, and you should see a successful result";
+                    map("file", filename), (r) -> fail("Should fail due to timeout exception"));
+        } catch (Exception e) {
+            String expected = "The transaction has been terminated. Retry your operation in a new transaction, and you should see a successful result.";
             assertTrue(e.getMessage().contains(expected));
         }
+        
+        try (Transaction tx = db.beginTx()) {
+            // check that not all nodes have been imported
+            assertTrue(count(tx.getAllNodes()) < 1042);
+        }
 
-        // check that no node created after exception
-        assertCleanDb();
         restartDb(Duration.ZERO);
     }
-
-
+    
     @Test
-    public void shouldTODO() {
-        db.executeTransactionally("create constraint on (g:Stream) assert g.customId is unique");
-        db.executeTransactionally("create constraint on (g:User) assert g.customId is unique");
-        db.executeTransactionally("create constraint on (g:Game) assert g.customId is unique");
-        assertCleanDb();
+    public void shouldFailBecauseOfMissingConstraintException() {
+        String customId = "customId";
+        db.executeTransactionally(format(CREATE_CONSTRAINT_TEMPLATE, "Stream", customId));
+        db.executeTransactionally(format(CREATE_CONSTRAINT_TEMPLATE, "Game", customId));
+        assertNoRel();
 
         String filename = "big.json";
         try {
-            TestUtil.testCall(db, "CALL apoc.import.json($file, {importIdName: 'customId'})",
-                    map("file", filename),
+            TestUtil.testCall(db, "CALL apoc.import.json($file, {importIdName: $importIdName})",
+                    map("file", filename, "importIdName", customId),
                     (r) -> fail("Should fail due to missing constraint")
             );
         } catch (RuntimeException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             TestCase.assertTrue(except instanceof RuntimeException);
-            assertEquals(String.format(MISSING_CONSTRAINT_ERROR, "Language", "customId"), except.getMessage());
+            String expectedMsg = MISSING_CONSTRAINT_ERROR_MSG 
+                    + format(CREATE_CONSTRAINT_TEMPLATE, "User", customId) + "\n"
+                    + format(CREATE_CONSTRAINT_TEMPLATE, "Language", customId);
+            assertEquals(expectedMsg, except.getMessage());
         }
 
-        // check that no node created after exception
-        assertCleanDb();
+        // check that no rels created after constraint exception
+        assertNoRel();
     }
 
-    private void assertCleanDb() {
+    private void assertNoRel() {
         try (Transaction tx = db.beginTx()) {
-            assertEquals(0L, count(tx.getAllNodes()));
+            assertEquals(0L, count(tx.getAllRelationships()));
         }
     }
 

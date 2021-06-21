@@ -4,8 +4,9 @@ import apoc.export.util.Reporter;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.values.storable.CoordinateReferenceSystem;
 import org.neo4j.values.storable.DurationValue;
 import org.neo4j.values.storable.PointValue;
@@ -29,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class JsonImporter implements Closeable {
     private static final String CREATE_NODE = "UNWIND $rows AS row " +
@@ -37,16 +39,17 @@ public class JsonImporter implements Closeable {
             "MATCH (s%s {%s: row.start.id}) " +
             "MATCH (e%s {%2$s: row.end.id}) " +
             "CREATE (s)-[r:%s]->(e) SET r += row.properties";
-    public static final String MISSING_CONSTRAINT_ERROR = "Missing constraint required for import. Execute: 'CREATE CONSTRAINT ON (n:%s) assert n.%s IS UNIQUE' to import the Json";
-    
+    public static final String MISSING_CONSTRAINT_ERROR_MSG = "Missing constraint required for import. Execute these queries: \n\n";
+    public static final String CREATE_CONSTRAINT_TEMPLATE = "CREATE CONSTRAINT ON (n:%s) assert n.%s IS UNIQUE;";
+
     private final Set<String> constraints = new HashSet<>();
     private final List<Map<String, Object>> paramList;
     private final int unwindBatchSize;
     private final int txBatchSize;
     private final GraphDatabaseService db;
-    private final Transaction tx;
     private final Reporter reporter;
 
+    private boolean firstRel = true;
     private String lastType;
     private List<String> lastLabels;
     private Map<String, Object> lastRelTypes;
@@ -55,15 +58,13 @@ public class JsonImporter implements Closeable {
 
     public JsonImporter(ImportJsonConfig importJsonConfig,
                         GraphDatabaseService db,
-                        Reporter reporter,
-                        Transaction tx) {
+                        Reporter reporter) {
         this.paramList = new ArrayList<>(importJsonConfig.getUnwindBatchSize());
         this.db = db;
         this.txBatchSize = importJsonConfig.getTxBatchSize();
         this.unwindBatchSize = Math.min(importJsonConfig.getUnwindBatchSize(), txBatchSize);
         this.reporter = reporter;
         this.importJsonConfig = importJsonConfig;
-        this.tx = tx;
     }
 
     public void importRow(Map<String, Object> param) {
@@ -96,13 +97,16 @@ public class JsonImporter implements Closeable {
     }
 
     private void writeUnwindBatch(Collection<List<Map<String, Object>>> results) {
-        results.forEach(resultList -> {
-            if (resultList.size() == unwindBatchSize) {
-                write(resultList);
-            } else {
-                paramList.addAll(resultList);
-            }
-        });
+        try (final Transaction tx = db.beginTx()) {
+            results.forEach(resultList -> {
+                if (resultList.size() == unwindBatchSize) {
+                    write(tx, resultList);
+                } else {
+                    paramList.addAll(resultList);
+                }
+            });
+            tx.close();
+        }
     }
 
     private void manageEntityType(String type) {
@@ -116,6 +120,24 @@ public class JsonImporter implements Closeable {
     }
 
     private void manageRelationship(Map<String, Object> param) {
+        
+        if (firstRel) {
+            Set<String> collect = StreamSupport.stream(db.beginTx().schema().getConstraints().spliterator(), false)
+                    .map(ConstraintDefinition::getLabel).map(Label::name).collect(Collectors.toSet());
+
+            constraints.removeAll(collect);
+            if (constraints.isEmpty()) {
+                // we check only 1st time
+                firstRel = false;
+            } else {
+                String importIdName = importJsonConfig.getImportIdName();
+                String queries = constraints.stream()
+                        .map(label -> String.format(CREATE_CONSTRAINT_TEMPLATE, label, importIdName))
+                        .collect(Collectors.joining("\n"));
+                throw new RuntimeException(MISSING_CONSTRAINT_ERROR_MSG + queries);
+            }
+        }
+        
         Map<String, Object> relType = Util.map(
                 "start", getLabels((Map<String, Object>) param.get("start")),
                 "end", getLabels((Map<String, Object>) param.get("end")),
@@ -283,20 +305,7 @@ public class JsonImporter implements Closeable {
 
     private List<String> getLabels(Map<String, Object> param) {
         List<String> labels = (List<String>) param.getOrDefault("labels", Collections.emptyList());
-        labels.forEach(label -> {
-            if (!constraints.contains(label)) {
-                String importIdName = importJsonConfig.getImportIdName();
-                try (Result result = tx.execute("RETURN apoc.schema.node.constraintExists($label, [$id]) as exists",
-                        Map.of("label", label, "id", importIdName))) {
-                    Map<String, Object> row = result.next();
-                    if ((boolean) row.get("exists")) {
-                        constraints.add(label);
-                    } else {
-                        throw new RuntimeException(String.format(MISSING_CONSTRAINT_ERROR, label, importIdName));
-                    }
-                }
-            }
-        });
+        constraints.addAll(labels);
         return labels.stream()
                 .map(Util::quote)
                 .collect(Collectors.toList());
@@ -308,7 +317,7 @@ public class JsonImporter implements Closeable {
         return join.isBlank() ? join : (":" + join);
     }
 
-    private void write(List<Map<String, Object>> resultList) {
+    private void write(Transaction tx, List<Map<String, Object>> resultList) {
         if (resultList.isEmpty()) return;
         final String type = (String) resultList.get(0).get("type");
         String query = null;
@@ -327,7 +336,7 @@ public class JsonImporter implements Closeable {
                 throw new IllegalArgumentException("Current type not supported: " + type);
         }
         if (StringUtils.isNotBlank(query)) {
-            tx.execute(query, Collections.singletonMap("rows", resultList));
+            db.executeTransactionally(query, Collections.singletonMap("rows", resultList));
         }
     }
 
@@ -347,7 +356,9 @@ public class JsonImporter implements Closeable {
     private void flush() {
         if (!paramList.isEmpty()) {
             final Collection<List<Map<String, Object>>> results = chunkData();
-            results.forEach(this::write);
+            try (final Transaction tx = db.beginTx()) {
+                results.forEach(resultList -> write(tx, resultList));
+            }
             paramList.clear();
         }
     }

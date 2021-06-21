@@ -1040,3 +1040,7 @@
 {"type":"node","id":"1039","labels":["Stream","User"],"properties":{"createdAt":"2014-03-18T04:03:37.791328Z","followers":24317,"name":"gtamarathon","description":"Welcome to the official twitch channel of the GTA Community. Stay tuned for our upcoming marathon as well as events, races and other fun things","id":"59151511","total_view_count":2994846,"url":"https://www.twitch.tv/gtamarathon"}}
 {"type":"node","id":"1040","labels":["Game"],"properties":{"name":"The Godfather"}}
 {"type":"node","id":"1041","labels":["Stream","User"],"properties":{"createdAt":"2017-11-05T08:47:24.210613Z","followers":70253,"name":"rel_fn","description":"","id":"180550276","total_view_count":940424,"url":"https://www.twitch.tv/rel_fn"}}
+{"id":"0","type":"relationship","label":"REL_STREAM_TO_GAME","properties":{"since":1993,"bffSince":"P5M1DT12H"},"start":{"id":"0","labels":["Stream","User"]},"end":{"id":"1","labels":["Game"]}}
+{"id":"1","type":"relationship","label":"REL_LANG_TO_STREAM","properties":{"since":1993,"bffSince":"P5M1DT12H"},"start":{"id":"2","labels":["Language"]},"end":{"id":"3","labels":["Stream","User"]}}
+{"id":"2","type":"relationship","label":"REL_GAME_TO_STREAM","properties":{"since":1993,"bffSince":"P5M1DT12H"},"start":{"id":"4","labels":["Game"]},"end":{"id":"5","labels":["Stream","User"]}}
+{"id":"3","type":"relationship","label":"REL_GAME_TO_LANG","properties":{"since":1993,"bffSince":"P5M1DT12H"},"start":{"id":"6","labels":["Game"]},"end":{"id":"7","labels":["Language"]}}
