@@ -8,7 +8,6 @@ import apoc.util.FileUtils;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Mode;
@@ -23,9 +22,6 @@ import java.util.stream.Stream;
 public class ImportJson {
     @Context
     public GraphDatabaseService db;
-    
-    @Context
-    public Transaction tx;
 
     @Context
     public Pools pools;
@@ -43,9 +39,8 @@ public class ImportJson {
 
                     try (final CountingReader reader = FileUtils.readerFor(fileName);
                          final Scanner scanner = new Scanner(reader).useDelimiter("\n|\r");
-                         JsonImporter jsonImporter = new JsonImporter(importJsonConfig, db, reporter, tx)) {
-                        while (scanner.hasNext()) {
-                            terminationGuard.check();
+                         JsonImporter jsonImporter = new JsonImporter(importJsonConfig, db, reporter)) {
+                        while (scanner.hasNext() && !Util.transactionIsTerminated(terminationGuard, true)) {
                             Map<String, Object> row = JsonUtil.OBJECT_MAPPER.readValue(scanner.nextLine(), Map.class);
                             jsonImporter.importRow(row);
                         }
