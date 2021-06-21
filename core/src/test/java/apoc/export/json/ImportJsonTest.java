@@ -199,11 +199,7 @@ public class ImportJsonTest {
     public void shouldTerminateImportWhenTransactionIsTimedOut() throws Exception {
         restartDb(Duration.ofMillis(1));
 
-        db.executeTransactionally("CREATE CONSTRAINT ON (g:Stream) assert g.neo4jImportId IS UNIQUE");
-        db.executeTransactionally("CREATE CONSTRAINT ON (g:User) assert g.neo4jImportId IS UNIQUE");
-        db.executeTransactionally("CREATE CONSTRAINT ON (g:Game) assert g.neo4jImportId IS UNIQUE");
-        db.executeTransactionally("CREATE CONSTRAINT ON (g:Team) assert g.neo4jImportId IS UNIQUE");
-        db.executeTransactionally("CREATE CONSTRAINT ON (g:Language) assert g.neo4jImportId IS UNIQUE");
+        createConstraints("neo4jImportId", List.of("Stream", "User", "Game", "Team", "Language"));
 
         String filename = "big.json";
 
@@ -226,8 +222,7 @@ public class ImportJsonTest {
     @Test
     public void shouldFailBecauseOfMissingConstraintException() {
         String customId = "customId";
-        db.executeTransactionally(format(CREATE_CONSTRAINT_TEMPLATE, "Stream", customId));
-        db.executeTransactionally(format(CREATE_CONSTRAINT_TEMPLATE, "Game", customId));
+        createConstraints(customId, List.of("Stream", "Game"));
         assertNoRel();
 
         String filename = "big.json";
@@ -247,6 +242,10 @@ public class ImportJsonTest {
 
         // check that no rels created after constraint exception
         assertNoRel();
+    }
+
+    private void createConstraints(String customId, List<String> labels) {
+        labels.forEach(label -> db.executeTransactionally(format(CREATE_CONSTRAINT_TEMPLATE, label, customId)));
     }
 
     private void assertNoRel() {
