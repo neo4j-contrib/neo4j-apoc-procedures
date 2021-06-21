@@ -1,8 +1,13 @@
 package apoc.export.json;
 
 import apoc.ApocSettings;
+import apoc.schema.Schemas;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
+import junit.framework.TestCase;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import junit.framework.TestCase;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -21,11 +26,24 @@ import org.neo4j.values.storable.Values;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR;
+import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR;
 import static apoc.util.MapUtil.map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.neo4j.driver.internal.util.Iterables.count;
+import static org.neo4j.driver.internal.util.Iterables.count;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 
 public class ImportJsonTest {
 
@@ -34,6 +52,7 @@ public class ImportJsonTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getCanonicalFile().toPath())
+            .withSetting(GraphDatabaseSettings.procedure_unrestricted, List.of("apoc.*"))
             .withSetting(ApocSettings.apoc_import_file_enabled, true);
 
     public ImportJsonTest() throws IOException {
@@ -41,11 +60,13 @@ public class ImportJsonTest {
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, ImportJson.class);
+        TestUtil.registerProcedure(db, ImportJson.class, Schemas.class);
     }
 
     @Test
     public void shouldImportAllJson() throws Exception {
+        db.executeTransactionally("CREATE CONSTRAINT ON (n:User) assert n.neo4jImportId IS UNIQUE");
+        
         // given
         String filename = "all.json";
 
@@ -91,6 +112,7 @@ public class ImportJsonTest {
 
     @Test
     public void shouldImportAllJsonWithPropertyMappings() throws Exception {
+        db.executeTransactionally("CREATE CONSTRAINT ON (n:User) assert n.neo4jImportId IS UNIQUE");
         // given
         String filename = "all.json";
 
@@ -98,7 +120,7 @@ public class ImportJsonTest {
         TestUtil.testCall(db, "CALL apoc.import.json($file, $config)",
                 map("file", filename, "config",
                         map("nodePropertyMappings", map("User", map("place", "Point", "born", "LocalDateTime")),
-                        "relPropertyMappings", map("KNOWS", map("bffSince", "Duration"))), "unwindBatchSize", 1, "txBatchSize", 1),
+                        "relPropertyMappings", map("KNOWS", map("bffSince", "Duration")), "unwindBatchSize", 1, "txBatchSize", 1)),
                 (r) -> {
                     // then
                     Assert.assertEquals("all.json", r.get("file"));
@@ -175,5 +197,71 @@ public class ImportJsonTest {
                     }
                 }
         );
+    }
+
+    @Test
+    public void shouldTerminateImportWhenTransactionIsTimedOut() throws Exception {
+        restartDb(Duration.ofMillis(1));
+
+        db.executeTransactionally("create constraint on (g:Stream) assert g.neo4jImportId is unique");
+        db.executeTransactionally("create constraint on (g:User) assert g.neo4jImportId is unique");
+        db.executeTransactionally("create constraint on (g:Game) assert g.neo4jImportId is unique");
+        db.executeTransactionally("create constraint on (g:Team) assert g.neo4jImportId is unique");
+        db.executeTransactionally("create constraint on (g:Language) assert g.neo4jImportId is unique");
+
+        assertCleanDb();
+        String filename = "big.json";
+
+        try {
+            TestUtil.testCall(db, "CALL apoc.import.json($file)",
+                    map("file", filename),
+                    (r) -> fail("Should fail due to transaction timeout")
+            );
+        } catch (RuntimeException e) {
+            String expected = "The transaction has been terminated. " +
+                    "Retry your operation in a new transaction, and you should see a successful result";
+            assertTrue(e.getMessage().contains(expected));
+        }
+
+        // check that no node created after exception
+        assertCleanDb();
+        restartDb(Duration.ZERO);
+    }
+
+
+    @Test
+    public void shouldTODO() {
+        db.executeTransactionally("create constraint on (g:Stream) assert g.customId is unique");
+        db.executeTransactionally("create constraint on (g:User) assert g.customId is unique");
+        db.executeTransactionally("create constraint on (g:Game) assert g.customId is unique");
+        assertCleanDb();
+
+        String filename = "big.json";
+        try {
+            TestUtil.testCall(db, "CALL apoc.import.json($file, {importIdName: 'customId'})",
+                    map("file", filename),
+                    (r) -> fail("Should fail due to missing constraint")
+            );
+        } catch (RuntimeException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            TestCase.assertTrue(except instanceof RuntimeException);
+            assertEquals(String.format(MISSING_CONSTRAINT_ERROR, "Language", "customId"), except.getMessage());
+        }
+
+        // check that no node created after exception
+        assertCleanDb();
+    }
+
+    private void assertCleanDb() {
+        try (Transaction tx = db.beginTx()) {
+            assertEquals(0L, count(tx.getAllNodes()));
+        }
+    }
+
+    private void restartDb(Duration value) throws Exception {
+        db.shutdown();
+        db.withSetting(GraphDatabaseSettings.transaction_timeout, value);
+        db.restartDatabase();
+        setUp();
     }
 }
