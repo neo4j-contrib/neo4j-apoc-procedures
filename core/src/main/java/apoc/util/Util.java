@@ -719,19 +719,11 @@ public class Util {
      *
      */
     public static boolean transactionIsTerminated(TerminationGuard db) {
-        return transactionIsTerminated(db, false);
-    }
-
-    public static boolean transactionIsTerminated(TerminationGuard db, boolean throwsError) {
         try {
             db.check();
             return false;
         } catch (TransactionTerminatedException | NotInTransactionException tge) {
-            if (throwsError) {
-                throw tge;
-            } else {
-                return true;
-            }
+            return true;
         }
     }
 
