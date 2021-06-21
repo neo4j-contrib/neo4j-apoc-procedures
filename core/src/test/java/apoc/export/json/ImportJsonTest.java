@@ -1,8 +1,11 @@
 package apoc.export.json;
 
 import apoc.ApocSettings;
+import apoc.schema.Schemas;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
+import junit.framework.TestCase;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -21,11 +24,18 @@ import org.neo4j.values.storable.Values;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR;
 import static apoc.util.MapUtil.map;
+import static org.neo4j.driver.internal.util.Iterables.count;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 
 public class ImportJsonTest {
 
@@ -34,6 +44,7 @@ public class ImportJsonTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getCanonicalFile().toPath())
+            .withSetting(GraphDatabaseSettings.procedure_unrestricted, List.of("apoc.*"))
             .withSetting(ApocSettings.apoc_import_file_enabled, true);
 
     public ImportJsonTest() throws IOException {
@@ -41,11 +52,13 @@ public class ImportJsonTest {
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, ImportJson.class);
+        TestUtil.registerProcedure(db, ImportJson.class, Schemas.class);
     }
 
     @Test
     public void shouldImportAllJson() throws Exception {
+        db.executeTransactionally("CREATE CONSTRAINT ON (n:User) assert n.neo4jImportId IS UNIQUE");
+        
         // given
         String filename = "all.json";
 
@@ -62,35 +75,36 @@ public class ImportJsonTest {
                     Assert.assertEquals(15L, r.get("properties"));
                     Assert.assertEquals(4L, r.get("rows"));
                     Assert.assertEquals(true, r.get("done"));
-
-                    try(Transaction tx = db.beginTx()) {
-                        final long countNodes = tx.execute("MATCH (n:User) RETURN count(n) AS count")
-                                .<Long>columnAs("count")
-                                .next();
-                        Assert.assertEquals(3L, countNodes);
-
-                        final long countRels = tx.execute("MATCH ()-[r:KNOWS]->() RETURN count(r) AS count")
-                                .<Long>columnAs("count")
-                                .next();
-                        Assert.assertEquals(1L, countRels);
-
-                        final Map<String, Object> props = tx.execute("MATCH (n:User {name: 'Adam'}) RETURN n")
-                                .<Node>columnAs("n")
-                                .next()
-                                .getAllProperties();
-
-                        Assert.assertEquals(9, props.size());
-                        Assert.assertEquals("wgs-84", props.get("place.crs"));
-                        Assert.assertEquals(13.1D, (double) props.get("place.latitude"), 0);
-                        Assert.assertEquals(33.46789D, (double) props.get("place.longitude"), 0);
-                        Assert.assertFalse(props.containsKey("place"));
-                    }
                 }
         );
+        
+        try(Transaction tx = db.beginTx()) {
+            final long countNodes = tx.execute("MATCH (n:User) RETURN count(n) AS count")
+                    .<Long>columnAs("count")
+                    .next();
+            Assert.assertEquals(3L, countNodes);
+
+            final long countRels = tx.execute("MATCH ()-[r:KNOWS]->() RETURN count(r) AS count")
+                    .<Long>columnAs("count")
+                    .next();
+            Assert.assertEquals(1L, countRels);
+
+            final Map<String, Object> props = tx.execute("MATCH (n:User {name: 'Adam'}) RETURN n")
+                    .<Node>columnAs("n")
+                    .next()
+                    .getAllProperties();
+
+            Assert.assertEquals(9, props.size());
+            Assert.assertEquals("wgs-84", props.get("place.crs"));
+            Assert.assertEquals(13.1D, (double) props.get("place.latitude"), 0);
+            Assert.assertEquals(33.46789D, (double) props.get("place.longitude"), 0);
+            Assert.assertFalse(props.containsKey("place"));
+        }
     }
 
     @Test
     public void shouldImportAllJsonWithPropertyMappings() throws Exception {
+        db.executeTransactionally("CREATE CONSTRAINT ON (n:User) assert n.neo4jImportId IS UNIQUE");
         // given
         String filename = "all.json";
 
@@ -98,7 +112,7 @@ public class ImportJsonTest {
         TestUtil.testCall(db, "CALL apoc.import.json($file, $config)",
                 map("file", filename, "config",
                         map("nodePropertyMappings", map("User", map("place", "Point", "born", "LocalDateTime")),
-                        "relPropertyMappings", map("KNOWS", map("bffSince", "Duration"))), "unwindBatchSize", 1, "txBatchSize", 1),
+                        "relPropertyMappings", map("KNOWS", map("bffSince", "Duration")), "unwindBatchSize", 1, "txBatchSize", 1)),
                 (r) -> {
                     // then
                     Assert.assertEquals("all.json", r.get("file"));
@@ -110,36 +124,37 @@ public class ImportJsonTest {
                     Assert.assertEquals(4L, r.get("rows"));
                     Assert.assertEquals(true, r.get("done"));
 
-                    try(Transaction tx = db.beginTx()) {
-                        final long countNodes = tx.execute("MATCH (n:User) RETURN count(n) AS count")
-                                .<Long>columnAs("count")
-                                .next();
-                        Assert.assertEquals(3L, countNodes);
-
-                        final long countRels = tx.execute("MATCH ()-[r:KNOWS]->() RETURN count(r) AS count")
-                                .<Long>columnAs("count")
-                                .next();
-                        Assert.assertEquals(1L, countRels);
-
-                        final Map<String, Object> props = tx.execute("MATCH (n:User {name: 'Adam'}) RETURN n")
-                                .<Node>columnAs("n")
-                                .next()
-                                .getAllProperties();
-                        Assert.assertEquals(7, props.size());
-                        Assert.assertTrue(props.get("place") instanceof PointValue);
-                        PointValue point = (PointValue) props.get("place");
-                        final PointValue pointValue = Values.pointValue(CoordinateReferenceSystem.WGS84, 13.1D, 33.46789D);
-                        Assert.assertTrue(point.equals((Point) pointValue));
-                        Assert.assertTrue(props.get("born") instanceof LocalDateTime);
-
-                        Relationship rel = tx.execute("MATCH ()-[r:KNOWS]->() RETURN r")
-                                .<Relationship>columnAs("r")
-                                .next();
-                        Assert.assertTrue(rel.getProperty("bffSince") instanceof DurationValue);
-                        Assert.assertEquals("P5M1DT12H", rel.getProperty("bffSince").toString());
-                    }
                 }
         );
+        
+        try(Transaction tx = db.beginTx()) {
+            final long countNodes = tx.execute("MATCH (n:User) RETURN count(n) AS count")
+                    .<Long>columnAs("count")
+                    .next();
+            Assert.assertEquals(3L, countNodes);
+
+            final long countRels = tx.execute("MATCH ()-[r:KNOWS]->() RETURN count(r) AS count")
+                    .<Long>columnAs("count")
+                    .next();
+            Assert.assertEquals(1L, countRels);
+
+            final Map<String, Object> props = tx.execute("MATCH (n:User {name: 'Adam'}) RETURN n")
+                    .<Node>columnAs("n")
+                    .next()
+                    .getAllProperties();
+            Assert.assertEquals(7, props.size());
+            Assert.assertTrue(props.get("place") instanceof PointValue);
+            PointValue point = (PointValue) props.get("place");
+            final PointValue pointValue = Values.pointValue(CoordinateReferenceSystem.WGS84, 13.1D, 33.46789D);
+            Assert.assertTrue(point.equals((Point) pointValue));
+            Assert.assertTrue(props.get("born") instanceof LocalDateTime);
+
+            Relationship rel = tx.execute("MATCH ()-[r:KNOWS]->() RETURN r")
+                    .<Relationship>columnAs("r")
+                    .next();
+            Assert.assertTrue(rel.getProperty("bffSince") instanceof DurationValue);
+            Assert.assertEquals("P5M1DT12H", rel.getProperty("bffSince").toString());
+        }
     }
 
     @Test
@@ -165,15 +180,82 @@ public class ImportJsonTest {
                     Assert.assertEquals(2L, r.get("properties"));
                     Assert.assertEquals(1L, r.get("rows"));
                     Assert.assertEquals(true, r.get("done"));
-                    try (Transaction tx = db.beginTx()) {
-                        Node node = tx.execute("MATCH (n) WHERE n.neo4jImportId = '5016999' RETURN n")
-                                .<Node>columnAs("n")
-                                .next();
-                        Assert.assertNotNull("node should be not null", node);
-                        final double[] actual = (double[]) node.getProperty("bbox");
-                        Assert.assertArrayEquals(expected, actual, 0.05D);
-                    }
                 }
         );
+
+        try (Transaction tx = db.beginTx()) {
+            Node node = tx.execute("MATCH (n) WHERE n.neo4jImportId = '5016999' RETURN n")
+                    .<Node>columnAs("n")
+                    .next();
+            Assert.assertNotNull("node should be not null", node);
+            final double[] actual = (double[]) node.getProperty("bbox");
+            Assert.assertArrayEquals(expected, actual, 0.05D);
+        }
+    }
+    
+    @Test
+    public void shouldTerminateImportWhenTransactionIsTimedOut() throws Exception {
+        restartDb(Duration.ofMillis(1));
+
+        db.executeTransactionally("create constraint on (g:Stream) assert g.neo4jImportId is unique");
+        db.executeTransactionally("create constraint on (g:User) assert g.neo4jImportId is unique");
+        db.executeTransactionally("create constraint on (g:Game) assert g.neo4jImportId is unique");
+        db.executeTransactionally("create constraint on (g:Team) assert g.neo4jImportId is unique");
+        db.executeTransactionally("create constraint on (g:Language) assert g.neo4jImportId is unique");
+
+        assertCleanDb();
+        String filename = "big.json";
+
+        try {
+            TestUtil.testCall(db, "CALL apoc.import.json($file)",
+                    map("file", filename),
+                    (r) -> fail("Should fail due to transaction timeout")
+            );
+        } catch (RuntimeException e) {
+            String expected = "The transaction has been terminated. " +
+                    "Retry your operation in a new transaction, and you should see a successful result";
+            assertTrue(e.getMessage().contains(expected));
+        }
+
+        // check that no node created after exception
+        assertCleanDb();
+        restartDb(Duration.ZERO);
+    }
+
+
+    @Test
+    public void shouldTODO() {
+        db.executeTransactionally("create constraint on (g:Stream) assert g.customId is unique");
+        db.executeTransactionally("create constraint on (g:User) assert g.customId is unique");
+        db.executeTransactionally("create constraint on (g:Game) assert g.customId is unique");
+        assertCleanDb();
+
+        String filename = "big.json";
+        try {
+            TestUtil.testCall(db, "CALL apoc.import.json($file, {importIdName: 'customId'})",
+                    map("file", filename),
+                    (r) -> fail("Should fail due to missing constraint")
+            );
+        } catch (RuntimeException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            TestCase.assertTrue(except instanceof RuntimeException);
+            assertEquals(String.format(MISSING_CONSTRAINT_ERROR, "Language", "customId"), except.getMessage());
+        }
+
+        // check that no node created after exception
+        assertCleanDb();
+    }
+
+    private void assertCleanDb() {
+        try (Transaction tx = db.beginTx()) {
+            assertEquals(0L, count(tx.getAllNodes()));
+        }
+    }
+
+    private void restartDb(Duration value) throws Exception {
+        db.shutdown();
+        db.withSetting(GraphDatabaseSettings.transaction_timeout, value);
+        db.restartDatabase();
+        setUp();
     }
 }
