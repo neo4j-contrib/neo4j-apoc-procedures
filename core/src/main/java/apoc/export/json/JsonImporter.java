@@ -123,7 +123,9 @@ public class JsonImporter implements Closeable {
         
         if (firstRel) {
             Set<String> collect = StreamSupport.stream(db.beginTx().schema().getConstraints().spliterator(), false)
-                    .map(ConstraintDefinition::getLabel).map(Label::name).collect(Collectors.toSet());
+                    .map(ConstraintDefinition::getLabel)
+                    .map(Label::name).map(Util::quote)
+                    .collect(Collectors.toSet());
 
             constraints.removeAll(collect);
             if (constraints.isEmpty()) {
@@ -153,6 +155,7 @@ public class JsonImporter implements Closeable {
 
     private void manageNode(Map<String, Object> param) {
         List<String> labels = getLabels(param);
+        constraints.addAll(labels);
         if (lastLabels == null) {
             lastLabels = labels;
         }
@@ -304,9 +307,7 @@ public class JsonImporter implements Closeable {
     }
 
     private List<String> getLabels(Map<String, Object> param) {
-        List<String> labels = (List<String>) param.getOrDefault("labels", Collections.emptyList());
-        constraints.addAll(labels);
-        return labels.stream()
+        return ((List<String>) param.getOrDefault("labels", Collections.emptyList())).stream()
                 .map(Util::quote)
                 .collect(Collectors.toList());
     }
