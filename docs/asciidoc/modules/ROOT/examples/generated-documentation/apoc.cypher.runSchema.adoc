@@ -1,0 +1,5 @@
+¦xref::overview/apoc.cypher/apoc.cypher.runSchema.adoc[apoc.cypher.runSchema icon:book[]] +
+
+`apoc.cypher.runSchema(fragment, params) yield value` - executes query schema fragment with the given parameters
+¦label:procedure[]
+¦label:apoc-core[]

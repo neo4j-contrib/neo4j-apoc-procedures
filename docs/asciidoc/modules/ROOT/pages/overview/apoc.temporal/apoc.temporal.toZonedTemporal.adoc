@@ -26,5 +26,9 @@ apoc.temporal.toZonedTemporal(time :: STRING?, format = yyyy-MM-dd HH:mm:ss :: S
 |timezone|STRING?|UTC
 |===
 
+[[usage-apoc.temporal.toZonedTemporal]]
+== Usage Examples
+include::partial$usage/apoc.temporal.toZonedTemporal.adoc[]
+
 xref::temporal/temporal-conversions.adoc[More documentation of apoc.temporal.toZonedTemporal,role=more information]
 

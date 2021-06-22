@@ -145,7 +145,7 @@ RETURN file, nodes, relationships, properties, data;
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,1m,1m,1m,5"]
 |===
 | file         | nodes | relationships | properties | data
 | NULL | 8     | 7             | 21         a|
@@ -287,7 +287,7 @@ RETURN file, nodes, relationships, properties, data;
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,1m,1m,1m,5"]
 |===
 | file         | nodes | relationships | properties | data
 | NULL | 5     | 4             | 15         a|
@@ -397,7 +397,7 @@ RETURN value, g
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,5"]
 |===
 | value | g
 | NULL  | {name: "producers", relationships: [[:PRODUCED]], nodes: [(:Person {name: "Joel Silver", born: 1952}), (:Movie {tagline: "Welcome to the Real World", title: "The Matrix", released: 1999})], properties: {}} |
@@ -447,7 +447,7 @@ RETURN file, nodes, relationships, properties, data;
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,1m,1m,1m,5"]
 |===
 | file         | nodes | relationships | properties | data
 | NULL | 2     | 1             | 5          a|
@@ -548,7 +548,7 @@ RETURN file, nodes, relationships, properties, data;
 ----
 
 .Results
-[opts="header"]
+[opts="header",cols="1m,1m,1m,1m,5"]
 |===
 | file       | nodes | relationships | properties | data
 | NULL | 3     | 2             | 7          a|

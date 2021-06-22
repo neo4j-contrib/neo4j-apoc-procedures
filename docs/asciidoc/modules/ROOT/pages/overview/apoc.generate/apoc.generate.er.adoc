@@ -27,5 +27,9 @@ apoc.generate.er(noNodes :: INTEGER?, noEdges :: INTEGER?, label :: STRING?, typ
 |type|STRING?|null
 |===
 
+[[usage-apoc.generate.er]]
+== Usage Examples
+include::partial$usage/apoc.generate.er.adoc[]
+
 xref::graph-updates/graph-generators.adoc[More documentation of apoc.generate.er,role=more information]
 

@@ -1,0 +1,8 @@
+The following creates a random graph of 10 nodes with 3 relationships each, using the Barabasi-Albert model:
+
+[source,cypher]
+----
+CALL apoc.generate.ba(10,3,null,null);
+----
+
+image::apoc.generate.ba.png[]

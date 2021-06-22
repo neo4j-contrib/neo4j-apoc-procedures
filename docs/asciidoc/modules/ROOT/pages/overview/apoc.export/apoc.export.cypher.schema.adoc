@@ -46,5 +46,9 @@ apoc.export.cypher.schema(file =  :: STRING?, config = {} :: MAP?) :: (file :: S
 |cleanupStatements|STRING?
 |===
 
+[[usage-apoc.export.cypher.schema]]
+== Usage Examples
+include::partial$usage/apoc.export.cypher.schema.adoc[]
+
 xref::export/cypher.adoc[More documentation of apoc.export.cypher.schema,role=more information]
 

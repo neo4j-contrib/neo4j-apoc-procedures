@@ -1,5 +1,3 @@
-import org.gradle.api.internal.artifacts.DefaultExcludeRule
-
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '4.0.3'  apply false
@@ -18,7 +16,7 @@ downloadLicenses {
 
 allprojects {
     group = 'org.neo4j.procedure'
-    version = '4.1.0.4'
+    version = '4.1.0.8'
     archivesBaseName = 'apoc'
     description = """neo4j-apoc-procedures"""
 }
@@ -73,13 +71,13 @@ subprojects {
         //exclude '**/CypherProceduresClusterTest.class'//, '**/AtomicTest.class'
 
         // neo4jDockerImage system property is used in TestContainerUtil
-        systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.1.0-enterprise', 'neo4jCommunityDockerImage': 'neo4j:4.1.0'
+        systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.1.6-enterprise', 'neo4jCommunityDockerImage': 'neo4j:4.1.0'
 
         maxHeapSize = "8G"
         forkEvery = 50
         maxParallelForks = 1 //Runtime.runtime.availableProcessors().intdiv(2) + 1
 
-        if (System.env.TRAVIS !=null) {
+        if (System.env.CI != null) {
             minHeapSize = "128m"
             maxHeapSize = "512m"
         }
@@ -108,5 +106,5 @@ ext {
     neo4jVersion = "4.1.1"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
-    testContainersVersion = '1.12.2'
+    testContainersVersion = '1.15.1'
 }

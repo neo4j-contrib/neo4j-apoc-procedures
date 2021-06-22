@@ -14,9 +14,10 @@ This procedure has the same behaviour as xref::graph-querying/expand-paths-confi
 
 The procedure is described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.path.spanningTree.csv[]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.path.spanningTree.adoc[]
 |===
 
 [[expand-spanning-tree-config]]

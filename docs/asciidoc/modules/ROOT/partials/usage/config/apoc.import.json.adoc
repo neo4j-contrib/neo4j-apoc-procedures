@@ -1,0 +1,22 @@
+This procedure supports the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type |default | description
+| unwindBatchSize | Integer | `5000` | the batch size of the unwind
+| txBatchSize | Integer | `5000` | the batch size of the transacttion
+| importIdName | String | `neo4jImportId` | the name of the "id" field into the used for the import it refers to the "id" field into the root object of the json.
+| nodePropertyMappings | Map | `{}` | The mapping label/property name/property type for Custom Neo4j types (point date). I.e. { User: { born: 'Point', dateOfBirth: 'Datetime' } }
+| relPropertyMappings | Map | `{}` | The mapping rel type/property name/property type for Custom Neo4j types (point date). I.e. { KNOWS: { since: 'Datetime' } }
+|===
+
+`nodePropertyMappings` and `relPropertyMappings` support the following Neo4j types:
+
+* Point
+* Localdate
+* Localtime
+* Localdatetime
+* Duration
+* offsettime
+* Zoneddatetime

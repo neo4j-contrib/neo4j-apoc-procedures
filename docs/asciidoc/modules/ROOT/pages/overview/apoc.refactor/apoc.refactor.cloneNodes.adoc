@@ -39,5 +39,3 @@ apoc.refactor.cloneNodes(nodes :: LIST? OF NODE?, withRelationships = false :: B
 == Usage Examples
 include::partial$usage/apoc.refactor.cloneNodes.adoc[]
 
-xref::graph-updates/graph-refactoring/clone-nodes.adoc[More documentation of apoc.refactor.cloneNodes,role=more information]
-

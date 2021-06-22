@@ -37,5 +37,7 @@ apoc.periodic.countdown(name :: STRING?, statement :: STRING?, rate :: INTEGER?)
 |cancelled|BOOLEAN?
 |===
 
-xref::background-operations/periodic-background.adoc[More documentation of apoc.periodic.countdown,role=more information]
+[[usage-apoc.periodic.countdown]]
+== Usage Examples
+include::partial$usage/apoc.periodic.countdown.adoc[]
 

@@ -38,5 +38,5 @@ apoc.graph.fromData(nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONS
 == Usage Examples
 include::partial$usage/apoc.graph.fromData.adoc[]
 
-xref::export/gephi.adoc[More documentation of apoc.graph.fromData,role=more information]
+xref::virtual/virtual-graph.adoc[More documentation of apoc.graph.fromData,role=more information]
 

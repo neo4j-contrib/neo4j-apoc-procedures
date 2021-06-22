@@ -1,0 +1,2 @@
+¦signature
+¦apoc.refactor.deleteAndReconnect(path :: PATH?, nodes :: LIST? OF NODE?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)

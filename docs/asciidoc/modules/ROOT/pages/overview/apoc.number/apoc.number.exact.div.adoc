@@ -31,5 +31,3 @@ apoc.number.exact.div(stringA :: STRING?, stringB :: STRING?, precision = 0 :: I
 == Usage Examples
 include::partial$usage/apoc.number.exact.div.adoc[]
 
-xref::mathematical/exact-math-functions.adoc[More documentation of apoc.number.exact.div,role=more information]
-

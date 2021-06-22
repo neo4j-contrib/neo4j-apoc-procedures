@@ -1,0 +1,5 @@
+¦xref::overview/apoc.log/apoc.log.debug.adoc[apoc.log.debug icon:book[]] +
+
+`apoc.log.debug(message, params)` - logs debug message
+¦label:procedure[]
+¦label:apoc-full[]

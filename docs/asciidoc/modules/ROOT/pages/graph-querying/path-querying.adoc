@@ -11,12 +11,13 @@ The functions in this section can be used to create, combine and split paths.
 
 The available functions are described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.path.create.csv[]
-include::example$generated-documentation/apoc.path.combine.csv[lines=2:]
-include::example$generated-documentation/apoc.path.slice.csv[lines=2:]
-include::example$generated-documentation/apoc.path.elements.csv[lines=2:]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.path.create.adoc[]
+include::example$generated-documentation/apoc.path.combine.adoc[]
+include::example$generated-documentation/apoc.path.slice.adoc[]
+include::example$generated-documentation/apoc.path.elements.adoc[]
 |===
 
 [[path-functions-examples]]

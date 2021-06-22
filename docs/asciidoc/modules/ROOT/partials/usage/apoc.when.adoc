@@ -1,0 +1,23 @@
+[source,cypher]
+----
+CALL apoc.when(false, 'RETURN 7 as b');
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| {}
+|===
+
+[source,cypher]
+----
+CALL apoc.when(true, 'RETURN $a + 7 as b', 'RETURN $a as b',{a:3})
+----
+
+.Results
+[opts="header"]
+|===
+| value
+|  {b: 10}
+|===

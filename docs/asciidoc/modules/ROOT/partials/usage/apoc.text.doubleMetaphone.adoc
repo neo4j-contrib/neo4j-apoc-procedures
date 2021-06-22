@@ -1,0 +1,22 @@
+[source,cypher]
+----
+RETURN apoc.text.doubleMetaphone("Neo4j Aura") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "NJAR"
+|===
+
+[source,cypher]
+----
+RETURN apoc.text.doubleMetaphone("GRANDstack: Build Fullstack GraphQL Applications With Ease") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "KRNTPLTFLSTKRFKAPLKA0AS"
+|===

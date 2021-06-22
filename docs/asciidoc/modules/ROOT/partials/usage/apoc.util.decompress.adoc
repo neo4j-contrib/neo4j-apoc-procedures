@@ -1,0 +1,39 @@
+[source,cypher]
+----
+WITH apoc.util.compress("Mätrix II 哈哈😄123", {charset: 'UTF-32'}) as compressed
+RETURN apoc.util.decompress(compressed, {charset: 'UTF-32'}) AS value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| "Mätrix II 哈哈😄123"
+|===
+
+[source,cypher]
+----
+WITH apoc.util.compress("Mätrix II 哈哈😄123", {compression: 'DEFLATE'}) as compressed
+RETURN apoc.util.decompress(compressed, {compression: 'DEFLATE'}) AS value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| "Mätrix II 哈哈😄123"
+|===
+
+[source,cypher]
+----
+WITH apoc.util.compress("Example", {charset: 'UTF-16'}) as compressed
+RETURN apoc.util.decompress(compressed, {charset: 'UTF-16'}) AS value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| "Example"
+|===
+

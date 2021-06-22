@@ -32,9 +32,19 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.ApocConfig.*;
+import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.MapUtil.map;
-import static org.junit.Assert.*;
+import static apoc.util.TestUtil.isRunningInCI;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
+import static org.neo4j.configuration.GraphDatabaseSettings.TransactionStateMemoryAllocation.OFF_HEAP;
+import static org.neo4j.configuration.SettingValueParsers.BYTES;
 import static org.xmlunit.diff.ElementSelectors.byName;
 
 /**
@@ -148,6 +158,9 @@ public class ExportGraphMLTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
+                .withSetting(GraphDatabaseSettings.memory_tracking, true)
+                .withSetting(GraphDatabaseSettings.tx_state_memory_allocation, OFF_HEAP)
+                .withSetting(GraphDatabaseSettings.tx_state_max_off_heap_memory, BYTES.parse("200m"))
                 .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false)
                 .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
 
@@ -183,6 +196,23 @@ public class ExportGraphMLTest {
     }
 
     @Test
+    public void testImportGraphMLLargeFile() {
+        assumeFalse(isRunningInCI());
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+
+        final String file = ClassLoader.getSystemResource("largeFile.graphml").toString();
+        TestUtil.testCall(db, "CALL apoc.import.graphml($file,{readLabels:true})", map("file", file),
+                (r) -> {
+                    assertEquals(335160L, r.get("nodes"));
+                    assertEquals(5666L, r.get("relationships"));
+                    assertEquals(737297L, r.get("properties"));
+                    assertEquals(file, r.get("file"));
+                    assertEquals("graphml", r.get("format"));
+                    assertEquals(true, r.get("done"));
+                });
+    }
+
+    @Test
     public void testImportGraphMLWithEdgeWithoutDataKeys() throws Exception {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
 
@@ -209,6 +239,42 @@ public class ExportGraphMLTest {
                 });
 
         TestUtil.testCall(db, "MATCH  ()-[c:RELATED]->() RETURN COUNT(c) AS c", null, (r) -> assertEquals(1L, r.get("c")));
+    }
+
+    private String NO_REL_TYPES = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+            "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\"\n" +
+            "         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+            "         xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns\n" +
+            "         http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">\n" +
+            "<!-- Created by igraph -->\n" +
+            "  <key id=\"username\" for=\"node\" attr.name=\"username\" attr.type=\"string\"/>\n" +
+            "  <key id=\"weight\" for=\"edge\" attr.name=\"weight\" attr.type=\"double\"/>\n" +
+            "  <graph id=\"G\" edgedefault=\"directed\">\n" +
+            "    <node id=\"n0\">\n" +
+            "      <data key=\"username\">Dodo von den Bergen</data>\n" +
+            "    </node>\n" +
+            "    <node id=\"n1\">\n" +
+            "      <data key=\"username\">Semolo75</data>\n" +
+            "    </node>  " +
+            "<edge source=\"n1\" target=\"n0\">\n" +
+            "      <data key=\"weight\">1</data>\n" +
+            "    </edge>  </graph>\n" +
+            "</graphml>";
+    
+    @Test
+    public void testImportDefaultRelationship() throws Exception {
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+
+        File output = new File(directory, "import_no_rel_types.graphml");
+        FileWriter fw = new FileWriter(output);
+        fw.write(NO_REL_TYPES); fw.close();
+        db.executeTransactionally("CALL apoc.import.graphml( $file, { batchSize: 5000, readLabels: true, defaultRelationshipType:'DEFAULT_TYPE' })", map("file", output.getAbsolutePath()));
+        TestUtil.testCall(db, "MATCH ()-[r]-() RETURN Distinct type(r) as type",
+                (r) -> {
+                    String label = (String) r.get("type");
+                    assertEquals("DEFAULT_TYPE", label);
+                }
+        );
     }
 
     @Test(expected = QueryExecutionException.class)

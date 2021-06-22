@@ -17,7 +17,7 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import java.io.IOException;
 import java.util.*;
 
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 
@@ -50,7 +50,7 @@ public class ElasticSearchTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isTravis());
+        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             elastic = new ElasticsearchContainer();
             elastic.start();
@@ -139,13 +139,13 @@ public class ElasticSearchTest {
 
     /**
      * Simple get request for document retrieval but we also send multiple commands (as a Map) to ES
-     * http://localhost:9200/test-index/test-type/4fa40c40-db89-4761-b6a3-75f0015db059?_source_include=name&_source_exclude=description
+     * http://localhost:9200/test-index/test-type/4fa40c40-db89-4761-b6a3-75f0015db059?_source_includes=name&_source_excludes=description
      *
      * @throws Exception
      */
     @Test
     public void testGetWithQueryAsMapMultipleParams() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,{_source_include:'name',_source_exclude:'description'},null) yield value", defaultParams, r -> {
+        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,{_source_includes:'name',_source_excludes:'description'},null) yield value", defaultParams, r -> {
             Object name = extractValueFromResponse(r, "$._source.name");
             assertEquals("Neo4j", name);
         });
@@ -153,13 +153,13 @@ public class ElasticSearchTest {
 
     /**
      * Simple get request for document retrieval but we also send a single command (as a Map) to ES
-     * http://localhost:9200/test-index/test-type/4fa40c40-db89-4761-b6a3-75f0015db059?_source_include=name
+     * http://localhost:9200/test-index/test-type/4fa40c40-db89-4761-b6a3-75f0015db059?_source_includes=name
      *
      * @throws Exception
      */
     @Test
     public void testGetWithQueryAsMapSingleParam() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,{_source_include:'name'},null) yield value", defaultParams, r -> {
+        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,{_source_includes:'name'},null) yield value", defaultParams, r -> {
             Object name = extractValueFromResponse(r, "$._source.name");
             assertEquals("Neo4j", name);
         });
@@ -167,13 +167,13 @@ public class ElasticSearchTest {
 
     /**
      * Simple get request for document retrieval but we also send multiple commands (as a string) to ES
-     * http://localhost:9200/test-index/test-type/4fa40c40-db89-4761-b6a3-75f0015db059?_source_include=name&_source_exclude=description
+     * http://localhost:9200/test-index/test-type/4fa40c40-db89-4761-b6a3-75f0015db059?_source_includes=name&_source_excludes=description
      *
      * @throws Exception
      */
     @Test
     public void testGetWithQueryAsStringMultipleParams() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,'_source_include=name&_source_exclude=description',null) yield value", defaultParams, r -> {
+        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name&_source_excludes=description',null) yield value", defaultParams, r -> {
             Object name = extractValueFromResponse(r, "$._source.name");
             assertEquals("Neo4j", name);
         });
@@ -181,13 +181,13 @@ public class ElasticSearchTest {
 
     /**
      * Simple get request for document retrieval but we also send a single command (as a string) to ES
-     * http://localhost:9200/test-index/test-type/4fa40c40-db89-4761-b6a3-75f0015db059?_source_include=name
+     * http://localhost:9200/test-index/test-type/4fa40c40-db89-4761-b6a3-75f0015db059?_source_includes=name
      *
      * @throws Exception
      */
     @Test
     public void testGetWithQueryAsStringSingleParam() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,'_source_include=name',null) yield value", defaultParams, r -> {
+        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name',null) yield value", defaultParams, r -> {
             Object name = extractValueFromResponse(r, "$._source.name");
             assertEquals("Neo4j", name);
         });

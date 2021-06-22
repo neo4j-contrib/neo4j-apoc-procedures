@@ -37,5 +37,9 @@ apoc.algo.aStar(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirect
 |weight|FLOAT?
 |===
 
+[[usage-apoc.algo.aStar]]
+== Usage Examples
+include::partial$usage/apoc.algo.aStar.adoc[]
+
 xref::algorithms/path-finding-procedures.adoc[More documentation of apoc.algo.aStar,role=more information]
 

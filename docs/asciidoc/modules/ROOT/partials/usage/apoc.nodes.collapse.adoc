@@ -1,0 +1,39 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (david:Person {name: "David"})
+MERGE (john:Person {name: "John"})
+MERGE (jennifer:Person {name: "Jennifer"})
+MERGE (adam:Person {name: "Adam"})
+MERGE (mark:Person {name: "Mark"})
+
+MERGE (unitedStates:Country {name: "United States"})
+MERGE (uk:Country {name: "United Kingdom"})
+
+MERGE (david)-[:LIVES_IN]->(unitedStates)
+MERGE (john)-[:LIVES_IN]->(unitedStates)
+MERGE (jennifer)-[:LIVES_IN]->(unitedStates)
+
+MERGE (adam)-[:LIVES_IN]->(uk)
+MERGE (mark)-[:LIVES_IN]->(uk);
+----
+
+We can collapse the people living in the city to a single node, by running the following query:
+
+[source,cypher]
+----
+MATCH (p:Person)-[:LIVES_IN]->(c:Country)
+WITH c, collect(p) as subgraph
+CALL apoc.nodes.collapse(subgraph,{properties:'combine'})
+YIELD from, rel, to
+RETURN from, rel, to;
+----
+
+.Results
+[options="header"]
+|===
+| from                                                      | rel                    | to
+| (:Person {name: ["David", "John", "Jennifer"], count: 3}) | [:LIVES_IN {count: 2}] | (:Country {name: "United States"})
+| (:Person {name: ["Adam", "Mark"], count: 2})              | [:LIVES_IN {count: 1}] | (:Country {name: "United Kingdom"})
+|===

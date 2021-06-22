@@ -167,12 +167,12 @@ public class TestUtil {
         }
     }
 
-    public static void assumeTravis() {
-        assumeFalse("we're running on travis, so skipping", isTravis());
+    public static void assumeRunningInCI() {
+        assumeFalse("we're running in CI, so skipping", isRunningInCI());
     }
 
-    public static boolean isTravis() {
-        return "true".equals(System.getenv("TRAVIS"));
+    public static boolean isRunningInCI() {
+        return "true".equals(System.getenv("CI"));
     }
 
     public static URL getUrlFileName(String filename) {

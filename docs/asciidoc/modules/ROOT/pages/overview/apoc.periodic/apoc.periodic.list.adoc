@@ -28,5 +28,7 @@ apoc.periodic.list() :: (name :: STRING?, delay :: INTEGER?, rate :: INTEGER?, d
 |cancelled|BOOLEAN?
 |===
 
-xref::background-operations/periodic-background.adoc[More documentation of apoc.periodic.list,role=more information]
+[[usage-apoc.periodic.list]]
+== Usage Examples
+include::partial$usage/apoc.periodic.list.adoc[]
 

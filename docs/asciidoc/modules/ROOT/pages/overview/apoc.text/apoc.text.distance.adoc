@@ -29,5 +29,3 @@ apoc.text.distance(text1 :: STRING?, text2 :: STRING?) :: (INTEGER?)
 == Usage Examples
 include::partial$usage/apoc.text.distance.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.distance,role=more information]
-

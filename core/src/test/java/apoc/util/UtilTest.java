@@ -5,6 +5,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -16,6 +17,7 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -72,5 +74,15 @@ public class UtilTest {
     @Test
     public void mergeNullMaps() {
         assertNotNull(Util.merge(null, null));
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testValidateQuery() {
+        try {
+            Util.validateQuery(db, "Match (n) return m");
+        } catch (QueryExecutionException e) {
+            assertTrue(e.getMessage().contains("Variable `m` not defined"));
+            throw e;
+        }
     }
 }

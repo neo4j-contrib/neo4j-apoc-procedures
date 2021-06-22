@@ -69,15 +69,19 @@ public class Nodes {
     public Pools pools;
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last")
-    public void link(@Name("nodes") List<Node> nodes, @Name("type") String type) {
+    @Description("apoc.nodes.link([nodes],'REL_TYPE', conf) - creates a linked list of nodes from first to last")
+    public void link(@Name("nodes") List<Node> nodes, @Name("type") String type, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+        RefactorConfig conf = new RefactorConfig(config);
         Iterator<Node> it = nodes.iterator();
         if (it.hasNext()) {
             RelationshipType relType = RelationshipType.withName(type);
             Node node = it.next();
             while (it.hasNext()) {
                 Node next = it.next();
-                node.createRelationshipTo(next, relType);
+                final boolean createRelationship = !conf.isAvoidDuplicates() || (conf.isAvoidDuplicates() && !connected(node, next, type));
+                if (createRelationship) {
+                    node.createRelationshipTo(next, relType);
+                }
                 node = next;
             }
         }
@@ -421,6 +425,18 @@ public class Nodes {
     @Description("returns id for (virtual) relationships")
     public Long relId(@Name("rel") Relationship rel) {
         return (rel == null) ? null : rel.getId();
+    }
+
+    @UserFunction("apoc.rel.startNode")
+    @Description("returns startNode for (virtual) relationships")
+    public Node startNode(@Name("rel") Relationship rel) {
+        return (rel == null) ? null : rel.getStartNode();
+    }
+
+    @UserFunction("apoc.rel.endNode")
+    @Description("returns endNode for (virtual) relationships")
+    public Node endNode(@Name("rel") Relationship rel) {
+        return (rel == null) ? null : rel.getEndNode();
     }
 
     @UserFunction("apoc.rel.type")

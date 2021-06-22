@@ -29,5 +29,3 @@ apoc.number.exact.sub(stringA :: STRING?, stringB :: STRING?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.number.exact.sub.adoc[]
 
-xref::mathematical/exact-math-functions.adoc[More documentation of apoc.number.exact.sub,role=more information]
-

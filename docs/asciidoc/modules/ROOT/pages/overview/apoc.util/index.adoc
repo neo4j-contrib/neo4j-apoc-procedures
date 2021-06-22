@@ -18,6 +18,16 @@ apoc.util.sleep(<duration>) \| sleeps for <duration> millis, transaction termina
 apoc.util.validate(predicate, message, params) \| if the predicate yields to true raise an exception
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.util/apoc.util.compress.adoc[apoc.util.compress icon:book[]]
+
+apoc.util.compress(string, \{config}) \| return a compressed byte[] in various format from a string
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.util/apoc.util.decompress.adoc[apoc.util.decompress icon:book[]]
+
+apoc.util.decompress(compressed, \{config}) \| return a string from a compressed byte[] in various format
+|label:function[]
+|label:apoc-core[]
 |xref::overview/apoc.util/apoc.util.md5.adoc[apoc.util.md5 icon:book[]]
 
 apoc.util.md5([values]) \| computes the md5 of the concatenation of all string values of the list

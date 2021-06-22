@@ -21,7 +21,7 @@ public class Distance {
     public GraphDatabaseService db;
 
     @Procedure
-    @Description("apoc.spatial.sortPathsByDistance(List<Path>) sort the given paths based on the geo informations (lat/long) in ascending order")
+    @Description("apoc.spatial.sortByDistance(List<Path>) sort the given paths based on the geo informations (lat/long) in ascending order")
     public Stream<DistancePathResult> sortByDistance(@Name("paths")List<Path> paths) {
         return paths.size() > 0 ? sortPaths(paths).stream() : Stream.empty();
     }

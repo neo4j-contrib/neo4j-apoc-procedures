@@ -1,0 +1,16 @@
+The examples in this section are based on the following sample graph:
+[source,cypher]
+----
+CREATE (:Counter {value: 10000});
+----
+
+.The following decrements the `value` once a second until it gets to 0:
+[source,cypher]
+----
+CALL apoc.periodic.countdown(
+  "decrement",
+  "MATCH (counter:Counter)
+   SET counter.value = counter.value - 1
+   RETURN counter.value as count",
+  1);
+----

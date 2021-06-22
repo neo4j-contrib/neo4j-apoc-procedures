@@ -1,0 +1,5 @@
+¦xref::overview/apoc.mongodb/apoc.mongodb.get.adoc[apoc.mongodb.get icon:book[]] +
+
+`apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value` - perform a find operation on mongodb collection
+¦label:procedure[]
+¦label:apoc-full[]

@@ -1,0 +1,10 @@
+[source,cypher]
+----
+RETURN apoc.text.regreplace("Neo4j GraphQL Neo4j GraphQL", "GraphQL", "GRANDstack") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "Neo4j GRANDstack Neo4j GRANDstack"
+|===

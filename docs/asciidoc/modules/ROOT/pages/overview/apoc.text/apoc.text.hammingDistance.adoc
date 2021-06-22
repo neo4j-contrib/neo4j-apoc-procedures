@@ -25,5 +25,7 @@ apoc.text.hammingDistance(text1 :: STRING?, text2 :: STRING?) :: (INTEGER?)
 |text2|STRING?|null
 |===
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.hammingDistance,role=more information]
+[[usage-apoc.text.hammingDistance]]
+== Usage Examples
+include::partial$usage/apoc.text.hammingDistance.adoc[]
 

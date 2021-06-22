@@ -4,21 +4,27 @@ import apoc.Pools;
 import apoc.algo.Cover;
 import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
+import apoc.result.GraphResult;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
+import org.apache.commons.collections4.IterableUtils;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintType;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.refactor.util.PropertiesManager.mergeProperties;
+import static apoc.refactor.util.RefactorConfig.RelationshipSelectionStrategy.MERGE;
 import static apoc.refactor.util.RefactorUtil.*;
 
 public class GraphRefactoring {
@@ -47,7 +53,7 @@ public class GraphRefactoring {
 
                 Node copy = copyProperties(properties, newNode);
                 if (withRelationships) {
-                    copyRelationships(node, copy, false);
+                    copyRelationships(node, copy, false, true);
                 }
                 return result.withOther(copy);
             } catch (Exception e) {
@@ -276,8 +282,13 @@ public class GraphRefactoring {
         nodes.stream().distinct().sorted(Comparator.comparingLong(Node::getId)).forEach(tx::acquireWriteLock);
 
         final Node first = nodes.get(0);
+        final List<Long> existingSelfRelIds = conf.isPreservingExistingSelfRels()
+                ? StreamSupport.stream(first.getRelationships().spliterator(), false).filter(Util::isSelfRel)
+                    .map(Entity::getId)
+                    .collect(Collectors.toList())
+                : Collections.emptyList();
 
-        nodes.stream().skip(1).distinct().forEach(node -> mergeNodes(node, first, true, conf));
+        nodes.stream().skip(1).distinct().forEach(node -> mergeNodes(node, first, conf, existingSelfRelIds));
         return Stream.of(new NodeResult(first));
     }
 
@@ -452,6 +463,76 @@ public class GraphRefactoring {
         }
     }
 
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.refactor.deleteAndReconnect([pathLinkedList], [nodesToRemove], {config}) - Removes some nodes from a linked list")
+    public Stream<GraphResult> deleteAndReconnect(@Name("path") Path path, @Name("nodes") List<Node> nodesToRemove, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
+
+        RefactorConfig refactorConfig = new RefactorConfig(config);
+
+        List<Node> nodes = IterableUtils.toList(path.nodes());
+        Set<Relationship> rels = Iterables.asSet(path.relationships());
+
+        if (!nodes.containsAll(nodesToRemove)) {
+            return Stream.empty();
+        }
+
+        BiFunction<Node, Direction, Relationship> filterRel = (node, direction) -> StreamSupport
+                .stream(node.getRelationships(direction).spliterator(), false)
+                .filter(rels::contains)
+                .findFirst()
+                .orElse(null);
+
+        nodesToRemove.forEach(node -> {
+
+            Relationship relationshipIn = filterRel.apply(node, Direction.INCOMING);
+            Relationship relationshipOut = filterRel.apply(node, Direction.OUTGOING);
+
+            // if initial or terminal node
+            if (relationshipIn == null || relationshipOut == null) {
+                rels.remove(relationshipIn == null ? relationshipOut : relationshipIn);
+
+            } else {
+                Node nodeIncoming = relationshipIn.getStartNode();
+                Node nodeOutgoing = relationshipOut.getEndNode();
+
+                RelationshipType newRelType;
+                Map<String, Object> newRelProps = new HashMap<>();
+
+                final RefactorConfig.RelationshipSelectionStrategy strategy = refactorConfig.getRelationshipSelectionStrategy();
+                switch (strategy) {
+                    case INCOMING:
+                        newRelType = relationshipIn.getType();
+                        newRelProps.putAll(relationshipIn.getAllProperties());
+                        break;
+
+                    case OUTGOING:
+                        newRelType = relationshipOut.getType();
+                        newRelProps.putAll(relationshipOut.getAllProperties());
+                        break;
+
+                    default:
+                        newRelType = RelationshipType.withName(relationshipIn.getType() + "_" + relationshipOut.getType());
+                        newRelProps.putAll(relationshipIn.getAllProperties());
+                }
+
+                Relationship relCreated = nodeIncoming.createRelationshipTo(nodeOutgoing, newRelType);
+                newRelProps.forEach(relCreated::setProperty);
+
+                if (strategy == MERGE) {
+                    mergeProperties(relationshipOut.getAllProperties(), relCreated, refactorConfig);
+                }
+
+                rels.add(relCreated);
+                rels.removeAll(List.of(relationshipIn, relationshipOut));
+            }
+
+            tx.execute("WITH $node as n DETACH DELETE n", Map.of("node", node));
+            nodes.remove(node);
+        });
+
+        return Stream.of(new GraphResult(nodes, List.copyOf(rels)));
+    }
+
     private boolean isUniqueConstraintDefinedFor(String label, String key) {
         return StreamSupport.stream(tx.schema().getConstraints(Label.label(label)).spliterator(), false)
                 .anyMatch(c ->  {
@@ -501,32 +582,27 @@ public class GraphRefactoring {
         });
     }
 
-    private Node mergeNodes(Node source, Node target, boolean delete, RefactorConfig conf) {
+    private void mergeNodes(Node source, Node target, RefactorConfig conf, List<Long> excludeRelIds) {
         try {
             Map<String, Object> properties = source.getAllProperties();
-            copyRelationships(source, copyLabels(source, target), delete);
+
+            copyRelationships(source, copyLabels(source, target), true, conf.isCreatingNewSelfRel());
             if (conf.getMergeRelsAllowed()) {
-                if(!conf.hasProperties()) {
-                    Map<String, Object> map = Collections.singletonMap("properties", "combine");
-                    conf = new RefactorConfig(map);
-                }
-                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.OUTGOING);
-                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING);
+                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.OUTGOING, excludeRelIds);
+                mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING, excludeRelIds);
             }
-            if (delete) source.delete();
+            source.delete();
             PropertiesManager.mergeProperties(properties, target, conf);
         } catch (NotFoundException e) {
             log.warn("skipping a node for merging: " + e.getCause().getMessage());
         }
-        return target;
     }
 
-    private Node copyRelationships(Node source, Node target, boolean delete) {
+    private void copyRelationships(Node source, Node target, boolean delete, boolean createNewSelfRel) {
         for (Relationship rel : source.getRelationships()) {
-            copyRelationship(rel, source, target);
+            copyRelationship(rel, source, target, createNewSelfRel);
             if (delete) rel.delete();
         }
-        return target;
     }
 
     private Node copyLabels(Node source, Node target) {
@@ -538,9 +614,13 @@ public class GraphRefactoring {
         return target;
     }
 
-    private Relationship copyRelationship(Relationship rel, Node source, Node target) {
+    private void copyRelationship(Relationship rel, Node source, Node target, boolean createNewSelfRelf) {
         Node startNode = rel.getStartNode();
         Node endNode = rel.getEndNode();
+
+        if (startNode.getId() == endNode.getId() && !createNewSelfRelf) {
+            return;
+        }
 
         if (startNode.getId() == source.getId()) {
             startNode = target;
@@ -551,7 +631,7 @@ public class GraphRefactoring {
         }
 
         Relationship newrel = startNode.createRelationshipTo(endNode, rel.getType());
-        return copyProperties(rel, newrel);
+        copyProperties(rel, newrel);
     }
 
 }

@@ -1,0 +1,99 @@
+This procedure imports CSV files that comply with the link:https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/#import-tool-header-format/[Neo4j import tool's header format].
+
+=== Nodes
+
+The following file contains two people:
+
+.persons.csv
+[source,text]
+----
+id:ID,name:STRING
+1,John
+2,Jane
+----
+
+We'll place this file into the `import` directory of our Neo4j instance.
+
+We can create two `Person` nodes with their `name` properties set, by running the following query:
+
+[source,cypher]
+----
+CALL apoc.import.csv([{fileName: 'file:/persons.csv', labels: ['Person']}], [], {});
+----
+
+.Results
+[opts="header"]
+|===
+| file           | source | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "progress.csv" | "file" | "csv"  | 2     | 0             | 4          | 7    | 0    | -1        | 0       | TRUE | NULL
+|===
+
+We can check what's been imported by running the following query:
+
+[source,cypher]
+----
+MATCH (p:Person)
+RETURN p;
+----
+
+.Results
+[opts="header"]
+|===
+| p
+| (:Person {name: "John", id: "1"})
+| (:Person {name: "Jane", id: "2"})
+|===
+
+
+=== Nodes and relationships
+
+The following files contain nodes and relationships in CSV format:
+
+.people-nodes.csv
+[source,text]
+----
+:ID|name:STRING|speaks:STRING[]
+1|John|en,fr
+2|Jane|en,de
+----
+
+.knows-rels.csv
+[source,text]
+----
+:START_ID|:END_ID|since:INT
+1|2|2016
+----
+
+We will import  two `Person` nodes and a `KNOWS` relationship between them (with the value of the `since` property set).
+The field terminators and the array delimiters are changed from the default value, and the CSVs use numeric ids.
+
+[source,cypher]
+----
+CALL apoc.import.csv(
+  [{fileName: 'file:/people-nodes.csv', labels: ['Person']}],
+  [{fileName: 'file:/knows-rels.csv', type: 'KNOWS'}],
+  {delimiter: '|', arrayDelimiter: ',', stringIds: false}
+);
+----
+
+.Results
+[opts="header"]
+|===
+| file           | source | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "progress.csv" | "file" | "csv"  | 2     | 1             | 7          | 7    | 0    | -1        | 0       | TRUE | NULL
+|===
+
+We can check what's been imported by running the following query:
+
+[source,cypher]
+----
+MATCH path = (p1:Person)-[:KNOWS]->(p2:Person)
+RETURN path;
+----
+
+.Results
+[opts="header"]
+|===
+| path
+| (:Person {name: "John", speaks: ["en", "fr"], __csv_id: 1})-[:KNOWS {since: 2016}]->(:Person {name: "Jane", speaks: ["en", "de"], __csv_id: 2})
+|===

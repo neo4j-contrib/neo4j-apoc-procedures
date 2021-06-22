@@ -42,5 +42,3 @@ include::partial$nlp-api-keys-apoc.nlp.gcp.adoc[]
 == Usage Examples
 include::partial$usage/apoc.nlp.gcp.classify.graph.adoc[]
 
-xref::nlp/gcp.adoc[More documentation of apoc.nlp.gcp.classify.graph,role=more information]
-

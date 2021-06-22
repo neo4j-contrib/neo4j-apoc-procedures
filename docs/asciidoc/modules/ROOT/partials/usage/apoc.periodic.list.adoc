@@ -1,0 +1,13 @@
+While the example from xref::overview/apoc.periodic/apoc.periodic.countdown.adoc[] is in progress, we'll see the following output from this procedure:
+
+[source,cypher]
+----
+CALL apoc.periodic.list();
+----
+
+.Results
+[opts="header"]
+|===
+| name        | delay | rate | done | cancelled
+| "decrement" | 0     | 0    | TRUE | FALSE
+|===

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.monitor/apoc.monitor.store.adoc[apoc.monitor.store icon:book[]] +
+
+`apoc.monitor.store() returns informations about the sizes of the different parts of the neo4j graph store`
+¦label:procedure[]
+¦label:apoc-core[]

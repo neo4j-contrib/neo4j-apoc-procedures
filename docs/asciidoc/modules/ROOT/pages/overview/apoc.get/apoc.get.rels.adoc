@@ -31,3 +31,7 @@ apoc.get.rels(relationships :: ANY?) :: (rel :: RELATIONSHIP?)
 |rel|RELATIONSHIP?
 |===
 
+[[usage-apoc.get.rels]]
+== Usage Examples
+include::partial$usage/apoc.get.rels.adoc[]
+

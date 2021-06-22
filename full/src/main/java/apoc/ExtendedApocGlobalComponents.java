@@ -2,6 +2,8 @@ package apoc;
 
 import apoc.custom.CypherProcedures;
 import apoc.custom.CypherProceduresHandler;
+import apoc.load.LoadDirectory;
+import apoc.load.LoadDirectoryHandler;
 import apoc.ttl.TTLLifeCycle;
 import apoc.uuid.Uuid;
 import apoc.uuid.UuidHandler;
@@ -38,7 +40,7 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
 
         return MapUtil.genericMap(
 
-                "ttl", new TTLLifeCycle(dependencies.scheduler(), db, dependencies.apocConfig(), dependencies.log().getUserLog(TTLLifeCycle.class)),
+                "ttl", new TTLLifeCycle(dependencies.scheduler(), db, dependencies.apocConfig(), dependencies.ttlConfig(), dependencies.log().getUserLog(TTLLifeCycle.class)),
 
                 "uuid", new UuidHandler(db,
                 dependencies.databaseManagementService(),
@@ -46,13 +48,17 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
                 dependencies.apocConfig(),
                 dependencies.globalProceduresRegistry()),
 
+                "directory", new LoadDirectoryHandler(db,
+                        dependencies.log().getUserLog(LoadDirectory.class),
+                        dependencies.pools()),
+
                 "cypherProcedures", cypherProcedureHandler
         );
     }
 
     @Override
     public Collection<Class> getContextClasses() {
-        return List.of(CypherProceduresHandler.class, UuidHandler.class);
+        return List.of(CypherProceduresHandler.class, UuidHandler.class, LoadDirectoryHandler.class);
     }
 
     @Override

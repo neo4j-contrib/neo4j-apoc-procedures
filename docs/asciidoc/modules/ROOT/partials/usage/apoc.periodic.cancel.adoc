@@ -1,0 +1,13 @@
+If we want to cancel the job submitted by the example in xref::overview/apoc.periodic/apoc.periodic.repeat.adoc[], we can run the following query:
+
+[source,cypher]
+----
+CALL apoc.periodic.cancel("create-people");
+----
+
+.Results
+[opts="header"]
+|===
+| name            | delay | rate | done  | cancelled
+| "create-people" | 0     | 0    | TRUE | TRUE
+|===

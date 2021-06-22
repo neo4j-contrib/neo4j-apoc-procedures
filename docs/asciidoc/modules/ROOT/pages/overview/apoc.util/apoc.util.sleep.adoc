@@ -24,3 +24,7 @@ apoc.util.sleep(duration :: INTEGER?) :: VOID
 |duration|INTEGER?|null
 |===
 
+[[usage-apoc.util.sleep]]
+== Usage Examples
+include::partial$usage/apoc.util.sleep.adoc[]
+

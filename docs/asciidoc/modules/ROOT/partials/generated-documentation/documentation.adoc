@@ -422,6 +422,11 @@ apoc.coll.removeAll(first, second) - returns first list with all elements of sec
 apoc.coll.reverse(coll) - returns reversed list
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.coll/apoc.coll.runningTotal.adoc[apoc.coll.runningTotal icon:book[]]
+
+apoc.coll.runningTotal(list1) - returns an accumulative array. For example apoc.coll.runningTotal([1,2,3.5]) return [1,3,6.5]
+|label:function[]
+|label:apoc-core[]
 |xref::overview/apoc.coll/apoc.coll.set.adoc[apoc.coll.set icon:book[]]
 
 apoc.coll.set(coll, index, value) \| set index to value
@@ -574,7 +579,7 @@ apoc.convert.toInteger(value) \| tries it's best to convert the value to an inte
 |label:apoc-core[]
 |xref::overview/apoc.convert/apoc.convert.toJson.adoc[apoc.convert.toJson icon:book[]]
 
-apoc.convert.toJson([1,2,3]) or toJson({a:42,b:"foo",c:[1,2,3]})
+apoc.convert.toJson([1,2,3]) or toJson({a:42,b:"foo",c:[1,2,3]}) or toJson(NODE/REL/PATH)
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.convert/apoc.convert.toList.adoc[apoc.convert.toList icon:book[]]
@@ -636,7 +641,7 @@ apoc.convert.toStringList(value) \| tries it's best to convert the value to a li
 | Qualified Name | Type | Release
 |xref::overview/apoc.couchbase/apoc.couchbase.append.adoc[apoc.couchbase.append icon:book[]]
 
-apoc.couchbase.append(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - append a couchbase json document to an existing one.
+apoc.couchbase.append(hostOrKey, bucket, documentId, content) yield id, expiry, cas, mutationToken, content - append a couchbase json document to an existing one.
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.couchbase/apoc.couchbase.exists.adoc[apoc.couchbase.exists icon:book[]]
@@ -666,7 +671,7 @@ apoc.couchbase.posParamsQuery(hostOrKey, bucket, statement, params) yield queryR
 |label:apoc-full[]
 |xref::overview/apoc.couchbase/apoc.couchbase.prepend.adoc[apoc.couchbase.prepend icon:book[]]
 
-apoc.couchbase.prepend(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - prepend a couchbase json document to an existing one.
+apoc.couchbase.prepend(hostOrKey, bucket, documentId, content) yield id, expiry, cas, mutationToken, content - prepend a couchbase json document to an existing one.
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.couchbase/apoc.couchbase.query.adoc[apoc.couchbase.query icon:book[]]
@@ -786,6 +791,11 @@ apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB
 apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.virtualPath.adoc[apoc.create.virtualPath icon:book[]]
+
+apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.create/apoc.create.uuid.adoc[apoc.create.uuid icon:book[]]
 
 apoc.create.uuid() - creates an UUID
@@ -900,6 +910,11 @@ apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}
 apoc.cypher.runMany('cypher;\nstatements;',\{params},[{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.cypher/apoc.cypher.runSchema.adoc[apoc.cypher.runSchema icon:book[]]
+
+apoc.cypher.runSchema(statement, params) yield value - executes query schema statement with the given parameters
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.cypher/apoc.cypher.runSchemaFile.adoc[apoc.cypher.runSchemaFile icon:book[]]
 
 apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated
@@ -913,6 +928,11 @@ apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allow
 |xref::overview/apoc.cypher/apoc.cypher.runTimeboxed.adoc[apoc.cypher.runTimeboxed icon:book[]]
 
 apoc.cypher.runTimeboxed('cypherStatement',\{params}, timeout) - abort kernelTransaction after timeout ms if not finished
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.cypher/apoc.cypher.runWrite.adoc[apoc.cypher.runWrite icon:book[]]
+
+apoc.cypher.runWrite(statement, params) yield value - alias for apoc.cypher.doIt
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.cypher/apoc.cypher.runFirstColumn.adoc[apoc.cypher.runFirstColumn icon:book[]]
@@ -966,22 +986,22 @@ CALL apoc.date.expire(node,time,'time-unit') - expire node at specified time by 
 |label:apoc-full[]
 |xref::overview/apoc.date/apoc.date.expireIn.adoc[apoc.date.expireIn icon:book[]]
 
-CALL apoc.date.expire.in(node,time,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
+CALL apoc.date.expireIn(node,time,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.date/apoc.date.add.adoc[apoc.date.add icon:book[]]
 
-apoc.date.add(12345, 'ms', -365, 'd') given a timestamp in one time unit, adds a value of the specified time unit
+apoc.date.add(12345, 'ms', -365, 'd') - given a timestamp in one time unit, adds a value of the specified time unit
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.convert.adoc[apoc.date.convert icon:book[]]
 
-apoc.date.convert(12345, 'ms', 'd') convert a timestamp in one time unit into one of a different time unit
+apoc.date.convert(12345, 'ms', 'd') - convert a timestamp in one time unit into one of a different time unit
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.convertFormat.adoc[apoc.date.convertFormat icon:book[]]
 
-apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time', 'iso_date_time') convert a String of one date format into a String of another date format.
+apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time', 'iso_date_time') - convert a String of one date format into a String of another date format.
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.currentTimestamp.adoc[apoc.date.currentTimestamp icon:book[]]
@@ -1001,37 +1021,37 @@ apoc.date.fields('2012-12-23',('yyyy-MM-dd')) - return columns and a map represe
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.format.adoc[apoc.date.format icon:book[]]
 
-apoc.date.format(12345,('ms\|s\|m\|h\|d'),('yyyy-MM-dd HH:mm:ss zzz'),('TZ')) get string representation of time value optionally using the specified unit (default ms) using specified format (default ISO) and specified time zone (default current TZ)
+apoc.date.format(12345,('ms\|s\|m\|h\|d'),('yyyy-MM-dd HH:mm:ss zzz'),('TZ')) - get string representation of time value optionally using the specified unit (default ms) using specified format (default ISO) and specified time zone (default current TZ)
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.fromISO8601.adoc[apoc.date.fromISO8601 icon:book[]]
 
-apoc.date.fromISO8601('yyyy-MM-ddTHH:mm:ss.SSSZ') return number representation of time in EPOCH format
+apoc.date.fromISO8601('yyyy-MM-ddTHH:mm:ss.SSSZ') - return number representation of time in EPOCH format
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.parse.adoc[apoc.date.parse icon:book[]]
 
-apoc.date.parse('2012-12-23','ms\|s\|m\|h\|d','yyyy-MM-dd') parse date string using the specified format into the specified time unit
+apoc.date.parse('2012-12-23','ms\|s\|m\|h\|d','yyyy-MM-dd') - parse date string using the specified format into the specified time unit
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.parseAsZonedDateTime.adoc[apoc.date.parseAsZonedDateTime icon:book[]]
 
-apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') parse date string using the specified format to specified timezone
+apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') - parse date string using the specified format to specified timezone
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.systemTimezone.adoc[apoc.date.systemTimezone icon:book[]]
 
-apoc.date.systemTimezone() returns the system timezone display name
+apoc.date.systemTimezone() - returns the system timezone display name
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.toISO8601.adoc[apoc.date.toISO8601 icon:book[]]
 
-apoc.date.toISO8601(12345,('ms\|s\|m\|h\|d') return string representation of time in ISO8601 format
+apoc.date.toISO8601(12345,('ms\|s\|m\|h\|d') - return string representation of time in ISO8601 format
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.toYears.adoc[apoc.date.toYears icon:book[]]
 
-toYears(timestamp) or toYears(date[,format]) converts timestamp into floating point years
+toYears(timestamp) or toYears(date[,format]) - converts timestamp into floating point years
 |label:function[]
 |label:apoc-core[]
 |===
@@ -1446,10 +1466,42 @@ apoc.label.exists(element, label) - returns true or false related to label exist
 | Qualified Name | Type | Release
 |xref::overview/apoc.load/apoc.load.csv.adoc[apoc.load.csv icon:book[]]
 
-apoc.load.csv('url',\{config}) YIELD lineNo, list, map - load CSV fom URL as stream of values,
+apoc.load.csv('url',\{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
 |label:procedure[]
 |label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.csvParams.adoc[apoc.load.csvParams icon:book[]]
+
+apoc.load.csvParams('url', {httpHeader: value}, payload, \{config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,
+ config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
+
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.directory.adoc[apoc.load.directory icon:book[]]
+
+apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of all files in folder specified by urlDir or in import folder if urlDir string is empty or not specified
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.load/apoc.load.directory.async.add.adoc[apoc.load.directory.async.add icon:book[]]
+
+apoc.load.directory.async.add(name, cypher, pattern, urlDir, {}) YIELD name, status, pattern, cypher, urlDir, config, error - Add or replace a folder listener with a specific name, pattern and url directory that execute the specified cypher query when an event is triggered and return listener list
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.load/apoc.load.directory.async.list.adoc[apoc.load.directory.async.list icon:book[]]
+
+apoc.load.directory.async.list() YIELD name, status, pattern, cypher, urlDir, config, error - List of all folder listeners
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.load/apoc.load.directory.async.remove.adoc[apoc.load.directory.async.remove icon:book[]]
+
+apoc.load.directory.async.remove(name) YIELD name, status, pattern, cypher, urlDir, config, error - Remove a folder listener by name and return remaining listeners, if any
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.load/apoc.load.directory.async.removeAll.adoc[apoc.load.directory.async.removeAll icon:book[]]
+
+apoc.load.directory.async.removeAll() - Remove all folder listeners
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.driver.adoc[apoc.load.driver icon:book[]]
 
 apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database
@@ -1503,12 +1555,12 @@ apoc.load.xls('url','selector',\{config}) YIELD lineNo, list, map - load XLS fom
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.xml.adoc[apoc.load.xml icon:book[]]
 
-apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.
+apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.xmlSimple.adoc[apoc.load.xmlSimple icon:book[]]
 
-apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _children fields. This method does intentionally not work with XML mixed content.
+apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _children fields. This method does intentionally not work with XML mixed content.
 |label:procedure[]
 |label:apoc-core[]
 |===
@@ -1687,6 +1739,11 @@ apoc.map.sortedProperties(map, ignoreCase:true) - returns a list of key/value li
 apoc.map.submap(map,keys,[defaults],[fail=true])  - returns submap for keys or throws exception if one of the key doesn't exist and no default value given at that position
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.unflatten.adoc[apoc.map.unflatten icon:book[]]
+
+apoc.map.unflatten(map, delimiter:'.') yield map - unflat from items separated by delimiter string to nested items (reverse of apoc.map.flatten function)
+|label:function[]
+|label:apoc-core[]
 |xref::overview/apoc.map/apoc.map.updateTree.adoc[apoc.map.updateTree icon:book[]]
 
 apoc.map.updateTree(tree,key,[[value,\{data}]]) returns map - adds the \{data} map on each level of the nested tree, where the key-value pairs match
@@ -1793,9 +1850,19 @@ apoc.merge.relationship(startNode, relType,  identProps:{key:value, ...}, onCrea
 apoc.meta.data(\{config})  - examines a subset of the graph to provide a tabular meta information
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.data.of.adoc[apoc.meta.data.of icon:book[]]
+
+apoc.meta.data.of(\{graph}, \{config})  - examines a subset of the graph to provide a tabular meta information
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.graph.adoc[apoc.meta.graph icon:book[]]
 
 apoc.meta.graph - examines the full graph to create the meta-graph
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.meta/apoc.meta.graph.of.adoc[apoc.meta.graph.of icon:book[]]
+
+apoc.meta.graph.of(\{graph}, \{config})  - examines a subset of the graph to provide a graph meta information
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.graphSample.adoc[apoc.meta.graphSample icon:book[]]
@@ -1820,7 +1887,7 @@ apoc.meta.schema(\{config})  - examines a subset of the graph to provide a map-l
 |label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.stats.adoc[apoc.meta.stats icon:book[]]
 
-apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats \| returns the information stored in the transactional database statistics
+apoc.meta.stats yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats \| returns the information stored in the transactional database statistics
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.subGraph.adoc[apoc.meta.subGraph icon:book[]]
@@ -1930,6 +1997,11 @@ apoc.mongodb.first(host-or-key,db,collection,query,[compatibleValues=false\|true
 apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false\|true],skip-or-null,limit-or-null,[extractReferences=false\|true],[objectIdAsMap=true\|false]) yield value - perform a find operation on mongodb collection
 |label:procedure[]
 |label:apoc-full[]
+|xref::overview/apoc.mongodb/apoc.mongodb.get.byObjectId.adoc[apoc.mongodb.get.byObjectId icon:book[]]
+
+apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.mongodb/apoc.mongodb.insert.adoc[apoc.mongodb.insert icon:book[]]
 
 apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection
@@ -2167,7 +2239,7 @@ apoc.nodes.get(node\|nodes\|id\|[ids]) - quickly returns all nodes with these id
 |label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.link.adoc[apoc.nodes.link icon:book[]]
 
-apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last
+apoc.nodes.link([nodes],'REL_TYPE', conf) - creates a linked list of nodes from first to last
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.rels.adoc[apoc.nodes.rels icon:book[]]
@@ -2366,6 +2438,11 @@ apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cy
 apoc.periodic.submit('name',statement) - submit a one-off background statement
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.periodic/apoc.periodic.truncate.adoc[apoc.periodic.truncate icon:book[]]
+
+apoc.periodic.truncate(\{config}) - removes all entities (and optionally indexes and constraints) from db using the apoc.periodic.iterate under the hood
+|label:procedure[]
+|label:apoc-core[]
 |===
 
 == xref::overview/apoc.refactor/index.adoc[]
@@ -2401,6 +2478,11 @@ apoc.refactor.cloneSubgraphFromPaths([path1, path2, ...], {standinNodes:[], skip
 |xref::overview/apoc.refactor/apoc.refactor.collapseNode.adoc[apoc.refactor.collapseNode icon:book[]]
 
 apoc.refactor.collapseNode([node1,node2],'TYPE') collapse node to relationship, node with one rel becomes self-relationship
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.refactor/apoc.refactor.deleteAndReconnect.adoc[apoc.refactor.deleteAndReconnect icon:book[]]
+
+apoc.refactor.deleteAndReconnect([pathLinkedList], [nodesToRemove], \{config}) - Removes some nodes from a linked list
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.refactor/apoc.refactor.extractNode.adoc[apoc.refactor.extractNode icon:book[]]
@@ -2440,17 +2522,17 @@ apoc.refactor.rename.label(oldLabel, newLabel, [nodes]) \| rename a label from '
 |label:apoc-core[]
 |xref::overview/apoc.refactor/apoc.refactor.rename.nodeProperty.adoc[apoc.refactor.rename.nodeProperty icon:book[]]
 
-apoc.refactor.rename.nodeProperty(oldName, newName, [nodes]) \| rename all node's property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only
+apoc.refactor.rename.nodeProperty(oldName, newName, [nodes], \{config}) \| rename all node's property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.refactor/apoc.refactor.rename.type.adoc[apoc.refactor.rename.type icon:book[]]
 
-apoc.refactor.rename.type(oldType, newType, [rels]) \| rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only
+apoc.refactor.rename.type(oldType, newType, [rels], \{config}) \| rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.refactor/apoc.refactor.rename.typeProperty.adoc[apoc.refactor.rename.typeProperty icon:book[]]
 
-apoc.refactor.rename.typeProperty(oldName, newName, [rels]) \| rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only
+apoc.refactor.rename.typeProperty(oldName, newName, [rels], \{config}) \| rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.refactor/apoc.refactor.setType.adoc[apoc.refactor.setType icon:book[]]
@@ -2465,15 +2547,24 @@ apoc.refactor.setType(rel, 'NEW-TYPE') change relationship-type
 |label:apoc-core[]
 |===
 
-[discrete]
 == xref::overview/apoc.rel/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
 |===
 | Qualified Name | Type | Release
+|xref::overview/apoc.rel/apoc.rel.endNode.adoc[apoc.rel.endNode icon:book[]]
+
+returns endNode for (virtual) relationships
+|label:function[]
+|label:apoc-core[]
 |xref::overview/apoc.rel/apoc.rel.id.adoc[apoc.rel.id icon:book[]]
 
 returns id for (virtual) relationships
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.rel/apoc.rel.startNode.adoc[apoc.rel.startNode icon:book[]]
+
+returns startNode for (virtual) relationships
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.rel/apoc.rel.type.adoc[apoc.rel.type icon:book[]]
@@ -2991,7 +3082,6 @@ CALL apoc.trigger.resume(name) \| it resumes the paused trigger
 |label:apoc-full[]
 |===
 
-[discrete]
 == xref::overview/apoc.ttl/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
@@ -2999,14 +3089,19 @@ CALL apoc.trigger.resume(name) \| it resumes the paused trigger
 | Qualified Name | Type | Release
 |xref::overview/apoc.ttl/apoc.ttl.expire.adoc[apoc.ttl.expire icon:book[]]
 
-CALL apoc.ttl.expireAtInstant(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property
+CALL apoc.ttl.expire(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.ttl/apoc.ttl.expireIn.adoc[apoc.ttl.expireIn icon:book[]]
 
-CALL apoc.ttl.expireAfterTimeLength(node,timeDelta,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
+CALL apoc.ttl.expireIn(node,timeDelta,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
 |label:procedure[]
 |label:apoc-full[]
+|xref::overview/apoc.ttl/apoc.ttl.config.adoc[apoc.ttl.config icon:book[]]
+
+
+|label:function[]
+|label:apoc-core[]
 |===
 
 == xref::overview/apoc.util/index.adoc[]
@@ -3023,6 +3118,16 @@ apoc.util.sleep(<duration>) \| sleeps for <duration> millis, transaction termina
 
 apoc.util.validate(predicate, message, params) \| if the predicate yields to true raise an exception
 |label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.util/apoc.util.compress.adoc[apoc.util.compress icon:book[]]
+
+apoc.util.compress(string, \{config}) \| return a compressed byte[] in various format from a string
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.util/apoc.util.decompress.adoc[apoc.util.decompress icon:book[]]
+
+apoc.util.decompress(compressed, \{config}) \| return a string from a compressed byte[] in various format
+|label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.util/apoc.util.md5.adoc[apoc.util.md5 icon:book[]]
 

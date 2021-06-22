@@ -30,5 +30,3 @@ apoc.number.exact.toFloat(stringA :: STRING?, precision = 0 :: INTEGER?, roundin
 == Usage Examples
 include::partial$usage/apoc.number.exact.toFloat.adoc[]
 
-xref::mathematical/exact-math-functions.adoc[More documentation of apoc.number.exact.toFloat,role=more information]
-

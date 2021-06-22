@@ -1,0 +1,24 @@
+[source,cypher]
+----
+RETURN apoc.text.slug("Neo4j Aura") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "Neo4j-Aura"
+|===
+
+The default delimiter is `-`.
+We can, however, pass in a custom delimiter as the second parameter:
+
+[source,cypher]
+----
+RETURN apoc.text.slug("Neo4j Aura", ".") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "Neo4j.Aura"
+|===

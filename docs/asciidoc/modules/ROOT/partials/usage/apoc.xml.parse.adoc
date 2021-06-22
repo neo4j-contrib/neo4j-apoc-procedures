@@ -1,0 +1,14 @@
+The following parses an XML string into a Cypher map:
+
+[source,cypher]
+----
+WITH '<?xml version="1.0"?><table><tr><td><img src="pix/logo-tl.gif"></img></td></tr></table>' AS xmlString
+RETURN apoc.xml.parse(xmlString) AS value;
+----
+
+.Results
+[options="header"]
+|===
+| value
+| {_type: "table", _children: [{_type: "tr", _children: [{_type: "td", _children: [{_type: "img", src: "pix/logo-tl.gif"}]}]}]}
+|===

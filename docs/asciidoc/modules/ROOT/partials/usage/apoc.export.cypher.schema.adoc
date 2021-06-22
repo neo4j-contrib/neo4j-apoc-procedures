@@ -1,0 +1,29 @@
+The examples in this section are based on a database that has applied the following constraints:
+
+[source,cypher]
+----
+CREATE CONSTRAINT personName ON (person:Person)
+ASSERT person.name IS UNIQUE;
+
+CREATE CONSTRAINT userId ON (user:User)
+ASSERT user.id IS UNIQUE;
+----
+
+[source,cypher]
+----
+CALL apoc.export.cypher.schema()
+YIELD format, time, cypherStatements
+RETURN format, time, cypherStatements;
+----
+
+.Results
+[opts="header"]
+|===
+| format   | time | cypherStatements
+| "cypher" | 1    | ":begin
+CREATE CONSTRAINT ON (node:Person) ASSERT (node.name) IS UNIQUE;
+CREATE CONSTRAINT ON (node:User) ASSERT (node.id) IS UNIQUE;
+:commit
+CALL db.awaitIndexes(300);
+"
+|===

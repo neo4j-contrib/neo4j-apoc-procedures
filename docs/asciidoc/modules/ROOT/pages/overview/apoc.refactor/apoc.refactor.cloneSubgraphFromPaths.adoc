@@ -34,5 +34,7 @@ apoc.refactor.cloneSubgraphFromPaths(paths :: LIST? OF PATH?, config = {} :: MAP
 |error|STRING?
 |===
 
-xref::graph-updates/graph-refactoring/clone-nodes.adoc[More documentation of apoc.refactor.cloneSubgraphFromPaths,role=more information]
+[[usage-apoc.refactor.cloneSubgraphFromPaths]]
+== Usage Examples
+include::partial$usage/apoc.refactor.cloneSubgraphFromPaths.adoc[]
 

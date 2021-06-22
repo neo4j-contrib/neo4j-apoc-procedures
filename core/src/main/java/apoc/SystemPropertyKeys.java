@@ -13,6 +13,7 @@ public enum SystemPropertyKeys  {
     outputs,
     output,
     forceSingle,
+    prefix,
 
     // triggers
     selector,
@@ -21,5 +22,6 @@ public enum SystemPropertyKeys  {
 
     // uuid handler
     label,
+    addToSetLabel,
     propertyName;
 }

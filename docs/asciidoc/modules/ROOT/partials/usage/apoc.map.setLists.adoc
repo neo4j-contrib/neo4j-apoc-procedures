@@ -1,0 +1,26 @@
+The following updates a key in a map:
+
+[source,cypher]
+----
+RETURN apoc.map.setLists(
+    {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05")},
+    ["dob", "country"],
+    [date("1986-02-06"), "Spain"]
+) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+a|
+[source,json]
+----
+{
+  "name": "Cristiano Ronaldo",
+  "country": "Spain",
+  "dob": "1986-02-06"
+}
+----
+
+|===

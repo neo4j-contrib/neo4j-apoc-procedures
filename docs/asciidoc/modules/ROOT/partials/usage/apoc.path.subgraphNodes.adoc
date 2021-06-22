@@ -1,0 +1,320 @@
+The examples in this section are based on the following sample graph:
+
+include::partial$expand-config-sample-graph.adoc[]
+
+[[expand-subgraph-nodes-examples-label-relationship-filters]]
+=== Relationship Type and Node Label filters
+
+Let's start by expanding paths from the Praveena node.
+We only want to consider the `KNOWS` relationship type, so we'll specify that as the `relationshipFilter` parameter.
+
+.The following returns the people reachable by the `KNOWS` relationship at 1 to 2 hops from Praveena
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.subgraphNodes(p, {
+	relationshipFilter: "KNOWS",
+    minLevel: 1,
+    maxLevel: 2
+})
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person:Engineering {name: "Zhen"})
+| (:Person:Engineering {name: "Martin"})
+| (:Person:DevRel {name: "Lju"})
+| (:Person:Field {name: "Stefan"})
+|===
+
+4 people are reachable from Praveena.
+
+We can also provide a node label filter to restrict the nodes that are returned.
+If we want to only return paths where every node has the `Engineering` label, we'll provide the value `+Engineering` to the `labelFilter` parameter.
+
+.The following returns the `Engineering` people reachable by the `KNOWS` relationship at 1 to 2 hops from Praveena
+[source,cypher]
+----
+MATCH (p:Person {name: "Praveena"})
+CALL apoc.path.subgraphNodes(p, {
+	relationshipFilter: "KNOWS",
+	labelFilter: "+Engineering",
+    minLevel: 1,
+    maxLevel: 2
+})
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person:Engineering {name: "Zhen"})
+| (:Person:Engineering {name: "Martin"})
+|===
+
+We lose Lju and Stefan because those nodes don't have the `Engineering` label.
+
+We can specify multiple relationship types.
+The following query starts from the Alicia node, and then expands the `FOLLOWS` and `KNOWS` relationships:
+
+[[expand-subgraph-nodes-examples-label-relationship-filters-alicia-all]]
+.The following returns the people reachable by the `FOLLOWS` or `KNOWS` relationships at 1 to 3 hops from Alicia
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.subgraphNodes(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3
+})
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person:Sales {name: "Jonny"})
+| (:Person:Field {name: "Joe"})
+| (:Person:Product {name: "Jake"})
+| (:Person:Sales {name: "Anthony"})
+| (:Person:Engineering {name: "Praveena"})
+| (:Person:DevRel {name: "Mark"})
+| (:Person:Engineering {name: "Zhen"})
+| (:Person:Field {name: "Stefan"})
+| (:Person:Product {name: "John"})
+| (:Person:Engineering {name: "Martin"})
+| (:Person:DevRel {name: "Lju"})
+|===
+
+This list includes all but one of the people in our graph, which means that Alicia is very well connected.
+
+We can also specify traversal termination criteria using label filters.
+If we wanted to terminate a traversal as soon as the traversal encounters a node containing the `Engineering` label, we can use the `/Engineering` node filter.
+
+.The following returns the people reachable by the `FOLLOWS` or `KNOWS` relationships at 1 to 3 hops from Alicia, terminating as soon as a node with the `Engineering` label is reached
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.subgraphNodes(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    labelFilter: "/Engineering",
+    minLevel: 1,
+    maxLevel: 3
+})
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person:Engineering {name: "Zhen"})
+| (:Person:Engineering {name: "Praveena"})
+|===
+
+We're now down to only 2 people - Zhen and Praveena.
+But this query doesn't capture all of the paths from Alicia that end in a node with the `Engineering` label.
+We can use the `>Engineering` node filter to define a traversal that:
+
+* only returns nodes that have the `Engineering` label
+* continues expansion to end nodes after that, looking for more nodes that have the `Engineering` label
+
+.The following returns `Engineering` people reachable by the `FOLLOWS` or `KNOWS` relationships at 1 to 3 hops from Alicia
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+CALL apoc.path.subgraphNodes(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    labelFilter: ">Engineering",
+    minLevel: 1,
+    maxLevel: 3
+})
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person:Engineering {name: "Zhen"})
+| (:Person:Engineering {name: "Praveena"})
+| (:Person:Engineering {name: "Martin"})
+|===
+
+Our query now also returns Martin, who must have been reachable via either Zhen or Praveena.
+
+[[expand-subgraph-nodes-examples-end-nodes-terminator-nodes]]
+=== Terminator Nodes and End Nodes
+
+As well as specifying terminator and end labels for traversals, we can also specify terminator and end nodes.
+For this procedure, these parameters both behave the same way - the procedure will determine whether any of the nodes provided as terminator or end nodes are reachable from the start node.
+
+Let's build on the previous query that found people that Alicia `KNOWS` or `FOLLOWS`.
+We want to know whether there's a way to get from Alicia to Joe, which we can do by passing the Joe node to the `terminatorNodes` parameter.
+
+.The following returns the terminator nodes reachable by the `FOLLOWS` or `KNOWS` relationships at 1 to 3 hops from Alicia
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (joe:Person {name: "Joe"})
+CALL apoc.path.subgraphNodes(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    terminatorNodes: [joe]
+})
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person:Field {name: "Joe"})
+|===
+
+We do indeed have a path from Alicia to Joe.
+
+And we know from <<expand-subgraph-nodes-examples-label-relationship-filters-alicia-all, an earlier example>> that Alicia can actually reach all other nodes in the graph using the `KNOWS` or `FOLLOWS` relationships.
+But what if we want to determine whether Mark, Joe, Zhen, and Praveena are reachable using only the `KNOWS` relationship?
+
+.The following returns the end nodes reachable by the `KNOWS` relationships at 1 to 3 hops from Alicia
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (end:Person)
+WHERE end.name IN ["Mark", "Joe", "Zhen", "Praveena"]
+WITH p, collect(end) AS endNodes
+CALL apoc.path.subgraphNodes(p, {
+    relationshipFilter: "KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    endNodes: endNodes
+})
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person:DevRel {name: "Mark"})
+|===
+
+Only Mark is reachable!
+
+[[expand-subgraph-nodes-examples-whitelist-blacklist]]
+=== Whitelist Nodes and Blacklist Nodes
+
+Whitelist and blacklist nodes can also be specified.
+
+Let's build on the query that found people that Alicia `KNOWS` or `FOLLOWS`.
+We want to find the nodes reachable via paths that only include Jonny, Mark, or Zhen.
+We can do this by passing those odes to the parameter `whitelistNodes`.
+
+.The following returns nodes reachable by the `FOLLOWS` or `KNOWS` relationship types at 1 to 3 hops from Alicia, where the paths to those nodes must only include Mark, Jonny, or Zhen
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (whitelist:Person)
+WHERE whitelist.name IN ["Jonny", "Mark", "Zhen"]
+WITH p, collect(whitelist) AS whitelistNodes
+CALL apoc.path.subgraphNodes(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    whitelistNodes: whitelistNodes
+})
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person:Sales {name: "Jonny"})
+|===
+
+Only Jonny can be reached.
+We can therefore infer that Mark and Zhen are only reachable via another node that wasn't include in the whitelist.
+
+A blacklist is used to exclude nodes from the paths that lead to reachable nodes.
+If we want to return nodes that are reachable without going through Joe, we can do this by passing the Joe node to the `blacklistNodes` parameter.
+
+.The following returns nodes reachable by the `FOLLOWS` or `KNOWS` relationship types at 1 to 3 hops from Alicia, where the paths to those nodes do not go through Joe
+[source,cypher]
+----
+MATCH (p:Person {name: "Alicia"})
+MATCH (joe:Person {name: "Joe"})
+CALL apoc.path.subgraphNodes(p, {
+    relationshipFilter: "FOLLOWS>|KNOWS",
+    minLevel: 1,
+    maxLevel: 3,
+    blacklistNodes: [joe]
+})
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person:Sales {name: "Jonny"})
+| (:Person:Product {name: "Jake"})
+| (:Person:Sales {name: "Anthony"})
+| (:Person:DevRel {name: "Mark"})
+| (:Person:Field {name: "Stefan"})
+|===
+
+Only 5 nodes are reachable without going through the Joe node.
+If we remember back to <<expand-subgraph-nodes-examples-label-relationship-filters-alicia-all, an earlier example>>, 11 nodes were reachable when we didn't specify a blacklist.
+This indicates that Joe is an important connector in this graph.
+
+
+[[expand-subgraph-nodes-examples-sequence-rel-types]]
+=== Sequences of relationship types
+
+Sequences of relationship types can be specified by comma separating the values passed to `relationshipFilter`.
+
+For example, if we want to start from the Joe node and traverse a sequence of the `FOLLOWS` relationship in the outgoing direction and the `KNOWS` relationship in either direction, we can specify the relationship filter `FOLLOWS>,KNOWS`.
+
+.The following returns the reachable nodes by following the `FOLLOWS` and `KNOWS` relationship types alternately from Joe
+[source,cypher]
+----
+MATCH (p:Person {name: "Joe"})
+CALL apoc.path.subgraphNodes(p, {
+	relationshipFilter: "FOLLOWS>,KNOWS",
+	beginSequenceAtStart: true,
+	minLevel: 1,
+	maxLevel: 4
+})
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person:Engineering {name: "Praveena"})
+| (:Person:DevRel {name: "Mark"})
+| (:Person:Engineering {name: "Zhen"})
+| (:Person:Product {name: "Jake"})
+| (:Person:Engineering {name: "Martin"})
+| (:Person:DevRel {name: "Lju"})
+| (:Person:Field {name: "Stefan"})
+|===

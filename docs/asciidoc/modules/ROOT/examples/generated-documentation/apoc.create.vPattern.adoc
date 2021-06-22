@@ -1,0 +1,5 @@
+¦xref::overview/apoc.create/apoc.create.vPattern.adoc[apoc.create.vPattern icon:book[]] +
+
+`apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) returns a virtual pattern`
+¦label:procedure[]
+¦label:apoc-core[]

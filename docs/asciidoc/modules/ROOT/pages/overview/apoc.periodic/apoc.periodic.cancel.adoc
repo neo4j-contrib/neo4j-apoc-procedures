@@ -35,3 +35,7 @@ apoc.periodic.cancel(name :: STRING?) :: (name :: STRING?, delay :: INTEGER?, ra
 |cancelled|BOOLEAN?
 |===
 
+[[usage-apoc.periodic.cancel]]
+== Usage Examples
+include::partial$usage/apoc.periodic.cancel.adoc[]
+

@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.query.N1qlQueryResult;
+import com.couchbase.client.java.json.JsonObject;
+import com.couchbase.client.java.query.QueryResult;
 
 /**
  * Transports the list of {@link JsonObject}s retrieved by a N1QL query so that
@@ -19,7 +19,7 @@ import com.couchbase.client.java.query.N1qlQueryResult;
  * @author inserpio
  * 
  * @see CouchbaseUtils#convertToCouchbaseQueryResult(List)
- * @see N1qlQueryResult
+ * @see QueryResult
  */
 public class CouchbaseQueryResult {
 

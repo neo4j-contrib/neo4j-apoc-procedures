@@ -26,5 +26,7 @@ apoc.text.regreplace(text :: STRING?, regex :: STRING?, replacement :: STRING?) 
 |replacement|STRING?|null
 |===
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.regreplace,role=more information]
+[[usage-apoc.text.regreplace]]
+== Usage Examples
+include::partial$usage/apoc.text.regreplace.adoc[]
 

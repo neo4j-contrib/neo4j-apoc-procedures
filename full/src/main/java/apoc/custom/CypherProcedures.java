@@ -3,14 +3,18 @@ package apoc.custom;
 import apoc.Extended;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
-import org.neo4j.internal.kernel.api.procs.FieldSignature;
-import org.neo4j.internal.kernel.api.procs.Neo4jTypes;
 import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
 import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
+import org.neo4j.internal.kernel.api.procs.FieldSignature;
+import org.neo4j.internal.kernel.api.procs.Neo4jTypes;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Mode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,8 +49,9 @@ public class CypherProcedures {
      * allow to register proper return columns
      * allow to register mode
      */
-    @Procedure(value = "apoc.custom.asProcedure",mode = Mode.WRITE)
+    @Procedure(value = "apoc.custom.asProcedure",mode = Mode.WRITE, deprecatedBy = "apoc.custom.declareProcedure")
     @Description("apoc.custom.asProcedure(name, statement, mode, outputs, inputs, description) - register a custom cypher procedure")
+    @Deprecated
     public void asProcedure(@Name("name") String name, @Name("statement") String statement,
                             @Name(value = "mode",defaultValue = "read") String mode,
                             @Name(value= "outputs", defaultValue = "null") List<List<String>> outputs,
@@ -71,8 +76,9 @@ public class CypherProcedures {
     }
 
 
-    @Procedure(value = "apoc.custom.asFunction",mode = Mode.WRITE)
+    @Procedure(value = "apoc.custom.asFunction",mode = Mode.WRITE, deprecatedBy = "apoc.custom.declareFunction")
     @Description("apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description) - register a custom cypher function")
+    @Deprecated
     public void asFunction(@Name("name") String name, @Name("statement") String statement,
                            @Name(value= "outputs", defaultValue = "") String output,
                            @Name(value= "inputs", defaultValue = "null") List<List<String>> inputs,
@@ -104,7 +110,7 @@ public class CypherProcedures {
                 ProcedureSignature signature = procedureDescriptor.getSignature();
                 return new CustomProcedureInfo(
                         PROCEDURE,
-                        signature.name().name(),
+                        signature.name().toString().substring(PREFIX.length() + 1),
                         signature.description().orElse(null),
                         signature.mode().toString().toLowerCase(),
                         procedureDescriptor.getStatement(),
@@ -116,7 +122,7 @@ public class CypherProcedures {
                 UserFunctionSignature signature = userFunctionDescriptor.getSignature();
                 return new CustomProcedureInfo(
                         FUNCTION,
-                        signature.name().name(),
+                        signature.name().toString().substring(PREFIX.length() + 1),
                         signature.description().orElse(null),
                         null,
                         userFunctionDescriptor.getStatement(),

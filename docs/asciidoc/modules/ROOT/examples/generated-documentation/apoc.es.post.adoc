@@ -1,0 +1,5 @@
+¦xref::overview/apoc.es/apoc.es.post.adoc[apoc.es.post icon:book[]] +
+
+`apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value` - perform a POST operation on elastic search
+¦label:procedure[]
+¦label:apoc-full[]

@@ -1,0 +1,11 @@
+[source,cypher]
+----
+RETURN apoc.util.sha512(["Michael"]) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "e70bdf701bd91b2357ec83bd6fb74d602f2883beb6934de21c9bffa0fc0717a9ee6ef9327387ac2b3735a3be9796754a03941059405955999e2302b0ae7efeb6"
+|===

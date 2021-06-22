@@ -1,3 +1,5 @@
 ¦signature
+¦apoc.rel.endNode(rel :: RELATIONSHIP?) :: (NODE?)
 ¦apoc.rel.id(rel :: RELATIONSHIP?) :: (INTEGER?)
+¦apoc.rel.startNode(rel :: RELATIONSHIP?) :: (NODE?)
 ¦apoc.rel.type(rel :: RELATIONSHIP?) :: (STRING?)

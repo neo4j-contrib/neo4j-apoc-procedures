@@ -22,5 +22,9 @@ apoc.trigger.nodesByLabel(labelEntries :: ANY?, label :: STRING?) :: (LIST? OF A
 |label|STRING?|null
 |===
 
+[[usage-apoc.trigger.nodesByLabel]]
+== Usage Examples
+include::partial$usage/apoc.trigger.nodesByLabel.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.nodesByLabel,role=more information]
 

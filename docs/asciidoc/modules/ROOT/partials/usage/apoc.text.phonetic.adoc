@@ -1,0 +1,22 @@
+[source,cypher]
+----
+RETURN apoc.text.phonetic("Neo4j") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "N200"
+|===
+
+
+[source,cypher]
+----
+RETURN apoc.text.phonetic("GRANDstack: Build Fullstack GraphQL Applications With Ease") AS output;
+----
+.Results
+[opts="header"]
+|===
+| output
+| "G653B430F423G612A142W300E200"
+|===

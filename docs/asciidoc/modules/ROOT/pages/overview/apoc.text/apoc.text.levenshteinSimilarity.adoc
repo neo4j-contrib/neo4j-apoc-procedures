@@ -25,5 +25,7 @@ apoc.text.levenshteinSimilarity(text1 :: STRING?, text2 :: STRING?) :: (FLOAT?)
 |text2|STRING?|null
 |===
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.levenshteinSimilarity,role=more information]
+[[usage-apoc.text.levenshteinSimilarity]]
+== Usage Examples
+include::partial$usage/apoc.text.levenshteinSimilarity.adoc[]
 

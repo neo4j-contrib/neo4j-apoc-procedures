@@ -25,3 +25,7 @@ apoc.json.path(json :: STRING?, path = $ :: STRING?) :: (ANY?)
 |path|STRING?|$
 |===
 
+[[usage-apoc.json.path]]
+== Usage Examples
+include::partial$usage/apoc.json.path.adoc[]
+

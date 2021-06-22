@@ -24,5 +24,7 @@ apoc.text.phonetic(value :: STRING?) :: (STRING?)
 |value|STRING?|null
 |===
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.phonetic,role=more information]
+[[usage-apoc.text.phonetic]]
+== Usage Examples
+include::partial$usage/apoc.text.phonetic.adoc[]
 

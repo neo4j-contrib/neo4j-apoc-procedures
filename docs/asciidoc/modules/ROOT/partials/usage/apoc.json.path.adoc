@@ -1,0 +1,19 @@
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+CREATE (:Person {json:'{a:[1,2,3]}'});
+----
+
+[source, cypher]
+----
+MATCH (p:Person)
+RETURN apoc.json.path(p.json, "$.a") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| [1, 2, 3]
+|===

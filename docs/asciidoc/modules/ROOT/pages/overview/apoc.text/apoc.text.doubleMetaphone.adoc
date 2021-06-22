@@ -24,5 +24,7 @@ apoc.text.doubleMetaphone(value :: STRING?) :: (STRING?)
 |value|STRING?|null
 |===
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.doubleMetaphone,role=more information]
+[[usage-apoc.text.doubleMetaphone]]
+== Usage Examples
+include::partial$usage/apoc.text.doubleMetaphone.adoc[]
 

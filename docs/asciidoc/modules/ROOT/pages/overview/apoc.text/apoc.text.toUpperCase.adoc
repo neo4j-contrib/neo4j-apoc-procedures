@@ -28,5 +28,3 @@ apoc.text.toUpperCase(text :: STRING?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.text.toUpperCase.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.toUpperCase,role=more information]
-

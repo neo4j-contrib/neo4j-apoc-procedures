@@ -36,5 +36,7 @@ apoc.periodic.submit(name :: STRING?, statement :: STRING?) :: (name :: STRING?,
 |cancelled|BOOLEAN?
 |===
 
-xref::background-operations/periodic-background.adoc[More documentation of apoc.periodic.submit,role=more information]
+[[usage-apoc.periodic.submit]]
+== Usage Examples
+include::partial$usage/apoc.periodic.submit.adoc[]
 

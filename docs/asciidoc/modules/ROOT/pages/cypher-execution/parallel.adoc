@@ -6,19 +6,17 @@
 This section describes procedures and functions for parallel execution of Cypher statements.
 --
 
-This section includes:
-
-* <<parallel-cypher-execution-overview>>
 
 [[parallel-cypher-execution-overview]]
 == Procedure and Function Overview
 
 The available procedures and functions are described below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.cypher.parallel.csv[]
-include::example$generated-documentation/apoc.cypher.parallel2.csv[lines=2:]
-include::example$generated-documentation/apoc.cypher.mapParallel.csv[lines=2:]
-include::example$generated-documentation/apoc.cypher.mapParallel2.csv[lines=2:]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.cypher.parallel.adoc[]
+include::example$generated-documentation/apoc.cypher.parallel2.adoc[]
+include::example$generated-documentation/apoc.cypher.mapParallel.adoc[]
+include::example$generated-documentation/apoc.cypher.mapParallel2.adoc[]
 |===

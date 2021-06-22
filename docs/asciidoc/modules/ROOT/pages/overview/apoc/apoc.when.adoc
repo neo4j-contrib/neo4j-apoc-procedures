@@ -34,5 +34,9 @@ apoc.when(condition :: BOOLEAN?, ifQuery :: STRING?, elseQuery =  :: STRING?, pa
 |value|MAP?
 |===
 
+[[usage-apoc.when]]
+== Usage Examples
+include::partial$usage/apoc.when.adoc[]
+
 xref::cypher-execution/conditionals.adoc[More documentation of apoc.when,role=more information]
 

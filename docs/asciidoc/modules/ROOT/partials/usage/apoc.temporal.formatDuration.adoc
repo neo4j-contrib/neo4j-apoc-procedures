@@ -1,0 +1,25 @@
+This function formats durations using a https://www.elastic.co/guide/en/elasticsearch/reference/5.5/mapping-date-format.html#built-in-date-formats[list of built-in formats^].
+
+[source,cypher]
+----
+RETURN apoc.temporal.formatDuration(duration({seconds: 6000}), "hour") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "01"
+|===
+
+[source,cypher]
+----
+RETURN apoc.temporal.formatDuration( duration({seconds: 10000}), "hour_minute") AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "02:46"
+|===

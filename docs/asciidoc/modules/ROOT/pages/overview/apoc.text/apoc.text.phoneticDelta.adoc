@@ -34,5 +34,7 @@ apoc.text.phoneticDelta(text1 :: STRING?, text2 :: STRING?) :: (phonetic1 :: STR
 |delta|INTEGER?
 |===
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.phoneticDelta,role=more information]
+[[usage-apoc.text.phoneticDelta]]
+== Usage Examples
+include::partial$usage/apoc.text.phoneticDelta.adoc[]
 

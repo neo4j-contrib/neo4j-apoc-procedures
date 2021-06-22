@@ -4,9 +4,11 @@
 
 
 
-CSV files that comply with the https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/[Neo4j import tool's header format] can be imported using the `apoc.import.csv` procedure.
+CSV files that comply with the link:https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/#import-tool-header-format/[Neo4j import tool's header format] can be imported using the `apoc.import.csv` procedure.
 This procedure can be used to load small- to medium-sized data sets in an online database.
-For importing larger data sets, it is recommended to perform a batch import using the (https://neo4j.com/docs/operations-manual/current/tools/import/[import tool], which loads data in bulk to an offline (initially empty) database.
+For importing larger data sets, it is recommended to perform a batch import using the link:https://neo4j.com/docs/operations-manual/current/tools/import/[import tool], which loads data in bulk to an offline (initially empty) database.
+
+This procedure should not be confused with the xref::import/load-csv.adoc[`apoc.load.csv` procedure] which loads the lines of the CSV file to lists/maps (to be used to create the entities in the database).
 
 == Usage
 
@@ -90,6 +92,6 @@ CALL apoc.import.csv(
 
 The loader supports advanced features of the import tool:
 
-* _ID spaces_ are supported, using the link:https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-id-spaces[import tool's syntax].
+* _ID spaces_ are supported, using the link:https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/#import-tool-header-format[import tool's syntax].
 * Node labels can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-header-format-nodes[`:LABEL`] field.
 * Relationship types can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-header-format-rels[`:TYPE`] field.

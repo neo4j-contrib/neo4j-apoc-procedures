@@ -1,6 +1,7 @@
 package apoc.periodic;
 
 import apoc.util.Util;
+import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.procedure.TerminationGuard;
 
 import java.util.ArrayList;
@@ -26,6 +27,14 @@ public class BatchAndTotalCollector {
     private Map<String, List<Map<String, Object>>> failedParamsMap = new ConcurrentHashMap<>();
     private final boolean wasTerminated;
 
+    private AtomicLong nodesCreated = new AtomicLong();
+    private AtomicLong nodesDeleted = new AtomicLong();
+    private AtomicLong relationshipsCreated = new AtomicLong();
+    private AtomicLong relationshipsDeleted = new AtomicLong();
+    private AtomicLong propertiesSet = new AtomicLong();
+    private AtomicLong labelsAdded = new AtomicLong();
+    private AtomicLong labelsRemoved = new AtomicLong();
+
     public BatchAndTotalCollector(TerminationGuard terminationGuard, int failedParams) {
         this.failedParams = failedParams;
         wasTerminated = Util.transactionIsTerminated(terminationGuard);
@@ -33,7 +42,18 @@ public class BatchAndTotalCollector {
 
     public BatchAndTotalResult getResult() {
         long timeTaken = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
-        return new BatchAndTotalResult(batches.get(), count.get(), timeTaken, successes, failedOps.get(), failedBatches.get(), retried.get(), operationErrors, batchErrors, wasTerminated, failedParamsMap);
+        Map<String, Long> updateStatistics = new HashMap<>();
+        updateStatistics.put("nodesCreated", nodesCreated.get());
+        updateStatistics.put("nodesDeleted", nodesDeleted.get());
+        updateStatistics.put("relationshipsCreated", relationshipsCreated.get());
+        updateStatistics.put("relationshipsDeleted", relationshipsDeleted.get());
+        updateStatistics.put("propertiesSet", propertiesSet.get());
+        updateStatistics.put("labelsAdded", labelsAdded.get());
+        updateStatistics.put("labelsRemoved", labelsRemoved.get());
+
+        return new BatchAndTotalResult(batches.get(), count.get(), timeTaken, successes, failedOps.get(),
+                failedBatches.get(), retried.get(), operationErrors, batchErrors, wasTerminated,
+                failedParamsMap, updateStatistics);
     }
 
     public long getBatches() {
@@ -87,5 +107,15 @@ public class BatchAndTotalCollector {
 
     public void incrementRetried() {
         retried.incrementAndGet();
+    }
+
+    public void updateStatistics(QueryStatistics stats) {
+        nodesCreated.addAndGet(stats.getNodesCreated());
+        nodesDeleted.addAndGet(stats.getNodesDeleted());
+        relationshipsCreated.addAndGet(stats.getRelationshipsCreated());
+        relationshipsDeleted.addAndGet(stats.getRelationshipsDeleted());
+        propertiesSet.addAndGet(stats.getPropertiesSet());
+        labelsAdded.addAndGet(stats.getLabelsAdded());
+        labelsRemoved.addAndGet(stats.getLabelsRemoved());
     }
 }

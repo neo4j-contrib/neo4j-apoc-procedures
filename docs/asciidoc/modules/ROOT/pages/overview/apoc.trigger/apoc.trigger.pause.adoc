@@ -39,5 +39,9 @@ apoc.trigger.pause(name :: STRING?) :: (name :: STRING?, query :: STRING?, selec
 == Enable Triggers
 include::partial$triggers.adoc[]
 
+[[usage-apoc.trigger.pause]]
+== Usage Examples
+include::partial$usage/apoc.trigger.pause.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.pause,role=more information]
 

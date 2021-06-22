@@ -28,5 +28,3 @@ apoc.text.swapCase(text :: STRING?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.text.swapCase.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.swapCase,role=more information]
-

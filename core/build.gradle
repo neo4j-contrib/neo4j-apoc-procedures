@@ -1,5 +1,3 @@
-import org.gradle.api.internal.artifacts.DefaultExcludeRule
-
 plugins {
     id 'java'
     id "com.bmuschko.nexus"
@@ -46,6 +44,7 @@ dependencies {
     compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     testCompile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
+    compile group: 'net.minidev', name: 'json-smart', version: '2.4.2'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
 
     antlr "org.antlr:antlr4:4.7.2", {
@@ -105,7 +104,7 @@ dependencies {
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
 
     testCompile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.3'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.5.1'
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compile group: 'com.opencsv', name: 'opencsv', version: '4.6'
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
@@ -117,6 +116,9 @@ dependencies {
     compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.7.5', withoutServers
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+    // explicit update comomns.io version
+    compile group: 'commons-io', name: 'commons-io', version: '2.9.0'
+
     //compileOnly group: 'org.apache.commons', name: 'commons-text', version: '1.7'
 //    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
 //    jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
@@ -134,7 +136,7 @@ dependencies {
     }
 
     // there is a compatibility problem between the Guava Library used by HDFS, Google Cloud Storage and Reflections; the only version that fits for all is the following
-    testCompile group: 'com.google.guava', name: 'guava', version: '20.0'
+    compile group: 'com.google.guava', name: 'guava', version: '20.0'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
@@ -142,8 +144,8 @@ dependencies {
 }
 
 
-// tweaks for travis
-if (System.env.TRAVIS == 'true') {
+// tweaks for CI
+if (System.env.CI == 'true') {
   allprojects {
     tasks.withType(GroovyCompile) {
       groovyOptions.fork = false

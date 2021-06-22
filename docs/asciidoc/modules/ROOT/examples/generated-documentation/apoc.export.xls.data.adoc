@@ -1,0 +1,5 @@
+¦xref::overview/apoc.export.xls/apoc.export.xls.data.adoc[apoc.export.xls.data icon:book[]] +
+
+`apoc.export.xls.data(nodes,rels,file,config)` - exports given nodes and relationships as xls to the provided file
+¦label:procedure[]
+¦label:apoc-full[]

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.load/apoc.load.ldap.adoc[apoc.load.ldap icon:book[]] +
+
+`apoc.load.ldap("key" or \{connectionMap},\{searchMap}) Load entries from an ldap source (yield entry)`
+¦label:procedure[]
+¦label:apoc-full[]

@@ -45,3 +45,10 @@ apoc.export.xls.data(nodes :: LIST? OF NODE?, rels :: LIST? OF RELATIONSHIP?, fi
 |data|STRING?
 |===
 
+== Install Dependencies
+include::partial$xls-dependencies.adoc[]
+
+[[usage-apoc.export.xls.data]]
+== Usage Examples
+include::partial$usage/apoc.export.xls.data.adoc[]
+

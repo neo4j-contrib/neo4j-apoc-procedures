@@ -13,18 +13,19 @@ We can use Cypher as a safe, graph-aware, partially compiled scripting language 
 
 The supported procedures are described in the table below:
 
-[separator=¦,opts=header,cols="1,1m,1m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-include::example$generated-documentation/apoc.cypher.doIt.csv[]
-include::example$generated-documentation/apoc.cypher.run.csv[lines=2:]
-include::example$generated-documentation/apoc.cypher.runMany.csv[lines=2:]
-include::example$generated-documentation/apoc.cypher.parallel.csv[lines=2:]
-include::example$generated-documentation/apoc.cypher.parallel2.csv[lines=2:]
-include::example$generated-documentation/apoc.cypher.mapParallel.csv[lines=2:]
-include::example$generated-documentation/apoc.cypher.mapParallel2.csv[lines=2:]
-include::example$generated-documentation/apoc.cypher.runFirstColumn.csv[lines=2:]
-include::example$generated-documentation/apoc.cypher.runFirstColumnMany.csv[lines=2:]
-include::example$generated-documentation/apoc.cypher.runFirstColumnSingle.csv[lines=2:]
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.cypher.doIt.adoc[]
+include::example$generated-documentation/apoc.cypher.run.adoc[]
+include::example$generated-documentation/apoc.cypher.runMany.adoc[]
+include::example$generated-documentation/apoc.cypher.parallel.adoc[]
+include::example$generated-documentation/apoc.cypher.parallel2.adoc[]
+include::example$generated-documentation/apoc.cypher.mapParallel.adoc[]
+include::example$generated-documentation/apoc.cypher.mapParallel2.adoc[]
+include::example$generated-documentation/apoc.cypher.runFirstColumn.adoc[]
+include::example$generated-documentation/apoc.cypher.runFirstColumnMany.adoc[]
+include::example$generated-documentation/apoc.cypher.runFirstColumnSingle.adoc[]
 |===
 
 

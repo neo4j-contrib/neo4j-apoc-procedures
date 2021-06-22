@@ -26,3 +26,7 @@ apoc.convert.setJsonProperty(node :: NODE?, key :: STRING?, value :: ANY?) :: VO
 |value|ANY?|null
 |===
 
+[[usage-apoc.convert.setJsonProperty]]
+== Usage Examples
+include::partial$usage/apoc.convert.setJsonProperty.adoc[]
+

@@ -28,5 +28,3 @@ apoc.text.capitalizeAll(text :: STRING?) :: (STRING?)
 == Usage Examples
 include::partial$usage/apoc.text.capitalizeAll.adoc[]
 
-xref::misc/text-functions.adoc[More documentation of apoc.text.capitalizeAll,role=more information]
-

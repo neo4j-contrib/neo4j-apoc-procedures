@@ -10,3 +10,24 @@ return apoc.convert.toIntList(["1", "2", "3"]) AS output;
 | Output
 | [1, 2, 3]
 |===
+
+[NOTE]
+====
+This function has been deprecated and will be removed in version 5.0. This functionality is replaced by Neo4j's `toIntegerList()` which has similar functionality.
+The following table is intended to assist migration by highlighting the differences:
+====
+
+.Migration Path to toIntegerList()
+[opts="header", cols="3"]
+|===
+|Input|`apoc.convert.toIntList()`|`toIntegerList()`
+|`null`|`null`|`null`
+|`["1","2","c"]` | `[1, 2, NULL]` | `[1, 2, NULL]`
+|`null`|`null`|`null`
+|`[null]`|`[null]`|`[null]`
+|`[1.0, 1.4, 1.9]`|`[1, 1, 1]`|`[1, 1, 1]`
+|`[[1.0,1.4,1.9]]`|`[null]`|`[null]`
+|`[true,false,true]`|`[null, null, null`]|`[1, 0, 1]`
+|"not-a-list"|`[null]`|Error
+|{a:"map"}|`[null]`|Error
+|===

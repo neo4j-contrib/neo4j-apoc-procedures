@@ -25,3 +25,7 @@ apoc.map.setPairs(map :: MAP?, pairs :: LIST? OF LIST? OF ANY?) :: (MAP?)
 |pairs|LIST? OF LIST? OF ANY?|null
 |===
 
+[[usage-apoc.map.setPairs]]
+== Usage Examples
+include::partial$usage/apoc.map.setPairs.adoc[]
+

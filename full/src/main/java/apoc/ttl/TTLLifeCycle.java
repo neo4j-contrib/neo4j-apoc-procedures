@@ -1,9 +1,9 @@
 package apoc.ttl;
 
 import apoc.ApocConfig;
-import apoc.Extended;
+import apoc.TTLConfig;
 import apoc.util.Util;
-import org.neo4j.graphdb.QueryStatistics;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
@@ -11,6 +11,7 @@ import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -27,28 +28,24 @@ public class TTLLifeCycle extends LifecycleAdapter {
     private final ApocConfig apocConfig;
     private JobHandle ttlIndexJobHandle;
     private JobHandle ttlJobHandle;
+    private TTLConfig ttlConfig;
     private Log log;
 
-    public TTLLifeCycle(JobScheduler scheduler, GraphDatabaseAPI db, ApocConfig apocConfig, Log log) {
+    public TTLLifeCycle(JobScheduler scheduler, GraphDatabaseAPI db, ApocConfig apocConfig, TTLConfig ttlConfig, Log log) {
         this.scheduler = scheduler;
         this.db = db;
         this.apocConfig = apocConfig;
+        this.ttlConfig = ttlConfig;
         this.log = log;
     }
 
     @Override
     public void start() {
-        String apocTTLEnabledDb = String.format(ApocConfig.APOC_TTL_ENABLED_DB, this.db.databaseName());
-        String apocTTLScheduleDb = String.format(ApocConfig.APOC_TTL_SCHEDULE_DB, this.db.databaseName());
-        String apocTTLLimitDb = String.format(ApocConfig.APOC_TTL_LIMIT_DB, this.db.databaseName());
-        boolean enabled = apocConfig.getBoolean(ApocConfig.APOC_TTL_ENABLED);
-        boolean dbEnabled = apocConfig.getConfig().getBoolean(apocTTLEnabledDb, enabled);
-        if (dbEnabled) {
-            long ttlSchedule = apocConfig.getConfig().getInt(ApocConfig.APOC_TTL_SCHEDULE, DEFAULT_SCHEDULE);
-            long ttlScheduleDb = apocConfig.getConfig().getInt(apocTTLScheduleDb, (int) ttlSchedule);
+        TTLConfig.Values configValues = ttlConfig.configFor(db);
+        if(configValues.enabled) {
+            long ttlScheduleDb = configValues.schedule;
             ttlIndexJobHandle = scheduler.schedule(TTL_GROUP, this::createTTLIndex, (int)(ttlScheduleDb*0.8), TimeUnit.SECONDS);
-            long limit = apocConfig.getInt(ApocConfig.APOC_TTL_LIMIT, 1000);
-            long limitDb = apocConfig.getInt(apocTTLLimitDb, (int) limit);
+            long limitDb = configValues.limit;
             ttlJobHandle = scheduler.scheduleRecurring(TTL_GROUP, () -> expireNodes(limitDb), ttlScheduleDb, ttlScheduleDb, TimeUnit.SECONDS);
         }
     }
@@ -56,15 +53,25 @@ public class TTLLifeCycle extends LifecycleAdapter {
     public void expireNodes(long limit) {
         try {
             if (!Util.isWriteableInstance(db)) return;
-            db.executeTransactionally("MATCH (t:TTL) where t.ttl < timestamp() WITH t LIMIT $limit DETACH DELETE t",
-                    Util.map("limit", limit),
-                    result -> {
-                        QueryStatistics stats = result.getQueryStatistics();
-                        if (stats.getNodesDeleted()>0) {
-                            log.info("TTL: Expired %d nodes %d relationships", stats.getNodesDeleted(), stats.getRelationshipsDeleted());
-                        }
-                        return null;
-                    });
+            String matchTTL = "MATCH (t:TTL) WHERE t.ttl < timestamp() ";
+            String queryRels = matchTTL + "WITH t MATCH (t)-[r]-() RETURN id(r) as id";
+            String queryNodes = matchTTL +  "RETURN id(t) as id";
+            Map<String,Object> params = Util.map("batchSize", limit, "queryRels", queryRels, "queryNodes", queryNodes);
+            long relationshipsDeleted = db.executeTransactionally(
+                    "CALL apoc.periodic.iterate($queryRels, 'MATCH ()-[r]->() WHERE id(r) = id DELETE r', {batchSize: $batchSize})",
+                    params,
+                    result -> Iterators.single(result.columnAs("total"))
+            );
+
+            long nodesDeleted = db.executeTransactionally(
+                    "CALL apoc.periodic.iterate($queryNodes, 'MATCH (n) WHERE id(n) = id DELETE n', {batchSize: $batchSize})",
+                    params,
+                    result -> Iterators.single(result.columnAs("total"))
+            );
+
+            if (nodesDeleted > 0) {
+                log.info("TTL: Expired %d nodes %d relationships", nodesDeleted, relationshipsDeleted);
+            }
         } catch (Exception e) {
             log.error("TTL: Error deleting expired nodes", e);
         }
