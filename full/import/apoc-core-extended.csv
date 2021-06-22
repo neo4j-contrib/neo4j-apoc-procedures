@@ -10,15 +10,7 @@ apoc.agg.percentiles,CORE
 apoc.agg.product,CORE
 apoc.agg.slice,CORE
 apoc.agg.statistics,CORE
-apoc.algo.allSimplePaths,CORE
-apoc.algo.aStar,CORE
-apoc.algo.aStarConfig,CORE
-apoc.algo.cosineSimilarity,EXTENDED
 apoc.algo.cover,CORE
-apoc.algo.dijkstra,CORE
-apoc.algo.dijkstraWithDefaultWeight,CORE
-apoc.algo.euclideanDistance,EXTENDED
-apoc.algo.euclideanSimilarity,EXTENDED
 apoc.any.properties,CORE
 apoc.any.property,CORE
 apoc.atomic.add,CORE

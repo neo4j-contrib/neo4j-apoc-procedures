@@ -1,2 +1,6 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.example.movies¦apoc.example.movies() :: (file :: STRING?, source :: STRING?, format :: STRING?, nodes :: INTEGER?, relationships :: INTEGER?, properties :: INTEGER?, time :: INTEGER?, rows :: INTEGER?, batchSize :: INTEGER?, batches :: INTEGER?, done :: BOOLEAN?, data :: STRING?)¦apoc.example.movies() | Creates the sample movies graph
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.example/apoc.example.adoc[apoc.example.movies icon:book[]]
+
+apoc.example.movies() \| Creates the sample movies graph
+|label:procedure[]
+|label:apoc-core[]

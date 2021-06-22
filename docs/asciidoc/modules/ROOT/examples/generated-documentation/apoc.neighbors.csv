@@ -1,4 +1,16 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.neighbors.athop¦apoc.neighbors.athop(node :: NODE?, types =  :: STRING?, distance = 1 :: INTEGER?) :: (node :: NODE?)¦apoc.neighbors.athop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern at a distance, can use '>' or '<' for all outgoing or incoming relationships
-¦procedure¦apoc.neighbors.byhop¦apoc.neighbors.byhop(node :: NODE?, types =  :: STRING?, distance = 1 :: INTEGER?) :: (nodes :: LIST? OF NODE?)¦apoc.neighbors.byhop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern at each distance, can use '>' or '<' for all outgoing or incoming relationships
-¦procedure¦apoc.neighbors.tohop¦apoc.neighbors.tohop(node :: NODE?, types =  :: STRING?, distance = 1 :: INTEGER?) :: (node :: NODE?)¦apoc.neighbors.tohop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern up to a certain distance, can use '>' or '<' for all outgoing or incoming relationships
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.neighbors/apoc.neighbors.adoc[apoc.neighbors.athop icon:book[]]
+
+apoc.neighbors.athop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern at a distance, can use '>' or '<' for all outgoing or incoming relationships
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.neighbors/apoc.neighbors.adoc[apoc.neighbors.byhop icon:book[]]
+
+apoc.neighbors.byhop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern at each distance, can use '>' or '<' for all outgoing or incoming relationships
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.neighbors/apoc.neighbors.adoc[apoc.neighbors.tohop icon:book[]]
+
+apoc.neighbors.tohop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern up to a certain distance, can use '>' or '<' for all outgoing or incoming relationships
+|label:procedure[]
+|label:apoc-core[]

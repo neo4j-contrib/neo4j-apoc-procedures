@@ -22,6 +22,6 @@ CALL apoc.ttl.expireIn(node,timeDelta,'time-unit') - expire node after specified
 
 
 |label:function[]
-|label:apoc-core[]
+|label:apoc-full[]
 |===
 
