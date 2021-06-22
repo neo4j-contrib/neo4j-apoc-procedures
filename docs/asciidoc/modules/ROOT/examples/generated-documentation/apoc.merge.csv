@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.merge.node¦apoc.merge.node(label :: LIST? OF STRING?, identProps :: MAP?, props = {} :: MAP?, onMatchProps = {} :: MAP?) :: (node :: NODE?)¦"apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) - merge nodes with dynamic labels, with support for setting properties ON CREATE or ON MATCH
-¦procedure¦apoc.merge.relationship¦apoc.merge.relationship(startNode :: NODE?, relationshipType :: STRING?, identProps :: MAP?, props :: MAP?, endNode :: NODE?, onMatchProps = {} :: MAP?) :: (rel :: RELATIONSHIP?)¦apoc.merge.relationship(startNode, relType,  identProps:{key:value, ...}, onCreateProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...}) - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.merge/apoc.merge.adoc[apoc.merge.node icon:book[]]
+
+"apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) - merge nodes with dynamic labels, with support for setting properties ON CREATE or ON MATCH
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.merge/apoc.merge.adoc[apoc.merge.relationship icon:book[]]
+
+apoc.merge.relationship(startNode, relType,  identProps:{key:value, ...}, onCreateProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...}) - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH
+|label:procedure[]
+|label:apoc-core[]

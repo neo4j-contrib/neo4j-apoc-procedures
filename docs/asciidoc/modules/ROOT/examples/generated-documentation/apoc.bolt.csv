@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.bolt.execute¦apoc.bolt.execute(url :: STRING?, kernelTransaction :: STRING?, params = {} :: MAP?, config = {} :: MAP?) :: (row :: MAP?)¦apoc.bolt.execute(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read
-¦procedure¦apoc.bolt.load¦apoc.bolt.load(url :: STRING?, kernelTransaction :: STRING?, params = {} :: MAP?, config = {} :: MAP?) :: (row :: MAP?)¦apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.bolt/apoc.bolt.adoc[apoc.bolt.execute icon:book[]]
+
+apoc.bolt.execute(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.bolt/apoc.bolt.adoc[apoc.bolt.load icon:book[]]
+
+apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read
+|label:procedure[]
+|label:apoc-full[]

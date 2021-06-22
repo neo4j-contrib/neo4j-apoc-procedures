@@ -1,6 +1,26 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.search.multiSearchReduced¦apoc.search.multiSearchReduced(LabelPropertyMap :: ANY?, operator :: STRING?, value :: STRING?) :: (id :: INTEGER?, labels :: LIST? OF STRING?, values :: MAP?)¦Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched properties. apoc.search.multiSearchReduced( map of label and properties which will be searched upon, operator: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ). Multiple search results for the same node are merged into one record.
-¦procedure¦apoc.search.node¦apoc.search.node(LabelPropertyMap :: ANY?, operator :: STRING?, value :: STRING?) :: (node :: NODE?)¦Do a parallel search over multiple indexes returning nodes. usage apoc.search.node( map of label and properties which will be searched upon, operator: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ) returns all the DISTINCT Nodes found in the different searches.
-¦procedure¦apoc.search.nodeAll¦apoc.search.nodeAll(LabelPropertyMap :: ANY?, operator :: STRING?, value :: STRING?) :: (node :: NODE?)¦Do a parallel search over multiple indexes returning nodes. usage apoc.search.nodeAll( map of label and properties which will be searched upon, operator: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ) returns all the Nodes found in the different searches.
-¦procedure¦apoc.search.nodeAllReduced¦apoc.search.nodeAllReduced(LabelPropertyMap :: ANY?, operator :: STRING?, value :: ANY?) :: (id :: INTEGER?, labels :: LIST? OF STRING?, values :: MAP?)¦Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched property. apoc.search.nodeShortAll( map of label and properties which will be searched upon, operator: EXACT / CONTAINS / STARTS WITH | ENDS WITH / = / <> / < / > ..., value ). All 'hits' are returned.
-¦procedure¦apoc.search.nodeReduced¦apoc.search.nodeReduced(LabelPropertyMap :: ANY?, operator :: STRING?, value :: STRING?) :: (id :: INTEGER?, labels :: LIST? OF STRING?, values :: MAP?)¦Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched properties. apoc.search.nodeReduced( map of label and properties which will be searched upon, operator: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ). Multiple search results for the same node are merged into one record.
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.search/apoc.search.adoc[apoc.search.multiSearchReduced icon:book[]]
+
+Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched properties. apoc.search.multiSearchReduced( map of label and properties which will be searched upon, operator: EXACT \| CONTAINS \| STARTS WITH \| ENDS WITH, searchValue ). Multiple search results for the same node are merged into one record.
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.search/apoc.search.adoc[apoc.search.node icon:book[]]
+
+Do a parallel search over multiple indexes returning nodes. usage apoc.search.node( map of label and properties which will be searched upon, operator: EXACT \| CONTAINS \| STARTS WITH \| ENDS WITH, searchValue ) returns all the DISTINCT Nodes found in the different searches.
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.search/apoc.search.adoc[apoc.search.nodeAll icon:book[]]
+
+Do a parallel search over multiple indexes returning nodes. usage apoc.search.nodeAll( map of label and properties which will be searched upon, operator: EXACT \| CONTAINS \| STARTS WITH \| ENDS WITH, searchValue ) returns all the Nodes found in the different searches.
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.search/apoc.search.adoc[apoc.search.nodeAllReduced icon:book[]]
+
+Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched property. apoc.search.nodeShortAll( map of label and properties which will be searched upon, operator: EXACT / CONTAINS / STARTS WITH \| ENDS WITH / = / <> / < / > ..., value ). All 'hits' are returned.
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.search/apoc.search.adoc[apoc.search.nodeReduced icon:book[]]
+
+Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched properties. apoc.search.nodeReduced( map of label and properties which will be searched upon, operator: EXACT \| CONTAINS \| STARTS WITH \| ENDS WITH, searchValue ). Multiple search results for the same node are merged into one record.
+|label:procedure[]
+|label:apoc-core[]
