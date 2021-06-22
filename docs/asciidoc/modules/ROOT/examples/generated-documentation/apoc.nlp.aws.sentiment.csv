@@ -1,10 +1,10 @@
 ¦Qualified Name¦Type¦Release
-|xref::overview/apoc.nlp.aws.sentiment/apoc.nlp.adoc[apoc.nlp.aws.sentiment.graph icon:book[]]
+|xref::overview/apoc.nlp.aws.sentiment/apoc.nlp.aws.sentiment.adoc[apoc.nlp.aws.sentiment.graph icon:book[]]
 
 Creates a (virtual) sentiment graph for provided text
 |label:procedure[]
 |label:apoc-full[]
-|xref::overview/apoc.nlp.aws.sentiment/apoc.nlp.adoc[apoc.nlp.aws.sentiment.stream icon:book[]]
+|xref::overview/apoc.nlp.aws.sentiment/apoc.nlp.aws.sentiment.adoc[apoc.nlp.aws.sentiment.stream icon:book[]]
 
 Returns stream of sentiment for items in provided text
 |label:procedure[]
