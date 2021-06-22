@@ -1,10 +1,46 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.path.expand¦apoc.path.expand(start :: ANY?, relationshipFilter :: STRING?, labelFilter :: STRING?, minLevel :: INTEGER?, maxLevel :: INTEGER?) :: (path :: PATH?)¦apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path - expand from start node following the given relationships from min to max-level adhering to the label filters
-¦procedure¦apoc.path.expandConfig¦apoc.path.expandConfig(start :: ANY?, config :: MAP?) :: (path :: PATH?)¦apoc.path.expandConfig(startNode <id>|Node|list, {minLevel,maxLevel,uniqueness,relationshipFilter,labelFilter,uniqueness:'RELATIONSHIP_PATH',bfs:true, filterStartNode:false, limit:-1, optional:false, endNodes:[], terminatorNodes:[], sequence, beginSequenceAtStart:true}) yield path - expand from start node following the given relationships from min to max-level adhering to the label filters. 
-¦procedure¦apoc.path.spanningTree¦apoc.path.spanningTree(start :: ANY?, config :: MAP?) :: (path :: PATH?)¦apoc.path.spanningTree(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false, limit:-1, optional:false, endNodes:[], terminatorNodes:[], sequence, beginSequenceAtStart:true}) yield path - expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters
-¦procedure¦apoc.path.subgraphAll¦apoc.path.subgraphAll(start :: ANY?, config :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)¦apoc.path.subgraphAll(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false, limit:-1, endNodes:[], terminatorNodes:[], sequence, beginSequenceAtStart:true}) yield nodes, relationships - expand the subgraph reachable from start node following relationships to max-level adhering to the label filters, and also return all relationships within the subgraph
-¦procedure¦apoc.path.subgraphNodes¦apoc.path.subgraphNodes(start :: ANY?, config :: MAP?) :: (node :: NODE?)¦apoc.path.subgraphNodes(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false, limit:-1, optional:false, endNodes:[], terminatorNodes:[], sequence, beginSequenceAtStart:true}) yield node - expand the subgraph nodes reachable from start node following relationships to max-level adhering to the label filters
-¦function¦apoc.path.combine¦apoc.path.combine(first :: PATH?, second :: PATH?) :: (PATH?)¦apoc.path.combine(path1, path2) - combines the paths into one if the connecting node matches
-¦function¦apoc.path.create¦apoc.path.create(startNode :: NODE?, rels = [] :: LIST? OF RELATIONSHIP?) :: (PATH?)¦apoc.path.create(startNode,[rels]) - creates a path instance of the given elements
-¦function¦apoc.path.elements¦apoc.path.elements(path :: PATH?) :: (LIST? OF ANY?)¦apoc.path.elements(path) - returns a list of node-relationship-node-...
-¦function¦apoc.path.slice¦apoc.path.slice(path :: PATH?, offset = 0 :: INTEGER?, length = -1 :: INTEGER?) :: (PATH?)¦apoc.path.slice(path, [offset], [length]) - creates a sub-path with the given offset and length
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.path/apoc.path.adoc[apoc.path.expand icon:book[]]
+
+apoc.path.expand(startNode <id>\|Node\|list, 'TYPE\|TYPE_OUT>\|<TYPE_IN', '+YesLabel\|-NoLabel', minLevel, maxLevel ) yield path - expand from start node following the given relationships from min to max-level adhering to the label filters
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.path/apoc.path.adoc[apoc.path.expandConfig icon:book[]]
+
+apoc.path.expandConfig(startNode <id>\|Node\|list, {minLevel,maxLevel,uniqueness,relationshipFilter,labelFilter,uniqueness:'RELATIONSHIP_PATH',bfs:true, filterStartNode:false, limit:-1, optional:false, endNodes:[], terminatorNodes:[], sequence, beginSequenceAtStart:true}) yield path - expand from start node following the given relationships from min to max-level adhering to the label filters. 
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.path/apoc.path.adoc[apoc.path.spanningTree icon:book[]]
+
+apoc.path.spanningTree(startNode <id>\|Node\|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false, limit:-1, optional:false, endNodes:[], terminatorNodes:[], sequence, beginSequenceAtStart:true}) yield path - expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.path/apoc.path.adoc[apoc.path.subgraphAll icon:book[]]
+
+apoc.path.subgraphAll(startNode <id>\|Node\|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false, limit:-1, endNodes:[], terminatorNodes:[], sequence, beginSequenceAtStart:true}) yield nodes, relationships - expand the subgraph reachable from start node following relationships to max-level adhering to the label filters, and also return all relationships within the subgraph
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.path/apoc.path.adoc[apoc.path.subgraphNodes icon:book[]]
+
+apoc.path.subgraphNodes(startNode <id>\|Node\|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false, limit:-1, optional:false, endNodes:[], terminatorNodes:[], sequence, beginSequenceAtStart:true}) yield node - expand the subgraph nodes reachable from start node following relationships to max-level adhering to the label filters
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.path/apoc.path.adoc[apoc.path.combine icon:book[]]
+
+apoc.path.combine(path1, path2) - combines the paths into one if the connecting node matches
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.path/apoc.path.adoc[apoc.path.create icon:book[]]
+
+apoc.path.create(startNode,[rels]) - creates a path instance of the given elements
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.path/apoc.path.adoc[apoc.path.elements icon:book[]]
+
+apoc.path.elements(path) - returns a list of node-relationship-node-...
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.path/apoc.path.adoc[apoc.path.slice icon:book[]]
+
+apoc.path.slice(path, [offset], [length]) - creates a sub-path with the given offset and length
+|label:function[]
+|label:apoc-core[]

@@ -1,8 +1,36 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.custom.asFunction¦apoc.custom.asFunction(name :: STRING?, statement :: STRING?, outputs =  :: STRING?, inputs = null :: LIST? OF LIST? OF STRING?, forceSingle = false :: BOOLEAN?, description =  :: STRING?) :: VOID¦apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description) - register a custom cypher function
-¦procedure¦apoc.custom.asProcedure¦apoc.custom.asProcedure(name :: STRING?, statement :: STRING?, mode = read :: STRING?, outputs = null :: LIST? OF LIST? OF STRING?, inputs = null :: LIST? OF LIST? OF STRING?, description =  :: STRING?) :: VOID¦apoc.custom.asProcedure(name, statement, mode, outputs, inputs, description) - register a custom cypher procedure
-¦procedure¦apoc.custom.declareFunction¦apoc.custom.declareFunction(signature :: STRING?, statement :: STRING?, forceSingle = false :: BOOLEAN?, description =  :: STRING?) :: VOID¦apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function
-¦procedure¦apoc.custom.declareProcedure¦apoc.custom.declareProcedure(signature :: STRING?, statement :: STRING?, mode = read :: STRING?, description =  :: STRING?) :: VOID¦apoc.custom.declareProcedure(signature, statement, mode, description) - register a custom cypher procedure
-¦procedure¦apoc.custom.list¦apoc.custom.list() :: (type :: STRING?, name :: STRING?, description :: STRING?, mode :: STRING?, statement :: STRING?, inputs :: LIST? OF LIST? OF STRING?, outputs :: ANY?, forceSingle :: BOOLEAN?)¦apoc.custom.list() - provide a list of custom procedures/function registered
-¦procedure¦apoc.custom.removeFunction¦apoc.custom.removeFunction(name :: STRING?) :: VOID¦apoc.custom.removeFunction(name, type) - remove the targeted custom function
-¦procedure¦apoc.custom.removeProcedure¦apoc.custom.removeProcedure(name :: STRING?) :: VOID¦apoc.custom.removeProcedure(name) - remove the targeted custom procedure
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.asFunction icon:book[]]
+
+apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description) - register a custom cypher function
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.asProcedure icon:book[]]
+
+apoc.custom.asProcedure(name, statement, mode, outputs, inputs, description) - register a custom cypher procedure
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.declareFunction icon:book[]]
+
+apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.declareProcedure icon:book[]]
+
+apoc.custom.declareProcedure(signature, statement, mode, description) - register a custom cypher procedure
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.list icon:book[]]
+
+apoc.custom.list() - provide a list of custom procedures/function registered
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.removeFunction icon:book[]]
+
+apoc.custom.removeFunction(name, type) - remove the targeted custom function
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.removeProcedure icon:book[]]
+
+apoc.custom.removeProcedure(name) - remove the targeted custom procedure
+|label:procedure[]
+|label:apoc-full[]

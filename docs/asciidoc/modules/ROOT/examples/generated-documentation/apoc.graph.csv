@@ -1,9 +1,41 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.graph.from¦apoc.graph.from(data :: ANY?, name :: STRING?, properties :: MAP?) :: (graph :: MAP?)¦apoc.graph.from(data,'name',\{properties}) | creates a virtual graph object for later processing it tries its best to extract the graph information from the data you pass in
-¦procedure¦apoc.graph.fromCypher¦apoc.graph.fromCypher(kernelTransaction :: STRING?, params :: MAP?, name :: STRING?, properties :: MAP?) :: (graph :: MAP?)¦apoc.graph.fromCypher('kernelTransaction',\{params},'name',\{properties}) - creates a virtual graph object for later processing
-¦procedure¦apoc.graph.fromDB¦apoc.graph.fromDB(name :: STRING?, properties :: MAP?) :: (graph :: MAP?)¦apoc.graph.fromDB('name',\{properties}) - creates a virtual graph object for later processing
-¦procedure¦apoc.graph.fromData¦apoc.graph.fromData(nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?, name :: STRING?, properties :: MAP?) :: (graph :: MAP?)¦apoc.graph.fromData([nodes],[relationships],'name',\{properties}) | creates a virtual graph object for later processing
-¦procedure¦apoc.graph.fromDocument¦apoc.graph.fromDocument(json :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)¦apoc.graph.fromDocument(\{json}, \{config}) yield graph - transform JSON documents into graph structures
-¦procedure¦apoc.graph.fromPath¦apoc.graph.fromPath(path :: PATH?, name :: STRING?, properties :: MAP?) :: (graph :: MAP?)¦apoc.graph.fromPaths(path,'name',\{properties}) - creates a virtual graph object for later processing
-¦procedure¦apoc.graph.fromPaths¦apoc.graph.fromPaths(paths :: LIST? OF PATH?, name :: STRING?, properties :: MAP?) :: (graph :: MAP?)¦apoc.graph.fromPaths([paths],'name',\{properties}) - creates a virtual graph object for later processing
-¦procedure¦apoc.graph.validateDocument¦apoc.graph.validateDocument(json :: ANY?, config = {} :: MAP?) :: (row :: MAP?)¦apoc.graph.validateDocument(\{json}, \{config}) yield row - validates the json, return the result of the validation
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.graph/apoc.graph.adoc[apoc.graph.from icon:book[]]
+
+apoc.graph.from(data,'name',\{properties}) \| creates a virtual graph object for later processing it tries its best to extract the graph information from the data you pass in
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.graph/apoc.graph.adoc[apoc.graph.fromCypher icon:book[]]
+
+apoc.graph.fromCypher('kernelTransaction',\{params},'name',\{properties}) - creates a virtual graph object for later processing
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.graph/apoc.graph.adoc[apoc.graph.fromDB icon:book[]]
+
+apoc.graph.fromDB('name',\{properties}) - creates a virtual graph object for later processing
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.graph/apoc.graph.adoc[apoc.graph.fromData icon:book[]]
+
+apoc.graph.fromData([nodes],[relationships],'name',\{properties}) \| creates a virtual graph object for later processing
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.graph/apoc.graph.adoc[apoc.graph.fromDocument icon:book[]]
+
+apoc.graph.fromDocument(\{json}, \{config}) yield graph - transform JSON documents into graph structures
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.graph/apoc.graph.adoc[apoc.graph.fromPath icon:book[]]
+
+apoc.graph.fromPaths(path,'name',\{properties}) - creates a virtual graph object for later processing
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.graph/apoc.graph.adoc[apoc.graph.fromPaths icon:book[]]
+
+apoc.graph.fromPaths([paths],'name',\{properties}) - creates a virtual graph object for later processing
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.graph/apoc.graph.adoc[apoc.graph.validateDocument icon:book[]]
+
+apoc.graph.validateDocument(\{json}, \{config}) yield row - validates the json, return the result of the validation
+|label:procedure[]
+|label:apoc-core[]

@@ -1,4 +1,16 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.data.domain¦apoc.data.domain(url_or_email_address :: STRING?) :: (STRING?)¦apoc.data.domain('url_or_email_address') YIELD domain - extract the domain name from a url or an email address. If nothing was found, yield null.
-¦function¦apoc.data.email¦apoc.data.email(email_address :: STRING?) :: (MAP?)¦apoc.data.email('email_address') as {personal,user,domain} - extract the personal name, user and domain as a map
-¦function¦apoc.data.url¦apoc.data.url(url :: STRING?) :: (MAP?)¦apoc.data.url('url') as {protocol,host,port,path,query,file,anchor,user} | turn URL into map structure
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.data/apoc.data.adoc[apoc.data.domain icon:book[]]
+
+apoc.data.domain('url_or_email_address') YIELD domain - extract the domain name from a url or an email address. If nothing was found, yield null.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.data/apoc.data.adoc[apoc.data.email icon:book[]]
+
+apoc.data.email('email_address') as {personal,user,domain} - extract the personal name, user and domain as a map
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.data/apoc.data.adoc[apoc.data.url icon:book[]]
+
+apoc.data.url('url') as {protocol,host,port,path,query,file,anchor,user} \| turn URL into map structure
+|label:function[]
+|label:apoc-core[]
