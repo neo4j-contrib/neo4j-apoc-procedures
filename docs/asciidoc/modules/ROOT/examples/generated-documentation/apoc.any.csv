@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.any.properties¦apoc.any.properties(thing :: ANY?, keys = null :: LIST? OF STRING?) :: (MAP?)¦returns properties for virtual and real, nodes, rels and maps
-¦function¦apoc.any.property¦apoc.any.property(thing :: ANY?, key :: STRING?) :: (ANY?)¦returns property for virtual and real, nodes, rels and maps
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.any/apoc.any.adoc[apoc.any.properties icon:book[]]
+
+returns properties for virtual and real, nodes, rels and maps
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.any/apoc.any.adoc[apoc.any.property icon:book[]]
+
+returns property for virtual and real, nodes, rels and maps
+|label:function[]
+|label:apoc-core[]

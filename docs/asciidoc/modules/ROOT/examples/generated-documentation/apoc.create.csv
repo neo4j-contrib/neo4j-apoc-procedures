@@ -1,23 +1,111 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.create.addLabels¦apoc.create.addLabels(nodes :: ANY?, label :: LIST? OF STRING?) :: (node :: NODE?)¦apoc.create.addLabels( [node,id,ids,nodes], ['Label',...]) - adds the given labels to the node or nodes
-¦procedure¦apoc.create.node¦apoc.create.node(label :: LIST? OF STRING?, props :: MAP?) :: (node :: NODE?)¦apoc.create.node(['Label'], {key:value,...}) - create node with dynamic labels
-¦procedure¦apoc.create.nodes¦apoc.create.nodes(label :: LIST? OF STRING?, props :: LIST? OF MAP?) :: (node :: NODE?)¦apoc.create.nodes(['Label'], [{key:value,...}]) create multiple nodes with dynamic labels
-¦procedure¦apoc.create.relationship¦apoc.create.relationship(from :: NODE?, relType :: STRING?, props :: MAP?, to :: NODE?) :: (rel :: RELATIONSHIP?)¦apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) create relationship with dynamic rel-type
-¦procedure¦apoc.create.removeLabels¦apoc.create.removeLabels(nodes :: ANY?, label :: LIST? OF STRING?) :: (node :: NODE?)¦apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...]) - removes the given labels from the node or nodes
-¦procedure¦apoc.create.removeProperties¦apoc.create.removeProperties(nodes :: ANY?, keys :: LIST? OF STRING?) :: (node :: NODE?)¦apoc.create.removeProperties( [node,id,ids,nodes], [keys]) - removes the given properties from the nodes(s)
-¦procedure¦apoc.create.removeRelProperties¦apoc.create.removeRelProperties(rels :: ANY?, keys :: LIST? OF STRING?) :: (rel :: RELATIONSHIP?)¦apoc.create.removeRelProperties( [rel,id,ids,rels], [keys]) - removes the given properties from the relationship(s)
-¦procedure¦apoc.create.setLabels¦apoc.create.setLabels(nodes :: ANY?, label :: LIST? OF STRING?) :: (node :: NODE?)¦apoc.create.setLabels( [node,id,ids,nodes], ['Label',...]) - sets the given labels, non matching labels are removed on the node or nodes
-¦procedure¦apoc.create.setProperties¦apoc.create.setProperties(nodes :: ANY?, keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :: (node :: NODE?)¦apoc.create.setProperties( [node,id,ids,nodes], [keys], [values]) - sets the given properties on the nodes(s)
-¦procedure¦apoc.create.setProperty¦apoc.create.setProperty(nodes :: ANY?, key :: STRING?, value :: ANY?) :: (node :: NODE?)¦apoc.create.setProperty( [node,id,ids,nodes], key, value) - sets the given property on the node(s)
-¦procedure¦apoc.create.setRelProperties¦apoc.create.setRelProperties(rels :: ANY?, keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :: (rel :: RELATIONSHIP?)¦apoc.create.setRelProperties( [rel,id,ids,rels], [keys], [values]) - sets the given properties on the relationship(s)
-¦procedure¦apoc.create.setRelProperty¦apoc.create.setRelProperty(relationships :: ANY?, key :: STRING?, value :: ANY?) :: (rel :: RELATIONSHIP?)¦apoc.create.setRelProperty( [rel,id,ids,rels], key, value) - sets the given property on the relationship(s)
-¦procedure¦apoc.create.uuids¦apoc.create.uuids(count :: INTEGER?) :: (row :: INTEGER?, uuid :: STRING?)¦apoc.create.uuids(count) yield uuid - creates 'count' UUIDs 
-¦procedure¦apoc.create.vNode¦apoc.create.vNode(label :: LIST? OF STRING?, props :: MAP?) :: (node :: NODE?)¦apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node
-¦procedure¦apoc.create.vNodes¦apoc.create.vNodes(label :: LIST? OF STRING?, props :: LIST? OF MAP?) :: (node :: NODE?)¦apoc.create.vNodes(['Label'], [{key:value,...}]) returns virtual nodes
-¦procedure¦apoc.create.vPattern¦apoc.create.vPattern(from :: MAP?, relType :: STRING?, props :: MAP?, to :: MAP?) :: (from :: NODE?, rel :: RELATIONSHIP?, to :: NODE?)¦apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) returns a virtual pattern
-¦procedure¦apoc.create.vPatternFull¦apoc.create.vPatternFull(labelsN :: LIST? OF STRING?, n :: MAP?, relType :: STRING?, props :: MAP?, labelsM :: LIST? OF STRING?, m :: MAP?) :: (from :: NODE?, rel :: RELATIONSHIP?, to :: NODE?)¦apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual pattern
-¦procedure¦apoc.create.vRelationship¦apoc.create.vRelationship(from :: NODE?, relType :: STRING?, props :: MAP?, to :: NODE?) :: (rel :: RELATIONSHIP?)¦apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship
-¦procedure¦apoc.create.virtualPath¦apoc.create.virtualPath(labelsN :: LIST? OF STRING?, n :: MAP?, relType :: STRING?, props :: MAP?, labelsM :: LIST? OF STRING?, m :: MAP?) :: (from :: NODE?, rel :: RELATIONSHIP?, to :: NODE?)¦apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties
-¦function¦apoc.create.uuid¦apoc.create.uuid() :: (STRING?)¦apoc.create.uuid() - creates an UUID
-¦function¦apoc.create.vNode¦apoc.create.vNode(label :: LIST? OF STRING?, props = {} :: MAP?) :: (NODE?)¦apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node
-¦function¦apoc.create.vRelationship¦apoc.create.vRelationship(from :: NODE?, relType :: STRING?, props :: MAP?, to :: NODE?) :: (RELATIONSHIP?)¦apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.addLabels icon:book[]]
+
+apoc.create.addLabels( [node,id,ids,nodes], ['Label',...]) - adds the given labels to the node or nodes
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.node icon:book[]]
+
+apoc.create.node(['Label'], {key:value,...}) - create node with dynamic labels
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.nodes icon:book[]]
+
+apoc.create.nodes(['Label'], [{key:value,...}]) create multiple nodes with dynamic labels
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.relationship icon:book[]]
+
+apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) create relationship with dynamic rel-type
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.removeLabels icon:book[]]
+
+apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...]) - removes the given labels from the node or nodes
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.removeProperties icon:book[]]
+
+apoc.create.removeProperties( [node,id,ids,nodes], [keys]) - removes the given properties from the nodes(s)
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.removeRelProperties icon:book[]]
+
+apoc.create.removeRelProperties( [rel,id,ids,rels], [keys]) - removes the given properties from the relationship(s)
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.setLabels icon:book[]]
+
+apoc.create.setLabels( [node,id,ids,nodes], ['Label',...]) - sets the given labels, non matching labels are removed on the node or nodes
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.setProperties icon:book[]]
+
+apoc.create.setProperties( [node,id,ids,nodes], [keys], [values]) - sets the given properties on the nodes(s)
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.setProperty icon:book[]]
+
+apoc.create.setProperty( [node,id,ids,nodes], key, value) - sets the given property on the node(s)
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.setRelProperties icon:book[]]
+
+apoc.create.setRelProperties( [rel,id,ids,rels], [keys], [values]) - sets the given properties on the relationship(s)
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.setRelProperty icon:book[]]
+
+apoc.create.setRelProperty( [rel,id,ids,rels], key, value) - sets the given property on the relationship(s)
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.uuids icon:book[]]
+
+apoc.create.uuids(count) yield uuid - creates 'count' UUIDs 
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.vNode icon:book[]]
+
+apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.vNodes icon:book[]]
+
+apoc.create.vNodes(['Label'], [{key:value,...}]) returns virtual nodes
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.vPattern icon:book[]]
+
+apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) returns a virtual pattern
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.vPatternFull icon:book[]]
+
+apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual pattern
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.vRelationship icon:book[]]
+
+apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.virtualPath icon:book[]]
+
+apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.uuid icon:book[]]
+
+apoc.create.uuid() - creates an UUID
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.vNode icon:book[]]
+
+apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.vRelationship icon:book[]]
+
+apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship
+|label:function[]
+|label:apoc-core[]

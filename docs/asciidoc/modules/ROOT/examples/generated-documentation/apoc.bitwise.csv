@@ -1,2 +1,6 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.bitwise.op¦apoc.bitwise.op(a :: INTEGER?, operator :: STRING?, b :: INTEGER?) :: (INTEGER?)¦apoc.bitwise.op(60,'|',13) bitwise operations a & b, a | b, a ^ b, ~a, a >> b, a >>> b, a << b. returns the result of the bitwise operation
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.bitwise/apoc.bitwise.adoc[apoc.bitwise.op icon:book[]]
+
+apoc.bitwise.op(60,'\|',13) bitwise operations a & b, a \| b, a ^ b, ~a, a >> b, a >>> b, a << b. returns the result of the bitwise operation
+|label:function[]
+|label:apoc-core[]

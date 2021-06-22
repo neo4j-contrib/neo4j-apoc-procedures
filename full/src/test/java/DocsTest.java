@@ -153,7 +153,6 @@ public class DocsTest {
         docs.put("apoc.temporal.*", "temporal/temporal-conversions.adoc");
         docs.put("apoc.uuid.*", "graph-updates/uuid.adoc");
         docs.put("apoc.model.jdbc", "database-integration/database-modeling.adoc");
-        docs.put("apoc.algo.*", "algorithms/path-finding-procedures.adoc");
         docs.put("apoc.atomic.*", "graph-updates/atomic-updates.adoc");
         docs.put("apoc.bolt.*", "database-integration/bolt-neo4j.adoc");
         docs.put("apoc.case|apoc.do.case|apoc.when|apoc.do.when", "cypher-execution/conditionals.adoc");

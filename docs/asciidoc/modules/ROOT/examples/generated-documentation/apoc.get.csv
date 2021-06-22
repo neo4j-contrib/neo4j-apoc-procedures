@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.get.nodes¦apoc.get.nodes(nodes :: ANY?) :: (node :: NODE?)¦apoc.get.nodes(node|id|[ids]) - quickly returns all nodes with these id's
-¦procedure¦apoc.get.rels¦apoc.get.rels(relationships :: ANY?) :: (rel :: RELATIONSHIP?)¦apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these id's
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.get/apoc.get.adoc[apoc.get.nodes icon:book[]]
+
+apoc.get.nodes(node\|id\|[ids]) - quickly returns all nodes with these id's
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.get/apoc.get.adoc[apoc.get.rels icon:book[]]
+
+apoc.get.rels(rel\|id\|[ids]) - quickly returns all relationships with these id's
+|label:procedure[]
+|label:apoc-full[]

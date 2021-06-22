@@ -33,7 +33,7 @@ apoc.meta.graph.of(graph = {} :: ANY?, config = {} :: MAP?) :: (nodes :: LIST? O
 |relationships|LIST? OF RELATIONSHIP?
 |===
 
-[[usage-apoc.meta.grap.of]]
+[[usage-apoc.meta.graph.of]]
 == Usage Examples
 include::partial$usage/apoc.meta.graph.of.adoc[]
 

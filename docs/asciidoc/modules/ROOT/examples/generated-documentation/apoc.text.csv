@@ -1,50 +1,246 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.text.doubleMetaphone¦apoc.text.doubleMetaphone(value :: ANY?) :: (value :: STRING?)¦apoc.text.doubleMetaphone(value) yield value - Compute the Double Metaphone phonetic encoding of all words of the text value which can be a single string or a list of strings
-¦procedure¦apoc.text.phonetic¦apoc.text.phonetic(value :: ANY?) :: (value :: STRING?)¦apoc.text.phonetic(value) yield value - Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
-¦procedure¦apoc.text.phoneticDelta¦apoc.text.phoneticDelta(text1 :: STRING?, text2 :: STRING?) :: (phonetic1 :: STRING?, phonetic2 :: STRING?, delta :: INTEGER?)¦apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta - Compute the US_ENGLISH soundex character difference between two given strings
-¦function¦apoc.text.base64Decode¦apoc.text.base64Decode(text :: STRING?) :: (STRING?)¦apoc.text.base64Decode(text) YIELD value - Decode Base64 encoded string
-¦function¦apoc.text.base64Encode¦apoc.text.base64Encode(text :: STRING?) :: (STRING?)¦apoc.text.base64Encode(text) YIELD value - Encode a string with Base64
-¦function¦apoc.text.base64UrlDecode¦apoc.text.base64UrlDecode(url :: STRING?) :: (STRING?)¦apoc.text.base64UrlDecode(url) YIELD value - Decode Base64 encoded url
-¦function¦apoc.text.base64UrlEncode¦apoc.text.base64UrlEncode(url :: STRING?) :: (STRING?)¦apoc.text.base64UrlEncode(text) YIELD value - Encode a url with Base64
-¦function¦apoc.text.byteCount¦apoc.text.byteCount(text :: STRING?, charset = UTF-8 :: STRING?) :: (INTEGER?)¦apoc.text.byteCount(text,[charset]) - return size of text in bytes
-¦function¦apoc.text.bytes¦apoc.text.bytes(text :: STRING?, charset = UTF-8 :: STRING?) :: (LIST? OF ANY?)¦apoc.text.bytes(text,[charset]) - return bytes of the text
-¦function¦apoc.text.camelCase¦apoc.text.camelCase(text :: STRING?) :: (STRING?)¦apoc.text.camelCase(text) YIELD value - Convert a string to camelCase
-¦function¦apoc.text.capitalize¦apoc.text.capitalize(text :: STRING?) :: (STRING?)¦apoc.text.capitalize(text) YIELD value - capitalise the first letter of the word
-¦function¦apoc.text.capitalizeAll¦apoc.text.capitalizeAll(text :: STRING?) :: (STRING?)¦apoc.text.capitalizeAll(text) YIELD value - capitalise the first letter of every word in the text
-¦function¦apoc.text.charAt¦apoc.text.charAt(text :: STRING?, index :: INTEGER?) :: (INTEGER?)¦apoc.text.charAt(text, index) - the decimal value of the character at the given index
-¦function¦apoc.text.clean¦apoc.text.clean(text :: STRING?) :: (STRING?)¦apoc.text.clean(text) - strip the given string of everything except alpha numeric characters and convert it to lower case.
-¦function¦apoc.text.code¦apoc.text.code(codepoint :: INTEGER?) :: (STRING?)¦apoc.text.code(codepoint) - Returns the unicode character of the given codepoint
-¦function¦apoc.text.compareCleaned¦apoc.text.compareCleaned(text1 :: STRING?, text2 :: STRING?) :: (BOOLEAN?)¦apoc.text.compareCleaned(text1, text2) - compare the given strings stripped of everything except alpha numeric characters converted to lower case.
-¦function¦apoc.text.decapitalize¦apoc.text.decapitalize(text :: STRING?) :: (STRING?)¦apoc.text.decapitalize(text) YIELD value - decapitalize the first letter of the word
-¦function¦apoc.text.decapitalizeAll¦apoc.text.decapitalizeAll(text :: STRING?) :: (STRING?)¦apoc.text.decapitalizeAll(text) YIELD value - decapitalize the first letter of all words
-¦function¦apoc.text.distance¦apoc.text.distance(text1 :: STRING?, text2 :: STRING?) :: (INTEGER?)¦apoc.text.distance(text1, text2) - compare the given strings with the Levenshtein distance algorithm.
-¦function¦apoc.text.doubleMetaphone¦apoc.text.doubleMetaphone(value :: STRING?) :: (STRING?)¦apoc.text.doubleMetaphone(value) yield value - Compute the Double Metaphone phonetic encoding of all words of the text value
-¦function¦apoc.text.format¦apoc.text.format(text :: STRING?, params :: LIST? OF ANY?, language = en :: STRING?) :: (STRING?)¦apoc.text.format(text,[params],language) - sprintf format the string with the params given
-¦function¦apoc.text.fuzzyMatch¦apoc.text.fuzzyMatch(text1 :: STRING?, text2 :: STRING?) :: (BOOLEAN?)¦apoc.text.fuzzyMatch(text1, text2) - check if 2 words can be matched in a fuzzy way. Depending on the length of the String it will allow more characters that needs to be edited to match the second String.
-¦function¦apoc.text.hammingDistance¦apoc.text.hammingDistance(text1 :: STRING?, text2 :: STRING?) :: (INTEGER?)¦apoc.text.hammingDistance(text1, text2) - compare the given strings with the Hamming distance algorithm.
-¦function¦apoc.text.hexCharAt¦apoc.text.hexCharAt(text :: STRING?, index :: INTEGER?) :: (STRING?)¦apoc.text.hexCharAt(text, index) - the hex value string of the character at the given index
-¦function¦apoc.text.hexValue¦apoc.text.hexValue(value :: INTEGER?) :: (STRING?)¦apoc.text.hexValue(value) - the hex value string of the given number
-¦function¦apoc.text.indexOf¦apoc.text.indexOf(text :: STRING?, lookup :: STRING?, from = 0 :: INTEGER?, to = -1 :: INTEGER?) :: (INTEGER?)¦apoc.text.indexOf(text, lookup, from=0, to=-1==len) - find the first occurence of the lookup string in the text, from inclusive, to exclusive, -1 if not found, null if text is null.
-¦function¦apoc.text.indexesOf¦apoc.text.indexesOf(text :: STRING?, lookup :: STRING?, from = 0 :: INTEGER?, to = -1 :: INTEGER?) :: (LIST? OF ANY?)¦apoc.text.indexesOf(text, lookup, from=0, to=-1==len) - finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.
-¦function¦apoc.text.jaroWinklerDistance¦apoc.text.jaroWinklerDistance(text1 :: STRING?, text2 :: STRING?) :: (FLOAT?)¦apoc.text.jaroWinklerDistance(text1, text2) - compare the given strings with the Jaro-Winkler distance algorithm.
-¦function¦apoc.text.join¦apoc.text.join(texts :: LIST? OF STRING?, delimiter :: STRING?) :: (STRING?)¦apoc.text.join(['text1','text2',...], delimiter) - join the given strings with the given delimiter.
-¦function¦apoc.text.levenshteinDistance¦apoc.text.levenshteinDistance(text1 :: STRING?, text2 :: STRING?) :: (INTEGER?)¦apoc.text.levenshteinDistance(text1, text2) - compare the given strings with the Levenshtein distance algorithm.
-¦function¦apoc.text.levenshteinSimilarity¦apoc.text.levenshteinSimilarity(text1 :: STRING?, text2 :: STRING?) :: (FLOAT?)¦apoc.text.levenshteinSimilarity(text1, text2) - calculate the similarity (a value within 0 and 1) between two texts.
-¦function¦apoc.text.lpad¦apoc.text.lpad(text :: STRING?, count :: INTEGER?, delim =   :: STRING?) :: (STRING?)¦apoc.text.lpad(text,count,delim) YIELD value - left pad the string to the given width
-¦function¦apoc.text.phonetic¦apoc.text.phonetic(value :: STRING?) :: (STRING?)¦apoc.text.phonetic(text) yield value - Compute the US_ENGLISH phonetic soundex encoding of all words of the text
-¦function¦apoc.text.random¦apoc.text.random(length :: INTEGER?, valid = A-Za-z0-9 :: STRING?) :: (STRING?)¦apoc.text.random(length, valid) YIELD value - generate a random string
-¦function¦apoc.text.regexGroups¦apoc.text.regexGroups(text :: STRING?, regex :: STRING?) :: (LIST? OF ANY?)¦apoc.text.regexGroups(text, regex) - return all matching groups of the regex on the given text.
-¦function¦apoc.text.regreplace¦apoc.text.regreplace(text :: STRING?, regex :: STRING?, replacement :: STRING?) :: (STRING?)¦apoc.text.regreplace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.
-¦function¦apoc.text.repeat¦apoc.text.repeat(item :: STRING?, count :: INTEGER?) :: (STRING?)¦apoc.text.repeat(item, count) - string multiplication
-¦function¦apoc.text.replace¦apoc.text.replace(text :: STRING?, regex :: STRING?, replacement :: STRING?) :: (STRING?)¦apoc.text.replace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.
-¦function¦apoc.text.rpad¦apoc.text.rpad(text :: STRING?, count :: INTEGER?, delim =   :: STRING?) :: (STRING?)¦apoc.text.rpad(text,count,delim) YIELD value - right pad the string to the given width
-¦function¦apoc.text.slug¦apoc.text.slug(text :: STRING?, delim = - :: STRING?) :: (STRING?)¦apoc.text.slug(text, delim) - slug the text with the given delimiter
-¦function¦apoc.text.snakeCase¦apoc.text.snakeCase(text :: STRING?) :: (STRING?)¦apoc.text.snakeCase(text) YIELD value - Convert a string to snake-case
-¦function¦apoc.text.sorensenDiceSimilarity¦apoc.text.sorensenDiceSimilarity(text1 :: STRING?, text2 :: STRING?, languageTag = en :: STRING?) :: (FLOAT?)¦apoc.text.sorensenDiceSimilarityWithLanguage(text1, text2, languageTag) - compare the given strings with the Sørensen–Dice coefficient formula, with the provided IETF language tag
-¦function¦apoc.text.split¦apoc.text.split(text :: STRING?, regex :: STRING?, limit = 0 :: INTEGER?) :: (LIST? OF ANY?)¦apoc.text.split(text, regex, limit) - splits the given text around matches of the given regex.
-¦function¦apoc.text.swapCase¦apoc.text.swapCase(text :: STRING?) :: (STRING?)¦apoc.text.swapCase(text) YIELD value - Swap the case of a string
-¦function¦apoc.text.toCypher¦apoc.text.toCypher(value :: ANY?, config = {} :: MAP?) :: (STRING?)¦apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end}) | tries it's best to convert the value to a cypher-property-string
-¦function¦apoc.text.toUpperCase¦apoc.text.toUpperCase(text :: STRING?) :: (STRING?)¦apoc.text.toUpperCase(text) YIELD value - Convert a string to UPPER_CASE
-¦function¦apoc.text.upperCamelCase¦apoc.text.upperCamelCase(text :: STRING?) :: (STRING?)¦apoc.text.upperCamelCase(text) YIELD value - Convert a string to camelCase
-¦function¦apoc.text.urldecode¦apoc.text.urldecode(text :: STRING?) :: (STRING?)¦apoc.text.urldecode(text) - return the urldecoded text
-¦function¦apoc.text.urlencode¦apoc.text.urlencode(text :: STRING?) :: (STRING?)¦apoc.text.urlencode(text) - return the urlencoded text
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.doubleMetaphone icon:book[]]
+
+apoc.text.doubleMetaphone(value) yield value - Compute the Double Metaphone phonetic encoding of all words of the text value which can be a single string or a list of strings
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.phonetic icon:book[]]
+
+apoc.text.phonetic(value) yield value - Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.phoneticDelta icon:book[]]
+
+apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta - Compute the US_ENGLISH soundex character difference between two given strings
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.base64Decode icon:book[]]
+
+apoc.text.base64Decode(text) YIELD value - Decode Base64 encoded string
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.base64Encode icon:book[]]
+
+apoc.text.base64Encode(text) YIELD value - Encode a string with Base64
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.base64UrlDecode icon:book[]]
+
+apoc.text.base64UrlDecode(url) YIELD value - Decode Base64 encoded url
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.base64UrlEncode icon:book[]]
+
+apoc.text.base64UrlEncode(text) YIELD value - Encode a url with Base64
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.byteCount icon:book[]]
+
+apoc.text.byteCount(text,[charset]) - return size of text in bytes
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.bytes icon:book[]]
+
+apoc.text.bytes(text,[charset]) - return bytes of the text
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.camelCase icon:book[]]
+
+apoc.text.camelCase(text) YIELD value - Convert a string to camelCase
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.capitalize icon:book[]]
+
+apoc.text.capitalize(text) YIELD value - capitalise the first letter of the word
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.capitalizeAll icon:book[]]
+
+apoc.text.capitalizeAll(text) YIELD value - capitalise the first letter of every word in the text
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.charAt icon:book[]]
+
+apoc.text.charAt(text, index) - the decimal value of the character at the given index
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.clean icon:book[]]
+
+apoc.text.clean(text) - strip the given string of everything except alpha numeric characters and convert it to lower case.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.code icon:book[]]
+
+apoc.text.code(codepoint) - Returns the unicode character of the given codepoint
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.compareCleaned icon:book[]]
+
+apoc.text.compareCleaned(text1, text2) - compare the given strings stripped of everything except alpha numeric characters converted to lower case.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.decapitalize icon:book[]]
+
+apoc.text.decapitalize(text) YIELD value - decapitalize the first letter of the word
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.decapitalizeAll icon:book[]]
+
+apoc.text.decapitalizeAll(text) YIELD value - decapitalize the first letter of all words
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.distance icon:book[]]
+
+apoc.text.distance(text1, text2) - compare the given strings with the Levenshtein distance algorithm.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.doubleMetaphone icon:book[]]
+
+apoc.text.doubleMetaphone(value) yield value - Compute the Double Metaphone phonetic encoding of all words of the text value
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.format icon:book[]]
+
+apoc.text.format(text,[params],language) - sprintf format the string with the params given
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.fuzzyMatch icon:book[]]
+
+apoc.text.fuzzyMatch(text1, text2) - check if 2 words can be matched in a fuzzy way. Depending on the length of the String it will allow more characters that needs to be edited to match the second String.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.hammingDistance icon:book[]]
+
+apoc.text.hammingDistance(text1, text2) - compare the given strings with the Hamming distance algorithm.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.hexCharAt icon:book[]]
+
+apoc.text.hexCharAt(text, index) - the hex value string of the character at the given index
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.hexValue icon:book[]]
+
+apoc.text.hexValue(value) - the hex value string of the given number
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.indexOf icon:book[]]
+
+apoc.text.indexOf(text, lookup, from=0, to=-1==len) - find the first occurence of the lookup string in the text, from inclusive, to exclusive, -1 if not found, null if text is null.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.indexesOf icon:book[]]
+
+apoc.text.indexesOf(text, lookup, from=0, to=-1==len) - finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.jaroWinklerDistance icon:book[]]
+
+apoc.text.jaroWinklerDistance(text1, text2) - compare the given strings with the Jaro-Winkler distance algorithm.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.join icon:book[]]
+
+apoc.text.join(['text1','text2',...], delimiter) - join the given strings with the given delimiter.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.levenshteinDistance icon:book[]]
+
+apoc.text.levenshteinDistance(text1, text2) - compare the given strings with the Levenshtein distance algorithm.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.levenshteinSimilarity icon:book[]]
+
+apoc.text.levenshteinSimilarity(text1, text2) - calculate the similarity (a value within 0 and 1) between two texts.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.lpad icon:book[]]
+
+apoc.text.lpad(text,count,delim) YIELD value - left pad the string to the given width
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.phonetic icon:book[]]
+
+apoc.text.phonetic(text) yield value - Compute the US_ENGLISH phonetic soundex encoding of all words of the text
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.random icon:book[]]
+
+apoc.text.random(length, valid) YIELD value - generate a random string
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.regexGroups icon:book[]]
+
+apoc.text.regexGroups(text, regex) - return all matching groups of the regex on the given text.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.regreplace icon:book[]]
+
+apoc.text.regreplace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.repeat icon:book[]]
+
+apoc.text.repeat(item, count) - string multiplication
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.replace icon:book[]]
+
+apoc.text.replace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.rpad icon:book[]]
+
+apoc.text.rpad(text,count,delim) YIELD value - right pad the string to the given width
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.slug icon:book[]]
+
+apoc.text.slug(text, delim) - slug the text with the given delimiter
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.snakeCase icon:book[]]
+
+apoc.text.snakeCase(text) YIELD value - Convert a string to snake-case
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.sorensenDiceSimilarity icon:book[]]
+
+apoc.text.sorensenDiceSimilarityWithLanguage(text1, text2, languageTag) - compare the given strings with the Sørensen–Dice coefficient formula, with the provided IETF language tag
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.split icon:book[]]
+
+apoc.text.split(text, regex, limit) - splits the given text around matches of the given regex.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.swapCase icon:book[]]
+
+apoc.text.swapCase(text) YIELD value - Swap the case of a string
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.toCypher icon:book[]]
+
+apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end}) \| tries it's best to convert the value to a cypher-property-string
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.toUpperCase icon:book[]]
+
+apoc.text.toUpperCase(text) YIELD value - Convert a string to UPPER_CASE
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.upperCamelCase icon:book[]]
+
+apoc.text.upperCamelCase(text) YIELD value - Convert a string to camelCase
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.urldecode icon:book[]]
+
+apoc.text.urldecode(text) - return the urldecoded text
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.text/apoc.text.adoc[apoc.text.urlencode icon:book[]]
+
+apoc.text.urlencode(text) - return the urlencoded text
+|label:function[]
+|label:apoc-core[]
