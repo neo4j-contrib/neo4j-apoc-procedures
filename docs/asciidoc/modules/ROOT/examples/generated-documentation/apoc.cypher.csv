@@ -59,6 +59,11 @@ apoc.cypher.runSchema(statement, params) yield value - executes query schema sta
 apoc.cypher.runSchema(statement, params) yield value - executes query schema statement with the given parameters
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runSchema icon:book[]]
+
+apoc.cypher.runSchema(statement, params) yield value - executes query schema statement with the given parameters
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runSchemaFile icon:book[]]
 
 apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated
