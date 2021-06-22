@@ -151,8 +151,4 @@ include::partial$generated-documentation/nav.adoc[]
 * xref:indexes/index.adoc[]
     ** xref::indexes/schema-index-operations.adoc[]
 
-* xref:algorithms/index.adoc[]
-    ** xref::algorithms/path-finding-procedures.adoc[]
-    ** xref::algorithms/similarity.adoc[]
-
 * xref::transaction/index.adoc[]
