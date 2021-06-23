@@ -56,7 +56,7 @@ public class LoadDirectoryTest {
     private static GraphDatabaseService db;
     private static String importPath;
 
-    private static final String IMPORT_DIR = "import";
+    private static final String IMPORT_DIR = "impo rt";
     private static final String SUBFOLDER_1 = "sub1";
     private static final String INNER_SUBFOLDER = "innerSub1";
     private static final String SUBFOLDER_2 = "sub2";
