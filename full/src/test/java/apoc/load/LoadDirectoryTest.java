@@ -54,7 +54,7 @@ public class LoadDirectoryTest {
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private static GraphDatabaseService db;
-    private static File importFolder;
+    private static String importPath;
 
     private static final String IMPORT_DIR = "import";
     private static final String SUBFOLDER_1 = "sub1";
@@ -76,7 +76,8 @@ public class LoadDirectoryTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        importFolder = new File(temporaryFolder.getRoot() + File.separator + IMPORT_DIR);
+        File importFolder = new File(temporaryFolder.getRoot() + File.separator + IMPORT_DIR);
+        importPath = encodePath(FILE_PROTOCOL + importFolder.getPath());
         DatabaseManagementService databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder.toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
 
@@ -293,7 +294,7 @@ public class LoadDirectoryTest {
             Map<String, Object> mapTestOne = result.next();
             assertThat(mapTestOne.get("name"), isOneOf("testOne", "testTwo"));
             assertThat(mapTestOne.get("pattern"), isOneOf("*.csv", "*.json"));
-            assertEquals(encodePath(importFolder.getPath()), mapTestOne.get("urlDir"));
+            assertEquals(importPath, mapTestOne.get("urlDir"));
             assertEquals("CREATE (n:Test)", mapTestOne.get("cypher"));
             assertEquals(defaultConfig, mapTestOne.get("config"));
             assertEquals(LoadDirectoryItem.Status.RUNNING.name(), mapTestOne.get("status"));
@@ -301,7 +302,7 @@ public class LoadDirectoryTest {
             Map<String, Object> mapTestTwo = result.next();
             assertThat(mapTestTwo.get("name"), isOneOf("testOne", "testTwo"));
             assertThat(mapTestTwo.get("pattern"), isOneOf("*.csv", "*.json"));
-            assertEquals(encodePath(importFolder.getPath()), mapTestTwo.get("urlDir"));
+            assertEquals(importPath, mapTestTwo.get("urlDir"));
             assertEquals("CREATE (n:Test)", mapTestTwo.get("cypher"));
             assertEquals(defaultConfig, mapTestTwo.get("config"));
             assertEquals(LoadDirectoryItem.Status.RUNNING.name(), mapTestTwo.get("status"));
@@ -313,7 +314,7 @@ public class LoadDirectoryTest {
             // remains 2nd listener
             assertEquals("testTwo", result.get("name"));
             assertEquals("*.json", result.get("pattern"));
-            assertEquals(encodePath(importFolder.getPath()), result.get("urlDir"));
+            assertEquals(importPath, result.get("urlDir"));
             assertEquals("CREATE (n:Test)", result.get("cypher"));
             assertEquals(defaultConfig, result.get("config"));
             assertEquals(LoadDirectoryItem.Status.RUNNING.name(), result.get("status"));
@@ -343,7 +344,7 @@ public class LoadDirectoryTest {
         testCall(db, "CALL apoc.load.directory.async.add('test','CREATE (n:Test {file: $fileName})','*.json')", result -> {
             assertEquals("test", result.get("name"));
             assertEquals("*.json", result.get("pattern"));
-            assertEquals(encodePath(importFolder.getPath()), result.get("urlDir"));
+            assertEquals(importPath, result.get("urlDir"));
             assertEquals("CREATE (n:Test {file: $fileName})", result.get("cypher"));
             assertEquals(defaultConfig, result.get("config"));
             assertEquals(LoadDirectoryItem.Status.CREATED.name(), result.get("status"));
@@ -472,7 +473,7 @@ public class LoadDirectoryTest {
             // remain 1st listener
             assertEquals("testTwo", result.get("name"));
             assertEquals("*.json", result.get("pattern"));
-            assertEquals(encodePath(importFolder.getPath()), result.get("urlDir"));
+            assertEquals(importPath, result.get("urlDir"));
             assertEquals("CREATE (n:TestTwo)", result.get("cypher"));
             assertEquals("CREATE (n:TestTwo)", result.get("cypher"));
         });

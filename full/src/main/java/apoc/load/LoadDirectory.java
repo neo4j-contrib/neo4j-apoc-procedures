@@ -19,6 +19,8 @@ import org.neo4j.procedure.Name;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -110,9 +112,12 @@ public class LoadDirectory {
 
     // visible for test purpose
     public static String checkIfUrlBlankAndGetFileUrl(String urlDir) throws IOException {
-        return StringUtils.isBlank(urlDir)
-                ? encodePath(getDirImport())
-                : FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"));
+        if (StringUtils.isBlank(urlDir)) {
+            final Path pathImport = Paths.get(getDirImport()).toAbsolutePath();
+            // with replaceAll we remove final "/" from path
+            return encodePath(pathImport.toUri().toString()).replaceAll(".$", "");
+        }
+        return FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"));
     }
 
 }
