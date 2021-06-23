@@ -20,10 +20,10 @@ import org.neo4j.procedure.Procedure;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
@@ -31,6 +31,7 @@ import static apoc.load.LoadDirectoryHandler.getPathDependingOnUseNeo4jConfig;
 import static apoc.util.FileUtils.getPathFromUrlString;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_WRITE;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType.WRITE;
+import static org.eclipse.jetty.util.URIUtil.encodePath;
 
 @Extended
 public class LoadDirectory {
@@ -114,7 +115,7 @@ public class LoadDirectory {
         if (StringUtils.isBlank(urlDir)) {
             final Path pathImport = Paths.get(ApocConfig.apocConfig().getImportDir()).toAbsolutePath();
             // with replaceAll we remove final "/" from path
-            return pathImport.toUri().toString().replaceAll(".$", "");
+            return encodePath(pathImport.toUri().toString()).replaceAll(".$", "");
         }
         return FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"));
     }
