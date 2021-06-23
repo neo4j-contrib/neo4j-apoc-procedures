@@ -115,7 +115,7 @@ public class LoadDirectory {
         if (StringUtils.isBlank(urlDir)) {
             final Path pathImport = Paths.get(ApocConfig.apocConfig().getImportDir()).toAbsolutePath();
             // with replaceAll we remove final "/" from path
-            return encodePath(pathImport.toUri().toString()).replaceAll(".$", "");
+            return pathImport.toUri().toString().replaceAll(".$", "");
         }
         return FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"));
     }
