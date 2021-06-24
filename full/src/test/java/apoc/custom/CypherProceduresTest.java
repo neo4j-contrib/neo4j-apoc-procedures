@@ -704,6 +704,17 @@ public class CypherProceduresTest  {
         TestUtil.testCall(db, "call custom.asDefaultOut(6,4)", (row) -> assertEquals(10L, ((Map<String, Object>)row.get("row")).get("sum")));
     }
     
+    @Test
+    public void testIssue2032() {
+        String functionSignature = "foobar(xx::NODE, y::NODE) ::(NODE)";
+        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, functionSignature), 
+                "CALL apoc.custom.declareFunction('" + functionSignature + "', 'MATCH (n) RETURN n limit 1');");
+        
+        String procedureSignature = "testFail(first::INT, s::INT) :: (answer::INT)";
+        assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, procedureSignature), 
+                "call apoc.custom.declareProcedure('" + procedureSignature + "','RETURN $first + $s AS answer')");
+    }
+    
 
     private void assertProcedureFails(String expectedMessage, String query) {
         try {
@@ -711,7 +722,7 @@ public class CypherProceduresTest  {
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             TestCase.assertTrue(except instanceof RuntimeException);
-            assertEquals(expectedMessage, except.getMessage());
+            assertTrue(except.getMessage().contains(expectedMessage));
         }
     }
 }
