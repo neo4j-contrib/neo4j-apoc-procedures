@@ -4,31 +4,32 @@
 
 The list of procedures that start their own transaction:
 
+* apoc.bolt.load
+* apoc.cypher.runFiles
+* apoc.cypher.runMany
+* apoc.cypher.runSchemaFiles
+* apoc.cypher.runTimeboxed
+* apoc.export.csv.*
+* apoc.export.cypher.** 
+* apoc.export.graphml* .*
+* apoc.export.json.*
+* apoc.import.graphml
+* apoc.load.csv
+* apoc.nodes.delete
+* apoc.nodes.group
+* apoc.periodic.iterate
+* apoc.periodic.rock_n_roll
+* apoc.periodic.rock_n_roll_while
+* apoc.refactor.categorize
+* apoc.schema.properties.distinctCount
+* apoc.stats.degrees
 * apoc.trigger.add
+* apoc.trigger.pause
 * apoc.trigger.remove
 * apoc.trigger.removeAll
-* apoc.trigger.pause
 * apoc.trigger.resume
 * apoc.uuid.install
 * apoc.uuid.remove
 * apoc.uuid.removeAll
-* apoc.load.csv
-* apoc.import.graphml
-* apoc.export.csv.*
-* apoc.export.json.*
-* apoc.export.graphml.*
-* apoc.export.cypher.*
-* apoc.schema.properties.distinctCount
-* apoc.stats.degrees
-* apoc.bolt.load
-* apoc.cypher.runMany
-* apoc.cypher.runSchemaFiles
-* apoc.cypher.runFiles
-* apoc.refactor.categorize
-* apoc.nodes.group
-* apoc.nodes.delete
-* apoc.periodic.iterate
-* apoc.periodic.rock_n_roll_while
-* apoc.periodic.rock_n_roll
-* apoc.cypher.runTimeboxed
-* apoc.cypher.runTimeboxed
+
+
