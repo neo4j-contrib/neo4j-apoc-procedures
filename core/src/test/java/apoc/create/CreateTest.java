@@ -6,11 +6,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.List;
 import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
@@ -227,6 +229,37 @@ public class CreateTest {
                     assertEquals("Vincent", node.getProperty("name"));
                     assertNull(node.getProperty("born"));
                 });
+    }
+    
+    @Test
+    public void testVirtualPath() throws Exception {
+        testCall(db, "call apoc.create.virtualPath(['LabelA', 'LabelB'], {alpha:'beta'}, 'KNOWS', {gamma:'delta'}, ['One', 'Two'], {epsilon:'zeta', eta: 'theta'} )",
+                (row) -> {
+                    Node from = (Node) row.get("from");
+                    Node to = (Node) row.get("to");
+                    Relationship rel = (Relationship) row.get("rel");
+                    assertionVirtualPath(from, to, rel);
+                });
+
+        testCall(db, "RETURN apoc.create.virtualPath(['LabelA', 'LabelB'], {alpha:'beta'}, 'KNOWS', {gamma:'delta'}, ['One', 'Two'], {epsilon:'zeta', eta: 'theta'} ) as path",
+                (row) -> {
+                    Path path = (Path) row.get("path");
+                    Node from = path.startNode();
+                    Node to = path.endNode();
+                    Relationship rel = path.lastRelationship();
+                    assertionVirtualPath(from, to, rel);
+                });
+    }
+
+    private void assertionVirtualPath(Node from, Node to, Relationship rel) {
+        assertEquals(List.of(Label.label("LabelA"), Label.label("LabelB")), from.getLabels());
+        assertEquals(Map.of("alpha", "beta"), from.getAllProperties());
+
+        assertEquals(List.of(Label.label("One"), Label.label("Two")), to.getLabels());
+        assertEquals(Map.of("epsilon", "zeta", "eta", "theta"), to.getAllProperties());
+
+        assertEquals("KNOWS", rel.getType().name());
+        assertEquals(Map.of("gamma", "delta"), rel.getAllProperties());
     }
 
 }

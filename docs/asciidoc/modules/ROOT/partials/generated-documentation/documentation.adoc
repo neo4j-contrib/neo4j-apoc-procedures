@@ -825,6 +825,11 @@ apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a vi
 apoc.create.virtual.fromNode(node, [propertyNames]) returns a virtual node built from an existing node with only the requested properties
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.virtualPath.adoc[apoc.create.virtualPath icon:book[]]
+
+apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties
+|label:function[]
+|label:apoc-core[]
 |===
 
 == xref::overview/apoc.custom/index.adoc[]
@@ -1378,7 +1383,7 @@ apoc.graph.fromDocument(\{json}, \{config}) yield graph - transform JSON documen
 |label:apoc-core[]
 |xref::overview/apoc.graph/apoc.graph.fromPath.adoc[apoc.graph.fromPath icon:book[]]
 
-apoc.graph.fromPaths(path,'name',\{properties}) - creates a virtual graph object for later processing
+apoc.graph.fromPath(path,'name',\{properties}) - creates a virtual graph object for later processing
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.graph/apoc.graph.fromPaths.adoc[apoc.graph.fromPaths icon:book[]]
@@ -2443,7 +2448,7 @@ apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cy
 |label:apoc-full[]
 |xref::overview/apoc.periodic/apoc.periodic.submit.adoc[apoc.periodic.submit icon:book[]]
 
-apoc.periodic.submit('name',statement) - submit a one-off background statement
+apoc.periodic.submit('name',statement,params) - submit a one-off background statement; parameter 'params' is optional and can contain query parameters for Cypher statement
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.periodic/apoc.periodic.truncate.adoc[apoc.periodic.truncate icon:book[]]

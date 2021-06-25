@@ -109,3 +109,8 @@ apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node
 apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.adoc[apoc.create.virtualPath icon:book[]]
+
+apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties
+|label:function[]
+|label:apoc-core[]
