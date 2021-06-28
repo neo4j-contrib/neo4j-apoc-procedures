@@ -65,7 +65,7 @@ public class ApocProcessorTest {
                         "import java.lang.String;\n" +
                         "import java.util.List;\n" +
                         "\n" +
-                        "class ApocSignatures {\n" +
+                        "public class ApocSignatures {\n" +
                         "  public static final List<String> PROCEDURES = List.of(\"apoc.nodes\");\n" +
                         "  ;\n" +
                         "\n" +
