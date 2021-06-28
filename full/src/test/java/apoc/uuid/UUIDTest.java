@@ -7,7 +7,6 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -61,6 +60,30 @@ public class UUIDTest {
             assertTrue(person.getAllProperties().get("uuid").toString().matches(UUID_TEST_REGEXP));
             tx.commit();
         }
+    }
+    
+    @Test
+    public void testUUIDWithSetLabel() {
+        // given
+        db.executeTransactionally("CREATE CONSTRAINT ON (p:Mario) ASSERT p.uuid IS UNIQUE");
+        db.executeTransactionally("CALL apoc.uuid.install('Mario', {addToSetLabels: true}) YIELD label RETURN label");
+        // when
+        db.executeTransactionally("CREATE (p:Luigi {foo:'bar'}) SET p:Mario");
+        // then
+        TestUtil.testCall(db, "MATCH (a:Luigi:Mario) RETURN a.uuid as uuid",
+                row -> assertTrue(((String) row.get("uuid")).matches(UUID_TEST_REGEXP)));
+
+        // - set after creation
+        db.executeTransactionally("CREATE (:Peach)");
+        // when
+        db.executeTransactionally("MATCH (p:Peach) SET p:Mario");
+        // then
+        TestUtil.testCall(db, "MATCH (a:Peach:Mario) RETURN a.uuid as uuid", 
+                row -> assertTrue(((String) row.get("uuid")).matches(UUID_TEST_REGEXP)));
+
+        TestUtil.testCall(db, "CALL apoc.uuid.remove('Mario')",
+                (row) -> assertResult(row, "Mario", false,
+                        Util.map("uuidProperty", "uuid", "addToSetLabels", true)));
     }
 
     @Test
@@ -149,10 +172,10 @@ public class UUIDTest {
         // then
         TestUtil.testCall(db, "CALL apoc.uuid.list()",
                 (row) -> assertResult(row, "Bar", true,
-                        Util.map("uuidProperty", "uuid")));
+                        Util.map("uuidProperty", "uuid", "addToSetLabels", false)));
     }
 
-    @Test @Ignore("temporary ignore due to failure update existing nodes with uuids")
+    @Test
     public void testUUIDListAddToExistingNodes() {
         // given
         db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.uuid IS UNIQUE");
@@ -178,10 +201,10 @@ public class UUIDTest {
         // then
         TestUtil.testCall(db, "CALL apoc.uuid.list()",
                 (row) -> assertResult(row, "Test", true,
-                        Util.map("uuidProperty", "foo")));
+                        Util.map("uuidProperty", "foo", "addToSetLabels", false)));
         TestUtil.testCall(db, "CALL apoc.uuid.remove('Test')",
                 (row) -> assertResult(row, "Test", false,
-                        Util.map("uuidProperty", "foo")));
+                        Util.map("uuidProperty", "foo", "addToSetLabels", false)));
     }
 
     @Test
@@ -201,7 +224,7 @@ public class UUIDTest {
         }
     }
 
-    @Test @Ignore("temporary ignore due to failure update existing nodes with uuids")
+    @Test
     public void testAddToExistingNodes() {
         // given
         db.executeTransactionally("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})");
@@ -219,7 +242,7 @@ public class UUIDTest {
         }
     }
 
-    @Test @Ignore("temporary ignore due to failure update existing nodes with uuids")
+    @Test
     public void testAddToExistingNodesBatchResult() {
         // given
         db.executeTransactionally("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})");
@@ -253,10 +276,10 @@ public class UUIDTest {
                     // then
                     Map<String, Object> row = result.next();
                     assertResult(row, "Test", false,
-                            Util.map("uuidProperty", "foo"));
+                            Util.map("uuidProperty", "foo", "addToSetLabels", false));
                     row = result.next();
                     assertResult(row, "Bar", false,
-                            Util.map("uuidProperty", "uuid"));
+                            Util.map("uuidProperty", "uuid", "addToSetLabels", false));
                 });
     }
 

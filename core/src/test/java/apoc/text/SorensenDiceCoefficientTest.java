@@ -2,8 +2,8 @@ package apoc.text;
 
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.number.IsCloseTo.closeTo;
-import static org.junit.Assert.assertThat;
 
 public class SorensenDiceCoefficientTest {
 
@@ -48,6 +48,12 @@ public class SorensenDiceCoefficientTest {
     int commonPairs     =                       countOf("yo","or");
     double expectedScore = 2.0 * commonPairs / (text1PairCount + text2PairCount);
     assertThat(score, closeTo((expectedScore), 0.00001));
+  }
+
+  @Test
+  public void testScoreRepeatingCharactersCorrectly() {
+    assertThat(SorensenDiceCoefficient.compute("aa", "aaaaaa"), closeTo(0.333333, 0.00001));
+    assertThat(SorensenDiceCoefficient.compute("aaaaaa", "aa"), closeTo(0.333333, 0.00001));
   }
 
   private int countOf(String... pairs) {

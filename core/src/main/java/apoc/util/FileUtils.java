@@ -242,10 +242,10 @@ public class FileUtils {
     }
 
     /**
-     * @returns a File pointing to Neo4j's log directory, if it exists and is readable, null otherwise.
+     * @return a File pointing to Neo4j's log directory, if it exists and is readable, null otherwise.
      */
     public static File getLogDirectory() {
-        String neo4jHome = apocConfig().getString("unsupported.dbms.directories.neo4j_home", "");
+        String neo4jHome = apocConfig().getString("dbms.directories.neo4j_home", "");
         String logDir = apocConfig().getString("dbms.directories.logs", "");
 
         File logs = logDir.isEmpty() ? new File(neo4jHome, "logs") : new File(logDir);
@@ -281,7 +281,7 @@ public class FileUtils {
     //
     // More likely, they'll be largely similar metrics.
     public static final List<String> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = Arrays.asList(
-            "dbms.directories.certificates",
+//            "dbms.directories.certificates",  // not in 4.x version
             "dbms.directories.data",
             "dbms.directories.import",
             "dbms.directories.lib",
@@ -290,7 +290,7 @@ public class FileUtils {
             "dbms.directories.plugins",
             "dbms.directories.run",
             "dbms.directories.tx_log",
-            "unsupported.dbms.directories.neo4j_home"
+            "dbms.directories.neo4j_home"
     );
 
     public static void closeReaderSafely(CountingReader reader) {
@@ -304,7 +304,7 @@ public class FileUtils {
     }
 
     public static Path getPathFromUrlString(String urlDir) {
-        return Paths.get(URI.create(urlDir).getPath());
+        return Paths.get(URI.create(urlDir));
     }
 
     // to exclude cases like 'testload.tar.gz?raw=true'

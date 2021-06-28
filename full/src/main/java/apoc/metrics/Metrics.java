@@ -43,7 +43,7 @@ public class Metrics {
         public static StoragePair fromDirectorySetting(String dir) {
             if (dir == null) return null;
 
-            String configLocation = apocConfig().getString("apoc." + dir, null);
+            String configLocation = apocConfig().getString(dir, null);
             if (configLocation == null) return null;
 
             File f = new File(configLocation);
