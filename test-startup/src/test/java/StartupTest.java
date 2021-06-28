@@ -1,10 +1,10 @@
-package apoc;
-
+import apoc.ApocSignatures;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,15 +48,15 @@ public class StartupTest {
 
     @Test
     public void check_extension_deployment() {
-        try (Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())) {
+        try (Neo4jContainerExtension neo4jContainer = createEnterpriseDB(Paths.get("../full").toFile(), !TestUtil.isRunningInCI())) {
             neo4jContainer.start();
 
             assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
             try (Session session = neo4jContainer.getSession()) {
-                List<String> procedureNames = session.run("CALL dbms.procedures() YIELD name WHERE name STARTS WITH 'apoc' RETURN name ORDER BY name ASC")
+                final List<String> functionNames = session.run("CALL apoc.help('') YIELD core, type, name WHERE core = true and type = 'function' RETURN name")
                         .list(record -> record.get("name").asString());
-                List<String> functionNames = session.run("CALL dbms.functions() YIELD name WHERE name STARTS WITH 'apoc' RETURN name ORDER BY name ASC")
+                final List<String> procedureNames = session.run("CALL apoc.help('') YIELD core, type, name WHERE core = true and type = 'procedure' RETURN name")
                         .list(record -> record.get("name").asString());
 
 

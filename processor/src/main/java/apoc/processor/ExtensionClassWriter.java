@@ -13,8 +13,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.joining;
-
 public class ExtensionClassWriter {
 
     private final Filer filer;
@@ -37,6 +35,7 @@ public class ExtensionClassWriter {
 
     private TypeSpec defineClass(List<String> procedureSignatures, List<String> userFunctionSignatures) {
         return TypeSpec.classBuilder("ApocSignatures")
+                .addModifiers(Modifier.PUBLIC)
                 .addField(signatureListField("PROCEDURES", procedureSignatures))
                 .addField(signatureListField("FUNCTIONS", userFunctionSignatures))
                 .build();
