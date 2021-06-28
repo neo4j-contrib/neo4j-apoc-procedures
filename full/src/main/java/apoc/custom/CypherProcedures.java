@@ -1,6 +1,10 @@
 package apoc.custom;
 
 import apoc.Extended;
+import org.apache.commons.lang3.StringUtils;
+import org.neo4j.graphdb.Notification;
+import org.neo4j.graphdb.QueryExecutionType;
+import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
 import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
@@ -20,6 +24,7 @@ import org.neo4j.procedure.Mode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,7 +32,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.custom.CypherProceduresHandler.*;
-import static java.util.Collections.emptyMap;
 
 /**
  * @author mh
@@ -36,11 +40,7 @@ import static java.util.Collections.emptyMap;
 @Extended
 public class CypherProcedures {
 
-    private static final String ERROR_DUPLICATED_PARAMETERS = "There are duplicated %s parameter names";
-    
     // visible for testing
-    public static final String ERROR_DUPLICATED_INPUTS = String.format(ERROR_DUPLICATED_PARAMETERS, "input");
-    public static final String ERROR_DUPLICATED_OUTPUTS = String.format(ERROR_DUPLICATED_PARAMETERS, "output");
     public static final String ERROR_MISMATCHED_INPUTS = "Required query parameters and input parameters provided don't correspond.";
     public static final String ERROR_MISMATCHED_OUTPUTS = "Query results and output parameters provided don't correspond.";
     
@@ -72,7 +72,8 @@ public class CypherProcedures {
                             @Name(value= "description", defaultValue = "") String description
     ) throws ProcedureException {
         ProcedureSignature signature = cypherProceduresHandler.procedureSignature(name, mode, outputs, inputs, description);
-        validate(statement, signature.inputSignature(), signature.outputSignature());
+        Mode modeProcedure = cypherProceduresHandler.mode(mode);
+        validateProcedure(statement, signature.inputSignature(), signature.outputSignature(), modeProcedure);
         cypherProceduresHandler.storeProcedure(signature, statement);
     }
 
@@ -82,8 +83,9 @@ public class CypherProcedures {
                                  @Name(value = "mode", defaultValue = "read") String mode,
                                  @Name(value = "description", defaultValue = "") String description
     ) {
-        ProcedureSignature procedureSignature = new Signatures(PREFIX).asProcedureSignature(signature, description, cypherProceduresHandler.mode(mode));
-        validate(statement, procedureSignature.inputSignature(), procedureSignature.outputSignature());
+        Mode modeProcedure = cypherProceduresHandler.mode(mode);
+        ProcedureSignature procedureSignature = new Signatures(PREFIX).asProcedureSignature(signature, description, modeProcedure);
+        validateProcedure(statement, procedureSignature.inputSignature(), procedureSignature.outputSignature(), modeProcedure);
         if (!cypherProceduresHandler.registerProcedure(procedureSignature, statement)) {
             throw new IllegalStateException("Error registering procedure " + procedureSignature.name() + ", see log.");
         }
@@ -100,7 +102,7 @@ public class CypherProcedures {
                            @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
                            @Name(value = "description", defaultValue = "") String description) throws ProcedureException {
         UserFunctionSignature signature = cypherProceduresHandler.functionSignature(name, output, inputs, description);
-        validate(statement, signature.inputSignature());
+        validateFunction(statement, signature.inputSignature());
         cypherProceduresHandler.storeFunction(signature, statement, forceSingle);
     }
 
@@ -110,7 +112,7 @@ public class CypherProcedures {
                            @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
                            @Name(value = "description", defaultValue = "") String description) throws ProcedureException {
         UserFunctionSignature userFunctionSignature = new Signatures(PREFIX).asFunctionSignature(signature, description);
-        validate(statement, userFunctionSignature.inputSignature());
+        validateFunction(statement, userFunctionSignature.inputSignature());
         if (!cypherProceduresHandler.registerFunction(userFunctionSignature, statement, forceSingle)) {
             throw new IllegalStateException("Error registering function " + signature + ", see log.");
         }
@@ -165,65 +167,60 @@ public class CypherProcedures {
         cypherProceduresHandler.removeFunction(name);
     }
 
-    private void validate(String statement, List<FieldSignature> input) {
-        validate(statement, input, null);
+    private void validateFunction(String statement, List<FieldSignature> input) {
+        validateProcedure(statement, input, DEFAULT_MAP_OUTPUT, null);
     }
     
-    private void validate(String statement, List<FieldSignature> input, List<FieldSignature> output) {
-        // we check outputs only if is a custom procedure
-        boolean isDefaultOutputs = output == null || output.equals(DEFAULT_MAP_OUTPUT);
-        boolean isDefaultInputs = input.equals(DEFAULT_INPUTS);
-
-        // with default values, there is no need to validate
-        if (isDefaultOutputs && isDefaultInputs) {
-            return;
-        }
+    private void validateProcedure(String statement, List<FieldSignature> input, List<FieldSignature> output, Mode mode) {
         
         final Set<String> inputSet = input.stream().map(FieldSignature::name).collect(Collectors.toSet());
-        checkForDuplicatedParameters(input, isDefaultInputs, inputSet, ERROR_DUPLICATED_INPUTS);
+        final Set<String> outputSet = output.stream().map(FieldSignature::name).collect(Collectors.toSet());
 
-        final Set<String> outputSet = output == null ? null 
-                : output.stream().map(FieldSignature::name).collect(Collectors.toSet());
-        checkForDuplicatedParameters(output, isDefaultOutputs, outputSet, ERROR_DUPLICATED_OUTPUTS);
-
-        checkConsistencyParams(statement, isDefaultOutputs, isDefaultInputs, inputSet, outputSet);
+        api.executeTransactionally("EXPLAIN " + statement, 
+                inputSet.stream().collect(Collectors.toMap(i -> i, i -> i)),
+                result -> {
+                    if (!DEFAULT_MAP_OUTPUT.equals(output)) {
+                        checkOutputParams(outputSet, result.columns());
+                    }
+                    if (!DEFAULT_INPUTS.equals(input)) {
+                        checkInputParams(result);
+                    }
+                    if (mode != null) {
+                        checkMode(result.getQueryExecutionType().queryType(), mode);
+                    }
+                    return null;
+                });
     }
 
-    private void checkConsistencyParams(String statement, boolean isDefaultOutputs, boolean isDefaultInputs, Set<String> inputSet, Set<String> outputSet) {
-        api.executeTransactionally("EXPLAIN " + statement, emptyMap(), result -> {
-            // check if, in case of output params is not default or null, the column names of result query and output parameters
-            final boolean outputMismatched = !(isDefaultOutputs || Set.copyOf(result.columns()).equals(outputSet));
-            if (outputMismatched) {
-                throw new RuntimeException(ERROR_MISMATCHED_OUTPUTS);
-            }
-            if (!isDefaultInputs) {
-                // check if from EXPLAIN query there is a warning due to missing parameters
-                // if yes, I extract the missing parameters and compare them with the inputs entered by the user
-                StreamSupport.stream(result.getNotifications().spliterator(), false)
-                        .filter(i -> i.getCode().equals(Status.Statement.ParameterMissing.code().serialize()))
-                        .findFirst()
-                        .ifPresent(missingParamNotification -> {
-                            final String missingParamDescription = missingParamNotification.getDescription();
-                            final String missingParamPrepend = "Missing parameters: ";
-                            // we get set of all missing parameters
-                            final String stringMissingParam = missingParamDescription
-                                    .substring(missingParamDescription.indexOf(missingParamPrepend) + missingParamPrepend.length())
-                                    .replace(")", "");
-                            final Set<String> split = Set.of(stringMissingParam.split(", "));
-
-                            // check if missing parameters and input parameters coincide
-                            if (!split.equals(inputSet)) {
-                                throw new RuntimeException(ERROR_MISMATCHED_INPUTS);
-                            }
-                        });
-            }
-            return null;
-        });
+    private void checkMode(QueryExecutionType.QueryType queryType, Mode mode) {
+        Map<QueryExecutionType.QueryType, Mode> map = Map.of(QueryExecutionType.QueryType.WRITE, Mode.WRITE,
+                QueryExecutionType.QueryType.READ_ONLY, Mode.READ,
+                QueryExecutionType.QueryType.READ_WRITE, Mode.WRITE);
+        
+        if (!map.get(queryType).equals(mode)) {
+            throw new RuntimeException(String.format("The query execution type is %s, but you provided mode %s.\n" +
+                            "Supported modes are %s",
+                    queryType.name(), 
+                    mode.name(), 
+                    map.values().stream().sorted().collect(Collectors.toList()).toString()));
+        }
     }
 
-    private void checkForDuplicatedParameters(List<FieldSignature> signatures, boolean isDefault, Set<String> parameterSet, String error) {
-        if (!isDefault && parameterSet.size() != signatures.size()) {
-            throw new RuntimeException(error);
+
+    private void checkOutputParams(Set<String> outputSet, List<String> columns) {
+        if (!Set.copyOf(columns).equals(outputSet)) {
+            throw new RuntimeException(ERROR_MISMATCHED_OUTPUTS);
+        }
+    }
+    
+    private void checkInputParams(Result result) {
+        String missingParameters = StreamSupport.stream(result.getNotifications().spliterator(), false)
+                .filter(i -> i.getCode().equals(Status.Statement.ParameterMissing.code().serialize()))
+                .map(Notification::getDescription)
+                .collect(Collectors.joining(System.lineSeparator()));
+
+        if (StringUtils.isNotBlank(missingParameters)) {
+            throw new RuntimeException(ERROR_MISMATCHED_INPUTS);
         }
     }
 

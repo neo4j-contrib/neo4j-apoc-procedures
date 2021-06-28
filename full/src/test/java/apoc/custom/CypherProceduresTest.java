@@ -23,8 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.custom.CypherProcedures.ERROR_DUPLICATED_INPUTS;
-import static apoc.custom.CypherProcedures.ERROR_DUPLICATED_OUTPUTS;
 import static apoc.custom.CypherProcedures.ERROR_MISMATCHED_INPUTS;
 import static apoc.custom.CypherProcedures.ERROR_MISMATCHED_OUTPUTS;
 import static apoc.custom.CypherProceduresHandler.FUNCTION;
@@ -201,6 +199,13 @@ public class CypherProceduresTest  {
     public void testStatementReturningNode() throws Exception {
         db.executeTransactionally("call apoc.custom.asProcedure('answer','create path=(node)-[relationship:FOO]->() return node, relationship, path','write', [['node','Node'], ['relationship','RELATIONSHIP'], ['path','PATH']], [])");
         TestUtil.testCall(db, "call custom.answer()", (row) -> {});
+    }
+    
+    @Test
+    public void testWrongMode() {
+        assertProcedureFails("The query execution type is READ_WRITE, but you provided mode READ.\n" +
+                        "Supported modes are [READ, WRITE, WRITE]",
+                "call apoc.custom.asProcedure('answer','create path=(node)-[relationship:FOO]->() return node, relationship, path','read', [['node','Node'], ['relationship','RELATIONSHIP'], ['path','PATH']], [])");
     }
 
     @Test
@@ -664,21 +669,6 @@ public class CypherProceduresTest  {
         final String functionStatementInvalidOutput = "myFunc(val :: INTEGER) :: DUNNO";
         assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, functionStatementInvalidOutput),
                 "CALL apoc.custom.declareFunction('" + functionStatementInvalidOutput + "', 'RETURN $val')");
-    }
-
-    @Test
-    public void shouldFailWithDuplicatedParameters() {
-        assertProcedureFails(ERROR_DUPLICATED_INPUTS,
-                "call apoc.custom.declareProcedure('sum(input::INT, input::INT) :: (answer::INT)','RETURN $first + $second AS sum')");
-        assertProcedureFails(ERROR_DUPLICATED_INPUTS,
-                "CALL apoc.custom.declareFunction('anotherFun(val :: INTEGER, val :: INTEGER) :: INTEGER ', 'RETURN $val')");
-        assertProcedureFails(ERROR_DUPLICATED_INPUTS,
-                "call apoc.custom.asFunction('answer', 'RETURN $input as answer','long', [['input','number'], ['another','number'], ['input','string']])");
-        assertProcedureFails(ERROR_DUPLICATED_INPUTS,
-                "call apoc.custom.asProcedure('testAnother','RETURN $input as answer, $another as another','read', null, [['input','int','42'], ['another','int','42'], ['input','int','43']])");
-        // duplicated output - only for asProcedure, because for declareProcedure this error is handled through SignatureParser
-        assertProcedureFails(ERROR_DUPLICATED_OUTPUTS,
-                "call apoc.custom.asProcedure('testAnother','RETURN $input as answer, $another as another','read', [['input','int'], ['another','int'], ['input','int']], [['another','int'], ['input','int']])");
     }
 
     @Test

@@ -51,7 +51,7 @@ public class Signatures {
         }
     }
 
-    public SignatureParser parse(String signatureText, List<String> errors) {
+    private SignatureParser parse(String signatureText, List<String> errors) {
         CodePointCharStream inputStream = CharStreams.fromString(signatureText);
         SignatureLexer signatureLexer = new SignatureLexer(inputStream);
         CommonTokenStream commonTokenStream = new CommonTokenStream(signatureLexer);
