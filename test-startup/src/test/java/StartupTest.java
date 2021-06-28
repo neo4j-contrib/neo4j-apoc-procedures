@@ -4,6 +4,7 @@ import apoc.util.TestUtil;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,23 +12,21 @@ import java.util.stream.Collectors;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /*
- This test is just to verify if the APOC are correctly deployed
- into a Neo4j instance without any startup issue.
+ This test is just to verify if the APOC procedures and functions are correctly deployed into a Neo4j instance without any startup issue.
  If you don't have docker installed it will fail, and you can simply ignore it.
  */
 public class StartupTest {
-    @Test
-    public void test() {
-        try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
-                    .withNeo4jConfig("dbms.transaction.timeout", "5s");
 
+    private static final File APOC_FULL = Paths.get("../full").toFile();
+
+    @Test
+    public void check_basic_deployment() {
+        try (Neo4jContainerExtension neo4jContainer = createEnterpriseDB(APOC_FULL, !TestUtil.isRunningInCI())
+                .withNeo4jConfig("dbms.transaction.timeout", "5s")) {
 
             neo4jContainer.start();
-
             assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
             Session session = neo4jContainer.getSession();
@@ -38,17 +37,12 @@ public class StartupTest {
             assertTrue(procedureCount > 0);
             assertTrue(functionCount > 0);
             assertTrue(coreCount > 0);
-
-            neo4jContainer.close();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            fail("Should not have thrown exception when trying to start Neo4j: " + ex);
         }
     }
 
     @Test
-    public void check_extension_deployment() {
-        try (Neo4jContainerExtension neo4jContainer = createEnterpriseDB(Paths.get("../full").toFile(), !TestUtil.isRunningInCI())) {
+    public void compare_with_sources() {
+        try (Neo4jContainerExtension neo4jContainer = createEnterpriseDB(APOC_FULL, !TestUtil.isRunningInCI())) {
             neo4jContainer.start();
 
             assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
@@ -63,9 +57,6 @@ public class StartupTest {
                 assertEquals(sorted(ApocSignatures.PROCEDURES), procedureNames);
                 assertEquals(sorted(ApocSignatures.FUNCTIONS), functionNames);
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            fail("Should not have thrown exception when trying to start Neo4j: " + ex);
         }
     }
 

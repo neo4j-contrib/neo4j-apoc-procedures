@@ -42,8 +42,6 @@ dependencies {
 
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
-    compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
-    testCompile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
     compile group: 'net.minidev', name: 'json-smart', version: '2.4.2'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'

@@ -148,6 +148,9 @@ dependencies {
         exclude group: 'com.google.guava', module: 'guava'
     }
 
+    compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
+    testCompile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
+
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
     }
