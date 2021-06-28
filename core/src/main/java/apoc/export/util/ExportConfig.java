@@ -28,6 +28,7 @@ public class ExportConfig {
     private int batchSize;
     private boolean silent;
     private boolean bulkImport = false;
+    private boolean sampling;
     private String delim;
     private String quotes;
     private boolean useTypes;
@@ -100,6 +101,7 @@ public class ExportConfig {
         this.optimizations = (Map<String, Object>) config.getOrDefault("useOptimizations", Collections.emptyMap());
         this.optimizationType = OptimizationType.valueOf(optimizations.getOrDefault("type", OptimizationType.UNWIND_BATCH.toString()).toString().toUpperCase());
         this.batchSize = ((Number)config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE)).intValue();
+        this.sampling = toBoolean(config.getOrDefault("sampling", false));
         this.samplingConfig = (Map<String, Object>) config.getOrDefault("samplingConfig", new HashMap<>());
         this.unwindBatchSize = ((Number)getOptimizations().getOrDefault("unwindBatchSize", DEFAULT_UNWIND_BATCH_SIZE)).intValue();
         this.awaitForIndexes = ((Number)config.getOrDefault("awaitForIndexes", 300)).longValue();
@@ -199,5 +201,9 @@ public class ExportConfig {
 
     public Map<String, Object> getSamplingConfig() {
         return samplingConfig;
+    }
+
+    public boolean isSampling() {
+        return sampling;
     }
 }

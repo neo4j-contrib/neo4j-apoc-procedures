@@ -8,11 +8,13 @@ import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResultTransformer;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +34,13 @@ public class MetaInformation {
     private static final Map<String, String> REVERSED_TYPE_MAP = MapUtils.invertMap(typeMappings);
     
     public static Map<String, Class> collectPropTypesForNodes(SubGraph graph, GraphDatabaseService db, ExportConfig config) {
+        if (!config.isSampling()) {
+            Map<String,Class> propTypes = new LinkedHashMap<>();
+            for (Node node : graph.getNodes()) {
+                updateKeyTypes(propTypes, node);
+            }
+            return propTypes;
+        }
         final Map<String, Object> conf = config.getSamplingConfig();
         conf.putIfAbsent("includeLabels", stream(graph.getAllLabelsInUse()).map(Label::name).collect(Collectors.toList()));
         
@@ -40,6 +49,13 @@ public class MetaInformation {
     }
 
     public static Map<String, Class> collectPropTypesForRelationships(SubGraph graph, GraphDatabaseService db, ExportConfig config) {
+        if (!config.isSampling()) {
+            Map<String,Class> propTypes = new LinkedHashMap<>();
+            for (Relationship relationship : graph.getRelationships()) {
+                updateKeyTypes(propTypes, relationship);
+            }
+            return propTypes;
+        }
         final Map<String, Object> conf = config.getSamplingConfig();
         conf.putIfAbsent("includeRels", stream(graph.getAllRelationshipTypesInUse()).map(RelationshipType::name).collect(Collectors.toList()));
 

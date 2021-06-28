@@ -96,7 +96,8 @@ RETURN file, nodes, relationships, properties, data
 
 |===
 
-The `apoc.export.csv.all` procedure use under the hood
+You can use the configuration `sampling` (default: `false`).
+With this config, the `apoc.export.csv.all` procedure use under the hood
 the `apoc.meta.nodeTypeProperties` and the `apoc.meta.relTypeProperties` procedure to get the property types.
 You can customize the configuration of these 2 `apoc.meta.*` procedure, using the `samplingConfig: MAP` configuration, 
 to limit the number of nodes/rels to analyze.
@@ -112,7 +113,7 @@ CREATE (:User:Sample {`last:Name`:'Galilei'}), (:User:Sample {address:'Universe'
 the following query: 
 [source,cypher]
 ----
-CALL apoc.export.csv.all('movies.csv', {samplingConfig: {sample: 1}})
+CALL apoc.export.csv.all('movies.csv', {sampling: true, samplingConfig: {sample: 1}})
 ----
 
 .Results
