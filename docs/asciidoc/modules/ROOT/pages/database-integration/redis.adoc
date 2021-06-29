@@ -11,7 +11,6 @@ Here is a list of all available Redis procedures:
 ¦apoc.redis.configGet¦apoc.redis.configGet(uri :: STRING?, parameter :: STRING?, config = {} :: MAP?) :: (value :: MAP?)¦apoc.redis.configGet(uri, parameter, \{config}) | Execute the 'CONFIG GET parameter' command
 ¦apoc.redis.configSet¦apoc.redis.configSet(uri :: STRING?, parameter :: STRING?, value :: STRING?, config = {} :: MAP?) :: (value :: STRING?)¦apoc.redis.configSet(uri, parameter, \{config}) | Execute the 'CONFIG SET parameter value' command
 ¦apoc.redis.copy¦apoc.redis.copy(uri :: STRING?, source :: STRING?, destination :: STRING?, config = {} :: MAP?) :: (value :: BOOLEAN?)¦apoc.redis.copy(uri, source, destination, \{config}) | Execute the 'COPY source destination' command
-¦apoc.redis.dispatch¦apoc.redis.dispatch(uri :: STRING?, command :: STRING?, output :: STRING?, keys = [] :: LIST? OF STRING?, values = [] :: LIST? OF STRING?, arguments = {} :: MAP?, config = {} :: MAP?) :: (value :: ANY?)¦apoc.redis.dispatch(uri, command, output, keys, values, arguments, \{config}) | Execute a custom command based on https://lettuce.io/ BaseRedisCommands.dispatch(...)
 ¦apoc.redis.eval¦apoc.redis.eval(uri :: STRING?, script :: STRING?, outputType :: STRING?, keys :: LIST? OF STRING?, values :: LIST? OF STRING?, config = {} :: MAP?) :: (value :: ANY?)¦apoc.redis.eval(uri, script, outputType, keys, values, \{config}) | Execute the 'EVAL script' command
 ¦apoc.redis.exists¦apoc.redis.exists(uri :: STRING?, keys :: LIST? OF STRING?, config = {} :: MAP?) :: (value :: INTEGER?)¦apoc.redis.exists(uri, keys, \{config}) | Execute the 'EXISTS keys' command
 ¦apoc.redis.get¦apoc.redis.get(uri :: STRING?, key :: STRING?, config = {} :: MAP?) :: (value :: STRING?)¦apoc.redis.get(uri, key, \{config}) | Execute the 'GET key' command
@@ -552,39 +551,4 @@ CALL apoc.redis.configSet($uri, $keyConfig, '64')
 |===
 | value
 | "OK"
-|===
-
-=== `Dispatch custom command`
-
-We can create a custom command using the https://lettuce.io/core/release/reference/[Lettuce Java Driver], 
-declaring the https://lettuce.io/lettuce-4/release/api/com/lambdaworks/redis/protocol/CommandType.html[CommandType], 
-the https://lettuce.io/core/6.0.0.RELEASE/api/io/lettuce/core/output/CommandOutput.html[CommandOutput],
-the key(s), the value(s) and the argument(s).
-
-For example, to create a `LPUSH` command:
-
-[source,cypher]
-----
-CALL apoc.redis.dispatch($uri, 'LPUSH', 'IntegerOutput', ['key'], ['valueList'])
-----
-
-.Results
-[opts="header"]
-|===
-| value
-| 1L
-|===
-
-Or a `MSET` command:
-
-[source,cypher]
-----
-CALL apoc.redis.dispatch($uri, 'MSET', 'BooleanOutput', null, null, {keyOne: 'valueOne', keyTwo: 'valueTwo'})
-----
-
-.Results
-[opts="header"]
-|===
-| value
-| true
 |===

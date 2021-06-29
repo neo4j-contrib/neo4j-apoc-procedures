@@ -2491,11 +2491,6 @@ apoc.redis.configSet(uri, parameter, \{config}) \| Execute the 'CONFIG SET param
 apoc.redis.copy(uri, source, destination, \{config}) \| Execute the 'COPY source destination' command
 |label:procedure[]
 |label:apoc-core[]
-|xref::overview/apoc.redis/apoc.redis.dispatch.adoc[apoc.redis.dispatch icon:book[]]
-
-apoc.redis.dispatch(uri, command, output, keys, values, arguments, \{config}) \| Execute a custom command based on https://lettuce.io/ BaseRedisCommands.dispatch(...)
-|label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.redis/apoc.redis.eval.adoc[apoc.redis.eval icon:book[]]
 
 apoc.redis.eval(uri, script, outputType, keys, values, \{config}) \| Execute the 'EVAL script' command

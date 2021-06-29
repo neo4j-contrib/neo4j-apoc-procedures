@@ -166,22 +166,6 @@ public class Redis {
                 connection.eval(script, ScriptOutputType.valueOf(outputType), keys.toArray(String[]::new), values.toArray(String[]::new)))));
     }
 
-    @Procedure
-    @Description("apoc.redis.dispatch(uri, command, output, keys, values, arguments, {config}) | Execute a custom command based on https://lettuce.io/ BaseRedisCommands.dispatch(...)") // TODO - PASSARE ANCHE IL COMMAND TYPE
-    public Stream<ObjectResult> dispatch(@Name("uri") String uri, @Name("command") String command, @Name("output") String output, 
-                                         @Name(value = "keys", defaultValue = "[]") List<String> keys, 
-                                         @Name(value = "values", defaultValue = "[]") List<String> values, 
-                                         @Name(value = "arguments", defaultValue = "{}") Map<String, String> arguments, 
-                                         @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        return withConnection(uri, config, connection -> {
-            try {
-                return Stream.of(new ObjectResult(connection.dispatch(command, output, keys, values, arguments)));
-            } catch (Exception e) {
-                throw new RuntimeException("Dispatch config error", e);
-            }
-        });
-    }
-
     // -- Key
     @Procedure
     @Description("apoc.redis.copy(uri, source, destination, {config}) | Execute the 'COPY source destination' command")

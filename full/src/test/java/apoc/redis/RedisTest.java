@@ -176,21 +176,6 @@ public class RedisTest {
     }
 
     @Test
-    public void testDispatch() {
-        TestUtil.testCall(db, "CALL apoc.redis.dispatch($uri, 'LPUSH', 'IntegerOutput', ['key'], ['valueList'])", Map.of("uri", URI),
-                r -> assertEquals(1L, r.get("value")));
-
-        TestUtil.testCall(db, "CALL apoc.redis.lrange($uri, 'key', 0, 1)", Map.of("uri", URI),
-                r -> assertEquals(List.of("valueList"), r.get("value")));
-
-        TestUtil.testCall(db, "CALL apoc.redis.dispatch($uri, 'MSET', 'BooleanOutput', null, null, {keyOne: 'valueOne', keyTwo: 'valueTwo'})", Map.of("uri", URI),
-                r -> assertEquals(true, r.get("value")));
-
-        TestUtil.testCall(db, "CALL apoc.redis.get($uri, 'keyOne')", Map.of("uri", URI), r -> assertEquals("valueOne", r.get("value")));
-        TestUtil.testCall(db, "CALL apoc.redis.get($uri, 'keyTwo')", Map.of("uri", URI), r -> assertEquals("valueTwo", r.get("value")));
-    }
-
-    @Test
     public void testEvalCommand() {
         TestUtil.testCall(db, "CALL apoc.redis.setGet($uri, 'testEval', 'valueEval')", Map.of("uri", URI), r -> assertNull(r.get("value")));
         TestUtil.testCall(db, "CALL apoc.redis.eval($uri, 'return redis.call(\"get\", KEYS[1])', 'VALUE', ['testEval'], ['key:name'])", Map.of("uri", URI),

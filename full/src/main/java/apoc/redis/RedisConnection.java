@@ -154,32 +154,6 @@ public class RedisConnection implements AutoCloseable {
     public Object eval(String script, ScriptOutputType outputType, String[] keys, String... values) {
         return this.commands.eval(script, outputType, keys, values);
     }
-    
-    public Object dispatch(String command, String output, List<String> keys, List<String> values, Map<String, String> arguments) {
-        try {
-            final CommandOutput commandOutput = new Reflections(CommandOutput.class.getPackageName()).getSubTypesOf(CommandOutput.class)
-                    .stream()
-                    .filter(ci -> ci.getSimpleName().equalsIgnoreCase(output))
-                    .findFirst()
-                    .orElseThrow(() -> new UnsupportedOperationException("Output type not supported: " + output))
-                    .getConstructor(RedisCodec.class)
-                    .newInstance(this.codec);
-            
-            final CommandArgs<String, String> commandArgs = new CommandArgs<>(this.codec);
-            if (CollectionUtils.isNotEmpty(keys)) {
-                commandArgs.addKeys(keys);
-            }
-            if (CollectionUtils.isNotEmpty(values)) {
-                commandArgs.addValues(values);
-            }
-            if (MapUtils.isNotEmpty(arguments)) {
-                commandArgs.add(arguments);
-            }
-            return this.commands.dispatch(CommandType.valueOf(command), commandOutput, commandArgs);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     // -- Key
     public boolean copy(String source, String destination) {
