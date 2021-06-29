@@ -28,7 +28,6 @@ import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -152,16 +151,7 @@ public class Schemas {
                 continue;
 
             boolean nodeIndex = definition.isNodeIndex();
-            Object label;
-            if (nodeIndex) {
-                label = definition.isMultiTokenIndex()
-                        ? Iterables.stream(definition.getLabels()).map(Label::name).collect(Collectors.toList())
-                        : Iterables.single(definition.getLabels()).name();
-            } else {
-                label = definition.isMultiTokenIndex()
-                        ? Iterables.stream(definition.getRelationshipTypes()).map(RelationshipType::name).collect(Collectors.toList())
-                        : Iterables.single(definition.getRelationshipTypes()).name();
-            }
+            Object label = getLabelForAssert(definition, nodeIndex);
             List<String> keys = new ArrayList<>();
             definition.getPropertyKeys().forEach(keys::add);
 
@@ -196,6 +186,18 @@ public class Schemas {
             }
         }
         return result;
+    }
+
+    private Object getLabelForAssert(IndexDefinition definition, boolean nodeIndex) {
+        if (nodeIndex) {
+            return definition.isMultiTokenIndex()
+                    ? Iterables.stream(definition.getLabels()).map(Label::name).collect(Collectors.toList())
+                    : Iterables.single(definition.getLabels()).name();
+        } else {
+            return definition.isMultiTokenIndex()
+                    ? Iterables.stream(definition.getRelationshipTypes()).map(RelationshipType::name).collect(Collectors.toList())
+                    : Iterables.single(definition.getRelationshipTypes()).name();
+        }
     }
 
     private AssertSchemaResult createSinglePropertyIndex(Schema schema, String lbl, String key) {
