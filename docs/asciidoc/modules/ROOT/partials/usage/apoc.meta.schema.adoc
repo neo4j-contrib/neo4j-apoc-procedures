@@ -39,7 +39,7 @@ RETURN key, value[key] AS value;
 ----
 
 Note that, in case of relationship type and node label with the same name, 
-they will be distinguished by the suffix " (node)" and " (relationships)".
+the relationships will be distinguished by the suffix " (RELATIONSHIP)"
 
 .Results
 [opts="header"]
@@ -48,7 +48,7 @@ they will be distinguished by the suffix " (node)" and " (relationships)".
 | "Movie"                   | {count: 9, relationships: {ACTED_IN: {count: 41, properties: {roles: {existence: FALSE, type: "LIST", array: TRUE}}, direction: "in", labels: ["Person"]}}, type: "node", properties: {tagline: {existence: FALSE, type: "STRING", indexed: FALSE, unique: FALSE}, title: {existence: FALSE, type: "STRING", indexed: FALSE, unique: FALSE}, released: {existence: FALSE, type: "INTEGER", indexed: FALSE, unique: FALSE}}, labels: []}
 | "ACTED_IN"                | {count: 9, type: "relationship", properties: {roles: {existence: FALSE, type: "LIST", array: TRUE}}}
 | "Person"                  | {count: 2, relationships: {ACTED_IN: {count: 9, properties: {roles: {existence: FALSE, type: "LIST", array: TRUE}}, direction: "out", labels: ["Movie"]}}, type: "node", properties: {name: {existence: FALSE, type: "STRING", indexed: FALSE, unique: FALSE}, born: {existence: FALSE, type: "INTEGER", indexed: FALSE, unique: FALSE}}, labels: []}
-| "sameName (relationship)" | {count: 1, type: "relationship", properties: {alfa: {existence: false, type: "STRING", array: false}}}
-| "sameName (node)"         | {count: 2, relationships: {"sameName (relationship)": {count: 1, properties: {alfa: {existence: false, type: "STRING", array: false}}, direction: "out", labels: ["sameName"]}}, type:"node", properties: {id: {existence: false,type: "INTEGER", indexed: false,unique: false}},labels: []}
+| "sameName (RELATIONSHIP)" | {"count":1,"type":"relationship","properties":{"alfa":{"existence":false,"type":"STRING","array":false}}}
+| "sameName"                | {count: 2, relationships: {"sameName": {count: 1, properties: {alfa: {existence: false, type: "STRING", array: false}}, direction: "out", labels: ["sameName"]}}, type:"node", properties: {id: {existence: false,type: "INTEGER", indexed: false,unique: false}},labels: []}
 |===
 
