@@ -71,6 +71,7 @@ The procedures support the following config parameters:
 | right | `Boolean` | true | To choose the direction case of procedure with "two sides", 
     for example in `apoc.redis.push` to choose between RPUSH and LPUSH (right/left push) 
 | expireAt | `Boolean` | true | Converts MongoDB data types into Neo4j data types
+| codec | Enum[STRING, BYTE_ARRAY] | String | The https://lettuce.io/core/release/reference/#codecs[Redis Codec] used for encode key and values (see the `Strings commands` example)
 |===
 
 [[redis-examples]]
@@ -93,6 +94,21 @@ CALL apoc.redis.setGet($uri, 'myKey', 'myValue')
 | value
 | null
 |===
+
+Or with codec: `BYTE_ARRAY`:
+
+[source,cypher]
+----
+CALL apoc.redis.setGet($uri, `BYTES_KEY`, `BYTES_VALUE`, {codec: "BYTE_ARRAY"})
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| {"0":31.0,"1":-117.0,"2":8.0,"3":0.0,"4":0.0,"5":0.0,"6":0.0,"7":0.0,"8":0.0,"9":-1.0,"10":75.0,"11":4.0,"12":0.0,"13":67.0,"14":-66.0,"15":-73.0,"16":-24.0,"17":1.0,"18":0.0,"19":0.0,"20":0.0}
+|===
+
 
 `GET` command:
 

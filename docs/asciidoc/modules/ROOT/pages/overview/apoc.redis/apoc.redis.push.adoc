@@ -14,7 +14,7 @@ apoc.redis.push(uri, key, values, \{config}) | Execute the 'LPUSH key field valu
 
 [source]
 ----
-apoc.redis.push(uri :: STRING?, key :: STRING?, value :: LIST? OF STRING?, config = {} :: MAP?) :: (value :: INTEGER?)
+apoc.redis.push(uri :: STRING?, key :: ANY?, value :: LIST? OF ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
 ----
 
 == Input parameters
@@ -22,8 +22,8 @@ apoc.redis.push(uri :: STRING?, key :: STRING?, value :: LIST? OF STRING?, confi
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
-|value|LIST? OF STRING?|null
+|key|ANY?|null
+|value|LIST? OF ANY?|null
 |config|MAP?|{}
 |===
 

@@ -14,7 +14,7 @@ apoc.redis.zrangebyscore(uri, key, min, max, \{config}) | Execute the 'ZRANGEBYS
 
 [source]
 ----
-apoc.redis.zrangebyscore(uri :: STRING?, key :: STRING?, min :: INTEGER?, max :: INTEGER?, config = {} :: MAP?) :: (value :: LIST? OF ANY?)
+apoc.redis.zrangebyscore(uri :: STRING?, key :: ANY?, min :: INTEGER?, max :: INTEGER?, config = {} :: MAP?) :: (value :: LIST? OF ANY?)
 ----
 
 == Input parameters
@@ -22,7 +22,7 @@ apoc.redis.zrangebyscore(uri :: STRING?, key :: STRING?, min :: INTEGER?, max ::
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
+|key|ANY?|null
 |min|INTEGER?|null
 |max|INTEGER?|null
 |config|MAP?|{}

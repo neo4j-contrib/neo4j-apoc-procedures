@@ -14,7 +14,7 @@ apoc.redis.lrange(uri, key, start, stop, \{config}) | Execute the 'LRANGE key st
 
 [source]
 ----
-apoc.redis.lrange(uri :: STRING?, key :: STRING?, start :: INTEGER?, stop :: INTEGER?, config = {} :: MAP?) :: (value :: LIST? OF ANY?)
+apoc.redis.lrange(uri :: STRING?, key :: ANY?, start :: INTEGER?, stop :: INTEGER?, config = {} :: MAP?) :: (value :: LIST? OF ANY?)
 ----
 
 == Input parameters
@@ -22,7 +22,7 @@ apoc.redis.lrange(uri :: STRING?, key :: STRING?, start :: INTEGER?, stop :: INT
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
+|key|ANY?|null
 |start|INTEGER?|null
 |stop|INTEGER?|null
 |config|MAP?|{}

@@ -14,7 +14,7 @@ apoc.redis.copy(uri, source, destination, \{config}) | Execute the 'COPY source 
 
 [source]
 ----
-apoc.redis.copy(uri :: STRING?, source :: STRING?, destination :: STRING?, config = {} :: MAP?) :: (value :: BOOLEAN?)
+apoc.redis.copy(uri :: STRING?, source :: ANY?, destination :: ANY?, config = {} :: MAP?) :: (value :: BOOLEAN?)
 ----
 
 == Input parameters
@@ -22,8 +22,8 @@ apoc.redis.copy(uri :: STRING?, source :: STRING?, destination :: STRING?, confi
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|source|STRING?|null
-|destination|STRING?|null
+|source|ANY?|null
+|destination|ANY?|null
 |config|MAP?|{}
 |===
 

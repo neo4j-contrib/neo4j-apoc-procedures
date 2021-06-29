@@ -14,7 +14,7 @@ apoc.redis.hexists(uri, key, field, \{config}) | Execute the 'HEXISTS key field'
 
 [source]
 ----
-apoc.redis.hexists(uri :: STRING?, key :: STRING?, field :: STRING?, config = {} :: MAP?) :: (value :: BOOLEAN?)
+apoc.redis.hexists(uri :: STRING?, key :: ANY?, field :: ANY?, config = {} :: MAP?) :: (value :: BOOLEAN?)
 ----
 
 == Input parameters
@@ -22,8 +22,8 @@ apoc.redis.hexists(uri :: STRING?, key :: STRING?, field :: STRING?, config = {}
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
-|field|STRING?|null
+|key|ANY?|null
+|field|ANY?|null
 |config|MAP?|{}
 |===
 

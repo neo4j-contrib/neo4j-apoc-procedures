@@ -14,7 +14,7 @@ apoc.redis.zrem(uri, key, members, \{config}) | Execute the 'ZREM key members' c
 
 [source]
 ----
-apoc.redis.zrem(uri :: STRING?, key :: STRING?, members :: LIST? OF STRING?, config = {} :: MAP?) :: (value :: INTEGER?)
+apoc.redis.zrem(uri :: STRING?, key :: ANY?, members :: LIST? OF ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
 ----
 
 == Input parameters
@@ -22,8 +22,8 @@ apoc.redis.zrem(uri :: STRING?, key :: STRING?, members :: LIST? OF STRING?, con
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
-|members|LIST? OF STRING?|null
+|key|ANY?|null
+|members|LIST? OF ANY?|null
 |config|MAP?|{}
 |===
 

@@ -14,7 +14,7 @@ apoc.redis.configSet(uri, parameter, \{config}) | Execute the 'CONFIG SET parame
 
 [source]
 ----
-apoc.redis.configSet(uri :: STRING?, parameter :: STRING?, value :: STRING?, config = {} :: MAP?) :: (value :: STRING?)
+apoc.redis.configSet(uri :: STRING?, parameter :: STRING?, value :: STRING?, config = {} :: MAP?) :: (value :: ANY?)
 ----
 
 == Input parameters
@@ -31,7 +31,7 @@ apoc.redis.configSet(uri :: STRING?, parameter :: STRING?, value :: STRING?, con
 [.procedures, opts=header]
 |===
 | Name | Type 
-|value|STRING?
+|value|ANY?
 |===
 
 xref::database-integration/redis.adoc[More documentation of apoc.redis.configSet,role=more information]

@@ -14,7 +14,7 @@ apoc.redis.pexpire(uri, key, time, isExpireAt \{config}) | Execute the 'PEXPIRE 
 
 [source]
 ----
-apoc.redis.pexpire(uri :: STRING?, key :: STRING?, time :: INTEGER?, config = {} :: MAP?) :: (value :: BOOLEAN?)
+apoc.redis.pexpire(uri :: STRING?, key :: ANY?, time :: INTEGER?, isExpireAt :: BOOLEAN?, config = {} :: MAP?) :: (value :: BOOLEAN?)
 ----
 
 == Input parameters
@@ -22,8 +22,9 @@ apoc.redis.pexpire(uri :: STRING?, key :: STRING?, time :: INTEGER?, config = {}
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
+|key|ANY?|null
 |time|INTEGER?|null
+|isExpireAt|BOOLEAN?|null
 |config|MAP?|{}
 |===
 

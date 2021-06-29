@@ -14,7 +14,7 @@ apoc.redis.smembers(uri, key, \{config}) | Execute the 'SMEMBERS key' command
 
 [source]
 ----
-apoc.redis.smembers(uri :: STRING?, key :: STRING?, config = {} :: MAP?) :: (value :: LIST? OF ANY?)
+apoc.redis.smembers(uri :: STRING?, key :: ANY?, config = {} :: MAP?) :: (value :: LIST? OF ANY?)
 ----
 
 == Input parameters
@@ -22,7 +22,7 @@ apoc.redis.smembers(uri :: STRING?, key :: STRING?, config = {} :: MAP?) :: (val
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
+|key|ANY?|null
 |config|MAP?|{}
 |===
 

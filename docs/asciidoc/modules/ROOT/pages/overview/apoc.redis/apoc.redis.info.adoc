@@ -14,7 +14,7 @@ apoc.redis.info(uri, \{config}) | Execute the 'INFO' command
 
 [source]
 ----
-apoc.redis.info(uri :: STRING?, config = {} :: MAP?) :: (value :: STRING?)
+apoc.redis.info(uri :: STRING?, config = {} :: MAP?) :: (value :: ANY?)
 ----
 
 == Input parameters
@@ -29,7 +29,7 @@ apoc.redis.info(uri :: STRING?, config = {} :: MAP?) :: (value :: STRING?)
 [.procedures, opts=header]
 |===
 | Name | Type 
-|value|STRING?
+|value|ANY?
 |===
 
 xref::database-integration/redis.adoc[More documentation of apoc.redis.info,role=more information]

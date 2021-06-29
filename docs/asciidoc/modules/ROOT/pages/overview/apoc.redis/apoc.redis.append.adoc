@@ -14,7 +14,7 @@ apoc.redis.append(uri, key, value, \{config}) | Execute the 'APPEND key value' c
 
 [source]
 ----
-apoc.redis.append(uri :: STRING?, key :: STRING?, value :: STRING?, config = {} :: MAP?) :: (value :: INTEGER?)
+apoc.redis.append(uri :: STRING?, key :: ANY?, value :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
 ----
 
 == Input parameters
@@ -22,8 +22,8 @@ apoc.redis.append(uri :: STRING?, key :: STRING?, value :: STRING?, config = {} 
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
-|value|STRING?|null
+|key|ANY?|null
+|value|ANY?|null
 |config|MAP?|{}
 |===
 

@@ -2513,7 +2513,7 @@ apoc.redis.hdel(uri, key, fields, \{config}) \| Execute the 'HDEL key fields' co
 |label:apoc-core[]
 |xref::overview/apoc.redis/apoc.redis.hexists.adoc[apoc.redis.hexists icon:book[]]
 
-apoc.redis.hexists(uri, key, field, \{config}) \| Execute the 'HDEL key field' command
+apoc.redis.hexists(uri, key, field, \{config}) \| Execute the 'HEXISTS key field' command
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.redis/apoc.redis.hget.adoc[apoc.redis.hget icon:book[]]
@@ -2533,7 +2533,7 @@ apoc.redis.hincrby(uri, key, field, amount, \{config}) \| Execute the 'HINCRBY k
 |label:apoc-core[]
 |xref::overview/apoc.redis/apoc.redis.hset.adoc[apoc.redis.hset icon:book[]]
 
-apoc.redis.hset(uri, key, value, \{config}) \| Execute the 'HSET key mapFields' command, where mapFields is a map of field1, value1, field2, value2,...
+apoc.redis.hset(uri, key, field, value, \{config}) \| Execute the 'HSET key field value' command
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.redis/apoc.redis.incrby.adoc[apoc.redis.incrby icon:book[]]

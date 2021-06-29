@@ -14,7 +14,7 @@ apoc.redis.hgetall(uri, key, \{config}) | Execute the 'HGETALL key' command
 
 [source]
 ----
-apoc.redis.hgetall(uri :: STRING?, key :: STRING?, config = {} :: MAP?) :: (value :: MAP?)
+apoc.redis.hgetall(uri :: STRING?, key :: ANY?, config = {} :: MAP?) :: (value :: MAP?)
 ----
 
 == Input parameters
@@ -22,7 +22,7 @@ apoc.redis.hgetall(uri :: STRING?, key :: STRING?, config = {} :: MAP?) :: (valu
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
+|key|ANY?|null
 |config|MAP?|{}
 |===
 

@@ -14,7 +14,7 @@ apoc.redis.exists(uri, keys, \{config}) | Execute the 'EXISTS keys' command
 
 [source]
 ----
-apoc.redis.exists(uri :: STRING?, keys :: LIST? OF STRING?, config = {} :: MAP?) :: (value :: INTEGER?)
+apoc.redis.exists(uri :: STRING?, keys :: LIST? OF ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
 ----
 
 == Input parameters
@@ -22,7 +22,7 @@ apoc.redis.exists(uri :: STRING?, keys :: LIST? OF STRING?, config = {} :: MAP?)
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|keys|LIST? OF STRING?|null
+|keys|LIST? OF ANY?|null
 |config|MAP?|{}
 |===
 

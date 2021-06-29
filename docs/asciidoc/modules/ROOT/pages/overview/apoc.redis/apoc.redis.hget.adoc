@@ -14,7 +14,7 @@ apoc.redis.hget(uri, key, field, \{config}) | Execute the 'HGET key field' comma
 
 [source]
 ----
-apoc.redis.hget(uri :: STRING?, key :: STRING?, field :: STRING?, config = {} :: MAP?) :: (value :: STRING?)
+apoc.redis.hget(uri :: STRING?, key :: ANY?, field :: ANY?, config = {} :: MAP?) :: (value :: ANY?)
 ----
 
 == Input parameters
@@ -22,8 +22,8 @@ apoc.redis.hget(uri :: STRING?, key :: STRING?, field :: STRING?, config = {} ::
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
-|field|STRING?|null
+|key|ANY?|null
+|field|ANY?|null
 |config|MAP?|{}
 |===
 
@@ -31,7 +31,7 @@ apoc.redis.hget(uri :: STRING?, key :: STRING?, field :: STRING?, config = {} ::
 [.procedures, opts=header]
 |===
 | Name | Type 
-|value|STRING?
+|value|ANY?
 |===
 
 xref::database-integration/redis.adoc[More documentation of apoc.redis.hget,role=more information]

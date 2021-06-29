@@ -14,7 +14,7 @@ apoc.redis.hdel(uri, key, fields, \{config}) | Execute the 'HDEL key fields' com
 
 [source]
 ----
-apoc.redis.hdel(uri :: STRING?, key :: STRING?, fields :: LIST? OF STRING?, config = {} :: MAP?) :: (value :: INTEGER?)
+apoc.redis.hdel(uri :: STRING?, key :: ANY?, fields :: LIST? OF ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
 ----
 
 == Input parameters
@@ -22,8 +22,8 @@ apoc.redis.hdel(uri :: STRING?, key :: STRING?, fields :: LIST? OF STRING?, conf
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
-|fields|LIST? OF STRING?|null
+|key|ANY?|null
+|fields|LIST? OF ANY?|null
 |config|MAP?|{}
 |===
 

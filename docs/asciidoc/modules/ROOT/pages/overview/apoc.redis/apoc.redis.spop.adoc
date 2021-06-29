@@ -14,7 +14,7 @@ apoc.redis.spop(uri, key, \{config}) | Execute the 'SPOP key' command
 
 [source]
 ----
-apoc.redis.spop(uri :: STRING?, key :: STRING?, config = {} :: MAP?) :: (value :: STRING?)
+apoc.redis.spop(uri :: STRING?, key :: ANY?, config = {} :: MAP?) :: (value :: ANY?)
 ----
 
 == Input parameters
@@ -22,7 +22,7 @@ apoc.redis.spop(uri :: STRING?, key :: STRING?, config = {} :: MAP?) :: (value :
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
+|key|ANY?|null
 |config|MAP?|{}
 |===
 
@@ -30,7 +30,7 @@ apoc.redis.spop(uri :: STRING?, key :: STRING?, config = {} :: MAP?) :: (value :
 [.procedures, opts=header]
 |===
 | Name | Type 
-|value|STRING?
+|value|ANY?
 |===
 
 xref::database-integration/redis.adoc[More documentation of apoc.redis.spop,role=more information]

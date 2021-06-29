@@ -14,7 +14,7 @@ apoc.redis.zadd(uri, keys, scoresAndMembers, \{config}) | Execute the 'ZADD key 
 
 [source]
 ----
-apoc.redis.zadd(uri :: STRING?, key :: STRING?, value :: LIST? OF ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
+apoc.redis.zadd(uri :: STRING?, key :: ANY?, value :: LIST? OF ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
 ----
 
 == Input parameters
@@ -22,7 +22,7 @@ apoc.redis.zadd(uri :: STRING?, key :: STRING?, value :: LIST? OF ANY?, config =
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
+|key|ANY?|null
 |value|LIST? OF ANY?|null
 |config|MAP?|{}
 |===

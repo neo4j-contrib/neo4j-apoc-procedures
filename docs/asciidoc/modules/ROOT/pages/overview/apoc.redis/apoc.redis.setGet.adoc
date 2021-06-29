@@ -14,7 +14,7 @@ apoc.redis.setGet(uri, key, value, \{config}) | Execute the 'SET key value' comm
 
 [source]
 ----
-apoc.redis.setGet(uri :: STRING?, key :: STRING?, value :: STRING?, config = {} :: MAP?) :: (value :: STRING?)
+apoc.redis.setGet(uri :: STRING?, key :: ANY?, value :: ANY?, config = {} :: MAP?) :: (value :: ANY?)
 ----
 
 == Input parameters
@@ -22,8 +22,8 @@ apoc.redis.setGet(uri :: STRING?, key :: STRING?, value :: STRING?, config = {} 
 |===
 | Name | Type | Default 
 |uri|STRING?|null
-|key|STRING?|null
-|value|STRING?|null
+|key|ANY?|null
+|value|ANY?|null
 |config|MAP?|{}
 |===
 
@@ -31,7 +31,7 @@ apoc.redis.setGet(uri :: STRING?, key :: STRING?, value :: STRING?, config = {} 
 [.procedures, opts=header]
 |===
 | Name | Type 
-|value|STRING?
+|value|ANY?
 |===
 
 xref::database-integration/redis.adoc[More documentation of apoc.redis.setGet,role=more information]
