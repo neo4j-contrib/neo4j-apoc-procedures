@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -37,7 +37,7 @@ public class RedisTest {
 
     @BeforeClass
     public static void beforeClass() {
-        assumeFalse(isTravis());
+        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             redis = new GenericContainer("redis:6.2.3")
                     .withCommand("redis-server --requirepass SUPER_SECRET")
