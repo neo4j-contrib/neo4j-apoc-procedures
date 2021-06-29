@@ -5,7 +5,6 @@ import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.util.StatusCodeMatcher;
 import apoc.util.TestUtil;
-import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -41,7 +40,7 @@ import static org.junit.Assert.fail;
  * @since 18.08.18
  */
 public class CypherProceduresTest  {
-    
+
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
@@ -711,7 +710,7 @@ public class CypherProceduresTest  {
             testCall(db, query, row -> fail("The test should fail because of: " + expectedMessage));
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
-            TestCase.assertTrue(except instanceof RuntimeException);
+            assertTrue(except instanceof RuntimeException);
             assertTrue(except.getMessage().contains(expectedMessage));
         }
     }
