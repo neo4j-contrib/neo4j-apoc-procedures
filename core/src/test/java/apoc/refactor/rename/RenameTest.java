@@ -121,7 +121,7 @@ public class RenameTest {
 
 		String testQuery = "MATCH (:Account)-[r:SIMILAR_TO]->(:Account)\n" +
 				"WITH COLLECT(r) as rs\n" +
-				"CALL apoc.refactor.rename.type('SIMILAR_TO','SIMILAR_TO_'+rand(),rs, {batchSize:3}) YIELD committedOperations, batches, failedBatches, total, errorMessages, batch\n" +
+				"CALL apoc.refactor.rename.type('SIMILAR_TO','SIMILAR_TO_'+rand(),rs, {batchSize:20}) YIELD committedOperations, batches, failedBatches, total, errorMessages, batch\n" +
 				"RETURN committedOperations, batches, failedBatches, total, errorMessages, batch";
 		testResult(db, testQuery, Collections.emptyMap(), (r) -> {
 			final Map<String, Object> batch = r.<Map<String, Object>>columnAs("batch").next();

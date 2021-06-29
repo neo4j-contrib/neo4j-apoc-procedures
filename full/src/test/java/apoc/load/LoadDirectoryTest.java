@@ -56,11 +56,11 @@ public class LoadDirectoryTest {
     private static GraphDatabaseService db;
     private static File importFolder;
 
-    private static final String IMPORT_DIR = "Mätrix II ü 哈哈\uD83D\uDE04123 ; ? : @ & = + $ \\ ";
-    private static final String SUBFOLDER_1 = "sub folder 哈哈 ü Æ Èì € Œ Ō";
-    private static final String INNER_SUBFOLDER = "inner folder ü Æ Èì € Œ Ō 哈哈 ";
-    private static final String SUBFOLDER_2 = "sub folder Two αβγ";
-    private static final String SUBFOLDER_3 = "sub folder Three $ Ω";
+    private static final String IMPORT_DIR = "import";
+    private static final String SUBFOLDER_1 = "sub1";
+    private static final String INNER_SUBFOLDER = "innerSub1";
+    private static final String SUBFOLDER_2 = "sub2";
+    private static final String SUBFOLDER_3 = "sub3";
     
     private static final String CSV_1 = "TestCsv1.csv";
     private static final String CSV_2_FILENAME_WITH_SPACES = "Test Csv 2.csv";
@@ -76,7 +76,7 @@ public class LoadDirectoryTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        File importFolder = new File(temporaryFolder.getRoot() + File.separator + IMPORT_DIR);
+        importFolder = new File(temporaryFolder.getRoot() + File.separator + IMPORT_DIR);
         DatabaseManagementService databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder.toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
 
@@ -106,15 +106,15 @@ public class LoadDirectoryTest {
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
     }
 
-    @Test
-    public void testWithNullUrlDir() {
-        TestUtil.testFail(db, "CALL apoc.load.directory('*', null, {recursive: false}) YIELD value RETURN value", IllegalArgumentException.class);
-    }
-
     @After
     public void clearDB() {
         db.executeTransactionally("CALL apoc.load.directory.async.removeAll()");
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
+    }
+
+    @Test
+    public void testWithNullUrlDir() {
+        TestUtil.testFail(db, "CALL apoc.load.directory('*', null, {recursive: false}) YIELD value RETURN value", IllegalArgumentException.class);
     }
 
     @Test(expected = QueryExecutionException.class)
@@ -162,6 +162,7 @@ public class LoadDirectoryTest {
         testCall(db, "CALL apoc.load.directory.async.add('testRelativePath','" + innerQuery + "', '*.csv', '" + SUBFOLDER_1 + "')",
                 r -> assertEquals("testRelativePath", r.get("name"))
         );
+        assertIsRunning("testRelativePath");
 
         final String fileName = "fileToMove.csv";
         File csvFile = temporaryFolder.newFile(IMPORT_DIR + File.separator + fileName);
@@ -235,7 +236,7 @@ public class LoadDirectoryTest {
                     Map<String, Object> result = r.next();
                     return LoadDirectoryItem.Status.RUNNING.name().equals(result.get("status"));
                 }),
-                value -> value, 30L, TimeUnit.SECONDS);
+                value -> value, 60L, TimeUnit.SECONDS);
     }
 
     @Test
@@ -352,6 +353,8 @@ public class LoadDirectoryTest {
 
         db.executeTransactionally("CALL apoc.load.directory.async.add('test','CREATE (n:Test {file: $fileName})','*.json') YIELD name RETURN name");
         Thread.sleep(1000);
+
+        assertIsRunning("test");
 
         final String queryCount = "MATCH (n:Test {file: $file}) RETURN count(n) AS count";
         testResult(db, queryCount, Map.of("file", "newFile.csv"), result -> assertEquals(0L, result.columnAs("count").next()));
