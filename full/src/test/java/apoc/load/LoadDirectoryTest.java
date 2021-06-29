@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -274,11 +275,11 @@ public class LoadDirectoryTest {
     public void testRemoveListenerWithNotExistingName() {
         try {
             testResult(db, "CALL apoc.load.directory.async.remove('notExisting') YIELD name, pattern, cypher RETURN name, pattern, cypher", result -> {
+                Assert.fail(result.resultAsString());
             });
         } catch (RuntimeException e) {
             String expectedMessage = "Listener with name: notExisting doesn't exists";
-            assertEquals(expectedMessage, e.getMessage());
-            throw e;
+            assertEquals(expectedMessage, ExceptionUtils.getRootCause(e.getCause()).getMessage());
         }
     }
 
