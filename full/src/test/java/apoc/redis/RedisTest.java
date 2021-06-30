@@ -348,17 +348,21 @@ public class RedisTest {
     }
 
     private String fromCodec(Object value) {
-        if (codec.equals(RedisConfig.Codec.BYTE_ARRAY.name())) {
-            return new String((byte[]) value);
+        switch (codec) {
+            case "BYTE_ARRAY":
+                return new String((byte[]) value);
+            default:
+                return (String) value;
         }
-        return (String) value;
     }
 
     private Object getByCodec(String value) {
-        if (codec.equals(RedisConfig.Codec.BYTE_ARRAY.name())) {
-            return value.getBytes();
+        switch (codec) {
+            case "BYTE_ARRAY":
+                return value.getBytes();
+            default:
+                return value;
         }
-        return value;
     }
 
     private List<Object> getListByCodec(List<String> values) {

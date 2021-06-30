@@ -5,7 +5,7 @@ import io.lettuce.core.ScriptOutputType;
 import java.util.List;
 import java.util.Map;
 
-public interface RedisConnectionInterface<T> extends AutoCloseable {
+public interface IRedisConnection<T> extends AutoCloseable {
     // -- String
     T get(T key);
     T setGet(T key, T value);
