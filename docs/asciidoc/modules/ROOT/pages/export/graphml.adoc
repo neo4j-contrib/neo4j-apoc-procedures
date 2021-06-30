@@ -17,6 +17,10 @@ e.g:
 |LocalDateTime | 2018-10-10T00:00
 |===
 
+Note that, to perform a correct Point serialization, it is not recommended to export a point with coordinates x,y and crs: 'wgs-84',
+for example `point({x: 56.7, y: 12.78, crs: 'wgs-84'})`.
+
+
 [[export-graphml-available-procedures]]
 == Available Procedures
 
@@ -61,6 +65,7 @@ The procedures support the following config parameters:
 | separateFiles | false | export results in separated file by type (nodes, relationships..)
 | stream | false | stream the xml directly to the client into the `data` field
 |===
+
 
 [[export-graphml-file-export]]
 == Exporting to a file

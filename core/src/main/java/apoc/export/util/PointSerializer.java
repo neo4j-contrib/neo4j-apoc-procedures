@@ -16,17 +16,19 @@ public class PointSerializer extends JsonSerializer<Point> {
         String crsType = value.getCRS().getType();
         List<Double> coordinate = value.getCoordinate().getCoordinate();
 
+        Double xCoord = coordinate.get(1);
+        Double yCoord = coordinate.get(0);
         if (crsType.startsWith(CoordinateReferenceSystem.Cartesian.toString())) {
             if (coordinate.size() == 3) {
-                jsonGenerator.writeObject(new PointCartesian(crsType, coordinate.get(0), coordinate.get(1), coordinate.get(2)));
+                jsonGenerator.writeObject(new PointCartesian(crsType, yCoord, xCoord, coordinate.get(2)));
             } else {
-                jsonGenerator.writeObject(new PointCartesian(crsType, coordinate.get(0), coordinate.get(1)));
+                jsonGenerator.writeObject(new PointCartesian(crsType, yCoord, xCoord));
             }
         } else {
             if (coordinate.size() == 3) {
-                jsonGenerator.writeObject(new PointWgs(crsType, coordinate.get(0), coordinate.get(1), coordinate.get(2)));
+                jsonGenerator.writeObject(new PointWgs(crsType, xCoord, yCoord, coordinate.get(2)));
             } else {
-                jsonGenerator.writeObject(new PointWgs(crsType, coordinate.get(0), coordinate.get(1)));
+                jsonGenerator.writeObject(new PointWgs(crsType, xCoord, yCoord));
             }
         }
     }
