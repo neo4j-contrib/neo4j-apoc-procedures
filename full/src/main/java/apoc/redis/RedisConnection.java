@@ -18,7 +18,7 @@ abstract public class RedisConnection<T> implements RedisConnectionInterface<T> 
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         this.client.shutdown();
     }
 }

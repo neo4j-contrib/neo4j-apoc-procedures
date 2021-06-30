@@ -21,15 +21,17 @@ public class RedisConfig {
             this.redisConnectionClass = redisConnectionClass;
         }
 
-        public RedisConnection getRedisConnection(String uri, Map<String, Object> config) throws Exception {
-            RedisConfig redisConfig = new RedisConfig(config);
-            Constructor<?> constructor = redisConnectionClass.getConstructor(String.class, RedisConfig.class);
+        public RedisConnection getRedisConnection(String uri, Map<String, Object> config) {
             try {
+                RedisConfig redisConfig = new RedisConfig(config);
+                Constructor<?> constructor = redisConnectionClass.getConstructor(String.class, RedisConfig.class);
                 return (RedisConnection) constructor.newInstance(uri, redisConfig);
             } catch (NoClassDefFoundError e) {
                 throw new MissingDependencyException("Cannot find the Redis client jar. \n" +
                         "Please put the lettuce-core-6.1.1.RELEASE.jar into plugin folder. \n" +
                         "See the documentation: https://neo4j.com/labs/apoc/4.1/database-integration/redis/");
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
     }

@@ -217,8 +217,6 @@ public class Redis {
     private <T> T withConnection(String uri, Map<String, Object> config, Function<RedisConnection, T> action) {
         try (RedisConnection connection = new RedisConfig(config).getCodec().getRedisConnection(uri, config)) {
             return action.apply(connection);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
