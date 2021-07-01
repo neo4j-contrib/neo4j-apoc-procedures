@@ -46,12 +46,10 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 
 	@Override
 	public String statementForIndex(String label, Iterable<String> keys, boolean ifNotExists) {
-		String prefix = "CREATE INDEX ";
-		if (ifNotExists) {
-			return String.format(prefix + "IF NOT EXISTS FOR (node:%s) ON (%s);", Util.quote(label), getPropertiesQuoted(keys));
-		} else {
-			return prefix +"ON :" + Util.quote(label) + "(" + CypherFormatterUtils.quote(keys) + ");";
-		}
+		return String.format("CREATE INDEX%s FOR (node:%s) ON (%s);", 
+				getIfNotExists(ifNotExists),
+				Util.quote(label),
+				getPropertiesQuoted(keys));
 	}
 
 	@Override
@@ -86,7 +84,11 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	public String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExists) {
 		String keysString = getPropertiesQuoted(keys);
 
-		return String.format(STATEMENT_CONSTRAINTS, ifNotExists ? " IF NOT EXISTS" : "", Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
+		return String.format(STATEMENT_CONSTRAINTS, getIfNotExists(ifNotExists), Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
+	}
+
+	private String getIfNotExists(boolean ifNotExists) {
+		return ifNotExists ? " IF NOT EXISTS" : "";
 	}
 
 

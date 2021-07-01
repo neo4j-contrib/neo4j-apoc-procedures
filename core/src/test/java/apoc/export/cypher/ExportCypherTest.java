@@ -778,8 +778,8 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         static final String EXPECTED_SCHEMA = String.format("BEGIN%n" +
-                "CREATE INDEX ON :Bar(first_name,last_name);%n" +
-                "CREATE INDEX ON :Foo(name);%n" +
+                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
@@ -817,8 +817,8 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         static final String EXPECTED_ONLY_SCHEMA_NEO4J_SHELL = String.format("BEGIN%n" +
-                "CREATE INDEX ON :Bar(first_name,last_name);%n" +
-                "CREATE INDEX ON :Foo(name);%n" +
+                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
@@ -828,7 +828,7 @@ public class ExportCypherTest {
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {place3d:point({x: 12.78, y: 56.7, z: 100.0, crs: 'wgs-84-3d'}), `UNIQUE IMPORT ID`:4});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
-                "CREATE INDEX ON :Bar(first_name,last_name);%n" +
+                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
@@ -848,7 +848,7 @@ public class ExportCypherTest {
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {datetime:datetime('2018-10-30T12:50:35.556Z'), `UNIQUE IMPORT ID`:4});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
-                "CREATE INDEX ON :Bar(first_name,last_name);%n" +
+                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
@@ -868,7 +868,7 @@ public class ExportCypherTest {
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {datetime:datetime('2018-10-30T12:50:35.556+01:00'), `UNIQUE IMPORT ID`:4});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
-                "CREATE INDEX ON :Bar(first_name,last_name);%n" +
+                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
@@ -888,7 +888,7 @@ public class ExportCypherTest {
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {duration:duration('P5M1DT12H'), `UNIQUE IMPORT ID`:4});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
-                "CREATE INDEX ON :Bar(first_name,last_name);%n" +
+                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
@@ -918,8 +918,8 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         static final String EXPECTED_SCHEMA_OPTIMIZED = String.format("BEGIN%n" +
-                "CREATE INDEX ON :Bar(first_name,last_name);%n" +
-                "CREATE INDEX ON :Foo(name);%n" +
+                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
@@ -1094,8 +1094,8 @@ public class ExportCypherTest {
                 "MATCH (end:Bar{name: row.end.name})%n" +
                 "CREATE (start)-[r:KNOWS]->(end)  SET r += row.properties;%n");
 
-        static final String EXPECTED_UPDATE_ALL_UNWIND = String.format("CREATE INDEX ON :Bar(first_name,last_name);%n" +
-                "CREATE INDEX ON :Foo(name);%n" +
+        static final String EXPECTED_UPDATE_ALL_UNWIND = String.format("CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "UNWIND [{_id:3, properties:{age:12}}] AS row%n" +
