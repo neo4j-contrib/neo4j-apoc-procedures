@@ -77,8 +77,8 @@ public class LoadDirectoryTest {
     @BeforeClass
     public static void setUp() throws Exception {
         File importFolder = new File(temporaryFolder.getRoot() + File.separator + IMPORT_DIR);
+        DatabaseManagementService databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder).build();
         importPath = encodePath(FILE_PROTOCOL + importFolder.getPath());
-        DatabaseManagementService databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder.toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
 
         TestUtil.registerProcedure(db, LoadDirectory.class, LoadCsv.class, LoadJson.class);
