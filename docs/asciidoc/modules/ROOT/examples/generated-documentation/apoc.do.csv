@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.do.case¦apoc.do.case(conditionals :: LIST? OF ANY?, elseQuery =  :: STRING?, params = {} :: MAP?) :: (value :: MAP?)¦apoc.do.case([condition, query, condition, query, ...], elseQuery:'', params:{}) yield value - given a list of conditional / writing query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters
-¦procedure¦apoc.do.when¦apoc.do.when(condition :: BOOLEAN?, ifQuery :: STRING?, elseQuery =  :: STRING?, params = {} :: MAP?) :: (value :: MAP?)¦apoc.do.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes writing ifQuery or elseQuery with the given parameters
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.do/apoc.do.adoc[apoc.do.case icon:book[]]
+
+apoc.do.case([condition, query, condition, query, ...], elseQuery:'', params:{}) yield value - given a list of conditional / writing query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.do/apoc.do.adoc[apoc.do.when icon:book[]]
+
+apoc.do.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes writing ifQuery or elseQuery with the given parameters
+|label:procedure[]
+|label:apoc-core[]

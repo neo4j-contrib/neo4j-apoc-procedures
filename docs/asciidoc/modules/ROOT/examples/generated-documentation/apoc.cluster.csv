@@ -1,2 +1,6 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.cluster.graph¦apoc.cluster.graph() :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)¦
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.cluster/apoc.cluster.adoc[apoc.cluster.graph icon:book[]]
+
+
+|label:procedure[]
+|label:apoc-full[]

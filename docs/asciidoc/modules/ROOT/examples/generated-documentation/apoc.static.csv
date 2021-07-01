@@ -1,6 +1,26 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.static.get¦apoc.static.get(key :: STRING?) :: (value :: ANY?)¦apoc.static.get(name) - returns statically stored value from config (apoc.static.<key>) or server lifetime storage
-¦procedure¦apoc.static.list¦apoc.static.list(prefix :: STRING?) :: (key :: STRING?, value :: ANY?)¦apoc.static.list(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage
-¦procedure¦apoc.static.set¦apoc.static.set(key :: STRING?, value :: ANY?) :: (value :: ANY?)¦apoc.static.set(name, value) - stores value under key for server lifetime storage, returns previously stored or configured value
-¦function¦apoc.static.get¦apoc.static.get(key :: STRING?) :: (ANY?)¦apoc.static.get(name) - returns statically stored value from config (apoc.static.<key>) or server lifetime storage
-¦function¦apoc.static.getAll¦apoc.static.getAll(prefix :: STRING?) :: (MAP?)¦apoc.static.getAll(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.static/apoc.static.adoc[apoc.static.get icon:book[]]
+
+apoc.static.get(name) - returns statically stored value from config (apoc.static.<key>) or server lifetime storage
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.static/apoc.static.adoc[apoc.static.list icon:book[]]
+
+apoc.static.list(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.static/apoc.static.adoc[apoc.static.set icon:book[]]
+
+apoc.static.set(name, value) - stores value under key for server lifetime storage, returns previously stored or configured value
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.static/apoc.static.adoc[apoc.static.get icon:book[]]
+
+apoc.static.get(name) - returns statically stored value from config (apoc.static.<key>) or server lifetime storage
+|label:function[]
+|label:apoc-full[]
+|xref::overview/apoc.static/apoc.static.adoc[apoc.static.getAll icon:book[]]
+
+apoc.static.getAll(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage
+|label:function[]
+|label:apoc-full[]

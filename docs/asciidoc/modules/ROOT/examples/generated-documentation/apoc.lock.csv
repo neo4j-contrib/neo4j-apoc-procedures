@@ -1,4 +1,16 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.lock.all¦apoc.lock.all(nodes :: LIST? OF NODE?, rels :: LIST? OF RELATIONSHIP?) :: VOID¦apoc.lock.all([nodes],[relationships]) acquires a write lock on the given nodes and relationships
-¦procedure¦apoc.lock.nodes¦apoc.lock.nodes(nodes :: LIST? OF NODE?) :: VOID¦apoc.lock.nodes([nodes]) acquires a write lock on the given nodes
-¦procedure¦apoc.lock.rels¦apoc.lock.rels(rels :: LIST? OF RELATIONSHIP?) :: VOID¦apoc.lock.rels([relationships]) acquires a write lock on the given relationship
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.lock/apoc.lock.adoc[apoc.lock.all icon:book[]]
+
+apoc.lock.all([nodes],[relationships]) acquires a write lock on the given nodes and relationships
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.lock/apoc.lock.adoc[apoc.lock.nodes icon:book[]]
+
+apoc.lock.nodes([nodes]) acquires a write lock on the given nodes
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.lock/apoc.lock.adoc[apoc.lock.rels icon:book[]]
+
+apoc.lock.rels([relationships]) acquires a write lock on the given relationship
+|label:procedure[]
+|label:apoc-core[]

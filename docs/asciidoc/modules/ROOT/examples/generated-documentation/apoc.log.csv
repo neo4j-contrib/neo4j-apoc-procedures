@@ -1,6 +1,26 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.log.debug¦apoc.log.debug(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID¦apoc.log.debug(message, params) - logs debug message
-¦procedure¦apoc.log.error¦apoc.log.error(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID¦apoc.log.error(message, params) - logs error message
-¦procedure¦apoc.log.info¦apoc.log.info(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID¦apoc.log.info(message, params) - logs info message
-¦procedure¦apoc.log.stream¦apoc.log.stream(path :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, line :: STRING?, path :: STRING?)¦apoc.log.stream('neo4j.log', { last: n }) - retrieve log file contents, optionally return only the last n lines
-¦procedure¦apoc.log.warn¦apoc.log.warn(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID¦apoc.log.warn(message, params) - logs warn message
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.log/apoc.log.adoc[apoc.log.debug icon:book[]]
+
+apoc.log.debug(message, params) - logs debug message
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.log/apoc.log.adoc[apoc.log.error icon:book[]]
+
+apoc.log.error(message, params) - logs error message
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.log/apoc.log.adoc[apoc.log.info icon:book[]]
+
+apoc.log.info(message, params) - logs info message
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.log/apoc.log.adoc[apoc.log.stream icon:book[]]
+
+apoc.log.stream('neo4j.log', { last: n }) - retrieve log file contents, optionally return only the last n lines
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.log/apoc.log.adoc[apoc.log.warn icon:book[]]
+
+apoc.log.warn(message, params) - logs warn message
+|label:procedure[]
+|label:apoc-full[]

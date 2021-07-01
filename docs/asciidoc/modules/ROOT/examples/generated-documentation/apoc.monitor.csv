@@ -1,5 +1,21 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.monitor.ids¦apoc.monitor.ids() :: (nodeIds :: INTEGER?, relIds :: INTEGER?, propIds :: INTEGER?, relTypeIds :: INTEGER?)¦apoc.monitor.ids() returns the object ids in use for this neo4j instance
-¦procedure¦apoc.monitor.kernel¦apoc.monitor.kernel() :: (readOnly :: BOOLEAN?, kernelVersion :: STRING?, storeId :: STRING?, kernelStartTime :: STRING?, databaseName :: STRING?, storeLogVersion :: INTEGER?, storeCreationDate :: STRING?)¦apoc.monitor.kernel() returns informations about the neo4j kernel
-¦procedure¦apoc.monitor.store¦apoc.monitor.store() :: (logSize :: INTEGER?, stringStoreSize :: INTEGER?, arrayStoreSize :: INTEGER?, relStoreSize :: INTEGER?, propStoreSize :: INTEGER?, totalStoreSize :: INTEGER?, nodeStoreSize :: INTEGER?)¦apoc.monitor.store() returns informations about the sizes of the different parts of the neo4j graph store
-¦procedure¦apoc.monitor.tx¦apoc.monitor.tx() :: (rolledBackTx :: INTEGER?, peakTx :: INTEGER?, lastTxId :: INTEGER?, currentOpenedTx :: INTEGER?, totalOpenedTx :: INTEGER?, totalTx :: INTEGER?)¦apoc.monitor.tx() returns informations about the neo4j transaction manager
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.monitor/apoc.monitor.adoc[apoc.monitor.ids icon:book[]]
+
+apoc.monitor.ids() returns the object ids in use for this neo4j instance
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.monitor/apoc.monitor.adoc[apoc.monitor.kernel icon:book[]]
+
+apoc.monitor.kernel() returns informations about the neo4j kernel
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.monitor/apoc.monitor.adoc[apoc.monitor.store icon:book[]]
+
+apoc.monitor.store() returns informations about the sizes of the different parts of the neo4j graph store
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.monitor/apoc.monitor.adoc[apoc.monitor.tx icon:book[]]
+
+apoc.monitor.tx() returns informations about the neo4j transaction manager
+|label:procedure[]
+|label:apoc-core[]

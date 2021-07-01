@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.xml.import¦apoc.xml.import(url :: STRING?, config = {} :: MAP?) :: (node :: NODE?)¦Deprecated by apoc.import.xml
-¦function¦apoc.xml.parse¦apoc.xml.parse(data :: STRING?, path = / :: STRING?, config = {} :: MAP?, simple = false :: BOOLEAN?) :: (MAP?)¦RETURN apoc.xml.parse(<xml string>, <xPath string>, config, false) AS value
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.xml/apoc.xml.adoc[apoc.xml.import icon:book[]]
+
+Deprecated by apoc.import.xml
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.xml/apoc.xml.adoc[apoc.xml.parse icon:book[]]
+
+RETURN apoc.xml.parse(<xml string>, <xPath string>, config, false) AS value
+|label:function[]
+|label:apoc-core[]
