@@ -396,15 +396,15 @@ public class ExportCypherTest {
     }
 
     @Test
-    public void testExportAllCypherDefaultSeparatedFiles1Optimized() throws Exception {
-        String fileName = "allDefaultOptimized.cypher";
+    public void testExportAllCypherWithIfNotExistsFalseOptimized() throws Exception {
+        String fileName = "ifNotExists.cypher";
         TestUtil.testCall(db, "CALL apoc.export.cypher.all($file, $config)",
                 map("file", fileName, "config", map("ifNotExists", true, "separateFiles", true, "format", "neo4j-shell")),
                 (r) -> assertResultsOptimized(fileName, r));
-        assertEquals(EXPECTED_SCHEMA_OPTIMIZED_WITH_IF_NOT_EXISTS, readFile("allDefaultOptimized.schema.cypher"));
-        assertEquals(EXPECTED_NODES_OPTIMIZED, readFile("allDefaultOptimized.nodes.cypher"));
-        assertEquals(EXPECTED_RELATIONSHIPS_OPTIMIZED, readFile("allDefaultOptimized.relationships.cypher"));
-        assertEquals(EXPECTED_CLEAN_UP, readFile("allDefaultOptimized.cleanup.cypher"));
+        assertEquals(EXPECTED_SCHEMA_OPTIMIZED_WITH_IF_NOT_EXISTS, readFile("ifNotExists.schema.cypher"));
+        assertEquals(EXPECTED_NODES_OPTIMIZED, readFile("ifNotExists.nodes.cypher"));
+        assertEquals(EXPECTED_RELATIONSHIPS_OPTIMIZED, readFile("ifNotExists.relationships.cypher"));
+        assertEquals(EXPECTED_CLEAN_UP, readFile("ifNotExists.cleanup.cypher"));
     }
 
     @Test
