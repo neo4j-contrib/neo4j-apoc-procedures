@@ -150,8 +150,7 @@ public class Schemas {
             if (definition.isConstraintIndex())
                 continue;
 
-            boolean nodeIndex = definition.isNodeIndex();
-            Object label = getLabelForAssert(definition, nodeIndex);
+            Object label = getLabelForAssert(definition, definition.isNodeIndex());
             List<String> keys = new ArrayList<>();
             definition.getPropertyKeys().forEach(keys::add);
 
