@@ -1,2 +1,6 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.warmup.run¦apoc.warmup.run(loadProperties = false :: BOOLEAN?, loadDynamicProperties = false :: BOOLEAN?, loadIndexes = false :: BOOLEAN?) :: (pageSize :: INTEGER?, totalTime :: INTEGER?, transactionWasTerminated :: BOOLEAN?, nodesPerPage :: INTEGER?, nodesTotal :: INTEGER?, nodePages :: INTEGER?, nodesTime :: INTEGER?, relsPerPage :: INTEGER?, relsTotal :: INTEGER?, relPages :: INTEGER?, relsTime :: INTEGER?, relGroupsPerPage :: INTEGER?, relGroupsTotal :: INTEGER?, relGroupPages :: INTEGER?, relGroupsTime :: INTEGER?, propertiesLoaded :: BOOLEAN?, dynamicPropertiesLoaded :: BOOLEAN?, propsPerPage :: INTEGER?, propRecordsTotal :: INTEGER?, propPages :: INTEGER?, propsTime :: INTEGER?, stringPropsPerPage :: INTEGER?, stringPropRecordsTotal :: INTEGER?, stringPropPages :: INTEGER?, stringPropsTime :: INTEGER?, arrayPropsPerPage :: INTEGER?, arrayPropRecordsTotal :: INTEGER?, arrayPropPages :: INTEGER?, arrayPropsTime :: INTEGER?, indexesLoaded :: BOOLEAN?, indexPages :: INTEGER?, indexTime :: INTEGER?)¦apoc.warmup.run(loadProperties=false,loadDynamicProperties=false,loadIndexes=false) - quickly loads all nodes and rels into memory by skipping one page at a time
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.warmup/apoc.warmup.adoc[apoc.warmup.run icon:book[]]
+
+apoc.warmup.run(loadProperties=false,loadDynamicProperties=false,loadIndexes=false) - quickly loads all nodes and rels into memory by skipping one page at a time
+|label:procedure[]
+|label:apoc-core[]

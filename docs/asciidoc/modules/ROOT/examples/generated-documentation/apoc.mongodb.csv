@@ -1,8 +1,36 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.mongodb.count¦apoc.mongodb.count(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?) :: (value :: INTEGER?)¦apoc.mongodb.count(host-or-key,db,collection,query) yield value - perform a find operation on mongodb collection
-¦procedure¦apoc.mongodb.delete¦apoc.mongodb.delete(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?) :: (value :: INTEGER?)¦apoc.mongodb.delete(host-or-key,db,collection,query) - delete the given documents from the mongodb collection and returns the number of affected documents
-¦procedure¦apoc.mongodb.find¦apoc.mongodb.find(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, project :: MAP?, sort :: MAP?, compatibleValues = false :: BOOLEAN?, skip = 0 :: INTEGER?, limit = 0 :: INTEGER?, extractReferences = false :: BOOLEAN?, objectIdAsMap = true :: BOOLEAN?) :: (value :: MAP?)¦apoc.mongodb.find(host-or-key,db,collection,query,projection,sort,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find,project,sort operation on mongodb collection
-¦procedure¦apoc.mongodb.first¦apoc.mongodb.first(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, compatibleValues = true :: BOOLEAN?, extractReferences = false :: BOOLEAN?, objectIdAsMap = true :: BOOLEAN?) :: (value :: MAP?)¦apoc.mongodb.first(host-or-key,db,collection,query,[compatibleValues=false|true],[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a first operation on mongodb collection
-¦procedure¦apoc.mongodb.get¦apoc.mongodb.get(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, compatibleValues = false :: BOOLEAN?, skip = 0 :: INTEGER?, limit = 0 :: INTEGER?, extractReferences = false :: BOOLEAN?, objectIdAsMap = true :: BOOLEAN?) :: (value :: MAP?)¦apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find operation on mongodb collection
-¦procedure¦apoc.mongodb.insert¦apoc.mongodb.insert(host :: STRING?, db :: STRING?, collection :: STRING?, documents :: LIST? OF MAP?) :: VOID¦apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection
-¦procedure¦apoc.mongodb.update¦apoc.mongodb.update(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?, update :: MAP?) :: (value :: INTEGER?)¦apoc.mongodb.update(host-or-key,db,collection,query,update) - updates the given documents from the mongodb collection and returns the number of affected documents
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.mongodb/apoc.mongodb.adoc[apoc.mongodb.count icon:book[]]
+
+apoc.mongodb.count(host-or-key,db,collection,query) yield value - perform a find operation on mongodb collection
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.mongodb/apoc.mongodb.adoc[apoc.mongodb.delete icon:book[]]
+
+apoc.mongodb.delete(host-or-key,db,collection,query) - delete the given documents from the mongodb collection and returns the number of affected documents
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.mongodb/apoc.mongodb.adoc[apoc.mongodb.find icon:book[]]
+
+apoc.mongodb.find(host-or-key,db,collection,query,projection,sort,[compatibleValues=false\|true],skip-or-null,limit-or-null,[extractReferences=false\|true],[objectIdAsMap=true\|false]) yield value - perform a find,project,sort operation on mongodb collection
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.mongodb/apoc.mongodb.adoc[apoc.mongodb.first icon:book[]]
+
+apoc.mongodb.first(host-or-key,db,collection,query,[compatibleValues=false\|true],[extractReferences=false\|true],[objectIdAsMap=true\|false]) yield value - perform a first operation on mongodb collection
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.mongodb/apoc.mongodb.adoc[apoc.mongodb.get icon:book[]]
+
+apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false\|true],skip-or-null,limit-or-null,[extractReferences=false\|true],[objectIdAsMap=true\|false]) yield value - perform a find operation on mongodb collection
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.mongodb/apoc.mongodb.adoc[apoc.mongodb.insert icon:book[]]
+
+apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.mongodb/apoc.mongodb.adoc[apoc.mongodb.update icon:book[]]
+
+apoc.mongodb.update(host-or-key,db,collection,query,update) - updates the given documents from the mongodb collection and returns the number of affected documents
+|label:procedure[]
+|label:apoc-full[]

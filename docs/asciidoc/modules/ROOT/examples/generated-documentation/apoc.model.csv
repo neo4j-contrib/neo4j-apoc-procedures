@@ -1,2 +1,6 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.model.jdbc¦apoc.model.jdbc(jdbc :: STRING?, config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)¦apoc.model.jdbc('key or url', {schema:'<schema>', write: <true/false>, filters: { tables:[], views: [], columns: []}) YIELD nodes, relationships - load schema from relational database
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.model/apoc.model.adoc[apoc.model.jdbc icon:book[]]
+
+apoc.model.jdbc('key or url', {schema:'<schema>', write: <true/false>, filters: { tables:[], views: [], columns: []}) YIELD nodes, relationships - load schema from relational database
+|label:procedure[]
+|label:apoc-full[]

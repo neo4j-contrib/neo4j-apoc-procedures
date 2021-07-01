@@ -1,12 +1,56 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.agg.first¦apoc.agg.first(value :: ANY?) :: (ANY?)¦apoc.agg.first(value) - returns first value
-¦function¦apoc.agg.graph¦apoc.agg.graph(element :: ANY?) :: (MAP?)¦apoc.agg.graph(path) - returns map of graph {nodes, relationships} of all distinct nodes and relationships
-¦function¦apoc.agg.last¦apoc.agg.last(value :: ANY?) :: (ANY?)¦apoc.agg.last(value) - returns last value
-¦function¦apoc.agg.maxItems¦apoc.agg.maxItems(item :: ANY?, value :: ANY?, groupLimit = -1 :: INTEGER?) :: (ANY?)¦apoc.agg.maxItems(item, value, groupLimit: -1) - returns a map {items:[], value:n} where `value` is the maximum value present, and `items` are all items with the same value. The number of items can be optionally limited.
-¦function¦apoc.agg.median¦apoc.agg.median(value :: ANY?) :: (ANY?)¦apoc.agg.median(number) - returns median for non-null numeric values
-¦function¦apoc.agg.minItems¦apoc.agg.minItems(item :: ANY?, value :: ANY?, groupLimit = -1 :: INTEGER?) :: (ANY?)¦apoc.agg.minItems(item, value, groupLimit: -1) - returns a map {items:[], value:n} where `value` is the minimum value present, and `items` are all items with the same value. The number of items can be optionally limited.
-¦function¦apoc.agg.nth¦apoc.agg.nth(value :: ANY?, value :: INTEGER?) :: (ANY?)¦apoc.agg.nth(value,offset) - returns value of nth row (or -1 for last)
-¦function¦apoc.agg.percentiles¦apoc.agg.percentiles(value :: NUMBER?, percentiles = [0.5, 0.75, 0.9, 0.95, 0.99] :: LIST? OF FLOAT?) :: (LIST? OF ANY?)¦apoc.agg.percentiles(value,[percentiles = 0.5,0.75,0.9,0.95,0.99]) - returns given percentiles for values
-¦function¦apoc.agg.product¦apoc.agg.product(number :: NUMBER?) :: (NUMBER?)¦apoc.agg.product(number) - returns given product for non-null values
-¦function¦apoc.agg.slice¦apoc.agg.slice(value :: ANY?, from = 0 :: INTEGER?, to = -1 :: INTEGER?) :: (LIST? OF ANY?)¦apoc.agg.slice(value, start, length) - returns subset of non-null values, start is 0 based and length can be -1
-¦function¦apoc.agg.statistics¦apoc.agg.statistics(value :: NUMBER?, percentiles = [0.5, 0.75, 0.9, 0.95, 0.99] :: LIST? OF FLOAT?) :: (MAP?)¦apoc.agg.statistics(value,[percentiles = 0.5,0.75,0.9,0.95,0.99]) - returns numeric statistics (percentiles, min,minNonZero,max,total,mean,stdev) for values
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.agg/apoc.agg.adoc[apoc.agg.first icon:book[]]
+
+apoc.agg.first(value) - returns first value
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.agg/apoc.agg.adoc[apoc.agg.graph icon:book[]]
+
+apoc.agg.graph(path) - returns map of graph {nodes, relationships} of all distinct nodes and relationships
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.agg/apoc.agg.adoc[apoc.agg.last icon:book[]]
+
+apoc.agg.last(value) - returns last value
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.agg/apoc.agg.adoc[apoc.agg.maxItems icon:book[]]
+
+apoc.agg.maxItems(item, value, groupLimit: -1) - returns a map {items:[], value:n} where `value` is the maximum value present, and `items` are all items with the same value. The number of items can be optionally limited.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.agg/apoc.agg.adoc[apoc.agg.median icon:book[]]
+
+apoc.agg.median(number) - returns median for non-null numeric values
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.agg/apoc.agg.adoc[apoc.agg.minItems icon:book[]]
+
+apoc.agg.minItems(item, value, groupLimit: -1) - returns a map {items:[], value:n} where `value` is the minimum value present, and `items` are all items with the same value. The number of items can be optionally limited.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.agg/apoc.agg.adoc[apoc.agg.nth icon:book[]]
+
+apoc.agg.nth(value,offset) - returns value of nth row (or -1 for last)
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.agg/apoc.agg.adoc[apoc.agg.percentiles icon:book[]]
+
+apoc.agg.percentiles(value,[percentiles = 0.5,0.75,0.9,0.95,0.99]) - returns given percentiles for values
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.agg/apoc.agg.adoc[apoc.agg.product icon:book[]]
+
+apoc.agg.product(number) - returns given product for non-null values
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.agg/apoc.agg.adoc[apoc.agg.slice icon:book[]]
+
+apoc.agg.slice(value, start, length) - returns subset of non-null values, start is 0 based and length can be -1
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.agg/apoc.agg.adoc[apoc.agg.statistics icon:book[]]
+
+apoc.agg.statistics(value,[percentiles = 0.5,0.75,0.9,0.95,0.99]) - returns numeric statistics (percentiles, min,minNonZero,max,total,mean,stdev) for values
+|label:function[]
+|label:apoc-core[]

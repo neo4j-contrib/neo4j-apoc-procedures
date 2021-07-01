@@ -1,4 +1,16 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.hashing.fingerprint¦apoc.hashing.fingerprint(some object :: ANY?, propertyExcludes = [] :: LIST? OF STRING?) :: (STRING?)¦calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.
-¦function¦apoc.hashing.fingerprintGraph¦apoc.hashing.fingerprintGraph(propertyExcludes = [] :: LIST? OF STRING?) :: (STRING?)¦calculate a checksum (md5) over a the full graph. Be aware that this function does use in-memomry datastructures depending on the size of your graph.
-¦function¦apoc.hashing.fingerprinting¦apoc.hashing.fingerprinting(some object :: ANY?, conf = {} :: MAP?) :: (STRING?)¦calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.hashing/apoc.hashing.adoc[apoc.hashing.fingerprint icon:book[]]
+
+calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.hashing/apoc.hashing.adoc[apoc.hashing.fingerprintGraph icon:book[]]
+
+calculate a checksum (md5) over a the full graph. Be aware that this function does use in-memomry datastructures depending on the size of your graph.
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.hashing/apoc.hashing.adoc[apoc.hashing.fingerprinting icon:book[]]
+
+calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.
+|label:function[]
+|label:apoc-core[]

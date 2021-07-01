@@ -1,5 +1,0 @@
-¦xref::overview/apoc.algo/apoc.algo.allSimplePaths.adoc[apoc.algo.allSimplePaths icon:book[]] +
-
-`apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 5) YIELD path, weight` - run allSimplePaths with relationships given and maxNodes
-¦label:procedure[]
-¦label:apoc-core[]

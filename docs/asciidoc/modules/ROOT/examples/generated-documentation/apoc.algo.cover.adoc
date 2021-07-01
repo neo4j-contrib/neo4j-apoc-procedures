@@ -1,5 +1,0 @@
-¦xref::overview/apoc.algo/apoc.algo.cover.adoc[apoc.algo.cover icon:book[]] +
-
-`apoc.algo.cover(nodes) yield rel` - returns all relationships between this set of nodes
-¦label:procedure[]
-¦label:apoc-core[]

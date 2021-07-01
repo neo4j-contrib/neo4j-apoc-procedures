@@ -1,6 +1,26 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.generate.ba¦apoc.generate.ba(noNodes :: INTEGER?, edgesPerNode :: INTEGER?, label :: STRING?, type :: STRING?) :: VOID¦apoc.generate.ba(noNodes, edgesPerNode, label, type) - generates a random graph according to the Barabasi-Albert model
-¦procedure¦apoc.generate.complete¦apoc.generate.complete(noNodes :: INTEGER?, label :: STRING?, type :: STRING?) :: VOID¦apoc.generate.complete(noNodes, label, type) - generates a random complete graph
-¦procedure¦apoc.generate.er¦apoc.generate.er(noNodes :: INTEGER?, noEdges :: INTEGER?, label :: STRING?, type :: STRING?) :: VOID¦apoc.generate.er(noNodes, noEdges, label, type) - generates a random graph according to the Erdos-Renyi model
-¦procedure¦apoc.generate.simple¦apoc.generate.simple(degrees :: LIST? OF INTEGER?, label :: STRING?, type :: STRING?) :: VOID¦apoc.generate.simple(degrees, label, type) - generates a simple random graph according to the given degree distribution
-¦procedure¦apoc.generate.ws¦apoc.generate.ws(noNodes :: INTEGER?, degree :: INTEGER?, beta :: FLOAT?, label :: STRING?, type :: STRING?) :: VOID¦apoc.generate.ws(noNodes, degree, beta, label, type) - generates a random graph according to the Watts-Strogatz model
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.generate/apoc.generate.adoc[apoc.generate.ba icon:book[]]
+
+apoc.generate.ba(noNodes, edgesPerNode, label, type) - generates a random graph according to the Barabasi-Albert model
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.generate/apoc.generate.adoc[apoc.generate.complete icon:book[]]
+
+apoc.generate.complete(noNodes, label, type) - generates a random complete graph
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.generate/apoc.generate.adoc[apoc.generate.er icon:book[]]
+
+apoc.generate.er(noNodes, noEdges, label, type) - generates a random graph according to the Erdos-Renyi model
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.generate/apoc.generate.adoc[apoc.generate.simple icon:book[]]
+
+apoc.generate.simple(degrees, label, type) - generates a simple random graph according to the given degree distribution
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.generate/apoc.generate.adoc[apoc.generate.ws icon:book[]]
+
+apoc.generate.ws(noNodes, degree, beta, label, type) - generates a random graph according to the Watts-Strogatz model
+|label:procedure[]
+|label:apoc-full[]
