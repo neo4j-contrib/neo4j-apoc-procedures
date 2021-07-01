@@ -16,19 +16,17 @@ public class PointSerializer extends JsonSerializer<Point> {
         String crsType = value.getCRS().getType();
         List<Double> coordinate = value.getCoordinate().getCoordinate();
 
-        Double xCoord = coordinate.get(1);
-        Double yCoord = coordinate.get(0);
         if (crsType.startsWith(CoordinateReferenceSystem.Cartesian.toString())) {
             if (coordinate.size() == 3) {
-                jsonGenerator.writeObject(new PointCartesian(crsType, yCoord, xCoord, coordinate.get(2)));
+                jsonGenerator.writeObject(new PointCartesian(crsType, coordinate.get(0), coordinate.get(1), coordinate.get(2)));
             } else {
-                jsonGenerator.writeObject(new PointCartesian(crsType, yCoord, xCoord));
+                jsonGenerator.writeObject(new PointCartesian(crsType, coordinate.get(0), coordinate.get(1)));
             }
         } else {
             if (coordinate.size() == 3) {
-                jsonGenerator.writeObject(new PointWgs(crsType, xCoord, yCoord, coordinate.get(2)));
+                jsonGenerator.writeObject(new PointWgs(crsType, coordinate.get(0), coordinate.get(1), coordinate.get(2)));
             } else {
-                jsonGenerator.writeObject(new PointWgs(crsType, xCoord, yCoord));
+                jsonGenerator.writeObject(new PointWgs(crsType, coordinate.get(0), coordinate.get(1)));
             }
         }
     }
@@ -93,14 +91,14 @@ public class PointSerializer extends JsonSerializer<Point> {
         private Double longitude;
         private Double height;
 
-        public PointWgs(String crs, Double latitude, Double longitude, Double height) {
+        public PointWgs(String crs, Double longitude, Double latitude, Double height) {
             this.crs = crs;
             this.latitude = latitude;
             this.longitude = longitude;
             this.height = height;
         }
 
-        public PointWgs(String crs, Double latitude, Double longitude) {
+        public PointWgs(String crs, Double longitude, Double latitude) {
             this.crs = crs;
             this.latitude = latitude;
             this.longitude = longitude;
