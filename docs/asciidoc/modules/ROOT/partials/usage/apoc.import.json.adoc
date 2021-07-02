@@ -41,7 +41,7 @@ or:
 CALL apoc.import.json(`binaryGzipByteArray`, {compression: 'GZIP'})
 ----
 
-For example, this one works well with `apoc.util.compress` function:
+For example, this one works well with xref::overview/apoc.util/apoc.util.compress.adoc[apoc.util.compress] function:
 
 [source,cypher]
 ----
