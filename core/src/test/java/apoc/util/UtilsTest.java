@@ -116,6 +116,12 @@ public class UtilsTest {
                 map("text", SIMPLE_STRING),
                 r -> assertEquals(TEST_TO_DEFLATE, encodeBase64FromBytesToString((byte[]) r.get("value")))
         );
+
+        TestUtil.testCall(db,
+                "RETURN apoc.util.compress($text, {compression: 'NONE'}) AS value",
+                map("text", SIMPLE_STRING),
+                r -> assertEquals(SIMPLE_STRING, new String((byte[]) r.get("value")))
+        );
     }
 
     @Test(expected = RuntimeException.class)

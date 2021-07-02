@@ -150,7 +150,7 @@ public class CsvEntityLoader {
     /**
      * Loads relationships from a CSV file with given relationship types to an online database,
      * using the {@code idMapping} created by the
-     * * {@link #loadNodes(Object, List, GraphDatabaseService, Map)} method.
+     * {@link #loadNodes(Object, List, GraphDatabaseService, Map)} method.
      *
      * @param data URI / Binary of the CSV file representing the relationship
      * @param type relationship type to be applied to each relationships
