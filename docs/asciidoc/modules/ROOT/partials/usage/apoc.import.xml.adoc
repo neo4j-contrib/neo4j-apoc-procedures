@@ -47,3 +47,65 @@ RETURN node;
 The Neo4j Browser visualization below shows the imported graph:
 
 image::apoc.import.xml.svg[width="800px"]
+
+== Binary file
+
+You can also import a file from a binary `byte[]` (not compressed) or a compressed file (allowed compression algos are: `GZIP`, `BZIP2`, `DEFLATE`, `BLOCK_LZ4`, `FRAMED_SNAPPY`).
+The binary file it can also be a string, in this case the string will be converted in byte[] using the `String.getBytes(CHARSET)` method,
+where CHARSET depends on optional `charset` config (with default `UTF-8`).
+
+[source,cypher]
+----
+CALL apoc.import.xml(`binaryGzipByteArray`,  {compression: 'GZIP'})
+----
+
+or:
+
+[source,cypher]
+----
+CALL apoc.import.xml(`binaryFileNotCompressed`,  {compression: 'NONE'})
+----
+
+For example, this one works well with `apoc.util.compress` function:
+
+[source,cypher]
+----
+WITH apoc.util.compress('<?xml version="1.0" encoding="UTF-8"?>
+<parent name="databases">
+    <child name="Neo4j">
+        Neo4j is a graph database
+    </child>
+    <child name="relational">
+        <grandchild name="MySQL"><![CDATA[
+            MySQL is a database & relational
+            ]]>
+        </grandchild>
+        <grandchild name="Postgres">
+            Postgres is a relational database
+        </grandchild>
+    </child>
+</parent>', {compression: 'DEFLATE'}) as xmlCompressed
+CALL apoc.import.xml(xmlCompressed,  {compression: 'DEFLATE'})
+YIELD node
+RETURN node
+----
+
+.Results
+[opts="header"]
+|===
+| node
+|
+[source,json]
+----
+{
+  "identity": 11,
+  "labels": [
+    "XmlDocument"
+  ],
+  "properties": {
+    "_xmlEncoding": "UTF-8",
+    "_xmlVersion": "1.0"
+  }
+}
+----
+|===

@@ -27,3 +27,41 @@ RETURN *;
 | 1      | ["Rana", "12", "Tea;Milk"] | {name: "Rana", age: "12", beverage: "Tea;Milk"}
 | 2      | ["Selina", "19", "Cola"]   | {name: "Selina", age: "19", beverage: "Cola"}
 |===
+
+== Binary file
+
+You can also import a file from a binary `byte[]` (not compressed) or a compressed file (allowed compression algos are: `GZIP`, `BZIP2`, `DEFLATE`, `BLOCK_LZ4`, `FRAMED_SNAPPY`).
+The binary file it can also be a string, in this case the string will be converted in byte[] using the `String.getBytes(CHARSET)` method,
+where CHARSET depends on optional `charset` config (with default `UTF-8`).
+
+[source,cypher]
+----
+CALL apoc.load.csv(`binaryGzipByteArray`, {compression: 'GZIP'}) 
+----
+
+or:
+
+[source,cypher]
+----
+CALL apoc.load.csv(`binaryFileNotCompressed`, {compression: 'NONE'}) 
+----
+
+For example, this one works well with `apoc.util.compress` function:
+
+[source,cypher]
+----
+WITH apoc.util.compress("name,age\nSelma,8\nRana,11\nSelina,18", {compression: 'DEFLATE'}) as csvCompressed
+CALL apoc.load.csv(csvCompressed, {compression: 'DEFLATE'}) 
+YIELD lineNo, map, list
+RETURN lineNo, map, list
+----
+
+
+.Results
+[opts="header",cols="1,2,2"]
+|===
+| lineNo | list | map
+| 0      | ["Selma", "8"]     | {name: "Selma", age: "8"}
+| 1      | ["Rana", "11"]     | {name: "Rana", age: "11"}
+| 2      | ["Selina", "18"]   | {name: "Selina", age: "18"}
+|===

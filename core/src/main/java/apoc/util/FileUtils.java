@@ -9,7 +9,6 @@ import apoc.util.s3.S3UploadUtils;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.function.ThrowingFunction;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -22,12 +21,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.Util.ERROR_BYTES_OR_STRING;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
 
 /**
@@ -61,19 +60,24 @@ public class FileUtils {
     }
 
     public static CountingReader readerFor(Object input, Map<String, Object> headers, String payload, String compressionAlgo) throws IOException {
-            return checkDataTypeAndGetResult(input, binary -> getReaderFromBinary(binary, compressionAlgo), fileName -> {
-                apocConfig().checkReadAllowed(fileName);
-                if (fileName == null) return null;
-                fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
-                if (fileName.matches("^\\w+:/.+")) {
-                    if (isHdfs(fileName)) {
-                        return readHdfs(fileName);
-                    } else {
-                        return Util.openInputStream(fileName, headers, payload).asReader();
-                    }
+        if (input instanceof String) {
+            String fileName = (String) input; 
+            apocConfig().checkReadAllowed(fileName);
+            if (fileName == null) return null;
+            fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
+            if (fileName.matches("^\\w+:/.+")) {
+                if (isHdfs(fileName)) {
+                    return readHdfs(fileName);
+                } else {
+                    return Util.openInputStream(fileName, headers, payload, compressionAlgo).asReader();
                 }
-                return readFile(fileName);
-            });
+            }
+            return readFile(fileName);
+        } else if (input instanceof byte[]) {
+            return getReaderFromBinary((byte[]) input, compressionAlgo);
+        } else {
+            throw new RuntimeException(ERROR_BYTES_OR_STRING);
+        }
     }
     public static CountingInputStream inputStreamFor(String fileName) throws IOException {
         apocConfig().checkReadAllowed(fileName);
@@ -83,7 +87,7 @@ public class FileUtils {
             if (isHdfs(fileName)) {
                 return readHdfsStream(fileName);
             } else {
-                return Util.openInputStream(fileName,null,null);
+                return Util.openInputStream(fileName,null,null, null);
             }
         }
         return readFileStream(fileName);
@@ -332,16 +336,6 @@ public class FileUtils {
             return getInputStreamFromBinary(urlOrBinary, compressionAlgo).asReader();
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    public static <T> T checkDataTypeAndGetResult(Object urlOrBinary, Function<byte[], T> binaryFunction, ThrowingFunction<String, T, IOException> stringFunction) throws IOException {
-        if (urlOrBinary instanceof String) {
-            return stringFunction.apply((String) urlOrBinary);
-        } else if (urlOrBinary instanceof byte[]) {
-            return binaryFunction.apply((byte[]) urlOrBinary);
-        } else {
-            throw new RuntimeException("Only byte[] or String allowed");
         }
     }
 }

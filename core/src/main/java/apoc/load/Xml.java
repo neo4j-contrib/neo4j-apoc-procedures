@@ -64,7 +64,7 @@ import java.util.stream.Stream;
 
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.FileUtils.getInputStreamFromBinary;
-import static apoc.util.FileUtils.checkDataTypeAndGetResult;
+import static apoc.util.Util.ERROR_BYTES_OR_STRING;
 import static apoc.util.Util.cleanUrl;
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.END_DOCUMENT;
@@ -112,14 +112,13 @@ public class Xml {
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
         try {
             Map<String, Object> finalConfig = config;
-            CountingInputStream is = checkDataTypeAndGetResult(urlOrBinary, 
-                    binary -> getInputStreamFromBinary(binary, (String) finalConfig.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name())), 
-                    url -> {
-                        apocConfig.checkReadAllowed(url);
-                        url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
-                        Map<String, Object> headers = (Map) finalConfig.getOrDefault("headers", Collections.emptyMap());
-                        return Util.openInputStream(url, headers, null); 
-            });
+            if (urlOrBinary instanceof String) {
+                String url = (String) urlOrBinary;
+                apocConfig.checkReadAllowed(url);
+                urlOrBinary = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
+            }
+            Map<String, Object> headers = (Map) finalConfig.getOrDefault("headers", Collections.emptyMap());
+            CountingInputStream is = Util.openInputStream(urlOrBinary, headers, null, (String) finalConfig.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name()));
             return parse(is, simpleMode, path, failOnError);
         } catch (Exception e){
             if(!failOnError)
@@ -187,12 +186,18 @@ public class Xml {
     }
 
     private XMLStreamReader getXMLStreamReader(Object urlOrBinary, XmlImportConfig config) throws IOException, XMLStreamException {
-        InputStream inputStream = checkDataTypeAndGetResult(urlOrBinary, binary -> getInputStreamFromBinary(binary, config.getCompressionAlgo()), url -> {
+        InputStream inputStream;
+        if (urlOrBinary instanceof String) {
+            String url = (String) urlOrBinary; 
             apocConfig.checkReadAllowed(url);
             url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
             URLConnection urlConnection = new URL(url).openConnection();
-            return urlConnection.getInputStream();
-        });
+            inputStream = urlConnection.getInputStream();
+        } else if (urlOrBinary instanceof byte[]) {
+            inputStream = getInputStreamFromBinary((byte[]) urlOrBinary, config.getCompressionAlgo());
+        } else {
+            throw new RuntimeException(ERROR_BYTES_OR_STRING);
+        }
         if (config.isFilterLeadingWhitespace()) {
             inputStream = new SkipWhitespaceInputStream(inputStream);
         }

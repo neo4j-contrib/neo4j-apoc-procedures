@@ -31,8 +31,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.ApocConfig.apocConfig;
-import static apoc.util.FileUtils.getInputStreamFromBinary;
-import static apoc.util.FileUtils.checkDataTypeAndGetResult;
 
 /**
  * @author mh
@@ -108,7 +106,7 @@ public class JsonUtil {
             String u = urlOrBinary instanceof String ? Util.cleanUrl((String) urlOrBinary) : null;
             if(!failOnError) {
                 return Stream.of();
-            } else { 
+            } else {
                 throw new RuntimeException("Can't read binary, url or key " + u + " as json: " + e.getMessage());
             }
         }

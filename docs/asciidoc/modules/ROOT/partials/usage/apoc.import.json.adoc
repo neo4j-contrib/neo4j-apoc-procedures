@@ -26,17 +26,34 @@ CALL apoc.import.json("file:///all.json")
 == Binary file
 
 You can also import a file from a binary `byte[]` not compressed (default value, with config {compression: `NONE`})
-or a compressed file (allowed compression algos are: `GZIP`, `BZIP2`, `DEFLATE`, `BLOCK_LZ4`, `FRAMED_SNAPPY`).
-For example:
+or a compressed file (allowed compression algos are: `GZIP`, `BZIP2`, `DEFLATE`, `BLOCK_LZ4`, `FRAMED_SNAPPY`). That is:
+
 
 [source,cypher]
 ----
-CALL apoc.import.json(`binaryGzipByteArray`, {compression: 'GZIP'})
+CALL apoc.import.json(`binaryFileNotCompressed`, {compression: 'NONE'})
 ----
 
 or:
 
 [source,cypher]
 ----
-CALL apoc.import.json(`binaryFileNotCompressed`, {compression: 'NONE'})
+CALL apoc.import.json(`binaryGzipByteArray`, {compression: 'GZIP'})
 ----
+
+For example, this one works well with `apoc.util.compress` function:
+
+[source,cypher]
+----
+WITH apoc.util.compress('{"type":"node","id":"2","labels":["User"],"properties":{"age":12}}', {compression: 'DEFLATE'}) AS jsonCompressed
+CALL apoc.import.json(jsonCompressed, {compression: 'DEFLATE'}) 
+YIELD source, format, nodes, relationships, properties
+RETURN source, format, nodes, relationships, properties
+----
+
+.Results
+[opts=header]
+|===
+| source | format | nodes | relationships | properties 
+| "binary" | "json" | 1     | 0             | 2 
+|===
