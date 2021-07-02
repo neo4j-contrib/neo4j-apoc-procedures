@@ -19,7 +19,9 @@ public interface CypherFormatter {
 
 	String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties);
 
-	String statementForIndex(String label, Iterable<String> keys);
+	String statementForNodeIndex(String label, Iterable<String> keys);
+
+	String statementForIndexRelationship(String type, Iterable<String> keys);
 
 	String statementForNodeFullTextIndex(String name, Iterable<Label> labels, Iterable<String> keys);
 

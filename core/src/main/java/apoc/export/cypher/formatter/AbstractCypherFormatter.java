@@ -45,8 +45,13 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 
 	@Override
-	public String statementForIndex(String label, Iterable<String> keys) {
+	public String statementForNodeIndex(String label, Iterable<String> keys) {
 		return "CREATE INDEX ON :" + Util.quote(label) + "(" + CypherFormatterUtils.quote(keys) + ");";
+	}
+	
+	@Override
+	public String statementForIndexRelationship(String key, Iterable<String> keys) {
+		return String.format("CREATE INDEX FOR ()-[rel:%s]-() ON (%s);", Util.quote(key), getPropertiesQuoted(keys, "rel."));
 	}
 
 	@Override
@@ -80,11 +85,16 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	@Override
 	public String statementForConstraint(String label, Iterable<String> keys) {
 
-		String keysString = StreamSupport.stream(keys.spliterator(), false)
-				.map(key -> "node." + CypherFormatterUtils.quote(key))
-				.collect(Collectors.joining(", "));
+		String keysString = getPropertiesQuoted(keys, "node.");
 
 		return  String.format(STATEMENT_CONSTRAINTS, Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
+	}
+
+	private String getPropertiesQuoted(Iterable<String> keys, String prefix) {
+		String keysString = StreamSupport.stream(keys.spliterator(), false)
+				.map(key -> prefix + CypherFormatterUtils.quote(key))
+				.collect(Collectors.joining(", "));
+		return keysString;
 	}
 
 	protected String mergeStatementForNode(CypherFormat cypherFormat, Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames) {
