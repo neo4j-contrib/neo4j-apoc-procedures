@@ -242,6 +242,12 @@ public class UtilsTest {
                 map("text", COMPLEX_STRING),
                 r -> assertEquals(COMPLEX_STRING, r.get("value"))
         );
+
+        TestUtil.testCall(db,
+                "WITH apoc.util.compress($text, {compression: 'NONE'}) AS compressed RETURN apoc.util.decompress(compressed, {compression: 'NONE'}) AS value",
+                map("text", COMPLEX_STRING),
+                r -> assertEquals(COMPLEX_STRING, r.get("value"))
+        );
     }
 
     @Test
