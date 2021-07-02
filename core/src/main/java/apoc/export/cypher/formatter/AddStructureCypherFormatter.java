@@ -38,7 +38,7 @@ public class AddStructureCypherFormatter extends AbstractCypherFormatter impleme
 	}
 	
 	@Override
-	public String statementForIndexRelationship(String label, Iterable<String> key) {
+	public String statementForIndexRelationship(String type, Iterable<String> key) {
 		return "";
 	}
 

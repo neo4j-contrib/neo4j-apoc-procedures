@@ -50,8 +50,8 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 	
 	@Override
-	public String statementForIndexRelationship(String key, Iterable<String> keys) {
-		return String.format("CREATE INDEX FOR ()-[rel:%s]-() ON (%s);", Util.quote(key), getPropertiesQuoted(keys, "rel."));
+	public String statementForIndexRelationship(String type, Iterable<String> keys) {
+		return String.format("CREATE INDEX FOR ()-[rel:%s]-() ON (%s);", Util.quote(type), getPropertiesQuoted(keys, "rel."));
 	}
 
 	@Override
