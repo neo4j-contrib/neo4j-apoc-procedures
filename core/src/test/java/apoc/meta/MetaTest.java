@@ -1089,4 +1089,25 @@ public class MetaTest {
         });
 
     }
+
+    @Test
+    public void testMetaStatsWithLabelAndRelTypeCountInUse() {
+        db.executeTransactionally("CREATE (:Node:Test)-[:REL {a:'b'}]->(:Node {c: 'd'})<-[:REL]-(:Node:Test)");
+        db.executeTransactionally("CREATE (:A {e: 'f'})-[:ANOTHER {g: 'h'}]->(:C)");
+        
+        TestUtil.testCall(db, "CALL apoc.meta.stats()", row -> {
+            assertEquals(4L, row.get("labelCount"));
+            assertEquals(2L, row.get("relTypeCount"));
+            assertEquals(5L, row.get("nodeCount"));
+            assertEquals(3L, row.get("relCount"));
+        });
+        
+        db.executeTransactionally("match p=(:A)-[:ANOTHER]->(:C) delete p");
+        TestUtil.testCall(db, "CALL apoc.meta.stats()", row -> {
+            assertEquals(2L, row.get("labelCount"));
+            assertEquals(1L, row.get("relTypeCount"));
+            assertEquals(3L, row.get("nodeCount"));
+            assertEquals(2L, row.get("relCount"));
+        });
+    }
 }
