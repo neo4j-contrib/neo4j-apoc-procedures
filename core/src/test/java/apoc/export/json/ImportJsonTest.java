@@ -11,6 +11,7 @@ import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +42,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.driver.internal.util.Iterables.count;
+import static apoc.util.TestUtil.testResult;
 import static java.lang.String.format;
+import static org.junit.Assert.assertFalse;
 import static org.neo4j.driver.internal.util.Iterables.count;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -205,11 +209,11 @@ public class ImportJsonTest {
 
     @Test
     public void shouldTerminateImportWhenTransactionIsTimedOut() throws Exception {
-        restartDb(Duration.ofMillis(1));
+        restartDb(Duration.ofMillis(1000));
 
         createConstraints(List.of("Stream", "User", "Game", "Team", "Language"));
 
-        String filename = "big.json";
+        String filename = "https://devrel-data-science.s3.us-east-2.amazonaws.com/twitch_all.json";
         try {
             TestUtil.testCall(db, "CALL apoc.import.json($file)",
                     map("file", filename), (r) -> {});
@@ -220,11 +224,12 @@ public class ImportJsonTest {
                     "The transaction has not completed within the specified timeout (dbms.transaction.timeout). You may want to retry with a longer timeout. ";
             assertRootMessage(expectedMsg, e);
         }
-        
-        try (Transaction tx = db.beginTx()) {
-            // check that not all nodes have been imported
-            assertTrue(count(tx.getAllNodes()) < NODES_BIG_JSON);
-        }
+
+        testResult(db, "call dbms.listQueries", Collections.emptyMap(), res -> {
+            Map<String, Object> first = res.next();
+            assertEquals("call dbms.listQueries", first.get("query"));
+            assertFalse(res.hasNext());
+        });
 
         restartDb(Duration.ZERO);
     }

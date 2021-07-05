@@ -122,12 +122,13 @@ public class JsonImporter implements Closeable {
     private void manageRelationship(Map<String, Object> param) {
         
         if (firstRel) {
-            Set<String> collect = StreamSupport.stream(db.beginTx().schema().getConstraints().spliterator(), false)
-                    .map(ConstraintDefinition::getLabel)
-                    .map(Label::name).map(Util::quote)
-                    .collect(Collectors.toSet());
-
-            constraints.removeAll(collect);
+            try (Transaction transaction = db.beginTx()) {
+                Set<String> collect = StreamSupport.stream(transaction.schema().getConstraints().spliterator(), false)
+                        .map(ConstraintDefinition::getLabel)
+                        .map(Label::name).map(Util::quote)
+                        .collect(Collectors.toSet());
+                constraints.removeAll(collect);
+            }
             if (constraints.isEmpty()) {
                 // we check only 1st time
                 firstRel = false;
