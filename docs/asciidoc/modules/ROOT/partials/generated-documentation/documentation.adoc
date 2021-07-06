@@ -2240,6 +2240,11 @@ apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map with 
 apoc.nodes.collapse([nodes...],[{properties:'overwrite' or 'discard' or 'combine'}]) yield from, rel, to merge nodes onto first in list
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.nodes/apoc.nodes.cycles.adoc[apoc.nodes.cycles icon:book[]]
+
+CALL apoc.nodes.cycles([nodes], 'type', $config) - Detect all path cycles from node list with the relationship type specified by 'type' (or with all types if the parameter is empty/null)
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.delete.adoc[apoc.nodes.delete icon:book[]]
 
 apoc.nodes.delete(node\|nodes\|id\|[ids]) - quickly delete all nodes with these ids

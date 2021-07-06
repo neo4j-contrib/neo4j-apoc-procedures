@@ -1,0 +1,2 @@
+¦signature
+¦apoc.nodes.cycles(nodes :: LIST? OF NODE?, type =  :: STRING?, config = {} :: MAP?) :: (path :: PATH?)
