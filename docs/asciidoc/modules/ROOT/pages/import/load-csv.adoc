@@ -142,7 +142,7 @@ See the following usage-examples for the procedures.
 
 === Error handling
 
-You can use `failOnError` configuration to handle the result in case of incorrect url or json.
+You can use `failOnError` configuration to handle the result in case of incorrect url or csv.
 For example, with the help of the `apoc.when` procedure, you can return `nothingToList` and `nothingToMap` as list and map result, with incorrect url:
 [source,cypher]
 ----
