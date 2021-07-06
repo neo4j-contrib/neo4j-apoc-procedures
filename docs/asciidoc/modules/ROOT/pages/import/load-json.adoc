@@ -197,7 +197,6 @@ UNWIND value["result"] as result
 RETURN result
 ----
 
-
 [[load-json-examples-stackoverflow]]
 === Import from StackOverflow API
 
