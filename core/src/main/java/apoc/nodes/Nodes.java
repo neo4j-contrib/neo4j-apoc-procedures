@@ -62,7 +62,6 @@ import static apoc.path.RelationshipTypeAndDirections.format;
 import static apoc.path.RelationshipTypeAndDirections.parse;
 import static apoc.refactor.util.RefactorUtil.copyProperties;
 import static apoc.util.Util.map;
-import static org.neo4j.graphdb.Direction.OUTGOING;
 
 public class Nodes {
 
@@ -88,10 +87,10 @@ public class Nodes {
             boolean allRels = StringUtils.isEmpty(type);
             if (allRels) {
                 relType = null;
-                relationships = start.getRelationships(OUTGOING);
+                relationships = start.getRelationships(Direction.OUTGOING);
             } else {
                 relType = RelationshipType.withName(type);
-                relationships = start.getRelationships(OUTGOING, relType);
+                relationships = start.getRelationships(Direction.OUTGOING, relType);
             }
             return Iterables.stream(relationships)
                 // to prevent duplicated (start and end nodes with double-rels)
@@ -101,8 +100,8 @@ public class Nodes {
                     Node end = entry.getKey();
                     Relationship rel = entry.getValue();
                     PathExpanderBuilder baseExpander = allRels 
-                            ? PathExpanderBuilder.allTypes(OUTGOING) 
-                            : PathExpanderBuilder.empty().add(relType, OUTGOING);
+                            ? PathExpanderBuilder.allTypes(Direction.OUTGOING) 
+                            : PathExpanderBuilder.empty().add(relType, Direction.OUTGOING);
                     
                     PathFinder<Path> finder = GraphAlgoFactory.shortestPath(
                             new BasicEvaluationContext(tx, db),
@@ -287,11 +286,11 @@ public class Nodes {
 
             if (nodes.contains(startNode) && nodes.contains(endNode)) {
                 if (refactorConfig.isSelfRel()) {
-                    createOrMergeVirtualRelationship(virtualNode, refactorConfig, relationship, virtualNode,  OUTGOING);
+                    createOrMergeVirtualRelationship(virtualNode, refactorConfig, relationship, virtualNode,  Direction.OUTGOING);
                 }
             } else {
                 if (startNode.getId() == node.getId()) {
-                    createOrMergeVirtualRelationship(virtualNode, refactorConfig, relationship, endNode,  OUTGOING);
+                    createOrMergeVirtualRelationship(virtualNode, refactorConfig, relationship, endNode,  Direction.OUTGOING);
                 } else {
                     createOrMergeVirtualRelationship(virtualNode, refactorConfig, relationship, startNode,  Direction.INCOMING);
                 }
@@ -305,7 +304,7 @@ public class Nodes {
         if (refactorConfig.isMergeVirtualRels() && first.isPresent()) {
             mergeRelationship(source, first.get(), refactorConfig);
         } else {
-            if (direction== OUTGOING)
+            if (direction==Direction.OUTGOING)
                copyProperties(source, virtualNode.createRelationshipTo(node, source.getType()));
             if (direction==Direction.INCOMING) 
                copyProperties(source, virtualNode.createRelationshipFrom(node, source.getType()));
@@ -364,7 +363,7 @@ public class Nodes {
         if (pairs==null) return null;
         int from=0;int to=0;
         int[][] result = new int[2][pairs.size()];
-        int outIdx = OUTGOING.ordinal();
+        int outIdx = Direction.OUTGOING.ordinal();
         int inIdx = Direction.INCOMING.ordinal();
         for (Pair<RelationshipType, Direction> pair : pairs) {
             int type = ops.relationshipType(pair.first().name());
@@ -372,7 +371,7 @@ public class Nodes {
             if (pair.other() != Direction.INCOMING) {
                 result[outIdx][from++]= type;
             }
-            if (pair.other() != OUTGOING) {
+            if (pair.other() != Direction.OUTGOING) {
                 result[inIdx][to++]= type;
             }
         }
@@ -559,10 +558,10 @@ public class Nodes {
     public long degreeOut(@Name("node") Node node, @Name(value = "types",defaultValue = "") String type) {
 
         if (type==null || type.isEmpty()) {
-            return node.getDegree(OUTGOING);
+            return node.getDegree(Direction.OUTGOING);
         }
 
-        return node.getDegree(RelationshipType.withName(type), OUTGOING);
+        return node.getDegree(RelationshipType.withName(type), Direction.OUTGOING);
 
     }
 
