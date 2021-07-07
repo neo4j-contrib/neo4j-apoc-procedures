@@ -11,6 +11,7 @@ import apoc.result.RelationshipResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualPathResult;
 import apoc.util.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphalgo.BasicEvaluationContext;
 import org.neo4j.graphalgo.GraphAlgoFactory;
 import org.neo4j.graphalgo.PathFinder;
@@ -41,7 +42,6 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.UserFunction;
 import org.neo4j.storageengine.api.RelationshipSelection;
-import org.parboiled.common.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
