@@ -141,7 +141,7 @@ public class ExportCypher {
         MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph, c, db);
 
         if (onlySchema)
-            exporter.exportOnlySchema(cypherFileManager);
+            exporter.exportOnlySchema(cypherFileManager, c);
         else
             exporter.export(c, reporter, cypherFileManager);
     }

@@ -929,7 +929,7 @@ public class ExportCypherTest {
                 "CREATE INDEX IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE INDEX IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT IF NOT EXISTS ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 
@@ -1098,27 +1098,6 @@ public class ExportCypherTest {
                 "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
-                "UNWIND [{_id:3, properties:{age:12}}] AS row%n" +
-                "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
-                "UNWIND [{_id:2, properties:{age:12}}] AS row%n" +
-                "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar:Person;%n" +
-                "UNWIND [{_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}, {_id:4, properties:{born:date('2017-09-29'), name:\"foo2\"}}] AS row%n" +
-                "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
-                "UNWIND [{name:\"bar\", properties:{age:42}}, {name:\"bar2\", properties:{age:44}}] AS row%n" +
-                "MERGE (n:Bar{name: row.name}) SET n += row.properties;%n" +
-                "UNWIND [{_id:6, properties:{age:99}}] AS row%n" +
-                "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties;%n" +
-                "UNWIND [{start: {_id:0}, end: {name:\"bar\"}, properties:{since:2016}}, {start: {_id:4}, end: {name:\"bar2\"}, properties:{since:2015}}] AS row%n" +
-                "MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})%n" +
-                "MATCH (end:Bar{name: row.end.name})%n" +
-                "MERGE (start)-[r:KNOWS]->(end) SET r += row.properties;%n" +
-                "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
-                "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n");
-
-        static final String EXPECTED_UPDATE_ALL_UNWIND_WITH_IF_NOT_EXISTS = String.format("CREATE INDEX IF NOT EXISTS ON :Bar(first_name,last_name);%n" +
-                "CREATE INDEX IF NOT EXISTS ON :Foo(name);%n" +
-                "CREATE CONSTRAINT IF NOT EXISTS ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT IF NOT EXISTS ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "UNWIND [{_id:3, properties:{age:12}}] AS row%n" +
                 "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
                 "UNWIND [{_id:2, properties:{age:12}}] AS row%n" +
