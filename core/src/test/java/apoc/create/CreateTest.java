@@ -9,15 +9,20 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.*;
+import static org.neo4j.graphdb.Label.label;
 
 public class CreateTest {
 
@@ -232,34 +237,64 @@ public class CreateTest {
     }
     
     @Test
-    public void testVirtualPath() throws Exception {
-        testCall(db, "call apoc.create.virtualPath(['LabelA', 'LabelB'], {alpha:'beta'}, 'KNOWS', {gamma:'delta'}, ['One', 'Two'], {epsilon:'zeta', eta: 'theta'} )",
-                (row) -> {
-                    Node from = (Node) row.get("from");
-                    Node to = (Node) row.get("to");
-                    Relationship rel = (Relationship) row.get("rel");
-                    assertionVirtualPath(from, to, rel);
-                });
+    public void testVirtualPath() {
+        db.executeTransactionally("CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baa:Baz {a:'b'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www'}), \n" +
+                "q=(:Omega {alpha: 'beta'})<-[:TEST_3 {aa:'ccc'}]-(:Bar {one:'jjj'})");
+        testCall(db, "MATCH p=(a:Test {foo: 7})-[:TEST]->(b:Baa:Baz {a:'b'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www'}) WITH p \n" +
+                        "CALL apoc.create.vPath(p) YIELD path RETURN path",
+                (row) -> assertionsFirstVPath((Path) row.get("path")));
 
-        testCall(db, "RETURN apoc.create.virtualPath(['LabelA', 'LabelB'], {alpha:'beta'}, 'KNOWS', {gamma:'delta'}, ['One', 'Two'], {epsilon:'zeta', eta: 'theta'} ) as path",
-                (row) -> {
-                    Path path = (Path) row.get("path");
-                    Node from = path.startNode();
-                    Node to = path.endNode();
-                    Relationship rel = path.lastRelationship();
-                    assertionVirtualPath(from, to, rel);
+        testResult(db, "MATCH p=(a:Test {foo: 7})-[:TEST]->(b:Baa:Baz {a:'b'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www'}), \n" +
+                        "q=(:Omega {alpha: 'beta'})<-[:TEST_3 {aa:'ccc'}]-(:Bar {one:'jjj'}) WITH collect(p)+q as paths \n" +
+                        "CALL apoc.create.vPaths(paths) YIELD path RETURN path",
+                (res) -> {
+                    ResourceIterator<Path> paths = res.columnAs("path");
+                    Path firstPath = paths.next();
+                    assertionsFirstVPath(firstPath);
+                    Path secondPath = paths.next();
+                    Iterator<Node> nodes = secondPath.nodes().iterator();
+                    Node firstNode = nodes.next();
+                    assertEquals(List.of(label("Omega")), firstNode.getLabels());
+                    assertEquals(Map.of("alpha", "beta"), firstNode.getAllProperties());
+
+                    Node secondNode = nodes.next();
+                    assertEquals(List.of(label("Bar")), secondNode.getLabels());
+                    assertEquals(Map.of("one", "jjj"), secondNode.getAllProperties());
+                    assertFalse(nodes.hasNext());
+                    
+                    Iterator<Relationship> rels = secondPath.relationships().iterator();
+                    Relationship relationship = rels.next();
+                    assertEquals("TEST_3", relationship.getType().name());
+                    assertEquals(Map.of("aa", "ccc"), relationship.getAllProperties());
+                    assertFalse(rels.hasNext());
+                    assertFalse(paths.hasNext());
                 });
     }
 
-    private void assertionVirtualPath(Node from, Node to, Relationship rel) {
-        assertEquals(List.of(Label.label("LabelA"), Label.label("LabelB")), from.getLabels());
-        assertEquals(Map.of("alpha", "beta"), from.getAllProperties());
+    private void assertionsFirstVPath(Path path) {
+        Iterator<Node> nodes = path.nodes().iterator();
+        Node firstNode = nodes.next();
+        assertEquals(List.of(label("Test")), firstNode.getLabels());
+        assertEquals(Map.of("foo", 7L), firstNode.getAllProperties());
 
-        assertEquals(List.of(Label.label("One"), Label.label("Two")), to.getLabels());
-        assertEquals(Map.of("epsilon", "zeta", "eta", "theta"), to.getAllProperties());
+        Node secondNode = nodes.next();
+        assertEquals(Set.of(label("Baa"), label("Baz")), Iterables.asSet(secondNode.getLabels()));
+        assertEquals(Map.of("a", "b"), secondNode.getAllProperties());
+        
+        Node thirdNode = nodes.next();
+        assertEquals(List.of(label("Bar")), thirdNode.getLabels());
+        assertEquals(Map.of("one", "www"), thirdNode.getAllProperties());
+        assertFalse(nodes.hasNext());
 
-        assertEquals("KNOWS", rel.getType().name());
-        assertEquals(Map.of("gamma", "delta"), rel.getAllProperties());
+        Iterator<Relationship> rels = path.relationships().iterator();
+        Relationship firstRel = rels.next();
+        assertEquals("TEST", firstRel.getType().name());
+        assertTrue(firstRel.getAllProperties().isEmpty());
+        
+        Relationship secondRel = rels.next();
+        assertEquals("TEST_2", secondRel.getType().name());
+        assertEquals(Map.of("aa", "bb"), secondRel.getAllProperties());
+        assertFalse(rels.hasNext());
     }
 
 }

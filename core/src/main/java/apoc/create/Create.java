@@ -3,7 +3,6 @@ package apoc.create;
 import apoc.get.Get;
 import apoc.result.*;
 import apoc.util.Util;
-import org.apache.commons.lang3.tuple.Triple;
 import org.neo4j.graphalgo.impl.util.PathImpl;
 import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;
@@ -203,34 +202,50 @@ public class Create {
     public Stream<VirtualPathResult> vPatternFull(@Name("labelsN") List<String> labelsN, @Name("n") Map<String, Object> n,
                                                   @Name("relType") String relType, @Name("props") Map<String, Object> props,
                                                   @Name("labelsM") List<String> labelsM, @Name("m") Map<String, Object> m) {
-        Triple<VirtualNode, Relationship, VirtualNode> of = getVirtualPath(labelsN, n, relType, props, labelsM, m);
-        return Stream.of(new VirtualPathResult(of.getLeft(), of.getMiddle(), of.getRight()));
-    }
-
-    @UserFunction("apoc.create.virtualPath")
-    @Description("apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties")
-    public Path virtualPathFunction(@Name("labelsN") List<String> labelsN, @Name("n") Map<String, Object> n,
-                                                 @Name("relType") String relType, @Name("props") Map<String, Object> props,
-                                                 @Name("labelsM") List<String> labelsM, @Name("m") Map<String, Object> m) {
-        Triple<VirtualNode, Relationship, VirtualNode> of = getVirtualPath(labelsN, n, relType, props, labelsM, m);
-        return new PathImpl.Builder(of.getLeft()).push(of.getMiddle()).build();
-    }
-    
-    @Procedure
-    @Description("apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties")
-    public Stream<VirtualPathResult> virtualPath(@Name("labelsN") List<String> labelsN, @Name("n") Map<String, Object> n,
-                                                  @Name("relType") String relType, @Name("props") Map<String, Object> props,
-                                                  @Name("labelsM") List<String> labelsM, @Name("m") Map<String, Object> m) {
-        Triple<VirtualNode, Relationship, VirtualNode> of = getVirtualPath(labelsN, n, relType, props, labelsM, m);
-        return Stream.of(new VirtualPathResult(of.getLeft(), of.getMiddle(), of.getRight()));
-    }
-
-    private Triple<VirtualNode, Relationship, VirtualNode> getVirtualPath(@Name("labelsN") List<String> labelsN, @Name("n") Map<String, Object> n, @Name("relType") String relType, @Name("props") Map<String, Object> props, @Name("labelsM") List<String> labelsM, @Name("m") Map<String, Object> m) {
         RelationshipType type = withName(relType);
         VirtualNode from = new VirtualNode(Util.labels(labelsN), n);
         VirtualNode to = new VirtualNode(Util.labels(labelsM), m);
         Relationship rel = new VirtualRelationship(from, to, type).withProperties(props);
-        return Triple.of(from, rel, to);
+        return Stream.of(new VirtualPathResult(from, rel, to));
+    }
+
+    @Procedure
+    @Description("apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties")
+    public Stream<VirtualPathResult> virtualPath(@Name("labelsN") List<String> labelsN, @Name("n") Map<String, Object> n,
+                                                 @Name("relType") String relType, @Name("props") Map<String, Object> props,
+                                                 @Name("labelsM") List<String> labelsM, @Name("m") Map<String, Object> m) {
+        RelationshipType type = withName(relType);
+        VirtualNode from = new VirtualNode(Util.labels(labelsN), n);
+        VirtualNode to = new VirtualNode(Util.labels(labelsM), m);
+        Relationship rel = new VirtualRelationship(from, to, type).withProperties(props);
+        return Stream.of(new VirtualPathResult(from, rel, to));
+    }
+
+    @Procedure
+    @Description("apoc.create.vPath")
+    public Stream<PathResult> vPath(@Name("path") Path path) {
+        return Stream.of(createVPath(path));
+    }
+
+    @Procedure
+    @Description("apoc.create.vPaths")
+    public Stream<PathResult> vPaths(@Name("paths") List<Path> paths) {
+        return paths.stream().map(this::createVPath);
+    }
+
+    private PathResult createVPath(Path path) {
+        final Iterable<Relationship> relationships = path.relationships();
+        final Node first = path.startNode();
+        PathImpl.Builder builder = new PathImpl.Builder(new VirtualNode(first, Iterables.asList(first.getPropertyKeys())));
+        for (Relationship rel : relationships) {
+            Node startNode = rel.getStartNode();
+            Node endNode = rel.getEndNode();
+            Node start = new VirtualNode(startNode, Iterables.asList(startNode.getPropertyKeys()));
+            Node end = new VirtualNode(endNode, Iterables.asList(endNode.getPropertyKeys()));
+            builder = builder.push(new VirtualRelationship(start, end, rel.getType()).withProperties(rel.getAllProperties()));
+        }
+        Path build = builder.build();
+        return new PathResult(build);
     }
 
     private <T extends Entity> T setProperties(T pc, Map<String, Object> p) {

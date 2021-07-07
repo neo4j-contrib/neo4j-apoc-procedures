@@ -785,6 +785,16 @@ apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node
 apoc.create.vNodes(['Label'], [{key:value,...}]) returns virtual nodes
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.vPath.adoc[apoc.create.vPath icon:book[]]
+
+apoc.create.vPath
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.create/apoc.create.vPaths.adoc[apoc.create.vPaths icon:book[]]
+
+apoc.create.vPaths
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.create/apoc.create.vPattern.adoc[apoc.create.vPattern icon:book[]]
 
 apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) returns a virtual pattern
@@ -823,11 +833,6 @@ apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a vi
 |xref::overview/apoc.create/apoc.create.virtual.fromNode.adoc[apoc.create.virtual.fromNode icon:book[]]
 
 apoc.create.virtual.fromNode(node, [propertyNames]) returns a virtual node built from an existing node with only the requested properties
-|label:function[]
-|label:apoc-core[]
-|xref::overview/apoc.create/apoc.create.virtualPath.adoc[apoc.create.virtualPath icon:book[]]
-
-apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties
 |label:function[]
 |label:apoc-core[]
 |===
