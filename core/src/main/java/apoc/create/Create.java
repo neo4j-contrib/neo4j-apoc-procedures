@@ -212,8 +212,8 @@ public class Create {
     @Procedure
     @Description("apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual path of nodes joined by a relationship and the associated properties")
     public Stream<VirtualPathResult> virtualPath(@Name("labelsN") List<String> labelsN, @Name("n") Map<String, Object> n,
-                                                 @Name("relType") String relType, @Name("props") Map<String, Object> props,
-                                                 @Name("labelsM") List<String> labelsM, @Name("m") Map<String, Object> m) {
+                                                  @Name("relType") String relType, @Name("props") Map<String, Object> props,
+                                                  @Name("labelsM") List<String> labelsM, @Name("m") Map<String, Object> m) {
         RelationshipType type = withName(relType);
         VirtualNode from = new VirtualNode(Util.labels(labelsN), n);
         VirtualNode to = new VirtualNode(Util.labels(labelsM), m);
