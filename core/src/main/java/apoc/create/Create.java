@@ -238,11 +238,9 @@ public class Create {
         final Node first = path.startNode();
         PathImpl.Builder builder = new PathImpl.Builder(new VirtualNode(first, Iterables.asList(first.getPropertyKeys())));
         for (Relationship rel : relationships) {
-            Node startNode = rel.getStartNode();
-            Node endNode = rel.getEndNode();
-            Node start = new VirtualNode(startNode, Iterables.asList(startNode.getPropertyKeys()));
-            Node end = new VirtualNode(endNode, Iterables.asList(endNode.getPropertyKeys()));
-            builder = builder.push(new VirtualRelationship(start, end, rel.getType()).withProperties(rel.getAllProperties()));
+            VirtualNode start = VirtualNode.from(rel.getStartNode());
+            VirtualNode end = VirtualNode.from(rel.getEndNode());
+            builder = builder.push(VirtualRelationship.from(start, end, rel));
         }
         Path build = builder.build();
         return new PathResult(build);
