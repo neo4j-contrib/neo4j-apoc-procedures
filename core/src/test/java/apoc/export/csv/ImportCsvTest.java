@@ -24,7 +24,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.util.MapUtil.map;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 public class ImportCsvTest {
@@ -103,10 +106,10 @@ public class ImportCsvTest {
                             "John\n" +
                             "Jane\n"),
                     new AbstractMap.SimpleEntry<>("emptyInteger", 
-                            ":ID(node_space_1),:LABEL,str_attribute:STRING,int_attribute:INT\n" +
-                            "n1,Thing,once upon a time,1\n" +
-                            "n2,Thing,there was a boy,2\n" +
-                            "n3,Thing,,\n"
+                            ":ID(node_space_1),:LABEL,str_attribute:STRING,int_attribute:INT,int_attribute_array:INT[],double_attribute_array:FLOAT[]\n" +
+                            "n1,Thing,once upon a time,1,\"2;3\",\"2.3;3.5\"\n" +
+                            "n2,Thing,there was a boy,2,\"4;5\",\"2.6;3.6\"\n" +
+                            "n3,Thing,,,,\n"
                     )
             ).collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue)));
 
@@ -300,8 +303,22 @@ public class ImportCsvTest {
         TestUtil.testCall(db, "CALL apoc.import.csv([{fileName: 'file:/emptyInteger.csv', labels: ['entity']}], [], {})",
                 r -> assertEquals(3L, r.get("nodes")));
 
-        TestUtil.testResult(db, "MATCH (n:Thing) RETURN n.int_attribute as int ORDER BY n.int_attribute", 
-                r -> assertEquals(Arrays.asList(1L, 2L, null), Iterators.asList(r.columnAs("int"))));
+        TestUtil.testResult(db, "MATCH (n:Thing) RETURN n.int_attribute as int, n.int_attribute_array as intArray, n.double_attribute_array as doubleArray ORDER BY n.int_attribute", 
+                r -> {
+                    final Map<String, Object> first = r.next();
+                    assertEquals(1L, first.get("int"));
+                    assertArrayEquals(new long[] { 2L, 3L }, (long[]) first.get("intArray"));
+                    assertArrayEquals(new double[] { 2.3D, 3.5D }, (double[]) first.get("doubleArray"), 0);
+                    final Map<String, Object> second = r.next();
+                    assertEquals(2L, second.get("int"));
+                    assertArrayEquals(new long[] { 4L, 5L }, (long[]) second.get("intArray"));
+                    assertArrayEquals(new double[] { 2.6D, 3.6D }, (double[]) second.get("doubleArray"), 0);
+                    final Map<String, Object> third = r.next();
+                    assertNull(third.get("int"));
+                    assertNull(third.get("intArray"));
+                    assertNull(third.get("doubleArray"));
+                    assertFalse(r.hasNext());
+                });
     }
 
     @Test
