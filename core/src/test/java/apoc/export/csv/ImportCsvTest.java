@@ -304,8 +304,7 @@ public class ImportCsvTest {
         TestUtil.testCall(db, "CALL apoc.import.csv([{fileName: 'file:/emptyInteger.csv', labels: ['entity']}], [], {ignoreEmptyString: true})",
                 r -> assertEquals(3L, r.get("nodes")));
 
-        TestUtil.testResult(db, "MATCH (node:Thing) RETURN node ORDER BY node.int_attribute",
-                r -> {
+        TestUtil.testResult(db, "MATCH (node:Thing) RETURN node ORDER BY node.int_attribute", r -> {
                     final Node firstNode = (Node) r.next().get("node");
                     final Map<String, Object> firstProps = firstNode.getAllProperties();
                     assertEquals(1L, firstProps.get("int_attribute"));
