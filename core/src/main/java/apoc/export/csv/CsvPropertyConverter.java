@@ -1,5 +1,6 @@
 package apoc.export.csv;
 
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Entity;
 
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.Objects;
 
 public class CsvPropertyConverter {
 
-    public static boolean addPropertyToGraphEntity(Entity entity, CsvHeaderField field, Object value) {
+    public static boolean addPropertyToGraphEntity(Entity entity, CsvHeaderField field, Object value, CsvLoaderConfig config) {
         if (field.isIgnore() || value == null) {
             return false;
         }
@@ -21,6 +22,9 @@ public class CsvPropertyConverter {
             final Object[] array = list.toArray(prototype);
             entity.setProperty(field.getName(), array);
         } else {
+            if (config.isIgnoreEmptyString() && value instanceof String && StringUtils.isBlank((String) value)) {
+                return false;
+            }
             entity.setProperty(field.getName(), value);
         }
         return true;
