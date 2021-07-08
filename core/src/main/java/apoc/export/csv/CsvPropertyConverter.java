@@ -7,7 +7,7 @@ import java.util.List;
 public class CsvPropertyConverter {
 
     public static boolean addPropertyToGraphEntity(Entity entity, CsvHeaderField field, Object value) {
-        if (field.isIgnore()) {
+        if (field.isIgnore() || value == null) {
             return false;
         }
         if (field.isArray()) {

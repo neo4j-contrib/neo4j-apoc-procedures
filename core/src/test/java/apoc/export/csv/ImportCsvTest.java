@@ -9,12 +9,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +101,13 @@ public class ImportCsvTest {
                             "2|Jane\n"),
                     new AbstractMap.SimpleEntry<>("personsWithoutIdField", "name:STRING\n" +
                             "John\n" +
-                            "Jane\n")
+                            "Jane\n"),
+                    new AbstractMap.SimpleEntry<>("emptyInteger", 
+                            ":ID(node_space_1),:LABEL,str_attribute:STRING,int_attribute:INT\n" +
+                            "n1,Thing,once upon a time,1\n" +
+                            "n2,Thing,there was a boy,2\n" +
+                            "n3,Thing,,\n"
+                    )
             ).collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue)));
 
     @Before
@@ -285,6 +293,19 @@ public class ImportCsvTest {
 
         Assert.assertEquals("John Jane", TestUtil.singleResultFirstColumn(db, "MATCH (p1:Person)-[:FRIENDS_WITH]->(p2:Person) RETURN p1.name + ' ' + p2.name AS pair ORDER BY pair"));
         Assert.assertEquals("Jane John", TestUtil.singleResultFirstColumn(db, "MATCH (p1:Person)-[:KNOWS]->(p2:Person) RETURN p1.name + ' ' + p2.name AS pair ORDER BY pair"));
+    }
+    
+    @Test
+    public void testEmptyInteger() {
+        TestUtil.testCall(db,
+                "CALL apoc.import.csv([{fileName: 'file:/emptyInteger.csv', labels: ['entity']}], [], {})",
+                r -> assertEquals(3L, r.get("nodes"))
+        );
+
+        TestUtil.testResult(db, "MATCH (n:Thing) RETURN n.int_attribute as int ORDER BY n.int_attribute", r -> {
+            final List<Object> anInt = Iterators.asList(r.columnAs("int"));
+            assertEquals(Arrays.asList(1L, 2L, null), anInt);
+        });
     }
 
     @Test
