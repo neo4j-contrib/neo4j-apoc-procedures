@@ -43,7 +43,7 @@ ext {
     neo4jVersion = "3.5.19"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
-    testContainersVersion = '1.11.0'
+    testContainersVersion = '1.15.3'
     poiVersion = '4.1.2'
 }
 
