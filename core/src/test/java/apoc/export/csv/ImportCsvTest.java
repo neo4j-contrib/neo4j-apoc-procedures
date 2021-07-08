@@ -297,15 +297,11 @@ public class ImportCsvTest {
     
     @Test
     public void testEmptyInteger() {
-        TestUtil.testCall(db,
-                "CALL apoc.import.csv([{fileName: 'file:/emptyInteger.csv', labels: ['entity']}], [], {})",
-                r -> assertEquals(3L, r.get("nodes"))
-        );
+        TestUtil.testCall(db, "CALL apoc.import.csv([{fileName: 'file:/emptyInteger.csv', labels: ['entity']}], [], {})",
+                r -> assertEquals(3L, r.get("nodes")));
 
-        TestUtil.testResult(db, "MATCH (n:Thing) RETURN n.int_attribute as int ORDER BY n.int_attribute", r -> {
-            final List<Object> anInt = Iterators.asList(r.columnAs("int"));
-            assertEquals(Arrays.asList(1L, 2L, null), anInt);
-        });
+        TestUtil.testResult(db, "MATCH (n:Thing) RETURN n.int_attribute as int ORDER BY n.int_attribute", 
+                r -> assertEquals(Arrays.asList(1L, 2L, null), Iterators.asList(r.columnAs("int"))));
     }
 
     @Test
