@@ -32,11 +32,12 @@ public class UtilIT {
             httpServer.start();
         }, Exception.class);
         Assume.assumeNotNull(httpServer);
+        Assume.assumeTrue(httpServer.isRunning());
     }
 
     @After
     public void tearDown() {
-        if (httpServer != null) {
+        if (httpServer != null && httpServer.isRunning()) {
             httpServer.stop();
         }
     }

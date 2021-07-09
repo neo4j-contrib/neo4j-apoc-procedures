@@ -41,7 +41,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
 
     @AfterClass
     public static void tearDown() throws SQLException {
-        if (postgress != null) {
+        if (postgress != null && postgress.isRunning()) {
             postgress.stop();
             db.shutdown();
         }

@@ -321,6 +321,7 @@ RETURN m.col_1,m.col_2,m.col_3
             httpServer.start();
         }, Exception.class);
         Assume.assumeNotNull(httpServer);
+        Assume.assumeTrue(httpServer.isRunning());
         String url = String.format("http://%s:%s", httpServer.getContainerIpAddress(), httpServer.getMappedPort(8000));
         try {
             testResult(db, "CALL apoc.load.csv($url)", map("url", url),
@@ -328,8 +329,9 @@ RETURN m.col_1,m.col_2,m.col_3
         } catch (QueryExecutionException e) {
             assertTrue(e.getMessage().contains("The redirect URI has a different protocol: file:/etc/passwd"));
             throw e;
+        } finally {
+            httpServer.stop();
         }
-        httpServer.stop();
     }
 
     @Test public void testWithEmptyQuoteChar() throws Exception {

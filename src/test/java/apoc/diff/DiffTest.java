@@ -31,6 +31,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author Benjamin Clauss
@@ -57,13 +58,13 @@ public class DiffTest {
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
+        assumeTrue(neo4jContainer.isRunning());
     }
 
     @AfterClass
     public static void tearDown() {
         if (neo4jContainer != null) {
             neo4jContainer.close();
-
         }
     }
 

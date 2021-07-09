@@ -50,7 +50,7 @@ public class ElasticSearchTest {
     public static void setUp() throws Exception {
         assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
-            elastic = new ElasticsearchContainer();
+            elastic = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:6.4.1");
             elastic.start();
         }, Exception.class);
         assumeNotNull(elastic);

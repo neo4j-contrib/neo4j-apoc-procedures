@@ -112,7 +112,7 @@ public class MongoDBTest {
 
     @AfterClass
     public static void tearDown() {
-        if (mongo != null) {
+        if (mongo != null && mongo.isRunning()) {
             mongo.stop();
             db.shutdown();
         }

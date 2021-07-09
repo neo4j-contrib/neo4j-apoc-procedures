@@ -42,7 +42,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @AfterClass
     public static void tearDown() throws SQLException {
-        if (cassandra != null) {
+        if (cassandra != null && cassandra.isRunning()) {
             db.shutdown();
             cassandra.stop();
         }

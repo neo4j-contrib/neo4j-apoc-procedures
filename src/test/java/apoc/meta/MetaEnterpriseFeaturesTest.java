@@ -2,26 +2,26 @@ package apoc.schema;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
-import java.util.function.Predicate;
-import org.neo4j.values.storable.*;
-import org.neo4j.graphdb.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
-import static apoc.util.TestContainerUtil.*;
+import static apoc.util.TestContainerUtil.cleanBuild;
+import static apoc.util.TestContainerUtil.createEnterpriseDB;
+import static apoc.util.TestContainerUtil.executeGradleTasks;
+import static apoc.util.TestContainerUtil.testResult;
 import static apoc.util.TestUtil.isTravis;
-import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author as
@@ -42,12 +42,13 @@ public class MetaEnterpriseFeaturesTest {
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
+        assumeTrue(neo4jContainer.isRunning());
         session = neo4jContainer.getSession();
     }
 
     @AfterClass
     public static void afterAll() {
-        if (neo4jContainer != null) {
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
             session.close();
             neo4jContainer.close();
         }

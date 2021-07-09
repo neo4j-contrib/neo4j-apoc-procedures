@@ -10,7 +10,6 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import org.apache.commons.io.FileUtils;
 import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +17,8 @@ import java.net.URL;
 import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 public class S3TestUtil {
@@ -25,8 +26,12 @@ public class S3TestUtil {
     private LocalStackContainer localstack;
 
     public S3TestUtil() {
-        localstack = new LocalStackContainer().withServices(S3);
-        localstack.start();
+        TestUtil.ignoreException(() -> {
+            localstack = new LocalStackContainer().withServices(S3);
+            localstack.start();
+        }, Exception.class);
+        assumeNotNull(localstack);
+        assumeTrue(localstack.isRunning());
         AmazonS3 s3 = AmazonS3ClientBuilder
                 .standard()
                 .withEndpointConfiguration(getEndpointConfiguration())
