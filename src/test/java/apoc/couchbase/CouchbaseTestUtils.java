@@ -86,7 +86,6 @@ public class CouchbaseTestUtils {
     private static DefaultCouchbaseEnvironment createCouchbaseEnvironment(CouchbaseContainer container) {
         return DefaultCouchbaseEnvironment.builder()
                 .kvTimeout(10000)
-                .retryStrategy(R)
                 .bootstrapCarrierDirectPort(container.getMappedPort(KV_PORT))
                 .bootstrapCarrierSslPort(container.getMappedPort(KV_SSL_PORT))
                 .bootstrapHttpDirectPort(container.getMappedPort(MGMT_PORT))
