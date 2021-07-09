@@ -27,7 +27,8 @@ public class S3TestUtil {
 
     public S3TestUtil() {
         TestUtil.ignoreException(() -> {
-            localstack = new LocalStackContainer().withServices(S3);
+            localstack = new LocalStackContainer("0.8.10")
+                    .withServices(S3);
             localstack.start();
         }, Exception.class);
         assumeNotNull(localstack);

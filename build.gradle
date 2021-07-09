@@ -194,7 +194,7 @@ dependencies {
     testCompile group: 'org.testcontainers', name: 'mysql', version: testContainersVersion
     testCompile group: 'org.testcontainers', name: 'postgresql', version: testContainersVersion
     testCompile group: 'org.testcontainers', name: 'cassandra', version: testContainersVersion
-    testCompile group: 'org.testcontainers', name: 'localstack', version: '1.14.0'
+    testCompile group: 'org.testcontainers', name: 'localstack', version: testContainersVersion
     testCompile group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
 
     testCompile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.9.7'
