@@ -2,16 +2,34 @@ package apoc.couchbase;
 
 import apoc.util.TestUtil;
 import com.couchbase.client.core.config.ConfigurationException;
-import com.couchbase.client.java.bucket.BucketType;
-import com.couchbase.client.java.cluster.DefaultBucketSettings;
-import org.junit.*;
+import com.couchbase.client.java.CouchbaseCluster;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.testcontainers.couchbase.BucketDefinition;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
-import static apoc.couchbase.CouchbaseTestUtils.*;
+import static apoc.couchbase.CouchbaseTestUtils.BUCKET_NAME;
+import static apoc.couchbase.CouchbaseTestUtils.CONNECTION_TIMEOUT_CONFIG_KEY;
+import static apoc.couchbase.CouchbaseTestUtils.CONNECTION_TIMEOUT_CONFIG_VALUE;
+import static apoc.couchbase.CouchbaseTestUtils.KV_TIMEOUT_CONFIG_KEY;
+import static apoc.couchbase.CouchbaseTestUtils.KV_TIMEOUT_CONFIG_VALUE;
+import static apoc.couchbase.CouchbaseTestUtils.PASSWORD;
+import static apoc.couchbase.CouchbaseTestUtils.SOCKET_CONNECT_TIMEOUT_CONFIG_KEY;
+import static apoc.couchbase.CouchbaseTestUtils.SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE;
+import static apoc.couchbase.CouchbaseTestUtils.USERNAME;
+import static apoc.couchbase.CouchbaseTestUtils.createCluster;
+import static apoc.couchbase.CouchbaseTestUtils.fillDB;
+import static apoc.couchbase.CouchbaseTestUtils.getVersion;
 import static apoc.util.TestUtil.isTravis;
-import static org.junit.Assume.*;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * Created by alberto.delazzari on 23/08/2018.
@@ -40,20 +58,16 @@ public class CouchbaseManagerIT {
         assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             couchbase = new CouchbaseContainer()
-                    .withClusterAdmin(USERNAME, PASSWORD)
-                    .withNewBucket(DefaultBucketSettings.builder()
-                            .password(PASSWORD)
-                            .name(BUCKET_NAME)
-                            .quota(100)
-                            .type(BucketType.COUCHBASE)
-                            .build());
+                    .withCredentials(USERNAME, PASSWORD)
+                    .withBucket(new BucketDefinition(BUCKET_NAME));
             couchbase.start();
         }, Exception.class);
         assumeNotNull(couchbase);
         assumeTrue("couchbase must be running", couchbase.isRunning());
-        boolean isFilled = fillDB(couchbase.getCouchbaseCluster());
+        final CouchbaseCluster cluster = createCluster(couchbase);
+        boolean isFilled = fillDB(cluster);
         assumeTrue("should fill Couchbase with data", isFilled);
-        COUCHBASE_SERVER_VERSION = getVersion(couchbase);
+        COUCHBASE_SERVER_VERSION = getVersion(cluster);
 
         String baseConfigKey = "apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + COUCHBASE_CONFIG_KEY + ".";
 
@@ -73,9 +87,11 @@ public class CouchbaseManagerIT {
 
     @AfterClass
     public static void tearDown() {
-        if (couchbase != null) {
+        if (couchbase != null && couchbase.isRunning()) {
             couchbase.stop();
-            graphDB.shutdown();
+            if (graphDB != null) {
+                graphDB.shutdown();
+            }
         }
     }
 

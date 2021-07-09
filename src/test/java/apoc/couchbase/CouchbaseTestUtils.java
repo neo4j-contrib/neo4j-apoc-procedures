@@ -7,6 +7,7 @@ import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.query.N1qlParams;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.query.N1qlQueryResult;
@@ -19,7 +20,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class CouchbaseTestUtils {
 
@@ -40,11 +43,31 @@ public class CouchbaseTestUtils {
 
     public static final String BUCKET_NAME = "mybucket";
 
-    public static final String USERNAME = "admin";
+    public static final String USERNAME = "Administrator";
 
-    public static final String PASSWORD = "secret";
+    public static final String PASSWORD = "password";
 
     private static final String QUERY = "select * from %s where lastName = 'Van Gogh'";
+
+    private static final int MGMT_PORT = 8091;
+
+    private static final int MGMT_SSL_PORT = 18091;
+
+    private static final int VIEW_PORT = 8092;
+
+    private static final int VIEW_SSL_PORT = 18092;
+
+    private static final int QUERY_PORT = 8093;
+
+    private static final int QUERY_SSL_PORT = 18093;
+
+    private static final int SEARCH_PORT = 8094;
+
+    private static final int SEARCH_SSL_PORT = 18094;
+
+    private static final int KV_PORT = 11210;
+
+    private static final int KV_SSL_PORT = 11207;
 
     public static final JsonObject VINCENT_VAN_GOGH = JsonObject.create()
             .put("firstName", "Vincent")
@@ -60,8 +83,25 @@ public class CouchbaseTestUtils {
         return queryResult.info().resultCount() == 1;
     }
 
+    private static DefaultCouchbaseEnvironment createCouchbaseEnvironment(CouchbaseContainer container) {
+        return DefaultCouchbaseEnvironment.builder()
+                .kvTimeout(10000)
+                .retryStrategy(R)
+                .bootstrapCarrierDirectPort(container.getMappedPort(KV_PORT))
+                .bootstrapCarrierSslPort(container.getMappedPort(KV_SSL_PORT))
+                .bootstrapHttpDirectPort(container.getMappedPort(MGMT_PORT))
+                .bootstrapHttpSslPort(container.getMappedPort(MGMT_SSL_PORT))
+                .build();
+    }
+
+    public static CouchbaseCluster createCluster(CouchbaseContainer container) {
+        return CouchbaseCluster.create(createCouchbaseEnvironment(container), container.getConnectionString())
+                .authenticate(USERNAME, PASSWORD);
+    }
+
+
     public static String getUrl(CouchbaseContainer couchbaseContainer) {
-        return String.format("couchbase://%s:%s@%s:%s", USERNAME, PASSWORD, couchbaseContainer.getContainerIpAddress(), couchbaseContainer.getMappedPort(8091));
+        return String.format("couchbase://%s:%s@%s:%s", USERNAME, PASSWORD, couchbaseContainer.getContainerIpAddress(), couchbaseContainer.getMappedPort(MGMT_PORT));
     }
     
     @SuppressWarnings("unchecked")
@@ -120,22 +160,22 @@ public class CouchbaseTestUtils {
         assertEquals(jsonDocumentCreatedForThisTest.mutationToken, mutationToken);
     }
 
-    public static Bucket getCouchbaseBucket(CouchbaseContainer couchbase) {
-        int version = getVersion(couchbase);
+    public static Bucket getCouchbaseBucket(CouchbaseCluster couchbaseCluster) {
+        int version = getVersion(couchbaseCluster);
         if (version == 4) {
-            return couchbase.getCouchbaseCluster().openBucket(BUCKET_NAME, PASSWORD);
+            return couchbaseCluster.openBucket(BUCKET_NAME, PASSWORD);
         } else {
-            return couchbase.getCouchbaseCluster().authenticate(USERNAME, PASSWORD).openBucket(BUCKET_NAME);
+            return couchbaseCluster.authenticate(USERNAME, PASSWORD).openBucket(BUCKET_NAME);
         }
 
     }
 
-    public static int getVersion(CouchbaseContainer couchbase) {
-        return couchbase.getCouchbaseCluster().clusterManager(USERNAME, PASSWORD).info(1, TimeUnit.SECONDS).getMinVersion().major();
+    public static int getVersion(CouchbaseCluster couchbaseCluster) {
+        return couchbaseCluster.clusterManager(USERNAME, PASSWORD).info(1, TimeUnit.SECONDS).getMinVersion().major();
     }
 
-    public static String getBucketName(CouchbaseContainer couchbase) {
-        int version = getVersion(couchbase);
+    public static String getBucketName(CouchbaseCluster couchbaseCluster) {
+        int version = getVersion(couchbaseCluster);
         if (version == 4) {
             return BUCKET_NAME + ":" + PASSWORD;
         } else {

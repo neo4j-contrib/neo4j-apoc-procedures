@@ -5,14 +5,18 @@ import apoc.couchbase.document.CouchbaseQueryResult;
 import apoc.result.BooleanResult;
 import apoc.util.TestUtil;
 import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.bucket.BucketType;
-import com.couchbase.client.java.cluster.DefaultBucketSettings;
+import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.error.DocumentAlreadyExistsException;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
+import org.testcontainers.couchbase.BucketDefinition;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
 import java.util.Arrays;
@@ -20,10 +24,29 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static apoc.couchbase.CouchbaseTestUtils.*;
+import static apoc.couchbase.CouchbaseTestUtils.BUCKET_NAME;
+import static apoc.couchbase.CouchbaseTestUtils.CONNECTION_TIMEOUT_CONFIG_KEY;
+import static apoc.couchbase.CouchbaseTestUtils.CONNECTION_TIMEOUT_CONFIG_VALUE;
+import static apoc.couchbase.CouchbaseTestUtils.KV_TIMEOUT_CONFIG_KEY;
+import static apoc.couchbase.CouchbaseTestUtils.KV_TIMEOUT_CONFIG_VALUE;
+import static apoc.couchbase.CouchbaseTestUtils.PASSWORD;
+import static apoc.couchbase.CouchbaseTestUtils.SOCKET_CONNECT_TIMEOUT_CONFIG_KEY;
+import static apoc.couchbase.CouchbaseTestUtils.SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE;
+import static apoc.couchbase.CouchbaseTestUtils.USERNAME;
+import static apoc.couchbase.CouchbaseTestUtils.VINCENT_VAN_GOGH;
+import static apoc.couchbase.CouchbaseTestUtils.checkDocumentContent;
+import static apoc.couchbase.CouchbaseTestUtils.checkQueryResult;
+import static apoc.couchbase.CouchbaseTestUtils.createCluster;
+import static apoc.couchbase.CouchbaseTestUtils.fillDB;
+import static apoc.couchbase.CouchbaseTestUtils.getCouchbaseBucket;
+import static apoc.couchbase.CouchbaseTestUtils.getUrl;
 import static apoc.util.TestUtil.isTravis;
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 @Ignore // The same tests are covered from CouchbaseIT, for now we disable this in order to reduce the build time
 public class CouchbaseTest {
@@ -42,21 +65,17 @@ public class CouchbaseTest {
         assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             couchbase = new CouchbaseContainer()
-                    .withClusterAdmin(USERNAME, PASSWORD)
-                    .withNewBucket(DefaultBucketSettings.builder()
-                            .password(PASSWORD)
-                            .name(BUCKET_NAME)
-                            .quota(100)
-                            .type(BucketType.COUCHBASE)
-                            .build());
+                    .withCredentials(USERNAME, PASSWORD)
+                    .withBucket(new BucketDefinition(BUCKET_NAME));
             couchbase.start();
         }, Exception.class);
         assumeNotNull(couchbase);
         assumeTrue("couchbase must be running", couchbase.isRunning());
-        boolean isFilled = fillDB(couchbase.getCouchbaseCluster());
+        final CouchbaseCluster cluster = createCluster(couchbase);
+        boolean isFilled = fillDB(cluster);
         assumeTrue("should fill Couchbase with data", isFilled);
         HOST = getUrl(couchbase);
-        couchbaseBucket = getCouchbaseBucket(couchbase);
+        couchbaseBucket = getCouchbaseBucket(cluster);
         graphDB = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
                 .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY,
                         CONNECTION_TIMEOUT_CONFIG_VALUE)
@@ -69,9 +88,11 @@ public class CouchbaseTest {
 
     @AfterClass
     public static void tearDown() {
-        if (couchbase != null) {
+        if (couchbase != null && couchbase.isRunning()) {
             couchbase.stop();
-            graphDB.shutdown();
+            if (graphDB != null) {
+                graphDB.shutdown();
+            }
         }
     }
 
