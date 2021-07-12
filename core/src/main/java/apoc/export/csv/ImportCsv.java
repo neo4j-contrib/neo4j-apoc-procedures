@@ -40,13 +40,13 @@ public class ImportCsv {
         ProgressInfo result =
                 Util.inThread(pools, () -> {
 
-                    final CsvLoaderConfig clc = CsvLoaderConfig.from(config);
                     String file = "progress.csv";
                     String source = "file";
                     if (nodes.stream().anyMatch(node -> node.containsKey("data"))) {
                         file =  null;
                         source = "file/binary";
                     }
+                    final CsvLoaderConfig clc = CsvLoaderConfig.from(config);
                     final ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, source, "csv"));
                     final CsvEntityLoader loader = new CsvEntityLoader(clc, reporter, log);
 
