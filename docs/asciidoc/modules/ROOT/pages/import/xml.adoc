@@ -46,7 +46,7 @@ This procedure supports the following config parameters:
 | name | type | default | description
 | failOnError | boolean | true | fail if error encountered while parsing XML
 | headers | Map | {} | HTTP headers to be used when querying XML document
-| binary | `Enum[BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]`` | `null` | If not null, allow to take binary data instead of a file name/url as first parameter.
+| binary | `Enum[NONE, BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]`` | `null` | If not null, allow to take binary data instead of a file name/url as first parameter.
 Similar to xref::partial$usage/apoc.import.json.adoc[Binary file example]
 | charset | java.nio.charset.Charset | `UTF_8` | The optional charset, with `binary` config not null and with string as file
 |===

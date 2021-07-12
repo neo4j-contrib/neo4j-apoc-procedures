@@ -440,9 +440,19 @@ public class ImportCsvTest {
 
     @Test
     public void ignoreFieldTypeWithByteArrayFile() {
-        final Map<String, Object> config = map("nodeFile", fileToBinary(new File(BASE_URL_FILES, "ignore-nodes.csv"), CompressionAlgo.NONE.name()),
-                "relFile", fileToBinary(new File(BASE_URL_FILES, "ignore-relationships.csv"), CompressionAlgo.NONE.name()),
-                "config", map("delimiter", '|', "batchSize", 1, COMPRESSION, CompressionAlgo.NONE.name())
+        final Map<String, Object> config = map("nodeFile", fileToBinary(new File(BASE_URL_FILES, "ignore-nodes.csv"), CompressionAlgo.GZIP.name()),
+                "relFile", fileToBinary(new File(BASE_URL_FILES, "ignore-relationships.csv"), CompressionAlgo.GZIP.name()),
+                "config", map("delimiter", '|', "batchSize", 1, COMPRESSION, CompressionAlgo.GZIP.name())
+        );
+        final String query = "CALL apoc.import.csv([{data: $nodeFile, labels: ['Person']}], [{data: $relFile, type: 'KNOWS'}], $config)";
+        commonAssertionIgnoreFieldType(config, query, false);
+    }
+
+    @Test
+    public void ignoreFieldTypeWithBothBinaryAndFileUrl() {
+        final Map<String, Object> config = map("nodeFile", fileToBinary(new File(BASE_URL_FILES, "ignore-nodes.csv"), CompressionAlgo.DEFLATE.name()),
+                "relFile", "file:/ignore-relationships.csv",
+                "config", map("delimiter", '|', "batchSize", 1, COMPRESSION, CompressionAlgo.DEFLATE.name())
         );
         final String query = "CALL apoc.import.csv([{data: $nodeFile, labels: ['Person']}], [{data: $relFile, type: 'KNOWS'}], $config)";
         commonAssertionIgnoreFieldType(config, query, false);
@@ -457,7 +467,7 @@ public class ImportCsvTest {
                     assertEquals(2L, r.get("nodes"));
                     assertEquals(2L, r.get("relationships"));
                     assertEquals(isFile ? "progress.csv" : null, r.get("file"));
-                    assertEquals(isFile ? "file" : "binary", r.get("source"));
+                    assertEquals(isFile ? "file" : "file/binary", r.get("source"));
                     assertEquals(8L, r.get("properties"));
                 }
         );

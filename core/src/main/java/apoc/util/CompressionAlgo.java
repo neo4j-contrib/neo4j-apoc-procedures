@@ -59,7 +59,7 @@ public enum CompressionAlgo {
         }
     }
 
-    private InputStream getInputStream( ByteArrayInputStream stream) throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    private InputStream getInputStream(ByteArrayInputStream stream) throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         return decompressor == null ? stream : (InputStream) decompressor.getConstructor(InputStream.class).newInstance(stream);
     }
 
