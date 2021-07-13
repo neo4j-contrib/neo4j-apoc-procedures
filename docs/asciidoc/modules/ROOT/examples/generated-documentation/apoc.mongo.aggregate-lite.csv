@@ -1,0 +1,2 @@
+¦signature
+¦apoc.mongo.aggregate(uri :: STRING?, pipeline :: LIST? OF MAP?, config = {} :: MAP?) :: (value :: MAP?)
