@@ -3,7 +3,6 @@ package apoc.mongodb;
 import apoc.Extended;
 import apoc.result.LongResult;
 import apoc.result.MapResult;
-import apoc.util.MissingDependencyException;
 import apoc.util.UrlResolver;
 import org.bson.types.ObjectId;
 import org.neo4j.logging.Log;
@@ -12,16 +11,17 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.io.Closeable;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static apoc.mongodb.MongoDBUtils.getMongoColl;
+import static apoc.mongodb.MongoDBUtils.Coll;
+
 /*
  also see https://docs.mongodb.com/ecosystem/tools/http-interfaces/#simple-rest-api
-
 // Load courses from MongoDB
 CALL apoc.load.json('http://127.0.0.1:28017/course_catalog/course/') YIELD value
 UNWIND value.rows AS course
@@ -44,8 +44,6 @@ ON CREATE SET u.location  = univ.location,
               u.shortName = univ.shortName,
               u.url       = univ.website
 MERGE (c)-[:OFFERED_BY]->(u)
-
-
  */
 @Extended
 public class MongoDB {
@@ -54,7 +52,7 @@ public class MongoDB {
     public Log log;
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.find")
     @Description("apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find operation on mongodb collection")
     public Stream<MapResult> get(@Name("host") String hostOrKey,
                                  @Name("db") String db,
@@ -71,7 +69,7 @@ public class MongoDB {
     }
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.count")
     @Description("apoc.mongodb.count(host-or-key,db,collection,query) yield value - perform a find operation on mongodb collection")
     public Stream<LongResult> count(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query) {
         return executeMongoQuery(hostOrKey, db, collection, false,
@@ -90,7 +88,7 @@ public class MongoDB {
     }
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.find")
     @Description("apoc.mongodb.first(host-or-key,db,collection,query,[compatibleValues=false|true],[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a first operation on mongodb collection")
     public Stream<MapResult> first(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name(value = "compatibleValues", defaultValue = "true") boolean compatibleValues,
                                    @Name(value = "extractReferences", defaultValue = "false") boolean extractReferences,
@@ -105,7 +103,7 @@ public class MongoDB {
     }
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.find")
     @Description("apoc.mongodb.find(host-or-key,db,collection,query,projection,sort,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find,project,sort operation on mongodb collection")
     public Stream<MapResult> find(@Name("host") String hostOrKey,
                                   @Name("db") String db,
@@ -124,10 +122,10 @@ public class MongoDB {
     }
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.insert")
     @Description("apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection")
     public void insert(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("documents") List<Map<String, Object>> documents) {
-        try (Coll coll = getMongoColl(hostOrKey, db, collection, false, false, false)) {
+        try (Coll coll = getMongoColl(() -> getColl(hostOrKey, db, collection, false, false, false))) {
             coll.insert(documents);
         } catch (Exception e) {
             log.error("apoc.mongodb.insert - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], documents = [" + documents + "]",e);
@@ -136,7 +134,7 @@ public class MongoDB {
     }
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.delete")
     @Description("apoc.mongodb.delete(host-or-key,db,collection,query) - delete the given documents from the mongodb collection and returns the number of affected documents")
     public Stream<LongResult> delete(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query) {
         return executeMongoQuery(hostOrKey, db, collection, false,
@@ -145,7 +143,7 @@ public class MongoDB {
     }
 
     @Deprecated
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.mongo.update")
     @Description("apoc.mongodb.update(host-or-key,db,collection,query,update) - updates the given documents from the mongodb collection and returns the number of affected documents")
     public Stream<LongResult> update(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name("update") Map<String, Object> update) {
         return executeMongoQuery(hostOrKey, db, collection, false,
@@ -164,75 +162,18 @@ public class MongoDB {
                     Map<String, Object> result = coll.first(Map.of(conf.getIdFieldName(), new ObjectId(objectIdValue)));
                     return result == null || result.isEmpty() ? Stream.empty() : Stream.of(new MapResult(result));
                 },
-                e -> log.error("apoc.mongo.get.byObjectId - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], objectIdValue = [" + objectIdValue + "]",e));
+                e -> log.error("apoc.mongodb.get.byObjectId - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], objectIdValue = [" + objectIdValue + "]",e));
     }
 
     private String getMongoDBUrl(String hostOrKey) {
         return new UrlResolver("mongodb", "localhost", 27017).getUrl("mongodb", hostOrKey);
     }
 
-    private Coll getMongoColl(String hostOrKey, String db, String collection, boolean compatibleValues,
-                              boolean extractReferences, boolean objectIdAsMap) {
-        Coll coll = null;
-        try {
-            coll = getColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap);
-        } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException("Cannot find the jar into the plugins folder. \n" +
-                    "Please put these jar in the plugins folder :\n\n" +
-                    "bson-x.y.z.jar\n" +
-                    "\n" +
-                    "mongo-java-driver-x.y.z.jar\n" +
-                    "\n" +
-                    "mongodb-driver-x.y.z.jar\n" +
-                    "\n" +
-                    "mongodb-driver-core-x.y.z.jar\n" +
-                    "\n" +
-                    "jackson-annotations-x.y.z.jar\n\njackson-core-x.y.z.jar\n\njackson-databind-x.y.z.jar\n\nSee the documentation: https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_interacting_with_mongodb");
-        }
-        return coll;
-    }
-
-    interface Coll extends Closeable {
-        Map<String, Object> first(Map<String, Object> params);
-
-        Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit);
-
-        long count(Map<String, Object> query);
-
-        Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit);
-
-        void insert(List<Map<String, Object>> docs);
-
-        long update(Map<String, Object> query, Map<String, Object> update);
-
-        long delete(Map<String, Object> query);
-
-        default void safeClose() {
-            try {
-                this.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        class Factory {
-            public static Coll create(String url, String db, String coll, boolean compatibleValues,
-                                      boolean extractReferences,
-                                      boolean objectIdAsMap) {
-                try {
-                    return new MongoDBColl(url, db, coll, compatibleValues, extractReferences, objectIdAsMap);
-                } catch (Exception e) {
-                    throw new RuntimeException("Could not create MongoDBClientWrapper instance", e);
-                }
-            }
-        }
-    }
-
-    private <T> Stream<T> executeMongoQuery(String hostOrKey, String db, String collection, boolean compatibleValues,
+    private  <T> Stream<T> executeMongoQuery(String hostOrKey, String db, String collection, boolean compatibleValues,
                                             boolean extractReferences, boolean objectIdAsMap, Function<Coll, Stream<T>> execute, Consumer<Exception> onError) {
         Coll coll = null;
         try {
-            coll = getMongoColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap);
+            coll = getMongoColl(() -> getColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap));
             return execute.apply(coll).onClose(coll::safeClose);
         } catch (Exception e) {
             if (coll != null) {

@@ -1,159 +1,67 @@
 package apoc.mongodb;
 
 import apoc.graph.Graphs;
-import apoc.util.JsonUtil;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.UrlResolver;
 import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang3.time.DateUtils;
-import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.junit.*;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.*;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
-import org.testcontainers.containers.Container;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
-import org.testcontainers.utility.Base58;
+import org.neo4j.graphdb.QueryExecutionException;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.isRunningInCI;
-import static java.net.HttpURLConnection.HTTP_OK;
-import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
  * @since 30.06.16
  */
-public class MongoDBTest {
-
-    private static int MONGO_DEFAULT_PORT = 27017;
-
-    public static GenericContainer mongo;
-
-    @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule();
-
-    private static MongoCollection<Document> testCollection;
-    private static MongoCollection<Document> productCollection;
-    private static MongoCollection<Document> personCollection;
-
-    private static MongoCollection<Document> collection;
-
-    private static final Date currentTime = new Date();
-
-    private static final long longValue = 10_000L;
+public class MongoDBTest extends MongoTestBase {
+    private static Map<String, Object> params;
 
     private static String HOST = null;
 
-    private static Map<String, Object> params;
-
-    private long numConnections = -1;
-
-    private static final long NUM_OF_RECORDS = 10_000L;
-
-    private static List<ObjectId> productReferences;
-    private static ObjectId nameAsObjectId = new ObjectId("507f191e810c19729de860ea");
-    private static ObjectId idAsObjectId = new ObjectId();
-
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isRunningInCI());
-        TestUtil.ignoreException(() -> {
-            mongo = new GenericContainer("mongo:3")
-                    .withNetworkAliases("mongo-" + Base58.randomString(6))
-                    .withExposedPorts(MONGO_DEFAULT_PORT)
-                    .waitingFor(new HttpWaitStrategy()
-                            .forPort(MONGO_DEFAULT_PORT)
-                            .forStatusCodeMatching(response -> response == HTTP_OK || response == HTTP_UNAUTHORIZED)
-                            .withStartupTimeout(Duration.ofMinutes(2)));
-            mongo.start();
-
-        }, Exception.class);
-        assumeNotNull(mongo);
-        assumeTrue("Mongo DB must be running", mongo.isRunning());
+        createContainer(false);
         MongoClient mongoClient = new MongoClient(mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
         HOST = String.format("mongodb://%s:%s", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
         params = map("host", HOST, "db", "test", "collection", "test");
-        MongoDatabase database = mongoClient.getDatabase("test");
-        testCollection = database.getCollection("test");
-        productCollection = database.getCollection("product");
-        personCollection = database.getCollection("person");
-        testCollection.deleteMany(new Document());
-        productCollection.deleteMany(new Document());
-        LongStream.range(0, NUM_OF_RECORDS)
-                .forEach(i -> testCollection.insertOne(new Document(map("name", "testDocument",
-                                    "date", currentTime, "longValue", longValue, "nullField", null))));
 
-        productCollection.insertOne(new Document(map("name", "My Awesome Product",
-                "price", 800,
-                "tags", Arrays.asList("Tech", "Mobile", "Phone", "iOS"))));
-        productCollection.insertOne(new Document(map("name", "My Awesome Product 2",
-                "price", 1200,
-                "tags", Arrays.asList("Tech", "Mobile", "Phone", "Android"))));
-        productReferences = StreamSupport.stream(productCollection.find().spliterator(), false)
-                .map(doc -> (ObjectId) doc.get("_id"))
-                .collect(Collectors.toList());
-        personCollection.insertOne(new Document(map("name", "Andrea Santurbano",
-                "bought", productReferences,
-                "born", DateUtils.parseDate("11-10-1935", "dd-MM-yyyy"),
-                "coordinates", Arrays.asList(12.345, 67.890))));
-        personCollection.insertOne(new Document(map("name", nameAsObjectId,
-                "age", 40,
-                "bought", productReferences)));
-        personCollection.insertOne(new Document(map("_id", idAsObjectId,
-                "name", "Sherlock",
-                "age", 25,
-                "bought", productReferences)));
+        fillDb(mongoClient);
 
         TestUtil.registerProcedure(db, MongoDB.class, Graphs.class);
         mongoClient.close();
     }
 
-    @AfterClass
-    public static void tearDown() {
-        if (mongo != null) {
-            mongo.stop();
-        }
-    }
-
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
-    @Before
-    public void before() {
-        numConnections = (long) getNumConnections().get("current");
-    }
-
-    @After
-    public void after() {
-        // the connections active before must be equal to the connections active after
-        long numConnectionsAfter = (long) getNumConnections().get("current");
-        assertEquals(numConnections, numConnectionsAfter);
-    }
 
     @Test
     public void shouldExtractObjectIdsAsMaps() {
         boolean hasException = false;
         String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
                 .getUrl("mongodb", mongo.getContainerIpAddress());
-        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "person", false, true, false)) {
+        try (MongoDBUtils.Coll coll = MongoDBUtils.Coll.Factory.create(url, "test", "person", false, true, false)) {
             Map<String, Object> document = coll.first(Collections.emptyMap());
             assertTrue(document.get("_id") instanceof String);
             assertEquals("Andrea Santurbano", document.get("name"));
@@ -182,7 +90,7 @@ public class MongoDBTest {
         boolean hasException = false;
         String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
                 .getUrl("mongodb", mongo.getContainerIpAddress());
-        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "person", false, false, false)) {
+        try (MongoDBUtils.Coll coll = MongoDBUtils.Coll.Factory.create(url, "test", "person", false, false, false)) {
             Map<String, Object> document = coll.first(MapUtil.map("name", "Andrea Santurbano"));
             assertTrue(document.get("_id") instanceof String);
             Collection<String> bought = (Collection<String>) document.get("bought");
@@ -198,7 +106,7 @@ public class MongoDBTest {
         boolean hasException = false;
         String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
                 .getUrl("mongodb", mongo.getContainerIpAddress());
-        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "test", true, false, true)) {
+        try (MongoDBUtils.Coll coll = MongoDBUtils.Coll.Factory.create(url, "test", "test", true, false, true)) {
             Map<String, Object> document = coll.first(MapUtil.map("name", "testDocument"));
             assertNotNull(((Map<String, Object>) document.get("_id")).get("timestamp"));
             assertEquals(LocalDateTime.from(currentTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()), document.get("date"));
@@ -267,8 +175,6 @@ public class MongoDBTest {
 
     @Test
     public void testGetByObjectIdWithConfigs() throws Exception {
-        List<String> refsIds = productReferences.stream().map(ObjectId::toString).collect(Collectors.toList());
-
         TestUtil.testCall(db, "CALL apoc.mongodb.get.byObjectId($host, $db, $collection, $objectId, $config)",
                 map("host", HOST, "db", "test", "collection", "person", "objectId", idAsObjectId.toString(),
                         "config", map("extractReferences", true, "objectIdAsMap", false, "compatibleValues", false)), r -> {
@@ -276,41 +182,14 @@ public class MongoDBTest {
                     assertEquals(idAsObjectId.toString(), doc.get("_id"));
                     assertEquals(25, doc.get("age"));
                     assertEquals("Sherlock", doc.get("name"));
-                    List<Object> boughtList = (List<Object>) doc.get("bought");
-                    Map<String, Object> firstBought = (Map<String, Object>) boughtList.get(0);
-                    Map<String, Object> secondBought = (Map<String, Object>) boughtList.get(1);
-                    assertEquals(refsIds.get(0), firstBought.get("_id"));
-                    assertEquals(refsIds.get(1), secondBought.get("_id"));
-                    assertEquals(800, firstBought.get("price"));
-                    assertEquals(1200, secondBought.get("price"));
-                    assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "iOS"), firstBought.get("tags"));
-                    assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "Android"), secondBought.get("tags"));
-        });
-
+                    assertBoughtReferences(doc, false, false);
+                });
     }
 
     @Test
     public void testFind() throws Exception {
         TestUtil.testResult(db, "CALL apoc.mongodb.find($host,$db,$collection,{name:'testDocument'},null,null)",
                 params, res -> assertResult(res));
-    }
-
-    private void assertResult(Result res) {
-        assertResult(res, currentTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
-    }
-
-    private void assertResult(Result res, Object date) {
-        int count = 0;
-        while (res.hasNext()) {
-            ++count;
-            Map<String, Object> r = res.next();
-            Map doc = (Map) r.get("value");
-            assertNotNull(doc.get("_id"));
-            assertEquals("testDocument", doc.get("name"));
-            assertEquals(date, doc.get("date"));
-            assertEquals(longValue, doc.get("longValue"));
-        }
-        assertEquals(NUM_OF_RECORDS, count);
     }
 
     @Test
@@ -400,54 +279,7 @@ public class MongoDBTest {
                         "compatibleValues", true,
                         "extractReferences", true,
                         "fromDocConfig", map("write", true, "skipValidation", true, "mappings", map("$", "Person:Customer{!name,bought,coordinates,born}", "$.bought", "Product{!name,price,tags}"))),
-                r -> {
-                    Map<String, Object> map = r.next();
-                    Map graph = (Map) map.get("g1");
-                    assertEquals("Graph", graph.get("name"));
-                    Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
-
-                    Map<String, List<Node>> nodeMap = nodes.stream()
-                            .collect(Collectors.groupingBy(e -> e.getLabels().iterator().next().name()));
-                    List<Node> persons = nodeMap.get("Person");
-                    assertEquals(1, persons.size());
-                    List<Node> products = nodeMap.get("Product");
-                    assertEquals(2, products.size());
-
-                    Node person = persons.get(0);
-                    Map<String, Object> personMap = map("name", "Andrea Santurbano",
-                            "born", LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()));
-                    assertEquals(personMap, person.getProperties("name", "born"));
-                    assertTrue(Arrays.equals(new double[] {12.345, 67.890}, (double[]) person.getProperty("coordinates")));
-                    assertEquals(Arrays.asList(Label.label("Person"), Label.label("Customer")), person.getLabels());
-
-                    Node product1 = products.get(0);
-                    Map<String, Object> product1Map = map("name", "My Awesome Product",
-                            "price", 800L);
-                    assertEquals(product1Map, product1.getProperties("name", "price"));
-                    assertArrayEquals(new String[]{"Tech", "Mobile", "Phone", "iOS"}, (String[]) product1.getProperty("tags"));
-                    assertEquals(Arrays.asList(Label.label("Product")), product1.getLabels());
-
-                    Node product2 = products.get(1);
-                    Map<String, Object> product2Map = map("name", "My Awesome Product 2",
-                            "price", 1200L);
-                    assertEquals(product2Map, product2.getProperties("name", "price"));
-                    assertArrayEquals(new String[]{"Tech", "Mobile", "Phone", "Android"}, (String[]) product2.getProperty("tags"));
-                    assertEquals(Arrays.asList(Label.label("Product")), product2.getLabels());
-
-
-                    Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
-                    assertEquals(2, rels.size());
-                    Iterator<Relationship> relIt = rels.iterator();
-                    Relationship rel1 = relIt.next();
-                    assertEquals(RelationshipType.withName("BOUGHT"), rel1.getType());
-                    assertEquals(person, rel1.getStartNode());
-                    assertEquals(product1, rel1.getEndNode());
-                    Relationship rel2 = relIt.next();
-                    assertEquals(RelationshipType.withName("BOUGHT"), rel2.getType());
-                    assertEquals(person, rel2.getStartNode());
-                    assertEquals(product2, rel2.getEndNode());
-
-                });
+                r -> assertionsInsertDataWithFromDocument(date, r));
     }
 
     @Ignore("this does not throw an exception")  //TODO: check why test is failing
@@ -478,29 +310,4 @@ public class MongoDBTest {
                         "extractReferences", true),
                 r -> assertTrue(r.hasNext()));
     }
-
-    /**
-     * Get the number of active connections that can be used to check if them are managed correctly
-     * by invoking:
-     *  $ mongo test --eval db.serverStatus().connections
-     * into the container
-     * @return A Map<String, Long> with three fields three fields {current, available, totalCreated}
-     * @throws Exception
-     */
-    public static Map<String, Object> getNumConnections() {
-        try {
-            Container.ExecResult execResult = mongo.execInContainer("mongo", "test", "--eval", "db.serverStatus().connections");
-            assertTrue("stderr is empty", execResult.getStderr() == null || execResult.getStderr().isEmpty());
-            assertTrue("stdout is not empty", execResult.getStdout() != null && !execResult.getStdout().isEmpty());
-
-            List<String> lists = Stream.of(execResult.getStdout().split("\n"))
-                    .filter(s -> s != null || !s.isEmpty())
-                    .collect(Collectors.toList());
-            String jsonStr = lists.get(lists.size() - 1);
-            return JsonUtil.OBJECT_MAPPER.readValue(jsonStr, Map.class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 }

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.mongo/apoc.mongo.delete.adoc[apoc.mongo.delete icon:book[]] +
+
+`apoc.mongo.delete(uri, query, $config)` - delete the given documents from the mongodb collection and returns the number of affected documents
+¦label:procedure[]
+¦label:apoc-core[]
