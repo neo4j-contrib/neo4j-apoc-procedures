@@ -316,6 +316,7 @@ a|
 ----
 |===
 
+
 On the other hand, we can also include everything and specify certain nodes/relationships to exclude.
 For example:
 
