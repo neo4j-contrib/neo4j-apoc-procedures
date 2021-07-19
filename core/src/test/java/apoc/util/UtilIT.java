@@ -2,10 +2,15 @@ package apoc.util;
 
 import apoc.ApocConfig;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.NotNull;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TestName;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -13,6 +18,7 @@ import java.nio.charset.Charset;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+@Ignore
 public class UtilIT {
 
     @Rule
@@ -31,9 +37,12 @@ public class UtilIT {
                     .withCommand("/bin/sh", "-c", String.format("while true; do { echo -e 'HTTP/1.1 301 Moved Permanently\\r\\nLocation: %s'; echo ; } | nc -l -p 8000; done",
                             testName.getMethodName().endsWith(WITH_URL_LOCATION) ? "http://www.google.com" : "file:/etc/passwd"))
                     .withExposedPorts(8000);
+            httpServer.waitingFor(Wait.forHttp("/")
+                    .forStatusCode(301));
             httpServer.start();
         }, Exception.class);
         Assume.assumeNotNull(httpServer);
+        Assume.assumeTrue(httpServer.isRunning());
     }
 
     @After
