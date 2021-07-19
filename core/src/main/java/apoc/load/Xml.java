@@ -75,6 +75,9 @@ import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 public class Xml {
 
     private static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();
+    static {
+        FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
+    }
 
     @Context
     public ApocConfig apocConfig;
@@ -201,7 +204,6 @@ public class Xml {
         if (config.isFilterLeadingWhitespace()) {
             inputStream = new SkipWhitespaceInputStream(inputStream);
         }
-        FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
         return FACTORY.createXMLStreamReader(inputStream);
     }
 
