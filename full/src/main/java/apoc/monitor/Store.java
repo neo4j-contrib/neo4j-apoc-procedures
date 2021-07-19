@@ -1,5 +1,6 @@
 package apoc.monitor;
 
+import apoc.Extended;
 import apoc.result.StoreInfoResult;
 import org.apache.commons.io.FileUtils;
 
@@ -14,6 +15,10 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Procedure;
 
+import java.io.File;
+import java.util.stream.Stream;
+
+@Extended
 public class Store {
 
     @Context

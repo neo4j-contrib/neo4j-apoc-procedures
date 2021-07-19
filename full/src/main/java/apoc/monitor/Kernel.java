@@ -1,5 +1,6 @@
 package apoc.monitor;
 
+import apoc.Extended;
 import apoc.result.KernelInfoResult;
 
 import org.neo4j.common.DependencyResolver;
@@ -17,7 +18,7 @@ import java.lang.management.RuntimeMXBean;
 import java.util.Date;
 import java.util.stream.Stream;
 
-
+@Extended
 public class Kernel {
 
     private static final String JMX_OBJECT_NAME = "Kernel";
