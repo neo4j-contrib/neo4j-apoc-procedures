@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.export.json.JsonImporter.CREATE_CONSTRAINT_TEMPLATE;
 import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR_MSG;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testResult;
@@ -259,15 +258,12 @@ public class ImportJsonTest {
                     (r) -> fail("Should fail due to missing constraint")
             );
         } catch (Exception e) {
-            List<String> constraints = List.of(format(CREATE_CONSTRAINT_TEMPLATE, "User", customId),
-                    format(CREATE_CONSTRAINT_TEMPLATE, "Language", customId),
-                    format(CREATE_CONSTRAINT_TEMPLATE, "`$Stream`", customId));
-            String expectedMsg = MISSING_CONSTRAINT_ERROR_MSG + String.join("\n", constraints);
+            String expectedMsg = format(MISSING_CONSTRAINT_ERROR_MSG, "Language", customId);
             assertRootMessage(expectedMsg, e);
         }
 
-        // check that no rels created after constraint exception
-        assertEntities(NODES_BIG_JSON, 0L);
+        // check that only first 2 node created after constraint exception
+        assertEntities(2L, 0L);
     }
 
     private void assertRootMessage(String expectedMsg, Exception e) {
@@ -278,7 +274,7 @@ public class ImportJsonTest {
 
     private void createConstraints(List<String> labels, String customId) {
         labels.forEach(
-                label -> db.executeTransactionally(format(CREATE_CONSTRAINT_TEMPLATE, Util.quote(label), customId)));
+                label -> db.executeTransactionally(format("CREATE CONSTRAINT ON (n:%s) assert n.%s IS UNIQUE;", Util.quote(label), customId)));
     }
 
     private void createConstraints(List<String> labels) {
