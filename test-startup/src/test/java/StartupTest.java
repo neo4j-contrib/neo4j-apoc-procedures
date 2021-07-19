@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /*
  This test is just to verify if the APOC procedures and functions are correctly deployed into a Neo4j instance without any startup issue.
@@ -19,7 +20,13 @@ import static org.junit.Assert.assertTrue;
  */
 public class StartupTest {
 
-    private static final File APOC_FULL = Paths.get("../full").toFile();
+    private static final File APOC_FULL;
+
+    static {
+        final String file = StartupTest.class.getClassLoader().getResource(".").getFile();
+        final int endIndex = file.indexOf("test-startup");
+        APOC_FULL = Paths.get(file.substring(0, endIndex).concat("/full")).toFile();
+    }
 
     @Test
     public void check_basic_deployment() {
@@ -37,6 +44,9 @@ public class StartupTest {
             assertTrue(procedureCount > 0);
             assertTrue(functionCount > 0);
             assertTrue(coreCount > 0);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            fail("Should not have thrown exception when trying to start Neo4j: " + ex);
         }
     }
 
@@ -57,6 +67,9 @@ public class StartupTest {
                 assertEquals(sorted(ApocSignatures.PROCEDURES), procedureNames);
                 assertEquals(sorted(ApocSignatures.FUNCTIONS), functionNames);
             }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            fail("Should not have thrown exception when trying to start Neo4j: " + ex);
         }
     }
 
