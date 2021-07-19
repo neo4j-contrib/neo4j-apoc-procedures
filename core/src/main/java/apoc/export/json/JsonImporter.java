@@ -2,11 +2,12 @@ package apoc.export.json;
 
 import apoc.export.util.Reporter;
 import apoc.util.Util;
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.schema.ConstraintDefinition;
+import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.values.storable.CoordinateReferenceSystem;
 import org.neo4j.values.storable.DurationValue;
 import org.neo4j.values.storable.PointValue;
@@ -23,26 +24,24 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class JsonImporter implements Closeable {
-    private static final String CREATE_NODE = "UNWIND $rows AS row " +
-            "CREATE (n%s {%s: row.id}) SET n += row.properties";
-    private static final String CREATE_RELS = "UNWIND $rows AS row " +
-            "MATCH (s%s {%s: row.start.id}) " +
-            "MATCH (e%s {%2$s: row.end.id}) " +
+    private static final String UNWIND = "UNWIND $rows AS row ";
+    private static final String CREATE_NODE = UNWIND +
+            "CREATE (n%s {%s: row.id}) SET n += row.properties %s";
+    private static final String CREATE_RELS = UNWIND +
+            "MATCH (s%s {%s: row.start.id}) %s" +
+            "MATCH (e%s {%2$s: row.end.id}) %s " +
             "CREATE (s)-[r:%s]->(e) SET r += row.properties";
-    public static final String MISSING_CONSTRAINT_ERROR_MSG = "Missing constraint required for import. Execute these queries: \n\n";
-    public static final String CREATE_CONSTRAINT_TEMPLATE = "CREATE CONSTRAINT ON (n:%s) assert n.%s IS UNIQUE;";
+    public static final String MISSING_CONSTRAINT_ERROR_MSG = "Missing constraint required for import. Execute this query: \n" +
+            "CREATE CONSTRAINT ON (n:%s) assert n.%s IS UNIQUE;";
 
-    private final Set<String> constraints = new HashSet<>();
     private final List<Map<String, Object>> paramList;
     private final int unwindBatchSize;
     private final int txBatchSize;
@@ -120,35 +119,18 @@ public class JsonImporter implements Closeable {
     }
 
     private void manageRelationship(Map<String, Object> param) {
-        
-        if (firstRel) {
-            try (Transaction transaction = db.beginTx()) {
-                Set<String> collect = StreamSupport.stream(transaction.schema().getConstraints().spliterator(), false)
-                        .map(ConstraintDefinition::getLabel)
-                        .map(Label::name).map(Util::quote)
-                        .collect(Collectors.toSet());
-                constraints.removeAll(collect);
-            }
-            if (constraints.isEmpty()) {
-                // we check only 1st time
-                firstRel = false;
-            } else {
-                String importIdName = importJsonConfig.getImportIdName();
-                String queries = constraints.stream()
-                        .map(label -> String.format(CREATE_CONSTRAINT_TEMPLATE, label, importIdName))
-                        .collect(Collectors.joining("\n"));
-                throw new RuntimeException(MISSING_CONSTRAINT_ERROR_MSG + queries);
-            }
-        }
-        
+        final List<String> startLabels = getLabels((Map<String, Object>) param.get("start"));
+        final List<String> endLabels = getLabels((Map<String, Object>) param.get("end"));
         Map<String, Object> relType = Util.map(
-                "start", getLabels((Map<String, Object>) param.get("start")),
-                "end", getLabels((Map<String, Object>) param.get("end")),
+                "start", startLabels,
+                "end", endLabels,
                 "label", getType(param));
         if (lastRelTypes == null) {
             lastRelTypes = relType;
         }
         if (!relType.equals(lastRelTypes)) {
+            checkConstraints(startLabels);
+            checkConstraints(endLabels);
             flush();
             lastRelTypes = relType;
         }
@@ -156,13 +138,29 @@ public class JsonImporter implements Closeable {
 
     private void manageNode(Map<String, Object> param) {
         List<String> labels = getLabels(param);
-        constraints.addAll(labels);
         if (lastLabels == null) {
             lastLabels = labels;
         }
         if (!labels.equals(lastLabels)) {
+            checkConstraints(labels);
             flush();
             lastLabels = labels;
+        }
+    }
+
+    private void checkConstraints(List<String> labels) {
+        if (labels.isEmpty()) {
+            return;
+        }
+        try (final Transaction tx = db.beginTx()) {
+            final Schema schema = tx.schema();
+            final String importIdName = importJsonConfig.getImportIdName();
+            final String label = labels.get(0);
+            final boolean hasConstraints = StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false)
+                    .anyMatch(constraint -> Iterables.contains(constraint.getPropertyKeys(), importIdName));
+            if (!hasConstraints) {
+                throw new RuntimeException(String.format(MISSING_CONSTRAINT_ERROR_MSG, label, importIdName));
+            }
         }
     }
 
@@ -308,9 +306,7 @@ public class JsonImporter implements Closeable {
     }
 
     private List<String> getLabels(Map<String, Object> param) {
-        return ((List<String>) param.getOrDefault("labels", Collections.emptyList())).stream()
-                .map(Util::quote)
-                .collect(Collectors.toList());
+        return (List<String>) param.getOrDefault("labels", Collections.emptyList());
     }
 
     private String getLabelString(List<String> labels) {
@@ -322,16 +318,20 @@ public class JsonImporter implements Closeable {
     private void write(Transaction tx, List<Map<String, Object>> resultList) {
         if (resultList.isEmpty()) return;
         final String type = (String) resultList.get(0).get("type");
-        String query = null;
+        String query;
         switch (type) {
             case "node":
-                query = String.format(CREATE_NODE, getLabelString(lastLabels), importJsonConfig.getImportIdName());
+                query = String.format(CREATE_NODE, quoteFirst(lastLabels), importJsonConfig.getImportIdName(), getQueryLabels(lastLabels.size(), "n"));
                 break;
             case "relationship":
                 String rel = (String) lastRelTypes.get("label");
-                query = String.format(CREATE_RELS, getLabelString((List<String>) lastRelTypes.get("start")),
+                final List<String> labelStart = (List<String>) lastRelTypes.get("start");
+                final List<String> labelEnd = (List<String>) lastRelTypes.get("end");
+                query = String.format(CREATE_RELS, quoteFirst(labelStart),
                         importJsonConfig.getImportIdName(),
-                        getLabelString((List<String>) lastRelTypes.get("end")),
+                        getQueryLabels(labelStart.size(), "s"),
+                        quoteFirst(labelEnd),
+                        getQueryLabels(labelEnd.size(), "e"),
                         rel);
                 break;
             default:
@@ -340,6 +340,23 @@ public class JsonImporter implements Closeable {
         if (StringUtils.isNotBlank(query)) {
             db.executeTransactionally(query, Collections.singletonMap("rows", resultList));
         }
+    }
+    
+    private String quoteFirst(List<String> labels) {
+        if (labels.isEmpty()) {
+            return StringUtils.EMPTY;
+        }
+        return ":" + Util.quote(labels.get(0));
+    }
+    
+
+    private String getQueryLabels(int lastLabelsSize, String nodeName) {
+        if (lastLabelsSize == 0) {
+            return StringUtils.EMPTY; 
+        }
+        List<String> labels = lastLabelsSize > 1 ? lastLabels.subList(1, lastLabelsSize - 1) : Collections.emptyList();
+        String setLabels = labels.isEmpty() ? StringUtils.EMPTY : (", " + nodeName + getLabelString(labels));
+        return setLabels;
     }
 
     private Collection<List<Map<String, Object>>> chunkData() {
