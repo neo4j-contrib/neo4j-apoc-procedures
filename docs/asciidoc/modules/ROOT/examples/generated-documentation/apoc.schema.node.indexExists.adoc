@@ -1,4 +1,4 @@
-¦xref::overview/apoc.schema.node/apoc.schema.node.indexExists.adoc[apoc.schema.node.indexExists icon:book[]] +
+¦xref::overview/apoc.schema/apoc.schema.node.indexExists.adoc[apoc.schema.node.indexExists icon:book[]] +
 
 `RETURN apoc.schema.node.indexExists(labelName, propertyNames)`
 ¦label:function[]
