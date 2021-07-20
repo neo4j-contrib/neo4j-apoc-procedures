@@ -1129,4 +1129,5 @@ public class MetaTest {
             assertEquals(expectedRelTypes, row.get("relTypes"));
         });
     }
+    
 }
