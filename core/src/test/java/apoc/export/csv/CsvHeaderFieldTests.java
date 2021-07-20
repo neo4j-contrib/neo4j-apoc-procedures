@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class CsvHeaderFieldTests {
@@ -15,11 +16,13 @@ public class CsvHeaderFieldTests {
     public static final String TEST_TYPE = "Type";
     public static final String TEST_IDSPACE = "IDSPACE";
     public static final String TEST_ARRAY = "[]";
+    private static final String TEST_OPT_PAR = "{crs:WGS-84}";
 
     public static final String TEST_FIELD_1 = "name:Type(IDSPACE)[]";
     public static final String TEST_FIELD_2 = "name:Type(IDSPACE)";
     public static final String TEST_FIELD_3 = "name:Type";
     public static final String TEST_FIELD_4 = "name";
+    public static final String TEST_FIELD_5 = "name:Type{crs:WGS-84}(IDSPACE)[]";
 
     @Test
     public void testCsvField1() {
@@ -62,7 +65,21 @@ public class CsvHeaderFieldTests {
         Matcher matcher = CsvLoaderConstants.FIELD_PATTERN.matcher(TEST_FIELD_1);
 
         assertTrue(matcher.find());
-        assertEquals(6, matcher.groupCount());
+        assertEquals(7, matcher.groupCount());
+        assertNull(matcher.group("optPar"));
+        assertEquals(TEST_NAME,    matcher.group("name"));
+        assertEquals(TEST_TYPE,    matcher.group("type"));
+        assertEquals(TEST_IDSPACE, matcher.group("idspace"));
+        assertEquals(TEST_ARRAY,   matcher.group("array"));
+    }
+
+    @Test
+    public void testOptionalParamGroup() {
+        Matcher matcher = CsvLoaderConstants.FIELD_PATTERN.matcher(TEST_FIELD_5);
+
+        assertTrue(matcher.find());
+        assertEquals(7, matcher.groupCount());
+        assertEquals(TEST_OPT_PAR, matcher.group("optPar"));
         assertEquals(TEST_NAME,    matcher.group("name"));
         assertEquals(TEST_TYPE,    matcher.group("type"));
         assertEquals(TEST_IDSPACE, matcher.group("idspace"));

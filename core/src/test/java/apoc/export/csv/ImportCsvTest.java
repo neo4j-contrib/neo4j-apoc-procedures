@@ -98,11 +98,11 @@ public class ImportCsvTest {
                             "2,\"{y:51.507222, x:-0.1275}\"\n" +
                             "3,\"{latitude:37.554167, longitude:-122.313056, height: 100, crs:'WGS-84-3D'}\"\n"),
                     new AbstractMap.SimpleEntry<>("nodesMultiTypes",
-                            ":ID|date1:datetime{timezone:Europe/Stockholm}|date2:datetime|foo:string|joined:date|active:boolean|points:int\n" +
+                            ":ID(MultiType-ID)|date1:datetime{timezone:Europe/Stockholm}|date2:datetime|foo:string|joined:date|active:boolean|points:int\n" +
                             "1|2018-05-10T10:30|2018-05-10T12:30|Joe Soap|2017-05-05|true|10\n" +
                             "2|2018-05-10T10:30[Europe/Berlin]|2018-05-10T12:30[Europe/Berlin]|Jane Doe|2017-08-21|true|15\n"),
                     new AbstractMap.SimpleEntry<>("relMultiTypes",
-                            ":START_ID|:END_ID|prop1:IGNORE|prop2:time{timezone:+02:00}[]|foo:int|time:duration[]|baz:localdatetime[]|bar:localtime[]\n" +
+                            ":START_ID(MultiType-ID)|:END_ID(MultiType-ID)|prop1:IGNORE|prop2:time{timezone:+02:00}[]|foo:int|time:duration[]|baz:localdatetime[]|bar:localtime[]\n" +
                             "1|2|a|15:30|1|P14DT16H12M|2020-01-01T00:00:00|11:00:00\n" +
                             "2|1|b|15:30+01:00|2|P5M1.5D|2021|12:00:00\n"),
                     new AbstractMap.SimpleEntry<>("id-with-duplicates", "id:ID|name:STRING\n" +
