@@ -153,7 +153,6 @@ public class ImportCsvTest {
         }
 
         TestUtil.registerProcedure(db, ImportCsv.class);
-        db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
 
     @Test
@@ -193,7 +192,7 @@ public class ImportCsvTest {
         TestUtil.testCall(db, "MATCH p=(start:Person)-[rel {foo: 1}]->(end:Person)-[relSecond {foo:2}]->(start) RETURN start, end, rel, relSecond", r-> {
             final Map<String, Object> expectedStart = Map.of("joined", LocalDate.of(2017, 5, 5), 
                     "foo", "Joe Soap", "active", true, 
-                    "date2", ZonedDateTime.of(2018, 5, 10, 12, 30, 0, 0, ZoneId.of("Europe/Rome")),
+                    "date2", ZonedDateTime.of(2018, 5, 10, 12, 30, 0, 0, ZoneId.systemDefault()),
                     "date1", ZonedDateTime.of(2018, 5, 10, 10, 30, 0, 0, ZoneId.of("Europe/Stockholm")), 
                     "points", 10L, "__csv_id", "1");
             assertEquals(expectedStart, ((NodeEntity) r.get("start")).getAllProperties());
