@@ -22,6 +22,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.PathExpander;
 import org.neo4j.graphdb.PathExpanderBuilder;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -78,49 +79,47 @@ public class Nodes {
     public Pools pools;
     
     @Procedure
-    @Description("CALL apoc.nodes.cycles([nodes], 'type', $config) - Detect all path cycles from node list with the relationship type specified by 'type' (or with all types if the parameter is empty/null)")
-    public Stream<PathResult> cycles(@Name("nodes") List<Node> nodes, @Name(value = "type", defaultValue = "") String type, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+    @Description("CALL apoc.nodes.cycles([nodes], 'type', $config) - Detect all path cycles from node list")
+    public Stream<PathResult> cycles(@Name("nodes") List<Node> nodes, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         NodesConfig conf = new NodesConfig(config);
+        final String type = conf.getRelType();
         Stream<Path> paths = nodes.stream().flatMap(start -> {
-            final Iterable<Relationship> relationships;
-            final RelationshipType relType;
             boolean allRels = StringUtils.isEmpty(type);
-            if (allRels) {
-                relType = null;
-                relationships = start.getRelationships(Direction.OUTGOING);
-            } else {
-                relType = RelationshipType.withName(type);
-                relationships = start.getRelationships(Direction.OUTGOING, relType);
-            }
+            final RelationshipType relType = RelationshipType.withName(type);
+            final Iterable<Relationship> relationships = allRels
+                    ? start.getRelationships(Direction.OUTGOING)
+                    : start.getRelationships(Direction.OUTGOING, relType);
+            final PathExpander<Path> pathExpander = (allRels 
+                    ? PathExpanderBuilder.allTypes(Direction.OUTGOING) 
+                    : PathExpanderBuilder.empty().add(relType, Direction.OUTGOING)
+            ).build();
+            PathFinder<Path> finder = GraphAlgoFactory.shortestPath(
+                    new BasicEvaluationContext(tx, db),
+                    pathExpander,
+                    conf.getMaxDepth());
+            Map<Long, List<Long>> dups = new HashMap<>();
             return Iterables.stream(relationships)
-                // to prevent duplicated (start and end nodes with double-rels)
-                .collect(Collectors.toMap(Relationship::getEndNode, i -> i, (o1, o2) -> o2))
-                .entrySet()
-                .stream().map(entry -> {
-                    Node end = entry.getKey();
-                    Relationship rel = entry.getValue();
-                    PathExpanderBuilder baseExpander = allRels 
-                            ? PathExpanderBuilder.allTypes(Direction.OUTGOING) 
-                            : PathExpanderBuilder.empty().add(relType, Direction.OUTGOING);
-                    
-                    PathFinder<Path> finder = GraphAlgoFactory.shortestPath(
-                            new BasicEvaluationContext(tx, db),
-                            baseExpander.build(), 
-                            conf.getMaxDepth());
-
-                    Path path = finder.findSinglePath(end, start);
-                    // Not matching path will be removed below from Objects::nonNull
-                    if (path == null) {
-                        return null;
-                    }
-                    PathImpl.Builder builder = new PathImpl.Builder(start).push(rel);
-                    for (Relationship relPath : path.relationships()) {
-                        builder = builder.push(relPath);
-                    }
-                    return builder.build();
-                }).filter(Objects::nonNull);
+                    // to prevent duplicated (start and end nodes with double-rels)
+                    .filter(relationship -> {
+                        final List<Long> nodeDups = dups.computeIfAbsent(relationship.getStartNodeId(), (key) -> new ArrayList<>());
+                        if (nodeDups.contains(relationship.getEndNodeId())) {
+                            return false;
+                        }
+                        nodeDups.add(relationship.getEndNodeId());
+                        return true;
+                    })
+                    .map(relationship -> {
+                        final Path path = finder.findSinglePath(relationship.getEndNode(), start);
+                        if (path == null) return null;
+                        PathImpl.Builder builder = new PathImpl.Builder(start)
+                                .push(relationship);
+                        for (Relationship relPath : path.relationships()) {
+                            builder = builder.push(relPath);
+                        }
+                        return builder.build();
+                    })
+                    .filter(Objects::nonNull);
         });
-        
         return paths.map(PathResult::new);
     }
 
