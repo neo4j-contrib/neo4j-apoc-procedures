@@ -72,6 +72,7 @@ public class StartupTest {
                 assertEquals(sorted(ApocSignatures.FUNCTIONS), functionNames);
             }
         } catch (Exception ex) {
+            // if Testcontainers wasn't able to retrieve the docker image we ignore the test
             if (TestContainerUtil.isDockerImageAvailable(ex)) {
                 ex.printStackTrace();
                 fail("Should not have thrown exception when trying to start Neo4j: " + ex);
