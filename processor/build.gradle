@@ -81,31 +81,34 @@ publishing {
 
                 def dependenciesNode = root.get("dependencies")[0]
 
-                configurations.default.allDependencies.findAll {dependency -> dependency.group != "org.neo4j.procedure"}.forEach {
-                    def dependency = dependenciesNode.appendNode('dependency')
-                    dependency.appendNode('groupId', it.group)
-                    dependency.appendNode('artifactId', it.name)
-                    dependency.appendNode('version', it.version)
-                    dependency.appendNode('scope', "compile")
+                if (dependenciesNode != null) {
+                    configurations.default.allDependencies.findAll {dependency -> dependency.group != "org.neo4j.procedure"}.forEach {
+                        def dependency = dependenciesNode.appendNode('dependency')
+                        dependency.appendNode('groupId', it.group)
+                        dependency.appendNode('artifactId', it.name)
+                        dependency.appendNode('version', it.version)
+                        dependency.appendNode('scope', "compile")
 
-                    def myExcludeRules = it.excludeRules
-                    if (myExcludeRules.size() == 0) {
-                        myExcludeRules = new HashSet<>()
-                    }
-
-                    myExcludeRules.add(new DefaultExcludeRule("org.slf4j", "slf4j-nop"))
-
-                    // for exclusions
-                    if (myExcludeRules.size() > 0) {
-                        def exclusions = dependency.appendNode('exclusions')
-                        myExcludeRules.each { ExcludeRule ex ->
-                            def exclusion = exclusions.appendNode('exclusion')
-                            exclusion.appendNode('artifactId', ex.module ? ex.module : "*")
-                            exclusion.appendNode('groupId', ex.group)
+                        def myExcludeRules = it.excludeRules
+                        if (myExcludeRules.size() == 0) {
+                            myExcludeRules = new HashSet<>()
                         }
-                    }
 
+                        myExcludeRules.add(new DefaultExcludeRule("org.slf4j", "slf4j-nop"))
+
+                        // for exclusions
+                        if (myExcludeRules.size() > 0) {
+                            def exclusions = dependency.appendNode('exclusions')
+                            myExcludeRules.each { ExcludeRule ex ->
+                                def exclusion = exclusions.appendNode('exclusion')
+                                exclusion.appendNode('artifactId', ex.module ? ex.module : "*")
+                                exclusion.appendNode('groupId', ex.group)
+                            }
+                        }
+
+                    }
                 }
+
 
             }
 
