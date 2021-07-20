@@ -153,6 +153,7 @@ public class ImportCsvTest {
         }
 
         TestUtil.registerProcedure(db, ImportCsv.class);
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
 
     @Test
