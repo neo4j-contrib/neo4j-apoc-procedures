@@ -38,6 +38,6 @@ dependencies {
     compile group: 'org.testcontainers', name: 'postgresql', version: testContainersVersion
     compile group: 'org.testcontainers', name: 'cassandra', version: testContainersVersion
     compile group: 'org.testcontainers', name: 'localstack', version: testContainersVersion
-    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '3.0.0'
-    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '3.0.0'
+    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '4.0.0'
+    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '4.0.0'
 }
