@@ -26,8 +26,10 @@ import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -99,7 +101,7 @@ public class FileUtils {
                 return new SeekableInMemoryByteChannel(readHdfsStream(fileName).readAllBytes());
             } else {
                 if (fileName.startsWith("file:")) {
-                    return new FileInputStream(URI.create(fileName).toURL().getFile()).getChannel();
+                    return new FileInputStream(URLDecoder.decode(URI.create(fileName).getPath(), StandardCharsets.UTF_8.name())).getChannel();
                 } else {
                     return new SeekableInMemoryByteChannel(Util.openInputStream(fileName,null,null).readAllBytes());
                 }
@@ -167,7 +169,7 @@ public class FileUtils {
             } else {
                 result = normalized.toFile();
             }
-            return result.toString();
+            return result.toURI().toString();
         }
         return url;
     }

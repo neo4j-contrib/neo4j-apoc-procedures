@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,7 +67,6 @@ public class LoadArrow {
             this.reader.loadNextBatch();
         }
 
-
         @Override
         public synchronized boolean tryAdvance(Consumer<? super MapResult> action) {
             try {
@@ -81,8 +79,7 @@ public class LoadArrow {
                 }
                 final Map<String, Object> row = schemaRoot.getFieldVectors()
                         .stream()
-                        .map(fieldVector -> new AbstractMap.SimpleEntry<>(fieldVector.getName(), read(fieldVector, counter.get())))
-                        .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll); // please look at https://bugs.openjdk.java.net/browse/JDK-8148463
+                        .collect(HashMap::new, (map, fieldVector) -> map.put(fieldVector.getName(), read(fieldVector, counter.get())), HashMap::putAll); // please look at https://bugs.openjdk.java.net/browse/JDK-8148463
                 counter.incrementAndGet();
                 action.accept(new MapResult(row));
                 return true;
@@ -152,15 +149,14 @@ public class LoadArrow {
         }
         if (object instanceof Map) {
             return ((Map<String, Object>) object).entrySet().stream()
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> getObject(e.getValue())));
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> getObject(e.getValue())));
         }
         if (object instanceof Text) {
             return object.toString();
         }
         try {
             // we test if is a valid Neo4j type
-            Values.of(object);
-            return object;
+            return Values.of(object);
         } catch (Exception e) {
             // otherwise we try coerce it
             return valueToString(object);

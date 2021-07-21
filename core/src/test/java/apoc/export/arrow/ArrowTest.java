@@ -26,7 +26,7 @@ import static org.junit.Assert.assertEquals;
 
 public class ArrowTest {
 
-    private static File directory = new File("target/import");
+    private static File directory = new File("target/imp ort");
     static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
     }
