@@ -67,10 +67,10 @@ public class CsvHeaderFieldTests {
         assertTrue(matcher.find());
         assertEquals(7, matcher.groupCount());
         assertNull(matcher.group("optPar"));
-        assertEquals(TEST_NAME,    matcher.group("name"));
-        assertEquals(TEST_TYPE,    matcher.group("type"));
+        assertEquals(TEST_NAME, matcher.group("name"));
+        assertEquals(TEST_TYPE, matcher.group("type"));
         assertEquals(TEST_IDSPACE, matcher.group("idspace"));
-        assertEquals(TEST_ARRAY,   matcher.group("array"));
+        assertEquals(TEST_ARRAY, matcher.group("array"));
     }
 
     @Test
