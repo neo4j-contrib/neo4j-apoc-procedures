@@ -30,7 +30,7 @@ import static apoc.util.Util.merge;
 
 public class Periodic {
     
-    enum Planner { NONE, COST, IDP, DP }
+    enum Planner {DEFAULT, COST, IDP, DP }
 
     public static final Pattern PLANNER_PATTERN = Pattern.compile("\\bplanner\\s*=\\s*[^\\s]*", Pattern.CASE_INSENSITIVE);
     public static final Pattern RUNTIME_PATTERN = Pattern.compile("\\bruntime\\s*=", Pattern.CASE_INSENSITIVE);
@@ -263,7 +263,7 @@ public class Periodic {
 
         try (Result result = tx.execute(slottedRuntime(cypherIterate),params)) {
             Pair<String,Boolean> prepared = PeriodicUtils.prepareInnerStatement(cypherAction, batchMode, result.columns(), "_batch");
-            String innerStatement = applyPlanner(prepared.first(), Planner.valueOf((String) config.getOrDefault("planner", Planner.NONE.name())));
+            String innerStatement = applyPlanner(prepared.first(), Planner.valueOf((String) config.getOrDefault("planner", Planner.DEFAULT.name())));
             boolean iterateList = prepared.other();
             log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
             return PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
@@ -287,7 +287,7 @@ public class Periodic {
     }
 
     public static String applyPlanner(String query, Planner planner) {
-        if(planner.equals(Planner.NONE)) {
+        if(planner.equals(Planner.DEFAULT)) {
             return query;
         }
         Matcher matcher = PLANNER_PATTERN.matcher(query);

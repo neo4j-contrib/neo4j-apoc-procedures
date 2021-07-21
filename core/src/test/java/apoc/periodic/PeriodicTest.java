@@ -103,7 +103,7 @@ public class PeriodicTest {
 
     @Test
     public void testApplyPlanner() {
-        assertEquals("RETURN 1", applyPlanner("RETURN 1", Periodic.Planner.NONE));
+        assertEquals("RETURN 1", applyPlanner("RETURN 1", Periodic.Planner.DEFAULT));
         assertEquals("cypher planner=cost MATCH (n:cypher) RETURN n", 
                 applyPlanner("MATCH (n:cypher) RETURN n", Periodic.Planner.COST));
         assertEquals("cypher planner=idp MATCH (n:cypher) RETURN n", 

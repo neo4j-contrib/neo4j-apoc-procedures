@@ -22,7 +22,7 @@ The operation query can access the batched values via the `$_batch` parameter.
 | params | Map | {} | externally pass in map of params
 | concurrency | Long | 50 | number of concurrent tasks are generated when using `parallel:true`
 | failedParams | Long |  -1 | if set to a non-negative value, each failed batch up to `failedParams` parameter sets are returned in `yield failedParams`.
-| planner | Enum[NONE, COST, IDP, DP] |  NONE | If not `NONE` prepend to the `statement per item` parameter a `cypher planner=[VALUE_OF_CONFIG]` (or planner=[VALUE_OF_CONFIG] if the statement already has the `cypher` options)
+| planner | Enum[DEFAULT, COST, IDP, DP] |  DEFAULT | If not `DEFAULT` prepend to the `statement per item` parameter a `cypher planner=[VALUE_OF_CONFIG]` (or planner=[VALUE_OF_CONFIG] if the statement already has the `cypher` options)
 |===
 
 [NOTE]
