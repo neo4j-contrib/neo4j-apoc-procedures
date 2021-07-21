@@ -1,4 +1,4 @@
-¦xref::overview/apoc.export.cypher/apoc.export.cypher.graph.adoc[apoc.export.cypher.graph icon:book[]] +
+¦xref::overview/apoc.export/apoc.export.cypher.graph.adoc[apoc.export.cypher.graph icon:book[]] +
 
 `apoc.export.cypher.graph(graph,file,config)` - exports given graph object incl. indexes as cypher statements to the provided file
 ¦label:procedure[]

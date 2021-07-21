@@ -1,4 +1,4 @@
-¦xref::overview/apoc.number.exact/apoc.number.exact.toExact.adoc[apoc.number.exact.toExact icon:book[]] +
+¦xref::overview/apoc.number/apoc.number.exact.toExact.adoc[apoc.number.exact.toExact icon:book[]] +
 
 `apoc.number.exact.toExact(number)` - return the exact value
 ¦label:function[]

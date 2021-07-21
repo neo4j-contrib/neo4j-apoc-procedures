@@ -1,4 +1,4 @@
-¦xref::overview/apoc.export.json/apoc.export.json.all.adoc[apoc.export.json.all icon:book[]] +
+¦xref::overview/apoc.export/apoc.export.json.all.adoc[apoc.export.json.all icon:book[]] +
 
 `apoc.export.json.all(file,config)` - exports whole database as json to the provided file
 ¦label:procedure[]
