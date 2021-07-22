@@ -9,6 +9,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -26,7 +27,7 @@ import static org.junit.Assert.assertEquals;
 
 public class ArrowTest {
 
-    private static File directory = new File("target/imp ort");
+    private static File directory = new File("target/arrow import");
     static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
     }
@@ -91,6 +92,14 @@ public class ArrowTest {
         TestUtil.registerProcedure(db, ExportArrow.class, LoadArrow.class, Graphs.class, Meta.class);
     }
 
+    private byte[] extractByteArray(Result result) {
+        return result.<byte[]>columnAs("byteArray").next();
+    }
+
+    private String extractFileName(Result result) {
+        return result.<String>columnAs("file").next();
+    }
+
     @Test
     public void testStreamRoundtripArrowQuery() {
         // given - when
@@ -105,12 +114,14 @@ public class ArrowTest {
                 "localdatetime('2015-05-18T19:32:24') as dateData," +
                 "[[0]] AS arrayArray," +
                 "1.1 AS doubleData";
-        final String query = "CALL apoc.export.arrow.stream.query(\"" + returnQuery + "\") YIELD value AS byteArray " +
-                "CALL apoc.load.arrow.stream(byteArray) YIELD value " +
-                "RETURN value";
+        final byte[] byteArray = db.executeTransactionally("CALL apoc.export.arrow.stream.query($query) YIELD value AS byteArray",
+                Map.of("query", returnQuery),
+                this::extractByteArray);
 
         // then
-        db.executeTransactionally(query, Map.of(), result -> {
+        final String query = "CALL apoc.load.arrow.stream($byteArray) YIELD value " +
+                "RETURN value";
+        db.executeTransactionally(query, Map.of("byteArray", byteArray), result -> {
             final Map<String, Object> row = (Map<String, Object>) result.next().get("value");
             assertEquals(1L, row.get("intData"));
             assertEquals("a", row.get("stringData"));
@@ -142,39 +153,46 @@ public class ArrowTest {
                 "localdatetime('2015-05-18T19:32:24') as dateData," +
                 "[[0]] AS arrayArray," +
                 "1.1 AS doubleData";
-        final String query = "CALL apoc.export.arrow.query('query_test.arrow', \"" + returnQuery + "\") YIELD file " +
-                "CALL apoc.load.arrow(file) YIELD value " +
-                "RETURN value";
+        String file = db.executeTransactionally("CALL apoc.export.arrow.query('query_test.arrow', $query) YIELD file",
+                Map.of("query", returnQuery),
+                this::extractFileName);
 
         // then
-        db.executeTransactionally(query, Map.of(), result -> {
-            final Map<String, Object> row = (Map<String, Object>) result.next().get("value");
-            assertEquals(1L, row.get("intData"));
-            assertEquals("a", row.get("stringData"));
-            assertEquals(Arrays.asList(1L, 2L, 3L), row.get("intArray"));
-            assertEquals(Arrays.asList(1.1D, 2.2D, 3.3), row.get("doubleArray"));
-            assertEquals(Arrays.asList(true, false, true), row.get("boolArray"));
-            assertEquals(Arrays.asList("1", "2", "true", null), row.get("mixedArray"));
-            assertEquals("{\"foo\":\"bar\"}", row.get("mapData"));
-            assertEquals(LocalDateTime.parse("2015-05-18T19:32:24.000")
-                    .atOffset(ZoneOffset.UTC)
-                    .toZonedDateTime(), row.get("dateData"));
-            assertEquals(Arrays.asList("[0]"), row.get("arrayArray"));
-            assertEquals(1.1D, row.get("doubleData"));
-            return true;
-        });
+        final String query = "CALL apoc.load.arrow($file) YIELD value " +
+                "RETURN value";
+        db.executeTransactionally(query,
+                Map.of("file", file),
+                result -> {
+                    final Map<String, Object> row = (Map<String, Object>) result.next().get("value");
+                    assertEquals(1L, row.get("intData"));
+                    assertEquals("a", row.get("stringData"));
+                    assertEquals(Arrays.asList(1L, 2L, 3L), row.get("intArray"));
+                    assertEquals(Arrays.asList(1.1D, 2.2D, 3.3), row.get("doubleArray"));
+                    assertEquals(Arrays.asList(true, false, true), row.get("boolArray"));
+                    assertEquals(Arrays.asList("1", "2", "true", null), row.get("mixedArray"));
+                    assertEquals("{\"foo\":\"bar\"}", row.get("mapData"));
+                    assertEquals(LocalDateTime.parse("2015-05-18T19:32:24.000")
+                            .atOffset(ZoneOffset.UTC)
+                            .toZonedDateTime(), row.get("dateData"));
+                    assertEquals(Arrays.asList("[0]"), row.get("arrayArray"));
+                    assertEquals(1.1D, row.get("doubleData"));
+                    return true;
+                });
     }
 
     @Test
     public void testStreamRoundtripArrowGraph() {
         // given - when
-        final String query = "CALL apoc.graph.fromDB('neo4j',{}) yield graph " +
-                "CALL apoc.export.arrow.stream.graph(graph) YIELD value AS byteArray " +
-                "CALL apoc.load.arrow.stream(byteArray) YIELD value " +
-                "RETURN value";
+        final byte[] byteArray = db.executeTransactionally("CALL apoc.graph.fromDB('neo4j',{}) yield graph " +
+                        "CALL apoc.export.arrow.stream.graph(graph) YIELD value AS byteArray " +
+                        "RETURN byteArray",
+                Map.of(),
+                this::extractByteArray);
 
         // then
-        db.executeTransactionally(query, Map.of(), result -> {
+        final String query = "CALL apoc.load.arrow.stream($byteArray) YIELD value " +
+                "RETURN value";
+        db.executeTransactionally(query, Map.of("byteArray", byteArray), result -> {
             final List<Map<String, Object>> actual = result.stream()
                     .map(m -> (Map<String, Object>) m.get("value"))
                     .collect(Collectors.toList());
@@ -186,13 +204,16 @@ public class ArrowTest {
     @Test
     public void testFileRoundtripArrowGraph() {
         // given - when
-        final String query = "CALL apoc.graph.fromDB('neo4j',{}) yield graph " +
-                "CALL apoc.export.arrow.graph('graph_test.arrow', graph) YIELD file " +
-                "CALL apoc.load.arrow(file) YIELD value " +
-                "RETURN value";
+        String file = db.executeTransactionally("CALL apoc.graph.fromDB('neo4j',{}) yield graph " +
+                        "CALL apoc.export.arrow.graph('graph_test.arrow', graph) YIELD file " +
+                        "RETURN file",
+                Map.of(),
+                this::extractFileName);
 
         // then
-        db.executeTransactionally(query, Map.of(), result -> {
+        final String query = "CALL apoc.load.arrow($file) YIELD value " +
+                "RETURN value";
+        db.executeTransactionally(query, Map.of("file", file), result -> {
             final List<Map<String, Object>> actual = result.stream()
                     .map(m -> (Map<String, Object>) m.get("value"))
                     .collect(Collectors.toList());
@@ -204,12 +225,14 @@ public class ArrowTest {
     @Test
     public void testStreamRoundtripArrowAll() {
         // given - when
-        final String query = "CALL apoc.export.arrow.stream.all() YIELD value AS byteArray " +
-                "CALL apoc.load.arrow.stream(byteArray) YIELD value " +
-                "RETURN value";
+        final byte[] byteArray = db.executeTransactionally("CALL apoc.export.arrow.stream.all() YIELD value AS byteArray ",
+                Map.of(),
+                this::extractByteArray);
 
         // then
-        db.executeTransactionally(query, Map.of(), result -> {
+        final String query = "CALL apoc.load.arrow.stream($byteArray) YIELD value " +
+                "RETURN value";
+        db.executeTransactionally(query, Map.of("byteArray", byteArray), result -> {
             final List<Map<String, Object>> actual = result.stream()
                     .map(m -> (Map<String, Object>) m.get("value"))
                     .collect(Collectors.toList());
@@ -221,12 +244,14 @@ public class ArrowTest {
     @Test
     public void testFileRoundtripArrowAll() {
         // given - when
-        final String query = "CALL apoc.export.arrow.all('all_test.arrow') YIELD file " +
-                "CALL apoc.load.arrow(file) YIELD value " +
-                "RETURN value";
+        String file = db.executeTransactionally("CALL apoc.export.arrow.all('all_test.arrow') YIELD file",
+                Map.of(),
+                this::extractFileName);
 
         // then
-        db.executeTransactionally(query, Map.of(), result -> {
+        final String query = "CALL apoc.load.arrow($file) YIELD value " +
+                "RETURN value";
+        db.executeTransactionally(query, Map.of("file", file), result -> {
             final List<Map<String, Object>> actual = result.stream()
                     .map(m -> (Map<String, Object>) m.get("value"))
                     .collect(Collectors.toList());
@@ -240,16 +265,19 @@ public class ArrowTest {
         // given - when
         db.executeTransactionally("UNWIND range(0, 10000 - 1) AS id CREATE (n:ArrowNode{id:id})");
 
-        final String query = "CALL apoc.export.arrow.stream.query('MATCH (n:ArrowNode) RETURN n.id AS id') YIELD value AS byteArray " +
-                "CALL apoc.load.arrow.stream(byteArray) YIELD value " +
-                "RETURN value.id AS id";
+        final List<byte[]> list = db.executeTransactionally("CALL apoc.export.arrow.stream.query('MATCH (n:ArrowNode) RETURN n.id AS id') YIELD value AS byteArray ",
+                Map.of(),
+                result -> result.<byte[]>columnAs("byteArray").stream().collect(Collectors.toList()));
 
         final List<Long> expected = LongStream.range(0, 10000)
                 .mapToObj(l -> l)
                 .collect(Collectors.toList());
 
         // then
-        db.executeTransactionally(query, Map.of(), result -> {
+        final String query = "UNWIND $list AS byteArray " +
+                "CALL apoc.load.arrow.stream(byteArray) YIELD value " +
+                "RETURN value.id AS id";
+        db.executeTransactionally(query, Map.of("list", list), result -> {
             final List<Long> actual = result.stream()
                     .map(m -> (Long) m.get("id"))
                     .sorted()
@@ -266,16 +294,18 @@ public class ArrowTest {
         // given - when
         db.executeTransactionally("UNWIND range(0, 10000 - 1) AS id CREATE (:ArrowNode{id:id})");
 
-        final String query = "CALL apoc.export.arrow.query('volume_test.arrow', 'MATCH (n:ArrowNode) RETURN n.id AS id') YIELD file " +
-                "CALL apoc.load.arrow(file) YIELD value " +
-                "RETURN value.id AS id";
+        String file = db.executeTransactionally("CALL apoc.export.arrow.query('volume_test.arrow', 'MATCH (n:ArrowNode) RETURN n.id AS id') YIELD file ",
+                Map.of(),
+                this::extractFileName);
 
         final List<Long> expected = LongStream.range(0, 10000)
                 .mapToObj(l -> l)
                 .collect(Collectors.toList());
 
         // then
-        db.executeTransactionally(query, Map.of(), result -> {
+        final String query = "CALL apoc.load.arrow($file) YIELD value " +
+                "RETURN value.id AS id";
+        db.executeTransactionally(query, Map.of("file", file), result -> {
             final List<Long> actual = result.stream()
                     .map(m -> (Long) m.get("id"))
                     .sorted()
