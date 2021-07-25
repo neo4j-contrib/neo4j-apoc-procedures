@@ -10,7 +10,6 @@ public class VRResult {
     public List<String> params;
     public List<String> labels;
     public String query;
-    public String signature;
 
     public VRResult(String name, String type, String URL, String query, String desc, List<String> params, List<String> labels) {
         this.name = name;

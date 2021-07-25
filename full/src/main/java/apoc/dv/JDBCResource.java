@@ -1,9 +1,9 @@
 package apoc.dv;
 
 import apoc.load.Jdbc;
-import apoc.result.NodeResult;
 import apoc.result.VirtualNode;
 import apoc.util.Util;
+import org.neo4j.graphdb.Node;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -22,20 +22,12 @@ public class JDBCResource extends VirtualizedResource implements Serializable {
         return "?";
     }
 
-
-//    @Override
-//    public String getQueryLinkedTo(String relName) {
-//        return "CALL apoc.load.jdbc(\"" + url + "\",\"" + dbquery + "\") yield row " +
-//                " with apoc.create.vNode([" + labelsAsCommaSeparatedString() + "], row) as node " +
-//                " return node, apoc.create.vRelationship(node,\"" + relName + "\", {}, $the_node) as rel ";
-//    }
-
     @Override
-    public Stream<NodeResult> doQuery(Map<String, Object> params) {
+    protected Stream<Node> streamVirtualNodes(Map<String, Object> params) {
         Jdbc jdbc = new Jdbc();
         //not using the config (last param in hte jdbc procedure)
-        return jdbc.jdbc(url, dbquery,getParamsAsList(params),new HashMap<String, Object>())
-                .map(x -> new NodeResult(new VirtualNode(Util.labels(labels), x.row)));
+        return jdbc.jdbc(url, dbQuery,getParamsAsList(params),new HashMap<String, Object>())
+                .map(x -> new VirtualNode(Util.labels(labels), x.row));
     }
 
     private List<Object> getParamsAsList(Map<String, Object> params) {

@@ -67,7 +67,7 @@ public class VRCatalog {
     public Stream<VRResult> getVRList(String vrNameFilter) {
         return vrs.entrySet().stream().filter(e -> (vrNameFilter.equals("")||e.getKey().equals(vrNameFilter)))
                 .map( e -> new VRResult(e.getKey(), e.getValue().getType(), e.getValue().url,
-                        e.getValue().dbquery,e.getValue().desc,
+                        e.getValue().rawDbQuery,e.getValue().desc,
                         e.getValue().filterParams, e.getValue().labels));
     }
 }
