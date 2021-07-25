@@ -64,13 +64,37 @@ public class VirtualizeTest {
                     assertEquals(desc, result.get("desc"));
                 });
 
-        testCall(db, "call apoc.dv.query(\"" + name + "\" , { name: \"Rana\", age: \"1\" })",
+        testCall(db, "call apoc.dv.query(\"" + name + "\" , { name: \"Rana\", age: \"11\" })",
                 (row) -> {
                     Node node = (Node) row.get("node");
                     assertEquals("Rana", node.getProperty("name"));
                     assertEquals("11", node.getProperty("age"));
                     assertEquals(new ArrayList<>(List.of(Label.label("Person"))), node.getLabels());
                 });
+
+        db.executeTransactionally("call apoc.dv.catalog.drop(\"" + name + "\")");
+
+        testCall(db, "call apoc.dv.catalog.add(\"sqlitelocal_hist\",\n" +
+                        "{ vrType: \"JDBC\", url: \"jdbc:sqlite:/Users/jb/Documents/History\", query: \"select * from urls where " +
+                        "title = {vrp:title} \", desc: \"page visits by title\", labels:[\"Visit\",\"HistoryItem\"], signature: \"the signature\"})",
+                (row) -> {
+                    //Node node = (Node) row.get("node");
+                    assertEquals("sqlitelocal_hist", row.get("name"));
+                    assertEquals("jdbc:sqlite:/Users/jb/Documents/History", row.get("URL"));
+                    assertEquals("JDBC", row.get("type"));
+                    assertEquals(new ArrayList<>(List.of("Visit", "HistoryItem")), row.get("labels"));
+                    assertEquals("page visits by title", row.get("desc"));
+                } );
+
+        testCall(db, "call apoc.dv.query(\"" + "sqlitelocal_hist" + "\" , { title: \"Comparison of Apache Stream Processing Frameworks: Part 1\" })",
+                (row) -> {
+                    Node node = (Node) row.get("node");
+                    assertEquals("Rana", node.getProperty("name"));
+                    assertEquals("11", node.getProperty("age"));
+                    assertEquals(new ArrayList<>(List.of(Label.label("Person"))), node.getLabels());
+                });
+
+
     }
 
 //    @Test
