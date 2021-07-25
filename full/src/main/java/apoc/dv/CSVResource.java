@@ -30,13 +30,6 @@ public class CSVResource extends VirtualizedResource implements Serializable {
 
     }
 
-//    @Override
-//    public String getQuery() {
-//        return "CALL apoc.load.csv(\"" + url + "\", $extraVRQueryParams) yield " + (headers?"map":"list") +
-//                " as row where " + dbquery + " " +
-//                " return apoc.create.vNode([" + labelsAsCommaSeparatedString() + "], row) as node , null as rel ";
-//    }
-
     @Override
     public Map<String, Object> getExtraQueryParams() {
         return loadCSVparams;
@@ -46,14 +39,6 @@ public class CSVResource extends VirtualizedResource implements Serializable {
     public String getType() {
         return "CSV";
     }
-
-//    @Override
-//    public String getQueryLinkedTo(String relName) {
-//        return "CALL apoc.load.csv(\"" + url + "\", $extraVRQueryParams) yield " + (headers ? "map" : "list") +
-//                " as row where " + dbquery + " " +
-//                " with apoc.create.vNode([" + labelsAsCommaSeparatedString() + "], row) as node " +
-//                " return node, apoc.create.vRelationship(node,\"" + relName + "\", {}, $the_node) as rel ";
-//    }
 
     @Override
     public Stream<NodeResult> doQuery(Map<String, Object> params) {
