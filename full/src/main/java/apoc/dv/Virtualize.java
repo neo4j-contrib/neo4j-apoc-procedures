@@ -1,8 +1,8 @@
 package apoc.dv;
 
+import apoc.dv.result.NodeWithRelResult;
 import apoc.result.NodeResult;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
@@ -52,7 +52,7 @@ public class Virtualize {
         return vrc.getVRList("");
     }
 
-    @Procedure(name = "apoc.dv.catalog.list", mode = Mode.WRITE)
+    @Procedure(name = "apoc.dv.catalog.list", mode = Mode.READ)
     @Description("List all virtualized resource configs")
     public Stream<VRResult> listVR(
             @Name(value = "vrName", defaultValue = "") String vrNameFilter) throws IOException, ClassNotFoundException {
@@ -61,8 +61,8 @@ public class Virtualize {
         return vrc.getVRList(vrNameFilter);
     }
 
-    @Procedure(name = "apoc.dv.query", mode = Mode.WRITE)
-    @Description("Query a virtualized resource by name")
+    @Procedure(name = "apoc.dv.query", mode = Mode.READ)
+    @Description("Query a virtualized resource by name and return virtual nodes")
     public Stream<NodeResult> query(
             @Name("vrName") String vrName,
             @Name(value = "params", defaultValue = "{}") Map<String,Object> params) throws IOException, ClassNotFoundException {
@@ -72,31 +72,28 @@ public class Virtualize {
         if(vr!=null) {
             params.put("extraVRQueryParams", vr.getExtraQueryParams());
             return vr.doQuery(params);
-            //return tx.execute(vr.getQuery(), params).stream().map(x -> (Node) x.get("node")).map(NodeResult::new);
         }else {
             throw new RuntimeException("Virtualized resource " + vrName + " is not defined.");
         }
     }
 
-//    @Procedure(name = "apoc.dv.materialize", mode = Mode.WRITE)
-//    @Description("Query a virtualized resource by name")
-//    public Stream<NodeAndRelResult> materialize(
-//            @Name("vrName") String vrName,
-//            @Name(value = "params", defaultValue = "{}") Map<String,Object> params,
-//            @Name(value = "relName", defaultValue = "null") String relName,
-//            @Name(value= "linkedTo", defaultValue = "null") Node linkedTo) throws IOException, ClassNotFoundException {
-//
-//        VRCatalog vrc = new VRCatalog(tx);
-//        VirtualizedResource vr = vrc.getVR(vrName);
-//        if (vr != null) {
-//            params.put("extraVRQueryParams", vr.getExtraQueryParams());
-//            params.put("the_node", linkedTo);
-//            return tx.execute((relName != null && linkedTo != null ? vr.getQueryLinkedTo(relName) : vr.getQuery()), params).stream().map(x ->
-//                    new NodeAndRelResult((Node) x.get("node"), (Relationship) x.get("rel")));
-//        } else {
-//            throw new RuntimeException("Virtualized resource " + vrName + " is not defined.");
-//        }
-//
-//    }
+    @Procedure(name = "apoc.dv.queryAndLink", mode = Mode.READ)
+    @Description("Query a virtualized resource by name and return virtual nodes linked using virtual rels to the node passed as first param")
+    public Stream<NodeWithRelResult> queryAndLink(
+            @Name("node") Node node,
+            @Name("relName") String relName,
+            @Name("vrName") String vrName,
+            @Name(value = "params", defaultValue = "{}") Map<String,Object> params
+            ) throws IOException, ClassNotFoundException {
+
+        VRCatalog vrc = new VRCatalog(tx);
+        VirtualizedResource vr = vrc.getVR(vrName);
+        if(vr!=null) {
+            params.put("extraVRQueryParams", vr.getExtraQueryParams());
+            return vr.doQueryAndLink(node, relName, params);
+        }else {
+            throw new RuntimeException("Virtualized resource " + vrName + " is not defined.");
+        }
+    }
 
 }

@@ -1,10 +1,14 @@
 package apoc.dv;
 
+import apoc.dv.result.NodeWithRelResult;
 import apoc.load.CSVResult;
 import apoc.load.LoadCsv;
 import apoc.result.NodeResult;
 import apoc.result.VirtualNode;
+import apoc.result.VirtualRelationship;
 import apoc.util.Util;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.procedure.Name;
 
 import java.io.Serializable;
@@ -41,10 +45,10 @@ public class CSVResource extends VirtualizedResource implements Serializable {
     }
 
     @Override
-    public Stream<NodeResult> doQuery(Map<String, Object> params) {
+    protected Stream<Node> streamVirtualNodes(Map<String, Object> params) {
         LoadCsv lcsv = new LoadCsv();
         return lcsv.csv(url, params).filter(x -> applyFilter(x, params))
-                .map(x -> new NodeResult(new VirtualNode(Util.labels(labels), x.map)));
+                .map(x -> new VirtualNode(Util.labels(labels), x.map));
     }
 
     private boolean applyFilter(CSVResult csvr, Map<String, Object> params) {
