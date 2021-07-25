@@ -80,10 +80,9 @@ public class VirtualizeTest extends AbstractJdbcTest{
 
         testCall(db, "call apoc.dv.catalog.add(\"" + vrName + "\",\n" +
                         "                    { vrType: \"CSV\", url: \"" + url + "\", " +
-                        " query: 'name = {vrp:name} and  age = {vrp:age} ', " +
+                        " query: 'name = {vrp:p_name} and  age = {vrp:p_age} ', " +
                         " desc: \"" + desc + "\", labels:[\"Person\"], header: true })",
                 (row) -> {
-                    //Node node = (Node) row.get("node");
                     assertEquals(vrName, row.get("name"));
                     assertEquals(url, row.get("URL"));
                     assertEquals("CSV", row.get("type"));
@@ -103,7 +102,7 @@ public class VirtualizeTest extends AbstractJdbcTest{
         String personName = "Rana";
         String personAge = "11";
 
-        testCall(db, "call apoc.dv.query('" + vrName + "' , { name: '" + personName + "', age: '"  + personAge + "' })",
+        testCall(db, "call apoc.dv.query('" + vrName + "' , { p_name: '" + personName + "', p_age: '"  + personAge + "' })",
                 (row) -> {
                     Node node = (Node) row.get("node");
                     assertEquals(personName, node.getProperty("name"));
@@ -117,7 +116,7 @@ public class VirtualizeTest extends AbstractJdbcTest{
 
         testCall(db, "match (hook:Hook) with hook " +
                         " call apoc.dv.queryAndLink(hook,'LINKED_TO','" + vrName + "' , " +
-                        " { name: '" + personName + "', age: '"  + personAge + "' }) yield node, relationship " +
+                        " { p_name: '" + personName + "', p_age: '"  + personAge + "' }) yield node, relationship " +
                         " return hook, node, relationship ",
                 (row) -> {
                     Node node = (Node) row.get("node");
