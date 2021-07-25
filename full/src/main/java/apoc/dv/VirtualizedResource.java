@@ -26,8 +26,10 @@ public abstract class VirtualizedResource implements Serializable {
     public VirtualizedResource(Map<String, Object> vrconfig) throws BadVRConfig {
         url = getRequiredConfigParam("url", vrconfig);
         dbQuery = rawDbQuery = getRequiredConfigParam("query", vrconfig);
+        desc = getOptionalConfigParam("desc", vrconfig);
+        labels = getRequiredListConfigParam("labels",vrconfig);
 
-        String patternString = "\\{vrp:([a-zA-Z]\\w*)\\}";
+        String patternString = "\\{vrp:([a-zA-Z_]\\w*)\\}";
         Pattern pattern = Pattern.compile(patternString);
 
         Matcher matcher = pattern.matcher(dbQuery);
@@ -40,9 +42,6 @@ public abstract class VirtualizedResource implements Serializable {
         if (filterParams.size()==0){
             throw new BadVRConfig("A virtualized resource must have at least one filter parameter.");
         }
-
-        desc = getOptionalConfigParam("desc", vrconfig);
-        labels = getRequiredListConfigParam("labels",vrconfig);
 
     }
 
