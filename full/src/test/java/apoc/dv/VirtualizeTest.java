@@ -11,6 +11,7 @@ import org.junit.*;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -42,9 +43,6 @@ public class VirtualizeTest extends AbstractJdbcTest{
 
     @Before
     public void setUp() throws Exception {
-        apocConfig().setProperty("apoc.jdbc.derby.url","jdbc:derby:derbyDB");
-        apocConfig().setProperty("apoc.jdbc.test.sql","SELECT * FROM PERSON");
-        apocConfig().setProperty("apoc.jdbc.testparams.sql","SELECT * FROM PERSON WHERE NAME = ?");
         TestUtil.registerProcedure(db, Virtualize.class, Jdbc.class);
         createPersonTableAndData();
     }
@@ -82,7 +80,7 @@ public class VirtualizeTest extends AbstractJdbcTest{
 
         testCall(db, "call apoc.dv.catalog.add(\"" + vrName + "\",\n" +
                         "                    { vrType: \"CSV\", url: \"" + url + "\", " +
-                        " query: \" row.name = {vrp:name} and  row.age starts with {vrp:age} \", " +
+                        " query: 'name = {vrp:name} and  age = {vrp:age} ', " +
                         " desc: \"" + desc + "\", labels:[\"Person\"], header: true })",
                 (row) -> {
                     //Node node = (Node) row.get("node");
@@ -93,15 +91,12 @@ public class VirtualizeTest extends AbstractJdbcTest{
                     assertEquals(desc, row.get("desc"));
                 });
 
-        ArrayList<Label> personTypes = new ArrayList<>(List.of(Label.label("Person")));
-        ArrayList<String> personTypesAsStrings = new ArrayList<>(List.of("Person"));
-
         testCall(db, "call apoc.dv.catalog.list() ",
                 (result) -> {
                     assertEquals(vrName, result.get("name"));
                     assertEquals(url, result.get("URL"));
                     assertEquals("CSV", result.get("type"));
-                    assertEquals(personTypes, result.get("labels"));
+                    assertEquals(new ArrayList<>(List.of("Person")), result.get("labels"));
                     assertEquals(desc, result.get("desc"));
                 });
 
@@ -113,7 +108,31 @@ public class VirtualizeTest extends AbstractJdbcTest{
                     Node node = (Node) row.get("node");
                     assertEquals(personName, node.getProperty("name"));
                     assertEquals(personAge, node.getProperty("age"));
-                    assertEquals(personTypes, node.getLabels());
+                    assertEquals(new ArrayList<>(List.of(Label.label("Person"))), node.getLabels());
+                });
+
+        String hookNodeName = "node to test linking";
+
+        db.executeTransactionally("create (:Hook { name: '" + hookNodeName + "'})");
+
+        testCall(db, "match (hook:Hook) with hook " +
+                        " call apoc.dv.queryAndLink(hook,'LINKED_TO','" + vrName + "' , " +
+                        " { name: '" + personName + "', age: '"  + personAge + "' }) yield node, relationship " +
+                        " return hook, node, relationship ",
+                (row) -> {
+                    Node node = (Node) row.get("node");
+                    assertEquals(personName, node.getProperty("name"));
+                    assertEquals(personAge, node.getProperty("age"));
+                    assertEquals(new ArrayList<>(List.of(Label.label("Person"))), node.getLabels());
+
+                    Node hook = (Node) row.get("hook");
+                    assertEquals(hookNodeName, hook.getProperty("name"));
+                    assertEquals(new ArrayList<>(List.of(Label.label("Hook"))), hook.getLabels());
+
+                    Relationship relationship = (Relationship) row.get("relationship");
+                    assertEquals(hook, relationship.getStartNode());
+                    assertEquals(node, relationship.getEndNode());
+
                 });
 
     }
@@ -123,52 +142,56 @@ public class VirtualizeTest extends AbstractJdbcTest{
 
         String name = "jdbc_vr";
         String url = "jdbc:derby:derbyDB";
-        String desc = "person's details";
-        ArrayList<String> personTypes = new ArrayList<>(List.of("Person", "Individual", "Human"));
+        String desc = "persons details";
+        ArrayList<String> personTypesAsStrings = new ArrayList<>(List.of("Person", "Individual", "Human"));
+        ArrayList<Label> personTypesAsLabels = new ArrayList<>(List.of(Label.label("Person"),
+                Label.label("Individual"), Label.label("Human")));
 
 
         testCall(db, "call apoc.dv.catalog.add('" + name + "', " +
                         "{ vrType: 'JDBC', url: '" + url + "', query: 'SELECT * FROM PERSON WHERE NAME = {vrp:pname}', " +
                         " desc: '" + desc + "', labels:['Person','Individual','Human'] })",
                 (row) -> {
-                    //Node node = (Node) row.get("node");
                     assertEquals(name, row.get("name"));
                     assertEquals("jdbc:derby:derbyDB", row.get("URL"));
                     assertEquals("JDBC", row.get("type"));
-                    assertEquals(personTypes, row.get("labels"));
+                    assertEquals(personTypesAsStrings, row.get("labels"));
                     assertEquals(desc , row.get("desc"));
                 } );
-
-//        testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'])", //  YIELD row RETURN row
-//                (row) -> assertResult(row));
-
 
         testCallEmpty(db, "call apoc.dv.query('" + name + "' , { pname: 'Johanna' })", null);
 
         String personName = "John";
+
         testCall(db, "call apoc.dv.query('" + name + "' , { pname: '" + personName + "' })",
                 (row) -> {
                     Node node = (Node) row.get("node");
                     assertEquals(personName, node.getProperty("name"));
-                    assertEquals(personTypes, node.getLabels());
+                    assertEquals(personTypesAsLabels, node.getLabels());
                 });
 
+        String hookNodeName = "node to test linking";
+
+        db.executeTransactionally("create (:Hook { name: '" + hookNodeName + "'})");
+
+        testCall(db, "match (hook:Hook) with hook " +
+                        " call apoc.dv.queryAndLink('" + name + "' , { pname: '" + personName + "' })",
+                (row) -> {
+                    Node node = (Node) row.get("node");
+                    assertEquals(personName, node.getProperty("name"));
+                    assertEquals(personTypesAsLabels, node.getLabels());
+
+                    Node hook = (Node) row.get("hook");
+                    assertEquals(hookNodeName, hook.getProperty("name"));
+                    assertEquals(new ArrayList<>(List.of(Label.label("Hook"))), hook.getLabels());
+
+                    Relationship relationship = (Relationship) row.get("relationship");
+                    assertEquals(hook, relationship.getStartNode());
+                    assertEquals(node, relationship.getEndNode());
+
+                });
 
     }
-
-
-//    @Test
-//    public void testSetProperty() throws Exception {
-//        testResult(db, "CREATE (n),(m) WITH n,m CALL apoc.create.setProperty([id(n),m],'name','John') YIELD node RETURN node",
-//                (result) -> {
-//                    Map<String, Object> row = result.next();
-//                    assertEquals("John", ((Node) row.get("node")).getProperty("name"));
-//                    row = result.next();
-//                    assertEquals("John", ((Node) row.get("node")).getProperty("name"));
-//                    assertEquals(false, result.hasNext());
-//                });
-//    }
-
 
 
     private void createPersonTableAndData() throws ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
