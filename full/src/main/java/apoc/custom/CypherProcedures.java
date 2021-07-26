@@ -41,8 +41,8 @@ import static apoc.custom.CypherProceduresHandler.*;
 public class CypherProcedures {
 
     // visible for testing
-    public static final String ERROR_MISMATCHED_INPUTS = "Required query parameters and input parameters provided don't correspond.";
-    public static final String ERROR_MISMATCHED_OUTPUTS = "Query results and output parameters provided don't correspond.";
+    public static final String ERROR_MISMATCHED_INPUTS = "Required query parameters do not match provided input arguments.";
+    public static final String ERROR_MISMATCHED_OUTPUTS = "Query results do not match requested output.";
     
     @Context
     public GraphDatabaseAPI api;
