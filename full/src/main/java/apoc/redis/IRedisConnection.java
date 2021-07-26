@@ -8,7 +8,7 @@ import java.util.Map;
 public interface IRedisConnection<T> extends AutoCloseable {
     // -- String
     T get(T key);
-    T setGet(T key, T value);
+    T getSet(T key, T value);
     long append(T key, T value);
     long incrby(T key, long amount);
 

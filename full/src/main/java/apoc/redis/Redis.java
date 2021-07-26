@@ -19,9 +19,9 @@ public class Redis {
 
     // -- String
     @Procedure
-    @Description("apoc.redis.setGet(uri, key, value, {config}) | Execute the 'SET key value' command and return old value stored (or null if did not exists)")
-    public Stream<ObjectResult> setGet(@Name("uri") String uri, @Name("key") Object key, @Name("value") Object value, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        return withConnection(uri, config, connection -> Stream.of(new ObjectResult(connection.setGet(key, value))));
+    @Description("apoc.redis.getSet(uri, key, value, {config}) | Execute the 'SET key value' command and return old value stored (or null if did not exists)")
+    public Stream<ObjectResult> getSet(@Name("uri") String uri, @Name("key") Object key, @Name("value") Object value, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        return withConnection(uri, config, connection -> Stream.of(new ObjectResult(connection.getSet(key, value))));
     }
 
     @Procedure
@@ -74,14 +74,14 @@ public class Redis {
     }
 
     @Procedure
-    @Description("apoc.redis.hset(uri, key, field, value, {config}) | Execute the 'HSET key field value' command")
+    @Description("apoc.redis.hset(uri, key, field, value, {config}) | Execute the 'HSET key field value' command and returns true if is a new field in the hash or false if the field already exists")
     public Stream<BooleanResult> hset(@Name("uri") String uri, @Name("key") Object key, @Name("field") Object field, @Name("value") Object value, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return withConnection(uri, config, connection -> Stream.of(new BooleanResult(connection.hset(key, field, value))));
     }
     
     // -- Lists
     @Procedure
-    @Description("apoc.redis.push(uri, key, values, {config}) | Execute the 'LPUSH key field values' command, or the 'LPUSH' if config right=true (default)")
+    @Description("apoc.redis.push(uri, key, values, {config}) | Execute the 'LPUSH key field values' command, or the 'RPUSH' if config right=true (default)")
     public Stream<LongResult> push(@Name("uri") String uri, @Name("key") Object key, @Name("value") List<Object> values, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return withConnection(uri, config, connection -> Stream.of(new LongResult(connection.push(key, values))));
     }

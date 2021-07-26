@@ -3,7 +3,7 @@ package apoc.redis;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 
-abstract public class RedisConnection<T> implements IRedisConnection<T> {
+abstract class RedisConnection<T> implements IRedisConnection<T> {
     protected final RedisClient client;
     protected final RedisConfig conf;
     

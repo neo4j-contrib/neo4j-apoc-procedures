@@ -34,6 +34,7 @@ import static org.junit.Assume.assumeTrue;
 public class RedisTest {
     private static final String PASSWORD = "SUPER_SECRET";
     private static final int REDIS_DEFAULT_PORT = 6379;
+    private static final String REDIS_VERSION = "6.2.3";
     
     private static int BEFORE_CONNECTION = 0;
     private static String URI;
@@ -48,7 +49,7 @@ public class RedisTest {
     public static void beforeClass() {
         assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
-            redis = new GenericContainer("redis:6.2.3")
+            redis = new GenericContainer("redis:" + REDIS_VERSION)
                     .withCommand("redis-server --requirepass " + PASSWORD)
                     .withExposedPorts(REDIS_DEFAULT_PORT);
             redis.start();
@@ -86,11 +87,11 @@ public class RedisTest {
     public void testStringsCommands() {
         Map<String, Object> config = map("codec", codec);
         Object key = getByCodec("myKey");
-        TestUtil.testCall(db, "CALL apoc.redis.setGet($uri, $key, $myValue, $config)", 
+        TestUtil.testCall(db, "CALL apoc.redis.getSet($uri, $key, $myValue, $config)", 
                 map("uri", URI, "key", key, "myValue", getByCodec("myValue"), "config", config),
                 r -> assertNull(r.get("value")));
         
-        TestUtil.testCall(db, "CALL apoc.redis.setGet($uri, $key, $myNewValue, $config)", 
+        TestUtil.testCall(db, "CALL apoc.redis.getSet($uri, $key, $myNewValue, $config)", 
                 map("uri", URI, "key", key, "myNewValue", getByCodec("myNewValue"), "config", config),
                 r -> assertEquals("myValue", fromCodec(r.get("value"))));
 
@@ -105,7 +106,7 @@ public class RedisTest {
                 });
 
         // incrby
-        TestUtil.testCall(db, "CALL apoc.redis.setGet($uri, $key, $1, $config)", 
+        TestUtil.testCall(db, "CALL apoc.redis.getSet($uri, $key, $1, $config)", 
                 map("uri", URI, "key", key, "1", getByCodec("1"), "config", config),
                 r -> assertEquals("myNewValue2", fromCodec(r.get("value"))));
 
@@ -221,9 +222,9 @@ public class RedisTest {
     public void testHashesCommands() {
         Map<String, Object> config = map("codec", this.codec);
         Object key = getByCodec("mapKey");
-        Object numberValue = getByCodec("number");
+        Object numberFieldName = getByCodec("number");
         TestUtil.testCall(db, "CALL apoc.redis.hset($uri, $key, $field, $value, $config)",
-                map("uri", URI, "key", key, "field", numberValue, "value", getByCodec("1"), "config", config),
+                map("uri", URI, "key", key, "field", numberFieldName, "value", getByCodec("1"), "config", config),
                 r -> assertEquals(true, r.get("value")));
         
         TestUtil.testCall(db, "CALL apoc.redis.hset($uri, $key, $field, $value, $config)",
@@ -233,21 +234,25 @@ public class RedisTest {
         TestUtil.testCall(db, "CALL apoc.redis.hset($uri, $key, $field, $value, $config)",
                 map("uri", URI, "key", key, "field", getByCodec("gamma"), "value", getByCodec("delta"), "config", config),
                 r -> assertEquals(true, r.get("value")));
+        
+        TestUtil.testCall(db, "CALL apoc.redis.hset($uri, $key, $field, $value, $config)",
+                map("uri", URI, "key", key, "field", getByCodec("gamma"), "value", getByCodec("epsilon"), "config", config),
+                r -> assertEquals(false, r.get("value")));
 
         TestUtil.testCall(db, "CALL apoc.redis.hdel($uri, $mapKey, $fields, $config)",
                 map("uri", URI, "fields", getListByCodec(List.of("alpha", "gamma")), "mapKey", key, "config", config),
                 r -> assertEquals(2L, r.get("value")));
 
         TestUtil.testCall(db, "CALL apoc.redis.hexists($uri, $mapKey, $value, $config)",
-                map("uri", URI, "value", numberValue, "mapKey", key, "config", config),
+                map("uri", URI, "value", numberFieldName, "mapKey", key, "config", config),
                 r -> assertEquals(true, r.get("value")));
 
         TestUtil.testCall(db, "CALL apoc.redis.hget($uri, $mapKey, $value, $config)",
-                map("uri", URI, "value", numberValue, "mapKey", key, "config", config),
+                map("uri", URI, "value", numberFieldName, "mapKey", key, "config", config),
                 r -> assertEquals("1", fromCodec(r.get("value"))));
 
         TestUtil.testCall(db, "CALL apoc.redis.hincrby($uri, $mapKey, $value, 3, $config)",
-                map("uri", URI, "mapKey", key, "value", numberValue, "config", config),
+                map("uri", URI, "mapKey", key, "value", numberFieldName, "config", config),
                 r -> assertEquals(4L, r.get("value")));
 
         TestUtil.testCall(db, "CALL apoc.redis.hgetall($uri, $mapKey, $config)",
@@ -263,13 +268,17 @@ public class RedisTest {
     @Test
     public void testEvalCommand() {
         Object keyEval = getByCodec("testEval");
-        TestUtil.testCall(db, "CALL apoc.redis.setGet($uri, $keyEval, $valueEval, $config)",
+        TestUtil.testCall(db, "CALL apoc.redis.getSet($uri, $keyEval, $valueEval, $config)",
                 map("uri", URI, "keyEval", keyEval, "valueEval", getByCodec("valueEval"), "config", map("codec", codec)), 
                 r -> assertNull(r.get("value")));
-        
-        TestUtil.testCall(db, "CALL apoc.redis.eval($uri, 'return redis.call(\"get\", KEYS[1])', 'VALUE', [$keyEval], [$keyName], $config)", 
-                map("uri", URI, "keyEval", keyEval, "keyName", getByCodec("key:name"), "config", map("codec", codec)),
-                r -> assertEquals("valueEval", fromCodec(r.get("value"))));
+
+        TestUtil.testCall(db, "CALL apoc.redis.eval($uri, 'return redis.call(\"set\", KEYS[1], ARGV[1])', 'VALUE', [$keyEval], [$keyName], $config)",
+                map("uri", URI, "keyEval", getByCodec("testEval"), "keyName", getByCodec("key:name"), "config", map("codec", codec)),
+                r -> assertEquals("OK", fromCodec(r.get("value"))));
+
+        TestUtil.testCall(db, "CALL apoc.redis.eval($uri, 'return redis.call(\"get\", KEYS[1])', 'VALUE', [$keyEval], [], $config)",
+                map("uri", URI, "keyEval", getByCodec("testEval"), "keyName", getByCodec("key:name"), "config", map("codec", codec)),
+                r -> assertEquals("key:name", fromCodec(r.get("value"))));
     }
 
     @Test
@@ -277,7 +286,7 @@ public class RedisTest {
         Map<String, Object> config = map("codec", this.codec);
         Object from = getByCodec("from");
         Object to = getByCodec("to");
-        TestUtil.testCall(db, "CALL apoc.redis.setGet($uri, $from, $one, $config)",
+        TestUtil.testCall(db, "CALL apoc.redis.getSet($uri, $from, $one, $config)",
                 map("uri", URI, "from", from, "one", getByCodec("one"), "config", config),
                 r -> assertNull(r.get("value")));
 
@@ -301,7 +310,7 @@ public class RedisTest {
                 map("uri", URI, "to", to, "config", config),
                 r -> {
                     final long value = (long) r.get("value");
-                    assertTrue( value <= 9999L && value > 0L);
+                    assertTrue( value <= 9999L && value >= 0L);
                 });
 
         TestUtil.testCall(db, "CALL apoc.redis.persist($uri, $to, $config)",
@@ -317,7 +326,7 @@ public class RedisTest {
     public void testServersCommand() {
         TestUtil.testCall(db, "CALL apoc.redis.info($uri, $config)",
                 map("uri", URI, "config", map("codec", codec)),
-                r -> assertTrue(((String) r.get("value")).contains("redis_version:6.2.3")));
+                r -> assertTrue(((String) r.get("value")).contains("redis_version:" + REDIS_VERSION)));
 
         final String keyConfig = "slowlog-max-len";
         TestUtil.testCall(db, "CALL apoc.redis.configGet($uri, $keyConfig, $config)",

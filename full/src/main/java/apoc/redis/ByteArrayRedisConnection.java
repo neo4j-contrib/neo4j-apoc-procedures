@@ -30,7 +30,7 @@ public class ByteArrayRedisConnection extends RedisConnection<byte[]> {
     }
 
     @Override
-    public byte[] setGet(byte[] key, byte[] value) {
+    public byte[] getSet(byte[] key, byte[] value) {
         return this.commands.setGet(key, value);
     }
 

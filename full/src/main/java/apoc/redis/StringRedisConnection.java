@@ -30,7 +30,7 @@ public class StringRedisConnection extends RedisConnection<String> {
     }
     
     @Override
-    public String setGet(String key, String value) {
+    public String getSet(String key, String value) {
         return this.commands.setGet(key, value);
     }
 

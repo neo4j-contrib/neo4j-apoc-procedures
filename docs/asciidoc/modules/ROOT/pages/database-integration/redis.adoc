@@ -27,10 +27,10 @@ Here is a list of all available Redis procedures:
 ¦apoc.redis.pexpire¦apoc.redis.pexpire(uri :: STRING?, key :: STRING?, time :: INTEGER?, config = {} :: MAP?) :: (value :: BOOLEAN?)¦apoc.redis.pexpire(uri, key, time, isExpireAt \{config}) | Execute the 'PEXPIRE key time' command, or the 'PEPXPIREAT' if isExpireAt=true
 ¦apoc.redis.pop¦apoc.redis.pop(uri :: STRING?, key :: STRING?, config = {} :: MAP?) :: (value :: STRING?)¦apoc.redis.pop(uri, key, \{config}) | Execute the 'LPOP key' command, or the 'RPOP' if config right=true (default)
 ¦apoc.redis.pttl¦apoc.redis.pttl(uri :: STRING?, key :: STRING?, config = {} :: MAP?) :: (value :: INTEGER?)¦apoc.redis.pttl(uri, key, \{config}) | Execute the 'PTTL key' command
-¦apoc.redis.push¦apoc.redis.push(uri :: STRING?, key :: STRING?, value :: LIST? OF STRING?, config = {} :: MAP?) :: (value :: INTEGER?)¦apoc.redis.push(uri, key, values, \{config}) | Execute the 'LPUSH key field values' command, or the 'LPUSH' if config right=true (default)
+¦apoc.redis.push¦apoc.redis.push(uri :: STRING?, key :: STRING?, value :: LIST? OF STRING?, config = {} :: MAP?) :: (value :: INTEGER?)¦apoc.redis.push(uri, key, values, \{config}) | Execute the 'LPUSH key field values' command, or the 'RPUSH' if config right=true (default)
 ¦apoc.redis.sadd¦apoc.redis.sadd(uri :: STRING?, key :: STRING?, members :: LIST? OF STRING?, config = {} :: MAP?) :: (value :: INTEGER?)¦apoc.redis.sadd(uri, key, members, \{config}) | Execute the 'SADD key members' command
 ¦apoc.redis.scard¦apoc.redis.scard(uri :: STRING?, key :: STRING?, config = {} :: MAP?) :: (value :: INTEGER?)¦apoc.redis.scard(uri, key, \{config}) | Execute the 'SCARD key' command
-¦apoc.redis.setGet¦apoc.redis.setGet(uri :: STRING?, key :: STRING?, value :: STRING?, config = {} :: MAP?) :: (value :: STRING?)¦apoc.redis.setGet(uri, key, value, \{config}) | Execute the 'SET key value' command and return old value stored (or null if did not exists)
+¦apoc.redis.getSet¦apoc.redis.getSet(uri :: STRING?, key :: STRING?, value :: STRING?, config = {} :: MAP?) :: (value :: STRING?)¦apoc.redis.getSet(uri, key, value, \{config}) | Execute the 'SET key value' command and return old value stored (or null if did not exists)
 ¦apoc.redis.smembers¦apoc.redis.smembers(uri :: STRING?, key :: STRING?, config = {} :: MAP?) :: (value :: LIST? OF ANY?)¦apoc.redis.smembers(uri, key, \{config}) | Execute the 'SMEMBERS key' command
 ¦apoc.redis.spop¦apoc.redis.spop(uri :: STRING?, key :: STRING?, config = {} :: MAP?) :: (value :: STRING?)¦apoc.redis.spop(uri, key, \{config}) | Execute the 'SPOP key' command
 ¦apoc.redis.sunion¦apoc.redis.sunion(uri :: STRING?, keys :: LIST? OF STRING?, config = {} :: MAP?) :: (value :: LIST? OF ANY?)¦apoc.redis.sunion(uri, keys, \{config}) | Execute the 'SUNION keys' command
@@ -85,7 +85,7 @@ Let's see some examples divided by command category.
 
 [source,cypher]
 ----
-CALL apoc.redis.setGet($uri, 'myKey', 'myValue')
+CALL apoc.redis.getSet($uri, 'myKey', 'myValue')
 ----
 
 .Results
@@ -99,7 +99,7 @@ Or with codec: `BYTE_ARRAY`:
 
 [source,cypher]
 ----
-CALL apoc.redis.setGet($uri, `BYTES_KEY`, `BYTES_VALUE`, {codec: "BYTE_ARRAY"})
+CALL apoc.redis.getSet($uri, `BYTES_KEY`, `BYTES_VALUE`, {codec: "BYTE_ARRAY"})
 ----
 
 .Results
