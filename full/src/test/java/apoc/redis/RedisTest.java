@@ -19,16 +19,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.isRunningInCI;
+import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 @RunWith(Parameterized.class)
 public class RedisTest {
@@ -312,10 +315,11 @@ public class RedisTest {
                     final long value = (long) r.get("value");
                     assertTrue( value <= 9999L && value >= 0L);
                 });
-
-        TestUtil.testCall(db, "CALL apoc.redis.persist($uri, $to, $config)",
+        
+        assertEventually(() -> db.executeTransactionally("CALL apoc.redis.persist($uri, $to, $config)",
                 map("uri", URI, "to", to, "config", config),
-                r -> assertEquals(true, r.get("value")));
+                (r) -> r.<Boolean>columnAs("value").next()),
+                value -> value, 20L, TimeUnit.SECONDS);
         
         TestUtil.testCall(db, "CALL apoc.redis.pttl($uri, $to, $config)",
                 map("uri", URI, "to", to, "config", config),
