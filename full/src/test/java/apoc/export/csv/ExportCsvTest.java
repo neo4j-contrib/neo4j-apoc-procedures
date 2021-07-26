@@ -14,20 +14,15 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.testResult;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author mh
@@ -73,7 +68,7 @@ public class ExportCsvTest {
 
     @Test
     public void testExportAllCsvHDFS() throws Exception {
-        String hdfsUrl = String.format("hdfs://localhost:12345/user/%s/all.csv", System.getProperty("user.name"));
+        String hdfsUrl = String.format("%s/user/%s/all.csv", miniDFSCluster.getURI().toString(), System.getProperty("user.name"));
         TestUtil.testCall(db, "CALL apoc.export.csv.all($file,null)", map("file", hdfsUrl),
                 (r) -> {
                     try {
