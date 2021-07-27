@@ -2,4 +2,4 @@
 
 `apoc.redis.push(uri, key, values, \{config}) | Execute the 'LPUSH key field values' command, or the 'RPUSH' if config right=true (default)`
 ¦label:procedure[]
-¦label:apoc-core[]
+¦label:apoc-full[]

@@ -1,5 +1,6 @@
 package apoc.redis;
 
+import apoc.Extended;
 import apoc.result.BooleanResult;
 import apoc.result.ListResult;
 import apoc.result.LongResult;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+@Extended
 public class Redis {
 
     // -- String

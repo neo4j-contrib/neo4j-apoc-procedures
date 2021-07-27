@@ -2,4 +2,4 @@
 
 `apoc.redis.pop(uri, key, \{config}) | Execute the 'LPOP key' command, or the 'RPOP' if config right=true (default)`
 ¦label:procedure[]
-¦label:apoc-core[]
+¦label:apoc-full[]
