@@ -100,7 +100,7 @@ public class ConvertJsonTest {
     public void testJsonPathWithMapFunctions() {
         // apoc.convert.getJsonPropertyMap and apoc.convert.fromJsonMap must fail with "ALWAYS_RETURN_LIST" because should return a Map.
         final Map<String, String> expectedMap = Map.of("_id", "772col2");
-        final String expectedError = "com.fasterxml.jackson.databind.exc.MismatchedInputException: Cannot deserialize instance of `java.util.LinkedHashMap<java.lang.Object,java.lang.Object>` out of START_ARRAY token";
+        final String expectedError = "It's not possible to use ALWAYS_RETURN_LIST option because the conversion should return a Map";
 
         testCall(db, "RETURN apoc.convert.fromJsonMap($json, '$.columns.col2') AS path", Map.of("json", JSON),
                 (row) -> assertEquals(expectedMap, row.get("path")));

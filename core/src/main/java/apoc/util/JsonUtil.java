@@ -119,6 +119,10 @@ public class JsonUtil {
     public static <T> T parse(String json, String path, Class<T> type, List<String> options) {
         if (json==null || json.isEmpty()) return null;
         try {
+            final String listOpt = Option.ALWAYS_RETURN_LIST.name();
+            if (type == Map.class && options != null && options.contains(listOpt)) {
+                throw new RuntimeException("It's not possible to use " + listOpt + " option because the conversion should return a Map");
+            }
             if (path == null || path.isEmpty()) {
                 return OBJECT_MAPPER.readValue(json, type);
             }
