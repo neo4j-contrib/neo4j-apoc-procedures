@@ -5,220 +5,304 @@ import apoc.create.Create;
 import apoc.load.AbstractJdbcTest;
 import apoc.load.Jdbc;
 import apoc.load.LoadCsv;
-import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
-import org.junit.*;
-import org.junit.rules.TestName;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.containers.MySQLContainer;
 
-import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
-import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
-import static apoc.ApocConfig.apocConfig;
-import static apoc.util.TestUtil.*;
+import static apoc.util.TestUtil.getUrlFileName;
+import static apoc.util.TestUtil.isRunningInCI;
+import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testCallEmpty;
+import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 public class VirtualizeTest extends AbstractJdbcTest{
 
     public static final Label PERSON = Label.label("Person");
 
-    private Connection conn;
-
-    @Rule
-    public TestName testName = new TestName();
+    public static JdbcDatabaseContainer mysql;
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_import_file_enabled, true);
 
-    private static final String TEST_WITH_AUTHENTICATION = "WithAuthentication";
-
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, Virtualize.class, Jdbc.class);
-        createPersonTableAndData();
+        TestUtil.registerProcedure(db, Virtualize.class, Jdbc.class, LoadCsv.class, Create.class);
     }
 
-    @After
-    public void tearDown() throws SQLException {
-        conn.close();
-        try {
-            if (testName.getMethodName().endsWith(TEST_WITH_AUTHENTICATION)) {
-                DriverManager.getConnection("jdbc:derby:derbyDB;user=apoc;password=Ap0c!#Db;shutdown=true");
-            } else {
-                DriverManager.getConnection("jdbc:derby:derbyDB;shutdown=true");
-            }
-        } catch (SQLException e) {
-            // DerbyDB shutdown always raise a SQLException, see: http://db.apache.org/derby/docs/10.14/devguide/tdevdvlp20349.html
-            if (((e.getErrorCode() == 45000)
-                    && ("08006".equals(e.getSQLState())))) {
-                // Note that for single database shutdown, the expected
-                // SQL state is "08006", and the error code is 45000.
-            } else {
-                throw e;
-            }
+    @BeforeClass
+    public static void setUpContainer() {
+        assumeFalse(isRunningInCI());
+        TestUtil.ignoreException(() -> {
+            mysql = new MySQLContainer().withInitScript("init_mysql.sql");
+            mysql.start();
+        },Exception.class);
+        assumeNotNull("MySQL container has to exist", mysql);
+        assumeTrue("MySQL must be running", mysql.isRunning());
+    }
+
+    @AfterClass
+    public static void tearDownContainer() {
+        if (mysql != null) {
+            mysql.stop();
         }
-        System.clearProperty("derby.connection.requireAuthentication");
-        System.clearProperty("derby.user.apoc");
     }
 
     @Test
     public void testVirtualizeCSV() throws Exception {
+        final String name = "csv_vr";
+        final String url = getUrlFileName("test.csv").toString();
+        final String desc = "person's details";
+        final String query = "map.name = $name and map.age = $age";
+        List<String> labels = List.of("Person");
+        Map<String, Object> map = Map.of("type", "CSV",
+                "url", url, "query", query,
+                "desc", desc,
+                "labels", labels,
+                "params", Map.of("header", true));
 
-        String vrName = "csv_vr";
-        String url = getUrlFileName("test.csv").toString();
-        String desc = "person's details";
+        final Consumer<Map<String, Object>> assertCatalogContent = (row) -> {
+            assertEquals(name, row.get("name"));
+            assertEquals(url, row.get("url"));
+            assertEquals("CSV", row.get("type"));
+            assertEquals(List.of("Person"), row.get("labels"));
+            assertEquals(desc, row.get("desc"));
+            assertEquals(query, row.get("query"));
+        };
 
+        testCall(db, "CALL apoc.dv.catalog.add($name, $map)",
+                Map.of("name", name, "map", map),
+                assertCatalogContent);
 
-        testCall(db, "call apoc.dv.catalog.add(\"" + vrName + "\",\n" +
-                        "                    { vrType: \"CSV\", url: \"" + url + "\", " +
-                        " query: 'name = {vrp:p_name} and  age = {vrp:p_age} ', " +
-                        " desc: \"" + desc + "\", labels:[\"Person\"], header: true })",
-                (row) -> {
-                    assertEquals(vrName, row.get("name"));
-                    assertEquals(url, row.get("URL"));
-                    assertEquals("CSV", row.get("type"));
-                    assertEquals(new ArrayList<>(List.of("Person")), row.get("labels"));
-                    assertEquals(desc, row.get("desc"));
-                });
-
-        testCall(db, "call apoc.dv.catalog.list() ",
-                (result) -> {
-                    assertEquals(vrName, result.get("name"));
-                    assertEquals(url, result.get("URL"));
-                    assertEquals("CSV", result.get("type"));
-                    assertEquals(new ArrayList<>(List.of("Person")), result.get("labels"));
-                    assertEquals(desc, result.get("desc"));
-                });
+        testCall(db, "CALL apoc.dv.catalog.list()",
+                assertCatalogContent);
 
         String personName = "Rana";
         String personAge = "11";
 
-        testCall(db, "call apoc.dv.query('" + vrName + "' , { p_name: '" + personName + "', p_age: '"  + personAge + "' })",
+        Map<String, Object> queryParams = Map.of("name", personName, "age", personAge);
+        testCall(db, "CALL apoc.dv.query($name, $queryParams)",
+                Map.of("name", name, "queryParams", queryParams),
                 (row) -> {
                     Node node = (Node) row.get("node");
                     assertEquals(personName, node.getProperty("name"));
                     assertEquals(personAge, node.getProperty("age"));
-                    assertEquals(new ArrayList<>(List.of(Label.label("Person"))), node.getLabels());
+                    assertEquals(List.of(Label.label("Person")), node.getLabels());
                 });
 
         String hookNodeName = "node to test linking";
 
-        db.executeTransactionally("create (:Hook { name: '" + hookNodeName + "'})");
+        db.executeTransactionally("create (:Hook {name: $hookNodeName})", Map.of("hookNodeName", hookNodeName));
 
-        testCall(db, "match (hook:Hook) with hook " +
-                        " call apoc.dv.queryAndLink(hook,'LINKED_TO','" + vrName + "' , " +
-                        " { p_name: '" + personName + "', p_age: '"  + personAge + "' }) yield node, relationship " +
-                        " return hook, node, relationship ",
+        final String relType = "LINKED_TO";
+        testCall(db, "MATCH (hook:Hook) WITH hook " +
+                        "CALL apoc.dv.queryAndLink(hook, $relType, $name, $queryParams) yield path " +
+                        "RETURN path ",
+                Map.of("name", name, "queryParams", queryParams, "relType", relType),
                 (row) -> {
-                    Node node = (Node) row.get("node");
+                    Path path = (Path) row.get("path");
+                    Node node = path.endNode();
                     assertEquals(personName, node.getProperty("name"));
                     assertEquals(personAge, node.getProperty("age"));
-                    assertEquals(new ArrayList<>(List.of(Label.label("Person"))), node.getLabels());
+                    assertEquals(List.of(Label.label("Person")), node.getLabels());
 
-                    Node hook = (Node) row.get("hook");
+                    Node hook = path.startNode();
                     assertEquals(hookNodeName, hook.getProperty("name"));
-                    assertEquals(new ArrayList<>(List.of(Label.label("Hook"))), hook.getLabels());
+                    assertEquals(List.of(Label.label("Hook")), hook.getLabels());
 
-                    Relationship relationship = (Relationship) row.get("relationship");
+                    Relationship relationship = path.lastRelationship();
                     assertEquals(hook, relationship.getStartNode());
                     assertEquals(node, relationship.getEndNode());
-
+                    assertEquals(relType, relationship.getType().name());
                 });
 
     }
 
     @Test
     public void testVirtualizeJDBC() throws Exception {
-
         String name = "jdbc_vr";
-        String url = "jdbc:derby:derbyDB";
-        String desc = "persons details";
-        ArrayList<String> personTypesAsStrings = new ArrayList<>(List.of("Person", "Individual", "Human"));
-        ArrayList<Label> personTypesAsLabels = new ArrayList<>(List.of(Label.label("Person"),
-                Label.label("Individual"), Label.label("Human")));
+        String desc = "country details";
+        List<Label> labels = List.of(Label.label("Country"));
+        List<String> labelsAsString = List.of("Country");
+        final String query = "SELECT * FROM country WHERE Name = ?";
+        final String url = mysql.getJdbcUrl() + "?useSSL=false";
+        Map<String, Object> map = Map.of("type", "JDBC",
+                "url", url, "query", query,
+                "desc", desc,
+                "labels", labelsAsString,
+                "params", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword())));
 
-
-        testCall(db, "call apoc.dv.catalog.add('" + name + "', " +
-                        "{ vrType: 'JDBC', url: '" + url + "', query: 'SELECT * FROM PERSON WHERE NAME = {vrp:pname}', " +
-                        " desc: '" + desc + "', labels:['Person','Individual','Human'] })",
+        testCall(db, "CALL apoc.dv.catalog.add($name, $map)",
+                Map.of("name", name, "map", map),
                 (row) -> {
                     assertEquals(name, row.get("name"));
-                    assertEquals("jdbc:derby:derbyDB", row.get("URL"));
+                    assertEquals(url, row.get("url"));
                     assertEquals("JDBC", row.get("type"));
-                    assertEquals(personTypesAsStrings, row.get("labels"));
+                    assertEquals(labelsAsString, row.get("labels"));
                     assertEquals(desc , row.get("desc"));
-                } );
+                });
 
-        testCallEmpty(db, "call apoc.dv.query('" + name + "' , { pname: 'Johanna' })", null);
+        testCallEmpty(db, "CALL apoc.dv.query($name, ['Italy'])", Map.of("name", name));
 
-        String personName = "John";
+        String country = "Netherlands";
+        List<String> queryParams = List.of(country);
 
-        testCall(db, "call apoc.dv.query('" + name + "' , { pname: '" + personName + "' })",
+        testCall(db, "CALL apoc.dv.query($name, $queryParams)",
+                Map.of("name", name, "queryParams", queryParams),
                 (row) -> {
                     Node node = (Node) row.get("node");
-                    assertEquals(personName, node.getProperty("name"));
-                    assertEquals(personTypesAsLabels, node.getLabels());
+                    assertEquals(country, node.getProperty("Name"));
+                    assertEquals(labels, node.getLabels());
                 });
 
         String hookNodeName = "node to test linking";
 
-        db.executeTransactionally("create (:Hook { name: '" + hookNodeName + "'})");
+        db.executeTransactionally("create (:Hook {name: $hookNodeName})", Map.of("hookNodeName", hookNodeName));
 
-        testCall(db, "match (hook:Hook) with hook " +
-                        " call apoc.dv.queryAndLink('" + name + "' , { pname: '" + personName + "' })",
+        final String relType = "LINKED_TO_NEW";
+        testCall(db, "MATCH (hook:Hook) WITH hook " +
+                        "CALL apoc.dv.queryAndLink(hook, $relType, $name, $queryParams) yield path " +
+                        "RETURN path ",
+                Map.of("name", name, "queryParams", queryParams, "relType", relType),
                 (row) -> {
-                    Node node = (Node) row.get("node");
-                    assertEquals(personName, node.getProperty("name"));
-                    assertEquals(personTypesAsLabels, node.getLabels());
+                    Path path = (Path) row.get("path");
+                    Node node = path.endNode();
+                    assertEquals(country, node.getProperty("Name"));
+                    assertEquals(labels, node.getLabels());
 
-                    Node hook = (Node) row.get("hook");
+                    Node hook = path.startNode();
                     assertEquals(hookNodeName, hook.getProperty("name"));
-                    assertEquals(new ArrayList<>(List.of(Label.label("Hook"))), hook.getLabels());
+                    assertEquals(List.of(Label.label("Hook")), hook.getLabels());
 
-                    Relationship relationship = (Relationship) row.get("relationship");
+                    Relationship relationship = path.lastRelationship();
                     assertEquals(hook, relationship.getStartNode());
                     assertEquals(node, relationship.getEndNode());
-
+                    assertEquals(relType, relationship.getType().name());
                 });
-
     }
 
+    @Test
+    public void testVirtualizeJDBCWithParameterMap() throws Exception {
+        String name = "jdbc_vr";
+        String desc = "country details";
+        List<Label> labels = List.of(Label.label("Country"));
+        List<String> labelsAsString = List.of("Country");
+        final String query = "SELECT * FROM country WHERE Name = $name AND HeadOfState = $head_of_state AND Code2 = $CODE2";
+        final String url = mysql.getJdbcUrl() + "?useSSL=false";
+        Map<String, Object> map = Map.of("type", "JDBC",
+                "url", url, "query", query,
+                "desc", desc,
+                "labels", labelsAsString,
+                "params", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword())));
 
-    private void createPersonTableAndData() throws ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        Class.forName("org.apache.derby.jdbc.EmbeddedDriver").getDeclaredConstructor().newInstance(); // The JDBC specification does not recommend calling newInstance(), but adding a newInstance() call guarantees that Derby will be booted on any JVM. See: http://db.apache.org/derby/docs/10.14/devguide/tdevdvlp20349.html
-        if (testName.getMethodName().endsWith(TEST_WITH_AUTHENTICATION)) {
-            System.setProperty("derby.connection.requireAuthentication", "true");
-            System.setProperty("derby.user.apoc", "Ap0c!#Db");
-            conn = DriverManager.getConnection("jdbc:derby:derbyDB;user=apoc;password=Ap0c!#Db;create=true");
-        } else {
-            conn = DriverManager.getConnection("jdbc:derby:derbyDB;create=true");
-        }
-        try { conn.createStatement().execute("DROP TABLE PERSON"); } catch (SQLException se) {/*ignore*/}
-        conn.createStatement().execute("CREATE TABLE PERSON (NAME varchar(50), SURNAME varchar(50), HIRE_DATE DATE, EFFECTIVE_FROM_DATE TIMESTAMP, TEST_TIME TIME, NULL_DATE DATE)");
-        PreparedStatement ps = conn.prepareStatement("INSERT INTO PERSON values(?,null,?,?,?,?)");
-        ps.setString(1, "John");
-        ps.setDate(2, AbstractJdbcTest.hireDate);
-        ps.setTimestamp(3, AbstractJdbcTest.effectiveFromDate);
-        ps.setTime(4, AbstractJdbcTest.time);
-        ps.setNull(5, Types.DATE);
-        int rows = ps.executeUpdate();
-        assertEquals(1, rows);
-        ResultSet rs = conn.createStatement().executeQuery("SELECT NAME, HIRE_DATE, EFFECTIVE_FROM_DATE, TEST_TIME FROM PERSON");
-        assertEquals(true, rs.next());
-        assertEquals("John", rs.getString("NAME"));
-        Assert.assertEquals(AbstractJdbcTest.hireDate.toLocalDate(), rs.getDate("HIRE_DATE").toLocalDate());
-        Assert.assertEquals(AbstractJdbcTest.effectiveFromDate, rs.getTimestamp("EFFECTIVE_FROM_DATE"));
-        Assert.assertEquals(AbstractJdbcTest.time, rs.getTime("TEST_TIME"));
-        assertEquals(false, rs.next());
-        rs.close();
+        testCall(db, "CALL apoc.dv.catalog.add($name, $map)",
+                Map.of("name", name, "map", map),
+                (row) -> {
+                    assertEquals(name, row.get("name"));
+                    assertEquals(url, row.get("url"));
+                    assertEquals("JDBC", row.get("type"));
+                    assertEquals(labelsAsString, row.get("labels"));
+                    assertEquals(desc , row.get("desc"));
+                });
+
+        testCallEmpty(db, "CALL apoc.dv.query($name, {name: 'Italy', head_of_state: '', CODE2: ''})", Map.of("name", name));
+
+        String country = "Netherlands";
+        String code2 = "NL";
+        String headOfState = "Beatrix";
+        Map<String, Object> queryParams = Map.of("name", country, "CODE2", code2, "head_of_state", headOfState);
+
+        testCall(db, "CALL apoc.dv.query($name, $queryParams)",
+                Map.of("name", name, "queryParams", queryParams),
+                (row) -> {
+                    Node node = (Node) row.get("node");
+                    assertEquals(country, node.getProperty("Name"));
+                    assertEquals(labels, node.getLabels());
+                })Neo4jLogStreamTest;
+
+        String hookNodeName = "node to test linking";
+
+        db.executeTransactionally("create (:Hook {name: $hookNodeName})", Map.of("hookNodeName", hookNodeName));
+
+        final String relType = "LINKED_TO_NEW";
+        testCall(db, "MATCH (hook:Hook) WITH hook " +
+                        "CALL apoc.dv.queryAndLink(hook, $relType, $name, $queryParams) yield path " +
+                        "RETURN path ",
+                Map.of("name", name, "queryParams", queryParams, "relType", relType),
+                (row) -> {
+                    Path path = (Path) row.get("path");
+                    Node node = path.endNode();
+                    assertEquals(country, node.getProperty("Name"));
+                    assertEquals(labels, node.getLabels());
+
+                    Node hook = path.startNode();
+                    assertEquals(hookNodeName, hook.getProperty("name"));
+                    assertEquals(List.of(Label.label("Hook")), hook.getLabels());
+
+                    Relationship relationship = path.lastRelationship();
+                    assertEquals(hook, relationship.getStartNode());
+                    assertEquals(node, relationship.getEndNode());
+                    assertEquals(relType, relationship.getType().name());
+                });
+    }
+
+    @Test
+    public void testRemove() {
+        String name = "jdbc_vr";
+        String desc = "country details";
+        List<String> labelsAsString = List.of("Country");
+        final String query = "SELECT * FROM country WHERE Name = $name";
+        final String url = mysql.getJdbcUrl() + "?useSSL=false";
+        Map<String, Object> map = Map.of("type", "JDBC",
+                "url", url, "query", query,
+                "desc", desc,
+                "labels", labelsAsString,
+                "params", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword())));
+
+        db.executeTransactionally("CALL apoc.dv.catalog.add($name, $map)",
+                Map.of("name", name, "map", map));
+        
+        testCallEmpty(db, "CALL apoc.dv.catalog.remove($name)", Map.of("name", name));
+    }
+
+    @Test
+    public void testNameAsKey() {
+        String name = "jdbc_vr";
+        String desc = "country details";
+        List<String> labelsAsString = List.of("Country");
+        final String query = "SELECT * FROM country WHERE Name = $name";
+        final String url = mysql.getJdbcUrl() + "?useSSL=false";
+        Map<String, Object> map = Map.of("type", "JDBC",
+                "url", url, "query", query,
+                "desc", desc,
+                "labels", labelsAsString,
+                "params", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword())));
+
+        db.executeTransactionally("CALL apoc.dv.catalog.add($name, $map)",
+                Map.of("name", name, "map", map));
+        db.executeTransactionally("CALL apoc.dv.catalog.add($name, $map)",
+                Map.of("name", name, "map", map));
+        testResult(db, "CALL apoc.dv.catalog.list()",
+                Map.of(),
+                (result) -> assertEquals(1, result.stream().count()));
     }
 }
