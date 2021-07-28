@@ -279,7 +279,7 @@ public class RedisTest {
                 r -> assertEquals("OK", fromCodec(r.get("value"))));
 
         TestUtil.testCall(db, "CALL apoc.redis.eval($uri, 'return redis.call(\"get\", KEYS[1])', 'VALUE', [$keyEval], [], $config)",
-                map("uri", URI, "keyEval", getByCodec("testEval"), "keyName", getByCodec("key:name"), "config", map("codec", codec)),
+                map("uri", URI, "keyEval", getByCodec("testEval"), "config", map("codec", codec)),
                 r -> assertEquals("key:name", fromCodec(r.get("value"))));
     }
 

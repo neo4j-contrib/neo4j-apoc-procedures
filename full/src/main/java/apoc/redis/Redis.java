@@ -76,7 +76,7 @@ public class Redis {
     }
 
     @Procedure
-    @Description("apoc.redis.hset(uri, key, field, value, {config}) | Execute the 'HSET key field value' command and returns true if is a new field in the hash or false if the field already exists")
+    @Description("apoc.redis.hset(uri, key, field, value, {config}) | Execute the 'HSET key field value' command and returns true if it is a new field in the hash or false if the field already exists")
     public Stream<BooleanResult> hset(@Name("uri") String uri, @Name("key") Object key, @Name("field") Object field, @Name("value") Object value, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return withConnection(uri, config, connection -> Stream.of(new BooleanResult(connection.hset(key, field, value))));
     }
@@ -159,7 +159,7 @@ public class Redis {
 
     // -- Script
     @Procedure
-    @Description("apoc.redis.eval(uri, script, outputType, keys, values, {config}) | Execute the 'EVAL script' command")
+    @Description("apoc.redis.eval(uri, script, outputType, keys, values, {config}) | Execute the 'EVAL script' command. In the parameters provided to the procedure, keys are bound to the KEYS[n] like special array of the Lua script and values are bound to the ARGV[n] like special array of the Lua script.")
     public Stream<ObjectResult> eval(@Name("uri") String uri, @Name("script") String script, @Name("outputType") String outputType, @Name("keys") List<Object> keys, @Name("values") List<Object> values, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return withConnection(uri, config, connection -> Stream.of(new ObjectResult(
                 connection.eval(script, ScriptOutputType.valueOf(outputType), keys, values))));
@@ -167,7 +167,7 @@ public class Redis {
 
     // -- Key
     @Procedure
-    @Description("apoc.redis.copy(uri, source, destination, {config}) | Execute the 'COPY source destination' command")
+    @Description("apoc.redis.copy(uri, source, destination, {config}) | Execute the 'COPY source destination' command and returns true if source was copied and false otherwise")
     public Stream<BooleanResult> copy(@Name("uri") String uri, @Name("source") Object source, @Name("destination") Object destination, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return withConnection(uri, config, connection -> Stream.of(new BooleanResult(connection.copy(source, destination))));
     }

@@ -25,12 +25,12 @@ apoc.redis.configSet(uri, parameter, \{config}) \| Execute the 'CONFIG SET param
 |label:apoc-full[]
 |xref::overview/apoc.redis/apoc.redis.copy.adoc[apoc.redis.copy icon:book[]]
 
-apoc.redis.copy(uri, source, destination, \{config}) \| Execute the 'COPY source destination' command
+apoc.redis.copy(uri, source, destination, \{config}) \| Execute the 'COPY source destination' command and returns true if source was copied and false otherwise
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.redis/apoc.redis.eval.adoc[apoc.redis.eval icon:book[]]
 
-apoc.redis.eval(uri, script, outputType, keys, values, \{config}) \| Execute the 'EVAL script' command
+apoc.redis.eval(uri, script, outputType, keys, values, \{config}) \| Execute the 'EVAL script' command. In the parameters provided to the procedure, keys are bound to the KEYS[n] like special array of the Lua script and values are bound to the ARGV[n] like special array of the Lua script.
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.redis/apoc.redis.exists.adoc[apoc.redis.exists icon:book[]]
@@ -70,7 +70,7 @@ apoc.redis.hincrby(uri, key, field, amount, \{config}) \| Execute the 'HINCRBY k
 |label:apoc-full[]
 |xref::overview/apoc.redis/apoc.redis.hset.adoc[apoc.redis.hset icon:book[]]
 
-apoc.redis.hset(uri, key, field, value, \{config}) \| Execute the 'HSET key field value' command and returns true if is a new field in the hash or false if the field already exists
+apoc.redis.hset(uri, key, field, value, \{config}) \| Execute the 'HSET key field value' command and returns true if it is a new field in the hash or false if the field already exists
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.redis/apoc.redis.incrby.adoc[apoc.redis.incrby icon:book[]]
