@@ -8,5 +8,7 @@ public enum SystemLabels implements Label {
     Procedure,
     Function,
     ApocUuid,
-    ApocTriggerMeta, ApocTrigger
+    ApocTriggerMeta,
+    ApocTrigger,
+    VRCatalog
 }
