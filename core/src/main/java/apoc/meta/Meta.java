@@ -685,12 +685,12 @@ public class    Meta {
     private Map<String, Object> collectNodesMetaData(MetaStats metaStats, Map<Set<String>, Map<String, MetaResult>> metaData, Map<String, Object> relationships) {
         Map<String, Object> nodes = new LinkedHashMap<>();
         Map<String, List<Map<String, Object>>> startNodeNameToRelationshipsMap = new HashMap<>();
-        for (Set<String> entityName : metaData.keySet()) {
-            Map<String, MetaResult> entityData = metaData.get(entityName);
+        for (Set<String> metadataKey : metaData.keySet()) {
+            Map<String, MetaResult> entityData = metaData.get(metadataKey);
             Map<String, Object> entityProperties = new LinkedHashMap<>();
             Map<String, Object> entityRelationships = new LinkedHashMap<>();
             List<String> labels = new LinkedList<>();
-            boolean isNode = true;
+            boolean isNode = metaStats.labels.keySet().stream().anyMatch(metadataKey::contains);
             for (String entityDataKey : entityData.keySet()) {
                 MetaResult metaResult = entityData.get(entityDataKey);
                 if (metaResult.elementType.equals("relationship")) {
@@ -705,11 +705,11 @@ public class    Meta {
                     } else {
                         entityRelationships.put(metaResult.property,
                                 MapUtil.map("direction", "out", "count", metaResult.rightCount, "labels", metaResult.other,
-                                        "properties", ((Map<String, Object>) relationships.get(metaResult.property)).get("properties")));
+                                        "properties", ((Map<String, Object>) relationships.getOrDefault(metaResult.property, Map.of())).get("properties")));
                         metaResult.other.forEach(o -> {
                             Map<String, Object> mirroredRelationship = new LinkedHashMap<>();
                             mirroredRelationship.put(metaResult.property, MapUtil.map("direction", "in", "count", metaResult.leftCount, "labels", new LinkedList<>(Arrays.asList(metaResult.label)) ,
-                                    "properties", ((Map<String, Object>) relationships.get(metaResult.property)).get("properties")));
+                                    "properties", ((Map<String, Object>) relationships.getOrDefault(metaResult.property, Map.of())).get("properties")));
 
                             if (startNodeNameToRelationshipsMap.containsKey(o))
                                 startNodeNameToRelationshipsMap.get(o).add(mirroredRelationship);
@@ -723,7 +723,7 @@ public class    Meta {
                 }
             }
             if (isNode) {
-                String key = getKeyFromEntityName(entityName, Types.NODE.name());
+                String key = getKeyFromEntityName(metadataKey, Types.NODE.name());
                 nodes.put(key, MapUtil.map(
                         "type", "node",
                         "count", metaStats.labels.get(key),
@@ -760,10 +760,10 @@ public class    Meta {
 
     private Map<String, Object> collectRelationshipsMetaData(MetaStats metaStats, Map<Set<String>, Map<String, MetaResult>> metaData) {
         Map<String, Object> relationships = new LinkedHashMap<>();
-        for(Set<String> entityName : metaData.keySet()) {
-            Map<String, MetaResult> entityData = metaData.get(entityName);
+        for(Set<String> metadataKey : metaData.keySet()) {
+            Map<String, MetaResult> entityData = metaData.get(metadataKey);
             Map<String, Object> entityProperties = new LinkedHashMap<>();
-            boolean isRelationship = metaStats.relTypesCount.containsKey(entityName);
+            boolean isRelationship = metaStats.relTypesCount.keySet().stream().anyMatch(metadataKey::contains);
             for (String entityDataKey : entityData.keySet()) {
                 MetaResult metaResult = entityData.get(entityDataKey);
                 if (!metaResult.elementType.equals("relationship")) {
@@ -778,7 +778,7 @@ public class    Meta {
                 }
             }
             if (isRelationship) {
-                String key = getKeyFromEntityName(entityName, Types.RELATIONSHIP.name());
+                String key = getKeyFromEntityName(metadataKey, Types.RELATIONSHIP.name());
                 relationships.put(key, MapUtil.map(
                         "type", "relationship",
                         "count", metaStats.relTypesCount.get(key),
