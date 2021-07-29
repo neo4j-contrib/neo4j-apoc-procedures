@@ -1,4 +1,4 @@
-¦xref::overview/apoc.nlp.azure.keyPhrases/apoc.nlp.azure.keyPhrases.stream.adoc[apoc.nlp.azure.keyPhrases.stream icon:book[]] +
+¦xref::overview/apoc.nlp/apoc.nlp.azure.keyPhrases.stream.adoc[apoc.nlp.azure.keyPhrases.stream icon:book[]] +
 
 `Provides a entity analysis for provided text`
 ¦label:procedure[]

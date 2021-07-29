@@ -2,4 +2,4 @@
 
 `apoc.mongo.update(uri, query, update, $config)` - updates the given documents from the mongodb collection and returns the number of affected documents
 ¦label:procedure[]
-¦label:apoc-core[]
+¦label:apoc-full[]

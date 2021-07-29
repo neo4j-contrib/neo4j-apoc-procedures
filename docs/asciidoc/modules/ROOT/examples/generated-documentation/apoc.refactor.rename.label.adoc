@@ -1,4 +1,4 @@
-¦xref::overview/apoc.refactor.rename/apoc.refactor.rename.label.adoc[apoc.refactor.rename.label icon:book[]] +
+¦xref::overview/apoc.refactor/apoc.refactor.rename.label.adoc[apoc.refactor.rename.label icon:book[]] +
 
 `apoc.refactor.rename.label(oldLabel, newLabel, [nodes]) | rename a label from 'oldLabel' to 'newLabel' for all nodes. If 'nodes' is provided renaming is applied to this set only`
 ¦label:procedure[]

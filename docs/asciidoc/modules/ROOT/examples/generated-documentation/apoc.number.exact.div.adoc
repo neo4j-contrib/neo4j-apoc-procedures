@@ -1,4 +1,4 @@
-¦xref::overview/apoc.number.exact/apoc.number.exact.div.adoc[apoc.number.exact.div icon:book[]] +
+¦xref::overview/apoc.number/apoc.number.exact.div.adoc[apoc.number.exact.div icon:book[]] +
 
 `apoc.number.exact.div(stringA,stringB,[prec],[roundingModel])` - return the division's result of two large numbers
 ¦label:function[]

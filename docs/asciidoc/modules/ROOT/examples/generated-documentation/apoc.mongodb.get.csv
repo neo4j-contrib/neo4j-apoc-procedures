@@ -1,6 +1,6 @@
 ¦Qualified Name¦Type¦Release
-|xref::overview/apoc.mongodb.get/apoc.mongodb.get.adoc[apoc.mongodb.get.byObjectId icon:book[]]
+|xref::overview/apoc.mongodb.get/apoc.mongodb.adoc[apoc.mongodb.get.byObjectId icon:book[]]
 
 apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]

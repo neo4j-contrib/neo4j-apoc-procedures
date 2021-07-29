@@ -191,7 +191,7 @@ apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other 
 
 
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |===
 
 [discrete]
@@ -951,7 +951,7 @@ apoc.data.domain('url_or_email_address') YIELD domain - extract the domain name 
 
 apoc.data.email('email_address') as {personal,user,domain} - extract the personal name, user and domain as a map
 |label:function[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.data/apoc.data.url.adoc[apoc.data.url icon:book[]]
 
 apoc.data.url('url') as {protocol,host,port,path,query,file,anchor,user} \| turn URL into map structure
@@ -1465,27 +1465,27 @@ apoc.load.csvParams('url', {httpHeader: value}, payload, \{config}) YIELD lineNo
 
 apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of all files in folder specified by urlDir or in import folder if urlDir string is empty or not specified
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.directory.async.add.adoc[apoc.load.directory.async.add icon:book[]]
 
 apoc.load.directory.async.add(name, cypher, pattern, urlDir, {}) YIELD name, status, pattern, cypher, urlDir, config, error - Add or replace a folder listener with a specific name, pattern and url directory that execute the specified cypher query when an event is triggered and return listener list
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.directory.async.list.adoc[apoc.load.directory.async.list icon:book[]]
 
 apoc.load.directory.async.list() YIELD name, status, pattern, cypher, urlDir, config, error - List of all folder listeners
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.directory.async.remove.adoc[apoc.load.directory.async.remove icon:book[]]
 
 apoc.load.directory.async.remove(name) YIELD name, status, pattern, cypher, urlDir, config, error - Remove a folder listener by name and return remaining listeners, if any
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.directory.async.removeAll.adoc[apoc.load.directory.async.removeAll icon:book[]]
 
 apoc.load.directory.async.removeAll() - Remove all folder listeners
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.driver.adoc[apoc.load.driver icon:book[]]
 
 apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database
@@ -1792,7 +1792,7 @@ apoc.math.minLong() \| return the minimum value a long can have
 |label:apoc-core[]
 |xref::overview/apoc.math/apoc.math.round.adoc[apoc.math.round icon:book[]]
 
-apoc.math.round(value,[precision],mode=['CEILING','FLOOR','UP','DOWN','HALF_EVEN','HALF_DOWN','HALF_UP','DOWN','UNNECESSARY'])
+apoc.math.round(value,[prec],mode=[CEILING,FLOOR,UP,DOWN,HALF_EVEN,HALF_DOWN,HALF_UP,DOWN,UNNECESSARY])
 |label:function[]
 |label:apoc-core[]
 |===
@@ -1960,32 +1960,32 @@ apoc.model.jdbc('key or url', {schema:'<schema>', write: <true/false>, filters: 
 
 apoc.mongo.aggregate(uri, pipeline, $config) yield value - perform an aggregate operation on mongodb collection
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.mongo/apoc.mongo.count.adoc[apoc.mongo.count icon:book[]]
 
 apoc.mongo.count(uri, query, $config) yield value - perform a count operation on mongodb collection
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.mongo/apoc.mongo.delete.adoc[apoc.mongo.delete icon:book[]]
 
 apoc.mongo.delete(uri, query, $config) - delete the given documents from the mongodb collection and returns the number of affected documents
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.mongo/apoc.mongo.find.adoc[apoc.mongo.find icon:book[]]
 
 apoc.mongo.find(uri, query, $config) yield value - perform a find operation on mongodb collection
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.mongo/apoc.mongo.insert.adoc[apoc.mongo.insert icon:book[]]
 
 apoc.mongo.insert(uri, documents, $config) yield value - inserts the given documents into the mongodb collection
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.mongo/apoc.mongo.update.adoc[apoc.mongo.update icon:book[]]
 
 apoc.mongo.update(uri, query, update, $config) - updates the given documents from the mongodb collection and returns the number of affected documents
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |===
 
 == xref::overview/apoc.mongodb/index.adoc[]
@@ -2022,7 +2022,7 @@ apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false\|true],
 
 apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.mongodb/apoc.mongodb.insert.adoc[apoc.mongodb.insert icon:book[]]
 
 apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection
@@ -2044,22 +2044,22 @@ apoc.mongodb.update(host-or-key,db,collection,query,update) - updates the given 
 
 apoc.monitor.ids() returns the object ids in use for this neo4j instance
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.monitor/apoc.monitor.kernel.adoc[apoc.monitor.kernel icon:book[]]
 
 apoc.monitor.kernel() returns informations about the neo4j kernel
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.monitor/apoc.monitor.store.adoc[apoc.monitor.store icon:book[]]
 
 apoc.monitor.store() returns informations about the sizes of the different parts of the neo4j graph store
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.monitor/apoc.monitor.tx.adoc[apoc.monitor.tx icon:book[]]
 
 apoc.monitor.tx() returns informations about the neo4j transaction manager
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |===
 
 == xref::overview/apoc.neighbors/index.adoc[]
@@ -2456,7 +2456,7 @@ apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cy
 |label:apoc-full[]
 |xref::overview/apoc.periodic/apoc.periodic.submit.adoc[apoc.periodic.submit icon:book[]]
 
-apoc.periodic.submit('name',statement) - submit a one-off background statement
+apoc.periodic.submit('name',statement,params) - submit a one-off background statement; parameter 'params' is optional and can contain query parameters for Cypher statement
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.periodic/apoc.periodic.truncate.adoc[apoc.periodic.truncate icon:book[]]
