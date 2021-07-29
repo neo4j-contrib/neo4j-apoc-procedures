@@ -37,4 +37,5 @@ dependencies {
     compile group: 'org.testcontainers', name: 'mysql', version: testContainersVersion
     compile group: 'org.testcontainers', name: 'postgresql', version: testContainersVersion
     compile group: 'org.testcontainers', name: 'cassandra', version: testContainersVersion
+    
 }
