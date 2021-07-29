@@ -1,4 +1,4 @@
-¦xref::overview/apoc.nlp.gcp.entities/apoc.nlp.gcp.entities.graph.adoc[apoc.nlp.gcp.entities.graph icon:book[]] +
+¦xref::overview/apoc.nlp/apoc.nlp.gcp.entities.graph.adoc[apoc.nlp.gcp.entities.graph icon:book[]] +
 
 `Creates a (virtual) entity graph for provided text`
 ¦label:procedure[]

@@ -1,4 +1,4 @@
-¦xref::overview/apoc.export.json/apoc.export.json.query.adoc[apoc.export.json.query icon:book[]] +
+¦xref::overview/apoc.export/apoc.export.json.query.adoc[apoc.export.json.query icon:book[]] +
 
 `apoc.export.json.query(query,file,{config,...,params:\{params}})` - exports results from the cypher statement as json to the provided file
 ¦label:procedure[]
