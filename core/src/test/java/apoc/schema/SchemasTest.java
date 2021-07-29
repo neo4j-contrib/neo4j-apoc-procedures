@@ -636,7 +636,7 @@ public class SchemasTest {
     }
 
     @Test
-    public void testIndexesWithMultipleLabels() {
+    public void testIndexesWithMultipleLabelsAndRelTypes() {
         db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('fullIdxNode', ['Blah', 'Moon'], ['weightProp', 'anotherProp'])");
         db.executeTransactionally("CALL db.index.fulltext.createRelationshipIndex('fullIdxRel', ['TYPE_1', 'TYPE_2'], ['alpha', 'beta'])");
         awaitIndexesOnline();
