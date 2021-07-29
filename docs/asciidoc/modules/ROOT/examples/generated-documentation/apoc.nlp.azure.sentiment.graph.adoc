@@ -1,4 +1,4 @@
-¦xref::overview/apoc.nlp.azure.sentiment/apoc.nlp.azure.sentiment.graph.adoc[apoc.nlp.azure.sentiment.graph icon:book[]] +
+¦xref::overview/apoc.nlp/apoc.nlp.azure.sentiment.graph.adoc[apoc.nlp.azure.sentiment.graph icon:book[]] +
 
 `Creates a (virtual) sentiment graph for provided text`
 ¦label:procedure[]

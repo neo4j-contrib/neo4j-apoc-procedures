@@ -1,4 +1,4 @@
-¦xref::overview/apoc.node.relationships/apoc.node.relationships.exist.adoc[apoc.node.relationships.exist icon:book[]] +
+¦xref::overview/apoc.node/apoc.node.relationships.exist.adoc[apoc.node.relationships.exist icon:book[]] +
 
 `apoc.node.relationships.exist(node, rel-direction-pattern)` - returns a map with rel-pattern, boolean for the given relationship patterns
 ¦label:function[]

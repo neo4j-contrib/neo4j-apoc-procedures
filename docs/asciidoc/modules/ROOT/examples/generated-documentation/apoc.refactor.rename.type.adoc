@@ -1,4 +1,4 @@
-¦xref::overview/apoc.refactor.rename/apoc.refactor.rename.type.adoc[apoc.refactor.rename.type icon:book[]] +
+¦xref::overview/apoc.refactor/apoc.refactor.rename.type.adoc[apoc.refactor.rename.type icon:book[]] +
 
 `apoc.refactor.rename.type(oldType, newType, [rels], \{config}) | rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only`
 ¦label:procedure[]
