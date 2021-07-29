@@ -46,6 +46,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetTime;
 import java.time.ZonedDateTime;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,6 +68,9 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
+import static java.lang.String.format;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonMap;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_LABEL;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 
@@ -536,11 +540,20 @@ public class Meta {
     public Stream<MapResult> schema(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         MetaStats metaStats = collectStats();
         MetaConfig metaConfig = new MetaConfig(config);
-        Map<String, Map<String, MetaResult>> metaData = collectMetaData(new DatabaseSubGraph(transaction), metaConfig);
+        Map<Set<String>, Map<String, MetaResult>> metaData = collectMetaData(new DatabaseSubGraph(transaction), metaConfig);
 
         Map<String, Object> relationships = collectRelationshipsMetaData(metaStats, metaData);
         Map<String, Object> nodes = collectNodesMetaData(metaStats, metaData, relationships);
-
+        final Collection<String> commonKeys = CollectionUtils.intersection(nodes.keySet(), relationships.keySet());
+        if (!commonKeys.isEmpty()) {
+            relationships = relationships.entrySet().stream()
+                    .map(e -> { 
+                        final String key = e.getKey();
+                        return commonKeys.contains(key)
+                                ? new AbstractMap.SimpleEntry<>(format("%s (%s)", key, Types.RELATIONSHIP.name()), e.getValue())
+                                : e;
+                    }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
         nodes.putAll(relationships);
         return Stream.of(new MapResult(nodes));
     }
@@ -653,21 +666,22 @@ public class Meta {
 
     // End new code
 
-    private Map<String, Map<String, MetaResult>> collectMetaData(SubGraph graph, MetaConfig config) {
-        Map<String,Map<String,MetaResult>> metaData = new LinkedHashMap<>(100);
+    private Map<Set<String>, Map<String, MetaResult>> collectMetaData(SubGraph graph, MetaConfig config) {
+        Map<Set<String>, Map<String,MetaResult>> metaData = new LinkedHashMap<>(100);
 
         Set<RelationshipType> types = Iterables.asSet(graph.getAllRelationshipTypesInUse());
         Map<String, Iterable<ConstraintDefinition>> relConstraints = new HashMap<>(20);
         Map<String, Set<String>> relIndexes = new HashMap<>();
         for (RelationshipType type : graph.getAllRelationshipTypesInUse()) {
-            metaData.put(type.name(), new LinkedHashMap<>(10));
+            metaData.put(Set.of(Types.RELATIONSHIP.name(), type.name()), new LinkedHashMap<>(10));
             relConstraints.put(type.name(),graph.getConstraints(type));
             relIndexes.put(type.name(), getIndexedProperties(graph.getIndexes(type)));
         }
         for (Label label : graph.getAllLabelsInUse()) {
             Map<String,MetaResult> nodeMeta = new LinkedHashMap<>(50);
             String labelName = label.name();
-            metaData.put(labelName, nodeMeta);
+            // workaround in case of duplicated keys
+            metaData.put(Set.of(Types.NODE.name(), labelName), nodeMeta);
             Iterable<ConstraintDefinition> constraints = graph.getConstraints(label);
             Set<String> indexed = getIndexedProperties(graph.getIndexes(label));
             long labelCount = graph.countsForNode(label);
@@ -715,10 +729,10 @@ public class Meta {
         }
     }
 
-    private Map<String, Object> collectNodesMetaData(MetaStats metaStats, Map<String, Map<String, MetaResult>> metaData, Map<String, Object> relationships) {
+    private Map<String, Object> collectNodesMetaData(MetaStats metaStats, Map<Set<String>, Map<String, MetaResult>> metaData, Map<String, Object> relationships) {
         Map<String, Object> nodes = new LinkedHashMap<>();
         Map<String, List<Map<String, Object>>> startNodeNameToRelationshipsMap = new HashMap<>();
-        for (String entityName : metaData.keySet()) {
+        for (Set<String> entityName : metaData.keySet()) {
             Map<String, MetaResult> entityData = metaData.get(entityName);
             Map<String, Object> entityProperties = new LinkedHashMap<>();
             Map<String, Object> entityRelationships = new LinkedHashMap<>();
@@ -756,9 +770,10 @@ public class Meta {
                 }
             }
             if (isNode) {
-                nodes.put(entityName, MapUtil.map(
+                String key = getKeyFromEntityName(entityName, Types.NODE.name());
+                nodes.put(key, MapUtil.map(
                         "type", "node",
-                        "count", metaStats.labels.get(entityName),
+                        "count", metaStats.labels.get(key),
                         "labels", labels,
                         "properties", entityProperties,
                         "relationships", entityRelationships
@@ -790,9 +805,9 @@ public class Meta {
         });
     }
 
-    private Map<String, Object> collectRelationshipsMetaData(MetaStats metaStats, Map<String, Map<String, MetaResult>> metaData) {
+    private Map<String, Object> collectRelationshipsMetaData(MetaStats metaStats, Map<Set<String>, Map<String, MetaResult>> metaData) {
         Map<String, Object> relationships = new LinkedHashMap<>();
-        for(String entityName : metaData.keySet()) {
+        for(Set<String> entityName : metaData.keySet()) {
             Map<String, MetaResult> entityData = metaData.get(entityName);
             Map<String, Object> entityProperties = new LinkedHashMap<>();
             boolean isRelationship = metaStats.relTypesCount.containsKey(entityName);
@@ -811,13 +826,18 @@ public class Meta {
                 }
             }
             if (isRelationship) {
-                relationships.put(entityName, MapUtil.map(
+                String key = getKeyFromEntityName(entityName, Types.RELATIONSHIP.name());
+                relationships.put(key, MapUtil.map(
                         "type", "relationship",
-                        "count", metaStats.relTypesCount.get(entityName),
+                        "count", metaStats.relTypesCount.get(key),
                         "properties", entityProperties));
             }
         }
         return relationships;
+    }
+
+    private String getKeyFromEntityName(Set<String> entityName, String suffix) {
+        return new HashSet<>(entityName).stream().filter(entity -> !entity.equals(suffix)).findFirst().get();
     }
 
     private void addProperties(Map<String, MetaResult> properties, String labelName, Iterable<ConstraintDefinition> constraints, Set<String> indexed, Entity pc, Node node) {
@@ -830,7 +850,7 @@ public class Meta {
         }
     }
 
-    private void addRelationships(Map<String, Map<String, MetaResult>> metaData,
+    private void addRelationships(Map<Set<String>, Map<String, MetaResult>> metaData,
                                   Map<String, MetaResult> nodeMeta,
                                   String labelName,
                                   Node node,
@@ -851,7 +871,7 @@ public class Meta {
                     if (!nodeMeta.containsKey(typeName)) nodeMeta.put(typeName, new MetaResult(labelName,typeName));
 //            int in = node.getDegree(type, Direction.INCOMING);
 
-                    Map<String, MetaResult> typeMeta = metaData.get(typeName);
+                    Map<String, MetaResult> typeMeta = metaData.get(Set.of(typeName, Types.RELATIONSHIP.name()));
                     if (!typeMeta.containsKey(labelName)) typeMeta.put(labelName,new MetaResult(typeName,labelName));
                     MetaResult relMeta = nodeMeta.get(typeName);
                     addOtherNodeInfo(node, labelName, out, type, relMeta , typeMeta, constraints, indexes);
