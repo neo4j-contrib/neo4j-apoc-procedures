@@ -5,6 +5,8 @@ import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.ServerSocket;
 
 public class HdfsTestUtils {
 
@@ -31,16 +33,23 @@ public class HdfsTestUtils {
             return windowsLibDir.getAbsolutePath();
         }
     }
+
+    private static int getFreePort() throws IOException {
+        try (ServerSocket serverSocket = new ServerSocket(0)) {
+            return serverSocket.getLocalPort();
+        }
+    }
     
     public static MiniDFSCluster getLocalHDFSCluster() throws Exception {
     	setHadoopHomeWindows();
     	Configuration conf = new HdfsConfiguration();
     	conf.set("fs.defaultFS", "hdfs://localhost");
 		File hdfsPath = new File(System.getProperty("user.dir") + File.separator + "hadoop" + File.separator + "hdfs");
-		conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, hdfsPath.getAbsolutePath());
+        hdfsPath.setWritable(true);
+        conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, hdfsPath.getAbsolutePath());
 		MiniDFSCluster miniDFSCluster = new MiniDFSCluster.Builder(conf)
-                .nameNodePort(12345)
-                .nameNodeHttpPort(12341)
+                .nameNodePort(getFreePort())
+//                .nameNodeHttpPort(12341)
                 .numDataNodes(1)
                 .storagesPerDatanode(2)
                 .format(true)

@@ -8,7 +8,6 @@ import apoc.export.util.MetaInformation;
 import apoc.export.util.Reporter;
 import apoc.result.ProgressInfo;
 import com.opencsv.CSVWriter;
-import org.apache.commons.lang.StringUtils;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
