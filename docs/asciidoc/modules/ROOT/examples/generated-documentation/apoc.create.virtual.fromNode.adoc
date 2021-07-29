@@ -1,5 +1,4 @@
 ¦xref::overview/apoc.create/apoc.create.virtual.fromNode.adoc[apoc.create.virtual.fromNode icon:book[]] +
 
-
 ¦label:function[]
 ¦label:apoc-core[]
