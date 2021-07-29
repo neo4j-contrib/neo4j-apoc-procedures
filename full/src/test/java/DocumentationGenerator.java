@@ -67,7 +67,7 @@ class DocumentationGenerator {
     }
 
     public List<Row> getRows() {
-         return rows;
+        return rows;
     }
 
     public void writeAllToCsv(Map<String, String> docs, Set<String> extended) {
@@ -314,6 +314,7 @@ class DocumentationGenerator {
             "apoc.cypher.runFile", "apoc.cypher.runFiles", "apoc.cypher.runSchemaFile", "apoc.cypher.runSchemaFiles",
             "apoc.load.json", "apoc.load.jsonParams", "apoc.load.csv", "apoc.import.graphml", "apoc.import.xml", "apoc.load.xml"
     );
+
     private final List<String> writeToFile = Arrays.asList(
             "apoc.export.json.all", "apoc.export.json.data", "apoc.export.json.graph", "apoc.export.json.query",
             "apoc.export.cypher.all", "apoc.export.cypher.data", "apoc.export.cypher.query"
@@ -435,7 +436,7 @@ class DocumentationGenerator {
             String description = "";
 
             if ( parts.length > 0 ) {
-                String.format("`%s`", parts[0]);
+                description = String.format("`%s`", parts[0]);
             }
 
             // @AC
