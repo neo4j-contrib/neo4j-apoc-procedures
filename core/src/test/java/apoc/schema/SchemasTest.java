@@ -654,5 +654,7 @@ public class SchemasTest {
             assertEquals("Index( id=1, name='fullIdxNode', type='GENERAL FULLTEXT', schema=(:Blah:Moon {weightProp, anotherProp}), indexProvider='fulltext-1.0' )", r.get("userDescription"));
             assertFalse(result.hasNext());
         });
+        
+        testCallEmpty(db, "CALL apoc.schema.relationships()", Collections.emptyMap());
     }
 }
