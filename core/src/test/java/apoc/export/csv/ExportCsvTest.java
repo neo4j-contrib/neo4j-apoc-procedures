@@ -447,9 +447,9 @@ public class ExportCsvTest {
                 (r) -> {
                     String data = (String) r.get("data");
                     Map<String, Object> place = Util.fromJson(data.split(System.lineSeparator())[1], Map.class);
-                    assertEquals(12.78D, place.get("latitude"));
-                    assertEquals(56.7D, place.get("longitude"));
-                    assertEquals(1.1D, place.get("height"));
+                    assertEquals(12.78D, (double) place.get("latitude"), 0);
+                    assertEquals(56.7D, (double) place.get("longitude"), 0);
+                    assertEquals(1.1D, (double) place.get("height"), 0);
                 });
 
         db.executeTransactionally("MATCH (n:Position) DETACH DELETE n");
