@@ -44,11 +44,6 @@ apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}
 apoc.cypher.runMany('cypher;\nstatements;',\{params},[{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations
 |label:procedure[]
 |label:apoc-core[]
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runManyReadOnly icon:book[]]
-
-apoc.cypher.runManyReadOnly('cypher;\nstatements;', $params, [{statistics:true,timeout:10}]) - runs each semicolon separated, read-only statement and returns summary - currently no schema operations
-|label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runSchema icon:book[]]
 
 apoc.cypher.runSchema(statement, params) yield value - executes query schema statement with the given parameters

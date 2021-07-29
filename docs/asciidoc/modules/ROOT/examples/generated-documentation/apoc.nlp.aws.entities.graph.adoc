@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.nlp/apoc.nlp.aws.entities.graph.adoc[apoc.nlp.aws.entities.graph icon:book[]] +
 
-
+`Creates a (virtual) entity graph for provided text`
 ¦label:procedure[]
 ¦label:apoc-full[]

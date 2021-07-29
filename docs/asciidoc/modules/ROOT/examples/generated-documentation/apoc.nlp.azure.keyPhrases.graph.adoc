@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.nlp/apoc.nlp.azure.keyPhrases.graph.adoc[apoc.nlp.azure.keyPhrases.graph icon:book[]] +
 
-
+`Provides a entity analysis for provided text`
 ¦label:procedure[]
 ¦label:apoc-core[]
