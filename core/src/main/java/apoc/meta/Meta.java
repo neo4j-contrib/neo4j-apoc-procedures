@@ -159,7 +159,7 @@ public class    Meta {
             if (typeName == null) {
                 return STRING;
             }
-            typeName = typeName.toUpperCase();
+            typeName = typeName.toUpperCase().replace("_", "");
             for (Types type : values()) {
                 final String name = type.name().replace("_", "");
                 // check, e.g. both "LOCAL_DATE_TIME" and "LOCALDATETIME"
