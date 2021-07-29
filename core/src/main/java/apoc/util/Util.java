@@ -7,7 +7,7 @@ import apoc.export.util.CountingInputStream;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
 
 import java.io.BufferedWriter;
