@@ -451,7 +451,6 @@ public class ExportCsvTest {
                     assertEquals(56.7D, (double) place.get("longitude"), 0);
                     assertEquals(1.1D, (double) place.get("height"), 0);
                 });
-
         db.executeTransactionally("MATCH (n:Position) DETACH DELETE n");
     }
 
