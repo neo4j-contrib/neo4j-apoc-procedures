@@ -114,7 +114,7 @@ public class DateTest {
 
 	@Test 
 	public void testToUnixtimeWithEmptyInput() throws Exception {
-		testCall(db, "RETURN apoc.date.parse(' ','s') AS value", row -> assertNull(row.get("value")));
+		testCall(db, "RETURN apoc.date.parse(' ', 's') AS value", row -> assertNull(row.get("value")));
 	}
 
 	@Test public void testFromUnixtime() throws Exception {
