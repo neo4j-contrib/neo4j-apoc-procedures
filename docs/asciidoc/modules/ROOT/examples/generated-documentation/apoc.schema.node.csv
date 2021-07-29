@@ -1,10 +1,10 @@
 ¦Qualified Name¦Type¦Release
-|xref::overview/apoc.schema.node/apoc.schema.node.adoc[apoc.schema.node.constraintExists icon:book[]]
+|xref::overview/apoc.schema.node/apoc.schema.adoc[apoc.schema.node.constraintExists icon:book[]]
 
 RETURN apoc.schema.node.constraintExists(labelName, propertyNames)
 |label:function[]
 |label:apoc-core[]
-|xref::overview/apoc.schema.node/apoc.schema.node.adoc[apoc.schema.node.indexExists icon:book[]]
+|xref::overview/apoc.schema.node/apoc.schema.adoc[apoc.schema.node.indexExists icon:book[]]
 
 RETURN apoc.schema.node.indexExists(labelName, propertyNames)
 |label:function[]

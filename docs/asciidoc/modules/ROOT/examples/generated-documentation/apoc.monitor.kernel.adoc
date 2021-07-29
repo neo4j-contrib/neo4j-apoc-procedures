@@ -2,4 +2,4 @@
 
 `apoc.monitor.kernel() returns informations about the neo4j kernel`
 ¦label:procedure[]
-¦label:apoc-core[]
+¦label:apoc-full[]

@@ -18,7 +18,7 @@ class DocumentationGenerator {
     private Map<String, String> docs;
     private final DependencyResolver resolver;
 
-     class Row {
+    class Row {
         private String type;
         private String namespace;
         private String name;
@@ -27,9 +27,14 @@ class DocumentationGenerator {
 
         public Row(String type, String name, String signature, String description) {
             String[] parts = name.split("\\.");
+            int newLength = 2;
+
+            if ( parts.length == 2 ) {
+                newLength = 1;
+            }
 
             this.type = type;
-            this.namespace = String.join(".", Arrays.copyOf(parts, parts.length-1));
+            this.namespace = String.join(".", Arrays.copyOf(parts, newLength));
             this.name = name;
             this.signature = signature;
             this.description = description;
@@ -62,7 +67,7 @@ class DocumentationGenerator {
     }
 
     public List<Row> getRows() {
-         return rows;
+        return rows;
     }
 
     public void writeAllToCsv(Map<String, String> docs, Set<String> extended) {
@@ -309,6 +314,7 @@ class DocumentationGenerator {
             "apoc.cypher.runFile", "apoc.cypher.runFiles", "apoc.cypher.runSchemaFile", "apoc.cypher.runSchemaFiles",
             "apoc.load.json", "apoc.load.jsonParams", "apoc.load.csv", "apoc.import.graphml", "apoc.import.xml", "apoc.load.xml"
     );
+
     private final List<String> writeToFile = Arrays.asList(
             "apoc.export.json.all", "apoc.export.json.data", "apoc.export.json.graph", "apoc.export.json.query",
             "apoc.export.cypher.all", "apoc.export.cypher.data", "apoc.export.cypher.query"
@@ -422,11 +428,16 @@ class DocumentationGenerator {
     private void writeRow(Row row) {
         try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(DocsTest.GENERATED_DOCUMENTATION_DIR, String.format("%s.adoc", row.name))), StandardCharsets.UTF_8)) {
             String releaseType = extended.contains(row.name) ? "full" : "core";
+            Pattern splitBy = Pattern.compile(" (-|\\|) ");
             String[] parts = row.description
                     .replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1")
                     .split(" - ");
 
-            String description = String.format("`%s`", parts[0]);
+            String description = "";
+
+            if ( parts.length > 0 ) {
+                description = String.format("`%s`", parts[0]);
+            }
 
             // @AC
             if ( parts.length > 1 ) {
@@ -436,8 +447,14 @@ class DocumentationGenerator {
                 description = "";
             }
 
+            String link = row.namespace + "/" + row.name;
+
+            if ( row.name.split(".").length == 2  ) {
+                link = row.namespace;
+            }
+
             writer.write(String.format("¦%s\n¦%s\n¦%s\n",
-                    String.format("xref::%s[%s icon:book[]] +\n\n%s", "overview/" + row.namespace + "/" + row.name + ".adoc", row.name, description),
+                    String.format("xref::%s[%s icon:book[]] +\n\n%s", "overview/" + link + ".adoc", row.name, description),
                     String.format("label:%s[]", row.type),
                     String.format("label:apoc-%s[]", releaseType)));
         } catch (Exception e) {

@@ -2,4 +2,4 @@
 
 `apoc.mongo.count(uri, query, $config) yield value` - perform a count operation on mongodb collection
 ¦label:procedure[]
-¦label:apoc-core[]
+¦label:apoc-full[]

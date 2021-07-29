@@ -2,4 +2,4 @@
 
 `apoc.mongo.find(uri, query, $config) yield value` - perform a find operation on mongodb collection
 ¦label:procedure[]
-¦label:apoc-core[]
+¦label:apoc-full[]

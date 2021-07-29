@@ -1,4 +1,4 @@
-¦xref::overview/apoc.export.graphml/apoc.export.graphml.query.adoc[apoc.export.graphml.query icon:book[]] +
+¦xref::overview/apoc.export/apoc.export.graphml.query.adoc[apoc.export.graphml.query icon:book[]] +
 
 `apoc.export.graphml.query(query,file,config)` - exports nodes and relationships from the cypher statement as graphml to the provided file
 ¦label:procedure[]
