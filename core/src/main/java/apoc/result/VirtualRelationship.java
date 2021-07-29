@@ -7,6 +7,7 @@ import org.neo4j.graphdb.RelationshipType;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Arrays.asList;
@@ -45,12 +46,8 @@ public class VirtualRelationship implements Relationship {
     }
 
     public static void validateNodes(Node startNode, Node endNode) {
-        if (startNode == null) {
-            throw new RuntimeException(ERROR_START_NODE_NULL);
-        }
-        if (endNode == null) {
-            throw new RuntimeException(ERROR_END_NODE_NULL);
-        }
+        Objects.requireNonNull(startNode, ERROR_START_NODE_NULL);
+        Objects.requireNonNull(endNode, ERROR_END_NODE_NULL);
     }
 
     @Override

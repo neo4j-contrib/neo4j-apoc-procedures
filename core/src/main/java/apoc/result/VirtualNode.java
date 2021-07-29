@@ -41,9 +41,7 @@ public class VirtualNode implements Node {
     }
 
     public VirtualNode(Node node, List<String> propertyNames) {
-        if (node == null) {
-            throw new RuntimeException(ERROR_NODE_NULL);
-        }
+        Objects.requireNonNull(node, ERROR_NODE_NULL);
         this.id = node.getId();
         this.labels.addAll(Util.labelStrings(node));
         String[] keys = propertyNames.toArray(new String[propertyNames.size()]);
