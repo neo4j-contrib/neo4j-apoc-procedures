@@ -163,7 +163,7 @@ public class CypherExtendedTest {
 
     @Test
     public void shouldNotFailWithTransactionErrorWithMapParallel2() {
-        // Flaky test. Sometimes it's green even without `db.beginTx()` modification
+        // Sometimes it was green even without `db.beginTx()` modification
         db.executeTransactionally("UNWIND range(1, 100) as i create (p:Page {title: i})-[:Link]->(p1:Page1)<-[:Link]-(p2:Page2 {title: 'myTitle'})");
         testResult(db, "MATCH (p:Page) WITH collect(p) as pages\n" +
                     "CALL apoc.cypher.mapParallel2(\"MATCH (_)-[:Link]->(p1)<-[:Link]-(p2)\n" +
