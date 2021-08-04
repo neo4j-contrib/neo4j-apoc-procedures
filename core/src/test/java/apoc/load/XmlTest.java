@@ -250,8 +250,12 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlWithNextWordRelsWithBinaryFile() {
-        final String query = "call apoc.import.xml($data, {compression: 'FRAMED_SNAPPY', relType: 'NEXT_WORD', label: 'XmlWord', filterLeadingWhitespace: true}) yield node";
-        final Map<String, Object> config = Map.of("data", fileToBinary(new File(FILE_SHORTENED), CompressionAlgo.FRAMED_SNAPPY.name()));
+        final String query = "CALL apoc.import.xml($data, $config) YIELD node";
+        final String compression = CompressionAlgo.GZIP.name();
+        final Map<String, Object> config = Map.of("data", fileToBinary(new File(FILE_SHORTENED), compression),
+                "config", Map.of("compression", compression, 
+                        "relType", "NEXT_WORD", "label", "XmlWord", "filterLeadingWhitespace", true)
+        );
         commonAssertionsWithNextWordRels(query, config);
     }
 
