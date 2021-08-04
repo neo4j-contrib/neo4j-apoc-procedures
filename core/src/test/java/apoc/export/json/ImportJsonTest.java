@@ -311,8 +311,8 @@ public class ImportJsonTest {
 
             Assert.assertEquals(9, props.size());
             Assert.assertEquals("wgs-84", props.get("place.crs"));
-            Assert.assertEquals(33.46789D, props.get("place.latitude"));
-            Assert.assertEquals(13.1D, props.get("place.longitude"));
+            Assert.assertEquals(13.1D, (double) props.get("place.latitude"), 0);
+            Assert.assertEquals(33.46789D, (double) props.get("place.longitude"), 0);
             Assert.assertFalse(props.containsKey("place"));
         }
     }
