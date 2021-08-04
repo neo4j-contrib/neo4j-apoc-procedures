@@ -51,12 +51,14 @@ import static org.junit.Assert.assertThat;
 
 public class ImportCsvTest {
     public static final String BASE_URL_FILES = "src/test/resources/csv-inputs";
+    private static final ZoneId DEFAULT_TIMEZONE = ZoneId.of("Asia/Tokyo");
     
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_import_file_enabled, true)
             .withSetting(ApocSettings.apoc_export_file_enabled, true)
             .withSetting(GraphDatabaseSettings.allow_file_urls, true)
+            .withSetting(GraphDatabaseSettings.db_temporal_timezone, DEFAULT_TIMEZONE)
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File(BASE_URL_FILES).toPath().toAbsolutePath());
 
     final Map<String, String> testCsvs = Collections
@@ -192,7 +194,7 @@ public class ImportCsvTest {
         TestUtil.testCall(db, "MATCH p=(start:Person)-[rel {foo: 1}]->(end:Person)-[relSecond {foo:2}]->(start) RETURN start, end, rel, relSecond", r-> {
             final Map<String, Object> expectedStart = Map.of("joined", LocalDate.of(2017, 5, 5), 
                     "foo", "Joe Soap", "active", true, 
-                    "date2", ZonedDateTime.of(2018, 5, 10, 12, 30, 0, 0, ZoneId.systemDefault()),
+                    "date2", ZonedDateTime.of(2018, 5, 10, 12, 30, 0, 0, DEFAULT_TIMEZONE),
                     "date1", ZonedDateTime.of(2018, 5, 10, 10, 30, 0, 0, ZoneId.of("Europe/Stockholm")), 
                     "points", 10L, "__csv_id", "1");
             assertEquals(expectedStart, ((NodeEntity) r.get("start")).getAllProperties());

@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.export.json.JsonImporter;
 import apoc.load.util.LoadCsvConfig;
 import apoc.meta.Meta;
 import apoc.util.Util;
@@ -11,21 +10,21 @@ import org.neo4j.values.storable.LocalDateTimeValue;
 import org.neo4j.values.storable.LocalTimeValue;
 import org.neo4j.values.storable.TimeValue;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static apoc.load.util.LoadCsvConfig.DEFAULT_ARRAY_SEP;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.Util.parseCharFromConfig;
 import static java.util.Collections.emptyList;
+import static org.neo4j.configuration.GraphDatabaseSettings.db_temporal_timezone;
 
 public class Mapping {
     public static final Mapping EMPTY = new Mapping("", Collections.emptyMap(), LoadCsvConfig.DEFAULT_ARRAY_SEP, false);
@@ -73,7 +72,8 @@ public class Mapping {
     private Object convertType(String value) {
         if (nullValues.contains(value)) return null;
         if (type == Meta.Types.STRING) return value;
-        final Supplier<ZoneId> timezone = () -> ZoneId.of((String) optionalData.getOrDefault("timezone", ZoneId.systemDefault().getId()));
+
+        final Supplier<ZoneId> timezone = () -> ZoneId.of((String) optionalData.getOrDefault("timezone", apocConfig().getString(db_temporal_timezone.name())));
         switch (type) {
             case POINT:
                 return Util.toPoint(Util.fromJson(value, Map.class), optionalData);
