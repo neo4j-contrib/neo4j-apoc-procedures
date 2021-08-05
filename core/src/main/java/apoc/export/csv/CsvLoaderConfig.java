@@ -15,7 +15,7 @@ public class CsvLoaderConfig {
     private static final String SKIP_LINES = "skipLines";
     private static final String BATCH_SIZE = "batchSize";
     private static final String IGNORE_DUPLICATE_NODES = "ignoreDuplicateNodes";
-    private static final String IGNORE_EMPTY_STRING = "ignoreEmptyString";
+    private static final String IGNORE_BLANK_STRING = "ignoreBlankString";
 
     private static char DELIMITER_DEFAULT = ',';
     private static char ARRAY_DELIMITER_DEFAULT = ';';
@@ -24,7 +24,7 @@ public class CsvLoaderConfig {
     private static int SKIP_LINES_DEFAULT = 1;
     private static int BATCH_SIZE_DEFAULT = 2000;
     private static boolean IGNORE_DUPLICATE_NODES_DEFAULT = false;
-    private static boolean IGNORE_EMPTY_STRING_DEFAULT = false;
+    private static boolean IGNORE_BLANK_STRING_DEFAULT = false;
 
     private final char delimiter;
     private final char arrayDelimiter;
@@ -33,7 +33,7 @@ public class CsvLoaderConfig {
     private final int skipLines;
     private final int batchSize;
     private final boolean ignoreDuplicateNodes;
-    private final boolean ignoreEmptyString;
+    private final boolean ignoreBlankString;
 
     private CsvLoaderConfig(Builder builder) {
         this.delimiter = builder.delimiter;
@@ -43,7 +43,7 @@ public class CsvLoaderConfig {
         this.skipLines = builder.skipLines;
         this.batchSize = builder.batchSize;
         this.ignoreDuplicateNodes = builder.ignoreDuplicateNodes;
-        this.ignoreEmptyString = builder.ignoreEmptyString;
+        this.ignoreBlankString = builder.ignoreBlankString;
     }
 
     public char getDelimiter() {
@@ -72,8 +72,8 @@ public class CsvLoaderConfig {
 
     public boolean getIgnoreDuplicateNodes() { return ignoreDuplicateNodes; }
 
-    public boolean isIgnoreEmptyString() {
-        return ignoreEmptyString;
+    public boolean isIgnoreBlankString() {
+        return ignoreBlankString;
     }
 
     /**
@@ -110,7 +110,7 @@ public class CsvLoaderConfig {
         if (config.get(SKIP_LINES) != null) builder.skipLines((int) config.get(SKIP_LINES));
         if (config.get(BATCH_SIZE) != null) builder.batchSize((int) config.get(BATCH_SIZE));
         if (config.get(IGNORE_DUPLICATE_NODES) != null) builder.ignoreDuplicateNodes((boolean) config.get(IGNORE_DUPLICATE_NODES));
-        if (config.get(IGNORE_EMPTY_STRING) != null) builder.ignoreEmptyString((boolean) config.get(IGNORE_EMPTY_STRING));
+        if (config.get(IGNORE_BLANK_STRING) != null) builder.ignoreBlankString((boolean) config.get(IGNORE_BLANK_STRING));
         return builder.build();
     }
 
@@ -125,7 +125,7 @@ public class CsvLoaderConfig {
         private int skipLines = SKIP_LINES_DEFAULT;
         private int batchSize = BATCH_SIZE_DEFAULT;
         private boolean ignoreDuplicateNodes = IGNORE_DUPLICATE_NODES_DEFAULT;
-        private boolean ignoreEmptyString = IGNORE_EMPTY_STRING_DEFAULT;
+        private boolean ignoreBlankString = IGNORE_BLANK_STRING_DEFAULT;
 
         private Builder() {
         }
@@ -165,8 +165,8 @@ public class CsvLoaderConfig {
             return this;
         }
 
-        public Builder ignoreEmptyString(boolean ignoreEmptyString) {
-            this.ignoreEmptyString = ignoreEmptyString;
+        public Builder ignoreBlankString(boolean ignoreBlankString) {
+            this.ignoreBlankString = ignoreBlankString;
             return this;
         }
 

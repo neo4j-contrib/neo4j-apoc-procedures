@@ -301,7 +301,7 @@ public class ImportCsvTest {
     
     @Test
     public void testEmptyInteger() {
-        TestUtil.testCall(db, "CALL apoc.import.csv([{fileName: 'file:/emptyInteger.csv', labels: ['entity']}], [], {ignoreEmptyString: true})",
+        TestUtil.testCall(db, "CALL apoc.import.csv([{fileName: 'file:/emptyInteger.csv', labels: ['entity']}], [], {ignoreBlankString: true})",
                 r -> assertEquals(3L, r.get("nodes")));
 
         TestUtil.testResult(db, "MATCH (node:Thing) RETURN node ORDER BY node.int_attribute", r -> {

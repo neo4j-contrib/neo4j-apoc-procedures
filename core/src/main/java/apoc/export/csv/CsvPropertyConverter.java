@@ -22,7 +22,7 @@ public class CsvPropertyConverter {
             final Object[] array = list.toArray(prototype);
             entity.setProperty(field.getName(), array);
         } else {
-            if (config.isIgnoreEmptyString() && value instanceof String && StringUtils.isBlank((String) value)) {
+            if (config.isIgnoreBlankString() && value instanceof String && StringUtils.isBlank((String) value)) {
                 return false;
             }
             entity.setProperty(field.getName(), value);
