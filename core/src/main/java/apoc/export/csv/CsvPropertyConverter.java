@@ -1,6 +1,6 @@
 package apoc.export.csv;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Entity;
 
 import java.util.List;
