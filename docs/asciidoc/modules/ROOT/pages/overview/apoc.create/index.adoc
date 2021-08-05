@@ -83,14 +83,14 @@ apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node
 apoc.create.vNodes(['Label'], [{key:value,...}]) returns virtual nodes
 |label:procedure[]
 |label:apoc-core[]
-|xref::overview/apoc.create/apoc.create.vPath.adoc[apoc.create.vPath icon:book[]]
+|xref::overview/apoc.create/apoc.create.clonePathToVirtual.adoc[apoc.create.clonePathToVirtual icon:book[]]
 
-apoc.create.vPath
+apoc.create.clonePathToVirtual
 |label:procedure[]
 |label:apoc-core[]
-|xref::overview/apoc.create/apoc.create.vPaths.adoc[apoc.create.vPaths icon:book[]]
+|xref::overview/apoc.create/apoc.create.clonePathsToVirtual.adoc[apoc.create.clonePathsToVirtual icon:book[]]
 
-apoc.create.vPaths
+apoc.create.clonePathsToVirtual
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.create/apoc.create.vPattern.adoc[apoc.create.vPattern icon:book[]]

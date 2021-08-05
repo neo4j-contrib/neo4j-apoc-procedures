@@ -241,16 +241,16 @@ public class CreateTest {
         db.executeTransactionally("CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baa:Baz {a:'b'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www'}), \n" +
                 "q=(:Omega {alpha: 'beta'})<-[:TEST_3 {aa:'ccc'}]-(:Bar {one:'jjj'})");
         testCall(db, "MATCH p=(a:Test {foo: 7})-[:TEST]->(b:Baa:Baz {a:'b'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www'}) WITH p \n" +
-                        "CALL apoc.create.vPath(p) YIELD path RETURN path",
-                (row) -> assertionsFirstVPath((Path) row.get("path")));
+                        "CALL apoc.create.clonePathToVirtual(p) YIELD path RETURN path",
+                (row) -> assertionsFirstVirtualPath((Path) row.get("path")));
 
         testResult(db, "MATCH p=(a:Test {foo: 7})-[:TEST]->(b:Baa:Baz {a:'b'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www'}), \n" +
-                        "q=(:Omega {alpha: 'beta'})<-[:TEST_3 {aa:'ccc'}]-(:Bar {one:'jjj'}) WITH collect(p)+q as paths \n" +
-                        "CALL apoc.create.vPaths(paths) YIELD path RETURN path",
+                        "q=(:Omega {alpha: 'beta'})<-[:TEST_3 {aa:'ccc'}]-(:Bar {one:'jjj'}) WITH [p, q] as paths \n" +
+                        "CALL apoc.create.clonePathsToVirtual(paths) YIELD path RETURN path",
                 (res) -> {
                     ResourceIterator<Path> paths = res.columnAs("path");
                     Path firstPath = paths.next();
-                    assertionsFirstVPath(firstPath);
+                    assertionsFirstVirtualPath(firstPath);
                     Path secondPath = paths.next();
                     Iterator<Node> nodes = secondPath.nodes().iterator();
                     Node firstNode = nodes.next();
@@ -271,7 +271,7 @@ public class CreateTest {
                 });
     }
 
-    private void assertionsFirstVPath(Path path) {
+    private void assertionsFirstVirtualPath(Path path) {
         Iterator<Node> nodes = path.nodes().iterator();
         Node firstNode = nodes.next();
         assertEquals(List.of(label("Test")), firstNode.getLabels());

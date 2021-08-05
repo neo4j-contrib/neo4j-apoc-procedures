@@ -3,7 +3,6 @@ package apoc.create;
 import apoc.get.Get;
 import apoc.result.*;
 import apoc.util.Util;
-import org.neo4j.graphalgo.impl.util.PathImpl;
 import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.procedure.*;
@@ -222,28 +221,27 @@ public class Create {
     }
 
     @Procedure
-    @Description("apoc.create.vPath")
-    public Stream<PathResult> vPath(@Name("path") Path path) {
-        return Stream.of(createVPath(path));
+    @Description("apoc.create.clonePathToVirtual")
+    public Stream<PathResult> clonePathToVirtual(@Name("path") Path path) {
+        return Stream.of(createVirtualPath(path));
     }
 
     @Procedure
-    @Description("apoc.create.vPaths")
-    public Stream<PathResult> vPaths(@Name("paths") List<Path> paths) {
-        return paths.stream().map(this::createVPath);
+    @Description("apoc.create.clonePathsToVirtual")
+    public Stream<PathResult> clonePathsToVirtual(@Name("paths") List<Path> paths) {
+        return paths.stream().map(this::createVirtualPath);
     }
 
-    private PathResult createVPath(Path path) {
+    private PathResult createVirtualPath(Path path) {
         final Iterable<Relationship> relationships = path.relationships();
         final Node first = path.startNode();
-        PathImpl.Builder builder = new PathImpl.Builder(new VirtualNode(first, Iterables.asList(first.getPropertyKeys())));
+        VirtualPath virtualPath = new VirtualPath(new VirtualNode(first, Iterables.asList(first.getPropertyKeys())));
         for (Relationship rel : relationships) {
             VirtualNode start = VirtualNode.from(rel.getStartNode());
             VirtualNode end = VirtualNode.from(rel.getEndNode());
-            builder = builder.push(VirtualRelationship.from(start, end, rel));
+            virtualPath.addRel(VirtualRelationship.from(start, end, rel));
         }
-        Path build = builder.build();
-        return new PathResult(build);
+        return new PathResult(virtualPath);
     }
 
     private <T extends Entity> T setProperties(T pc, Map<String, Object> p) {
