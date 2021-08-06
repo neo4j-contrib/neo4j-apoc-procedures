@@ -29,9 +29,10 @@ public class VirtualPath implements Path {
 
     public void addRel(Relationship relationship) {
         Objects.requireNonNull(relationship);
+        requireConnected(relationship);
         this.relationships.add(relationship);
     }
-    
+
     @Override
     public Node startNode() {
         return start;
@@ -61,7 +62,7 @@ public class VirtualPath implements Path {
     public Iterable<Node> nodes() {
         List<Node> nodes = new ArrayList<>();
         nodes.add(start);
-        
+
         AtomicReference<Node> currNode = new AtomicReference<>(start);
         final List<Node> otherNodes = relationships.stream().map(rel -> {
             final Node otherNode = rel.getOtherNode(currNode.get());
@@ -77,7 +78,7 @@ public class VirtualPath implements Path {
     public Iterable<Node> reverseNodes() {
         return reversedIterable(nodes());
     }
-    
+
     @Override
     public int length() {
         return relationships.size();
@@ -113,9 +114,22 @@ public class VirtualPath implements Path {
             }
         };
     }
-    
+
     @Override
     public String toString() {
         return Paths.defaultPathToString(this);
+    }
+
+    private void requireConnected(Relationship relationship) {
+        long previousNodeId;
+        Relationship previousRelationship = lastRelationship();
+        if (previousRelationship != null) {
+            previousNodeId = previousRelationship.getEndNodeId();
+        } else {
+            previousNodeId = startNode().getId();
+        }
+        if (relationship.getStartNodeId() != previousNodeId) {
+            throw new IllegalArgumentException("Relationship is not part of current path.");
+        }
     }
 }
