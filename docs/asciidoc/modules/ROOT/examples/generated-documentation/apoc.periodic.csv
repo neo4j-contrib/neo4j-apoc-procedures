@@ -41,7 +41,7 @@ apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cy
 |label:apoc-full[]
 |xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.submit icon:book[]]
 
-apoc.periodic.submit('name',statement) - submit a one-off background statement
+apoc.periodic.submit('name',statement,params) - submit a one-off background statement; parameter 'params' is optional and can contain query parameters for Cypher statement
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.truncate icon:book[]]

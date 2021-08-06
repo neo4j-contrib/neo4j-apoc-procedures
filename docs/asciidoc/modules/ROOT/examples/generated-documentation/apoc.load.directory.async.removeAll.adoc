@@ -2,4 +2,4 @@
 
  - Remove all folder listeners
 ¦label:procedure[]
-¦label:apoc-core[]
+¦label:apoc-full[]

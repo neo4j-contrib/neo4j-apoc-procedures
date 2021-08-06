@@ -2,4 +2,4 @@
 
  - Add or replace a folder listener with a specific name, pattern and url directory that execute the specified cypher query when an event is triggered and return listener list
 ¦label:procedure[]
-¦label:apoc-core[]
+¦label:apoc-full[]

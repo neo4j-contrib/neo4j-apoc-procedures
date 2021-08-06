@@ -2,4 +2,4 @@
 
  - Remove a folder listener by name and return remaining listeners, if any
 ¦label:procedure[]
-¦label:apoc-core[]
+¦label:apoc-full[]
