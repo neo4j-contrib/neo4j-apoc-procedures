@@ -1,4 +1,4 @@
-The examples in this section are based on the following sample graph:
+The example below is based on the following sample graph:
 
 [source,cypher]
 ----
@@ -39,3 +39,15 @@ CALL apoc.meta.stats();
 | labelCount | relTypeCount | propertyKeyCount | nodeCount | relCount | labels                | relTypes                                                                                 | relTypesCount | stats
 | 9          | 5            | 17               | 11        | 9        | {Movie: 9, Person: 2} | {`(:Person)-[:ACTED_IN]->()`: 9, `()-[:ACTED_IN]->(:Movie)`: 9, `()-[:ACTED_IN]->()`: 9} | {ACTED_IN: 9} | {relTypeCount: 5, propertyKeyCount: 17, labelCount: 9, nodeCount: 11, relCount: 9, labels: {Movie: 9, Person: 2}, relTypes: {`(:Person)-[:ACTED_IN]->()`: 9, `()-[:ACTED_IN]->(:Movie)`: 9, `()-[:ACTED_IN]->()`: 9}}
 |===
+
+
+Note that the `relTypesCount` field counts unique patterns (from single label to single label)
+so multi-label nodes will be counted as separate paths.
+For example, with the following dataset with multiple labels `Node` and `Test`:
+
+[source,cypher]
+----
+CREATE (:Node:Test)-[:REL {a: 'b'}]->(:Node {c: 'd'})<-[:REL]-(:Node:Test)
+----
+
+`relTypesCount` will be `{REL: 4}`, otherwise, without label `Test`, it would be `{REL: 2}`.
