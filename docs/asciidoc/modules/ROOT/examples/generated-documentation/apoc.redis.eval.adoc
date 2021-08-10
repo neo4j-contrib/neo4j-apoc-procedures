@@ -1,0 +1,5 @@
+¦xref::overview/apoc.redis/apoc.redis.eval.adoc[apoc.redis.eval icon:book[]] +
+
+`apoc.redis.eval(uri, script, outputType, keys, values, \{config}) | Execute the 'EVAL script' command. In the parameters provided to the procedure, keys are bound to the KEYS[n] like special array of the Lua script and values are bound to the ARGV[n] like special array of the Lua script.`
+¦label:procedure[]
+¦label:apoc-full[]
