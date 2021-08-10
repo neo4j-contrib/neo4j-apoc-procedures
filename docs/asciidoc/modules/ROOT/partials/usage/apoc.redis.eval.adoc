@@ -1,0 +1,42 @@
+We can do through the `apoc.redis.eval` procedure,
+any Lua script executable with the https://redis.io/commands/eval[EVAL command]
+
+In this procedure, the third parameter in the procedure, in this case `VALUE` is the https://lettuce.io/core/release/api/io/lettuce/core/ScriptOutputType.html[ScriptOutputType],
+that is, the return type of Lua script that can be a `BOOLEAN`, `INTEGER`, `STATUS`, `VALUE` or `MULTI`.
+
+The fourth and fifth params, are bound respectively to the `KEYS[n]` and to the `ARGV[n]` like special array of the Lua script.
+
+So, if we have a record with key `testEval` and value `valueEval`,
+we can execute the following query:
+
+[source,cypher]
+----
+CALL apoc.redis.eval($uri, 'return redis.call("set", KEYS[1], ARGV[1])', 'VALUE', ['testEval'], ['key:name'], {})
+----
+
+that is equivalent to a `redis-cli` command `eval "return redis.call('set', KEYS[1], ARGV[1])" 1 testEval key:name`
+and returns
+
+.Results
+[opts="header"]
+|===
+| value
+| "OK"
+|===
+
+
+Or also, we can execute (without `ARGV[n]`):
+
+[source,cypher]
+----
+CALL apoc.redis.eval($uri, 'return redis.call("get", KEYS[1])', 'VALUE', ['testEval'], [], {})
+----
+
+.Results
+[opts="header"]
+|===
+| value         
+| key:name         
+|===
+
+that is equivalent to a `redis-cli` command `eval "return redis.call('get', KEYS[1])" 1 testEval`.
