@@ -1,5 +1,6 @@
 import apoc.ApocSignatures;
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import org.junit.Test;
 import org.neo4j.driver.Session;
@@ -68,8 +69,10 @@ public class StartupTest {
                 assertEquals(sorted(ApocSignatures.FUNCTIONS), functionNames);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
-            fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+            if (TestContainerUtil.isDockerImageAvailable(ex)) {
+                ex.printStackTrace();
+                fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+            }
         }
     }
 
