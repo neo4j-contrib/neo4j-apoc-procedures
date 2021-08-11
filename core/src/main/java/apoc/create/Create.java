@@ -220,6 +220,30 @@ public class Create {
         return Stream.of(new VirtualPathResult(from, rel, to));
     }
 
+    @Procedure
+    @Description("apoc.create.clonePathToVirtual")
+    public Stream<PathResult> clonePathToVirtual(@Name("path") Path path) {
+        return Stream.of(createVirtualPath(path));
+    }
+
+    @Procedure
+    @Description("apoc.create.clonePathsToVirtual")
+    public Stream<PathResult> clonePathsToVirtual(@Name("paths") List<Path> paths) {
+        return paths.stream().map(this::createVirtualPath);
+    }
+
+    private PathResult createVirtualPath(Path path) {
+        final Iterable<Relationship> relationships = path.relationships();
+        final Node first = path.startNode();
+        VirtualPath virtualPath = new VirtualPath(new VirtualNode(first, Iterables.asList(first.getPropertyKeys())));
+        for (Relationship rel : relationships) {
+            VirtualNode start = VirtualNode.from(rel.getStartNode());
+            VirtualNode end = VirtualNode.from(rel.getEndNode());
+            virtualPath.addRel(VirtualRelationship.from(start, end, rel));
+        }
+        return new PathResult(virtualPath);
+    }
+
     private <T extends Entity> T setProperties(T pc, Map<String, Object> p) {
         if (p == null) return pc;
         for (Map.Entry<String, Object> entry : p.entrySet()) {
