@@ -81,8 +81,8 @@ public class ImportJsonTest {
 
                         Assert.assertEquals(9, props.size());
                         Assert.assertEquals("wgs-84", props.get("place.crs"));
-                        Assert.assertEquals(33.46789D, props.get("place.latitude"));
-                        Assert.assertEquals(13.1D, props.get("place.longitude"));
+                        Assert.assertEquals(13.1D, (double) props.get("place.latitude"), 0);
+                        Assert.assertEquals(33.46789D, (double) props.get("place.longitude"), 0);
                         Assert.assertFalse(props.containsKey("place"));
                     }
                 }
@@ -128,7 +128,7 @@ public class ImportJsonTest {
                         Assert.assertEquals(7, props.size());
                         Assert.assertTrue(props.get("place") instanceof PointValue);
                         PointValue point = (PointValue) props.get("place");
-                        final PointValue pointValue = Values.pointValue(CoordinateReferenceSystem.WGS_84, 33.46789D, 13.1D);
+                        final PointValue pointValue = Values.pointValue(CoordinateReferenceSystem.WGS_84, 13.1D, 33.46789D);
                         Assert.assertTrue(point.equals((Point) pointValue));
                         Assert.assertTrue(props.get("born") instanceof LocalDateTime);
 
