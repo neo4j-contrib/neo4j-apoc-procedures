@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 
 import static org.apache.commons.collections4.IterableUtils.reversedIterable;
 
-
 public class VirtualPath implements Path {
 
     private final Node start;
@@ -120,16 +119,24 @@ public class VirtualPath implements Path {
         return Paths.defaultPathToString(this);
     }
 
-    private void requireConnected(Relationship relationship) {
-        long previousNodeId;
-        Relationship previousRelationship = lastRelationship();
-        if (previousRelationship != null) {
-            previousNodeId = previousRelationship.getEndNodeId();
-        } else {
-            previousNodeId = startNode().getId();
-        }
-        if (relationship.getStartNodeId() != previousNodeId) {
-            throw new IllegalArgumentException("Relationship is not part of current path.");
-        }
-    }
+	private void requireConnected(Relationship relationship) {
+		Node previousStartNode;
+		Node previousEndNode;
+		Relationship previousRelationship = lastRelationship();
+		if (previousRelationship != null) {
+			previousStartNode = previousRelationship.getStartNode();
+			previousEndNode = previousRelationship.getEndNode();
+		} else {
+			previousStartNode = startNode();
+			previousEndNode = endNode();
+		}
+        Node startNode = relationship.getStartNode();
+        Node endNode = relationship.getEndNode();
+        if (!startNode.equals(previousStartNode)
+                && !startNode.equals(previousEndNode)
+                && !endNode.equals(previousStartNode)
+                && !endNode.equals(previousEndNode)) {
+			throw new IllegalArgumentException("Relationship is not part of current path.");
+		}
+	}
 }
