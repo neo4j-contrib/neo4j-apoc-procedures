@@ -385,11 +385,11 @@ public class    Meta {
         TokenRead tokenRead = kernelTx.tokenRead();
         Read read = kernelTx.dataRead();
 
-        int labelCount = tokenRead.labelCount();
-        int relTypeCount = tokenRead.relationshipTypeCount();
+        long relTypeCount = Iterables.count(tx.getAllRelationshipTypesInUse());
+        long labelCount = Iterables.count(tx.getAllLabelsInUse());
 
-        Map<String, Long> labelStats = new LinkedHashMap<>(labelCount);
-        Map<String, Long> relStats = new LinkedHashMap<>(2 * relTypeCount);
+        Map<String, Long> labelStats = new LinkedHashMap<>((int) labelCount);
+        Map<String, Long> relStats = new LinkedHashMap<>(2 * (int) relTypeCount);
 
         collectStats(new DatabaseSubGraph(transaction), null, null, new StatsCallback() {
             public void label(int labelId, String labelName, long count) {
