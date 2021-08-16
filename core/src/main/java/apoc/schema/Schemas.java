@@ -38,6 +38,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -157,14 +158,12 @@ public class Schemas {
         List<AssertSchemaResult> result = new ArrayList<>(indexes.size());
 
         for (IndexDefinition definition : schema.getIndexes()) {
-            if (!definition.isNodeIndex())
-                continue;
             if (definition.getIndexType() == IndexType.LOOKUP)
                 continue;
             if (definition.isConstraintIndex())
                 continue;
 
-            String label = Iterables.single(definition.getLabels()).name();
+            Object label = getLabelForAssert(definition, definition.isNodeIndex());
             List<String> keys = new ArrayList<>();
             definition.getPropertyKeys().forEach(keys::add);
 
@@ -199,6 +198,18 @@ public class Schemas {
             }
         }
         return result;
+    }
+
+    private Object getLabelForAssert(IndexDefinition definition, boolean nodeIndex) {
+        if (nodeIndex) {
+            return definition.isMultiTokenIndex()
+                    ? Iterables.stream(definition.getLabels()).map(Label::name).collect(Collectors.toList())
+                    : Iterables.single(definition.getLabels()).name();
+        } else {
+            return definition.isMultiTokenIndex()
+                    ? Iterables.stream(definition.getRelationshipTypes()).map(RelationshipType::name).collect(Collectors.toList())
+                    : Iterables.single(definition.getRelationshipTypes()).name();
+        }
     }
 
     private AssertSchemaResult createSinglePropertyIndex(Schema schema, String lbl, String key) {
@@ -309,6 +320,7 @@ public class Schemas {
             Iterable<IndexDescriptor> indexesIterator;
             Iterable<ConstraintDescriptor> constraintsIterator;
 
+            final Predicate<ConstraintDescriptor> isNodeConstraint = constraint -> !constraint.isRelationshipPropertyExistenceConstraint();
             if (includeLabels.isEmpty()) {
 
                 Iterator<IndexDescriptor> allIndex = schemaRead.indexesGetAll();
@@ -316,23 +328,24 @@ public class Schemas {
                 indexesIterator = getIndexesFromSchema(allIndex,
                         index -> index.schema().entityType().equals(EntityType.NODE)
                                 && Arrays.stream(index.schema().getEntityTokenIds()).noneMatch(id -> {
-                    try {
-                        return excludeLabels.contains(tokenRead.nodeLabelName(id));
-                    } catch (LabelNotFoundKernelException e) {
-                        return false;
-                    }
-                }));
+                            try {
+                                return excludeLabels.contains(tokenRead.nodeLabelName(id));
+                            } catch (LabelNotFoundKernelException e) {
+                                return false;
+                            }
+                        }));
 
                 Iterable<ConstraintDescriptor> allConstraints = () -> schemaRead.constraintsGetAll();
                 constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
+                        .filter(isNodeConstraint)
                         .filter(constraint -> Arrays.stream(constraint.schema().getEntityTokenIds()).noneMatch(id -> {
                             try {
                                 return excludeLabels.contains(tokenRead.nodeLabelName(id));
                             } catch (LabelNotFoundKernelException e) {
                                 return false;
                             }
-                            }))
-                            .collect(Collectors.toList());
+                        }))
+                        .collect(Collectors.toList());
             } else {
                 constraintsIterator = includeLabels.stream()
                         .filter(label -> !excludeLabels.contains(label) && tokenRead.nodeLabel(label) != -1)
@@ -351,15 +364,14 @@ public class Schemas {
                         .collect(Collectors.toList());
             }
 
-
             Stream<IndexConstraintNodeInfo> constraintNodeInfoStream = StreamSupport.stream(constraintsIterator.spliterator(), false)
-                    .filter(constraintDescriptor -> constraintDescriptor.type().equals(org.neo4j.internal.schema.ConstraintType.EXISTS))
+                    .filter(ConstraintDescriptor::isNodePropertyExistenceConstraint)
                     .map(constraintDescriptor -> this.nodeInfoFromConstraintDescriptor(constraintDescriptor, tokenRead))
-                    .sorted(Comparator.comparing(i -> i.label));
+                    .sorted(Comparator.comparing(i -> i.label.toString()));
 
             Stream<IndexConstraintNodeInfo> indexNodeInfoStream = StreamSupport.stream(indexesIterator.spliterator(), false)
                     .map(indexDescriptor -> this.nodeInfoFromIndexDefinition(indexDescriptor, schemaRead, tokenRead))
-                    .sorted(Comparator.comparing(i -> i.label));
+                    .sorted(Comparator.comparing(i -> i.label.toString()));
 
             return Stream.of(constraintNodeInfoStream, indexNodeInfoStream).flatMap(e -> e);
         }
@@ -388,12 +400,16 @@ public class Schemas {
             Iterable<ConstraintDefinition> constraintsIterator;
             Iterable<IndexDescriptor> indexesIterator;
 
+            final Predicate<ConstraintDefinition> isRelConstraint = constraintDefinition ->
+                    constraintDefinition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE);
+
             if(!includeRelationships.isEmpty()) {
                 constraintsIterator = includeRelationships.stream()
                         .filter(type -> !excludeRelationships.contains(type) && tokenRead.relationshipType(type) != TokenConstants.NO_TOKEN)
                         .flatMap(type -> {
                             Iterable<ConstraintDefinition> constraintsForType = schema.getConstraints(RelationshipType.withName(type));
-                            return StreamSupport.stream(constraintsForType.spliterator(), false);
+                            return StreamSupport.stream(constraintsForType.spliterator(), false)
+                                    .filter(isRelConstraint);
                         })
                         .collect(Collectors.toList());
 
@@ -407,6 +423,7 @@ public class Schemas {
             } else {
                 Iterable<ConstraintDefinition> allConstraints = schema.getConstraints();
                 constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
+                        .filter(isRelConstraint)
                         .filter(index -> !excludeRelationships.contains(index.getRelationshipType().name()))
                         .collect(Collectors.toList());
 
@@ -417,11 +434,10 @@ public class Schemas {
             }
 
             Stream<IndexConstraintRelationshipInfo> constraintRelationshipInfoStream = StreamSupport.stream(constraintsIterator.spliterator(), false)
-                    .filter(constraintDefinition -> constraintDefinition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE))
                     .map(this::relationshipInfoFromConstraintDefinition);
 
             Stream<IndexConstraintRelationshipInfo> indexRelationshipInfoStream = StreamSupport.stream(indexesIterator.spliterator(), false)
-                    .map(index -> relationshipInfoFromIndexDescription(index, tokenRead));
+                    .map(index -> relationshipInfoFromIndexDescription(index, tokenRead, schemaRead));
 
             return Stream.of(constraintRelationshipInfoStream, indexRelationshipInfoStream).flatMap(e -> e);
         }
@@ -464,11 +480,21 @@ public class Schemas {
     private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexDescriptor indexDescriptor, SchemaRead schemaRead, TokenNameLookup tokens){
         int[] labelIds = indexDescriptor.schema().getEntityTokenIds();
         int length = labelIds.length;
-        if (length > 1) throw new IllegalStateException("Index with more than one label");
+        final Object labelName;
+        if (length == 0) {
+            labelName = TOKEN_LABEL;
+        } else {
+            final List<String> labels = IntStream.of(labelIds)
+                    .mapToObj(tokens::labelGetName)
+                    .sorted()
+                    .collect(Collectors.toList());
+            labelName = labels.size() > 1 ? labels : labels.get(0);
+        }
         // to handle LOOKUP indexes
-        String labelName = length == 0 ? TOKEN_LABEL : tokens.labelGetName(labelIds[0]);
-        List<String> properties = new ArrayList<>();
-        Arrays.stream(indexDescriptor.schema().getPropertyIds()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
+        List<String> properties = IntStream.of(indexDescriptor.schema().getPropertyIds())
+                .mapToObj(tokens::propertyKeyGetName)
+                .collect(Collectors.toList());
+        
         try {
             return new IndexConstraintNodeInfo(
                     // Pretty print for index name
@@ -498,16 +524,34 @@ public class Schemas {
         }
     }
 
-    private IndexConstraintRelationshipInfo relationshipInfoFromIndexDescription(IndexDescriptor indexDescriptor, TokenNameLookup tokens) {
+    private IndexConstraintRelationshipInfo relationshipInfoFromIndexDescription(IndexDescriptor indexDescriptor, TokenNameLookup tokens, SchemaRead schemaRead) {
         int[] relIds = indexDescriptor.schema().getEntityTokenIds();
         int length = relIds.length;
-        if (length > 1) throw new IllegalStateException("Index with more than one rel type");
         // to handle LOOKUP indexes
-        String relName = length == 0 ? TOKEN_REL_TYPE : tokens.relationshipTypeGetName(relIds[0]);
+        final Object relName;
+        if (length == 0) {
+            relName = TOKEN_REL_TYPE;
+        } else {
+            final List<String> labels = IntStream.of(relIds)
+                    .mapToObj(tokens::relationshipTypeGetName)
+                    .sorted()
+                    .collect(Collectors.toList());
+            relName = labels.size() > 1 ? labels : labels.get(0);
+        }
         final List<String> properties = Arrays.stream(indexDescriptor.schema().getPropertyIds())
                 .mapToObj(tokens::propertyKeyGetName)
                 .collect(Collectors.toList());
-        return new IndexConstraintRelationshipInfo(getSchemaInfoName(relName, properties), relName, properties, "");
+        try {
+            return new IndexConstraintRelationshipInfo(getSchemaInfoName(relName, properties), relName, properties, schemaRead.indexGetState(indexDescriptor).toString());
+        } catch (IndexNotFoundKernelException e) {
+            return new IndexConstraintRelationshipInfo(
+                    // Pretty print for index name
+                    getSchemaInfoName(relName, properties),
+                    relName,
+                    properties,
+                    "NOT_FOUND"
+            );
+        }
     }
 
     /**
