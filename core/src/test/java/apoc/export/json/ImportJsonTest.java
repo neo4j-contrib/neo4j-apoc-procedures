@@ -5,6 +5,7 @@ import apoc.schema.Schemas;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import com.google.common.collect.Iterables;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import junit.framework.TestCase;
@@ -17,6 +18,7 @@ import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.spatial.Point;
 import org.neo4j.test.rule.DbmsRule;
@@ -31,9 +33,9 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR_MSG;
 import static apoc.util.MapUtil.map;
@@ -43,16 +45,15 @@ import static org.junit.Assert.fail;
 import static org.neo4j.driver.internal.util.Iterables.count;
 import static apoc.util.TestUtil.testResult;
 import static java.lang.String.format;
-import static org.junit.Assert.assertFalse;
-import static org.neo4j.driver.internal.util.Iterables.count;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 
 public class ImportJsonTest {
 
-    private static final long NODES_BIG_JSON = 1042L;
+    private static final long NODES_BIG_JSON = 16L;
     private static final long RELS_BIG_JSON = 4L;
     private static File directory = new File("../docs/asciidoc/modules/ROOT/examples/data/exportJSON");
 
@@ -213,35 +214,38 @@ public class ImportJsonTest {
         createConstraints(List.of("Stream", "User", "Game", "Team", "Language"));
 
         String filename = "https://devrel-data-science.s3.us-east-2.amazonaws.com/twitch_all.json";
-        try {
-            TestUtil.testCall(db, "CALL apoc.import.json($file)",
-                    map("file", filename), (r) -> {});
-            fail("Should fail due to timeout exception");
-        } catch (Exception e) {
-            String expectedMsg = "The transaction has been terminated. " +
-                    "Retry your operation in a new transaction, and you should see a successful result. " +
-                    "The transaction has not completed within the specified timeout (dbms.transaction.timeout). You may want to retry with a longer timeout. ";
-            assertRootMessage(expectedMsg, e);
-        }
 
-        testResult(db, "call dbms.listQueries", Collections.emptyMap(), res -> {
-            Map<String, Object> first = res.next();
-            assertEquals("call dbms.listQueries", first.get("query"));
-            assertFalse(res.hasNext());
-        });
+        final String query = "CALL apoc.import.json($file)";
+        new Thread(() -> db.executeTransactionally(query,  map("file", filename))).start();
 
-        restartDb(Duration.ZERO);
+        // waiting for 'apoc.import.json() query to cancel when it is found
+        assertEventually(() -> db.executeTransactionally("call dbms.listQueries() YIELD query, queryId " +
+                        "WHERE query = $query WITH queryId as id CALL dbms.killQuery(id) YIELD queryId RETURN true",
+                map("query", query),
+                result -> {
+                    final ResourceIterator<Boolean> booleanIterator = result.columnAs("true");
+                    return booleanIterator.hasNext() && booleanIterator.next();
+                }), (value) -> value, 10L, TimeUnit.SECONDS);
+
+        // checking for query cancellation
+        assertEventually(() -> db.executeTransactionally("call dbms.listQueries",
+                map("query", query),
+                result -> {
+                    final ResourceIterator<String> queryIterator = result.columnAs("query");
+                    final String first = queryIterator.next();
+                    return first.equals("call dbms.listQueries") && !queryIterator.hasNext();
+                } ), (value) -> value, 10L, TimeUnit.SECONDS);
     }
 
     @Test
     public void shouldImportAllNodesAndRels() {
-        createConstraints(List.of("Stream", "User", "Game", "Team", "Language", "$User", "$Stream"));
+        createConstraints(List.of("FirstLabel", "Stream", "User", "Game", "Team", "Language", "$User", "$Stream"));
         assertEntities(0L, 0L);
 
-        String filename = "big.json";
+        String filename = "multiLabels.json";
         
         TestUtil.testCall(db, "CALL apoc.import.json($file)", 
-                map("file", filename), (r) -> { 
+                map("file", filename), (r) -> {
                     assertEquals(NODES_BIG_JSON, r.get("nodes"));
                     assertEquals(RELS_BIG_JSON, r.get("relationships"));
         });
@@ -250,24 +254,24 @@ public class ImportJsonTest {
     }
     
     @Test
-    public void shouldFailBecauseOfMissingConstraintException() {
+    public void shouldFailBecauseOfMissingSecondConstraintException() {
         String customId = "customId";
-        createConstraints(List.of("Stream", "Game", "$User"), customId);
+        createConstraints(List.of("FirstLabel", "Stream", "Game", "$User"), customId);
         assertEntities(0L, 0L);
 
-        String filename = "big.json";
+        String filename = "multiLabels.json";
         try {
             TestUtil.testCall(db, "CALL apoc.import.json($file, {importIdName: $importIdName})",
                     map("file", filename, "importIdName", customId),
                     (r) -> fail("Should fail due to missing constraint")
             );
         } catch (Exception e) {
-            String expectedMsg = format(MISSING_CONSTRAINT_ERROR_MSG, "Language", customId);
+            String expectedMsg = format(MISSING_CONSTRAINT_ERROR_MSG, "User", customId);
             assertRootMessage(expectedMsg, e);
         }
 
-        // check that only first 2 node created after constraint exception
-        assertEntities(2L, 0L);
+        // check that only 1st node created after constraint exception
+        assertEntities(1L, 0L);
     }
 
     private void assertRootMessage(String expectedMsg, Exception e) {
@@ -287,15 +291,8 @@ public class ImportJsonTest {
 
     private void assertEntities(long expectedNodes, long expectedRels) {
         try (Transaction tx = db.beginTx()) {
-            assertEquals(expectedNodes, count(tx.getAllNodes()));
-            assertEquals(expectedRels, count(tx.getAllRelationships()));
+            assertEquals(expectedNodes, Iterables.size(tx.getAllNodes()));
+            assertEquals(expectedRels, Iterables.size(tx.getAllRelationships()));
         }
-    }
-
-    private void restartDb(Duration value) throws Exception {
-        db.shutdown();
-        db.withSetting(GraphDatabaseSettings.transaction_timeout, value);
-        db.restartDatabase();
-        setUp();
     }
 }

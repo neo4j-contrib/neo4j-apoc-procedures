@@ -124,12 +124,13 @@ public class JsonImporter implements Closeable {
                 "start", startLabels,
                 "end", endLabels,
                 "label", getType(param));
+        List<String> allLabels = Stream.concat(startLabels.stream(), endLabels.stream()).collect(Collectors.toList());
         if (lastRelTypes == null) {
+            checkConstraints(allLabels);
             lastRelTypes = relType;
         }
         if (!relType.equals(lastRelTypes)) {
-            checkConstraints(startLabels);
-            checkConstraints(endLabels);
+            checkConstraints(allLabels);
             flush();
             lastRelTypes = relType;
         }
@@ -138,6 +139,7 @@ public class JsonImporter implements Closeable {
     private void manageNode(Map<String, Object> param) {
         List<String> labels = getLabels(param);
         if (lastLabels == null) {
+            checkConstraints(labels);
             lastLabels = labels;
         }
         if (!labels.equals(lastLabels)) {
@@ -154,11 +156,13 @@ public class JsonImporter implements Closeable {
         try (final Transaction tx = db.beginTx()) {
             final Schema schema = tx.schema();
             final String importIdName = importJsonConfig.getImportIdName();
-            final String label = labels.get(0);
-            final boolean hasConstraints = StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false)
-                    .anyMatch(constraint -> Iterables.contains(constraint.getPropertyKeys(), importIdName));
-            if (!hasConstraints) {
-                throw new RuntimeException(String.format(MISSING_CONSTRAINT_ERROR_MSG, label, importIdName));
+            final String missingConstraint = labels.stream().filter(label -> 
+                    StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false)
+                            .noneMatch(constraint -> Iterables.contains(constraint.getPropertyKeys(), importIdName))
+            ).findAny()
+            .orElse(null);
+            if (missingConstraint != null) {
+                throw new RuntimeException(String.format(MISSING_CONSTRAINT_ERROR_MSG, missingConstraint, importIdName));
             }
         }
     }
