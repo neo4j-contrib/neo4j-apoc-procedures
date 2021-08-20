@@ -242,8 +242,9 @@ public class MultiStatementCypherSubGraphExporter {
                         return null;  // delegate to the constraint creation
                     }
 
+                    boolean isNode = "NODE".equals(map.get("entityType"));
                     if ("FULLTEXT".equals(map.get("type"))) {
-                        if ("NODE".equals(map.get("entityType"))) {
+                        if (isNode) {
                             List<Label> labels = toLabels(tokenNames);
                             return this.cypherFormat.statementForNodeFullTextIndex(name, labels, props);
                         } else {
@@ -253,7 +254,11 @@ public class MultiStatementCypherSubGraphExporter {
                     }
                     // "normal" schema index
                     String tokenName = tokenNames.get(0);
-                    return this.cypherFormat.statementForIndex(tokenName, props);
+                    if (isNode) {
+                        return this.cypherFormat.statementForNodeIndex(tokenName, props);
+                    } else {
+                        return this.cypherFormat.statementForIndexRelationship(tokenName, props);
+                    }
 
                 })
                 .filter(StringUtils::isNotBlank)
