@@ -10,7 +10,6 @@ import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -37,7 +36,6 @@ import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR_MSG;
 import static apoc.util.MapUtil.map;
 import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
@@ -201,7 +199,6 @@ public class ImportJsonTest {
     }
     
     @Test
-    @Ignore("It should only be execute offline")
     public void shouldTerminateImportWhenTransactionIsTimedOut() {
 
         createConstraints(List.of("Stream", "User", "Game", "Team", "Language"));
