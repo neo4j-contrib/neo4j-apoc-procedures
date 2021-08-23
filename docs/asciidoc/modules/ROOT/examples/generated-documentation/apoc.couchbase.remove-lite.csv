@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.couchbase.remove(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?) :: (content :: MAP?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)
+¦apoc.couchbase.remove(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, config = {} :: MAP?) :: (content :: MAP?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)

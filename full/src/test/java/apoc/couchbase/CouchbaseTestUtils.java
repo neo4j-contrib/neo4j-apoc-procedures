@@ -3,12 +3,15 @@ package apoc.couchbase;
 import apoc.couchbase.document.CouchbaseJsonDocument;
 import apoc.util.TestUtil;
 import com.couchbase.client.core.env.SeedNode;
+import com.couchbase.client.core.io.CollectionIdentifier;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.Collection;
 import com.couchbase.client.java.json.JsonArray;
 import com.couchbase.client.java.json.JsonObject;
 import com.couchbase.client.java.env.ClusterEnvironment;
+import com.couchbase.client.java.manager.collection.CollectionManager;
+import com.couchbase.client.java.manager.collection.CollectionSpec;
 import com.couchbase.client.java.query.QueryResult;
 import com.couchbase.client.java.query.QueryScanConsistency;
 import org.testcontainers.couchbase.BucketDefinition;
@@ -18,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static apoc.util.TestUtil.isRunningInCI;
 import static com.couchbase.client.java.ClusterOptions.clusterOptions;
@@ -36,6 +41,11 @@ public class CouchbaseTestUtils {
     public static final String USERNAME = "admin";
     public static final String PASSWORD = "secret";
 
+    public static final String COLL_NAME = "another";
+    public static final String SECOND_COLL_NAME = "anotherTwo";
+    public static final String SECOND_SCOPE = "secondScope";
+
+
     private static final String QUERY = "select * from %s where lastName = 'Van Gogh'";
 
     protected static final String COUCHBASE_CONFIG_KEY = "demo";
@@ -45,6 +55,8 @@ public class CouchbaseTestUtils {
     protected static CouchbaseContainer couchbase;
     protected static Collection collection;
     protected static String HOST = null;
+    
+    public static final JsonObject BIG_JSON = JsonObject.from(IntStream.range(0, 99999).boxed().collect(Collectors.toMap(Object::toString, Object::toString)));
 
     public static final JsonObject VINCENT_VAN_GOGH = JsonObject.create()
             .put("firstName", "Vincent")
@@ -58,6 +70,17 @@ public class CouchbaseTestUtils {
         collection.insert("artist:vincent_van_gogh", VINCENT_VAN_GOGH);
         QueryResult queryResult = cluster.query(String.format(QUERY, BUCKET_NAME),
                 queryOptions().scanConsistency(QueryScanConsistency.REQUEST_PLUS));
+        final CollectionManager collectionManager = couchbaseBucket.collections();
+        collectionManager.createScope(SECOND_SCOPE);
+        collectionManager.createCollection(CollectionSpec.create(COLL_NAME, CollectionIdentifier.DEFAULT_COLLECTION));
+        collectionManager.createCollection(CollectionSpec.create(SECOND_COLL_NAME, SECOND_SCOPE));
+        
+        Collection anotherCollection = couchbaseBucket.collection(COLL_NAME);
+        anotherCollection.insert("foo:bar", JsonObject.create().put("alpha", "beta"));
+        
+        Collection secondScopeCollection = couchbaseBucket.scope(SECOND_SCOPE).collection(SECOND_COLL_NAME);
+        secondScopeCollection.insert(SECOND_SCOPE, JsonObject.create().put("one", "two"));
+        
         return queryResult.rowsAsObject().size() == 1;
     }
 
@@ -113,7 +136,8 @@ public class CouchbaseTestUtils {
     protected static void createCouchbaseContainer() {
         assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
-            couchbase = new CouchbaseContainer()
+            // 7.0 support stably multi collections and scopes
+            couchbase = new CouchbaseContainer("couchbase/server:7.0.0")
                     .withCredentials(USERNAME, PASSWORD)
                     .withBucket(new BucketDefinition(BUCKET_NAME));
             couchbase.start();
