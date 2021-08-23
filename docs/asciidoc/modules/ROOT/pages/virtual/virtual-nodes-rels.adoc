@@ -53,11 +53,14 @@ include::example$generated-documentation/apoc.create.virtualPath.adoc[]
 
 .Virtual node and virtual relationship `vNode`, `vRelationship`
 
-From this simple dataset:
+From this simple data set:
 
 [source,cypher]
 ----
-CREATE(a:Person)-[r:ACTED_IN]->(b:Movie)
+CREATE (from:Account), (to:Account)
+WITH from, to 
+CREATE (from)-[:SENT]->(:Payment {amount: 250})-[:RECEIVED]->(to)
+CREATE (from)-[:SENT]->(:Payment {amount: 750})-[:RECEIVED]->(to)
 ----
 
 we can do:
@@ -71,7 +74,7 @@ RETURN from, to, apoc.create.vRelationship(from,'PAID',{amount:sum(p.amount)},to
 
 image::apoc.create.vRelationship.png[scaledwidth="100%"]
 
-From this simple dataset:
+From this simple data set:
 
 [source,cypher]
 ----
@@ -95,7 +98,6 @@ RETURN countries[cFrom] as from, countries[cTo] as to, apoc.create.vRelationship
 image::apoc.create.vRelationshipTwo.png[scaledwidth="100%"]
 
 That's of course easier with `apoc.nodes.group`.
-
 
 From a simple dataset
 
