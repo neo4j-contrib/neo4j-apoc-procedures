@@ -1,30 +1,30 @@
 package apoc.nodes;
 
 import apoc.util.Util;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class NodesConfig {
 
     public static final String MAX_DEPTH_KEY = "maxDepth";
-    public static final String REL_TYPE_KEY = "relType";
+    public static final String REL_TYPE_KEY = "relTypes";
     
     private final int maxDepth;
-    private final String relType;
+    private final List<String> relTypes;
 
     public NodesConfig(Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
         this.maxDepth = Util.toInteger(config.getOrDefault(MAX_DEPTH_KEY, Integer.MAX_VALUE));
-        this.relType = (String) config.getOrDefault(REL_TYPE_KEY, StringUtils.EMPTY);
+        this.relTypes = (List<String>) config.getOrDefault(REL_TYPE_KEY, Collections.emptyList());
     }
 
     public int getMaxDepth() {
         return maxDepth;
     }
 
-    public String getRelType() {
-        return relType;
+    public List<String> getRelTypes() {
+        return relTypes;
     }
 }

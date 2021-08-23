@@ -11,7 +11,6 @@ import apoc.result.RelationshipResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualPathResult;
 import apoc.util.Util;
-import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphalgo.BasicEvaluationContext;
 import org.neo4j.graphalgo.GraphAlgoFactory;
 import org.neo4j.graphalgo.PathFinder;
@@ -52,7 +51,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -82,17 +80,25 @@ public class Nodes {
     @Description("CALL apoc.nodes.cycles([nodes], 'type', $config) - Detect all path cycles from node list")
     public Stream<PathResult> cycles(@Name("nodes") List<Node> nodes, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         NodesConfig conf = new NodesConfig(config);
-        final String type = conf.getRelType();
+        final List<String> types = conf.getRelTypes();
         Stream<Path> paths = nodes.stream().flatMap(start -> {
-            boolean allRels = StringUtils.isEmpty(type);
-            final RelationshipType relType = RelationshipType.withName(type);
+            boolean allRels = types.isEmpty();
+            final RelationshipType[] relTypes = types.stream().map(RelationshipType::withName).toArray(RelationshipType[]::new);
             final Iterable<Relationship> relationships = allRels
                     ? start.getRelationships(Direction.OUTGOING)
-                    : start.getRelationships(Direction.OUTGOING, relType);
-            final PathExpander<Path> pathExpander = (allRels 
-                    ? PathExpanderBuilder.allTypes(Direction.OUTGOING) 
-                    : PathExpanderBuilder.empty().add(relType, Direction.OUTGOING)
-            ).build();
+                    : start.getRelationships(Direction.OUTGOING, relTypes);
+
+            PathExpanderBuilder expanderBuilder;
+            if (allRels) {
+                expanderBuilder = PathExpanderBuilder.allTypes(Direction.OUTGOING);
+            } else {
+                expanderBuilder = PathExpanderBuilder.empty();
+                for (RelationshipType relType: relTypes) {
+                    expanderBuilder = expanderBuilder.add(relType, Direction.OUTGOING);
+                }
+            }
+            final PathExpander<Path> pathExpander = expanderBuilder.build();
+
             PathFinder<Path> finder = GraphAlgoFactory.shortestPath(
                     new BasicEvaluationContext(tx, db),
                     pathExpander,
@@ -108,17 +114,16 @@ public class Nodes {
                         nodeDups.add(relationship.getEndNodeId());
                         return true;
                     })
-                    .map(relationship -> {
+                    .flatMap(relationship -> {
                         final Path path = finder.findSinglePath(relationship.getEndNode(), start);
-                        if (path == null) return null;
+                        if (path == null) return Stream.empty();
                         PathImpl.Builder builder = new PathImpl.Builder(start)
                                 .push(relationship);
                         for (Relationship relPath : path.relationships()) {
                             builder = builder.push(relPath);
                         }
-                        return builder.build();
-                    })
-                    .filter(Objects::nonNull);
+                        return Stream.of(builder.build());
+                    });
         });
         return paths.map(PathResult::new);
     }

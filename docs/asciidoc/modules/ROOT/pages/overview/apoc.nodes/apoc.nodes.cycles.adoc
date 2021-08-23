@@ -35,5 +35,9 @@ include::partial$usage/config/apoc.nodes.cycles.adoc[]
 |path|PATH?
 |===
 
+[[usage-apoc.nodes.cycles]]
+== Usage Examples
+include::partial$usage/apoc.nodes.cycles.adoc[]
+
 xref::graph-querying/node-querying.adoc[More documentation of apoc.nodes.cycles,role=more information]
 
