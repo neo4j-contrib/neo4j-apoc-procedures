@@ -8,27 +8,50 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.MatchResult;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 public class JDBCResource extends VirtualizedResource {
 
-    private final List<String> parameters;
+    private final String queryParsed;
 
     public JDBCResource(String name, Map<String, Object> config) {
-        super(name, parseQuery(config), "JDBC");
-        parameters = PLACEHOLDER_PATTERN.matcher(query).results()
+        super(Objects.requireNonNull(name, "Field `name` should be defined"),
+                (String) Objects.requireNonNull(config.get("url"), "Field `url` in config should be defined"),
+                (String) Objects.requireNonNull(config.get("desc"), "Field `desc` in config should be defined"),
+                (List<String>) Objects.requireNonNull(config.get("labels"), "Field `labels` in config should be defined"),
+                (String) Objects.requireNonNull(config.get("query"), "Field `query` in config should be defined"),
+                getParameters(config),
+                "JDBC");
+        this.queryParsed = parseQuery(config);
+    }
+
+    private static List<String> getParameters(Map<String, Object> config) {
+        final String query = (String) config.get("query");
+        final long questionMarks = countForQuestionMarks(query);
+        if (questionMarks > 0) {
+            return LongStream.range(0, questionMarks)
+                    .mapToObj(i -> "?")
+                    .collect(Collectors.toList());
+        }
+        return PLACEHOLDER_PATTERN.matcher(query).results()
                 .map(MatchResult::group)
                 .map(String::trim)
-                .map(param -> param.substring(1))
+                .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList());
     }
 
-    private static Map<String, Object> parseQuery(Map<String, Object> config) {
+    private static String parseQuery(Map<String, Object> config) {
         String query = (String) config.get("query");
-        if (StringUtils.isBlank(query) || countForQuestionMarks(query) > 0) return config;
-        String queryParsed = PLACEHOLDER_PATTERN.matcher(query).replaceAll("?");
-        config.put("queryParsed", queryParsed);
-        return config;
+        return parseQuery(query);
+    }
+
+    private static String parseQuery(String query) {
+        final long questionMarks = countForQuestionMarks(query);
+        if (questionMarks > 0) {
+            return query;
+        }
+        return PLACEHOLDER_PATTERN.matcher(query).replaceAll("?");
     }
 
     @Override
@@ -37,10 +60,13 @@ public class JDBCResource extends VirtualizedResource {
         if (countForQuestionMarks > 0) {
             return countForQuestionMarks;
         }
-        return countForQuestionMarks(queryParsed);
+        return countForQuestionMarks(parseQuery(query));
     }
 
     private static long countForQuestionMarks(String query) {
+        if (StringUtils.isBlank(query)) {
+            return 0;
+        }
         return Stream.of(query.split("[ (),]"))
                 .filter(Objects::nonNull)
                 .map(String::trim)
@@ -49,19 +75,20 @@ public class JDBCResource extends VirtualizedResource {
     }
 
     @Override
-    public Pair<String, Map<String, Object>> getProcedureCallWithParams(Object queryParams) {
+    public Pair<String, Map<String, Object>> getProcedureCallWithParams(Object queryParams, Map<String, Object> config) {
+        final long countForQuestionMarks = countForQuestionMarks(query);
         final List<Object> list;
-        if (parameters.isEmpty()) {
+        if (countForQuestionMarks > 0) {
             list = (List<Object>) queryParams;
         } else {
             Map<String, Object> queryMap = (Map<String, Object>) queryParams;
-            list = parameters.stream()
-                .map(param -> queryMap.get(param))
+            list = params.stream()
+                .map(param -> queryMap.get(param.substring(1)))
                 .collect(Collectors.toList());
         }
         return Pair.of("CALL apoc.load.jdbc($url, $query, $params, $config) YIELD row " +
                         "RETURN apoc.create.vNode($labels, row) AS node",
-                Map.of("url", url, "query", queryParsed, "params", list, "labels", labels, "config", params));
+                Map.of("url", url, "query", queryParsed, "params", list, "labels", labels, "config", config));
     }
 
 }

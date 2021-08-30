@@ -2,7 +2,6 @@ package apoc.dv;
 
 import apoc.ApocSettings;
 import apoc.create.Create;
-import apoc.load.AbstractJdbcTest;
 import apoc.load.Jdbc;
 import apoc.load.LoadCsv;
 import apoc.util.TestUtil;
@@ -34,7 +33,7 @@ import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
-public class VirtualizeTest extends AbstractJdbcTest{
+public class VirtualizeTest {
 
     public static final Label PERSON = Label.label("Person");
 
@@ -77,8 +76,7 @@ public class VirtualizeTest extends AbstractJdbcTest{
         Map<String, Object> map = Map.of("type", "CSV",
                 "url", url, "query", query,
                 "desc", desc,
-                "labels", labels,
-                "params", Map.of("header", true));
+                "labels", labels);
 
         final Consumer<Map<String, Object>> assertCatalogContent = (row) -> {
             assertEquals(name, row.get("name"));
@@ -87,6 +85,7 @@ public class VirtualizeTest extends AbstractJdbcTest{
             assertEquals(List.of("Person"), row.get("labels"));
             assertEquals(desc, row.get("desc"));
             assertEquals(query, row.get("query"));
+            assertEquals(List.of("$name", "$age"), row.get("params"));
         };
 
         testCall(db, "CALL apoc.dv.catalog.add($name, $map)",
@@ -100,8 +99,8 @@ public class VirtualizeTest extends AbstractJdbcTest{
         String personAge = "11";
 
         Map<String, Object> queryParams = Map.of("name", personName, "age", personAge);
-        testCall(db, "CALL apoc.dv.query($name, $queryParams)",
-                Map.of("name", name, "queryParams", queryParams),
+        testCall(db, "CALL apoc.dv.query($name, $queryParams, $config)",
+                Map.of("name", name, "queryParams", queryParams, "config", Map.of("header", true)),
                 (row) -> {
                     Node node = (Node) row.get("node");
                     assertEquals(personName, node.getProperty("name"));
@@ -115,9 +114,9 @@ public class VirtualizeTest extends AbstractJdbcTest{
 
         final String relType = "LINKED_TO";
         testCall(db, "MATCH (hook:Hook) WITH hook " +
-                        "CALL apoc.dv.queryAndLink(hook, $relType, $name, $queryParams) yield path " +
+                        "CALL apoc.dv.queryAndLink(hook, $relType, $name, $queryParams, $config) yield path " +
                         "RETURN path ",
-                Map.of("name", name, "queryParams", queryParams, "relType", relType),
+                Map.of("name", name, "queryParams", queryParams, "relType", relType, "config", Map.of("header", true)),
                 (row) -> {
                     Path path = (Path) row.get("path");
                     Node node = path.endNode();
@@ -148,8 +147,7 @@ public class VirtualizeTest extends AbstractJdbcTest{
         Map<String, Object> map = Map.of("type", "JDBC",
                 "url", url, "query", query,
                 "desc", desc,
-                "labels", labelsAsString,
-                "params", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword())));
+                "labels", labelsAsString);
 
         testCall(db, "CALL apoc.dv.catalog.add($name, $map)",
                 Map.of("name", name, "map", map),
@@ -158,16 +156,19 @@ public class VirtualizeTest extends AbstractJdbcTest{
                     assertEquals(url, row.get("url"));
                     assertEquals("JDBC", row.get("type"));
                     assertEquals(labelsAsString, row.get("labels"));
-                    assertEquals(desc , row.get("desc"));
+                    assertEquals(desc, row.get("desc"));
+                    assertEquals(List.of("?"), row.get("params"));
                 });
 
-        testCallEmpty(db, "CALL apoc.dv.query($name, ['Italy'])", Map.of("name", name));
+        testCallEmpty(db, "CALL apoc.dv.query($name, ['Italy'], $config)", Map.of("name", name,
+                "config", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword()))));
 
         String country = "Netherlands";
         List<String> queryParams = List.of(country);
 
-        testCall(db, "CALL apoc.dv.query($name, $queryParams)",
-                Map.of("name", name, "queryParams", queryParams),
+        testCall(db, "CALL apoc.dv.query($name, $queryParams, $config)",
+                Map.of("name", name, "queryParams", queryParams,
+                        "config", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword()))),
                 (row) -> {
                     Node node = (Node) row.get("node");
                     assertEquals(country, node.getProperty("Name"));
@@ -180,9 +181,10 @@ public class VirtualizeTest extends AbstractJdbcTest{
 
         final String relType = "LINKED_TO_NEW";
         testCall(db, "MATCH (hook:Hook) WITH hook " +
-                        "CALL apoc.dv.queryAndLink(hook, $relType, $name, $queryParams) yield path " +
+                        "CALL apoc.dv.queryAndLink(hook, $relType, $name, $queryParams, $config) yield path " +
                         "RETURN path ",
-                Map.of("name", name, "queryParams", queryParams, "relType", relType),
+                Map.of("name", name, "queryParams", queryParams, "relType", relType,
+                        "config", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword()))),
                 (row) -> {
                     Path path = (Path) row.get("path");
                     Node node = path.endNode();
@@ -211,8 +213,7 @@ public class VirtualizeTest extends AbstractJdbcTest{
         Map<String, Object> map = Map.of("type", "JDBC",
                 "url", url, "query", query,
                 "desc", desc,
-                "labels", labelsAsString,
-                "params", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword())));
+                "labels", labelsAsString);
 
         testCall(db, "CALL apoc.dv.catalog.add($name, $map)",
                 Map.of("name", name, "map", map),
@@ -222,22 +223,25 @@ public class VirtualizeTest extends AbstractJdbcTest{
                     assertEquals("JDBC", row.get("type"));
                     assertEquals(labelsAsString, row.get("labels"));
                     assertEquals(desc , row.get("desc"));
+                    assertEquals(List.of("$name", "$head_of_state", "$CODE2"), row.get("params"));
                 });
 
-        testCallEmpty(db, "CALL apoc.dv.query($name, {name: 'Italy', head_of_state: '', CODE2: ''})", Map.of("name", name));
+        testCallEmpty(db, "CALL apoc.dv.query($name, {name: 'Italy', head_of_state: '', CODE2: ''}, $config)",
+                Map.of("name", name, "config", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword()))));
 
         String country = "Netherlands";
         String code2 = "NL";
         String headOfState = "Beatrix";
         Map<String, Object> queryParams = Map.of("name", country, "CODE2", code2, "head_of_state", headOfState);
 
-        testCall(db, "CALL apoc.dv.query($name, $queryParams)",
-                Map.of("name", name, "queryParams", queryParams),
+        testCall(db, "CALL apoc.dv.query($name, $queryParams, $config)",
+                Map.of("name", name, "queryParams", queryParams,
+                        "config", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword()))),
                 (row) -> {
                     Node node = (Node) row.get("node");
                     assertEquals(country, node.getProperty("Name"));
                     assertEquals(labels, node.getLabels());
-                })Neo4jLogStreamTest;
+                });
 
         String hookNodeName = "node to test linking";
 
@@ -245,9 +249,10 @@ public class VirtualizeTest extends AbstractJdbcTest{
 
         final String relType = "LINKED_TO_NEW";
         testCall(db, "MATCH (hook:Hook) WITH hook " +
-                        "CALL apoc.dv.queryAndLink(hook, $relType, $name, $queryParams) yield path " +
+                        "CALL apoc.dv.queryAndLink(hook, $relType, $name, $queryParams, $config) yield path " +
                         "RETURN path ",
-                Map.of("name", name, "queryParams", queryParams, "relType", relType),
+                Map.of("name", name, "queryParams", queryParams, "relType", relType,
+                        "config", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword()))),
                 (row) -> {
                     Path path = (Path) row.get("path");
                     Node node = path.endNode();
@@ -275,8 +280,7 @@ public class VirtualizeTest extends AbstractJdbcTest{
         Map<String, Object> map = Map.of("type", "JDBC",
                 "url", url, "query", query,
                 "desc", desc,
-                "labels", labelsAsString,
-                "params", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword())));
+                "labels", labelsAsString);
 
         db.executeTransactionally("CALL apoc.dv.catalog.add($name, $map)",
                 Map.of("name", name, "map", map));
@@ -294,8 +298,7 @@ public class VirtualizeTest extends AbstractJdbcTest{
         Map<String, Object> map = Map.of("type", "JDBC",
                 "url", url, "query", query,
                 "desc", desc,
-                "labels", labelsAsString,
-                "params", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword())));
+                "labels", labelsAsString);
 
         db.executeTransactionally("CALL apoc.dv.catalog.add($name, $map)",
                 Map.of("name", name, "map", map));

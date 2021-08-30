@@ -36,30 +36,35 @@ public class Virtualize {
 
     @Procedure(name = "apoc.dv.catalog.add", mode = Mode.WRITE)
     @Description("Add a virtualized resource configuration")
-    public Stream<VirtualizedResource> add(
+    public Stream<VirtualizedResource.VirtualizedResourceDTO> add(
             @Name("name") String name,
             @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
-        return Stream.of(new VRCatalogHandler(db, apocConfig.getSystemDb(), log).add(VirtualizedResource.from(name, config)));
+        return Stream.of(new VRCatalogHandler(db, apocConfig.getSystemDb(), log).add(VirtualizedResource.from(name, config)))
+                .map(VirtualizedResource::toDTO);
     }
 
     @Procedure(name = "apoc.dv.catalog.remove", mode = Mode.WRITE)
     @Description("Remove a virtualized resource config by name")
-    public Stream<VirtualizedResource> remove(@Name("name") String name) {
-        return new VRCatalogHandler(db, apocConfig.getSystemDb(), log).remove(name);
+    public Stream<VirtualizedResource.VirtualizedResourceDTO> remove(@Name("name") String name) {
+        return new VRCatalogHandler(db, apocConfig.getSystemDb(), log)
+                .remove(name)
+                .map(VirtualizedResource::toDTO);
     }
 
     @Procedure(name = "apoc.dv.catalog.list", mode = Mode.READ)
     @Description("List all virtualized resource configs")
-    public Stream<VirtualizedResource> list() {
-        return new VRCatalogHandler(db, apocConfig.getSystemDb(), log).list();
+    public Stream<VirtualizedResource.VirtualizedResourceDTO> list() {
+        return new VRCatalogHandler(db, apocConfig.getSystemDb(), log).list()
+                .map(VirtualizedResource::toDTO);
     }
 
     @Procedure(name = "apoc.dv.query", mode = Mode.READ)
     @Description("Query a virtualized resource by name and return virtual nodes")
     public Stream<NodeResult> query(@Name("name") String name,
-                                    @Name(value = "params", defaultValue = "{}") Object params) {
+                                    @Name(value = "params", defaultValue = "{}") Object params,
+                                    @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         VirtualizedResource vr = new VRCatalogHandler(db, apocConfig.getSystemDb(), log).get(name);
-        final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params);
+        final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params, config);
         return tx.execute(procedureCallWithParams.first(), procedureCallWithParams.other())
                 .stream()
                 .map(m -> (Node) m.get(("node")))
@@ -71,10 +76,11 @@ public class Virtualize {
     public Stream<PathResult> queryAndLink(@Name("node") Node node,
                                            @Name("relName") String relName,
                                            @Name("name") String name,
-                                           @Name(value = "params", defaultValue = "{}") Object params) {
+                                           @Name(value = "params", defaultValue = "{}") Object params,
+                                           @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         VirtualizedResource vr = new VRCatalogHandler(db, apocConfig.getSystemDb(), null).get(name);
         final RelationshipType relationshipType = RelationshipType.withName(relName);
-        final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params);
+        final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params, config);
         return tx.execute(procedureCallWithParams.first(), procedureCallWithParams.other())
                 .stream()
                 .map(m -> (Node) m.get(("node")))
