@@ -115,7 +115,7 @@ public class TestUtil {
     }
 
     public static void registerProcedure(GraphDatabaseService db, Class<?>...procedures) {
-            GlobalProcedures globalProcedures = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(GlobalProcedures.class);
+        GlobalProcedures globalProcedures = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(GlobalProcedures.class);
         for (Class<?> procedure : procedures) {
             try {
                 globalProcedures.registerProcedure(procedure, true);

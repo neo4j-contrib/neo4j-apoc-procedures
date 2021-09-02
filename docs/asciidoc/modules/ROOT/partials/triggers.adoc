@@ -5,4 +5,13 @@ We can enable them by setting the following property in `apoc.conf`:
 [source,properties]
 ----
 apoc.trigger.enabled=true
+apoc.trigger.refresh=60000
 ----
+
+.Description
+[opts=header,cols="3"]
+|===
+| Option Key | Value | Description
+| apoc.trigger.enabled | true/false, default false | Enable/Disable the feature
+| apoc.trigger.refresh | number, default 60000 | Value in ms for trigger replication check across cluster nodes
+|===
