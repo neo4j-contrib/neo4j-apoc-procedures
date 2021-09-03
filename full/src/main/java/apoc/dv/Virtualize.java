@@ -1,13 +1,22 @@
 package apoc.dv;
 
-import apoc.dv.result.NodeWithRelResult;
+import apoc.ApocConfig;
 import apoc.result.NodeResult;
+import apoc.result.PathResult;
+import apoc.result.VirtualRelationship;
+import org.neo4j.graphalgo.impl.util.PathImpl;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -19,81 +28,65 @@ public class Virtualize {
     @Context
     public Log log;
 
+    @Context
+    public GraphDatabaseService db;
+
+    @Context
+    public ApocConfig apocConfig;
+
     @Procedure(name = "apoc.dv.catalog.add", mode = Mode.WRITE)
     @Description("Add a virtualized resource configuration")
-    public Stream<VRResult> addVR(
-            @Name("vrName") String vrName,
-            @Name(value = "config", defaultValue = "{}") Map<String,Object> vrconfig) throws IOException, ClassNotFoundException {
-
-        VRCatalog vrc = new VRCatalog(tx);
-        if(vrconfig.containsKey("vrType")){
-            String vrType = (String) vrconfig.get("vrType");
-            if(vrType.equals("JDBC")){
-                vrc.addVR(vrName,new JDBCResource(vrconfig));
-            } else if(vrType.equals("CSV")){
-                vrc.addVR(vrName, new CSVResource(vrconfig));
-            }
-            vrc.writeToDB(tx);
-        }else{
-            throw new RuntimeException("VR config missing vrType parameter");
-        }
-
-        return vrc.getVRList("");
+    public Stream<VirtualizedResource.VirtualizedResourceDTO> add(
+            @Name("name") String name,
+            @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
+        return Stream.of(new VRCatalogHandler(db, apocConfig.getSystemDb(), log).add(VirtualizedResource.from(name, config)))
+                .map(VirtualizedResource::toDTO);
     }
 
-    @Procedure(name = "apoc.dv.catalog.drop", mode = Mode.WRITE)
+    @Procedure(name = "apoc.dv.catalog.remove", mode = Mode.WRITE)
     @Description("Remove a virtualized resource config by name")
-    public Stream<VRResult> dropVR(
-            @Name("vrName") String vrName) throws IOException, ClassNotFoundException {
-
-        VRCatalog vrc = new VRCatalog(tx);
-        vrc.dropVR(vrName);
-        vrc.writeToDB(tx);
-        return vrc.getVRList("");
+    public Stream<VirtualizedResource.VirtualizedResourceDTO> remove(@Name("name") String name) {
+        return new VRCatalogHandler(db, apocConfig.getSystemDb(), log)
+                .remove(name)
+                .map(VirtualizedResource::toDTO);
     }
 
     @Procedure(name = "apoc.dv.catalog.list", mode = Mode.READ)
     @Description("List all virtualized resource configs")
-    public Stream<VRResult> listVR(
-            @Name(value = "vrName", defaultValue = "") String vrNameFilter) throws IOException, ClassNotFoundException {
-
-        VRCatalog vrc = new VRCatalog(tx);
-        return vrc.getVRList(vrNameFilter);
+    public Stream<VirtualizedResource.VirtualizedResourceDTO> list() {
+        return new VRCatalogHandler(db, apocConfig.getSystemDb(), log).list()
+                .map(VirtualizedResource::toDTO);
     }
 
     @Procedure(name = "apoc.dv.query", mode = Mode.READ)
     @Description("Query a virtualized resource by name and return virtual nodes")
-    public Stream<NodeResult> query(
-            @Name("vrName") String vrName,
-            @Name(value = "params", defaultValue = "{}") Map<String,Object> params) throws IOException, ClassNotFoundException {
-
-        VRCatalog vrc = new VRCatalog(tx);
-        VirtualizedResource vr = vrc.getVR(vrName);
-        if(vr!=null) {
-            params.put("extraVRQueryParams", vr.getExtraQueryParams());
-            return vr.doQuery(params);
-        }else {
-            throw new RuntimeException("Virtualized resource " + vrName + " is not defined.");
-        }
+    public Stream<NodeResult> query(@Name("name") String name,
+                                    @Name(value = "params", defaultValue = "{}") Object params,
+                                    @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        VirtualizedResource vr = new VRCatalogHandler(db, apocConfig.getSystemDb(), log).get(name);
+        final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params, config);
+        return tx.execute(procedureCallWithParams.first(), procedureCallWithParams.other())
+                .stream()
+                .map(m -> (Node) m.get(("node")))
+                .map(NodeResult::new);
     }
 
     @Procedure(name = "apoc.dv.queryAndLink", mode = Mode.READ)
     @Description("Query a virtualized resource by name and return virtual nodes linked using virtual rels to the node passed as first param")
-    public Stream<NodeWithRelResult> queryAndLink(
-            @Name("node") Node node,
-            @Name("relName") String relName,
-            @Name("vrName") String vrName,
-            @Name(value = "params", defaultValue = "{}") Map<String,Object> params
-            ) throws IOException, ClassNotFoundException {
-
-        VRCatalog vrc = new VRCatalog(tx);
-        VirtualizedResource vr = vrc.getVR(vrName);
-        if(vr!=null) {
-            params.put("extraVRQueryParams", vr.getExtraQueryParams());
-            return vr.doQueryAndLink(node, relName, params);
-        }else {
-            throw new RuntimeException("Virtualized resource " + vrName + " is not defined.");
-        }
+    public Stream<PathResult> queryAndLink(@Name("node") Node node,
+                                           @Name("relName") String relName,
+                                           @Name("name") String name,
+                                           @Name(value = "params", defaultValue = "{}") Object params,
+                                           @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        VirtualizedResource vr = new VRCatalogHandler(db, apocConfig.getSystemDb(), null).get(name);
+        final RelationshipType relationshipType = RelationshipType.withName(relName);
+        final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params, config);
+        return tx.execute(procedureCallWithParams.first(), procedureCallWithParams.other())
+                .stream()
+                .map(m -> (Node) m.get(("node")))
+                .map(n -> new VirtualRelationship(node, n, relationshipType))
+                .map(r -> new PathImpl.Builder(r.getStartNode()).push(r).build())
+                .map(PathResult::new);
     }
 
 }

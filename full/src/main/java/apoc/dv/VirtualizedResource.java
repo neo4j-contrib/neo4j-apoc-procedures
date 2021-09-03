@@ -1,105 +1,93 @@
 package apoc.dv;
 
-import apoc.dv.result.NodeWithRelResult;
-import apoc.result.NodeResult;
-import apoc.result.VirtualRelationship;
-import apoc.util.Util;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
+import org.apache.commons.lang3.StringUtils;
+import org.neo4j.internal.helpers.collection.Pair;
 
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
+import java.util.Objects;
+import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
-public abstract class VirtualizedResource implements Serializable {
-    protected String url;
-    protected String desc;
-    protected List<String> filterParams = new ArrayList<>();
-    protected List<String> labels;
-    protected String dbQuery;
-    protected String rawDbQuery;
+public abstract class VirtualizedResource {
+    public static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$([^\\s]+)");
+    public final String name;
+    public final String url;
+    public final String desc;
+    public final List<String> labels;
+    public final String query;
+    public final List<String> params;
+    public final String type;
 
-    public VirtualizedResource(Map<String, Object> vrconfig) throws BadVRConfig {
-        url = getRequiredConfigParam("url", vrconfig);
-        dbQuery = rawDbQuery = getRequiredConfigParam("query", vrconfig);
-        desc = getOptionalConfigParam("desc", vrconfig);
-        labels = getRequiredListConfigParam("labels",vrconfig);
-
-        String patternString = "\\{vrp:([a-zA-Z_]\\w*)\\}";
-        Pattern pattern = Pattern.compile(patternString);
-
-        Matcher matcher = pattern.matcher(dbQuery);
-        while(matcher.find()){
-            String paramName = matcher.group(1);
-            dbQuery = dbQuery.replace("{vrp:" + paramName + "}", getVarReplacement(paramName));
-            filterParams.add(paramName);
-        }
-
-        if (filterParams.size()==0){
-            throw new BadVRConfig("A virtualized resource must have at least one filter parameter.");
-        }
-
+    public VirtualizedResource(String name, Map<String, Object> config, String type) {
+        this(Objects.requireNonNull(name, "Field `name` should be defined"),
+                (String) Objects.requireNonNull(config.get("url"), "Field `url` in config should be defined"),
+                (String) Objects.requireNonNull(config.get("desc"), "Field `desc` in config should be defined"),
+                (List<String>) Objects.requireNonNull(config.get("labels"), "Field `labels` in config should be defined"),
+                (String) Objects.requireNonNull(config.get("query"), "Field `query` in config should be defined"),
+                PLACEHOLDER_PATTERN.matcher((String) config.get("query")).results()
+                        .map(MatchResult::group)
+                        .map(String::trim)
+                        .filter(StringUtils::isNotBlank)
+                        .collect(Collectors.toList()),
+                Objects.requireNonNull(type, "Field `type` should be defined")
+        );
     }
 
-    protected abstract String getVarReplacement(String paramName);
-
-    protected String getRequiredConfigParam(String paramName, Map<String, Object> vrconfig) {
-        if(vrconfig.containsKey(paramName)){
-            return (String)vrconfig.get(paramName);
-        } else{
-            throw new RuntimeException("VR config missing " + paramName + " param");
-        }
-    }
-
-    protected List<String> getRequiredListConfigParam(String paramName, Map<String, Object> vrconfig) {
-        if(vrconfig.containsKey(paramName)){
-            if (vrconfig.get(paramName) instanceof List) {
-                return (List<String>) vrconfig.get(paramName);
-            }
-            else{
-                throw new RuntimeException("Param " + paramName + " in VR config should be a list");
-            }
-        } else{
-            throw new RuntimeException("VR config missing " + paramName + " param");
+    public VirtualizedResource(String name, String url, String desc, List<String> labels, String query, List<String> params, String type) {
+        this.name = name;
+        this.url = url;
+        this.desc = desc;
+        this.labels = labels;
+        this.query = query;
+        this.params = params;
+        this.type = type;
+        if (numOfQueryParams() <= 0) {
+            throw new IllegalArgumentException("A virtualized resource must have at least one filter parameter.");
         }
     }
 
-    protected String getOptionalConfigParam(String paramName, Map<String, Object> vrconfig) {
-        if(vrconfig.containsKey(paramName)){
-            return (String)vrconfig.get(paramName);
-        } else {
-            return null;
+    public long numOfQueryParams() {
+        return params.size();
+    }
+
+    public abstract Pair<String, Map<String, Object>> getProcedureCallWithParams(Object queryParams, Map<String, Object> config);
+
+    public static VirtualizedResource from(String name, Map<String, Object> config) {
+        String type = config.get("type").toString();
+        switch (type) {
+            case "CSV":
+                return new CSVResource(name, config);
+            case "JDBC":
+                return new JDBCResource(name, config);
+            default:
+                throw new UnsupportedOperationException("Supported CSV/JDBC");
         }
     }
 
-    public abstract Map<String, Object> getExtraQueryParams();
+    public VirtualizedResourceDTO toDTO() {
+        return new VirtualizedResourceDTO(name, type, url, desc, labels, query, params);
+    }
 
-    public abstract String getType();
+    public static class VirtualizedResourceDTO {
+        public final String name;
+        public final String type;
+        public final String url;
+        public final String desc;
+        public final List<String> labels;
+        public final String query;
+        public final List<String> params;
 
-    public Stream<NodeResult> doQuery(Map<String, Object> params){
-        return streamVirtualNodes(params).map(NodeResult::new);
-    };
-
-    public Stream<NodeWithRelResult> doQueryAndLink(Node node, String relName, Map<String, Object> params){
-        return streamVirtualNodes(params).map(x -> {
-            VirtualRelationship virtualizedRel = new VirtualRelationship(node, x, RelationshipType.withName(relName));
-            return new NodeWithRelResult(x, virtualizedRel);
-        });
-    };
-
-    protected abstract Stream<Node> streamVirtualNodes(Map<String, Object> params);
-
-    protected class BadVRConfig extends RuntimeException {
-        public BadVRConfig(String s) {
-            super(s);
+        public VirtualizedResourceDTO(String name, String type, String url, String desc, List<String> labels, String query, List<String> params) {
+            this.name = name;
+            this.url = url;
+            this.desc = desc;
+            this.labels = labels;
+            this.query = query;
+            this.params = params;
+            this.type = type;
         }
     }
-    protected class MissingParameter extends RuntimeException {
-        public MissingParameter(String s) {
-        }
-    }
+
 }
