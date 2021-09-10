@@ -9,7 +9,6 @@ import apoc.result.ProgressInfo;
 import apoc.util.QueueBasedSpliterator;
 import apoc.util.QueueUtil;
 import apoc.util.Util;
-import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.CypherResultSubGraph;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
@@ -115,7 +114,7 @@ public class ExportCypher {
     }
 
     private Stream<DataProgressInfo> exportCypher(@Name("file") String fileName, String source, SubGraph graph, ExportConfig c, boolean onlySchema) throws IOException {
-        if (StringUtils.isNotBlank(fileName)) apocConfig.checkWriteAllowed(c);
+        apocConfig.checkWriteAllowed(c, fileName);
 
         ProgressInfo progressInfo = new ProgressInfo(fileName, source, "cypher");
         progressInfo.batchSize = c.getBatchSize();

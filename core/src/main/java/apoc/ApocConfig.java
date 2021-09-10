@@ -8,13 +8,13 @@ import org.apache.commons.configuration2.builder.combined.CombinedConfigurationB
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.ex.ConversionException;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.config.Setting;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
@@ -86,6 +86,7 @@ public class ApocConfig extends LifecycleAdapter {
     ));
     private static final String DEFAULT_PATH = ".";
     private static final String CONFIG_DIR = "config-dir=";
+    public static final String EXPORT_TO_FILE_ERROR = "Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf";
 
     private final Config neo4jConfig;
     private final Log log;
@@ -253,10 +254,10 @@ public class ApocConfig extends LifecycleAdapter {
         }
     }
 
-    public void checkWriteAllowed(ExportConfig exportConfig) {
+    public void checkWriteAllowed(ExportConfig exportConfig, String fileName) {
         if (!config.getBoolean(APOC_EXPORT_FILE_ENABLED)) {
-            if (exportConfig==null || !exportConfig.streamStatements()) {
-                throw new RuntimeException("Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf");
+            if (exportConfig == null || StringUtils.isNotBlank(fileName) || !exportConfig.streamStatements()) {
+                throw new RuntimeException(EXPORT_TO_FILE_ERROR);
             }
         }
     }
