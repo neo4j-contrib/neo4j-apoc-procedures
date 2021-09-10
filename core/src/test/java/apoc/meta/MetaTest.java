@@ -1093,4 +1093,45 @@ public class MetaTest {
         });
 
     }
+
+    @Test
+    public void testMetaStatsWithLabelAndRelTypeCountInUse() {
+        db.executeTransactionally("CREATE (:Node:Test)-[:REL {a: 'b'}]->(:Node {c: 'd'})<-[:REL]-(:Node:Test)");
+        db.executeTransactionally("CREATE (:A {e: 'f'})-[:ANOTHER {g: 'h'}]->(:C)");
+        
+        TestUtil.testCall(db, "CALL apoc.meta.stats()", row -> {
+            assertEquals(map("A", 1L, "C", 1L, "Test", 2L, "Node", 3L), row.get("labels"));
+            assertEquals(5L, row.get("nodeCount"));
+            assertEquals(4L, row.get("labelCount"));
+            
+            assertEquals(map("REL", 4L, "ANOTHER", 1L), row.get("relTypesCount"));
+            assertEquals(2L, row.get("relTypeCount"));
+            assertEquals(3L, row.get("relCount"));
+            Map<String, Object> expectedRelTypes = map("(:A)-[:ANOTHER]->()", 1L,
+                    "()-[:REL]->(:Node)", 2L, 
+                    "(:Test)-[:REL]->()", 2L,
+                    "(:Node)-[:REL]->()", 2L, 
+                    "()-[:ANOTHER]->(:C)", 1L,
+                    "()-[:ANOTHER]->()", 1L, 
+                    "()-[:REL]->()", 2L);
+            assertEquals(expectedRelTypes, row.get("relTypes"));
+        });
+        
+        db.executeTransactionally("match p=(:A)-[:ANOTHER]->(:C) delete p");
+        TestUtil.testCall(db, "CALL apoc.meta.stats()", row -> {
+            assertEquals(map("Test", 2L, "Node", 3L), row.get("labels"));
+            assertEquals(3L, row.get("nodeCount"));
+            assertEquals(2L, row.get("labelCount"));
+            
+            assertEquals(map("REL", 4L), row.get("relTypesCount"));
+            assertEquals(1L, row.get("relTypeCount"));
+            assertEquals(2L, row.get("relCount"));
+            Map<String, Object> expectedRelTypes = map("()-[:REL]->(:Node)", 2L,
+                    "(:Test)-[:REL]->()", 2L,
+                    "(:Node)-[:REL]->()", 2L,
+                    "()-[:REL]->()", 2L);
+            assertEquals(expectedRelTypes, row.get("relTypes"));
+        });
+    }
+    
 }
