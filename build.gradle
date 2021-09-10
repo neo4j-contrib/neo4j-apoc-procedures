@@ -93,8 +93,6 @@ subprojects {
         }
         testLogging.showStandardStreams = true
         testLogging.exceptionFormat = 'full'
-
-        useJUnitPlatform()
     }
 
     configurations {
