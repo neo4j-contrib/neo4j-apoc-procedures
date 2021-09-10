@@ -8,7 +8,6 @@ import org.apache.commons.configuration2.builder.combined.CombinedConfigurationB
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.ex.ConversionException;
-import org.apache.commons.lang3.StringUtils;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
@@ -33,10 +32,10 @@ import java.util.stream.Stream;
 import static apoc.util.FileUtils.isFile;
 import static org.neo4j.configuration.ExternalSettings.lib_directory;
 import static org.neo4j.configuration.ExternalSettings.run_directory;
+import static org.neo4j.configuration.GraphDatabaseInternalSettings.logical_logs_location;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.data_directory;
 import static org.neo4j.configuration.GraphDatabaseSettings.load_csv_file_url_root;
-import static org.neo4j.configuration.GraphDatabaseInternalSettings.logical_logs_location;
 import static org.neo4j.configuration.GraphDatabaseSettings.logs_directory;
 import static org.neo4j.configuration.GraphDatabaseSettings.neo4j_home;
 import static org.neo4j.configuration.GraphDatabaseSettings.plugin_dir;
@@ -256,7 +255,7 @@ public class ApocConfig extends LifecycleAdapter {
 
     public void checkWriteAllowed(ExportConfig exportConfig, String fileName) {
         if (!config.getBoolean(APOC_EXPORT_FILE_ENABLED)) {
-            if (exportConfig == null || StringUtils.isNotBlank(fileName) || !exportConfig.streamStatements()) {
+            if (exportConfig == null || (fileName != null && !fileName.equals("")) || !exportConfig.streamStatements()) {
                 throw new RuntimeException(EXPORT_TO_FILE_ERROR);
             }
         }

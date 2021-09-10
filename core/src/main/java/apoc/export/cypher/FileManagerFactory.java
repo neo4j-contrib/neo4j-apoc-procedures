@@ -1,7 +1,6 @@
 package apoc.export.cypher;
 
 import apoc.util.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -14,7 +13,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class FileManagerFactory {
     public static ExportFileManager createFileManager(String fileName, boolean separatedFiles) {
-        if (StringUtils.isBlank(fileName)) {
+        if (fileName == null || "".equals(fileName)) {
             return new StringExportCypherFileManager(separatedFiles);
         }
 

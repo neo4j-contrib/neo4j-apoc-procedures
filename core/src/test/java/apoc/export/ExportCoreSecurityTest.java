@@ -1,6 +1,7 @@
 package apoc.export;
 
 import apoc.ApocConfig;
+import apoc.ApocSettings;
 import apoc.export.csv.ExportCSV;
 import apoc.export.cypher.ExportCypher;
 import apoc.export.graphml.ExportGraphML;
@@ -42,7 +43,8 @@ public class ExportCoreSecurityTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath())
+            .withSetting(ApocSettings.apoc_export_file_enabled, false);
 
     @BeforeClass
     public static void setUp() throws Exception {

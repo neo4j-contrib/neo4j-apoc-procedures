@@ -1,6 +1,7 @@
 package apoc.export;
 
 import apoc.ApocConfig;
+import apoc.ApocSettings;
 import apoc.export.xls.ExportXls;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -38,7 +39,8 @@ public class ExportFullSecurityTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath())
+            .withSetting(ApocSettings.apoc_export_file_enabled, false);
 
     @BeforeClass
     public static void setUp() throws Exception {
