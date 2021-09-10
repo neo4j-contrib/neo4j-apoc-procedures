@@ -1,0 +1,5 @@
+¦xref::overview/apoc.redis/apoc.redis.hset.adoc[apoc.redis.hset icon:book[]] +
+
+`apoc.redis.hset(uri, key, field, value, \{config}) | Execute the 'HSET key field value' command and returns true if it is a new field in the hash or false if the field already exists`
+¦label:procedure[]
+¦label:apoc-full[]
