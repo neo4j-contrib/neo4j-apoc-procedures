@@ -52,7 +52,7 @@ public class Virtualize {
     }
 
     @Procedure(name = "apoc.dv.catalog.list", mode = Mode.READ)
-    @Description("List all virtualized resource configs")
+    @Description("List all virtualized resource configuration")
     public Stream<VirtualizedResource.VirtualizedResourceDTO> list() {
         return new VRCatalogHandler(db, apocConfig.getSystemDb(), log).list()
                 .map(VirtualizedResource::toDTO);

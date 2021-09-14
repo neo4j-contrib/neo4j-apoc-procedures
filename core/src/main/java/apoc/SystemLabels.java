@@ -10,5 +10,5 @@ public enum SystemLabels implements Label {
     ApocUuid,
     ApocTriggerMeta,
     ApocTrigger,
-    VRCatalog
+    DataVirtualizationCatalog
 }

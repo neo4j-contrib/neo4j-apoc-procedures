@@ -6,7 +6,7 @@ Add a virtualized resource configuration
 |label:apoc-core[]
 |xref::overview/apoc.dv.catalog/apoc.dv.adoc[apoc.dv.catalog.list icon:book[]]
 
-List all virtualized resource configs
+List all virtualized resource configuration
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.dv.catalog/apoc.dv.adoc[apoc.dv.catalog.remove icon:book[]]

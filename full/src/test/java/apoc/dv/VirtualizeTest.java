@@ -5,7 +5,9 @@ import apoc.create.Create;
 import apoc.load.Jdbc;
 import apoc.load.LoadCsv;
 import apoc.util.TestUtil;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -14,6 +16,7 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.JdbcDatabaseContainer;
@@ -22,6 +25,7 @@ import org.testcontainers.containers.MySQLContainer;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.util.TestUtil.isRunningInCI;
@@ -29,6 +33,7 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
@@ -67,7 +72,7 @@ public class VirtualizeTest {
     }
 
     @Test
-    public void testVirtualizeCSV() throws Exception {
+    public void testVirtualizeCSV() {
         final String name = "csv_vr";
         final String url = getUrlFileName("test.csv").toString();
         final String desc = "person's details";
@@ -137,7 +142,7 @@ public class VirtualizeTest {
     }
 
     @Test
-    public void testVirtualizeJDBC() throws Exception {
+    public void testVirtualizeJDBC() {
         String name = "jdbc_vr";
         String desc = "country details";
         List<Label> labels = List.of(Label.label("Country"));
@@ -203,7 +208,7 @@ public class VirtualizeTest {
     }
 
     @Test
-    public void testVirtualizeJDBCWithParameterMap() throws Exception {
+    public void testVirtualizeJDBCWithParameterMap() {
         String name = "jdbc_vr";
         String desc = "country details";
         List<Label> labels = List.of(Label.label("Country"));
@@ -307,5 +312,78 @@ public class VirtualizeTest {
         testResult(db, "CALL apoc.dv.catalog.list()",
                 Map.of(),
                 (result) -> assertEquals(1, result.stream().count()));
+    }
+
+    @Test
+    public void testJDBCQueryWithMixedParamsTypes() {
+        try {
+            String name = "jdbc_vr";
+            String desc = "country details";
+            List<String> labelsAsString = List.of("Country");
+            final String query = "SELECT * FROM country WHERE Name = $name AND param_with_question_mark = ? ";
+            final String url = mysql.getJdbcUrl() + "?useSSL=false";
+            Map<String, Object> map = Map.of("type", "JDBC",
+                    "url", url, "query", query,
+                    "desc", desc,
+                    "labels", labelsAsString);
+
+            db.executeTransactionally("CALL apoc.dv.catalog.add($name, $map)",
+                    Map.of("name", name, "map", map));
+            Assert.fail("Exception is expected");
+        } catch (Exception e) {
+            final Throwable rootCause = ExceptionUtils.getRootCause(e);
+            assertTrue(rootCause instanceof IllegalArgumentException);
+            assertEquals("The query is mixing parameters with `$` and `?` please use just one notation", rootCause.getMessage());
+        }
+    }
+
+    @Test
+    public void testVirtualizeJDBCWithDifferentParameterMap() {
+        String name = "jdbc_vr";
+        String desc = "country details";
+        List<Label> labels = List.of(Label.label("Country"));
+        List<String> labelsAsString = List.of("Country");
+        final String query = "SELECT * FROM country WHERE Name = $name AND HeadOfState = $head_of_state AND Code2 = $CODE2";
+        final String url = mysql.getJdbcUrl() + "?useSSL=false";
+        Map<String, Object> map = Map.of("type", "JDBC",
+                "url", url, "query", query,
+                "desc", desc,
+                "labels", labelsAsString);
+
+        final List<String> expectedParams = List.of("$name", "$head_of_state", "$CODE2");
+        final List<String> sortedExpectedParams = expectedParams.stream()
+                .sorted()
+                .collect(Collectors.toList());
+        testCall(db, "CALL apoc.dv.catalog.add($name, $map)",
+                Map.of("name", name, "map", map),
+                (row) -> {
+                    assertEquals(name, row.get("name"));
+                    assertEquals(url, row.get("url"));
+                    assertEquals("JDBC", row.get("type"));
+                    assertEquals(labelsAsString, row.get("labels"));
+                    assertEquals(desc , row.get("desc"));
+                    assertEquals(expectedParams, row.get("params"));
+                });
+
+        String country = "Netherlands";
+        String code2 = "NL";
+        String headOfState = "Beatrix";
+        Map<String, Object> queryParams = Map.of("foo", country, "bar", code2, "baz", headOfState);
+
+        try {
+            db.executeTransactionally("CALL apoc.dv.query($name, $queryParams, $config)",
+                    Map.of("name", name, "queryParams", queryParams,
+                            "config", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword()))),
+                    Result::resultAsString);
+            Assert.fail("Exception is expected");
+        } catch (Exception e) {
+            final Throwable rootCause = ExceptionUtils.getRootCause(e);
+            assertTrue(rootCause instanceof IllegalArgumentException);
+            final List<String> actualParams = queryParams.keySet().stream()
+                    .map(s -> "$" + s)
+                    .sorted()
+                    .collect(Collectors.toList());
+            assertEquals(String.format("Expected query parameters are %s, actual are %s", sortedExpectedParams, actualParams), rootCause.getMessage());
+        }
     }
 }

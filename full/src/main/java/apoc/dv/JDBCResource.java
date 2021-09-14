@@ -1,7 +1,6 @@
 package apoc.dv;
 
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.List;
 import java.util.Map;
@@ -16,11 +15,11 @@ public class JDBCResource extends VirtualizedResource {
     private final String queryParsed;
 
     public JDBCResource(String name, Map<String, Object> config) {
-        super(Objects.requireNonNull(name, "Field `name` should be defined"),
-                (String) Objects.requireNonNull(config.get("url"), "Field `url` in config should be defined"),
-                (String) Objects.requireNonNull(config.get("desc"), "Field `desc` in config should be defined"),
-                (List<String>) Objects.requireNonNull(config.get("labels"), "Field `labels` in config should be defined"),
-                (String) Objects.requireNonNull(config.get("query"), "Field `query` in config should be defined"),
+        super(name,
+                (String) config.get("url"),
+                (String) config.get("desc"),
+                (List<String>) config.get("labels"),
+                (String) config.get("query"),
                 getParameters(config),
                 "JDBC");
         this.queryParsed = parseQuery(config);
@@ -47,35 +46,39 @@ public class JDBCResource extends VirtualizedResource {
     }
 
     private static String parseQuery(String query) {
-        final long questionMarks = countForQuestionMarks(query);
-        if (questionMarks > 0) {
-            return query;
-        }
         return PLACEHOLDER_PATTERN.matcher(query).replaceAll("?");
     }
 
     @Override
-    public long numOfQueryParams() {
-        final long countForQuestionMarks = countForQuestionMarks(query);
-        if (countForQuestionMarks > 0) {
-            return countForQuestionMarks;
+    public int numOfQueryParams() {
+        final int countForQuestionMarks = countForQuestionMarks(query);
+        final int countForMapParameters = countForMapParameters(query);
+        if (countForQuestionMarks > 0 && countForMapParameters > 0) {
+            throw new IllegalArgumentException("The query is mixing parameters with `$` and `?` please use just one notation");
         }
-        return countForQuestionMarks(parseQuery(query));
+        return countForQuestionMarks > 0 ? countForQuestionMarks : countForMapParameters;
     }
 
-    private static long countForQuestionMarks(String query) {
+    private static int countForQuestionMarks(String query) {
         if (StringUtils.isBlank(query)) {
             return 0;
         }
-        return Stream.of(query.split("[ (),]"))
+        return (int) Stream.of(query.split("[ (),]"))
                 .filter(Objects::nonNull)
                 .map(String::trim)
                 .filter(s -> "?".equals(s))
                 .count();
     }
 
+    private static int countForMapParameters(String query) {
+        if (StringUtils.isBlank(query)) {
+            return 0;
+        }
+        return (int) PLACEHOLDER_PATTERN.matcher(query).results().count();
+    }
+
     @Override
-    public Pair<String, Map<String, Object>> getProcedureCallWithParams(Object queryParams, Map<String, Object> config) {
+    protected Map<String, Object> getProcedureParameters(Object queryParams, Map<String, Object> config) {
         final long countForQuestionMarks = countForQuestionMarks(query);
         final List<Object> list;
         if (countForQuestionMarks > 0) {
@@ -83,12 +86,16 @@ public class JDBCResource extends VirtualizedResource {
         } else {
             Map<String, Object> queryMap = (Map<String, Object>) queryParams;
             list = params.stream()
-                .map(param -> queryMap.get(param.substring(1)))
-                .collect(Collectors.toList());
+                    .map(param -> queryMap.get(param.substring(1)))
+                    .collect(Collectors.toList());
         }
-        return Pair.of("CALL apoc.load.jdbc($url, $query, $params, $config) YIELD row " +
-                        "RETURN apoc.create.vNode($labels, row) AS node",
-                Map.of("url", url, "query", queryParsed, "params", list, "labels", labels, "config", config));
+        return Map.of("url", url, "query", queryParsed, "params", list, "labels", labels, "config", config);
+    }
+
+    @Override
+    protected String getProcedureCall(Map<String, Object> config) {
+        return "CALL apoc.load.jdbc($url, $query, $params, $config) YIELD row " +
+                "RETURN apoc.create.vNode($labels, row) AS node";
     }
 
 }

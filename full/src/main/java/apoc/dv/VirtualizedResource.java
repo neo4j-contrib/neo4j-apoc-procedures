@@ -1,11 +1,15 @@
 package apoc.dv;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.internal.helpers.collection.Pair;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -48,11 +52,49 @@ public abstract class VirtualizedResource {
         }
     }
 
-    public long numOfQueryParams() {
+    public int numOfQueryParams() {
         return params.size();
     }
 
-    public abstract Pair<String, Map<String, Object>> getProcedureCallWithParams(Object queryParams, Map<String, Object> config);
+    protected abstract Map<String, Object> getProcedureParameters(Object queryParams, Map<String, Object> config);
+
+    protected abstract String getProcedureCall(Map<String, Object> config);
+
+    final public Pair<String, Map<String, Object>> getProcedureCallWithParams(Object queryParams, Map<String, Object> config) {
+        validateQueryParams(queryParams);
+        return Pair.of(getProcedureCall(config), getProcedureParameters(queryParams, config));
+    }
+
+    private void validateQueryParams(Object queryParams) {
+        if (queryParams == null) {
+            throw new IllegalArgumentException("Query Params cannot be null");
+        }
+        final int actualSize;
+        if (queryParams instanceof Collection) {
+            actualSize = CollectionUtils.size(queryParams);
+        } else if (queryParams instanceof Map) {
+            final Map<String, Object> parameterMap = (Map<String, Object>) queryParams;
+            actualSize = MapUtils.size(parameterMap);
+            Set<String> setParams = params.stream()
+                    .collect(Collectors.toSet());
+            final Set<String> actualParams = parameterMap.keySet().stream().map(p -> "$" + p).collect(Collectors.toSet());
+            if (!actualParams.equals(setParams)) {
+                List<String> sortedExpected = setParams.stream()
+                        .sorted()
+                        .collect(Collectors.toList());
+                List<String> sortedActual = actualParams.stream()
+                        .sorted()
+                        .collect(Collectors.toList());
+                throw new IllegalArgumentException(String.format("Expected query parameters are %s, actual are %s", sortedExpected, sortedActual));
+            }
+        } else {
+            throw new IllegalArgumentException("Input params allowed are Maps and Lists");
+        }
+        final long expectedSize = numOfQueryParams();
+        if (actualSize != expectedSize) {
+            throw new IllegalArgumentException(String.format("Expected size is %d, actual is %d", expectedSize, actualSize));
+        }
+    }
 
     public static VirtualizedResource from(String name, Map<String, Object> config) {
         String type = config.get("type").toString();

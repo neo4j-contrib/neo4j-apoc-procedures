@@ -1,6 +1,6 @@
 [[virtual-resource]]
 = Virtual Resource
-:description: This chapter describes how to handle external data sources as virtual resource without persisting them in the Database
+:description: This chapter describes how to handle external data sources as virtual resource without persisting them in the database
 
 [NOTE]
 ====
@@ -16,8 +16,8 @@ accessing that information on-demand at query time and combining it seamlessly w
 The APOC library supports the definition of a catalog of virtual resources. A virtual resource is an external data source that neo4j can use to query and retrieve data on demand presenting it as virtual nodes enriching the data stored in the graph.
 The Virtual Resource Catalog feature combines two APOC elements:
 
-* The xref::import/index.adoc[apoc.load.*] procedures that query data from external sources.
-* The xref::virtual/index.adoc[] procedures that create transient graph structures that can be returned as the result of a query but that are never persisted in the graph.
+* The xref::import/index.adoc[apoc.load.* procedures] that query data from external sources.
+* The xref::virtual/index.adoc[virtual procedures] that create transient graph structures which can be returned as the result of a query but are never persisted in the graph.
 
 At a high level, the virtual resource catalog feature decouples the definition of the connection to an external data source and the actual querying. It offers procedures to manage the virtualized resource catalog (create/remove/modify virtualized resources) and also to query them.
 In the current version there is support for relational (RDB) data sources and CSV files.
@@ -43,7 +43,7 @@ image::apoc.dv.imported-graph-from-RDB.png[scaledwidth="100%"]
 Before we can query a Virtualized Resource, we need to define it. We do this using the `apoc.dv.catalog.add` procedure.
 The procedure takes two parameters:
 
-* a name that uniquely identifies the virtualized resource and that we will later use to query it
+* a name that uniquely identifies the virtualized resource and can be used to query that resource
 * a set of parameters indicating the type of the resource (type), the access point (url), the parameterised query
 that will be run on the access point (query) and the labels that will be applied to the generated virtual nodes (labels).
 

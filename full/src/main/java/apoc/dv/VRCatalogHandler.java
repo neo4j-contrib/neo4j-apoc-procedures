@@ -40,7 +40,7 @@ public class VRCatalogHandler {
 
     public VirtualizedResource add(VirtualizedResource vr) {
         return withSystemDb(tx -> {
-            Node node = Util.mergeNode(tx, SystemLabels.VRCatalog, null,
+            Node node = Util.mergeNode(tx, SystemLabels.DataVirtualizationCatalog, null,
                     Pair.of(SystemPropertyKeys.database.name(), db.databaseName()),
                     Pair.of(SystemPropertyKeys.name.name(), vr.name));
             node.setProperty("data", JsonUtil.writeValueAsString(vr));
@@ -50,7 +50,7 @@ public class VRCatalogHandler {
 
     public VirtualizedResource get(String name) {
         return withSystemDb(tx -> {
-            final List<Node> nodes = tx.findNodes(SystemLabels.VRCatalog,
+            final List<Node> nodes = tx.findNodes(SystemLabels.DataVirtualizationCatalog,
                     SystemPropertyKeys.database.name(), db.databaseName(),
                     SystemPropertyKeys.name.name(), name)
                 .stream()
@@ -70,7 +70,7 @@ public class VRCatalogHandler {
 
     public Stream<VirtualizedResource> remove(String name) {
         withSystemDb(tx -> {
-            tx.findNodes(SystemLabels.VRCatalog,
+            tx.findNodes(SystemLabels.DataVirtualizationCatalog,
                     SystemPropertyKeys.database.name(), db.databaseName(),
                     SystemPropertyKeys.name.name(), name)
                 .stream()
@@ -82,7 +82,7 @@ public class VRCatalogHandler {
 
     public Stream<VirtualizedResource> list() {
         return withSystemDb(tx ->
-                tx.findNodes(SystemLabels.VRCatalog,
+                tx.findNodes(SystemLabels.DataVirtualizationCatalog,
                     SystemPropertyKeys.database.name(), db.databaseName())
                 .stream()
                 .map(node -> {
