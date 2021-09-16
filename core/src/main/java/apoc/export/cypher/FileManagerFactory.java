@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class FileManagerFactory {
     public static ExportFileManager createFileManager(String fileName, boolean separatedFiles) {
-        if (fileName == null) {
+        if (fileName == null || "".equals(fileName)) {
             return new StringExportCypherFileManager(separatedFiles);
         }
 
