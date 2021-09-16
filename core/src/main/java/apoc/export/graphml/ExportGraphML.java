@@ -11,13 +11,21 @@ import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
 import apoc.util.FileUtils;
 import apoc.util.Util;
-import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.CypherResultSubGraph;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.io.PrintWriter;
 import java.util.Collection;
@@ -102,7 +110,7 @@ public class ExportGraphML {
     }
 
     private Stream<ProgressInfo> exportGraphML(@Name("file") String fileName, String source, SubGraph graph, ExportConfig exportConfig) throws Exception {
-        if (StringUtils.isNotBlank(fileName)) apocConfig.checkWriteAllowed(exportConfig);
+        apocConfig.checkWriteAllowed(exportConfig, fileName);
         final String format = "graphml";
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, format));
         XmlGraphMLWriter exporter = new XmlGraphMLWriter();
