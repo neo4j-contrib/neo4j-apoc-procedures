@@ -14,7 +14,6 @@ import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.config.Setting;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
@@ -33,10 +32,10 @@ import java.util.stream.Stream;
 import static apoc.util.FileUtils.isFile;
 import static org.neo4j.configuration.ExternalSettings.lib_directory;
 import static org.neo4j.configuration.ExternalSettings.run_directory;
+import static org.neo4j.configuration.GraphDatabaseInternalSettings.logical_logs_location;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.data_directory;
 import static org.neo4j.configuration.GraphDatabaseSettings.load_csv_file_url_root;
-import static org.neo4j.configuration.GraphDatabaseInternalSettings.logical_logs_location;
 import static org.neo4j.configuration.GraphDatabaseSettings.logs_directory;
 import static org.neo4j.configuration.GraphDatabaseSettings.neo4j_home;
 import static org.neo4j.configuration.GraphDatabaseSettings.plugin_dir;
@@ -86,6 +85,7 @@ public class ApocConfig extends LifecycleAdapter {
     ));
     private static final String DEFAULT_PATH = ".";
     private static final String CONFIG_DIR = "config-dir=";
+    public static final String EXPORT_TO_FILE_ERROR = "Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf";
 
     private final Config neo4jConfig;
     private final Log log;
@@ -253,10 +253,10 @@ public class ApocConfig extends LifecycleAdapter {
         }
     }
 
-    public void checkWriteAllowed(ExportConfig exportConfig) {
+    public void checkWriteAllowed(ExportConfig exportConfig, String fileName) {
         if (!config.getBoolean(APOC_EXPORT_FILE_ENABLED)) {
-            if (exportConfig==null || !exportConfig.streamStatements()) {
-                throw new RuntimeException("Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf");
+            if (exportConfig == null || (fileName != null && !fileName.equals("")) || !exportConfig.streamStatements()) {
+                throw new RuntimeException(EXPORT_TO_FILE_ERROR);
             }
         }
     }
