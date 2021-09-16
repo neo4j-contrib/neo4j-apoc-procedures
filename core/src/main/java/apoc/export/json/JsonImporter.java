@@ -2,13 +2,14 @@ package apoc.export.json;
 
 import apoc.export.util.Reporter;
 import apoc.util.Util;
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.values.storable.CoordinateReferenceSystem;
+import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.values.storable.DurationValue;
 import org.neo4j.values.storable.PointValue;
-import org.neo4j.values.storable.Values;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -26,14 +27,18 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class JsonImporter implements Closeable {
-    private static final String CREATE_NODE = "UNWIND $rows AS row " +
+    private static final String UNWIND = "UNWIND $rows AS row ";
+    private static final String CREATE_NODE = UNWIND +
             "CREATE (n%s {%s: row.id}) SET n += row.properties";
-    private static final String CREATE_RELS = "UNWIND $rows AS row " +
+    private static final String CREATE_RELS = UNWIND +
             "MATCH (s%s {%s: row.start.id}) " +
             "MATCH (e%s {%2$s: row.end.id}) " +
             "CREATE (s)-[r:%s]->(e) SET r += row.properties";
+    public static final String MISSING_CONSTRAINT_ERROR_MSG = "Missing constraint required for import. Execute this query: \n" +
+            "CREATE CONSTRAINT ON (n:%s) assert n.%s IS UNIQUE;";
 
     private final List<Map<String, Object>> paramList;
     private final int unwindBatchSize;
@@ -111,14 +116,19 @@ public class JsonImporter implements Closeable {
     }
 
     private void manageRelationship(Map<String, Object> param) {
+        final List<String> startLabels = getLabels((Map<String, Object>) param.get("start"));
+        final List<String> endLabels = getLabels((Map<String, Object>) param.get("end"));
         Map<String, Object> relType = Util.map(
-                "start", getLabels((Map<String, Object>) param.get("start")),
-                "end", getLabels((Map<String, Object>) param.get("end")),
+                "start", startLabels,
+                "end", endLabels,
                 "label", getType(param));
+        List<String> allLabels = Stream.concat(startLabels.stream(), endLabels.stream()).collect(Collectors.toList());
         if (lastRelTypes == null) {
+            checkConstraints(allLabels);
             lastRelTypes = relType;
         }
         if (!relType.equals(lastRelTypes)) {
+            checkConstraints(allLabels);
             flush();
             lastRelTypes = relType;
         }
@@ -127,11 +137,31 @@ public class JsonImporter implements Closeable {
     private void manageNode(Map<String, Object> param) {
         List<String> labels = getLabels(param);
         if (lastLabels == null) {
+            checkConstraints(labels);
             lastLabels = labels;
         }
         if (!labels.equals(lastLabels)) {
+            checkConstraints(labels);
             flush();
             lastLabels = labels;
+        }
+    }
+
+    private void checkConstraints(List<String> labels) {
+        if (labels.isEmpty()) {
+            return;
+        }
+        try (final Transaction tx = db.beginTx()) {
+            final Schema schema = tx.schema();
+            final String importIdName = importJsonConfig.getImportIdName();
+            final String missingConstraint = labels.stream().filter(label -> 
+                    StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false)
+                            .noneMatch(constraint -> Iterables.contains(constraint.getPropertyKeys(), importIdName))
+            ).findAny()
+            .orElse(null);
+            if (missingConstraint != null) {
+                throw new RuntimeException(String.format(MISSING_CONSTRAINT_ERROR_MSG, missingConstraint, importIdName));
+            }
         }
     }
 
@@ -258,21 +288,22 @@ public class JsonImporter implements Closeable {
     }
 
     private List<String> getLabels(Map<String, Object> param) {
-        return ((List<String>) param.getOrDefault("labels", Collections.emptyList())).stream()
-                .map(Util::quote)
-                .collect(Collectors.toList());
+        return (List<String>) param.getOrDefault("labels", Collections.emptyList());
     }
 
     private String getLabelString(List<String> labels) {
         labels = labels == null ? Collections.emptyList() : labels;
-        final String join = StringUtils.join(labels, ":");
-        return join.isBlank() ? join : (":" + join);
+        final String delimiter = ":";
+        final String join = labels.stream()
+                .map(Util::quote)
+                .collect(Collectors.joining(delimiter));
+        return join.isBlank() ? join : (delimiter + join);
     }
 
     private void write(Transaction tx, List<Map<String, Object>> resultList) {
         if (resultList.isEmpty()) return;
         final String type = (String) resultList.get(0).get("type");
-        String query = null;
+        String query;
         switch (type) {
             case "node":
                 query = String.format(CREATE_NODE, getLabelString(lastLabels), importJsonConfig.getImportIdName());
