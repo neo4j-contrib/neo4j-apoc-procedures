@@ -215,6 +215,14 @@ public class TestContainerUtil {
         });
     }
 
+    public static <T> T singleResultFirstColumn(Session session, String cypher, Map<String,Object> params) {
+        return (T) session.writeTransaction(tx -> tx.run(cypher, params).single().fields().get(0).value().asObject());
+    }
+
+    public static <T> T singleResultFirstColumn(Session session, String cypher) {
+        return singleResultFirstColumn(session, cypher, Map.of());
+    }
+
     public static boolean isDockerImageAvailable(Exception ex) {
         final Throwable cause = ex.getCause();
         final Throwable rootCause = ExceptionUtils.getRootCause(ex);
