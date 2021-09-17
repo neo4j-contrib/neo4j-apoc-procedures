@@ -1,13 +1,15 @@
 package apoc.trigger;
 
-import apoc.coll.SetBackedList;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -94,13 +96,13 @@ public class Trigger {
         return new TriggerInfo(name, null, null, false, false);
     }
 
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.READ)
     @Description("list all installed triggers")
     public Stream<TriggerInfo> list() {
         return triggerHandler.list().entrySet().stream()
                 .map( (e) -> new TriggerInfo(e.getKey(),
                         (String)e.getValue().get("statement"),
-                        (Map<String,Object>)e.getValue().get("selector"),
+                        (Map<String,Object>) e.getValue().get("selector"),
                         (Map<String, Object>) e.getValue().get("params"),
                         true,
                         (Boolean) e.getValue().getOrDefault("paused", false))

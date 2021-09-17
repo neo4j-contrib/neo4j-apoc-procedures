@@ -21,19 +21,27 @@ import org.neo4j.kernel.api.procedure.Context;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
+import org.neo4j.scheduler.Group;
+import org.neo4j.scheduler.JobHandle;
+import org.neo4j.scheduler.JobScheduler;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 
 public class TriggerHandler extends LifecycleAdapter implements TransactionEventListener<Void> {
 
     private enum Phase {before, after, rollback, afterAsync}
+
+    public static final String TRIGGER_REFRESH = "apoc.trigger.refresh";
 
     private final ConcurrentHashMap<String, Map<String,Object>> activeTriggers = new ConcurrentHashMap();
     private final Log log;
@@ -41,6 +49,11 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     private final DatabaseManagementService databaseManagementService;
     private final ApocConfig apocConfig;
     private final Pools pools;
+    private final JobScheduler jobScheduler;
+
+    private long lastUpdate;
+
+    private JobHandle restoreTriggerHandler;
 
     private final AtomicBoolean registeredWithKernel = new AtomicBoolean(false);
 
@@ -50,13 +63,14 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
 
     public TriggerHandler(GraphDatabaseService db, DatabaseManagementService databaseManagementService,
                           ApocConfig apocConfig, Log log, GlobalProcedures globalProceduresRegistry,
-                          Pools pools) {
+                          Pools pools, JobScheduler jobScheduler) {
         this.db = db;
         this.databaseManagementService = databaseManagementService;
         this.apocConfig = apocConfig;
         this.log = log;
         transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
         this.pools = pools;
+        this.jobScheduler = jobScheduler;
     }
 
     private boolean isEnabled() {
@@ -71,21 +85,24 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
 
     private void updateCache() {
         activeTriggers.clear();
-        try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
+
+        lastUpdate = System.currentTimeMillis();
+
+        withSystemDb(tx -> {
             tx.findNodes(SystemLabels.ApocTrigger,
                     SystemPropertyKeys.database.name(), db.databaseName()).forEachRemaining(
-                node -> activeTriggers.put(
-                        (String) node.getProperty(SystemPropertyKeys.name.name()),
-                        MapUtil.map(
-                                "statement", node.getProperty(SystemPropertyKeys.statement.name()),
-                                "selector", Util.fromJson((String) node.getProperty(SystemPropertyKeys.selector.name()), Map.class),
-                                "params", Util.fromJson((String) node.getProperty(SystemPropertyKeys.params.name()), Map.class),
-                                "paused", node.getProperty(SystemPropertyKeys.paused.name())
-                        )
-                )
+                    node -> activeTriggers.put(
+                            (String) node.getProperty(SystemPropertyKeys.name.name()),
+                            MapUtil.map(
+                                    "statement", node.getProperty(SystemPropertyKeys.statement.name()),
+                                    "selector", Util.fromJson((String) node.getProperty(SystemPropertyKeys.selector.name()), Map.class),
+                                    "params", Util.fromJson((String) node.getProperty(SystemPropertyKeys.params.name()), Map.class),
+                                    "paused", node.getProperty(SystemPropertyKeys.paused.name())
+                            )
+                    )
             );
-            tx.commit();
-        }
+            return null;
+        });
 
         reconcileKernelRegistration();
     }
@@ -120,7 +137,7 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         checkEnabled();
         Map<String, Object> previous = activeTriggers.get(name);
 
-        try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
+        withSystemDb(tx -> {
             Node node = Util.mergeNode(tx, SystemLabels.ApocTrigger, null,
                     Pair.of(SystemPropertyKeys.database.name(), db.databaseName()),
                     Pair.of(SystemPropertyKeys.name.name(), name));
@@ -128,8 +145,10 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
             node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
             node.setProperty(SystemPropertyKeys.params.name(), Util.toJson(params));
             node.setProperty(SystemPropertyKeys.paused.name(), false);
-            tx.commit();
-        }
+            setLastUpdate(tx);
+            return null;
+        });
+
         updateCache();
         return previous;
     }
@@ -138,26 +157,28 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         checkEnabled();
         Map<String, Object> previous = activeTriggers.remove(name);
 
-        try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
+        withSystemDb(tx -> {
             tx.findNodes(SystemLabels.ApocTrigger,
-                    SystemPropertyKeys.database.name(), db.databaseName(),
-                    SystemPropertyKeys.name.name(), name)
+                            SystemPropertyKeys.database.name(), db.databaseName(),
+                            SystemPropertyKeys.name.name(), name)
                     .forEachRemaining(node -> node.delete());
-            tx.commit();
-        }
+            setLastUpdate(tx);
+            return null;
+        });
         updateCache();
         return previous;
     }
 
     public Map<String, Object> updatePaused(String name, boolean paused) {
         checkEnabled();
-        try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
+        withSystemDb(tx -> {
             tx.findNodes(SystemLabels.ApocTrigger,
-                    SystemPropertyKeys.database.name(), db.databaseName(),
-                    SystemPropertyKeys.name.name(), name)
+                            SystemPropertyKeys.database.name(), db.databaseName(),
+                            SystemPropertyKeys.name.name(), name)
                     .forEachRemaining(node -> node.setProperty(SystemPropertyKeys.paused.name(), paused));
-            tx.commit();
-        }
+            setLastUpdate(tx);
+            return null;
+        });
         updateCache();
         return activeTriggers.get(name);
     }
@@ -166,19 +187,20 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         checkEnabled();
         Map<String, Object> previous = activeTriggers
                 .entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-        try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
+        withSystemDb(tx -> {
             tx.findNodes(SystemLabels.ApocTrigger,
-                    SystemPropertyKeys.database.name(), db.databaseName() )
+                            SystemPropertyKeys.database.name(), db.databaseName() )
                     .forEachRemaining(node -> node.delete());
-            tx.commit();
-        }
+            setLastUpdate(tx);
+            return null;
+        });
         updateCache();
         return previous;
     }
 
     public Map<String,Map<String,Object>> list() {
         checkEnabled();
-        return activeTriggers;
+        return Map.copyOf(activeTriggers);
     }
 
     @Override
@@ -263,6 +285,12 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     @Override
     public void start() throws Exception {
         updateCache();
+        long refreshInterval = apocConfig().getInt(TRIGGER_REFRESH, 60000);
+        restoreTriggerHandler = jobScheduler.scheduleRecurring(Group.STORAGE_MAINTENANCE, () -> {
+            if (getLastUpdate() > lastUpdate) {
+                updateCache();
+            }
+        }, refreshInterval, refreshInterval, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -270,6 +298,33 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         if(registeredWithKernel.compareAndSet(true, false)) {
             databaseManagementService.unregisterTransactionEventListener(db.databaseName(), this);
         }
+        if (restoreTriggerHandler != null) {
+            restoreTriggerHandler.cancel();
+        }
+    }
+
+    private <T> T withSystemDb(Function<Transaction, T> action) {
+        try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
+            T result = action.apply(tx);
+            tx.commit();
+            return result;
+        }
+    }
+
+    private long getLastUpdate() {
+        return withSystemDb( tx -> {
+            Node node = tx.findNode(SystemLabels.ApocTriggerMeta, SystemPropertyKeys.database.name(), db.databaseName());
+            return node == null ? 0L : (long) node.getProperty(SystemPropertyKeys.lastUpdated.name());
+        });
+    }
+
+    private void setLastUpdate(Transaction tx) {
+        Node node = tx.findNode(SystemLabels.ApocTriggerMeta, SystemPropertyKeys.database.name(), db.databaseName());
+        if (node == null) {
+            node = tx.createNode(SystemLabels.ApocTriggerMeta);
+            node.setProperty(SystemPropertyKeys.database.name(), db.databaseName());
+        }
+        node.setProperty(SystemPropertyKeys.lastUpdated.name(), System.currentTimeMillis());
     }
 
 }
