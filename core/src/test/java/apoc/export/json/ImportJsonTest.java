@@ -2,7 +2,6 @@ package apoc.export.json;
 
 import apoc.ApocSettings;
 import apoc.schema.Schemas;
-import apoc.util.BinaryFileType;
 import apoc.util.CompressionAlgo;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
@@ -75,41 +74,10 @@ public class ImportJsonTest {
         // when
         TestUtil.testCall(db, "CALL apoc.import.json($file, null)",
                 map("file", filename),
-                (r) -> {
-                    // then
-                    Assert.assertEquals("all.json", r.get("file"));
-                    Assert.assertEquals("file", r.get("source"));
-                    Assert.assertEquals("json", r.get("format"));
-                    Assert.assertEquals(3L, r.get("nodes"));
-                    Assert.assertEquals(1L, r.get("relationships"));
-                    Assert.assertEquals(15L, r.get("properties"));
-                    Assert.assertEquals(4L, r.get("rows"));
-                    Assert.assertEquals(true, r.get("done"));
-                }
+                (r) -> assertionsAllJsonProgressInfo(r, false)
         );
-        
-        try(Transaction tx = db.beginTx()) {
-            final long countNodes = tx.execute("MATCH (n:User) RETURN count(n) AS count")
-                    .<Long>columnAs("count")
-                    .next();
-            Assert.assertEquals(3L, countNodes);
 
-            final long countRels = tx.execute("MATCH ()-[r:KNOWS]->() RETURN count(r) AS count")
-                    .<Long>columnAs("count")
-                    .next();
-            Assert.assertEquals(1L, countRels);
-
-            final Map<String, Object> props = tx.execute("MATCH (n:User {name: 'Adam'}) RETURN n")
-                    .<Node>columnAs("n")
-                    .next()
-                    .getAllProperties();
-
-            Assert.assertEquals(9, props.size());
-            Assert.assertEquals("wgs-84", props.get("place.crs"));
-            Assert.assertEquals(13.1D, (double) props.get("place.latitude"), 0);
-            Assert.assertEquals(33.46789D, (double) props.get("place.longitude"), 0);
-            Assert.assertFalse(props.containsKey("place"));
-        }
+        assertionsAllJsonDbResult();
     }
 
     @Test
@@ -292,14 +260,18 @@ public class ImportJsonTest {
     }
 
     @Test
-    public void shouldImportAllJsonToBinary()  {
+    public void shouldImportAllJsonFromBinary()  {
+        db.executeTransactionally("CREATE CONSTRAINT ON (n:User) assert n.neo4jImportId IS UNIQUE");
+        
         TestUtil.testCall(db, "CALL apoc.import.json($file, $config)",
                 map("config", map(COMPRESSION, CompressionAlgo.DEFLATE.name()),
                         "file", fileToBinary(new File(directory, "all.json"), CompressionAlgo.DEFLATE.name())),
-                (r) -> assertionsAllJson(r, true));
+                (r) -> assertionsAllJsonProgressInfo(r, true));
+
+        assertionsAllJsonDbResult();
     }
 
-    private void assertionsAllJson(Map<String, Object> r, boolean isBinary) {
+    private void assertionsAllJsonProgressInfo(Map<String, Object> r, boolean isBinary) {
         // then
         Assert.assertEquals(isBinary ? null : "all.json", r.get("file"));
         Assert.assertEquals(isBinary ? "binary" : "file", r.get("source"));
@@ -309,7 +281,9 @@ public class ImportJsonTest {
         Assert.assertEquals(15L, r.get("properties"));
         Assert.assertEquals(4L, r.get("rows"));
         Assert.assertEquals(true, r.get("done"));
+    }
 
+    private void assertionsAllJsonDbResult() {
         try(Transaction tx = db.beginTx()) {
             final long countNodes = tx.execute("MATCH (n:User) RETURN count(n) AS count")
                     .<Long>columnAs("count")
@@ -328,8 +302,8 @@ public class ImportJsonTest {
 
             Assert.assertEquals(9, props.size());
             Assert.assertEquals("wgs-84", props.get("place.crs"));
-            Assert.assertEquals(33.46789D, props.get("place.latitude"));
-            Assert.assertEquals(13.1D, props.get("place.longitude"));
+            Assert.assertEquals(13.1D, props.get("place.latitude"));
+            Assert.assertEquals(33.46789D, props.get("place.longitude"));
             Assert.assertFalse(props.containsKey("place"));
         }
     }
