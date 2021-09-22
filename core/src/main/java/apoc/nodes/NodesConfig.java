@@ -9,7 +9,7 @@ import java.util.Map;
 public class NodesConfig {
 
     public static final String MAX_DEPTH_KEY = "maxDepth";
-    public static final String REL_TYPE_KEY = "relTypes";
+    public static final String REL_TYPES_KEY = "relTypes";
     
     private final int maxDepth;
     private final List<String> relTypes;
@@ -17,7 +17,7 @@ public class NodesConfig {
     public NodesConfig(Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
         this.maxDepth = Util.toInteger(config.getOrDefault(MAX_DEPTH_KEY, Integer.MAX_VALUE));
-        this.relTypes = (List<String>) config.getOrDefault(REL_TYPE_KEY, Collections.emptyList());
+        this.relTypes = (List<String>) config.getOrDefault(REL_TYPES_KEY, Collections.emptyList());
     }
 
     public int getMaxDepth() {

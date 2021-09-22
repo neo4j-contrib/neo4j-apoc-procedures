@@ -9,12 +9,12 @@ import apoc.result.NodeResult;
 import apoc.result.PathResult;
 import apoc.result.RelationshipResult;
 import apoc.result.VirtualNode;
+import apoc.result.VirtualPath;
 import apoc.result.VirtualPathResult;
 import apoc.util.Util;
 import org.neo4j.graphalgo.BasicEvaluationContext;
 import org.neo4j.graphalgo.GraphAlgoFactory;
 import org.neo4j.graphalgo.PathFinder;
-import org.neo4j.graphalgo.impl.util.PathImpl;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -77,7 +77,7 @@ public class Nodes {
     public Pools pools;
     
     @Procedure
-    @Description("CALL apoc.nodes.cycles([nodes], 'type', $config) - Detect all path cycles from node list")
+    @Description("CALL apoc.nodes.cycles([nodes], $config) - Detect all path cycles from node list")
     public Stream<PathResult> cycles(@Name("nodes") List<Node> nodes, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         NodesConfig conf = new NodesConfig(config);
         final List<String> types = conf.getRelTypes();
@@ -117,12 +117,12 @@ public class Nodes {
                     .flatMap(relationship -> {
                         final Path path = finder.findSinglePath(relationship.getEndNode(), start);
                         if (path == null) return Stream.empty();
-                        PathImpl.Builder builder = new PathImpl.Builder(start)
-                                .push(relationship);
+                        VirtualPath virtualPath = new VirtualPath(start);
+                        virtualPath.addRel(relationship);
                         for (Relationship relPath : path.relationships()) {
-                            builder = builder.push(relPath);
+                            virtualPath.addRel(relPath);
                         }
-                        return Stream.of(builder.build());
+                        return Stream.of(virtualPath);
                     });
         });
         return paths.map(PathResult::new);

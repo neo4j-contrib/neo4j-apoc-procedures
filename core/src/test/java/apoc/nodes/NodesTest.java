@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static apoc.nodes.NodesConfig.MAX_DEPTH_KEY;
-import static apoc.nodes.NodesConfig.REL_TYPE_KEY;
+import static apoc.nodes.NodesConfig.REL_TYPES_KEY;
 import static apoc.util.Util.map;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
@@ -94,7 +94,7 @@ public class NodesTest {
         
         // with single specific relationship
         TestUtil.testResult(db, "MATCH (m1:Start) WITH collect(m1) as nodes CALL apoc.nodes.cycles(nodes, $config) YIELD path RETURN path",
-                map("config", map(REL_TYPE_KEY, List.of(DEPEND_ON_REL_TYPE))),
+                map("config", map(REL_TYPES_KEY, List.of(DEPEND_ON_REL_TYPE))),
                 res -> {
             List<Path> paths = Iterators.stream(res.<Path>columnAs("path"))
                     .sorted(Comparator.comparingLong(item -> (long) item.lastRelationship().getProperty("id")))
@@ -107,7 +107,7 @@ public class NodesTest {
 
         // with multiple specific relationship (without MY_REL_ANOTHER, shouldn't find `(:Start {bar: 'beta'})` cycle)
         TestUtil.testResult(db, "MATCH (m1:Start) WITH collect(m1) as nodes CALL apoc.nodes.cycles(nodes, $config) YIELD path RETURN path",
-                map("config", map(REL_TYPE_KEY, List.of(DEPEND_ON_REL_TYPE, "MY_REL", "NOT_EXISTENT"))),
+                map("config", map(REL_TYPES_KEY, List.of(DEPEND_ON_REL_TYPE, "MY_REL", "NOT_EXISTENT"))),
                 res -> {
             List<Path> paths = Iterators.stream(res.<Path>columnAs("path"))
                     .sorted(Comparator.comparingLong(item -> (long) item.lastRelationship().getProperty("id")))
@@ -120,7 +120,7 @@ public class NodesTest {
 
         // with multiple specific relationship (with MY_REL_ANOTHER, should find `(:Start {bar: 'beta'})` cycle)
         TestUtil.testResult(db, "MATCH (m1:Start) WITH collect(m1) as nodes CALL apoc.nodes.cycles(nodes, $config) YIELD path RETURN path",
-                map("config", map(REL_TYPE_KEY, List.of(DEPEND_ON_REL_TYPE, "MY_REL", "MY_REL_ANOTHER", "NOT_EXISTENT"))),
+                map("config", map(REL_TYPES_KEY, List.of(DEPEND_ON_REL_TYPE, "MY_REL", "MY_REL_ANOTHER", "NOT_EXISTENT"))),
                 res -> {
             List<Path> paths = Iterators.stream(res.<Path>columnAs("path"))
                     .sorted(Comparator.comparingLong(item -> (long) item.lastRelationship().getProperty("id")))
@@ -134,7 +134,7 @@ public class NodesTest {
 
         // with not existent relationship
         TestUtil.testCallEmpty(db, "MATCH (m1:Start) WITH collect(m1) as nodes CALL apoc.nodes.cycles(nodes, $config) YIELD path RETURN path",
-                map("config", map(REL_TYPE_KEY, List.of("NOT_EXISTENT"))));
+                map("config", map(REL_TYPES_KEY, List.of("NOT_EXISTENT"))));
     }
 
     @Test
@@ -155,7 +155,7 @@ public class NodesTest {
 
         // with {maxDepth: 0} config (only self-rel considered)
         TestUtil.testCall(db, "MATCH (m1:Start) WITH collect(m1) as nodes CALL apoc.nodes.cycles(nodes, $config) YIELD path RETURN path",
-                map("config", map(REL_TYPE_KEY, List.of(DEPEND_ON_REL_TYPE), MAX_DEPTH_KEY, 0)),
+                map("config", map(REL_TYPES_KEY, List.of(DEPEND_ON_REL_TYPE), MAX_DEPTH_KEY, 0)),
                 r -> assertionsCycle((Path) r.get("path"), SELF_REL_PROPS));
     }
 

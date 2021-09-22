@@ -15,7 +15,7 @@ apoc.nodes.collapse([nodes...],[{properties:'overwrite' or 'discard' or 'combine
 |label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.cycles.adoc[apoc.nodes.cycles icon:book[]]
 
-CALL apoc.nodes.cycles([nodes], 'type', $config) - Detect all path cycles from node list
+CALL apoc.nodes.cycles([nodes], $config) - Detect all path cycles from node list
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.delete.adoc[apoc.nodes.delete icon:book[]]
