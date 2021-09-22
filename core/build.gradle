@@ -65,6 +65,12 @@ dependencies {
     implementation group: 'com.github.seancfoley', name: 'ipaddress', version: '5.3.3'
 
     testImplementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
+    
+    implementation(group: 'org.apache.commons', name: 'commons-lang3') {
+        version {
+            strictly '3.12.0'
+        }
+    }
 
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
