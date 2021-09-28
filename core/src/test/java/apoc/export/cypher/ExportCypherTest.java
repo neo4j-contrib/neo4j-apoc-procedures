@@ -729,6 +729,20 @@ public class ExportCypherTest {
                     assertEquals(expected, unwind);
                 });
     }
+    
+    @Test
+    public void shouldSaveCorrectlyRelIndexesOptimized() throws FileNotFoundException {
+        String fileName = "relIndex.cypher";
+        db.executeTransactionally("CREATE INDEX rel_index_name FOR ()-[r:KNOWS]-() ON (r.since, r.foo)");
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all($file, $exportConfig)",
+                map("file", fileName, "exportConfig", map("separateFiles", true, "format", "neo4j-shell")),
+                (r) -> assertResultsOptimized(fileName, r));
+        assertEquals(EXPECTED_NODES_OPTIMIZED, readFile("relIndex.nodes.cypher"));
+        assertEquals(EXPECTED_RELATIONSHIPS_OPTIMIZED, readFile("relIndex.relationships.cypher"));
+        assertEquals(EXPECTED_CLEAN_UP, readFile("relIndex.cleanup.cypher"));
+        assertEquals(EXPECTED_SCHEMA_WITH_RELS_OPTIMIZED, readFile("relIndex.schema.cypher"));
+        db.executeTransactionally("DROP INDEX rel_index_name");
+    }
 
     private void assertResultsOptimized(String fileName, Map<String, Object> r) {
         assertEquals(7L, r.get("nodes"));
@@ -909,6 +923,15 @@ public class ExportCypherTest {
                 "BEGIN%n" +
                 "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n");
+        
+        static final String EXPECTED_SCHEMA_WITH_RELS_OPTIMIZED = String.format("BEGIN%n" +
+                "CREATE INDEX ON :Bar(first_name,last_name);%n" +
+                "CREATE INDEX ON :Foo(name);%n" +
+                "CREATE INDEX FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
+                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n");
 
         static final String EXPECTED_SCHEMA_OPTIMIZED = String.format("BEGIN%n" +
                 "CREATE INDEX ON :Bar(first_name,last_name);%n" +
