@@ -1,0 +1,20 @@
+{"type":"node","id":"999","labels":["FirstLabel"],"properties":{"name":"firstProp"}}
+{"type":"node","id":"0","labels":["Stream","User"],"properties":{"createdAt":"2016-07-08T21:50:35.504924Z","followers":33366,"name":"itsbigchase","description":"Welcome to my Channel, I'm Big Chase, 31 living in England UK. Mediocre game play, 2 bald cats, hilarious moments.                                                                                           Business enquiries: itsbigchase@gmail.com","id":"129004176","total_view_count":569603,"url":"https://www.twitch.tv/itsbigchase"}}
+{"type":"node","id":"1","labels":["Game"],"properties":{"name":"Rust"}}
+{"type":"node","id":"2","labels":["Language"],"properties":{"name":"en"}}
+{"type":"node","id":"3","labels":["Stream","User"],"properties":{"createdAt":"2011-12-01T06:33:31.487567Z","followers":5898590,"name":"summit1g","description":"I'm a variety streamer(kind of). Been streaming 8 years(another number to change every year).I'm 100% better than you at shooting and puzzle games.@summit1g via Twitter.","id":"26490481","total_view_count":449304545,"url":"https://www.twitch.tv/summit1g"}}
+{"type":"node","id":"4","labels":["Game"],"properties":{"name":"DayZ"}}
+{"type":"node","id":"5","labels":["Stream","User"],"properties":{"createdAt":"2013-11-02T14:39:22.483111Z","followers":543783,"name":"stylishnoob4","description":"感謝します。","id":"50988750","total_view_count":81285942,"url":"https://www.twitch.tv/stylishnoob4"}}
+{"type":"node","id":"6","labels":["Game"],"properties":{"name":"VALORANT"}}
+{"type":"node","id":"7","labels":["Language"],"properties":{"name":"ja"}}
+{"type":"node","id":"8","labels":["Stream","User"],"properties":{"createdAt":"2018-04-12T14:50:12.428980Z","followers":584530,"name":"dota2mc_ru","description":"Топовая студия в мире профессионального киберспорта.Охотимся за красочными рэмпейджами и транслируем главные турниры с лучшими командами мира. ","id":"213749122","total_view_count":135221985,"url":"https://www.twitch.tv/dota2mc_ru"}}
+{"type":"node","id":"9","labels":["Game"],"properties":{"name":"Dota 2"}}
+{"type":"node","id":"10","labels":["Language"],"properties":{"name":"en-gb"}}
+{"type":"node","id":"11","labels":["Stream","User"],"properties":{"createdAt":"2012-04-28T03:03:56.967712Z","followers":923985,"name":"maximilian_dood","description":"Maximilian's Livestream Of Hype! Modern fighting games, classic fighting games, playthrus and YoVideogames on the weekend. MY DOODS!","id":"30104304","total_view_count":72083556,"url":"https://www.twitch.tv/maximilian_dood"}}
+{"type":"node","id":"1034","labels":["Game"],"properties":{"name":"A Street Cat's Tale"}}
+{"type":"node","id":"1035","labels":["Stream","User"],"properties":{"createdAt":"2013-06-04T00:57:04.261134Z","followers":234646,"name":"immortoru","description":"Pro mid lane player and streamer","id":"44331558","total_view_count":11855227,"url":"https://www.twitch.tv/immortoru"}}
+{"type":"node","id":"1041","labels":["$Stream","$User"],"properties":{"createdAt":"2017-11-05T08:47:24.210613Z","followers":70253,"name":"rel_fn","description":"","id":"180550276","total_view_count":940424,"url":"https://www.twitch.tv/rel_fn"}}
+{"id":"0","type":"relationship","label":"REL_STREAM_TO_GAME","properties":{"since":1993,"bffSince":"P5M1DT12H"},"start":{"id":"0","labels":["Stream","User"]},"end":{"id":"1","labels":["Game"]}}
+{"id":"1","type":"relationship","label":"REL_LANG_TO_STREAM","properties":{"since":1993,"bffSince":"P5M1DT12H"},"start":{"id":"2","labels":["Language"]},"end":{"id":"3","labels":["Stream","User"]}}
+{"id":"2","type":"relationship","label":"REL_GAME_TO_STREAM","properties":{"since":1993,"bffSince":"P5M1DT12H"},"start":{"id":"4","labels":["Game"]},"end":{"id":"5","labels":["Stream","User"]}}
+{"id":"3","type":"relationship","label":"REL_GAME_TO_LANG","properties":{"since":1993,"bffSince":"P5M1DT12H"},"start":{"id":"6","labels":["Game"]},"end":{"id":"7","labels":["Language"]}}
