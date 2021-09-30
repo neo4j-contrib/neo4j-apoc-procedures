@@ -15,14 +15,14 @@ apoc.load.csvParams('url', {httpHeader: value}, payload, \{config}) YIELD lineNo
 
 [source]
 ----
-apoc.load.csvParams(url :: STRING?, httpHeaders :: MAP?, payload :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, list :: LIST? OF ANY?, strings :: LIST? OF STRING?, map :: MAP?, stringMap :: MAP?)
+apoc.load.csvParams(url :: ANY?, httpHeaders :: MAP?, payload :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, list :: LIST? OF ANY?, strings :: LIST? OF STRING?, map :: MAP?, stringMap :: MAP?)
 ----
 
 == Input parameters
 [.procedures, opts=header]
 |===
 | Name | Type | Default 
-|url|STRING?|null
+|url|ANY?|null
 |httpHeaders|MAP?|null
 |payload|STRING?|null
 |config|MAP?|{}

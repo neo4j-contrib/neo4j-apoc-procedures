@@ -15,12 +15,12 @@ apoc.import.csv(nodes, relationships, config) - imports nodes and relationships 
 |label:apoc-core[]
 |xref::overview/apoc.import/apoc.import.graphml.adoc[apoc.import.graphml icon:book[]]
 
-apoc.import.graphml(file,config) - imports graphml file
+apoc.import.graphml(fileOrBinary,config) - imports graphml file
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.import/apoc.import.json.adoc[apoc.import.json icon:book[]]
 
-apoc.import.json(file,config) - imports the json list to the provided file
+apoc.import.json(fileOrBinary,config) - imports the json list to the provided file
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.import/apoc.import.xml.adoc[apoc.import.xml icon:book[]]

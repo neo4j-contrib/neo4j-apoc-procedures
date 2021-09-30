@@ -14,14 +14,14 @@ apoc.import.xml(file,config) - imports graph from provided file
 
 [source]
 ----
-apoc.import.xml(url :: STRING?, config = {} :: MAP?) :: (node :: NODE?)
+apoc.import.xml(urlOrBinary :: ANY?, config = {} :: MAP?) :: (node :: NODE?)
 ----
 
 == Input parameters
 [.procedures, opts=header]
 |===
 | Name | Type | Default 
-|url|STRING?|null
+|urlOrBinary|ANY?|null
 |config|MAP?|{}
 |===
 
