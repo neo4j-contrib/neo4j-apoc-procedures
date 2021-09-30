@@ -1,0 +1,2 @@
+¦signature
+¦apoc.redis.hincrby(uri :: STRING?, key :: ANY?, field :: ANY?, amount :: INTEGER?, config = {} :: MAP?) :: (value :: INTEGER?)
