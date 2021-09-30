@@ -41,7 +41,17 @@ apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}
 |label:apoc-full[]
 |xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runMany icon:book[]]
 
-apoc.cypher.runMany('cypher;\nstatements;',\{params},[{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations
+apoc.cypher.runMany('cypher;\nstatements;', $params, [{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runManyReadOnly icon:book[]]
+
+apoc.cypher.runManyReadOnly('cypher;\nstatements;', $params, [{statistics:true,timeout:10}]) - runs each semicolon separated, read-only statement and returns summary - currently no schema operations
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runSchema icon:book[]]
+
+apoc.cypher.runSchema(statement, params) yield value - executes query schema statement with the given parameters
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runSchemaFile icon:book[]]
@@ -59,6 +69,11 @@ apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allow
 apoc.cypher.runTimeboxed('cypherStatement',\{params}, timeout) - abort kernelTransaction after timeout ms if not finished
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runWrite icon:book[]]
+
+apoc.cypher.runWrite(statement, params) yield value - alias for apoc.cypher.doIt
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runFirstColumn icon:book[]]
 
 use either apoc.cypher.runFirstColumnMany for a list return or apoc.cypher.runFirstColumnSingle for returning the first row of the first column
@@ -73,14 +88,4 @@ apoc.cypher.runFirstColumnMany(statement, params) - executes statement with give
 
 apoc.cypher.runFirstColumnSingle(statement, params) - executes statement with given parameters, returns first element of the first column only, params are available as identifiers
 |label:function[]
-|label:apoc-core[]
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runSchema icon:book[]]
-
-apoc.cypher.runSchema(statement, params) yield value - executes query schema statement with the given parameters
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runWrite icon:book[]]
-
-apoc.cypher.runWrite(statement, params) yield value - alias for apoc.cypher.doIt
-|label:procedure[]
 |label:apoc-core[]

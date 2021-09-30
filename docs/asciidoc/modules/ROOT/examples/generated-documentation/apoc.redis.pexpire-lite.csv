@@ -1,0 +1,2 @@
+¦signature
+¦apoc.redis.pexpire(uri :: STRING?, key :: ANY?, time :: INTEGER?, isExpireAt :: BOOLEAN?, config = {} :: MAP?) :: (value :: BOOLEAN?)
