@@ -82,8 +82,10 @@ public class JDBCResource extends VirtualizedResource {
         final long countForQuestionMarks = countForQuestionMarks(query);
         final List<Object> list;
         if (countForQuestionMarks > 0) {
+            // get params from the list - queryParams is expected to be a list
             list = (List<Object>) queryParams;
         } else {
+            // using $ we get params from the map, extract values based on each param name
             Map<String, Object> queryMap = (Map<String, Object>) queryParams;
             list = params.stream()
                     .map(param -> queryMap.get(param.substring(1)))

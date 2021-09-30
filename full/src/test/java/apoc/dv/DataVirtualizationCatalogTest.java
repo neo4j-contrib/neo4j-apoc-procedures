@@ -38,7 +38,7 @@ import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
-public class VirtualizeTest {
+public class DataVirtualizationCatalogTest {
 
     public static final Label PERSON = Label.label("Person");
 
@@ -50,7 +50,7 @@ public class VirtualizeTest {
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, Virtualize.class, Jdbc.class, LoadCsv.class, Create.class);
+        TestUtil.registerProcedure(db, DataVirtualizationCatalog.class, Jdbc.class, LoadCsv.class, Create.class);
     }
 
     @BeforeClass

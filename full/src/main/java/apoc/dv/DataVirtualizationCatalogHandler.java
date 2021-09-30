@@ -17,13 +17,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class VRCatalogHandler {
+public class DataVirtualizationCatalogHandler {
 
     private final GraphDatabaseService db;
     private final GraphDatabaseService systemDb;
     private final Log log;
 
-    public VRCatalogHandler(GraphDatabaseService db, GraphDatabaseService systemDb, Log log) {
+    public DataVirtualizationCatalogHandler(GraphDatabaseService db, GraphDatabaseService systemDb, Log log) {
         this.db = db;
         this.systemDb = systemDb;
         this.log = log;

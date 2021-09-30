@@ -1,10 +1,11 @@
 package apoc.dv;
 
 import apoc.ApocConfig;
+import apoc.Extended;
 import apoc.result.NodeResult;
 import apoc.result.PathResult;
+import apoc.result.VirtualPath;
 import apoc.result.VirtualRelationship;
-import org.neo4j.graphalgo.impl.util.PathImpl;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
@@ -20,7 +21,8 @@ import org.neo4j.procedure.Procedure;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class Virtualize {
+@Extended
+public class DataVirtualizationCatalog {
 
     @Context
     public Transaction tx;
@@ -39,14 +41,14 @@ public class Virtualize {
     public Stream<VirtualizedResource.VirtualizedResourceDTO> add(
             @Name("name") String name,
             @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
-        return Stream.of(new VRCatalogHandler(db, apocConfig.getSystemDb(), log).add(VirtualizedResource.from(name, config)))
+        return Stream.of(new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log).add(VirtualizedResource.from(name, config)))
                 .map(VirtualizedResource::toDTO);
     }
 
     @Procedure(name = "apoc.dv.catalog.remove", mode = Mode.WRITE)
     @Description("Remove a virtualized resource config by name")
     public Stream<VirtualizedResource.VirtualizedResourceDTO> remove(@Name("name") String name) {
-        return new VRCatalogHandler(db, apocConfig.getSystemDb(), log)
+        return new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log)
                 .remove(name)
                 .map(VirtualizedResource::toDTO);
     }
@@ -54,7 +56,7 @@ public class Virtualize {
     @Procedure(name = "apoc.dv.catalog.list", mode = Mode.READ)
     @Description("List all virtualized resource configuration")
     public Stream<VirtualizedResource.VirtualizedResourceDTO> list() {
-        return new VRCatalogHandler(db, apocConfig.getSystemDb(), log).list()
+        return new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log).list()
                 .map(VirtualizedResource::toDTO);
     }
 
@@ -63,7 +65,7 @@ public class Virtualize {
     public Stream<NodeResult> query(@Name("name") String name,
                                     @Name(value = "params", defaultValue = "{}") Object params,
                                     @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        VirtualizedResource vr = new VRCatalogHandler(db, apocConfig.getSystemDb(), log).get(name);
+        VirtualizedResource vr = new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log).get(name);
         final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params, config);
         return tx.execute(procedureCallWithParams.first(), procedureCallWithParams.other())
                 .stream()
@@ -78,14 +80,14 @@ public class Virtualize {
                                            @Name("name") String name,
                                            @Name(value = "params", defaultValue = "{}") Object params,
                                            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        VirtualizedResource vr = new VRCatalogHandler(db, apocConfig.getSystemDb(), null).get(name);
+        VirtualizedResource vr = new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), null).get(name);
         final RelationshipType relationshipType = RelationshipType.withName(relName);
         final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params, config);
         return tx.execute(procedureCallWithParams.first(), procedureCallWithParams.other())
                 .stream()
                 .map(m -> (Node) m.get(("node")))
                 .map(n -> new VirtualRelationship(node, n, relationshipType))
-                .map(r -> new PathImpl.Builder(r.getStartNode()).push(r).build())
+                .map(r -> new VirtualPath.Builder(r.getStartNode()).push(r).build())
                 .map(PathResult::new);
     }
 
