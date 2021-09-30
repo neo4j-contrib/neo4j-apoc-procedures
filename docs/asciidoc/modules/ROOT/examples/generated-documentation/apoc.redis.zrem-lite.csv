@@ -1,0 +1,2 @@
+¦signature
+¦apoc.redis.zrem(uri :: STRING?, key :: ANY?, members :: LIST? OF ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
