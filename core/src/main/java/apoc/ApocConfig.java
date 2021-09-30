@@ -246,6 +246,7 @@ public class ApocConfig extends LifecycleAdapter {
         rateLimiter = new SimpleRateLimiter(getInt( "apoc.user.log.window.time", 10000), getInt("apoc.user.log.window.ops", 10));
     }
 
+    // added because with binary file there isn't an url
     public void isImportFileEnabled() {
         if (!config.getBoolean(APOC_IMPORT_FILE_ENABLED)) {
             throw new RuntimeException("Import from files not enabled," +
