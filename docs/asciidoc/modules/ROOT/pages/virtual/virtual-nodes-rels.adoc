@@ -61,6 +61,18 @@ include::example$generated-documentation/apoc.create.virtualPath.adoc[]
 
 .Virtual node and virtual relationship `vNode`, `vRelationship`
 
+From this simple data set:
+
+[source,cypher]
+----
+CREATE (from:Account), (to:Account)
+WITH from, to 
+CREATE (from)-[:SENT]->(:Payment {amount: 250})-[:RECEIVED]->(to)
+CREATE (from)-[:SENT]->(:Payment {amount: 750})-[:RECEIVED]->(to)
+----
+
+we can do:
+
 .Simple example aggregate Relationships
 [source,cypher]
 ----
@@ -68,21 +80,34 @@ MATCH (from:Account)-[:SENT]->(p:Payment)-[:RECEIVED]->(to:Account)
 RETURN from, to, apoc.create.vRelationship(from,'PAID',{amount:sum(p.amount)},to) as rel;
 ----
 
+image::apoc.create.vRelationship.png[scaledwidth="100%"]
+
+From this simple data set:
+
+[source,cypher]
+----
+CREATE (:Person {country: "Test1"})-[:KNOWS]->(:Person {country: "Test2"}),
+(:Person {country: "Foo"})-[:KNOWS]->(:Person {country: "Bar"})
+----
+
+we can execute:
 
 .Example with virtual node lookups, people grouped by their countries
 [source,cypher]
 ----
 MATCH (p:Person) WITH collect(distinct p.country) as countries
 WITH [cName IN countries | apoc.create.vNode(['Country'],{name:cName})] as countryNodes
-WITH apoc.coll.groupBy(countryNodes,'name') as countries
+WITH apoc.map.groupBy(countryNodes,'name') as countries
 MATCH (p1:Person)-[:KNOWS]->(p2:Person)
 WITH p1.country as cFrom, p2.country as cTo, count(*) as count, countries
 RETURN countries[cFrom] as from, countries[cTo] as to, apoc.create.vRelationship(countries[cFrom],'KNOWS',{count:count},countries[cTo]) as rel;
 ----
 
+image::apoc.create.vRelationshipTwo.png[scaledwidth="100%"]
+
 That's of course easier with `apoc.nodes.group`.
 
-From a simple dataset
+From a simple data set
 
 [source,cypher]
 ----
