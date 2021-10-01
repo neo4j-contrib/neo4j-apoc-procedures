@@ -1,0 +1,2 @@
+¦signature
+¦apoc.redis.get(uri :: STRING?, key :: ANY?, config = {} :: MAP?) :: (value :: ANY?)

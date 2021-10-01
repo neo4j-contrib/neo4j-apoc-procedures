@@ -1,0 +1,2 @@
+¦signature
+¦apoc.redis.spop(uri :: STRING?, key :: ANY?, config = {} :: MAP?) :: (value :: ANY?)
