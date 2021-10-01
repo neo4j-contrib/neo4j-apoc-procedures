@@ -99,7 +99,7 @@ image::apoc.create.vRelationshipTwo.png[scaledwidth="100%"]
 
 That's of course easier with `apoc.nodes.group`.
 
-From a simple dataset
+From a simple data set
 
 [source,cypher]
 ----
