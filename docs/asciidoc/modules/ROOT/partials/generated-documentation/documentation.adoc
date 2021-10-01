@@ -902,7 +902,12 @@ apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}
 |label:apoc-full[]
 |xref::overview/apoc.cypher/apoc.cypher.runMany.adoc[apoc.cypher.runMany icon:book[]]
 
-apoc.cypher.runMany('cypher;\nstatements;',\{params},[{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations
+apoc.cypher.runMany('cypher;\nstatements;', $params, [{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.cypher/apoc.cypher.runManyReadOnly.adoc[apoc.cypher.runManyReadOnly icon:book[]]
+
+apoc.cypher.runManyReadOnly('cypher;\nstatements;', $params, [{statistics:true,timeout:10}]) - runs each semicolon separated, read-only statement and returns summary - currently no schema operations
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.cypher/apoc.cypher.runSchema.adoc[apoc.cypher.runSchema icon:book[]]
