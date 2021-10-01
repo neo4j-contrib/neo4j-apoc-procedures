@@ -1,8 +1,36 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.es.get¦apoc.es.get(host :: STRING?, index :: STRING?, type :: STRING?, id :: STRING?, query :: ANY?, payload :: ANY?) :: (value :: MAP?)¦apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a GET operation on elastic search
-¦procedure¦apoc.es.getRaw¦apoc.es.getRaw(host :: STRING?, path :: STRING?, payload :: ANY?) :: (value :: MAP?)¦apoc.es.getRaw(host-or-port,path,payload-or-null) yield value - perform a raw GET operation on elastic search
-¦procedure¦apoc.es.post¦apoc.es.post(host :: STRING?, index :: STRING?, type :: STRING?, query :: ANY?, payload = {} :: MAP?) :: (value :: MAP?)¦apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a POST operation on elastic search
-¦procedure¦apoc.es.postRaw¦apoc.es.postRaw(host :: STRING?, path :: STRING?, payload :: ANY?) :: (value :: MAP?)¦apoc.es.postRaw(host-or-port,path,payload-or-null) yield value - perform a raw POST operation on elastic search
-¦procedure¦apoc.es.put¦apoc.es.put(host :: STRING?, index :: STRING?, type :: STRING?, id :: STRING?, query :: ANY?, payload = {} :: MAP?) :: (value :: MAP?)¦apoc.es.put(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a PUT operation on elastic search
-¦procedure¦apoc.es.query¦apoc.es.query(host :: STRING?, index :: STRING?, type :: STRING?, query :: ANY?, payload :: ANY?) :: (value :: MAP?)¦apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a SEARCH operation on elastic search
-¦procedure¦apoc.es.stats¦apoc.es.stats(host :: STRING?) :: (value :: MAP?)¦apoc.es.stats(host-url-Key) - elastic search statistics
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.es/apoc.es.adoc[apoc.es.get icon:book[]]
+
+apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a GET operation on elastic search
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.es/apoc.es.adoc[apoc.es.getRaw icon:book[]]
+
+apoc.es.getRaw(host-or-port,path,payload-or-null) yield value - perform a raw GET operation on elastic search
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.es/apoc.es.adoc[apoc.es.post icon:book[]]
+
+apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a POST operation on elastic search
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.es/apoc.es.adoc[apoc.es.postRaw icon:book[]]
+
+apoc.es.postRaw(host-or-port,path,payload-or-null) yield value - perform a raw POST operation on elastic search
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.es/apoc.es.adoc[apoc.es.put icon:book[]]
+
+apoc.es.put(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a PUT operation on elastic search
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.es/apoc.es.adoc[apoc.es.query icon:book[]]
+
+apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a SEARCH operation on elastic search
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.es/apoc.es.adoc[apoc.es.stats icon:book[]]
+
+apoc.es.stats(host-url-Key) - elastic search statistics
+|label:procedure[]
+|label:apoc-full[]

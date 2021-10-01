@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.node.relationship.exists¦apoc.node.relationship.exists(node :: NODE?, types =  :: STRING?) :: (BOOLEAN?)¦apoc.node.relationship.exists(node, rel-direction-pattern) - returns true when the node has the relationships of the pattern
-¦function¦apoc.node.relationship.types¦apoc.node.relationship.types(node :: NODE?, types =  :: STRING?) :: (LIST? OF ANY?)¦apoc.node.relationship.types(node, rel-direction-pattern) - returns a list of distinct relationship types
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.node.relationship/apoc.node.adoc[apoc.node.relationship.exists icon:book[]]
+
+apoc.node.relationship.exists(node, rel-direction-pattern) - returns true when the node has the relationships of the pattern
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.node.relationship/apoc.node.adoc[apoc.node.relationship.types icon:book[]]
+
+apoc.node.relationship.types(node, rel-direction-pattern) - returns a list of distinct relationship types
+|label:function[]
+|label:apoc-core[]

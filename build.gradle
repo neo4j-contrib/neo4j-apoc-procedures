@@ -28,8 +28,7 @@ repositories {
     /*maven {  // this contains the neo4j 4.0.0-beta jars
     url "https://neo4j.bintray.com/community/"
 }*/
-    jcenter()
-    //mavenCentral()
+    mavenCentral()
     maven {
         url "https://repo.gradle.org/gradle/libs-releases"
     }
@@ -44,8 +43,7 @@ subprojects {
         /*maven {  // this contains the neo4j 4.0.0-beta jars
         url "https://neo4j.bintray.com/community/"
     }*/
-        jcenter()
-        //mavenCentral()
+        mavenCentral()
         maven {
             url "https://repo.gradle.org/gradle/libs-releases"
         }
@@ -86,7 +84,12 @@ subprojects {
             setFailOnNoMatchingTests(false)
         }
 
-        ignoreFailures(true)
+        // in TC we don't have the CI env so we can manage it in this way
+        if (System.env.TEAMCITY_VERSION != null) {
+            ignoreFailures(true)
+        }
+        testLogging.showStandardStreams = true
+        testLogging.exceptionFormat = 'full'
     }
 
     configurations {

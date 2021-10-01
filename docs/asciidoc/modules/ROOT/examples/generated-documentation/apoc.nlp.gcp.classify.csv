@@ -1,3 +1,11 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.nlp.gcp.classify.graph¦apoc.nlp.gcp.classify.graph(source :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)¦Classifies a document into categories.
-¦procedure¦apoc.nlp.gcp.classify.stream¦apoc.nlp.gcp.classify.stream(source :: ANY?, config = {} :: MAP?) :: (node :: NODE?, value :: MAP?, error :: MAP?)¦Classifies a document into categories.
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.nlp.gcp.classify/apoc.nlp.adoc[apoc.nlp.gcp.classify.graph icon:book[]]
+
+Classifies a document into categories.
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.nlp.gcp.classify/apoc.nlp.adoc[apoc.nlp.gcp.classify.stream icon:book[]]
+
+Classifies a document into categories.
+|label:procedure[]
+|label:apoc-full[]

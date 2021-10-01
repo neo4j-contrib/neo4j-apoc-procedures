@@ -1,4 +1,16 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.node.degree¦apoc.node.degree(node :: NODE?, types =  :: STRING?) :: (INTEGER?)¦apoc.node.degree(node, rel-direction-pattern) - returns total degrees of the given relationships in the pattern, can use '>' or '<' for all outgoing or incoming relationships
-¦function¦apoc.node.id¦apoc.node.id(node :: NODE?) :: (INTEGER?)¦returns id for (virtual) nodes
-¦function¦apoc.node.labels¦apoc.node.labels(node :: NODE?) :: (LIST? OF ANY?)¦returns labels for (virtual) nodes
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.node/apoc.node.adoc[apoc.node.degree icon:book[]]
+
+apoc.node.degree(node, rel-direction-pattern) - returns total degrees of the given relationships in the pattern, can use '>' or '<' for all outgoing or incoming relationships
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.node/apoc.node.adoc[apoc.node.id icon:book[]]
+
+returns id for (virtual) nodes
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.node/apoc.node.adoc[apoc.node.labels icon:book[]]
+
+returns labels for (virtual) nodes
+|label:function[]
+|label:apoc-core[]

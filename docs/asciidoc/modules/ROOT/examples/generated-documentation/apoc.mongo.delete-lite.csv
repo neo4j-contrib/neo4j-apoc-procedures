@@ -1,0 +1,2 @@
+¦signature
+¦apoc.mongo.delete(uri :: STRING?, query :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)

@@ -437,7 +437,44 @@ public class MetaTest {
                     assertEquals(1L, rel2.get("count"));
                 });
     }
+    
+    @Test
+    public void testMetaSchemaWithSmallSampleAndRelationships() {
+        final List<String> labels = List.of("Other", "Foo");
+        db.executeTransactionally("CREATE (:Foo), (:Other)-[:REL_0]->(:Other), (:Other)-[:REL_1]->(:Other)<-[:REL_2 {baz: 'baa'}]-(:Other), (:Other {alpha: 'beta'}), (:Other {foo:'bar'})-[:REL_3]->(:Other)");
+        testCall(db, "CALL apoc.meta.schema({sample: 2})",
+                (row) -> ((Map<String, Map<String, Object>>) row.get("value")).forEach((key, value) -> {
+                    if (labels.contains(key)) {
+                        assertEquals("node", value.get("type"));
+                    } else {
+                        assertEquals("relationship", value.get("type"));
+                    }
+                }));
+    }
 
+    @Test
+    public void testIssue1861LabelAndTypeWithSameName() {
+        db.executeTransactionally("CREATE (s0 :person{id:1} ) SET s0.name = 'rose'\n" +
+                "CREATE (t0 :person{id:2}) SET t0.name = 'jack'\n" +
+                "MERGE (s0) -[r0:person {alfa: 'beta'}] -> (t0)");
+        testCall(db,"CALL apoc.meta.schema()", (row) -> {
+            Map<String, Object> value = (Map<String, Object>) row.get("value");
+            assertEquals(2, value.size());
+            
+            Map<String, Object>  personRelationship = (Map<String, Object>) value.get("person (RELATIONSHIP)");
+            assertEquals(1L, personRelationship.get("count"));
+            assertEquals("relationship", personRelationship.get("type"));
+            Map<String, Object>  relationshipProps = (Map<String, Object>) personRelationship.get("properties");
+            assertEquals(Set.of("alfa"), relationshipProps.keySet());
+            
+            Map<String, Object> personNode = (Map<String, Object>) value.get("person");
+            assertEquals(2L, personNode.get("count"));
+            assertEquals("node", personNode.get("type"));
+            Map<String, Object>  nodeProps = (Map<String, Object>) personNode.get("properties");
+            assertEquals(Set.of("name", "id"), nodeProps.keySet());
+        });
+    }
+    
     @Test
     public void testSubGraphNoLimits() throws Exception {
         db.executeTransactionally("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)");
@@ -1089,4 +1126,45 @@ public class MetaTest {
         });
 
     }
+
+    @Test
+    public void testMetaStatsWithLabelAndRelTypeCountInUse() {
+        db.executeTransactionally("CREATE (:Node:Test)-[:REL {a: 'b'}]->(:Node {c: 'd'})<-[:REL]-(:Node:Test)");
+        db.executeTransactionally("CREATE (:A {e: 'f'})-[:ANOTHER {g: 'h'}]->(:C)");
+        
+        TestUtil.testCall(db, "CALL apoc.meta.stats()", row -> {
+            assertEquals(map("A", 1L, "C", 1L, "Test", 2L, "Node", 3L), row.get("labels"));
+            assertEquals(5L, row.get("nodeCount"));
+            assertEquals(4L, row.get("labelCount"));
+            
+            assertEquals(map("REL", 4L, "ANOTHER", 1L), row.get("relTypesCount"));
+            assertEquals(2L, row.get("relTypeCount"));
+            assertEquals(3L, row.get("relCount"));
+            Map<String, Object> expectedRelTypes = map("(:A)-[:ANOTHER]->()", 1L,
+                    "()-[:REL]->(:Node)", 2L, 
+                    "(:Test)-[:REL]->()", 2L,
+                    "(:Node)-[:REL]->()", 2L, 
+                    "()-[:ANOTHER]->(:C)", 1L,
+                    "()-[:ANOTHER]->()", 1L, 
+                    "()-[:REL]->()", 2L);
+            assertEquals(expectedRelTypes, row.get("relTypes"));
+        });
+        
+        db.executeTransactionally("match p=(:A)-[:ANOTHER]->(:C) delete p");
+        TestUtil.testCall(db, "CALL apoc.meta.stats()", row -> {
+            assertEquals(map("Test", 2L, "Node", 3L), row.get("labels"));
+            assertEquals(3L, row.get("nodeCount"));
+            assertEquals(2L, row.get("labelCount"));
+            
+            assertEquals(map("REL", 4L), row.get("relTypesCount"));
+            assertEquals(1L, row.get("relTypeCount"));
+            assertEquals(2L, row.get("relCount"));
+            Map<String, Object> expectedRelTypes = map("()-[:REL]->(:Node)", 2L,
+                    "(:Test)-[:REL]->()", 2L,
+                    "(:Node)-[:REL]->()", 2L,
+                    "()-[:REL]->()", 2L);
+            assertEquals(expectedRelTypes, row.get("relTypes"));
+        });
+    }
+    
 }

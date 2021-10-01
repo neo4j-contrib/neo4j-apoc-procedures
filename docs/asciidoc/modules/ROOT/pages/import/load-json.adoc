@@ -100,7 +100,7 @@ It supports the following config parameters:
 | name | type |  default | description
 | unwindBatchSize | Long |  `5000` | the batch size of the unwind
 | txBatchSize | Long |  `5000` | the batch size of the transacttion
-| importIdName | String | `neo4jImportId` | the name of the "id" field into the used for the import it refers to the "id" field into the root object of the json.
+| importIdName | String | `neo4jImportId` | the name of the property to be populated with the "id" field present into the json. For example a row `{"type":"node", "labels":["Language"], "id":"10"}`, with importIdName:`foo`, will create a node `(:User {foo: "10"})`
 | nodePropertyMappings | Map | `{}` | The mapping label/property name/property type for Custom Neo4j types (point date).
 
 i.e. `{ User: { born: 'Point', dateOfBirth: 'Datetime' } }`
@@ -182,6 +182,20 @@ MERGE (c)-[:CHILD_OF]->(p);
 The Neo4j Browser visualization below shows the imported graph:
 
 image::apoc.load.json.local.file.svg[]
+
+You can use `failOnError` configuration to handle the result in case of incorrect url or json.
+For example, with the help of the `apoc.when` procedure, you can return `nothingToDo` as result with incorrect url:
+
+[source,cypher]
+----
+CALL apoc.load.json("MY_JSON_URL", null, {failOnError:false})
+YIELD value
+WITH collect(value) as values
+call apoc.do.when(values = [], "return 'nothingToDo' as result", "return values as result", {values: values})
+YIELD value
+UNWIND value["result"] as result
+RETURN result
+----
 
 [[load-json-examples-stackoverflow]]
 === Import from StackOverflow API
@@ -372,7 +386,7 @@ This procedure supports the following config parameters:
 | name | default | description
 | unwindBatchSize | `5000` | the batch size of the unwind
 | txBatchSize | `5000` | the batch size of the transacttion
-| importIdName | `neo4jImportId` | the name of the "id" field into the used for the import it refers to the "id" field into the root object of the json.
+| importIdName | String | `neo4jImportId` | the name of the property to be populated with the "id" field present into the json. For example a row `{"type":"node", "labels":["Language"], "id":"10"}`, with importIdName:`foo`, will create a node `(:User {foo: "10"})`
 | nodePropertyMappings | `{}` | The mapping label/property name/property type for Custom Neo4j types (point date). I.e. { User: { born: 'Point', dateOfBirth: 'Datetime' } }
 | relPropertyMappings | `{}` | The mapping rel type/property name/property type for Custom Neo4j types (point date). I.e. { KNOWS: { since: 'Datetime' } }
 |===

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.mongo/apoc.mongo.count.adoc[apoc.mongo.count icon:book[]] +
+
+`apoc.mongo.count(uri, query, $config) yield value` - perform a count operation on mongodb collection
+¦label:procedure[]
+¦label:apoc-full[]

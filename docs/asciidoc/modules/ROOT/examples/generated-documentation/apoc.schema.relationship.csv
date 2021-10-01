@@ -1,2 +1,6 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.schema.relationship.constraintExists¦apoc.schema.relationship.constraintExists(type :: STRING?, propertyName :: LIST? OF STRING?) :: (BOOLEAN?)¦RETURN apoc.schema.relationship.constraintExists(type, propertyNames)
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.schema.relationship/apoc.schema.adoc[apoc.schema.relationship.constraintExists icon:book[]]
+
+RETURN apoc.schema.relationship.constraintExists(type, propertyNames)
+|label:function[]
+|label:apoc-core[]

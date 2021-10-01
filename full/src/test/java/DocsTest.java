@@ -132,6 +132,7 @@ public class DocsTest {
         docs.put("apoc.nodes.*|apoc.node.*|apoc.any.properties|apoc.any.property|apoc.label.exists", "graph-querying/node-querying.adoc");
         docs.put("apoc.path.*", "graph-querying/path-querying.adoc");
         docs.put("apoc.util.md5|apoc.util.sha1", "misc/text-functions.adoc#text-functions-hashing");
+        docs.put("apoc.mongo.*", "database-integration/mongo.adoc");
         docs.put("apoc.mongodb.*", "database-integration/mongodb.adoc");
         docs.put("apoc.neighbors.*", "graph-querying/neighborhood.adoc");
         docs.put("apoc.monitor.*", "database-introspection/monitoring.adoc");
@@ -153,13 +154,13 @@ public class DocsTest {
         docs.put("apoc.temporal.*", "temporal/temporal-conversions.adoc");
         docs.put("apoc.uuid.*", "graph-updates/uuid.adoc");
         docs.put("apoc.model.jdbc", "database-integration/database-modeling.adoc");
-        docs.put("apoc.algo.*", "algorithms/path-finding-procedures.adoc");
         docs.put("apoc.atomic.*", "graph-updates/atomic-updates.adoc");
         docs.put("apoc.bolt.*", "database-integration/bolt-neo4j.adoc");
         docs.put("apoc.case|apoc.do.case|apoc.when|apoc.do.when", "cypher-execution/conditionals.adoc");
         docs.put("apoc.es.*", "database-integration/elasticsearch.adoc");
         docs.put("apoc.refactor.rename.*", "graph-updates/graph-refactoring/rename-label-type-property.adoc");
         docs.put("apoc.couchbase.*", "database-integration/couchbase.adoc");
+        docs.put("apoc.redis.*", "database-integration/redis.adoc");
         docs.put("apoc.create.node.*|apoc.create.setP.*|apoc.create.setRel.*|apoc.create.relationship|apoc.nodes.link|apoc.merge.*|apoc.create.remove.*", "graph-updates/data-creation.adoc");
         docs.put("apoc.custom.*", "cypher-execution/cypher-based-procedures-functions.adoc");
         docs.put("apoc.generate.*", "graph-updates/graph-generators.adoc");

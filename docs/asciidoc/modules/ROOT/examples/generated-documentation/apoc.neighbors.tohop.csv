@@ -1,2 +1,6 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.neighbors.tohop¦apoc.neighbors.tohop(node :: NODE?, types =  :: STRING?, distance = 1 :: INTEGER?) :: (node :: NODE?)¦apoc.neighbors.tohop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern up to a certain distance, can use '>' or '<' for all outgoing or incoming relationships
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.neighbors.tohop/apoc.neighbors.adoc[apoc.neighbors.tohop.count icon:book[]]
+
+apoc.neighbors.tohop.count(node, rel-direction-pattern, distance) - returns distinct count of nodes of the given relationships in the pattern up to a certain distance, can use '>' or '<' for all outgoing or incoming relationships
+|label:procedure[]
+|label:apoc-core[]

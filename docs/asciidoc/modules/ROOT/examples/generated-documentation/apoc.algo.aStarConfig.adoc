@@ -1,5 +1,0 @@
-¦xref::overview/apoc.algo/apoc.algo.aStarConfig.adoc[apoc.algo.aStarConfig icon:book[]] +
-
-`apoc.algo.aStar(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', {weight:'dist',default:10,x:'lon',y:'lat'}) YIELD path, weight` - run A* with relationship property name as cost function
-¦label:procedure[]
-¦label:apoc-core[]

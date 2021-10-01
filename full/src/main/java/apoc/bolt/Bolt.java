@@ -1,5 +1,6 @@
 package apoc.bolt;
 
+import apoc.Extended;
 import apoc.result.RowResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
@@ -50,6 +51,7 @@ import static apoc.util.MapUtil.map;
  * @author AgileLARUS
  * @since 29.08.17
  */
+@Extended
 public class Bolt {
 
     @Context
@@ -136,7 +138,7 @@ public class Bolt {
     }
 
     @Procedure()
-    @Description("apoc.bolt.execute(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read")
+    @Description("apoc.bolt.execute(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for reads and writes")
     public Stream<RowResult> execute(@Name("url") String url, @Name("kernelTransaction") String statement, @Name(value = "params", defaultValue = "{}") Map<String, Object> params, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws URISyntaxException {
         Map<String, Object> configuration = new HashMap<>(config);
         configuration.put("readOnly", false);
