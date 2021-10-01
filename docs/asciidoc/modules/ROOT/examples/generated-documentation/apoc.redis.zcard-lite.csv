@@ -1,0 +1,2 @@
+¦signature
+¦apoc.redis.zcard(uri :: STRING?, key :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)

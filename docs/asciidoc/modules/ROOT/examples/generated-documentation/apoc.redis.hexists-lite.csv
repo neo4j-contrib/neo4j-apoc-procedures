@@ -1,0 +1,2 @@
+¦signature
+¦apoc.redis.hexists(uri :: STRING?, key :: ANY?, field :: ANY?, config = {} :: MAP?) :: (value :: BOOLEAN?)

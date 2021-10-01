@@ -8,7 +8,6 @@ import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -25,7 +24,6 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -40,7 +38,6 @@ import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
-import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -78,17 +75,17 @@ public class CypherTest {
     }
 
     @Test
-    public void testRunWrite() throws Exception {
+    public void testRunWrite() {
         runWriteAndDoItCommons("runWrite");
     }
 
     @Test
-    public void testDoIt() throws Exception {
+    public void testDoIt() {
         runWriteAndDoItCommons("doIt");
     }
 
     @Test
-    public void testRunSchema() throws Exception {
+    public void testRunSchema() {
         testCallEmpty(db, "CALL apoc.cypher.runSchema('CREATE INDEX test FOR (w:TestOne) ON (w.name)',{})", Collections.emptyMap());
         testCallEmpty(db, "CALL apoc.cypher.runSchema('CREATE CONSTRAINT testConstraint FOR (w:TestTwo) REQUIRE w.baz IS UNIQUE',{})", Collections.emptyMap());
 
@@ -99,41 +96,41 @@ public class CypherTest {
     }
 
     @Test
-    public void testRun() throws Exception {
+    public void testRun() {
         testCall(db, "CALL apoc.cypher.run('RETURN $a + 7 as b',{a:3})",
                 r -> assertEquals(10L, ((Map) r.get("value")).get("b")));
     }
     @Test
-    public void testRunNullParams() throws Exception {
+    public void testRunNullParams() {
         testCall(db, "CALL apoc.cypher.run('RETURN 42 as b',null)",
                 r -> assertEquals(42L, ((Map) r.get("value")).get("b")));
     }
     @Test
-    public void testRunNoParams() throws Exception {
+    public void testRunNoParams() {
         testCall(db, "CALL apoc.cypher.run('RETURN 42 as b',{})",
                 r -> assertEquals(42L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testRunVariable() throws Exception {
+    public void testRunVariable() {
         testCall(db, "CALL apoc.cypher.run('RETURN a + 7 as b',{a:3})",
                 r -> assertEquals(10L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testRunFirstColumnSingle() throws Exception {
+    public void testRunFirstColumnSingle() {
         testCall(db, "RETURN apoc.cypher.runFirstColumnSingle('RETURN a + 7 AS b', {a: 3}) AS s",
                 r -> assertEquals(10L, (r.get("s"))));
     }
 
     @Test
-    public void testRunFirstColumnMany() throws Exception {
+    public void testRunFirstColumnMany() {
         testCall(db, "RETURN apoc.cypher.runFirstColumnMany('UNWIND range(1,a) as id RETURN id', {a: 3}) AS s",
                 r -> assertEquals(Arrays.asList(1L,2L,3L), (r.get("s"))));
     }
 
     @Test
-    public void testRunFirstColumnBugCompiled() throws Exception {
+    public void testRunFirstColumnBugCompiled() {
         TestUtil.singleResultFirstColumn(db, "CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'}) RETURN m");
         String query = "MATCH (m:Movie  {title:'MovieA'}) MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10";
         String plan = db.executeTransactionally("EXPLAIN " + query, emptyMap(), result -> result.getExecutionPlanDescription().toString());
@@ -143,7 +140,7 @@ public class CypherTest {
     }
 
     @Test
-    public void testRunFirstColumnBugDirection() throws Exception {
+    public void testRunFirstColumnBugDirection() {
         db.executeTransactionally("CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'})");
         String query = "MATCH (m:Movie {title:'MovieA'}) RETURN apoc.cypher.runFirstColumn('WITH $m AS m MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10', {m:m}, true) as rec";
         testCall(db, query,
@@ -151,14 +148,14 @@ public class CypherTest {
     }
 
     @Test
-    public void testRunFirstColumnMultipleValues() throws Exception {
+    public void testRunFirstColumnMultipleValues() {
         List expected = Arrays.asList(1L, 2L, 3L);
         testCall(db, "RETURN apoc.cypher.runFirstColumn('UNWIND [1, 2, 3] AS e RETURN e', {}, true) AS arr",
                 r -> assertEquals(expected, r.get("arr")));
     }
 
     @Test
-    public void testSingular() throws Exception {
+    public void testSingular() {
         int size = 10_000;
         testResult(db, "CALL apoc.cypher.run('UNWIND a as row UNWIND range(0,9) as b RETURN b',{a:range(1,$size)})", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
@@ -177,8 +174,10 @@ public class CypherTest {
     }
 
     @Test
-    public void testRunMany() throws Exception {
-        testResult(db, "CALL apoc.cypher.runMany('CREATE (n:Node {name:$name});\nMATCH (n {name:$name}) CREATE (n)-[:X {name:$name2}]->(n);',$params)",map("params",map("name","John","name2","Doe")),
+    public void testRunMany() {
+        final Map<String, Object> map = map("name", "John", "name2", "Doe");
+        testResult(db, "CALL apoc.cypher.runMany('CREATE (n:Node {name:$name});\nMATCH (n {name:$name}) CREATE (n)-[:X {name:$name2}]->(n);',$params)",
+                map("params", map),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(-1L, row.get("row"));
@@ -193,6 +192,25 @@ public class CypherTest {
                     assertEquals(1L, toLong(result.get("propertiesSet")));
                     assertEquals(false, r.hasNext());
                 });
+        final long count = (long) db.executeTransactionally("MATCH p = (n:Node{name : $name})-[r:X{name: $name2}]->(n) RETURN count(p) AS count",
+                map, Result::next).get("count");
+        assertEquals(1, count);
+    }
+
+    @Test
+    public void testRunManyReadOnlyShouldFail() {
+        final Map<String, Object> map = map("name", "John", "name2", "Doe");
+        db.executeTransactionally("CALL apoc.cypher.runManyReadOnly('" +
+                        "CREATE (n:Node {name:$name});\n" +
+                        "MATCH (n {name:$name}) " +
+                        "CREATE (n)-[:X {name:$name2}]->(n) " +
+                        "RETURN *;" +
+                    "', $params)",
+                map("params", map),
+                Result::resultAsString);
+        final long count = (long) db.executeTransactionally("MATCH p = (n:Node{name : $name})-[r:X{name: $name2}]->(n) RETURN count(p) AS count",
+                map, Result::next).get("count");
+        assertEquals(0, count);
     }
 
     @Test
@@ -216,31 +234,31 @@ public class CypherTest {
     }
 
     @Test
-    public void testSimpleWhenIfCondition() throws Exception {
+    public void testSimpleWhenIfCondition() {
         testCall(db, "CALL apoc.when(true, 'RETURN 7 as b')",
                 r -> assertEquals(7L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testSimpleWhenElseCondition() throws Exception {
+    public void testSimpleWhenElseCondition() {
         testCall(db, "CALL apoc.when(false, 'RETURN 7 as b') YIELD value RETURN value",
                 r -> assertEquals(null, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testWhenIfCondition() throws Exception {
+    public void testWhenIfCondition() {
         testCall(db, "CALL apoc.when(true, 'RETURN $a + 7 as b', 'RETURN $a as b',{a:3})",
                 r -> assertEquals(10L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testWhenElseCondition() throws Exception {
+    public void testWhenElseCondition() {
         testCall(db, "CALL apoc.when(false, 'RETURN $a + 7 as b', 'RETURN $a as b',{a:3})",
                 r -> assertEquals(3L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testDoWhenIfCondition() throws Exception {
+    public void testDoWhenIfCondition() {
         testCall(db, "CALL apoc.do.when(true, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName',{})",
                 r -> {
                     assertEquals("A", ((Map) r.get("value")).get("aName"));
@@ -249,7 +267,7 @@ public class CypherTest {
     }
 
     @Test
-    public void testDoWhenElseCondition() throws Exception {
+    public void testDoWhenElseCondition() {
         testCall(db, "CALL apoc.do.when(false, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName',{})",
                 r -> {
                     assertEquals("B", ((Map) r.get("value")).get("bName"));
@@ -258,31 +276,31 @@ public class CypherTest {
     }
 
     @Test
-    public void testCase() throws Exception {
+    public void testCase() {
         testCall(db, "CALL apoc.case([false, 'RETURN $a + 7 as b', false, 'RETURN $a as b', true, 'RETURN $a + 4 as b', false, 'RETURN $a + 1 as b'], 'RETURN $a + 10 as b', {a:3})",
                 r -> assertEquals(7L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testCaseElseCondition() throws Exception {
+    public void testCaseElseCondition() {
         testCall(db, "CALL apoc.case([false, 'RETURN $a + 7 as b', false, 'RETURN $a as b', false, 'RETURN $a + 4 as b'], 'RETURN $a + 10 as b', {a:3})",
                 r -> assertEquals(13L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testSimpleCase() throws Exception {
+    public void testSimpleCase() {
         testCall(db, "CALL apoc.case([false, 'RETURN 3 + 7 as b', false, 'RETURN 3 as b', true, 'RETURN 3 + 4 as b'])",
                 r -> assertEquals(7L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testSimpleCaseElseCondition() throws Exception {
+    public void testSimpleCaseElseCondition() {
         testCall(db, "CALL apoc.case([false, 'RETURN 3 + 7 as b', false, 'RETURN 3 as b', false, 'RETURN 3 + 4 as b'], 'RETURN 3 + 10 as b')",
                 r -> assertEquals(13L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testCaseDo() throws Exception {
+    public void testCaseDo() {
         testCall(db, "CALL apoc.do.case([false, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', true, 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName'], 'CREATE (c:Node{name:\"C\"}) RETURN c.name as cName',{})",
                 r -> {
                     assertEquals(null, ((Map) r.get("value")).get("aName"));
@@ -292,7 +310,7 @@ public class CypherTest {
     }
 
     @Test
-    public void testCaseDoElseCondition() throws Exception {
+    public void testCaseDoElseCondition() {
         testCall(db, "CALL apoc.do.case([false, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', false, 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName'], 'CREATE (c:Node{name:\"C\"}) RETURN c.name as cName',{})",
                 r -> {
                     assertEquals(null, ((Map) r.get("value")).get("aName"));

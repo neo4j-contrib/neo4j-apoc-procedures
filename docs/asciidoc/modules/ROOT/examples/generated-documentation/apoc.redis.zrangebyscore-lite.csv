@@ -1,0 +1,2 @@
+¦signature
+¦apoc.redis.zrangebyscore(uri :: STRING?, key :: ANY?, min :: INTEGER?, max :: INTEGER?, config = {} :: MAP?) :: (value :: LIST? OF ANY?)
