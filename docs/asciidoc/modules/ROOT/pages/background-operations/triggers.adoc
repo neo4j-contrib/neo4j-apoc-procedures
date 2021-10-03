@@ -43,8 +43,8 @@ The parameters available are:
 |commitTime | return the date of the transaction in milliseconds
 |createdNodes | when a node is created our trigger fires (list of nodes)
 |createdRelationships | when a relationship is created our trigger fires (list of relationships)
-|deletedNodes | when a node is delated our trigger fires (list of nodes)
-|deletedRelationships | when a relationship is delated our trigger fires (list of relationships)
+|deletedNodes | when a node is deleted our trigger fires (list of nodes)
+|deletedRelationships | when a relationship is deleted our trigger fires (list of relationships)
 |removedLabels | when a label is removed our trigger fires (map of label to list of nodes)
 |removedNodeProperties | when a properties of node is removed our trigger fires (map of key to list of map of key,old,node)
 |removedRelationshipProperties | when a properties of relationship is removed our trigger fires (map of key to list of map of key,old,relationship)
