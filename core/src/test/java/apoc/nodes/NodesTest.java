@@ -11,15 +11,21 @@ import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
 import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import static apoc.nodes.NodesConfig.MAX_DEPTH_KEY;
+import static apoc.nodes.NodesConfig.REL_TYPES_KEY;
 import static apoc.util.Util.map;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
@@ -38,6 +44,14 @@ import static org.neo4j.internal.helpers.collection.Iterators.asSet;
  */
 public class NodesTest {
 
+    private static final List<String> FIRST_ALPHA_CYCLE_PROPS = List.of("alpha", "one", "two", "alpha");
+    private static final List<String> SECOND_ALPHA_CYCLE_PROPS = List.of("alpha", "seven", "eight", "alpha");
+    private static final List<String> BETA_CYCLE_PROPS = List.of("beta", "three", "four", "beta");
+    private static final List<String> SELF_REL_PROPS = List.of("delta", "delta");
+    private static final List<String> ONE_STEP_PROPS = List.of("epsilon", "seven", "epsilon");
+    private static final String DEPEND_ON_REL_TYPE = "DEPENDS_ON";
+
+
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.procedure_unrestricted, singletonList("apoc.*"));
@@ -55,6 +69,135 @@ public class NodesTest {
                         "WHERE n:Foo AND dense OR n:Bar AND NOT dense RETURN count(*) as c",
                 (row) -> assertEquals(2L, row.get("c")));
     }
+    
+    @Test
+    public void cycles() {
+        createDatasetForNodesCycles();
+        
+        // with all relationships
+        TestUtil.testResult(db, "MATCH (m1:Start) WITH collect(m1) as nodes CALL apoc.nodes.cycles(nodes) YIELD path RETURN path", res -> {
+            List<Path> paths = Iterators.stream(res.<Path>columnAs("path"))
+                    .sorted(Comparator.comparingLong(item -> (long) item.lastRelationship().getProperty("id")))
+                    .collect(Collectors.toList());
+            assertEquals(5, paths.size());
+            assertionsCycle(paths.get(0), FIRST_ALPHA_CYCLE_PROPS);
+            assertionsCycle(paths.get(1), SECOND_ALPHA_CYCLE_PROPS);
+            assertionsCycle(paths.get(2), BETA_CYCLE_PROPS);
+            assertionsCycle(paths.get(3), SELF_REL_PROPS);
+            assertionsCycle(paths.get(4), ONE_STEP_PROPS);
+        });
+    }
+
+    @Test
+    public void cyclesWithRelTypes() {
+        createDatasetForNodesCycles();
+        
+        // with single specific relationship
+        TestUtil.testResult(db, "MATCH (m1:Start) WITH collect(m1) as nodes CALL apoc.nodes.cycles(nodes, $config) YIELD path RETURN path",
+                map("config", map(REL_TYPES_KEY, List.of(DEPEND_ON_REL_TYPE))),
+                res -> {
+            List<Path> paths = Iterators.stream(res.<Path>columnAs("path"))
+                    .sorted(Comparator.comparingLong(item -> (long) item.lastRelationship().getProperty("id")))
+                    .collect(Collectors.toList());
+            assertEquals(3, paths.size());
+            assertionsCycle(paths.get(0), FIRST_ALPHA_CYCLE_PROPS, DEPEND_ON_REL_TYPE);
+            assertionsCycle(paths.get(1), SECOND_ALPHA_CYCLE_PROPS, DEPEND_ON_REL_TYPE);
+            assertionsCycle(paths.get(2), SELF_REL_PROPS, DEPEND_ON_REL_TYPE);
+        });
+
+        // with multiple specific relationship (without MY_REL_ANOTHER, shouldn't find `(:Start {bar: 'beta'})` cycle)
+        TestUtil.testResult(db, "MATCH (m1:Start) WITH collect(m1) as nodes CALL apoc.nodes.cycles(nodes, $config) YIELD path RETURN path",
+                map("config", map(REL_TYPES_KEY, List.of(DEPEND_ON_REL_TYPE, "MY_REL", "NOT_EXISTENT"))),
+                res -> {
+            List<Path> paths = Iterators.stream(res.<Path>columnAs("path"))
+                    .sorted(Comparator.comparingLong(item -> (long) item.lastRelationship().getProperty("id")))
+                    .collect(Collectors.toList());
+            assertEquals(3, paths.size());
+            assertionsCycle(paths.get(0), FIRST_ALPHA_CYCLE_PROPS);
+            assertionsCycle(paths.get(1), SECOND_ALPHA_CYCLE_PROPS);
+            assertionsCycle(paths.get(2), SELF_REL_PROPS);
+        });
+
+        // with multiple specific relationship (with MY_REL_ANOTHER, should find `(:Start {bar: 'beta'})` cycle)
+        TestUtil.testResult(db, "MATCH (m1:Start) WITH collect(m1) as nodes CALL apoc.nodes.cycles(nodes, $config) YIELD path RETURN path",
+                map("config", map(REL_TYPES_KEY, List.of(DEPEND_ON_REL_TYPE, "MY_REL", "MY_REL_ANOTHER", "NOT_EXISTENT"))),
+                res -> {
+            List<Path> paths = Iterators.stream(res.<Path>columnAs("path"))
+                    .sorted(Comparator.comparingLong(item -> (long) item.lastRelationship().getProperty("id")))
+                    .collect(Collectors.toList());
+            assertEquals(4, paths.size());
+            assertionsCycle(paths.get(0), FIRST_ALPHA_CYCLE_PROPS);
+            assertionsCycle(paths.get(1), SECOND_ALPHA_CYCLE_PROPS);
+            assertionsCycle(paths.get(2), BETA_CYCLE_PROPS);
+            assertionsCycle(paths.get(3), SELF_REL_PROPS);
+        });
+
+        // with not existent relationship
+        TestUtil.testCallEmpty(db, "MATCH (m1:Start) WITH collect(m1) as nodes CALL apoc.nodes.cycles(nodes, $config) YIELD path RETURN path",
+                map("config", map(REL_TYPES_KEY, List.of("NOT_EXISTENT"))));
+    }
+
+    @Test
+    public void cyclesWithMaxDepth() {
+        createDatasetForNodesCycles();
+
+        // with {maxDepth: 1} config
+        TestUtil.testResult(db, "MATCH (m1:Start) WITH collect(m1) as nodes CALL apoc.nodes.cycles(nodes, $config) YIELD path RETURN path",
+                map("config", map(MAX_DEPTH_KEY, 1)),
+                res -> {
+            List<Path> paths = Iterators.stream(res.<Path>columnAs("path"))
+                    .sorted(Comparator.comparingLong(item -> (long) item.lastRelationship().getProperty("id")))
+                    .collect(Collectors.toList());
+            assertEquals(2, paths.size());
+            assertionsCycle(paths.get(0), SELF_REL_PROPS);
+            assertionsCycle(paths.get(1), ONE_STEP_PROPS);
+        });
+
+        // with {maxDepth: 0} config (only self-rel considered)
+        TestUtil.testCall(db, "MATCH (m1:Start) WITH collect(m1) as nodes CALL apoc.nodes.cycles(nodes, $config) YIELD path RETURN path",
+                map("config", map(REL_TYPES_KEY, List.of(DEPEND_ON_REL_TYPE), MAX_DEPTH_KEY, 0)),
+                r -> assertionsCycle((Path) r.get("path"), SELF_REL_PROPS));
+    }
+
+    private void createDatasetForNodesCycles() {
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+        
+        // node with 2 'DEPENDS_ON' cycles and 1 mixed-rel-type cycle
+        db.executeTransactionally("CREATE (m1:Start {bar: 'alpha'}) with m1\n" +
+                "CREATE (m1)-[:DEPENDS_ON {id: 0}]->(m2:Module {bar: 'one'})-[:DEPENDS_ON {id: 1}]->(m3:Module {bar: 'two'})-[:DEPENDS_ON {id: 2}]->(m1) \n" +
+                "WITH m1, m2, m3 \n" +
+                "CREATE (m1)-[:DEPENDS_ON {id: 3}]->(m2), (m2)-[:ANOTHER {id: 4}]->(m3), (m2)-[:DEPENDS_ON {id: 5}]->(m3)\n" +
+                "CREATE (m1)-[:DEPENDS_ON {id: 6}]->(:Module {bar: 'seven'})-[:DEPENDS_ON {id: 7}]->(:Module {bar: 'eight'})-[:DEPENDS_ON {id: 8}]->(m1)");
+
+        // node with 1 mixed-rel-type cycle
+        db.executeTransactionally("CREATE (m1:Start {bar: 'beta'}) with m1\n" +
+                "CREATE (m1)-[:MY_REL {id: 9}]->(m2:Module {bar: 'three'})-[:MY_REL_ANOTHER  {id: 10}]->(m3:Module {bar: 'four'})-[:MY_REL {id: 11}]->(m1)");
+
+        // node without cycle
+        db.executeTransactionally("CREATE (m1:Start {bar: 'gamma'}) with m1\n" +
+                "CREATE (m1)-[:DEPENDS_ON {id: 12}]->(m2:Module {bar: 'five'})-[:DEPENDS_ON {id: 13}]->(m3:Module {bar: 'six'})");
+
+        // node with self-rel
+        db.executeTransactionally("CREATE (m1:Start {bar: 'delta'}) with m1\n" +
+                "CREATE (m1)-[:DEPENDS_ON {id: 20}]->(m1)");
+
+        // node with depth 1
+        db.executeTransactionally("CREATE (m1:Start {bar: 'epsilon'}) with m1\n" +
+                "CREATE (m1)-[:DEPTH_ONE {id: 30}]->(:Module {bar: 'seven'})-[:DEPTH_ONE {id: 31}]->(m1)");
+    }
+
+    private void assertionsCycle(Path path, List<String> expectedProps, String customRelType) {
+        List<String> propNodes = Iterables.stream(path.nodes()).map(node -> (String) node.getProperty("bar")).collect(Collectors.toList());
+        assertEquals(expectedProps, propNodes);
+        if (customRelType != null) {
+            assertTrue(Iterables.stream(path.relationships()).allMatch(rel -> rel.getType().name().equals(customRelType)));
+        }
+    }
+
+    private void assertionsCycle(Path path, List<String> expectedProps) {
+        assertionsCycle(path, expectedProps, null);
+    }
+
     @Test
     public void link() throws Exception {
         db.executeTransactionally("UNWIND range(1,10) as id CREATE (n:Foo {id:id}) WITH collect(n) as nodes call apoc.nodes.link(nodes,'BAR') RETURN size(nodes) as len");
@@ -62,6 +205,21 @@ public class NodesTest {
         long len = TestUtil.singleResultFirstColumn( db,"MATCH (n:Foo {id:1})-[r:BAR*9]->() RETURN size(r) as len");
         assertEquals(9L, len);
     }
+
+    @Test
+    public void linkWithAvoidDuplicateTrue() {
+        db.executeTransactionally("CREATE (n:Foo {id:1}), (m:Foo {id:2}) WITH [n,m] as nodes CALL apoc.nodes.link(nodes,'BAR') RETURN 1");
+        TestUtil.testCall(db, "MATCH (n:Foo)-[r]->() RETURN count(r) as count", row -> assertEquals(1L, row.get("count")));
+
+        // with avoidDuplicates
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes CALL apoc.nodes.link(nodes,'BAR', {avoidDuplicates: true}) RETURN 1");
+        TestUtil.testCall(db, "MATCH (n:Foo)-[r]->() RETURN count(r) as count", row -> assertEquals(1L, row.get("count")));
+
+        // without avoidDuplicates
+        db.executeTransactionally("MATCH (n:Foo) WITH collect(n) as nodes CALL apoc.nodes.link(nodes,'BAR') RETURN 1");
+        TestUtil.testCall(db, "MATCH (n:Foo)-[r]->() RETURN count(r) as count", row -> assertEquals(2L, row.get("count")));
+    }
+
     @Test
     public void delete() throws Exception {
         db.executeTransactionally("UNWIND range(1,100) as id CREATE (n:Foo {id:id})-[:X]->(n)");
