@@ -6,7 +6,7 @@ import apoc.export.util.CountingInputStream;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Entity;
@@ -15,6 +15,7 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.QueryExecutionType;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
@@ -88,6 +89,7 @@ import java.util.zip.ZipInputStream;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
+import static org.eclipse.jetty.util.URIUtil.encodePath;
 
 /**
  * @author mh
@@ -659,15 +661,8 @@ public class Util {
         }
     }
 
-    public static void checkAdmin( SecurityContext securityContext, ProcedureCallContext callContext, String procedureName )
-    {
-        switch ( securityContext.allowExecuteAdminProcedure( callContext.id() ) )
-        {
-        case EXPLICIT_GRANT:
-            return;
-        default:
-            throw new RuntimeException( "This procedure " + procedureName + " is only available to admin users" );
-        }
+    public static void checkAdmin(SecurityContext securityContext, ProcedureCallContext callContext, String procedureName) {
+        if (!securityContext.allowExecuteAdminProcedure(callContext.id())) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
     }
 
     public static void sleep(int millis) {
@@ -747,7 +742,7 @@ public class Util {
         }
     }
 
-    public static void close(AutoCloseable closeable, Consumer<Exception> onErrror) {
+    public static void close(Closeable closeable, Consumer<Exception> onErrror) {
         try {
             if (closeable!=null) closeable.close();
         } catch (Exception e) {
@@ -758,7 +753,7 @@ public class Util {
         }
     }
 
-    public static void close(AutoCloseable closeable) {
+    public static void close(Closeable closeable) {
         close(closeable, null);
     }
 
@@ -882,9 +877,9 @@ public class Util {
     }
 
     public static Node mergeNode(Transaction tx, Label primaryLabel, Label addtionalLabel,
-                                 Pair<String, Object>... pairs ) {
+                                 Pair<String, Object>... pairs) {
         Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, pairs[0].first(), pairs[0].other()).stream()
-                .filter(n -> addtionalLabel!=null && n.hasLabel(addtionalLabel))
+                .filter(n -> addtionalLabel == null || n.hasLabel(addtionalLabel))
                 .filter( n -> {
                     for (int i=1; i<pairs.length; i++) {
                         if (!Objects.deepEquals(pairs[i].other(), n.getProperty(pairs[i].first(), null))) {
@@ -915,8 +910,14 @@ public class Util {
         return intersection;
     }
 
-    public static void validateQuery(GraphDatabaseService db, String statement) {
-        db.executeTransactionally("EXPLAIN " + statement);
+    public static void validateQuery(GraphDatabaseService db, String statement, QueryExecutionType.QueryType... supportedQueryTypes) {
+        final boolean isValid = db.executeTransactionally("EXPLAIN " + statement, Collections.emptyMap(), result ->
+                supportedQueryTypes == null || supportedQueryTypes.length == 0 || Stream.of(supportedQueryTypes)
+                        .anyMatch(sqt -> sqt.equals(result.getQueryExecutionType().queryType())));
+
+        if (!isValid) {
+            throw new RuntimeException("Supported query types for the operation are " + Arrays.toString(supportedQueryTypes));
+        }
     }
 
     /**
@@ -936,7 +937,7 @@ public class Util {
 
     public static Map<String, Object> extractCredentialsIfNeeded(String url, boolean failOnError) {
         try {
-            URI uri = new URI(url);
+            URI uri = new URI(encodePath(url));
             String authInfo = uri.getUserInfo();
             if (null != authInfo) {
                 String[] parts = authInfo.split(":");
