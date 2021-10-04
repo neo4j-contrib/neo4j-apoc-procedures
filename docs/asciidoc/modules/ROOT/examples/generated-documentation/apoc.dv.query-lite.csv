@@ -1,0 +1,2 @@
+¦signature
+¦apoc.dv.query(name :: STRING?, params = {} :: ANY?, config = {} :: MAP?) :: (node :: NODE?)
