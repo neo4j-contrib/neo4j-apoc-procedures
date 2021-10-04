@@ -116,6 +116,8 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::virtual/virtual-graph.adoc[]
     ** xref::virtual/graph-grouping.adoc[]
 
+* xref:virtual-resource/index.adoc[]
+
 * xref:nlp/index.adoc[]
     ** xref:nlp/gcp.adoc[]
     ** xref:nlp/aws.adoc[]
