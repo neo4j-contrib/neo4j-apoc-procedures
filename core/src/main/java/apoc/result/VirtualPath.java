@@ -119,7 +119,7 @@ public class VirtualPath implements Path {
         return Paths.defaultPathToString(this);
     }
 
-	private void requireConnected(Relationship relationship) {
+    private void requireConnected(Relationship relationship) {
         Node previousStartNode;
         Node previousEndNode;
         Relationship previousRelationship = lastRelationship();
@@ -138,5 +138,5 @@ public class VirtualPath implements Path {
                 && !endNode.equals(previousEndNode)) {
             throw new IllegalArgumentException("Relationship is not part of current path.");
         }
-	}
+    }
 }
