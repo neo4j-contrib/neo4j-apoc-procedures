@@ -61,7 +61,7 @@ public class XmlTest {
 
     @Test
     public void testMixedContent() {
-        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/mixedcontent.xml')", //  YIELD value RETURN value
+        testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/mixedcontent.xml") + "')", //  YIELD value RETURN value
                 (row) -> assertEquals(map("_type", "root",
                         "_children", asList(
                                 map("_type", "text",
@@ -79,7 +79,7 @@ public class XmlTest {
 
     @Test
     public void testBookIds() {
-        testResult(db, "call apoc.load.xml('file:src/test/resources/xml/books.xml') yield value as catalog\n" +
+        testResult(db, "call apoc.load.xml('" + TestUtil.getUrlFileName("xml/books.xml") + "') yield value as catalog\n" +
                 "UNWIND catalog._children as book\n" +
                 "RETURN book.id as id\n", result -> {
             List<Object> ids = Iterators.asList(result.columnAs("id"));
@@ -115,7 +115,7 @@ public class XmlTest {
 
     @Test
     public void testReturnCollectionElements() {
-        testResult(db, "call apoc.load.xml('file:src/test/resources/xml/books.xml') yield value as catalog " +
+        testResult(db, "call apoc.load.xml('" + TestUtil.getUrlFileName("xml/books.xml") + "') yield value as catalog " +
                 "unwind catalog._children as book " +
                 "return book.id as id, [x in book._children where x._type = 'author' | x._text] as authors, [x in book._children where x._type='title' | x._text] as title", result -> {
 
@@ -141,7 +141,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlXpathAuthorFromBookId () {
-        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[@id=\"bk102\"]/author') yield value as result",
+        testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/books.xml") + "', '/catalog/book[@id=\"bk102\"]/author') yield value as result",
                 (r) -> {
                     assertEquals("author", ((Map) r.get("result")).get("_type"));
                     assertEquals("Ralls, Kim", ((Map) r.get("result")).get("_text"));

@@ -86,6 +86,7 @@ public class ApocConfig extends LifecycleAdapter {
     private static final String DEFAULT_PATH = ".";
     private static final String CONFIG_DIR = "config-dir=";
     public static final String EXPORT_TO_FILE_ERROR = "Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf";
+    public static final String LOAD_FROM_FILE_ERROR = "Import from files not enabled, please set apoc.import.file.enabled=true in your apoc.conf";
 
     private final Config neo4jConfig;
     private final Log log;
@@ -248,8 +249,7 @@ public class ApocConfig extends LifecycleAdapter {
 
     public void checkReadAllowed(String url) {
         if (isFile(url) && !config.getBoolean(APOC_IMPORT_FILE_ENABLED)) {
-            throw new RuntimeException("Import from files not enabled," +
-                    " please set apoc.import.file.enabled=true in your apoc.conf");
+            throw new RuntimeException(LOAD_FROM_FILE_ERROR);
         }
     }
 
@@ -290,6 +290,10 @@ public class ApocConfig extends LifecycleAdapter {
         getConfig().setProperty(key, value);
     }
 
+    public <T> void setProperty(Setting<T> key, T value) {
+        getConfig().setProperty(key.name(), value);
+    }
+
     public boolean getBoolean(String key) {
         return getConfig().getBoolean(key);
     }
@@ -301,12 +305,16 @@ public class ApocConfig extends LifecycleAdapter {
     public boolean isImportFolderConfigured() {
         // in case we're test database import path is TestDatabaseManagementServiceBuilder.EPHEMERAL_PATH
 
-        String importFolder = config.getString("dbms.directories.import");
+        String importFolder = getImportDir();
         if (importFolder==null) {
             return false;
         } else {
             return !"/target/test data/neo4j".equals(importFolder);
         }
+    }
+
+    public String getImportDir() {
+        return apocConfig().getString("dbms.directories.import");
     }
 
     public int getInt(String key, int defaultValue) {

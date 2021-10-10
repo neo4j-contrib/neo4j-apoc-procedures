@@ -4,7 +4,12 @@ import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockserver.client.server.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
@@ -13,13 +18,16 @@ import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static apoc.ApocConfig.*;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.convert.ConvertJsonTest.EXPECTED_AS_PATH_LIST;
 import static apoc.convert.ConvertJsonTest.EXPECTED_PATH;
 import static apoc.convert.ConvertJsonTest.EXPECTED_PATH_WITH_NULLS;
@@ -293,8 +301,10 @@ public class LoadJsonTest {
             testResult(db, "CALL apoc.load.json($key)",map("key","foo"), (r) -> r.hasNext());
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
-            assertTrue(except instanceof RuntimeException);
-            assertEquals("Can't read url or key invalid URL (foo) as json: no protocol: foo", except.getMessage());
+            assertTrue(except instanceof IOException);
+            final String message = except.getMessage();
+            assertTrue(message.startsWith("Cannot open file "));
+            assertTrue(message.endsWith("foo for reading."));
             throw e;
         }
     }

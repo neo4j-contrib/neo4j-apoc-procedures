@@ -43,7 +43,7 @@ public class ExportCsvIT {
 
     @AfterClass
     public static void afterAll() throws IOException, InterruptedException {
-        if (neo4jContainer != null) {
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
             neo4jContainer.close();
         }
     }
