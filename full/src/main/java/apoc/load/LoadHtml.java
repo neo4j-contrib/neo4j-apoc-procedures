@@ -115,7 +115,12 @@ public class LoadHtml {
     private Map<String, String> getAttributes(Element element) {
         Map<String, String> attributes = new HashMap<>();
         for (Attribute attribute : element.attributes()) {
-            if(!attribute.getValue().isEmpty()) attributes.put(attribute.getKey(), attribute.getValue());
+            if (!attribute.hasDeclaredValue() && !Attribute.isBooleanAttribute(attribute.getKey())) {
+                throw new RuntimeException("Invalid tag " + element);
+            }
+            if (!attribute.getValue().isBlank()) {
+                attributes.put(attribute.getKey(), attribute.getValue());
+            }
         }
 
         return attributes;
