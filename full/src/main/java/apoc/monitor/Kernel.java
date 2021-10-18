@@ -4,7 +4,7 @@ import apoc.Extended;
 import apoc.result.KernelInfoResult;
 
 import org.neo4j.common.DependencyResolver;
-import org.neo4j.configuration.helpers.DatabaseReadOnlyChecker;
+import org.neo4j.dbms.database.readonly.DatabaseReadOnlyChecker;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.database.Database;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
