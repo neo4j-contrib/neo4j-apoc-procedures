@@ -1,0 +1,2 @@
+¦signature
+¦apoc.math.sigmoid(value :: FLOAT?) :: (FLOAT?)

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.math/apoc.math.tanh.adoc[apoc.math.tanh icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]

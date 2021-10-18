@@ -1,0 +1,5 @@
+¦xref::overview/apoc.math/apoc.math.coth.adoc[apoc.math.coth icon:book[]] +
+
+
+¦label:function[]
+¦label:apoc-core[]
