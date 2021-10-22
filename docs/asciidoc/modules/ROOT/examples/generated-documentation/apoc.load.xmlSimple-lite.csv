@@ -1,2 +1,0 @@
-¦signature
-¦apoc.load.xmlSimple(url :: STRING?) :: (value :: MAP?)

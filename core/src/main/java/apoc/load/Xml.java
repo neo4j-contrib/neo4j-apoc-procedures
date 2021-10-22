@@ -70,13 +70,6 @@ public class Xml {
                 .map(mr -> mr.value).findFirst().orElse(null);
     }
 
-    @Procedure(deprecatedBy = "apoc.load.xml")
-    @Deprecated
-    @Description("apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _children fields. This method does intentionally not work with XML mixed content.")
-    public Stream<MapResult> xmlSimple(@Name("url") String url) throws Exception {
-        return xmlToMapResult(url, true);
-    }
-
     private Stream<MapResult> xmlXpathToMapResult(@Name("url") String url, boolean simpleMode, String path, Map<String, Object> config) throws Exception {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
@@ -137,20 +130,6 @@ public class Xml {
         return result.stream();
     }
 
-    private Stream<MapResult> xmlToMapResult(@Name("url") String url, boolean simpleMode) {
-        try {
-            XMLStreamReader reader = getXMLStreamReaderFromUrl(url, new XmlImportConfig(Collections.EMPTY_MAP));
-            final Deque<Map<String, Object>> stack = new LinkedList<>();
-            do {
-                handleXmlEvent(stack, reader, simpleMode);
-            } while (proceedReader(reader));
-
-            return Stream.of(new MapResult(stack.getFirst()));
-        } catch (IOException | XMLStreamException e) {
-            throw new RuntimeException("Can't read url " + cleanUrl(url) + " as XML", e);
-        }
-    }
-
     private XMLStreamReader getXMLStreamReaderFromUrl(String url, XmlImportConfig config) throws IOException, XMLStreamException {
         apocConfig.checkReadAllowed(url);
         url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
@@ -173,55 +152,6 @@ public class Xml {
             return true;
         } else {
             return false;
-        }
-    }
-
-    private void handleXmlEvent(Deque<Map<String, Object>> stack, XMLStreamReader reader, boolean simpleMode) throws XMLStreamException {
-
-        Map<String, Object> elementMap;
-        switch (reader.getEventType()) {
-            case START_DOCUMENT:
-            case END_DOCUMENT:
-                // intentionally empty
-                break;
-            case START_ELEMENT:
-                int attributes = reader.getAttributeCount();
-                elementMap = new LinkedHashMap<>(attributes + 3);
-                elementMap.put("_type", reader.getLocalName());
-                for (int a = 0; a < attributes; a++) {
-                    elementMap.put(reader.getAttributeLocalName(a), reader.getAttributeValue(a));
-                }
-                if (!stack.isEmpty()) {
-                    final Map<String, Object> last = stack.getLast();
-                    String key = simpleMode ? "_" + reader.getLocalName() : "_children";
-                    amendToList(last, key, elementMap);
-                }
-                stack.addLast(elementMap);
-                break;
-
-            case END_ELEMENT:
-                elementMap = stack.size() > 1 ? stack.removeLast() : stack.getLast();
-
-                // maintain compatibility with previous implementation:
-                // if we only have text childs, return them in "_text" and not in "_children"
-                Object children = elementMap.get("_children");
-                if (children != null) {
-                    if ((children instanceof String) || collectionIsAllStrings(children)) {
-                        elementMap.put("_text", children);
-                        elementMap.remove("_children");
-                    }
-                }
-                break;
-
-            case CHARACTERS:
-                final String text = reader.getText().trim();
-                if (!text.isEmpty()) {
-                    Map<String, Object> map = stack.getLast();
-                    amendToList(map, "_children", text);
-                }
-                break;
-            default:
-                throw new RuntimeException("dunno know how to handle xml event type " + reader.getEventType());
         }
     }
 

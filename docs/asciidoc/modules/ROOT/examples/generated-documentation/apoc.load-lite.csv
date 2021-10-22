@@ -13,4 +13,3 @@
 ¦apoc.load.ldap(connection :: ANY?, search :: MAP?) :: (entry :: MAP?)
 ¦apoc.load.xls(url :: STRING?, selector :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, list :: LIST? OF ANY?, map :: MAP?)
 ¦apoc.load.xml(url :: STRING?, path = / :: STRING?, config = {} :: MAP?, simple = false :: BOOLEAN?) :: (value :: MAP?)
-¦apoc.load.xmlSimple(url :: STRING?) :: (value :: MAP?)
