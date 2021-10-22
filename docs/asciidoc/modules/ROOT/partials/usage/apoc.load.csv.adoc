@@ -31,8 +31,7 @@ RETURN *;
 == Binary file
 
 You can also import a file from a binary `byte[]` (not compressed) or a compressed file (allowed compression algos are: `GZIP`, `BZIP2`, `DEFLATE`, `BLOCK_LZ4`, `FRAMED_SNAPPY`).
-The binary file it can also be a string, in this case the string will be converted in byte[] using the `String.getBytes(CHARSET)` method,
-where CHARSET depends on optional `charset` config (with default `UTF-8`).
+
 
 [source,cypher]
 ----

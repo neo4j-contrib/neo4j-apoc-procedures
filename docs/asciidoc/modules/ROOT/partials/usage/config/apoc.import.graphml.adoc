@@ -8,6 +8,6 @@ The procedure support the following config parameters:
 | defaultRelationshipType | String | RELATED | The default relationship type to use if none is specified in the GraphML file
 | storeNodeIds | Boolean | false | store the `id` property of `node` elements
 | batchSize | Integer | 20000 | The number of elements to process per transaction
-| compression | `Enum[NONE, BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]` | `null` | Allow to take a binary data instead of a file name/url as first parameter from a byte[] not compressed (value: `NONE`) or compressed (other values)
+| compression | `Enum[NONE, BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]` | `null` | Allow taking binary data, either not compressed (value: `NONE`) or compressed (other values)
 See to xref::partial$usage/apoc.import.csv.adoc[Binary file example]
 |===

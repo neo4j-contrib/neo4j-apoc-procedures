@@ -101,7 +101,7 @@ public class Util {
     public static final String NODE_COUNT = "MATCH (n) RETURN count(*) as result";
     public static final String REL_COUNT = "MATCH ()-->() RETURN count(*) as result";
     public static final String COMPILED = "interpreted"; // todo handle enterprise properly
-    public static final String ERROR_BYTES_OR_STRING = "Only byte[] or String allowed";
+    public static final String ERROR_BYTES_OR_STRING = "Only byte[] or url String allowed";
 
     public static String labelString(List<String> labelNames) {
         return labelNames.stream().map(Util::quote).collect(Collectors.joining(":"));

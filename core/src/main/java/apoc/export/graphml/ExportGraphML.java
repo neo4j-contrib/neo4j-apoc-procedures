@@ -54,15 +54,15 @@ public class ExportGraphML {
     public TerminationGuard terminationGuard;
 
     @Procedure(name = "apoc.import.graphml",mode = Mode.WRITE)
-    @Description("apoc.import.graphml(fileOrBinary,config) - imports graphml file")
-    public Stream<ProgressInfo> file(@Name("fileOrBinary") Object fileOrBinary, @Name("config") Map<String, Object> config) throws Exception {
+    @Description("apoc.import.graphml(urlOrBinaryFile,config) - imports graphml file")
+    public Stream<ProgressInfo> file(@Name("urlOrBinaryFile") Object urlOrBinaryFile, @Name("config") Map<String, Object> config) throws Exception {
         ProgressInfo result =
         Util.inThread(pools, () -> {
             ExportConfig exportConfig = new ExportConfig(config);
             String file =  null;
             String source = "binary";
-            if (fileOrBinary instanceof String) {
-                file = (String) fileOrBinary;
+            if (urlOrBinaryFile instanceof String) {
+                file = (String) urlOrBinaryFile;
                 source = "file";
             }
             ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, source, "graphml"));
@@ -73,7 +73,7 @@ public class ExportGraphML {
 
             if (exportConfig.storeNodeIds()) graphMLReader.storeNodeIds();
             
-            graphMLReader.parseXML(FileUtils.readerFor(fileOrBinary, exportConfig.getCompressionAlgo()));
+            graphMLReader.parseXML(FileUtils.readerFor(urlOrBinaryFile, exportConfig.getCompressionAlgo()));
             return reporter.getTotal();
         });
         return Stream.of(result);
