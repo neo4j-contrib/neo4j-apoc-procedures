@@ -14,6 +14,7 @@ public class LoadCsvConfig {
     public static final char DEFAULT_ARRAY_SEP = ';';
     public static final char DEFAULT_SEP = ',';
     public static final char DEFAULT_QUOTE_CHAR = '"';
+    // this is the same value as ICSVParser.DEFAULT_ESCAPE_CHARACTER
     public static final char DEFAULT_ESCAPE_CHAR = '\\';
 
     private final boolean ignoreErrors;
