@@ -10,10 +10,13 @@ import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
 import apoc.util.Util;
-import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -85,7 +88,7 @@ public class ExportJson {
 
     private Stream<ProgressInfo> exportJson(String fileName, String source, Object data, Map<String,Object> config) throws Exception {
         ExportConfig exportConfig = new ExportConfig(config);
-        if (StringUtils.isNotBlank(fileName)) apocConfig.checkWriteAllowed(exportConfig);
+        apocConfig.checkWriteAllowed(exportConfig, fileName);
         final String format = "json";
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, format));
         JsonFormat exporter = new JsonFormat(db, getJsonFormat(config));
