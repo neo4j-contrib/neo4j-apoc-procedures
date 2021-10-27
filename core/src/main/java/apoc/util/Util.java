@@ -747,7 +747,7 @@ public class Util {
         }
     }
 
-    public static void close(Closeable closeable, Consumer<Exception> onErrror) {
+    public static void close(AutoCloseable closeable, Consumer<Exception> onErrror) {
         try {
             if (closeable!=null) closeable.close();
         } catch (Exception e) {
@@ -758,7 +758,7 @@ public class Util {
         }
     }
 
-    public static void close(Closeable closeable) {
+    public static void close(AutoCloseable closeable) {
         close(closeable, null);
     }
 

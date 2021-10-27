@@ -3,6 +3,7 @@ package apoc.load;
 import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import apoc.util.s3.S3Container;
 import apoc.xml.XmlTestUtils;
 import org.junit.*;
 import org.neo4j.driver.internal.util.Iterables;
@@ -23,31 +24,30 @@ public class LoadS3Test {
             .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false)
             .withSetting(ApocSettings.apoc_import_file_enabled, true);
 
-    private MinioSetUp minio;
+    private S3Container minio;
 
     @BeforeClass
     public static void init() {
         // In test environment we skip the MD5 validation that can cause issues
         System.setProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation", "true");
+        System.setProperty("com.amazonaws.sdk.disableCertChecking", "true");
     }
 
     @AfterClass
     public static void destroy() {
         System.clearProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation");
+        System.clearProperty("com.amazonaws.sdk.disableCertChecking");
     }
 
-    @Before public void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class, Xml.class);
-        minio = new MinioSetUp("dddbucketddd");
+        minio = new S3Container();
     }
 
-    @After public void tearDown() throws Exception {
-        // The line below is quite flaky, but we don't want it to fail the build
-        try {
-            minio.deleteAll();
-        } catch(Exception ignored) {
-
-        }
+    @After
+    public void tearDown() throws Exception {
+        minio.close();
     }
 
     @Test
