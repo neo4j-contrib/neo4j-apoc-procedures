@@ -87,9 +87,6 @@ dependencies {
     testCompile group: 'org.apache.derby', name: 'derby', version: '10.12.1.1'
 
     testCompile group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
-    testCompile group: 'io.minio', name: 'minio', version: '3.0.11', {
-        exclude group: 'com.google.http-client', module: 'google-http-client'
-    }
 
     def withoutServers = {
         exclude group: 'org.eclipse.jetty'
