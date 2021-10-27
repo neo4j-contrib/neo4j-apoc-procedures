@@ -10,6 +10,7 @@ import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.nio.file.Paths;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.apocConfig;
@@ -23,7 +24,7 @@ public class Neo4jLogStreamTest {
     @Before
     public void setUp() throws Exception {
         DatabaseManagementService dbManagementService = new TestDatabaseManagementServiceBuilder(
-                Paths.get("target").toAbsolutePath()).build();
+                Paths.get("target", UUID.randomUUID().toString()).toAbsolutePath()).build();
         apocConfig().setProperty("dbms.directories.logs", "");
         db = dbManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         TestUtil.registerProcedure(db, Neo4jLogStream.class);
