@@ -11,7 +11,9 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.traversal.*;
 import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.logging.Log;
+import org.neo4j.memory.MemoryTracker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -32,6 +34,9 @@ public class PathExplorer {
 
 	@Context
     public Log log;
+	
+	@Context
+	public KernelTransaction kernelTx;
 
 	@Procedure("apoc.path.expand")
 	@Description("apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path - expand from start node following the given relationships from min to max-level adhering to the label filters")
@@ -219,7 +224,7 @@ public class PathExplorer {
 		return optionalStream;
 	}
 
-	public static Traverser traverse(TraversalDescription traversalDescription,
+	private Traverser traverse(TraversalDescription traversalDescription,
 									 Iterable<Node> startNodes,
 									 String pathFilter,
 									 String labelFilter,
@@ -236,6 +241,7 @@ public class PathExplorer {
 
 		td = bfs ? td.breadthFirst() : td.depthFirst();
 
+		final MemoryTracker memoryTracker = kernelTx.memoryTracker();
 		// if `sequence` is present, it overrides `labelFilter` and `relationshipFilter`
 		if (sequence != null && !sequence.trim().isEmpty())	{
 			String[] sequenceSteps = sequence.split(",");
@@ -247,15 +253,15 @@ public class PathExplorer {
 				seq.add(sequenceSteps[index]);
 			}
 
-			td = td.expand(new RelationshipSequenceExpander(relSequenceList, beginSequenceAtStart));
-			td = td.evaluator(new LabelSequenceEvaluator(labelSequenceList, filterStartNode, beginSequenceAtStart, (int) minLevel));
+			td = td.expand(new RelationshipSequenceExpander(relSequenceList, beginSequenceAtStart, memoryTracker));
+			td = td.evaluator(new LabelSequenceEvaluator(labelSequenceList, filterStartNode, beginSequenceAtStart, (int) minLevel, memoryTracker));
 		} else {
 			if (pathFilter != null && !pathFilter.trim().isEmpty()) {
-				td = td.expand(new RelationshipSequenceExpander(pathFilter.trim(), beginSequenceAtStart));
+				td = td.expand(new RelationshipSequenceExpander(pathFilter.trim(), beginSequenceAtStart, memoryTracker));
 			}
 
 			if (labelFilter != null && sequence == null && !labelFilter.trim().isEmpty()) {
-				td = td.evaluator(new LabelSequenceEvaluator(labelFilter.trim(), filterStartNode, beginSequenceAtStart, (int) minLevel));
+				td = td.evaluator(new LabelSequenceEvaluator(labelFilter.trim(), filterStartNode, beginSequenceAtStart, (int) minLevel, memoryTracker));
 			}
 		}
 

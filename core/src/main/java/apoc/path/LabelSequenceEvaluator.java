@@ -4,6 +4,8 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
+import org.neo4j.kernel.impl.core.NodeEntity;
+import org.neo4j.memory.MemoryTracker;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +14,7 @@ import java.util.List;
 
 import static org.neo4j.graphdb.traversal.Evaluation.EXCLUDE_AND_CONTINUE;
 import static org.neo4j.graphdb.traversal.Evaluation.INCLUDE_AND_CONTINUE;
+import static org.neo4j.graphdb.traversal.Evaluation.INCLUDE_AND_PRUNE;
 
 // when no commas present, acts as a pathwide label filter
 public class LabelSequenceEvaluator implements Evaluator {
@@ -22,8 +25,9 @@ public class LabelSequenceEvaluator implements Evaluator {
     private boolean filterStartNode;
     private boolean beginSequenceAtStart;
     private long minLevel = -1;
+    private MemoryTracker memoryTracker;
 
-    public LabelSequenceEvaluator(String labelSequence, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel) {
+    public LabelSequenceEvaluator(String labelSequence, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel, MemoryTracker memoryTracker) {
         List<String> labelSequenceList;
 
         // parse sequence
@@ -33,17 +37,18 @@ public class LabelSequenceEvaluator implements Evaluator {
             labelSequenceList = Collections.emptyList();
         }
 
-        initialize(labelSequenceList, filterStartNode, beginSequenceAtStart, minLevel);
+        initialize(labelSequenceList, filterStartNode, beginSequenceAtStart, minLevel, memoryTracker);
     }
 
-    public LabelSequenceEvaluator(List<String> labelSequenceList, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel) {
-        initialize(labelSequenceList, filterStartNode, beginSequenceAtStart, minLevel);
+    public LabelSequenceEvaluator(List<String> labelSequenceList, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel, MemoryTracker memoryTracker) {
+        initialize(labelSequenceList, filterStartNode, beginSequenceAtStart, minLevel, memoryTracker);
     }
 
-    private void initialize(List<String> labelSequenceList, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel) {
+    private void initialize(List<String> labelSequenceList, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel, MemoryTracker memoryTracker) {
         this.filterStartNode = filterStartNode;
         this.beginSequenceAtStart = beginSequenceAtStart;
         this.minLevel = minLevel;
+        this.memoryTracker = memoryTracker;
         sequenceMatchers = new ArrayList<>(labelSequenceList.size());
 
         for (String labelFilterString : labelSequenceList) {
@@ -71,12 +76,22 @@ public class LabelSequenceEvaluator implements Evaluator {
         // if start node shouldn't be filtered, exclude/include based on if using termination/endnode filter or not
         // minLevel evaluator will separately enforce exclusion if we're below minLevel
         if (depth == 0 && (!filterStartNode || !beginSequenceAtStart)) {
-            return whitelistAllowedEvaluation;
+            return allocateIfIncludedAndGetEvaluation(whitelistAllowedEvaluation);
         }
 
         // the user may want the sequence to begin at the start node (default), or the sequence may only apply from the next node on
         LabelMatcherGroup matcherGroup = sequenceMatchers.get((beginSequenceAtStart ? depth : depth - 1) % sequenceMatchers.size());
 
-        return matcherGroup.evaluate(node, belowMinLevel);
+        final Evaluation evaluate = matcherGroup.evaluate(node, belowMinLevel);
+        return allocateIfIncludedAndGetEvaluation(evaluate);
+    }
+
+    private Evaluation allocateIfIncludedAndGetEvaluation(Evaluation evaluate) {
+        // a node evaluated as INCLUDE_AND_CONTINUE or INCLUDE_AND_PRUNE will be included into path expand
+        // therefore, we calculate heap only for these included nodes 
+        if (evaluate.equals(INCLUDE_AND_CONTINUE) || evaluate.equals(INCLUDE_AND_PRUNE)) {
+            this.memoryTracker.allocateHeap(NodeEntity.SHALLOW_SIZE);
+        }
+        return evaluate;
     }
 }

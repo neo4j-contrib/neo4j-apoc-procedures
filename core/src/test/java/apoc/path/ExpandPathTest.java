@@ -8,11 +8,14 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.MapUtil;
+import org.neo4j.io.ByteUnit;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -27,7 +30,8 @@ import static org.junit.Assert.assertTrue;
 public class ExpandPathTest {
 
     @ClassRule
-	public static DbmsRule db = new ImpermanentDbmsRule();
+	public static DbmsRule db = new ImpermanentDbmsRule()
+			.withSetting(GraphDatabaseSettings.memory_transaction_database_max_size, ByteUnit.mebiBytes(10));
 
 	public ExpandPathTest() throws Exception {
 	}  
@@ -47,6 +51,40 @@ public class ExpandPathTest {
     @After
     public void removeOtherLabels() {
 		db.executeTransactionally("OPTIONAL MATCH (c:Western) REMOVE c:Western WITH DISTINCT 1 as ignore OPTIONAL MATCH (c:Blacklist) REMOVE c:Blacklist");
+	}
+	
+	@Test(expected = QueryExecutionException.class)
+	public void testIssue2264() {
+		db.executeTransactionally("CREATE CONSTRAINT a_id IF NOT EXISTS ON (a:A) ASSERT a.id IS UNIQUE"); 
+		db.executeTransactionally("WITH range(0,9) AS ids\n" +
+				"UNWIND ids as id\n" +
+				"MERGE (a:A {id: id})\n" +
+				"SET a.prop = toInteger(10 * rand())\n" +
+				"RETURN a;");
+		db.executeTransactionally("WITH range(0,0) AS ids\n" +
+				"UNWIND ids as id\n" +
+				"MATCH (a1:A), (a2:A)\n" +
+				"WHERE a1 <> a2\n" +
+				"MERGE (a1)-[r:REL {id: id}]->(a2)");
+		
+		try {
+			TestUtil.testResult(db, "MATCH (srcA:A {id:0})\n" +
+					"CALL apoc.path.expand(srcA, \">REL\", \"+A\", 1, 10)\n" +
+					"YIELD path\n" +
+					"WITH srcA,\n" +
+					"relationships(path)[0] AS srcRel,\n" +
+					"relationships(path)[length(path) - 1] AS dstRel,\n" +
+					"nodes(path)[length(path)] AS dstA,\n" +
+					"path AS path\n" +
+					"RETURN DISTINCT srcA.id, srcA.prop, dstA.id, dstA.prop\n" +
+					"LIMIT 1000;", r -> {
+				final List<Map<String, Object>> maps = Iterators.asList(r);
+				System.out.println("ExpandPathTest.testTodoName");
+			});
+		} catch (QueryExecutionException e) {
+			assertTrue(e.getMessage().contains("dbms.memory.transaction.database_max_size threshold reached"));
+			throw e;
+		}
 	}
 
 	@Test

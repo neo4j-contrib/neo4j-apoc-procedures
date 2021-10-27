@@ -5,6 +5,8 @@ import org.neo4j.graphdb.traversal.BranchState;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.NestingIterator;
 import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.memory.HeapEstimator;
+import org.neo4j.memory.MemoryTracker;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -24,9 +26,11 @@ import java.util.List;
 public class RelationshipSequenceExpander implements PathExpander {
     private final List<List<Pair<RelationshipType, Direction>>> relSequences = new ArrayList<>();
     private List<Pair<RelationshipType, Direction>> initialRels = null;
+    private final MemoryTracker memoryTracker;
 
+    public RelationshipSequenceExpander(String relSequenceString, boolean beginSequenceAtStart, MemoryTracker memoryTracker) {
+        this.memoryTracker = memoryTracker;
 
-    public RelationshipSequenceExpander(String relSequenceString, boolean beginSequenceAtStart) {
         int index = 0;
 
         for (String sequenceStep : relSequenceString.split(",")) {
@@ -48,7 +52,9 @@ public class RelationshipSequenceExpander implements PathExpander {
         }
     }
 
-    public RelationshipSequenceExpander(List<String> relSequenceList, boolean beginSequenceAtStart) {
+    public RelationshipSequenceExpander(List<String> relSequenceList, boolean beginSequenceAtStart, MemoryTracker memoryTracker) {
+        this.memoryTracker = memoryTracker;
+
         int index = 0;
 
         for (String sequenceStep : relSequenceList) {
@@ -82,25 +88,28 @@ public class RelationshipSequenceExpander implements PathExpander {
             stepRels = relSequences.get((initialRels == null ? depth : depth - 1) % relSequences.size());
         }
 
-        return Iterators.asList(
-         new NestingIterator<Relationship, Pair<RelationshipType, Direction>>(
-                stepRels.iterator() )
-        {
-            @Override
-            protected Iterator<Relationship> createNestedIterator(
-                    Pair<RelationshipType, Direction> entry )
-            {
-                RelationshipType type = entry.first();
-                Direction dir = entry.other();
-                if (type != null) {
-                    return ((dir == Direction.BOTH) ? node.getRelationships(type) :
-                            node.getRelationships(dir, type)).iterator();
-                } else {
-                    return ((dir == Direction.BOTH) ? node.getRelationships() :
-                            node.getRelationships(dir)).iterator();
+        final List<Relationship> relationships = Iterators.asList(
+            new NestingIterator<>(
+                    stepRels.iterator()) {
+                @Override
+                protected Iterator<Relationship> createNestedIterator(
+                        Pair<RelationshipType, Direction> entry) {
+                    RelationshipType type = entry.first();
+                    Direction dir = entry.other();
+                    if (type != null) {
+                        return ((dir == Direction.BOTH) ? node.getRelationships(type) :
+                                node.getRelationships(dir, type)).iterator();
+                    } else {
+                        return ((dir == Direction.BOTH) ? node.getRelationships() :
+                                node.getRelationships(dir)).iterator();
+                    }
                 }
-            }
-        });
+            });
+
+        // calculated through HeapEstimator.sizeOfCollection(..)
+        memoryTracker.allocateHeap(HeapEstimator.sizeOf(relationships));
+        
+        return relationships;
     }
 
     @Override
