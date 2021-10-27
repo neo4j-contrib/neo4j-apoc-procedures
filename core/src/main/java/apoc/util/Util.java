@@ -90,7 +90,6 @@ import static apoc.ApocConfig.apocConfig;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
-import static org.eclipse.jetty.util.URIUtil.encodeSpaces;
 
 /**
  * @author mh
@@ -743,7 +742,7 @@ public class Util {
         }
     }
 
-    public static void close(Closeable closeable, Consumer<Exception> onErrror) {
+    public static void close(AutoCloseable closeable, Consumer<Exception> onErrror) {
         try {
             if (closeable!=null) closeable.close();
         } catch (Exception e) {
@@ -754,7 +753,7 @@ public class Util {
         }
     }
 
-    public static void close(Closeable closeable) {
+    public static void close(AutoCloseable closeable) {
         close(closeable, null);
     }
 
@@ -878,9 +877,9 @@ public class Util {
     }
 
     public static Node mergeNode(Transaction tx, Label primaryLabel, Label addtionalLabel,
-                                 Pair<String, Object>... pairs ) {
+                                 Pair<String, Object>... pairs) {
         Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, pairs[0].first(), pairs[0].other()).stream()
-                .filter(n -> addtionalLabel!=null && n.hasLabel(addtionalLabel))
+                .filter(n -> addtionalLabel == null || n.hasLabel(addtionalLabel))
                 .filter( n -> {
                     for (int i=1; i<pairs.length; i++) {
                         if (!Objects.deepEquals(pairs[i].other(), n.getProperty(pairs[i].first(), null))) {

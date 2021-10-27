@@ -4,7 +4,7 @@
 
 
 
-Gephi has a https://marketplace.gephi.org/plugin/graph-streaming/[streaming plugin], that can provide and accept https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master[JSON-graph-data] in a streaming fashion.
+Gephi has a https://gephi.org/plugins/#/plugin/graphstreaming/[streaming plugin], that can provide and accept https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master[JSON-graph-data] in a streaming fashion.
 The export to Gephi procedure sends data to this end point.
 
 image::apoc-gephi.gif[scaledwidth="100%"]

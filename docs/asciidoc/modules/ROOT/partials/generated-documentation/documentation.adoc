@@ -196,6 +196,7 @@ apoc.bitwise.op(60,'\|',13) bitwise operations a & b, a \| b, a ^ b, ~a, a >> b,
 |label:apoc-core[]
 |===
 
+[discrete]
 == xref::overview/apoc.bolt/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
@@ -926,7 +927,12 @@ apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}
 |label:apoc-full[]
 |xref::overview/apoc.cypher/apoc.cypher.runMany.adoc[apoc.cypher.runMany icon:book[]]
 
-apoc.cypher.runMany('cypher;\nstatements;',\{params},[{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations
+apoc.cypher.runMany('cypher;\nstatements;', $params, [{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.cypher/apoc.cypher.runManyReadOnly.adoc[apoc.cypher.runManyReadOnly icon:book[]]
+
+apoc.cypher.runManyReadOnly('cypher;\nstatements;', $params, [{statistics:true,timeout:10}]) - runs each semicolon separated, read-only statement and returns summary - currently no schema operations
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.cypher/apoc.cypher.runSchema.adoc[apoc.cypher.runSchema icon:book[]]
@@ -1102,6 +1108,38 @@ apoc.do.case([condition, query, condition, query, ...], elseQuery:'', params:{})
 |xref::overview/apoc.do/apoc.do.when.adoc[apoc.do.when icon:book[]]
 
 apoc.do.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes writing ifQuery or elseQuery with the given parameters
+|label:procedure[]
+|label:apoc-core[]
+|===
+
+== xref::overview/apoc.dv/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a,1a']
+|===
+| Qualified Name | Type | Release
+|xref::overview/apoc.dv/apoc.dv.catalog.add.adoc[apoc.dv.catalog.add icon:book[]]
+
+Add a virtualized resource configuration
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.dv/apoc.dv.catalog.list.adoc[apoc.dv.catalog.list icon:book[]]
+
+List all virtualized resource configs
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.dv/apoc.dv.catalog.remove.adoc[apoc.dv.catalog.remove icon:book[]]
+
+Remove a virtualized resource config by name
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.dv/apoc.dv.query.adoc[apoc.dv.query icon:book[]]
+
+Query a virtualized resource by name and return virtual nodes
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.dv/apoc.dv.queryAndLink.adoc[apoc.dv.queryAndLink icon:book[]]
+
+Query a virtualized resource by name and return virtual nodes linked using virtual rels to the node passed as first param
 |label:procedure[]
 |label:apoc-core[]
 |===
@@ -1493,6 +1531,7 @@ apoc.load.csv('url',\{config}) YIELD lineNo, list, map - load CSV from URL as st
 
 apoc.load.csvParams('url', {httpHeader: value}, payload, \{config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
+
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.directory.adoc[apoc.load.directory icon:book[]]
@@ -2240,6 +2279,11 @@ apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map with 
 apoc.nodes.collapse([nodes...],[{properties:'overwrite' or 'discard' or 'combine'}]) yield from, rel, to merge nodes onto first in list
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.nodes/apoc.nodes.cycles.adoc[apoc.nodes.cycles icon:book[]]
+
+CALL apoc.nodes.cycles([nodes], $config) - Detect all path cycles from node list
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.delete.adoc[apoc.nodes.delete icon:book[]]
 
 apoc.nodes.delete(node\|nodes\|id\|[ids]) - quickly delete all nodes with these ids
@@ -2461,6 +2505,168 @@ apoc.periodic.submit('name',statement) - submit a one-off background statement
 apoc.periodic.truncate(\{config}) - removes all entities (and optionally indexes and constraints) from db using the apoc.periodic.iterate under the hood
 |label:procedure[]
 |label:apoc-core[]
+|===
+
+== xref::overview/apoc.redis/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a,1a']
+|===
+| Qualified Name | Type | Release
+|xref::overview/apoc.redis/apoc.redis.append.adoc[apoc.redis.append icon:book[]]
+
+apoc.redis.append(uri, key, value, \{config}) \| Execute the 'APPEND key value' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.configGet.adoc[apoc.redis.configGet icon:book[]]
+
+apoc.redis.configGet(uri, parameter, \{config}) \| Execute the 'CONFIG GET parameter' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.configSet.adoc[apoc.redis.configSet icon:book[]]
+
+apoc.redis.configSet(uri, parameter, \{config}) \| Execute the 'CONFIG SET parameter value' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.copy.adoc[apoc.redis.copy icon:book[]]
+
+apoc.redis.copy(uri, source, destination, \{config}) \| Execute the 'COPY source destination' command and returns true if source was copied and false otherwise
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.eval.adoc[apoc.redis.eval icon:book[]]
+
+apoc.redis.eval(uri, script, outputType, keys, values, \{config}) \| Execute the 'EVAL script' command. In the parameters provided to the procedure, keys are bound to the KEYS[n] like special array of the Lua script and values are bound to the ARGV[n] like special array of the Lua script.
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.exists.adoc[apoc.redis.exists icon:book[]]
+
+apoc.redis.exists(uri, keys, \{config}) \| Execute the 'EXISTS keys' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.get.adoc[apoc.redis.get icon:book[]]
+
+apoc.redis.get(uri, key, \{config}) \| Execute the 'GET key' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.hdel.adoc[apoc.redis.hdel icon:book[]]
+
+apoc.redis.hdel(uri, key, fields, \{config}) \| Execute the 'HDEL key fields' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.hexists.adoc[apoc.redis.hexists icon:book[]]
+
+apoc.redis.hexists(uri, key, field, \{config}) \| Execute the 'HEXISTS key field' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.hget.adoc[apoc.redis.hget icon:book[]]
+
+apoc.redis.hget(uri, key, field, \{config}) \| Execute the 'HGET key field' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.hgetall.adoc[apoc.redis.hgetall icon:book[]]
+
+apoc.redis.hgetall(uri, key, \{config}) \| Execute the 'HGETALL key' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.hincrby.adoc[apoc.redis.hincrby icon:book[]]
+
+apoc.redis.hincrby(uri, key, field, amount, \{config}) \| Execute the 'HINCRBY key field amount' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.hset.adoc[apoc.redis.hset icon:book[]]
+
+apoc.redis.hset(uri, key, field, value, \{config}) \| Execute the 'HSET key field value' command and returns true if it is a new field in the hash or false if the field already exists
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.incrby.adoc[apoc.redis.incrby icon:book[]]
+
+apoc.redis.incrby(uri, key, amount, \{config}) \| Execute the 'INCRBY key increment' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.info.adoc[apoc.redis.info icon:book[]]
+
+apoc.redis.info(uri, \{config}) \| Execute the 'INFO' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.lrange.adoc[apoc.redis.lrange icon:book[]]
+
+apoc.redis.lrange(uri, key, start, stop, \{config}) \| Execute the 'LRANGE key start stop' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.persist.adoc[apoc.redis.persist icon:book[]]
+
+apoc.redis.persist(uri, key, \{config}) \| Execute the 'PERSIST key' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.pexpire.adoc[apoc.redis.pexpire icon:book[]]
+
+apoc.redis.pexpire(uri, key, time, isExpireAt \{config}) \| Execute the 'PEXPIRE key time' command, or the 'PEPXPIREAT' if isExpireAt=true
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.pop.adoc[apoc.redis.pop icon:book[]]
+
+apoc.redis.pop(uri, key, \{config}) \| Execute the 'LPOP key' command, or the 'RPOP' if config right=true (default)
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.pttl.adoc[apoc.redis.pttl icon:book[]]
+
+apoc.redis.pttl(uri, key, \{config}) \| Execute the 'PTTL key' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.push.adoc[apoc.redis.push icon:book[]]
+
+apoc.redis.push(uri, key, values, \{config}) \| Execute the 'LPUSH key field values' command, or the 'RPUSH' if config right=true (default)
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.sadd.adoc[apoc.redis.sadd icon:book[]]
+
+apoc.redis.sadd(uri, key, members, \{config}) \| Execute the 'SADD key members' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.scard.adoc[apoc.redis.scard icon:book[]]
+
+apoc.redis.scard(uri, key, \{config}) \| Execute the 'SCARD key' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.getSet.adoc[apoc.redis.getSet icon:book[]]
+
+apoc.redis.getSet(uri, key, value, \{config}) \| Execute the 'SET key value' command and return old value stored (or null if did not exists)
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.smembers.adoc[apoc.redis.smembers icon:book[]]
+
+apoc.redis.smembers(uri, key, \{config}) \| Execute the 'SMEMBERS key' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.spop.adoc[apoc.redis.spop icon:book[]]
+
+apoc.redis.spop(uri, key, \{config}) \| Execute the 'SPOP key' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.sunion.adoc[apoc.redis.sunion icon:book[]]
+
+apoc.redis.sunion(uri, keys, \{config}) \| Execute the 'SUNION keys' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.zadd.adoc[apoc.redis.zadd icon:book[]]
+
+apoc.redis.zadd(uri, keys, scoresAndMembers, \{config}) \| Execute the 'ZADD key scoresAndMembers' command, where scoresAndMembers is a list of score,member,score,member,...
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.zcard.adoc[apoc.redis.zcard icon:book[]]
+
+apoc.redis.zcard(uri, key, \{config}) \| Execute the 'ZCARD key' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.zrangebyscore.adoc[apoc.redis.zrangebyscore icon:book[]]
+
+apoc.redis.zrangebyscore(uri, key, min, max, \{config}) \| Execute the 'ZRANGEBYSCORE key min max' command
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.redis/apoc.redis.zrem.adoc[apoc.redis.zrem icon:book[]]
+
+apoc.redis.zrem(uri, key, members, \{config}) \| Execute the 'ZREM key members' command
+|label:procedure[]
+|label:apoc-full[]
 |===
 
 == xref::overview/apoc.refactor/index.adoc[]

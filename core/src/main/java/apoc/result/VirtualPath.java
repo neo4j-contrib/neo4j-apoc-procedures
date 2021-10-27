@@ -20,11 +20,17 @@ import static org.apache.commons.collections4.IterableUtils.reversedIterable;
 public class VirtualPath implements Path {
 
     private final Node start;
-    private final List<Relationship> relationships = new ArrayList<>();
+    private final List<Relationship> relationships;
 
     public VirtualPath(Node start) {
+        this(start, new ArrayList<>());
+    }
+
+    private VirtualPath(Node start, List<Relationship> relationships) {
         Objects.requireNonNull(start);
+        Objects.requireNonNull(relationships);
         this.start = start;
+        this.relationships = relationships;
     }
 
     public void addRel(Relationship relationship) {
@@ -121,26 +127,16 @@ public class VirtualPath implements Path {
     }
 
     private void requireConnected(Relationship relationship) {
-//        long previousStartNodeId;
-//        long previousEndNodeId;
         Node previousStartNode;
         Node previousEndNode;
         Relationship previousRelationship = lastRelationship();
         if (previousRelationship != null) {
-//            previousStartNodeId = previousRelationship.getStartNodeId();
-//            previousEndNodeId = previousRelationship.getEndNodeId();
             previousStartNode = previousRelationship.getStartNode();
             previousEndNode = previousRelationship.getEndNode();
         } else {
-//            previousStartNodeId = startNode().getId();
-//            previousEndNodeId = endNode().getId();
             previousStartNode = startNode();
             previousEndNode = endNode();
         }
-//        if (relationship.getStartNodeId() != previousEndNodeId
-//                || relationship.getStartNodeId() != previousStartNodeId
-//                || relationship.getEndNodeId() != previousEndNodeId
-//                || relationship.getEndNodeId() != previousStartNodeId) {
         if (relationship.getStartNode() != previousEndNode
                 || relationship.getStartNode() != previousStartNode
                 || relationship.getEndNode() != previousEndNode
