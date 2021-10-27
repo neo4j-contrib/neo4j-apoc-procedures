@@ -87,9 +87,6 @@ dependencies {
     testCompile group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
 
-    testCompile group: 'io.minio', name: 'minio', version: '3.0.11', {
-        exclude group: 'com.google.http-client', module: 'google-http-client'
-    }
 
     def withoutServers = {
         exclude group: 'org.eclipse.jetty'
