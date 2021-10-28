@@ -144,4 +144,23 @@ public class VirtualPath implements Path {
             throw new IllegalArgumentException("Relationship is not part of current path.");
         }
     }
+    
+    public static final class Builder {
+        private final Node start;
+        private final List<Relationship> relationships = new ArrayList<>();
+
+        public Builder(Node start) {
+            this.start = start;
+        }
+
+        public Builder push(Relationship relationship) {
+            this.relationships.add(relationship);
+            return this;
+        }
+
+        public VirtualPath build() {
+            return new VirtualPath(start, relationships);
+        }
+
+    }
 }
