@@ -101,7 +101,7 @@ public class Cypher {
            wait in the pool's job queue.
          */
         BlockingQueue<T> queue = new ArrayBlockingQueue<>(queueCapacity);
-        new Thread(() -> {
+        Util.newDaemonThread(() -> {
             try {
                 action.accept(queue);
             } finally {
