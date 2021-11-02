@@ -45,3 +45,139 @@ RETURN key, value[key] AS value;
 | "Person"   | {count: 2, relationships: {ACTED_IN: {count: 9, properties: {roles: {existence: FALSE, type: "LIST", array: TRUE}}, direction: "out", labels: ["Movie"]}}, type: "node", properties: {name: {existence: FALSE, type: "STRING", indexed: FALSE, unique: FALSE}, born: {existence: FALSE, type: "INTEGER", indexed: FALSE, unique: FALSE}}, labels: []}
 |===
 
+
+We can control the number of entities to analyze by specifying the `sample` parameter.
+For example, given the following graph:
+
+[source,cypher]
+----
+CREATE (:Foo), (:Other)-[:REL_0]->(:Other), (:Other)-[:REL_1]->(:Other)<-[:REL_2 {baz: 'baa'}]-(:Other), (:Other {alpha: 'beta'}), (:Other {foo:'bar'})-[:REL_3]->(:Other)
+----
+
+Without `sample` parameter we receive:
+
+[source,cypher]
+----
+CALL apoc.meta.schema()
+YIELD value RETURN value["Other"] as value;
+----
+
+.Results
+[opts="header",cols="a"]
+|===
+| value
+|
+[source,json]
+----
+{
+    "count": 8,
+    "relationships": {
+        "REL_2": {
+            "count": 1,
+            "properties": {
+                "baz": {
+                    "existence": false,
+                    "type": "STRING",
+                    "array": false
+                }
+            },
+            "direction": "out",
+            "labels": [
+                "Other",
+                "Other"
+            ]
+        },
+        "REL_3": {
+            "count": 1,
+            "properties": {
+
+            },
+            "direction": "out",
+            "labels": [
+                "Other",
+                "Other"
+            ]
+        },
+        "REL_0": {
+            "count": 1,
+            "properties": {
+
+            },
+            "direction": "out",
+            "labels": [
+                "Other",
+                "Other"
+            ]
+        },
+        "REL_1": {
+            "count": 1,
+            "properties": {
+
+            },
+            "direction": "out",
+            "labels": [
+                "Other",
+                "Other"
+            ]
+        }
+    },
+    "type": "node",
+    "properties": {
+        "alpha": {
+            "existence": false,
+            "type": "STRING",
+            "indexed": false,
+            "unique": false
+        },
+        "foo": {
+            "existence": false,
+            "type": "STRING",
+            "indexed": false,
+            "unique": false
+        }
+    },
+    "labels": []
+}
+----
+|===
+Otherwise, with `sample: 1`:
+[source,cypher]
+----
+CALL apoc.meta.schema({sample: 1})
+YIELD value RETURN value["Other"] as value
+----
+.Results
+[opts="header",cols="a"]
+|===
+| value
+|
+[source,json]
+----
+{
+"count": 8,
+"relationships": {
+"REL_3": {
+"count": 1,
+"properties": {
+
+            },
+            "direction": "out",
+            "labels": [
+                "Other",
+                "Other"
+            ]
+        }
+    },
+    "type": "node",
+    "properties": {
+        "foo": {
+            "existence": false,
+            "type": "STRING",
+            "indexed": false,
+            "unique": false
+        }
+    },
+    "labels": []
+}
+----
+|===
