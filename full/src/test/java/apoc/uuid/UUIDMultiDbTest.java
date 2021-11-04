@@ -111,7 +111,7 @@ public class UUIDMultiDbTest {
                     Map<String, Object> p = Collections.<String, Object>emptyMap();
                     resultConsumer.accept(tx.run(call, p).list()
                             .stream()
-                            .map(Record::asMap)
+                            .map(org.neo4j.driver.Record::asMap)
                             .collect(Collectors.toList()).iterator());
                     tx.commit();
                     return null;

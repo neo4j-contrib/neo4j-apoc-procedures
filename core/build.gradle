@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id "com.bmuschko.nexus"
     id 'maven-publish'
     id 'antlr'
     id "org.sonarqube"
@@ -14,6 +13,7 @@ jar {
     manifest {
         attributes 'Implementation-Version': version
     }
+    duplicatesStrategy = 'exclude'
 }
 
 
@@ -36,15 +36,14 @@ generateGrammarSource {
 }
 
 dependencies {
-
-    testCompile project(':test-utils')
+    testImplementation project(':test-utils')
     apt project(':processor')
 
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
-    compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
-    compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
-    compile group: 'net.minidev', name: 'json-smart', version: '2.4.2'
-    compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
+    implementation group: 'commons-codec', name: 'commons-codec', version: '1.14'
+    implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
+    implementation group: 'net.minidev', name: 'json-smart', version: '2.4.2'
+    implementation group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
 
     antlr "org.antlr:antlr4:4.7.2", {
         exclude group: 'org.glassfish'
@@ -54,34 +53,34 @@ dependencies {
     // compileOnly "org.antlr:antlr4-runtime:4.7.2"
     // testCompile "org.antlr:antlr4-runtime:4.7.2"
 
-    compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
-    compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7'
-    compile(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7') {
+    implementation group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
+    implementation group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7'
+    implementation(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7') {
         exclude group: "org.yaml"
         exclude module: "snakeyaml"
     }
-    compile group: 'org.yaml', name: 'snakeyaml', version: '1.26'
-    testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
+    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.26'
+    testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
 
-    testCompile 'net.sourceforge.jexcelapi:jxl:2.6.12'
+    testImplementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
 
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
-    testCompile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
+    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
 
-    testCompile group: 'org.reflections', name: 'reflections', version: '0.9.11', { exclude group: 'com.google.guava', module: 'guava' }
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
-    testCompile group: 'org.neo4j.test', name: 'neo4j-harness', version: neo4jVersionEffective
-    testCompile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.2.22.v20170606'
-    testCompile group: 'org.apache.derby', name: 'derby', version: '10.12.1.1'
+    testImplementation group: 'org.reflections', name: 'reflections', version: '0.9.11', { exclude group: 'com.google.guava', module: 'guava' }
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
+    testImplementation group: 'org.neo4j.test', name: 'neo4j-harness', version: neo4jVersionEffective
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.2.22.v20170606'
+    testImplementation group: 'org.apache.derby', name: 'derby', version: '10.12.1.1'
 
-    testCompile group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests"
-    testCompile group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective // , classifier: "tests"
-    testCompile group: 'org.neo4j', name: 'log-test-utils', version: neo4jVersionEffective // , classifier: "tests"
+    testImplementation group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests"
+    testImplementation group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective // , classifier: "tests"
+    testImplementation group: 'org.neo4j', name: 'log-test-utils', version: neo4jVersionEffective // , classifier: "tests"
 
 
-    testCompile group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
-    testCompile group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
+    testImplementation group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
+    testImplementation group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
 
 
     def withoutServers = {
@@ -93,43 +92,43 @@ dependencies {
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compileOnly group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
 
-    testCompile 'org.mock-server:mockserver-netty:3.10.8'
-    testCompile 'org.mock-server:mockserver-client-java:3.10.8'
+    testImplementation 'org.mock-server:mockserver-netty:3.10.8'
+    testImplementation 'org.mock-server:mockserver-client-java:3.10.8'
 
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
 
-    testCompile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.5.1'
-    compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
-    compile group: 'com.opencsv', name: 'opencsv', version: '4.6'
-    compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
+    testImplementation group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.5.1'
+    implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
+    implementation group: 'com.opencsv', name: 'opencsv', version: '4.6'
+    implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
 
-    testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
+    testImplementation group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
     compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.5', withoutServers
     compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.7.5', withoutServers
 
-    compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+    implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     //compileOnly group: 'org.apache.commons', name: 'commons-text', version: '1.7'
 //    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
 //    jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
 
-    testCompile group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
-    testCompile group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
+    testImplementation group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
+    testImplementation group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
 
-    testCompile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.9.7'
-    testCompile group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
-    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
+    testImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.9.7'
+    testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
+    testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
 
     compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '1.92.0'
-    testCompile group: 'com.google.cloud', name: 'google-cloud-storage', version: '1.92.0', {
+    testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '1.92.0', {
         exclude group: 'com.google.guava', module: 'guava'
     }
 
     // there is a compatibility problem between the Guava Library used by HDFS, Google Cloud Storage and Reflections; the only version that fits for all is the following
-    compile group: 'com.google.guava', name: 'guava', version: '20.0'
+    implementation group: 'com.google.guava', name: 'guava', version: '20.0'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
@@ -153,5 +152,5 @@ if (System.env.CI == 'true') {
 
 task copyRuntimeLibs(type: Copy) {
     into "lib"
-    from configurations.testRuntime 
+    from configurations.testRuntimeClasspath
 }

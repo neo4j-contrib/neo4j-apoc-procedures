@@ -18,7 +18,7 @@ jar {
 }
 
 dependencies {
-    compile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
+    implementation group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
 }
 
 

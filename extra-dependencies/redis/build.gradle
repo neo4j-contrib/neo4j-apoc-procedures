@@ -17,5 +17,5 @@ jar {
 }
 
 dependencies {
-    compile group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
+    implementation group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
 }
