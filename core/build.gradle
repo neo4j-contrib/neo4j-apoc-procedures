@@ -23,6 +23,7 @@ configurations {
 
 shadowJar {
     archiveClassifier.set('core')
+    duplicatesStrategy = 'exclude'
 }
 
 javadoc {
