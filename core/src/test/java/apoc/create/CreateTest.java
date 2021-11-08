@@ -1,6 +1,7 @@
 package apoc.create;
 
 import apoc.util.TestUtil;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,6 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static apoc.result.VirtualNode.ERROR_NODE_NULL;
+import static apoc.result.VirtualRelationship.ERROR_END_NODE_NULL;
+import static apoc.result.VirtualRelationship.ERROR_START_NODE_NULL;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.*;
@@ -295,6 +299,25 @@ public class CreateTest {
         assertEquals("TEST_2", secondRel.getType().name());
         assertEquals(Map.of("aa", "bb"), secondRel.getAllProperties());
         assertFalse(rels.hasNext());
+    }
+
+    @Test
+    public void testValidationNodes() {
+        assertionsError(ERROR_NODE_NULL,"RETURN apoc.create.virtual.fromNode(null, ['name']) as node");
+        assertionsError(ERROR_START_NODE_NULL, "CREATE (n) WITH n CALL apoc.create.relationship(null,'KNOWS',{}, n) YIELD rel RETURN rel");
+        assertionsError(ERROR_END_NODE_NULL, "CREATE (n) WITH n CALL apoc.create.relationship(n,'KNOWS',{}, null) YIELD rel RETURN rel");
+        assertionsError(ERROR_START_NODE_NULL, "CREATE (m) RETURN apoc.create.vRelationship(null,'KNOWS',{}, m) AS rel");
+        assertionsError(ERROR_END_NODE_NULL, "CREATE (n) WITH n CALL apoc.create.vRelationship(n,'KNOWS',{}, null) YIELD rel RETURN rel");
+    }
+
+    private void assertionsError(String expectedMessage, String query) {
+        try {
+            testCall(db, query, (row) -> fail("Should fail because of " + expectedMessage));
+        } catch (Exception e) {
+            Throwable rootCause = ExceptionUtils.getRootCause(e);
+            assertEquals(expectedMessage, rootCause.getMessage());
+            assertTrue(rootCause instanceof RuntimeException);
+        }
     }
 
 }
