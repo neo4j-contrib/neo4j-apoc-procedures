@@ -57,14 +57,6 @@ public class XmlTest {
     }
 
     @Test
-    public void testLoadXmlSimple() {
-        testCall(db, "CALL apoc.load.xmlSimple('file:databases.xml')", //  YIELD value RETURN value
-                (row) -> {
-                    assertEquals(XmlTestUtils.XML_AS_NESTED_SIMPLE_MAP, row.get("value"));
-                });
-    }
-
-    @Test
     public void testMixedContent() {
         testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/mixedcontent.xml") + "')", //  YIELD value RETURN value
                 this::commonAssertionsMixedContent);
