@@ -1475,12 +1475,12 @@ apoc.import.csv(nodes, relationships, config) - imports nodes and relationships 
 |label:apoc-core[]
 |xref::overview/apoc.import/apoc.import.graphml.adoc[apoc.import.graphml icon:book[]]
 
-apoc.import.graphml(file,config) - imports graphml file
+apoc.import.graphml(urlOrBinaryFile,config) - imports graphml file
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.import/apoc.import.json.adoc[apoc.import.json icon:book[]]
 
-apoc.import.json(file,config) - imports the json list to the provided file
+apoc.import.json(urlOrBinaryFile,config) - imports the json list to the provided file
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.import/apoc.import.xml.adoc[apoc.import.xml icon:book[]]
@@ -1523,13 +1523,13 @@ apoc.label.exists(element, label) - returns true or false related to label exist
 | Qualified Name | Type | Release
 |xref::overview/apoc.load/apoc.load.csv.adoc[apoc.load.csv icon:book[]]
 
-apoc.load.csv('url',\{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,
+apoc.load.csv('urlOrBinary',\{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.csvParams.adoc[apoc.load.csvParams icon:book[]]
 
-apoc.load.csvParams('url', {httpHeader: value}, payload, \{config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,
+apoc.load.csvParams('urlOrBinary', {httpHeader: value}, payload, \{config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
 
 |label:procedure[]
@@ -1586,7 +1586,7 @@ apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - updat
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.json.adoc[apoc.load.json icon:book[]]
 
-apoc.load.json('url',path, config) YIELD value -  import JSON as stream of values if the JSON was an array or a single value if it was a map
+apoc.load.json('urlOrKeyOrBinary',path, config) YIELD value - import JSON as stream of values if the JSON was an array or a single value if it was a map
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.jsonArray.adoc[apoc.load.jsonArray icon:book[]]
@@ -1596,7 +1596,7 @@ apoc.load.jsonArray('url') YIELD value - load array from JSON URL (e.g. web-api)
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.jsonParams.adoc[apoc.load.jsonParams icon:book[]]
 
-apoc.load.jsonParams('url',{header:value},payload, config) YIELD value - load from JSON URL (e.g. web-api) while sending headers / payload to import JSON as stream of values if the JSON was an array or a single value if it was a map
+apoc.load.jsonParams('urlOrKeyOrBinary',{header:value},payload, config) YIELD value - load from JSON URL (e.g. web-api) while sending headers / payload to import JSON as stream of values if the JSON was an array or a single value if it was a map
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.ldap.adoc[apoc.load.ldap icon:book[]]

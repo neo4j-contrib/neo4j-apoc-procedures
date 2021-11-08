@@ -5,18 +5,27 @@ import apoc.export.util.CountingInputStream;
 import apoc.generate.config.InvalidConfigException;
 import apoc.result.MapResult;
 import apoc.result.NodeResult;
+import apoc.util.CompressionAlgo;
+import apoc.util.CompressionConfig;
 import apoc.util.FileUtils;
 import apoc.util.Util;
-import jdk.jfr.MemoryAddress;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.UserFunction;
 import org.w3c.dom.CharacterData;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import javax.xml.namespace.QName;
@@ -30,21 +39,45 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static apoc.util.CompressionConfig.COMPRESSION;
+import static apoc.util.FileUtils.getInputStreamFromBinary;
+import static apoc.util.Util.ERROR_BYTES_OR_STRING;
 import static apoc.util.Util.cleanUrl;
-import static javax.xml.stream.XMLStreamConstants.*;
+import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
+import static javax.xml.stream.XMLStreamConstants.END_DOCUMENT;
+import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
+import static javax.xml.stream.XMLStreamConstants.START_DOCUMENT;
+import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 
 public class Xml {
 
     private static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();
+    static {
+        FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
+    }
 
     @Context
     public ApocConfig apocConfig;
@@ -57,8 +90,8 @@ public class Xml {
 
     @Procedure
     @Description("apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.")
-    public Stream<MapResult> xml(@Name("url") String url, @Name(value = "path", defaultValue = "/") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config, @Name(value = "simple", defaultValue = "false") boolean simpleMode) throws Exception {
-        return xmlXpathToMapResult(url, simpleMode, path ,config);
+    public Stream<MapResult> xml(@Name("urlOrBinary") Object urlOrBinary, @Name(value = "path", defaultValue = "/") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config, @Name(value = "simple", defaultValue = "false") boolean simpleMode) throws Exception {
+        return xmlXpathToMapResult(urlOrBinary, simpleMode, path ,config);
     }
 
     @UserFunction("apoc.xml.parse")
@@ -77,14 +110,18 @@ public class Xml {
         return xmlToMapResult(url, true);
     }
 
-    private Stream<MapResult> xmlXpathToMapResult(@Name("url") String url, boolean simpleMode, String path, Map<String, Object> config) throws Exception {
+    private Stream<MapResult> xmlXpathToMapResult(@Name("urlOrBinary") Object urlOrBinary, boolean simpleMode, String path, Map<String, Object> config) throws Exception {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
         try {
-            apocConfig.checkReadAllowed(url);
-            url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
-            Map<String, Object> headers = (Map) config.getOrDefault( "headers", Collections.emptyMap() );
-            CountingInputStream is = Util.openInputStream(url, headers, null);
+            Map<String, Object> finalConfig = config;
+            if (urlOrBinary instanceof String) {
+                String url = (String) urlOrBinary;
+                apocConfig.checkReadAllowed(url);
+                urlOrBinary = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
+            }
+            Map<String, Object> headers = (Map) finalConfig.getOrDefault("headers", Collections.emptyMap());
+            CountingInputStream is = Util.openInputStream(urlOrBinary, headers, null, (String) finalConfig.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name()));
             return parse(is, simpleMode, path, failOnError);
         } catch (Exception e){
             if(!failOnError)
@@ -139,7 +176,7 @@ public class Xml {
 
     private Stream<MapResult> xmlToMapResult(@Name("url") String url, boolean simpleMode) {
         try {
-            XMLStreamReader reader = getXMLStreamReaderFromUrl(url, new XmlImportConfig(Collections.EMPTY_MAP));
+            XMLStreamReader reader = getXMLStreamReader(url, new XmlImportConfig(Collections.EMPTY_MAP));
             final Deque<Map<String, Object>> stack = new LinkedList<>();
             do {
                 handleXmlEvent(stack, reader, simpleMode);
@@ -151,13 +188,19 @@ public class Xml {
         }
     }
 
-    private XMLStreamReader getXMLStreamReaderFromUrl(String url, XmlImportConfig config) throws IOException, XMLStreamException {
-        apocConfig.checkReadAllowed(url);
-        url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
-        URLConnection urlConnection = new URL(url).openConnection();
-        FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
-        InputStream inputStream = urlConnection.getInputStream();
-
+    private XMLStreamReader getXMLStreamReader(Object urlOrBinary, XmlImportConfig config) throws IOException, XMLStreamException {
+        InputStream inputStream;
+        if (urlOrBinary instanceof String) {
+            String url = (String) urlOrBinary; 
+            apocConfig.checkReadAllowed(url);
+            url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
+            URLConnection urlConnection = new URL(url).openConnection();
+            inputStream = urlConnection.getInputStream();
+        } else if (urlOrBinary instanceof byte[]) {
+            inputStream = getInputStreamFromBinary((byte[]) urlOrBinary, config.getCompressionAlgo());
+        } else {
+            throw new RuntimeException(ERROR_BYTES_OR_STRING);
+        }
         if (config.isFilterLeadingWhitespace()) {
             inputStream = new SkipWhitespaceInputStream(inputStream);
         }
@@ -416,7 +459,7 @@ public class Xml {
         }
     }
 
-    private static class XmlImportConfig {
+    private static class XmlImportConfig extends CompressionConfig {
 
         private boolean connectCharacters;
         private Pattern delimiter;
@@ -426,6 +469,10 @@ public class Xml {
         final private boolean filterLeadingWhitespace;
 
         public XmlImportConfig(Map<String, Object> config) {
+            super(config);
+            if (config == null) {
+                config = Collections.emptyMap();
+            }
             connectCharacters = BooleanUtils.toBoolean((Boolean) config.get("connectCharacters"));
             filterLeadingWhitespace = BooleanUtils.toBoolean((Boolean) config.get("filterLeadingWhitespace"));
 
@@ -548,18 +595,19 @@ public class Xml {
 
     @Procedure(mode = Mode.WRITE, value = "apoc.import.xml")
     @Description("apoc.import.xml(file,config) - imports graph from provided file")
-    public Stream<NodeResult> importToGraph(@Name("url") String url, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {
+    public Stream<NodeResult> importToGraph(@Name("urlOrBinary") Object urlOrBinary, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {
         XmlImportConfig importConfig = new XmlImportConfig(config);
         //TODO: make labels, reltypes and magic properties configurable
 
-        final XMLStreamReader xml = getXMLStreamReaderFromUrl(url, importConfig);
+        final XMLStreamReader xml = getXMLStreamReader(urlOrBinary, importConfig);
 
         // stores parents and their most recent child
         org.neo4j.graphdb.Node root = tx.createNode(Label.label("XmlDocument"));
         setPropertyIfNotNull(root, "_xmlVersion", xml.getVersion());
         setPropertyIfNotNull(root, "_xmlEncoding", xml.getEncoding());
-        root.setProperty("url", url);
-
+        if (urlOrBinary instanceof String) {
+            root.setProperty("url", urlOrBinary);
+        }
         ImportState state = new ImportState(root);
         state.push(new ParentAndChildPair(root));
 
