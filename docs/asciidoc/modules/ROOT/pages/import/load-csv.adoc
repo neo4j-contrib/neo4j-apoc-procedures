@@ -135,9 +135,6 @@ NOTE: Please note that the parallel operation only works well for non-conflictin
 To make these data structures available to Cypher, you can use `apoc.load.xml`.
 It takes a file or http URL and parses the XML into a map data structure.
 
-NOTE: in previous releases we've had `apoc.load.xmlSimple`.
-This is now deprecated and has been superseded by `apoc.load.xml(url, [xPath], [config], true)`.Simple XML Format
-
 See the following usage-examples for the procedures.
 
 === Error handling
