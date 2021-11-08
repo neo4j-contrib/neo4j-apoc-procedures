@@ -80,7 +80,7 @@ apoc.math.sech(val) \| returns the hyperbolic secant
 |label:apoc-core[]
 |xref::overview/apoc.math/apoc.math.sigmoid.adoc[apoc.math.sigmoid icon:book[]]
 
-apoc.math.sigmoid(val) \| returns the sigmoid value of a long
+apoc.math.sigmoid(val) \| returns the sigmoid value
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.math/apoc.math.sigmoidPrime.adoc[apoc.math.sigmoidPrime icon:book[]]

@@ -70,7 +70,7 @@ public class Maths {
     }
 
     @UserFunction
-    @Description("apoc.math.sigmoid(val) | returns the sigmoid value of a long")
+    @Description("apoc.math.sigmoid(val) | returns the sigmoid value")
     public Double sigmoid(@Name("value") Double value) {
         if (value == null) return null;
         return 1.0 / (1.0 + Math.exp(-value));

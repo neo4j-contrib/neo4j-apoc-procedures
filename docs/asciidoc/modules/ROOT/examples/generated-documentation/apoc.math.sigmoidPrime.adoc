@@ -1,5 +1,0 @@
-¦xref::overview/apoc.math/apoc.math.sigmoidPrime.adoc[apoc.math.sigmoidPrime icon:book[]] +
-
- - sigmoid(val)) ]
-¦label:function[]
-¦label:apoc-core[]

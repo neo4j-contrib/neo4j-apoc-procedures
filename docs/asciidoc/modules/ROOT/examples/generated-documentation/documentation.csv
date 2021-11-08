@@ -481,7 +481,7 @@ for the provided `label` and `uuidProperty`, in case the UUID handler is already
 ¦function¦apoc.math.minLong¦apoc.math.minLong() :: (INTEGER?)¦apoc.math.minLong() | return the minimum value a long can have¦true¦xref::mathematical/math-functions.adoc
 ¦function¦apoc.math.round¦apoc.math.round(value :: FLOAT?, precision = 0 :: INTEGER?, mode = HALF_UP :: STRING?) :: (FLOAT?)¦apoc.math.round(value,[precision],mode=['CEILING','FLOOR','UP','DOWN','HALF_EVEN','HALF_DOWN','HALF_UP','DOWN','UNNECESSARY'])¦true¦xref::mathematical/math-functions.adoc
 ¦function¦apoc.math.sech¦apoc.math.sech(value :: FLOAT?) :: (FLOAT?)¦apoc.math.sech(val) | returns the hyperbolic secant¦true¦xref::mathematical/math-functions.adoc
-¦function¦apoc.math.sigmoid¦apoc.math.sigmoid(value :: FLOAT?) :: (FLOAT?)¦apoc.math.sigmoid(val) | returns the sigmoid value of a long¦true¦xref::mathematical/math-functions.adoc
+¦function¦apoc.math.sigmoid¦apoc.math.sigmoid(value :: FLOAT?) :: (FLOAT?)¦apoc.math.sigmoid(val) | returns the sigmoid value¦true¦xref::mathematical/math-functions.adoc
 ¦function¦apoc.math.sigmoidPrime¦apoc.math.sigmoidPrime(value :: FLOAT?) :: (FLOAT?)¦apoc.math.sigmoidPrime(val) | returns the sigmoid prime [ sigmoid(val) * (1 - sigmoid(val)) ]¦true¦xref::mathematical/math-functions.adoc
 ¦function¦apoc.math.sinh¦apoc.math.sinh(value :: FLOAT?) :: (FLOAT?)¦apoc.math.sinh(val) | returns the hyperbolic sin¦true¦xref::mathematical/math-functions.adoc
 ¦function¦apoc.math.tanh¦apoc.math.tanh(value :: FLOAT?) :: (FLOAT?)¦apoc.math.tanh(val) | returns the hyperbolic tangent¦true¦xref::mathematical/math-functions.adoc
