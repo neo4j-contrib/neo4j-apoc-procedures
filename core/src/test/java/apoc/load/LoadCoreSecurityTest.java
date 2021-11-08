@@ -72,15 +72,13 @@ public class LoadCoreSecurityTest {
             "json", List.of("($fileName, '', {})"),
             "jsonArray", List.of("($fileName, '', {})"),
             "jsonParams", List.of("($fileName, {}, '')"),
-            "xml", List.of("($fileName, '', {}, false)"),
-            "xmlSimple", List.of("($fileName)"));
+            "xml", List.of("($fileName, '', {}, false)"));
 
     private static final Map<String, Class<?>> ALLOWED_EXCEPTIONS = Map.of(
             "json", JsonParseException.class,
             "jsonArray", JsonParseException.class,
             "jsonParams", JsonParseException.class,
-            "xml", SAXParseException.class,
-            "xmlSimple", MalformedURLException.class);
+            "xml", SAXParseException.class);
 
 
     private static Collection<String[]> data() {

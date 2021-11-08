@@ -186,18 +186,6 @@ public class Xml {
         return FACTORY.createXMLStreamReader(inputStream);
     }
 
-
-    private boolean proceedReader(XMLStreamReader reader) throws XMLStreamException {
-        if (reader.hasNext()) {
-            do {
-                reader.next();
-            } while (reader.isWhiteSpace());
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     private void handleNode(Deque<Map<String, Object>> stack, Node node, boolean simpleMode) {
 
         // Handle document node
@@ -325,30 +313,6 @@ public class Xml {
         }
 
         return StringUtils.join(tokens, " ").trim();
-    }
-
-    private boolean collectionIsAllStrings(Object collection) {
-        if (collection instanceof Collection) {
-            return ((Collection<Object>) collection).stream().allMatch(o -> o instanceof String);
-        } else {
-            return false;
-        }
-    }
-
-    private void amendToList(Map<String, Object> map, String key, Object value) {
-        final Object element = map.get(key);
-        if (element == null) {
-            map.put(key, value);
-        } else {
-            if (element instanceof List) {
-                ((List) element).add(value);
-            } else {
-                List<Object> list = new LinkedList<>();
-                list.add(element);
-                list.add(value);
-                map.put(key, list);
-            }
-        }
     }
 
     public static class ParentAndChildPair {
