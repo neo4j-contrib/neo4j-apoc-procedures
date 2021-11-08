@@ -7,6 +7,7 @@ import org.neo4j.graphdb.RelationshipType;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Arrays.asList;
@@ -16,6 +17,10 @@ import static java.util.Arrays.asList;
  * @since 16.03.16
  */
 public class VirtualRelationship implements Relationship {
+    private static final String ERROR_NODE_NULL = "The inserted %s Node is null";
+    public static final String ERROR_START_NODE_NULL = String.format(ERROR_NODE_NULL, "Start");
+    public static final String ERROR_END_NODE_NULL = String.format(ERROR_NODE_NULL, "End");
+
     private static AtomicLong MIN_ID = new AtomicLong(-1);
     private final Node startNode;
     private final Node endNode;
@@ -24,6 +29,7 @@ public class VirtualRelationship implements Relationship {
     private final Map<String, Object> props = new HashMap<>();
 
     public VirtualRelationship(Node startNode, Node endNode, RelationshipType type) {
+        validateNodes(startNode, endNode);
         this.id = MIN_ID.getAndDecrement();
         this.startNode = startNode;
         this.endNode = endNode;
@@ -31,6 +37,7 @@ public class VirtualRelationship implements Relationship {
     }
 
     public VirtualRelationship(long id, Node startNode, Node endNode, RelationshipType type, Map<String, Object> props) {
+        validateNodes(startNode, endNode);
         this.id = id;
         this.startNode = startNode;
         this.endNode = endNode;
@@ -40,6 +47,11 @@ public class VirtualRelationship implements Relationship {
     
     public static Relationship from(VirtualNode start, VirtualNode end, Relationship rel) {
         return new VirtualRelationship(start, end, rel.getType()).withProperties(rel.getAllProperties());
+    }
+
+    public static void validateNodes(Node startNode, Node endNode) {
+        Objects.requireNonNull(startNode, ERROR_START_NODE_NULL);
+        Objects.requireNonNull(endNode, ERROR_END_NODE_NULL);
     }
 
     @Override
