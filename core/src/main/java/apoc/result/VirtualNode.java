@@ -16,6 +16,8 @@ import static java.util.Arrays.asList;
  * @since 16.03.16
  */
 public class VirtualNode implements Node {
+    public static final String ERROR_NODE_NULL = "The inserted Node is null";
+
     private static AtomicLong MIN_ID = new AtomicLong(-1);
     private final Set<String> labels = new LinkedHashSet<>();
     private final Map<String, Object> props = new HashMap<>();
@@ -39,6 +41,7 @@ public class VirtualNode implements Node {
     }
 
     public VirtualNode(Node node, List<String> propertyNames) {
+        Objects.requireNonNull(node, ERROR_NODE_NULL);
         this.id = node.getId();
         this.labels.addAll(Util.labelStrings(node));
         String[] keys = propertyNames.toArray(new String[propertyNames.size()]);
