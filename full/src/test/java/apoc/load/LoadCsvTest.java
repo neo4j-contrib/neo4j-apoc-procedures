@@ -1,6 +1,7 @@
 package apoc.load;
 
 import apoc.ApocSettings;
+import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,6 +18,7 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.GenericContainer;
 
+import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
@@ -24,6 +26,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static apoc.util.BinaryTestUtil.fileToBinary;
+import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
@@ -71,12 +75,22 @@ public class LoadCsvTest {
     @Test public void testLoadCsv() throws Exception {
         URL url = getUrlFileName("test.csv");
         testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings']})", map("url",url.toString()), // 'file:test.csv'
-                (r) -> {
-                    assertRow(r,0L,"name","Selma","age","8");
-                    assertRow(r,1L,"name","Rana","age","11");
-                    assertRow(r,2L,"name","Selina","age","18");
-                    assertEquals(false, r.hasNext());
-                });
+                this::commonAssertionsLoadCsv);
+    }
+
+    @Test
+    public void testLoadCsvWithBinary() {
+        testResult(db, "CALL apoc.load.csvParams($file, null, null, $conf)", 
+                map("file", fileToBinary(new File(getUrlFileName("test.csv").getPath()), CompressionAlgo.DEFLATE.name()),
+                        "conf", map(COMPRESSION, CompressionAlgo.DEFLATE.name(), "results", List.of("map", "list", "stringMap", "strings"))),
+                this::commonAssertionsLoadCsv);
+    }
+
+    private void commonAssertionsLoadCsv(Result r) {
+        assertRow(r, 0L, "name", "Selma", "age", "8");
+        assertRow(r, 1L, "name", "Rana", "age", "11");
+        assertRow(r, 2L, "name", "Selina", "age", "18");
+        assertFalse(r.hasNext());
     }
 
     /*

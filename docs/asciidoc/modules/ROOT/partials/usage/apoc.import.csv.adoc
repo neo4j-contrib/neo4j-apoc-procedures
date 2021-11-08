@@ -97,3 +97,39 @@ RETURN path;
 | path
 | (:Person {name: "John", speaks: ["en", "fr"], __csv_id: 1})-[:KNOWS {since: 2016}]->(:Person {name: "Jane", speaks: ["en", "de"], __csv_id: 2})
 |===
+
+
+== Binary file
+
+You can also import a file from a binary `byte[]` (not compressed, with default value `NONE`) or a compressed file (allowed compression algos are: `GZIP`, `BZIP2`, `DEFLATE`, `BLOCK_LZ4`, `FRAMED_SNAPPY`).
+Note that in this case, for both `relations` and `nodes` parameter maps, the key for the file is `data` instead of `fileName`, that is:
+
+[source,cypher]
+----
+CALL apoc.import.csv([{data: `binaryGzipByteArray`, labels: ['Person']}], [{data: `binaryGzipByteArray`, type: 'KNOWS'}], {compression: 'GZIP'})
+----
+
+or:
+
+[source,cypher]
+----
+CALL apoc.import.csv([{data: `binaryFileNotCompressed`, labels: ['Person']}], [{data: `binaryFileNotCompressed`, type: 'KNOWS'}], {compression: 'NONE'})
+----
+
+For example, this one works well with xref::overview/apoc.util/apoc.util.compress.adoc[apoc.util.compress] function:
+
+[source,cypher]
+----
+WITH apoc.util.compress(':ID|firstname:STRING|lastname:IGNORE|age:INT\n1|John|Doe|25\n2|Jane|Doe|26', {compression: 'DEFLATE'}) AS nodeCsv
+WITH apoc.util.compress(':START_ID|:END_ID|prop1:IGNORE|prop2:INT\n1|2|a|3\n2|1|b|6', {compression: 'DEFLATE'}) AS relCsv, nodeCsv
+CALL apoc.import.csv([{data: nodeCsv, labels: ['Person']}], [{data: relCsv, type: 'KNOWS'}], {delimiter: '|', compression: 'DEFLATE'}) 
+YIELD source, format, nodes, relationships, properties
+RETURN source, format, nodes, relationships, properties
+----
+
+.Results
+[opts=header]
+|===
+| source | format | nodes | relationships | properties
+| "binary" | "csv" | 2     | 2             | 8
+|===
