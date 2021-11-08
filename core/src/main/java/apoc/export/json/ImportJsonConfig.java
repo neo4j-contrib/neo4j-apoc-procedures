@@ -1,5 +1,6 @@
 package apoc.export.json;
 
+import apoc.util.CompressionConfig;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
 
@@ -7,7 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-public class ImportJsonConfig {
+public class ImportJsonConfig extends CompressionConfig {
 
     private final Map<String, Map<String, String>> nodePropertyMappings;
     private final Map<String, Map<String, String>> relPropertyMappings;
@@ -18,6 +19,7 @@ public class ImportJsonConfig {
     private final String importIdName;
 
     public ImportJsonConfig(Map<String, Object> config) {
+        super(config);
         config = config == null ? Collections.emptyMap() : config;
         this.nodePropertyMappings = (Map<String, Map<String, String>>) config.getOrDefault("nodePropertyMappings", Collections.emptyMap());
         this.relPropertyMappings = (Map<String, Map<String, String>>) config.getOrDefault("relPropertyMappings", Collections.emptyMap());
