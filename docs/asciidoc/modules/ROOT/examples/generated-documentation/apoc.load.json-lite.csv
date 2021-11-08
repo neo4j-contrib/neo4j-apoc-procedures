@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.load.json(url :: STRING?, path =  :: STRING?, config = {} :: MAP?) :: (value :: MAP?)
+¦apoc.load.json(urlOrKeyOrBinary :: ANY?, path =  :: STRING?, config = {} :: MAP?) :: (value :: MAP?)

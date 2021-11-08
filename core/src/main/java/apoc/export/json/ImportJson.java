@@ -13,6 +13,7 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.util.Map;
 import java.util.Scanner;
@@ -24,19 +25,28 @@ public class ImportJson {
 
     @Context
     public Pools pools;
+    
+    @Context
+    public TerminationGuard terminationGuard;
 
     @Procedure(value = "apoc.import.json", mode = Mode.WRITE)
-    @Description("apoc.import.json(file,config) - imports the json list to the provided file")
-    public Stream<ProgressInfo> all(@Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    @Description("apoc.import.json(urlOrBinaryFile,config) - imports the json list to the provided file")
+    public Stream<ProgressInfo> all(@Name("urlOrBinaryFile") Object urlOrBinaryFile, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         ProgressInfo result =
                 Util.inThread(pools, () -> {
                     ImportJsonConfig importJsonConfig = new ImportJsonConfig(config);
-                    ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, "file", "json"));
+                    String file = null;
+                    String source = "binary";
+                    if (urlOrBinaryFile instanceof String) {
+                        file =  (String) urlOrBinaryFile;
+                        source = "file";
+                    }
+                    ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, source, "json"));
 
-                    try (final CountingReader reader = FileUtils.readerFor(fileName);
+                    try (final CountingReader reader = FileUtils.readerFor(urlOrBinaryFile, importJsonConfig.getCompressionAlgo());
                          final Scanner scanner = new Scanner(reader).useDelimiter("\n|\r");
                          JsonImporter jsonImporter = new JsonImporter(importJsonConfig, db, reporter)) {
-                        while (scanner.hasNext()) {
+                        while (scanner.hasNext() && !Util.transactionIsTerminated(terminationGuard)) {
                             Map<String, Object> row = JsonUtil.OBJECT_MAPPER.readValue(scanner.nextLine(), Map.class);
                             jsonImporter.importRow(row);
                         }
