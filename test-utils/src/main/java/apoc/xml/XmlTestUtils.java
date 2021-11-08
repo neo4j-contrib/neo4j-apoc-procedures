@@ -19,17 +19,6 @@ public class XmlTestUtils {
                     ))
             )
     );
-    public static final Map<String, Object> XML_AS_NESTED_SIMPLE_MAP = map(
-        "_type", "parent",
-        "name", "databases",
-        "_child", asList(
-                    map("_type", "child", "name", "Neo4j", "_text", "Neo4j is a graph database"),
-                    map("_type", "child", "name", "relational", "_grandchild", asList(
-                            map("_type", "grandchild", "name", "MySQL", "_text", "MySQL is a database & relational"),
-                            map("_type", "grandchild", "name", "Postgres", "_text", "Postgres is a relational database")
-                    ))
-            )
-    );
     public static final Map<String, Object> XML_AS_SINGLE_LINE_SIMPLE = map(
             "_type", "table",
             "_table", asList(map(

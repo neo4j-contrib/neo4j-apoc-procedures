@@ -649,7 +649,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel3">
 <li><a href="#_load_xml_introduction">Load XML Introduction</a></li>
 <li><a href="#_example_file">Example File</a></li>
-<li><a href="#_simple_xml_format">Simple XML Format</a></li>
 <li><a href="#_load_xml_and_introspect">Load XML and Introspect</a></li>
 <li><a href="#_extracting_datastructures">Extracting Datastructures</a></li>
 </ul>
@@ -1478,10 +1477,6 @@ CALL apoc.load.jdbc('myDB','PERSON')</pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.load.xml('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">load from XML URL (e.g. web-api) to import XML as single nested map with attributes and <code>_type</code>, <code>_text</code> and <code>_children</code> fields.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">load from XML URL (e.g. web-api) to import XML as single nested map with attributes and <code><em>type</code>, <code>_text</code> fields and <code></em>&lt;childtype&gt;</code> collections per child-element-type.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, map</code></p></td>
@@ -6052,19 +6047,6 @@ return nodes, relationships, time</code></pre>
 <p>To make these datastructures available to Cypher, you can use <code>apoc.load.xml</code>.
 It takes a file or http URL and parses the XML into a map datastructure.</p>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-in previous releases we&#8217;ve had <code>apoc.load.xmlSimple</code>. This is now deprecated and got superseeded by
-<code>apoc.load.xml(url, true)</code>.
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
 <p>See the following usage-examples for the procedures.</p>
 </div>
@@ -6105,40 +6087,6 @@ in previous releases we&#8217;ve had <code>apoc.load.xmlSimple</code>. This is n
 </div>
 <div class="paragraph">
 <p>We have the file here, <a href="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml">on GitHub</a>.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_simple_xml_format"><a class="link" href="#_simple_xml_format">Simple XML Format</a></h4>
-<div class="paragraph">
-<p>In a simpler XML representation, each type of children gets it&#8217;s own entry within the parent map.
-The element-type as key is prefixed with "_" to prevent collisions with attributes.</p>
-</div>
-<div class="paragraph">
-<p>If there is a single element, then the entry will just have that element as value, not a collection.
-If there is more than one element there will be a list of values.</p>
-</div>
-<div class="paragraph">
-<p>Each child will still have its <code>_type</code> field to discern them.</p>
-</div>
-<div class="paragraph">
-<p>Here is the example file from above loaded with <code>apoc.load.xmlSimple</code></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml", true)</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-javascript" data-lang="javascript">{_type: "catalog", _book: [
-  {_type: "book", id: "bk101",
-    _author: [{_type: "author", _text: "Gambardella, Matthew"},{_type: author, _text: "Arciniegas, Fabio"}],
-    _title: {_type: "title", _text: "XML Developer's Guide"},
-    _genre: {_type: "genre", _text: "Computer"},
-    _price: {_type: "price", _text: "44.95"},
-    _publish_date: {_type: "publish_date", _text: "2000-10-01"},
-    _description: {_type: description, _text: An in-depth look at creating applications ....</code></pre>
-</div>
 </div>
 </div>
 <div class="sect3">
