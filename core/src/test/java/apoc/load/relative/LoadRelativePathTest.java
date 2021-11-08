@@ -16,7 +16,6 @@ import java.net.URL;
 import java.nio.file.Path;
 
 import static apoc.load.relative.LoadXmlResult.StringXmlNestedMap;
-import static apoc.load.relative.LoadXmlResult.StringXmlNestedSimpleMap;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static java.util.Arrays.asList;
@@ -53,15 +52,6 @@ public class LoadRelativePathTest {
                 (row) -> {
                     Object value = row.get("value");
                     assertEquals(StringXmlNestedMap(), value);
-                });
-    }
-
-    @Test
-    public void testLoadRelativePathSimple() {
-        testCall(db, "CALL apoc.load.xmlSimple('/xml/databases.xml')", //  YIELD value RETURN value
-                (row) -> {
-                    Object value = row.get("value");
-                    assertEquals(StringXmlNestedSimpleMap(), value);
                 });
     }
 }

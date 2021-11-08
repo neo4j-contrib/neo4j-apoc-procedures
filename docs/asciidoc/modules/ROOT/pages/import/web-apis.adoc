@@ -16,7 +16,6 @@ If you want to remove these constraints please set `apoc.import.file.use_neo4j_c
 |===
 | CALL apoc.load.json('http://example.com/map.json', [path], [config]) YIELD value as person CREATE (p:Person) SET p = person | load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map
 | CALL apoc.load.xml('http://example.com/test.xml', ['xPath'], [config]) YIELD value as doc CREATE (p:Person) SET p.name = doc.name | load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `+_type+`, `+_text+` and `+_children+` fields.
-| CALL apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name | load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `+_type+`, `+_text+` fields and `+_<childtype>+` collections per child-element-type.
 | CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, strings, map, stringMap | load CSV fom URL as stream of values +
 config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['aColumn'],arraySep:';',results:['map','list','strings','stringMap'], +
 nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false,nullValues:['n.A.']}}`
