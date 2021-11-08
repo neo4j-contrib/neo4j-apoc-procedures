@@ -103,7 +103,7 @@ public class Xml {
                 .map(mr -> mr.value).findFirst().orElse(null);
     }
 
-    private Stream<MapResult> xmlXpathToMapResult(@Name("url") String url, boolean simpleMode, String path, Map<String, Object> config) throws Exception {
+    private Stream<MapResult> xmlXpathToMapResult(@Name("urlOrBinary") Object urlOrBinary, boolean simpleMode, String path, Map<String, Object> config) throws Exception {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
         try {
@@ -167,13 +167,19 @@ public class Xml {
         return result.stream();
     }
 
-    private XMLStreamReader getXMLStreamReaderFromUrl(String url, XmlImportConfig config) throws IOException, XMLStreamException {
-        apocConfig.checkReadAllowed(url);
-        url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
-        URLConnection urlConnection = new URL(url).openConnection();
-        FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
-        InputStream inputStream = urlConnection.getInputStream();
-
+    private XMLStreamReader getXMLStreamReader(Object urlOrBinary, XmlImportConfig config) throws IOException, XMLStreamException {
+        InputStream inputStream;
+        if (urlOrBinary instanceof String) {
+            String url = (String) urlOrBinary;
+            apocConfig.checkReadAllowed(url);
+            url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
+            URLConnection urlConnection = new URL(url).openConnection();
+            inputStream = urlConnection.getInputStream();
+        } else if (urlOrBinary instanceof byte[]) {
+            inputStream = getInputStreamFromBinary((byte[]) urlOrBinary, config.getCompressionAlgo());
+        } else {
+            throw new RuntimeException(ERROR_BYTES_OR_STRING);
+        }
         if (config.isFilterLeadingWhitespace()) {
             inputStream = new SkipWhitespaceInputStream(inputStream);
         }
