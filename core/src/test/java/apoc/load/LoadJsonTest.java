@@ -1,6 +1,7 @@
 package apoc.load;
 
 import apoc.ApocSettings;
+import apoc.util.CompressionAlgo;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -13,10 +14,12 @@ import org.mockserver.model.Header;
 
 import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.io.File;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +27,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.*;
+import static apoc.util.BinaryTestUtil.fileToBinary;
+import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.convert.ConvertJsonTest.EXPECTED_AS_PATH_LIST;
 import static apoc.convert.ConvertJsonTest.EXPECTED_PATH;
 import static apoc.convert.ConvertJsonTest.EXPECTED_PATH_WITH_NULLS;
@@ -75,6 +80,34 @@ public class LoadJsonTest {
                 });
     }
 
+    @Test
+    public void testLoadMultiJsonWithBinary() {
+        testResult(db, "CALL apoc.load.jsonParams($url, null, null, null, $config)",
+                map("url", fileToBinary(new File(ClassLoader.getSystemResource("multi.json").getPath()), CompressionAlgo.FRAMED_SNAPPY.name()),
+                        "config", map(COMPRESSION, CompressionAlgo.FRAMED_SNAPPY.name())),
+                this::commonAssertionsLoadJsonMulti);
+    }
+
+    @Test public void testLoadMultiJson() throws Exception {
+        URL url = ClassLoader.getSystemResource("multi.json");
+        testResult(db, "CALL apoc.load.json($url)",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
+                (result) -> {
+                    Map<String, Object> row = result.next();
+                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
+                    row = result.next();
+                    assertEquals(map("bar",asList(4L,5L,6L)), row.get("value"));
+                    assertFalse(result.hasNext());
+                });
+    }
+    
+    private void commonAssertionsLoadJsonMulti(Result result) {
+        Map<String, Object> row = result.next();
+        assertEquals(map("foo", asList(1L, 2L, 3L)), row.get("value"));
+        row = result.next();
+        assertEquals(map("bar", asList(4L, 5L, 6L)), row.get("value"));
+        assertFalse(result.hasNext());
+    }
+    
     @Test public void testLoadJsonFromBlockedIpRange() throws Exception {
         var protocols = List.of("https", "http", "ftp");
 
@@ -89,28 +122,10 @@ public class LoadJsonTest {
             assertTrue(e.getMessage().contains("access to /127.168.0.0 is blocked via the configuration property unsupported.dbms.cypher_ip_blocklist"));
         }
     }
-
-    @Test public void testLoadMultiJson() throws Exception {
-		URL url = ClassLoader.getSystemResource("multi.json");
-		testResult(db, "CALL apoc.load.json($url)",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
-                (result) -> {
-                    Map<String, Object> row = result.next();
-                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
-                    row = result.next();
-                    assertEquals(map("bar",asList(4L,5L,6L)), row.get("value"));
-                    assertFalse(result.hasNext());
-                });
-    }
     @Test public void testLoadMultiJsonPaths() throws Exception {
 		URL url = ClassLoader.getSystemResource("multi.json");
 		testResult(db, "CALL apoc.load.json($url,'$')",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
-                (result) -> {
-                    Map<String, Object> row = result.next();
-                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
-                    row = result.next();
-                    assertEquals(map("bar",asList(4L,5L,6L)), row.get("value"));
-                    assertFalse(result.hasNext());
-                });
+                this::commonAssertionsLoadJsonMulti);
     }
     @Test public void testLoadJsonPath() throws Exception {
 		URL url = ClassLoader.getSystemResource("map.json");
@@ -314,7 +329,7 @@ public class LoadJsonTest {
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
-            assertEquals("Can't read url or key invalid URL (foo) as json: no protocol: foo", except.getMessage());
+            assertEquals("Can't read binary, url or key invalid URL (foo) as json: no protocol: foo", except.getMessage());
             throw e;
         }
     }

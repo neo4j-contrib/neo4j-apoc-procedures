@@ -35,6 +35,7 @@ import java.util.Map;
 import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
@@ -130,8 +131,8 @@ public class ExportGraphMLTest {
             "<node id=\"n1\" labels=\":Bar\"><data key=\"TYPE\">:Bar</data><data key=\"label\">bar</data><data key=\"age\">42</data><data key=\"name\">bar</data><data key=\"place\">{\"crs\":\"wgs-84\",\"latitude\":12.78,\"longitude\":56.7,\"height\":null}</data></node>%n" +
             "<edge id=\"e0\" source=\"n0\" target=\"n1\" label=\"KNOWS\"><data key=\"label\">KNOWS</data><data key=\"TYPE\">KNOWS</data></edge>%n";
 
-    public static final String DATA_PATH_CAPTION_DEFAULT = "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"TYPE\">:Foo:Foo0:Foo2</data><data key=\"label\">point({x: 56.7, y: 12.78, z: 100.0, crs: 'wgs-84-3d'})</data><data key=\"place\">{\"crs\":\"wgs-84-3d\",\"latitude\":56.7,\"longitude\":12.78,\"height\":100.0}</data><data key=\"name\">foo</data><data key=\"born\">2018-10-10</data></node>%n" +
-            "<node id=\"n1\" labels=\":Bar\"><data key=\"TYPE\">:Bar</data><data key=\"label\">point({x: 56.7, y: 12.78, crs: 'wgs-84'})</data><data key=\"age\">42</data><data key=\"name\">bar</data><data key=\"place\">{\"crs\":\"wgs-84\",\"latitude\":56.7,\"longitude\":12.78,\"height\":null}</data></node>%n" +
+    public static final String DATA_PATH_CAPTION_DEFAULT = "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"TYPE\">:Foo:Foo0:Foo2</data><data key=\"label\">point({x: 56.7, y: 12.78, z: 100.0, crs: 'wgs-84-3d'})</data><data key=\"place\">{\"crs\":\"wgs-84-3d\",\"latitude\":12.78,\"longitude\":56.7,\"height\":100.0}</data><data key=\"name\">foo</data><data key=\"born\">2018-10-10</data></node>%n" +
+            "<node id=\"n1\" labels=\":Bar\"><data key=\"TYPE\">:Bar</data><data key=\"label\">point({x: 56.7, y: 12.78, crs: 'wgs-84'})</data><data key=\"age\">42</data><data key=\"name\">bar</data><data key=\"place\">{\"crs\":\"wgs-84\",\"latitude\":12.78,\"longitude\":56.7,\"height\":null}</data></node>%n" +
             "<edge id=\"e0\" source=\"n0\" target=\"n1\" label=\"KNOWS\"><data key=\"label\">KNOWS</data><data key=\"TYPE\">KNOWS</data></edge>%n";
 
     public static final String DATA_DATA = "<node id=\"n3\" labels=\":Person\"><data key=\"labels\">:Person</data><data key=\"name\">Foo</data></node>\n" +
@@ -297,16 +298,27 @@ public class ExportGraphMLTest {
         File output = new File(directory, "importNodeEdges.graphml");
         FileWriter fw = new FileWriter(output);
         fw.write(EXPECTED_READ_NODE_EDGE); fw.close();
-        TestUtil.testCall(db, "CALL apoc.import.graphml($file,{readLabels:true})", map("file", output.getAbsolutePath()),
+        final String query = "CALL apoc.import.graphml($file,{readLabels:true})";
+        final String absolutePath = output.getAbsolutePath();
+        commonAssertionImportNodeEdge(absolutePath, query, map("file", absolutePath));
+    }
+
+    @Test
+    public void testImportGraphMLNodeEdgeWithBinary() throws Exception {
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+        
+        commonAssertionImportNodeEdge(null, "CALL apoc.import.graphml($file,{readLabels:true, compression: 'DEFLATE'})",
+                map("file", fileToBinary(new File(directory, "importNodeEdges.graphml"), "DEFLATE")));
+    }
+
+    private void commonAssertionImportNodeEdge(String isBinary, String query, Map<String, Object> config) {
+        TestUtil.testCall(db, query, config,
                 (r) -> {
                     assertEquals(3L, r.get("nodes"));
                     assertEquals(3L, r.get("relationships"));
                     assertEquals(5L, r.get("properties"));
-                    assertEquals(output.getAbsolutePath(), r.get("file"));
-                    if (r.get("source").toString().contains(":"))
-                        assertEquals("database: nodes(3), rels(3)", r.get("source"));
-                    else
-                        assertEquals("file", r.get("source"));
+                    assertEquals(isBinary, r.get("file"));
+                    assertEquals(isBinary == null ? "binary" : "file", r.get("source"));
                     assertEquals("graphml", r.get("format"));
                     assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
                 });
