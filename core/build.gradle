@@ -135,10 +135,10 @@ dependencies {
 
     compile group: 'xerces', name: 'xercesImpl', version: '2.12.1'
 
-    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '4.0.0'
-    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '4.0.0'
-    testCompile group: 'org.apache.arrow', name: 'arrow-vector', version: '4.0.0'
-    testCompile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '4.0.0'
+    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '6.0.0'
+    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '6.0.0'
+    testCompile group: 'org.apache.arrow', name: 'arrow-vector', version: '6.0.0'
+    testCompile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '6.0.0'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'

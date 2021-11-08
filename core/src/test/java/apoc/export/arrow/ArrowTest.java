@@ -4,7 +4,9 @@ import apoc.ApocSettings;
 import apoc.graph.Graphs;
 import apoc.load.LoadArrow;
 import apoc.meta.Meta;
+import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -49,7 +51,10 @@ public class ArrowTest {
                 put("male", true);
                 put("<type>", null);
                 put("kids", List.of("Sam", "Anna", "Grace"));
-                put("place", "{\"crs\":\"wgs-84-3d\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":100.0}");
+                put("place", Map.of("crs", "wgs-84-3d",
+                        "longitude", 33.46789D,
+                        "latitude", 13.1D,
+                        "height", 100.0D));
                 put("<target.id>", null);
                 put("since", null);
                 put("born", LocalDateTime.parse("2015-05-18T19:32:24.000").atOffset(ZoneOffset.UTC).toZonedDateTime());
@@ -98,6 +103,15 @@ public class ArrowTest {
 
     private String extractFileName(Result result) {
         return result.<String>columnAs("file").next();
+    }
+
+    private <T> T readValue(String json, Class<T> clazz) {
+        if (json == null) return null;
+        try {
+            return JsonUtil.OBJECT_MAPPER.readValue(json, clazz);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
     }
 
     @Test
@@ -193,12 +207,21 @@ public class ArrowTest {
         final String query = "CALL apoc.load.arrow.stream($byteArray) YIELD value " +
                 "RETURN value";
         db.executeTransactionally(query, Map.of("byteArray", byteArray), result -> {
-            final List<Map<String, Object>> actual = result.stream()
-                    .map(m -> (Map<String, Object>) m.get("value"))
-                    .collect(Collectors.toList());
+            final List<Map<String, Object>> actual = getActual(result);
             assertEquals(EXPECTED, actual);
             return null;
         });
+    }
+
+    private List<Map<String, Object>> getActual(Result result) {
+        return result.stream()
+                .map(m -> (Map<String, Object>) m.get("value"))
+                .map(m -> {
+                    final Map<String, Object> newMap = new HashMap(m);
+                    newMap.put("place", readValue((String) m.get("place"), Map.class));
+                    return newMap;
+                })
+                .collect(Collectors.toList());
     }
 
     @Test
@@ -214,9 +237,7 @@ public class ArrowTest {
         final String query = "CALL apoc.load.arrow($file) YIELD value " +
                 "RETURN value";
         db.executeTransactionally(query, Map.of("file", file), result -> {
-            final List<Map<String, Object>> actual = result.stream()
-                    .map(m -> (Map<String, Object>) m.get("value"))
-                    .collect(Collectors.toList());
+            final List<Map<String, Object>> actual = getActual(result);
             assertEquals(EXPECTED, actual);
             return null;
         });
@@ -233,9 +254,7 @@ public class ArrowTest {
         final String query = "CALL apoc.load.arrow.stream($byteArray) YIELD value " +
                 "RETURN value";
         db.executeTransactionally(query, Map.of("byteArray", byteArray), result -> {
-            final List<Map<String, Object>> actual = result.stream()
-                    .map(m -> (Map<String, Object>) m.get("value"))
-                    .collect(Collectors.toList());
+            final List<Map<String, Object>> actual = getActual(result);
             assertEquals(EXPECTED, actual);
             return null;
         });
@@ -252,9 +271,7 @@ public class ArrowTest {
         final String query = "CALL apoc.load.arrow($file) YIELD value " +
                 "RETURN value";
         db.executeTransactionally(query, Map.of("file", file), result -> {
-            final List<Map<String, Object>> actual = result.stream()
-                    .map(m -> (Map<String, Object>) m.get("value"))
-                    .collect(Collectors.toList());
+            final List<Map<String, Object>> actual = getActual(result);
             assertEquals(EXPECTED, actual);
             return null;
         });
@@ -315,6 +332,26 @@ public class ArrowTest {
         });
 
         db.executeTransactionally("MATCH (n:ArrowNode) DELETE n");
+    }
+
+    @Test
+    public void testValidNonStorableQuery() {
+        final List<byte[]> list = db.executeTransactionally("CALL apoc.export.arrow.stream.query($query) YIELD value AS byteArray ",
+                Map.of("query", "RETURN [1, true, 2.3, null, { name: 'Dave' }] AS array"),
+                result -> result.<byte[]>columnAs("byteArray").stream().collect(Collectors.toList()));
+
+        final List<String> expected = Arrays.asList("1", "true", "2.3", null, "{\"name\":\"Dave\"}");
+
+        // then
+        final String query = "UNWIND $list AS byteArray " +
+                "CALL apoc.load.arrow.stream(byteArray) YIELD value " +
+                "RETURN value.array AS array";
+        db.executeTransactionally(query, Map.of("list", list), result -> {
+            List<String> actual = result.<List<String>>columnAs("array").next();
+            assertEquals(expected, actual);
+            return null;
+        });
+
     }
 
 
