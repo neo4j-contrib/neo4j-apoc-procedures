@@ -151,7 +151,6 @@ apoc.load.jsonArray,"apoc.load.jsonArray(url :: STRING?, path =  :: STRING?) :: 
 apoc.load.jsonParams,"apoc.load.jsonParams(urlOrKey :: STRING?, headers :: MAP?, payload :: STRING?, path =  :: STRING?, config = {} :: MAP?) :: (value :: MAP?)"
 apoc.load.ldap,"apoc.load.ldap(connection :: ANY?, search :: MAP?) :: (entry :: MAP?)"
 apoc.load.xml,"apoc.load.xml(url :: STRING?, path = / :: STRING?, config = {} :: MAP?, simple = false :: BOOLEAN?) :: (value :: MAP?)"
-apoc.load.xmlSimple,apoc.load.xmlSimple(url :: STRING?) :: (value :: MAP?)
 apoc.lock.all,"apoc.lock.all(nodes :: LIST? OF NODE?, rels :: LIST? OF RELATIONSHIP?) :: VOID"
 apoc.lock.nodes,apoc.lock.nodes(nodes :: LIST? OF NODE?) :: VOID
 apoc.lock.read.nodes,apoc.lock.read.nodes(nodes :: LIST? OF NODE?) :: VOID
