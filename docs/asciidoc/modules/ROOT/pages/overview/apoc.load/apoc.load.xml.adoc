@@ -14,14 +14,14 @@ apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value 
 
 [source]
 ----
-apoc.load.xml(url :: STRING?, path = / :: STRING?, config = {} :: MAP?, simple = false :: BOOLEAN?) :: (value :: MAP?)
+apoc.load.xml(urlOrBinary :: ANY?, path = / :: STRING?, config = {} :: MAP?, simple = false :: BOOLEAN?) :: (value :: MAP?)
 ----
 
 == Input parameters
 [.procedures, opts=header]
 |===
 | Name | Type | Default 
-|url|STRING?|null
+|urlOrBinary|ANY?|null
 |path|STRING?|/
 |config|MAP?|{}
 |simple|BOOLEAN?|false
