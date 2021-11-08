@@ -100,6 +100,7 @@ public class Util {
     public static final String NODE_COUNT = "MATCH (n) RETURN count(*) as result";
     public static final String REL_COUNT = "MATCH ()-->() RETURN count(*) as result";
     public static final String COMPILED = "interpreted"; // todo handle enterprise properly
+    public static final String ERROR_BYTES_OR_STRING = "Only byte[] or url String allowed";
 
     public static String labelString(List<String> labelNames) {
         return labelNames.stream().map(Util::quote).collect(Collectors.joining(":"));
@@ -360,18 +361,29 @@ public class Util {
        if (!isRedirect(((HttpURLConnection)con))) return url;
        return con.getHeaderField("Location");
     }
-
+    
     public static CountingInputStream openInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
+        return openInputStream(urlAddress, headers, payload, null);
+    }
+
+    public static CountingInputStream openInputStream(Object input, Map<String, Object> headers, String payload, String compressionAlgo) throws IOException {
         StreamConnection sc;
         InputStream stream;
-        if (urlAddress.contains("!") && (urlAddress.contains(".zip") || urlAddress.contains(".tar") || urlAddress.contains(".tgz"))) {
-            return getStreamCompressedFile(urlAddress, headers, payload);
+        if (input instanceof String) {
+            String urlAddress = (String) input;
+            if (urlAddress.contains("!") && (urlAddress.contains(".zip") || urlAddress.contains(".tar") || urlAddress.contains(".tgz"))) {
+                return getStreamCompressedFile(urlAddress, headers, payload);
+            }
+
+            sc = getStreamConnection(urlAddress, headers, payload);
+            stream = getInputStream(sc, urlAddress);
+
+            return new CountingInputStream(stream, sc.getLength());
+        } else if (input instanceof byte[]) {
+            return FileUtils.getInputStreamFromBinary((byte[]) input, compressionAlgo);
+        } else {
+            throw new RuntimeException(ERROR_BYTES_OR_STRING);
         }
-
-        sc = getStreamConnection(urlAddress, headers, payload);
-        stream = getInputStream(sc, urlAddress);
-
-        return new CountingInputStream(stream, sc.getLength());
     }
 
     private static CountingInputStream getStreamCompressedFile(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
@@ -742,7 +754,7 @@ public class Util {
         }
     }
 
-    public static void close(Closeable closeable, Consumer<Exception> onErrror) {
+    public static void close(AutoCloseable closeable, Consumer<Exception> onErrror) {
         try {
             if (closeable!=null) closeable.close();
         } catch (Exception e) {
@@ -753,7 +765,7 @@ public class Util {
         }
     }
 
-    public static void close(Closeable closeable) {
+    public static void close(AutoCloseable closeable) {
         close(closeable, null);
     }
 

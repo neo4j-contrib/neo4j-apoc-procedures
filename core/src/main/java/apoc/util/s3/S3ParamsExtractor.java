@@ -91,8 +91,12 @@ public class S3ParamsExtractor {
             endpoint += ":" + url.getPort();
         }
 
-        if (Objects.nonNull(endpoint) &&  endpoint.isEmpty()) {
+        if (Objects.nonNull(endpoint) && endpoint.isEmpty()) {
             endpoint = null;
+        }
+
+        if (endpoint != null && "true".equals(System.getProperty("com.amazonaws.sdk.disableCertChecking", "false"))) {
+            endpoint = "http://" + endpoint;
         }
 
         return new S3Params(accessKey, secretKey, sessionToken, endpoint, bucket, key, region);
