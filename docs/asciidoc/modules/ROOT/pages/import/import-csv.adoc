@@ -92,6 +92,6 @@ CALL apoc.import.csv(
 
 The loader supports advanced features of the import tool:
 
-* _ID spaces_ are supported, using the link:https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/#import-tool-header-format[import tool's syntax].
-* Node labels can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-header-format-nodes[`:LABEL`] field.
-* Relationship types can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-header-format-rels[`:TYPE`] field.
+* _ID spaces_ are supported, using the link:https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/#import-tool-id-spaces[import tool's syntax].
+* Node labels can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/#import-tool-header-format-nodes[`:LABEL`] field.
+* Relationship types can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/#import-tool-header-format-rels[`:TYPE`] field.

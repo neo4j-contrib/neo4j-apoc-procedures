@@ -123,7 +123,7 @@ public class ImportJsonTest {
             Assert.assertEquals(7, props.size());
             Assert.assertTrue(props.get("place") instanceof PointValue);
             PointValue point = (PointValue) props.get("place");
-            final PointValue pointValue = Values.pointValue(CoordinateReferenceSystem.WGS_84, 13.1D, 33.46789D);
+            final PointValue pointValue = Values.pointValue(CoordinateReferenceSystem.WGS_84, 33.46789D, 13.1D);
             Assert.assertTrue(point.equals((Point) pointValue));
             Assert.assertTrue(props.get("born") instanceof LocalDateTime);
 
