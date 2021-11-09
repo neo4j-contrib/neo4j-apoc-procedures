@@ -28,6 +28,9 @@ import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
+import org.neo4j.values.storable.CoordinateReferenceSystem;
+import org.neo4j.values.storable.PointValue;
+import org.neo4j.values.storable.Values;
 
 import javax.lang.model.SourceVersion;
 import java.io.BufferedWriter;
@@ -974,5 +977,36 @@ public class Util {
 
     public static boolean isSelfRel(Relationship rel) {
         return rel.getStartNodeId() == rel.getEndNodeId();
+    }
+    
+    public static PointValue toPoint(Map<String, Object> pointMap, Map<String, Object> defaultPointMap) {
+        double x;
+        double y;
+        Double z = null;
+
+        final CoordinateReferenceSystem crs = CoordinateReferenceSystem.byName((String) getOrDefault(pointMap, defaultPointMap, "crs"));
+
+        // It does not depend on the prefix of crs, I could also pass a point({x: 56.7, y: 12.78, crs: 'wgs-84'})
+        final boolean isLatitudePresent = pointMap.containsKey("latitude") || (!pointMap.containsKey("x") && defaultPointMap.containsKey("latitude"));
+        final boolean isCoord3D = crs.getName().endsWith("-3d");
+        if (isLatitudePresent) {
+            x = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "longitude"));
+            y = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "latitude"));
+            if (isCoord3D) {
+                z = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "height"));
+            }
+        } else {
+            x = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "x"));
+            y = Util.toDouble(getOrDefault(pointMap, defaultPointMap,  "y"));
+            if (isCoord3D) {
+                z = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "z"));
+            }
+        }
+
+        return z != null ? Values.pointValue(crs, x, y, z) : Values.pointValue(crs, x, y);
+    }
+    
+    private static Object getOrDefault(Map<String, Object> firstMap, Map<String, Object> secondMap, String key) {
+        return firstMap.getOrDefault(key, secondMap.get(key));
     }
 }
