@@ -281,27 +281,8 @@ public class JsonImporter implements Closeable {
         return value;
     }
 
-    private PointValue toPoint(Map<String, Object> pointMap) {
-        double x;
-        double y;
-        Double z = null;
-
-        final CoordinateReferenceSystem crs = CoordinateReferenceSystem.byName((String) pointMap.get("crs"));
-        if (crs.getName().startsWith("wgs-84")) {
-            x = (double) pointMap.get("latitude");
-            y = (double) pointMap.get("longitude");
-            if (crs.getName().endsWith("-3d")) {
-                z = (double) pointMap.get("height");
-            }
-        } else {
-            x = (double) pointMap.get("x");
-            y = (double) pointMap.get("y");
-            if (crs.getName().endsWith("-3d")) {
-                z = (double) pointMap.get("z");
-            }
-        }
-
-        return z != null ? Values.pointValue(crs, x, y, z) : Values.pointValue(crs, x, y);
+    public static PointValue toPoint(Map<String, Object> pointMap) {
+        return Util.toPoint(pointMap, Collections.emptyMap());
     }
 
     private String getType(Map<String, Object> param) {
