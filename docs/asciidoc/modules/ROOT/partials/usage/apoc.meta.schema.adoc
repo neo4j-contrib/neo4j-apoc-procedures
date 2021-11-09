@@ -49,7 +49,7 @@ RETURN key, value[key] AS value;
 
 We can only take a limited set of data to analyze by specifying the `sample` parameter (1000 by default).
 Through this parameter, for each label we split data into batches of (total / sample) ± rand
-where `rand` is a number between `0` and `total / sample / 10`
+where `total` is the total number of nodes and `rand` is a number between `0` and `total / sample / 10`
 
 So, we pick a percentage of nodes of ABOUT `sample / total * 100`%.
 
