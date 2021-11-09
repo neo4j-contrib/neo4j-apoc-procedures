@@ -89,6 +89,7 @@ subprojects {
                     "--add-opens", "java.base/java.util.concurrent=ALL-UNNAMED",
                     "--add-opens", "java.base/sun.net.www.protocol.http=ALL-UNNAMED",
                     "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED",
+                    "--add-opens", "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
                     "--add-opens", "jdk.compiler/com.sun.tools.javac=ALL-UNNAMED",
                     "--add-opens", "jdk.compiler/com.sun.source.doctree=ALL-UNNAMED",
                     "--add-opens", "jdk.compiler/com.sun.source.tree=ALL-UNNAMED",
@@ -118,5 +119,5 @@ ext {
     neo4jVersion = "4.3.0-drop03.0"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
-    testContainersVersion = '1.15.1'
+    testContainersVersion = '1.16.2'
 }
