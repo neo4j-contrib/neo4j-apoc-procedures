@@ -32,10 +32,9 @@ public class KernelProcedureTest {
         testCall(db, "CALL apoc.monitor.kernel()", (row) -> {
             try {
                 String startTime = (String) row.get("kernelStartTime");
-                String kernelVersion = String.valueOf(row.get("kernelVersion"));
                 assertEquals("neo4j", row.get("databaseName"));
                 assertTrue(format.parse(startTime).getTime() < now);
-                assertTrue(kernelVersion.contains("4."));
+                assertNotNull( row.get( "kernelVersion" ) );
                 assertNotNull(row.get("storeLogVersion"));
             } catch (Exception e) {
                 throw new RuntimeException(e);
