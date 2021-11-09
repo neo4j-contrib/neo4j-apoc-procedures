@@ -17,6 +17,7 @@ image::apoc.meta.graph.jpg[scaledwidth="100%"]
 ¦Qualified Name¦Type¦Release
 include::example$generated-documentation/apoc.meta.graphSample.adoc[]
 include::example$generated-documentation/apoc.meta.graph.adoc[]
+include::example$generated-documentation/apoc.meta.graph.of.adoc[]
 include::example$generated-documentation/apoc.meta.subGraph.adoc[]
 include::example$generated-documentation/apoc.meta.data.adoc[]
 include::example$generated-documentation/apoc.meta.schema.adoc[]
