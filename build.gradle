@@ -15,7 +15,7 @@ downloadLicenses {
 
 allprojects {
     group = 'org.neo4j.procedure'
-    version = '4.3.0-rc01'
+    version = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : '4.3.0-rc01'
     archivesBaseName = 'apoc'
     description = """neo4j-apoc-procedures"""
 }
