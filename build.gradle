@@ -88,7 +88,11 @@ subprojects {
                     "--add-opens", "java.base/java.util=ALL-UNNAMED",
                     "--add-opens", "java.base/java.util.concurrent=ALL-UNNAMED",
                     "--add-opens", "java.base/sun.net.www.protocol.http=ALL-UNNAMED",
-                    "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED" ]
+                    "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED",
+                    "--add-opens", "jdk.compiler/com.sun.tools.javac=ALL-UNNAMED",
+                    "--add-opens", "jdk.compiler/com.sun.source.doctree=ALL-UNNAMED",
+                    "--add-opens", "jdk.compiler/com.sun.source.tree=ALL-UNNAMED",
+                    "--add-opens", "jdk.compiler/com.sun.source.util=ALL-UNNAMED" ]
 
         filter {
             setFailOnNoMatchingTests(false)
