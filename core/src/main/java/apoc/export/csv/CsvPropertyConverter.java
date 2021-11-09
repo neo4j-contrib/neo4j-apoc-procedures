@@ -2,7 +2,14 @@ package apoc.export.csv;
 
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Entity;
+import org.neo4j.values.storable.DurationValue;
+import org.neo4j.values.storable.PointValue;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,7 +25,7 @@ public class CsvPropertyConverter {
             if (listContainingNull) {
                 return false;
             }
-            final Object[] prototype = getPrototypeFor(field.getType());
+            final Object[] prototype = getPrototypeFor(field.getType().toUpperCase());
             final Object[] array = list.toArray(prototype);
             entity.setProperty(field.getName(), array);
         } else {
@@ -33,14 +40,35 @@ public class CsvPropertyConverter {
     static Object[] getPrototypeFor(String type) {
         switch (type) {
             case "INT":
-            case "LONG":    return new Long     [] {};
+            case "LONG":
+                return new Long[] {};
             case "FLOAT":
-            case "DOUBLE":  return new Double   [] {};
-            case "BOOLEAN": return new Boolean  [] {};
-            case "BYTE":    return new Byte     [] {};
-            case "SHORT":   return new Short    [] {};
-            case "CHAR":    return new Character[] {};
-            case "STRING":  return new String   [] {};
+            case "DOUBLE":
+                return new Double[] {};
+            case "BOOLEAN":
+                return new Boolean[] {};
+            case "BYTE":
+                return new Byte[] {};
+            case "SHORT":
+                return new Short[] {};
+            case "CHAR":
+                return new Character[] {};
+            case "STRING":
+                return new String[] {};
+            case "DATETIME":
+                return new ZonedDateTime[] {};
+            case "LOCALTIME":
+                return new LocalTime[] {};
+            case "LOCALDATETIME":
+                return new LocalDateTime[] {};
+            case "POINT":
+                return new PointValue[] {};
+            case "TIME":
+                return new OffsetTime[] {};
+            case "DATE":
+                return new LocalDate[] {};
+            case "DURATION":
+                return new DurationValue[] {};
         }
         throw new IllegalStateException("Type " + type + " not supported.");
     }

@@ -46,7 +46,7 @@ public class ImportJson {
                     try (final CountingReader reader = FileUtils.readerFor(urlOrBinaryFile, importJsonConfig.getCompressionAlgo());
                          final Scanner scanner = new Scanner(reader).useDelimiter("\n|\r");
                          JsonImporter jsonImporter = new JsonImporter(importJsonConfig, db, reporter)) {
-                        while (scanner.hasNext()) {
+                        while (scanner.hasNext() && !Util.transactionIsTerminated(terminationGuard)) {
                             Map<String, Object> row = JsonUtil.OBJECT_MAPPER.readValue(scanner.nextLine(), Map.class);
                             jsonImporter.importRow(row);
                         }
