@@ -1,7 +1,10 @@
 package apoc.export.csv;
 
 import apoc.meta.Meta;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 
 public class CsvHeaderField {
@@ -11,14 +14,16 @@ public class CsvHeaderField {
     private final String type;
     private final boolean array;
     private final String idSpace;
+    private final Map<String, Object> optionalData;
 
-    private CsvHeaderField(int index, String name, String type, boolean array, String idSpace) {
+    private CsvHeaderField(int index, String name, String type, boolean array, String idSpace, Map<String, Object> optionalData) {
         super();
         this.index = index;
         this.name = name;
         this.type = type;
         this.array = array;
         this.idSpace = idSpace;
+        this.optionalData = optionalData;
     }
 
     public int getIndex() {
@@ -39,6 +44,10 @@ public class CsvHeaderField {
 
     public String getIdSpace() {
         return idSpace;
+    }
+
+    public Map<String, Object> getOptionalData() {
+        return optionalData;
     }
 
     public boolean isId() {
@@ -63,6 +72,20 @@ public class CsvHeaderField {
 
         final String rawName = extractGroup(matcher, "name");
         final String typeExtracted = extractGroup(matcher, "type");
+        String optParExtracted = extractGroup(matcher, "optPar");
+        
+        Map<String, Object> optionalData = new HashMap<>();
+        
+        if (optParExtracted != null) {
+            optParExtracted = optParExtracted.replace("{", "").replace("}", "");
+            Matcher matcherKeyValue = CsvLoaderConstants.KEY_VALUE_PATTERN.matcher(optParExtracted);
+            while (matcherKeyValue.find()) {
+                String key = matcherKeyValue.group("key");
+                String value = matcherKeyValue.group("value");
+                optionalData.put(key, value);
+            }
+        }
+        
         final String type = (typeExtracted != null) ? typeExtracted : Meta.Types.STRING.name();
         final String name = nameAndTypeToAttribute(rawName, type);
 
@@ -76,7 +99,7 @@ public class CsvHeaderField {
                 CsvLoaderConstants.ARRAY_PATTERN.equals(extractGroup(matcher, "array")) ||
                 "LABEL".equals(type);
 
-        return new CsvHeaderField(index, name, type, array, idSpace);
+        return new CsvHeaderField(index, name, type, array, idSpace, optionalData);
     }
 
     private static String nameAndTypeToAttribute(String name, String type) {

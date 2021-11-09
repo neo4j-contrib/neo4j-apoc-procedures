@@ -133,3 +133,63 @@ RETURN source, format, nodes, relationships, properties
 | source | format | nodes | relationships | properties
 | "binary" | "csv" | 2     | 2             | 8
 |===
+
+
+=== Properties
+
+For properties, the `<name>` part of the field designates the property key, 
+while the `<field_type>` part (after `:`) assigns a data type (see below). 
+You can have properties in both node data files and relationship data files.
+
+Use one of `int`, `long`, `float`, `double`, `boolean`, `byte`, `short`, `char`, `string`, `point`, `date`, `localtime`, `time`, `localdatetime`, `datetime`, and `duration` to designate the data type for properties. 
+If no data type is given, this defaults to string. To define an array type, append `[]` to the type.
+For example:
+
+.test.csv
+[source,text]
+----
+:ID,name,joined:date,active:boolean,points:int
+user01,Joe Soap,2017-05-05,true,10
+user02,Jane Doe,2017-08-21,true,15
+user03,Moe Know,2018-02-17,false,7
+----
+
+==== Point
+
+A point is specified using the Cypher syntax for maps. The map allows the same keys as the input to the link:https://neo4j.com/docs/cypher-manual/4.2/functions/spatial/[Point function.]
+The point data type in the header can be amended with a map of default values used for all values of that column, e.g. `point{crs: 'WGS-84'}`. 
+Specifying the header this way allows you to have an incomplete map in the value position in the data file. Optionally, a value in a data file may override default values from the header.
+
+.point.csv
+[source,text]
+----
+:ID,name,location:point{crs:WGS-84}
+city01,"Malmö","{latitude:55.6121514, longitude:12.9950357}"
+city02,"London","{y:51.507222, x:-0.1275}"
+city03,"San Mateo","{latitude:37.554167, longitude:-122.313056, height: 100, crs:'WGS-84-3D'}"
+----
+
+In the above csv:
+
+- the first city’s location is defined using `latitude` and `longitude`, as expected when using the coordinate system defined in the header.
+- the second city uses `x` and `y` instead. This would normally lead to a point using the coordinate reference system cartesian. Since the header defines crs:WGS-84, that coordinate reference system will be used.
+- the third city overrides the coordinate reference system defined in the header, and sets it explicitly to WGS-84-3D.
+
+==== Temporal
+
+The format for all temporal data types must be defined as described in link:https://neo4j.com/docs/cypher-manual/4.2/syntax/temporal/#cypher-temporal-instants[Temporal instants syntax] and link:https://neo4j.com/docs/cypher-manual/4.2/syntax/temporal/#cypher-temporal-durations[Durations syntax]. 
+Two of the temporal types, Time and DateTime, take a time zone parameter which might be common between all or many of the values in the data file. 
+It is therefore possible to specify a default time zone for Time and DateTime values in the header, for example: `time{timezone:+02:00}` and: `datetime{timezone:Europe/Stockholm}`.
+
+.point.csv
+[source,text]
+----
+:ID,date1:datetime{timezone:Europe/Stockholm},date2:datetime
+1,2018-05-10T10:30,2018-05-10T12:30
+2,2018-05-10T10:30[Europe/Berlin],2018-05-10T12:30[Europe/Berlin]
+----
+
+In the above csv:
+
+- the first row has two values that do not specify an explicit timezone. The value for `date1` will use the `Europe/Stockholm` time zone that was specified for that field in the header. The value for `date2` will use the configured default time zone of the database.
+- in the second row, both `date1` and `date2` set the time zone explicitly to be `Europe/Berlin`. This overrides the header definition for date1, as well as the configured default time zone of the database.
