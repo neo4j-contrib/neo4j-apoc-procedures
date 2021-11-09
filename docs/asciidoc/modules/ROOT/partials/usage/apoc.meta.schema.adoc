@@ -153,10 +153,11 @@ YIELD value RETURN value["Other"] as value;
 }
 ----
 |===
-Otherwise, with `sample: 1`:
+Otherwise, with `sample: 2` we obtain (the result can change):
+
 [source,cypher]
 ----
-CALL apoc.meta.schema({sample: 1})
+CALL apoc.meta.schema({sample: 2})
 YIELD value RETURN value["Other"] as value
 ----
 .Results
@@ -167,30 +168,28 @@ YIELD value RETURN value["Other"] as value
 [source,json]
 ----
 {
-"count": 8,
-"relationships": {
-"REL_3": {
-"count": 1,
-"properties": {
-
-            },
-            "direction": "out",
-            "labels": [
-                "Other",
-                "Other"
-            ]
-        }
-    },
-    "type": "node",
-    "properties": {
-        "foo": {
-            "existence": false,
-            "type": "STRING",
-            "indexed": false,
-            "unique": false
-        }
-    },
-    "labels": []
+  "count": 8,
+  "relationships": {
+    "REL_1": {
+      "count": 1,
+      "properties": {},
+      "direction": "out",
+      "labels": [
+        "Other",
+        "Other"
+      ]
+    }
+  },
+  "type": "node",
+  "properties": {
+    "alpha": {
+      "existence": false,
+      "type": "STRING",
+      "indexed": false,
+      "unique": false
+    }
+  },
+  "labels": []
 }
 ----
 |===
