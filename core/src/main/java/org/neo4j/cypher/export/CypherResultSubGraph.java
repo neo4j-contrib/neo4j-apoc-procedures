@@ -206,6 +206,14 @@ public class CypherResultSubGraph implements SubGraph
     }
 
     @Override
+    public Iterable<IndexDefinition> getIndexes(RelationshipType type) {
+        return indexes.stream()
+                .filter(idx -> StreamSupport.stream(idx.getRelationshipTypes().spliterator(), false)
+                        .anyMatch(relType -> relType.name().equals(type.name())))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public Iterable<RelationshipType> getAllRelationshipTypesInUse() {
         return Collections.unmodifiableCollection(types);
     }
