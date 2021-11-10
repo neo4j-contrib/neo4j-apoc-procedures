@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.couchbase.upsert(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, json :: STRING?) :: (content :: MAP?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)
+¦apoc.couchbase.upsert(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, json :: STRING?, config = {} :: MAP?) :: (content :: MAP?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)

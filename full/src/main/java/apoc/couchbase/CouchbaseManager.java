@@ -1,7 +1,10 @@
 package apoc.couchbase;
 
+import com.couchbase.client.core.env.CompressionConfig;
+import com.couchbase.client.core.env.IoConfig;
 import com.couchbase.client.core.env.IoEnvironment;
 import com.couchbase.client.core.env.PasswordAuthenticator;
+import com.couchbase.client.core.env.SecurityConfig;
 import com.couchbase.client.core.env.TimeoutConfig;
 import com.couchbase.client.java.env.ClusterEnvironment;
 import org.apache.commons.configuration2.Configuration;
@@ -10,6 +13,7 @@ import org.parboiled.common.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +22,7 @@ import java.util.List;
 import java.util.Arrays;
 
 import static apoc.ApocConfig.apocConfig;
+import static java.time.Duration.ofMillis;
 
 /**
  * Creates a {@link CouchbaseConnection} though that all of the operations
@@ -38,16 +43,6 @@ public class CouchbaseManager {
 
     protected static final String PORT_CONFIG_KEY = "port";
 
-    private static final Map<String, Object> DEFAULT_CONFIG;
-
-    static {
-        Map<String, Object> cfg = new HashMap<>();
-        cfg.put("connectTimeout", 5000L);
-        cfg.put("kvTimeout", 2500);
-        cfg.put("ioPoolSize", 3);
-        DEFAULT_CONFIG = Collections.unmodifiableMap(cfg);
-
-    }
 
     protected CouchbaseManager() {
     }
@@ -145,30 +140,11 @@ public class CouchbaseManager {
      * @param bucketName
      * @return the {@link CouchbaseConnection}
      */
-    public static CouchbaseConnection getConnection(String hostOrKey, String bucketName) {
+    public static CouchbaseConnection getConnection(String hostOrKey, String bucketName, CouchbaseConfig config) {
         PasswordAuthenticator passwordAuthenticator = getPasswordAuthenticator(hostOrKey);
 
-        // hostOrKey no longer necessary because bootstrapHttpDirectPort is configured via SeedNode in CouchbaseConnection
-        ClusterEnvironment env = getEnv();
-
         // The minimum cluster version supported by SDK 3 is Server 5.0, so bucket-level passwords are not supported anymore
-        return new CouchbaseConnection(hostOrKey, passwordAuthenticator, bucketName, env);
-    }
-
-    private static ClusterEnvironment getEnv() {
-
-        ClusterEnvironment.Builder builder = ClusterEnvironment.builder();
-
-        builder.timeoutConfig(TimeoutConfig.kvTimeout(
-                Duration.ofMillis(Integer.parseInt(getConfig("kvTimeout")))));
-
-        builder.timeoutConfig(TimeoutConfig.connectTimeout(
-                Duration.ofMillis(Long.parseLong(getConfig("connectTimeout")))));
-
-        builder.ioEnvironment(IoEnvironment.builder().eventLoopThreadCount(
-                Integer.parseInt(getConfig("ioPoolSize"))));
-
-        return builder.build();
+        return new CouchbaseConnection(hostOrKey, passwordAuthenticator, bucketName, config);
     }
 
     private static PasswordAuthenticator getPasswordAuthenticator(String hostOrKey) {
@@ -197,10 +173,6 @@ public class CouchbaseManager {
         }
 
         return couchbaseConfig;
-    }
-
-    public static String getConfig(String key) {
-        return apocConfig().getString("apoc." + COUCHBASE_CONFIG_KEY + key, DEFAULT_CONFIG.get(key).toString());
     }
 
 }
