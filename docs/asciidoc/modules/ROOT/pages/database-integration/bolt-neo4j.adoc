@@ -93,7 +93,7 @@ Is's a map of values, the values that we don't pass to the config, are set to th
 | maxRetryTimeMs| Specify the maximum time transactions are allowed to retry | Milliseconds
 |===
 
-You can find all the values in the documentation http://neo4j.com/docs/api/java-driver/current/org/neo4j/driver/v1/Config.ConfigBuilder.html[Config.ConfigBuilder]
+You can find all the values in the documentation https://neo4j.com/docs/api/java-driver/current/org/neo4j/driver/Config.ConfigBuilder.html[Config.ConfigBuilder]
 
 
 == Bolt Examples
