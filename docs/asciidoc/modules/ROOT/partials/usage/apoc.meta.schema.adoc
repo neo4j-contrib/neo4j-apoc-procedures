@@ -46,19 +46,15 @@ RETURN key, value[key] AS value;
 |===
 
 
+Because the count stores return an incomplete picture of the data, we have to cross check the results with the actual data to filter out false positives.
 
-We can only take a limited set of data to analyze by specifying the `sample` parameter (1000 by default).
-Through this parameter, for each label we split data into batches of (total / sample) ± rand
-where `total` is the total number of nodes and `rand` is a number between `0` and `total / sample / 10`
+We use a subset of the data to analyze by specifying the `sample` parameter (1000 by default).
 
-So, we pick a percentage of nodes of ABOUT `sample / total * 100`%.
+Through this parameter, for each label we split data for each node-label into batches of `(total / sample) ± rand` where `total` is the total number of nodes with that label and `rand` is a number between `0` and `total / sample / 10`
 
-Therefore, we pick the first node of each batch and we analyze the properties and the relationships.
+So, we pick a percentage of nodes with that label of roughly `sample / total * 100`% to check against.
 
-However, with `sample` parameter, we have to look at the actual data,
-because the count stores return an incomplete picture of the data 
-and we have to cross the results with the actual data to filter out false positives.
-
+We pick the first node of each batch and we analyze the properties and the relationships.
 
 For example, given the following graph:
 
