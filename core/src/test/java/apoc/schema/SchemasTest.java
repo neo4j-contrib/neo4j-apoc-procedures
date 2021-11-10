@@ -29,6 +29,8 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 import static org.neo4j.configuration.SettingImpl.newBuilder;
 import static org.neo4j.configuration.SettingValueParsers.BOOL;
+import static org.neo4j.internal.schema.SchemaUserDescription.TOKEN_LABEL;
+import static org.neo4j.internal.schema.SchemaUserDescription.TOKEN_REL_TYPE;
 
 /**
  * @author mh
@@ -87,11 +89,11 @@ public class SchemasTest {
     @Before
     public void setUp() throws Exception {
         registerProcedure(db, Schemas.class);
+        dropSchema();
     }
 
     @Test
     public void testCreateIndex() throws Exception {
-        dropSchema();
         testCall(db, "CALL apoc.schema.assert({Foo:['bar']},null)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals("bar", r.get("key"));
@@ -126,7 +128,6 @@ public class SchemasTest {
 
     @Test
     public void testDropIndexWhenUsingDropExisting() throws Exception {
-        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testCall(db, "CALL apoc.schema.assert(null,null)", (r) -> {
             assertEquals("Foo", r.get("label"));
@@ -142,7 +143,6 @@ public class SchemasTest {
 
     @Test
     public void testDropIndexAndCreateIndexWhenUsingDropExisting() throws Exception {
-        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testResult(db, "CALL apoc.schema.assert({Bar:['foo']},null)", (result) -> {
             Map<String, Object> r = result.next();
@@ -165,7 +165,6 @@ public class SchemasTest {
 
     @Test
     public void testRetainIndexWhenNotUsingDropExisting() throws Exception {
-        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testResult(db, "CALL apoc.schema.assert({Bar:['foo', 'bar']}, null, false)", (result) -> {
             Map<String, Object> r = result.next();
@@ -259,7 +258,6 @@ public class SchemasTest {
 
     @Test
     public void testKeepIndex() throws Exception {
-        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testResult(db, "CALL apoc.schema.assert({Foo:['bar', 'foo']},null,false)", (result) -> { 
             Map<String, Object> r = result.next();
@@ -326,6 +324,18 @@ public class SchemasTest {
     }
 
     @Test
+    public void testRelIndex() {
+        db.executeTransactionally("CREATE INDEX FOR ()-[r:KNOWS]-() ON (r.id, r.since)");
+        awaitIndexesOnline();
+        testCall(db, "CALL apoc.schema.relationships()", row -> {
+            assertEquals(":KNOWS(id,since)", row.get("name"));
+            assertEquals("", row.get("status"));
+            assertEquals("KNOWS", row.get("type"));
+            assertEquals(List.of("id", "since"), row.get("properties"));
+        });
+    }
+
+    @Test
     public void testIndexExists() {
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testResult(db, "RETURN apoc.schema.node.indexExists('Foo', ['bar'])", (result) -> {
@@ -387,7 +397,6 @@ public class SchemasTest {
 
     @Test
     public void testDropCompoundIndexWhenUsingDropExisting() throws Exception {
-        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert(null,null,true)", (result) -> {
@@ -405,7 +414,6 @@ public class SchemasTest {
 
     @Test
     public void testDropCompoundIndexAndRecreateWithDropExisting() throws Exception {
-        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,true)", (result) -> {
@@ -424,7 +432,6 @@ public class SchemasTest {
 
     @Test
     public void testDoesntDropCompoundIndexWhenSupplyingSameCompoundIndex() throws Exception {
-        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,false)", (result) -> {
@@ -444,7 +451,6 @@ public class SchemasTest {
     */
     @Test
     public void testKeepCompoundIndex() throws Exception {
-        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa'], ['foo','faa']]},null,false)", (result) -> {
@@ -468,7 +474,6 @@ public class SchemasTest {
 
     @Test
     public void testDropIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
-        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Bar:[['foo','bar']]},null)", (result) -> {
@@ -492,7 +497,6 @@ public class SchemasTest {
 
     @Test
     public void testDropCompoundIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
-        dropSchema();
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null)", (result) -> {
@@ -600,6 +604,31 @@ public class SchemasTest {
             assertEquals("Parameters relationships and excluderelationships are both valuated. Please check parameters and valuate only one.", except.getMessage());
             throw e;
         }
+    }
+
+    @Test
+    public void testLookupIndexes() {
+        db.executeTransactionally("CREATE LOOKUP INDEX node_label_lookup_index FOR (n) ON EACH labels(n)");
+        db.executeTransactionally("CREATE LOOKUP INDEX rel_type_lookup_index FOR ()-[r]-() ON EACH type(r)");
+        awaitIndexesOnline();
+
+        testCall(db, "CALL apoc.schema.nodes()", (row) -> {
+            assertEquals(":" + TOKEN_LABEL + "()", row.get("name"));
+            assertEquals("ONLINE", row.get("status"));
+            assertEquals(TOKEN_LABEL, row.get("label"));
+            assertEquals("INDEX", row.get("type"));
+            assertTrue(((List)row.get("properties")).isEmpty());
+            assertEquals("NO FAILURE", row.get("failure"));
+            assertEquals(100d, row.get("populationProgress"));
+            assertEquals(1d, row.get("valuesSelectivity"));
+            assertTrue(row.get("userDescription").toString().contains("name='node_label_lookup_index', type='TOKEN LOOKUP', schema=(:<any-labels>), indexProvider='token-lookup-1.0' )"));
+        });
+        testCall(db, "CALL apoc.schema.relationships()", (row) -> {
+            assertEquals(":" + TOKEN_REL_TYPE + "()", row.get("name"));
+            assertEquals("", row.get("status"));
+            assertEquals(TOKEN_REL_TYPE, row.get("type"));
+            assertTrue(((List)row.get("properties")).isEmpty());
+        });
     }
 
     private void dropSchema()
