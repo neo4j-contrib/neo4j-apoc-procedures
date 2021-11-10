@@ -6,7 +6,7 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "org.sonarqube"
-    id "org.jetbrains.kotlin.jvm" version "1.3.71"
+    id "org.jetbrains.kotlin.jvm" version "1.5.31"
 }
 
 archivesBaseName = "apoc"
@@ -107,11 +107,11 @@ dependencies {
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compileOnly group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
 
-    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.10.3'
-    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.71'
+    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.0'
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.31'
 
-    testImplementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.10.3'
-    testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.71'
+    testImplementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.0'
+    testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.31'
 
     testImplementation 'org.mock-server:mockserver-netty:3.10.8'
     testImplementation 'org.mock-server:mockserver-client-java:3.10.8'
