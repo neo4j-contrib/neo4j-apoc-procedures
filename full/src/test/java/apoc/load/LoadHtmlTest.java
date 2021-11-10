@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
@@ -10,6 +11,7 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +24,7 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class LoadHtmlTest {
 
@@ -40,12 +43,17 @@ public class LoadHtmlTest {
             "{text=References[edit], tagName=h2}, " +
             "{text=Navigation menu, tagName=h2}");
 
-    private static final String INVALID_PATH = new File("src/test/resources/wikipedia1.html").toURI().toString();
+    private static final String INVALID_PATH = new File("src/test/resources/wikipedia1.html").getName();
+    private static final String INVALID_PATH_ABSOLUTE = new File("src/test/resources/wikipedia1.html").getName();
     private static final String VALID_PATH = new File("src/test/resources/wikipedia.html").toURI().toString();
     private static final String INVALID_CHARSET = "notValid";
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule();
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(ApocSettings.apoc_import_file_enabled, true);
+
+    public LoadHtmlTest() throws URISyntaxException {
+    }
 
     @Before
     public void setup() {
@@ -249,8 +257,9 @@ public class LoadHtmlTest {
             testCall(db, query, (r) -> {});
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
-            String expectedMessage = "File not found from: " + INVALID_PATH;
-            assertEquals(expectedMessage, except.getMessage());
+            final String message = except.getMessage();
+            assertTrue(message.startsWith("Cannot open file "));
+            assertTrue(message.endsWith(INVALID_PATH + " for reading."));
             throw e;
         }
     }

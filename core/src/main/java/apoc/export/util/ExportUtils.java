@@ -30,10 +30,10 @@ public class ExportUtils {
         ProgressReporter reporterWithConsumer = reporter.withConsumer(
                 (pi) -> QueueUtil.put(queue, pi == ProgressInfo.EMPTY ? ProgressInfo.EMPTY : new ProgressInfo(pi).drain(cypherFileManager.getStringWriter(format)), timeout)
         );
-        Util.inTxFuture(executorService, db, tx -> {
+        Util.inTxFuture(null, executorService, db, tx -> {
             dump.accept(reporterWithConsumer);
             return true;
-        });
+        }, 0, _ignored -> {}, _ignored -> QueueUtil.put(queue, ProgressInfo.EMPTY, timeout));
         QueueBasedSpliterator<ProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, ProgressInfo.EMPTY, terminationGuard, (int) timeout);
         return StreamSupport.stream(spliterator, false);
     }

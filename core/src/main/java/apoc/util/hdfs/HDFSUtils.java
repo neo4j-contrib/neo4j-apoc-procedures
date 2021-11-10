@@ -1,6 +1,5 @@
 package apoc.util.hdfs;
 
-import apoc.util.FileUtils;
 import apoc.util.StreamConnection;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -11,9 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.regex.Matcher;
 
 public class HDFSUtils {
 
@@ -38,19 +35,16 @@ public class HDFSUtils {
 			public long getLength() {
 				return fileStatus.getLen();
 			}
+
+			@Override
+			public String getName() {
+				return fileName;
+			}
 		};
 	}
 
 	public static StreamConnection readFile(URL url) throws IOException {
 		return readFile(url.toString());
-	}
-	
-	private static String getHDFSUri(String fileName) {
-		Matcher matcher = FileUtils.HDFS_PATTERN.matcher(fileName);
-    	if (!matcher.find()) {
-    		throw new RuntimeException("Not valid HDFS url");
-    	}
-    	return matcher.group();
 	}
 	
 	public static OutputStream writeFile(String fileName) throws IOException {
@@ -60,22 +54,11 @@ public class HDFSUtils {
 	}
 
 	public static Path getPath(String fileName) {
-		String path = fileName.replace(getHDFSUri(fileName), "");
-		return new Path(path);
+		return new Path(URI.create(fileName));
 	}
 
 	public static FileSystem getFileSystem(String fileName) throws IOException {
-		String hdfsUri = getHDFSUri(fileName);
 		Configuration configuration = new Configuration();
-		return FileSystem.get(toUri(hdfsUri), configuration);
+		return FileSystem.get(URI.create(fileName), configuration);
 	}
-
-	public static URI toUri(String url) {
-		try {
-			return new URI(url);
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
-	}
-
 }

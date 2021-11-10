@@ -172,7 +172,7 @@ public class Metrics {
         String url = new File(metricsDir, metricName + ".csv").getAbsolutePath();
         CountingReader reader = null;
         try {
-            reader = FileUtils.readFile(url);
+            reader = FileUtils.readerFor(url);
             return new LoadCsv()
                     .streamCsv(url, new LoadCsvConfig(config), reader)
                     .filter(Metrics.duplicatedHeaderRows)
