@@ -48,5 +48,10 @@ RETURN apoc.schema.node.indexExists(labelName, propertyNames)
 RETURN apoc.schema.relationship.constraintExists(type, propertyNames)
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.schema/apoc.schema.relationship.indexExists.adoc[apoc.schema.relationship.indexExists icon:book[]]
+
+RETURN apoc.schema.relationship.indexExists(relName, propertyNames)
+|label:function[]
+|label:apoc-core[]
 |===
 
