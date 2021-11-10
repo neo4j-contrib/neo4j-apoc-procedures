@@ -4,3 +4,8 @@
 RETURN apoc.schema.relationship.constraintExists(type, propertyNames)
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.schema.relationship/apoc.schema.adoc[apoc.schema.relationship.indexExists icon:book[]]
+
+RETURN apoc.schema.relationship.indexExists(relName, propertyNames)
+|label:function[]
+|label:apoc-core[]
