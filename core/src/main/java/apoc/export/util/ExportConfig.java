@@ -25,6 +25,7 @@ public class ExportConfig extends CompressionConfig {
     public static final String DEFAULT_ARRAY_DELIM = ";";
     public static final String DEFAULT_QUOTES = ALWAYS_QUOTES;
     private final boolean streamStatements;
+    private final boolean ifNotExists;
 
     private int batchSize;
     private boolean silent;
@@ -99,6 +100,7 @@ public class ExportConfig extends CompressionConfig {
         this.config = config;
         this.streamStatements = toBoolean(config.get("streamStatements")) || toBoolean(config.get("stream"));
         this.writeNodeProperties = toBoolean(config.get("writeNodeProperties"));
+        this.ifNotExists = toBoolean(config.get("ifNotExists"));
         exportQuotes(config);
         this.optimizations = (Map<String, Object>) config.getOrDefault("useOptimizations", Collections.emptyMap());
         this.optimizationType = OptimizationType.valueOf(optimizations.getOrDefault("type", OptimizationType.UNWIND_BATCH.toString()).toString().toUpperCase());
@@ -209,4 +211,7 @@ public class ExportConfig extends CompressionConfig {
         return sampling;
     }
     
+    public boolean ifNotExists() {
+        return ifNotExists;
+    }
 }
