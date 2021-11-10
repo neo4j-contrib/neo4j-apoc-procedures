@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.couchbase.posParamsQuery(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?, params :: LIST? OF ANY?) :: (queryResult :: LIST? OF MAP?)
+¦apoc.couchbase.posParamsQuery(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?, params :: LIST? OF ANY?, config = {} :: MAP?) :: (queryResult :: LIST? OF MAP?)
