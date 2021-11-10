@@ -14,7 +14,7 @@ apoc.couchbase.append(hostOrKey, bucket, documentId, content) yield id, expiry, 
 
 [source]
 ----
-apoc.couchbase.append(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, content :: BYTEARRAY?) :: (content :: BYTEARRAY?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)
+apoc.couchbase.append(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, content :: BYTEARRAY?, config = {} :: MAP?) :: (content :: BYTEARRAY?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)
 ----
 
 == Input parameters
@@ -25,6 +25,7 @@ apoc.couchbase.append(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STR
 |bucket|STRING?|null
 |documentId|STRING?|null
 |content|BYTEARRAY?|null
+|config|MAP?|{}
 |===
 
 == Output parameters
