@@ -172,6 +172,26 @@ RETURN m.col_1,m.col_2,m.col_3
                 });
     }
 
+    @Test 
+    public void testLoadCsvEscape() { 
+        URL url = getUrlFileName("test-escape.csv");
+        final List<String> results = List.of("map", "list", "stringMap", "strings");
+        testResult(db, "CALL apoc.load.csv($url, $config)", 
+                map("url", url.toString(), "config", map("results", results)),
+                (r) -> {
+                    assertRow(r, 0L,"name", "Naruto", "surname","Uzumaki");
+                    assertRow(r, 1L,"name", "Minato", "surname","Namikaze");
+                    assertFalse(r.hasNext());
+                });
+        testResult(db, "CALL apoc.load.csv($url,$config)",
+                map("url", url.toString(), "config", map("results", results, "escapeChar", "NONE")),
+                (r) -> {
+                    assertRow(r, 0L,"name", "Narut\\o\\", "surname","Uzu\\maki");
+                    assertRow(r, 1L,"name", "Minat\\o", "surname","Nami\\kaze");
+                    assertFalse(r.hasNext());
+                });
+    }
+
     @Test public void testLoadCsvNoHeader() throws Exception {
         String url = "test-no-header.csv";
         testResult(db, "CALL apoc.load.csv($url,{header:false,results:['map','list','stringMap','strings']})", map("url",url), // 'file:test.csv'
