@@ -14,7 +14,7 @@ apoc.couchbase.posParamsQuery(hostOrKey, bucket, statement, params) yield queryR
 
 [source]
 ----
-apoc.couchbase.posParamsQuery(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?, params :: LIST? OF ANY?) :: (queryResult :: LIST? OF MAP?)
+apoc.couchbase.posParamsQuery(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?, params :: LIST? OF ANY?, config = {} :: MAP?) :: (queryResult :: LIST? OF MAP?)
 ----
 
 == Input parameters
@@ -25,6 +25,7 @@ apoc.couchbase.posParamsQuery(hostOrKey :: STRING?, bucket :: STRING?, statement
 |bucket|STRING?|null
 |statement|STRING?|null
 |params|LIST? OF ANY?|null
+|config|MAP?|{}
 |===
 
 == Output parameters

@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.couchbase.get(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?) :: (content :: MAP?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)
+¦apoc.couchbase.get(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, config = {} :: MAP?) :: (content :: MAP?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)
