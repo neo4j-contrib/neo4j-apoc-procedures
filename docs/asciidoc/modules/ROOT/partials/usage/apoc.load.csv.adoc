@@ -28,6 +28,7 @@ RETURN *;
 | 2      | ["Selina", "19", "Cola"]   | {name: "Selina", age: "19", beverage: "Cola"}
 |===
 
+[#_binary_file]
 == Binary file
 
 You can also import a file from a binary `byte[]` (not compressed) or a compressed file (allowed compression algos are: `GZIP`, `BZIP2`, `DEFLATE`, `BLOCK_LZ4`, `FRAMED_SNAPPY`).
