@@ -73,6 +73,11 @@ public class DatabaseSubGraph implements SubGraph
     }
 
     @Override
+    public Iterable<IndexDefinition> getIndexes(RelationshipType type) {
+        return transaction.schema().getIndexes(type);
+    }
+
+    @Override
     public Iterable<RelationshipType> getAllRelationshipTypesInUse() {
         return transaction.getAllRelationshipTypesInUse();
     }
