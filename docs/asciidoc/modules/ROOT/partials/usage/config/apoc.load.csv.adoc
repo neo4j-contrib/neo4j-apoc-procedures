@@ -9,6 +9,7 @@ The procedure support the following config parameters:
 | header | booelan | true | indicates if file has a header
 | sep | String | ',' | separator character or 'TAB'
 | quoteChar | String | '"' | the char to use for quoted elements
+| escapeChar | String | '\' | the char to use for escape elements. Use `"NONE"` if you don't want to use any characters
 | arraySep | String |  ';' | array separator
 | ignore | List<String> | [] | which columns to ignore
 | nullValues | List<String> | [] | which values to treat as null, e.g. `['na',false]`
