@@ -45,3 +45,147 @@ RETURN key, value[key] AS value;
 | "Person"   | {count: 2, relationships: {ACTED_IN: {count: 9, properties: {roles: {existence: FALSE, type: "LIST", array: TRUE}}, direction: "out", labels: ["Movie"]}}, type: "node", properties: {name: {existence: FALSE, type: "STRING", indexed: FALSE, unique: FALSE}, born: {existence: FALSE, type: "INTEGER", indexed: FALSE, unique: FALSE}}, labels: []}
 |===
 
+
+Because the count stores return an incomplete picture of the data, we have to cross check the results with the actual data to filter out false positives.
+
+We use a subset of the data to analyze by specifying the `sample` parameter (1000 by default).
+
+Through this parameter, for each label we split data for each node-label into batches of `(total / sample) ± rand` where `total` is the total number of nodes with that label and `rand` is a number between `0` and `total / sample / 10`
+
+So, we pick a percentage of nodes with that label of roughly `sample / total * 100`% to check against.
+
+We pick the first node of each batch and we analyze the properties and the relationships.
+
+For example, given the following graph:
+
+[source,cypher]
+----
+CREATE (:Foo), (:Other)-[:REL_0]->(:Other), (:Other)-[:REL_1]->(:Other)<-[:REL_2 {baz: 'baa'}]-(:Other), (:Other {alpha: 'beta'}), (:Other {foo:'bar'})-[:REL_3]->(:Other)
+----
+
+Without `sample` parameter we receive:
+
+[source,cypher]
+----
+CALL apoc.meta.schema()
+YIELD value RETURN value["Other"] as value;
+----
+
+.Results
+[opts="header",cols="a"]
+|===
+| value
+|
+[source,json]
+----
+{
+    "count": 8,
+    "relationships": {
+        "REL_2": {
+            "count": 1,
+            "properties": {
+                "baz": {
+                    "existence": false,
+                    "type": "STRING",
+                    "array": false
+                }
+            },
+            "direction": "out",
+            "labels": [
+                "Other",
+                "Other"
+            ]
+        },
+        "REL_3": {
+            "count": 1,
+            "properties": {
+
+            },
+            "direction": "out",
+            "labels": [
+                "Other",
+                "Other"
+            ]
+        },
+        "REL_0": {
+            "count": 1,
+            "properties": {
+
+            },
+            "direction": "out",
+            "labels": [
+                "Other",
+                "Other"
+            ]
+        },
+        "REL_1": {
+            "count": 1,
+            "properties": {
+
+            },
+            "direction": "out",
+            "labels": [
+                "Other",
+                "Other"
+            ]
+        }
+    },
+    "type": "node",
+    "properties": {
+        "alpha": {
+            "existence": false,
+            "type": "STRING",
+            "indexed": false,
+            "unique": false
+        },
+        "foo": {
+            "existence": false,
+            "type": "STRING",
+            "indexed": false,
+            "unique": false
+        }
+    },
+    "labels": []
+}
+----
+|===
+Otherwise, with `sample: 2` we obtain (the result can change):
+
+[source,cypher]
+----
+CALL apoc.meta.schema({sample: 2})
+YIELD value RETURN value["Other"] as value
+----
+.Results
+[opts="header",cols="a"]
+|===
+| value
+|
+[source,json]
+----
+{
+  "count": 8,
+  "relationships": {
+    "REL_1": {
+      "count": 1,
+      "properties": {},
+      "direction": "out",
+      "labels": [
+        "Other",
+        "Other"
+      ]
+    }
+  },
+  "type": "node",
+  "properties": {
+    "alpha": {
+      "existence": false,
+      "type": "STRING",
+      "indexed": false,
+      "unique": false
+    }
+  },
+  "labels": []
+}
+----
+|===
