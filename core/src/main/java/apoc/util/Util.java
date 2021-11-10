@@ -800,6 +800,11 @@ public class Util {
         if ("TAB".equals(separator)) {
             return '\t';
         }
+        // "NONE" is used to resolve cases like issue #1376. 
+        // That is, when I have a line like "VER: AX\GEARBOX\ASSEMBLY" and I don't want to convert it in "VER: AXGEARBOXASSEMBLY"
+        if ("NONE".equals(separator)) {
+            return '\0';
+        }
         return separator.charAt(0);
     }
 
