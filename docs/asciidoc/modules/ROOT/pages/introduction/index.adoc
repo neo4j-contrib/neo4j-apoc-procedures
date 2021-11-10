@@ -29,10 +29,12 @@ http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board 
 *APOC* also stands for "Awesome Procedures On Cypher"
 ====
 
+== APOC Editions - Core and Full
+
 Starting from Neo4j 4.1.1, there are two available versions of the APOC Library:
 
-_APOC Core_ :: battle hardened procedures and functions that don't have external dependencies or require configuration.
-_APOC Full_ :: contains everything in APOC core, as well as additional procedures and functions.
+_APOC Core_ :: battle hardened procedures and functions that don't have external dependencies or require configuration. This is also the based of the functionality available in https://neo4j.com/aura[Neo4j AuraDB^] which lists the https://neo4j.com/docs/aura/current/getting-started/apoc/[available APOC surface in their docs^].
+_APOC Full_ :: contains everything in APOC core, as well as additional procedures and functions, which is available both in https://neo4j.com/sandbox[Neo4j Sandbox^], the https://neo4j.com/docs/operations-manual/current/docker/operations/#docker-neo4jlabs-pluginsneo4j.com[Docker image^] and https://neo4j.com/docs/desktop-manual/current/operations/#install-plugin[Neo4j Desktop^], as well as when you self-host the database and add the apoc-full jar.
 
 
 A list of functions and procedures in _APOC Core_ and _APOC Full_ can be found in xref::overview/index.adoc[].
