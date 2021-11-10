@@ -31,7 +31,7 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.quote;
  */
 abstract class AbstractCypherFormatter implements CypherFormatter {
 
-	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT ON (node:%s) ASSERT (%s) %s;";
+	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT%s ON (node:%s) ASSERT (%s) %s;";
 
 	private static final String STATEMENT_NODE_FULLTEXT_IDX = "CALL db.index.fulltext.createNodeIndex('%s',[%s],[%s]);";
 	private static final String STATEMENT_REL_FULLTEXT_IDX = "CALL db.index.fulltext.createRelationshipIndex('%s',[%s],[%s]);";
@@ -45,8 +45,11 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 
 	@Override
-	public String statementForIndex(String label, Iterable<String> keys) {
-		return "CREATE INDEX ON :" + Util.quote(label) + "(" + CypherFormatterUtils.quote(keys) + ");";
+	public String statementForIndex(String label, Iterable<String> keys, boolean ifNotExists) {
+		return String.format("CREATE INDEX%s FOR (node:%s) ON (%s);", 
+				getIfNotExists(ifNotExists),
+				Util.quote(label),
+				getPropertiesQuoted(keys));
 	}
 
 	@Override
@@ -78,13 +81,21 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 
 	@Override
-	public String statementForConstraint(String label, Iterable<String> keys) {
+	public String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExists) {
+		String keysString = getPropertiesQuoted(keys);
 
-		String keysString = StreamSupport.stream(keys.spliterator(), false)
+		return String.format(STATEMENT_CONSTRAINTS, getIfNotExists(ifNotExists), Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
+	}
+
+	private String getIfNotExists(boolean ifNotExists) {
+		return ifNotExists ? " IF NOT EXISTS" : "";
+	}
+
+
+	private String getPropertiesQuoted(Iterable<String> keys) {
+		return StreamSupport.stream(keys.spliterator(), false)
 				.map(key -> "node." + CypherFormatterUtils.quote(key))
 				.collect(Collectors.joining(", "));
-
-		return  String.format(STATEMENT_CONSTRAINTS, Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
 	}
 
 	protected String mergeStatementForNode(CypherFormat cypherFormat, Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames) {
