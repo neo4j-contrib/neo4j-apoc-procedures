@@ -14,7 +14,7 @@ apoc.couchbase.upsert(hostOrKey, bucket, documentId, jsonDocument) yield id, exp
 
 [source]
 ----
-apoc.couchbase.upsert(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, json :: STRING?) :: (content :: MAP?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)
+apoc.couchbase.upsert(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, json :: STRING?, config = {} :: MAP?) :: (content :: MAP?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)
 ----
 
 == Input parameters
@@ -25,6 +25,7 @@ apoc.couchbase.upsert(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STR
 |bucket|STRING?|null
 |documentId|STRING?|null
 |json|STRING?|null
+|config|MAP?|{}
 |===
 
 == Output parameters

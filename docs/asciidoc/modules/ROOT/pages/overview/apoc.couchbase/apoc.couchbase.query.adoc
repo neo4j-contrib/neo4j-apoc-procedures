@@ -14,7 +14,7 @@ apoc.couchbase.query(hostOrKey, bucket, statement) yield queryResult - executes 
 
 [source]
 ----
-apoc.couchbase.query(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?) :: (queryResult :: LIST? OF MAP?)
+apoc.couchbase.query(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?, config = {} :: MAP?) :: (queryResult :: LIST? OF MAP?)
 ----
 
 == Input parameters
@@ -24,6 +24,7 @@ apoc.couchbase.query(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRIN
 |hostOrKey|STRING?|null
 |bucket|STRING?|null
 |statement|STRING?|null
+|config|MAP?|{}
 |===
 
 == Output parameters

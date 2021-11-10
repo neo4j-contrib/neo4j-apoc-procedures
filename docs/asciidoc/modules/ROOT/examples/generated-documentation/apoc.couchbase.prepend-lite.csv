@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.couchbase.prepend(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, content :: BYTEARRAY?) :: (content :: BYTEARRAY?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)
+¦apoc.couchbase.prepend(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, content :: BYTEARRAY?, config = {} :: MAP?) :: (content :: BYTEARRAY?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)
