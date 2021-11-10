@@ -103,6 +103,14 @@ public class NodesAndRelsSubGraph implements SubGraph {
     }
 
     @Override
+    public Iterable<IndexDefinition> getIndexes(RelationshipType type) {
+        if (!types.contains(type.name())) {
+            return Collections.emptyList();
+        }
+        return tx.schema().getIndexes(type);
+    }
+
+    @Override
     public Iterable<RelationshipType> getAllRelationshipTypesInUse() {
         return types.stream()
                 .map(RelationshipType::withName)
