@@ -14,7 +14,7 @@ apoc.couchbase.get(hostOrKey, bucket, documentId) yield id, expiry, cas, mutatio
 
 [source]
 ----
-apoc.couchbase.get(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?) :: (content :: MAP?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)
+apoc.couchbase.get(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, config = {} :: MAP?) :: (content :: MAP?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)
 ----
 
 == Input parameters
@@ -24,6 +24,7 @@ apoc.couchbase.get(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING
 |hostOrKey|STRING?|null
 |bucket|STRING?|null
 |documentId|STRING?|null
+|config|MAP?|{}
 |===
 
 == Output parameters
