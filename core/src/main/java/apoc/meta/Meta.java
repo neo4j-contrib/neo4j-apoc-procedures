@@ -628,9 +628,11 @@ public class    Meta {
 
         Set<RelationshipType> types = Iterables.asSet(graph.getAllRelationshipTypesInUse());
         Map<String, Iterable<ConstraintDefinition>> relConstraints = new HashMap<>(20);
+        Map<String, Set<String>> relIndexes = new HashMap<>();
         for (RelationshipType type : graph.getAllRelationshipTypesInUse()) {
             metaData.put(Set.of(Types.RELATIONSHIP.name(), type.name()), new LinkedHashMap<>(10));
             relConstraints.put(type.name(),graph.getConstraints(type));
+            relIndexes.put(type.name(), getIndexedProperties(graph.getIndexes(type)));
         }
         for (Label label : graph.getAllLabelsInUse()) {
             Map<String,MetaResult> nodeMeta = new LinkedHashMap<>(50);
@@ -638,12 +640,7 @@ public class    Meta {
             // workaround in case of duplicated keys
             metaData.put(Set.of(Types.NODE.name(), labelName), nodeMeta);
             Iterable<ConstraintDefinition> constraints = graph.getConstraints(label);
-            Set<String> indexed = new LinkedHashSet<>();
-            for (IndexDefinition index : graph.getIndexes(label)) {
-                for (String prop : index.getPropertyKeys()) {
-                    indexed.add(prop);
-                }
-            }
+            Set<String> indexed = getIndexedProperties(graph.getIndexes(label));
             long labelCount = graph.countsForNode(label);
             long sample = getSampleForLabelCount(labelCount, config.getSample());
             Iterator<Node> nodes = graph.findNodes(label);
@@ -651,12 +648,19 @@ public class    Meta {
             while (nodes.hasNext()) {
                 Node node = nodes.next();
                 if(count++ % sample == 0) {
-                    addRelationships(metaData, nodeMeta, labelName, node, relConstraints, types);
+                    addRelationships(metaData, nodeMeta, labelName, node, relConstraints, types, relIndexes);
                     addProperties(nodeMeta, labelName, constraints, indexed, node, node);
                 }
             }
         }
         return metaData;
+    }
+
+    private Set<String> getIndexedProperties(Iterable<IndexDefinition> indexes) {
+        return Iterables.stream(indexes)
+                .map(IndexDefinition::getPropertyKeys)
+                .flatMap(Iterables::stream)
+                .collect(Collectors.toSet());
     }
 
     private Map<String, Long> getLabelCountStore() {
@@ -774,7 +778,8 @@ public class    Meta {
                     entityProperties.put(entityDataKey, MapUtil.map(
                             "type", metaResult.type,
                             "array", metaResult.array,
-                            "existence", metaResult.existence));
+                            "existence", metaResult.existence,
+                            "indexed", metaResult.index));
                 }
             }
             if (isRelationship) {
@@ -807,7 +812,9 @@ public class    Meta {
                                   String labelName,
                                   Node node,
                                   Map<String, Iterable<ConstraintDefinition>> relConstraints,
-                                  Set<RelationshipType> types) {
+                                  Set<RelationshipType> types,
+            Map<String, Set<String >> relIndexes
+    ) {
         StreamSupport.stream(node.getRelationshipTypes().spliterator(), false)
                 .filter(type -> types.contains(type))
                 .forEach(type -> {
@@ -818,17 +825,19 @@ public class    Meta {
                     // workaround in case of duplicated keys
 
                     Iterable<ConstraintDefinition> constraints = relConstraints.get(typeName);
+                    Set<String> indexes = relIndexes.get(typeName);
                     if (!nodeMeta.containsKey(typeName)) nodeMeta.put(typeName, new MetaResult(labelName,typeName));
 //            int in = node.getDegree(type, Direction.INCOMING);
 
                     Map<String, MetaResult> typeMeta = metaData.get(Set.of(typeName, Types.RELATIONSHIP.name()));
                     if (!typeMeta.containsKey(labelName)) typeMeta.put(labelName,new MetaResult(typeName,labelName));
                     MetaResult relMeta = nodeMeta.get(typeName);
-                    addOtherNodeInfo(node, labelName, out, type, relMeta , typeMeta, constraints);
+                    addOtherNodeInfo(node, labelName, out, type, relMeta , typeMeta, constraints, indexes);
                 });
     }
 
-    private void addOtherNodeInfo(Node node, String labelName, int out, RelationshipType type, MetaResult relMeta, Map<String, MetaResult> typeMeta, Iterable<ConstraintDefinition> relConstraints) {
+    private void addOtherNodeInfo(Node node, String labelName, int out, RelationshipType type, MetaResult relMeta, Map<String, MetaResult> typeMeta,
+                                  Iterable<ConstraintDefinition> relConstraints, Set<String> indexes) {
         MetaResult relNodeMeta = typeMeta.get(labelName);
         relMeta.elementType(Types.of(node).name());
         for (Relationship rel : node.getRelationships(Direction.OUTGOING, type)) {
@@ -837,8 +846,7 @@ public class    Meta {
             int in = endNode.getDegree(type, Direction.INCOMING);
             relMeta.inc().other(labels).rel(out , in);
             relNodeMeta.inc().other(labels).rel(out,in);
-            final String typeName = type.name();
-            addProperties(typeMeta, typeName, relConstraints, Collections.emptySet(), rel, node);
+            addProperties(typeMeta, type.name(), relConstraints, indexes, rel, node);
             relNodeMeta.elementType(Types.RELATIONSHIP.name());
         }
     }
