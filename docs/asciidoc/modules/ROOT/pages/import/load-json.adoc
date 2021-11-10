@@ -51,7 +51,7 @@ It supports the following config parameter:
 | name | type | default | description
 | failOnError | boolean | true | fail if error encountered while parsing JSON
 | binary | `Enum[NONE, BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]` | `null` | If not null, allow to take binary data instead of a file name/url as first parameter.
-Similar to xref::partial$usage/apoc.import.json.adoc[Binary file example]
+Similar to xref::overview/apoc.load/apoc.load.json.adoc#binary-json[Binary file example]
 | charset | java.nio.charset.Charset | `UTF_8` | The optional charset, with `binary` config not null and with string as file
 |===
 

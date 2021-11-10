@@ -9,5 +9,5 @@ The procedure support the following config parameters:
 | storeNodeIds | Boolean | false | store the `id` property of `node` elements
 | batchSize | Integer | 20000 | The number of elements to process per transaction
 | compression | `Enum[NONE, BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]` | `null` | Allow taking binary data, either not compressed (value: `NONE`) or compressed (other values)
-See to xref::partial$usage/apoc.import.csv.adoc[Binary file example]
+See the xref::overview/apoc.load/apoc.load.csv.adoc#binary-csv[Binary file example]
 |===

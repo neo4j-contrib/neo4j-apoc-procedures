@@ -15,5 +15,5 @@ The procedure support the following config parameters:
 | nullValues | List<String> | [] | which values to treat as null, e.g. `['na',false]`
 | mapping | Map | {} | per field mapping, entry key is field name, .e.g `{years:{....}` see below
 | compression | `Enum[NONE, BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]` | `null` | Allow taking binary data, either not compressed (value: `NONE`) or compressed (other values)
-See to xref::partial$usage/apoc.import.csv.adoc[Binary file example]
+See the xref::overview/apoc.load/apoc.load.csv.adoc#binary-csv[Binary file example]
 |===

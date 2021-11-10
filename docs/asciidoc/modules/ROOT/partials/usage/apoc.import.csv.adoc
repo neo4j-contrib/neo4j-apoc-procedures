@@ -99,6 +99,7 @@ RETURN path;
 |===
 
 
+[#binary-csv]
 == Binary file
 
 You can also import a file from a binary `byte[]` (not compressed, with default value `NONE`) or a compressed file (allowed compression algos are: `GZIP`, `BZIP2`, `DEFLATE`, `BLOCK_LZ4`, `FRAMED_SNAPPY`).

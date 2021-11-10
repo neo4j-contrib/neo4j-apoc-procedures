@@ -50,7 +50,7 @@ The Neo4j Browser visualization below shows the imported graph:
 
 image::apoc.load.json.local.file.svg[]
 
-
+[#binary-json]
 == Binary file
 
 You can also import a file from a binary `byte[]` (not compressed) or a compressed file (allowed compression algos are: `GZIP`, `BZIP2`, `DEFLATE`, `BLOCK_LZ4`, `FRAMED_SNAPPY`).
