@@ -299,7 +299,10 @@ public class SchemasEnterpriseFeaturesTest {
             tx.commit();
             return null;
         });
-        testResult(session, "CALL apoc.schema.nodes()", (result) -> {
+        testResult(session, "CALL apoc.schema.nodes() YIELD name, label, properties, status, type, " +
+                "failure, populationProgress, size, valuesSelectivity, userDescription " +
+                "WHERE label <> '<any-labels>' " +
+                "RETURN *", (result) -> {
             // Get the index info
             Map<String, Object> r = result.next();
 
@@ -326,7 +329,10 @@ public class SchemasEnterpriseFeaturesTest {
             return null;
         });
 
-        testResult(session, "CALL apoc.schema.nodes()", (result) -> {
+        testResult(session, "CALL apoc.schema.nodes() YIELD name, label, properties, status, type, " +
+                "failure, populationProgress, size, valuesSelectivity, userDescription " +
+                "WHERE label <> '<any-labels>' " +
+                "RETURN *", (result) -> {
             Map<String, Object> r = result.next();
 
             assertEquals("Bar", r.get("label"));
@@ -390,8 +396,9 @@ public class SchemasEnterpriseFeaturesTest {
             tx.commit();
             return null;
         });
-        
-        testResult(session, "CALL apoc.schema.relationships()", (result) -> {
+        testResult(session, "CALL apoc.schema.relationships() YIELD name, type, properties, status " +
+                "WHERE type <> '<any-types>' " +
+                "RETURN *", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("CONSTRAINT ON ()-[liked:LIKED]-() ASSERT exists(liked.day)", r.get("name"));
             assertEquals("RELATIONSHIP_PROPERTY_EXISTENCE", r.get("type"));
