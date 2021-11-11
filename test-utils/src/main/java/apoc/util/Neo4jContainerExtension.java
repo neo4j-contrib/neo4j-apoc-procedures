@@ -9,10 +9,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
+import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
+import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
+import org.testcontainers.containers.wait.strategy.WaitStrategy;
 import org.testcontainers.ext.ScriptUtils;
 
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.Scanner;
+
+import static java.net.HttpURLConnection.HTTP_OK;
 
 /**
  * Extension for the Neo4jcontainer class of Testcontainers
@@ -37,6 +44,17 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
     public Neo4jContainerExtension(String dockerImage) {
         // http on 4.0 seems to deliver a 404 first
         setDockerImageName(dockerImage);
+
+        WaitStrategy waitForBolt = new LogMessageWaitStrategy()
+                .withRegEx(String.format(".*Bolt enabled on (0\\.0\\.0\\.0:%d|\\[0:0:0:0:0:0:0:0%%0\\]:%1$s)\\.\n", 7687));
+        WaitStrategy waitForHttp = new HttpWaitStrategy()
+                .forPort(7474)
+                .forStatusCodeMatching(response -> response == HTTP_OK);
+
+        setWaitStrategy(new WaitAllStrategy()
+                .withStrategy(waitForBolt)
+                .withStrategy(waitForHttp)
+                .withStartupTimeout(Duration.ofMinutes(2)));
     }
 
     public Neo4jContainerExtension withInitScript(String filePath) {
