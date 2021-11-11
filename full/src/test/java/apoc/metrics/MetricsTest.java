@@ -4,6 +4,7 @@ import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -31,6 +32,7 @@ import static org.junit.Assume.assumeTrue;
  * @author as
  * @since 13.02.19
  */
+@Ignore("temporary ignore it")
 public class MetricsTest {
 
     private static Neo4jContainerExtension neo4jContainer;
