@@ -229,7 +229,7 @@ public class MultiStatementCypherSubGraphExporter {
     }
 
     private List<String> exportIndexes() {
-        return db.executeTransactionally("CALL db.indexes()", Collections.emptyMap(), result -> result.stream()
+        return db.executeTransactionally("SHOW INDEXES", Collections.emptyMap(), result -> result.stream()
                 .map(map -> {
                     if ("LOOKUP".equals(map.get("type"))) {
                         return "";
