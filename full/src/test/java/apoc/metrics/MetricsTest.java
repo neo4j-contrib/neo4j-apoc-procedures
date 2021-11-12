@@ -4,7 +4,6 @@ import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -32,7 +31,6 @@ import static org.junit.Assume.assumeTrue;
  * @author as
  * @since 13.02.19
  */
-@Ignore("temporary ignore it")
 public class MetricsTest {
 
     private static Neo4jContainerExtension neo4jContainer;
@@ -53,15 +51,6 @@ public class MetricsTest {
         assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
         session = neo4jContainer.getSession();
 
-        boolean metricsExist = false;
-        while (!metricsExist)  {
-            try {
-                neo4jContainer.copyFileFromContainer("/var/lib/neo4j/metrics/neo4j.bolt.connections_opened.csv", inputStream -> null);
-                metricsExist = true;
-            } catch (Exception e) {
-                Thread.sleep(200);
-            }
-        }
     }
 
     @AfterClass
@@ -113,10 +102,7 @@ public class MetricsTest {
     @Test
     public void shouldListMetrics() {
         testResult(session, "CALL apoc.metrics.list()",
-                (r) -> {
-
-            assertTrue("should have at least one element", r.hasNext());
-                });
+                (r) -> assertTrue("should have at least one element", r.hasNext()));
     }
 
 }

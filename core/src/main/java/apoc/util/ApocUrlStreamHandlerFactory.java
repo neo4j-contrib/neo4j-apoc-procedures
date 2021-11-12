@@ -8,6 +8,6 @@ public class ApocUrlStreamHandlerFactory implements URLStreamHandlerFactory {
     @Override
     public URLStreamHandler createURLStreamHandler(String protocol) {
         FileUtils.SupportedProtocols supportedProtocol = FileUtils.SupportedProtocols.of(protocol);
-        return supportedProtocol.createURLStreamHandler();
+        return supportedProtocol == null ? null : supportedProtocol.createURLStreamHandler();
     }
 }
