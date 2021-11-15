@@ -17,7 +17,7 @@ def collectNeo4jReleases() {
 
     // get from tags or releases?
     // https://api.github.com/repos/neo4j/neo4j/releases
-    def releases = slurper.parseText(new URL("https://search.maven.org/solrsearch/select?q=g:%22org.neo4j%22+AND+a:%22neo4j%22&core=gav&rows=500&wt=json").getText())
+    def releases = slurper.parseText(new URL("https://search.maven.org/solrsearch/select?q=g:%22org.neo4j%22+AND+a:%22neo4j%22&core=gav&rows=200&wt=json").getText())
     releases = releases.response.docs
 
     def actualReleases = []
