@@ -94,7 +94,7 @@ public class SchemasEnterpriseFeaturesTest {
             assertEquals(1, result.size());
             Map<String, Object> firstResult = result.get(0).asMap();
             assertThat( (String) firstResult.get( "createStatement" ) )
-                    .contains( "CREATE CONSTRAINT", "FOR (foo:`Foo`) REQUIRE (foo.`foo`, foo.`bar`) IS UNIQUE" );
+                    .contains( "CREATE CONSTRAINT", "FOR (foo:`Foo`) REQUIRE (foo.`foo`, foo.`bar`) IS NODE KEY" );
             tx.commit();
             return null;
         });
@@ -206,7 +206,7 @@ public class SchemasEnterpriseFeaturesTest {
             List<Record> result = tx.run("SHOW CONSTRAINTS YIELD createStatement").list();
             assertEquals(1, result.size());
             Map<String, Object> firstResult = result.get(0).asMap();
-            assertThat( (String) firstResult.get( "description" ) )
+            assertThat( (String) firstResult.get( "createStatement" ) )
                     .contains( "CREATE CONSTRAINT", "FOR (foo:`Foo`) REQUIRE (foo.`baa`, foo.`baz`) IS NODE KEY" );
             tx.commit();
             return null;
