@@ -21,6 +21,7 @@ import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testResult;
 import static apoc.util.TestUtil.isRunningInCI;
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -89,10 +90,11 @@ public class SchemasEnterpriseFeaturesTest {
         });
 
         session.readTransaction(tx -> {
-            List<Record> result = tx.run("CALL db.constraints").list();
+            List<Record> result = tx.run("SHOW CONSTRAINTS YIELD createStatement").list();
             assertEquals(1, result.size());
             Map<String, Object> firstResult = result.get(0).asMap();
-            assertEquals("CONSTRAINT ON ( foo:Foo ) ASSERT (foo.foo, foo.bar) IS NODE KEY", firstResult.get("description"));
+            assertThat( (String) firstResult.get( "createStatement" ) )
+                    .contains( "CREATE CONSTRAINT", "FOR (foo:`Foo`) REQUIRE (foo.`foo`, foo.`bar`) IS NODE KEY" );
             tx.commit();
             return null;
         });
@@ -124,15 +126,15 @@ public class SchemasEnterpriseFeaturesTest {
         });
 
         session.readTransaction(tx -> {
-            List<Record> result = tx.run("CALL db.constraints").list();
+            List<Record> result = tx.run("SHOW CONSTRAINTS YIELD createStatement").list();
             assertEquals(2, result.size());
             List<String> actualDescriptions = result.stream()
-                    .map(record -> (String) record.asMap().get("description"))
+                    .map(record -> (String) record.asMap().get("createStatement"))
                     .collect(Collectors.toList());
             List<String> expectedDescriptions = List.of(
-                    "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.foo, foo.bar) IS NODE KEY",
-                    "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.bar, foo.foo) IS NODE KEY");
-            assertEquals(expectedDescriptions, actualDescriptions);
+                    "FOR (foo:`Foo`) REQUIRE (foo.`foo`, foo.`bar`) IS NODE KEY",
+                    "FOR (foo:`Foo`) REQUIRE (foo.`bar`, foo.`foo`) IS NODE KEY" );
+            assertMatchesAll( expectedDescriptions, actualDescriptions );
             tx.commit();
             return null;
         });
@@ -155,15 +157,15 @@ public class SchemasEnterpriseFeaturesTest {
         });
 
         session.readTransaction(tx -> {
-            List<Record> result = tx.run("CALL db.constraints").list();
+            List<Record> result = tx.run("SHOW CONSTRAINTS YIELD createStatement").list();
             assertEquals(2, result.size());
             List<String> actualDescriptions = result.stream()
-                    .map(record -> (String) record.asMap().get("description"))
+                    .map(record -> (String) record.asMap().get("createStatement"))
                     .collect(Collectors.toList());
             List<String> expectedDescriptions = List.of(
-                    "CONSTRAINT ON ( galileo:Galileo ) ASSERT (galileo.newton, galileo.tesla) IS NODE KEY",
-                    "CONSTRAINT ON ( galileo:Galileo ) ASSERT (galileo.curie) IS UNIQUE");
-            assertEquals(expectedDescriptions, actualDescriptions);
+                    "FOR (galileo:`Galileo`) REQUIRE (galileo.`newton`, galileo.`tesla`) IS NODE KEY",
+                    "FOR ( galileo:`Galileo` ) REQUIRE (galileo.`curie`) IS UNIQUE");
+            assertMatchesAll( expectedDescriptions, actualDescriptions );
             tx.commit();
             return null;
         });
@@ -201,10 +203,11 @@ public class SchemasEnterpriseFeaturesTest {
         });
 
         session.readTransaction(tx -> {
-            List<Record> result = tx.run("CALL db.constraints").list();
+            List<Record> result = tx.run("SHOW CONSTRAINTS YIELD createStatement").list();
             assertEquals(1, result.size());
             Map<String, Object> firstResult = result.get(0).asMap();
-            assertEquals("CONSTRAINT ON ( foo:Foo ) ASSERT (foo.baa, foo.baz) IS NODE KEY", firstResult.get("description"));
+            assertThat( (String) firstResult.get( "createStatement" ) )
+                    .contains( "CREATE CONSTRAINT", "FOR (foo:`Foo`) REQUIRE (foo.`baa`, foo.`baz`) IS NODE KEY" );
             tx.commit();
             return null;
         });
@@ -225,7 +228,7 @@ public class SchemasEnterpriseFeaturesTest {
         });
 
         session.readTransaction(tx -> {
-            List<Record> result = tx.run("CALL db.constraints").list();
+            List<Record> result = tx.run("SHOW CONSTRAINTS").list();
             assertEquals(0, result.size());
             tx.commit();
             return null;
@@ -247,7 +250,7 @@ public class SchemasEnterpriseFeaturesTest {
         });
 
         session.readTransaction(tx -> {
-            List<Record> result = tx.run("CALL db.constraints").list();
+            List<Record> result = tx.run("SHOW CONSTRAINTS").list();
             assertEquals(0, result.size());
             tx.commit();
             return null;
@@ -270,7 +273,7 @@ public class SchemasEnterpriseFeaturesTest {
         });
 
         session.readTransaction(tx -> {
-            List<Record> result = tx.run("CALL db.constraints").list();
+            List<Record> result = tx.run("SHOW CONSTRAINTS").list();
             assertEquals(0, result.size());
             tx.commit();
             return null;
@@ -377,6 +380,25 @@ public class SchemasEnterpriseFeaturesTest {
             tx.commit();
             return null;
         });
+    }
+
+    private static void assertMatchesAll( List<String> expectedCreateStatements, List<String> actualCreateStatements )
+    {
+        for ( String expectedCreateStatement : expectedCreateStatements )
+        {
+            boolean foundStatement = false;
+            int foundIndex = -1;
+            for ( int i = 0; i < actualCreateStatements.size(); i++ )
+            {
+                if ( actualCreateStatements.get( i ).contains( expectedCreateStatement ) )
+                {
+                    foundStatement = true;
+                    foundIndex = i;
+                }
+            }
+            assertTrue( foundStatement );
+            actualCreateStatements.remove( foundIndex );
+        }
     }
 
     private List<String> expectedKeys(String... keys){
