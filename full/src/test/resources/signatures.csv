@@ -415,7 +415,6 @@ db.index.fulltext.drop,db.index.fulltext.drop(indexName :: STRING?) :: VOID
 db.index.fulltext.listAvailableAnalyzers,"db.index.fulltext.listAvailableAnalyzers() :: (analyzer :: STRING?, description :: STRING?)"
 db.index.fulltext.queryNodes,"db.index.fulltext.queryNodes(indexName :: STRING?, queryString :: STRING?) :: (node :: NODE?, score :: FLOAT?)"
 db.index.fulltext.queryRelationships,"db.index.fulltext.queryRelationships(indexName :: STRING?, queryString :: STRING?) :: (relationship :: RELATIONSHIP?, score :: FLOAT?)"
-db.indexes,"db.indexes() :: (description :: STRING?, indexName :: STRING?, tokenNames :: LIST? OF STRING?, properties :: LIST? OF STRING?, state :: STRING?, type :: STRING?, progress :: FLOAT?, provider :: MAP?, id :: INTEGER?, failureMessage :: STRING?)"
 db.labels,db.labels() :: (label :: STRING?)
 db.propertyKeys,db.propertyKeys() :: (propertyKey :: STRING?)
 db.relationshipTypes,db.relationshipTypes() :: (relationshipType :: STRING?)
