@@ -161,7 +161,7 @@ CALL apoc.periodic.iterate(
   'CALL apoc.load.jdbc("jdbc:mysql://localhost:3306/northwind?user=root","company")',
   'CREATE (p:Person) SET p += value',
   { batchSize:10000, parallel:true})
-RETURN batches, total
+YIELD batches, total
 ----
 
 == Cassandra Example
