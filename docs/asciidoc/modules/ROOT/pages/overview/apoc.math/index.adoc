@@ -98,5 +98,30 @@ apoc.math.sinh(val) \| returns the hyperbolic sin
 apoc.math.tanh(val) \| returns the hyperbolic tangent
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.sech.adoc[apoc.math.sech icon:book[]]
+
+apoc.math.sech(val) \| returns the hyperbolic secant
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.sigmoid.adoc[apoc.math.sigmoid icon:book[]]
+
+apoc.math.sigmoid(val) \| returns the sigmoid value
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.sigmoidPrime.adoc[apoc.math.sigmoidPrime icon:book[]]
+
+apoc.math.sigmoidPrime(val) \| returns the sigmoid prime [ sigmoid(val) * (1 - sigmoid(val)) ]
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.sinh.adoc[apoc.math.sinh icon:book[]]
+
+apoc.math.sinh(val) \| returns the hyperbolic sin
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.tanh.adoc[apoc.math.tanh icon:book[]]
+
+apoc.math.tanh(val) \| returns the hyperbolic tangent
+|label:function[]
+|label:apoc-core[]
 |===
 
