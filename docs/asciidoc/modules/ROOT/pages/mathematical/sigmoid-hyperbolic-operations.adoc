@@ -1,0 +1,127 @@
+[[math-functions]]
+= Math Functions
+:description: This section describes functions for common math operations.
+
+== Handle sigmoid and hyperbolic operations
+
+Apoc provides a set of function useful to ML purpose.
+All these functions returns a `Double` value.
+
+[options="header"]
+|===
+| Statement | Description
+| xref::overview/apoc.math/apoc.math.sech.adoc[apoc.math.sech(val)] | returns the hyperbolic secant
+| xref::overview/apoc.math/apoc.math.sigmoid.adoc[apoc.math.sigmoid(val)] | returns the sigmoid value
+| xref::overview/apoc.math/apoc.math.sigmoidPrime.adoc[apoc.math.sigmoidPrime(val)] | returns the sigmoid prime [ sigmoid(val) * (1 - sigmoid(val)) ]
+| xref::overview/apoc.math/apoc.math.sinh.adoc[apoc.math.sinh(val)] | returns the hyperbolic sin
+| xref::overview/apoc.math/apoc.math.tanh.adoc[apoc.math.tanh(val)] | returns the hyperbolic tangent
+| xref::overview/apoc.math/apoc.math.coth.adoc[apoc.math.coth(val)] | returns the hyperbolic cotangent
+| xref::overview/apoc.math/apoc.math.cosh.adoc[apoc.math.cosh(val)] | returns the hyperbolic cosin
+| xref::overview/apoc.math/apoc.math.csch.adoc[apoc.math.csch(val)] | returns the hyperbolic cosecant
+|===
+
+=== Usage examples
+
+.The following returns the hyperbolic cosecant
+[source,cypher]
+----
+RETURN apoc.math.csch(1.5) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| 0.47
+|===
+
+.The following returns the hyperbolic secant
+[source,cypher]
+----
+RETURN apoc.math.sech(1.5) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| 0.43
+|===
+
+.The following returns the hyperbolic cosin
+[source,cypher]
+----
+RETURN apoc.math.cosh(1.5) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| 2.35
+|===
+
+.The following returns the hyperbolic sin
+[source,cypher]
+----
+RETURN apoc.math.sinh(1.5) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| 2.13
+|===
+
+.The following returns the hyperbolic cotangent
+[source,cypher]
+----
+RETURN apoc.math.coth(3.5) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| 1.00
+|===
+
+.The following returns the hyperbolic tangent
+[source,cypher]
+----
+RETURN apoc.math.tanh(1.5) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| 0.90
+|===
+
+.The following returns the sigmoid prime
+[source,cypher]
+----
+RETURN apoc.math.sigmoidPrime(2.5) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| 0.70
+|===
+
+.The following returns the sigmoid
+[source,cypher]
+----
+RETURN apoc.math.sigmoidPrime(2.5) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| 0.92
+|===
