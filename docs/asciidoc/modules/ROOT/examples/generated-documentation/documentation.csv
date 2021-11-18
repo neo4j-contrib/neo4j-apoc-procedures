@@ -480,6 +480,11 @@ for the provided `label` and `uuidProperty`, in case the UUID handler is already
 ¦function¦apoc.math.minInt¦apoc.math.minInt() :: (INTEGER?)¦apoc.math.minInt() | return the minimum value an int can have¦true¦xref::mathematical/math-functions.adoc
 ¦function¦apoc.math.minLong¦apoc.math.minLong() :: (INTEGER?)¦apoc.math.minLong() | return the minimum value a long can have¦true¦xref::mathematical/math-functions.adoc
 ¦function¦apoc.math.round¦apoc.math.round(value :: FLOAT?, precision = 0 :: INTEGER?, mode = HALF_UP :: STRING?) :: (FLOAT?)¦apoc.math.round(value,[prec],mode=[CEILING,FLOOR,UP,DOWN,HALF_EVEN,HALF_DOWN,HALF_UP,DOWN,UNNECESSARY])¦true¦xref::mathematical/math-functions.adoc
+¦function¦apoc.math.sech¦apoc.math.sech(value :: FLOAT?) :: (FLOAT?)¦apoc.math.sech(val) | returns the hyperbolic secant¦true¦xref::mathematical/math-functions.adoc
+¦function¦apoc.math.sigmoid¦apoc.math.sigmoid(value :: FLOAT?) :: (FLOAT?)¦apoc.math.sigmoid(val) | returns the sigmoid value¦true¦xref::mathematical/math-functions.adoc
+¦function¦apoc.math.sigmoidPrime¦apoc.math.sigmoidPrime(value :: FLOAT?) :: (FLOAT?)¦apoc.math.sigmoidPrime(val) | returns the sigmoid prime [ sigmoid(val) * (1 - sigmoid(val)) ]¦true¦xref::mathematical/math-functions.adoc
+¦function¦apoc.math.sinh¦apoc.math.sinh(value :: FLOAT?) :: (FLOAT?)¦apoc.math.sinh(val) | returns the hyperbolic sin¦true¦xref::mathematical/math-functions.adoc
+¦function¦apoc.math.tanh¦apoc.math.tanh(value :: FLOAT?) :: (FLOAT?)¦apoc.math.tanh(val) | returns the hyperbolic tangent¦true¦xref::mathematical/math-functions.adoc
 ¦function¦apoc.meta.cypher.isType¦apoc.meta.cypher.isType(value :: ANY?, type :: STRING?) :: (BOOLEAN?)¦apoc.meta.cypher.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION)¦true¦
 ¦function¦apoc.meta.cypher.type¦apoc.meta.cypher.type(value :: ANY?) :: (STRING?)¦apoc.meta.cypher.type(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION)¦true¦
 ¦function¦apoc.meta.cypher.types¦apoc.meta.cypher.types(properties :: ANY?) :: (MAP?)¦apoc.meta.cypher.types(node-relationship-map)  - returns a map of keys to types¦true¦
