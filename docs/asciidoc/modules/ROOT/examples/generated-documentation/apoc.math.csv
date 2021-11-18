@@ -4,6 +4,21 @@
 apoc.math.regr(label, propertyY, propertyX) - It calculates the coefficient of determination (R-squared) for the values of propertyY and propertyX in the provided label
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.adoc[apoc.math.cosh icon:book[]]
+
+apoc.math.cosh(val) \| returns the hyperbolic cosin
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.adoc[apoc.math.coth icon:book[]]
+
+apoc.math.coth(val) \| returns the hyperbolic cotangent
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.adoc[apoc.math.csch icon:book[]]
+
+apoc.math.csch(val) \| returns the hyperbolic cosecant
+|label:function[]
+|label:apoc-core[]
 |xref::overview/apoc.math/apoc.math.adoc[apoc.math.maxByte icon:book[]]
 
 apoc.math.maxByte() \| return the maximum value an byte can have
@@ -47,5 +62,30 @@ apoc.math.minLong() \| return the minimum value a long can have
 |xref::overview/apoc.math/apoc.math.adoc[apoc.math.round icon:book[]]
 
 apoc.math.round(value,[precision],mode=['CEILING','FLOOR','UP','DOWN','HALF_EVEN','HALF_DOWN','HALF_UP','DOWN','UNNECESSARY'])
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.adoc[apoc.math.sech icon:book[]]
+
+apoc.math.sech(val) \| returns the hyperbolic secant
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.adoc[apoc.math.sigmoid icon:book[]]
+
+apoc.math.sigmoid(val) \| returns the sigmoid value
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.adoc[apoc.math.sigmoidPrime icon:book[]]
+
+apoc.math.sigmoidPrime(val) \| returns the sigmoid prime [ sigmoid(val) * (1 - sigmoid(val)) ]
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.adoc[apoc.math.sinh icon:book[]]
+
+apoc.math.sinh(val) \| returns the hyperbolic sin
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.adoc[apoc.math.tanh icon:book[]]
+
+apoc.math.tanh(val) \| returns the hyperbolic tangent
 |label:function[]
 |label:apoc-core[]

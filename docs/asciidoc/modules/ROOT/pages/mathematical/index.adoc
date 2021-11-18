@@ -10,3 +10,4 @@ For more information on how to use these procedures, see:
 * xref::mathematical/exact-math-functions.adoc[]
 * xref::mathematical/number-conversions.adoc[]
 * xref::mathematical/bitwise-operations.adoc[]
+* xref::mathematical/sigmoid-hyperbolic-operations.adoc[]
