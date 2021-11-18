@@ -7,14 +7,13 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import org.neo4j.driver.Record;
-import org.neo4j.driver.Session;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
@@ -289,7 +288,7 @@ public class SchemasEnterpriseFeaturesTest {
         });
 
         String indexName = session.readTransaction(tx -> {
-            String name = tx.run("SHOW INDEXES YIELD name RETURN name").single().get("name").asString();
+            String name = tx.run("CALL db.indexes() YIELD name RETURN name").single().get("name").asString();
             tx.commit();
             return name;
         });
