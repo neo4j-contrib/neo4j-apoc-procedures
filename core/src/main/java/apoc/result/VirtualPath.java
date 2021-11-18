@@ -127,20 +127,15 @@ public class VirtualPath implements Path {
     }
 
     private void requireConnected(Relationship relationship) {
-        Node previousStartNode;
         Node previousEndNode;
         Relationship previousRelationship = lastRelationship();
         if (previousRelationship != null) {
-            previousStartNode = previousRelationship.getStartNode();
             previousEndNode = previousRelationship.getEndNode();
         } else {
-            previousStartNode = startNode();
             previousEndNode = endNode();
         }
-        if (relationship.getStartNode() != previousEndNode
-                || relationship.getStartNode() != previousStartNode
-                || relationship.getEndNode() != previousEndNode
-                || relationship.getEndNode() != previousStartNode) {
+        if (!relationship.getStartNode().equals(previousEndNode)
+                && !relationship.getEndNode().equals(previousEndNode)) {
             throw new IllegalArgumentException("Relationship is not part of current path.");
         }
     }
