@@ -18,6 +18,8 @@ include::partial$generated-documentation/nav.adoc[]
 
 * xref::config/index.adoc[]
 
+* xref::general-considerations/index.adoc[]
+
 * xref::import/index.adoc[]
     ** xref::import/web-apis.adoc[]
     ** xref::import/load-json.adoc[]
