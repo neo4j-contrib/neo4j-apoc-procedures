@@ -165,6 +165,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
                     Pair.of(SystemPropertyKeys.label.name(), label),
                     Pair.of(SystemPropertyKeys.propertyName.name(), propertyName)
                     );
+            node.setProperty(SystemPropertyKeys.addToSetLabel.name(), config.isAddToSetLabels());
             sysTx.commit();
         }
     }
