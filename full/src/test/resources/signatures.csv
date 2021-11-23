@@ -383,7 +383,6 @@ db.createLabel,db.createLabel(newLabel :: STRING?) :: VOID
 db.createNodeKey,"db.createNodeKey(index :: STRING?, providerName :: STRING?) :: (index :: STRING?, providerName :: STRING?, status :: STRING?)"
 db.createProperty,db.createProperty(newProperty :: STRING?) :: VOID
 db.createRelationshipType,db.createRelationshipType(newRelationshipType :: STRING?) :: VOID
-db.createUniquePropertyConstraint,"db.createUniquePropertyConstraint(index :: STRING?, providerName :: STRING?) :: (index :: STRING?, providerName :: STRING?, status :: STRING?)"
 db.index.explicit.addNode,"db.index.explicit.addNode(indexName :: STRING?, node :: NODE?, key :: STRING?, value :: ANY?) :: (success :: BOOLEAN?)"
 db.index.explicit.addRelationship,"db.index.explicit.addRelationship(indexName :: STRING?, relationship :: RELATIONSHIP?, key :: STRING?, value :: ANY?) :: (success :: BOOLEAN?)"
 db.index.explicit.auto.searchNodes,"db.index.explicit.auto.searchNodes(query :: ANY?) :: (node :: NODE?, weight :: FLOAT?)"
