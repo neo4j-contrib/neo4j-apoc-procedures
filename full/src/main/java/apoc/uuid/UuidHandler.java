@@ -165,6 +165,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
                     Pair.of(SystemPropertyKeys.label.name(), label),
                     Pair.of(SystemPropertyKeys.propertyName.name(), propertyName)
                     );
+            node.setProperty(SystemPropertyKeys.addToSetLabel.name(), config.isAddToSetLabels());
             sysTx.commit();
         }
     }
@@ -181,7 +182,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
                     .forEachRemaining(node -> {
                         final UuidConfig config =  new UuidConfig(Map.of(
                                 "uuidProperty", node.getProperty(SystemPropertyKeys.propertyName.name()),
-                                "addToSetLabels", node.getProperty(SystemPropertyKeys.addToSetLabel.name())));
+                                "addToSetLabels", node.getProperty(SystemPropertyKeys.addToSetLabel.name(), false)));
                         configuredLabelAndPropertyNames.put((String)node.getProperty(SystemPropertyKeys.label.name()), config);
                     });
             tx.commit();

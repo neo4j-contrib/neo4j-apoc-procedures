@@ -5,6 +5,9 @@ import apoc.convert.Convert;
 import apoc.export.util.CountingInputStream;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
@@ -931,5 +934,15 @@ public class Util {
 
     public static boolean isSelfRel(Relationship rel) {
         return rel.getStartNodeId() == rel.getEndNodeId();
+    }
+
+    public static String toCypherMap(Map<String, Object> map) {
+        try {
+            return new ObjectMapper()
+                    .disable(JsonGenerator.Feature.QUOTE_FIELD_NAMES)
+                    .writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
