@@ -380,7 +380,6 @@ apoc.xml.import,"apoc.xml.import(url :: STRING?, config = {} :: MAP?) :: (node :
 db.awaitIndex,"db.awaitIndex(index :: STRING?, timeOutSeconds = 300 :: INTEGER?) :: VOID"
 db.awaitIndexes,db.awaitIndexes(timeOutSeconds = 300 :: INTEGER?) :: VOID
 db.createLabel,db.createLabel(newLabel :: STRING?) :: VOID
-db.createNodeKey,"db.createNodeKey(index :: STRING?, providerName :: STRING?) :: (index :: STRING?, providerName :: STRING?, status :: STRING?)"
 db.createProperty,db.createProperty(newProperty :: STRING?) :: VOID
 db.createRelationshipType,db.createRelationshipType(newRelationshipType :: STRING?) :: VOID
 db.index.explicit.addNode,"db.index.explicit.addNode(indexName :: STRING?, node :: NODE?, key :: STRING?, value :: ANY?) :: (success :: BOOLEAN?)"
