@@ -23,6 +23,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author as
@@ -42,12 +43,13 @@ public class SchemasEnterpriseFeaturesTest {
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
+        assumeTrue(neo4jContainer.isRunning());
         session = neo4jContainer.getSession();
     }
 
     @AfterClass
     public static void afterAll() {
-        if (neo4jContainer != null) {
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
             session.close();
             neo4jContainer.close();
         }

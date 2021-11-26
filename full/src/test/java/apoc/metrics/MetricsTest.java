@@ -25,6 +25,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author as
@@ -44,22 +45,13 @@ public class MetricsTest {
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
+        assumeTrue(neo4jContainer.isRunning());
         session = neo4jContainer.getSession();
-
-        boolean metricsExist = false;
-        while (!metricsExist)  {
-            try {
-                neo4jContainer.copyFileFromContainer("/var/lib/neo4j/metrics/neo4j.bolt.connections_opened.csv", inputStream -> null);
-                metricsExist = true;
-            } catch (Exception e) {
-                Thread.sleep(200);
-            }
-        }
     }
 
     @AfterClass
     public static void afterAll() {
-        if (neo4jContainer != null) {
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
             neo4jContainer.close();
         }
     }

@@ -14,6 +14,7 @@ import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.Util.map;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 public class CypherEnterpriseTest {
 
@@ -30,12 +31,13 @@ public class CypherEnterpriseTest {
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
+        assumeTrue(neo4jContainer.isRunning());
         session = neo4jContainer.getSession();
     }
 
     @AfterClass
     public static void afterAll() {
-        if (neo4jContainer != null) {
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
             session.close();
             neo4jContainer.close();
         }

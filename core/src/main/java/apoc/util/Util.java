@@ -35,7 +35,6 @@ import org.neo4j.values.storable.Values;
 import javax.lang.model.SourceVersion;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -84,8 +83,6 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import java.util.zip.DeflaterInputStream;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -364,24 +361,16 @@ public class Util {
        if (!isRedirect(((HttpURLConnection)con))) return url;
        return con.getHeaderField("Location");
     }
-    
-    public static CountingInputStream openInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
-        return openInputStream(urlAddress, headers, payload, null);
-    }
 
     public static CountingInputStream openInputStream(Object input, Map<String, Object> headers, String payload, String compressionAlgo) throws IOException {
-        StreamConnection sc;
-        InputStream stream;
         if (input instanceof String) {
             String urlAddress = (String) input;
             if (urlAddress.contains("!") && (urlAddress.contains(".zip") || urlAddress.contains(".tar") || urlAddress.contains(".tgz"))) {
                 return getStreamCompressedFile(urlAddress, headers, payload);
             }
 
-            sc = getStreamConnection(urlAddress, headers, payload);
-            stream = getInputStream(sc, urlAddress);
-
-            return new CountingInputStream(stream, sc.getLength());
+            StreamConnection sc = getStreamConnection(urlAddress, headers, payload);
+            return sc.toCountingInputStream();
         } else if (input instanceof byte[]) {
             return FileUtils.getInputStreamFromBinary((byte[]) input, compressionAlgo);
         } else {
@@ -406,29 +395,9 @@ public class Util {
     }
 
     private static StreamConnection getStreamConnection(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
-        URL url = new URL(urlAddress);
-        String protocol = url.getProtocol();
-        if (FileUtils.S3_PROTOCOL.equalsIgnoreCase(protocol)) {
-            return FileUtils.openS3InputStream(url);
-        } else if (FileUtils.HDFS_PROTOCOL.equalsIgnoreCase(protocol)) {
-            return FileUtils.openHdfsInputStream(url);
-        } else {
-            return readHttpInputStream(urlAddress, headers, payload);
-        }
-    }
-
-    private static InputStream getInputStream(StreamConnection sc, String urlAddress) throws IOException {
-        InputStream stream = sc.getInputStream();
-        String encoding = sc.getEncoding();
-
-        if ("gzip".equals(encoding) || urlAddress.endsWith(".gz")) {
-             return new GZIPInputStream(stream);
-        }
-        if ("deflate".equals(encoding)) {
-            return new DeflaterInputStream(stream);
-        }
-
-        return stream;
+        return FileUtils.SupportedProtocols
+                .from(urlAddress)
+                .getStreamConnection(urlAddress, headers, payload);
     }
 
     private static InputStream getFileStreamIntoCompressedFile(InputStream is, String fileName) throws IOException {
@@ -445,7 +414,7 @@ public class Util {
         return null;
     }
 
-    private static StreamConnection readHttpInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
+    public static StreamConnection readHttpInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
         URLConnection con = openUrlConnection(urlAddress, headers);
         writePayload(con, payload);
         String newUrl = handleRedirect(con, urlAddress);

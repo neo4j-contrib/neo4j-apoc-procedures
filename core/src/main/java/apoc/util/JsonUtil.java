@@ -29,8 +29,6 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.ApocConfig.apocConfig;
-
 /**
  * @author mh
  * @since 04.05.16
@@ -92,21 +90,18 @@ public class JsonUtil {
         try {
             if (urlOrBinary instanceof String) {
                 String url = (String) urlOrBinary;
-                url = Util.getLoadUrlByConfigFile("json", url, "url").orElse(url);
-                apocConfig().checkReadAllowed(url);
-                urlOrBinary = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
+                urlOrBinary = Util.getLoadUrlByConfigFile("json", url, "url").orElse(url);
             }
-            InputStream input = Util.openInputStream(urlOrBinary, headers, payload, compressionAlgo);
+            InputStream input = FileUtils.inputStreamFor(urlOrBinary, headers, payload, compressionAlgo);
             JsonParser parser = OBJECT_MAPPER.getFactory().createParser(input);
             MappingIterator<Object> it = OBJECT_MAPPER.readValues(parser, Object.class);
             Stream<Object> stream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(it, 0), false);
-            return StringUtils.isBlank(path) ? stream  : stream.map((value) -> JsonPath.parse(value, getJsonPathConfig(options)).read(path));
+            return StringUtils.isBlank(path) ? stream : stream.map((value) -> JsonPath.parse(value, getJsonPathConfig(options)).read(path));
         } catch (IOException e) {
-            String u = urlOrBinary instanceof String ? Util.cleanUrl((String) urlOrBinary) : null;
             if(!failOnError) {
                 return Stream.of();
             } else {
-                throw new RuntimeException("Can't read binary, url or key " + u + " as json: " + e.getMessage());
+                throw new RuntimeException(e);
             }
         }
     }
