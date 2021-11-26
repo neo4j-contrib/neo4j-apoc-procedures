@@ -1,5 +1,6 @@
 package apoc.cypher;
 
+import apoc.ApocExtensionFactory;
 import apoc.test.EnvSettingRule;
 import apoc.test.annotations.Env;
 import apoc.test.annotations.EnvSetting;
@@ -9,18 +10,16 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
+
+import java.util.Collection;
+import java.util.Collections;
+
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.internal.helpers.Listeners;
 import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.kernel.availability.AvailabilityGuard;
 import org.neo4j.kernel.availability.AvailabilityListener;
-import org.neo4j.kernel.availability.DatabaseAvailabilityGuard;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.test.ReflectionUtil;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.Collections;
 
 import static apoc.ApocConfig.APOC_CONFIG_INITIALIZER;
 import static apoc.ApocConfig.APOC_CONFIG_INITIALIZER_CYPHER;
@@ -61,20 +60,17 @@ public class CypherInitializerTest {
      * @return
      */
     private CypherInitializer getInitializer(String dbName) {
-        GraphDatabaseAPI api = ((GraphDatabaseAPI) (dbmsRule.getManagementService().database(dbName)));
-        DatabaseAvailabilityGuard availabilityGuard = (DatabaseAvailabilityGuard) api.getDependencyResolver().resolveDependency(AvailabilityGuard.class);;
-        try {
-            Listeners<AvailabilityListener> listeners = ReflectionUtil.getPrivateField(availabilityGuard, "listeners", Listeners.class);
-            for (AvailabilityListener listener: listeners) {
-                if (listener instanceof CypherInitializer) {
-                     return (CypherInitializer) listener;
-                }
+        var api = ((GraphDatabaseAPI) (dbmsRule.getManagementService().database( dbName )));
+        var apoc = api.getDependencyResolver().resolveDependency( ApocExtensionFactory.ApocLifecycle.class );
+        var listeners = apoc.getRegisteredListeners();
+        for ( AvailabilityListener listener : listeners )
+        {
+            if ( listener instanceof CypherInitializer )
+            {
+                return (CypherInitializer) listener;
             }
-            throw new IllegalStateException("found no cypher initializer");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
-
+        throw new IllegalStateException( "found no cypher initializer" );
     }
 
     @Test
