@@ -28,7 +28,7 @@ public class CypherInitializer implements AvailabilityListener {
     /**
      * indicates the status of the initializer, to be used for tests to ensure initializer operations are already done
      */
-    private boolean finished = false;
+    private volatile boolean finished = false;
 
     public CypherInitializer(GraphDatabaseAPI db, Log userLog) {
         this.db = db;
