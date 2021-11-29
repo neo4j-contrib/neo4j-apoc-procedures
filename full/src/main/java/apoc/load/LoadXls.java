@@ -102,7 +102,7 @@ public class LoadXls {
     @Description("apoc.load.xls('url','selector',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,\n config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false, dateFormat:'iso_date', dateParse:['dd-MM-yyyy']}}")
     public Stream<XLSResult> xls(@Name("url") String url, @Name("selector") String selector, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         boolean failOnError = booleanValue(config, "failOnError", true);
-        try (CountingInputStream stream = FileUtils.inputStreamFor(url)) {
+        try (CountingInputStream stream = FileUtils.inputStreamFor(url, null, null, null)) {
             Selection selection = new Selection(selector);
 
             char arraySep = separator(config, "arraySep", DEFAULT_ARRAY_SEP);

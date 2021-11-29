@@ -8,7 +8,6 @@ import apoc.result.NodeResult;
 import apoc.util.CompressionAlgo;
 import apoc.util.CompressionConfig;
 import apoc.util.FileUtils;
-import apoc.util.Util;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
@@ -65,12 +64,6 @@ import java.util.stream.Stream;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.FileUtils.getInputStreamFromBinary;
 import static apoc.util.Util.ERROR_BYTES_OR_STRING;
-import static apoc.util.Util.cleanUrl;
-import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
-import static javax.xml.stream.XMLStreamConstants.END_DOCUMENT;
-import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
-import static javax.xml.stream.XMLStreamConstants.START_DOCUMENT;
-import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 
 public class Xml {
 
@@ -107,14 +100,8 @@ public class Xml {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
         try {
-            Map<String, Object> finalConfig = config;
-            if (urlOrBinary instanceof String) {
-                String url = (String) urlOrBinary;
-                apocConfig.checkReadAllowed(url);
-                urlOrBinary = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
-            }
-            Map<String, Object> headers = (Map) finalConfig.getOrDefault("headers", Collections.emptyMap());
-            CountingInputStream is = Util.openInputStream(urlOrBinary, headers, null, (String) finalConfig.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name()));
+            Map<String, Object> headers = (Map) config.getOrDefault("headers", Collections.emptyMap());
+            CountingInputStream is = FileUtils.inputStreamFor(urlOrBinary, headers, null, (String) config.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name()));
             return parse(is, simpleMode, path, failOnError);
         } catch (Exception e){
             if(!failOnError)
