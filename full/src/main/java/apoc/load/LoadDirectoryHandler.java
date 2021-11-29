@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.ApocConfig;
 import apoc.Pools;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -156,7 +157,7 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
 
     public static String getPathDependingOnUseNeo4jConfig(String urlFile) {
         return isImportUsingNeo4jConfig()
-                ? replaceOnce(urlFile, getDirImport() + File.separator, "")
+                ? replaceOnce(urlFile, ApocConfig.apocConfig().getImportDir() + File.separator, "")
                 : urlFile;
     }
 }

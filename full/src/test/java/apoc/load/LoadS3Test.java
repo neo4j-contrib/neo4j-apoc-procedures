@@ -5,7 +5,13 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.s3.S3Container;
 import apoc.xml.XmlTestUtils;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 import org.neo4j.driver.internal.util.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -16,6 +22,7 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
 
 public class LoadS3Test {
 
@@ -43,6 +50,7 @@ public class LoadS3Test {
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class, Xml.class);
         minio = new S3Container();
+        assumeTrue(minio.isRunning());
     }
 
     @After
