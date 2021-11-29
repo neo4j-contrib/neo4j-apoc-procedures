@@ -8,6 +8,8 @@ The library supports manual and automation generation of UUIDs, which can be sto
 
 UUIDs are generated using the https://docs.oracle.com/javase/7/docs/api/java/util/UUID.html#randomUUID()[java randomUUID utility method], which generates a https://www.ietf.org/rfc/rfc4122.txt[v4UUID].
 
+UUID may be encoded into String with well know hexadecimal presentation (32 characters, e.g. `1051af4f-b81d-4a76-8605-ecfb8ef703d5`) or Base64 (22 characters, e.g. `vX8dM5XoSe2ldoc/QzMEyw`)
+
 [[manual-uuids]]
 == Manual UUIDs
 
@@ -15,11 +17,14 @@ UUIDs are generated using the https://docs.oracle.com/javase/7/docs/api/java/uti
 |===
 ¦Qualified Name¦Type¦Release
 include::example$generated-documentation/apoc.create.uuid.adoc[]
+include::example$generated-documentation/apoc.create.uuidBase64.adoc[]
+include::example$generated-documentation/apoc.create.uuidBase64ToHex.adoc[]
+include::example$generated-documentation/apoc.create.uuidHexToBase64.adoc[]
 |===
 
 
-
-.The following generates a UUID
+=== Usage Examples
+The following generates a UUID
 [source,cypher]
 ----
 RETURN apoc.create.uuid() AS uuid;
@@ -32,7 +37,7 @@ RETURN apoc.create.uuid() AS uuid;
 | "1051af4f-b81d-4a76-8605-ecfb8ef703d5"
 |===
 
-.The following creates a `Person` node, using a UUID as the merging key:
+The following creates a `Person` node, using a UUID as the merging key:
 
 [source, cypher]
 ----
@@ -48,6 +53,9 @@ RETURN p
 | {"firstName":"Michael","surname":"Hunger","id":"5530953d-b85e-4939-b37f-a79d54b770a3"}
 |===
 
+include::partial$usage/apoc.create.uuidBase64.adoc[]
+include::partial$usage/apoc.create.uuidHexToBase64.adoc[]
+include::partial$usage/apoc.create.uuidBase64ToHex.adoc[]
 
 [[automatic-uuids]]
 == Automatic UUIDs
@@ -57,6 +65,8 @@ The UUID handler is a transaction event handler that automatically adds the UUID
 Please check the following documentation to an in-depth description.
 
 Enable `apoc.uuid.enabled=true` or `apoc.uuid.enabled.[DATABASE_NAME]=true` in `$NEO4J_HOME/config/apoc.conf` first.
+
+Configuration value `apoc.uuid.format` let you choose between different UUID encoding methods: `hex` (default option) or `base64`.
 
 [separator=¦,opts=header,cols="5,1m,1m"]
 |===
