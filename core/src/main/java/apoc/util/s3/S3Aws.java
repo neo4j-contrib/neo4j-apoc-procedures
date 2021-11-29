@@ -64,6 +64,11 @@ public class S3Aws {
             public long getLength() {
                 return metadata.getContentLength();
             }
+
+            @Override
+            public String getName() {
+                return s3Params.getKey();
+            }
         };
     }
 

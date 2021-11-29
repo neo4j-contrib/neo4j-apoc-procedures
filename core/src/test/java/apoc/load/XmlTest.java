@@ -58,7 +58,7 @@ public class XmlTest {
 
     @Test
     public void testMixedContent() {
-        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/mixedcontent.xml')", //  YIELD value RETURN value
+        testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/mixedcontent.xml") + "')", //  YIELD value RETURN value
                 this::commonAssertionsMixedContent);
     }
 
@@ -86,7 +86,7 @@ public class XmlTest {
 
     @Test
     public void testBookIds() {
-        testResult(db, "call apoc.load.xml('file:src/test/resources/xml/books.xml') yield value as catalog\n" +
+        testResult(db, "call apoc.load.xml('" + TestUtil.getUrlFileName("xml/books.xml") + "') yield value as catalog\n" +
                 "UNWIND catalog._children as book\n" +
                 "RETURN book.id as id\n", result -> {
             List<Object> ids = Iterators.asList(result.columnAs("id"));
@@ -96,7 +96,7 @@ public class XmlTest {
 
     @Test
     public void testFilterIntoCollection() {
-        testResult(db, "call apoc.load.xml('file:src/test/resources/xml/books.xml') yield value as catalog\n" +
+        testResult(db, "call apoc.load.xml('" + TestUtil.getUrlFileName("xml/books.xml") + "') yield value as catalog\n" +
                         "    UNWIND catalog._children as book\n" +
                         "    RETURN book.id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs"
                 , result -> {
@@ -122,7 +122,7 @@ public class XmlTest {
 
     @Test
     public void testReturnCollectionElements() {
-        testResult(db, "call apoc.load.xml('file:src/test/resources/xml/books.xml') yield value as catalog " +
+        testResult(db, "call apoc.load.xml('" + TestUtil.getUrlFileName("xml/books.xml") + "') yield value as catalog " +
                 "unwind catalog._children as book " +
                 "return book.id as id, [x in book._children where x._type = 'author' | x._text] as authors, [x in book._children where x._type='title' | x._text] as title", result -> {
 
@@ -148,7 +148,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlXpathAuthorFromBookId () {
-        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[@id=\"bk102\"]/author') yield value as result",
+        testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/books.xml") + "', '/catalog/book[@id=\"bk102\"]/author') yield value as result",
                 (r) -> {
                     assertEquals("author", ((Map) r.get("result")).get("_type"));
                     assertEquals("Ralls, Kim", ((Map) r.get("result")).get("_text"));
@@ -157,7 +157,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlXpathGenreFromBookTitle () {
-        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[title=\"Maeve Ascendant\"]/genre') yield value as result",
+        testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/books.xml") + "', '/catalog/book[title=\"Maeve Ascendant\"]/genre') yield value as result",
                 (r) -> {
                     assertEquals("genre", ((Map) r.get("result")).get("_type"));
                     assertEquals("Fantasy", ((Map) r.get("result")).get("_text"));
@@ -166,7 +166,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlXpathReturnBookFromBookTitle () {
-        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[title=\"Maeve Ascendant\"]/.') yield value as result",
+        testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/books.xml") + "', '/catalog/book[title=\"Maeve Ascendant\"]/.') yield value as result",
                 (r) -> {
                     Object value = Iterables.single(r.values());
                     assertEquals(XmlTestUtils.XML_XPATH_AS_NESTED_MAP, value);
@@ -175,7 +175,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlXpathBooKsFromGenre () {
-        testResult(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[genre=\"Computer\"]') yield value as result",
+        testResult(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/books.xml") + "', '/catalog/book[genre=\"Computer\"]') yield value as result",
                 (r) -> {
                     Map<String, Object> next = r.next();
                     Object result = next.get("result");
@@ -396,7 +396,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlSingleLineSimple() {
-        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml', '/', null, true)", //  YIELD value RETURN value
+        testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/singleLine.xml") + "', '/', null, true)", //  YIELD value RETURN value
                 (row) -> {
                     assertEquals(XmlTestUtils.XML_AS_SINGLE_LINE_SIMPLE, row.get("value"));
                 });
@@ -404,7 +404,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlSingleLine() {
-        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml')", //  YIELD value RETURN value
+        testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/singleLine.xml") + "')", //  YIELD value RETURN value
                 (row) -> {
                     assertEquals(XmlTestUtils.XML_AS_SINGLE_LINE, row.get("value"));
                 });
@@ -427,7 +427,7 @@ public class XmlTest {
     @Test(expected = QueryExecutionException.class)
     public void testLoadXmlPreventXXEVulnerabilityThrowsQueryExecutionException() {
         try {
-            testResult(db, "CALL apoc.load.xml('file:src/test/resources/xml/xxe.xml', '/catalog/book[genre=\"Computer\"]') yield value as result", (r) -> {
+            testResult(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/xxe.xml") + "', '/catalog/book[genre=\"Computer\"]') yield value as result", (r) -> {
                 r.next();
                 r.close();
             });

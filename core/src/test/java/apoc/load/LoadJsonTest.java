@@ -16,6 +16,7 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -302,8 +303,10 @@ public class LoadJsonTest {
             testResult(db, "CALL apoc.load.json($key)",map("key","foo"), (r) -> r.hasNext());
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
-            assertTrue(except instanceof RuntimeException);
-            assertEquals("Can't read binary, url or key invalid URL (foo) as json: no protocol: foo", except.getMessage());
+            assertTrue(except instanceof IOException);
+            final String message = except.getMessage();
+            assertTrue(message.startsWith("Cannot open file "));
+            assertTrue(message.endsWith("foo for reading."));
             throw e;
         }
     }
