@@ -29,6 +29,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 import static org.neo4j.driver.Values.isoDuration;
 import static org.neo4j.driver.Values.point;
 
@@ -55,6 +56,7 @@ public class BoltTest {
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
+        assumeTrue(neo4jContainer.isRunning());
         BOLT_URL = "'" + "bolt://neo4j:neo4j2020@" + neo4jContainer.getContainerIpAddress() + ":" + neo4jContainer.getMappedPort(7687) + "'";
 
         TestUtil.registerProcedure(db, Bolt.class, ExportCypher.class, Cypher.class);
@@ -62,7 +64,7 @@ public class BoltTest {
 
     @AfterClass
     public static void tearDown() {
-        if (neo4jContainer != null) {
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
             neo4jContainer.close();
         }
     }

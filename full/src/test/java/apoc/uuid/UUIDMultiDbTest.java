@@ -19,6 +19,7 @@ import static apoc.uuid.UuidHandler.NOT_ENABLED_ERROR;
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 public class UUIDMultiDbTest {
 
@@ -36,6 +37,7 @@ public class UUIDMultiDbTest {
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
+        assumeTrue(neo4jContainer.isRunning());
 
         driver = GraphDatabase.driver(neo4jContainer.getBoltUrl(), AuthTokens.basic("neo4j", "apoc"));
 
@@ -46,7 +48,7 @@ public class UUIDMultiDbTest {
 
     @AfterClass
     public static void bringDownContainer() {
-        if (neo4jContainer != null) {
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
             neo4jContainer.close();
         }
     }

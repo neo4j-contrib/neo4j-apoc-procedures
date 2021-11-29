@@ -37,7 +37,7 @@ public interface ExportArrowFileStrategy<IN> extends ExportArrowStrategy<IN, Str
 
     default Stream<ProgressInfo> export(IN data, ArrowConfig config) {
         final BlockingQueue<ProgressInfo> queue = new ArrayBlockingQueue<>(10);
-        final OutputStream out = FileUtils.getOutputStream(getFileName(), null);
+        final OutputStream out = FileUtils.getOutputStream(getFileName());
         ProgressInfo progressInfo = new ProgressInfo(getFileName(), getSource(data), "arrow");
         progressInfo.batchSize = config.getBatchSize();
         ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);

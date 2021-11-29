@@ -1,6 +1,17 @@
 package apoc.export.util;
 
-import java.io.*;
+import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.channels.SeekableByteChannel;
 
 /**
  * @author mh
@@ -71,4 +82,8 @@ public class CountingInputStream extends FilterInputStream implements SizeCounte
 		Reader reader = new InputStreamReader(in,"UTF-8");
         return new CountingReader(reader,total);
 	}
+
+	public SeekableByteChannel asChannel() throws IOException {
+        return new SeekableInMemoryByteChannel(this.readAllBytes());
+    }
 }

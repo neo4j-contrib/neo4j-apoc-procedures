@@ -11,6 +11,7 @@ import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 public class TTLMultiDbTest {
 
@@ -36,6 +37,7 @@ public class TTLMultiDbTest {
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
+        assumeTrue(neo4jContainer.isRunning());
 
         driver = GraphDatabase.driver(neo4jContainer.getBoltUrl(), AuthTokens.basic("neo4j", "apoc"));
 
@@ -56,7 +58,7 @@ public class TTLMultiDbTest {
 
     @AfterClass
     public static void bringDownContainer() {
-        if (neo4jContainer != null) {
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
             neo4jContainer.close();
         }
     }

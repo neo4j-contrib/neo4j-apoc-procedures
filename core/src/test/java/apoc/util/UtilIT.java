@@ -59,7 +59,7 @@ public class UtilIT {
         String url = getServerUrl();
 
         // when
-        String page = IOUtils.toString(Util.openInputStream(url, null, null), Charset.forName("UTF-8"));
+        String page = IOUtils.toString(Util.openInputStream(url, null, null, null), Charset.forName("UTF-8"));
 
         // then
         assertTrue(page.contains("<title>Google</title>"));
@@ -72,7 +72,7 @@ public class UtilIT {
             String url = getServerUrl();
 
             // when
-            Util.openInputStream(url, null, null);
+            Util.openInputStream(url, null, null, null);
         } catch (RuntimeException e) {
             // then
             assertEquals("The redirect URI has a different protocol: file:/etc/passwd", e.getMessage());

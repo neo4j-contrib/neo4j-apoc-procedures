@@ -126,8 +126,10 @@ public class ExportCypher {
             long timeout = c.getTimeoutSeconds();
             final BlockingQueue<DataProgressInfo> queue = new ArrayBlockingQueue<>(1000);
             ProgressReporter reporterWithConsumer = reporter.withConsumer(
-                    (pi) -> QueueUtil.put(queue,pi == ProgressInfo.EMPTY ? DataProgressInfo.EMPTY : new DataProgressInfo(pi).enrich(cypherFileManager),timeout));
-            Util.inTxFuture(pools.getDefaultExecutorService(), db, txInThread -> { doExport(graph, c, onlySchema, reporterWithConsumer, cypherFileManager); return true; });
+                    (pi) -> QueueUtil.put(queue, pi == ProgressInfo.EMPTY ? DataProgressInfo.EMPTY : new DataProgressInfo(pi).enrich(cypherFileManager),timeout));
+            Util.inTxFuture(null, pools.getDefaultExecutorService(), db,
+                    txInThread -> { doExport(graph, c, onlySchema, reporterWithConsumer, cypherFileManager); return true; },
+                    0, _ignored -> {}, _ignored -> QueueUtil.put(queue, DataProgressInfo.EMPTY, timeout));
             QueueBasedSpliterator<DataProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, DataProgressInfo.EMPTY, terminationGuard, Integer.MAX_VALUE);
             return StreamSupport.stream(spliterator, false);
         } else {
