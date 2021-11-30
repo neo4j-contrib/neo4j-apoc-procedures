@@ -1,11 +1,11 @@
 name: apoc
-version: 4.2
+version: 4.4
 title: APOC Documentation
 nav:
   - modules/ROOT/nav.adoc
 asciidoc:
   attributes:
-    docs-version: "4.3"
-    branch: "4.3"
-    apoc-release-absolute: "4.3"
-    apoc-release: "4.3.0-rc01"
+    docs-version: "4.4"
+    branch: "4.4"
+    apoc-release-absolute: "4.4"
+    apoc-release: "4.4.0.0"
