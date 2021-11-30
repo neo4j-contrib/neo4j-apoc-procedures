@@ -134,7 +134,7 @@ public class PeriodicTest {
     }
     @Test
     public void testTerminateCommit() throws Exception {
-        PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (:Foo {id: id})', {})");
+        PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (f:Foo {id: id}) RETURN LIMIT 1000', {})");
     }
 
     @Test(expected = QueryExecutionException.class)
