@@ -5,27 +5,26 @@ import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
-import org.neo4j.internal.helpers.collection.Iterators;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.util.FileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
-import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testResult;
 import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.Util.map;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 /**
  * @author as
@@ -41,6 +40,7 @@ public class MetricsTest {
         assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             neo4jContainer = createEnterpriseDB(true)
+                    .withDebugger()
                     .withNeo4jConfig("apoc.import.file.enabled", "true")
                     .withNeo4jConfig("metrics.enabled", "true")
                     .withNeo4jConfig("metrics.csv.interval", "1s")
@@ -63,13 +63,19 @@ public class MetricsTest {
     public void shouldGetMetrics() {
         session.readTransaction(tx -> tx.run("RETURN 1 AS num;"));
         String metricKey = "neo4j.database.system.check_point.total_time";
-        testResult(session, "CALL apoc.metrics.get($metricKey)",
-                map("metricKey", metricKey), (r) -> {
-                    assertTrue("should have at least one element", r.hasNext());
-                    Map<String, Object> map = r.next();
-                    assertEquals(Stream.of("timestamp", "metric", "map").collect(Collectors.toSet()), map.keySet());
-                    assertEquals(metricKey, map.get("metric"));
-                });
+        assertEventually(() -> {
+                    try {
+                        return session.run("CALL apoc.metrics.get($metricKey)",
+                                map("metricKey", metricKey))
+                                .list()
+                                .get(0)
+                                .asMap();
+                    } catch (Exception e) {
+                        return Map.<String, Object>of();
+                    }
+                },
+                map -> Set.of("timestamp", "metric", "map").equals(map.keySet()) && map.get("metric").equals(metricKey),
+                30L, TimeUnit.SECONDS);
     }
 
     @Test
@@ -79,23 +85,35 @@ public class MetricsTest {
                 .collect(Collectors.toSet());
 
         NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.forEach(setting ->
-                testCall(session, "CALL apoc.metrics.storage($setting)", map("setting", setting), (res) -> {
-                    assertEquals(expectedSet, res.keySet());
-                    assertEquals(setting, res.get("setting"));
-                })
+                assertEventually(() -> {
+                            try {
+                                return session.run("CALL apoc.metrics.storage($setting)", map("setting", setting))
+                                        .single()
+                                        .asMap();
+                            } catch (Exception e) {
+                                return Map.<String, Object>of();
+                            }
+                        },
+                        map -> expectedSet.equals(map.keySet()),
+                        30L, TimeUnit.SECONDS)
         );
 
         // all metrics with null
-        testResult(session, "CALL apoc.metrics.storage(null)", (res) -> {
-            final List<Map<String, Object>> maps = Iterators.asList(res);
-            final Set<String> setSetting = maps.stream().map(item -> {
-                assertEquals(expectedSet, item.keySet());
 
-                return (String) item.get("setting");
-            }).collect(Collectors.toSet());
-
-            assertEquals(new HashSet<>(NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES), setSetting);
-        });
+        assertEventually(() -> {
+                    try {
+                        return session.run("CALL apoc.metrics.storage(null)")
+                                .stream()
+                                .map(Record::asMap)
+                                .collect(Collectors.toList());
+                    } catch (Exception e) {
+                        return List.<Map<String, Object>>of();
+                    }
+                },
+                list -> list.stream().allMatch(m -> m.keySet().equals(expectedSet))
+                        && list.stream().map(m -> m.get("setting")).collect(Collectors.toSet())
+                            .equals(Set.copyOf(NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES)),
+                30L, TimeUnit.SECONDS);
     }
 
     @Test
