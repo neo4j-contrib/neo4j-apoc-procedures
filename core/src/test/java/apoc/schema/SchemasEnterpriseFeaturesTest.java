@@ -288,7 +288,7 @@ public class SchemasEnterpriseFeaturesTest {
         });
 
         String indexName = session.readTransaction(tx -> {
-            String name = tx.run("SHOW INDEXES YIELD name RETURN name").single().get("name").asString();
+            String name = tx.run("SHOW INDEXES YIELD name, type WHERE type <> 'LOOKUP' RETURN name").single().get("name").asString();
             tx.commit();
             return name;
         });
@@ -312,7 +312,7 @@ public class SchemasEnterpriseFeaturesTest {
             assertTrue(!result.hasNext());
         });
         session.writeTransaction(tx -> {
-            tx.run("DROP INDEX ON :Foo(bar, foo)");
+            tx.run("DROP INDEX " + indexName);
             tx.commit();
             return null;
         });
