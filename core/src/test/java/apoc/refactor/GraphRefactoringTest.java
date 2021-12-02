@@ -353,7 +353,7 @@ public class GraphRefactoringTest {
 
     @Test
     public void testEagernessMergeNodesFails() throws Exception {
-        db.executeTransactionally("CREATE INDEX ON :Person(ID)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Person) ON (n.ID)");
         long id = db.executeTransactionally("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ", emptyMap(), result -> Iterators.single(result.columnAs("id")));
         testCall(db, "MATCH (o:Person {ID:$oldID}), (n:Person {ID:$newID}) CALL apoc.refactor.mergeNodes([o,n]) yield node return node",
                       map("oldID", 1L, "newID",2L),
@@ -380,7 +380,7 @@ public class GraphRefactoringTest {
 
     @Test
     public void testMergeNodesEagerIndex() throws Exception {
-        db.executeTransactionally("CREATE INDEX ON :Person(ID)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Person) ON (n.ID)");
         db.executeTransactionally("CALL db.awaitIndexes()");
         long id = db.executeTransactionally("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ", emptyMap(), result -> Iterators.single(result.columnAs("id")));
         testCall(db, "MATCH (o:Person {ID:$oldID}), (n:Person {ID:$newID}) USING INDEX o:Person(ID) USING INDEX n:Person(ID) CALL apoc.refactor.mergeNodes([o,n]) yield node return node",

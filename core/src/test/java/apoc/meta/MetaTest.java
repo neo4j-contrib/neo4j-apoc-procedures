@@ -317,7 +317,7 @@ public class MetaTest {
 
     @Test
     public void testMetaData() throws Exception {
-        db.executeTransactionally("create index on :Movie(title)");
+        db.executeTransactionally("create index for (n:Movie) on (n.title)");
         db.executeTransactionally("create constraint on (a:Actor) assert a.name is unique");
         db.executeTransactionally("CREATE (:Actor {name:'Tom Hanks'})-[:ACTED_IN {roles:'Forrest'}]->(:Movie {title:'Forrest Gump'}) ");
         TestUtil.testResult(db, "CALL apoc.meta.data()",
@@ -334,7 +334,7 @@ public class MetaTest {
 
     @Test
     public void testMetaSchema() {
-        db.executeTransactionally("create index on :Movie(title)");
+        db.executeTransactionally("create index for (n:Movie) on (n.title)");
         db.executeTransactionally("create constraint on (p:Person) assert p.name is unique");
         db.executeTransactionally("CREATE (:Person:Actor:Director {name:'Tom', born:'05-06-1956', dead:false})-[:ACTED_IN {roles:'Forrest'}]->(:Movie {title:'Forrest Gump'})");
         testCall(db, "CALL apoc.meta.schema()",
@@ -661,7 +661,7 @@ public class MetaTest {
 
     @Test
     public void testMetaDataWithSample() throws Exception {
-        db.executeTransactionally("create index on :Person(name)");
+        db.executeTransactionally("create index for (n:Person) on (n.name)");
         db.executeTransactionally("CREATE (:Person {name:'Tom'})");
         db.executeTransactionally("CREATE (:Person {name:'John', surname:'Brown'})");
         db.executeTransactionally("CREATE (:Person {name:'Nick'})");
@@ -682,7 +682,7 @@ public class MetaTest {
 
     @Test
     public void testMetaDataWithSampleNormalized() throws Exception {
-        db.executeTransactionally("create index on :Person(name)");
+        db.executeTransactionally("create index for (n:Person) on (n.name)");
         db.executeTransactionally("CREATE (:Person {name:'Tom'})");
         db.executeTransactionally("CREATE (:Person {name:'John'})");
         db.executeTransactionally("CREATE (:Person {name:'Nick'})");
@@ -717,7 +717,7 @@ public class MetaTest {
 
     @Test
     public void testMetaDataWithSample5() throws Exception {
-        db.executeTransactionally("create index on :Person(name)");
+        db.executeTransactionally("create index for (n:Person) on (n.name)");
         db.executeTransactionally("CREATE (:Person {name:'John', surname:'Brown'})");
         db.executeTransactionally("CREATE (:Person {name:'Daisy', surname:'Bob'})");
         db.executeTransactionally("CREATE (:Person {name:'Nick'})");
@@ -1018,7 +1018,7 @@ public class MetaTest {
 
     @Test
     public void testMetaDataOf() throws Exception {
-        db.executeTransactionally("create index on :Movie(title)");
+        db.executeTransactionally("create index for (n:Movie) on (n.title)");
         db.executeTransactionally("create constraint on (a:Actor) assert a.name is unique");
         db.executeTransactionally("CREATE (p:Person {name:'Tom Hanks'}), (m:Movie {title:'Forrest Gump'}), (pr:Product{name: 'Awesome Product'}), " +
                 "(p)-[:VIEWED]->(m), (p)-[:BOUGHT{quantity: 10}]->(pr)");

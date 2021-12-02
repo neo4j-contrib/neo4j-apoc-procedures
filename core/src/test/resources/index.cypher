@@ -1,1 +1,1 @@
-CREATE INDEX ON :Person(name);
+CREATE INDEX FOR (n:Person) ON (n.name);

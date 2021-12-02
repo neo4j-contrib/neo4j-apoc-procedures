@@ -160,9 +160,9 @@ Given the following cypher statements:
 ----
 CREATE CONSTRAINT ON (bar:Bar) ASSERT exists(bar.foobar)
 CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE
-CREATE INDEX ON :Person(name)
-CREATE INDEX ON :Publication(name)
-CREATE INDEX ON :Source(name)
+CREATE INDEX FOR (n:Person) ON (n.name)
+CREATE INDEX FOR (n:Publication) ON (n.name)
+CREATE INDEX FOR (n:Source) ON (n.(name)
 ----
 
 When you

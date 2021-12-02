@@ -4007,7 +4007,7 @@ RETURN domain // will return 'www.example.com'</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE INDEX ON :TTL(ttl)</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE INDEX FOR (n:TTL) ON (n.ttl)</code></pre>
 </div>
 </div>
 <div class="paragraph">

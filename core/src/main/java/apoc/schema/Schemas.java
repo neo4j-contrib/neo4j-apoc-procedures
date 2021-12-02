@@ -198,9 +198,9 @@ public class Schemas {
 
     private AssertSchemaResult createCompoundIndex(String label, List<String> keys) {
         List<String> backTickedKeys = new ArrayList<>();
-        keys.forEach(key->backTickedKeys.add(String.format("`%s`", key)));
+        keys.forEach(key->backTickedKeys.add(String.format("n.`%s`", key)));
 
-        tx.execute(String.format("CREATE INDEX ON :`%s` (%s)", label, String.join(",", backTickedKeys))).close();
+        tx.execute(String.format("CREATE INDEX FOR (n:`%s`) ON (%s)", label, String.join(",", backTickedKeys))).close();
         return new AssertSchemaResult(label, keys).created();
     }
 

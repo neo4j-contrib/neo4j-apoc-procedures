@@ -282,7 +282,7 @@ public class SchemasEnterpriseFeaturesTest {
     @Test
     public void testIndexOnMultipleProperties() {
         session.writeTransaction(tx -> {
-            tx.run("CREATE INDEX ON :Foo(bar, foo)");
+            tx.run("CREATE INDEX FOR (n:Foo) ON (n.bar, n.foo)");
             tx.commit();
             return null;
         });

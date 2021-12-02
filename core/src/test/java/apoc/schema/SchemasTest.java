@@ -127,7 +127,7 @@ public class SchemasTest {
     @Test
     public void testDropIndexWhenUsingDropExisting() throws Exception {
         dropSchema();
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
         testCall(db, "CALL apoc.schema.assert(null,null)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals("bar", r.get("key"));
@@ -143,7 +143,7 @@ public class SchemasTest {
     @Test
     public void testDropIndexAndCreateIndexWhenUsingDropExisting() throws Exception {
         dropSchema();
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
         testResult(db, "CALL apoc.schema.assert({Bar:['foo']},null)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -166,7 +166,7 @@ public class SchemasTest {
     @Test
     public void testRetainIndexWhenNotUsingDropExisting() throws Exception {
         dropSchema();
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
         testResult(db, "CALL apoc.schema.assert({Bar:['foo', 'bar']}, null, false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -260,7 +260,7 @@ public class SchemasTest {
     @Test
     public void testKeepIndex() throws Exception {
         dropSchema();
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
         testResult(db, "CALL apoc.schema.assert({Foo:['bar', 'foo']},null,false)", (result) -> { 
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -305,7 +305,7 @@ public class SchemasTest {
 
     @Test
     public void testIndexes() {
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             // Get the index info
@@ -327,7 +327,7 @@ public class SchemasTest {
 
     @Test
     public void testIndexExists() {
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
         testResult(db, "RETURN apoc.schema.node.indexExists('Foo', ['bar'])", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals(true, r.entrySet().iterator().next().getValue());
@@ -336,7 +336,7 @@ public class SchemasTest {
 
     @Test
     public void testIndexNotExists() {
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
         testResult(db, "RETURN apoc.schema.node.indexExists('Bar', ['foo'])", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals(false, r.entrySet().iterator().next().getValue());
@@ -364,7 +364,7 @@ public class SchemasTest {
 
     @Test
     public void testIndexAndUniquenessConstraintOnNode() {
-        db.executeTransactionally("CREATE INDEX ON :Foo(foo)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.foo)");
         db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.bar IS UNIQUE");
         awaitIndexesOnline();
 
@@ -388,7 +388,7 @@ public class SchemasTest {
     @Test
     public void testDropCompoundIndexWhenUsingDropExisting() throws Exception {
         dropSchema();
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar,n.baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert(null,null,true)", (result) -> {
             Map<String, Object> r = result.next();
@@ -406,7 +406,7 @@ public class SchemasTest {
     @Test
     public void testDropCompoundIndexAndRecreateWithDropExisting() throws Exception {
         dropSchema();
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar,n.baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,true)", (result) -> {
             Map<String, Object> r = result.next();
@@ -425,7 +425,7 @@ public class SchemasTest {
     @Test
     public void testDoesntDropCompoundIndexWhenSupplyingSameCompoundIndex() throws Exception {
         dropSchema();
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar,n.baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,false)", (result) -> {
             Map<String, Object> r = result.next();
@@ -445,7 +445,7 @@ public class SchemasTest {
     @Test
     public void testKeepCompoundIndex() throws Exception {
         dropSchema();
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar,n.baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa'], ['foo','faa']]},null,false)", (result) -> {
             Map<String, Object> r = result.next();
@@ -469,7 +469,7 @@ public class SchemasTest {
     @Test
     public void testDropIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
         dropSchema();
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Bar:[['foo','bar']]},null)", (result) -> {
             Map<String, Object> r = result.next();
@@ -493,7 +493,7 @@ public class SchemasTest {
     @Test
     public void testDropCompoundIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
         dropSchema();
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar,n.baa)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null)", (result) -> {
             Map<String, Object> r = result.next();
@@ -521,10 +521,10 @@ public class SchemasTest {
 
     @Test
     public void testIndexesOneLabel() {
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
-        db.executeTransactionally("CREATE INDEX ON :Bar(foo)");
-        db.executeTransactionally("CREATE INDEX ON :Person(name)");
-        db.executeTransactionally("CREATE INDEX ON :Movie(title)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Bar) ON (n.foo)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Person) ON (n.name)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Movie) ON (n.title)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.nodes({labels:['Foo']})", // Get the index info
                 SchemasTest::accept);
@@ -539,10 +539,10 @@ public class SchemasTest {
 
     @Test
     public void testIndexesMoreLabels() {
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
-        db.executeTransactionally("CREATE INDEX ON :Bar(foo)");
-        db.executeTransactionally("CREATE INDEX ON :Person(name)");
-        db.executeTransactionally("CREATE INDEX ON :Movie(title)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Bar) ON (n.foo)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Person) ON (n.name)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Movie) ON (n.title)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.nodes({labels:['Foo', 'Person']})", // Get the index info
                 SchemasTest::accept2);
@@ -567,10 +567,10 @@ public class SchemasTest {
 
     @Test(expected = QueryExecutionException.class)
     public void testIndexesLabelsAndExcludeLabelsValuatedShouldFail() {
-        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
-        db.executeTransactionally("CREATE INDEX ON :Bar(foo)");
-        db.executeTransactionally("CREATE INDEX ON :Person(name)");
-        db.executeTransactionally("CREATE INDEX ON :Movie(title)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Bar) ON (n.foo)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Person) ON (n.name)");
+        db.executeTransactionally("CREATE INDEX FOR (n:Movie) ON (n.title)");
         awaitIndexesOnline();
         try (Transaction tx = db.beginTx()) {
             tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);

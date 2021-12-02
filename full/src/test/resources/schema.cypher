@@ -1,1 +1,1 @@
-CREATE INDEX ON :Node(id);
+CREATE INDEX FOR (n:Node) ON (n.id);

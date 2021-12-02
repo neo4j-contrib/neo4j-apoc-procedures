@@ -46,7 +46,7 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 
 	@Override
 	public String statementForNodeIndex(String label, Iterable<String> keys) {
-		return "CREATE INDEX ON :" + Util.quote(label) + "(" + CypherFormatterUtils.quote(keys) + ");";
+		return String.format("CREATE INDEX FOR (n:%s) ON (%s);", Util.quote(label), getPropertiesQuoted(keys, "n."));
 	}
 	
 	@Override
