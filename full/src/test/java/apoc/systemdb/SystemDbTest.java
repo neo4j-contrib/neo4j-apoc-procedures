@@ -103,7 +103,7 @@ public class SystemDbTest {
     public void testExportMetadata() {
         // We test triggers
         final String triggerOne = "CALL apoc.trigger.add('firstTrigger', 'RETURN $alpha', {phase:\"after\"}, {params: {alpha:1}});";
-        final String triggerTwo = "CALL apoc.trigger.add('beta', 'RETURN 1', null, {params: {}});";
+        final String triggerTwo = "CALL apoc.trigger.add('beta', 'RETURN 1', {}, {params: {}});";
         // In this case we paused to test that it will be exported as paused
         final String pauseTrigger = "CALL apoc.trigger.pause('beta');";
         db.executeTransactionally(triggerOne);
@@ -126,11 +126,11 @@ public class SystemDbTest {
         // We test uuid, we also need to export the related constraint (in another file)
         final String constraintForUuid = "CREATE CONSTRAINT IF NOT EXISTS ON (n:Person) ASSERT n.alpha IS UNIQUE;";
         db.executeTransactionally(constraintForUuid);
-        final String uuidStatement = "CALL apoc.uuid.install('Person', {uuidProperty:\"alpha\",addToSetLabels:true});";
+        final String uuidStatement = "CALL apoc.uuid.install('Person', {addToSetLabels:true, uuidProperty:\"alpha\"});";
         db.executeTransactionally(uuidStatement);
 
         // We test the data virtualization catalog
-        final String dvStatement = "CALL apoc.dv.catalog.add('dvName', {name:\"dvName\",url:\"file://myUrl\",desc:\"person's details\",labels:[\"Person\"],query:\"map.name = $name and map.age = $age\",params:[\"$name\",\"$age\"],type:\"CSV\"})";
+        final String dvStatement = "CALL apoc.dv.catalog.add('dvName', {desc:\"person's details\", labels:[\"Person\"], name:\"dvName\", params:[\"$name\", \"$age\"], query:\"map.name = $name and map.age = $age\", type:\"CSV\", url:\"file://myUrl\"})";
         db.executeTransactionally(dvStatement);
 
         TestUtil.testCall(db, "CALL apoc.systemdb.export.metadata", row -> {

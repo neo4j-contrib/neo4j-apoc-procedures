@@ -88,6 +88,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
@@ -937,12 +939,7 @@ public class Util {
     }
 
     public static String toCypherMap(Map<String, Object> map) {
-        try {
-            return new ObjectMapper()
-                    .disable(JsonGenerator.Feature.QUOTE_FIELD_NAMES)
-                    .writeValueAsString(map);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        final StringBuilder builder = formatProperties(map);
+        return "{" + formatToString(builder) + "}";
     }
 }

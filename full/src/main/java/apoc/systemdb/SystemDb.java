@@ -22,6 +22,7 @@ import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.kernel.impl.coreapi.TransactionImpl;
+import org.neo4j.procedure.Admin;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -63,6 +64,7 @@ public class SystemDb {
         }
     }
 
+    @Admin
     @Procedure(name = "apoc.systemdb.export.metadata")
     @Description("apoc.systemdb.export.metadata($conf) - export the apoc feature saved in system db (that is: customProcedures, triggers, uuids, and dvCatalogs) in multiple files called <FILE_NAME>.<FEATURE_NAME>.<DB_NAME>.cypher")
     public Stream<ProgressInfo> metadata(@Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
