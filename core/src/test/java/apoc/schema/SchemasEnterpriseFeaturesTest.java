@@ -288,7 +288,7 @@ public class SchemasEnterpriseFeaturesTest {
         });
 
         String indexName = session.readTransaction(tx -> {
-            String name = tx.run("CALL db.indexes() YIELD name RETURN name").single().get("name").asString();
+            String name = tx.run("SHOW INDEXES YIELD name RETURN name").single().get("name").asString();
             tx.commit();
             return name;
         });
