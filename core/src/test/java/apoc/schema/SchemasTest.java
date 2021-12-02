@@ -22,13 +22,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
-import static apoc.util.TestUtil.*;
+import static apoc.util.TestUtil.ignoreException;
+import static apoc.util.TestUtil.registerProcedure;
+import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
-import static org.neo4j.configuration.SettingImpl.newBuilder;
-import static org.neo4j.configuration.SettingValueParsers.BOOL;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.neo4j.internal.schema.SchemaUserDescription.TOKEN_LABEL;
 import static org.neo4j.internal.schema.SchemaUserDescription.TOKEN_REL_TYPE;
 
@@ -329,7 +331,7 @@ public class SchemasTest {
         awaitIndexesOnline();
         testCall(db, "CALL apoc.schema.relationships()", row -> {
             assertEquals(":KNOWS(id,since)", row.get("name"));
-            assertEquals("", row.get("status"));
+            assertEquals("ONLINE", row.get("status"));
             assertEquals("KNOWS", row.get("type"));
             assertEquals(List.of("id", "since"), row.get("properties"));
         });
@@ -674,7 +676,7 @@ public class SchemasTest {
         });
         testCall(db, "CALL apoc.schema.relationships()", (row) -> {
             assertEquals(":" + TOKEN_REL_TYPE + "()", row.get("name"));
-            assertEquals("", row.get("status"));
+            assertEquals("ONLINE", row.get("status"));
             assertEquals(TOKEN_REL_TYPE, row.get("type"));
             assertTrue(((List)row.get("properties")).isEmpty());
         });
@@ -706,10 +708,21 @@ public class SchemasTest {
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(100d, r.get("populationProgress"));
             assertEquals(1d, r.get("valuesSelectivity"));
-            assertEquals("Index( id=1, name='fullIdxNode', type='GENERAL FULLTEXT', schema=(:Blah:Moon {weightProp, anotherProp}), indexProvider='fulltext-1.0' )", r.get("userDescription"));
+            final long indexId = db.executeTransactionally("CALL db.indexes() YIELD id, name WHERE name = $indexName RETURN id",
+                    Map.of("indexName", "fullIdxNode"), res -> res.<Long>columnAs("id").next());
+            String expectedIndexDescription = String.format("Index( id=%s, name='fullIdxNode', type='GENERAL FULLTEXT', " +
+                    "schema=(:Blah:Moon {weightProp, anotherProp}), indexProvider='fulltext-1.0' )", indexId);
+            assertEquals(expectedIndexDescription, r.get("userDescription"));
             assertFalse(result.hasNext());
         });
         
-        testCallEmpty(db, "CALL apoc.schema.relationships()", Collections.emptyMap());
+        testResult(db, "CALL apoc.schema.relationships()", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals(":[TYPE_1, TYPE_2],(alpha,beta)", r.get("name"));
+            assertEquals("ONLINE", r.get("status"));
+            assertEquals(List.of("TYPE_1", "TYPE_2"), r.get("type"));
+            assertEquals(List.of("alpha", "beta"), r.get("properties"));
+            assertFalse(result.hasNext());
+        });
     }
 }
