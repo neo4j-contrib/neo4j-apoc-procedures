@@ -2,8 +2,8 @@ The examples in this section are based on the following graph:
 
 [source,cypher]
 ----
-create constraint on (p:Person)
-assert p.id is unique;
+create constraint for (p:Person)
+require p.id is unique;
 ----
 
 This function is used inside a xref::overview/apoc.trigger/apoc.trigger.add.adoc[] Cypher statement.

@@ -9,15 +9,15 @@ CALL apoc.uuid.install("Person");
 
 .Results
 |===
-| Failed to invoke procedure `apoc.uuid.install`: Caused by: java.lang.RuntimeException: No constraint found for label: Person, please add the constraint with the following : `CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE`
+| Failed to invoke procedure `apoc.uuid.install`: Caused by: java.lang.RuntimeException: No constraint found for label: Person, please add the constraint with the following : `CREATE CONSTRAINT FOR (person:Person) REQUIRE person.uuid IS UNIQUE`
 |===
 
 We can create a constraint on the `(Person, uuid)` label/property pair by running the following query:
 
 [source,cypher]
 ----
-CREATE CONSTRAINT ON (person:Person)
-ASSERT person.uuid IS UNIQUE;
+CREATE CONSTRAINT FOR (person:Person)
+REQUIRE person.uuid IS UNIQUE;
 ----
 
 And now we can automatically add UUIDs to all new nodes, as well as existing nodes, by running the following query:
@@ -76,8 +76,8 @@ If we want to use a different property key for our UUID value, we can pass in th
 
 [source,cypher]
 ----
-CREATE CONSTRAINT ON (person:Person)
-ASSERT person.myUUID IS UNIQUE;
+CREATE CONSTRAINT FOR (person:Person)
+REQUIRE person.myUUID IS UNIQUE;
 ----
 
 [source,cypher]

@@ -90,7 +90,7 @@ public class CypherTest {
     @Test
     public void testRunSchema() throws Exception {
         testCallEmpty(db, "CALL apoc.cypher.runSchema('CREATE INDEX test FOR (w:TestOne) ON (w.name)',{})", Collections.emptyMap());
-        testCallEmpty(db, "CALL apoc.cypher.runSchema('CREATE CONSTRAINT testConstraint ON (w:TestTwo) ASSERT w.baz IS UNIQUE',{})", Collections.emptyMap());
+        testCallEmpty(db, "CALL apoc.cypher.runSchema('CREATE CONSTRAINT testConstraint FOR (w:TestTwo) REQUIRE w.baz IS UNIQUE',{})", Collections.emptyMap());
 
         try (Transaction tx = db.beginTx()) {
             assertNotNull(tx.schema().getConstraintByName("testConstraint"));

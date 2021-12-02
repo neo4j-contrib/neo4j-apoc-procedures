@@ -22,7 +22,7 @@ public class WarmupTest {
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Warmup.class);
         // Create enough nodes and relationships to span 2 pages
-        db.executeTransactionally("CREATE CONSTRAINT ON (f:Foo) ASSERT f.foo IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (f:Foo) REQUIRE f.foo IS UNIQUE");
         db.executeTransactionally("UNWIND range(1, 300) AS i CREATE (n:Foo {foo:i})-[:KNOWS {bar:2}]->(m {foobar:3, array:range(1,100)})");
         // Delete all relationships and their nodes, but ones with the minimum and maximum relationship ids, so
         // they still span 2 pages

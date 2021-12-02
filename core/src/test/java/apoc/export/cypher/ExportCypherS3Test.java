@@ -77,7 +77,7 @@ public class ExportCypherS3Test {
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
         db.executeTransactionally("CREATE INDEX FOR (n:Bar) ON (n.first_name, n.last_name)");
         db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.name)");
-        db.executeTransactionally("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (b:Bar) REQUIRE b.name IS UNIQUE");
         if (testName.getMethodName().endsWith(OPTIMIZED)) {
             db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar:Person {age:12}),(d:Bar {age:12})," +
                     " (t:Foo {name:'foo2', born:date('2017-09-29')})-[:KNOWS {since:2015}]->(e:Bar {name:'bar2',age:44}),({age:99})");
@@ -600,8 +600,8 @@ public class ExportCypherS3Test {
         static final String EXPECTED_SCHEMA = String.format("BEGIN%n" +
                 "CREATE INDEX FOR (n:Bar) ON (n.first_name,n.last_name);%n" +
                 "CREATE INDEX FOR (n:Foo) ON (n.name);%n" +
-                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 
@@ -639,7 +639,7 @@ public class ExportCypherS3Test {
         static final String EXPECTED_ONLY_SCHEMA_NEO4J_SHELL = String.format("BEGIN%n" +
                 "CREATE INDEX FOR (n:Bar) ON (n.first_name,n.last_name);%n" +
                 "CREATE INDEX FOR (n:Foo) ON (n.name);%n" +
-                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 
@@ -649,8 +649,8 @@ public class ExportCypherS3Test {
                 "COMMIT%n" +
                 "BEGIN%n" +
                 "CREATE INDEX FOR (n:Bar) ON (n.first_name,n.last_name);%n" +
-                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n" +
                 "BEGIN%n" +
@@ -669,8 +669,8 @@ public class ExportCypherS3Test {
                 "COMMIT%n" +
                 "BEGIN%n" +
                 "CREATE INDEX FOR (n:Bar) ON (n.first_name,n.last_name);%n" +
-                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n" +
                 "BEGIN%n" +
@@ -689,8 +689,8 @@ public class ExportCypherS3Test {
                 "COMMIT%n" +
                 "BEGIN%n" +
                 "CREATE INDEX FOR (n:Bar) ON (n.first_name,n.last_name);%n" +
-                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n" +
                 "BEGIN%n" +
@@ -709,8 +709,8 @@ public class ExportCypherS3Test {
                 "COMMIT%n" +
                 "BEGIN%n" +
                 "CREATE INDEX FOR (n:Bar) ON (n.first_name,n.last_name);%n" +
-                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n" +
                 "BEGIN%n" +
@@ -727,7 +727,7 @@ public class ExportCypherS3Test {
                 "CREATE (:User:User0:User1:User12:`UNIQUE IMPORT LABEL` {name:\"Alan\", `UNIQUE IMPORT ID`:3});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
-                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n" +
                 "BEGIN%n" +
@@ -740,8 +740,8 @@ public class ExportCypherS3Test {
         static final String EXPECTED_SCHEMA_OPTIMIZED = String.format("BEGIN%n" +
                 "CREATE INDEX FOR (n:Bar) ON (n.first_name,n.last_name);%n" +
                 "CREATE INDEX FOR (n:Foo) ON (n.name);%n" +
-                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 
@@ -908,8 +908,8 @@ public class ExportCypherS3Test {
 
         static final String EXPECTED_UPDATE_ALL_UNWIND = String.format("CREATE INDEX FOR (n:Bar) ON (n.first_name,n.last_name);%n" +
                 "CREATE INDEX FOR (n:Foo) ON (n.name);%n" +
-                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "UNWIND [{_id:3, properties:{age:12}}] AS row%n" +
                 "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
                 "UNWIND [{_id:2, properties:{age:12}}] AS row%n" +

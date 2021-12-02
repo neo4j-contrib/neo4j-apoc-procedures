@@ -7,5 +7,5 @@ or
 
 [source,cypher]
 ----
-CALL apoc.cypher.runSchema('CREATE CONSTRAINT $name ON (w:Test) ASSERT w.baz IS UNIQUE',{})
+CALL apoc.cypher.runSchema('CREATE CONSTRAINT $name FOR (w:Test) REQUIRE w.baz IS UNIQUE',{})
 ----

@@ -44,7 +44,7 @@ public class UUIDTest {
     @Test
     public void testUUID() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (p:Person) ASSERT p.uuid IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (p:Person) REQUIRE p.uuid IS UNIQUE");
         db.executeTransactionally("CALL apoc.uuid.install('Person') YIELD label RETURN label");
 
         // when
@@ -65,7 +65,7 @@ public class UUIDTest {
     @Test
     public void testUUIDWithSetLabel() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (p:Mario) ASSERT p.uuid IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (p:Mario) REQUIRE p.uuid IS UNIQUE");
         db.executeTransactionally("CALL apoc.uuid.install('Mario', {addToSetLabels: true}) YIELD label RETURN label");
         // when
         db.executeTransactionally("CREATE (p:Luigi {foo:'bar'}) SET p:Mario");
@@ -89,7 +89,7 @@ public class UUIDTest {
     @Test
     public void testUUIDWithoutRemovedUuid() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.uuid IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (test:Test) REQUIRE test.uuid IS UNIQUE");
         db.executeTransactionally("CALL apoc.uuid.install('Test') YIELD label RETURN label");
 
         // when
@@ -107,7 +107,7 @@ public class UUIDTest {
     @Test
     public void testUUIDSetUuidToEmptyAndRestore() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.uuid IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (test:Test) REQUIRE test.uuid IS UNIQUE");
         db.executeTransactionally("CALL apoc.uuid.install('Test') YIELD label RETURN label");
         db.executeTransactionally("CREATE (n:Test {name:'test', uuid:'dab404ee-391d-11e9-b210-d663bd873d93'})");
 
@@ -126,7 +126,7 @@ public class UUIDTest {
     @Test
     public void testUUIDDeleteUuidAndRestore() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.uuid IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (test:Test) REQUIRE test.uuid IS UNIQUE");
         db.executeTransactionally("CALL apoc.uuid.install('Test') YIELD label RETURN label");
         db.executeTransactionally("CREATE (n:Test {name:'test', uuid:'dab404ee-391d-11e9-b210-d663bd873d93'})");
 
@@ -145,7 +145,7 @@ public class UUIDTest {
     @Test
     public void testUUIDSetUuidToEmpty() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.uuid IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (test:Test) REQUIRE test.uuid IS UNIQUE");
         db.executeTransactionally("CALL apoc.uuid.install('Test') YIELD label RETURN label");
         db.executeTransactionally("CREATE (n:Test:Empty {name:'empty'})");
 
@@ -164,7 +164,7 @@ public class UUIDTest {
     @Test
     public void testUUIDList() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.uuid IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (bar:Bar) REQUIRE bar.uuid IS UNIQUE");
 
         // when
         db.executeTransactionally("CALL apoc.uuid.install('Bar') YIELD label RETURN label");
@@ -178,7 +178,7 @@ public class UUIDTest {
     @Test
     public void testUUIDListAddToExistingNodes() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.uuid IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (bar:Bar) REQUIRE bar.uuid IS UNIQUE");
         db.executeTransactionally("UNWIND Range(1,10) as i CREATE(bar:Bar{id: i})");
 
         // when
@@ -193,7 +193,7 @@ public class UUIDTest {
     @Test
     public void testAddRemoveUuid() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.foo IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (test:Test) REQUIRE test.foo IS UNIQUE");
 
         // when
         db.executeTransactionally("CALL apoc.uuid.install('Test', {uuidProperty: 'foo'}) YIELD label RETURN label");
@@ -213,7 +213,7 @@ public class UUIDTest {
         db.executeTransactionally("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})");
 
         // when
-        db.executeTransactionally("CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (person:Person) REQUIRE person.uuid IS UNIQUE");
         db.executeTransactionally("CALL apoc.uuid.install('Person', {addToExistingNodes: false}) YIELD label RETURN label");
 
         // then
@@ -230,7 +230,7 @@ public class UUIDTest {
         db.executeTransactionally("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})");
 
         // when
-        db.executeTransactionally("CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (person:Person) REQUIRE person.uuid IS UNIQUE");
         db.executeTransactionally("CALL apoc.uuid.install('Person') YIELD label RETURN label");
 
         // then
@@ -248,7 +248,7 @@ public class UUIDTest {
         db.executeTransactionally("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})");
 
         // when
-        db.executeTransactionally("CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (person:Person) REQUIRE person.uuid IS UNIQUE");
 
         // then
         try (Transaction tx = db.beginTx()) {
@@ -265,8 +265,8 @@ public class UUIDTest {
     @Test
     public void testRemoveAllUuid() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.foo IS UNIQUE");
-        db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.uuid IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (test:Test) REQUIRE test.foo IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (bar:Bar) REQUIRE bar.uuid IS UNIQUE");
         db.executeTransactionally("CALL apoc.uuid.install('Bar') YIELD label RETURN label");
         db.executeTransactionally("CALL apoc.uuid.install('Test', {addToExistingNodes: false, uuidProperty: 'foo'}) YIELD label RETURN label");
 
@@ -292,7 +292,7 @@ public class UUIDTest {
             // then
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
-            assertEquals("No constraint found for label: Wrong, please add the constraint with the following : `CREATE CONSTRAINT ON (wrong:Wrong) ASSERT wrong.uuid IS UNIQUE`", except.getMessage());
+            assertEquals("No constraint found for label: Wrong, please add the constraint with the following : `CREATE CONSTRAINT FOR (wrong:Wrong) REQUIRE wrong.uuid IS UNIQUE`", except.getMessage());
             throw e;
         }
     }
@@ -306,7 +306,7 @@ public class UUIDTest {
             // then
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
-            assertEquals("No constraint found for label: Wrong, please add the constraint with the following : `CREATE CONSTRAINT ON (wrong:Wrong) ASSERT wrong.foo IS UNIQUE`", except.getMessage());
+            assertEquals("No constraint found for label: Wrong, please add the constraint with the following : `CREATE CONSTRAINT FOR (wrong:Wrong) REQUIRE wrong.foo IS UNIQUE`", except.getMessage());
             throw e;
         }
     }

@@ -33,7 +33,7 @@ RETURN file, nodes, relationships, properties;
 [source,cypher]
 ----
 :begin
-CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;
 :commit
 :begin
 UNWIND [{_id:31450, properties:{tagline:"Welcome to the Real World", title:"The Matrix", released:1999}}] AS row
@@ -75,7 +75,7 @@ RETURN file, nodes, relationships, properties, cypherStatements;
 | file | nodes | relationships | properties | cypherStatements
 | NULL | 2     | 1             | 5          |
 ":begin
-CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;
 :commit
 :begin
 UNWIND [{_id:31450, properties:{tagline:\"Welcome to the Real World\", title:\"The Matrix\", released:1999}}] AS row

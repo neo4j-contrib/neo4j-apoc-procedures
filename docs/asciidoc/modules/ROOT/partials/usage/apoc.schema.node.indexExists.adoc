@@ -2,11 +2,11 @@ The examples in this section are based on a database that has applied the follow
 
 [source,cypher]
 ----
-CREATE CONSTRAINT personName ON (person:Person)
-ASSERT person.name IS UNIQUE;
+CREATE CONSTRAINT personName FOR (person:Person)
+REQUIRE person.name IS UNIQUE;
 
-CREATE CONSTRAINT userId ON (user:User)
-ASSERT user.id IS UNIQUE;
+CREATE CONSTRAINT userId FOR (user:User)
+REQUIRE user.id IS UNIQUE;
 
 CREATE INDEX personCity FOR (person:Person)
 ON (person.city);

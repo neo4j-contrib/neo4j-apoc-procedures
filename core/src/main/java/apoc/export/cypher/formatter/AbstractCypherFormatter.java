@@ -31,7 +31,7 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.quote;
  */
 abstract class AbstractCypherFormatter implements CypherFormatter {
 
-	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT ON (node:%s) ASSERT (%s) %s;";
+	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT FOR (node:%s) REQUIRE (%s) %s;";
 
 	private static final String STATEMENT_NODE_FULLTEXT_IDX = "CALL db.index.fulltext.createNodeIndex('%s',[%s],[%s]);";
 	private static final String STATEMENT_REL_FULLTEXT_IDX = "CALL db.index.fulltext.createRelationshipIndex('%s',[%s],[%s]);";

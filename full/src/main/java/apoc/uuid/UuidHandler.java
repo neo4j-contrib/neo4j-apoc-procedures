@@ -146,7 +146,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
             return streamPropertyKeys.anyMatch(property -> property.equals(propertyName));
         });
         if (!exists) {
-            String error = String.format("`CREATE CONSTRAINT ON (%s:%s) ASSERT %s.%s IS UNIQUE`",
+            String error = String.format("`CREATE CONSTRAINT FOR (%s:%s) REQUIRE %s.%s IS UNIQUE`",
                     label.toLowerCase(), label, label.toLowerCase(), propertyName);
             throw new RuntimeException("No constraint found for label: " + label + ", please add the constraint with the following : " + error);
         }

@@ -43,7 +43,7 @@ public class TriggerExtendedTest {
 
     @Test
     public void testLowerCaseName() throws Exception {
-        db.executeTransactionally("create constraint on (p:Person) assert p.id is unique");
+        db.executeTransactionally("create constraint for (p:Person) require p.id is unique");
         db.executeTransactionally("CALL apoc.trigger.add('lowercase','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n.id = toLower(n.name)',{})");
         db.executeTransactionally("CREATE (f:Person {name:'John Doe'})");
         TestUtil.testCall(db, "MATCH (f:Person) RETURN f", (row) -> {
