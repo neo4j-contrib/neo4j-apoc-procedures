@@ -90,7 +90,7 @@ public class ExportCSV {
     }
 
     private Stream<ProgressInfo> exportCsv(@Name("file") String fileName, String source, Object data, ExportConfig exportConfig) throws Exception {
-        if (StringUtils.isNotBlank(fileName)) checkWriteAllowed(exportConfig);
+        checkWriteAllowed(exportConfig, fileName);
         final String format = "csv";
         ProgressInfo progressInfo = new ProgressInfo(fileName, source, format);
         progressInfo.batchSize = exportConfig.getBatchSize();

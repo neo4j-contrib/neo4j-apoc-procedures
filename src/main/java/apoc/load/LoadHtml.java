@@ -1,8 +1,8 @@
 package apoc.load;
 
 import apoc.result.MapResult;
+import apoc.util.FileUtils;
 import apoc.util.MapUtil;
-import apoc.util.Util;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
@@ -15,7 +15,12 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.util.*;
+import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public class LoadHtml {
@@ -34,12 +39,12 @@ public class LoadHtml {
     }
 
     private Stream<MapResult> readHtmlPage(String url, Map<String, String> query, Map<String, Object> config){
+        String charset = config.getOrDefault("charset", "UTF-8").toString();
         try {
-            String charset = config.getOrDefault("charset", "UTF-8").toString();
             // baseUri is used to resolve relative paths
             String baseUri = config.getOrDefault("baseUri", "").toString();
 
-            Document document = Jsoup.parse(Util.openInputStream(url, null, null), charset, baseUri);
+            Document document = Jsoup.parse(FileUtils.inputStreamFor(url, null, null), charset, baseUri);
 
             return query.keySet().stream().map(key -> {
                 Elements elements = document.select(query.get(key));
@@ -48,8 +53,12 @@ public class LoadHtml {
 
                 return new MapResult(MapUtil.map(key, resultList));
             });
-        } catch(Exception e){
-            throw new RuntimeException("Can't read the HTML from: "+ url);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("File not found from: " + url);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Unsupported charset: " + charset);
+        } catch (Exception e) {
+            throw new RuntimeException("Can't read the HTML from: "+ url, e);
         }
     }
 

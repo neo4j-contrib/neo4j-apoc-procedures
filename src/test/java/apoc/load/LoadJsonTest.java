@@ -2,21 +2,20 @@ package apoc.load;
 
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.*;
-import org.mockserver.integration.ClientAndServer;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.matchers.Times.exactly;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-import org.mockserver.model.Header;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.mockserver.client.server.MockServerClient;
-
-
-
+import org.mockserver.integration.ClientAndServer;
+import org.mockserver.model.Header;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +28,10 @@ import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import static org.mockserver.matchers.Times.exactly;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
 
 public class LoadJsonTest {
 
@@ -263,8 +266,10 @@ public class LoadJsonTest {
             testResult(db, "CALL apoc.load.json({key})",map("key","foo"), (r) -> {});
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
-            assertTrue(except instanceof RuntimeException);
-            assertEquals("Can't read url or key invalid URL (foo) as json: no protocol: foo", except.getMessage());
+            assertTrue(except instanceof IOException);
+            final String message = except.getMessage();
+            assertTrue(message.startsWith("Cannot open file "));
+            assertTrue(message.endsWith("foo for reading."));
             throw e;
         }
     }

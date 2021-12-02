@@ -74,4 +74,13 @@ public class ApocConfiguration {
         return config;
     }
 
+    public static boolean isImportFolderConfigured() {
+        return !"".equals(getImportDir());
+
+    }
+
+    public static String getImportDir() {
+        return ApocConfiguration.get("dbms.directories.import", "").toString();
+    }
+
 }

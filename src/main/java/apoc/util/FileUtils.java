@@ -7,16 +7,30 @@ import apoc.export.util.ExportConfig;
 import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
 import apoc.util.s3.S3UploadUtils;
-import org.apache.commons.io.output.WriterOutputStream;
+import org.apache.commons.httpclient.URIException;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLStreamHandler;
+import java.net.URLStreamHandlerFactory;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Map;
+
+import static apoc.ApocConfiguration.getImportDir;
+import static apoc.ApocConfiguration.isImportFolderConfigured;
+import static apoc.util.Util.readHttpInputStream;
+import static org.apache.commons.httpclient.util.URIUtil.encodePath;
 
 /**
  * @author mh
@@ -24,157 +38,218 @@ import java.util.regex.Pattern;
  */
 public class FileUtils {
 
-    public static final String HTTP_PROTOCOL = "http";
-    public static final String S3_PROTOCOL = "s3";
-    public static final boolean S3_ENABLED = Util.classExists("com.amazonaws.services.s3.AmazonS3");
-    public static final String GCS_PROTOCOL = "gs";
-    public static final boolean GCS_ENABLED = Util.classExists("com.google.cloud.storage.Storage");
-    public static final String HDFS_PROTOCOL = "hdfs";
-    public static final boolean HDFS_ENABLED = Util.classExists("org.apache.hadoop.fs.FileSystem");
-    public static final Pattern HDFS_PATTERN = Pattern.compile("^(hdfs:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
-    public static final Pattern S3_PATTERN = Pattern.compile("^(s3:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
+    public static final String LOAD_FROM_FILE_ERROR = "Import from files not enabled, please set apoc.import.file.enabled=true in your neo4j.conf";
+    public static final String EXPORT_TO_FILE_ERROR = "Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf";
 
-    public static final List<String> NON_FILE_PROTOCOLS = Arrays.asList(HTTP_PROTOCOL, S3_PROTOCOL, GCS_PROTOCOL, HDFS_PROTOCOL);
+    public static final String ERROR_READ_FROM_FS_NOT_ALLOWED = "Import file %s not enabled, please set dbms.security.allow_csv_import_from_file_urls=true in your neo4j.conf";
+    public static final String ACCESS_OUTSIDE_DIR_ERROR = "You're providing a directory outside the import directory " +
+            "defined into `dbms.directories.import`";
 
-    public static CountingReader readerFor(String fileName) throws IOException {
-        checkReadAllowed(fileName);
-        if (fileName==null) return null;
-        fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
-        if (fileName.matches("^\\w+:/.+")) {
-            if (isHdfs(fileName)) {
-                return readHdfs(fileName);
-            } else {
-                return Util.openInputStream(fileName,null,null).asReader();
+    public enum SupportedProtocols {
+        http(true, null),
+        https(true, null),
+        s3(Util.classExists("com.amazonaws.services.s3.AmazonS3"),
+                Util.createInstanceOrNull("apoc.util.s3.S3UrlStreamHandlerFactory")),
+        gs(Util.classExists("com.google.cloud.storage.Storage"),
+                Util.createInstanceOrNull("apoc.util.google.cloud.GCStorageURLStreamHandlerFactory")),
+        hdfs(Util.classExists("org.apache.hadoop.fs.FileSystem"),
+                Util.createInstanceOrNull("org.apache.hadoop.fs.FsUrlStreamHandlerFactory")),
+        file(true, null);
+
+        private final boolean enabled;
+
+        private final URLStreamHandlerFactory urlStreamHandlerFactory;
+
+        SupportedProtocols(boolean enabled, URLStreamHandlerFactory urlStreamHandlerFactory) {
+            this.enabled = enabled;
+            this.urlStreamHandlerFactory = urlStreamHandlerFactory;
+        }
+
+        public StreamConnection getStreamConnection(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
+            switch (this) {
+                case s3:
+                    return FileUtils.openS3InputStream(new URL(urlAddress));
+                case hdfs:
+                    return FileUtils.openHdfsInputStream(new URL(urlAddress));
+                case http:
+                case https:
+                case gs:
+                    return readHttpInputStream(urlAddress, headers, payload);
+                default:
+                    try {
+                        return new StreamConnection.FileStreamConnection(URI.create(urlAddress));
+                    } catch (IllegalArgumentException iae) {
+                        try {
+                            return new StreamConnection.FileStreamConnection(new URL(urlAddress).getFile());
+                        } catch (MalformedURLException mue) {
+                            if (mue.getMessage().contains("no protocol")) {
+                                return new StreamConnection.FileStreamConnection(urlAddress);
+                            }
+                            throw mue;
+                        }
+                    }
             }
         }
-        return readFile(fileName);
-    }
-    public static CountingInputStream inputStreamFor(String fileName) throws IOException {
-        checkReadAllowed(fileName);
-        if (fileName==null) return null;
-        fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
-        if (fileName.matches("^\\w+:/.+")) {
-            if (isHdfs(fileName)) {
-                return readHdfsStream(fileName);
-            } else {
-                return Util.openInputStream(fileName,null,null);
-            }
-        }
-        return readFileStream(fileName);
-    }
 
-    private static CountingInputStream readHdfsStream(String fileName) {
-        try {
-            StreamConnection streamConnection = HDFSUtils.readFile(fileName);
-            return new CountingInputStream(streamConnection.getInputStream(), streamConnection.getLength());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static CountingReader readHdfs(String fileName) {
-        try {
-            StreamConnection streamConnection = HDFSUtils.readFile(fileName);
-            Reader reader = new BufferedReader(new InputStreamReader(streamConnection.getInputStream(), "UTF-8"));
-            return new CountingReader(reader, streamConnection.getLength());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static CountingReader readFile(String fileName) throws IOException, FileNotFoundException {
-        File file = new File(fileName);
-        if (!file.exists() || !file.isFile() || !file.canRead()) throw new IOException("Cannot open file "+fileName+" for reading.");
-        return new CountingReader(file);
-    }
-
-    private static CountingInputStream readFileStream(String fileName) throws IOException, FileNotFoundException {
-        File file = new File(fileName);
-        if (!file.exists() || !file.isFile() || !file.canRead()) throw new IOException("Cannot open file "+fileName+" for reading.");
-        return new CountingInputStream(file);
-    }
-
-    public static String changeFileUrlIfImportDirectoryConstrained(String url) throws IOException {
-        if (isFile(url) && isImportUsingNeo4jConfig()) {
-            if (!ApocConfiguration.isEnabled("import.file.allow_read_from_filesystem"))
-                throw new RuntimeException("Import file "+url+" not enabled, please set dbms.security.allow_csv_import_from_file_urls=true in your neo4j.conf");
-
-            String importDir = ApocConfiguration.get("dbms.directories.import", null);
-
-            URI uri = URI.create(url);
-            if(uri == null) throw new RuntimeException("Path not valid!");
-
-            if (importDir != null && !importDir.isEmpty()) {
-                try {
-                    String relativeFilePath = !uri.getPath().isEmpty() ? uri.getPath() : uri.getHost();
-                    String absolutePath = url.startsWith(importDir) ? url : new File(importDir, relativeFilePath).getAbsolutePath();
-
-                    return new File(absolutePath).toURI().toString();
-                } catch (Exception e){
-                    throw new IOException("Cannot open file "+url+" from directory "+importDir+" for reading.");
-                }
-            } else {
-                try {
-                    return new File(uri.getPath()).toURI().toString();
-                } catch (Exception e) {
-                    throw new IOException("Cannot open file "+url+" for reading.");
-                }
-            }
-        }
-        return url;
-    }
-
-    public static boolean isFile(String fileName) {
-        if (fileName==null) return false;
-        String fileNameLowerCase = fileName.toLowerCase();
-        return !NON_FILE_PROTOCOLS.stream().anyMatch(protocol -> fileNameLowerCase.startsWith(protocol));
-    }
-
-    public static PrintWriter getPrintWriter(String fileName, Writer out) throws IOException {
-        OutputStream outputStream = OutputStreamFactory.getBufferedOutputStream(fileName, new WriterOutputStream(out));
-        return outputStream == null ? null : new PrintWriter(outputStream);
-    }
-
-    public static class OutputStreamFactory {
-        private OutputStreamFactory() {
-        }
-
-        public static OutputStream getBufferedOutputStream(String fileName, OutputStream out) {
+        public OutputStream getOutputStream(String fileName) {
             if (fileName == null) return null;
+            final OutputStream outputStream;
             try {
-                return new BufferedOutputStream(getOutputStream(fileName, out));
-            } catch (Exception e) {
+                switch (this) {
+                    case s3:
+                        outputStream = S3UploadUtils.writeFile(fileName);
+                        break;
+                    case hdfs:
+                        outputStream = HDFSUtils.writeFile(fileName);
+                        break;
+                    default:
+                        final Path path = resolvePath(fileName);
+                        outputStream = new FileOutputStream(path.toFile());
+                }
+                return new BufferedOutputStream(outputStream);
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        private static OutputStream getOutputStream(String fileName, OutputStream out) throws IOException {
-            if (isS3(fileName)) {
-                return S3UploadUtils.writeFile(fileName);
-            } else if (isHdfs(fileName)) {
-                return HDFSUtils.writeFile(fileName);
-            } else {
-                return getOrCreateOutputStream(fileName, out);
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public URLStreamHandler createURLStreamHandler() {
+            return urlStreamHandlerFactory == null ? null : urlStreamHandlerFactory.createURLStreamHandler(this.name());
+        }
+
+        public static SupportedProtocols from(String source) {
+            try {
+                final URL url = new URL(source);
+                return from(url);
+            } catch (MalformedURLException e) {
+                if (!e.getMessage().contains("no protocol")) {
+                    throw new RuntimeException(e);
+                }
+                return SupportedProtocols.file;
             }
+        }
+
+        public static SupportedProtocols from(URL url) {
+            return SupportedProtocols.of(url.getProtocol());
+        }
+
+        public static SupportedProtocols of(String name) {
+            try {
+                return SupportedProtocols.valueOf(name);
+            } catch (Exception e) {
+                return file;
+            }
+        }
+
+    }
+
+    public static CountingReader readerFor(String fileName) throws IOException {
+        return readerFor(fileName, null, null);
+    }
+
+    public static CountingReader readerFor(String fileName, Map<String, Object> headers, String payload) throws IOException {
+        return inputStreamFor(fileName, headers, payload).asReader();
+    }
+
+    public static CountingInputStream inputStreamFor(String fileName, Map<String, Object> headers, String payload) throws IOException {
+        checkReadAllowed(fileName);
+        if (fileName == null) return null;
+        fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
+        return Util.openInputStream(fileName,headers,payload);
+    }
+
+    public static CountingInputStream inputStreamFor(String fileName) throws IOException {
+        return inputStreamFor(fileName, null, null);
+    }
+
+    public static String changeFileUrlIfImportDirectoryConstrained(String urlNotEncoded) throws IOException {
+        final String url = encodeExceptQM(urlNotEncoded);
+        if (isFile(url) && isImportUsingNeo4jConfig()) {
+            if (!ApocConfiguration.isEnabled("import.file.allow_read_from_filesystem")) {
+                throw new RuntimeException(String.format(ERROR_READ_FROM_FS_NOT_ALLOWED, url));
+            }
+            final Path resolvedPath = resolvePath(urlNotEncoded);
+            return resolvedPath
+                    .normalize()
+                    .toUri()
+                    .toString();
+        }
+        return url;
+    }
+
+    private static Path resolvePath(String url) throws IOException {
+        Path urlPath = getPath(url);
+        final Path resolvedPath;
+        if (isImportFolderConfigured() && isImportUsingNeo4jConfig()) {
+            Path basePath = Paths.get(getImportDir());
+            urlPath = relativizeIfSamePrefix(urlPath, basePath);
+            resolvedPath = basePath.resolve(urlPath).toAbsolutePath().normalize();
+            if (!pathStartsWithOther(resolvedPath, basePath)) {
+                throw new IOException(ACCESS_OUTSIDE_DIR_ERROR);
+            }
+        } else {
+            resolvedPath = urlPath;
+        }
+        return resolvedPath;
+    }
+
+    private static Path relativizeIfSamePrefix(Path urlPath, Path basePath) {
+        if (urlPath.isAbsolute() && !urlPath.startsWith(basePath.toAbsolutePath())) {
+            // if the import folder is configured to be used as root folder we consider
+            // it as root directory in order to reproduce the same LOAD CSV behaviour
+            urlPath = urlPath.getRoot().relativize(urlPath);
+        }
+        return urlPath;
+    }
+
+    private static Path getPath(String url) {
+        Path urlPath;
+        URL toURL = null;
+        try {
+            final URI uri = URI.create(url.trim());
+            toURL = uri.toURL();
+            urlPath = Paths.get(uri);
+        } catch (Exception e) {
+            if (toURL != null) {
+                urlPath = Paths.get(StringUtils.isBlank(toURL.getFile()) ? toURL.getHost() : toURL.getFile());
+            } else {
+                urlPath = Paths.get(url);
+            }
+        }
+        return urlPath;
+    }
+
+    private static boolean pathStartsWithOther(Path resolvedPath, Path basePath) throws IOException {
+        try {
+            return resolvedPath.toRealPath().startsWith(basePath.toRealPath());
+        } catch (Exception e) {
+            if (e instanceof NoSuchFileException) { // If we're about to creating a file this exception has been thrown
+                return resolvedPath.normalize().startsWith(basePath);
+            }
+            return false;
         }
     }
 
-    private static OutputStream getOrCreateOutputStream(String fileName, OutputStream out) throws FileNotFoundException, MalformedURLException {
-        OutputStream outputStream;
-        if (fileName.equals("-")) {
-            outputStream = out;
-        } else {
-            boolean enabled = isImportUsingNeo4jConfig();
-            if (enabled) {
-                String importDir = getConfiguredImportDirectory();
-                File file = new File(importDir, fileName);
-                outputStream = new FileOutputStream(file);
-            } else {
-                URI uri = URI.create(fileName);
-                outputStream = new FileOutputStream(uri.isAbsolute() ? uri.toURL().getFile() : fileName);
-            }
+    private static String encodeExceptQM(String url) {
+        try {
+            return encodePath(url).replace("%3F", "?");
+        } catch (URIException e) {
+            throw new RuntimeException(e);
         }
-        return outputStream;
+    }
+
+    public static boolean isFile(String fileName) {
+        return SupportedProtocols.from(fileName) == SupportedProtocols.file;
+    }
+
+    public static OutputStream getOutputStream(String fileName) {
+        if (fileName.equals("-")) {
+            return null;
+        }
+        return SupportedProtocols.from(fileName).getOutputStream(fileName);
     }
 
     private static boolean isImportUsingNeo4jConfig() {
@@ -187,20 +262,20 @@ public class FileUtils {
 
     public static void checkReadAllowed(String url) {
         if (isFile(url) && !ApocConfiguration.isEnabled("import.file.enabled"))
-            throw new RuntimeException("Import from files not enabled, please set apoc.import.file.enabled=true in your neo4j.conf");
+            throw new RuntimeException(LOAD_FROM_FILE_ERROR);
     }
-    public static void checkWriteAllowed(ExportConfig exportConfig) {
+    public static void checkWriteAllowed(ExportConfig exportConfig, String fileName) {
         if (!ApocConfiguration.isEnabled("export.file.enabled"))
-            if (exportConfig == null || !exportConfig.streamStatements()) {
-                throw new RuntimeException("Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf");
+            if (exportConfig == null || (fileName != null && !fileName.equals("")) || !exportConfig.streamStatements()) {
+                throw new RuntimeException(EXPORT_TO_FILE_ERROR);
             }
     }
-    public static void checkWriteAllowed() {
-        checkWriteAllowed(null);
+    public static void checkWriteAllowed(String fileName) {
+        checkWriteAllowed(null, fileName);
     }
 
     public static StreamConnection openS3InputStream(URL url) throws IOException {
-        if (!S3_ENABLED) {
+        if (!SupportedProtocols.s3.isEnabled()) {
             throw new MissingDependencyException("Cannot find the S3 jars in the plugins folder. \n" +
                     "Please put these files into the plugins folder :\n\n" +
                     "aws-java-sdk-core-x.y.z.jar\n" +
@@ -214,7 +289,7 @@ public class FileUtils {
     }
 
     public static StreamConnection openHdfsInputStream(URL url) throws IOException {
-        if (!HDFS_ENABLED) {
+        if (!SupportedProtocols.hdfs.isEnabled()) {
             throw new MissingDependencyException("Cannot find the HDFS/Hadoop jars in the plugins folder. \n" +
                     "Please put these files into the plugins folder :\n\n" +
                     "commons-cli\n" +
@@ -227,16 +302,6 @@ public class FileUtils {
                     "\nSee the documentation: https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_loading_data_from_web_apis_json_xml_csv");
         }
         return HDFSUtils.readFile(url);
-    }
-
-    public static boolean isS3(String fileName) {
-        Matcher matcher = S3_PATTERN.matcher(fileName);
-        return matcher.find();
-    }
-
-    public static boolean isHdfs(String fileName) {
-        Matcher matcher = HDFS_PATTERN.matcher(fileName);
-        return matcher.find();
     }
 
     /**

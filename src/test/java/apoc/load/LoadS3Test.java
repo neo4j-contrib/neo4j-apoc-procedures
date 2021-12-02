@@ -9,10 +9,12 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import static apoc.load.LoadCsvTest.assertRow;
 import static apoc.load.XmlTest.XML_XPATH_AS_NESTED_MAP;
 import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.isTravis;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeFalse;
 
 @Ignore("investigate minio error or move the test to Localstack")
 public class LoadS3Test {
@@ -22,6 +24,7 @@ public class LoadS3Test {
 
     @BeforeClass
     public static void init() {
+        assumeFalse(isTravis());
         // In test environment we skip the MD5 validation that can cause issues
         System.setProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation", "true");
     }

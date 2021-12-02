@@ -1,25 +1,37 @@
 package apoc.util;
 
+import apoc.ApocConfiguration;
 import apoc.config.Config;
 import apoc.load.relative.LoadRelativePathTest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
 
 public class FileUtilsTest {
-    private GraphDatabaseService db;
+    private GraphDatabaseAPI db;
     private static final File PATH = new File("target/test-data");
 
-    private static String TEST_FILE_RELATIVE = new File(PATH.getAbsolutePath() + "/import/test.csv").toURI().toString();
-    private static String TEST_FILE_ABSOLUTE = new File(LoadRelativePathTest.class.getClassLoader().getResource("test.csv").getPath()).toURI().toString();
+    private static String TEST_FILE_RELATIVE;
+    private static String TEST_FILE_ABSOLUTE;
+
+    static {
+        try {
+            TEST_FILE_ABSOLUTE = "file://" + Paths.get(LoadRelativePathTest.class.getClassLoader().getResource("./test.csv").toURI());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
     private static String TEST_FILE = LoadRelativePathTest.class.getClassLoader().getResource("test.csv").getPath();
 
     @Rule
@@ -35,8 +47,17 @@ public class FileUtilsTest {
         if (testName.getMethodName().endsWith(TEST_WITH_DIRECTORY_IMPORT)) {
             builder.setConfig("dbms.directories.import", "import");
         }
-        db = builder.newGraphDatabase();
+        db = (GraphDatabaseAPI) builder.newGraphDatabase();
+        String importFolder = ApocConfiguration.getImportDir();
+        TEST_FILE_RELATIVE = Paths.get(importFolder, "test.csv").toUri().toString();
         TestUtil.registerProcedure(db, Config.class);
+    }
+
+    @After
+    public void shutdown() {
+        if (db != null) {
+            db.shutdown();
+        }
     }
 
     @Test
@@ -46,7 +67,7 @@ public class FileUtilsTest {
 
     @Test
     public void notChangeFileUrlWithDirectoryAndProtocolImportConstrainedURI() throws Exception {
-        assertEquals(TEST_FILE_ABSOLUTE, FileUtils.changeFileUrlIfImportDirectoryConstrained("file:///" + TEST_FILE));
+        assertEquals(TEST_FILE_ABSOLUTE, FileUtils.changeFileUrlIfImportDirectoryConstrained("file://" + TEST_FILE));
     }
 
     @Test

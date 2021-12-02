@@ -79,7 +79,7 @@ public class ExportJson {
 
     private Stream<ProgressInfo> exportJson(String fileName, String source, Object data, Map<String,Object> config) throws Exception {
         ExportConfig exportConfig = new ExportConfig(config);
-        if (StringUtils.isNotBlank(fileName)) checkWriteAllowed(exportConfig);
+        checkWriteAllowed(exportConfig, fileName);
         final String format = "json";
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, format));
         JsonFormat exporter = new JsonFormat(db);

@@ -360,16 +360,11 @@ public class Util {
     }
 
     public static CountingInputStream openInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
-        StreamConnection sc;
-        InputStream stream;
         if (urlAddress.contains("!") && (urlAddress.contains(".zip") || urlAddress.contains(".tar") || urlAddress.contains(".tgz"))) {
             return getStreamCompressedFile(urlAddress, headers, payload);
         }
-
-        sc = getStreamConnection(urlAddress, headers, payload);
-        stream = getInputStream(sc, urlAddress);
-
-        return new CountingInputStream(stream, sc.getLength());
+        StreamConnection sc = getStreamConnection(urlAddress, headers, payload);
+        return sc.toCountingInputStream();
     }
 
     private static CountingInputStream getStreamCompressedFile(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
@@ -389,15 +384,9 @@ public class Util {
     }
 
     private static StreamConnection getStreamConnection(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
-        URL url = new URL(urlAddress);
-        String protocol = url.getProtocol();
-        if (FileUtils.S3_PROTOCOL.equalsIgnoreCase(protocol)) {
-            return FileUtils.openS3InputStream(url);
-        } else if (FileUtils.HDFS_PROTOCOL.equalsIgnoreCase(protocol)) {
-            return FileUtils.openHdfsInputStream(url);
-        } else {
-            return readHttpInputStream(urlAddress, headers, payload);
-        }
+        return FileUtils.SupportedProtocols
+                .from(urlAddress)
+                .getStreamConnection(urlAddress, headers, payload);
     }
 
     private static InputStream getInputStream(StreamConnection sc, String urlAddress) throws IOException {
@@ -428,7 +417,7 @@ public class Util {
         return null;
     }
 
-    private static StreamConnection readHttpInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
+    public static StreamConnection readHttpInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
         URLConnection con = openUrlConnection(urlAddress, headers);
         writePayload(con, payload);
         String newUrl = handleRedirect(con, urlAddress);
@@ -546,21 +535,21 @@ public class Util {
         return combined;
     }
 
-    public static <T> Map<String, T> map(T ... values) {
+    public static <T> Map<String, T> map(Object ... values) {
         Map<String, T> map = new LinkedHashMap<>();
         for (int i = 0; i < values.length; i+=2) {
             if (values[i] == null) continue;
-            map.put(values[i].toString(),values[i+1]);
+            map.put(values[i].toString(), (T) values[i+1]);
         }
         return map;
     }
 
-    public static <T> Map<String, T> map(List<T> pairs) {
+    public static <T> Map<String, T> map(List<Object> pairs) {
         Map<String, T> res = new LinkedHashMap<>(pairs.size() / 2);
-        Iterator<T> it = pairs.iterator();
+        Iterator<Object> it = pairs.iterator();
         while (it.hasNext()) {
             Object key = it.next();
-            T value = it.next();
+            T value = (T) it.next();
             if (key != null) res.put(key.toString(), value);
         }
         return res;

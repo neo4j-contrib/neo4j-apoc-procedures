@@ -16,8 +16,10 @@ import java.io.File;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
 
 public class ExportJsonS3Test {
     private static S3TestUtil s3TestUtil;
@@ -31,12 +33,15 @@ public class ExportJsonS3Test {
 
     @BeforeClass
     public static void startS3TestUtil() {
+        assumeFalse(isTravis());
         s3TestUtil = new S3TestUtil();
     }
 
     @AfterClass
     public static void stopS3TestUtil() {
-        s3TestUtil.close();
+        if (s3TestUtil != null && s3TestUtil.isRunning()) {
+            s3TestUtil.close();
+        }
     }
 
     @Before

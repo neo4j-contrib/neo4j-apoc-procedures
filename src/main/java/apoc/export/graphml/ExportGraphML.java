@@ -101,7 +101,7 @@ public class ExportGraphML {
     }
 
     private Stream<ProgressInfo> exportGraphML(@Name("file") String fileName, String source, SubGraph graph, ExportConfig exportConfig) throws Exception {
-        if (StringUtils.isNotBlank(fileName)) checkWriteAllowed(exportConfig);
+        checkWriteAllowed(exportConfig, fileName);
         final String format = "graphml";
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, format));
         XmlGraphMLWriter exporter = new XmlGraphMLWriter();

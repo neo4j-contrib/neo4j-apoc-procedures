@@ -8,7 +8,8 @@ import apoc.util.s3.S3Params;
 import apoc.util.s3.S3ParamsExtractor;
 import apoc.util.s3.S3TestUtil;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -23,7 +24,9 @@ import java.time.Duration;
 import java.time.Instant;
 
 import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.isTravis;
 import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assume.assumeFalse;
 
 public class ExportS3PerformanceTest {
     private static int REPEAT_TEST = 3;
@@ -68,6 +71,7 @@ public class ExportS3PerformanceTest {
 
     @Test
     public void testExportAllCsvS3() throws Exception {
+        assumeFalse(isTravis());
         S3TestUtil s3ExportTestUtils = new S3TestUtil();
         try {
             System.out.println("Data creation started.");

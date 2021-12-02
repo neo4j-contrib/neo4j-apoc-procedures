@@ -105,7 +105,7 @@ public class ExportCypher {
     }
 
     private Stream<DataProgressInfo> exportCypher(@Name("file") String fileName, String source, SubGraph graph, ExportConfig c, boolean onlySchema) throws IOException {
-        if (StringUtils.isNotBlank(fileName)) checkWriteAllowed(c);
+        checkWriteAllowed(c, fileName);
 
         ProgressInfo progressInfo = new ProgressInfo(fileName, source, "cypher");
         progressInfo.batchSize = c.getBatchSize();

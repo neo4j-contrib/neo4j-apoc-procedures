@@ -19,6 +19,7 @@ import static org.junit.Assert.assertFalse;
 
 public class LoadHtmlTest {
 
+    public static final String WIKIPEDIA_FILE = new File("src/test/resources/wikipedia.html").toURI().toString();
     private GraphDatabaseService db;
 
     private static final String RESULT_QUERY_METADATA = ("{attributes={charset=UTF-8}, tagName=meta}, " +
@@ -38,7 +39,9 @@ public class LoadHtmlTest {
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().newGraphDatabase();
+        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
+                .setConfig("apoc.import.file.enabled","true")
+                .newGraphDatabase();
         TestUtil.registerProcedure(db, LoadHtml.class);
     }
 
@@ -67,7 +70,7 @@ public class LoadHtmlTest {
 
         Map<String, Object> query = map("metadata", "meta");
 
-        testResult(db, "CALL apoc.load.html({url},{query})", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
+        testResult(db, "CALL apoc.load.html({url},{query})", map("url", WIKIPEDIA_FILE, "query", query),
                 result -> {
                     Map<String, Object> row = result.next();
                     assertEquals(map("metadata",asList(RESULT_QUERY_METADATA)).toString().trim(), row.get("value").toString().trim());

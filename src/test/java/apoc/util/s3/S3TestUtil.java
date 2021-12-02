@@ -107,4 +107,8 @@ public class S3TestUtil {
     private static String readFileToString(String directory, String fileName) {
         return TestUtil.readFileToString(new File(directory, fileName));
     }
+
+    public boolean isRunning() {
+        return localstack.isRunning();
+    }
 }
