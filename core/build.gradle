@@ -137,8 +137,6 @@ dependencies {
 
     implementation group: 'com.google.guava', name: 'guava', version: '27.0-jre'
 
-    implementation group: 'xerces', name: 'xercesImpl', version: '2.12.1'
-
     implementation group: 'org.apache.arrow', name: 'arrow-vector', version: '6.0.0'
     implementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '6.0.0'
     testImplementation group: 'org.apache.arrow', name: 'arrow-vector', version: '6.0.0'
