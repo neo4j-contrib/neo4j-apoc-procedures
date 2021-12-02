@@ -33,7 +33,7 @@ RETURN file, nodes, relationships, properties;
 [source,cypher]
 ----
 :begin
-CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+CREATE CONSTRAINT uniqueConstraint FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;
 :commit
 :begin
 UNWIND [{_id:31450, properties:{tagline:"Welcome to the Real World", title:"The Matrix", released:1999}}] AS row
@@ -51,7 +51,7 @@ CREATE (start)-[r:PRODUCED]->(end) SET r += row.properties;
 MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
 :commit
 :begin
-DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+DROP CONSTRAINT uniqueConstraint;
 :commit
 
 ----
@@ -75,7 +75,7 @@ RETURN file, nodes, relationships, properties, cypherStatements;
 | file | nodes | relationships | properties | cypherStatements
 | NULL | 2     | 1             | 5          |
 ":begin
-CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+CREATE CONSTRAINT uniqueConstraint FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;
 :commit
 :begin
 UNWIND [{_id:31450, properties:{tagline:\"Welcome to the Real World\", title:\"The Matrix\", released:1999}}] AS row
@@ -93,7 +93,7 @@ CREATE (start)-[r:PRODUCED]->(end) SET r += row.properties;
 MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
 :commit
 :begin
-DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+DROP CONSTRAINT uniqueConstraint;
 :commit
 "
 |===

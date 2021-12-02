@@ -569,7 +569,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
         final boolean outgoing = direction == Direction.OUTGOING ? true : false;
         final String label = "Letter";
         final String targetKey = "name";
-        db.executeTransactionally("CREATE CONSTRAINT FOR (n:`" + label + "`) REQUIRE n.`" + targetKey + "` IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT constraint FOR (n:`" + label + "`) REQUIRE n.`" + targetKey + "` IS UNIQUE");
 
         testCallEmpty(
                 db,
@@ -594,7 +594,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
         }
 
         testCall(db, "MATCH (n) WHERE n.prop IS NOT NULL RETURN count(n) AS count", (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(0L)));
-        db.executeTransactionally("DROP CONSTRAINT ON (n:`" + label + "`) ASSERT n.`" + targetKey + "` IS UNIQUE");
+        db.executeTransactionally("DROP CONSTRAINT constraint");
     }
 
     @Test
@@ -984,7 +984,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
         // given
         final String label = "Country";
         final String targetKey = "name";
-        db.executeTransactionally("CREATE CONSTRAINT FOR (n:`" + label + "`) REQUIRE n.`" + targetKey + "` IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT constraint FOR (n:`" + label + "`) REQUIRE n.`" + targetKey + "` IS UNIQUE");
         db.executeTransactionally("with [\"IT\", \"DE\"] as countries\n" +
                 "unwind countries as country\n" +
                 "foreach (no in RANGE(1, 4) |\n" +
@@ -1003,7 +1003,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
 
         final long relsCount = TestUtil.singleResultFirstColumn(db, "MATCH p = (c:Company)-[:OPERATES_IN]->(cc:Country) RETURN count(p) AS relsCount");
         assertEquals(8, relsCount);
-        db.executeTransactionally("DROP CONSTRAINT ON (n:`" + label + "`) ASSERT n.`" + targetKey + "` IS UNIQUE");
+        db.executeTransactionally("DROP CONSTRAINT constraint");
     }
 
     @Test

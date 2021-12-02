@@ -56,7 +56,7 @@ public class ExportCypherEnterpriseFeaturesTest {
 
     private static void beforeTwoLabelsWithOneCompoundConstraintEach() {
         session.writeTransaction(tx -> {
-            tx.run("CREATE CONSTRAINT FOR (t:Base) REQUIRE (t.tenantId, t.id) IS NODE KEY");
+            tx.run("CREATE CONSTRAINT compositeBase FOR (t:Base) REQUIRE (t.tenantId, t.id) IS NODE KEY");
             tx.commit();
             return null;
         });
@@ -76,7 +76,7 @@ public class ExportCypherEnterpriseFeaturesTest {
             return null;
         });
         session.writeTransaction(tx -> {
-            tx.run("DROP CONSTRAINT ON (t:Base) ASSERT (t.tenantId, t.id) IS NODE KEY");
+            tx.run("DROP CONSTRAINT compositeBase");
             tx.commit();
             return null;
         });

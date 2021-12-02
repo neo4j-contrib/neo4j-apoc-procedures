@@ -321,7 +321,7 @@ public class SchemasEnterpriseFeaturesTest {
     @Test
     public void testPropertyExistenceConstraintOnNode() {
         session.writeTransaction(tx -> {
-            tx.run("CREATE CONSTRAINT FOR (bar:Bar) REQUIRE (bar.foobar) IS NOT NULL");
+            tx.run("CREATE CONSTRAINT foobarConstraint FOR (bar:Bar) REQUIRE (bar.foobar) IS NOT NULL");
             return null;
         });
 
@@ -335,7 +335,7 @@ public class SchemasEnterpriseFeaturesTest {
             assertTrue(!result.hasNext());
         });
         session.writeTransaction(tx -> {
-            tx.run("DROP CONSTRAINT ON (bar:Bar) ASSERT exists(bar.foobar)");
+            tx.run("DROP CONSTRAINT foobarConstraint");
             tx.commit();
             return null;
         });
@@ -344,7 +344,7 @@ public class SchemasEnterpriseFeaturesTest {
     @Test
     public void testConstraintExistsOnRelationship() {
         session.writeTransaction(tx -> {
-            tx.run("CREATE CONSTRAINT FOR ()-[like:LIKED]-() REQUIRE (like.day) IS NOT NULL");
+            tx.run("CREATE CONSTRAINT likedConstraint FOR ()-[like:LIKED]-() REQUIRE (like.day) IS NOT NULL");
             tx.commit();
             return null;
         });
@@ -353,7 +353,7 @@ public class SchemasEnterpriseFeaturesTest {
             assertEquals(true, r.entrySet().iterator().next().getValue());
         });
         session.writeTransaction(tx -> {
-            tx.run("DROP CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
+            tx.run("DROP CONSTRAINT likedConstraint");
             tx.commit();
             return null;
         });
@@ -362,7 +362,7 @@ public class SchemasEnterpriseFeaturesTest {
     @Test
     public void testSchemaRelationships() {
         session.writeTransaction(tx -> {
-            tx.run("CREATE CONSTRAINT FOR ()-[like:LIKED]-() REQUIRE (like.day) IS NOT NULL");
+            tx.run("CREATE CONSTRAINT likedConstraint FOR ()-[like:LIKED]-() REQUIRE (like.day) IS NOT NULL");
             tx.commit();
             return null;
         });
@@ -375,7 +375,7 @@ public class SchemasEnterpriseFeaturesTest {
             assertFalse(result.hasNext());
         });
         session.writeTransaction(tx -> {
-            tx.run("DROP CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
+            tx.run("DROP CONSTRAINT likedConstraint");
             tx.commit();
             return null;
         });
