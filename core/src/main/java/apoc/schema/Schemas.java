@@ -164,8 +164,6 @@ public class Schemas {
         List<AssertSchemaResult> result = new ArrayList<>(indexes.size());
 
         for (IndexDefinition definition : schema.getIndexes()) {
-            if (!definition.isNodeIndex())
-                continue;
             if (definition.getIndexType() == IndexType.LOOKUP)
                 continue;
             if (definition.isConstraintIndex())
@@ -343,12 +341,12 @@ public class Schemas {
                 indexesIterator = getIndexesFromSchema(allIndex,
                         index -> index.schema().entityType().equals(EntityType.NODE)
                                 && Arrays.stream(index.schema().getEntityTokenIds()).noneMatch(id -> {
-                            try {
-                                return excludeLabels.contains(tokenRead.nodeLabelName(id));
-                            } catch (LabelNotFoundKernelException e) {
-                                return false;
-                            }
-                        }));
+                    try {
+                        return excludeLabels.contains(tokenRead.nodeLabelName(id));
+                    } catch (LabelNotFoundKernelException e) {
+                        return false;
+                    }
+                }));
 
                 Iterable<ConstraintDescriptor> allConstraints = () -> schemaRead.constraintsGetAll();
                 constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
@@ -359,8 +357,8 @@ public class Schemas {
                             } catch (LabelNotFoundKernelException e) {
                                 return false;
                             }
-                        }))
-                        .collect(Collectors.toList());
+                    }))
+                    .collect(Collectors.toList());
             } else {
                 constraintsIterator = includeLabels.stream()
                         .filter(label -> !excludeLabels.contains(label) && tokenRead.nodeLabel(label) != -1)
@@ -509,7 +507,6 @@ public class Schemas {
         List<String> properties = IntStream.of(indexDescriptor.schema().getPropertyIds())
                 .mapToObj(tokens::propertyKeyGetName)
                 .collect(Collectors.toList());
-        
         try {
             return new IndexConstraintNodeInfo(
                     // Pretty print for index name
