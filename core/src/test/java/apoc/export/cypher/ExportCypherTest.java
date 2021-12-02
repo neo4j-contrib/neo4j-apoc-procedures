@@ -557,13 +557,13 @@ public class ExportCypherTest {
         // given
         db.executeTransactionally("CREATE (n:TempNode {value:'value'})");
         db.executeTransactionally("CREATE (n:TempNode2 {value:'value'})");
-        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('MyCoolNodeFulltextIndex',['TempNode', 'TempNode2'],['value'])");
+        db.executeTransactionally("CREATE FULLTEXT INDEX MyCoolNodeFulltextIndex FOR (n:TempNode|TempNode2) ON EACH [n.value]");
 
         String query = "MATCH (t:TempNode) return t";
         String file = null;
         Map<String, Object> config = map("awaitForIndexes", 3000);
         String expected = String.format(":begin%n" +
-                "CALL db.index.fulltext.createNodeIndex('MyCoolNodeFulltextIndex',['TempNode','TempNode2'],['value']);%n" +
+                "CREATE FULLTEXT INDEX MyCoolNodeFulltextIndex FOR (n:TempNode|TempNode2) ON EACH [n.value];%n" +
                 "CREATE CONSTRAINT uniqueConstraint FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 ":commit%n" +
                 "CALL db.awaitIndexes(3000);%n" +
@@ -593,11 +593,11 @@ public class ExportCypherTest {
         // given
         db.executeTransactionally("CREATE (n:TempNode {value:'value'})");
         db.executeTransactionally("CREATE (n:TempNode2 {value:'value'})");
-        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('MyCoolNodeFulltextIndex',['TempNode', 'TempNode2'],['value'])");
+        db.executeTransactionally("CREATE FULLTEXT INDEX MyCoolNodeFulltextIndex FOR (n:TempNode|TempNode2) ON EACH [n.value]");
 
         // TODO: We can't manage full-text rel indexes because of this bug: https://github.com/neo4j/neo4j/issues/12304
         db.executeTransactionally("CREATE (s:TempNode)-[:REL{rel_value: 'the rel value'}]->(e:TempNode2)");
-        db.executeTransactionally("CALL db.index.fulltext.createRelationshipIndex('MyCoolRelFulltextIndex',['REL'],['rel_value'])");
+        db.executeTransactionally("CREATE FULLTEXT INDEX MyCoolRelFulltextIndex FOR ()-[rel:REL]-() ON EACH [rel.rel_value]");
         String query = "MATCH (t:TempNode) return t";
         String file = null;
         Map<String, Object> config = map("awaitForIndexes", 3000);

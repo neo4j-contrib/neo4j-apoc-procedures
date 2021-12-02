@@ -405,9 +405,6 @@ db.index.explicit.seekNodes,"db.index.explicit.seekNodes(indexName :: STRING?, k
 db.index.explicit.seekRelationships,"db.index.explicit.seekRelationships(indexName :: STRING?, key :: STRING?, value :: ANY?) :: (relationship :: RELATIONSHIP?)"
 db.index.fulltext.awaitEventuallyConsistentIndexRefresh,db.index.fulltext.awaitEventuallyConsistentIndexRefresh() :: VOID
 db.index.fulltext.awaitIndex,"db.index.fulltext.awaitIndex(index :: STRING?, timeOutSeconds = 300 :: INTEGER?) :: VOID"
-db.index.fulltext.createNodeIndex,"db.index.fulltext.createNodeIndex(indexName :: STRING?, labels :: LIST? OF STRING?, propertyNames :: LIST? OF STRING?, config = {} :: MAP?) :: VOID"
-db.index.fulltext.createRelationshipIndex,"db.index.fulltext.createRelationshipIndex(indexName :: STRING?, relationshipTypes :: LIST? OF STRING?, propertyNames :: LIST? OF STRING?, config = {} :: MAP?) :: VOID"
-db.index.fulltext.drop,db.index.fulltext.drop(indexName :: STRING?) :: VOID
 db.index.fulltext.listAvailableAnalyzers,"db.index.fulltext.listAvailableAnalyzers() :: (analyzer :: STRING?, description :: STRING?)"
 db.index.fulltext.queryNodes,"db.index.fulltext.queryNodes(indexName :: STRING?, queryString :: STRING?) :: (node :: NODE?, score :: FLOAT?)"
 db.index.fulltext.queryRelationships,"db.index.fulltext.queryRelationships(indexName :: STRING?, queryString :: STRING?) :: (relationship :: RELATIONSHIP?, score :: FLOAT?)"
