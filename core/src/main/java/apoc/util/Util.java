@@ -8,30 +8,9 @@ import apoc.result.VirtualRelationship;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Entity;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotInTransactionException;
-import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.TransactionTerminatedException;
-import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.internal.helpers.collection.Pair;
-import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
-import org.neo4j.internal.kernel.api.security.SecurityContext;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.logging.Log;
-import org.neo4j.procedure.TerminationGuard;
 
-import javax.lang.model.SourceVersion;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -84,6 +63,27 @@ import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.lang.model.SourceVersion;
+
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotInTransactionException;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.TransactionTerminatedException;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
+import org.neo4j.internal.kernel.api.security.SecurityContext;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.TerminationGuard;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.DateFormatUtil.getOrCreate;
@@ -652,10 +652,8 @@ public class Util {
 
     public static void logErrors(String message, Map<String, Long> errors, Log log) {
         if (!errors.isEmpty()) {
-            log.bulk(l -> {
-                l.warn(message);
-                errors.forEach((k, v) -> l.warn("%d times: %s",v,k));
-            });
+            log.warn(message);
+            errors.forEach((k, v) -> log.warn("%d times: %s",v,k));
         }
     }
 
