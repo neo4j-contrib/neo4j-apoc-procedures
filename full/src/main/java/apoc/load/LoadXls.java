@@ -276,7 +276,7 @@ public class LoadXls {
         for (int i = selection.left; i < selection.right; i++) {
             Cell cell = row.getCell(i);
             if (cell == null) continue;
-            result[i-selection.left] = getValue(cell, cell.getCellTypeEnum());
+            result[i-selection.left] = getValue(cell, cell.getCellType());
         }
         return result;
 
@@ -297,7 +297,7 @@ public class LoadXls {
                 if (value == Math.floor(value)) return (long) value;
                 return value;
             case STRING: return cell.getStringCellValue();
-            case FORMULA: return getValue(cell,cell.getCachedFormulaResultTypeEnum());
+            case FORMULA: return getValue(cell,cell.getCachedFormulaResultType());
             case BOOLEAN: return cell.getBooleanCellValue();
             case _NONE: return null;
             case BLANK: return null;
