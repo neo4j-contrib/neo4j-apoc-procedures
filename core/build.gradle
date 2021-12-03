@@ -131,8 +131,6 @@ dependencies {
 
     compile group: 'xerces', name: 'xercesImpl', version: '2.12.1'
 
-    compile group: 'xerces', name: 'xercesImpl', version: '2.12.1'
-
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
     }

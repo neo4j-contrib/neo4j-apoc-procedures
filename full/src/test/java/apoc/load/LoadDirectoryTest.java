@@ -16,6 +16,7 @@ import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
@@ -28,6 +29,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
@@ -270,14 +272,14 @@ public class LoadDirectoryTest {
         FileUtils.forceDelete(file2);
     }
 
-    @Test
+    @Test(expected = QueryExecutionException.class)
     public void testRemoveListenerWithNotExistingName() {
         try {
-            testResult(db, "CALL apoc.load.directory.async.remove('notExisting')", result -> {
-            });
+            System.out.println(db.executeTransactionally("CALL apoc.load.directory.async.remove('notExisting')", Map.of(), Result::resultAsString));
         } catch (RuntimeException e) {
+            final Throwable rootCause = ExceptionUtils.getRootCause(e);
             String expectedMessage = "Listener with name: notExisting doesn't exists";
-            assertEquals(expectedMessage, e.getMessage());
+            assertEquals(expectedMessage, rootCause.getMessage());
             throw e;
         }
     }
@@ -297,7 +299,7 @@ public class LoadDirectoryTest {
             assertEquals(importPath, mapTestOne.get("urlDir"));
             assertEquals("CREATE (n:Test)", mapTestOne.get("cypher"));
             assertEquals(defaultConfig, mapTestOne.get("config"));
-            assertEquals(LoadDirectoryItem.Status.RUNNING.name(), mapTestOne.get("status"));
+            assertCreatedOrRunning(mapTestOne);
             assertEquals(StringUtils.EMPTY, mapTestOne.get("error"));
             Map<String, Object> mapTestTwo = result.next();
             assertThat(mapTestTwo.get("name"), isOneOf("testOne", "testTwo"));
@@ -305,7 +307,7 @@ public class LoadDirectoryTest {
             assertEquals(importPath, mapTestTwo.get("urlDir"));
             assertEquals("CREATE (n:Test)", mapTestTwo.get("cypher"));
             assertEquals(defaultConfig, mapTestTwo.get("config"));
-            assertEquals(LoadDirectoryItem.Status.RUNNING.name(), mapTestTwo.get("status"));
+            assertCreatedOrRunning(mapTestTwo);
             assertEquals(StringUtils.EMPTY, mapTestTwo.get("error"));
             assertFalse(result.hasNext());
         });
@@ -317,7 +319,7 @@ public class LoadDirectoryTest {
             assertEquals(importPath, result.get("urlDir"));
             assertEquals("CREATE (n:Test)", result.get("cypher"));
             assertEquals(defaultConfig, result.get("config"));
-            assertEquals(LoadDirectoryItem.Status.RUNNING.name(), result.get("status"));
+            assertCreatedOrRunning(result);
             assertEquals(StringUtils.EMPTY, result.get("error"));
         });
 
@@ -347,7 +349,7 @@ public class LoadDirectoryTest {
             assertEquals(importPath, result.get("urlDir"));
             assertEquals("CREATE (n:Test {file: $fileName})", result.get("cypher"));
             assertEquals(defaultConfig, result.get("config"));
-            assertEquals(LoadDirectoryItem.Status.CREATED.name(), result.get("status"));
+            assertCreatedOrRunning(result);
             assertEquals(StringUtils.EMPTY, result.get("error"));
         });
 
@@ -365,6 +367,11 @@ public class LoadDirectoryTest {
         testCallEmpty(db, "CALL apoc.load.directory.async.remove('test')", emptyMap());
 
         FileUtils.forceDelete(fileCsv);
+    }
+
+    private void assertCreatedOrRunning(Map<String, Object> result) {
+        Set<String> statuses = Set.of(LoadDirectoryItem.Status.CREATED.name(), LoadDirectoryItem.Status.RUNNING.name());
+        assertTrue("Status shuould be CREATED or RUNNING", statuses.contains(result.get("status")));
     }
 
     @Test
@@ -590,6 +597,7 @@ public class LoadDirectoryTest {
     public void testWithFilterAllRecursiveFalse() {
         testResult(db, "CALL apoc.load.directory('*', '', {recursive: false}) YIELD value RETURN value", result -> {
                     List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
+                    System.out.println("rows = " + rows);
                     assertTrue(rows.contains(CSV_1));
                     assertTrue(rows.contains(CSV_2_FILENAME_WITH_SPACES));
                     assertTrue(rows.contains(CSV_3));
