@@ -3896,7 +3896,7 @@ RETURN location.latitude AS latitude, location.longitude AS longitude, location.
     <div>
       <div class="paragraph">
 <p>If we wish to calculate the distance between addresses, we need to use the point() function to convert
-latitude and longitude to Cyper Point types, and then use the distance() function to calculate the distance:</p>
+latitude and longitude to Cyper Point types, and then use the point.distance() function to calculate the distance:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -3904,7 +3904,7 @@ latitude and longitude to Cyper Point types, and then use the distance() functio
 MATCH (a:Place)
 WHERE exists(a.address)
 CALL apoc.spatial.geocodeOnce(a.address) YIELD location
-WITH location, distance(point(location), eiffel) AS distance
+WITH location, point.distance(point(location), eiffel) AS distance
 WHERE distance &lt; 5000
 RETURN location.description AS description, distance
 ORDER BY distance
@@ -3999,7 +3999,7 @@ Two good reasons:</p>
 <pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
 MATCH (a:Place)
 WHERE exists(a.latitude) AND exists(a.longitude)
-WITH a, distance(point(a), eiffel) AS distance
+WITH a, point.distance(point(a), eiffel) AS distance
 WHERE distance &lt; 5000
 RETURN a.name, distance
 ORDER BY distance

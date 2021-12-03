@@ -129,7 +129,7 @@ RETURN location.latitude AS latitude, location.longitude AS longitude, location.
 == Calculating distance between locations
 
 If we wish to calculate the distance between addresses, we need to use the point() function to convert
-latitude and longitude to Cyper Point types, and then use the distance() function to calculate the distance:
+latitude and longitude to Cyper Point types, and then use the point.distance() function to calculate the distance:
 
 [source,cypher]
 ----
@@ -137,7 +137,7 @@ WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
 MATCH (a:Place)
 WHERE exists(a.address)
 CALL apoc.spatial.geocodeOnce(a.address) YIELD location
-WITH location, distance(point(location), eiffel) AS distance
+WITH location, point.distance(point(location), eiffel) AS distance
 WHERE distance < 5000
 RETURN location.description AS description, distance
 ORDER BY distance
@@ -208,7 +208,7 @@ Now make use of the results in distance queries
 WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
 MATCH (a:Place)
 WHERE exists(a.latitude) AND exists(a.longitude)
-WITH a, distance(point(a), eiffel) AS distance
+WITH a, point.distance(point(a), eiffel) AS distance
 WHERE distance < 5000
 RETURN a.name, distance
 ORDER BY distance

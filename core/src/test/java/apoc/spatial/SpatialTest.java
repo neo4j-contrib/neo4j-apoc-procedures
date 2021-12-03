@@ -116,7 +116,7 @@ public class SpatialTest {
                 "MATCH (a:Event) \n" +
                 "WHERE exists(a.address)\n" +
                 "CALL apoc.spatial.geocodeOnce(a.address) YIELD location \n" +
-                "WITH location, distance(point({latitude: location.latitude, longitude:location.longitude}), eiffel) AS distance\n" +
+                "WITH location, point.distance(point({latitude: location.latitude, longitude:location.longitude}), eiffel) AS distance\n" +
                 "WHERE distance < 5000\n" +
                 "RETURN location.description AS description, distance\n" +
                 "ORDER BY distance\n" +
@@ -136,7 +136,7 @@ public class SpatialTest {
         String query = "WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel\n" +
                 "MATCH (a:Event) \n" +
                 "WHERE exists(a.latitude) AND exists(a.longitude)\n" +
-                "WITH a, distance(point(a), eiffel) AS distance\n" +
+                "WITH a, point.distance(point(a), eiffel) AS distance\n" +
                 "WHERE distance < 5000\n" +
                 "RETURN a.name AS event, distance\n" +
                 "ORDER BY distance\n" +
@@ -153,7 +153,7 @@ public class SpatialTest {
                 "WITH apoc.date.parse(e.datetime,'h') as hours, e, due_date, eiffel\n" +
                 "CALL apoc.spatial.geocodeOnce(e.address) YIELD location\n" +
                 "WITH e, location,\n" +
-                "     distance(point({longitude: location.longitude, latitude:location.latitude}), eiffel) as distance,\n" +
+                "     point.distance(point({longitude: location.longitude, latitude:location.latitude}), eiffel) as distance,\n" +
                 "     (due_date - hours)/24.0 as days_before_due\n" +
                 "WHERE distance < 5000 AND days_before_due < 14 AND hours < due_date\n" +
                 "RETURN e.name as event, e.datetime as date,\n" +
