@@ -15,17 +15,7 @@ import apoc.util.Util;
 import org.neo4j.graphalgo.BasicEvaluationContext;
 import org.neo4j.graphalgo.GraphAlgoFactory;
 import org.neo4j.graphalgo.PathFinder;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Entity;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.PathExpander;
-import org.neo4j.graphdb.PathExpanderBuilder;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.CursorFactory;
@@ -650,6 +640,23 @@ public class Nodes {
                 throw new IllegalArgumentException("node with id " + id + " does not exist.");
             }
         }
+    }
+
+    @UserFunction("apoc.any.isDeleted")
+    @Description("returns boolean value for nodes and rele existance")
+    public boolean isDeleted(@Name("thing") Object thing) {
+        if (thing == null) return true;
+        final String query;
+        if (thing instanceof Node) {
+            query = "MATCH (n) WHERE ID(n) = $id RETURN COUNT(n) = 1 AS exists";
+        }
+        else if (thing instanceof Relationship){
+            query = "MATCH ()-[r]->() WHERE ID(r) = $id RETURN COUNT(r) = 1 AS exists";
+        }
+        else {
+            throw new IllegalArgumentException("expected Node or Relationship but was " + thing.getClass().getSimpleName());
+        }
+        return !(boolean) tx.execute(query, Map.of("id",((Entity)thing).getId())).next().get("exists");
     }
 
     // works in cases when relType is null
