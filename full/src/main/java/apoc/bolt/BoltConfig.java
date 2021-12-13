@@ -84,8 +84,11 @@ public class BoltConfig {
     }
 
     public SessionConfig getSessionConfig() {
-        return SessionConfig.builder()
-                .withDatabase(this.databaseName)
+        final SessionConfig.Builder builder = SessionConfig.builder();
+        if (this.databaseName != null) {
+            builder.withDatabase(this.databaseName);
+        }
+        return builder
                 .withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE)
                 .build();
     }
