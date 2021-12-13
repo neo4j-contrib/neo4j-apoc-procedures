@@ -7,6 +7,7 @@ import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -67,6 +68,15 @@ public class BoltTest {
         if (neo4jContainer != null && neo4jContainer.isRunning()) {
             neo4jContainer.close();
         }
+    }
+    
+    @Test
+    public void testNeo4jBolt() {
+        final String uriDbBefore4 = System.getenv("URI_DB_BEFORE_4");
+        Assume.assumeNotNull(uriDbBefore4);
+        TestUtil.testCall(db, "CALL apoc.bolt.load($uri, 'RETURN 1', {}, {databaseName: null})", 
+                Map.of("uri", uriDbBefore4),
+                r -> assertEquals(Map.of("1", 1L), r.get("row")));
     }
 
     @Test
