@@ -7,7 +7,7 @@ import java.security.MessageDigest
 
 /**
  * Get all the Neo4j releases
- * The source of truth is https://api.github.com/repos/neo4j/neo4j/releases
+ * The source of truth is https://repo1.maven.org/maven2/org/neo4j/neo4j-kernel/
  * We don't consider all the tags with "prerelease" attribute to true
  *
  * @return
@@ -15,14 +15,18 @@ import java.security.MessageDigest
 def collectNeo4jReleases() {
     def slurper = new JsonSlurper()
 
-    // get from tags or releases?
-    // https://api.github.com/repos/neo4j/neo4j/releases
-    def releases = slurper.parseText(new URL("https://search.maven.org/solrsearch/select?q=g:%22org.neo4j%22+AND+a:%22neo4j%22&core=gav&rows=200&wt=json").getText())
-    releases = releases.response.docs
+    def htmlString = 'https://repo1.maven.org/maven2/org/neo4j/neo4j-kernel/'.toURL().text
+            .replace("<!DOCTYPE html>", "")
+            .replace("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">", "")
+
+    def rootNode = new XmlParser().parseText(htmlString)
 
     def actualReleases = []
-    for (release in releases) {
-        actualReleases.add(release.v)
+    for (a in rootNode.body.main.pre.a) {
+        def href = a.attributes()["href"]
+        if (!href.contains("xml")) {
+            actualReleases.add(href[0..-2])
+        }
     }
 
     // We sort considering that X.Y.Z-SOMETHING should be considered lower than X.Y.Z --> it's not a lexicographical ordering
