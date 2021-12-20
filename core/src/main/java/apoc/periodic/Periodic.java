@@ -79,6 +79,10 @@ public class Periodic {
         Map<String,Long> commitErrors = new ConcurrentHashMap<>();
         AtomicInteger failedBatches = new AtomicInteger();
         Map<String,Long> batchErrors = new ConcurrentHashMap<>();
+        String periodicId = UUID.randomUUID().toString();
+        if (log.isDebugEnabled()) {
+            log.debug("Starting periodic commit from `%s` in separate thread with id: `%s`", statement, periodicId);
+        }
 
         do {
             Map<String, Object> window = Util.map("_count", updates, "_total", total);
@@ -94,7 +98,13 @@ public class Periodic {
             }), commitErrors, failedCommits, 0L);
             total += updates;
             if (updates > 0) executions++;
+            if (log.isDebugEnabled()) {
+                log.debug("Processed in periodic commit with id %s, no %d executions", periodicId, executions);
+            }
         } while (updates > 0 && !Util.transactionIsTerminated(terminationGuard));
+        if (log.isDebugEnabled()) {
+            log.debug("Terminated periodic commit with id %s with %d executions", periodicId, executions);
+        }
         long timeTaken = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
         boolean wasTerminated = Util.transactionIsTerminated(terminationGuard);
         return Stream.of(new RundownResult(total,executions, timeTaken, batches.get(),failedBatches.get(),batchErrors, failedCommits.get(), commitErrors, wasTerminated));
@@ -261,6 +271,8 @@ public class Periodic {
             Pair<String,Boolean> prepared = PeriodicUtils.prepareInnerStatement(cypherAction, batchMode, result.columns(), "_batch");
             String innerStatement = prepared.first();
             boolean iterateList = prepared.other();
+            String periodicId = UUID.randomUUID().toString();
+            log.info("Starting periodic iterate from `%s` operation using iteration `%s` in separate thread with id: `%s`", cypherIterate,cypherAction, periodicId);
             log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
             return PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
                     db, terminationGuard, log, pools,
@@ -270,7 +282,7 @@ public class Periodic {
                         Iterators.count(r); // XXX: consume all results
                         return r.getQueryStatistics();
                     },
-                    concurrency, failedParams);
+                    concurrency, failedParams, periodicId);
         }
     }
 
