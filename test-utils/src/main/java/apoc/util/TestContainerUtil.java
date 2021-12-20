@@ -92,6 +92,7 @@ public class TestContainerUtil {
         System.out.println("neo4jDockerImageVersion = " + dockerImage);
         Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(dockerImage)
                 .withPlugins(MountableFile.forHostPath(pluginsFolder.toPath()))
+                .withTmpFs(Map.of("/logs", "rw", "/data", "rw", pluginsFolder.toPath().toAbsolutePath().toString(), "rw"))
                 .withAdminPassword("apoc")
                 .withEnv("NEO4J_dbms_memory_heap_max__size", "512M")
                 .withEnv("NEO4J_dbms_memory_pagecache_size", "256M")
