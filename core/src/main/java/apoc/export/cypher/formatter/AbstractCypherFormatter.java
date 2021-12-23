@@ -33,9 +33,8 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 
 	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT%s ON (node:%s) ASSERT (%s) %s;";
 
-	private static final String STATEMENT_NODE_FULLTEXT_IDX = "CALL db.index.fulltext.createNodeIndex('%s',[%s],[%s]);";
-	private static final String STATEMENT_REL_FULLTEXT_IDX = "CALL db.index.fulltext.createRelationshipIndex('%s',[%s],[%s]);";
-	public static final String PROPERTY_QUOTING_FORMAT = "'%s'";
+	private static final String STATEMENT_NODE_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR (n:%s) ON EACH [%s];";
+	private static final String STATEMENT_REL_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR ()-[rel:%s]-() ON EACH [%s];";
 
 	@Override
 	public String statementForCleanUp(int batchSize) {
@@ -57,12 +56,9 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		String label = StreamSupport.stream(labels.spliterator(), false)
 				.map(Label::name)
 				.map(Util::quote)
-				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, s))
-				.collect(Collectors.joining(","));
-		String key = StreamSupport.stream(keys.spliterator(), false)
-				.map(Util::quote)
-				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, s))
-				.collect(Collectors.joining(","));
+				.collect(Collectors.joining("|"));
+		String key = getPropertiesQuoted(keys, "n.");
+
 		return String.format(STATEMENT_NODE_FULLTEXT_IDX, name, label, key);
 	}
 
@@ -71,12 +67,9 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		String type = StreamSupport.stream(types.spliterator(), false)
 				.map(RelationshipType::name)
 				.map(Util::quote)
-				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, s))
-				.collect(Collectors.joining(","));
-		String key = StreamSupport.stream(keys.spliterator(), false)
-				.map(Util::quote)
-				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, s))
-				.collect(Collectors.joining(","));
+				.collect(Collectors.joining("|"));
+		String key = getPropertiesQuoted(keys, "rel.");
+		
 		return String.format(STATEMENT_REL_FULLTEXT_IDX, name, type, key);
 	}
 
