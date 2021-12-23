@@ -28,6 +28,8 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_PROP;
  * Outputs indexes and constraints at the beginning as their own transactions
  */
 public class MultiStatementCypherSubGraphExporter {
+    private static final String FULL = "full";
+    private static final String NORMAL = "normal";
 
     /*private enum IndexType {
         NODE_LABEL_PROPERTY("node_label_property"),
@@ -206,9 +208,17 @@ public class MultiStatementCypherSubGraphExporter {
 
     private void exportSchema(PrintWriter out, ExportConfig config) {
         List<String> indexesAndConstraints = new ArrayList<>();
-        indexesAndConstraints.addAll(exportIndexes());
+        final Map<String, List<String>> indexes = exportIndexes();
+        List<String> fullTextIndexes = indexes.getOrDefault(FULL, Collections.emptyList());
+        indexesAndConstraints.addAll(indexes.getOrDefault(NORMAL, Collections.emptyList()));
         indexesAndConstraints.addAll(exportConstraints());
-        if (indexesAndConstraints.isEmpty() && artificialUniques == 0) return;
+        final boolean hasFullIndexes = !fullTextIndexes.isEmpty();
+        if (indexesAndConstraints.isEmpty() && !hasFullIndexes && artificialUniques == 0) return;
+        if (hasFullIndexes) {
+            begin(out);
+            fullTextIndexes.forEach(out::println);
+            commit(out);
+        }
         begin(out);
         for (String index : indexesAndConstraints) {
             out.println(index);
@@ -227,7 +237,7 @@ public class MultiStatementCypherSubGraphExporter {
         out.flush();
     }
 
-    private List<String> exportIndexes() {
+    private Map<String, List<String>> exportIndexes() {
         return db.executeTransactionally("CALL db.indexes()", Collections.emptyMap(), result -> result.stream()
                 .map(map -> {
                     List<String> props = (List<String>) map.get("properties");
@@ -243,21 +253,25 @@ public class MultiStatementCypherSubGraphExporter {
                     }
 
                     if ("FULLTEXT".equals(map.get("type"))) {
+                        final String fullTextIndex;
                         if ("NODE".equals(map.get("entityType"))) {
                             List<Label> labels = toLabels(tokenNames);
-                            return this.cypherFormat.statementForNodeFullTextIndex(name, labels, props);
+                            fullTextIndex = this.cypherFormat.statementForNodeFullTextIndex(name, labels, props);
                         } else {
                             List<RelationshipType> types = toRelationshipTypes(tokenNames);
-                            return this.cypherFormat.statementForRelationshipFullTextIndex(name, types, props);
+                            fullTextIndex = this.cypherFormat.statementForRelationshipFullTextIndex(name, types, props);
                         }
+                        return new AbstractMap.SimpleEntry<>(FULL, fullTextIndex);
                     }
                     // "normal" schema index
                     String tokenName = tokenNames.get(0);
-                    return this.cypherFormat.statementForIndex(tokenName, props, exportConfig.ifNotExists());
+                    return new AbstractMap.SimpleEntry<>(NORMAL, this.cypherFormat.statementForIndex(tokenName, props, exportConfig.ifNotExists()));
 
                 })
-                .filter(StringUtils::isNotBlank)
-                .collect(Collectors.toList()));
+                .filter(Objects::nonNull)
+                .filter(i -> StringUtils.isNotBlank(i.getValue()))
+                .collect(Collectors.groupingBy(Map.Entry::getKey,
+                        Collectors.mapping(Map.Entry::getValue, Collectors.toList()))));
     }
 
     private boolean tokensInGraph(List<String> tokens) {
