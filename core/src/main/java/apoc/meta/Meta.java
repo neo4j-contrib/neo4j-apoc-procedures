@@ -631,18 +631,13 @@ public class Meta {
                     while (nodes.hasNext()) {
                         Node node = nodes.next();
                         if(count++ % sample == 0) {
-                            boolean skipNode = false;
-                            for (RelationshipType rel : node.getRelationshipTypes()) {
-                                String relName = rel.name();
-                                if (excludeRels.contains(relName)) {
-                                    // Skip if explicitly excluded
-                                    skipNode = true;
-                                } else if (!includeRels.isEmpty() && !includeRels.contains(relName)) {
-                                    // Skip if included set is specified and this is not in it.
-                                    skipNode = true;
-                                }
-                            }
-                            if (skipNode != true) {
+                            boolean acceptNode = !node.hasRelationship()
+                                    || Iterables.stream(node.getRelationshipTypes())
+                                        .map(RelationshipType::name)
+                                        .anyMatch(relName -> !excludeRels.contains(relName) 
+                                                && (includeRels.isEmpty() || includeRels.contains(relName)));
+
+                            if (acceptNode) {
                                 profile.observe(node, config);
                             }
                         }
