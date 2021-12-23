@@ -44,10 +44,13 @@ import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.neo4j.driver.Values.isoDuration;
 import static org.neo4j.graphdb.traversal.Evaluators.toDepth;
@@ -117,11 +120,11 @@ public class MetaTest {
         AtomicReference<List<Map<String,Object>>> compareTo = new AtomicReference<>();
         AtomicReference<List<Map<String,Object>>> testSet = new AtomicReference<>();
 
-        TestUtil.testResult(db, equivalentToCall, r -> {
+        testResult(db, equivalentToCall, r -> {
             compareTo.set(gatherRecords(r));
         });
 
-        TestUtil.testResult(db, testCall, r -> {
+        testResult(db, testCall, r -> {
             testSet.set(gatherRecords(r));
         });
 
@@ -313,7 +316,7 @@ public class MetaTest {
         db.executeTransactionally("create index on :Movie(title)");
         db.executeTransactionally("create constraint on (a:Actor) assert a.name is unique");
         db.executeTransactionally("CREATE (:Actor {name:'Tom Hanks'})-[:ACTED_IN {roles:'Forrest'}]->(:Movie {title:'Forrest Gump'}) ");
-        TestUtil.testResult(db, "CALL apoc.meta.data()",
+        testResult(db, "CALL apoc.meta.data()",
                 (r) -> {
                     int count = 0;
                     while (r.hasNext()) {
@@ -688,7 +691,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:Person {name:'Sarah', surname:'Taylor'})");
         db.executeTransactionally("CREATE (:Person {name:'Jane'})");
         db.executeTransactionally("CREATE (:Person {name:'Jeff', surname:'Logan'})");
-        TestUtil.testResult(db, "CALL apoc.meta.data({sample:2})",
+        testResult(db, "CALL apoc.meta.data({sample:2})",
                 (r) -> {
                     Map<String, Object>  personNameProperty = r.next();
                     Map<String, Object>  personSurnameProperty = r.next();
@@ -716,7 +719,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:City {name:'Roma'})");
         db.executeTransactionally("CREATE (:City {name:'Firenze'})");
         db.executeTransactionally("CREATE (:City {name:'Taormina', region:'Sicilia'})");
-        TestUtil.testResult(db, "CALL apoc.meta.data({sample:5})",
+        testResult(db, "CALL apoc.meta.data({sample:5})",
                 (r) -> {
                     Map<String, Object>  personNameProperty = r.next();
                     Map<String, Object>  personSurnameProperty = r.next();
@@ -747,7 +750,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:Person {name:'Jane'})");
         db.executeTransactionally("CREATE (:Person {name:'Jeff', surname:'Logan'})");
         db.executeTransactionally("CREATE (:Person {name:'Tom'})");
-        TestUtil.testResult(db, "CALL apoc.meta.data({sample:5})",
+        testResult(db, "CALL apoc.meta.data({sample:5})",
                 (r) -> {
                     Map<String, Object>  personNameProperty = r.next();
                     assertEquals("name", personNameProperty.get("property"));
@@ -845,7 +848,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:Base)-[:RELTYPE { a: 1, d: null }]->(:Target)");
         db.executeTransactionally("CREATE (:Base)-[:RELTYPE { a: 2, b: 2, c: 2, d: 4 }]->(:Target);");
 
-        TestUtil.testResult(db, "CALL apoc.meta.relTypeProperties()", r -> {
+        testResult(db, "CALL apoc.meta.relTypeProperties()", r -> {
             List<Map<String,Object>> records = gatherRecords(r);
 
             System.out.println("REL TYPE PROPERTIES");
@@ -878,7 +881,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:A)-[:CATCHME { c: 1 }]->(:B)");
         db.executeTransactionally("CREATE (:A)-[:IGNOREME { d: 1 }]->(:B)");
 
-        TestUtil.testResult(db, "CALL apoc.meta.relTypeProperties({ includeRels: ['CATCHME'] })", r -> {
+        testResult(db, "CALL apoc.meta.relTypeProperties({ includeRels: ['CATCHME'] })", r -> {
             List<Map<String,Object>> records = gatherRecords(r);
             assertEquals(1, records.size());
             assertEquals(records.get(0).get("propertyName").equals("c"), true);
@@ -886,11 +889,59 @@ public class MetaTest {
     }
 
     @Test
+    public void testRelTypePropertiesIncludesWithDoubleRel() {
+        db.executeTransactionally( "CREATE (a:A)-[:FIRST_A {a: 1}]->(b:B), (a)-[:SECOND_B {b: '2'}]->(c)" );
+        db.executeTransactionally( "CREATE (:Alpha)-[:FIRST_A {c: true}]->(:Beta), (:Gamma)-[:SECOND_B {d: datetime()}]->(:Delta)" );
+
+        final Consumer<Result> assertFirstRel = res -> {
+            Map<String, Object> r = res.next();
+            assertEquals("a", r.get("propertyName"));
+            assertEquals(":`FIRST_A`", r.get("relType"));
+            assertEquals(List.of("Long"), r.get("propertyTypes"));
+            r = res.next();
+            assertEquals("c", r.get("propertyName"));
+            assertEquals(":`FIRST_A`", r.get("relType"));
+            assertEquals(List.of("Boolean"), r.get("propertyTypes"));
+            assertFalse(res.hasNext());
+        };
+        
+        final Consumer<Result> assertSecondRel = res -> {
+            Map<String, Object> r = res.next();
+            assertEquals("b", r.get("propertyName"));
+            assertEquals(":`SECOND_B`", r.get("relType"));
+            assertEquals(List.of("String"), r.get("propertyTypes"));
+            r = res.next();
+            assertEquals("d", r.get("propertyName"));
+            assertEquals(":`SECOND_B`", r.get("relType"));
+            assertEquals(List.of("DateTime"), r.get("propertyTypes"));
+            assertFalse(res.hasNext());
+        };
+
+        final String query = "CALL apoc.meta.relTypeProperties($conf) YIELD propertyName, relType, propertyTypes RETURN * ORDER BY relType";
+        
+        testResult(db, query, map("conf", 
+                    map("includeRels", List.of("FIRST_A"))), 
+                assertFirstRel);
+        testResult(db, query, map("conf", 
+                    map("excludeRels", List.of("SECOND_B"))), 
+                assertFirstRel);
+
+        testResult(db, query, map("conf", 
+                    map("excludeRels", List.of("FIRST_A"))), 
+                assertSecondRel);
+        testResult(db, query, map("conf", 
+                    map("includeRels", List.of("SECOND_B"))),
+                assertSecondRel);
+
+        TestUtil.testCallCount(db, "CALL apoc.meta.relTypeProperties()", emptyMap(), 4);
+    }
+
+    @Test
     public void testNodeTypePropertiesNodeExcludes() throws Exception {
         db.executeTransactionally("CREATE (:ExcludeMe)");
         db.executeTransactionally("CREATE (:IncludeMe)");
 
-        TestUtil.testResult(db, "CALL apoc.meta.nodeTypeProperties({ excludeLabels: ['ExcludeMe'] })", r -> {
+        testResult(db, "CALL apoc.meta.nodeTypeProperties({ excludeLabels: ['ExcludeMe'] })", r -> {
             List<Map<String,Object>> records = gatherRecords(r);
             assertEquals(1, records.size());
             assertEquals(true, records.get(0).get("nodeType").equals(":`IncludeMe`"));
@@ -902,7 +953,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:ExcludeMe)");
         db.executeTransactionally("CREATE (:IncludeMe)");
 
-        TestUtil.testResult(db, "CALL apoc.meta.nodeTypeProperties({ includeLabels: ['IncludeMe'] })", r -> {
+        testResult(db, "CALL apoc.meta.nodeTypeProperties({ includeLabels: ['IncludeMe'] })", r -> {
             List<Map<String,Object>> records = gatherRecords(r);
             assertEquals(1, records.size());
             assertEquals(true, records.get(0).get("nodeType").equals(":`IncludeMe`"));
@@ -914,7 +965,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:A)-[:RELA { x: 1 }]->(:C)");
         db.executeTransactionally("CREATE (:B)-[:RELB { x: 1 }]->(:D)");
 
-        TestUtil.testResult(db, "CALL apoc.meta.nodeTypeProperties({ excludeRels: ['RELA'] })", r -> {
+        testResult(db, "CALL apoc.meta.nodeTypeProperties({ excludeRels: ['RELA'] })", r -> {
             List<Map<String,Object>> records = gatherRecords(r);
             assertEquals(2, records.size());
             for (Map<String,Object> rec : records) {
@@ -933,7 +984,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:A)-[:RELA { x: 1 }]->(:C)");
         db.executeTransactionally("CREATE (:B)-[:RELB { x: 1 }]->(:D)");
 
-        TestUtil.testResult(db, "CALL apoc.meta.nodeTypeProperties({ includeRels: ['RELA'] })", r -> {
+        testResult(db, "CALL apoc.meta.nodeTypeProperties({ includeRels: ['RELA'] })", r -> {
             List<Map<String,Object>> records = gatherRecords(r);
             assertEquals(2, records.size());
             for (Map<String,Object> rec : records) {
@@ -952,7 +1003,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:A)-[:RELA { x: 1 }]->(:C)");
         db.executeTransactionally("CREATE (:B)-[:RELB { x: 1 }]->(:D)");
 
-        TestUtil.testResult(db, "CALL apoc.meta.relTypeProperties({ excludeRels: ['RELA'] })", r -> {
+        testResult(db, "CALL apoc.meta.relTypeProperties({ excludeRels: ['RELA'] })", r -> {
             List<Map<String,Object>> records = gatherRecords(r);
             assertEquals(1, records.size());
             assertEquals(true, records.get(0).get("relType").equals(":`RELB`"));
@@ -964,7 +1015,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:A)-[:RELA { x: 1 }]->(:C)");
         db.executeTransactionally("CREATE (:B)-[:RELB { x: 1 }]->(:D)");
 
-        TestUtil.testResult(db, "CALL apoc.meta.relTypeProperties({ includeRels: ['RELA'] })", r -> {
+        testResult(db, "CALL apoc.meta.relTypeProperties({ includeRels: ['RELA'] })", r -> {
             List<Map<String,Object>> records = gatherRecords(r);
             assertEquals(1, records.size());
             assertEquals(true, records.get(0).get("relType").equals(":`RELA`"));
@@ -976,7 +1027,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:A)-[:RELA { x: 1 }]->(:C)");
         db.executeTransactionally("CREATE (:B)-[:RELB { x: 1 }]->(:D)");
 
-        TestUtil.testResult(db, "CALL apoc.meta.relTypeProperties({ excludeLabels: ['A'] })", r -> {
+        testResult(db, "CALL apoc.meta.relTypeProperties({ excludeLabels: ['A'] })", r -> {
             List<Map<String,Object>> records = gatherRecords(r);
             assertEquals(1, records.size());
             for (Map<String,Object> rec : records) {
@@ -992,7 +1043,7 @@ public class MetaTest {
         db.executeTransactionally("CREATE (:A)-[:RELA { x: 1 }]->(:C)");
         db.executeTransactionally("CREATE (:B)-[:RELB { x: 1 }]->(:D)");
 
-        TestUtil.testResult(db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'] })", r -> {
+        testResult(db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'] })", r -> {
             List<Map<String,Object>> records = gatherRecords(r);
             assertEquals(1, records.size());
             for (Map<String,Object> rec : records) {
@@ -1059,16 +1110,16 @@ public class MetaTest {
             assertEquals(expectedResult, result);
         };
 
-        TestUtil.testResult(db, "CALL apoc.meta.data.of('MATCH p = ()-[:BOUGHT]->() RETURN p')",
+        testResult(db, "CALL apoc.meta.data.of('MATCH p = ()-[:BOUGHT]->() RETURN p')",
                 assertResult);
 
-        TestUtil.testResult(db, "MATCH p = ()-[:BOUGHT]->() " +
+        testResult(db, "MATCH p = ()-[:BOUGHT]->() " +
                         "WITH {nodes: nodes(p), relationships: relationships(p)} AS graphMap " +
                         String.format("CALL apoc.meta.data.of(graphMap) YIELD %s ", keys) +
                         "RETURN " + keys,
                 assertResult);
 
-        TestUtil.testResult(db, "CALL apoc.graph.fromCypher('MATCH p = ()-[:BOUGHT]->() RETURN p', {}, '', {}) YIELD graph " +
+        testResult(db, "CALL apoc.graph.fromCypher('MATCH p = ()-[:BOUGHT]->() RETURN p', {}, '', {}) YIELD graph " +
                         String.format("CALL apoc.meta.data.of(graph) YIELD %s ", keys) +
                         "RETURN " + keys,
                 assertResult);
@@ -1096,16 +1147,16 @@ public class MetaTest {
             assertEquals(RelationshipType.withName("BOUGHT"), relationships.get(0).getType());
         };
 
-        TestUtil.testResult(db, "CALL apoc.meta.graph.of('MATCH p = ()-[:BOUGHT]->() RETURN p')",
+        testResult(db, "CALL apoc.meta.graph.of('MATCH p = ()-[:BOUGHT]->() RETURN p')",
                 assertResult);
 
-        TestUtil.testResult(db, "MATCH p = ()-[:BOUGHT]->() " +
+        testResult(db, "MATCH p = ()-[:BOUGHT]->() " +
                         "WITH {nodes: nodes(p), relationships: relationships(p)} AS graphMap " +
                         "CALL apoc.meta.graph.of(graphMap) YIELD nodes, relationships " +
                         "RETURN *",
                 assertResult);
 
-        TestUtil.testResult(db, "CALL apoc.graph.fromCypher('MATCH p = ()-[:BOUGHT]->() RETURN p', {}, '', {}) YIELD graph " +
+        testResult(db, "CALL apoc.graph.fromCypher('MATCH p = ()-[:BOUGHT]->() RETURN p', {}, '', {}) YIELD graph " +
                         "CALL apoc.meta.graph.of(graph) YIELD nodes, relationships " +
                         "RETURN *",
                 assertResult);
