@@ -567,20 +567,20 @@ public class ExportCypherTest {
     @Test
     public void exportMultiTokenIndex() {
         // given
-        db.executeTransactionally("CREATE (n:TempNode {value:'value'})");
-        db.executeTransactionally("CREATE (n:TempNode2 {value:'value'})");
-        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('MyCoolNodeFulltextIndex',['TempNode', 'TempNode2'],['value'])");
+        db.executeTransactionally("CREATE (n:TempNode {value:'value', value2:'value'})");
+        db.executeTransactionally("CREATE (n:TempNode2 {value:'value', value:'value2'})");
+        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('MyCoolNodeFulltextIndex',['TempNode', 'TempNode2'],['value', 'value2'])");
 
         String query = "MATCH (t:TempNode) return t";
         String file = null;
         Map<String, Object> config = map("awaitForIndexes", 3000);
         String expected = String.format(":begin%n" +
-                "CALL db.index.fulltext.createNodeIndex('MyCoolNodeFulltextIndex',['TempNode','TempNode2'],['value']);%n" +
+                "CREATE FULLTEXT INDEX MyCoolNodeFulltextIndex FOR (n:TempNode|TempNode2) ON EACH [n.value, n.value2];%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 ":commit%n" +
                 "CALL db.awaitIndexes(3000);%n" +
                 ":begin%n" +
-                "UNWIND [{_id:3, properties:{value:\"value\"}}] AS row%n" +
+                "UNWIND [{_id:3, properties:{value2:\"value\", value:\"value\"}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:TempNode;%n" +
                 ":commit%n" +
                 ":begin%n" +
