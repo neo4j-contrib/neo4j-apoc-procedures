@@ -169,6 +169,8 @@ public class Schemas {
                 continue;
             if (definition.isConstraintIndex())
                 continue;
+            if (definition.isMultiTokenIndex())
+                continue;
 
             String label = Iterables.single(definition.getLabels()).name();
             List<String> keys = new ArrayList<>();
