@@ -6,6 +6,9 @@ import apoc.convert.Convert;
 import apoc.export.util.CountingInputStream;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
@@ -109,6 +112,8 @@ import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
@@ -968,6 +973,11 @@ public class Util {
 
     public static boolean isSelfRel(Relationship rel) {
         return rel.getStartNodeId() == rel.getEndNodeId();
+    }
+
+    public static String toCypherMap(Map<String, Object> map) {
+        final StringBuilder builder = formatProperties(map);
+        return "{" + formatToString(builder) + "}";
     }
     
     public static PointValue toPoint(Map<String, Object> pointMap, Map<String, Object> defaultPointMap) {

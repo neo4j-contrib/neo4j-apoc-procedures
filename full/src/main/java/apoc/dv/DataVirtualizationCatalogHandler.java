@@ -43,7 +43,7 @@ public class DataVirtualizationCatalogHandler {
             Node node = Util.mergeNode(tx, SystemLabels.DataVirtualizationCatalog, null,
                     Pair.of(SystemPropertyKeys.database.name(), db.databaseName()),
                     Pair.of(SystemPropertyKeys.name.name(), vr.name));
-            node.setProperty("data", JsonUtil.writeValueAsString(vr));
+            node.setProperty(SystemPropertyKeys.data.name(), JsonUtil.writeValueAsString(vr));
             return vr;
         });
     }
@@ -60,7 +60,7 @@ public class DataVirtualizationCatalogHandler {
             }
             try {
                 Node node = nodes.get(0);
-                Map<String, Object> map = JsonUtil.OBJECT_MAPPER.readValue(node.getProperty("data").toString(), Map.class);
+                Map<String, Object> map = JsonUtil.OBJECT_MAPPER.readValue(node.getProperty(SystemPropertyKeys.data.name()).toString(), Map.class);
                 return VirtualizedResource.from(name, map);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
@@ -87,7 +87,7 @@ public class DataVirtualizationCatalogHandler {
                 .stream()
                 .map(node -> {
                     try {
-                        Map<String, Object> map = JsonUtil.OBJECT_MAPPER.readValue(node.getProperty("data").toString(), Map.class);
+                        Map<String, Object> map = JsonUtil.OBJECT_MAPPER.readValue(node.getProperty(SystemPropertyKeys.data.name()).toString(), Map.class);
                         String name = node.getProperty(SystemPropertyKeys.name.name()).toString();
                         return VirtualizedResource.from(name, map);
                     } catch (JsonProcessingException e) {

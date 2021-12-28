@@ -19,6 +19,12 @@ and might change within minor release updates.
 ¦Qualified Name¦Type¦Release
 include::example$generated-documentation/apoc.systemdb.graph.adoc[]
 include::example$generated-documentation/apoc.systemdb.execute.adoc[]
+¦xref::overview/apoc.systemdb/apoc.systemdb.export.metadata.adoc[apoc.systemdb.export.metadata icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-full[]
+
 |===
 
 .isType example

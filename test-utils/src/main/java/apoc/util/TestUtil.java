@@ -1,6 +1,7 @@
 package apoc.util;
 
 import com.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matcher;
 import org.neo4j.exceptions.KernelException;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -16,10 +17,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -186,6 +190,15 @@ public class TestUtil {
     public static String readFileToString(File file, Charset charset) {
         try {
             return Files.toString(file, charset);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Set<String> readFileLines(String fileName, File directory) {
+        try {
+            final List<String> fileLines = FileUtils.readLines(new File(directory, fileName), StandardCharsets.UTF_8);
+            return new HashSet<>(fileLines);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
