@@ -129,6 +129,14 @@ When a Virtualized Resource is no longer needed it can be removed from the catal
 CALL apoc.dv.catalog.remove("vr-name")
 ----
 
+=== Export metadata
+
+[NOTE]
+====
+To import dv catalogs in another database (for example after a `./neo4j-admin backup` and `/neo4j-admin restore`),
+please see the xref::overview/apoc.systemdb/apoc.systemdb.export.metadata.adoc[apoc.systemdb.export.metadata] procedure.
+====
+
 == Managing a Virtualized Resource via CSV files
 
 === Creating a Virtualized Resource (CSV)

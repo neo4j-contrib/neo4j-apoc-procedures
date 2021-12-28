@@ -98,6 +98,4 @@ public class ExportResultFileStrategy implements ExportArrowFileStrategy<Result>
         }
         return schema;
     }
-
-
 }

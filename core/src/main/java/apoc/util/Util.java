@@ -87,6 +87,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
@@ -978,5 +980,10 @@ public class Util {
     
     private static Object getOrDefault(Map<String, Object> firstMap, Map<String, Object> secondMap, String key) {
         return firstMap.getOrDefault(key, secondMap.get(key));
+    }
+
+    public static String toCypherMap(Map<String, Object> map) {
+        final StringBuilder builder = formatProperties(map);
+        return "{" + formatToString(builder) + "}";
     }
 }

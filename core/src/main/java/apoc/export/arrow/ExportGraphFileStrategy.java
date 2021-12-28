@@ -100,7 +100,4 @@ public class ExportGraphFileStrategy implements ExportArrowFileStrategy<SubGraph
         }
         return schema;
     }
-
-
-
 }

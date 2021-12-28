@@ -113,7 +113,8 @@ public class LoadArrow {
     public Stream<MapResult> file(
             @Name("source") String fileName,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
-        final SeekableByteChannel channel = FileUtils.seekableByteChannelFor(fileName);
+        final SeekableByteChannel channel = FileUtils.inputStreamFor(fileName, null, null, null)
+                .asChannel();
         RootAllocator allocator = new RootAllocator();
         ArrowFileReader streamReader = new ArrowFileReader(channel, allocator);
         VectorSchemaRoot schemaRoot = streamReader.getVectorSchemaRoot();
