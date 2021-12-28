@@ -106,7 +106,7 @@ public class CypherFormatterUtils {
                 result.append(label(labelName));
             }
         }
-        return result.length() > 0 ? result.substring(2) : "";
+        return formatToString(result);
     }
 
     private static String getNodeIdLabels(Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexNames) {
@@ -145,12 +145,12 @@ public class CypherFormatterUtils {
             result.append(", ");
             result.append(formatPropertyName(id, UNIQUE_ID_PROP, node.getId(), jsonStyle));
         }
-        return result.length() > 0 ? result.substring(2) : "";
+        return formatToString(result);
     }
 
     public static String formatRelationshipProperties(String id, Relationship relationship, boolean jsonStyle) {
         StringBuilder result = formatProperties(id, relationship.getAllProperties(), jsonStyle);
-        return result.length() > 0 ? result.substring(2) : "";
+        return formatToString(result);
     }
 
     public static String formatNotUniqueProperties(String id, Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, boolean jsonStyle) {
@@ -171,16 +171,26 @@ public class CypherFormatterUtils {
             result.append(", ");
             result.append(formatPropertyName(id, key, properties.get(key), jsonStyle));
         }
+        return formatToString(result);
+    }
+
+    public static String formatToString(StringBuilder result) {
         return result.length() > 0 ? result.substring(2) : "";
+    }
+
+    public static StringBuilder formatProperties(Map<String, Object> properties) {
+        return formatProperties("", properties, true);
     }
 
     public static StringBuilder formatProperties(String id, Map<String, Object> properties, boolean jsonStyle) {
         StringBuilder result = new StringBuilder(100);
-        List<String> keys = Iterables.asList(properties.keySet());
-        Collections.sort(keys);
-        for (String prop : keys) {
-            result.append(", ");
-            result.append(formatPropertyName(id, prop, properties.get(prop), jsonStyle));
+        if (properties != null) {
+            List<String> keys = Iterables.asList(properties.keySet());
+            Collections.sort(keys);
+            for (String prop : keys) {
+                result.append(", ");
+                result.append(formatPropertyName(id, prop, properties.get(prop), jsonStyle));
+            }
         }
         return result;
     }
