@@ -5,8 +5,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+
+import java.util.Map;
 
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
 import static apoc.ApocConfig.apocConfig;
@@ -40,7 +43,7 @@ public class TriggerDisabledTest {
 
     @Test
     public void testTriggerDisabledList() {
-        db.executeTransactionally("CALL apoc.trigger.list() YIELD name RETURN name");
+        db.executeTransactionally("CALL apoc.trigger.list() YIELD name RETURN name", Map.of(), Result::resultAsString);
     }
 
     @Test

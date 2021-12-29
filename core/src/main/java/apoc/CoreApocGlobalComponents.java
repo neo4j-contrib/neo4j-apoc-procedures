@@ -21,7 +21,8 @@ public class CoreApocGlobalComponents implements ApocGlobalComponents {
                 dependencies.apocConfig(),
                 dependencies.log().getUserLog(TriggerHandler.class),
                 dependencies.globalProceduresRegistry(),
-                dependencies.pools())
+                dependencies.pools(),
+                dependencies.scheduler())
         );
     }
 
