@@ -174,10 +174,10 @@ RETURN m.col_1,m.col_2,m.col_3
 
     @Test 
     public void testLoadCsvEscape() { 
-        URL url = getUrlFileName("test-escape.csv");
+        String url = "test-escape.csv";
         final List<String> results = List.of("map", "list", "stringMap", "strings");
         testResult(db, "CALL apoc.load.csv($url, $config)", 
-                map("url", url.toString(), "config", map("results", results)),
+                map("url", url, "config", map("results", results)),
                 (r) -> {
                     assertRow(r, 0L,"name", "Naruto", "surname","Uzumaki");
                     assertRow(r, 1L,"name", "Minato", "surname","Namikaze");
