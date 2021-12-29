@@ -94,12 +94,17 @@ public class CouchbaseConnection implements AutoCloseable {
 
         this.env = config.getEnv();
         this.cluster = Cluster.connect(seedNodes, clusterOptions(authenticator).environment(env));
-        this.bucket = this.cluster.bucket(bucketName);
-        if (config.getWaitUntilReady() != null) {
-            this.bucket.waitUntilReady(Duration.ofMillis(config.getWaitUntilReady()));
+        try {
+            this.bucket = this.cluster.bucket(bucketName);
+            if (config.getWaitUntilReady() != null) {
+                this.bucket.waitUntilReady(Duration.ofMillis(config.getWaitUntilReady()));
+            }
+            this.collection = this.bucket.scope(config.getScope()).collection(config.getCollection());
+            this.binaryCollection = this.collection.binary();
+        } catch (Exception e) {
+            this.close();
+            throw new RuntimeException(e);
         }
-        this.collection = this.bucket.scope(config.getScope()).collection(config.getCollection());
-        this.binaryCollection = this.collection.binary();
     }
 
     /**
