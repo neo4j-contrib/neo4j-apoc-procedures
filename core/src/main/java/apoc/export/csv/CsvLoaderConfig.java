@@ -10,7 +10,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Config class to store the configuration for loading the CSV file. Names and defaults are based on the import tool's
- * <a href="http://neo4j.com/docs/operations-manual/current/tools/import/command-line-usage/">command line options</a>.
+ * <a href="https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import/#import-tool-options/">command line options</a>.
  */
 public class CsvLoaderConfig extends CompressionConfig {
 
