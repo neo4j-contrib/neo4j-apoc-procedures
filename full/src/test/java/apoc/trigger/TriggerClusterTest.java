@@ -32,6 +32,7 @@ public class TriggerClusterTest {
                 )),
                 Exception.class);
         Assume.assumeNotNull(cluster);
+        Assume.assumeTrue(cluster.isRunning());
     }
 
     @AfterClass
