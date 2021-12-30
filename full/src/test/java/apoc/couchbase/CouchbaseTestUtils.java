@@ -167,12 +167,13 @@ public class CouchbaseTestUtils {
     protected static int getNumConnections() {
         try {
             final Container.ExecResult execResult = couchbase.execInContainer("cbstats", COUCHBASE_HOST + ":11210", "-p", PASSWORD, "-u", USERNAME, "-a", "all");
-            final String s = Stream.of(execResult.getStdout().split(System.lineSeparator()))
+            return Stream.of(execResult.getStdout().split(System.lineSeparator()))
                     .filter(line -> line.contains("curr_connections"))
-                    .findFirst().get()
-                    .split(":")[1];
-            
-            return Integer.parseInt(s.trim());
+                    .findFirst()
+                    .map(s -> s.split(":")[1])
+                    .map(String::trim)
+                    .map(Integer::parseInt)
+                    .orElse(0);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
