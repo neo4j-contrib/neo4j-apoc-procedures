@@ -3,12 +3,13 @@ package apoc.couchbase;
 import apoc.util.TestUtil;
 import com.couchbase.client.core.error.AmbiguousTimeoutException;
 import com.couchbase.client.core.error.CouchbaseException;
+import com.couchbase.client.core.error.DocumentExistsException;
 import com.couchbase.client.core.error.UnambiguousTimeoutException;
 import com.couchbase.client.java.codec.RawBinaryTranscoder;
 import com.couchbase.client.java.json.JsonObject;
 import com.couchbase.client.java.kv.InsertOptions;
-import org.junit.After;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -20,17 +21,34 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.apocConfig;
-import static apoc.couchbase.CouchbaseTestUtils.*;
+import static apoc.couchbase.CouchbaseTestUtils.BASE_CONFIG_KEY;
+import static apoc.couchbase.CouchbaseTestUtils.BIG_JSON;
+import static apoc.couchbase.CouchbaseTestUtils.BUCKET_NAME;
+import static apoc.couchbase.CouchbaseTestUtils.COLL_NAME;
+import static apoc.couchbase.CouchbaseTestUtils.HOST;
+import static apoc.couchbase.CouchbaseTestUtils.PASSWORD;
+import static apoc.couchbase.CouchbaseTestUtils.SECOND_COLL_NAME;
+import static apoc.couchbase.CouchbaseTestUtils.SECOND_SCOPE;
+import static apoc.couchbase.CouchbaseTestUtils.USERNAME;
+import static apoc.couchbase.CouchbaseTestUtils.VINCENT_VAN_GOGH;
+import static apoc.couchbase.CouchbaseTestUtils.checkDocumentContent;
+import static apoc.couchbase.CouchbaseTestUtils.checkListResult;
+import static apoc.couchbase.CouchbaseTestUtils.collection;
+import static apoc.couchbase.CouchbaseTestUtils.couchbase;
+import static apoc.couchbase.CouchbaseTestUtils.createCouchbaseContainer;
+import static apoc.couchbase.CouchbaseTestUtils.getNumConnections;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class CouchbaseIT {
 
@@ -68,8 +86,7 @@ public class CouchbaseIT {
     @After
     public void after() {
         // the connections active before must be equal to the connections active after
-        long numConnectionsAfter = getNumConnections();
-        assertEquals(numberConnections, numConnectionsAfter);
+        assertEventually(() -> getNumConnections(), value -> value <= numberConnections, 60L, TimeUnit.SECONDS);
     }
 
     @Test
@@ -172,8 +189,8 @@ public class CouchbaseIT {
                     assertFalse(collection.exists("testInsertViaCall").exists());
                 });
     }
-    
-    @Test
+
+    @Test(expected = QueryExecutionException.class)
     public void testQueryWithConnectTimeout() {
         try {
             testCall(db, "CALL apoc.couchbase.insert($host, $bucket, 'testConnectTimeout', $data, $config)",
@@ -183,11 +200,12 @@ public class CouchbaseIT {
         } catch (Exception e) {
             final Throwable rootCause = ExceptionUtils.getRootCause(e);
             assertTrue(rootCause instanceof AmbiguousTimeoutException);
-            assertEquals("InsertRequest, Reason: TIMEOUT", rootCause.getMessage());
+            assertTrue("should throw a timeout message", rootCause.getMessage().startsWith("InsertRequest, Reason: TIMEOUT"));
+            throw e;
         }
     }
-    
-    @Test
+
+    @Test(expected = QueryExecutionException.class)
     public void testQueryWithKvTimeout() {
         try {
             testCall(db, "CALL apoc.couchbase.insert($host, $bucket, 'testKvTimeout', $data, $config)", 
@@ -197,11 +215,12 @@ public class CouchbaseIT {
         } catch (Exception e) {
             final Throwable rootCause = ExceptionUtils.getRootCause(e);
             assertTrue(rootCause instanceof AmbiguousTimeoutException);
-            assertEquals("InsertRequest, Reason: TIMEOUT", rootCause.getMessage());
+            assertTrue("should throw a timeout message", rootCause.getMessage().startsWith("InsertRequest, Reason: TIMEOUT"));
+            throw e;
         }
     }
-    
-    @Test
+
+    @Test(expected = QueryExecutionException.class)
     public void testQueryWithWaitUntilReadyTimeout() {
         try {
             testCall(db, "CALL apoc.couchbase.insert($host, $bucket, 'testWaitUntilReady', $data, $config)",
@@ -211,7 +230,8 @@ public class CouchbaseIT {
         } catch (Exception e) {
             final Throwable rootCause = ExceptionUtils.getRootCause(e);
             assertTrue(rootCause instanceof UnambiguousTimeoutException);
-            assertEquals("WaitUntilReady timed out", rootCause.getMessage());
+            assertTrue("should throw a timeout message", rootCause.getMessage().startsWith("WaitUntilReady timed out"));
+            throw e;
         }
     }
 
@@ -235,8 +255,8 @@ public class CouchbaseIT {
                     assertFalse(collection.exists(expectedId).exists());
                 });
     }
-    
-    @Test
+
+    @Test(expected = QueryExecutionException.class)
     public void testUpsertFailBecauseOfIncorrectTranscoder() {
         try {
             testCall(db, "CALL apoc.couchbase.upsert($host, $bucket, 'testUpsertViaCall', $data, {transcoder: 'rawbinary'})",
@@ -246,6 +266,7 @@ public class CouchbaseIT {
             final Throwable rootCause = ExceptionUtils.getRootCause(e);
             assertTrue(rootCause instanceof CouchbaseException);
             assertEquals("Only byte[] is supported for the RawBinaryTranscoder!", rootCause.getMessage());
+            throw e;
         }
     }
 
@@ -256,6 +277,7 @@ public class CouchbaseIT {
 
         final String expectedId = "binaryId";
         collection.insert(expectedId, bytes, InsertOptions.insertOptions().transcoder(RawBinaryTranscoder.INSTANCE));
+        numberConnections = getNumConnections();
 
         testCall(db, "CALL apoc.couchbase.prepend($host, $bucket, 'binaryId', $data)",
                 map("host", HOST, "bucket", BUCKET_NAME, "data", "hello".getBytes()),
@@ -271,9 +293,14 @@ public class CouchbaseIT {
 
     @Test(expected = QueryExecutionException.class)
     public void testInsertWithAlreadyExistingIDViaCall() {
-        testCall(db, "CALL apoc.couchbase.insert($host, $bucket, 'artist:vincent_van_gogh', $data)",
-                map("host", HOST, "bucket", BUCKET_NAME, "data", VINCENT_VAN_GOGH.toString()),
-                r -> {});
+        try {
+            testCall(db, "CALL apoc.couchbase.insert($host, $bucket, 'artist:vincent_van_gogh', $data)",
+                    map("host", HOST, "bucket", BUCKET_NAME, "data", VINCENT_VAN_GOGH.toString()),
+                    r -> {});
+        } catch (QueryExecutionException e) {
+            assertTrue(ExceptionUtils.getRootCause(e) instanceof DocumentExistsException);
+            throw e;
+        }
     }
 
     @Test
@@ -311,8 +338,8 @@ public class CouchbaseIT {
                 map("host", HOST, "bucket", BUCKET_NAME, "query", "select * from " + BUCKET_NAME + " where lastName = \"Van Gogh\""),
                 r -> checkListResult(r));
     }
-    
-    @Test
+
+    @Test(expected = QueryExecutionException.class)
     public void testQueryWithQueryTimeout() {
         try {
             testCall(db, "CALL apoc.couchbase.query($host, $bucket, $query, $config)",
@@ -322,7 +349,8 @@ public class CouchbaseIT {
         } catch (Exception e) {
             final Throwable rootCause = ExceptionUtils.getRootCause(e);
             assertTrue(rootCause instanceof AmbiguousTimeoutException);
-            assertEquals("QueryRequest, Reason: TIMEOUT", rootCause.getMessage());
+            assertTrue("should throw a timeout message", rootCause.getMessage().startsWith("QueryRequest, Reason: TIMEOUT"));
+            throw e;
         }
     }
 
