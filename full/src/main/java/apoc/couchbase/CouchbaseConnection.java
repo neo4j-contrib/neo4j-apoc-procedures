@@ -2,6 +2,7 @@ package apoc.couchbase;
 
 import com.couchbase.client.core.env.PasswordAuthenticator;
 import com.couchbase.client.core.env.SeedNode;
+import com.couchbase.client.core.error.DocumentNotFoundException;
 import com.couchbase.client.java.BinaryCollection;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
@@ -12,9 +13,8 @@ import com.couchbase.client.java.json.JsonArray;
 import com.couchbase.client.java.json.JsonObject;
 import com.couchbase.client.java.kv.GetResult;
 import com.couchbase.client.java.kv.MutationResult;
-import com.couchbase.client.java.kv.PrependOptions;
-import com.couchbase.client.java.query.*;
-import com.couchbase.client.core.error.DocumentNotFoundException;
+import com.couchbase.client.java.query.QueryOptions;
+import com.couchbase.client.java.query.QueryResult;
 import org.apache.commons.configuration2.Configuration;
 
 import java.net.URI;
@@ -25,7 +25,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static apoc.couchbase.CouchbaseManager.*;
+import static apoc.couchbase.CouchbaseManager.PORT_CONFIG_KEY;
+import static apoc.couchbase.CouchbaseManager.URI_CONFIG_KEY;
+import static apoc.couchbase.CouchbaseManager.checkAndGetURI;
+import static apoc.couchbase.CouchbaseManager.getKeyMap;
 import static com.couchbase.client.java.ClusterOptions.clusterOptions;
 import static com.couchbase.client.java.kv.GetOptions.getOptions;
 import static com.couchbase.client.java.query.QueryOptions.queryOptions;
@@ -114,8 +117,12 @@ public class CouchbaseConnection implements AutoCloseable {
      */
     @Override
     public void close() {
-        this.cluster.disconnect();
-        this.env.shutdown();
+        try {
+            this.cluster.disconnect();
+        } catch (Exception ignored) {}
+        try {
+            this.env.shutdown();
+        } catch (Exception ignored) {}
     }
 
     public Collection getCollection() {
