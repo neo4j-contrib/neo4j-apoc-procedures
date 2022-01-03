@@ -2,7 +2,7 @@ package apoc.nlp.azure
 
 import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
-import apoc.nlp.aws.AWSProceduresAPIWithDummyClientTest
+import apoc.nlp.NplUtils.commonNlpInit
 import apoc.result.VirtualNode
 import apoc.util.TestUtil
 import org.junit.Assert.assertTrue
@@ -13,7 +13,6 @@ import org.junit.Assume.assumeTrue
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
-import org.neo4j.graphdb.ResultTransformer
 import org.neo4j.test.rule.ImpermanentDbmsRule
 import java.util.stream.Collectors
 
@@ -111,14 +110,7 @@ class AzureProceduresAPIWithDummyClientTest {
     fun `batches should create multiple virtual graphs`() {
         neo4j.executeTransactionally("""UNWIND range(1,26) AS index CREATE (a:Article3 {id: index, body:${'$'}body})""", mapOf("body" to "test"))
 
-        var sourceNode: Node? = null
-        var sourceNodeId: Long? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article3) RETURN a SKIP 25", emptyMap()) {
-            sourceNode = it.next()["a"] as Node
-            sourceNodeId = sourceNode!!.id
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article3) RETURN a SKIP 25")
 
         neo4j.executeTransactionally("""
                     MATCH (a:Article3) WITH a ORDER BY a.id
@@ -147,7 +139,8 @@ class AzureProceduresAPIWithDummyClientTest {
             val dummyLabels1 = listOf(Label { "Location"}, Label {"Entity"})
             val dummyLabels2 = listOf(Label { "DateTime"}, Label {"Entity"})
 
-            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(nodeMatcher))
+            val sourceNodeId = sourceNode.id
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels1, mapOf("text" to "token-1-node-${sourceNodeId}-batch-1", "type" to "Location"))))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-node-${sourceNodeId}-batch-1", "type" to "DateTime"))))
 
@@ -233,14 +226,7 @@ class AzureProceduresAPIWithDummyClientTest {
     fun `key phrases should create multiple virtual graphs`() {
         neo4j.executeTransactionally("""UNWIND range(1, 26) AS index CREATE (a:Article6 {id: index, body:${'$'}body})""", mapOf("body" to "test"))
 
-        var sourceNode: Node? = null
-        var sourceNodeId: Long? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article6) RETURN a SKIP 25", emptyMap()) {
-            sourceNode = it.next()["a"] as Node
-            sourceNodeId = sourceNode!!.id
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article6) RETURN a SKIP 25")
 
         neo4j.executeTransactionally("""
                     MATCH (a:Article6) WITH a ORDER BY a.id
@@ -268,7 +254,8 @@ class AzureProceduresAPIWithDummyClientTest {
 
             val dummyLabels = listOf( Label {"KeyPhrase"})
 
-            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(nodeMatcher))
+            val sourceNodeId = sourceNode.id
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-1-node-${sourceNodeId}-batch-1"))))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-2-node-${sourceNodeId}-batch-1"))))
 
@@ -282,14 +269,7 @@ class AzureProceduresAPIWithDummyClientTest {
     fun `create virtual entity graph based on salience cut off`() {
         neo4j.executeTransactionally("""CREATE (a:Article7 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
 
-        var sourceNode: Node? = null
-        var sourceNodeId: Long? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article7) RETURN a", emptyMap()) {
-            sourceNode = it.next()["a"] as Node
-            sourceNodeId = sourceNode!!.id
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article7) RETURN a")
 
         neo4j.executeTransactionally("""
                     MATCH (a:Article7) WITH a ORDER BY a.id
@@ -316,7 +296,8 @@ class AzureProceduresAPIWithDummyClientTest {
 
             val dummyLabels2 = listOf(Label { "Location"}, Label {"Entity"})
 
-            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(nodeMatcher))
+            val sourceNodeId = sourceNode.id
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-1-node-${sourceNodeId}-batch-0", "type" to "Location"))))
 
             Assert.assertEquals(1, relationships.size)
