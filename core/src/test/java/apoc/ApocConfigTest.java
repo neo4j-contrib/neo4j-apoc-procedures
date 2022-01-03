@@ -2,6 +2,10 @@ package apoc;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.File;
+import java.util.Collections;
+
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
@@ -10,12 +14,9 @@ import org.neo4j.logging.LogProvider;
 import org.neo4j.logging.internal.SimpleLogService;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
-import java.io.File;
-import java.util.Collections;
-
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +30,7 @@ public class ApocConfigTest {
 
         Config neo4jConfig = mock(Config.class);
         when(neo4jConfig.getDeclaredSettings()).thenReturn(Collections.emptyMap());
-        when(neo4jConfig.get(any())).thenReturn(null);
+        when(neo4jConfig.get( any())).thenReturn(null);
         when(neo4jConfig.get(GraphDatabaseSettings.allow_file_urls)).thenReturn(false);
 
         GlobalProceduresRegistry registry = mock(GlobalProceduresRegistry.class);

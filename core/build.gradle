@@ -122,6 +122,7 @@ dependencies {
     testImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.9.7'
     testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.2.0'
 
     compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '1.92.0'
     testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '1.92.0', {
