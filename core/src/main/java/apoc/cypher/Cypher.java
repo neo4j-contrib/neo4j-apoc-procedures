@@ -203,9 +203,16 @@ public class Cypher {
     }
 
     private Map<String, Object> toMap(QueryStatistics stats, long time, long rows) {
+        final Map<String, Object> map = map(
+                "rows", rows,
+                "time", time
+        );
+        map.putAll(toMap(stats));
+        return map;
+    }
+
+    public static Map<String, Object> toMap(QueryStatistics stats) {
         return map(
-                "rows",rows,
-                "time",time,
                 "nodesCreated",stats.getNodesCreated(),
                 "nodesDeleted",stats.getNodesDeleted(),
                 "labelsAdded",stats.getLabelsAdded(),

@@ -29,13 +29,31 @@ public class MergeTest {
 
     @Test
     public void testMergeNode() throws Exception {
-        testCall(db, "CALL apoc.merge.node(['Person','Bastard'],{ssid:'123'}, {name:'John'}) YIELD node RETURN node",
+        testMergeNodeCommon(false);
+    }
+
+    @Test
+    public void testMergeNodeWithStats() {
+        testMergeNodeCommon(true);
+    }
+
+    private void testMergeNodeCommon(boolean isWithStats) {
+        String procName = isWithStats ? "nodeWithStats" : "node";
+
+        testCall(db, String.format("CALL apoc.merge.%s(['Person','Bastard'],{ssid:'123'}, {name:'John'})", procName),
                 (row) -> {
                     Node node = (Node) row.get("node");
                     assertEquals(true, node.hasLabel(Label.label("Person")));
                     assertEquals(true, node.hasLabel(Label.label("Bastard")));
                     assertEquals("John", node.getProperty("name"));
                     assertEquals("123", node.getProperty("ssid"));
+
+                    if (isWithStats) {
+                        Map<String, Object> stats = (Map<String, Object>) row.get("stats");
+                        assertEquals(2, stats.get("labelsAdded"));
+                        assertEquals(1, stats.get("nodesCreated"));
+                        assertEquals(2, stats.get("propertiesSet"));
+                    }
                 });
     }
 
@@ -135,13 +153,30 @@ public class MergeTest {
 
     @Test
     public void testMergeEagerNode() throws Exception {
-        testCall(db, "CALL apoc.merge.node.eager(['Person','Bastard'],{ssid:'123'}, {name:'John'}) YIELD node RETURN node",
+        testMergeEagerCommon(false);
+    }
+    
+    @Test
+    public void testMergeEagerNodeWithStats() {
+        testMergeEagerCommon(true);
+    }
+
+    private void testMergeEagerCommon(boolean isWithStats) {
+        String procName = isWithStats ? "nodeWithStats" : "node";
+        testCall(db, String.format("CALL apoc.merge.%s.eager(['Person','Bastard'],{ssid:'123'}, {name:'John'})", procName),
                 (row) -> {
                     Node node = (Node) row.get("node");
                     assertEquals(true, node.hasLabel(Label.label("Person")));
                     assertEquals(true, node.hasLabel(Label.label("Bastard")));
                     assertEquals("John", node.getProperty("name"));
                     assertEquals("123", node.getProperty("ssid"));
+                    
+                    if (isWithStats) {
+                        final Map<String, Object> stats = (Map<String, Object>) row.get("stats");
+                        assertEquals(2, stats.get("labelsAdded"));
+                        assertEquals(1, stats.get("nodesCreated"));
+                        assertEquals(2, stats.get("propertiesSet"));
+                    }
                 });
     }
 
@@ -195,28 +230,61 @@ public class MergeTest {
 
     @Test
     public void testMergeEagerRelationships() throws Exception {
+        testMergeRelsCommon(false);
+    }
+    
+    @Test
+    public void testMergeEagerRelationshipsWithStats() {
+        testMergeRelsCommon(true);
+    }
+
+    private void testMergeRelsCommon(boolean isWithStats) {
         db.executeTransactionally("create (:Person{name:'Foo'}), (:Person{name:'Bar'})");
-
-        testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship.eager(s, 'KNOWS', {rid:123}, {since:'Thu'}, e) YIELD rel RETURN rel",
+        
+        String procName = isWithStats ? "relationshipWithStats" : "relationship";
+        String returnClause = isWithStats ? "YIELD rel, stats RETURN rel, stats" : "YIELD rel RETURN rel";
+        testCall(db, String.format("MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.%s.eager(s, 'KNOWS', {rid:123}, {since:'Thu'}, e) %s", 
+                procName, returnClause),
                 (row) -> {
                     Relationship rel = (Relationship) row.get("rel");
                     assertEquals("KNOWS", rel.getType().name());
                     assertEquals(123l, rel.getProperty("rid"));
                     assertEquals("Thu", rel.getProperty("since"));
+                    
+                    if (isWithStats) {
+                        final Map<String, Object> stats = (Map<String, Object>) row.get("stats");
+                        assertEquals(1, stats.get("relationshipsCreated"));
+                        assertEquals(2, stats.get("propertiesSet"));
+                    }
                 });
 
-        testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship.eager(s, 'KNOWS', {rid:123}, {since:'Fri'}, e) YIELD rel RETURN rel",
+        testCall(db, String.format("MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.%s.eager(s, 'KNOWS', {rid:123}, {since:'Fri'}, e) %s", 
+                procName, returnClause),
                 (row) -> {
                     Relationship rel = (Relationship) row.get("rel");
                     assertEquals("KNOWS", rel.getType().name());
                     assertEquals(123l, rel.getProperty("rid"));
                     assertEquals("Thu", rel.getProperty("since"));
+                    
+                    if (isWithStats) {
+                        final Map<String, Object> stats = (Map<String, Object>) row.get("stats");
+                        assertEquals(0, stats.get("relationshipsCreated"));
+                        assertEquals(0, stats.get("propertiesSet"));
+                    }
                 });
-        testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship(s, 'OTHER', null, null, e) YIELD rel RETURN rel",
+        
+        testCall(db, String.format("MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.%s(s, 'OTHER', null, null, e) %s", 
+                procName, returnClause),
                 (row) -> {
                     Relationship rel = (Relationship) row.get("rel");
                     assertEquals("OTHER", rel.getType().name());
                     assertTrue(rel.getAllProperties().isEmpty());
+                    
+                    if (isWithStats) {
+                        final Map<String, Object> stats = (Map<String, Object>) row.get("stats");
+                        assertEquals(1, stats.get("relationshipsCreated"));
+                        assertEquals(0, stats.get("propertiesSet"));
+                    }
                 });
     }
 
