@@ -1,6 +1,7 @@
 package apoc.nlp.azure
 
 import apoc.nlp.NodeMatcher
+import apoc.nlp.NplUtils.commonNlpInit
 import apoc.nlp.RelationshipMatcher
 import apoc.result.VirtualNode
 import apoc.util.TestUtil
@@ -120,13 +121,7 @@ class AzureProceduresAPITest {
         // given
         val text = "I had a wonderful trip to Seattle last week."
 
-        var sourceNode: Node? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("CREATE (a:Entity2{id: 'a', text: ${'$'}data}) RETURN a",
-                mapOf("data" to text))  {
-            sourceNode = it.next()["a"] as Node
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "CREATE (a:Entity2{id: 'a', text: ${'$'}data}) RETURN a")
 
         // when
         neo4j.executeTransactionally("""MATCH (s:Entity2)
@@ -141,7 +136,7 @@ class AzureProceduresAPITest {
 
             Assert.assertEquals(3, nodes.size)
 
-            MatcherAssert.assertThat(nodes, Matchers.hasItem(sourceNode))
+            MatcherAssert.assertThat(nodes, Matchers.hasItem(nodeMatcher))
 
             val dateTimeLabels = listOf(Label { "DateTime" }, Label { "Entity" })
             val locationLabels = listOf(Label { "Location" }, Label { "Entity" })

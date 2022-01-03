@@ -2,6 +2,7 @@ package apoc.nlp.gcp
 
 import apoc.nlp.MinimalPropertiesMatcher.Companion.hasAtLeast
 import apoc.nlp.NodeMatcher
+import apoc.nlp.NplUtils.commonNlpInit
 import apoc.nlp.RelationshipMatcher
 import apoc.result.VirtualNode
 import apoc.util.TestUtil
@@ -103,12 +104,7 @@ class GCPProceduresAPITest {
     fun `should extract entity as virtual graph`() {
         neo4j.executeTransactionally("""CREATE (a:Article3 {body:${'$'}body})""", mapOf("body" to body))
 
-        var sourceNode: Node? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article3) RETURN a", emptyMap()) {
-            sourceNode = it.next()["a"] as Node
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article3) RETURN a")
 
         neo4j.executeTransactionally("""
                     MATCH (a:Article3)
@@ -128,7 +124,7 @@ class GCPProceduresAPITest {
 
                     Assert.assertEquals(17, nodes.size)
 
-                    assertThat(nodes, hasItem(sourceNode))
+                    assertThat(nodes, hasItem(nodeMatcher))
 
                     val orgLabels = listOf(Label { "Organization" }, Label { "Entity" })
                     val locationLabels = listOf(Label { "Location" }, Label { "Entity" })
