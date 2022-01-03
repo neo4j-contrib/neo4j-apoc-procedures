@@ -26,7 +26,8 @@ public class VirtualNode implements Node {
     private final String elementId;
 
     public VirtualNode(Label[] labels, Map<String, Object> props) {
-        this.id = MIN_ID.getAndDecrement();
+        // to not overlap this ids with ids from VirtualNode(Node node, List<String> propertyNames)
+        this.id = MIN_ID.decrementAndGet();
         addLabels(asList(labels));
         this.props.putAll(props);
         this.elementId = null;
@@ -46,7 +47,11 @@ public class VirtualNode implements Node {
 
     public VirtualNode(Node node, List<String> propertyNames) {
         Objects.requireNonNull(node, ERROR_NODE_NULL);
-        this.id = node.getId();
+        final long id = node.getId();
+        // if node is already virtual, we return the same id
+        this.id = id < 0 ? id : -id - 1;
+        // to not overlap this ids with ids from VirtualNode(Label[] labels, Map<String, Object> props)
+        MIN_ID.updateAndGet(x -> Math.min(x, this.id));
         this.labels.addAll(Util.labelStrings(node));
         String[] keys = propertyNames.toArray(new String[propertyNames.size()]);
         this.props.putAll(node.getProperties(keys));
