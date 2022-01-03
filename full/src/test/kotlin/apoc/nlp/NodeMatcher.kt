@@ -7,6 +7,9 @@ import org.neo4j.graphdb.Node
 import java.util.stream.Collectors
 
 data class NodeMatcher(private val labels: List<Label>, private val properties: Map<String, Any>) : org.hamcrest.TypeSafeDiagnosingMatcher<Node>() {
+    constructor(node: Node) : this(node.labels.toList(), node.allProperties)
+//    constructor(node: Node) : this(emptyList(), emptyMap())
+    
     private val labelNames: List<String> = labels.stream().map { l -> l.name()}.collect(Collectors.toList())
 
     override fun describeTo(description: Description?) {

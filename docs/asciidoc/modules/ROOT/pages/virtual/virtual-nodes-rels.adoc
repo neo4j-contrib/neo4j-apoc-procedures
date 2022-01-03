@@ -170,3 +170,10 @@ RETURN *;
 
 //update image once procedure is created
 //image::apoc.create.vPatternFullTwo.png[scaledwidth="100%"]
+
+[NOTE]
+====
+To update a virtual node you can use the xref::overview/apoc.create/apoc.create.setProperty.adoc[apoc.create.setProperty] or
+xref::overview/apoc.create/apoc.create.setProperties.adoc[apoc.create.setProperties],
+otherwise for a virtual relationships the xref::overview/apoc.create/apoc.create.setRelProperty.adoc[apoc.create.setRelProperty] or xref::overview/apoc.create/apoc.create.setRelProperties.adoc[apoc.create.setRelProperties]
+====
