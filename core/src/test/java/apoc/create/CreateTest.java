@@ -1,5 +1,6 @@
 package apoc.create;
 
+import apoc.path.Paths;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
@@ -36,7 +37,7 @@ public class CreateTest {
     public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before public void setUp() throws Exception {
-        TestUtil.registerProcedure(db,Create.class);
+        TestUtil.registerProcedure(db,Create.class, Paths.class);
     }
 
     @Test
@@ -237,6 +238,91 @@ public class CreateTest {
                     assertEquals(true, node.hasLabel(Label.label("Person")));
                     assertEquals("Vincent", node.getProperty("name"));
                     assertNull(node.getProperty("born"));
+                });
+    }
+    
+    @Test
+    public void testVirtualFromNodeShouldNotEditOriginalOne() {
+        db.executeTransactionally("CREATE (n:Person {name:'toUpdate'})");
+
+        testCall(db, "MATCH (n:Person {name:'toUpdate'})\n" +
+                        "WITH apoc.create.virtual.fromNode(n, ['name']) as nVirtual\n" +
+                        "CALL apoc.create.setProperty(nVirtual, 'ajeje', 0) YIELD node RETURN node\n",
+                (row) -> {
+                    Node node = (Node) row.get("node");
+                    assertEquals("toUpdate", node.getProperty("name"));
+                    assertEquals(0L, node.getProperty("ajeje"));
+                });
+        
+        testCall(db, "MATCH (n:Person {name:'toUpdate'})\n" +
+                        "WITH apoc.create.virtual.fromNode(n, ['name']) as node\n" +
+                        "SET node.ajeje = 0 RETURN node",
+                (row) -> {
+                    Node node = (Node) row.get("node");
+                    assertEquals("toUpdate", node.getProperty("name"));
+                    assertFalse(node.hasProperty("ajeje"));
+                });
+        
+        testCall(db, "MATCH (node:Person {name:'toUpdate'}) RETURN node",
+                (row) -> {
+                    Node node = (Node) row.get("node");
+                    assertEquals("toUpdate", node.getProperty("name"));
+                    assertFalse(node.hasProperty("ajeje"));
+                });
+    }
+    
+    @Test
+    public void testClonePathShouldNotEditOriginalOne() {
+        db.executeTransactionally("CREATE (n:Person {name:'toUpdate'})-[:MY_REL]->(:Another {alpha: 0})");
+        testCall(db, "MATCH p=(n:Person {name:'toUpdate'})-[:MY_REL]->(:Another {alpha: 0})\n" +
+                        "WITH p CALL apoc.create.clonePathToVirtual(p) YIELD path WITH nodes(path) AS nodes, relationships(path) as rels\n" +
+                        "WITH nodes[0] as start, nodes[1] as end, rels[0] as rel\n" +
+                        "CALL apoc.create.setProperty(start, 'ajeje', 0) YIELD node as startUpdated\n" +
+                        "WITH startUpdated, end, rel\n" +
+                        "CALL apoc.create.setProperties(end, ['brazorf'], ['abc']) YIELD node as endUpdated\n" +
+                        "WITH startUpdated, endUpdated, rel\n" +
+                        "CALL apoc.create.setRelProperty(rel, 'foo', 'bar') YIELD rel as relFirstSet\n" +
+                        "WITH startUpdated, endUpdated, relFirstSet\n" + 
+                        "CALL apoc.create.setRelProperties(relFirstSet, ['baz'], ['bar']) YIELD rel as relUpdated\n" +
+                        "RETURN startUpdated, endUpdated, relUpdated",
+                (row) -> {
+                    Node start = (Node) row.get("startUpdated");
+                    assertEquals("toUpdate", start.getProperty("name"));
+                    assertEquals(0L, start.getProperty("ajeje"));
+                    
+                    Node end = (Node) row.get("endUpdated");
+                    assertEquals(0L, end.getProperty("alpha"));
+                    assertEquals("abc", end.getProperty("brazorf"));
+                    
+                    Relationship rel = (Relationship) row.get("relUpdated");
+                    assertEquals("bar", rel.getProperty("foo"));
+                    assertEquals("bar", rel.getProperty("baz"));
+                });
+        
+        testCall(db, "MATCH p=(n:Person {name:'toUpdate'})-[:MY_REL]->(:Another {alpha: 0})\n" +
+                        "WITH p CALL apoc.create.clonePathToVirtual(p) YIELD path WITH nodes(path) AS nodes, relationships(path) as rels\n" +
+                        "WITH nodes[0] as start, nodes[1] as end, rels[0] as rel\n" +
+                        "SET start.ajeje = 0, end.brazorf = 'abc', rel.foo = 'bar'\n" +
+                        "RETURN start, end, rel",
+                (row) -> {
+                    Node start = (Node) row.get("start");
+                    assertEquals("toUpdate", start.getProperty("name"));
+                    assertFalse(start.hasProperty("ajeje"));
+                    Node end = (Node) row.get("end");
+                    assertTrue(end.hasLabel(label("Another")));
+                    assertEquals(0L, end.getProperty("alpha"));
+                    assertFalse(end.hasProperty("brazorf"));
+                    
+                    Relationship rel = (Relationship) row.get("rel");
+                    assertFalse(rel.hasProperty("foo"));
+                });
+
+        testCall(db, "MATCH (start:Person {name:'toUpdate'}), (end:Another {alpha: 0})  RETURN start, end",
+                (row) -> {
+                    Node start = (Node) row.get("start");
+                    assertFalse(start.hasProperty("ajeje"));
+                    Node end = (Node) row.get("end");
+                    assertFalse(end.hasProperty("brazorf"));
                 });
     }
     

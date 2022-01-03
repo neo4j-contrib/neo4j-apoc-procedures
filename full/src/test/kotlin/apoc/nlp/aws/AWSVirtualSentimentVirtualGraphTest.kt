@@ -48,7 +48,8 @@ class AWSVirtualSentimentVirtualGraphTest {
 
         val nodes = virtualGraph.graph["nodes"] as Set<*>
         assertEquals(1, nodes.size)
-        assertThat(nodes, hasItem(sourceNode))
+        // we cannot assert initial NodeMatcher
+        // because the sentiment.graph return a virtual node with other properties (sentimentScore and sentiment)
         assertThat(nodes, hasItem(NodeMatcher(listOf(Label { "Person" }), mapOf("sentiment" to "Mixed", "sentimentScore" to 0.8F, "id" to 1234L))))
     }
 }
