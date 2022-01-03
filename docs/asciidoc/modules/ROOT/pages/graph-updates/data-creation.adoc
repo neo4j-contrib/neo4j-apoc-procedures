@@ -27,6 +27,28 @@ include::example$generated-documentation/apoc.create.setRelProperties.adoc[]
 include::example$generated-documentation/apoc.create.relationship.adoc[]
 include::example$generated-documentation/apoc.nodes.link.adoc[]
 include::example$generated-documentation/apoc.merge.relationship.adoc[]
+¦xref::overview/apoc.merge/apoc.merge.nodeWithStats.adoc[apoc.merge.nodeWithStats icon:book[]] +
+
+- same as apoc.merge.node providing queryStatistics into result
+¦label:procedure[]
+¦label:apoc-core[]
+¦xref::overview/apoc.merge/apoc.merge.nodeWithStats.eager.adoc[apoc.merge.nodeWithStats.eager icon:book[]] +
+
+- same as apoc.merge.node.eager providing queryStatistics into result
+¦label:procedure[]
+¦label:apoc-core[]
+¦xref::overview/apoc.merge/apoc.merge.relationshipWithStats.adoc[apoc.merge.relationshipWithStats icon:book[]] +	
+
+- same as apoc.merge.relationship providing queryStatistics into result
+¦label:procedure[]
+¦label:apoc-core[]
+
+¦xref::overview/apoc.merge/apoc.merge.relationshipWithStats.eager.adoc[apoc.merge.relationshipWithStats.eager icon:book[]] +
+
+- same as apoc.merge.relationship.eager providing queryStatistics into result
+¦label:procedure[]
+¦label:apoc-core[]
+
 include::example$generated-documentation/apoc.create.removeProperties.adoc[]
 include::example$generated-documentation/apoc.create.removeRelProperties.adoc[]
 |===
