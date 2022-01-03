@@ -1,6 +1,7 @@
 package apoc.nlp.aws
 
 import apoc.nlp.NodeMatcher
+import apoc.nlp.NplUtils.commonNlpInit
 import apoc.nlp.RelationshipMatcher
 import apoc.result.VirtualNode
 import apoc.util.TestUtil
@@ -17,6 +18,7 @@ import org.junit.Test
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
+import org.neo4j.graphdb.Result
 import org.neo4j.test.rule.ImpermanentDbmsRule
 import java.util.stream.Collectors
 
@@ -107,12 +109,7 @@ class AWSProceduresAPIWithDummyClientTest {
     fun `create virtual entity graph based on score cut off`() {
         neo4j.executeTransactionally("""CREATE (a:Article10 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
 
-        var sourceNode: Node? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article10) RETURN a", emptyMap()) {
-            sourceNode = it.next()["a"] as Node
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article10) RETURN a")
 
         neo4j.executeTransactionally("""
                     MATCH (a:Article10) WITH a ORDER BY a.id
@@ -138,7 +135,7 @@ class AWSProceduresAPIWithDummyClientTest {
 
             val dummyLabels2 = listOf(Label { "Organization"}, Label {"Entity"})
 
-            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(nodeMatcher))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-0", "type" to "ORGANIZATION"))))
 
             Assert.assertEquals(1, relationships.size)
@@ -150,12 +147,7 @@ class AWSProceduresAPIWithDummyClientTest {
     fun `batches should create multiple virtual graphs`() {
         neo4j.executeTransactionally("""CREATE (a:Article3 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
 
-        var sourceNode: Node? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article3) RETURN a", emptyMap()) {
-            sourceNode = it.next()["a"] as Node
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article3) RETURN a")
 
         neo4j.executeTransactionally("""
                     UNWIND range(1,26) AS id
@@ -185,7 +177,7 @@ class AWSProceduresAPIWithDummyClientTest {
             val dummyLabels1 = listOf(Label { "CommercialItem"}, Label {"Entity"})
             val dummyLabels2 = listOf(Label { "Organization"}, Label {"Entity"})
 
-            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(nodeMatcher))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels1, mapOf("text" to "token-1-index-0-batch-1", "type" to "COMMERCIAL_ITEM"))))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-1", "type" to "ORGANIZATION"))))
 
@@ -262,12 +254,7 @@ class AWSProceduresAPIWithDummyClientTest {
     fun `batches should create multiple key phrases virtual graphs`() {
         neo4j.executeTransactionally("""CREATE (a:Article5 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
 
-        var sourceNode: Node? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article5) RETURN a", emptyMap()) {
-            sourceNode = it.next()["a"] as Node
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article5) RETURN a")
 
         neo4j.executeTransactionally("""
                     UNWIND range(1, 26) AS index
@@ -281,41 +268,70 @@ class AWSProceduresAPIWithDummyClientTest {
                     })
                     YIELD graph AS g
                     RETURN g.nodes AS nodes, g.relationships AS relationships
-                """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret),
+            commonAssertionsKeyPhrases(nodeMatcher, virtualSourceNode)
+        )
+    }
+    
+    @Test
+    fun `batches should create multiple real nodes based on key phrases`() {
+        neo4j.executeTransactionally("""CREATE (a:Article31 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
 
-            assertTrue(it.hasNext())
-            val row1 = it.next()
-            Assert.assertEquals(51, (row1["nodes"] as List<Node>).size) // 50 dummy nodes + source node
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article31) RETURN a")
 
-            assertTrue(it.hasNext())
-            val row2 = it.next()
+        neo4j.executeTransactionally("""
+                    UNWIND range(1, 26) AS index
+                    MATCH (a:Article31) WITH a ORDER BY a.id
+                    WITH collect(a) AS articles
+                    CALL apoc.nlp.aws.keyPhrases.graph(articles, {
+                      key: ${'$'}apiKey,
+                      secret: ${'$'}apiSecret,
+                      nodeProperty: "body",
+                      unsupportedDummyClient: true,
+                      writeRelationshipType: "KEY_PHRASE",
+                      write: true
+                    })
+                    YIELD graph AS g
+                    RETURN g.nodes AS nodes, g.relationships AS relationships
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret),
+            commonAssertionsKeyPhrases(nodeMatcher, virtualSourceNode)
+        )
 
-            val nodes: List<Node> = row2["nodes"] as List<Node>
-            val relationships = row2["relationships"] as List<Relationship>
-            Assert.assertEquals(3, nodes.size) // 2 dummy nodes + source node
-
-            val dummyLabels = listOf(Label {"KeyPhrase"})
-
-            assertThat(nodes, hasItem(sourceNode))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-1-index-0-batch-1"))))
-            assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-2-index-0-batch-1"))))
-
-            Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-1-index-0-batch-1")), "KEY_PHRASE", mapOf("score" to 0.3F))))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-2-index-0-batch-1")), "KEY_PHRASE", mapOf("score" to 0.4F))))
+        neo4j.executeTransactionally("""MATCH (a:Article31)-[]-()
+                RETURN a, [(a)-[:KEY_PHRASE]->(k:KeyPhrase) | k.text] AS keyPhrases;""", emptyMap()) {
+            Assert.assertEquals(52, (it.next()["keyPhrases"] as List<String>).size)
         }
+    }
+
+    private fun commonAssertionsKeyPhrases(nodeMatcher: NodeMatcher, virtualSourceNode: Node): (Result) -> Unit = {
+        assertTrue(it.hasNext())
+        val row1 = it.next()
+        Assert.assertEquals(51, (row1["nodes"] as List<Node>).size) // 50 dummy nodes + source node
+
+        assertTrue(it.hasNext())
+        val row2 = it.next()
+
+        val nodes: List<Node> = row2["nodes"] as List<Node>
+        val relationships = row2["relationships"] as List<Relationship>
+        Assert.assertEquals(3, nodes.size) // 2 dummy nodes + source node
+        val dummyLabels = listOf(Label { "KeyPhrase" })
+
+        assertThat(nodes, hasItem(nodeMatcher))
+        assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-1-index-0-batch-1"))))
+        assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-2-index-0-batch-1"))))
+
+        Assert.assertEquals(2, relationships.size)
+        assertThat(relationships, 
+            hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-1-index-0-batch-1")), "KEY_PHRASE", mapOf("score" to 0.3F))))
+        assertThat(relationships,
+            hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-2-index-0-batch-1")), "KEY_PHRASE", mapOf("score" to 0.4F))))
     }
 
     @Test
     fun `create virtual key phrase graph based on score cut off`() {
         neo4j.executeTransactionally("""CREATE (a:Article11 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
 
-        var sourceNode: Node? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article11) RETURN a", emptyMap()) {
-            sourceNode = it.next()["a"] as Node
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article11) RETURN a")
 
         neo4j.executeTransactionally(""" 
                     MATCH (a:Article11) WITH a ORDER BY a.id
@@ -342,7 +358,7 @@ class AWSProceduresAPIWithDummyClientTest {
 
             val dummyLabels = listOf(Label {"KeyPhrase"})
 
-            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(nodeMatcher))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-2-index-0-batch-0"))))
 
             Assert.assertEquals(1, relationships.size)
@@ -407,20 +423,60 @@ class AWSProceduresAPIWithDummyClientTest {
                     YIELD graph AS g
                     RETURN g.nodes AS nodes, g.relationships AS relationships
                 """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
-
-            assertTrue(it.hasNext())
-            val row1 = it.next()
-            Assert.assertEquals(1, (row1["nodes"] as List<Node>).size) // source node
-
-            assertTrue(it.hasNext())
-            val row2 = it.next()
-
-            val nodes: List<Node> = row2["nodes"] as List<Node>
-            Assert.assertEquals(1, nodes.size) // source node
-
-            assertThat(nodes, hasItem(sourceNode))
-            assertThat(nodes, hasItem(NodeMatcher(listOf(Label { "Article7" }), mapOf("id" to 1234L, "body" to "test", "sentiment" to "Mixed", "sentimentScore" to 0.7F))))
+            // we cannot assert initial NodeMatcher
+            // because the sentiment.graph return a virtual node with other properties (sentimentScore and sentiment)
+            commonAssertionSentiment(it, "Article7")
         }
+    }
+
+    @Test
+    fun `batches should create multiple sentiment virtual graphs with write true`() {
+        neo4j.executeTransactionally("""CREATE (a:Article8 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
+
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article8) RETURN a")
+
+        neo4j.executeTransactionally("""
+                    UNWIND range(1, 26) AS index
+                    MATCH (a:Article8) WITH a ORDER BY a.id
+                    WITH collect(a) AS articles
+                    CALL apoc.nlp.aws.sentiment.graph(articles, {
+                      key: ${'$'}apiKey,
+                      secret: ${'$'}apiSecret,
+                      nodeProperty: "body",
+                      unsupportedDummyClient: true,
+                      write: true
+                    })
+                    YIELD graph AS g
+                    RETURN g.nodes AS nodes, g.relationships AS relationships
+                """.trimIndent(), mapOf("apiKey" to apiKey, "apiSecret" to apiSecret)) {
+
+            val nodes: List<Node> = commonAssertionSentiment(it, "Article8")
+            // with write: true the node present in `nodes` is effectively the real `sourceNode`
+            assertThat(nodes, hasItem(sourceNode))
+        }
+
+        neo4j.executeTransactionally("MATCH (a:Article8) RETURN a", emptyMap()) {
+            val node = it.next()["a"] as Node
+            Assert.assertEquals("Mixed", node.getProperty("sentiment"))
+            Assert.assertEquals(0.7F, node.getProperty("sentimentScore"))
+        }
+    }
+
+    private fun commonAssertionSentiment(it: Result, label: String) = run {
+        assertTrue(it.hasNext())
+        val row1 = it.next()
+        Assert.assertEquals(1, (row1["nodes"] as List<Node>).size) // source node
+
+        assertTrue(it.hasNext())
+        val row2 = it.next()
+
+        val nodes: List<Node> = row2["nodes"] as List<Node>
+        Assert.assertEquals(1, nodes.size) // source node
+
+        assertThat(nodes, hasItem(NodeMatcher(
+            listOf(Label { label }), mapOf("id" to 1234L, "body" to "test", "sentiment" to "Mixed", "sentimentScore" to 0.7F))))
+        
+        nodes
     }
 
 }
