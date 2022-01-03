@@ -24,7 +24,7 @@ dependencies {
     testImplementation 'com.google.testing.compile:compile-testing:0.19'
     testImplementation group: 'junit', name: 'junit', version: '4.13.2'
     testImplementation 'org.assertj:assertj-core:3.19.0'
-    testImplementation 'org.mockito:mockito-core:3.11.0'
+    testImplementation 'org.mockito:mockito-core:4.2.0'
 }
 
 
