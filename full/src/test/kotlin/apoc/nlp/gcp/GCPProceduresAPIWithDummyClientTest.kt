@@ -1,6 +1,7 @@
 package apoc.nlp.gcp
 
 import apoc.nlp.NodeMatcher
+import apoc.nlp.NplUtils.commonNlpInit
 import apoc.nlp.RelationshipMatcher
 import apoc.result.VirtualNode
 import apoc.util.TestUtil
@@ -100,12 +101,7 @@ class GCPProceduresAPIWithDummyClientTest {
     fun `batches should create multiple virtual graphs`() {
         neo4j.executeTransactionally("""CREATE (a:Article3 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
 
-        var sourceNode: Node? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article3) RETURN a", emptyMap()) {
-            sourceNode = it.next()["a"] as Node
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article3) RETURN a")
 
         neo4j.executeTransactionally("""
                     UNWIND range(1, 26) AS index
@@ -134,7 +130,7 @@ class GCPProceduresAPIWithDummyClientTest {
             val dummyLabels1 = listOf(Label { "ConsumerGood"}, Label {"Entity"})
             val dummyLabels2 = listOf(Label { "Location"}, Label {"Entity"})
 
-            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(nodeMatcher))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels1, mapOf("text" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD"))))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION"))))
 
@@ -209,12 +205,7 @@ class GCPProceduresAPIWithDummyClientTest {
     fun `classify batches should create multiple virtual graphs`() {
         neo4j.executeTransactionally("""CREATE (a:Article6 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
 
-        var sourceNode: Node? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article6) RETURN a", emptyMap()) {
-            sourceNode = it.next()["a"] as Node
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article6) RETURN a")
 
         neo4j.executeTransactionally("""
                     UNWIND range(1, 26) AS index
@@ -242,7 +233,7 @@ class GCPProceduresAPIWithDummyClientTest {
 
             val dummyLabels = listOf( Label {"Category"})
 
-            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(nodeMatcher))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "category-1-index-0-batch-1"))))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "category-2-index-0-batch-1"))))
 
@@ -256,12 +247,7 @@ class GCPProceduresAPIWithDummyClientTest {
     fun `create virtual entity graph based on salience cut off`() {
         neo4j.executeTransactionally("""CREATE (a:Article7 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
 
-        var sourceNode: Node? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article7) RETURN a", emptyMap()) {
-            sourceNode = it.next()["a"] as Node
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article7) RETURN a")
 
         neo4j.executeTransactionally("""
                     MATCH (a:Article7) WITH a ORDER BY a.id
@@ -287,7 +273,7 @@ class GCPProceduresAPIWithDummyClientTest {
 
             val dummyLabels2 = listOf(Label { "Location"}, Label {"Entity"})
 
-            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(nodeMatcher))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-0", "type" to "LOCATION"))))
 
             Assert.assertEquals(1, relationships.size)
@@ -299,12 +285,7 @@ class GCPProceduresAPIWithDummyClientTest {
     fun `create virtual category graph based on confidence cut off`() {
         neo4j.executeTransactionally("""CREATE (a:Article8 {id: 1234, body:${'$'}body})""", mapOf("body" to "test"))
 
-        var sourceNode: Node? = null
-        var virtualSourceNode: Node? = null
-        neo4j.executeTransactionally("MATCH (a:Article8) RETURN a", emptyMap()) {
-            sourceNode = it.next()["a"] as Node
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
-        }
+        val (sourceNode, virtualSourceNode, nodeMatcher) = commonNlpInit(neo4j, "MATCH (a:Article8) RETURN a")
 
         neo4j.executeTransactionally("""
                     MATCH (a:Article8) WITH a ORDER BY a.id
@@ -328,7 +309,7 @@ class GCPProceduresAPIWithDummyClientTest {
 
             val dummyLabels = listOf( Label {"Category"})
 
-            assertThat(nodes, hasItem(sourceNode))
+            assertThat(nodes, hasItem(nodeMatcher))
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "category-2-index-0-batch-0"))))
 
             Assert.assertEquals(1, relationships.size)
