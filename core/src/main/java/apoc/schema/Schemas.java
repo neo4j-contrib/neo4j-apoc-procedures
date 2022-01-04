@@ -330,6 +330,7 @@ public class Schemas {
             Iterable<IndexDescriptor> indexesIterator;
             Iterable<ConstraintDescriptor> constraintsIterator;
 
+            final Predicate<ConstraintDescriptor> isNodeConstraint = constraint -> !constraint.isRelationshipPropertyExistenceConstraint();
             if (includeLabels.isEmpty()) {
 
                 Iterator<IndexDescriptor> allIndex = schemaRead.indexesGetAll();
@@ -346,6 +347,7 @@ public class Schemas {
 
                 Iterable<ConstraintDescriptor> allConstraints = () -> schemaRead.constraintsGetAll();
                 constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
+                        .filter(isNodeConstraint)
                         .filter(constraint -> Arrays.stream(constraint.schema().getEntityTokenIds()).noneMatch(id -> {
                             try {
                                 return excludeLabels.contains(tokenRead.nodeLabelName(id));
@@ -359,7 +361,8 @@ public class Schemas {
                         .filter(label -> !excludeLabels.contains(label) && tokenRead.nodeLabel(label) != -1)
                         .flatMap(label -> {
                             Iterable<ConstraintDescriptor> indexesForLabel = () -> schemaRead.constraintsGetForLabel(tokenRead.nodeLabel(label));
-                            return StreamSupport.stream(indexesForLabel.spliterator(), false);
+                            return StreamSupport.stream(indexesForLabel.spliterator(), false)
+                                    .filter(isNodeConstraint);
                         })
                         .collect(Collectors.toList());
 
@@ -409,12 +412,15 @@ public class Schemas {
             Iterable<ConstraintDefinition> constraintsIterator;
             Iterable<IndexDescriptor> indexesIterator;
 
+            final Predicate<ConstraintDefinition> isRelConstraint = constraintDefinition -> 
+                    constraintDefinition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE);
             if(!includeRelationships.isEmpty()) {
                 constraintsIterator = includeRelationships.stream()
                         .filter(type -> !excludeRelationships.contains(type) && tokenRead.relationshipType(type) != TokenConstants.NO_TOKEN)
                         .flatMap(type -> {
                             Iterable<ConstraintDefinition> constraintsForType = schema.getConstraints(RelationshipType.withName(type));
-                            return StreamSupport.stream(constraintsForType.spliterator(), false);
+                            return StreamSupport.stream(constraintsForType.spliterator(), false)
+                                    .filter(isRelConstraint);
                         })
                         .collect(Collectors.toList());
 
@@ -428,6 +434,7 @@ public class Schemas {
             } else {
                 Iterable<ConstraintDefinition> allConstraints = schema.getConstraints();
                 constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
+                        .filter(isRelConstraint)
                         .filter(index -> !excludeRelationships.contains(index.getRelationshipType().name()))
                         .collect(Collectors.toList());
 
@@ -438,7 +445,6 @@ public class Schemas {
             }
 
             Stream<IndexConstraintRelationshipInfo> constraintRelationshipInfoStream = StreamSupport.stream(constraintsIterator.spliterator(), false)
-                    .filter(constraintDefinition -> constraintDefinition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE))
                     .map(this::relationshipInfoFromConstraintDefinition);
 
             Stream<IndexConstraintRelationshipInfo> indexRelationshipInfoStream = StreamSupport.stream(indexesIterator.spliterator(), false)
