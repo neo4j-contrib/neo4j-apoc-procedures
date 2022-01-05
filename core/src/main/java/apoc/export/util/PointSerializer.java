@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import org.neo4j.graphdb.spatial.Point;
-import org.neo4j.values.storable.CoordinateReferenceSystem;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,7 +15,7 @@ public class PointSerializer extends JsonSerializer<Point> {
         String crsType = value.getCRS().getType();
         List<Double> coordinate = value.getCoordinate().getCoordinate();
 
-        if (crsType.startsWith(CoordinateReferenceSystem.Cartesian.toString())) {
+        if (crsType.startsWith("cartesian")) {
             if (coordinate.size() == 3) {
                 jsonGenerator.writeObject(new PointCartesian(crsType, coordinate.get(0), coordinate.get(1), coordinate.get(2)));
             } else {
