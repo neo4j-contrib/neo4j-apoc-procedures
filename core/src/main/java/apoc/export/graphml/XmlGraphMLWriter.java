@@ -43,7 +43,11 @@ public class XmlGraphMLWriter {
         Map<String, Class> keyTypes = new HashMap<>();
         for (Node node : ops.getNodes()) {
             if (node.getLabels().iterator().hasNext()) {
-                keyTypes.put("labels", String.class);
+                if (config.getFormat() == ExportFormat.TINKERPOP) {
+                    keyTypes.put("labelV", String.class);
+                } else {
+                    keyTypes.put("labels", String.class);
+                }
             }
             updateKeyTypes(keyTypes, node);
         }
@@ -55,7 +59,11 @@ public class XmlGraphMLWriter {
         writeKey(writer, keyTypes, "node", useTypes);
         keyTypes.clear();
         for (Relationship rel : ops.getRelationships()) {
-            keyTypes.put("label", String.class);
+            if (config.getFormat() == ExportFormat.TINKERPOP) {
+                keyTypes.put("labelE", String.class);
+            } else {
+                keyTypes.put("label", String.class);
+            }
             updateKeyTypes(keyTypes, rel);
         }
         if (format == ExportFormat.GEPHI) {
@@ -88,7 +96,9 @@ public class XmlGraphMLWriter {
     private int writeNode(XMLStreamWriter writer, Node node, ExportConfig config) throws XMLStreamException {
         writer.writeStartElement("node");
         writer.writeAttribute("id", id(node));
-        writeLabels(writer, node);
+        if (config.getFormat() != ExportFormat.TINKERPOP) {
+            writeLabels(writer, node);
+        }
         writeLabelsAsData(writer, node, config);
         int props = writeProps(writer, node);
         endElement(writer);
@@ -111,6 +121,8 @@ public class XmlGraphMLWriter {
         if (config.getFormat() == ExportFormat.GEPHI) {
             writeData(writer, "TYPE", delimiter + FormatUtils.joinLabels(node, delimiter));
             writeData(writer, "label", getLabelsStringGephi(config, node));
+        } else if (config.getFormat() == ExportFormat.TINKERPOP){
+            writeData(writer, "labelV", FormatUtils.joinLabels(node, delimiter));
         } else {
             writeData(writer, "labels", labelsString);
         }
@@ -121,10 +133,15 @@ public class XmlGraphMLWriter {
         writer.writeAttribute("id", id(rel));
         writer.writeAttribute("source", id(rel.getStartNode()));
         writer.writeAttribute("target", id(rel.getEndNode()));
-        writer.writeAttribute("label", rel.getType().name());
-        writeData(writer, "label", rel.getType().name());
+        if (config.getFormat() != ExportFormat.TINKERPOP) {
+            writer.writeAttribute("label", rel.getType().name());
+            writeData(writer, "label", rel.getType().name());
+        }
         if (config.getFormat() == ExportFormat.GEPHI) {
             writeData(writer, "TYPE", rel.getType().name());
+        }
+        if (config.getFormat() == ExportFormat.TINKERPOP) {
+            writeData(writer, "labelE", rel.getType().name());
         }
         int props = writeProps(writer, rel);
         endElement(writer);
