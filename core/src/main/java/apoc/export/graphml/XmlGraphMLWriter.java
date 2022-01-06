@@ -133,15 +133,14 @@ public class XmlGraphMLWriter {
         writer.writeAttribute("id", id(rel));
         writer.writeAttribute("source", id(rel.getStartNode()));
         writer.writeAttribute("target", id(rel.getEndNode()));
-        if (config.getFormat() != ExportFormat.TINKERPOP) {
+        if (config.getFormat() == ExportFormat.TINKERPOP) {
+            writeData(writer, "labelE", rel.getType().name());
+        } else {
             writer.writeAttribute("label", rel.getType().name());
             writeData(writer, "label", rel.getType().name());
         }
         if (config.getFormat() == ExportFormat.GEPHI) {
             writeData(writer, "TYPE", rel.getType().name());
-        }
-        if (config.getFormat() == ExportFormat.TINKERPOP) {
-            writeData(writer, "labelE", rel.getType().name());
         }
         int props = writeProps(writer, rel);
         endElement(writer);
