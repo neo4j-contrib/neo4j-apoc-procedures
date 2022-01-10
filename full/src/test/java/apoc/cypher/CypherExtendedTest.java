@@ -23,6 +23,7 @@ import java.util.Map;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static org.hamcrest.Matchers.hasEntry;
@@ -109,6 +110,21 @@ public class CypherExtendedTest {
                     assertEquals(false, r.hasNext());
                 });
     }
+
+    @Test
+    public void testRunFileWithAutoTransaction() {
+        final int expectedCount = 2000;
+        testCall(db, "CALL apoc.cypher.runFile('in_transaction.cypher')",
+                row -> {
+                    assertEquals(-1L, row.get("row"));
+                    Map result = (Map) row.get("result");
+                    List.of("nodesCreated", "labelsAdded", "propertiesSet")
+                            .forEach(item -> assertEquals(expectedCount, result.get(item)));
+                });
+
+        testCallCount(db, "MATCH (n:AutoTransaction) RETURN n", Collections.emptyMap(), expectedCount);
+    }
+    
     @Test
     public void testRunWithPeriodic() throws Exception {
         testResult(db, "CALL apoc.cypher.runFile('periodic.cypher')",

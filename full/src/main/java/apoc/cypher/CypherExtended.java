@@ -224,7 +224,7 @@ public class CypherExtended {
         return stmt.matches("(?is).*(create|drop)\\s+(index|constraint).*");
     }
     private boolean isPeriodicOperation(String stmt) {
-        return stmt.matches("(?is).*using\\s+periodic.*");
+        return stmt.matches("(?is)(.*using\\s+periodic.*)|(.*call\\s+\\{.*\\}\\s+in\\s+transactions.*)");
     }
 
     private Map<String, Object> toMap(QueryStatistics stats, long time, long rows) {
