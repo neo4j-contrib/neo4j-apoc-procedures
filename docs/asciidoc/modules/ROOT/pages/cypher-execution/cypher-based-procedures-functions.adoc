@@ -73,7 +73,7 @@ The default values are parsed as JSON.
 ----
 CALL apoc.custom.asProcedure('neighbours',
   'MATCH (n:Person {name:$name})-->(nb) RETURN nb as neighbour','read',
-  [['neighbour','NODE']],[['name','STRING'], 'get neighbours of a person']);
+  [['neighbour','NODE']],[['name','STRING']], 'get neighbours of a person');
 
 CALL custom.neighbours('Keanu Reeves') YIELD neighbour;
 ----
