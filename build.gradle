@@ -111,7 +111,7 @@ dependencies {
     compileOnly group: 'org.apache.poi', name: 'poi-ooxml', version: poiVersion
     testCompile group: 'org.apache.poi', name: 'poi-ooxml', version: poiVersion
 
-    compile 'org.jsoup:jsoup:1.11.3'
+    compile 'org.jsoup:jsoup:1.14.3'
 
     compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
 
@@ -164,7 +164,7 @@ dependencies {
     testCompile group: 'com.couchbase.client', name: 'java-client', version: '2.7.2'
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.10.4'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.10.8'
     compile group: 'com.opencsv', name: 'opencsv', version: '4.2' 
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
     compile group: 'com.github.javafaker', name: 'javafaker', version: '0.10'

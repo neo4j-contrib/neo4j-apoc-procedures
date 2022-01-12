@@ -7,7 +7,6 @@ import apoc.export.util.ExportConfig;
 import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
 import apoc.util.s3.S3UploadUtils;
-import org.apache.commons.httpclient.URIException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedOutputStream;
@@ -30,7 +29,6 @@ import java.util.Map;
 import static apoc.ApocConfiguration.getImportDir;
 import static apoc.ApocConfiguration.isImportFolderConfigured;
 import static apoc.util.Util.readHttpInputStream;
-import static org.apache.commons.httpclient.util.URIUtil.encodePath;
 
 /**
  * @author mh
@@ -165,13 +163,12 @@ public class FileUtils {
         return inputStreamFor(fileName, null, null);
     }
 
-    public static String changeFileUrlIfImportDirectoryConstrained(String urlNotEncoded) throws IOException {
-        final String url = encodeExceptQM(urlNotEncoded);
+    public static String changeFileUrlIfImportDirectoryConstrained(String url) throws IOException {
         if (isFile(url) && isImportUsingNeo4jConfig()) {
             if (!ApocConfiguration.isEnabled("import.file.allow_read_from_filesystem")) {
                 throw new RuntimeException(String.format(ERROR_READ_FROM_FS_NOT_ALLOWED, url));
             }
-            final Path resolvedPath = resolvePath(urlNotEncoded);
+            final Path resolvedPath = resolvePath(url);
             return resolvedPath
                     .normalize()
                     .toUri()
@@ -230,14 +227,6 @@ public class FileUtils {
                 return resolvedPath.normalize().startsWith(basePath);
             }
             return false;
-        }
-    }
-
-    private static String encodeExceptQM(String url) {
-        try {
-            return encodePath(url).replace("%3F", "?");
-        } catch (URIException e) {
-            throw new RuntimeException(e);
         }
     }
 
