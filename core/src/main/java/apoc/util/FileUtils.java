@@ -6,6 +6,7 @@ import apoc.export.util.CountingReader;
 import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
 import apoc.util.s3.S3UploadUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.configuration.GraphDatabaseSettings;
 
@@ -203,7 +204,7 @@ public class FileUtils {
     }
 
     private static Path relativizeIfSamePrefix(Path urlPath, Path basePath) {
-        if (urlPath.isAbsolute() && !urlPath.startsWith(basePath.toAbsolutePath())) {
+        if (FilenameUtils.getPrefixLength(urlPath.toString()) > 0 && !urlPath.startsWith(basePath.toAbsolutePath())) {
             // if the import folder is configured to be used as root folder we consider
             // it as root directory in order to reproduce the same LOAD CSV behaviour
             urlPath = urlPath.getRoot().relativize(urlPath);
