@@ -1,30 +1,43 @@
 package apoc.systemdb;
 
 import apoc.ApocConfig;
+import apoc.Description;
 import apoc.Extended;
+import apoc.export.cypher.ExportFileManager;
+import apoc.export.cypher.FileManagerFactory;
+import apoc.export.util.ProgressReporter;
+import apoc.result.ProgressInfo;
 import apoc.result.RowResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
+import apoc.systemdb.metadata.ExportMetadata;
 import apoc.util.Util;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.kernel.impl.coreapi.TransactionImpl;
+import org.neo4j.procedure.Admin;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
 
 @Extended
 public class SystemDb {
@@ -38,6 +51,9 @@ public class SystemDb {
     @Context
     public ProcedureCallContext callContext;
 
+    @Context
+    public GraphDatabaseService db;
+
     public static class NodesAndRelationshipsResult {
         public List<Node> nodes;
         public List<Relationship> relationships;
@@ -46,6 +62,42 @@ public class SystemDb {
             this.nodes = nodes;
             this.relationships = relationships;
         }
+    }
+
+    @Admin
+    @Procedure(name = "apoc.systemdb.export.metadata")
+    @Description("apoc.systemdb.export.metadata($conf) - export the apoc feature saved in system db (that is: customProcedures, triggers, uuids, and dvCatalogs) in multiple files called <FILE_NAME>.<FEATURE_NAME>.<DB_NAME>.cypher")
+    public Stream<ProgressInfo> metadata(@Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+        final SystemDbConfig conf = new SystemDbConfig(config);
+        final String fileName = conf.getFileName();
+        apocConfig.checkWriteAllowed(null, fileName);
+
+        ProgressInfo progressInfo = new ProgressInfo(fileName, null, "cypher");
+        ProgressReporter progressReporter = new ProgressReporter(null, null, progressInfo);
+        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName + ".cypher", true);
+        withSystemDbTransaction(tx -> {
+            tx.getAllNodes()
+                    .stream()
+                    .flatMap(node -> StreamSupport.stream(node.getLabels().spliterator(), false)
+                            .map(label -> ExportMetadata.Type.from(label, conf))
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .flatMap(type -> type.export(node, progressReporter).stream())
+                    )
+                    .collect(Collectors.groupingBy(Pair::first, Collectors.toList()))
+                    .forEach((fileNameSuffix, fileContent) -> {
+                        try(PrintWriter writer = cypherFileManager.getPrintWriter(fileNameSuffix)) {
+                            final String stringStatement = fileContent.stream()
+                                    .map(Pair::other)
+                                    .collect(Collectors.joining("\n"));
+                            writer.write(stringStatement);
+                        }
+                    });
+            return null;
+        });
+
+        progressReporter.done();
+        return progressReporter.stream();
     }
 
     @Procedure
