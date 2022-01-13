@@ -2064,6 +2064,43 @@ apoc.model.jdbc('key or url', {schema:'<schema>', write: <true/false>, filters: 
 |label:apoc-full[]
 |===
 
+== xref::overview/apoc.mongo/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a,1a']
+|===
+| Qualified Name | Type | Release
+|xref::overview/apoc.mongo/apoc.mongo.aggregate.adoc[apoc.mongo.aggregate icon:book[]]
+
+apoc.mongo.aggregate(uri, pipeline, $config) yield value - perform an aggregate operation on mongodb collection
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.mongo/apoc.mongo.count.adoc[apoc.mongo.count icon:book[]]
+
+apoc.mongo.count(uri, query, $config) yield value - perform a count operation on mongodb collection
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.mongo/apoc.mongo.delete.adoc[apoc.mongo.delete icon:book[]]
+
+apoc.mongo.delete(uri, query, $config) - delete the given documents from the mongodb collection and returns the number of affected documents
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.mongo/apoc.mongo.find.adoc[apoc.mongo.find icon:book[]]
+
+apoc.mongo.find(uri, query, $config) yield value - perform a find operation on mongodb collection
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.mongo/apoc.mongo.insert.adoc[apoc.mongo.insert icon:book[]]
+
+apoc.mongo.insert(uri, documents, $config) yield value - inserts the given documents into the mongodb collection
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.mongo/apoc.mongo.update.adoc[apoc.mongo.update icon:book[]]
+
+apoc.mongo.update(uri, query, update, $config) - updates the given documents from the mongodb collection and returns the number of affected documents
+|label:procedure[]
+|label:apoc-core[]
+|===
+
 == xref::overview/apoc.mongodb/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
