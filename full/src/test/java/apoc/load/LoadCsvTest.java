@@ -173,7 +173,7 @@ RETURN m.col_1,m.col_2,m.col_3
     }
 
     @Test 
-    public void testLoadCsvEscape() { 
+    public void testLoadCsvEscape() {
         String url = "test-escape.csv";
         final List<String> results = List.of("map", "list", "stringMap", "strings");
         testResult(db, "CALL apoc.load.csv($url, $config)", 
