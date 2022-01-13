@@ -16,6 +16,7 @@ import org.neo4j.procedure.UserFunction;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Formatter;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class Fingerprinting {
@@ -115,20 +117,15 @@ public class Fingerprinting {
             ));
 
             // step 2: build inverse map
-            Map<String, Long> nodeHashToId = idToNodeHash.entrySet().stream().collect(Collectors.toMap(
-                    Map.Entry::getValue,
-                    Map.Entry::getKey,
-                    (o, o2) -> {
-                        throw new RuntimeException();
-                    },
-                    () -> new TreeMap<>()
-            ));
+            final Map<String, List<Long>> nodeHashToId = idToNodeHash.entrySet()
+                    .stream()
+                    .collect(Collectors
+                            .groupingBy(Map.Entry::getValue, TreeMap::new,Collectors.mapping(Map.Entry::getKey, Collectors.toList())));
 
             // step 3: iterate nodes in order of their hash (we cannot rely on internal ids)
-            nodeHashToId.entrySet().stream().forEach(entry -> {
-                messageDigest.update(entry.getKey().getBytes());
-
-                Node node = tx.getNodeById(entry.getValue());
+            nodeHashToId.forEach((hash, ids) -> ids.forEach(id -> {
+                messageDigest.update(hash.getBytes());
+                Node node = tx.getNodeById(id);
                 List<EndNodeRelationshipHashTuple> endNodeRelationshipHashTuples = StreamSupport.stream(node.getRelationships(Direction.OUTGOING).spliterator(), false)
                         .map(relationship -> {
                             String endNodeHash = idToNodeHash.get(relationship.getEndNodeId());
@@ -140,8 +137,7 @@ public class Fingerprinting {
                     messageDigest.update(endNodeRelationshipHashTuple.getEndNodeHash().getBytes());
                     messageDigest.update(endNodeRelationshipHashTuple.getRelationshipHash().getBytes());
                 });
-
-            });
+            }));
 
         });
     }
