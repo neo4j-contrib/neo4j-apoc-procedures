@@ -22,7 +22,7 @@ include::example$generated-documentation/apoc.couchbase.query.adoc[]
 
 Copy these jars into the plugins directory:
 
-(Tested with CB Enterprise 5.5.3, note that CB 6 is not yet supported)
+(Tested with CB Enterprise 5.5.3)
 
 [source,shell]
 ----
