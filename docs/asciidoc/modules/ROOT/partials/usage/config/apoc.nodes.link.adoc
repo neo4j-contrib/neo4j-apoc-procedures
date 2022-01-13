@@ -1,0 +1,7 @@
+This procedure supports the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| avoidDuplicates | boolean | false | If true, the relationship will not be created, if it already exists

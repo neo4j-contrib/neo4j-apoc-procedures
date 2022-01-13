@@ -48,7 +48,7 @@ public class TestContainerUtil {
         importFolder.mkdirs();
 
         // read neo4j version from build.gradle and use this as default
-        String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:4.3.0-drop03.0-enterprise");
+        String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:4.4.2-enterprise");
 
         // use a separate folder for mounting plugins jar - build/libs might contain other jars as well.
         File pluginsFolder = new File(baseDir, "build/plugins");
@@ -199,6 +199,14 @@ public class TestContainerUtil {
         final Throwable cause = ex.getCause();
         final Throwable rootCause = ExceptionUtils.getRootCause(ex);
         return !(cause instanceof ContainerFetchException && rootCause instanceof NotFoundException);
+    }
+
+    public static <T> T singleResultFirstColumn(Session session, String cypher, Map<String,Object> params) {
+        return (T) session.writeTransaction(tx -> tx.run(cypher, params).single().fields().get(0).value().asObject());
+    }
+
+    public static <T> T singleResultFirstColumn(Session session, String cypher) {
+        return singleResultFirstColumn(session, cypher, Map.of());
     }
 
 }

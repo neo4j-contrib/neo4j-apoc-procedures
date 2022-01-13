@@ -20,18 +20,25 @@ import static org.apache.commons.collections4.IterableUtils.reversedIterable;
 public class VirtualPath implements Path {
 
     private final Node start;
-    private final List<Relationship> relationships = new ArrayList<>();
+    private final List<Relationship> relationships;
 
     public VirtualPath(Node start) {
+        this(start, new ArrayList<>());
+    }
+
+    private VirtualPath(Node start, List<Relationship> relationships) {
         Objects.requireNonNull(start);
+        Objects.requireNonNull(relationships);
         this.start = start;
+        this.relationships = relationships;
     }
 
     public void addRel(Relationship relationship) {
         Objects.requireNonNull(relationship);
+        requireConnected(relationship);
         this.relationships.add(relationship);
     }
-    
+
     @Override
     public Node startNode() {
         return start;
@@ -61,7 +68,7 @@ public class VirtualPath implements Path {
     public Iterable<Node> nodes() {
         List<Node> nodes = new ArrayList<>();
         nodes.add(start);
-        
+
         AtomicReference<Node> currNode = new AtomicReference<>(start);
         final List<Node> otherNodes = relationships.stream().map(rel -> {
             final Node otherNode = rel.getOtherNode(currNode.get());
@@ -77,7 +84,7 @@ public class VirtualPath implements Path {
     public Iterable<Node> reverseNodes() {
         return reversedIterable(nodes());
     }
-    
+
     @Override
     public int length() {
         return relationships.size();
@@ -113,9 +120,42 @@ public class VirtualPath implements Path {
             }
         };
     }
-    
+
     @Override
     public String toString() {
         return Paths.defaultPathToString(this);
+    }
+
+    private void requireConnected(Relationship relationship) {
+        Node previousEndNode;
+        Relationship previousRelationship = lastRelationship();
+        if (previousRelationship != null) {
+            previousEndNode = previousRelationship.getEndNode();
+        } else {
+            previousEndNode = endNode();
+        }
+        if (!relationship.getStartNode().equals(previousEndNode)
+                && !relationship.getEndNode().equals(previousEndNode)) {
+            throw new IllegalArgumentException("Relationship is not part of current path.");
+        }
+    }
+    
+    public static final class Builder {
+        private final Node start;
+        private final List<Relationship> relationships = new ArrayList<>();
+
+        public Builder(Node start) {
+            this.start = start;
+        }
+
+        public Builder push(Relationship relationship) {
+            this.relationships.add(relationship);
+            return this;
+        }
+
+        public VirtualPath build() {
+            return new VirtualPath(start, relationships);
+        }
+
     }
 }

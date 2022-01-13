@@ -16,7 +16,7 @@ downloadLicenses {
 
 allprojects {
     group = 'org.neo4j.procedure'
-    version = '4.3.0-rc01'
+    version = '4.4.0.2'
     archivesBaseName = 'apoc'
     description = """neo4j-apoc-procedures"""
 }
@@ -71,8 +71,8 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country ' : 'US',
-                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise' : 'neo4j:4.3.0-drop03.0-enterprise',
-                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") : 'neo4j:4.3.0-drop03.0'
+                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise' : 'neo4j:4.4.2-enterprise',
+                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") : 'neo4j:4.4.2'
 
         maxHeapSize = "8G"
         forkEvery = 50
@@ -87,7 +87,12 @@ subprojects {
             setFailOnNoMatchingTests(false)
         }
 
-        ignoreFailures(true)
+        // in TC we don't have the CI env so we can manage it in this way
+        if (System.env.TEAMCITY_VERSION != null) {
+            ignoreFailures(true)
+        }
+        testLogging.showStandardStreams = true
+        testLogging.exceptionFormat = 'full'
     }
 
     configurations {
@@ -104,7 +109,7 @@ subprojects {
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "4.3.0-drop03.0"
+    neo4jVersion = "4.4.1"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.15.1'

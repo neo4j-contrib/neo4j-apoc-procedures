@@ -3,8 +3,8 @@ package apoc.schema;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Record;
@@ -13,6 +13,7 @@ import org.neo4j.driver.Session;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
@@ -57,10 +58,15 @@ public class SchemasEnterpriseFeaturesTest {
         }
     }
 
-    @After
+    // coherently with SchemasTest we remove all indexes/constraints before (e.g. to get rid of lookup indexes)
+    @Before
     public void removeAllConstraints() {
         session.writeTransaction(tx -> {
-            tx.run("CALL apoc.schema.assert({},{})");
+            final List<String> constraints = tx.run("CALL db.constraints() YIELD name").list(i -> i.get("name").asString());
+            constraints.forEach(name -> tx.run(String.format("DROP CONSTRAINT %s", name)));
+            
+            final List<String> indexes = tx.run("CALL db.indexes() YIELD name").list(i -> i.get("name").asString());
+            indexes.forEach(name -> tx.run(String.format("DROP INDEX %s", name)));
             tx.commit();
             return null;
         });
@@ -125,10 +131,10 @@ public class SchemasEnterpriseFeaturesTest {
         session.readTransaction(tx -> {
             List<Record> result = tx.run("CALL db.constraints").list();
             assertEquals(2, result.size());
-            List<String> actualDescriptions = result.stream()
+            Set<String> actualDescriptions = result.stream()
                     .map(record -> (String) record.asMap().get("description"))
-                    .collect(Collectors.toList());
-            List<String> expectedDescriptions = List.of(
+                    .collect(Collectors.toSet());
+            Set<String> expectedDescriptions = Set.of(
                     "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.foo, foo.bar) IS NODE KEY",
                     "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.bar, foo.foo) IS NODE KEY");
             assertEquals(expectedDescriptions, actualDescriptions);
@@ -373,6 +379,39 @@ public class SchemasEnterpriseFeaturesTest {
         });
         session.writeTransaction(tx -> {
             tx.run("DROP CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
+            tx.commit();
+            return null;
+        });
+    }
+    
+    @Test
+    public void testSchemaNodeWithRelationshipsConstraintsAndViceVersa() {
+        session.writeTransaction(tx -> {
+            tx.run("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
+            tx.run("CREATE CONSTRAINT ON (bar:Bar) ASSERT exists(bar.foobar)");
+            tx.commit();
+            return null;
+        });
+        
+        testResult(session, "CALL apoc.schema.relationships()", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("CONSTRAINT ON ()-[liked:LIKED]-() ASSERT (liked.day) IS NOT NULL", r.get("name"));
+            assertEquals("RELATIONSHIP_PROPERTY_EXISTENCE", r.get("type"));
+            assertEquals(asList("day"), r.get("properties"));
+            assertEquals(StringUtils.EMPTY, r.get("status"));
+            assertFalse(result.hasNext());
+        });
+        testResult(session, "CALL apoc.schema.nodes()", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Bar", r.get("label"));
+            assertEquals("NODE_PROPERTY_EXISTENCE", r.get("type"));
+            assertEquals(asList("foobar"), r.get("properties"));
+            assertFalse(result.hasNext());
+        });
+        
+        session.writeTransaction(tx -> {
+            tx.run("DROP CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
+            tx.run("DROP CONSTRAINT ON (bar:Bar) ASSERT exists(bar.foobar)");
             tx.commit();
             return null;
         });

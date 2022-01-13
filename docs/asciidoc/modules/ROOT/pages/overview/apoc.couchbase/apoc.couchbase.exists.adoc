@@ -14,7 +14,7 @@ apoc.couchbase.exists(hostOrKey, bucket, documentId) yield value - check whether
 
 [source]
 ----
-apoc.couchbase.exists(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?) :: (value :: BOOLEAN?)
+apoc.couchbase.exists(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, config = {} :: MAP?) :: (value :: BOOLEAN?)
 ----
 
 == Input parameters
@@ -24,6 +24,7 @@ apoc.couchbase.exists(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STR
 |hostOrKey|STRING?|null
 |bucket|STRING?|null
 |documentId|STRING?|null
+|config|MAP?|{}
 |===
 
 == Output parameters

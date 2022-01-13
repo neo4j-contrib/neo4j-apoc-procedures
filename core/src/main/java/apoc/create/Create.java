@@ -140,6 +140,7 @@ public class Create {
     public Stream<RelationshipResult> relationship(@Name("from") Node from,
                                                    @Name("relType") String relType, @Name("props") Map<String, Object> props,
                                                    @Name("to") Node to) {
+        VirtualRelationship.validateNodes(from, to);
         return Stream.of(new RelationshipResult(setProperties(from.createRelationshipTo(to, withName(relType)), props)));
     }
 

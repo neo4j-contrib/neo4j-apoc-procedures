@@ -1,0 +1,2 @@
+¦signature
+¦apoc.load.directory.async.add(name :: STRING?, cypher :: STRING?, pattern = * :: STRING?, urlDir =  :: STRING?, config = {} :: MAP?) :: (name :: STRING?, status :: STRING?, pattern :: STRING?, cypher :: STRING?, urlDir :: STRING?, config :: MAP?, error :: STRING?)

@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.util.CompressionAlgo;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -9,10 +10,13 @@ import org.mockserver.client.server.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -20,6 +24,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.*;
+import static apoc.util.BinaryTestUtil.fileToBinary;
+import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.convert.ConvertJsonTest.EXPECTED_AS_PATH_LIST;
 import static apoc.convert.ConvertJsonTest.EXPECTED_PATH;
 import static apoc.convert.ConvertJsonTest.EXPECTED_PATH_WITH_NULLS;
@@ -70,27 +76,31 @@ public class LoadJsonTest {
                 });
     }
 
+    @Test 
+    public void testLoadMultiJsonWithBinary() {
+        testResult(db, "CALL apoc.load.jsonParams($url, null, null, null, $config)",
+                map("url", fileToBinary(new File(ClassLoader.getSystemResource("multi.json").getPath()), CompressionAlgo.FRAMED_SNAPPY.name()), 
+                        "config", map(COMPRESSION, CompressionAlgo.FRAMED_SNAPPY.name())),
+                this::commonAssertionsLoadJsonMulti);
+    }
+
+    private void commonAssertionsLoadJsonMulti(Result result) {
+        Map<String, Object> row = result.next();
+        assertEquals(map("foo", asList(1L, 2L, 3L)), row.get("value"));
+        row = result.next();
+        assertEquals(map("bar", asList(4L, 5L, 6L)), row.get("value"));
+        assertFalse(result.hasNext());
+    }
+
     @Test public void testLoadMultiJson() throws Exception {
 		URL url = ClassLoader.getSystemResource("multi.json");
 		testResult(db, "CALL apoc.load.json($url)",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
-                (result) -> {
-                    Map<String, Object> row = result.next();
-                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
-                    row = result.next();
-                    assertEquals(map("bar",asList(4L,5L,6L)), row.get("value"));
-                    assertFalse(result.hasNext());
-                });
+                this::commonAssertionsLoadJsonMulti);
     }
     @Test public void testLoadMultiJsonPaths() throws Exception {
 		URL url = ClassLoader.getSystemResource("multi.json");
 		testResult(db, "CALL apoc.load.json($url,'$')",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
-                (result) -> {
-                    Map<String, Object> row = result.next();
-                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
-                    row = result.next();
-                    assertEquals(map("bar",asList(4L,5L,6L)), row.get("value"));
-                    assertFalse(result.hasNext());
-                });
+                this::commonAssertionsLoadJsonMulti);
     }
     @Test public void testLoadJsonPath() throws Exception {
 		URL url = ClassLoader.getSystemResource("map.json");
@@ -293,8 +303,10 @@ public class LoadJsonTest {
             testResult(db, "CALL apoc.load.json($key)",map("key","foo"), (r) -> r.hasNext());
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
-            assertTrue(except instanceof RuntimeException);
-            assertEquals("Can't read url or key invalid URL (foo) as json: no protocol: foo", except.getMessage());
+            assertTrue(except instanceof IOException);
+            final String message = except.getMessage();
+            assertTrue(message.startsWith("Cannot open file "));
+            assertTrue(message.endsWith("foo for reading."));
             throw e;
         }
     }

@@ -18,7 +18,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static apoc.util.MapUtil.map;
 import static junit.framework.TestCase.assertTrue;
@@ -27,22 +30,22 @@ import static org.junit.Assert.assertEquals;
 public class ExportCsvNeo4jAdminTest {
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_TYPES_NODE = String
-            .format(":ID;born_2D:point;dateTime:datetime;duration:duration;localtime:localtime;time:time;born_3D:point;localDateTime:localdatetime;date:date;:LABEL%n");
+            .format(":ID;born_3D:point;localtime:localtime;time:time;localDateTime:localdatetime;duration:duration;dateTime:datetime;born_2D:point;date:date;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_TYPES_NODE = String
-            .format("6;{crs:cartesian,x:2.3,y:4.5};2018-10-30T12:50:35.556+01:00;P5M1DT12H;12:50:35.556;12:50:35.556+01:00;{crs:wgs-84-3d,latitude:56.7,longitude:12.78,height:100.0};2018-10-30T19:32:24;2018-10-30;Types%n");
+            .format("6;{crs:wgs-84-3d,latitude:12.78,longitude:56.7,height:100.0};12:50:35.556;12:50:35.556+01:00;2018-10-30T19:32:24;P5M1DT12H;2018-10-30T12:50:35.556+01:00;{crs:cartesian,x:2.3,y:4.5};2018-10-30;Types%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS = String
             .format(":ID;name;street;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS1 = String
-            .format(":ID;street;city;name;:LABEL%n");
+            .format(":ID;street;name;city;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER = String
             .format(":ID;name;age:long;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER1 = String
-            .format(":ID;kids;male:boolean;name;age:long;:LABEL%n");
+            .format(":ID;name;age:long;male:boolean;kids;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_RELATIONSHIP_KNOWS = String
             .format(":START_ID;:END_ID;:TYPE%n");
@@ -55,14 +58,14 @@ public class ExportCsvNeo4jAdminTest {
                     "5;;via Benni;Address%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS1 = String
-            .format("3;Via Garibaldi, 7;Milano;Andrea;\"Address1;Address\"%n");
+            .format("3;Via Garibaldi, 7;Andrea;Milano;\"Address1;Address\"%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER = String
             .format("1;bar;42;User%n" +
                     "2;;12;User%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER1 = String
-            .format("0;[a,b,c];true;foo;42;\"User1;User\"%n");
+            .format("0;foo;42;true;[a,b,c];\"User1;User\"%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_KNOWS = String
             .format("0;1;KNOWS%n");
@@ -129,28 +132,57 @@ public class ExportCsvNeo4jAdminTest {
     public void testExportGraphNeo4jAdminCsv() throws Exception {
         String fileName = "graph.csv";
         File output = new File(directory, fileName);
+        String separator = ";";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                        "CALL apoc.export.csv.graph(graph, $fileName,{bulkImport: true, delim: ';'}) " +
+                        "CALL apoc.export.csv.graph(graph, $fileName,{bulkImport: true, delim: $separator}) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
-                        "RETURN *", map("fileName", fileName),
+                        "RETURN *", map("fileName", fileName, "separator", separator),
                 (r) -> assertResults(fileName, r, "graph"));
 
         String file = output.getParent() + File.separator;
-        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS + EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS, "graph.nodes.Address.csv");
-        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS1 + EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS1, "graph.nodes.Address1.Address.csv");
-        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER + EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER, "graph.nodes.User.csv");
-        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER1 + EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER1, "graph.nodes.User1.User.csv");
-        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_TYPES_NODE + EXPECTED_NEO4J_ADMIN_IMPORT_TYPES_NODE, "graph.nodes.Types.csv");
-        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_RELATIONSHIP_KNOWS + EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_KNOWS, "graph.relationships.KNOWS.csv");
-        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_RELATIONSHIP_NEXT_DELIVERY + EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_NEXT_DELIVERY, "graph.relationships.NEXT_DELIVERY.csv");
+        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS + EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS, "graph.nodes.Address.csv", separator);
+        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS1 + EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS1, "graph.nodes.Address1.Address.csv", separator);
+        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER + EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER, "graph.nodes.User.csv", separator);
+        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER1 + EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER1, "graph.nodes.User1.User.csv", separator);
+        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_TYPES_NODE + EXPECTED_NEO4J_ADMIN_IMPORT_TYPES_NODE, "graph.nodes.Types.csv", separator);
+        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_RELATIONSHIP_KNOWS + EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_KNOWS, "graph.relationships.KNOWS.csv", separator);
+        assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_RELATIONSHIP_NEXT_DELIVERY + EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_NEXT_DELIVERY, "graph.relationships.NEXT_DELIVERY.csv", separator);
     }
 
-    private void assertFileEquals(String base, String expected, String file)  {
+    private void assertFileEquals(String base, String expected, String file) {
+        assertFileEquals(base, expected, file, ",");
+    }
+
+    private void assertFileEquals(String base, String expected, String file, String separator) {
         try {
-            assertEquals(expected, FileUtils.readFileToString(new File(base + file), Charset.forName("UTF-8")));
+            final List<Map<String, Object>> expectedList = convertCSVString(expected, separator);
+            final String actual = FileUtils.readFileToString(new File(base + file), Charset.forName("UTF-8"));
+            final List<Map<String, Object>> actualList = convertCSVString(actual, separator);
+            assertEquals(expectedList, actualList);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private List<Map<String, Object>> convertCSVString(String csv) {
+        return convertCSVString(csv, ",");
+    }
+
+    private List<Map<String, Object>> convertCSVString(String csv, String separator) {
+        List<String> lines = List.of(csv.split("\n"));
+        if (lines.size() <= 1) return List.of();
+        List<String> header = List.of(lines.get(0).split(separator));
+        return lines.stream()
+                .skip(1)
+                .map(line -> List.of(line.split(separator)))
+                .map(cols -> {
+                    Map<String, Object> row = new HashMap<>();
+                    for (int i = 0; i < header.size(); i++) {
+                        row.put(header.get(i), cols.get(i));
+                    }
+                    return row;
+                })
+                .collect(Collectors.toList());
     }
 
     @Test(expected = RuntimeException.class)
@@ -201,10 +233,10 @@ public class ExportCsvNeo4jAdminTest {
                             ((long) r.get("time")) >= 0);
 
                     String file = dir.getParent() + File.separator;
-                    String expectedNodesLarus = String.format(":ID,id:long,name,:LABEL%n"
-                            + "%s,1,Andrea,User;Larus%n", map.get("sourceId"));
-                    String expectedNodesNeo4j = String.format(":ID,id:long,name,:LABEL%n"
-                            +"%s,2,Michael,User;Neo4j%n", map.get("targetId"));
+                    String expectedNodesLarus = String.format(":ID,name,id:long,:LABEL%n"
+                            + "%s,Andrea,1,User;Larus%n", map.get("sourceId"));
+                    String expectedNodesNeo4j = String.format(":ID,name,id:long,:LABEL%n"
+                            +"%s,Michael,2,User;Neo4j%n", map.get("targetId"));
                     String expectedRelsNeo4j = String.format(":START_ID,:END_ID,:TYPE,id:long%n"
                             + "%s,%s,KNOWS,10%n", map.get("sourceId"), map.get("targetId"));
 

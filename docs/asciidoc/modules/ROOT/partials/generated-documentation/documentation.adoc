@@ -1092,6 +1092,38 @@ apoc.do.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on
 |label:apoc-core[]
 |===
 
+== xref::overview/apoc.dv/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a,1a']
+|===
+| Qualified Name | Type | Release
+|xref::overview/apoc.dv/apoc.dv.catalog.add.adoc[apoc.dv.catalog.add icon:book[]]
+
+Add a virtualized resource configuration
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.dv/apoc.dv.catalog.list.adoc[apoc.dv.catalog.list icon:book[]]
+
+List all virtualized resource configs
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.dv/apoc.dv.catalog.remove.adoc[apoc.dv.catalog.remove icon:book[]]
+
+Remove a virtualized resource config by name
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.dv/apoc.dv.query.adoc[apoc.dv.query icon:book[]]
+
+Query a virtualized resource by name and return virtual nodes
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.dv/apoc.dv.queryAndLink.adoc[apoc.dv.queryAndLink icon:book[]]
+
+Query a virtualized resource by name and return virtual nodes linked using virtual rels to the node passed as first param
+|label:procedure[]
+|label:apoc-core[]
+|===
+
 == xref::overview/apoc.es/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
@@ -1423,12 +1455,12 @@ apoc.import.csv(nodes, relationships, config) - imports nodes and relationships 
 |label:apoc-core[]
 |xref::overview/apoc.import/apoc.import.graphml.adoc[apoc.import.graphml icon:book[]]
 
-apoc.import.graphml(file,config) - imports graphml file
+apoc.import.graphml(urlOrBinaryFile,config) - imports graphml file
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.import/apoc.import.json.adoc[apoc.import.json icon:book[]]
 
-apoc.import.json(file,config) - imports the json list to the provided file
+apoc.import.json(urlOrBinaryFile,config) - imports the json list to the provided file
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.import/apoc.import.xml.adoc[apoc.import.xml icon:book[]]
@@ -1471,13 +1503,13 @@ apoc.label.exists(element, label) - returns true or false related to label exist
 | Qualified Name | Type | Release
 |xref::overview/apoc.load/apoc.load.csv.adoc[apoc.load.csv icon:book[]]
 
-apoc.load.csv('url',\{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,
+apoc.load.csv('urlOrBinary',\{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.csvParams.adoc[apoc.load.csvParams icon:book[]]
 
-apoc.load.csvParams('url', {httpHeader: value}, payload, \{config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,
+apoc.load.csvParams('urlOrBinary', {httpHeader: value}, payload, \{config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
 
 |label:procedure[]
@@ -1485,6 +1517,26 @@ apoc.load.csvParams('url', {httpHeader: value}, payload, \{config}) YIELD lineNo
 |xref::overview/apoc.load/apoc.load.directory.adoc[apoc.load.directory icon:book[]]
 
 apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of all files in folder specified by urlDir or in import folder if urlDir string is empty or not specified
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.directory.async.add.adoc[apoc.load.directory.async.add icon:book[]]
+
+apoc.load.directory.async.add(name, cypher, pattern, urlDir, {}) YIELD name, status, pattern, cypher, urlDir, config, error - Add or replace a folder listener with a specific name, pattern and url directory that execute the specified cypher query when an event is triggered and return listener list
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.directory.async.list.adoc[apoc.load.directory.async.list icon:book[]]
+
+apoc.load.directory.async.list() YIELD name, status, pattern, cypher, urlDir, config, error - List of all folder listeners
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.directory.async.remove.adoc[apoc.load.directory.async.remove icon:book[]]
+
+apoc.load.directory.async.remove(name) YIELD name, status, pattern, cypher, urlDir, config, error - Remove a folder listener by name and return remaining listeners, if any
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.directory.async.removeAll.adoc[apoc.load.directory.async.removeAll icon:book[]]
+
+apoc.load.directory.async.removeAll() - Remove all folder listeners
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.driver.adoc[apoc.load.driver icon:book[]]
@@ -1514,7 +1566,7 @@ apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - updat
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.json.adoc[apoc.load.json icon:book[]]
 
-apoc.load.json('url',path, config) YIELD value -  import JSON as stream of values if the JSON was an array or a single value if it was a map
+apoc.load.json('urlOrKeyOrBinary',path, config) YIELD value - import JSON as stream of values if the JSON was an array or a single value if it was a map
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.jsonArray.adoc[apoc.load.jsonArray icon:book[]]
@@ -1524,7 +1576,7 @@ apoc.load.jsonArray('url') YIELD value - load array from JSON URL (e.g. web-api)
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.jsonParams.adoc[apoc.load.jsonParams icon:book[]]
 
-apoc.load.jsonParams('url',{header:value},payload, config) YIELD value - load from JSON URL (e.g. web-api) while sending headers / payload to import JSON as stream of values if the JSON was an array or a single value if it was a map
+apoc.load.jsonParams('urlOrKeyOrBinary',{header:value},payload, config) YIELD value - load from JSON URL (e.g. web-api) while sending headers / payload to import JSON as stream of values if the JSON was an array or a single value if it was a map
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.ldap.adoc[apoc.load.ldap icon:book[]]
@@ -1541,11 +1593,6 @@ apoc.load.xls('url','selector',\{config}) YIELD lineNo, list, map - load XLS fom
 |xref::overview/apoc.load/apoc.load.xml.adoc[apoc.load.xml icon:book[]]
 
 apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.load/apoc.load.xmlSimple.adoc[apoc.load.xmlSimple icon:book[]]
-
-apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _children fields. This method does intentionally not work with XML mixed content.
 |label:procedure[]
 |label:apoc-core[]
 |===
@@ -1724,6 +1771,11 @@ apoc.map.sortedProperties(map, ignoreCase:true) - returns a list of key/value li
 apoc.map.submap(map,keys,[defaults],[fail=true])  - returns submap for keys or throws exception if one of the key doesn't exist and no default value given at that position
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.unflatten.adoc[apoc.map.unflatten icon:book[]]
+
+apoc.map.unflatten(map, delimiter:'.') yield map - unflat from items separated by delimiter string to nested items (reverse of apoc.map.flatten function)
+|label:function[]
+|label:apoc-core[]
 |xref::overview/apoc.map/apoc.map.updateTree.adoc[apoc.map.updateTree icon:book[]]
 
 apoc.map.updateTree(tree,key,[[value,\{data}]]) returns map - adds the \{data} map on each level of the nested tree, where the key-value pairs match
@@ -1745,6 +1797,21 @@ apoc.map.values(map, [key1,key2,key3,...],[addNullsForMissing]) returns list of 
 
 apoc.math.regr(label, propertyY, propertyX) - It calculates the coefficient of determination (R-squared) for the values of propertyY and propertyX in the provided label
 |label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.cosh.adoc[apoc.math.cosh icon:book[]]
+
+apoc.math.cosh(val) \| returns the hyperbolic cosin
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.coth.adoc[apoc.math.coth icon:book[]]
+
+apoc.math.coth(val) \| returns the hyperbolic cotangent
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.csch.adoc[apoc.math.csch icon:book[]]
+
+apoc.math.csch(val) \| returns the hyperbolic cosecant
+|label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.math/apoc.math.maxByte.adoc[apoc.math.maxByte icon:book[]]
 
@@ -1789,6 +1856,31 @@ apoc.math.minLong() \| return the minimum value a long can have
 |xref::overview/apoc.math/apoc.math.round.adoc[apoc.math.round icon:book[]]
 
 apoc.math.round(value,[prec],mode=[CEILING,FLOOR,UP,DOWN,HALF_EVEN,HALF_DOWN,HALF_UP,DOWN,UNNECESSARY])
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.sech.adoc[apoc.math.sech icon:book[]]
+
+apoc.math.sech(val) \| returns the hyperbolic secant
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.sigmoid.adoc[apoc.math.sigmoid icon:book[]]
+
+apoc.math.sigmoid(val) \| returns the sigmoid value
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.sigmoidPrime.adoc[apoc.math.sigmoidPrime icon:book[]]
+
+apoc.math.sigmoidPrime(val) \| returns the sigmoid prime [ sigmoid(val) * (1 - sigmoid(val)) ]
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.sinh.adoc[apoc.math.sinh icon:book[]]
+
+apoc.math.sinh(val) \| returns the hyperbolic sin
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.tanh.adoc[apoc.math.tanh icon:book[]]
+
+apoc.math.tanh(val) \| returns the hyperbolic tangent
 |label:function[]
 |label:apoc-core[]
 |===
@@ -2202,6 +2294,11 @@ apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map with 
 apoc.nodes.collapse([nodes...],[{properties:'overwrite' or 'discard' or 'combine'}]) yield from, rel, to merge nodes onto first in list
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.nodes/apoc.nodes.cycles.adoc[apoc.nodes.cycles icon:book[]]
+
+CALL apoc.nodes.cycles([nodes], $config) - Detect all path cycles from node list
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.delete.adoc[apoc.nodes.delete icon:book[]]
 
 apoc.nodes.delete(node\|nodes\|id\|[ids]) - quickly delete all nodes with these ids
@@ -2219,7 +2316,7 @@ apoc.nodes.get(node\|nodes\|id\|[ids]) - quickly returns all nodes with these id
 |label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.link.adoc[apoc.nodes.link icon:book[]]
 
-apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last
+apoc.nodes.link([nodes],'REL_TYPE', conf) - creates a linked list of nodes from first to last
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.rels.adoc[apoc.nodes.rels icon:book[]]

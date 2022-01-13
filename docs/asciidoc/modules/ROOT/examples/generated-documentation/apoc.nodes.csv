@@ -4,6 +4,11 @@
 apoc.nodes.collapse([nodes...],[{properties:'overwrite' or 'discard' or 'combine'}]) yield from, rel, to merge nodes onto first in list
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.nodes/apoc.nodes.adoc[apoc.nodes.cycles icon:book[]]
+
+CALL apoc.nodes.cycles([nodes], $config) - Detect all path cycles from node list
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.adoc[apoc.nodes.delete icon:book[]]
 
 apoc.nodes.delete(node\|nodes\|id\|[ids]) - quickly delete all nodes with these ids
@@ -21,7 +26,7 @@ apoc.nodes.get(node\|nodes\|id\|[ids]) - quickly returns all nodes with these id
 |label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.adoc[apoc.nodes.link icon:book[]]
 
-apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last
+apoc.nodes.link([nodes],'REL_TYPE', conf) - creates a linked list of nodes from first to last
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.nodes/apoc.nodes.adoc[apoc.nodes.rels icon:book[]]

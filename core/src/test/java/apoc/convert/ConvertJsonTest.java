@@ -29,7 +29,6 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
-import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
 public class ConvertJsonTest {
@@ -143,6 +142,18 @@ public class ConvertJsonTest {
     }
 
     @Test
+    public void testToJsonWithNullValues() {
+        testCall(db, "RETURN apoc.convert.toJson({a: null, b: 'myString', c: [1,'2',null]}) as value",
+                (row) -> {
+                    final Map<String, Object> value = Util.fromJson((String) row.get("value"), Map.class);
+                    assertNull(value.get("a"));
+                    assertEquals("myString", value.get("b"));
+                    final List<Object> expected = asList(1L, "2", null);
+                    assertEquals(expected, value.get("c"));
+                });
+    }
+
+    @Test
     public void testToJsonNodeWithoutLabel() throws Exception {
         testCall(db, "CREATE (a {pippo:'pluto'}) RETURN apoc.convert.toJson(a) AS value",
                 (row) -> {
@@ -167,7 +178,7 @@ public class ConvertJsonTest {
                     "kids", List.of("Sam", "Anna", "Grace"),
                     "born", "2015-07-04T19:32:24",
                     "place", Map.of(
-                            "latitude", 56.7, "longitude", 12.78, "crs", "wgs-84-3d", "height", 1.1
+                            "latitude", 12.78, "longitude", 56.7, "crs", "wgs-84-3d", "height", 1.1
                     ));
             assertJsonNode(nodeOne, "0", users, expectedMap);
 

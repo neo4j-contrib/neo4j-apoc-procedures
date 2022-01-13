@@ -29,10 +29,13 @@ import java.util.stream.Stream;
 import static apoc.util.Util.merge;
 
 public class Periodic {
+    
+    enum Planner {DEFAULT, COST, IDP, DP }
 
+    public static final Pattern PLANNER_PATTERN = Pattern.compile("\\bplanner\\s*=\\s*[^\\s]*", Pattern.CASE_INSENSITIVE);
     public static final Pattern RUNTIME_PATTERN = Pattern.compile("\\bruntime\\s*=", Pattern.CASE_INSENSITIVE);
-    public static final Pattern CYPHER_PREFIX_PATTERN = Pattern.compile("\\bcypher\\b", Pattern.CASE_INSENSITIVE);
-    public static final String CYPHER_RUNTIME_SLOTTED = "cypher runtime=slotted ";
+    public static final Pattern CYPHER_PREFIX_PATTERN = Pattern.compile("^\\s*\\bcypher\\b", Pattern.CASE_INSENSITIVE);
+    public static final String CYPHER_RUNTIME_SLOTTED = " runtime=slotted ";
     final static Pattern LIMIT_PATTERN = Pattern.compile("\\slimit\\s", Pattern.CASE_INSENSITIVE);
 
     @Context public GraphDatabaseService db;
@@ -150,12 +153,13 @@ public class Periodic {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.submit('name',statement) - submit a one-off background statement")
-    public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement) {
+    @Description("apoc.periodic.submit('name',statement,params) - submit a one-off background statement; parameter 'params' is optional and can contain query parameters for Cypher statement")
+    public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement, @Name(value = "params", defaultValue = "{}") Map<String,Object> config) {
         validateQuery(statement);
+        Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
         JobInfo info = submit(name, () -> {
             try {
-                db.executeTransactionally(statement);
+                db.executeTransactionally(statement, params);
             } catch(Exception e) {
                 log.warn("in background task via submit", e);
                 throw new RuntimeException(e);
@@ -259,7 +263,7 @@ public class Periodic {
 
         try (Result result = tx.execute(slottedRuntime(cypherIterate),params)) {
             Pair<String,Boolean> prepared = PeriodicUtils.prepareInnerStatement(cypherAction, batchMode, result.columns(), "_batch");
-            String innerStatement = prepared.first();
+            String innerStatement = applyPlanner(prepared.first(), Planner.valueOf((String) config.getOrDefault("planner", Planner.DEFAULT.name())));
             boolean iterateList = prepared.other();
             log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
             return PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
@@ -278,10 +282,29 @@ public class Periodic {
         if (RUNTIME_PATTERN.matcher(cypherIterate).find()) {
             return cypherIterate;
         }
-        Matcher matcher = CYPHER_PREFIX_PATTERN.matcher(cypherIterate.substring(0, Math.min(15,cypherIterate.length())));
-        return matcher.find() ? CYPHER_PREFIX_PATTERN.matcher(cypherIterate).replaceFirst(CYPHER_RUNTIME_SLOTTED) : CYPHER_RUNTIME_SLOTTED + cypherIterate;
+        
+        return prependQueryOption(cypherIterate, CYPHER_RUNTIME_SLOTTED);
     }
 
+    public static String applyPlanner(String query, Planner planner) {
+        if(planner.equals(Planner.DEFAULT)) {
+            return query;
+        }
+        Matcher matcher = PLANNER_PATTERN.matcher(query);
+        String cypherPlanner = String.format(" planner=%s ", planner.name().toLowerCase());
+        if (matcher.find()) {
+            return matcher.replaceFirst(cypherPlanner);
+        }
+        return prependQueryOption(query, cypherPlanner);
+    }
+
+    private static String prependQueryOption(String query, String cypherOption) {
+        String cypherPrefix = "cypher";
+        String completePrefix = cypherPrefix + cypherOption;
+        return CYPHER_PREFIX_PATTERN.matcher(query).find()
+                ? query.replaceFirst("(?i)" + cypherPrefix, completePrefix)
+                : completePrefix + query;
+    }
 
 
     static abstract class ExecuteBatch implements Function<Transaction, Long> {

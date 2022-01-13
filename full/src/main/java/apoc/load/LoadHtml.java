@@ -2,6 +2,7 @@ package apoc.load;
 
 import apoc.Extended;
 import apoc.result.MapResult;
+import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
@@ -48,7 +49,7 @@ public class LoadHtml {
             // baseUri is used to resolve relative paths
             String baseUri = config.getOrDefault("baseUri", "").toString();
 
-            Document document = Jsoup.parse(Util.openInputStream(url, null, null), charset, baseUri);
+            Document document = Jsoup.parse(FileUtils.inputStreamFor(url, null, null, null), charset, baseUri);
 
             Map<String, Object> output = new HashMap<>();
             List<String> errorList = new ArrayList<>();
@@ -115,7 +116,12 @@ public class LoadHtml {
     private Map<String, String> getAttributes(Element element) {
         Map<String, String> attributes = new HashMap<>();
         for (Attribute attribute : element.attributes()) {
-            if(!attribute.getValue().isEmpty()) attributes.put(attribute.getKey(), attribute.getValue());
+            if (!attribute.hasDeclaredValue() && !Attribute.isBooleanAttribute(attribute.getKey())) {
+                throw new RuntimeException("Invalid tag " + element);
+            }
+            if (!attribute.getValue().isBlank()) {
+                attributes.put(attribute.getKey(), attribute.getValue());
+            }
         }
 
         return attributes;

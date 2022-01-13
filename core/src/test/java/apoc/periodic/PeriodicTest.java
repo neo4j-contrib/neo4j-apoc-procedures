@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
+import static apoc.periodic.Periodic.applyPlanner;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
@@ -79,11 +80,53 @@ public class PeriodicTest {
     }
 
     @Test
+    public void testSubmitStatementWithParams() throws Exception {
+        String callList = "CALL apoc.periodic.list()";
+        // force pre-caching the queryplan
+        assertFalse(db.executeTransactionally(callList, Collections.emptyMap(), Result::hasNext));
+
+        testCall(db, "CALL apoc.periodic.submit('foo','create (:Foo { id: $id })', { params: {id: '(╯°□°)╯︵ ┻━┻'} })",
+                (row) -> {
+                    assertEquals("foo", row.get("name"));
+                    assertEquals(false, row.get("done"));
+                    assertEquals(false, row.get("cancelled"));
+                    assertEquals(0L, row.get("delay"));
+                    assertEquals(0L, row.get("rate"));
+                });
+
+        long count = tryReadCount(50, "MATCH (:Foo { id: '(╯°□°)╯︵ ┻━┻' }) RETURN COUNT(*) AS count", 1L);
+
+        assertThat(count, equalTo(1L));
+
+        testCall(db, callList, (r) -> assertEquals(true, r.get("done")));
+    }
+
+    @Test
+    public void testApplyPlanner() {
+        assertEquals("RETURN 1", applyPlanner("RETURN 1", Periodic.Planner.DEFAULT));
+        assertEquals("cypher planner=cost MATCH (n:cypher) RETURN n", 
+                applyPlanner("MATCH (n:cypher) RETURN n", Periodic.Planner.COST));
+        assertEquals("cypher planner=idp MATCH (n:cypher) RETURN n", 
+                applyPlanner("MATCH (n:cypher) RETURN n", Periodic.Planner.IDP));
+        assertEquals("cypher planner=dp  runtime=compiled MATCH (n) RETURN n", 
+                applyPlanner("cypher runtime=compiled MATCH (n) RETURN n", Periodic.Planner.DP));
+        assertEquals("cypher planner=dp  3.1 MATCH (n) RETURN n", 
+                applyPlanner("cypher 3.1 MATCH (n) RETURN n", Periodic.Planner.DP));
+        assertEquals("cypher planner=idp  expressionEngine=compiled MATCH (n) RETURN n", 
+                applyPlanner("cypher expressionEngine=compiled MATCH (n) RETURN n", Periodic.Planner.IDP));
+        assertEquals("cypher expressionEngine=compiled  planner=cost  MATCH (n) RETURN n",
+                applyPlanner("cypher expressionEngine=compiled planner=idp MATCH (n) RETURN n", Periodic.Planner.COST));
+        assertEquals("cypher  planner=cost  MATCH (n) RETURN n",
+                applyPlanner("cypher planner=cost MATCH (n) RETURN n", Periodic.Planner.COST));
+    }
+
+    @Test
     public void testSlottedRuntime() throws Exception {
+        assertEquals("cypher runtime=slotted MATCH (n:cypher) RETURN n", Periodic.slottedRuntime("MATCH (n:cypher) RETURN n"));
         assertTrue(Periodic.slottedRuntime("MATCH (n) RETURN n").contains("cypher runtime=slotted "));
-        assertFalse(Periodic.slottedRuntime("cypher runtime=compiled MATCH (n) RETURN n").contains("cypher runtime=slotted "));
+        assertFalse(Periodic.slottedRuntime(" cypher runtime=compiled MATCH (n) RETURN n").contains("cypher runtime=slotted "));
         assertFalse(Periodic.slottedRuntime("cypher runtime=compiled MATCH (n) RETURN n").contains("cypher runtime=slotted cypher"));
-        assertTrue(Periodic.slottedRuntime("cypher 3.1 MATCH (n) RETURN n").contains(" runtime=slotted "));
+        assertTrue(Periodic.slottedRuntime(" cypher 3.1 MATCH (n) RETURN n").contains(" runtime=slotted "));
         assertFalse(Periodic.slottedRuntime("cypher 3.1 MATCH (n) RETURN n").contains(" runtime=slotted cypher "));
         assertTrue(Periodic.slottedRuntime("cypher expressionEngine=compiled MATCH (n) RETURN n").contains(" runtime=slotted "));
         assertFalse(Periodic.slottedRuntime("cypher expressionEngine=compiled MATCH (n) RETURN n").contains(" runtime=slotted cypher"));
@@ -234,6 +277,25 @@ public class PeriodicTest {
                 "MATCH (p:Person) where p.lastname is not null return count(p) as count",
                 row -> assertEquals(100L, row.get("count"))
         );
+    }
+
+    @Test
+    public void testIterateWithQueryPlanner() throws Exception {
+        db.executeTransactionally("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})");
+
+        String cypherIterate = "match (p:Person) return p";
+        String cypherAction = "SET p.lastname =p.name REMOVE p.name";
+        testResult(db, "CALL apoc.periodic.iterate($cypherIterate, $cypherAction, $config)", 
+                map("cypherIterate", cypherIterate, "cypherAction", cypherAction,
+                        "config", map("batchSize", 10, "planner", "DP")),
+                result -> assertEquals(10L, Iterators.single(result).get("batches")));
+
+        String cypherActionUnwind = "cypher runtime=slotted UNWIND $_batch AS batch WITH batch.p AS p  SET p.lastname =p.name";
+        
+        testResult(db, "CALL apoc.periodic.iterate($cypherIterate, $cypherActionUnwind, $config)",
+                map("cypherIterate", cypherIterate, "cypherActionUnwind", cypherActionUnwind,
+                        "config", map("batchSize", 10, "batchMode", "BATCH_SINGLE", "planner", "DP")),
+                result -> assertEquals(10L, Iterators.single(result).get("batches")));
     }
 
     @Test

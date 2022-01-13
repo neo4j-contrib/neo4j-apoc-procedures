@@ -250,7 +250,6 @@ apoc.load.jsonParams,CORE
 apoc.load.ldap,EXTENDED
 apoc.load.xls,EXTENDED
 apoc.load.xml,CORE
-apoc.load.xmlSimple,CORE
 apoc.lock.all,CORE
 apoc.lock.nodes,CORE
 apoc.lock.read.nodes,CORE

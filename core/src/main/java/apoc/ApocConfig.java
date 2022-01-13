@@ -23,6 +23,7 @@ import org.neo4j.logging.internal.LogService;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.time.Duration;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -63,6 +64,7 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_CONFIG_JOBS_POOL_NUM_THREADS = "apoc.jobs.pool.num_threads";
     public static final String APOC_CONFIG_JOBS_QUEUE_SIZE = "apoc.jobs.queue.size";
     public static final String APOC_CONFIG_INITIALIZER = "apoc.initializer";
+    public static final String LOAD_FROM_FILE_ERROR = "Import from files not enabled, please set apoc.import.file.enabled=true in your apoc.conf";
 
     /**
      * @deprecated
@@ -79,6 +81,8 @@ public class ApocConfig extends LifecycleAdapter {
             plugin_dir,
             logical_logs_location,
             transaction_logs_root_path,
+            run_directory,
+            lib_directory,
             neo4j_home
     ));
     private static final String DEFAULT_PATH = ".";
@@ -192,6 +196,10 @@ public class ApocConfig extends LifecycleAdapter {
 
             boolean allowFileUrls = neo4jConfig.get(GraphDatabaseSettings.allow_file_urls);
             config.setProperty(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, allowFileUrls);
+            
+            // todo - evaluate default timezone here [maybe is reusable], otherwise through db.execute('CALL dbms.listConfig()')
+            final Setting<ZoneId> db_temporal_timezone = GraphDatabaseSettings.db_temporal_timezone;
+            config.setProperty(db_temporal_timezone.name(), neo4jConfig.get(db_temporal_timezone));
 
             initLogging();
         } catch (ConfigurationException e) {
@@ -244,10 +252,16 @@ public class ApocConfig extends LifecycleAdapter {
         rateLimiter = new SimpleRateLimiter(getInt( "apoc.user.log.window.time", 10000), getInt("apoc.user.log.window.ops", 10));
     }
 
+    // added because with binary file there isn't an url
+    public void isImportFileEnabled() {
+        if (!config.getBoolean(APOC_IMPORT_FILE_ENABLED)) {
+            throw new RuntimeException(LOAD_FROM_FILE_ERROR);
+        }
+    }
+
     public void checkReadAllowed(String url) {
-        if (isFile(url) && !config.getBoolean(APOC_IMPORT_FILE_ENABLED)) {
-            throw new RuntimeException("Import from files not enabled," +
-                    " please set apoc.import.file.enabled=true in your apoc.conf");
+        if (isFile(url)) {
+            isImportFileEnabled();
         }
     }
 
@@ -284,6 +298,10 @@ public class ApocConfig extends LifecycleAdapter {
         return getConfig().getString(key, defaultValue);
     }
 
+    public <T> void setProperty(Setting<T> key, T value) {
+        getConfig().setProperty(key.name(), value);
+    }
+
     public void setProperty(String key, Object value) {
         getConfig().setProperty(key, value);
     }
@@ -299,12 +317,16 @@ public class ApocConfig extends LifecycleAdapter {
     public boolean isImportFolderConfigured() {
         // in case we're test database import path is TestDatabaseManagementServiceBuilder.EPHEMERAL_PATH
 
-        String importFolder = config.getString("dbms.directories.import");
+        String importFolder = getImportDir();
         if (importFolder==null) {
             return false;
         } else {
             return !"/target/test data/neo4j".equals(importFolder);
         }
+    }
+
+    public String getImportDir() {
+        return apocConfig().getString("dbms.directories.import");
     }
 
     public int getInt(String key, int defaultValue) {

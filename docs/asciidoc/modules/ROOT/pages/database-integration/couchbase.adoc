@@ -60,4 +60,38 @@ apoc.couchbase.ioPoolSize=<default=3>
 ----
 In order to get an in-depth description of these configuration params please refer to the https://docs.couchbase.com/java-sdk/current/ref/client-settings.html[Official Couchbase Documentation]
 
+
+== Configuration parameters
+
+The procedures support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| collection | String | "_default" | the collection to use. See link:https://docs.couchbase.com/java-sdk/current/concept-docs/collections.html[Scope and collections]
+| scope | String | "_default" | the scope to use. See link:https://docs.couchbase.com/java-sdk/current/concept-docs/collections.html[Scope and collections]
+| compressionEnabled | boolean | true | If enabled, the client will compress documents before they are sent to Couchbase Server. See link:https://docs.couchbase.com/java-sdk/current/ref/client-settings.html#compression-options[here].
+| compressionMinSize | Integer | 32 | Size in bytes. Documents smaller than this size are never compressed.
+| compressionMinRatio | Double | 0.83 | A value between 0 and 1. Specifies how "compressible" a document must be in order for the compressed form to be sent to the server.
+| mutationTokensEnabled | boolean | true | Mutation tokens allow enhanced durability requirements as well as advanced N1QL querying capabilities. Set this to false if you do not require these features and wish to avoid the associated overhead.
+| retryStrategy | Enum[FAILFAST, BESTEFFORT] | BESTEFFORT | The client’s default retry strategy. A retry strategy decides whether a failed operation should be retried. See link:https://docs.couchbase.com/java-sdk/current/ref/client-settings.html#general-options[here].
+| transcoder | Enum[DEFAULT, RAWJSON, RAWSTRING, RAWBINARY]  | DEFAULT | The transcoder responsible for converting KV binary packages to and from Java objects.
+| connectTimeout | Long | null | The connection timeout (in milliseconds) used when a Bucket is opened. If null will be used the `apoc.conf` parameter `apoc.couchbase.connectTimeout`. 
+| kvTimeout | Long | null | The Key/Value default timeout (in milliseconds) used on operations which are performed on a specific key. If null will be used the `apoc.conf` parameter `apoc.couchbase.kvTimeout`.
+| disconnectTimeout | Long | 10000 | The disconnect timeout (in milliseconds) is used when a Cluster is disconnected
+| queryTimeout | Long | 75000 | The Query timeout (in milliseconds) used on all N1QL query operations
+| analyticsTimeout | Long | 75000 | The Analytics timeout (in milliseconds) used on all Analytics query operations.
+| viewTimeout | Long | 75000 | The View timeout (in milliseconds) used on view operations. If there is a node failure during the request the internal cluster timeout is set to 60 seconds.
+| searchTimeout | Long | 75000 | The Search timeout is used on all FTS operations
+| configPollInterval | Long | 2500 | The interval at which the client fetches cluster topology information in order to proactively detect changes.
+| idleHttpConnectionTimeout | Long | 4500 | The length of time an HTTP connection may remain idle before it is closed and removed from the pool. Durations longer than 50 seconds are not recommended, since some services have a 1 minute server side idle timeout.
+| enableTcpKeepAlives | boolean | true | If enabled, the client periodically sends a TCP keepalive to the server to prevent firewalls and other network equipment from dropping idle TCP connections.
+| tcpKeepAliveTime | long | 60000 | The idle time after which a TCP keepalive gets fired. (This setting has no effect if enableTcpKeepAlives is false.) TODO
+| enableDnsSrv | boolean | true | Gets the bootstrap node list from a DNS SRV record. TODO
+| networkResolution | com.couchbase.client.core.env.NetworkResolution | null | The network resolution. See link:https://docs.couchbase.com/java-sdk/current/ref/client-settings.html#io-options[here] for details.
+| trustCertificate | boolean | null | If not null, it is the path to a file containing a single X.509 certificate to trust as a Certificate Authority when establishing secure connections. This enable Tls, if present. See link:https://docs.couchbase.com/java-sdk/current/ref/client-settings.html#security-options[here] for details.
+| waitUntilReady | Long | null | This method will wait until either the cluster state is "online" by default, or the timeout is reached.
+|===
+
 // end::couchbase[]

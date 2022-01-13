@@ -1,6 +1,7 @@
 package apoc.export.csv;
 
 import apoc.ApocSettings;
+import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -10,21 +11,37 @@ import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Result;
+import org.neo4j.kernel.impl.core.NodeEntity;
+import org.neo4j.kernel.impl.core.RelationshipEntity;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+import org.neo4j.values.storable.CoordinateReferenceSystem;
+import org.neo4j.values.storable.DurationValue;
+import org.neo4j.values.storable.Values;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.AbstractMap;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Arrays.asList;
+import static apoc.util.BinaryTestUtil.fileToBinary;
+import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.MapUtil.map;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -32,13 +49,16 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 public class ImportCsvTest {
-
+    public static final String BASE_URL_FILES = "src/test/resources/csv-inputs";
+    private static final ZoneId DEFAULT_TIMEZONE = ZoneId.of("Asia/Tokyo");
+    
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_import_file_enabled, true)
             .withSetting(ApocSettings.apoc_export_file_enabled, true)
             .withSetting(GraphDatabaseSettings.allow_file_urls, true)
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File("src/test/resources/csv-inputs").toPath().toAbsolutePath());
+            .withSetting(GraphDatabaseSettings.db_temporal_timezone, DEFAULT_TIMEZONE)
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File(BASE_URL_FILES).toPath().toAbsolutePath());
 
     final Map<String, String> testCsvs = Collections
             .unmodifiableMap(Stream.of(
@@ -73,6 +93,19 @@ public class ImportCsvTest {
                     new AbstractMap.SimpleEntry<>("id", "id:ID|name:STRING\n" +
                             "1|John\n" +
                             "2|Jane\n"),
+                    new AbstractMap.SimpleEntry<>("csvPoint", 
+                            ":ID,location:point{crs:WGS-84}\n" +
+                            "1,\"{latitude:55.6121514, longitude:12.9950357}\"\n" +
+                            "2,\"{y:51.507222, x:-0.1275}\"\n" +
+                            "3,\"{latitude:37.554167, longitude:-122.313056, height: 100, crs:'WGS-84-3D'}\"\n"),
+                    new AbstractMap.SimpleEntry<>("nodesMultiTypes",
+                            ":ID(MultiType-ID)|date1:datetime{timezone:Europe/Stockholm}|date2:datetime|foo:string|joined:date|active:boolean|points:int\n" +
+                            "1|2018-05-10T10:30|2018-05-10T12:30|Joe Soap|2017-05-05|true|10\n" +
+                            "2|2018-05-10T10:30[Europe/Berlin]|2018-05-10T12:30[Europe/Berlin]|Jane Doe|2017-08-21|true|15\n"),
+                    new AbstractMap.SimpleEntry<>("relMultiTypes",
+                            ":START_ID(MultiType-ID)|:END_ID(MultiType-ID)|prop1:IGNORE|prop2:time{timezone:+02:00}[]|foo:int|time:duration[]|baz:localdatetime[]|bar:localtime[]\n" +
+                            "1|2|a|15:30|1|P14DT16H12M|2020-01-01T00:00:00|11:00:00\n" +
+                            "2|1|b|15:30+01:00|2|P5M1.5D|2021|12:00:00\n"),
                     new AbstractMap.SimpleEntry<>("id-with-duplicates", "id:ID|name:STRING\n" +
                             "1|John\n" +
                             "1|Jane\n"),
@@ -146,6 +179,75 @@ public class ImportCsvTest {
     }
 
     @Test
+    public void testNodesAndRelsWithMultiTypes() {
+        TestUtil.testCall(db,
+                "CALL apoc.import.csv([{fileName: $nodeFile, labels: ['Person']}], [{fileName: $relFile, type: 'KNOWS'}], $config)",
+                map("nodeFile", "file:/nodesMultiTypes.csv", 
+                        "relFile", "file:/relMultiTypes.csv",
+                        "config", map("delimiter", '|')),
+                (r) -> {
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(2L, r.get("relationships")); 
+                }
+        );
+        TestUtil.testCall(db, "MATCH p=(start:Person)-[rel {foo: 1}]->(end:Person)-[relSecond {foo:2}]->(start) RETURN start, end, rel, relSecond", r-> {
+            final Map<String, Object> expectedStart = Map.of("joined", LocalDate.of(2017, 5, 5), 
+                    "foo", "Joe Soap", "active", true, 
+                    "date2", ZonedDateTime.of(2018, 5, 10, 12, 30, 0, 0, DEFAULT_TIMEZONE),
+                    "date1", ZonedDateTime.of(2018, 5, 10, 10, 30, 0, 0, ZoneId.of("Europe/Stockholm")), 
+                    "points", 10L, "__csv_id", "1");
+            assertEquals(expectedStart, ((NodeEntity) r.get("start")).getAllProperties());
+            
+            final Map<String, Object> expectedEnd = Map.of("joined", LocalDate.of(2017, 8, 21), 
+                    "foo", "Jane Doe", "active", true, 
+                    "date2", ZonedDateTime.of(2018, 5, 10, 12, 30, 0, 0, ZoneId.of("Europe/Berlin")),
+                    "date1", ZonedDateTime.of(2018, 5, 10, 10, 30, 0, 0, ZoneId.of("Europe/Berlin")), 
+                    "points", 15L, "__csv_id", "2");
+            assertEquals(expectedEnd, ((NodeEntity) r.get("end")).getAllProperties());
+
+            final RelationshipEntity rel = (RelationshipEntity) r.get("rel");
+            assertEquals(asList(DurationValue.parse("P14DT16H12M")), asList((DurationValue[]) rel.getProperty("time")));
+            final List<Object> expectedTime = asList(OffsetTime.of(15, 30, 0, 0, ZoneOffset.of("+02:00")));
+            assertEquals(expectedTime, asList((OffsetTime[]) rel.getProperty("prop2")));
+            final List<LocalDateTime> expectedBaz = asList(LocalDateTime.of(2020, 1, 1, 0, 0));
+            assertEquals(expectedBaz, asList((LocalDateTime[]) rel.getProperty("baz")));
+            final List<LocalTime> expectedBar = asList(LocalTime.of(11, 0, 0));
+            assertEquals(expectedBar, asList((LocalTime[]) rel.getProperty("bar")));
+            assertEquals(1L, rel.getProperty("foo"));
+            final RelationshipEntity relSecond = (RelationshipEntity) r.get("relSecond");
+            assertEquals(asList(DurationValue.parse("P5M1.5D")), asList((DurationValue[]) relSecond.getProperty("time")));
+            final List<Object> expectedTimeRelSecond = asList(OffsetTime.of(15, 30, 0, 0, ZoneOffset.of("+01:00")));
+            assertEquals(expectedTimeRelSecond, asList((OffsetTime[]) relSecond.getProperty("prop2")));
+            final List<LocalDateTime> expectedBazRelSecond = asList(LocalDateTime.of(2021, 1, 1, 0, 0));
+            assertEquals(expectedBazRelSecond, asList((LocalDateTime[]) relSecond.getProperty("baz")));
+            final List<LocalTime> expectedBarRelSecond = asList(LocalTime.of(12, 0, 0));
+            assertEquals(expectedBarRelSecond, asList((LocalTime[]) relSecond.getProperty("bar")));
+            assertEquals(2L, relSecond.getProperty("foo"));
+        });
+    }
+
+    @Test
+    public void testNodesWithPoints() {
+        TestUtil.testCall(db,
+                "CALL apoc.import.csv([{fileName: $file, labels: ['Point']}], [], {})",
+                map("file", "file:/csvPoint.csv"),
+                (r) -> {
+                    assertEquals(3L, r.get("nodes"));
+                    assertEquals(0L, r.get("relationships"));
+                }
+        );
+        TestUtil.testResult(db, "MATCH (n:Point) RETURN n ORDER BY n.id", r -> {
+            final ResourceIterator<Node> iterator = r.columnAs("n");
+            final NodeEntity first = (NodeEntity) iterator.next();
+            assertEquals(Values.pointValue(CoordinateReferenceSystem.WGS84, 12.9950357, 55.6121514), first.getProperty("location"));
+            final NodeEntity second = (NodeEntity) iterator.next();
+            assertEquals(Values.pointValue(CoordinateReferenceSystem.WGS84, -0.1275, 51.507222), second.getProperty("location"));
+            final NodeEntity third = (NodeEntity) iterator.next();
+            assertEquals(Values.pointValue(CoordinateReferenceSystem.WGS84_3D, -122.313056, 37.554167, 100D), third.getProperty("location"));
+        });
+    }
+
+    @Test
     public void testCallAsString() {
         TestUtil.testCall(
                 db,
@@ -183,6 +285,36 @@ public class ImportCsvTest {
 
         List<String> names = TestUtil.firstColumn(db, "MATCH (n:Person) RETURN n.name AS name ORDER BY name");
         assertThat(names, Matchers.containsInAnyOrder("Jane", "John"));
+    }
+
+    @Test
+    public void testNodesWithIdSpacesWithDoubleDash() {
+        TestUtil.testCall(
+                db,
+                "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
+                map(
+                        "file", "file://id-idspaces-with-dash.csv",
+                        "config", map("delimiter", '|')
+                ),
+                (r) -> {
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(0L, r.get("relationships"));
+                }
+        );
+
+        List<String> names = TestUtil.firstColumn(db, "MATCH (n:Person) RETURN n.name AS name ORDER BY name");
+        assertThat(names, Matchers.containsInAnyOrder("Jane", "John"));
+    }
+
+    @Test
+    public void testNodesWithIdSpacesWithTripleDash() {
+        db.executeTransactionally("CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
+                map(
+                        "file", "file:///id-idspaces-with-dash.csv",
+                        "config", map("delimiter", '|')
+                ),
+                Result::resultAsString);
+
     }
 
     @Test
@@ -425,17 +557,45 @@ public class ImportCsvTest {
 
     @Test
     public void ignoreFieldType() {
+        final String query = "CALL apoc.import.csv([{fileName: $nodeFile, labels: ['Person']}], [{fileName: $relFile, type: 'KNOWS'}], $config)";
+        final Map<String, Object> config = map("nodeFile", "file:/ignore-nodes.csv",
+                "relFile", "file:/ignore-relationships.csv",
+                "config", map("delimiter", '|', "batchSize", 1)
+        );
+        commonAssertionIgnoreFieldType(config, query, true);
+    }
+
+    @Test
+    public void ignoreFieldTypeWithByteArrayFile() {
+        final Map<String, Object> config = map("nodeFile", fileToBinary(new File(BASE_URL_FILES, "ignore-nodes.csv"), CompressionAlgo.GZIP.name()),
+                "relFile", fileToBinary(new File(BASE_URL_FILES, "ignore-relationships.csv"), CompressionAlgo.GZIP.name()),
+                "config", map("delimiter", '|', "batchSize", 1, COMPRESSION, CompressionAlgo.GZIP.name())
+        );
+        final String query = "CALL apoc.import.csv([{data: $nodeFile, labels: ['Person']}], [{data: $relFile, type: 'KNOWS'}], $config)";
+        commonAssertionIgnoreFieldType(config, query, false);
+    }
+
+    @Test
+    public void ignoreFieldTypeWithBothBinaryAndFileUrl() {
+        final Map<String, Object> config = map("nodeFile", fileToBinary(new File(BASE_URL_FILES, "ignore-nodes.csv"), CompressionAlgo.DEFLATE.name()),
+                "relFile", "file:/ignore-relationships.csv",
+                "config", map("delimiter", '|', "batchSize", 1, COMPRESSION, CompressionAlgo.DEFLATE.name())
+        );
+        final String query = "CALL apoc.import.csv([{data: $nodeFile, labels: ['Person']}], [{data: $relFile, type: 'KNOWS'}], $config)";
+        commonAssertionIgnoreFieldType(config, query, false);
+    }
+
+    private void commonAssertionIgnoreFieldType(Map<String, Object> config, String query, boolean isFile) {
         TestUtil.testCall(
                 db,
-                "CALL apoc.import.csv([{fileName: $nodeFile, labels: ['Person']}], [{fileName: $relFile, type: 'KNOWS'}], $config)",
-                map(
-                        "nodeFile", "file:/ignore-nodes.csv",
-                        "relFile", "file:/ignore-relationships.csv",
-                        "config", map("delimiter", '|', "batchSize", 1)
-                ),
+                query,
+                config,
                 (r) -> {
                     assertEquals(2L, r.get("nodes"));
                     assertEquals(2L, r.get("relationships"));
+                    assertEquals(isFile ? "progress.csv" : null, r.get("file"));
+                    assertEquals(isFile ? "file" : "file/binary", r.get("source"));
+                    assertEquals(8L, r.get("properties"));
                 }
         );
 

@@ -6,7 +6,7 @@ import apoc.export.util.CountingInputStream;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Entity;
@@ -15,6 +15,7 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.QueryExecutionType;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
@@ -27,11 +28,13 @@ import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
+import org.neo4j.values.storable.CoordinateReferenceSystem;
+import org.neo4j.values.storable.PointValue;
+import org.neo4j.values.storable.Values;
 
 import javax.lang.model.SourceVersion;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -80,14 +83,13 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import java.util.zip.DeflaterInputStream;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
+import static org.eclipse.jetty.util.URIUtil.encodePath;
 
 /**
  * @author mh
@@ -98,6 +100,7 @@ public class Util {
     public static final String NODE_COUNT = "MATCH (n) RETURN count(*) as result";
     public static final String REL_COUNT = "MATCH ()-->() RETURN count(*) as result";
     public static final String COMPILED = "interpreted"; // todo handle enterprise properly
+    public static final String ERROR_BYTES_OR_STRING = "Only byte[] or url String allowed";
 
     public static String labelString(List<String> labelNames) {
         return labelNames.stream().map(Util::quote).collect(Collectors.joining(":"));
@@ -359,17 +362,20 @@ public class Util {
        return con.getHeaderField("Location");
     }
 
-    public static CountingInputStream openInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
-        StreamConnection sc;
-        InputStream stream;
-        if (urlAddress.contains("!") && (urlAddress.contains(".zip") || urlAddress.contains(".tar") || urlAddress.contains(".tgz"))) {
-            return getStreamCompressedFile(urlAddress, headers, payload);
+    public static CountingInputStream openInputStream(Object input, Map<String, Object> headers, String payload, String compressionAlgo) throws IOException {
+        if (input instanceof String) {
+            String urlAddress = (String) input;
+            if (urlAddress.contains("!") && (urlAddress.contains(".zip") || urlAddress.contains(".tar") || urlAddress.contains(".tgz"))) {
+                return getStreamCompressedFile(urlAddress, headers, payload);
+            }
+
+            StreamConnection sc = getStreamConnection(urlAddress, headers, payload);
+            return sc.toCountingInputStream();
+        } else if (input instanceof byte[]) {
+            return FileUtils.getInputStreamFromBinary((byte[]) input, compressionAlgo);
+        } else {
+            throw new RuntimeException(ERROR_BYTES_OR_STRING);
         }
-
-        sc = getStreamConnection(urlAddress, headers, payload);
-        stream = getInputStream(sc, urlAddress);
-
-        return new CountingInputStream(stream, sc.getLength());
     }
 
     private static CountingInputStream getStreamCompressedFile(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
@@ -389,29 +395,9 @@ public class Util {
     }
 
     private static StreamConnection getStreamConnection(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
-        URL url = new URL(urlAddress);
-        String protocol = url.getProtocol();
-        if (FileUtils.S3_PROTOCOL.equalsIgnoreCase(protocol)) {
-            return FileUtils.openS3InputStream(url);
-        } else if (FileUtils.HDFS_PROTOCOL.equalsIgnoreCase(protocol)) {
-            return FileUtils.openHdfsInputStream(url);
-        } else {
-            return readHttpInputStream(urlAddress, headers, payload);
-        }
-    }
-
-    private static InputStream getInputStream(StreamConnection sc, String urlAddress) throws IOException {
-        InputStream stream = sc.getInputStream();
-        String encoding = sc.getEncoding();
-
-        if ("gzip".equals(encoding) || urlAddress.endsWith(".gz")) {
-             return new GZIPInputStream(stream);
-        }
-        if ("deflate".equals(encoding)) {
-            return new DeflaterInputStream(stream);
-        }
-
-        return stream;
+        return FileUtils.SupportedProtocols
+                .from(urlAddress)
+                .getStreamConnection(urlAddress, headers, payload);
     }
 
     private static InputStream getFileStreamIntoCompressedFile(InputStream is, String fileName) throws IOException {
@@ -428,7 +414,7 @@ public class Util {
         return null;
     }
 
-    private static StreamConnection readHttpInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
+    public static StreamConnection readHttpInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
         URLConnection con = openUrlConnection(urlAddress, headers);
         writePayload(con, payload);
         String newUrl = handleRedirect(con, urlAddress);
@@ -659,15 +645,8 @@ public class Util {
         }
     }
 
-    public static void checkAdmin( SecurityContext securityContext, ProcedureCallContext callContext, String procedureName )
-    {
-        switch ( securityContext.allowExecuteAdminProcedure( callContext.id() ) )
-        {
-        case EXPLICIT_GRANT:
-            return;
-        default:
-            throw new RuntimeException( "This procedure " + procedureName + " is only available to admin users" );
-        }
+    public static void checkAdmin(SecurityContext securityContext, ProcedureCallContext callContext, String procedureName) {
+        if (!securityContext.allowExecuteAdminProcedure(callContext.id()).allowsAccess()) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
     }
 
     public static void sleep(int millis) {
@@ -832,6 +811,11 @@ public class Util {
         if ("TAB".equals(separator)) {
             return '\t';
         }
+        // "NONE" is used to resolve cases like issue #1376. 
+        // That is, when I have a line like "VER: AX\GEARBOX\ASSEMBLY" and I don't want to convert it in "VER: AXGEARBOXASSEMBLY"
+        if ("NONE".equals(separator)) {
+            return '\0';
+        }
         return separator.charAt(0);
     }
 
@@ -882,9 +866,9 @@ public class Util {
     }
 
     public static Node mergeNode(Transaction tx, Label primaryLabel, Label addtionalLabel,
-                                 Pair<String, Object>... pairs ) {
+                                 Pair<String, Object>... pairs) {
         Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, pairs[0].first(), pairs[0].other()).stream()
-                .filter(n -> addtionalLabel!=null && n.hasLabel(addtionalLabel))
+                .filter(n -> addtionalLabel == null || n.hasLabel(addtionalLabel))
                 .filter( n -> {
                     for (int i=1; i<pairs.length; i++) {
                         if (!Objects.deepEquals(pairs[i].other(), n.getProperty(pairs[i].first(), null))) {
@@ -915,8 +899,14 @@ public class Util {
         return intersection;
     }
 
-    public static void validateQuery(GraphDatabaseService db, String statement) {
-        db.executeTransactionally("EXPLAIN " + statement);
+    public static void validateQuery(GraphDatabaseService db, String statement, QueryExecutionType.QueryType... supportedQueryTypes) {
+        final boolean isValid = db.executeTransactionally("EXPLAIN " + statement, Collections.emptyMap(), result ->
+                supportedQueryTypes == null || supportedQueryTypes.length == 0 || Stream.of(supportedQueryTypes)
+                        .anyMatch(sqt -> sqt.equals(result.getQueryExecutionType().queryType())));
+
+        if (!isValid) {
+            throw new RuntimeException("Supported query types for the operation are " + Arrays.toString(supportedQueryTypes));
+        }
     }
 
     /**
@@ -936,7 +926,7 @@ public class Util {
 
     public static Map<String, Object> extractCredentialsIfNeeded(String url, boolean failOnError) {
         try {
-            URI uri = new URI(url);
+            URI uri = new URI(encodePath(url));
             String authInfo = uri.getUserInfo();
             if (null != authInfo) {
                 String[] parts = authInfo.split(":");
@@ -957,5 +947,36 @@ public class Util {
 
     public static boolean isSelfRel(Relationship rel) {
         return rel.getStartNodeId() == rel.getEndNodeId();
+    }
+    
+    public static PointValue toPoint(Map<String, Object> pointMap, Map<String, Object> defaultPointMap) {
+        double x;
+        double y;
+        Double z = null;
+
+        final CoordinateReferenceSystem crs = CoordinateReferenceSystem.byName((String) getOrDefault(pointMap, defaultPointMap, "crs"));
+
+        // It does not depend on the prefix of crs, I could also pass a point({x: 56.7, y: 12.78, crs: 'wgs-84'})
+        final boolean isLatitudePresent = pointMap.containsKey("latitude") || (!pointMap.containsKey("x") && defaultPointMap.containsKey("latitude"));
+        final boolean isCoord3D = crs.getName().endsWith("-3d");
+        if (isLatitudePresent) {
+            x = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "longitude"));
+            y = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "latitude"));
+            if (isCoord3D) {
+                z = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "height"));
+            }
+        } else {
+            x = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "x"));
+            y = Util.toDouble(getOrDefault(pointMap, defaultPointMap,  "y"));
+            if (isCoord3D) {
+                z = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "z"));
+            }
+        }
+
+        return z != null ? Values.pointValue(crs, x, y, z) : Values.pointValue(crs, x, y);
+    }
+    
+    private static Object getOrDefault(Map<String, Object> firstMap, Map<String, Object> secondMap, String key) {
+        return firstMap.getOrDefault(key, secondMap.get(key));
     }
 }

@@ -18,6 +18,8 @@ include::partial$generated-documentation/nav.adoc[]
 
 * xref::config/index.adoc[]
 
+* xref::general-considerations/index.adoc[]
+
 * xref::import/index.adoc[]
     ** xref::import/web-apis.adoc[]
     ** xref::import/load-json.adoc[]
@@ -115,6 +117,8 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::virtual/nodes-collapse.adoc[]
     ** xref::virtual/virtual-graph.adoc[]
     ** xref::virtual/graph-grouping.adoc[]
+
+* xref:virtual-resource/index.adoc[]
 
 * xref:nlp/index.adoc[]
     ** xref:nlp/gcp.adoc[]

@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.couchbase.query(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?) :: (queryResult :: LIST? OF MAP?)
+¦apoc.couchbase.query(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?, config = {} :: MAP?) :: (queryResult :: LIST? OF MAP?)
