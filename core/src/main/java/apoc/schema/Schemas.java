@@ -1,5 +1,6 @@
 package apoc.schema;
 
+import apoc.Pools;
 import apoc.result.AssertSchemaResult;
 import apoc.result.IndexConstraintNodeInfo;
 import apoc.result.IndexConstraintRelationshipInfo;
@@ -431,6 +432,14 @@ public class Schemas {
                             return StreamSupport.stream(indexesForRelType.spliterator(), false);
                         })
                         .collect(Collectors.toList());
+
+                indexesIterator = includeRelationships.stream()
+                        .filter(type -> !excludeRelationships.contains(type) && tokenRead.relationshipType(type) != TokenConstants.NO_TOKEN)
+                        .flatMap(type -> {
+                            Iterable<IndexDescriptor> indexesForRelType = () -> schemaRead.indexesGetForRelationshipType(tokenRead.relationshipType(type));
+                            return StreamSupport.stream(indexesForRelType.spliterator(), false);
+                        })
+                        .collect(Collectors.toList());
             } else {
                 Iterable<ConstraintDefinition> allConstraints = schema.getConstraints();
                 constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
@@ -505,6 +514,7 @@ public class Schemas {
         List<String> properties = IntStream.of(indexDescriptor.schema().getPropertyIds())
                 .mapToObj(tokens::propertyKeyGetName)
                 .collect(Collectors.toList());
+
         try {
             return new IndexConstraintNodeInfo(
                     // Pretty print for index name
