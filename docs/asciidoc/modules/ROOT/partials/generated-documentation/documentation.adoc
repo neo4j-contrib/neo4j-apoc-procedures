@@ -1813,6 +1813,21 @@ apoc.map.values(map, [key1,key2,key3,...],[addNullsForMissing]) returns list of 
 apoc.math.regr(label, propertyY, propertyX) - It calculates the coefficient of determination (R-squared) for the values of propertyY and propertyX in the provided label
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.cosh.adoc[apoc.math.cosh icon:book[]]
+
+apoc.math.cosh(val) \| returns the hyperbolic cosin
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.coth.adoc[apoc.math.coth icon:book[]]
+
+apoc.math.coth(val) \| returns the hyperbolic cotangent
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.csch.adoc[apoc.math.csch icon:book[]]
+
+apoc.math.csch(val) \| returns the hyperbolic cosecant
+|label:function[]
+|label:apoc-core[]
 |xref::overview/apoc.math/apoc.math.maxByte.adoc[apoc.math.maxByte icon:book[]]
 
 apoc.math.maxByte() \| return the maximum value an byte can have
@@ -1856,6 +1871,31 @@ apoc.math.minLong() \| return the minimum value a long can have
 |xref::overview/apoc.math/apoc.math.round.adoc[apoc.math.round icon:book[]]
 
 apoc.math.round(value,[precision],mode=['CEILING','FLOOR','UP','DOWN','HALF_EVEN','HALF_DOWN','HALF_UP','DOWN','UNNECESSARY'])
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.sech.adoc[apoc.math.sech icon:book[]]
+
+apoc.math.sech(val) \| returns the hyperbolic secant
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.sigmoid.adoc[apoc.math.sigmoid icon:book[]]
+
+apoc.math.sigmoid(val) \| returns the sigmoid value
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.sigmoidPrime.adoc[apoc.math.sigmoidPrime icon:book[]]
+
+apoc.math.sigmoidPrime(val) \| returns the sigmoid prime [ sigmoid(val) * (1 - sigmoid(val)) ]
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.sinh.adoc[apoc.math.sinh icon:book[]]
+
+apoc.math.sinh(val) \| returns the hyperbolic sin
+|label:function[]
+|label:apoc-core[]
+|xref::overview/apoc.math/apoc.math.tanh.adoc[apoc.math.tanh icon:book[]]
+
+apoc.math.tanh(val) \| returns the hyperbolic tangent
 |label:function[]
 |label:apoc-core[]
 |===
@@ -2012,6 +2052,43 @@ apoc.metrics.storage(directorySetting) - retrieve storage metrics about the devi
 apoc.model.jdbc('key or url', {schema:'<schema>', write: <true/false>, filters: { tables:[], views: [], columns: []}) YIELD nodes, relationships - load schema from relational database
 |label:procedure[]
 |label:apoc-full[]
+|===
+
+== xref::overview/apoc.mongo/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a,1a']
+|===
+| Qualified Name | Type | Release
+|xref::overview/apoc.mongo/apoc.mongo.aggregate.adoc[apoc.mongo.aggregate icon:book[]]
+
+apoc.mongo.aggregate(uri, pipeline, $config) yield value - perform an aggregate operation on mongodb collection
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.mongo/apoc.mongo.count.adoc[apoc.mongo.count icon:book[]]
+
+apoc.mongo.count(uri, query, $config) yield value - perform a count operation on mongodb collection
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.mongo/apoc.mongo.delete.adoc[apoc.mongo.delete icon:book[]]
+
+apoc.mongo.delete(uri, query, $config) - delete the given documents from the mongodb collection and returns the number of affected documents
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.mongo/apoc.mongo.find.adoc[apoc.mongo.find icon:book[]]
+
+apoc.mongo.find(uri, query, $config) yield value - perform a find operation on mongodb collection
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.mongo/apoc.mongo.insert.adoc[apoc.mongo.insert icon:book[]]
+
+apoc.mongo.insert(uri, documents, $config) yield value - inserts the given documents into the mongodb collection
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.mongo/apoc.mongo.update.adoc[apoc.mongo.update icon:book[]]
+
+apoc.mongo.update(uri, query, update, $config) - updates the given documents from the mongodb collection and returns the number of affected documents
+|label:procedure[]
+|label:apoc-core[]
 |===
 
 == xref::overview/apoc.mongodb/index.adoc[]
@@ -2973,6 +3050,11 @@ apoc.static.getAll(prefix) - returns statically stored values from config (apoc.
 
 |label:procedure[]
 |label:apoc-full[]
+|xref::overview/apoc.systemdb/apoc.systemdb.export.metadata.adoc[apoc.systemdb.export.metadata icon:book[]]
+
+
+|label:procedure[]
+|label:apoc-core[]
 |xref::overview/apoc.systemdb/apoc.systemdb.graph.adoc[apoc.systemdb.graph icon:book[]]
 
 

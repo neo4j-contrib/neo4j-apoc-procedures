@@ -19,6 +19,12 @@ and might change within minor release updates.
 ¦Qualified Name¦Type¦Release
 include::example$generated-documentation/apoc.systemdb.graph.adoc[]
 include::example$generated-documentation/apoc.systemdb.execute.adoc[]
+¦xref::overview/apoc.systemdb/apoc.systemdb.export.metadata.adoc[apoc.systemdb.export.metadata icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-full[]
+
 |===
 
 .isType example
@@ -26,5 +32,5 @@ include::example$generated-documentation/apoc.systemdb.execute.adoc[]
 ----
 CALL apoc.systemdb.graph() YIELD nodes, relationships RETURN *;
 CALL apoc.systemdb.execute('SHOW DATABASES') YIELD row RETURN row.name as dbName;
-CALL apoc.systemdb.execute(["CREATE USER foo", "GRANT ROLE myRole TO foo"])
+CALL apoc.systemdb.execute(["CREATE USER foo SET PASSWORD 'test'", "GRANT ROLE myRole TO foo"])
 ----

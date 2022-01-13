@@ -1,0 +1,2 @@
+¦signature
+¦apoc.mongo.find(uri :: STRING?, query = null :: ANY?, config = {} :: MAP?) :: (value :: MAP?)

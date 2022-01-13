@@ -14,7 +14,7 @@ apoc.couchbase.namedParamsQuery(hostkOrKey, bucket, statement, paramNames, param
 
 [source]
 ----
-apoc.couchbase.namedParamsQuery(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?, paramNames :: LIST? OF STRING?, paramValues :: LIST? OF ANY?) :: (queryResult :: LIST? OF MAP?)
+apoc.couchbase.namedParamsQuery(hostOrKey :: STRING?, bucket :: STRING?, statement :: STRING?, paramNames :: LIST? OF STRING?, paramValues :: LIST? OF ANY?, config = {} :: MAP?) :: (queryResult :: LIST? OF MAP?)
 ----
 
 == Input parameters
@@ -26,6 +26,7 @@ apoc.couchbase.namedParamsQuery(hostOrKey :: STRING?, bucket :: STRING?, stateme
 |statement|STRING?|null
 |paramNames|LIST? OF STRING?|null
 |paramValues|LIST? OF ANY?|null
+|config|MAP?|{}
 |===
 
 == Output parameters
