@@ -94,6 +94,17 @@ public class FingerprintingTest  {
     }
 
     @Test
+    public void fingerprintGraphShouldNotFailWithEqualsNodes() {
+        db.executeTransactionally("CREATE (:Person{name:'ABC'}), (:Person{name:'ABC'})");
+        String valueAfter = TestUtil.singleResultFirstColumn(db, "return apoc.hashing.fingerprintGraph()");
+        db.executeTransactionally("CREATE (:Person{name:'ABC'}), (:Person{name:'ABC'})");
+        String valueBefore = TestUtil.singleResultFirstColumn(db, "return apoc.hashing.fingerprintGraph()");
+        assertNotEquals(valueAfter, valueBefore);
+        String valueWithExclude = TestUtil.singleResultFirstColumn(db, "return apoc.hashing.fingerprintGraph(['name'])");
+        assertNotEquals(valueAfter, valueWithExclude);
+    }
+
+    @Test
     public void testExcludes() {
         compareGraph("CREATE (:Person{name:'ABC', created:timestamp()})", singletonList("created"), true);
     }
