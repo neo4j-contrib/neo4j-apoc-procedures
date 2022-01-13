@@ -12,7 +12,7 @@ The query is executed repeatedly in separate transactions until it returns 0.
 ----
 call apoc.periodic.commit(
   "match (user:User) WHERE exists( user.city )
-   with user limit {limit}
+   with user limit $limit
    MERGE (city:City {name:user.city})
    MERGE (user)-[:LIVES_IN]->(city)
    REMOVE user.city
