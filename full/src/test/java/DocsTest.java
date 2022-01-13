@@ -131,6 +131,7 @@ public class DocsTest {
         docs.put("apoc.nodes.*|apoc.node.*|apoc.any.properties|apoc.any.property|apoc.label.exists", "graph-querying/node-querying.adoc");
         docs.put("apoc.path.*", "graph-querying/path-querying.adoc");
         docs.put("apoc.util.md5|apoc.util.sha1", "misc/text-functions.adoc#text-functions-hashing");
+        docs.put("apoc.mongo.*", "database-integration/mongo.adoc");
         docs.put("apoc.mongodb.*", "database-integration/mongodb.adoc");
         docs.put("apoc.neighbors.*", "graph-querying/neighborhood.adoc");
         docs.put("apoc.monitor.*", "database-introspection/monitoring.adoc");
