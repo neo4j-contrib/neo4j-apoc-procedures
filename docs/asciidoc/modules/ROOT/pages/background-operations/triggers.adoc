@@ -192,14 +192,23 @@ CREATE (a:Node) SET a.reference = 1
 Neo.ClientError.Transaction.TransactionHookFailed
 ----
 
+.Optional params
+
+We can pass as a 4th parameter, a `{params: {parameterMaps}}` to insert additional parameters.
+[source,cypher]
+----
+CALL apoc.trigger.add('timeParams','UNWIND $createdNodes AS n SET n.time = $time', {}, {params: {time: timestamp()}});
+----
+
+
 .Other examples
 [source,cypher]
 ----
-CALL apoc.trigger.add('timestamp','UNWIND $createdNodes AS n SET n.ts = timestamp()');
-CALL apoc.trigger.add('lowercase','UNWIND $createdNodes AS n SET n.id = toLower(n.name)');
+CALL apoc.trigger.add('timestamp','UNWIND $createdNodes AS n SET n.ts = timestamp()', {});
+CALL apoc.trigger.add('lowercase','UNWIND $createdNodes AS n SET n.id = toLower(n.name)', {});
 CALL apoc.trigger.add('txInfo',   'UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime', {phase:'after'});
-CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN $deletedRelationships WHERE type(r) = "X"])')
-CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel($assignedLabels,'Person') AS n SET n.id = toLower(n.name)')
+CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN $deletedRelationships WHERE type(r) = "X"])', {})
+CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel($assignedLabels,"Person") AS n SET n.id = toLower(n.name)', {})
 ----
 
 // end::trigger[]
