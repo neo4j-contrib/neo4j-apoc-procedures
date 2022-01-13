@@ -1,5 +1,5 @@
 [[redis]]
-= MongoDB
+= Redis
 :description: This section describes procedures that can be used to interact with MongoDB.
 
 Here is a list of all available Redis procedures:
