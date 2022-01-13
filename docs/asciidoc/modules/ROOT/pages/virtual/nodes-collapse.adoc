@@ -19,7 +19,7 @@ On `apoc.nodes.collapse` with config properties you can choose from 3 different 
 
 If properties parameter isn't set relationships properties are `discard`.
 
- * "mergeVirtualRels: true/false" : give the possibility to merge relationships with same type and direction. (DEFAULT `true`)
+ * "mergeRelsVirtual: true/false" : give the possibility to merge relationships with same type and direction. (DEFAULT `true`)
  * "selfRel: true/false" : give the possibility to create the self relationship. (DEFAULT `false`)
  * "countMerge: true/false" : give the possibility count all the Nodes/Relationships merged. (DEFAULT `true`)
  * "collapsedLabel: true/false" : give the possibility to add the label `:Collapsed` to the virtualNode. (DEFAULT `false`)

@@ -10,5 +10,6 @@
 include::example$generated-documentation/apoc.lock.all.adoc[]
 include::example$generated-documentation/apoc.lock.nodes.adoc[]
 include::example$generated-documentation/apoc.lock.rels.adoc[]
-// include::example$generated-documentation/apoc.lock.csv[]
+include::example$generated-documentation/apoc.lock.read.nodes.adoc[]
+include::example$generated-documentation/apoc.lock.read.rels.adoc[]
 |===
