@@ -6565,7 +6565,7 @@ So you can iterate in batches over elements that don&#8217;t fulfill a condition
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.periodic.commit("
 match (user:User) WHERE exists( user.city )
-with user limit {limit}
+with user limit $limit
 MERGE (city:City {name:user.city})
 MERGE (user)-[:LIVES_IN]-&gt;(city)
 REMOVE user.city
