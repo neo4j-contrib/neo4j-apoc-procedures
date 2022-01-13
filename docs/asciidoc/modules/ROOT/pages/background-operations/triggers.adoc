@@ -74,8 +74,8 @@ Dataset
 
 [source,cypher]
 ----
-CREATE (d:Person {name:'Daniel'})
-CREATE (l:Person {name:'Mary'})
+CREATE (d:Person {name:'Daniel', surname: 'Craig'})
+CREATE (l:Person {name:'Mary', age: 47})
 CREATE (t:Person {name:'Tom'})
 CREATE (j:Person {name:'John'})
 CREATE (m:Person {name:'Michael'})
@@ -89,6 +89,90 @@ CREATE (j)-[:SON_OF]->(d)
 ----
 
 image::apoc.trigger.add.setAllConnectedNodes.dataset.png[width=800]
+
+With the above dataset, if we add a trigger and we execute for example, `MATCH (n:Person) WHERE n.name IN ['Daniel', 'Mary'] SET n.age=55, n.surname='Quinn'`,
+the `$assignedNodeProperties` which can be used in the trigger statement, 
+will be as follows (where `NODE(1)` is `(:Person {name: 'Daniel'})`, and NODE(2) is `(:Person {name: 'Mary'})`): 
+[source,json]
+----
+{
+   age: [{
+         node : NODE(1),
+         new: 55,
+         old: null,
+         key: "age"
+      },
+      {
+         node: NODE(2),
+         new: 55,
+         old: 47,
+         key: "age"
+      }],
+   
+   surname: [{
+         node: NODE(1),
+         new: "Quinn",
+         old: "Craig",
+         key: "surname"
+      },
+      {
+         node: NODE(2),
+         new: "Quinn",
+         old: null,
+         key: "surname"
+      }]
+}
+
+----
+
+As we can see, the result is a map of list, where the keys are the assigned properties, and the values are a list of entities involved.
+Every element of a list have the node itself, the new value of the changed properties, the old value (or `null` if the property didn't exist) and the key with the property name.
+
+The `$removedNodeProperties` parameter has the same structure and logic (of course, in this case `new` values will be always `null`).
+
+Same thing regarding `assignedRelationshipProperties` and `removedRelationshipProperties`,
+with the only difference that instead of `node: NODE(n)` key, we'll have `relationship: RELATIONSHIP(n)`.
+
+For example, if we want to create a trigger that at every set, update 2 property "time" and "lasts" 
+with the current date and the property updated, we can do:
+
+[source,cypher]
+----
+CALL apoc.trigger.add('setLastUpdate',
+'UNWIND keys($assignedNodeProperties) as k 
+UNWIND $assignedNodeProperties[k] AS map
+with map.node as node, collect(map.key) as propList
+match (n) where id(n) = id(node)
+where not "lasts" in propList               // to prevent loops
+SET n.time = date(),  n.lasts = propList', {phase:'afterAsync'});
+----
+
+In the example above, we put `match (n) where id(n) = id(node)` to demonstrate that the we pull the node by id into parameters.
+Anyway, we can get rid off this one and change last row with `SET node.time = date(),  node.lasts = propList`.
+Note that we have to put the clause `where not "lasts" in propList` to prevent infinite cascade SET.
+
+Then, we can execute:
+[source,cypher]
+----
+MATCH (n:Person {name: 'Daniel'}) set n.age = 123, n.country = 'Italy'
+----
+
+Executing
+[source,cypher]
+----
+MATCH (n:Person {name: 'Daniel'}) return n
+----
+we can see the property `time` with the today's date, and `lasts=['country','age']`.
+
+
+So when we add the `surname` property on a node, it's added to all the nodes connected (in this case one level deep)
+
+[source,cypher]
+----
+MATCH (d:Person {name:'Daniel'})
+SET d.surname = 'William'
+----
+
 
 Now we add the trigger using `apoc.trigger.propertiesByKey` on the `surname` property
 
@@ -170,6 +254,29 @@ CREATE (m:Movie {title:'Matrix'})
 
 image::apoc.trigger.add.create-rel-new-node.png[width=800]
 
+.Prevent transaction blocking
+
+Generally, is recommended to use `afterAsync` phase, to prevent some annoying transaction locks.
+For example, given this trigger:
+
+[source,cypher]
+----
+CALL apoc.trigger.add('lockTriggerTest1','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties,"name") as prop
+WITH prop.node as n
+CREATE (z:AnotherNode {myId: id(n)})
+CREATE (n)-[:GENERATED]->(z)',
+{phase:'after'});
+----
+
+if we execute:
+[source,cypher]
+----
+MATCH (n:Person {name: 'John'}) set n.name = 'Jack'
+----
+the query will remain pending indefinitely.
+To solve this, we can use `{phase:'afterAsync'}`
+
+
 .Pause trigger
 
 We have the possibility to pause a trigger without remove it, if we will need it in the future
@@ -233,6 +340,7 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel($as
 | afterAsync | The trigger will be activate right `after` the commit and inside a new transaction and thread that will not
 impact the original one.
 Heavy operations should be processed in this phase without blocking the original transaction.
+Please note that 'after' and 'before' phases can sometimes block transactions, so generally, `afterAsync` phase is preferred
 |===
 
 === Export metadata
