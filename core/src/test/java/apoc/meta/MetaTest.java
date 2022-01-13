@@ -1407,5 +1407,49 @@ public class MetaTest {
             assertEquals(expectedRelTypes, row.get("relTypes"));
         });
     }
-    
+
+    @Test
+    public void testMetaNodesCount() {
+        db.executeTransactionally("CREATE (:MyCountLabel {id: 1}), (:MyCountLabel {id: 2}), (:ThirdLabel {id: 3})");
+
+        // 2 outcome rels and 1 incoming
+        db.executeTransactionally("MATCH (n:MyCountLabel {id: 1}), (m:ThirdLabel {id: 3}) " +
+                "CREATE (n)-[:MY_COUNT_REL]->(m), (n)-[:ANOTHER_MY_COUNT_REL]->(m), (n)<-[:ANOTHER_MY_COUNT_REL]-(m)");
+
+        TestUtil.testCall(db, "RETURN apoc.meta.nodes.count(['MyCountLabel'], {rels: ['MY_COUNT_REL']}) AS count",
+                row -> assertEquals(1L, row.get("count")));
+
+        TestUtil.testCall(db, "RETURN apoc.meta.nodes.count(['MyCountLabel', 'NotExistent'], {rels: ['MY_COUNT_REL']}) AS count",
+                row -> assertEquals(1L, row.get("count")));
+
+        TestUtil.testCall(db, "RETURN apoc.meta.nodes.count(['MyCountLabel'], {rels: ['MY_COUNT_REL>']}) AS count",
+                row -> assertEquals(1L, row.get("count")));
+
+        TestUtil.testCall(db, "RETURN apoc.meta.nodes.count(['MyCountLabel'], {rels: ['MY_COUNT_REL<']}) AS count",
+                row -> assertEquals(0L, row.get("count")));
+
+        TestUtil.testCall(db, "RETURN apoc.meta.nodes.count(['MyCountLabel'], {rels: ['MY_COUNT_REL', 'ANOTHER_MY_COUNT_REL']}) AS count",
+                row -> assertEquals(1L, row.get("count")));
+
+        // another 2 nodes with 2 new labels
+        db.executeTransactionally("CREATE (:AnotherCountLabel)<-[:MY_COUNT_REL]-(:NotInCountLabel)");
+
+        TestUtil.testCall(db, "RETURN apoc.meta.nodes.count(['MyCountLabel', 'AnotherCountLabel'], {rels: ['MY_COUNT_REL', 'ANOTHER_MY_COUNT_REL']}) AS count",
+                row -> assertEquals(2L, row.get("count")));
+
+        // create another 2 rels in `MyCountLabel` nodes
+        db.executeTransactionally("MATCH (n:MyCountLabel) WITH n CREATE (n)<-[:MY_COUNT_REL]-(:NotInCountLabel)");
+
+        TestUtil.testCall(db, "RETURN apoc.meta.nodes.count(['MyCountLabel', 'AnotherCountLabel'], {rels: ['MY_COUNT_REL', 'ANOTHER_MY_COUNT_REL']}) AS count",
+                row -> assertEquals(3L, row.get("count")));
+
+        TestUtil.testCall(db, "RETURN apoc.meta.nodes.count(['MyCountLabel', 'AnotherCountLabel'], {rels: ['MY_COUNT_REL', 'ANOTHER_MY_COUNT_REL']}) AS count",
+                row -> assertEquals(3L, row.get("count")));
+
+        // just to check that with both direction takes all
+        TestUtil.testCall(db, "RETURN apoc.meta.nodes.count(['MyCountLabel', 'AnotherCountLabel'], {rels: ['MY_COUNT_REL>', 'MY_COUNT_REL<', 'ANOTHER_MY_COUNT_REL']}) AS count",
+                row -> assertEquals(3L, row.get("count")));
+        
+    }
+
 }
