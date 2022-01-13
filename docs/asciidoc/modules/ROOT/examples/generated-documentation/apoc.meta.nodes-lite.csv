@@ -1,0 +1,2 @@
+¦signature
+¦apoc.meta.nodes.count(nodes = [] :: LIST? OF STRING?, config = {} :: MAP?) :: (INTEGER?)
