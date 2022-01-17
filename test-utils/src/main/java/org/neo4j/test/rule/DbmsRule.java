@@ -384,6 +384,12 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
     }
 
     @Override
+    public boolean isAvailable()
+    {
+        return database.isAvailable();
+    }
+
+    @Override
     public String databaseName()
     {
         return database.databaseName();
