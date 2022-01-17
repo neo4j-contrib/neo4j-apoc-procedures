@@ -1,5 +1,6 @@
 package apoc.gephi;
 
+import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.graph.Graphs;
 import apoc.result.ProgressInfo;
@@ -9,6 +10,7 @@ import apoc.util.Util;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -40,6 +42,9 @@ public class Gephi {
 
     }
 
+    @Context
+    public ApocConfig apocConfig;
+
     private static final String[] CAPTIONS = new String[]{"name", "title", "label"};
     private static final List<String> RESERVED = Arrays.asList("label", "TYPE", "id", "source", "target", "weight", "directed");
     // http://127.0.0.1:8080/workspace0?operation=updateGraph
@@ -56,7 +61,7 @@ public class Gephi {
         propertyNames.removeAll(RESERVED);
         if (Graphs.extract(data, nodes, rels)) {
             String payload = toGephiStreaming(nodes, rels, weightproperty, propertyNames.toArray(new String[propertyNames.size()]));
-            JsonUtil.loadJson(url,map("method","POST","Content-Type","application/json; charset=utf-8"), payload).count();
+            JsonUtil.loadJson(url,map("method","POST","Content-Type","application/json; charset=utf-8"), payload, apocConfig).count();
             return Stream.of(new ProgressInfo(url,"graph","gephi").update(nodes.size(),rels.size(),nodes.size()).done(start));
         }
         return Stream.empty();

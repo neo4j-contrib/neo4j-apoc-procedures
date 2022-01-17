@@ -218,6 +218,10 @@ public class ApocConfig extends LifecycleAdapter {
         }
     }
 
+    public Config getNeo4jConfig() {
+        return neo4jConfig;
+    }
+
     public LoggingType getLoggingType() {
         return loggingType;
     }
