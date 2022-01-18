@@ -288,7 +288,7 @@ public class CollTest {
 
     @Test
     public void testContainsSorted() throws Exception {
-        int elements = 1_000_000;
+        int elements = 1_000;
         ArrayList<Long> list = new ArrayList<>(elements);
         for (long i = 0; i < elements; i++) {
             list.add(i);
@@ -296,7 +296,6 @@ public class CollTest {
         Map<String, Object> params = new HashMap<>();
         params.put("list", list);
         params.put("value", list.get(list.size() / 2));
-        long start = System.currentTimeMillis();
         testCall(db, "RETURN apoc.coll.containsSorted({list},{value}) AS value", params,
                 (res) -> assertEquals(true, res.get("value")));
     }
