@@ -39,7 +39,7 @@ public class ModelTest {
         },Exception.class);
         assumeNotNull("MySQL container has to exist", mysql);
         assumeTrue("MySQL must be running", mysql.isRunning());
-        JDBC_URL = mysql.getJdbcUrl();
+        JDBC_URL = mysql.getJdbcUrl() + "?useSSL=false";
     }
 
     @AfterClass
