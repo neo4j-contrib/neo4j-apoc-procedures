@@ -193,7 +193,7 @@ public class FreeTextSearchTest {
     @Test
     public void shouldLimitNumberOfResults() throws Exception {
         // given
-        execute("UNWIND range(1, 10000) AS num CREATE (:Number{name:'The ' + num + 'th',number:num})");
+        execute("UNWIND range(1, 101) AS num CREATE (:Number{name:'The ' + num + 'th',number:num})");
         execute("CALL apoc.index.addAllNodes('numbers', {Number:['name','number']})");
 
         // when
@@ -212,7 +212,7 @@ public class FreeTextSearchTest {
         result = db.execute("CALL apoc.index.search('numbers', 'The', -1)");
 
         // then
-        assertEquals(10000, Iterators.count(result));
+        assertEquals(101, Iterators.count(result));
     }
 
 
