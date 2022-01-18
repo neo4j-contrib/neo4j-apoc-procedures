@@ -97,17 +97,14 @@ public class JsonUtil {
         try {
             if (urlOrBinary instanceof String) {
                 String url = (String) urlOrBinary;
-                try
-                {
-                    URL u = new URL( url );
+                try {
+                    URL u = new URL(url);
                     String protocol = u.getProtocol();
-                    if ( protocol.equals( "http" ) || protocol.equals( "https" ) || protocol.equals( "ftp" ) )
-                    {
-                        webAccessRule.validate( apocConfig.getNeo4jConfig(), new URL( url ) );
+                    if (protocol.equals("http") || protocol.equals("https") || protocol.equals("ftp")) {
+                        webAccessRule.validate(apocConfig.getNeo4jConfig(), new URL(url));
                     }
-                } catch ( Exception e )
-                {
-                    throw new RuntimeException( e );
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
                 urlOrBinary = Util.getLoadUrlByConfigFile("json", url, "url").orElse(url);
             }

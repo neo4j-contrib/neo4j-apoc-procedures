@@ -5,10 +5,13 @@ import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import inet.ipaddr.IPAddressString;
 import org.junit.*;
 import org.mockserver.client.server.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
+
+import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -60,12 +63,17 @@ public class LoadJsonTest {
 //            .withSetting(ApocSettings.apoc_import_file_enabled, true)
 //            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false);
 
+    @Rule
+    public DbmsRule db2 = new ImpermanentDbmsRule()
+            .withSetting(GraphDatabaseInternalSettings.cypher_ip_blocklist, List.of(new IPAddressString("127.0.0.0/8")));
+
 	@Before public void setUp() throws Exception {
 	    apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
 	    apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
 	    apocConfig().setProperty("apoc.json.zip.url", "https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.zip?raw=true!person.json");
 	    apocConfig().setProperty("apoc.json.simpleJson.url", ClassLoader.getSystemResource("map.json").toString());
         TestUtil.registerProcedure(db, LoadJson.class);
+        TestUtil.registerProcedure(db2, LoadJson.class);
     }
 
     @Test public void testLoadJson() throws Exception {
@@ -74,6 +82,21 @@ public class LoadJsonTest {
                 (row) -> {
                     assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
                 });
+    }
+
+    @Test public void testLoadJsonFromBlockedIpRange() throws Exception {
+        var protocols = List.of("https", "http", "ftp");
+
+        for (var protocol: protocols) {
+            QueryExecutionException e = Assert.assertThrows(QueryExecutionException.class,
+                                            () -> testCall(db2,
+                                                           "CALL apoc.load.json('" + protocol + "://localhost/test.csv')",
+                                                           map(),
+                                                           (r) -> {}
+                                            )
+            );
+            assertTrue(e.getMessage().contains("access to localhost/127.0.0.1 is blocked via the configuration property unsupported.dbms.cypher_ip_blocklist"));
+        }
     }
 
     @Test 

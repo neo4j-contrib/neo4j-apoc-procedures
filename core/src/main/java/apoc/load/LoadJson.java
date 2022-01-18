@@ -72,7 +72,6 @@ public class LoadJson {
             headers = null != headers ? headers : new HashMap<>();
             headers.putAll(Util.extractCredentialsIfNeeded((String) urlOrKeyOrBinary, failOnError));
         }
-        // TODO FIXME
         Stream<Object> stream = JsonUtil.loadJson(urlOrKeyOrBinary,headers,payload, path, failOnError, compressionAlgo, pathOptions, apocConfig);
         return stream.flatMap((value) -> {
             if (value instanceof Map) {
