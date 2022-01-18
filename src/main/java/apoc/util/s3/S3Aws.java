@@ -17,12 +17,14 @@ import com.amazonaws.services.s3.model.S3Object;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public class S3Aws {
 
     AmazonS3 s3Client;
-    private static final String LOCALSTACK_IP = "127.0.0.1";
+    private static final List<String> LOCALSTACK_IPS = Arrays.asList("127.0.0.1", "0.0.0.0", "localhost");
 
     public S3Aws(S3Params s3Params, String region) {
 
@@ -34,7 +36,7 @@ public class S3Aws {
 
         // If it is a localstack connection, use HTTP instead of HTTPS.
         if (StringUtils.isNotBlank(s3Params.getEndpoint()) &&
-                s3Params.getEndpoint().startsWith(LOCALSTACK_IP)) {
+                LOCALSTACK_IPS.stream().anyMatch(LOCALSTACK_IPS::contains)) {
             ClientConfiguration config = new ClientConfiguration();
             config.setProtocol(Protocol.HTTP);
             builder.withClientConfiguration(config);
