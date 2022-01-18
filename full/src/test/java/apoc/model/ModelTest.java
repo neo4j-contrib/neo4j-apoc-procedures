@@ -24,6 +24,7 @@ import static org.junit.Assume.*;
 
 public class ModelTest {
 
+    public static String JDBC_URL;
     @Rule
     public TestName testName = new TestName();
 
@@ -38,6 +39,7 @@ public class ModelTest {
         },Exception.class);
         assumeNotNull("MySQL container has to exist", mysql);
         assumeTrue("MySQL must be running", mysql.isRunning());
+        JDBC_URL = mysql.getJdbcUrl() + "?useSSL=false";
     }
 
     @AfterClass
@@ -59,7 +61,7 @@ public class ModelTest {
     @Test
     public void testLoadJdbcSchema() {
         testCall(db, "CALL apoc.model.jdbc($url, $config)",
-                Util.map("url", mysql.getJdbcUrl(),
+                Util.map("url", JDBC_URL,
                         "config", Util.map("schema", "test",
                                 "credentials", Util.map("user", mysql.getUsername(), "password", mysql.getPassword()))),
                 (row) -> {
@@ -111,7 +113,7 @@ public class ModelTest {
     @Test
     public void testLoadJdbcSchemaWithWriteOperation() {
         db.executeTransactionally("CALL apoc.model.jdbc($url, $config)",
-                Util.map("url", mysql.getJdbcUrl(),
+                Util.map("url", JDBC_URL,
                         "config", Util.map("schema", "test",
                                 "write", true,
                                 "credentials", Util.map("user", mysql.getUsername(), "password", mysql.getPassword()))),
@@ -165,7 +167,7 @@ public class ModelTest {
     @Test
     public void testLoadJdbcSchemaWithFiltering() {
         testCall(db, "CALL apoc.model.jdbc($url, $config)",
-                Util.map("url", mysql.getJdbcUrl(),
+                Util.map("url", JDBC_URL,
                         "config", Util.map("schema", "test",
                                 "credentials", Util.map("user", mysql.getUsername(), "password", mysql.getPassword()),
                                 "filters", Util.map("tables", Arrays.asList("country\\w*"), "columns", Arrays.asList("(?i)code", "(?i)name", "(?i)Language")))),
