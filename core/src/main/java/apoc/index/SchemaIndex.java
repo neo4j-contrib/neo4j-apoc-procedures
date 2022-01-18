@@ -101,7 +101,7 @@ public class SchemaIndex {
     }
 
     private void scanIndex(BlockingQueue<PropertyValueCount> queue, IndexDefinition indexDefinition, String key, Read read, CursorFactory cursors, IndexDescriptor indexDescriptor, KernelTransaction ktx) {
-        try (NodeValueIndexCursor cursor = cursors.allocateNodeValueIndexCursor( CursorContext.NULL, ktx.memoryTracker())) {
+        try (NodeValueIndexCursor cursor = cursors.allocateNodeValueIndexCursor( ktx.cursorContext(), ktx.memoryTracker())) {
             // we need to using IndexOrder.NONE here to prevent an exception
             // however the index guarantees to be scanned in order unless
             // there are writes done in the same tx beforehand - which we don't do.
