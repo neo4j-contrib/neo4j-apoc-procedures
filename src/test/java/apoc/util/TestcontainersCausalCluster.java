@@ -167,4 +167,8 @@ public class TestcontainersCausalCluster {
         sidecar.stop();
         clusterMembers.forEach(Neo4jContainerExtension::stop);
     }
+
+    public boolean isRunning() {
+        return sidecar.isRunning() && clusterMembers.stream().allMatch(Neo4jContainerExtension::isRunning);
+    }
 }

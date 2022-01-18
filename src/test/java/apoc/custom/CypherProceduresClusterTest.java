@@ -45,7 +45,7 @@ public class CypherProceduresClusterTest {
 
     @AfterClass
     public static void bringDownCluster() {
-        if (cluster != null) {
+        if (cluster != null && cluster.isRunning()) {
             cluster.close();
         }
         cleanBuild();

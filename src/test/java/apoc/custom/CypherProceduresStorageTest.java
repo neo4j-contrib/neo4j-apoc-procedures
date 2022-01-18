@@ -5,7 +5,11 @@ import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
@@ -35,8 +39,17 @@ import static org.junit.Assert.assertNull;
  */
 public class CypherProceduresStorageTest {
 
-    public static final File STORE_DIR = new File("cypher-storage");
+    @ClassRule
+    public static TemporaryFolder STORE_DIR_RULE = new TemporaryFolder();
+
+    public static File STORE_DIR;
+
     private GraphDatabaseService db;
+
+    @BeforeClass
+    public static void before() {
+       STORE_DIR = STORE_DIR_RULE.getRoot();
+    }
 
     @Before
     public void setUp() throws Exception {
