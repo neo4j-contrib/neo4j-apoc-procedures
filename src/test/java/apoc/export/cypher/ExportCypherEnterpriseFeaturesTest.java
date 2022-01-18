@@ -50,7 +50,7 @@ public class ExportCypherEnterpriseFeaturesTest {
 
     @AfterClass
     public static void afterAll() {
-        if (neo4jContainer != null) {
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
             neo4jContainer.close();
         }
         cleanBuild();
