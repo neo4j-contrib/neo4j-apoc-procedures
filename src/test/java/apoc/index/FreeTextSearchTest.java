@@ -151,11 +151,11 @@ public class FreeTextSearchTest {
     public void shouldPopulateIndexInBatches() {
         // given
         // create 90k nodes - this force 2 batches during indexing
-        execute("UNWIND range(1,55000) as x CREATE (:Person{name:'person'+x})");
+        execute("UNWIND range(1,55) as x CREATE (:Person{name:'person'+x})");
         execute("CALL apoc.index.addAllNodes('people', {Person:['name']})");
 
         // then
-        assertSingle(search("people", "person54999"), hasProperty("name", "person54999"));
+        assertSingle(search("people", "person54"), hasProperty("name", "person54"));
     }
 
     @Test
