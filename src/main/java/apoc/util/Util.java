@@ -711,10 +711,10 @@ public class Util {
         }
     }
 
-    public static void close(Closeable closeable) {
+    public static void close(AutoCloseable closeable) {
         try {
             if (closeable!=null) closeable.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             // ignore
         }
     }

@@ -122,8 +122,8 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
     @Override
     public void stop() {
         if (withDriver) {
-            session.close();
-            driver.close();
+            Util.close(session);
+            Util.close(driver);
         }
         super.stop();
     }
