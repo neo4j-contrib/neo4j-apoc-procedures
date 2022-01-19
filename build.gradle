@@ -60,7 +60,8 @@ configurations {
 }
 
 shadowJar {
-    classifier = 'all'  
+    classifier = 'all'
+    exclude 'module-info.class'
 }
 
 compileJava {
