@@ -178,16 +178,16 @@ public class FreeTextSearchTest {
     @Test
     public void shouldSearchInNumericRange() throws Exception {
         // given
-        execute("UNWIND range(1, 10000) AS num CREATE (:Number{name:'The ' + num + 'th',number:num})");
+        execute("UNWIND range(1, 100) AS num CREATE (:Number{name:'The ' + num + 'th',number:num})");
         execute("CALL apoc.index.addAllNodes('numbers', {Number:['name','number']})");
 
         // when
         ResourceIterator<Object> names = db.execute(
-                "CALL apoc.index.search('numbers', 'Number.number:{100 TO 105]') YIELD node\n" +
+                "CALL apoc.index.search('numbers', 'Number.number:{10 TO 15]') YIELD node\n" +
                         "RETURN node.name").columnAs("node.name");
 
         // then
-        assertThat(Iterators.asList(names), Matchers.containsInAnyOrder("The 101th", "The 102th", "The 103th", "The 104th", "The 105th"));
+        assertThat(Iterators.asList(names), Matchers.containsInAnyOrder("The 11th", "The 12th", "The 13th", "The 14th", "The 15th"));
     }
 
     @Test
