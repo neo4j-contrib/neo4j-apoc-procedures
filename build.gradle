@@ -9,6 +9,7 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "org.sonarqube" version "2.7"
+    id "com.github.hierynomus.license-report" version "0.15.0"
 }
 asciidoctorj {
     version = '1.6.1'
@@ -47,12 +48,18 @@ ext {
     poiVersion = '4.1.2'
 }
 
+downloadLicenses {
+    excludeDependencies = [
+            'org.neo4j.*'
+    ]
+}
+
 repositories {
-    jcenter();
-    mavenCentral();
+    mavenCentral()
     maven {
         url "https://repo.gradle.org/gradle/libs-releases"
     }
+    mavenLocal()
 }
 
 configurations {
@@ -60,7 +67,8 @@ configurations {
 }
 
 shadowJar {
-    classifier = 'all'  
+    classifier = 'all'
+    exclude 'module-info.class'
 }
 
 compileJava {
@@ -111,7 +119,7 @@ dependencies {
     compileOnly group: 'org.apache.poi', name: 'poi-ooxml', version: poiVersion
     testCompile group: 'org.apache.poi', name: 'poi-ooxml', version: poiVersion
 
-    compile 'org.jsoup:jsoup:1.11.3'
+    compile 'org.jsoup:jsoup:1.14.3'
 
     compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
 
@@ -164,7 +172,7 @@ dependencies {
     testCompile group: 'com.couchbase.client', name: 'java-client', version: '2.7.2'
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.10.4'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.10.8'
     compile group: 'com.opencsv', name: 'opencsv', version: '4.2' 
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
     compile group: 'com.github.javafaker', name: 'javafaker', version: '0.10'
@@ -260,7 +268,10 @@ test {
     if (System.env.TRAVIS !=null) {
         minHeapSize = "128m"
         maxHeapSize = "512m"
+    } else {
+        maxHeapSize = "4g"
     }
+    forkEvery 100
 }
 
 javadoc {

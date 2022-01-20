@@ -143,31 +143,31 @@ public class CypherTest {
 
     @Test
     public void testParallel() throws Exception {
-        int size = 10_000;
+        int size = 100;
         testResult(db, "CALL apoc.cypher.parallel2('UNWIND range(0,9) as b RETURN b',{a:range(1,{size})},'a')", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
     @Test
     public void testSingular() throws Exception {
-        int size = 10_000;
+        int size = 100;
         testResult(db, "CALL apoc.cypher.run('UNWIND a as row UNWIND range(0,9) as b RETURN b',{a:range(1,{size})})", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
     @Test
     public void testMapParallel() throws Exception {
-        int size = 10_000;
+        int size = 100;
         testResult(db, "CALL apoc.cypher.mapParallel('UNWIND range(0,9) as b RETURN b',{},range(1,{size}))", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
     @Test
     public void testMapParallel2() throws Exception {
-        int size = 10_000;
+        int size = 100;
         testResult(db, "CALL apoc.cypher.mapParallel2('UNWIND range(0,9) as b RETURN b',{},range(1,{size}),10)", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
     @Test
     public void testParallel2() throws Exception {
-        int size = 10_0000;
+        int size = 1000;
         List<Long> list = new ArrayList<>(size);
         for (int i = 0; i < size; i++) list.add(3L);
         testCall(db, "CALL apoc.cypher.parallel2('RETURN a + 7 as b',{a:{list}},'a') YIELD value RETURN sum(value.b) as b", map("list", list),
