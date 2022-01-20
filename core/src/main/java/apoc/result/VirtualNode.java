@@ -65,8 +65,8 @@ public class VirtualNode implements Node {
     }
 
     @Override
-    public Iterable<Relationship> getRelationships() {
-        return rels;
+    public ResourceIterable<Relationship> getRelationships() {
+        return Iterables.asResourceIterable(rels);
     }
 
     @Override
@@ -75,8 +75,8 @@ public class VirtualNode implements Node {
     }
 
     @Override
-    public Iterable<Relationship> getRelationships(RelationshipType... relationshipTypes) {
-        return new FilteringIterable<>(rels, (r) -> isType(r, relationshipTypes));
+    public ResourceIterable<Relationship> getRelationships(RelationshipType... relationshipTypes) {
+        return Iterables.asResourceIterable(new FilteringIterable<>(rels, (r) -> isType(r, relationshipTypes)));
     }
 
     private boolean isType(Relationship r, RelationshipType... relationshipTypes) {
@@ -87,8 +87,8 @@ public class VirtualNode implements Node {
     }
 
     @Override
-    public Iterable<Relationship> getRelationships(Direction direction, RelationshipType... relationshipTypes) {
-        return new FilteringIterable<>(rels, (r) -> isType(r, relationshipTypes) && isDirection(r, direction));
+    public ResourceIterable<Relationship> getRelationships(Direction direction, RelationshipType... relationshipTypes) {
+        return Iterables.asResourceIterable(new FilteringIterable<>(rels, (r) -> isType(r, relationshipTypes) && isDirection(r, direction)));
     }
 
     private boolean isDirection(Relationship r, Direction direction) {
@@ -106,8 +106,8 @@ public class VirtualNode implements Node {
     }
 
     @Override
-    public Iterable<Relationship> getRelationships(Direction direction) {
-        return new FilteringIterable<>(rels, (r) -> isDirection(r, direction));
+    public ResourceIterable<Relationship> getRelationships(Direction direction) {
+        return Iterables.asResourceIterable(new FilteringIterable<>(rels, (r) -> isDirection(r, direction)));
     }
 
     @Override

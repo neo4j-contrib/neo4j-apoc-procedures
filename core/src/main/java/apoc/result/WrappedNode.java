@@ -15,7 +15,7 @@ import static java.util.Arrays.asList;
  */
 public class WrappedNode implements Node {
     private static AtomicLong MIN_ID = new AtomicLong(-1);
-    private final List<Label> labels = new ArrayList<Label>();
+    private final List<Label> labels = new ArrayList<>();
     private final Map<String, Object> props = new HashMap<>();
     private final List<Relationship> rels = new ArrayList<>();
     private final GraphDatabaseService db;
@@ -46,8 +46,8 @@ public class WrappedNode implements Node {
     }
 
     @Override
-    public Iterable<Relationship> getRelationships() {
-        return rels;
+    public ResourceIterable<Relationship> getRelationships() {
+        return Iterables.asResourceIterable(rels);
     }
 
     @Override
@@ -56,8 +56,8 @@ public class WrappedNode implements Node {
     }
 
     @Override
-    public Iterable<Relationship> getRelationships(RelationshipType... relationshipTypes) {
-        return new FilteringIterable<>(rels, (r) -> isType(r, relationshipTypes));
+    public ResourceIterable<Relationship> getRelationships(RelationshipType... relationshipTypes) {
+        return Iterables.asResourceIterable(new FilteringIterable<>(rels, (r) -> isType(r, relationshipTypes)));
     }
 
     private boolean isType(Relationship r, RelationshipType... relationshipTypes) {
@@ -68,8 +68,8 @@ public class WrappedNode implements Node {
     }
 
     @Override
-    public Iterable<Relationship> getRelationships(Direction direction, RelationshipType... relationshipTypes) {
-        return new FilteringIterable<>(rels, (r) -> isType(r, relationshipTypes) && isDirection(r, direction));
+    public ResourceIterable<Relationship> getRelationships(Direction direction, RelationshipType... relationshipTypes) {
+        return Iterables.asResourceIterable(new FilteringIterable<>(rels, (r) -> isType(r, relationshipTypes) && isDirection(r, direction)));
     }
 
     private boolean isDirection(Relationship r, Direction direction) {
@@ -87,8 +87,8 @@ public class WrappedNode implements Node {
     }
 
     @Override
-    public Iterable<Relationship> getRelationships(Direction direction) {
-        return new FilteringIterable<>(rels, (r) -> isDirection(r, direction));
+    public ResourceIterable<Relationship> getRelationships(Direction direction) {
+        return Iterables.asResourceIterable(new FilteringIterable<>(rels, (r) -> isDirection(r, direction)));
     }
 
     @Override
