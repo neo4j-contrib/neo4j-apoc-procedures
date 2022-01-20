@@ -9,6 +9,7 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "org.sonarqube" version "2.7"
+    d "com.github.hierynomus.license-report" version "0.15.0"
 }
 asciidoctorj {
     version = '1.6.1'
