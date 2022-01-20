@@ -10,7 +10,11 @@ buildscript {
         catalogDir = "$projectDir/docbook/catalog"
     }
     repositories {
-        jcenter()
+        mavenCentral()
+        maven {
+            url "https://repo.gradle.org/gradle/libs-releases"
+        }
+        mavenLocal()
     }
     dependencies {
         classpath "org.asciidoctor:asciidoctorj:$asciidoctorjVersion"
