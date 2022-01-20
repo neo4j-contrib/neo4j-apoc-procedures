@@ -261,7 +261,10 @@ test {
     if (System.env.TRAVIS !=null) {
         minHeapSize = "128m"
         maxHeapSize = "512m"
+    } else {
+        maxHeapSize = "4g"
     }
+    forkEvery 100
 }
 
 javadoc {
