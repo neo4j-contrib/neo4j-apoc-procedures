@@ -1,25 +1,24 @@
 package apoc;
 
-import apoc.trigger.TriggerHandler;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
 import org.neo4j.kernel.extension.context.ExtensionContext;
 import org.neo4j.kernel.lifecycle.Lifecycle;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
-import org.neo4j.logging.Log;
+import org.neo4j.logging.InternalLog;
 import org.neo4j.logging.internal.LogService;
 import org.neo4j.service.Services;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * NOTE: this is a GLOBAL component, so only once per DBMS
  */
 public class RegisterComponentFactory extends ExtensionFactory<RegisterComponentFactory.Dependencies> {
 
-    private Log log;
+    private InternalLog log;
     private GlobalProcedures globalProceduresRegistry;
 
     public RegisterComponentFactory() {
