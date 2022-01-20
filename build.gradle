@@ -28,7 +28,7 @@ idea {
 }
 
 group = 'org.neo4j.procedure'
-version = '3.5.0.16'
+version = '3.5.0.17'
 archivesBaseName = 'apoc'
 
 jar {
