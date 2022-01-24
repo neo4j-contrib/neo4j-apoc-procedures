@@ -1,5 +1,7 @@
 package apoc.graph.util;
 
+import org.apache.commons.collections4.MapUtils;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
@@ -103,6 +105,7 @@ public class GraphsConfig {
     private boolean generateId;
     private String defaultLabel;
     private Map<String, GraphMapping> mappings;
+    private Map<String, String> relMapping;
 
     private boolean skipValidation;
 
@@ -117,6 +120,7 @@ public class GraphsConfig {
         defaultLabel = config.getOrDefault("defaultLabel", "DocNode").toString();
         mappings = toMappings((Map<String, String>) config.getOrDefault("mappings", Collections.emptyMap()));
         skipValidation = toBoolean(config.getOrDefault("skipValidation", false));
+        relMapping = MapUtils.emptyIfNull((Map<String, String>) config.get("relMapping"));
     }
 
     private Map<String, GraphMapping> toMappings(Map<String, String> mappings) {
@@ -143,6 +147,10 @@ public class GraphsConfig {
 
     public String getDefaultLabel() {
         return defaultLabel;
+    }
+
+    public Map<String, String> getRelMapping() {
+        return relMapping;
     }
 
     public boolean isSkipValidation() {
