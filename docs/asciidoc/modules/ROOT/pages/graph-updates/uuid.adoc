@@ -159,3 +159,11 @@ The result is:
 | label    | installed | properties
 | "Person" | false      | {uuidProperty -> "uuid", addToExistingNodes -> true}
 |===
+
+=== Export metadata
+
+[NOTE]
+====
+To import uuids in another database (for example after a `./neo4j-admin backup` and `/neo4j-admin restore`),
+please see the xref::overview/apoc.systemdb/apoc.systemdb.export.metadata.adoc[apoc.systemdb.export.metadata] procedure.
+====

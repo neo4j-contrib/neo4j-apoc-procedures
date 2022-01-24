@@ -179,3 +179,11 @@ In order to replicate the procedure/function in a cluster environment you can tu
 | `apoc.custom.procedures.refresh` | long (default `60000`) | the refresh time that allows replicating the procedure/function
 changes to each cluster member
 |===
+
+=== Export metadata
+
+[NOTE]
+====
+To import custom procedures in another database (for example after a `./neo4j-admin backup` and `/neo4j-admin restore`),
+please see the xref::overview/apoc.systemdb/apoc.systemdb.export.metadata.adoc[apoc.systemdb.export.metadata] procedure.
+====
