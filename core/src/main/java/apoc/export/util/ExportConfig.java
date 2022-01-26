@@ -1,6 +1,7 @@
 package apoc.export.util;
 
 import apoc.export.cypher.formatter.CypherFormat;
+import apoc.util.CompressionAlgo;
 import apoc.util.CompressionConfig;
 import apoc.util.Util;
 
@@ -14,6 +15,8 @@ import static java.util.Arrays.asList;
  * @since 19.01.14
  */
 public class ExportConfig extends CompressionConfig {
+    public static final ExportConfig EMPTY = new ExportConfig(null);
+    
     public static final char QUOTECHAR = '"';
     public static final String NONE_QUOTES = "none";
     public static final String ALWAYS_QUOTES = "always";

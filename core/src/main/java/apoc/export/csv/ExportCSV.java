@@ -103,7 +103,7 @@ public class ExportCSV {
         CsvFormat exporter = new CsvFormat(db);
 
         ExportFileManager cypherFileManager = FileManagerFactory
-                .createFileManager(fileName, exportConfig.isBulkImport());
+                .createFileManager(fileName, exportConfig.isBulkImport(), exportConfig);
 
         if (exportConfig.streamStatements()) {
             return ExportUtils.getProgressInfoStream(db, pools.getDefaultExecutorService(), terminationGuard, format, exportConfig, reporter, cypherFileManager,

@@ -2,9 +2,10 @@ package apoc.export.csv;
 
 import apoc.ApocSettings;
 import apoc.graph.Graphs;
+import apoc.util.BinaryTestUtil;
+import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -15,11 +16,11 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
+import static apoc.util.CompressionAlgo.GZIP;
 import static apoc.util.MapUtil.map;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -69,6 +70,8 @@ public class ExportCsvNeo4jAdminTest {
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_NEXT_DELIVERY = String
             .format("3;4;NEXT_DELIVERY%n");
+    
+    private static final String GZIP_EXT = ".foo";
 
     private static File directory = new File("target/import");
 
@@ -90,13 +93,22 @@ public class ExportCsvNeo4jAdminTest {
     }
 
     @Test
-    public void testCypherExportCsvForAdminNeo4jImportWithConfig() throws Exception {
-
+    public void testCypherExportCsvForAdminNeo4jImportWithConfig() {
         String fileName = "query_nodes.csv";
+        assertionTestExportForAdminNeo4jImport(CompressionAlgo.NONE, fileName);
+    }
+    
+    @Test
+    public void testCypherExportCsvForAdminNeo4jImportWithConfigWithCompression() {
+        String fileName = "query_nodes.csv" + GZIP_EXT;
+        assertionTestExportForAdminNeo4jImport(GZIP, fileName);
+    }
+
+    private void assertionTestExportForAdminNeo4jImport(CompressionAlgo algo, String fileName) {
         File dir = new File(directory, fileName);
 
-        TestUtil.testCall(db, "CALL apoc.export.csv.all($fileName,{bulkImport: true, separateHeader: true, delim: ';'})",
-                map("fileName", fileName), r -> {
+        TestUtil.testCall(db, "CALL apoc.export.csv.all($fileName,{compression: $compression, bulkImport: true, separateHeader: true, delim: ';'})",
+                map("fileName", fileName, "compression", algo.name()), r -> {
                     assertEquals(20000L, r.get("batchSize"));
                     assertEquals(1L, r.get("batches"));
                     assertEquals(7L, r.get("nodes"));
@@ -109,20 +121,20 @@ public class ExportCsvNeo4jAdminTest {
         );
 
         String file = dir.getParent() + File.separator;
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS, "query_nodes.header.nodes.Address.csv");
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS1, "query_nodes.header.nodes.Address1.Address.csv");
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER, "query_nodes.header.nodes.User.csv");
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER1, "query_nodes.header.nodes.User1.User.csv");
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_TYPES_NODE, "query_nodes.header.nodes.Types.csv");
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_RELATIONSHIP_KNOWS, "query_nodes.header.relationships.KNOWS.csv");
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_RELATIONSHIP_NEXT_DELIVERY, "query_nodes.header.relationships.NEXT_DELIVERY.csv");
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS, "query_nodes.nodes.Address.csv");
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS1, "query_nodes.nodes.Address1.Address.csv");
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER, "query_nodes.nodes.User.csv");
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER1, "query_nodes.nodes.User1.User.csv");
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_TYPES_NODE, "query_nodes.nodes.Types.csv");
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_KNOWS, "query_nodes.relationships.KNOWS.csv");
-        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_NEXT_DELIVERY, "query_nodes.relationships.NEXT_DELIVERY.csv");
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS, "query_nodes.header.nodes.Address.csv", algo);
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS1, "query_nodes.header.nodes.Address1.Address.csv", algo);
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER, "query_nodes.header.nodes.User.csv", algo);
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER1, "query_nodes.header.nodes.User1.User.csv", algo);
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_TYPES_NODE, "query_nodes.header.nodes.Types.csv", algo);
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_RELATIONSHIP_KNOWS, "query_nodes.header.relationships.KNOWS.csv", algo);
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_RELATIONSHIP_NEXT_DELIVERY, "query_nodes.header.relationships.NEXT_DELIVERY.csv", algo);
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS, "query_nodes.nodes.Address.csv", algo);
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS1, "query_nodes.nodes.Address1.Address.csv", algo);
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER, "query_nodes.nodes.User.csv", algo);
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER1, "query_nodes.nodes.User1.User.csv", algo);
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_TYPES_NODE, "query_nodes.nodes.Types.csv", algo);
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_KNOWS, "query_nodes.relationships.KNOWS.csv", algo);
+        assertFileEquals(file, EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_NEXT_DELIVERY, "query_nodes.relationships.NEXT_DELIVERY.csv", algo);
     }
 
     @Test
@@ -146,11 +158,12 @@ public class ExportCsvNeo4jAdminTest {
     }
 
     private void assertFileEquals(String base, String expected, String file)  {
-        try {
-            assertEquals(expected, FileUtils.readFileToString(new File(base + file), Charset.forName("UTF-8")));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        assertFileEquals(base, expected, file, CompressionAlgo.NONE);
+    }
+
+    private void assertFileEquals(String base, String expected, String file, CompressionAlgo algo) {
+        String fileExt = algo.equals(GZIP) ? GZIP_EXT : "";
+        assertEquals(expected, BinaryTestUtil.readFileToString(new File(base + file + fileExt), StandardCharsets.UTF_8, algo));
     }
 
     @Test(expected = RuntimeException.class)

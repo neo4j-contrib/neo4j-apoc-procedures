@@ -1,5 +1,8 @@
 package apoc.result;
 
+import apoc.export.util.ExportConfig;
+import apoc.util.Util;
+
 import java.io.StringWriter;
 
 /**
@@ -19,7 +22,7 @@ public class ProgressInfo {
     public long batchSize = -1;
     public long batches;
     public boolean done;
-    public String data;
+    public Object data;
 
     public ProgressInfo(String file, String source, String format) {
         this.file = file;
@@ -66,10 +69,9 @@ public class ProgressInfo {
         this.rows++;
     }
 
-    public ProgressInfo drain(StringWriter writer) {
+    public ProgressInfo drain(StringWriter writer, ExportConfig config) {
         if (writer != null) {
-            this.data = writer.toString();
-            writer.getBuffer().setLength(0);
+            this.data = Util.getStringOrCompressedData(writer, config);
         }
         return this;
     }
