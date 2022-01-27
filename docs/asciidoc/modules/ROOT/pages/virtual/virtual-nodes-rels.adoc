@@ -20,6 +20,8 @@ Please note that they have negative id's.
 | CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) YIELD rel | returns a virtual relationship
 | apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) | function returns a virtual relationship
 | CALL apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) | returns a virtual pattern
+| CALL apoc.create.clonePathToVirtual(path)
+| CALL apoc.create.clonePathsToVirtual(paths)
 |===
 
 // * TODO `CALL apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])

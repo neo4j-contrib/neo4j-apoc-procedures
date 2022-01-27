@@ -46,7 +46,8 @@ public class TestContainerUtil {
         importFolder.mkdirs();
 
         // read neo4j version from build.gradle and use this as default
-        String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:4.1.6-enterprise");
+        //String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:4.2.2-enterprise");
+        String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage","neo4j-arm64-experimental:4.2.2-arm64");
 
         // use a separate folder for mounting plugins jar - build/libs might contain other jars as well.
         File pluginsFolder = new File(baseDir, "build/plugins");

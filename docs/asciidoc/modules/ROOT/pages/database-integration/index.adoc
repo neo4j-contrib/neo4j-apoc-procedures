@@ -17,4 +17,5 @@ For more information on how to use these procedures, see:
 * xref::database-integration/couchbase.adoc[]
 * xref::database-integration/bolt-neo4j.adoc[]
 * xref::database-integration/load-ldap.adoc[]
+* xref::database-integration/redis.adoc[]
 

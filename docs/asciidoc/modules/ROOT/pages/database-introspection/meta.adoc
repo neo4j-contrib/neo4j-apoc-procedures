@@ -9,6 +9,7 @@ image::apoc.meta.graph.jpg[scaledwidth="100%"]
 [cols="5m,5"]
 |===
 | xref::overview/apoc.meta/apoc.meta.graphSample.adoc[CALL apoc.meta.graphSample()] | examines the database statistics to build the meta graph, very fast, might report extra relationships
+| xref::overview/apoc.meta/apoc.meta.graph.of.adoc[CALL apoc.meta.graph.of] | examines a subset of the graph to provide a graph meta information
 | xref::overview/apoc.meta/apoc.meta.graph.adoc[CALL apoc.meta.graph] | examines the database statistics to create the meta-graph, post filters extra relationships by sampling
 | xref::overview/apoc.meta/apoc.meta.subGraph.adoc[+++CALL apoc.meta.subGraph({labels:[labels],rels:[rel-types],excludes:[label,rel-type,...]})+++] | examines a sample sub graph to create the meta-graph
 | xref::overview/apoc.meta/apoc.meta.data.adoc[CALL apoc.meta.data] | examines a subset of the graph to provide a tabular meta information

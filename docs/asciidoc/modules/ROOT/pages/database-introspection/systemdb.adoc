@@ -11,10 +11,17 @@ WARN:: Do not rely on the data structures within `system` database. They are a n
 and might change within minor release updates.
 
 .Procedures
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| apoc.systemdb.graph | returns a `nodes` and `relationships` stored in systemdb.
-| apoc.systemdb.execute | executes an DDL command or a list of DDL commands on system db, yields `row` for further processing
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.systemdb.graph.adoc[]
+include::example$generated-documentation/apoc.systemdb.execute.adoc[]
+¦xref::overview/apoc.systemdb/apoc.systemdb.export.metadata.adoc[apoc.systemdb.export.metadata icon:book[]] +
+
+
+¦label:procedure[]
+¦label:apoc-full[]
+
 |===
 
 .isType example
@@ -22,5 +29,5 @@ and might change within minor release updates.
 ----
 CALL apoc.systemdb.graph() YIELD nodes, relationships RETURN *;
 CALL apoc.systemdb.execute('SHOW DATABASES') YIELD row RETURN row.name as dbName;
-CALL apoc.systemdb.execute(["CREATE USER foo", "GRANT ROLE myRole TO foo"])
+CALL apoc.systemdb.execute(["CREATE USER foo SET PASSWORD 'test'", "GRANT ROLE myRole TO foo"])
 ----

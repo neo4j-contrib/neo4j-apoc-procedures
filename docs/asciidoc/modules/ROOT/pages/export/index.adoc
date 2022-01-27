@@ -18,3 +18,4 @@ For more information on how to use these procedures, see:
 * xref::export/cypher.adoc[]
 * xref::export/graphml.adoc[]
 * xref::export/gephi.adoc[]
+* xref::export/xls.adoc[]

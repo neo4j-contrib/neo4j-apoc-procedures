@@ -282,7 +282,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         return Util.toJson(mapped);
     }
 
-    private List<FieldSignature> deserializeSignatures(String s) {
+    public static List<FieldSignature> deserializeSignatures(String s) {
         List<Map<String, Object>> mapped = Util.fromJson(s, List.class);
         return mapped.stream().map(map -> {
             String typeString = (String) map.get("type");
@@ -449,7 +449,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                 outputs.stream().map(pair -> FieldSignature.outputField(pair.get(0), typeof(pair.get(1)))).collect(Collectors.toList());
     }
 
-    private Neo4jTypes.AnyType typeof(String typeName) {
+    private static Neo4jTypes.AnyType typeof(String typeName) {
         typeName = typeName.replaceAll("\\?", "");
         typeName = typeName.toUpperCase();
         if (typeName.startsWith("LIST OF ")) return NTList(typeof(typeName.substring(8)));
