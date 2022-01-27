@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static apoc.cypher.Cypher.withParamMapping;
+import static apoc.util.Util.slottedRuntime;
 
 /**
  * Created by lyonwj on 9/29/17.
@@ -28,8 +29,7 @@ public class CypherFunctions {
     public Object runFirstColumn(@Name("cypher") String statement, @Name("params") Map<String, Object> params, @Name(value = "expectMultipleValues",defaultValue = "true") boolean expectMultipleValues) {
         if (params == null) params = Collections.emptyMap();
         String resolvedStatement = withParamMapping(statement, params.keySet());
-        if (!resolvedStatement.contains(" runtime")) resolvedStatement = "cypher runtime=slotted " + resolvedStatement;
-        try (Result result = tx.execute(resolvedStatement, params)) {
+        try (Result result = tx.execute(slottedRuntime(resolvedStatement), params)) {
 
         String firstColumn = result.columns().get(0);
         try (ResourceIterator<Object> iter = result.columnAs(firstColumn)) {

@@ -27,15 +27,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static apoc.util.Util.merge;
+import static apoc.util.Util.prependQueryOption;
+import static apoc.util.Util.slottedRuntime;
 
 public class Periodic {
     
     enum Planner {DEFAULT, COST, IDP, DP }
 
     public static final Pattern PLANNER_PATTERN = Pattern.compile("\\bplanner\\s*=\\s*[^\\s]*", Pattern.CASE_INSENSITIVE);
-    public static final Pattern RUNTIME_PATTERN = Pattern.compile("\\bruntime\\s*=", Pattern.CASE_INSENSITIVE);
-    public static final Pattern CYPHER_PREFIX_PATTERN = Pattern.compile("^\\s*\\bcypher\\b", Pattern.CASE_INSENSITIVE);
-    public static final String CYPHER_RUNTIME_SLOTTED = " runtime=slotted ";
     final static Pattern LIMIT_PATTERN = Pattern.compile("\\slimit\\s", Pattern.CASE_INSENSITIVE);
 
     @Context public GraphDatabaseService db;
@@ -278,14 +277,6 @@ public class Periodic {
         }
     }
 
-    static String slottedRuntime(String cypherIterate) {
-        if (RUNTIME_PATTERN.matcher(cypherIterate).find()) {
-            return cypherIterate;
-        }
-        
-        return prependQueryOption(cypherIterate, CYPHER_RUNTIME_SLOTTED);
-    }
-
     public static String applyPlanner(String query, Planner planner) {
         if(planner.equals(Planner.DEFAULT)) {
             return query;
@@ -296,14 +287,6 @@ public class Periodic {
             return matcher.replaceFirst(cypherPlanner);
         }
         return prependQueryOption(query, cypherPlanner);
-    }
-
-    private static String prependQueryOption(String query, String cypherOption) {
-        String cypherPrefix = "cypher";
-        String completePrefix = cypherPrefix + cypherOption;
-        return CYPHER_PREFIX_PATTERN.matcher(query).find()
-                ? query.replaceFirst("(?i)" + cypherPrefix, completePrefix)
-                : completePrefix + query;
     }
 
 

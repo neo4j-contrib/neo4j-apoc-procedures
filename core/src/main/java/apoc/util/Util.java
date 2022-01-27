@@ -78,6 +78,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -980,6 +981,27 @@ public class Util {
     
     private static Object getOrDefault(Map<String, Object> firstMap, Map<String, Object> secondMap, String key) {
         return firstMap.getOrDefault(key, secondMap.get(key));
+    }
+
+    public static String slottedRuntime(String cypherIterate) {
+        final String CYPHER_RUNTIME_SLOTTED = " runtime=slotted ";
+        final Pattern RUNTIME_PATTERN = Pattern.compile("\\bruntime\\s*=", Pattern.CASE_INSENSITIVE);
+
+        if (RUNTIME_PATTERN.matcher(cypherIterate).find()) {
+            return cypherIterate;
+        }
+
+        return prependQueryOption(cypherIterate, CYPHER_RUNTIME_SLOTTED);
+    }
+
+
+    public static String prependQueryOption(String query, String cypherOption) {
+        final Pattern CYPHER_PREFIX_PATTERN = Pattern.compile("^\\s*\\bcypher\\b", Pattern.CASE_INSENSITIVE);
+        String cypherPrefix = "cypher";
+        String completePrefix = cypherPrefix + cypherOption;
+        return CYPHER_PREFIX_PATTERN.matcher(query).find()
+                ? query.replaceFirst("(?i)" + cypherPrefix, completePrefix)
+                : completePrefix + query;
     }
 
     public static String toCypherMap(Map<String, Object> map) {

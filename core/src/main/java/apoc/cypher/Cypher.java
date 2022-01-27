@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
+import static apoc.util.Util.slottedRuntime;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
@@ -119,12 +120,13 @@ public class Cypher {
             String stmt = removeShellControlCommands(scanner.next());
             if (stmt.trim().isEmpty()) continue;
             if (!isSchemaOperation(stmt)) {
+                final String slottedStmt = slottedRuntime(stmt);
                 if (isPeriodicOperation(stmt)) {
-                    Util.inThread(pools , () -> db.executeTransactionally(stmt, params, result -> consumeResult(result, queue, addStatistics, timeout)));
+                    Util.inThread(pools , () -> db.executeTransactionally(slottedStmt, params, result -> consumeResult(result, queue, addStatistics, timeout)));
                 }
                 else {
                     Util.inTx(db, pools, threadTx -> {
-                        try (Result result = threadTx.execute(stmt, params)) {
+                        try (Result result = threadTx.execute(slottedStmt, params)) {
                             return consumeResult(result, queue, addStatistics, timeout);
                         }
                     });

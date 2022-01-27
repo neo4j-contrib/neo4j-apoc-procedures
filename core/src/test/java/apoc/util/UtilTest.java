@@ -16,9 +16,11 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
+import static apoc.util.Util.slottedRuntime;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -113,5 +115,18 @@ public class UtilTest {
         } finally {
             db.executeTransactionally("MATCH (n:Test) DETACH DELETE n");
         }
+    }
+    
+    @Test
+    public void testSlottedRuntime() throws Exception {
+        assertEquals("cypher runtime=slotted MATCH (n:cypher) RETURN n", slottedRuntime("MATCH (n:cypher) RETURN n"));
+        assertTrue(slottedRuntime("MATCH (n) RETURN n").contains("cypher runtime=slotted "));
+        assertFalse(slottedRuntime(" cypher runtime=compiled MATCH (n) RETURN n").contains("cypher runtime=slotted "));
+        assertFalse(slottedRuntime("cypher runtime=compiled MATCH (n) RETURN n").contains("cypher runtime=slotted cypher"));
+        assertTrue(slottedRuntime(" cypher 3.1 MATCH (n) RETURN n").contains(" runtime=slotted "));
+        assertFalse(slottedRuntime("cypher 3.1 MATCH (n) RETURN n").contains(" runtime=slotted cypher "));
+        assertTrue(slottedRuntime("cypher expressionEngine=compiled MATCH (n) RETURN n").contains(" runtime=slotted "));
+        assertFalse(slottedRuntime("cypher expressionEngine=compiled MATCH (n) RETURN n").contains(" runtime=slotted cypher"));
+
     }
 }

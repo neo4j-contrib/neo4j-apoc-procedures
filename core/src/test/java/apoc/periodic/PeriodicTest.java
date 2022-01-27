@@ -2,6 +2,7 @@ package apoc.periodic;
 
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -120,18 +121,6 @@ public class PeriodicTest {
                 applyPlanner("cypher planner=cost MATCH (n) RETURN n", Periodic.Planner.COST));
     }
 
-    @Test
-    public void testSlottedRuntime() throws Exception {
-        assertEquals("cypher runtime=slotted MATCH (n:cypher) RETURN n", Periodic.slottedRuntime("MATCH (n:cypher) RETURN n"));
-        assertTrue(Periodic.slottedRuntime("MATCH (n) RETURN n").contains("cypher runtime=slotted "));
-        assertFalse(Periodic.slottedRuntime(" cypher runtime=compiled MATCH (n) RETURN n").contains("cypher runtime=slotted "));
-        assertFalse(Periodic.slottedRuntime("cypher runtime=compiled MATCH (n) RETURN n").contains("cypher runtime=slotted cypher"));
-        assertTrue(Periodic.slottedRuntime(" cypher 3.1 MATCH (n) RETURN n").contains(" runtime=slotted "));
-        assertFalse(Periodic.slottedRuntime("cypher 3.1 MATCH (n) RETURN n").contains(" runtime=slotted cypher "));
-        assertTrue(Periodic.slottedRuntime("cypher expressionEngine=compiled MATCH (n) RETURN n").contains(" runtime=slotted "));
-        assertFalse(Periodic.slottedRuntime("cypher expressionEngine=compiled MATCH (n) RETURN n").contains(" runtime=slotted cypher"));
-
-    }
     @Test
     public void testTerminateCommit() throws Exception {
         PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (:Foo {id: id})', {})");
