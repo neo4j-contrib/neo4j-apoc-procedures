@@ -333,3 +333,11 @@ impact the original one.
 Heavy operations should be processed in this phase without blocking the original transaction.
 Please note that 'after' and 'before' phases can sometimes block transactions, so generally, `afterAsync` phase is preferred
 |===
+
+=== Export metadata
+
+[NOTE]
+====
+To import triggers in another database (for example after a `./neo4j-admin backup` and `/neo4j-admin restore`),
+please see the xref::overview/apoc.systemdb/apoc.systemdb.export.metadata.adoc[apoc.systemdb.export.metadata] procedure.
+====

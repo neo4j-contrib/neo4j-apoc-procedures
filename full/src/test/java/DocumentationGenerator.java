@@ -67,7 +67,7 @@ class DocumentationGenerator {
     }
 
     public List<Row> getRows() {
-         return rows;
+        return rows;
     }
 
     public void writeAllToCsv(Map<String, String> docs, Set<String> extended) {
@@ -436,7 +436,7 @@ class DocumentationGenerator {
             String description = "";
 
             if ( parts.length > 0 ) {
-                String.format("`%s`", parts[0]);
+                description = String.format("`%s`", parts[0]);
             }
 
             // @AC

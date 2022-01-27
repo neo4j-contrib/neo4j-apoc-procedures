@@ -8,7 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import org.junit.*;
-import org.mockserver.client.server.MockServerClient;
+import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -284,8 +284,7 @@ RETURN m.col_1,m.col_2,m.col_3
                 .when(
                         request()
                                 .withPath("/docs/csv")
-                                .withHeader("Authorization", "Basic " + token)
-                                .withHeader("\"Content-type\", \"text/csv\""),
+                                .withHeader("Authorization", "Basic " + token),
                         exactly(1))
                 .respond(
                         response()
@@ -313,8 +312,7 @@ RETURN m.col_1,m.col_2,m.col_3
                         request()
                                 .withMethod("POST")
                                 .withPath("/docs/csv")
-                                .withHeader("Authorization", "Basic " + token)
-                                .withHeader("\"Content-type\", \"text/csv\""),
+                                .withHeader("Authorization", "Basic " + token),
                         exactly(1))
                 .respond(
                         response()
@@ -345,7 +343,7 @@ RETURN m.col_1,m.col_2,m.col_3
                                 .withMethod("POST")
                                 .withPath("/docs/csv")
                                 .withHeader("Authorization", "Basic " + token)
-                                .withHeader("\"Content-type\", \"text/csv\""),
+                                .withHeader("Content-type", "application/json"),
                         exactly(1))
                 .respond(
                         response()
@@ -359,7 +357,9 @@ RETURN m.col_1,m.col_2,m.col_3
 
         testResult(db, "CALL apoc.load.csvParams($url, $header, $payload, {results:['map','list','stringMap','strings']})",
                     map("url", "http://localhost:1080/docs/csv",
-                        "header", map("method", "POST", "Authorization", "Basic " + token),
+                        "header", map("method",
+                                    "POST", "Authorization", "Basic " + token,
+                                    "Content-Type", "application/json"),
                             "payload", "{\"query\":\"pagecache\",\"version\":\"3.5\"}"),
                     (row) -> assertEquals(RESPONSE_BODY, row.stream().map(i->i.get("map")).collect(Collectors.toList()))
                 );
