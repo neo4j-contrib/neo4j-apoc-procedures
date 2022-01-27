@@ -151,6 +151,38 @@ public class GraphsTest {
     }
 
     @Test
+    public void testFromDocumentWithCustomRelName() throws Exception {
+        Map<String, Object> artistGenesisMap = map("type", "artist", "name", "Genesis", "id", 1L);
+        Map<String, Object> albumGenesisMap = Util.map("type", "album", "producer", "Jonathan King", "id", 2L, "title", "From Genesis to Revelation");
+        Map<String, Object> firstMemberMap = Util.map("type", "member", "name", "Steve Hackett", "id", 3L);
+        Map<String, Object> secondMemberMap = Util.map("type", "member", "name", "Phil Collins", "id", 4L);
+        Map<String, Object> genreMap = Util.map("type", "genre", "name", "Progressive rock", "id", 5L);
+
+        Map<String, Object> artistGenesisMapExt = new HashMap<>(artistGenesisMap) {{
+            put("toChange", List.of(genreMap));
+            put("albums", List.of(albumGenesisMap));
+            put("members", List.of(firstMemberMap, secondMemberMap));
+        }};
+
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json, $config) yield graph",
+                map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(artistGenesisMapExt), 
+                        "config", map("relMapping", map("toChange", "GENRES"))),
+                stringObjectMap -> {
+                    Map<String, Object> map = stringObjectMap.next();
+                    final Map<String, Object> graphMap = (Map<String, Object>) map.get("graph");
+                    assertEquals("Graph", graphMap.get("name"));
+                    List<Node> nodes = ((List<Node>) graphMap.get("nodes"));
+                    assertEquals(5, nodes.size());
+                    
+                    Set<String> relSet = ((List<Relationship>) graphMap.get("relationships")).stream()
+                            .map(Relationship::getType)
+                            .map(RelationshipType::name)
+                            .collect(Collectors.toSet());
+                    assertEquals(Set.of("ALBUMS", "MEMBERS", "GENRES"), relSet);
+                });
+    }
+
+    @Test
     public void testFromDocumentVirtual() throws Exception {
         Map<String, Object> artistGenesisMap = Util.map("type", "artist", "name", "Genesis", "id", 1L);
         Map<String, Object> albumGenesisMap = Util.map("type", "album", "producer", "Jonathan King", "id", 1L, "title", "From Genesis to Revelation");
