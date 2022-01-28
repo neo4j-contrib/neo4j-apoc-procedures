@@ -41,13 +41,4 @@ CALL apoc.meta.stats();
 |===
 
 
-Note that the `relTypesCount` field counts unique patterns (from single label to single label)
-so multi-label nodes will be counted as separate paths.
-For example, with the following dataset with multiple labels `Node` and `Test`:
-
-[source,cypher]
-----
-CREATE (:Node:Test)-[:REL {a: 'b'}]->(:Node {c: 'd'})<-[:REL]-(:Node:Test)
-----
-
-`relTypesCount` will be `{REL: 4}`, otherwise, without label `Test`, it would be `{REL: 2}`.
+Note that the `relTypesCount` field return, for each relationship type, the `MATCH ()-[r:RELATIONSHIP_TYPE]->() RETURN count(r)`.
