@@ -14,7 +14,9 @@ import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.config.Setting;
+import org.neo4j.graphdb.security.URLAccessRule;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
+import org.neo4j.kernel.impl.security.URLAccessRules;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.NullLog;
@@ -43,7 +45,6 @@ import static org.neo4j.configuration.GraphDatabaseSettings.plugin_dir;
 import static org.neo4j.configuration.GraphDatabaseSettings.transaction_logs_root_path;
 
 public class ApocConfig extends LifecycleAdapter {
-
     public static final String SUN_JAVA_COMMAND = "sun.java.command";
     public static final String APOC_IMPORT_FILE_ENABLED = "apoc.import.file.enabled";
     public static final String APOC_EXPORT_FILE_ENABLED = "apoc.export.file.enabled";
@@ -90,6 +91,7 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String EXPORT_TO_FILE_ERROR = "Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf";
 
     private final Config neo4jConfig;
+    private final URLAccessRule webAccessRule;
     private final Log log;
     private final DatabaseManagementService databaseManagementService;
 
@@ -106,6 +108,7 @@ public class ApocConfig extends LifecycleAdapter {
 
     public ApocConfig(Config neo4jConfig, LogService log, GlobalProcedures globalProceduresRegistry, DatabaseManagementService databaseManagementService) {
         this.neo4jConfig = neo4jConfig;
+        this.webAccessRule = URLAccessRules.webAccess();
         this.log = log.getInternalLog(ApocConfig.class);
         this.databaseManagementService = databaseManagementService;
         theInstance = this;
@@ -118,6 +121,7 @@ public class ApocConfig extends LifecycleAdapter {
     // use only for unit tests
     public ApocConfig() {
         this.neo4jConfig = null;
+        this.webAccessRule = URLAccessRules.webAccess();
         this.log = NullLog.getInstance();
         this.databaseManagementService = null;
         theInstance = this;
@@ -218,10 +222,6 @@ public class ApocConfig extends LifecycleAdapter {
         }
     }
 
-    public Config getNeo4jConfig() {
-        return neo4jConfig;
-    }
-
     public LoggingType getLoggingType() {
         return loggingType;
     }
@@ -263,9 +263,34 @@ public class ApocConfig extends LifecycleAdapter {
         }
     }
 
+    private void checkAllowedUrl(String url) {
+        URL parsedUrl;
+
+        try {
+            parsedUrl = new URL(url);
+        } catch (Exception e) {
+            parsedUrl = null;
+        }
+
+        if (parsedUrl != null) {
+            String protocol = parsedUrl.getProtocol();
+
+            if ( protocol.equals("http") || protocol.equals("https") || protocol.equals("ftp") ) {
+                try {
+                    webAccessRule.validate(neo4jConfig, parsedUrl);
+                }
+                catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
     public void checkReadAllowed(String url) {
         if (isFile(url)) {
             isImportFileEnabled();
+        } else {
+            checkAllowedUrl(url);
         }
     }
 

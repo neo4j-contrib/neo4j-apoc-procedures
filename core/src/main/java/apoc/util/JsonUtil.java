@@ -1,6 +1,5 @@
 package apoc.util;
 
-import apoc.ApocConfig;
 import apoc.export.util.DurationValueSerializer;
 import apoc.export.util.PointSerializer;
 import apoc.export.util.TemporalSerializer;
@@ -16,11 +15,12 @@ import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.graphdb.spatial.Point;
+import org.neo4j.values.storable.DurationValue;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.time.temporal.Temporal;
 import java.util.EnumSet;
 import java.util.List;
@@ -29,18 +29,11 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.neo4j.graphdb.security.URLAccessRule;
-import org.neo4j.graphdb.spatial.Point;
-import org.neo4j.kernel.impl.security.URLAccessRules;
-import org.neo4j.values.storable.DurationValue;
-
 /**
  * @author mh
  * @since 04.05.16
  */
 public class JsonUtil {
-    private final static URLAccessRule webAccessRule = URLAccessRules.webAccess();
-
     private final static Option[] defaultJsonPathOptions = { Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS };
     
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -85,40 +78,20 @@ public class JsonUtil {
         }
     }
     
-    public static Stream<Object> loadJson(String url, Map<String,Object> headers, String payload, ApocConfig apocConfig) {
-        return loadJson(url,headers,payload,"", true, null, null, apocConfig);
+    public static Stream<Object> loadJson(String url, Map<String,Object> headers, String payload) {
+        return loadJson(url,headers,payload,"", true, null, null);
     }
     
-    public static Stream<Object> loadJson(Object urlOrBinary, Map<String,Object> headers, String payload, String path, boolean failOnError, List<String> options, ApocConfig apocConfig) {
-        return loadJson(urlOrBinary, headers, payload, path, failOnError, null, options, apocConfig);
+    public static Stream<Object> loadJson(Object urlOrBinary, Map<String,Object> headers, String payload, String path, boolean failOnError, List<String> options) {
+        return loadJson(urlOrBinary, headers, payload, path, failOnError, null, options);
     }
     
-    public static Stream<Object> loadJson(Object urlOrBinary, Map<String,Object> headers, String payload, String path, boolean failOnError, String compressionAlgo, List<String> options, ApocConfig apocConfig) {
+    public static Stream<Object> loadJson(Object urlOrBinary, Map<String,Object> headers, String payload, String path, boolean failOnError, String compressionAlgo, List<String> options) {
         try {
             if (urlOrBinary instanceof String) {
                 String url = (String) urlOrBinary;
-                URL parsedUrl;
-
-                try {
-                    parsedUrl = new URL( url );
-                } catch (Exception e) {
-                    parsedUrl = null;
-                }
-                if (parsedUrl != null) {
-                    String protocol = parsedUrl.getProtocol();
-
-                    if ( protocol.equals( "http" ) || protocol.equals( "https" ) || protocol.equals( "ftp" ) ) {
-                        try {
-                            webAccessRule.validate( apocConfig.getNeo4jConfig(), parsedUrl );
-                        }
-                        catch ( Exception e ) {
-                            throw new RuntimeException( e );
-                        }
-                    }
-                }
                 urlOrBinary = Util.getLoadUrlByConfigFile("json", url, "url").orElse(url);
             }
-
             InputStream input = FileUtils.inputStreamFor(urlOrBinary, headers, payload, compressionAlgo);
             JsonParser parser = OBJECT_MAPPER.getFactory().createParser(input);
             MappingIterator<Object> it = OBJECT_MAPPER.readValues(parser, Object.class);
