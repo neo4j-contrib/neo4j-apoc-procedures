@@ -10,14 +10,13 @@ import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.ex.ConversionException;
 import org.neo4j.configuration.Config;
-import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.config.Setting;
+import org.neo4j.graphdb.security.URLAccessValidationError;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
-import org.neo4j.kernel.impl.security.WebURLAccessRule;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.NullLog;
@@ -25,6 +24,7 @@ import org.neo4j.logging.internal.LogService;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.InetAddress;
 import java.net.URL;
 import java.time.Duration;
 import java.time.ZoneId;
@@ -48,6 +48,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.transaction_logs_roo
 
 public class ApocConfig extends LifecycleAdapter {
     public static final String SUN_JAVA_COMMAND = "sun.java.command";
+    public static final String CYPHER_IP_BLOCKLIST = "unsupported.dbms.cypher_ip_blocklist";
     public static final String APOC_IMPORT_FILE_ENABLED = "apoc.import.file.enabled";
     public static final String APOC_EXPORT_FILE_ENABLED = "apoc.export.file.enabled";
     public static final String APOC_IMPORT_FILE_USE_NEO4J_CONFIG = "apoc.import.file.use_neo4j_config";
@@ -93,7 +94,6 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String EXPORT_TO_FILE_ERROR = "Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf";
 
     private final Config neo4jConfig;
-    private final WebURLAccessRule webAccessRule;
     private final Log log;
     private final DatabaseManagementService databaseManagementService;
 
@@ -113,8 +113,7 @@ public class ApocConfig extends LifecycleAdapter {
 
     public ApocConfig(Config neo4jConfig, LogService log, GlobalProcedures globalProceduresRegistry, DatabaseManagementService databaseManagementService) {
         this.neo4jConfig = neo4jConfig;
-        this.blockedIpRanges = neo4jConfig.get(GraphDatabaseInternalSettings.cypher_ip_blocklist);
-        this.webAccessRule = new WebURLAccessRule();
+        this.blockedIpRanges = neo4jConfig.get(Neo4jSettings.cypher_ip_blocklist);
         this.log = log.getInternalLog(ApocConfig.class);
         this.databaseManagementService = databaseManagementService;
         theInstance = this;
@@ -127,7 +126,6 @@ public class ApocConfig extends LifecycleAdapter {
     // use only for unit tests
     public ApocConfig() {
         this.neo4jConfig = null;
-        this.webAccessRule = new WebURLAccessRule();
         this.log = NullLog.getInstance();
         this.databaseManagementService = null;
         theInstance = this;
@@ -269,9 +267,23 @@ public class ApocConfig extends LifecycleAdapter {
         }
     }
 
+    private void checkNotBlocked( URL url, List<IPAddressString> blockedIpRanges ) throws Exception
+    {
+        InetAddress inetAddress = InetAddress.getByName( url.getHost() );
+
+        for ( var blockedIpRange : blockedIpRanges )
+        {
+            if ( blockedIpRange.contains( new IPAddressString( inetAddress.getHostAddress() ) ) )
+            {
+                throw new URLAccessValidationError( "access to " + inetAddress + " is blocked via the configuration property "
+                                                    + Neo4jSettings.cypher_ip_blocklist.name() );
+            }
+        }
+    }
+
     private void checkAllowedUrl(String url) throws IOException {
         try {
-            webAccessRule.checkNotBlocked(new URL(url), blockedIpRanges);
+            checkNotBlocked(new URL(url), blockedIpRanges);
         } catch (Exception e) {
             throw new IOException(e);
         }

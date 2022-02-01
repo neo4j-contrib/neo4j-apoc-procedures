@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.Neo4jSettings;
 import apoc.util.CompressionAlgo;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
@@ -11,7 +12,6 @@ import org.mockserver.client.server.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 
-import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -60,7 +60,7 @@ public class LoadJsonTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseInternalSettings.cypher_ip_blocklist, List.of(new IPAddressString("127.168.0.0/8")));;
+            .withSetting(Neo4jSettings.cypher_ip_blocklist, List.of(new IPAddressString("127.168.0.0/8")));
 //            .withSetting(ApocSettings.apoc_import_file_enabled, true)
 //            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false);
 
@@ -173,13 +173,12 @@ public class LoadJsonTest {
                 });
     }
     @Test public void testLoadJsonArrayPathRoot() throws Exception {
-		String url = "/Users/ncordon/neo4j/neo4j-apoc-procedures/core/src/test/resources/map.json";
-		testCall(db, "CALL apoc.load.jsonArray($url,'$')",map("url",url), // 'file:map.json' YIELD value RETURN value
-                (row) -> {
-                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
-                });
+        URL url = ClassLoader.getSystemResource("map.json");
+        testCall(db, "CALL apoc.load.jsonArray($url,'$')",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
+                 (row) -> {
+                     assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
+                 });
     }
-
     @Test @Ignore public void testLoadJsonGraphCommons() throws Exception {
 		String url = "https://graphcommons.com/graphs/8da5327d-7829-4dfe-b60b-4c0bda956b2a.json";
 		testCall(db, "CALL apoc.load.json($url)",map("url", url), // 'file:map.json' YIELD value RETURN value
