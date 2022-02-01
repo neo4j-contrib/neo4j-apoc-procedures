@@ -15,7 +15,6 @@ import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.config.Setting;
-import org.neo4j.graphdb.security.URLAccessValidationError;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
@@ -25,6 +24,7 @@ import org.neo4j.logging.internal.LogService;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.ZoneId;
@@ -113,7 +113,7 @@ public class ApocConfig extends LifecycleAdapter {
 
     public ApocConfig(Config neo4jConfig, LogService log, GlobalProcedures globalProceduresRegistry, DatabaseManagementService databaseManagementService) {
         this.neo4jConfig = neo4jConfig;
-        this.blockedIpRanges = neo4jConfig.get(Neo4jSettings.cypher_ip_blocklist);
+        this.blockedIpRanges = neo4jConfig.get(ApocSettings.cypher_ip_blocklist);
         this.log = log.getInternalLog(ApocConfig.class);
         this.databaseManagementService = databaseManagementService;
         theInstance = this;
@@ -267,30 +267,33 @@ public class ApocConfig extends LifecycleAdapter {
         }
     }
 
-    private void checkNotBlocked( URL url, List<IPAddressString> blockedIpRanges ) throws Exception
-    {
-        InetAddress inetAddress = InetAddress.getByName( url.getHost() );
-
-        for ( var blockedIpRange : blockedIpRanges )
-        {
-            if ( blockedIpRange.contains( new IPAddressString( inetAddress.getHostAddress() ) ) )
-            {
-                throw new URLAccessValidationError( "access to " + inetAddress + " is blocked via the configuration property "
-                                                    + Neo4jSettings.cypher_ip_blocklist.name() );
-            }
-        }
-    }
-
+    /*
+        TODO
+        This needs to be cleaned up in 5.0
+        WebURLAccessRule was added in the database in 4.4.5, so it would
+        break backwards compatibility with 4.4.xx previous versions
+    */
     private void checkAllowedUrl(String url) throws IOException {
         try {
-            checkNotBlocked(new URL(url), blockedIpRanges);
-        } catch (Exception e) {
+            if (blockedIpRanges != null && !blockedIpRanges.isEmpty()) {
+                URL parsedUrl = new URL(url);
+                InetAddress inetAddress = InetAddress.getByName(parsedUrl.getHost());
+
+                for (var blockedIpRange : blockedIpRanges)
+                {
+                    if (blockedIpRange.contains(new IPAddressString(inetAddress.getHostAddress())))
+                    {
+                        throw new IOException("access to " + inetAddress + " is blocked via the configuration property "
+                                               + ApocSettings.cypher_ip_blocklist.name());
+                    }
+                }
+            }
+        } catch (MalformedURLException e) {
             throw new IOException(e);
         }
     }
 
-    public void checkReadAllowed(String url) throws IOException
-    {
+    public void checkReadAllowed(String url) throws IOException {
         if (isFile(url)) {
             isImportFileEnabled();
         } else {

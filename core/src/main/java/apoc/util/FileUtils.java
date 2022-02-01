@@ -44,7 +44,6 @@ public class FileUtils {
         http(true, null),
         https(true, null),
         ftp(true, null),
-        ftps(true, null),
         s3(Util.classExists("com.amazonaws.services.s3.AmazonS3"),
                 Util.createInstanceOrNull("apoc.util.s3.S3UrlStreamHandlerFactory")),
         gs(Util.classExists("com.google.cloud.storage.Storage"),
@@ -69,7 +68,6 @@ public class FileUtils {
                 case hdfs:
                     return FileUtils.openHdfsInputStream(new URL(urlAddress));
                 case ftp:
-                case ftps:
                 case http:
                 case https:
                 case gs:

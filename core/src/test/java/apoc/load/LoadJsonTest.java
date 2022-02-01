@@ -1,6 +1,6 @@
 package apoc.load;
 
-import apoc.Neo4jSettings;
+import apoc.ApocSettings;
 import apoc.util.CompressionAlgo;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
@@ -60,7 +60,7 @@ public class LoadJsonTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(Neo4jSettings.cypher_ip_blocklist, List.of(new IPAddressString("127.168.0.0/8")));
+            .withSetting(ApocSettings.cypher_ip_blocklist, List.of(new IPAddressString("127.168.0.0/8")));
 //            .withSetting(ApocSettings.apoc_import_file_enabled, true)
 //            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false);
 
