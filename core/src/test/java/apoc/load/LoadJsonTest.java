@@ -173,11 +173,11 @@ public class LoadJsonTest {
                 });
     }
     @Test public void testLoadJsonArrayPathRoot() throws Exception {
-        URL url = ClassLoader.getSystemResource("map.json");
-        testCall(db, "CALL apoc.load.jsonArray($url,'$')",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
-                 (row) -> {
-                     assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
-                 });
+		URL url = ClassLoader.getSystemResource("map.json");
+		testCall(db, "CALL apoc.load.jsonArray($url,'$')",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
+                (row) -> {
+                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
+                });
     }
     @Test @Ignore public void testLoadJsonGraphCommons() throws Exception {
 		String url = "https://graphcommons.com/graphs/8da5327d-7829-4dfe-b60b-4c0bda956b2a.json";
