@@ -66,6 +66,7 @@ public class FileUtils {
                     return FileUtils.openS3InputStream(new URL(urlAddress));
                 case hdfs:
                     return FileUtils.openHdfsInputStream(new URL(urlAddress));
+                case ftp:
                 case http:
                 case https:
                 case gs:
