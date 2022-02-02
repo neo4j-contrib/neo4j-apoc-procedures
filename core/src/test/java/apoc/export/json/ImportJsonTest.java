@@ -30,6 +30,7 @@ import org.neo4j.values.storable.Values;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -63,11 +64,20 @@ public class ImportJsonTest {
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, ImportJson.class, Schemas.class, Utils.class);
     }
+    
+    @Test
+    public void shouldImportAllJsonWithoutImportId() {
+        shouldImportAllCommon(map("cleanup", true), 8, false, 0L);
+    }
 
     @Test
     public void shouldImportAllJson() throws Exception {
+        shouldImportAllCommon(Collections.emptyMap(), 9, true, 1L);
+    }
+
+    private void shouldImportAllCommon(Map<String, Object> config, int expectedPropSize, boolean hasImportId, long relCount) {
         db.executeTransactionally("CREATE CONSTRAINT ON (n:User) assert n.neo4jImportId IS UNIQUE");
-        
+
         // given
         String filename = "all.json";
 
