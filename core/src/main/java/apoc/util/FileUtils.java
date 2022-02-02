@@ -38,10 +38,11 @@ public class FileUtils {
     static final boolean GCS_ENABLED = Util.classExists("com.google.cloud.storage.Storage");
     static final String HDFS_PROTOCOL = "hdfs";
     static final boolean HDFS_ENABLED = Util.classExists("org.apache.hadoop.fs.FileSystem");
+    static final String FTP_PROTOCOL = "ftp";
     public static final Pattern HDFS_PATTERN = Pattern.compile("^(hdfs:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
     public static final Pattern S3_PATTERN = Pattern.compile("^(s3:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
 
-    private static final List<String> NON_FILE_PROTOCOLS = Arrays.asList(HTTP_PROTOCOL, S3_PROTOCOL, GCS_PROTOCOL, HDFS_PROTOCOL);
+    private static final List<String> NON_FILE_PROTOCOLS = Arrays.asList(HTTP_PROTOCOL, S3_PROTOCOL, GCS_PROTOCOL, HDFS_PROTOCOL, FTP_PROTOCOL);
 
     public static CountingReader readerFor(String fileName) throws IOException {
         return readerFor(fileName, null, null);
