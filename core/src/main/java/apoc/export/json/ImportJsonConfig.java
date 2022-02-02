@@ -17,6 +17,8 @@ public class ImportJsonConfig extends CompressionConfig {
     private final int txBatchSize;
 
     private final String importIdName;
+    
+    private final boolean cleanup;
 
     public ImportJsonConfig(Map<String, Object> config) {
         super(config);
@@ -26,6 +28,7 @@ public class ImportJsonConfig extends CompressionConfig {
         this.unwindBatchSize = Util.toInteger(config.getOrDefault("unwindBatchSize", 5000));
         this.txBatchSize = Util.toInteger(config.getOrDefault("txBatchSize", 5000));
         this.importIdName = (String) config.getOrDefault("importIdName", "neo4jImportId");
+        this.cleanup = Util.toBoolean(config.get("cleanup"));
     }
 
     public String typeForNode(Collection<String> labels, String property) {
@@ -50,5 +53,9 @@ public class ImportJsonConfig extends CompressionConfig {
 
     public String getImportIdName() {
         return importIdName;
+    }
+
+    public boolean isCleanup() {
+        return cleanup;
     }
 }
