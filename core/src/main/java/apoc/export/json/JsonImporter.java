@@ -32,7 +32,7 @@ import java.util.stream.StreamSupport;
 public class JsonImporter implements Closeable {
     private static final String UNWIND = "UNWIND $rows AS row ";
     private static final String CREATE_NODE = UNWIND +
-            "CREATE (n%s {%s: row.id}) SET n += row.properties";
+            "CREATE (n%s {%s}) SET n += row.properties";
     private static final String CREATE_RELS = UNWIND +
             "MATCH (s%s {%s: row.start.id}) " +
             "MATCH (e%s {%2$s: row.end.id}) " +
@@ -306,7 +306,10 @@ public class JsonImporter implements Closeable {
         String query;
         switch (type) {
             case "node":
-                query = String.format(CREATE_NODE, getLabelString(lastLabels), importJsonConfig.getImportIdName());
+                final String importId = importJsonConfig.isCleanup() 
+                        ? StringUtils.EMPTY
+                        : importJsonConfig.getImportIdName() + ": row.id";
+                query = String.format(CREATE_NODE, getLabelString(lastLabels), importId);
                 break;
             case "relationship":
                 String rel = (String) lastRelTypes.get("label");
