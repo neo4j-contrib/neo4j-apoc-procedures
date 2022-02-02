@@ -59,7 +59,7 @@ public class PeriodicUtils {
             GraphDatabaseService db, TerminationGuard terminationGuard, Log log, Pools pools,
             int batchsize, boolean parallel, boolean iterateList, long retries,
             Iterator<Map<String, Object>> iterator, BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer,
-            int concurrency, int failedParams) {
+            int concurrency, int failedParams, String periodicId) {
 
         ExecutorService pool = parallel ? pools.getDefaultExecutorService() : pools.getSingleExecutorService();
         List<Future<Long>> futures = new ArrayList<>(concurrency);
@@ -73,7 +73,7 @@ public class PeriodicUtils {
                 // we have capacity, add a new Future to the list
                 activeFutures.incrementAndGet();
 
-                if (log.isDebugEnabled()) log.debug("execute in batch no %d batch size ", batchsize);
+                if (log.isDebugEnabled()) log.debug("Execute, in periodic iteration with id %s, no %d batch size ", periodicId, batchsize);
                 List<Map<String,Object>> batch = Util.take(iterator, batchsize);
                 final long currentBatchSize = batch.size();
                 Periodic.ExecuteBatch executeBatch =
@@ -93,6 +93,9 @@ public class PeriodicUtils {
                             activeFutures.decrementAndGet();
                         }));
                 collector.incrementCount(currentBatchSize);
+                if (log.isDebugEnabled()) {
+                    log.debug("Processed in periodic iteration with id %s, %d iterations of %d total", periodicId, batchsize, collector.getCount());
+                }
             } else {
                 // we can't block until the counter decrease as we might miss a cancellation, so
                 // let this thread be preempted for a bit before we check for cancellation or
@@ -109,6 +112,9 @@ public class PeriodicUtils {
 
         Util.logErrors("Error during iterate.commit:", collector.getBatchErrors(), log);
         Util.logErrors("Error during iterate.execute:", collector.getOperationErrors(), log);
+        if (log.isDebugEnabled()) {
+            log.debug("Terminated periodic iteration with id %s with %d executions", periodicId, collector.getCount());
+        }
         return Stream.of(collector.getResult());
     }
 }
