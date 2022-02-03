@@ -277,7 +277,6 @@ public class Periodic {
             boolean iterateList = prepared.other();
             String periodicId = UUID.randomUUID().toString();
             log.info("Starting periodic iterate from `%s` operation using iteration `%s` in separate thread with id: `%s`", cypherIterate,cypherAction, periodicId);
-            log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
             return PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
                     db, terminationGuard, log, pools,
                     (int)batchSize, parallel, iterateList, retries, result,

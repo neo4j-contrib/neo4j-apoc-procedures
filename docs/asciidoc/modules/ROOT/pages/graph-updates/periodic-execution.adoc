@@ -48,47 +48,26 @@ CALL apoc.periodic.iterate('match (p:TestLog) return p', 'SET p.foo =p.bar REMOV
 we receive the logs, as follows:
 [source]
 ----
-2021-12-20 16:20:32.382+0000 INFO  Starting periodic iterate from `match (p:TestLog) return p` operation using iteration `SET p.foo =p.bar REMOVE p.bar` in separate thread with id: `0ff22318-ff31-4485-ad75-d873a689edfb`
-2021-12-20 16:20:32.382+0000 INFO  starting batching from `match (p:TestLog) return p` operation using iteration `SET p.foo =p.bar REMOVE p.bar` in separate thread
-2021-12-20 16:20:32.383+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.401+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 10 total
-2021-12-20 16:20:32.401+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.402+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 20 total
-2021-12-20 16:20:32.402+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.403+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 30 total
-2021-12-20 16:20:32.403+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.404+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 40 total
-2021-12-20 16:20:32.404+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.405+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 50 total
-2021-12-20 16:20:32.405+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.406+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 60 total
-2021-12-20 16:20:32.406+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.407+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 70 total
-2021-12-20 16:20:32.407+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.410+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 80 total
-2021-12-20 16:20:32.410+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.411+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 90 total
-2021-12-20 16:20:32.412+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.419+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 100 total
-2021-12-20 16:20:32.419+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.428+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 110 total
-2021-12-20 16:20:32.428+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.429+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 120 total
-2021-12-20 16:20:32.429+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.430+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 130 total
-2021-12-20 16:20:32.430+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.431+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 140 total
-2021-12-20 16:20:32.431+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.431+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 150 total
-2021-12-20 16:20:32.431+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.432+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 160 total
-2021-12-20 16:20:32.432+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.433+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 170 total
-2021-12-20 16:20:32.433+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.433+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 180 total
-2021-12-20 16:20:32.434+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.434+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 190 total
-2021-12-20 16:20:32.434+0000 DEBUG Execute, in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, no 10 batch size 
-2021-12-20 16:20:32.436+0000 DEBUG Processed in periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb, 10 iterations of 200 total
-2021-12-20 16:20:32.588+0000 DEBUG Terminated periodic iteration with id 0ff22318-ff31-4485-ad75-d873a689edfb with 200 executions
+2020-11-27 09:03:44.279+0000 INFO  Starting periodic iterate from `match (p:TestLog) return p` operation using iteration `SET p.foo =p.bar REMOVE p.bar` in separate thread with id: `fc8ff303-bfdd-49f0-a724-603f03b0da45`
+2020-11-27 09:03:44.279+0000 DEBUG Execute, in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, no 10 batch size
+2020-11-27 09:03:44.280+0000 DEBUG Processed in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, 10 iterations of 10 total
+2020-11-27 09:03:44.280+0000 DEBUG Execute, in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, no 10 batch size
+2020-11-27 09:03:44.280+0000 DEBUG Processed in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, 10 iterations of 20 total
+2020-11-27 09:03:44.280+0000 DEBUG Execute, in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, no 10 batch size
+2020-11-27 09:03:44.294+0000 DEBUG Processed in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, 10 iterations of 30 total
+2020-11-27 09:03:44.294+0000 DEBUG Execute, in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, no 10 batch size
+2020-11-27 09:03:44.295+0000 DEBUG Processed in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, 10 iterations of 40 total
+2020-11-27 09:03:44.295+0000 DEBUG Execute, in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, no 10 batch size
+2020-11-27 09:03:44.295+0000 DEBUG Processed in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, 10 iterations of 50 total
+2020-11-27 09:03:44.297+0000 DEBUG Execute, in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, no 10 batch size
+2020-11-27 09:03:44.298+0000 DEBUG Processed in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, 10 iterations of 60 total
+2020-11-27 09:03:44.298+0000 DEBUG Execute, in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, no 10 batch size
+2020-11-27 09:03:44.298+0000 DEBUG Processed in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, 10 iterations of 70 total
+2020-11-27 09:03:44.298+0000 DEBUG Execute, in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, no 10 batch size
+2020-11-27 09:03:44.298+0000 DEBUG Processed in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, 10 iterations of 80 total
+2020-11-27 09:03:44.298+0000 DEBUG Execute, in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, no 10 batch size
+2020-11-27 09:03:44.299+0000 DEBUG Processed in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, 10 iterations of 90 total
+2020-11-27 09:03:44.299+0000 DEBUG Execute, in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, no 10 batch size
+2020-11-27 09:03:44.300+0000 DEBUG Processed in periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45, 10 iterations of 100 total
+2020-11-27 09:03:44.512+0000 DEBUG Terminated periodic iterate with id fc8ff303-bfdd-49f0-a724-603f03b0da45 with 100 executions
 ----
