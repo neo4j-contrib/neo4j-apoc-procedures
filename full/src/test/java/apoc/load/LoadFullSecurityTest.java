@@ -21,6 +21,7 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -56,7 +57,7 @@ public class LoadFullSecurityTest {
     }
 
     private static final Map<String, Class<?>> ALLOWED_EXCEPTIONS = Map.of(
-            "xls", InvalidFormatException.class);
+            "xls", IOException.class);
 
     private static final Map<String, List<String>> APOC_PROCEDURE_WITH_ARGUMENTS = Map.of(
             "xls", List.of("($fileName, '', {})"),
