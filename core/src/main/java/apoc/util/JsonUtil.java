@@ -79,23 +79,25 @@ public class JsonUtil {
     }
     
     public static Stream<Object> loadJson(String url, Map<String,Object> headers, String payload) {
-        return loadJson(url,headers,payload,"", true);
+        return loadJson(url,headers,payload,"", true, null, null);
     }
     
-    private static Stream<Object> loadJson(String url, Map<String,Object> headers, String payload, String path, boolean failOnError) {
-        return loadJson(url, headers, payload, path, failOnError, null);
+    public static Stream<Object> loadJson(Object urlOrBinary, Map<String,Object> headers, String payload, String path, boolean failOnError, List<String> options) {
+        return loadJson(urlOrBinary, headers, payload, path, failOnError, null, options);
     }
-
-    public static Stream<Object> loadJson(String url, Map<String,Object> headers, String payload, String path, boolean failOnError, List<String> options) {
+    
+    public static Stream<Object> loadJson(Object urlOrBinary, Map<String,Object> headers, String payload, String path, boolean failOnError, String compressionAlgo, List<String> options) {
         try {
-            url = Util.getLoadUrlByConfigFile("json",url, "url").orElse(url);
-            InputStream input = FileUtils.inputStreamFor(url, headers, payload);
+            if (urlOrBinary instanceof String) {
+                String url = (String) urlOrBinary;
+                urlOrBinary = Util.getLoadUrlByConfigFile("json", url, "url").orElse(url);
+            }
+            InputStream input = FileUtils.inputStreamFor(urlOrBinary, headers, payload, compressionAlgo);
             JsonParser parser = OBJECT_MAPPER.getFactory().createParser(input);
             MappingIterator<Object> it = OBJECT_MAPPER.readValues(parser, Object.class);
             Stream<Object> stream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(it, 0), false);
-            return StringUtils.isBlank(path) ? stream : stream.map((value) -> JsonPath.parse(value, getJsonPathConfig(options)).read(path));
+            return StringUtils.isBlank(path) ? stream  : stream.map((value) -> JsonPath.parse(value, getJsonPathConfig(options)).read(path));
         } catch (IOException e) {
-            String u = Util.cleanUrl(url);
             if(!failOnError)
                 return Stream.of();
             else
@@ -104,7 +106,7 @@ public class JsonUtil {
     }
 
     public static Stream<Object> loadJson(String url) {
-        return loadJson(url,null,null,"", true);
+        return loadJson(url,null,null,"", true, null, null);
     }
 
     public static <T> T parse(String json, String path, Class<T> type) {

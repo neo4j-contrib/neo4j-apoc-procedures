@@ -188,3 +188,44 @@ RETURN;
 | (:Person {name: "Joel Silver", born: "1952"})-[:PRODUCED]->(:Movie {tagline: "Welcome to the Real World", title: "The Matrix", released: "1999"})
 | (:Person {name: "Lana Wachowski", born: "1965"})-[:DIRECTED]->(:Movie {tagline: "Welcome to the Real World", title: "The Matrix", released: "1999"})
 |===
+
+== Binary file
+
+You can also import a file from a binary `byte[]` (not compressed) or a compressed file (allowed compression algos are: `GZIP`, `BZIP2`, `DEFLATE`, `BLOCK_LZ4`, `FRAMED_SNAPPY`).
+
+[source,cypher]
+----
+CALL apoc.import.graphml(`binaryGzipByteArray`,  {compression: 'GZIP'})
+----
+
+or:
+
+[source,cypher]
+----
+CALL apoc.import.graphml(`binaryFileNotCompressed`,  {compression: 'NONE'})
+----
+
+For example, this one works well with xref::overview/apoc.util/apoc.util.compress.adoc[apoc.util.compress] function:
+
+[source,cypher]
+----
+WITH apoc.util.compress('<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+<graph id="G" edgedefault="directed">
+<node id="n0"> <data key="labels">:FOO</data><data key="name">foo</data> </node>
+<node id="n1"> <data key="labels">:BAR</data><data key="name">bar</data> <data key="kids">[a,b,c]</data> </node>
+<edge id="e0" source="n0" target="n1"> <data key="label">:EDGE_LABEL</data> <data key="name">foo</data> </edge>
+</graph>
+</graphml>', {compression: 'DEFLATE'}) as xmlCompressed
+CALL apoc.import.graphml(xmlCompressed,  {compression: 'DEFLATE'})
+YIELD source, format, nodes, relationships, properties
+RETURN source, format, nodes, relationships, properties
+----
+
+
+.Results
+[opts=header]
+|===
+| source    | format    | nodes | relationships | properties
+| "binary"  | "graphml" | 2     | 1             | 7
+|===

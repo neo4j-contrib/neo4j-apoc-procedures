@@ -103,6 +103,7 @@ public class Util {
     public static final String NODE_COUNT = "MATCH (n) RETURN count(*) as result";
     public static final String REL_COUNT = "MATCH ()-->() RETURN count(*) as result";
     public static final String COMPILED = "interpreted"; // todo handle enterprise properly
+    public static final String ERROR_BYTES_OR_STRING = "Only byte[] or url String allowed";
 
     public static String labelString(List<String> labelNames) {
         return labelNames.stream().map(Util::quote).collect(Collectors.joining(":"));
@@ -365,11 +366,22 @@ public class Util {
     }
 
     public static CountingInputStream openInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
-        if (urlAddress.contains("!") && (urlAddress.contains(".zip") || urlAddress.contains(".tar") || urlAddress.contains(".tgz"))) {
-            return getStreamCompressedFile(urlAddress, headers, payload);
+        return openInputStream(urlAddress, headers, payload, null);
+    }
+
+    public static CountingInputStream openInputStream(Object input, Map<String, Object> headers, String payload, String compressionAlgo) throws IOException {
+        if (input instanceof String) {
+            String urlAddress = (String) input;
+            if (urlAddress.contains("!") && (urlAddress.contains(".zip") || urlAddress.contains(".tar") || urlAddress.contains(".tgz"))) {
+                return getStreamCompressedFile(urlAddress, headers, payload);
+            }
+            StreamConnection sc = getStreamConnection(urlAddress, headers, payload);
+            return sc.toCountingInputStream();
+        } else if (input instanceof byte[]) {
+            return FileUtils.getInputStreamFromBinary((byte[]) input, compressionAlgo);
+        } else {
+            throw new RuntimeException(ERROR_BYTES_OR_STRING);
         }
-        StreamConnection sc = getStreamConnection(urlAddress, headers, payload);
-        return sc.toCountingInputStream();
     }
 
     private static CountingInputStream getStreamCompressedFile(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
