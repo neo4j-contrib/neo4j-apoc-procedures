@@ -13,6 +13,7 @@ import org.neo4j.procedure.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -71,13 +72,14 @@ public class PeriodicExtended {
                 if (!Util.toBoolean(value)) return allResults;
             }
 
-            log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
+            String periodicId = UUID.randomUUID().toString();
+            log.info("Starting batched operation using iteration `%s` in separate thread with id: `%s`", cypherIterate, periodicId);
             try (Result result = tx.execute(cypherIterate)) {
                 Stream<BatchAndTotalResult> oneResult =
                     PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
                             db, terminationGuard, log, pools,
                             (int) batchSize, false, false, 0,
-                            result, (tx, params) -> tx.execute(cypherAction, params).getQueryStatistics(), 50, -1);
+                            result, (tx, params) -> tx.execute(cypherAction, params).getQueryStatistics(), 50, -1, periodicId);
                 final Object loopParam = value;
                 allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
             }
@@ -114,12 +116,13 @@ public class PeriodicExtended {
                 "cypherAction", cypherAction);
         validateQueries(fieldStatement);
 
-        log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
+        String periodicId = UUID.randomUUID().toString();
+        log.info("Starting batched operation using iteration `%s` in separate thread with id: `%s`", cypherIterate, periodicId);
         try (Result result = tx.execute(cypherIterate)) {
             return PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
                     db, terminationGuard, log, pools,
                     (int)batchSize, false, false, 0, result,
-                    (tx, p) -> tx.execute(cypherAction, p).getQueryStatistics(), 50, -1);
+                    (tx, p) -> tx.execute(cypherAction, p).getQueryStatistics(), 50, -1, periodicId);
         }
     }
 
