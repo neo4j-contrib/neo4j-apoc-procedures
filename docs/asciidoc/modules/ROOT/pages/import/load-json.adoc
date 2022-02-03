@@ -50,6 +50,9 @@ It supports the following config parameter:
 |===
 | name | type | default | description
 | failOnError | boolean | true | fail if error encountered while parsing JSON
+| binary | `Enum[NONE, BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]` | `null` | If not null, allow to take binary data instead of a file name/url as first parameter.
+Similar to xref::partial$usage/apoc.import.json.adoc[Binary file example]
+| compression | `Enum[NONE, BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]` | `null` | Allow taking binary data, either not compressed (value: `NONE`) or compressed (other values). Similar to xref::overview/apoc.load/apoc.load.json.adoc#_binary_file[Binary file example]
 |===
 
 [[load-json-available-procedures-apoc.load.jsonParams]]

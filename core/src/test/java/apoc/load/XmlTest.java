@@ -1,6 +1,7 @@
 package apoc.load;
 
 import apoc.ApocSettings;
+import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
 import apoc.xml.XmlTestUtils;
 import org.apache.commons.io.FileUtils;
@@ -24,12 +25,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static apoc.util.BinaryTestUtil.fileToBinary;
+import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 import static org.neo4j.internal.helpers.collection.MapUtil.map;
 
 public class XmlTest {
+    public static final String FILE_SHORTENED = "src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5-shortened.xml";
+    
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_import_file_enabled, true)
@@ -62,19 +67,29 @@ public class XmlTest {
     @Test
     public void testMixedContent() {
         testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/mixedcontent.xml") + "')", //  YIELD value RETURN value
-                (row) -> assertEquals(map("_type", "root",
-                        "_children", asList(
-                                map("_type", "text",
-                                        "_children", asList(
-                                                map("_type", "mixed"),
-                                                "text0",
-                                                "text1"
-                                        )),
-                                map("_type", "text",
-                                        "_text", "text as cdata")
-                        )
-                        )
-                        , row.get("value")));
+                this::commonAssertionsMixedContent);
+    }
+
+    @Test
+    public void testMixedContentWithBinary()  {
+        testCall(db, "CALL apoc.load.xml($data, null, $config)",
+                map("data", fileToBinary(new File("src/test/resources/xml/mixedcontent.xml"), CompressionAlgo.BLOCK_LZ4.name()),
+                        "config", map(COMPRESSION, CompressionAlgo.BLOCK_LZ4.name())),
+                this::commonAssertionsMixedContent);
+    }
+
+    private void commonAssertionsMixedContent(Map<String, Object> row) {
+        assertEquals(map("_type", "root",
+                "_children", asList(
+                        map("_type", "text",
+                                "_children", asList(
+                                        map("_type", "mixed"),
+                                        "text0",
+                                        "text1"
+                                )),
+                        map("_type", "text",
+                                "_text", "text as cdata")
+                )), row.get("value"));
     }
 
     @Test
@@ -229,21 +244,36 @@ public class XmlTest {
         thrown.expect(QueryExecutionException.class);
         thrown.expectMessage("usage of `createNextWordRelationships` is no longer allowed. Use `{relType:'NEXT_WORD', label:'XmlWord'}` instead.");
 
-        db.executeTransactionally("call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5-shortened.xml', " +
+        db.executeTransactionally("call apoc.xml.import('file:" + FILE_SHORTENED + "', " +
                 "{createNextWordRelationships: true, filterLeadingWhitespace: true}) yield node");
     }
 
     @Test
+    public void testLoadXmlWithNextWordRelsWithBinaryFile() {
+        final String query = "CALL apoc.import.xml($data, $config) YIELD node";
+        final String compression = CompressionAlgo.GZIP.name();
+        final Map<String, Object> config = Map.of("data", fileToBinary(new File(FILE_SHORTENED), compression),
+                "config", Map.of("compression", compression, 
+                        "relType", "NEXT_WORD", "label", "XmlWord", "filterLeadingWhitespace", true)
+        );
+        commonAssertionsWithNextWordRels(query, config);
+    }
+
+    @Test
     public void testLoadXmlWithNextWordRelsWithNewConfigOptions() {
-        testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5-shortened.xml', " +
-                        "{relType: 'NEXT_WORD', label: 'XmlWord', filterLeadingWhitespace: true}) yield node",
-                row -> assertNotNull(row.get("node")));
+        final String query = "call apoc.xml.import('file:" + FILE_SHORTENED + "', " +
+                "{relType: 'NEXT_WORD', label: 'XmlWord', filterLeadingWhitespace: true}) yield node";
+        commonAssertionsWithNextWordRels(query, Collections.emptyMap());
+    }
+
+    private void commonAssertionsWithNextWordRels(String query, Map<String, Object> config) {
+        testCall(db, query, config, row -> assertNotNull(row.get("node")));
         testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
-            final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));
-            assertEquals(2L, (long)resultMap.get("XmlProcessingInstruction"));
-            assertEquals(1L, (long)resultMap.get("XmlDocument"));
-            assertEquals(369L, (long)resultMap.get("XmlWord"));
-            assertEquals(158L, (long)resultMap.get("XmlTag"));
+            final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String) o.get("label"), o -> (Long) o.get("count")));
+            assertEquals(2L, (long) resultMap.get("XmlProcessingInstruction"));
+            assertEquals(1L, (long) resultMap.get("XmlDocument"));
+            assertEquals(369L, (long) resultMap.get("XmlWord"));
+            assertEquals(158L, (long) resultMap.get("XmlTag"));
         });
 
         // no node more than one NEXT/NEXT_SIBLING
@@ -265,7 +295,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlWithNextEntityRels() {
-        testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5-shortened.xml', " +
+        testCall(db, "call apoc.xml.import('file:" + FILE_SHORTENED + "', " +
                         "{connectCharacters: true, filterLeadingWhitespace: true}) yield node",
                 row -> assertNotNull(row.get("node")));
         testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {

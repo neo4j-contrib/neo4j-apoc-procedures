@@ -14,4 +14,6 @@ The procedure support the following config parameters:
 | ignore | List<String> | [] | which columns to ignore
 | nullValues | List<String> | [] | which values to treat as null, e.g. `['na',false]`
 | mapping | Map | {} | per field mapping, entry key is field name, .e.g `{years:{....}` see below
+| compression | `Enum[NONE, BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]` | `null` | Allow taking binary data, either not compressed (value: `NONE`) or compressed (other values)
+See the xref::overview/apoc.load/apoc.load.csv.adoc#_binary_file[Binary file example]
 |===

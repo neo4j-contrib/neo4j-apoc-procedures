@@ -1,6 +1,7 @@
 package apoc.export.json;
 
 import apoc.ApocSettings;
+import apoc.util.CompressionAlgo;
 import apoc.schema.Schemas;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
@@ -8,6 +9,11 @@ import apoc.util.Util;
 import com.google.common.collect.Iterables;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import apoc.util.Util;
+import com.google.common.collect.Iterables;
+import junit.framework.TestCase;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import apoc.util.Utils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -15,7 +21,6 @@ import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.spatial.Point;
 import org.neo4j.test.rule.DbmsRule;
@@ -30,14 +35,12 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR_MSG;
+import static apoc.util.BinaryTestUtil.fileToBinary;
+import static apoc.util.CompressionConfig.COMPRESSION;
+import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR_MSG;
 import static apoc.util.MapUtil.map;
-import static java.lang.String.format;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.neo4j.test.assertion.Assert.assertEventually;
 
 
 public class ImportJsonTest {
@@ -57,7 +60,7 @@ public class ImportJsonTest {
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, ImportJson.class, Schemas.class);
+        TestUtil.registerProcedure(db, ImportJson.class, Utils.class);
     }
 
     @Test
@@ -70,6 +73,8 @@ public class ImportJsonTest {
         // when
         TestUtil.testCall(db, "CALL apoc.import.json($file, null)",
                 map("file", filename),
+                (r) -> assertionsAllJsonProgressInfo(r, false)
+        );
                 (r) -> {
                     // then
                     Assert.assertEquals("all.json", r.get("file"));
@@ -281,6 +286,53 @@ public class ImportJsonTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(expectedNodes, Iterables.size(tx.getAllNodes()));
             assertEquals(expectedRels, Iterables.size(tx.getAllRelationships()));
+        }
+    }
+
+    @Test
+    public void shouldImportAllJsonFromBinary()  {
+        TestUtil.testCall(db, "CALL apoc.import.json($file, $config)",
+                map("config", map(COMPRESSION, CompressionAlgo.DEFLATE.name()),
+                        "file", fileToBinary(new File(directory, "all.json"), CompressionAlgo.DEFLATE.name())),
+                (r) -> assertionsAllJsonProgressInfo(r, true));
+
+        assertionsAllJsonDbResult();
+    }
+
+    private void assertionsAllJsonProgressInfo(Map<String, Object> r, boolean isBinary) {
+        // then
+        Assert.assertEquals(isBinary ? null : "all.json", r.get("file"));
+        Assert.assertEquals(isBinary ? "binary" : "file", r.get("source"));
+        Assert.assertEquals("json", r.get("format"));
+        Assert.assertEquals(3L, r.get("nodes"));
+        Assert.assertEquals(1L, r.get("relationships"));
+        Assert.assertEquals(15L, r.get("properties"));
+        Assert.assertEquals(4L, r.get("rows"));
+        Assert.assertEquals(true, r.get("done"));
+    }
+
+    private void assertionsAllJsonDbResult() {
+        try(Transaction tx = db.beginTx()) {
+            final long countNodes = tx.execute("MATCH (n:User) RETURN count(n) AS count")
+                    .<Long>columnAs("count")
+                    .next();
+            Assert.assertEquals(3L, countNodes);
+
+            final long countRels = tx.execute("MATCH ()-[r:KNOWS]->() RETURN count(r) AS count")
+                    .<Long>columnAs("count")
+                    .next();
+            Assert.assertEquals(1L, countRels);
+
+            final Map<String, Object> props = tx.execute("MATCH (n:User {name: 'Adam'}) RETURN n")
+                    .<Node>columnAs("n")
+                    .next()
+                    .getAllProperties();
+
+            Assert.assertEquals(9, props.size());
+            Assert.assertEquals("wgs-84", props.get("place.crs"));
+            Assert.assertEquals(33.46789D, props.get("place.latitude"));
+            Assert.assertEquals(13.1D, props.get("place.longitude"));
+            Assert.assertFalse(props.containsKey("place"));
         }
     }
 }

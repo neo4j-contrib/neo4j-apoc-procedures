@@ -46,6 +46,7 @@ This procedure supports the following config parameters:
 | name | type | default | description
 | failOnError | boolean | true | fail if error encountered while parsing XML
 | headers | Map | {} | HTTP headers to be used when querying XML document
+| compression | `Enum[NONE, BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]` | `null` | Allow taking binary data, either not compressed (value: `NONE`) or compressed (other values). Similar to xref::overview/apoc.load/apoc.load.json.adoc#_binary_file[Binary file example]
 |===
 
 [[load-xml-available-procedures-apoc.xml.parse]]

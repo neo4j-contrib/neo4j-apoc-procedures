@@ -1,24 +1,22 @@
 package apoc.load;
 
+import apoc.util.CompressionAlgo;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.mockserver.client.server.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.IOException;
+import java.io.File;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.BinaryTestUtil.fileToBinary;
+import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.convert.ConvertJsonTest.EXPECTED_AS_PATH_LIST;
 import static apoc.convert.ConvertJsonTest.EXPECTED_PATH;
 import static apoc.convert.ConvertJsonTest.EXPECTED_PATH_WITH_NULLS;
@@ -78,27 +78,32 @@ public class LoadJsonTest {
                 });
     }
 
+    @Test 
+    public void testLoadMultiJsonWithBinary() {
+        URL url = ClassLoader.getSystemResource("multi.json");
+        testResult(db, "CALL apoc.load.jsonParams($url, null, null, null, $config)",
+                map("url", fileToBinary(new File(url.getPath()), CompressionAlgo.FRAMED_SNAPPY.name()),
+                        "config", map(COMPRESSION, CompressionAlgo.FRAMED_SNAPPY.name())),
+                this::commonAssertionsLoadJsonMulti);
+    }
+
+    private void commonAssertionsLoadJsonMulti(Result result) {
+        Map<String, Object> row = result.next();
+        assertEquals(map("foo", asList(1L, 2L, 3L)), row.get("value"));
+        row = result.next();
+        assertEquals(map("bar", asList(4L, 5L, 6L)), row.get("value"));
+        assertFalse(result.hasNext());
+    }
+
     @Test public void testLoadMultiJson() throws Exception {
-		URL url = ClassLoader.getSystemResource("multi.json");
-		testResult(db, "CALL apoc.load.json($url)",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
-                (result) -> {
-                    Map<String, Object> row = result.next();
-                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
-                    row = result.next();
-                    assertEquals(map("bar",asList(4L,5L,6L)), row.get("value"));
-                    assertFalse(result.hasNext());
-                });
+        URL url = ClassLoader.getSystemResource("multi.json");
+        testResult(db, "CALL apoc.load.json($url)",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
+                this::commonAssertionsLoadJsonMulti);
     }
     @Test public void testLoadMultiJsonPaths() throws Exception {
 		URL url = ClassLoader.getSystemResource("multi.json");
 		testResult(db, "CALL apoc.load.json($url,'$')",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
-                (result) -> {
-                    Map<String, Object> row = result.next();
-                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
-                    row = result.next();
-                    assertEquals(map("bar",asList(4L,5L,6L)), row.get("value"));
-                    assertFalse(result.hasNext());
-                });
+                this::commonAssertionsLoadJsonMulti);
     }
     @Test public void testLoadJsonPath() throws Exception {
 		URL url = ClassLoader.getSystemResource("map.json");

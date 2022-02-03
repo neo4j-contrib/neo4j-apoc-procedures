@@ -7,6 +7,7 @@ import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
 import apoc.util.s3.S3UploadUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.configuration.GraphDatabaseSettings;
 
@@ -29,6 +30,7 @@ import java.util.Map;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.Util.ERROR_BYTES_OR_STRING;
 import static apoc.util.Util.readHttpInputStream;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
 
@@ -143,23 +145,33 @@ public class FileUtils {
     public static final String ACCESS_OUTSIDE_DIR_ERROR = "You're providing a directory outside the import directory " +
             "defined into `dbms.directories.import`";
 
-    public static CountingReader readerFor(String fileName) throws IOException {
-        return readerFor(fileName, null, null);
+    public static CountingReader readerFor(Object input) throws IOException {
+        return readerFor(input, null, null, CompressionAlgo.NONE.name());
     }
 
-    public static CountingReader readerFor(String fileName, Map<String, Object> headers, String payload) throws IOException {
-        return inputStreamFor(fileName, headers, payload).asReader();
+    public static CountingReader readerFor(Object input, String compressionAlgo) throws IOException {
+        return readerFor(input, null, null, compressionAlgo);
     }
 
-    public static CountingInputStream inputStreamFor(String fileName, Map<String, Object> headers, String payload) throws IOException {
-        apocConfig().checkReadAllowed(fileName);
-        if (fileName == null) return null;
-        fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
-        return Util.openInputStream(fileName,headers,payload);
+    public static CountingReader readerFor(Object input, Map<String, Object> headers, String payload, String compressionAlgo) throws IOException {
+        return inputStreamFor(input, headers, payload, compressionAlgo).asReader();
+    }
+    
+    public static CountingInputStream inputStreamFor(Object input, Map<String, Object> headers, String payload, String compressionAlgo) throws IOException {
+        if (input instanceof String) {
+            String fileName = (String) input;
+            apocConfig().checkReadAllowed(fileName);
+            fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
+            return Util.openInputStream(fileName,headers,payload);
+        } else if (input instanceof byte[]) {
+            return getInputStreamFromBinary((byte[]) input, compressionAlgo);
+        } else {
+            throw new RuntimeException(ERROR_BYTES_OR_STRING);
+        }
     }
 
     public static CountingInputStream inputStreamFor(String fileName) throws IOException {
-        return inputStreamFor(fileName, null, null);
+        return inputStreamFor(fileName, null, null, CompressionAlgo.NONE.name());
     }
 
     public static String changeFileUrlIfImportDirectoryConstrained(String urlNotEncoded) throws IOException {
@@ -344,5 +356,17 @@ public class FileUtils {
     // to exclude cases like 'testload.tar.gz?raw=true'
     private static String encodeExceptQM(String url) {
         return encodePath(url).replace("%3F", "?");
+    }
+    
+    public static CountingInputStream getInputStreamFromBinary(byte[] urlOrBinary, String compressionAlgo) {
+        return CompressionAlgo.valueOf(compressionAlgo).toInputStream(urlOrBinary);
+    }
+
+    public static CountingReader getReaderFromBinary(byte[] urlOrBinary, String compressionAlgo) {
+        try {
+            return getInputStreamFromBinary(urlOrBinary, compressionAlgo).asReader();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

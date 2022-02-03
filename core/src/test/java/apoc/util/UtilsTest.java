@@ -116,6 +116,12 @@ public class UtilsTest {
                 map("text", SIMPLE_STRING),
                 r -> assertEquals(TEST_TO_DEFLATE, encodeBase64FromBytesToString((byte[]) r.get("value")))
         );
+
+        TestUtil.testCall(db,
+                "RETURN apoc.util.compress($text, {compression: 'NONE'}) AS value",
+                map("text", SIMPLE_STRING),
+                r -> assertEquals(SIMPLE_STRING, new String((byte[]) r.get("value")))
+        );
     }
 
     @Test(expected = RuntimeException.class)
@@ -233,6 +239,12 @@ public class UtilsTest {
 
         TestUtil.testCall(db,
                 "WITH apoc.util.compress($text, {compression: 'FRAMED_SNAPPY'}) AS compressed RETURN apoc.util.decompress(compressed, {compression: 'FRAMED_SNAPPY'}) AS value",
+                map("text", COMPLEX_STRING),
+                r -> assertEquals(COMPLEX_STRING, r.get("value"))
+        );
+
+        TestUtil.testCall(db,
+                "WITH apoc.util.compress($text, {compression: 'NONE'}) AS compressed RETURN apoc.util.decompress(compressed, {compression: 'NONE'}) AS value",
                 map("text", COMPLEX_STRING),
                 r -> assertEquals(COMPLEX_STRING, r.get("value"))
         );
