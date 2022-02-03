@@ -4,7 +4,6 @@ import apoc.ApocSettings;
 import apoc.export.xls.ExportXls;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -214,7 +213,7 @@ public class ExportXlsTest {
                 assertEquals(expected, actual);
             }
             tx.commit();
-        } catch (IOException|InvalidFormatException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -226,7 +225,7 @@ public class ExportXlsTest {
             int numberOfSheets = wb.getNumberOfSheets();
             assertEquals(sheets, numberOfSheets);
 
-        } catch (IOException|InvalidFormatException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
