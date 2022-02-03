@@ -4,11 +4,7 @@
 
 
 
-<<<<<<< HEAD
-CSV files that comply with the link:https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/#import-tool-header-format/[Neo4j import tool's header format] can be imported using the `apoc.import.csv` procedure.
-=======
 CSV files that comply with the https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/#import-tool-header-format[Neo4j import tool's header format] can be imported using the `apoc.import.csv` procedure.
->>>>>>> b65133d88... Support spatial and temporal datatypes in CSV import (e.g. point, datetime)
 This procedure can be used to load small- to medium-sized data sets in an online database.
 For importing larger data sets, it is recommended to perform a batch import using the link:https://neo4j.com/docs/operations-manual/current/tools/import/[import tool], which loads data in bulk to an offline (initially empty) database.
 
@@ -96,12 +92,6 @@ CALL apoc.import.csv(
 
 The loader supports advanced features of the import tool:
 
-<<<<<<< HEAD
-* _ID spaces_ are supported, using the link:https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/#import-tool-header-format[import tool's syntax].
-* Node labels can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-header-format-nodes[`:LABEL`] field.
-* Relationship types can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-header-format-rels[`:TYPE`] field.
-=======
 * _ID spaces_ are supported, using the link:https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/#import-tool-id-spaces[import tool's syntax].
 * Node labels can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/#import-tool-header-format-nodes[`:LABEL`] field.
 * Relationship types can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/#import-tool-header-format-rels[`:TYPE`] field.
->>>>>>> b65133d88... Support spatial and temporal datatypes in CSV import (e.g. point, datetime)
