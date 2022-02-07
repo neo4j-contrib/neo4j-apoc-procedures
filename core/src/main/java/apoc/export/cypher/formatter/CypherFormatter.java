@@ -19,15 +19,15 @@ public interface CypherFormatter {
 
 	String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties);
 
-	String statementForNodeIndex(String indexType, String label, Iterable<String> keys);
+	String statementForNodeIndex(String indexType, String label, Iterable<String> keys, boolean ifNotExist);
 
-	String statementForIndexRelationship(String indexType, String type, Iterable<String> keys);
+	String statementForIndexRelationship(String indexType, String type, Iterable<String> keys, boolean ifNotExist);
 
 	String statementForNodeFullTextIndex(String name, Iterable<Label> labels, Iterable<String> keys);
 
 	String statementForRelationshipFullTextIndex(String name, Iterable<RelationshipType> types, Iterable<String> keys);
 
-	String statementForCreateConstraint(String name, String label, Iterable<String> keys);
+	String statementForCreateConstraint(String name, String label, Iterable<String> keys, boolean ifNotExist);
 
 	String statementForDropConstraint(String name);
 
