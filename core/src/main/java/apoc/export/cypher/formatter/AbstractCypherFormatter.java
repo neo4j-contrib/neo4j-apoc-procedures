@@ -31,7 +31,7 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.quote;
  */
 abstract class AbstractCypherFormatter implements CypherFormatter {
 
-	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT %s FOR (node:%s) REQUIRE (%s) %s;";
+	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT %s%s FOR (node:%s) REQUIRE (%s) %s;";
 	private static final String STATEMENT_DROP_CONSTRAINTS = "DROP CONSTRAINT %s;";
 
 	private static final String STATEMENT_NODE_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR (n:%s) ON EACH [%s];";
@@ -46,13 +46,15 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 
 	@Override
-	public String statementForNodeIndex(String indexType, String label, Iterable<String> keys) {
-		return String.format("CREATE %s INDEX FOR (n:%s) ON (%s);", indexType, Util.quote(label), getPropertiesQuoted(keys, "n."));
+	public String statementForNodeIndex(String indexType, String label, Iterable<String> keys, boolean ifNotExists) {
+		return String.format("CREATE %s INDEX%s FOR (n:%s) ON (%s);", 
+				indexType, getIfNotExists(ifNotExists), Util.quote(label), getPropertiesQuoted(keys, "n."));
 	}
 	
 	@Override
-	public String statementForIndexRelationship(String indexType, String type, Iterable<String> keys) {
-		return String.format("CREATE %s INDEX FOR ()-[rel:%s]-() ON (%s);", indexType, Util.quote(type), getPropertiesQuoted(keys, "rel."));
+	public String statementForIndexRelationship(String indexType, String type, Iterable<String> keys, boolean ifNotExists) {
+		return String.format("CREATE %s INDEX%s FOR ()-[rel:%s]-() ON (%s);", 
+				indexType, getIfNotExists(ifNotExists), Util.quote(type), getPropertiesQuoted(keys, "rel."));
 	}
 
 	@Override
@@ -80,16 +82,19 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 
 	@Override
-	public String statementForCreateConstraint(String name, String label, Iterable<String> keys) {
-
+	public String statementForCreateConstraint(String name, String label, Iterable<String> keys, boolean ifNotExists) {
 		String keysString = getPropertiesQuoted(keys, "node.");
 
-		return String.format(STATEMENT_CONSTRAINTS, Util.quote(name), Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
+		return String.format(STATEMENT_CONSTRAINTS, Util.quote(name), getIfNotExists(ifNotExists), Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
 	}
 
 	@Override
 	public String statementForDropConstraint(String name) {
 		return String.format(STATEMENT_DROP_CONSTRAINTS, Util.quote(name));
+	}
+
+	private String getIfNotExists(boolean ifNotExists) {
+		return ifNotExists ? " IF NOT EXISTS" : "";
 	}
 
 	private String getPropertiesQuoted(Iterable<String> keys, String prefix) {
