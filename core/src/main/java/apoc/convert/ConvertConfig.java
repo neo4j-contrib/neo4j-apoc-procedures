@@ -1,5 +1,7 @@
 package apoc.convert;
 
+import apoc.util.Util;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -14,8 +16,10 @@ public class ConvertConfig {
 
     private Map<String, List<String>> nodes;
     private Map<String, List<String>> rels;
+    private final boolean sortPaths;
 
     public ConvertConfig(Map<String,Object> config) {
+        this.sortPaths = Util.toBoolean(config.getOrDefault("sortPaths", true));
 
         this.nodes = (Map<String, List<String>>) config.getOrDefault("nodes", Collections.EMPTY_MAP);
         this.rels = (Map<String, List<String>>) config.getOrDefault("rels", Collections.EMPTY_MAP);
@@ -30,6 +34,10 @@ public class ConvertConfig {
 
     public Map<String, List<String>> getRels() {
         return rels;
+    }
+
+    public boolean isSortPaths() {
+        return sortPaths;
     }
 
     private void validateListProperties(List<String> list) {

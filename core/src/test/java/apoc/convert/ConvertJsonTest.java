@@ -342,6 +342,40 @@ public class ConvertJsonTest {
                     assertEquals(6, ((Map<String, Object>) innerList.get(0)).size());
                 });
     }
+    
+    @Test public void testToTreeIssue2190() {
+	    db.executeTransactionally("CREATE (root:TreeNode {name:'root'})\n" +
+                "CREATE (c0:TreeNode {name: 'c0'})\n" +
+                "CREATE (c1:TreeNode {name: 'c1'})\n" +
+                "CREATE (c2:TreeNode {name: 'c2'})\n" +
+                "CREATE (c00:TreeNode {name : 'c00'})\n" +
+                "CREATE (c01:TreeNode {name : 'c01'})\n" +
+                "CREATE (c10:TreeNode {name : 'c10'})\n" +
+                "CREATE (c100:TreeNode {name : 'c100'})\n" +
+                "CREATE (root)-[:CHILD {order: 0}]->(c0)\n" +
+                "CREATE (root)-[:CHILD {order: 1}]->(c1)\n" +
+                "CREATE (root)-[:CHILD { order: 2}]->(c2)\n" +
+                "CREATE (c0)-[:CHILD {order: 0}]->(c00)\n" +
+                "CREATE (c0)-[:CHILD {order: 1}]->(c01)\n" +
+                "CREATE (c1)-[:CHILD {order: 0}]->(c10)\n" +
+                "CREATE (c10)-[:CHILD {order: 0}]->(c100)");
+
+        testCall(db, "MATCH(root:TreeNode) WHERE root.name = \"root\"\n" +
+                        "MATCH path = (root)-[cl:CHILD*]->(c:TreeNode)\n" +
+                        "WITH path, [r IN relationships(path) | r.order] AS orders\n" +
+                        "ORDER BY orders\n" +
+                        "WITH COLLECT(path) AS paths\n" +
+                        "CALL apoc.convert.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n" +
+                        "RETURN tree",
+                (row) -> {
+                    Map tree = (Map) row.get("tree");
+                    final List<Map> child = (List<Map>) tree.get("child");
+                    final Object firstChildName = child.get(0).get("name");
+                    assertEquals("c0", firstChildName);
+                });
+                    
+	    db.executeTransactionally("MATCH (n:TreeNode) DETACH DELETE n");
+    }
 
     @Test public void testToTree() throws Exception {
         testCall(db, "CREATE p1=(m:Movie {title:'M'})<-[:ACTED_IN {role:'R1'}]-(:Actor {name:'A1'}), " +
