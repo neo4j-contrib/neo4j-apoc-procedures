@@ -105,7 +105,6 @@ dependencies {
     testCompile group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
-    compileOnly group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
 
     compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.1'
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
@@ -119,8 +118,6 @@ dependencies {
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
 
-    testCompile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
-    compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compile group: 'com.opencsv', name: 'opencsv', version: '4.6'
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
