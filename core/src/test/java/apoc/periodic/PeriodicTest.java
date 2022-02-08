@@ -20,18 +20,23 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
+import static apoc.periodic.Periodic.ERROR_DATE_BEFORE;
 import static apoc.periodic.Periodic.applyPlanner;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -42,6 +47,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.driver.internal.util.Iterables.count;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class PeriodicTest {
 
@@ -77,6 +83,67 @@ public class PeriodicTest {
         assertThat(count, equalTo(1L));
 
         testCall(db, callList, (r) -> assertEquals(true, r.get("done")));
+    }
+
+    @Test
+    public void testSubmitStatementAtTime() {
+        String callList = "CALL apoc.periodic.list()";
+        assertFalse(db.executeTransactionally(callList, Collections.emptyMap(), Result::hasNext));
+        
+        TestUtil.testFail(db, "CALL apoc.periodic.submit('submitAtTime','create (:Ajeje)', {atTime: datetime('2019')})", RuntimeException.class);
+        
+        try {
+            testCall(db, "CALL apoc.periodic.submit('errorDate','create (:ToFail)', {atTime: $time})",
+                    map("time", ZonedDateTime.now().minusDays(1)),
+                    (row) -> fail() );
+        } catch (RuntimeException e) {
+            assertTrue(e.getMessage().contains(ERROR_DATE_BEFORE));
+        }
+        
+        testCall(db, "CALL apoc.periodic.submit('submitAtTime','create (:Ajeje)', {atTime: $time})",
+                map("time", ZonedDateTime.now().plusSeconds(10)),
+                (row) -> {
+                    assertEquals("submitAtTime", row.get("name"));
+                    assertEquals(false, row.get("done"));
+                    assertEquals(false, row.get("cancelled"));
+                    assertTrue((long) row.get("delay") <= 10);
+                    assertEquals(0L, row.get("rate"));
+                });
+
+        final String queryCount = "MATCH (:Ajeje) RETURN COUNT(*) AS count";
+        long countBefore = TestUtil.singleResultFirstColumn(db, queryCount);
+        assertEquals(0L, countBefore);
+        assertEventually(() -> db.executeTransactionally(queryCount,
+                emptyMap(), (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 1L, 20L, TimeUnit.SECONDS);
+        
+        assertEventually(() -> db.executeTransactionally(callList, emptyMap(), Result::hasNext),
+                value -> !value, 10L, TimeUnit.SECONDS);
+    }
+
+    @Test
+    public void testRepeatStatementAtTime() {
+        String callList = "CALL apoc.periodic.list()";
+        assertFalse(db.executeTransactionally(callList, Collections.emptyMap(), Result::hasNext));
+
+        testCall(db, "CALL apoc.periodic.repeat('repeatAtTime','create (:Brazorf)', time($timeAsString))",
+                map("timeAsString", LocalTime.now().plusSeconds(10).toString()),
+                (row) -> {
+                    assertEquals("repeatAtTime", row.get("name"));
+                    assertEquals(false, row.get("done"));
+                    assertEquals(false, row.get("cancelled"));
+                    assertTrue((long) row.get("delay") <= 10);
+                    assertEquals(86400L, row.get("rate"));
+                });
+
+        final String queryCount = "MATCH (:Brazorf) RETURN COUNT(*) AS count";
+        long countBefore = TestUtil.singleResultFirstColumn(db, queryCount);
+        assertEquals(0L, countBefore);
+        assertEventually(() -> db.executeTransactionally(queryCount,
+                emptyMap(), (r) -> r.<Long>columnAs("count").next()),
+                value -> value == 1L, 20L, TimeUnit.SECONDS);
+
+        testCall(db, callList, (r) -> assertEquals(false, r.get("done")));
     }
 
     @Test

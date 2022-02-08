@@ -26,7 +26,7 @@ apoc.periodic.list - list all jobs
 |label:apoc-core[]
 |xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.repeat icon:book[]]
 
-apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.
+apoc.periodic.repeat('name',statement,rateOrTime, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.rock_n_roll icon:book[]]

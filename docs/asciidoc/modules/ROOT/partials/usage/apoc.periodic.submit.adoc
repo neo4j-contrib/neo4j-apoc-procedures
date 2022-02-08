@@ -12,3 +12,14 @@ CALL apoc.periodic.submit(
 | name            | delay | rate | done  | cancelled
 | "create-person" | 0     | 0    | FALSE | FALSE
 |===
+
+We can also schedule the task at a specific date or time, with the config `{atTime: java.time.temporal.Temporal}`, for example:
+
+[source,cypher]
+----
+CALL apoc.periodic.submit(
+  "create-person",
+  "CREATE (:Person {name: 'Michael Hunger'})",
+  {atTime: time("11:30")}
+);
+----
