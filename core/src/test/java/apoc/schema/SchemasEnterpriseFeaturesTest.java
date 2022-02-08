@@ -3,7 +3,6 @@ package apoc.schema;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -59,10 +58,15 @@ public class SchemasEnterpriseFeaturesTest {
         }
     }
 
-    @After
+    // coherently with SchemasTest we remove all indexes/constraints before (e.g. to get rid of lookup indexes)
+    @Before
     public void removeAllConstraints() {
         session.writeTransaction(tx -> {
-            tx.run("CALL apoc.schema.assert({},{})");
+            final List<String> constraints = tx.run("CALL db.constraints() YIELD name").list(i -> i.get("name").asString());
+            constraints.forEach(name -> tx.run(String.format("DROP CONSTRAINT %s", name)));
+
+            final List<String> indexes = tx.run("CALL db.indexes() YIELD name").list(i -> i.get("name").asString());
+            indexes.forEach(name -> tx.run(String.format("DROP INDEX %s", name)));
             tx.commit();
             return null;
         });
@@ -391,8 +395,8 @@ public class SchemasEnterpriseFeaturesTest {
     @Test
     public void testSchemaNodeWithRelationshipsConstraintsAndViceVersa() {
         session.writeTransaction(tx -> {
-            tx.run("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
-            tx.run("CREATE CONSTRAINT ON (bar:Bar) ASSERT exists(bar.foobar)");
+            tx.run("CREATE CONSTRAINT rel_cons IF NOT EXISTS ON ()-[like:LIKED]-() ASSERT exists(like.day)");
+            tx.run("CREATE CONSTRAINT node_cons IF NOT EXISTS ON (bar:Bar) ASSERT exists(bar.foobar)");
             tx.commit();
             return null;
         });
@@ -400,7 +404,7 @@ public class SchemasEnterpriseFeaturesTest {
                 "WHERE type <> '<any-types>' " +
                 "RETURN *", (result) -> {
             Map<String, Object> r = result.next();
-            assertEquals("CONSTRAINT ON ()-[liked:LIKED]-() ASSERT exists(liked.day)", r.get("name"));
+            assertEquals("CONSTRAINT ON ()-[liked:LIKED]-() ASSERT (liked.day) IS NOT NULL", r.get("name"));
             assertEquals("RELATIONSHIP_PROPERTY_EXISTENCE", r.get("type"));
             assertEquals(asList("day"), r.get("properties"));
             assertEquals(StringUtils.EMPTY, r.get("status"));
@@ -415,8 +419,8 @@ public class SchemasEnterpriseFeaturesTest {
         });
         
         session.writeTransaction(tx -> {
-            tx.run("DROP CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
-            tx.run("DROP CONSTRAINT ON (bar:Bar) ASSERT exists(bar.foobar)");
+            tx.run("DROP CONSTRAINT rel_cons");
+            tx.run("DROP CONSTRAINT node_cons");
             tx.commit();
             return null;
         });
