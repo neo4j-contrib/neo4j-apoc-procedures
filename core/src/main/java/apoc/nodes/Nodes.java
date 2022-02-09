@@ -652,6 +652,23 @@ public class Nodes {
         }
     }
 
+    @UserFunction("apoc.any.isDeleted")
+    @Description("returns boolean value for nodes and rele existance")
+    public boolean isDeleted(@Name("thing") Object thing) {
+        if (thing == null) return true;
+        final String query;
+        if (thing instanceof Node) {
+            query = "MATCH (n) WHERE ID(n) = $id RETURN COUNT(n) = 1 AS exists";
+        }
+        else if (thing instanceof Relationship){
+            query = "MATCH ()-[r]->() WHERE ID(r) = $id RETURN COUNT(r) = 1 AS exists";
+        }
+        else {
+            throw new IllegalArgumentException("expected Node or Relationship but was " + thing.getClass().getSimpleName());
+        }
+        return !(boolean) tx.execute(query, Map.of("id",((Entity)thing).getId())).next().get("exists");
+    }
+
     // works in cases when relType is null
     private int getDegreeSafe(Node node, RelationshipType relType, Direction direction) {
         if (relType == null) {
