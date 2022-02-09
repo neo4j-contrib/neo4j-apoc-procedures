@@ -728,6 +728,22 @@ public class NodesTest {
         });
     }
 
+    @Test
+    public void testIsDeleted() {
+        db.executeTransactionally("CREATE \n" +
+                "(:NodeA)-[:HAS_REL_A]->(:NodeB)");
+
+        TestUtil.testResult(db, "MATCH (a:NodeA)-[relA:HAS_REL_A]->() WITH a, relA, apoc.any.isDeleted(a) AS deletedNode1, apoc.any.isDeleted(relA) AS deletedRel1\n" +
+                "DETACH DELETE a RETURN deletedNode1, deletedRel1, apoc.any.isDeleted(a) AS deletedNode2, apoc.any.isDeleted(relA) AS deletedRel2", result -> {
+            Map<String, Object> map = result.next();
+
+            assertFalse((boolean) map.get("deletedNode1"));
+            assertFalse((boolean) map.get("deletedRel1"));
+            assertTrue((boolean) map.get("deletedNode2"));
+            assertTrue((boolean) map.get("deletedRel2"));
+        });
+    }
+
     private static void assertMerge(Map<String, Object> map,
                                     Map<String, Object> fromProperties, Set<Label> fromLabel,
                                     Map<String, Object> relProperties, String relType,
