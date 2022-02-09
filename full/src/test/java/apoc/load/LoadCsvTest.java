@@ -203,6 +203,19 @@ RETURN m.col_1,m.col_2,m.col_3
                     assertEquals(asList("Selina", asList("Cola")), r.next().get("list"));
                 });
     }
+    
+    @Test
+    public void testLoadCsvWithBom() {
+        String url = "taxonomy.csv";
+        testCall(db, "CALL apoc.load.csv($url) YIELD map return map['smth1'] as first, map['ceva'] as second",
+                map("url",url),
+                (row) -> {
+                    final Object first = row.get("first");
+                    final Object second = row.get("second");
+                    assertEquals("Taxonomy", first);
+                    assertEquals("1", second);
+                });
+    }
 
     @Test public void testMapping() throws Exception {
         URL url = getUrlFileName("test-mapping.csv");

@@ -1,5 +1,7 @@
 package apoc.export.util;
 
+import org.apache.commons.io.input.BOMInputStream;
+
 import java.io.*;
 
 /**
@@ -13,12 +15,17 @@ public class CountingInputStream extends FilterInputStream implements SizeCounte
     private long newLines;
 
     public CountingInputStream(File file) throws FileNotFoundException {
-        super(new BufferedInputStream(new FileInputStream(file), BUFFER_SIZE));
+        super(toBufferedStream(new FileInputStream(file)));
         this.total = file.length();
     }
     public CountingInputStream(InputStream stream, long total) throws FileNotFoundException {
-        super(new BufferedInputStream(stream, BUFFER_SIZE));
+        super(toBufferedStream(stream));
         this.total = total;
+    }
+
+    private static BufferedInputStream toBufferedStream(InputStream stream) {
+        final BOMInputStream bomInputStream = new BOMInputStream(stream);
+        return new BufferedInputStream(bomInputStream, BUFFER_SIZE);
     }
 
     @Override
