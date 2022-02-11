@@ -10,7 +10,7 @@ import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.logging.AssertableLogProvider;
-import org.neo4j.logging.LogProvider;
+import org.neo4j.logging.InternalLogProvider;
 import org.neo4j.logging.internal.SimpleLogService;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
@@ -26,7 +26,7 @@ public class ApocConfigTest {
 
     @Before
     public void setup() {
-        LogProvider logProvider = new AssertableLogProvider();
+        InternalLogProvider logProvider = new AssertableLogProvider();
 
         Config neo4jConfig = mock(Config.class);
         when(neo4jConfig.getDeclaredSettings()).thenReturn(Collections.emptyMap());

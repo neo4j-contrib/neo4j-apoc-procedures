@@ -1,6 +1,7 @@
 package org.neo4j.test.rule;
 
 import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
+import org.neo4j.logging.ExternalLogProviderWrapper;
 import org.neo4j.logging.LogProvider;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
@@ -43,6 +44,6 @@ public class ImpermanentDbmsRule extends DbmsRule
 
     protected final TestDatabaseManagementServiceBuilder maybeSetInternalLogProvider( TestDatabaseManagementServiceBuilder factory )
     {
-        return ( internalLogProvider == null ) ? factory : factory.setInternalLogProvider( internalLogProvider );
+        return ( internalLogProvider == null ) ? factory : factory.setInternalLogProvider( new ExternalLogProviderWrapper( internalLogProvider ) );
     }
 }
