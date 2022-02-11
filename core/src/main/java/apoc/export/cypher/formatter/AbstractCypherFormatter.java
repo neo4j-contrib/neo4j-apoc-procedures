@@ -31,7 +31,8 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.quote;
  */
 abstract class AbstractCypherFormatter implements CypherFormatter {
 
-	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT FOR (node:%s) REQUIRE (%s) %s;";
+	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT %s FOR (node:%s) REQUIRE (%s) %s;";
+	private static final String STATEMENT_DROP_CONSTRAINTS = "DROP CONSTRAINT %s;";
 
 	private static final String STATEMENT_NODE_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR (n:%s) ON EACH [%s];";
 	private static final String STATEMENT_REL_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR ()-[rel:%s]-() ON EACH [%s]);";
@@ -79,11 +80,16 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 
 	@Override
-	public String statementForConstraint(String label, Iterable<String> keys) {
+	public String statementForCreateConstraint(String name, String label, Iterable<String> keys) {
 
 		String keysString = getPropertiesQuoted(keys, "node.");
 
-		return  String.format(STATEMENT_CONSTRAINTS, Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
+		return String.format(STATEMENT_CONSTRAINTS, Util.quote(name), Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
+	}
+
+	@Override
+	public String statementForDropConstraint(String name) {
+		return String.format(STATEMENT_DROP_CONSTRAINTS, Util.quote(name));
 	}
 
 	private String getPropertiesQuoted(Iterable<String> keys, String prefix) {

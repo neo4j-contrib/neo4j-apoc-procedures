@@ -43,7 +43,12 @@ public class UpdateStructureCypherFormatter extends AbstractCypherFormatter impl
 	}
 
 	@Override
-	public String statementForConstraint(String label, Iterable<String> key) {
+	public String statementForCreateConstraint(String name, String label, Iterable<String> key) {
+		return "";
+	}
+
+	@Override
+	public String statementForDropConstraint(String name) {
 		return "";
 	}
 

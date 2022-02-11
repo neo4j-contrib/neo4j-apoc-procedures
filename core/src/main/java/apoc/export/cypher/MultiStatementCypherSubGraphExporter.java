@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_LABEL;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_NAME;
 import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_PROP;
 
 /*
@@ -215,7 +216,7 @@ public class MultiStatementCypherSubGraphExporter {
             out.println(index);
         }
         if (artificialUniques > 0) {
-            String cypher = this.cypherFormat.statementForConstraint(UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP));
+            String cypher = this.cypherFormat.statementForCreateConstraint(UNIQUE_ID_NAME, UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP));
             if (cypher != null && !"".equals(cypher)) {
                 out.println(cypher);
             }
@@ -303,9 +304,10 @@ public class MultiStatementCypherSubGraphExporter {
         return StreamSupport.stream(graph.getIndexes().spliterator(), false)
                 .filter(index -> index.isConstraintIndex())
                 .map(index -> {
+                    String name = index.getName();
                     String label = Iterables.single(index.getLabels()).name();
                     Iterable<String> props = index.getPropertyKeys();
-                    return this.cypherFormat.statementForConstraint(label, props);
+                    return this.cypherFormat.statementForCreateConstraint(name, label, props);
                 })
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList());
@@ -325,7 +327,7 @@ public class MultiStatementCypherSubGraphExporter {
                 artificialUniques -= batchSize;
             }
             begin(out);
-            String cypher = this.cypherFormat.statementForConstraint(UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP)).replaceAll("^CREATE", "DROP");
+            String cypher = this.cypherFormat.statementForDropConstraint(UNIQUE_ID_NAME);
             if (cypher != null && !"".equals(cypher)) {
                 out.println(cypher);
             }
