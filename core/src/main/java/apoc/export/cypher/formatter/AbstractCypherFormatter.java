@@ -31,11 +31,12 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.quote;
  */
 abstract class AbstractCypherFormatter implements CypherFormatter {
 
-	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT ON (node:%s) ASSERT (%s) %s;";
+	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT %s FOR (node:%s) REQUIRE (%s) %s;";
+	private static final String STATEMENT_DROP_CONSTRAINTS = "DROP CONSTRAINT %s;";
 
-	private static final String STATEMENT_NODE_FULLTEXT_IDX = "CALL db.index.fulltext.createNodeIndex('%s',[%s],[%s]);";
-	private static final String STATEMENT_REL_FULLTEXT_IDX = "CALL db.index.fulltext.createRelationshipIndex('%s',[%s],[%s]);";
-	public static final String PROPERTY_QUOTING_FORMAT = "'%s'";
+	private static final String STATEMENT_NODE_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR (n:%s) ON EACH [%s];";
+	private static final String STATEMENT_REL_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR ()-[rel:%s]-() ON EACH [%s]);";
+	public static final String PROPERTY_QUOTING_FORMAT = "%s.`%s`";
 
 	@Override
 	public String statementForCleanUp(int batchSize) {
@@ -45,13 +46,13 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 
 	@Override
-	public String statementForNodeIndex(String label, Iterable<String> keys) {
-		return "CREATE INDEX ON :" + Util.quote(label) + "(" + CypherFormatterUtils.quote(keys) + ");";
+	public String statementForNodeIndex(String indexType, String label, Iterable<String> keys) {
+		return String.format("CREATE %s INDEX FOR (n:%s) ON (%s);", indexType, Util.quote(label), getPropertiesQuoted(keys, "n."));
 	}
 	
 	@Override
-	public String statementForIndexRelationship(String type, Iterable<String> keys) {
-		return String.format("CREATE INDEX FOR ()-[rel:%s]-() ON (%s);", Util.quote(type), getPropertiesQuoted(keys, "rel."));
+	public String statementForIndexRelationship(String indexType, String type, Iterable<String> keys) {
+		return String.format("CREATE %s INDEX FOR ()-[rel:%s]-() ON (%s);", indexType, Util.quote(type), getPropertiesQuoted(keys, "rel."));
 	}
 
 	@Override
@@ -59,11 +60,9 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		String label = StreamSupport.stream(labels.spliterator(), false)
 				.map(Label::name)
 				.map(Util::quote)
-				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, s))
-				.collect(Collectors.joining(","));
+				.collect(Collectors.joining("|"));
 		String key = StreamSupport.stream(keys.spliterator(), false)
-				.map(Util::quote)
-				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, s))
+				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, "n", s))
 				.collect(Collectors.joining(","));
 		return String.format(STATEMENT_NODE_FULLTEXT_IDX, name, label, key);
 	}
@@ -73,21 +72,24 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		String type = StreamSupport.stream(types.spliterator(), false)
 				.map(RelationshipType::name)
 				.map(Util::quote)
-				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, s))
-				.collect(Collectors.joining(","));
+				.collect(Collectors.joining("|"));
 		String key = StreamSupport.stream(keys.spliterator(), false)
-				.map(Util::quote)
-				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, s))
+				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, "rel", s))
 				.collect(Collectors.joining(","));
 		return String.format(STATEMENT_REL_FULLTEXT_IDX, name, type, key);
 	}
 
 	@Override
-	public String statementForConstraint(String label, Iterable<String> keys) {
+	public String statementForCreateConstraint(String name, String label, Iterable<String> keys) {
 
 		String keysString = getPropertiesQuoted(keys, "node.");
 
-		return  String.format(STATEMENT_CONSTRAINTS, Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
+		return String.format(STATEMENT_CONSTRAINTS, Util.quote(name), Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
+	}
+
+	@Override
+	public String statementForDropConstraint(String name) {
+		return String.format(STATEMENT_DROP_CONSTRAINTS, Util.quote(name));
 	}
 
 	private String getPropertiesQuoted(Iterable<String> keys, String prefix) {

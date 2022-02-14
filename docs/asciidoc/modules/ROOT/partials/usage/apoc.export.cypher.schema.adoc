@@ -2,11 +2,11 @@ The examples in this section are based on a database that has applied the follow
 
 [source,cypher]
 ----
-CREATE CONSTRAINT personName ON (person:Person)
-ASSERT person.name IS UNIQUE;
+CREATE CONSTRAINT personName FOR (person:Person)
+REQUIRE person.name IS UNIQUE;
 
-CREATE CONSTRAINT userId ON (user:User)
-ASSERT user.id IS UNIQUE;
+CREATE CONSTRAINT userId FOR (user:User)
+REQUIRE user.id IS UNIQUE;
 ----
 
 [source,cypher]
@@ -21,8 +21,8 @@ RETURN format, time, cypherStatements;
 |===
 | format   | time | cypherStatements
 | "cypher" | 1    | ":begin
-CREATE CONSTRAINT ON (node:Person) ASSERT (node.name) IS UNIQUE;
-CREATE CONSTRAINT ON (node:User) ASSERT (node.id) IS UNIQUE;
+CREATE CONSTRAINT FOR (node:Person) REQUIRE (node.name) IS UNIQUE;
+CREATE CONSTRAINT FOR (node:User) REQUIRE (node.id) IS UNIQUE;
 :commit
 CALL db.awaitIndexes(300);
 "

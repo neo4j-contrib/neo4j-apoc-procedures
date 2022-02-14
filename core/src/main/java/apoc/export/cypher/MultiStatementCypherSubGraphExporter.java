@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_LABEL;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_NAME;
 import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_PROP;
 
 /*
@@ -215,7 +216,7 @@ public class MultiStatementCypherSubGraphExporter {
             out.println(index);
         }
         if (artificialUniques > 0) {
-            String cypher = this.cypherFormat.statementForConstraint(UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP));
+            String cypher = this.cypherFormat.statementForCreateConstraint(UNIQUE_ID_NAME, UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP));
             if (cypher != null && !"".equals(cypher)) {
                 out.println(cypher);
             }
@@ -231,7 +232,8 @@ public class MultiStatementCypherSubGraphExporter {
     private List<String> exportIndexes() {
         return db.executeTransactionally("CALL db.indexes()", Collections.emptyMap(), result -> result.stream()
                 .map(map -> {
-                    if ("LOOKUP".equals(map.get("type"))) {
+                    String indexType = (String) map.get("type");
+                    if ("LOOKUP".equals(indexType)) {
                         return "";
                     }
                     List<String> props = (List<String>) map.get("properties");
@@ -247,7 +249,7 @@ public class MultiStatementCypherSubGraphExporter {
                     }
 
                     boolean isNode = "NODE".equals(map.get("entityType"));
-                    if ("FULLTEXT".equals(map.get("type"))) {
+                    if ("FULLTEXT".equals(indexType)) {
                         if (isNode) {
                             List<Label> labels = toLabels(tokenNames);
                             return this.cypherFormat.statementForNodeFullTextIndex(name, labels, props);
@@ -259,9 +261,9 @@ public class MultiStatementCypherSubGraphExporter {
                     // "normal" schema index
                     String tokenName = tokenNames.get(0);
                     if (isNode) {
-                        return this.cypherFormat.statementForNodeIndex(tokenName, props);
+                        return this.cypherFormat.statementForNodeIndex(indexType, tokenName, props);
                     } else {
-                        return this.cypherFormat.statementForIndexRelationship(tokenName, props);
+                        return this.cypherFormat.statementForIndexRelationship(indexType, tokenName, props);
                     }
 
                 })
@@ -302,9 +304,10 @@ public class MultiStatementCypherSubGraphExporter {
         return StreamSupport.stream(graph.getIndexes().spliterator(), false)
                 .filter(index -> index.isConstraintIndex())
                 .map(index -> {
+                    String name = index.getName();
                     String label = Iterables.single(index.getLabels()).name();
                     Iterable<String> props = index.getPropertyKeys();
-                    return this.cypherFormat.statementForConstraint(label, props);
+                    return this.cypherFormat.statementForCreateConstraint(name, label, props);
                 })
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList());
@@ -324,7 +327,7 @@ public class MultiStatementCypherSubGraphExporter {
                 artificialUniques -= batchSize;
             }
             begin(out);
-            String cypher = this.cypherFormat.statementForConstraint(UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP)).replaceAll("^CREATE", "DROP");
+            String cypher = this.cypherFormat.statementForDropConstraint(UNIQUE_ID_NAME);
             if (cypher != null && !"".equals(cypher)) {
                 out.println(cypher);
             }

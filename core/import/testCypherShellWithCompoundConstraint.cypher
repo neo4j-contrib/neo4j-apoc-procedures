@@ -1,5 +1,5 @@
 :begin
-CREATE CONSTRAINT ON (node:Person) ASSERT (node.name, node.surname) IS NODE KEY;
+CREATE CONSTRAINT FOR (node:Person) REQUIRE (node.name, node.surname) IS NODE KEY;
 :commit
 CALL db.awaitIndexes(300);
 :begin

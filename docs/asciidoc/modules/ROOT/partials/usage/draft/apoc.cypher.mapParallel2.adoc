@@ -3,14 +3,14 @@ The examples in this section are based on the following graph:
 
 [source,cypher]
 ----
-CREATE CONSTRAINT ON (day:Day)
-ASSERT day.day is UNIQUE;
+CREATE CONSTRAINT FOR (day:Day)
+REQUIRE day.day is UNIQUE;
 
-CREATE CONSTRAINT ON (hour:Hour)
-ASSERT hour.id is UNIQUE;
+CREATE CONSTRAINT FOR (hour:Hour)
+REQUIRE hour.id is UNIQUE;
 
-CREATE CONSTRAINT ON (minute:Minute)
-ASSERT minute.id is UNIQUE;
+CREATE CONSTRAINT FOR (minute:Minute)
+REQUIRE minute.id is UNIQUE;
 
 UNWIND range(0, 365) AS days
 MERGE (day:Day {day: datetime.truncate("day", datetime()) + duration({days: days})})

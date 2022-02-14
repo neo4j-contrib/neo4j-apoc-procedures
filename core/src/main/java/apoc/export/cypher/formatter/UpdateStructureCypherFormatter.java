@@ -33,17 +33,22 @@ public class UpdateStructureCypherFormatter extends AbstractCypherFormatter impl
 	}
 
 	@Override
-	public String statementForNodeIndex(String label, Iterable<String> key) {
+	public String statementForNodeIndex(String indexType, String label, Iterable<String> key) {
 		return "";
 	}
 
 	@Override
-	public String statementForIndexRelationship(String type, Iterable<String> key) {
+	public String statementForIndexRelationship(String indexType, String type, Iterable<String> key) {
 		return "";
 	}
 
 	@Override
-	public String statementForConstraint(String label, Iterable<String> key) {
+	public String statementForCreateConstraint(String name, String label, Iterable<String> key) {
+		return "";
+	}
+
+	@Override
+	public String statementForDropConstraint(String name) {
 		return "";
 	}
 

@@ -3,13 +3,13 @@ The examples in this section are based on the following file:
 .$NEO4J_HOME/import/createConstraint.cypher
 [source, cypher]
 ----
-CREATE CONSTRAINT ON (n:Person) ASSERT n.name IS UNIQUE;
+CREATE CONSTRAINT uniqueConstraint FOR (n:Person) REQUIRE n.name IS UNIQUE;
 ----
 
 .$NEO4J_HOME/import/dropConstraint.cypher
 [source, cypher]
 ----
-DROP CONSTRAINT ON (n:Person) ASSERT n.name IS UNIQUE;
+DROP CONSTRAINT uniqueConstraint;
 ----
 
 We can run the Cypher commands in `createConstraint.cypher` and `dropConstraint.cypher`, by running the following query:

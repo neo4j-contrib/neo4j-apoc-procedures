@@ -91,7 +91,7 @@ public class RenameTest {
 	@Test
 	public void testRenamePropertyForSomeNodes() throws Exception {
 		List<Node> nodes = TestUtil.firstColumn(db, "UNWIND range(0,9) as id CREATE (f:Foo {id: id, name: 'name'+id}) RETURN f");
-		db.executeTransactionally("Create constraint on (n:Foo) assert n.name is UNIQUE");
+		db.executeTransactionally("Create constraint for (n:Foo) require n.name is UNIQUE");
 		testCall(db, "CALL apoc.refactor.rename.nodeProperty($oldName,$newName,$nodes)",
 				map("oldName", "name", "newName", "surname","nodes",nodes.subList(0,3)), (r) -> {});
 

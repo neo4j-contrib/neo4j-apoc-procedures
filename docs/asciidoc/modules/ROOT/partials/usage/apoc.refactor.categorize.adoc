@@ -18,7 +18,7 @@ CALL apoc.refactor.categorize('genre', 'GENRE', true, "Genre", "name", [], 100);
 [source,text]
 ----
 Failed to invoke procedure `apoc.refactor.categorize`: Caused by: java.lang.IllegalArgumentException: Before execute this procedure you must define an unique constraint for the label and the targetKey:
-CREATE CONSTRAINT ON (n:`Genre`) ASSERT n.`name` IS UNIQUE
+CREATE CONSTRAINT FOR (n:`Genre`) REQUIRE n.`name` IS UNIQUE
 ----
 
 Once we've created the constraint, we can re-run the procedure, and then see the new graph structure by running the following query:

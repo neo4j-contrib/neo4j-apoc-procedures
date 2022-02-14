@@ -61,7 +61,7 @@ Here an example:
 [source,cypher]
 ----
 // It's important to create an index to improve performance
-CREATE INDEX ON :Document(id)
+CREATE INDEX FOR (n:Document) ON (n.id)
 // First query: get first chunk of data + the scroll_id for pagination
 CALL apoc.es.query('localhost','test-index','test-type','name:Neo4j&size=1&scroll=5m',null) yield value with value._scroll_id as scrollId, value.hits.hits as hits
 // Do something with hits

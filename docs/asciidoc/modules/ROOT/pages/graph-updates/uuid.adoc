@@ -82,8 +82,8 @@ First create a Constraint for the Label and the Property, if you try to add a `u
 
 [source,cypher]
 ----
-CREATE CONSTRAINT ON (person:Person)
-ASSERT person.uuid IS UNIQUE
+CREATE CONSTRAINT FOR (person:Person)
+REQUIRE person.uuid IS UNIQUE
 ----
 
 Add the `uuid`:

@@ -3,8 +3,8 @@ The examples in this section are based on a database that has applied the follow
 [source,cypher]
 ----
 CREATE CONSTRAINT likesDay
-ON ()-[like:LIKED]-()
-ASSERT EXISTS (like.day);
+FOR ()-[like:LIKED]-()
+REQUIRE (like.day) IS NOT NULL;
 ----
 
 [source,cypher]

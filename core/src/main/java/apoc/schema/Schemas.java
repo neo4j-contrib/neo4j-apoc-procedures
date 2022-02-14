@@ -131,7 +131,7 @@ public class Schemas {
         String keyProperties = keys.stream()
                 .map( property -> String.format("n.`%s`", property))
                 .collect( Collectors.joining( "," ) );
-        tx.execute(String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT (%s) IS NODE KEY", lbl, keyProperties)).close();
+        tx.execute(String.format("CREATE CONSTRAINT FOR (n:`%s`) REQUIRE (%s) IS NODE KEY", lbl, keyProperties)).close();
         List<String> keysToSting = keys.stream().map(Object::toString).collect(Collectors.toList());
         return new AssertSchemaResult(lbl, keysToSting).unique().created();
     }
@@ -198,9 +198,9 @@ public class Schemas {
 
     private AssertSchemaResult createCompoundIndex(String label, List<String> keys) {
         List<String> backTickedKeys = new ArrayList<>();
-        keys.forEach(key->backTickedKeys.add(String.format("`%s`", key)));
+        keys.forEach(key->backTickedKeys.add(String.format("n.`%s`", key)));
 
-        tx.execute(String.format("CREATE INDEX ON :`%s` (%s)", label, String.join(",", backTickedKeys))).close();
+        tx.execute(String.format("CREATE INDEX FOR (n:`%s`) ON (%s)", label, String.join(",", backTickedKeys))).close();
         return new AssertSchemaResult(label, keys).created();
     }
 

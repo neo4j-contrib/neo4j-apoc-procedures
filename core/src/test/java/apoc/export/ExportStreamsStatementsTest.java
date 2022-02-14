@@ -62,7 +62,7 @@ public class ExportStreamsStatementsTest {
     @Test
     public void shouldStreamCypherStatements() {
         String expected = String.format(":begin%n" +
-                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT UNIQUE_IMPORT_NAME FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 ":commit%n" +
                 "CALL db.awaitIndexes(300);%n" +
                 ":begin%n" +
@@ -81,7 +81,7 @@ public class ExportStreamsStatementsTest {
                 "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
                 ":commit%n" +
                 ":begin%n" +
-                "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "DROP CONSTRAINT UNIQUE_IMPORT_NAME;%n" +
                 ":commit%n");
         String statement = "CALL apoc.export.cypher.all(null,{streamStatements:true})";
         TestUtil.testCall(db, statement, (res) -> assertEquals(expected, res.get("cypherStatements")));

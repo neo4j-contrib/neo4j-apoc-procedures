@@ -1,1 +1,1 @@
-CREATE CONSTRAINT ON (n:Person) ASSERT n.name IS UNIQUE;
+CREATE CONSTRAINT uniqueConstraint FOR (n:Person) REQUIRE n.name IS UNIQUE;

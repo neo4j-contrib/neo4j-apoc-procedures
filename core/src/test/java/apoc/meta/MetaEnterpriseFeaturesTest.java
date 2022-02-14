@@ -85,7 +85,7 @@ public class MetaEnterpriseFeaturesTest {
     @Test
     public void testNodeTypePropertiesBasic() {
         session.writeTransaction(tx -> {
-            tx.run("CREATE CONSTRAINT ON (f:Foo) ASSERT EXISTS (f.s);");
+            tx.run("CREATE CONSTRAINT FOR (f:Foo) REQUIRE (f.s) IS NOT NULL;");
             tx.commit();
             return null;
         });

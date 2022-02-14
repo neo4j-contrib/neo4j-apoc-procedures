@@ -24,6 +24,7 @@ import static apoc.export.util.FormatUtils.getLabelsSorted;
  */
 public class CypherFormatterUtils {
 
+    public final static String UNIQUE_ID_NAME = "UNIQUE_IMPORT_NAME";
     public final static String UNIQUE_ID_LABEL = "UNIQUE IMPORT LABEL";
     public final static String UNIQUE_ID_PROP = "UNIQUE IMPORT ID";
     public final static String Q_UNIQUE_ID_LABEL = quote(UNIQUE_ID_LABEL);
