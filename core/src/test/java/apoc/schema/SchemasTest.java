@@ -51,7 +51,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        Assertions.assertThat( r.get( "userDescription").toString() ).contains("name='index_70bffdab', type='GENERAL BTREE', schema=(:Foo {bar}), indexProvider='native-btree-1.0' )");
+        Assertions.assertThat( r.get( "userDescription").toString() ).contains("name='index1', type='GENERAL RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )");
 
         assertTrue(!result.hasNext());
     }
@@ -67,7 +67,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index_70bffdab', type='GENERAL BTREE', schema=(:Foo {bar}), indexProvider='native-btree-1.0' )" );
+        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index1', type='GENERAL RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )" );
 
         r = result.next();
 
@@ -79,7 +79,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index_5c0607ad', type='GENERAL BTREE', schema=(:Person {name}), indexProvider='native-btree-1.0' )" );
+        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index3', type='GENERAL TEXT', schema=(:Person {name}), indexProvider='text-1.0' )" );
 
         assertTrue(!result.hasNext());
     }
@@ -305,7 +305,7 @@ public class SchemasTest {
 
     @Test
     public void testIndexes() {
-        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
+        db.executeTransactionally("CREATE RANGE INDEX index1 FOR (n:Foo) ON (n.bar)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             // Get the index info
@@ -319,7 +319,7 @@ public class SchemasTest {
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(100d, r.get("populationProgress"));
             assertEquals(1d, r.get("valuesSelectivity"));
-            Assertions.assertThat(r.get("userDescription").toString()).contains("name='index_70bffdab', type='GENERAL BTREE', schema=(:Foo {bar}), indexProvider='native-btree-1.0' )");
+            Assertions.assertThat(r.get("userDescription").toString()).contains("name='index1', type='GENERAL RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )");
 
             assertFalse(result.hasNext());
         });
@@ -521,10 +521,10 @@ public class SchemasTest {
 
     @Test
     public void testIndexesOneLabel() {
-        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
-        db.executeTransactionally("CREATE INDEX FOR (n:Bar) ON (n.foo)");
-        db.executeTransactionally("CREATE INDEX FOR (n:Person) ON (n.name)");
-        db.executeTransactionally("CREATE INDEX FOR (n:Movie) ON (n.title)");
+        db.executeTransactionally("CREATE RANGE INDEX index1 FOR (n:Foo) ON (n.bar)");
+        db.executeTransactionally("CREATE RANGE INDEX index2 FOR (n:Bar) ON (n.foo)");
+        db.executeTransactionally("CREATE TEXT INDEX index3 FOR (n:Person) ON (n.name)");
+        db.executeTransactionally("CREATE TEXT INDEX index4 FOR (n:Movie) ON (n.title)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.nodes({labels:['Foo']})", // Get the index info
                 SchemasTest::accept);
@@ -539,10 +539,10 @@ public class SchemasTest {
 
     @Test
     public void testIndexesMoreLabels() {
-        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
-        db.executeTransactionally("CREATE INDEX FOR (n:Bar) ON (n.foo)");
-        db.executeTransactionally("CREATE INDEX FOR (n:Person) ON (n.name)");
-        db.executeTransactionally("CREATE INDEX FOR (n:Movie) ON (n.title)");
+        db.executeTransactionally("CREATE RANGE INDEX index1 FOR (n:Foo) ON (n.bar)");
+        db.executeTransactionally("CREATE RANGE INDEX index2 FOR (n:Bar) ON (n.foo)");
+        db.executeTransactionally("CREATE TEXT INDEX index3 FOR (n:Person) ON (n.name)");
+        db.executeTransactionally("CREATE TEXT INDEX index4 FOR (n:Movie) ON (n.title)");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.nodes({labels:['Foo', 'Person']})", // Get the index info
                 SchemasTest::accept2);
