@@ -8,8 +8,9 @@ import com.couchbase.client.core.env.SecurityConfig;
 import com.couchbase.client.core.env.TimeoutConfig;
 import com.couchbase.client.java.env.ClusterEnvironment;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang.StringUtils;
+
 import org.neo4j.internal.helpers.collection.Pair;
-import org.parboiled.common.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
