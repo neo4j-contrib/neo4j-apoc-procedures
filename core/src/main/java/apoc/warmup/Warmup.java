@@ -62,7 +62,9 @@ public class Warmup {
         return sb.toString();
     }
 
-    @Procedure
+    @Deprecated
+    @Procedure( deprecatedBy = "Firstly, the procedure duplicates functionality of page cache warm up which is a part of the DBMS. " +
+            "Secondly, the API of this procedure is very specific to Record storage engine." )
     @Description("apoc.warmup.run(loadProperties=false,loadDynamicProperties=false,loadIndexes=false) - quickly loads all nodes and rels into memory by skipping one page at a time")
     public Stream<WarmupResult> run(@Name(value = "loadProperties", defaultValue = "false") boolean loadProperties, @Name(value = "loadDynamicProperties", defaultValue = "false") boolean loadDynamicProperties, @Name(value = "loadIndexes", defaultValue = "false") boolean loadIndexes) throws IOException {
         PageCache pageCache = db.getDependencyResolver().resolveDependency(PageCache.class);
