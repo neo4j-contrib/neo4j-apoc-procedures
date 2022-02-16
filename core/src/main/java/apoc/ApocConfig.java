@@ -30,9 +30,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static apoc.util.FileUtils.isFile;
-import static org.neo4j.configuration.BootloaderSettings.lib_directory;
-import static org.neo4j.configuration.BootloaderSettings.run_directory;
-import static org.neo4j.configuration.GraphDatabaseInternalSettings.logical_logs_location;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.data_directory;
 import static org.neo4j.configuration.GraphDatabaseSettings.load_csv_file_url_root;
@@ -77,7 +74,6 @@ public class ApocConfig extends LifecycleAdapter {
             load_csv_file_url_root,
             logs_directory,
             plugin_dir,
-            logical_logs_location,
             transaction_logs_root_path,
             neo4j_home
     ));
