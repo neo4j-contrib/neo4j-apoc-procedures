@@ -559,31 +559,39 @@ public class Meta {
      * metadata that is useful for generating "Tables 4 Labels" schema designs for RDBMSs, but in a more performant way.
      */
     @Procedure
-    @Description("apoc.meta.nodeTypeProperties()")
-    public Stream<Tables4LabelsProfile.NodeTypePropertiesEntry> nodeTypeProperties(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
-        MetaConfig metaConfig = new MetaConfig(config);
-        try {
-            return collectTables4LabelsProfile(metaConfig).asNodeStream();
-        } catch (Exception e) {
-            log.debug("meta.nodeTypeProperties(): Failed to return stream", e);
-            throw new RuntimeException(e);
+    @Description( "apoc.meta.nodeTypeProperties()" )
+    public Stream<Tables4LabelsProfile.NodeTypePropertiesEntry> nodeTypeProperties( @Name( value = "config", defaultValue = "{}" ) Map<String,Object> config )
+    {
+        MetaConfig metaConfig = new MetaConfig( config );
+        try
+        {
+            return collectTables4LabelsProfile( metaConfig ).asNodeStream();
+        }
+        catch ( Exception e )
+        {
+            log.debug( "apoc.meta.nodeTypeProperties(): Failed to return stream", e );
+            throw new RuntimeException( e );
         }
     }
 
     /**
-     * This procedure is intended to replicate what's in the core Neo4j product, but with the crucial difference that it
-     * supports flexible sampling options, and does not scan the entire database.  The result is producing a table of
-     * metadata that is useful for generating "Tables 4 Labels" schema designs for RDBMSs, but in a more performant way.
+     * This procedure is intended to replicate what's in the core Neo4j product, but with the crucial difference that it supports flexible sampling options, and
+     * does not scan the entire database.  The result is producing a table of metadata that is useful for generating "Tables 4 Labels" schema designs for
+     * RDBMSs, but in a more performant way.
      */
     @Procedure
-    @Description("apoc.meta.relTypeProperties()")
-    public Stream<Tables4LabelsProfile.RelTypePropertiesEntry> relTypeProperties(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
-        MetaConfig metaConfig = new MetaConfig(config);
-        try {
-            return collectTables4LabelsProfile(metaConfig).asRelStream();
-        } catch (Exception e) {
-            log.debug("meta.relTypeProperties(): Failed to return stream", e);
-            throw new RuntimeException(e);
+    @Description( "apoc.meta.relTypeProperties()" )
+    public Stream<Tables4LabelsProfile.RelTypePropertiesEntry> relTypeProperties( @Name( value = "config", defaultValue = "{}" ) Map<String,Object> config )
+    {
+        MetaConfig metaConfig = new MetaConfig( config );
+        try
+        {
+            return collectTables4LabelsProfile( metaConfig ).asRelStream();
+        }
+        catch ( Exception e )
+        {
+            log.debug( "apoc.meta.relTypeProperties(): Failed to return stream", e );
+            throw new RuntimeException( e );
         }
     }
 
@@ -594,7 +602,7 @@ public class Meta {
 
         for (ConstraintDefinition cd : schema.getConstraints()) {
             if (cd.isConstraintType(ConstraintType.NODE_PROPERTY_EXISTENCE)) {
-                List<String> props = new ArrayList<String>(10);
+                List<String> props = new ArrayList<>( 10 );
                 if (ConstraintTracker.nodeConstraints.containsKey(cd.getLabel().name())) {
                     props = ConstraintTracker.nodeConstraints.get(cd.getLabel().name());
                 }
@@ -602,8 +610,8 @@ public class Meta {
                 ConstraintTracker.nodeConstraints.put(cd.getLabel().name(),props);
 
             } else if (cd.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE)) {
-                List<ConstraintDefinition> tcd = new ArrayList<ConstraintDefinition>(10);
-                List<String> props = new ArrayList<String>(10);
+                List<ConstraintDefinition> tcd = new ArrayList<>( 10 );
+                List<String> props = new ArrayList<>( 10 );
                 if (ConstraintTracker.relConstraints.containsKey(cd.getRelationshipType().name())) {
                     props = ConstraintTracker.relConstraints.get(cd.getRelationshipType().name());
                 }
