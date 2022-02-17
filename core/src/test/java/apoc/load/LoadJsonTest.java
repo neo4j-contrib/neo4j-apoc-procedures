@@ -8,7 +8,7 @@ import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import inet.ipaddr.IPAddressString;
 import org.junit.*;
-import org.mockserver.client.server.MockServerClient;
+import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 
@@ -340,14 +340,12 @@ public class LoadJsonTest {
                 .when(
                         request()
                                 .withPath("/docs/search")
-                                .withHeader("Authorization", "Basic " + token)
-                                .withHeader("\"Content-type\", \"application/json\""),
+                                .withHeader("Authorization", "Basic " + token),
                         exactly(1))
                 .respond(
                         response()
                                 .withStatusCode(200)
                                 .withHeaders(
-                                        new Header("Content-Type", "application/json; charset=utf-8"),
                                         new Header("Cache-Control", "private, max-age=1000"))
                                 .withBody(JsonUtil.OBJECT_MAPPER.writeValueAsString(responseBody))
                                 .withDelay(TimeUnit.SECONDS, 1)
@@ -371,13 +369,14 @@ public class LoadJsonTest {
                                 .withMethod("POST")
                                 .withPath("/docs/search")
                                 .withHeader("Authorization", "Basic " + token)
-                                .withHeader("\"Content-type\", \"application/json\""),
+                                .withHeader("Content-type", "application/json")
+                                .withBody("{\"query\":\"pagecache\",\"version\":\"3.5\"}"),
                         exactly(1))
                 .respond(
                         response()
                                 .withStatusCode(200)
                                 .withHeaders(
-                                        new Header("Content-Type", "application/json; charset=utf-8"),
+                                        new Header("Content-Type", "application/json"),
                                         new Header("Cache-Control", "public, max-age=86400"))
                                 .withBody(JsonUtil.OBJECT_MAPPER.writeValueAsString(responseBody))
                                 .withDelay(TimeUnit.SECONDS, 1)
@@ -386,7 +385,7 @@ public class LoadJsonTest {
         testCall(db, "call apoc.load.jsonParams($url, $config, $payload)",
                     map("payload", "{\"query\":\"pagecache\",\"version\":\"3.5\"}",
                         "url", "http://" + userPass + "@localhost:1080/docs/search",
-                        "config", map("method", "POST")),
+                        "config", map("method", "POST", "Content-Type", "application/json")),
                     (row) -> assertEquals(responseBody, row.get("value"))
                 );
     }
@@ -398,13 +397,13 @@ public class LoadJsonTest {
                         request()
                                 .withMethod("POST")
                                 .withPath("/docs/search")
-                                .withHeader("\"Content-type\", \"application/json\""),
+                                .withHeader("Content-type", "application/json"),
                         exactly(1))
                 .respond(
                         response()
                                 .withStatusCode(200)
                                 .withHeaders(
-                                        new Header("Content-Type", "application/json; charset=utf-8"),
+                                        new Header("Content-Type", "application/json"),
                                         new Header("Cache-Control", "public, max-age=86400"))
                                 .withBody("{ result: 'message' }")
                                 .withDelay(TimeUnit.SECONDS,1)
@@ -414,7 +413,7 @@ public class LoadJsonTest {
         testCall(db, "call apoc.load.jsonParams($url, $config, $json)",
                 map("json", "{\"query\":\"pagecache\",\"version\":\"3.5\"}",
                         "url", "http://localhost:1080/docs/search",
-                        "config", map("method", "POST")),
+                        "config", map("method", "POST", "Content-Type", "application/json")),
                 (row) -> {
                     Map<String, Object> value = (Map<String, Object>) row.get("value");
                     assertFalse("value should be not empty", value.isEmpty());

@@ -111,4 +111,5 @@ public class ProgressReporter implements Reporter {
         this.totalEntities++;
         acceptBatch();
     }
+
 }
