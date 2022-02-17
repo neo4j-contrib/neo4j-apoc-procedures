@@ -72,12 +72,6 @@ public class MetaTest {
         TestUtil.registerProcedure(db, Meta.class, Graphs.class);
     }
 
-    /*
-        @Test public void testMetaStats() throws Exception {
-            testResult(db,"CALL apoc.meta.stats", (r) -> assertEquals(true, r.hasNext()));
-        }
-    */
-
     public static boolean hasRecordMatching(List<Map<String,Object>> records, Map<String,Object> record) {
         return hasRecordMatching(records, row -> {
             boolean okSoFar = true;
@@ -105,7 +99,8 @@ public class MetaTest {
         }
         return rows;
     }
-
+    // Can be valuable for debugging purposes
+    @SuppressWarnings( "unused" )
     private static String toCSV(List<Map<String, Object>> list) {
         List<String> headers = list.stream().flatMap(map -> map.keySet().stream()).distinct().collect(Collectors.toList());
         final StringBuffer sb = new StringBuffer();
@@ -134,11 +129,11 @@ public class MetaTest {
             testSet.set(gatherRecords(r));
         });
 
-        System.out.println("COMPARE TO:");
-        System.out.println(toCSV(compareTo.get()));
-
-        System.out.println("TEST SET:");
-        System.out.println(toCSV(testSet.get()));
+//        System.out.println("COMPARE TO:");
+//        System.out.println(toCSV(compareTo.get()));
+//
+//        System.out.println("TEST SET:");
+//        System.out.println(toCSV(testSet.get()));
 
         return resultSetsEquivalent(compareTo.get(), testSet.get());
     }
@@ -847,198 +842,457 @@ public class MetaTest {
     // Tests for T4L
 
     @Test
-    public void testRelTypePropertiesBasic() throws Exception {
-        db.executeTransactionally("CREATE (:Base)-[:RELTYPE { a: 1, d: null }]->(:Target)");
-        db.executeTransactionally("CREATE (:Base)-[:RELTYPE { a: 2, b: 2, c: 2, d: 4 }]->(:Target);");
+    public void testRelTypePropertiesBasic()
+    {
+        db.executeTransactionally( "CREATE (:Base)-[:RELTYPE { a: 1, d: null }]->(:Target)" );
+        db.executeTransactionally( "CREATE (:Base)-[:RELTYPE { a: 2, b: 2, c: 2, d: 4 }]->(:Target);" );
 
-        TestUtil.testResult(db, "CALL apoc.meta.relTypeProperties()", r -> {
-            List<Map<String,Object>> records = gatherRecords(r);
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties()", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
 
-            System.out.println("REL TYPE PROPERTIES");
-            System.out.println(toCSV(records));
+//            System.out.println("REL TYPE PROPERTIES");
+//            System.out.println(toCSV(records));
 
-            assertEquals(true, hasRecordMatching(records, m ->
-                    m.get("propertyName").equals("a") &&
-                            ((List)m.get("propertyTypes")).get(0).equals("Long") &&
-                            m.get("mandatory").equals(false)));
+            assertEquals( true, hasRecordMatching( records, m ->
+                    m.get( "propertyName" ).equals( "a" ) &&
+                    ((List) m.get( "propertyTypes" )).get( 0 ).equals( "Long" ) &&
+                    m.get( "mandatory" ).equals( false ) ) );
 
-            assertEquals(true, hasRecordMatching(records, m ->
-                    m.get("propertyName").equals("b") &&
-                            ((List)m.get("propertyTypes")).get(0).equals("Long") &&
-                            m.get("mandatory").equals(false)));
+            assertEquals( true, hasRecordMatching( records, m ->
+                    m.get( "propertyName" ).equals( "b" ) &&
+                    ((List) m.get( "propertyTypes" )).get( 0 ).equals( "Long" ) &&
+                    m.get( "mandatory" ).equals( false ) ) );
 
-            assertEquals(true, hasRecordMatching(records, m ->
-                    m.get("propertyName").equals("c") &&
-                            ((List)m.get("propertyTypes")).get(0).equals("Long") &&
-                            m.get("mandatory").equals(false)));
+            assertEquals( true, hasRecordMatching( records, m ->
+                    m.get( "propertyName" ).equals( "c" ) &&
+                    ((List) m.get( "propertyTypes" )).get( 0 ).equals( "Long" ) &&
+                    m.get( "mandatory" ).equals( false ) ) );
 
-            assertEquals(true, hasRecordMatching(records, m ->
-                    m.get("propertyName").equals("d") &&
-                            ((List)m.get("propertyTypes")).get(0).equals("Long") &&
-                            m.get("mandatory").equals(false)));
-        });
+            assertEquals( true, hasRecordMatching( records, m ->
+                    m.get( "propertyName" ).equals( "d" ) &&
+                    ((List) m.get( "propertyTypes" )).get( 0 ).equals( "Long" ) &&
+                    m.get( "mandatory" ).equals( false ) ) );
+        } );
     }
 
     @Test
-    public void testRelTypePropertiesIncludes() throws Exception {
-        db.executeTransactionally("CREATE (:A)-[:CATCHME { c: 1 }]->(:B)");
-        db.executeTransactionally("CREATE (:A)-[:IGNOREME { d: 1 }]->(:B)");
+    public void testRelTypePropertiesIncludes()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:CATCHME { c: 1 }]->(:B)" );
+        db.executeTransactionally( "CREATE (:A)-[:IGNOREME { d: 1 }]->(:B)" );
 
-        TestUtil.testResult(db, "CALL apoc.meta.relTypeProperties({ includeRels: ['CATCHME'] })", r -> {
-            List<Map<String,Object>> records = gatherRecords(r);
-            assertEquals(1, records.size());
-            assertEquals(records.get(0).get("propertyName").equals("c"), true);
-        });
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeRels: ['CATCHME'] })", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() );
+            assertEquals( records.get( 0 ).get( "propertyName" ).equals( "c" ), true );
+        } );
     }
 
     @Test
-    public void testNodeTypePropertiesNodeExcludes() throws Exception {
-        db.executeTransactionally("CREATE (:ExcludeMe)");
-        db.executeTransactionally("CREATE (:IncludeMe)");
+    public void testNodeTypePropertiesNodeExcludes()
+    {
+        db.executeTransactionally( "CREATE (:ExcludeMe)" );
+        db.executeTransactionally( "CREATE (:IncludeMe)" );
 
-        TestUtil.testResult(db, "CALL apoc.meta.nodeTypeProperties({ excludeLabels: ['ExcludeMe'] })", r -> {
-            List<Map<String,Object>> records = gatherRecords(r);
-            assertEquals(1, records.size());
-            assertEquals(true, records.get(0).get("nodeType").equals(":`IncludeMe`"));
-        });
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ excludeLabels: ['ExcludeMe'] })", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() );
+            assertEquals( ":`IncludeMe`", records.get( 0 ).get( "nodeType" ) );
+        } );
     }
 
     @Test
-    public void testNodeTypePropertiesNodeIncludes() throws Exception {
-        db.executeTransactionally("CREATE (:ExcludeMe)");
-        db.executeTransactionally("CREATE (:IncludeMe)");
+    public void testNodeTypePropertiesNodeIncludes()
+    {
+        db.executeTransactionally( "CREATE (:ExcludeMe)" );
+        db.executeTransactionally( "CREATE (:IncludeMe)" );
 
-        TestUtil.testResult(db, "CALL apoc.meta.nodeTypeProperties({ includeLabels: ['IncludeMe'] })", r -> {
-            List<Map<String,Object>> records = gatherRecords(r);
-            assertEquals(1, records.size());
-            assertEquals(true, records.get(0).get("nodeType").equals(":`IncludeMe`"));
-        });
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeLabels: ['IncludeMe'] })", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() );
+            assertEquals( ":`IncludeMe`", records.get( 0 ).get( "nodeType" ) );
+        } );
     }
 
     @Test
-    public void testNodeTypePropertiesRelExcludes() throws Exception {
-        db.executeTransactionally("CREATE (:A)-[:RELA { x: 1 }]->(:C)");
-        db.executeTransactionally("CREATE (:B)-[:RELB { x: 1 }]->(:D)");
+    public void testNodeTypePropertiesRelExcludes()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
+        db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
-        TestUtil.testResult(db, "CALL apoc.meta.nodeTypeProperties({ excludeRels: ['RELA'] })", r -> {
-            List<Map<String,Object>> records = gatherRecords(r);
-            assertEquals(2, records.size());
-            for (Map<String,Object> rec : records) {
-                if (rec.get("nodeType").equals(":`A`")) {
-                    assertEquals(true, rec.get("nodeType").equals(":`B`"));
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ excludeRels: ['RELA'] })", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 2, records.size() );
+            for ( Map<String,Object> rec : records )
+            {
+                if ( rec.get( "nodeType" ).equals( ":`A`" ) )
+                {
+                    assertEquals( ":`B`", rec.get( "nodeType" ) );
                 }
-                if (rec.get("nodeType").equals(":`C`")) {
-                    assertEquals(true, rec.get("nodeType").equals(":`D`"));
-                }
-            }
-        });
-    }
-
-    @Test
-    public void testNodeTypePropertiesRelIncludes() throws Exception {
-        db.executeTransactionally("CREATE (:A)-[:RELA { x: 1 }]->(:C)");
-        db.executeTransactionally("CREATE (:B)-[:RELB { x: 1 }]->(:D)");
-
-        TestUtil.testResult(db, "CALL apoc.meta.nodeTypeProperties({ includeRels: ['RELA'] })", r -> {
-            List<Map<String,Object>> records = gatherRecords(r);
-            assertEquals(2, records.size());
-            for (Map<String,Object> rec : records) {
-                if (rec.get("nodeType").equals(":`A`")) {
-                    assertEquals(true, rec.get("nodeType").equals(":`A`"));
-                }
-                if (rec.get("nodeType").equals(":`C`")) {
-                    assertEquals(true, rec.get("nodeType").equals(":`C`"));
+                if ( rec.get( "nodeType" ).equals( ":`C`" ) )
+                {
+                    assertEquals( ":`D`", rec.get( "nodeType" ) );
                 }
             }
-        });
+        } );
     }
 
     @Test
-    public void testRelTypePropertiesRelExcludes() throws Exception {
-        db.executeTransactionally("CREATE (:A)-[:RELA { x: 1 }]->(:C)");
-        db.executeTransactionally("CREATE (:B)-[:RELB { x: 1 }]->(:D)");
+    public void testNodeTypePropertiesRelIncludes()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
+        db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
-        TestUtil.testResult(db, "CALL apoc.meta.relTypeProperties({ excludeRels: ['RELA'] })", r -> {
-            List<Map<String,Object>> records = gatherRecords(r);
-            assertEquals(1, records.size());
-            assertEquals(true, records.get(0).get("relType").equals(":`RELB`"));
-        });
-    }
-
-    @Test
-    public void testRelTypePropertiesRelIncludes() throws Exception {
-        db.executeTransactionally("CREATE (:A)-[:RELA { x: 1 }]->(:C)");
-        db.executeTransactionally("CREATE (:B)-[:RELB { x: 1 }]->(:D)");
-
-        TestUtil.testResult(db, "CALL apoc.meta.relTypeProperties({ includeRels: ['RELA'] })", r -> {
-            List<Map<String,Object>> records = gatherRecords(r);
-            assertEquals(1, records.size());
-            assertEquals(true, records.get(0).get("relType").equals(":`RELA`"));
-        });
-    }
-
-    @Test
-    public void testRelTypePropertiesNodeExcludes() throws Exception {
-        db.executeTransactionally("CREATE (:A)-[:RELA { x: 1 }]->(:C)");
-        db.executeTransactionally("CREATE (:B)-[:RELB { x: 1 }]->(:D)");
-
-        TestUtil.testResult(db, "CALL apoc.meta.relTypeProperties({ excludeLabels: ['A'] })", r -> {
-            List<Map<String,Object>> records = gatherRecords(r);
-            assertEquals(1, records.size());
-            for (Map<String,Object> rec : records) {
-                if (rec.get("relType").equals(":`RELB`")) {
-                    assertEquals(true, rec.get("relType").equals(":`RELB`"));
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeRels: ['RELA'] })", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 2, records.size() );
+            for ( Map<String,Object> rec : records )
+            {
+                if ( rec.get( "nodeType" ).equals( ":`A`" ) )
+                {
+                    assertEquals( ":`A`", rec.get( "nodeType" ) );
+                }
+                if ( rec.get( "nodeType" ).equals( ":`C`" ) )
+                {
+                    assertEquals( ":`C`", rec.get( "nodeType" ) );
                 }
             }
-        });
+        } );
     }
 
     @Test
-    public void testRelTypePropertiesNodeIncludes() throws Exception {
-        db.executeTransactionally("CREATE (:A)-[:RELA { x: 1 }]->(:C)");
-        db.executeTransactionally("CREATE (:B)-[:RELB { x: 1 }]->(:D)");
+    public void testNodeTypePropertiesWithWeirdConfig()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
+        db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
 
-        TestUtil.testResult(db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'] })", r -> {
-            List<Map<String,Object>> records = gatherRecords(r);
-            assertEquals(1, records.size());
-            for (Map<String,Object> rec : records) {
-                if (rec.get("relType").equals(":`RELA`")) {
-                    assertEquals(true, rec.get("relType").equals(":`RELA`"));
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeRels: ['RELA'], stupidInput: ['RELB'] })", r ->
+                // should ignore all unknown input
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 2, records.size() );
+            for ( Map<String,Object> rec : records )
+            {
+                if ( rec.get( "nodeType" ).equals( ":`A`" ) )
+                {
+                    assertEquals( ":`A`", rec.get( "nodeType" ) );
+                }
+                if ( rec.get( "nodeType" ).equals( ":`C`" ) )
+                {
+                    assertEquals( ":`C`", rec.get( "nodeType" ) );
                 }
             }
-        });
+        } );
     }
 
     @Test
-    public void testNodeTypePropertiesEquivalenceAdvanced() throws Exception {
-        db.executeTransactionally("CREATE (:Foo { l: 1, s: 'foo', d: datetime(), ll: ['a', 'b'], dl: [2.0, 3.0] });");
+    public void testRelTypePropertiesWithWeirdConfig()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
+        db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
+
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'], stupidInput: ['B'] })", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() );
+            for ( Map<String,Object> rec : records )
+            {
+                if ( rec.get( "relType" ).equals( ":`RELA`" ) )
+                {
+                    assertEquals( ":`RELA`", rec.get( "relType" ) );
+                }
+            }
+        } );
+    }
+
+    @Test
+    public void testRelTypePropertiesRelExcludes()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
+        db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
+
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ excludeRels: ['RELA'] })", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() );
+            assertEquals( ":`RELB`", records.get( 0 ).get( "relType" ) );
+        } );
+    }
+
+    @Test
+    public void testRelTypePropertiesRelIncludes()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
+        db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
+
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeRels: ['RELA'] })", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() );
+            assertEquals( ":`RELA`", records.get( 0 ).get( "relType" ) );
+        } );
+    }
+
+    @Test
+    public void testRelTypePropertiesNodeExcludes()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
+        db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
+
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ excludeLabels: ['A'] })", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() );
+            for ( Map<String,Object> rec : records )
+            {
+                if ( rec.get( "relType" ).equals( ":`RELB`" ) )
+                {
+                    assertEquals( ":`RELB`", rec.get( "relType" ) );
+                }
+            }
+        } );
+    }
+
+    @Test
+    public void testRelTypePropertiesNodeIncludes()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
+        db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
+
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'] })", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() );
+            for ( Map<String,Object> rec : records )
+            {
+                if ( rec.get( "relType" ).equals( ":`RELA`" ) )
+                {
+                    assertEquals( ":`RELA`", rec.get( "relType" ) );
+                }
+            }
+        } );
+    }
+
+    @Test
+    public void testNodeTypePropertiesNodeIncludesRelIncludes1()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
+        db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
+
+        // both together contract the data model and it should result in 0 results
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeLabels: ['A'], includeRels: ['RELB'] })", r ->
+        {
+            assertEquals( 0, gatherRecords( r ).size() );
+        } );
+    }
+
+    @Test
+    public void testNodeTypePropertiesNodeIncludesRelIncludes2()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
+        db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
+
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ includeLabels: ['A'], includeRels: ['RELA'] })", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() ); // why not A and C? The label has to be on the start of the rel
+            for ( Map<String,Object> rec : records )
+            {
+                if ( rec.get( "nodeType" ).equals( ":`A`" ) )
+                {
+                    assertEquals( ":`A`", rec.get( "nodeType" ) );
+                }
+            }
+        } );
+    }
+
+    @Test
+    public void testRelTypePropertiesNodeIncludesAndRelsInclude1()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
+        db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
+
+        // both together contract the data model and it should result in 0 results
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'], includeRels: ['RELB'] })", r ->
+        {
+            assertEquals( 0, gatherRecords( r ).size() );
+        } );
+    }
+
+    @Test
+    public void testRelTypePropertiesNodeIncludesAndRelsInclude2()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:RELA { x: 1 }]->(:C)" );
+        db.executeTransactionally( "CREATE (:B)-[:RELB { x: 1 }]->(:D)" );
+
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties({ includeLabels: ['A'], includeRels: ['RELA'] })", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() );
+            for ( Map<String,Object> rec : records )
+            {
+                if ( rec.get( "relType" ).equals( ":`RELA`" ) )
+                {
+                    assertEquals( ":`RELA`", rec.get( "relType" ) );
+                }
+            }
+        } );
+    }
+
+    @Test
+    public void testNodeTypePropertiesCompleteResult()
+    {
+        db.executeTransactionally( "CREATE (:Foo { z: 'hej' });" );
+        db.executeTransactionally( "CREATE (:Foo { z: 1 });" );
+
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties()", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() );
+            for ( Map<String,Object> rec : records )
+            {
+                assertEquals( ":`Foo`", rec.get( "nodeType" ) );
+                assertEquals( List.of( "Foo" ), rec.get( "nodeLabels" ) );
+                assertEquals( "z", rec.get( "propertyName" ) );
+                assertEquals( List.of( "Long", "String" ), rec.get( "propertyTypes" ) );
+                assertEquals( 2L, rec.get( "propertyObservations" ) );
+                assertEquals( 2L, rec.get( "totalObservations" ) );
+                assertEquals( false, rec.get( "mandatory" ) );
+            }
+        } );
+    }
+
+    @Test
+    public void testRelTypePropertiesCompleteResult()
+    {
+        db.executeTransactionally( "CREATE (:A)-[:Foo { z: 'hej' }]->(:B);" );
+        db.executeTransactionally( "CREATE (:A)-[:Foo { z: 1 }]->(:B);" );
+
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties()", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() );
+            for ( Map<String,Object> rec : records )
+            {
+                assertEquals( ":`Foo`", rec.get( "relType" ) );
+                assertEquals( List.of( "A" ), rec.get( "sourceNodeLabels" ) );
+                assertEquals( List.of( "B" ), rec.get( "targetNodeLabels" ) );
+                assertEquals( "z", rec.get( "propertyName" ) );
+                assertEquals( List.of( "Long", "String" ), rec.get( "propertyTypes" ) );
+                assertEquals( 2L, rec.get( "propertyObservations" ) );
+                assertEquals( 2L, rec.get( "totalObservations" ) );
+                assertEquals( false, rec.get( "mandatory" ) );
+            }
+        } );
+    }
+
+    @Test
+    public void testNodeTypePropertiesWithSpecialSampleSize()
+    {
+        db.executeTransactionally( "CREATE (:Foo { z: 'hej' });" );
+        db.executeTransactionally( "CREATE (:Foo { z: 1 });" );
+        db.executeTransactionally( "CREATE (:Foo { z: true });" );
+        db.executeTransactionally( "CREATE (:Foo { z: 1.5 });" );
+
+        // sample = -1 scans all entities
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ pollingPeriod: -1})", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() );
+            for ( Map<String,Object> rec : records )
+            {
+                assertEquals( ":`Foo`", rec.get( "nodeType" ) );
+                assertEquals( "z", rec.get( "propertyName" ) );
+                assertEquals( 4L, rec.get( "propertyObservations" ) );
+                assertEquals( 4L, rec.get( "totalObservations" ) );
+            }
+        } );
+
+        // not scan all of them, might not reach maxSampleSize
+        TestUtil.testResult( db, "CALL apoc.meta.nodeTypeProperties({ pollingPeriod: 1 })", r ->
+        {
+            List<Map<String,Object>> records = gatherRecords( r );
+            assertEquals( 1, records.size() );
+            for ( Map<String,Object> rec : records )
+            {
+                assertEquals( ":`Foo`", rec.get( "nodeType" ) );
+                assertEquals( "z", rec.get( "propertyName" ) );
+                assertTrue( (long) rec.get( "propertyObservations" ) <=4L );
+                assertTrue( (long) rec.get( "totalObservations" ) <= 4L );
+            }
+        } );
+    }
+
+    @Test
+    public void testNodeTypePropertiesEquivalenceAdvanced()
+    {
+        db.executeTransactionally( "CREATE (:Foo { l: 1, s: 'foo', d: datetime(), ll: ['a', 'b'], dl: [2.0, 3.0] });" );
         // Missing all properties to make everything non-mandatory.
-        db.executeTransactionally("CREATE (:Foo { z: 1 });");
-        assertEquals(true, testDBCallEquivalence(db, "CALL apoc.meta.nodeTypeProperties()", "CALL db.schema.nodeTypeProperties()"));
+        db.executeTransactionally( "CREATE (:Foo { z: 1 });" );
+        assertEquals( true, testDBCallEquivalence( db, "CALL apoc.meta.nodeTypeProperties()", "CALL db.schema.nodeTypeProperties()" ) );
     }
 
     @Test
-    public void testNodeTypePropertiesEquivalenceTypeMapping() throws Exception {
+    public void testRelTypePropertiesEquivalenceAdvanced()
+    {
+        db.executeTransactionally( "CREATE (:Foo)-[:REL { l: 1, s: 'foo', d: datetime(), ll: ['a', 'b'], dl: [2.0, 3.0] }]->();" );
+        // Missing all properties to make everything non-mandatory.
+        db.executeTransactionally( "CREATE (:Foo)-[:REL { z: 1 }]->();" );
+        assertEquals( true, testDBCallEquivalence( db, "CALL apoc.meta.relTypeProperties()", "CALL db.schema.relTypeProperties()" ) );
+    }
+
+    @Test
+    public void testNodeTypePropertiesEquivalenceTypeMapping()
+    {
         String q =
-            "CREATE (:Test {" +
-            "    longProp: 1," +
-            "    doubleProp: 3.14," +
-            "    stringProp: 'Hello'," +
-            "    longArrProp: [1,2,3]," +
-            "    doubleArrProp: [3.14, 3.14]," +
-            "    stringArrProp: ['Hello', 'World']," +
-            "    dateTimeProp: datetime()," +
-            "    dateProp: date()," +
-            "    pointProp: point({ x:0, y:4, z:1 })," +
-            "    pointArrProp: [point({ x:0, y:4, z:1 }), point({ x:0, y:4, z:1 })]," +
-            "    boolProp: true," +
-            "    boolArrProp: [true, false]\n" +
-            "})" +
-            "CREATE (:Test { randomProp: 'this property is here to make everything mandatory = false'});";
+                "CREATE (:Test {" +
+                "    longProp: 1," +
+                "    doubleProp: 3.14," +
+                "    stringProp: 'Hello'," +
+                "    longArrProp: [1,2,3]," +
+                "    doubleArrProp: [3.14, 3.14]," +
+                "    stringArrProp: ['Hello', 'World']," +
+                "    dateTimeProp: datetime()," +
+                "    dateProp: date()," +
+                "    pointProp: point({ x:0, y:4, z:1 })," +
+                "    pointArrProp: [point({ x:0, y:4, z:1 }), point({ x:0, y:4, z:1 })]," +
+                "    boolProp: true," +
+                "    boolArrProp: [true, false]\n" +
+                "})" +
+                "CREATE (:Test { randomProp: 'this property is here to make everything mandatory = false'});";
 
+        db.executeTransactionally( q );
+        assertEquals( true, testDBCallEquivalence( db, "CALL apoc.meta.nodeTypeProperties()", "CALL db.schema.nodeTypeProperties()" ) );
+    }
 
-        db.executeTransactionally(q);
-        assertEquals(true, testDBCallEquivalence(db, "CALL apoc.meta.nodeTypeProperties()", "CALL db.schema.nodeTypeProperties()"));
+    @Test
+    public void testRelTypePropertiesEquivalenceTypeMapping()
+    {
+        String q =
+                "CREATE (t:Test)-[:REL{" +
+                "    longProp: 1," +
+                "    doubleProp: 3.14," +
+                "    stringProp: 'Hello'," +
+                "    longArrProp: [1,2,3]," +
+                "    doubleArrProp: [3.14, 3.14]," +
+                "    stringArrProp: ['Hello', 'World']," +
+                "    dateTimeProp: datetime()," +
+                "    dateProp: date()," +
+                "    pointProp: point({ x:0, y:4, z:1 })," +
+                "    pointArrProp: [point({ x:0, y:4, z:1 }), point({ x:0, y:4, z:1 })]," +
+                "    boolProp: true," +
+                "    boolArrProp: [true, false]\n" +
+                "}]->(t)" +
+                "CREATE (b:Test)-[:REL{ randomProp: 'this property is here to make everything mandatory = false'}]->(b);";
+
+        db.executeTransactionally( q );
+        assertEquals( true, testDBCallEquivalence( db, "CALL apoc.meta.relTypeProperties()", "CALL db.schema.relTypeProperties()" ) );
     }
 
     @Test
