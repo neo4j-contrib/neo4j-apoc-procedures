@@ -23,21 +23,25 @@ public class VirtualNode implements Node {
     private final Map<String, Object> props = new HashMap<>();
     private final List<Relationship> rels = new ArrayList<>();
     private final long id;
+    private final String elementId;
 
     public VirtualNode(Label[] labels, Map<String, Object> props) {
         this.id = MIN_ID.getAndDecrement();
         addLabels(asList(labels));
         this.props.putAll(props);
+        this.elementId = null;
     }
 
     public VirtualNode(long nodeId, Label[] labels, Map<String, Object> props) {
         this.id = nodeId;
         addLabels(asList(labels));
         this.props.putAll(props);
+        this.elementId = null;
     }
 
     public VirtualNode(long nodeId) {
         this.id = nodeId;
+        this.elementId = null;
     }
 
     public VirtualNode(Node node, List<String> propertyNames) {
@@ -46,6 +50,7 @@ public class VirtualNode implements Node {
         this.labels.addAll(Util.labelStrings(node));
         String[] keys = propertyNames.toArray(new String[propertyNames.size()]);
         this.props.putAll(node.getProperties(keys));
+        this.elementId = node.getElementId();
     }
 
     public static VirtualNode from(Node node) {
@@ -55,6 +60,12 @@ public class VirtualNode implements Node {
     @Override
     public long getId() {
         return id;
+    }
+
+    @Override
+    public String getElementId()
+    {
+        return elementId != null ? elementId : String.valueOf( id );
     }
 
     @Override

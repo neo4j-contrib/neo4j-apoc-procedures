@@ -39,6 +39,12 @@ public class WrappedNode implements Node {
     }
 
     @Override
+    public String getElementId()
+    {
+        return String.valueOf( id );
+    }
+
+    @Override
     public void delete() {
         for (Relationship rel : rels) {
             rel.delete();
