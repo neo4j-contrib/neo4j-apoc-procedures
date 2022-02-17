@@ -20,16 +20,16 @@ APOC adds these functions.
 
 [cols="5m,5"]
 |===
-| xref::overview/apoc.text/apoc.text.indexOf.adoc[apoc.text.indexOf(text, lookup, offset=0, to=-1==len)] | find the first occurence of the lookup string in the text, from inclusive, to exclusive,, -1 if not found, null if text is null.
-| xref::overview/apoc.text/apoc.text.indexesOf.adoc[apoc.text.indexesOf(text, lookup, from=0, to=-1==len)] | finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.
+| xref::overview/apoc.text/apoc.text.indexOf.adoc[+apoc.text.indexOf(text, lookup, offset=0, to=-1==len)+] | find the first occurence of the lookup string in the text, from inclusive, to exclusive,, -1 if not found, null if text is null.
+| xref::overview/apoc.text/apoc.text.indexesOf.adoc[+apoc.text.indexesOf(text, lookup, from=0, to=-1==len)+] | finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.
 | xref::overview/apoc.text/apoc.text.replace.adoc[apoc.text.replace(text, regex, replacement)] | replace each substring of the given string that matches the given regular expression with the given replacement.
 | xref::overview/apoc.text/apoc.text.regexGroups.adoc[apoc.text.regexGroups(text, regex)] | returns an array containing a nested array for each match. The inner array contains all match groups.
 | xref::overview/apoc.text/apoc.text.join.adoc[+++apoc.text.join(['text1','text2',...], delimiter)+++] | join the given strings with the given delimiter.
 | xref::overview/apoc.text/apoc.text.repeat.adoc[apoc.text.repeat('item',count)] | multiply the given string with the given count
-| xref::overview/apoc.text/apoc.text.format.adoc[apoc.text.format(text,[params],language)] | sprintf format the string with the params given, and optional param language (default value is 'en').
+| xref::overview/apoc.text/apoc.text.format.adoc[+apoc.text.format(text,[params],language)+] | sprintf format the string with the params given, and optional param language (default value is 'en').
 | xref::overview/apoc.text/apoc.text.lpad.adoc[apoc.text.lpad(text,count,delim)] | left pad the string to the given width
 | xref::overview/apoc.text/apoc.text.rpad.adoc[apoc.text.rpad(text,count,delim)] | right pad the string to the given width
-| xref::overview/apoc.text/apoc.text.random.adoc[apoc.text.random(length, [valid])] | returns a random string to the specified length
+| xref::overview/apoc.text/apoc.text.random.adoc[+apoc.text.random(length, [valid])+] | returns a random string to the specified length
 | xref::overview/apoc.text/apoc.text.capitalize.adoc[apoc.text.capitalize(text)] | capitalise the first letter of the word
 | xref::overview/apoc.text/apoc.text.capitalizeAll.adoc[apoc.text.capitalizeAll(text)] | capitalise the first letter of every word in the text
 | xref::overview/apoc.text/apoc.text.decapitalize.adoc[apoc.text.decapitalize(text)] | decapitalize the first letter of the word
