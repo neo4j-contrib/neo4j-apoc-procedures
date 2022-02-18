@@ -63,7 +63,7 @@ dependencies {
     compileOnly "org.apache.poi:poi-ooxml:3.17"
     testImplementation "org.apache.poi:poi-ooxml:3.17"
 
-    implementation 'org.jsoup:jsoup:1.11.3'
+    implementation 'org.jsoup:jsoup:1.14.3'
 
     implementation group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
     implementation(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7') {
