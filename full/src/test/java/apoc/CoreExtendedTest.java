@@ -35,7 +35,7 @@ public class CoreExtendedTest {
 
             neo4jContainer.start();
 
-            assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+            assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
             Session session = neo4jContainer.getSession();
             int coreCount = session.run("CALL apoc.help('') YIELD core WHERE core = true RETURN count(*) AS count").peek().get("count").asInt();

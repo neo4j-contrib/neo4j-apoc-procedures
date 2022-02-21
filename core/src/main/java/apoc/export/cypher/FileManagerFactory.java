@@ -1,11 +1,13 @@
 package apoc.export.cypher;
 
-import apoc.util.FileUtils;
-
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import static apoc.util.FileUtils.getOutputStream;
 
 /**
  * @author mh
@@ -26,26 +28,23 @@ public class FileManagerFactory {
 
         private final String fileName;
         private final String fileType;
-        private boolean separatedFiles;
-        private PrintWriter writer;
+        private final boolean separatedFiles;
+        private final Map<String, PrintWriter> writerCache;
 
         public PhysicalExportFileManager(String fileType, String fileName, boolean separatedFiles) {
             this.fileType = fileType;
             this.fileName = fileName;
             this.separatedFiles = separatedFiles;
+            this.writerCache = new ConcurrentHashMap<>();
         }
 
         @Override
         public PrintWriter getPrintWriter(String type) {
-
-            if (this.separatedFiles) {
-                return FileUtils.getPrintWriter(normalizeFileName(fileName, type), null);
-            } else {
-                if (this.writer == null) {
-                    this.writer = FileUtils.getPrintWriter(normalizeFileName(fileName, null), null);
-                }
-                return this.writer;
-            }
+            String newFileName = this.separatedFiles ? normalizeFileName(fileName, type) : normalizeFileName(fileName, null);
+            return writerCache.computeIfAbsent(newFileName, (key) -> {
+                OutputStream outputStream = getOutputStream(newFileName);
+                return outputStream == null ? null : new PrintWriter(outputStream);
+            });
         }
 
         @Override
@@ -55,7 +54,7 @@ public class FileManagerFactory {
 
         private String normalizeFileName(final String fileName, String suffix) {
             // TODO check if this should be follow the same rules of FileUtils.readerFor
-            return fileName.replace("." + fileType, "." + (suffix != null ? suffix + "." +fileType : fileType));
+            return fileName.replace("." + fileType, "." + (suffix != null ? suffix + "." + fileType : fileType));
         }
 
         @Override
@@ -76,8 +75,8 @@ public class FileManagerFactory {
 
     private static class StringExportCypherFileManager implements ExportFileManager {
 
-        private boolean separatedFiles;
-        private ConcurrentMap<String, StringWriter> writers = new ConcurrentHashMap<>();
+        private final boolean separatedFiles;
+        private final ConcurrentMap<String, StringWriter> writers = new ConcurrentHashMap<>();
 
         public StringExportCypherFileManager(boolean separatedFiles) {
             this.separatedFiles = separatedFiles;
@@ -85,9 +84,7 @@ public class FileManagerFactory {
 
         @Override
         public PrintWriter getPrintWriter(String type) {
-            if (this.separatedFiles) {
-                return new PrintWriter(getStringWriter(type));
-            } else {
+            if (!this.separatedFiles) {
                 switch (type) {
                     case "csv":
                     case "json":
@@ -96,8 +93,8 @@ public class FileManagerFactory {
                     default:
                         type = "cypher";
                 }
-                return new PrintWriter(getStringWriter(type));
             }
+            return new PrintWriter(getStringWriter(type));
         }
 
         @Override

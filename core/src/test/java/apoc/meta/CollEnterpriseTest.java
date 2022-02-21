@@ -27,6 +27,7 @@ public class CollEnterpriseTest {
             neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI());
             neo4jContainer.start();
         }, Exception.class);
+        assumeTrue(neo4jContainer.isRunning());
         assumeNotNull(neo4jContainer);
         assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
         session = neo4jContainer.getSession();
