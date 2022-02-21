@@ -21,6 +21,7 @@ allprojects {
 }
 
 apply plugin: 'java-library'
+apply from: 'teamcity-repository.gradle'
 
 repositories {
 
@@ -51,8 +52,8 @@ subprojects {
 
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     task mySourcesJar(type: Jar) {
@@ -70,8 +71,8 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country ' : 'US',
-                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise' : 'neo4j:4.3.0-drop03.0-enterprise',
-                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") : 'neo4j:4.3.0-drop03.0'
+                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise' : 'neo4j:5.0.0-enterprise',
+                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") : 'neo4j:5.0.0'
 
         maxHeapSize = "8G"
         forkEvery = 50
@@ -116,7 +117,7 @@ subprojects {
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "4.3.0-drop03.0"
+    neo4jVersion = "5.0.0-dev"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.16.2'
