@@ -32,6 +32,11 @@ apoc.cypher.runSchemaFile
 apoc.cypher.runSchemaFiles
 apoc.date.expire
 apoc.date.expireIn
+apoc.dv.catalog.add
+apoc.dv.catalog.list
+apoc.dv.catalog.remove
+apoc.dv.query
+apoc.dv.queryAndLink
 apoc.es.get
 apoc.es.getRaw
 apoc.es.post

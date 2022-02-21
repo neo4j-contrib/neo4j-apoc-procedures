@@ -6,11 +6,14 @@ import org.junit.Test;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.ResultTransformer;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.List;
+import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static java.lang.String.format;
@@ -83,6 +86,32 @@ public class UtilTest {
         } catch (QueryExecutionException e) {
             assertTrue(e.getMessage().contains("Variable `m` not defined"));
             throw e;
+        }
+    }
+
+    @Test
+    public void testMerge() {
+        try {
+            final ResultTransformer<Object> resultTransformer = res -> res.next().get("count");
+            try (final Transaction transaction = db.beginTx()) {
+                Util.mergeNode(transaction, Label.label("Test"), null, Pair.of("foo", "bar"));
+                transaction.commit();
+                final long count = (long) db.executeTransactionally("MATCH (n:Test{foo: 'bar'}) RETURN count(n) AS count", Map.of(),
+                        resultTransformer);
+                assertEquals(1, count);
+            }
+            try (final Transaction transaction = db.beginTx()) {
+                Util.mergeNode(transaction, Label.label("Test"), Label.label("Bar"), Pair.of("foo", "bar1"));
+                transaction.commit();
+                final long count = (long) db.executeTransactionally("MATCH (n:Test:Bar{foo: 'bar1'}) RETURN count(n) AS count", Map.of(),
+                        resultTransformer);
+                assertEquals(1, count);
+            }
+            final long count = (long) db.executeTransactionally("MATCH (n:Test) RETURN count(n) AS count", Map.of(),
+                    resultTransformer);
+            assertEquals(2, count);
+        } finally {
+            db.executeTransactionally("MATCH (n:Test) DETACH DELETE n");
         }
     }
 }
