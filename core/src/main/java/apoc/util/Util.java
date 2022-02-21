@@ -9,9 +9,30 @@ import apoc.result.VirtualRelationship;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotInTransactionException;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.QueryExecutionType;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.TransactionTerminatedException;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
+import org.neo4j.internal.kernel.api.security.SecurityContext;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -91,7 +112,6 @@ import static apoc.ApocConfig.apocConfig;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
-import static org.eclipse.jetty.util.URIUtil.encodeSpaces;
 
 /**
  * @author mh
@@ -662,15 +682,8 @@ public class Util {
         }
     }
 
-    public static void checkAdmin( SecurityContext securityContext, ProcedureCallContext callContext, String procedureName )
-    {
-        switch ( securityContext.allowExecuteAdminProcedure( callContext.id() ) )
-        {
-        case EXPLICIT_GRANT:
-            return;
-        default:
-            throw new RuntimeException( "This procedure " + procedureName + " is only available to admin users" );
-        }
+    public static void checkAdmin(SecurityContext securityContext, ProcedureCallContext callContext, String procedureName) {
+        if (!securityContext.allowExecuteAdminProcedure(callContext.id()).allowsAccess()) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
     }
 
     public static void sleep(int millis) {
@@ -885,9 +898,9 @@ public class Util {
     }
 
     public static Node mergeNode(Transaction tx, Label primaryLabel, Label addtionalLabel,
-                                 Pair<String, Object>... pairs ) {
+                                 Pair<String, Object>... pairs) {
         Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, pairs[0].first(), pairs[0].other()).stream()
-                .filter(n -> addtionalLabel!=null && n.hasLabel(addtionalLabel))
+                .filter(n -> addtionalLabel == null || n.hasLabel(addtionalLabel))
                 .filter( n -> {
                     for (int i=1; i<pairs.length; i++) {
                         if (!Objects.deepEquals(pairs[i].other(), n.getProperty(pairs[i].first(), null))) {
