@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.result.StringResult;
 import apoc.util.FileUtils;
@@ -11,23 +12,23 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.Mode;
-import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadDirectoryHandler.getPathDependingOnUseNeo4jConfig;
-import static apoc.util.FileUtils.getDirImport;
 import static apoc.util.FileUtils.getPathFromUrlString;
-import static org.eclipse.jetty.util.URIUtil.encodePath;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_WRITE;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType.WRITE;
 
@@ -110,9 +111,12 @@ public class LoadDirectory {
 
     // visible for test purpose
     public static String checkIfUrlBlankAndGetFileUrl(String urlDir) throws IOException {
-        return StringUtils.isBlank(urlDir)
-                ? encodePath(getDirImport())
-                : FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"));
+        if (StringUtils.isBlank(urlDir)) {
+            final Path pathImport = Paths.get(ApocConfig.apocConfig().getImportDir()).toAbsolutePath();
+            // with replaceAll we remove final "/" from path
+            return pathImport.toUri().toString().replaceAll(".$", "");
+        }
+        return FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"));
     }
 
 }

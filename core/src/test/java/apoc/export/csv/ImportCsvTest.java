@@ -11,14 +11,16 @@ import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Result;
+import org.neo4j.kernel.impl.core.NodeEntity;
+import org.neo4j.kernel.impl.core.RelationshipEntity;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.AbstractMap;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +30,7 @@ import java.util.stream.Stream;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.MapUtil.map;
-import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -188,6 +190,36 @@ public class ImportCsvTest {
 
         List<String> names = TestUtil.firstColumn(db, "MATCH (n:Person) RETURN n.name AS name ORDER BY name");
         assertThat(names, Matchers.containsInAnyOrder("Jane", "John"));
+    }
+
+    @Test
+    public void testNodesWithIdSpacesWithDoubleDash() {
+        TestUtil.testCall(
+                db,
+                "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
+                map(
+                        "file", "file://id-idspaces-with-dash.csv",
+                        "config", map("delimiter", '|')
+                ),
+                (r) -> {
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(0L, r.get("relationships"));
+                }
+        );
+
+        List<String> names = TestUtil.firstColumn(db, "MATCH (n:Person) RETURN n.name AS name ORDER BY name");
+        assertThat(names, Matchers.containsInAnyOrder("Jane", "John"));
+    }
+
+    @Test
+    public void testNodesWithIdSpacesWithTripleDash() {
+        db.executeTransactionally("CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
+                map(
+                        "file", "file:///id-idspaces-with-dash.csv",
+                        "config", map("delimiter", '|')
+                ),
+                Result::resultAsString);
+
     }
 
     @Test

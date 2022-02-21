@@ -311,6 +311,10 @@ public class ApocConfig extends LifecycleAdapter {
         return getConfig().getString(key, defaultValue);
     }
 
+    public <T> void setProperty(Setting<T> key, T value) {
+        getConfig().setProperty(key.name(), value);
+    }
+
     public void setProperty(String key, Object value) {
         getConfig().setProperty(key, value);
     }
@@ -326,12 +330,16 @@ public class ApocConfig extends LifecycleAdapter {
     public boolean isImportFolderConfigured() {
         // in case we're test database import path is TestDatabaseManagementServiceBuilder.EPHEMERAL_PATH
 
-        String importFolder = config.getString("dbms.directories.import");
+        String importFolder = getImportDir();
         if (importFolder==null) {
             return false;
         } else {
             return !"/target/test data/neo4j".equals(importFolder);
         }
+    }
+
+    public String getImportDir() {
+        return apocConfig().getString("dbms.directories.import");
     }
 
     public int getInt(String key, int defaultValue) {

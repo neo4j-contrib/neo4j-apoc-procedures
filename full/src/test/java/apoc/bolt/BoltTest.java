@@ -64,7 +64,7 @@ public class BoltTest {
 
     @AfterClass
     public static void tearDown() {
-        if (neo4jContainer != null) {
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
             neo4jContainer.close();
         }
     }

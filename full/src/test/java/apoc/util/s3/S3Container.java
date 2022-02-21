@@ -18,8 +18,6 @@ import java.net.URL;
 import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 public class S3Container implements AutoCloseable {
@@ -34,14 +32,16 @@ public class S3Container implements AutoCloseable {
                     .withServices(S3);
             localstack.start();
         }, Exception.class);
-        assumeNotNull(localstack);
-        assumeTrue(localstack.isRunning());
-        s3 = AmazonS3ClientBuilder
-                .standard()
-                .withEndpointConfiguration(getEndpointConfiguration())
-                .withCredentials(getCredentialsProvider())
-                .build();
-        s3.createBucket(getBucket());
+        if (localstack != null) {
+            s3 = AmazonS3ClientBuilder
+                    .standard()
+                    .withEndpointConfiguration(getEndpointConfiguration())
+                    .withCredentials(getCredentialsProvider())
+                    .build();
+            s3.createBucket(getBucket());
+        } else {
+            s3 = null;
+        }
     }
 
     public void close() {
@@ -115,6 +115,10 @@ public class S3Container implements AutoCloseable {
 
     private static String readFileToString(String directory, String fileName) {
         return TestUtil.readFileToString(new File(directory, fileName));
+    }
+
+    public boolean isRunning() {
+        return localstack != null ? localstack.isRunning() : false;
     }
 
 
