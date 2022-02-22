@@ -58,10 +58,10 @@ dependencies {
     // compileOnly "org.antlr:antlr4-runtime:4.7.2"
     // testImplementation "org.antlr:antlr4-runtime:4.7.2"
 
-    compileOnly "org.apache.poi:poi:3.17"
-    testImplementation "org.apache.poi:poi:3.17"
-    compileOnly "org.apache.poi:poi-ooxml:3.17"
-    testImplementation "org.apache.poi:poi-ooxml:3.17"
+    compileOnly "org.apache.poi:poi:5.1.0"
+    testImplementation "org.apache.poi:poi:5.1.0"
+    compileOnly "org.apache.poi:poi-ooxml:5.1.0"
+    testImplementation "org.apache.poi:poi-ooxml:5.1.0"
 
     implementation 'org.jsoup:jsoup:1.14.3'
 
