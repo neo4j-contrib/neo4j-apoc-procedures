@@ -94,8 +94,8 @@ dependencies {
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compileOnly group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
 
-    testImplementation 'org.mock-server:mockserver-netty:3.10.8'
-    testImplementation 'org.mock-server:mockserver-client-java:3.10.8'
+    testImplementation 'org.mock-server:mockserver-netty:5.6.0'
+    testImplementation 'org.mock-server:mockserver-client-java:5.6.0'
 
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
@@ -132,6 +132,11 @@ dependencies {
     implementation group: 'com.google.guava', name: 'guava', version: '27.0-jre'
 
     implementation group: 'xerces', name: 'xercesImpl', version: '2.12.1'
+
+    implementation group: 'org.apache.arrow', name: 'arrow-vector', version: '6.0.0'
+    implementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '6.0.0'
+    testImplementation group: 'org.apache.arrow', name: 'arrow-vector', version: '6.0.0'
+    testImplementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '6.0.0'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
