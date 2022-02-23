@@ -64,7 +64,7 @@ public class HelpExtendedTest {
         FileOutputStream fos = new FileOutputStream(extendedFile);
 
         try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos))) {
-            db.executeTransactionally("CALL dbms.procedures() YIELD name WHERE name STARTS WITH 'apoc' AND name <> 'apoc.help' RETURN name", Collections.emptyMap(),
+            db.executeTransactionally("SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'apoc' AND name <> 'apoc.help' RETURN name", Collections.emptyMap(),
                     result -> {
                         result.stream().forEach(record -> {
                             try {
@@ -76,7 +76,7 @@ public class HelpExtendedTest {
                         return null;
                     });
 
-            db.executeTransactionally("CALL dbms.functions() YIELD name WHERE name STARTS WITH 'apoc'  AND name <> 'apoc.help' RETURN name", Collections.emptyMap(),
+            db.executeTransactionally("SHOW FUNCTIONS YIELD name WHERE name STARTS WITH 'apoc'  AND name <> 'apoc.help' RETURN name", Collections.emptyMap(),
                     result -> {
                         result.stream().forEach(record -> {
                             try {

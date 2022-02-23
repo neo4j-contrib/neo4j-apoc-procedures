@@ -103,6 +103,6 @@ In our APOC procedure library we already converted about https://github.com/neo4
 
 |===
 
-You can list user defined functions with `call dbms.functions()`
+You can list user defined functions with `SHOW FUNCTIONS`
 
-image::dbms.functions.jpg[scaledwidth="100%"]
+image::show_functions.png[scaledwidth="100%"]

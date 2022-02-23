@@ -521,7 +521,7 @@ class DocumentationGenerator {
     }
 
     private List<Row> collectProcedures() {
-        return db.executeTransactionally("CALL dbms.procedures() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'procedure' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
+        return db.executeTransactionally("SHOW PROCEDURES YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'procedure' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
                 result -> result.stream().map(record -> new Row(
                         record.get("type").toString(),
                         record.get("name").toString(),
@@ -531,7 +531,7 @@ class DocumentationGenerator {
     }
 
     private List<Row> collectFunctions() {
-        return db.executeTransactionally("CALL dbms.functions() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'function' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
+        return db.executeTransactionally("SHOW FUNCTIONS YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'function' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
                 result -> result.stream().map(record -> new Row(
                         record.get("type").toString(),
                         record.get("name").toString(),
