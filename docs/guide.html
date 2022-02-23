@@ -169,13 +169,12 @@ MERGE (p:Person {name:person.name})
 And for YIELDing their results the output column name and type.</p>
 </div>
 <div class="paragraph">
-<p>You can see the procedures signature in the output of <code>CALL dbms.procedures()</code></p>
+<p>You can see the procedures signature in the output of <code>SHOW PROCEDURES</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->CALL dbms.procedures() YIELD name, signature
-WITH * WHERE name STARTS WITH 'apoc.algo.dijkstra'
-RETURN name, signature<!--/code--></pre>
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->SHOW PROCEDURES YIELD *
+WHERE name STARTS WITH 'apoc.algo.dijkstra' RETURN name, signature<!--/code--></pre>
 </div>
 </div>
 <div class="paragraph">
