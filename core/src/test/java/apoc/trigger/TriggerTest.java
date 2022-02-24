@@ -132,37 +132,63 @@ public class TriggerTest {
     // TODO NC:Why is this failing?
     @Ignore
     @Test
-    public void testTxId() throws Exception {
-        db.executeTransactionally("CALL apoc.trigger.add('txinfo','UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime',{phase:'after'})");
+    public void testTxId1() throws Exception {
+        db.executeTransactionally("CALL apoc.trigger.add('txinfo','UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime',{phase:'afterAsync'})");
         db.executeTransactionally("CREATE (f:Bar)");
-        TestUtil.testCall(db, "MATCH (f:Bar) RETURN f", (row) -> {
+        org.neo4j.test.assertion.Assert.assertEventually(() ->
+                        db.executeTransactionally("MATCH (n:Bar) RETURN n", Map.of(),
+                                result -> {
+                                    final Node node = result.<Node>columnAs("n").next();
+                                    return (long) node.getProperty("txId", -1L) > -1L
+                                            && (long) node.getProperty("txTime") > start;
+                                })
+                , (value) -> value, 30L, TimeUnit.SECONDS);
+    }
+
+    @Test
+    public void testTxId() {
+        db.executeTransactionally("CREATE (f:Another)");
+        db.executeTransactionally("CALL apoc.trigger.add('txinfo','UNWIND $createdNodes AS n \n" +
+                "MATCH (a:Another) WITH a, n\n" +
+                "SET a.txId = $transactionId, a.txTime = $commitTime',{phase:'after'})");
+        db.executeTransactionally("CREATE (f:Bar)");
+        TestUtil.testCall(db, "MATCH (f:Another) RETURN f", (row) -> {
             assertEquals(true, (Long) ((Node) row.get("f")).getProperty("txId") > -1L);
             assertEquals(true, (Long) ((Node) row.get("f")).getProperty("txTime") > start);
         });
+        db.executeTransactionally("MATCH (n:Another) DELETE n");
     }
 
     @Test
     public void testMetaDataBefore() {
-        testMetaData("before");
+        db.executeTransactionally("CALL apoc.trigger.add('txinfo','UNWIND $createdNodes AS n SET n += $metaData', {phase: 'before'})");
+        testMetaData(false);
     }
 
     // TODO NC:Why is this failing?
     @Ignore
     @Test
     public void testMetaDataAfter() {
-        testMetaData("after");
+        db.executeTransactionally("CREATE (n:Another)");
+        db.executeTransactionally("CALL apoc.trigger.add('txinfo', 'UNWIND $createdNodes AS n MATCH (a:Another) SET a.label = labels(n)[0], a += $metaData', {phase: 'after'})");
+        testMetaData(true);
+        db.executeTransactionally("MATCH (n:Another) DELETE n");
     }
 
-    private void testMetaData(String phase) {
-        db.executeTransactionally("CALL apoc.trigger.add('txinfo','UNWIND $createdNodes AS n SET n += $metaData',{phase:$phase})", Collections.singletonMap("phase", phase));
+    private void testMetaData(boolean isAfter) {
         try (Transaction tx = db.beginTx()) {
             KernelTransaction ktx = ((TransactionImpl)tx).kernelTransaction();
             ktx.setMetaData(Collections.singletonMap("txMeta", "hello"));
             tx.execute("CREATE (f:Bar)");
             tx.commit();
         }
-        TestUtil.testCall(db, "MATCH (f:Bar) RETURN f", (row) -> {
-            assertEquals("hello",  ((Node) row.get("f")).getProperty("txMeta") );
+        String matchQuery = isAfter ? "MATCH (n:Another) RETURN n" : "MATCH (n:Bar) RETURN n";
+        TestUtil.testCall(db, matchQuery, (row) -> {
+            final Node node = (Node) row.get("n");
+            if (isAfter) {
+                assertEquals("Bar", node.getProperty("label"));
+            }
+            assertEquals("hello",  node.getProperty("txMeta") );
         });
     }
 
