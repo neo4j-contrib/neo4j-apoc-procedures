@@ -100,7 +100,6 @@ dependencies {
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
 
     testImplementation group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.5.1'
     implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     implementation group: 'com.opencsv', name: 'opencsv', version: '4.6'
     implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
@@ -119,7 +118,7 @@ dependencies {
     testImplementation group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
     testImplementation group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
 
-    testImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.9.7'
+    testImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.13.1'
     testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.2.0'
