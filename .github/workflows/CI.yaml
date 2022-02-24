@@ -32,11 +32,14 @@ jobs:
           TEAMCITY_USER: ${{ secrets.TEAMCITY_USER }}
           TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
         run: ./gradlew build --continue
-      - name: Clean neo4j from the cache
-        run: (find ~/.gradle/caches -name "*neo4j*" -exec rm -rf {} \;) || echo "All neo4j files cleaned"
-      - name: Archive test results
-        uses: actions/upload-artifact@v2
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure() # run this step even if previous step failed
         with:
-          name: test-results
-          path: /home/runner/work/apoc-private/apoc-private/core/build/reports/tests/test/index.html
+          name: JEST Tests
+          path: TEST-*.xml
+          reporter: jest-junit
+      - name: Clean neo4j from the cache
+        if: success() || failure() # run this step even if previous step failed
+        run: (find ~/.gradle/caches -name "*neo4j*" -exec rm -rf {} \;) || echo "All neo4j files cleaned"
 
