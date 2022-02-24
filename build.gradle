@@ -21,7 +21,8 @@ allprojects {
 }
 
 apply plugin: 'java-library'
-apply from: 'teamcity-repository.gradle'
+if (System.getenv("CI") == "true")
+    apply from: 'teamcity-repository.gradle'
 
 repositories {
 

@@ -24,8 +24,6 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: Force a fresh version of neo4j (not the cached one)
-        run: (find ~/.gradle/caches -name "*neo4j*" -exec rm -rf {} \;) || echo "All neo4j files cleaned"
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
