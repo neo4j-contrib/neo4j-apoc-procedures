@@ -234,8 +234,8 @@ CALL apoc.load.html("<!DOCTYPE html> <html> <body> <p class='firstClass'>My firs
 ----
 
 The jsoup class https://jsoup.org/apidocs/org/jsoup/nodes/Element.html[org.jsoup.nodes.Element]
-provides a set of functions that can be used. 
-Anyway, we can emulate all of them using the appropriate css/jQuery selectors in these ways 
+provides a set of functions that can be used.
+Anyway, we can emulate all of them using the appropriate css/jQuery selectors in these ways
 (except for the last one, we can substitute the `*` with a tag name to search into it instead of everywhere. Furthermore, by removing the `*` selector will be returned the same result):
 
 
@@ -293,7 +293,7 @@ a|
 
 == Html plain text representation
 
-Using the same syntax and logic as `apoc.load.html`, 
+Using the same syntax and logic as `apoc.load.html`,
 we can get a plain text representation of the whole document, using the `apoc.load.htmlPlainText(URL_OR_TEXT, QUERY_MAP, CONFIG_MAP)` procedure, for example:
 
 [source,cypher]
