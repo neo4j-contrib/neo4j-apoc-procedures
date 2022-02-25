@@ -22,5 +22,5 @@ public interface HtmlResultInterface {
         }
     }
 
-    Object getResult(Document document, String selector, Map<String, Object> config, List<String> errorList, Log log);
+    Object getResult(Document document, String selector, LoadHtmlConfig config, List<String> errorList, Log log);
 }

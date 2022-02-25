@@ -13,7 +13,7 @@ import static apoc.load.LoadHtml.getElements;
 public class SelectElement implements HtmlResultInterface {
 
     @Override
-    public List<Map<String, Object>> getResult(Document document, String selector, Map<String, Object> config, List<String> errorList, Log log) {
+    public List<Map<String, Object>> getResult(Document document, String selector, LoadHtmlConfig config, List<String> errorList, Log log) {
         final Elements select = document.select(selector);
         return getElements(select, config, errorList, log);
     }
