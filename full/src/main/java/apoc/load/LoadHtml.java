@@ -2,6 +2,7 @@ package apoc.load;
 
 import apoc.Extended;
 import apoc.result.MapResult;
+import apoc.util.MissingDependencyException;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.jsoup.Jsoup;
@@ -17,18 +18,24 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
+
+import static apoc.load.LoadHtmlBrowser.getChromeInputStream;
+import static apoc.load.LoadHtmlBrowser.getFirefoxInputStream;
 
 @Extended
 public class LoadHtml {
 
     // public for test purpose
     public static final String KEY_ERROR = "errorList";
-
-    private enum FailSilently { FALSE, WITH_LOG, WITH_LIST }
 
     @Context
     public GraphDatabaseService db;
@@ -40,16 +47,13 @@ public class LoadHtml {
     @Procedure
     @Description("apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map")
     public Stream<MapResult> html(@Name("url") String url, @Name(value = "query",defaultValue = "{}") Map<String, String> query, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
-        return readHtmlPage(url, query, config);
+        return readHtmlPage(url, query, new LoadHtmlConfig(config));
     }
 
-    private Stream<MapResult> readHtmlPage(String url, Map<String, String> query, Map<String, Object> config) {
-        String charset = config.getOrDefault("charset", "UTF-8").toString();
+    private Stream<MapResult> readHtmlPage(String url, Map<String, String> query, LoadHtmlConfig config) {
         try {
             // baseUri is used to resolve relative paths
-            String baseUri = config.getOrDefault("baseUri", "").toString();
-
-            Document document = Jsoup.parse(FileUtils.inputStreamFor(url, null, null, null), charset, baseUri);
+            Document document = Jsoup.parse(getHtmlInputStream(url, query, config), config.getCharset(), config.getBaseUri());
 
             Map<String, Object> output = new HashMap<>();
             List<String> errorList = new ArrayList<>();
@@ -62,19 +66,34 @@ public class LoadHtml {
                 output.put(KEY_ERROR, errorList);
             }
 
-            return Stream.of(new MapResult(output) );
+            return Stream.of(new MapResult(output));
+        } catch (IllegalArgumentException | ClassCastException e) {
+            throw new RuntimeException("Invalid config: " + config);
         } catch (FileNotFoundException e) {
             throw new RuntimeException("File not found from: " + url);
         } catch(UnsupportedEncodingException e) {
-            throw new RuntimeException("Unsupported charset: " + charset);
+            throw new RuntimeException("Unsupported charset: " + config.getCharset());
         } catch(Exception e) {
             throw new RuntimeException("Can't read the HTML from: "+ url, e);
         }
     }
+    
+    private InputStream getHtmlInputStream(String url, Map<String, String> query, LoadHtmlConfig config) throws IOException {
 
-    private List<Map<String, Object>> getElements(Elements elements, Map<String, Object> config, List<String> errorList) {
+        final boolean isHeadless = config.isHeadless();
+        final boolean isAcceptInsecureCerts = config.isAcceptInsecureCerts();
+        switch (config.getBrowser()) {
+            case FIREFOX:
+                return withSeleniumBrowser(() -> getFirefoxInputStream(url, query, config, isHeadless, isAcceptInsecureCerts));
+            case CHROME:
+                return withSeleniumBrowser(() -> getChromeInputStream(url, query, config, isHeadless, isAcceptInsecureCerts));
+            default:
+                return FileUtils.inputStreamFor(url, null, null, null);
+        }
+    }
 
-        FailSilently failConfig = FailSilently.valueOf((String) config.getOrDefault("failSilently", "FALSE"));
+    private List<Map<String, Object>> getElements(Elements elements, LoadHtmlConfig conf, List<String> errorList) {
+
         List<Map<String, Object>> elementList = new ArrayList<>();
 
         for (Element element : elements) {
@@ -85,10 +104,10 @@ public class LoadHtml {
                     if(!element.val().isEmpty()) result.put("value", element.val());
                     if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
 
-                    if (Util.toBoolean(config.getOrDefault("children", false))) {
+                    if (conf.isChildren()) {
                         if(element.hasText()) result.put("text", element.ownText());
 
-                        result.put("children", getElements(element.children(), config, errorList));
+                        result.put("children", getElements(element.children(), conf, errorList));
                     }
                     else {
                         if(element.hasText()) result.put("text", element.text());
@@ -97,7 +116,7 @@ public class LoadHtml {
                     elementList.add(result);
             } catch (Exception e) {
                 final String parseError = "Error during parsing element: " + element;
-                switch (failConfig) {
+                switch (conf.getFailSilently()) {
                     case WITH_LOG:
                         log.warn(parseError);
                         break;
@@ -120,12 +139,23 @@ public class LoadHtml {
                 throw new RuntimeException("Invalid tag " + element);
             }
             if (!attribute.getValue().isBlank()) {
-                attributes.put(attribute.getKey(), attribute.getValue());
+                final String key = attribute.getKey();
+                // with href/src attribute we prepend baseUri path
+                final boolean attributeHasLink = key.equals("href") || key.equals("src");
+                attributes.put(key, attributeHasLink ? element.absUrl(key) : attribute.getValue());
             }
         }
 
         return attributes;
     }
 
+    private InputStream withSeleniumBrowser(Supplier<InputStream> action) {
+        try {
+            return action.get();
+        } catch (NoClassDefFoundError e) {
+            throw new MissingDependencyException("Cannot find jars into the plugins folder.\n" +
+                    "See the documentation: https://neo4j.com/labs/apoc/4.1/overview/apoc.load/apoc.load.html/#selenium-depencencies");
+        }
+    }
 
 }
