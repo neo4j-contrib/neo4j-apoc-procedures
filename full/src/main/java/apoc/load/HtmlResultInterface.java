@@ -9,7 +9,7 @@ import java.util.Map;
 public interface HtmlResultInterface {
     
     enum Type {
-        DEFAULT(new SelectElement()), 
+        DEFAULT(new SelectElement()),
         PLAIN_TEXT(new PlainText());
 
         private final HtmlResultInterface resultInterface;
@@ -22,5 +22,5 @@ public interface HtmlResultInterface {
         }
     }
 
-    Object getResult(Document document, String selector, Map<String, Object> config, List<String> errorList, Log log);
+    Object getResult(Document document, String selector, LoadHtmlConfig config, List<String> errorList, Log log);
 }

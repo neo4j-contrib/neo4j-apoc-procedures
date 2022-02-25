@@ -19,8 +19,8 @@ import static apoc.load.LoadHtml.withError;
 public class PlainText implements HtmlResultInterface {
 
     @Override
-    public String getResult(Document document, String selector, Map<String, Object> config, List<String> errorList, Log log) {
-        LoadHtml.FailSilently failConfig = LoadHtml.FailSilently.valueOf((String) config.getOrDefault("failSilently", "FALSE"));
+    public String getResult(Document document, String selector, LoadHtmlConfig config, List<String> errorList, Log log) {
+        LoadHtmlConfig.FailSilently failConfig = config.getFailSilently();
         StringBuilder plainText = new StringBuilder();
         Elements elements = document.select(selector);
         for (Element element : elements) {
@@ -30,11 +30,11 @@ public class PlainText implements HtmlResultInterface {
         return plainText.toString();
     }
 
-    private String getResult(Map<String, Object> config, List<String> errorList, Log log, LoadHtml.FailSilently failConfig, Element element) {
+    private String getResult(LoadHtmlConfig config, List<String> errorList, Log log, LoadHtmlConfig.FailSilently failConfig, Element element) {
         return withError(element, errorList, failConfig, log, () -> getPlainText(element, config));
     }
 
-    public String getPlainText(Element element, Map<String, Object> config) {
+    public String getPlainText(Element element, LoadHtmlConfig config) {
         FormattingVisitor formatter = new FormattingVisitor(config);
         NodeTraversor.traverse(formatter, element);
         return formatter.toString();
@@ -45,10 +45,10 @@ public class PlainText implements HtmlResultInterface {
         private final int textSize;
         private final StringBuilder builder;
 
-        private FormattingVisitor(Map<String, Object> config) {
+        private FormattingVisitor(LoadHtmlConfig config) {
             this.width = 0;
             this.builder = new StringBuilder();
-            this.textSize = Util.toInteger(config.getOrDefault("textSize", 80));
+            this.textSize = config.getTextSize();
         }
 
         public void head(Node node, int depth) {
