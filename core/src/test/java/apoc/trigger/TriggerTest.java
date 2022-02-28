@@ -132,7 +132,7 @@ public class TriggerTest {
     // TODO NC:Why is this failing?
     @Ignore
     @Test
-    public void testTxId1() throws Exception {
+    public void testTxIdAfterAsync() throws Exception {
         db.executeTransactionally("CALL apoc.trigger.add('txinfo','UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime',{phase:'afterAsync'})");
         db.executeTransactionally("CREATE (f:Bar)");
         org.neo4j.test.assertion.Assert.assertEventually(() ->
