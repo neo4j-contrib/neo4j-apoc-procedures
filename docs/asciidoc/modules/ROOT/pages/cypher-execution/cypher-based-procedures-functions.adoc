@@ -54,7 +54,7 @@ Given statement will be registered as a procedure, the results will be turned in
 | description | "" | A general description about the business rules implemented into the procedure
 |===
 
-The type names are what you would expect and see in outputs of `dbms.procedures` or `apoc.help` just without the `?`.
+The type names are what you would expect and see in outputs of `SHOW PROCEDURES` or `apoc.help` just without the `?`.
 The default values are parsed as JSON.
 
 .Type Names
@@ -101,7 +101,7 @@ If your single row result is a list you can force a single row by setting the la
 | description | "" | A general description about the business rules implemented into the function
 |===
 
-The type names are what you would expect and see in outputs of `dbms.procedures` or `apoc.help` just without the `?`.
+The type names are what you would expect and see in outputs of `SHOW PROCEDURES` or `apoc.help` just without the `?`.
 The default values are parsed as JSON.
 
 
