@@ -50,7 +50,7 @@ public class Diff {
         return inCommon;
     }
 
-    private Map<String, Map<String, Object>> getPropertiesDiffering(Map<String, Object> left, Map<String, Object> right) {
+    public static Map<String, Map<String, Object>> getPropertiesDiffering(Map<String, Object> left, Map<String, Object> right) {
         Map<String, Map<String, Object>> different = new HashMap<>();
         Map<String, Object> keyPairs = new HashMap<>();
         keyPairs.putAll(left);

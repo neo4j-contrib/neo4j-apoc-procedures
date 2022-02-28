@@ -1,5 +1,6 @@
 package apoc.bolt;
 
+import apoc.meta.Meta;
 import apoc.result.RowResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
@@ -26,7 +27,9 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.internal.helpers.collection.Iterators;
 
 import java.net.URISyntaxException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -35,6 +38,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 
@@ -66,7 +70,7 @@ public class BoltConnection {
                 SummaryCounters counters = statementResult.consume().counters();
                 return Stream.of(new RowResult(toMap(counters)));
             } else
-                return getRowResultStream(config.isVirtual(), session, params, statement);
+                return getRowResultStream(session, params, statement);
         });
     }
 
@@ -77,7 +81,7 @@ public class BoltConnection {
                 String withColumns = "WITH " + localResult.columns().stream()
                         .map(c -> "$" + c + " AS " + c)
                         .collect(Collectors.joining(", ")) + "\n";
-                Map<Long, Object> nodesCache = new HashMap<>();
+                Map<Long, VirtualNode> nodesCache = new HashMap<>();
                 List<RowResult> response = new ArrayList<>();
                 while (localResult.hasNext()) {
                     final Result statementResult;
@@ -88,14 +92,15 @@ public class BoltConnection {
                         final Map<String, Object> params = Collections.singletonMap("params", row.getOrDefault("params", Collections.emptyMap()));
                         statementResult = session.run(statement, params);
                     } else {
-                        statementResult = session.run(withColumns + remoteStatement, row);
+                        final String query = withColumns + remoteStatement;
+                        statementResult = session.run(query, row);
                     }
                     if (config.isStreamStatements()) {
                         response.add(new RowResult(toMap(statementResult.consume().counters())));
                     } else {
                         response.addAll(
                                 statementResult.stream()
-                                        .map(record -> buildRowResult(record, nodesCache, config.isVirtual()))
+                                        .flatMap(record -> buildRowResult(session, record, nodesCache))
                                         .collect(Collectors.toList())
                         );
                     }
@@ -124,59 +129,114 @@ public class BoltConnection {
         return function.apply(transaction).onClose(transaction::commit).onClose(transaction::close);
     }
 
-    private RowResult buildRowResult(Record record, Map<Long,Object> nodesCache, boolean virtual) {
-        return new RowResult(record.asMap(value -> {
-            Object entity = value.asObject();
-            if (entity instanceof Node) return toNode(entity, virtual, nodesCache);
-            if (entity instanceof Relationship) return toRelationship(entity, virtual, nodesCache);
-            if (entity instanceof Path) return toPath(entity, virtual, nodesCache);
-            return entity;
-        }));
+    private Stream<RowResult> buildRowResult(Session session, Record record, Map<Long,VirtualNode> nodesCache) {
+        return withTransaction(session, tx -> Stream.of(buildRowResult(tx, record, nodesCache)));
+    }
+    
+    private RowResult buildRowResult(Transaction tx, Record record, Map<Long,VirtualNode> nodesCache) {
+        return new RowResult(record.asMap(value -> convert(tx, value, nodesCache)));
     }
 
-    private Stream<RowResult> getRowResultStream(boolean virtual, Session session, Map<String, Object> params, String statement) {
-        Map<Long, Object> nodesCache = new HashMap<>();
+    private Object convert(Transaction tx, Object entity, Map<Long, VirtualNode> nodesCache) {
+        if (entity instanceof Value) return convert(tx, ((Value) entity).asObject(), nodesCache);
+        if (entity instanceof Node) return toNode(entity, nodesCache);
+        if (entity instanceof Relationship) return toRelationship(tx, entity, nodesCache);
+        if (entity instanceof Path) return toPath(tx, entity, nodesCache);
+        if (entity instanceof Collection) return toCollection(tx, (Collection) entity, nodesCache);
+        if (entity instanceof Map) return toMap(tx, (Map<String, Object>) entity, nodesCache);
+        return entity;
+    }
+
+    private Object toMap(Transaction tx, Map<String, Object> entity, Map<Long, VirtualNode> nodeCache) {
+        return entity.entrySet().stream()
+                .map(entry -> new AbstractMap.SimpleEntry(entry.getKey(), convert(tx, entry.getValue(), nodeCache)))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+    }
+
+    private Object toCollection(Transaction tx, Collection entity, Map<Long, VirtualNode> nodeCache) {
+        return entity.stream()
+                .map(elem -> convert(tx, elem, nodeCache))
+                .collect(Collectors.toList());
+    }
+
+    private Stream<RowResult> getRowResultStream(Session session, Map<String, Object> params, String statement) {
+        Map<Long, VirtualNode> nodesCache = new HashMap<>();
 
         return withTransaction(session, tx -> {
             ClosedAwareDelegatingIterator<Record> iterator = new ClosedAwareDelegatingIterator(tx.run(statement, params));
-            return Iterators.stream(iterator).map(record -> buildRowResult(record, nodesCache, virtual));
+            return Iterators.stream(iterator).map(record -> buildRowResult(tx, record, nodesCache));
         });
     }
 
-    private Object toNode(Object value, boolean virtual, Map<Long, Object> nodesCache) {
-        Value internalValue = ((InternalEntity) value).asValue();
-        Node node = internalValue.asNode();
-        if (virtual) {
-            List<Label> labels = new ArrayList<>();
-            node.labels().forEach(l -> labels.add(Label.label(l)));
-            VirtualNode virtualNode = new VirtualNode(node.id(), labels.toArray(new Label[0]), node.asMap());
+    private Object toNode(Object value, Map<Long, VirtualNode> nodesCache) {
+        Node node;
+        if (value instanceof Value) {
+            node = ((InternalEntity) value).asValue().asNode();
+        } else if (value instanceof Node) {
+            node = (Node) value;
+        } else {
+            throw getUnsupportedConversionException(value);
+        }
+        if (config.isVirtual()) {
+            VirtualNode virtualNode = new VirtualNode(node.id(), getLabelsAsArray(node), node.asMap());
             nodesCache.put(node.id(), virtualNode);
             return virtualNode;
         } else
-            return Util.map("entityType", internalValue.type().name(), "labels", node.labels(), "id", node.id(), "properties", node.asMap());
+            return Util.map("entityType", Meta.Types.NODE.name(), "labels", node.labels(), "id", node.id(), "properties", node.asMap());
     }
 
-    private Object toRelationship(Object value, boolean virtual, Map<Long, Object> nodesCache) {
-        Value internalValue = ((InternalEntity) value).asValue();
-        Relationship relationship = internalValue.asRelationship();
-        if (virtual) {
-            VirtualNode start = (VirtualNode) nodesCache.getOrDefault(relationship.startNodeId(), new VirtualNode(relationship.startNodeId()));
-            VirtualNode end = (VirtualNode) nodesCache.getOrDefault(relationship.endNodeId(), new VirtualNode(relationship.endNodeId()));
-            VirtualRelationship virtualRelationship = new VirtualRelationship(relationship.id(), start, end, RelationshipType.withName(relationship.type()), relationship.asMap());
-            return virtualRelationship;
+    private Object toRelationship(Transaction tx, Object value, Map<Long, VirtualNode> nodesCache) {
+        Relationship rel;
+        if (value instanceof Value) {
+            rel = ((InternalEntity) value).asValue().asRelationship();
+        } else if (value instanceof Relationship) {
+            rel = (Relationship) value;
+        } else {
+            throw getUnsupportedConversionException(value);
+        }
+        if (config.isVirtual()) {
+            VirtualNode start;
+            VirtualNode end;
+            final long startId = rel.startNodeId();
+            final long endId = rel.endNodeId();
+            if (config.isWithRelationshipNodeProperties()) {
+                final Function<Long, VirtualNode> retrieveNode = (id) -> {
+                    final Node node = tx.run("MATCH (n) WHERE id(n) = $id RETURN n", Map.of("id", id))
+                            .single()
+                            .get("n")
+                            .asNode();
+                    return new VirtualNode(node.id(), getLabelsAsArray(node), node.asMap());
+                };
+                start = nodesCache.computeIfAbsent(startId, retrieveNode);
+                end = nodesCache.computeIfAbsent(endId, retrieveNode);
+            } else {
+                start = nodesCache.getOrDefault(startId, new VirtualNode(startId));
+                end = nodesCache.getOrDefault(endId, new VirtualNode(endId));
+            }
+            return new VirtualRelationship(rel.id(), start, end, RelationshipType.withName(rel.type()), rel.asMap());
         } else
-            return Util.map("entityType", internalValue.type().name(), "type", relationship.type(), "id", relationship.id(), "start", relationship.startNodeId(), "end", relationship.endNodeId(), "properties", relationship.asMap());
+            return Util.map("entityType", Meta.Types.RELATIONSHIP.name(), "type", rel.type(), "id", rel.id(), "start", rel.startNodeId(), "end", rel.endNodeId(), "properties", rel.asMap());
     }
 
-    private Object toPath(Object value, boolean virtual, Map<Long, Object> nodesCache) {
+    private Object toPath(Transaction tx, Object value, Map<Long, VirtualNode> nodesCache) {
         List<Object> entityList = new LinkedList<>();
         Value internalValue = ((InternalPath) value).asValue();
         internalValue.asPath().forEach(p -> {
-            entityList.add(toNode(p.start(), virtual, nodesCache));
-            entityList.add(toRelationship(p.relationship(), virtual, nodesCache));
-            entityList.add(toNode(p.end(), virtual, nodesCache));
+            entityList.add(toNode(p.start(), nodesCache));
+            entityList.add(toRelationship(tx, p.relationship(), nodesCache));
+            entityList.add(toNode(p.end(), nodesCache));
         });
         return entityList;
+    }
+
+    private Label[] getLabelsAsArray(Node node) {
+        return StreamSupport.stream(node.labels().spliterator(), false)
+                .map(Label::label)
+                .toArray(Label[]::new);
+    }
+
+    private ClassCastException getUnsupportedConversionException(Object value) {
+        return new ClassCastException("Conversion from class " + value.getClass().getName() + " not supported");
     }
 
     private Map<String, Object> toMap(SummaryCounters resultSummary) {

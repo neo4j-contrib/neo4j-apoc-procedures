@@ -20,14 +20,19 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.time.LocalTime;
 import java.time.OffsetTime;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import static apoc.util.TestUtil.isRunningInCI;
+import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
@@ -94,6 +99,25 @@ public class BoltTest {
     }
 
     @Test
+    public void shouldReturnMapOfCollection() throws Exception {
+        TestUtil.testCall(db, "call apoc.bolt.load(" + BOLT_URL + ",'MATCH (p:Person {name: $name}) RETURN {nodes: collect(p)} AS map', $params, $config)",
+                map("params", map("name", "Tom"),
+                        "config", map("virtual", true)),
+                r -> {
+                    assertNotNull(r);
+                    Map<String, Object> row = (Map<String, Object>) r.get("row");
+                    Map<String, Collection<Node>> map = (Map<String, Collection<Node>>) row.get("map");
+                    Collection<Node> nodes = map.get("nodes");
+                    assertEquals(2, nodes.size());
+                    Set<Map<String, Object>> expected = new HashSet<>(Arrays.asList(map("name", "Tom", "surname", "Loagan"), map("name", "Tom", "surname", "Burton")));
+                    Set<Map<String, Object>> actual = nodes.stream()
+                            .map(n -> n.getProperties("name", "surname"))
+                            .collect(Collectors.toSet());
+                    assertEquals(expected, actual);
+                });
+    }
+
+    @Test
     public void testLoadNodesVirtual() throws Exception {
             TestUtil.testResult(db, "call apoc.bolt.load(" + BOLT_URL + ",'match(n) return n', {}, {virtual:true})", r -> {
                 assertNotNull(r);
@@ -155,6 +179,61 @@ public class BoltTest {
                 assertEquals(2016L, rel.getProperty("since"));
                 assertEquals(OffsetTime.parse("12:50:35.556+01:00"), rel.getProperty("time"));
             });
+    }
+
+    @Test
+    public void testLoadRelWithNodeProperties() {
+        // given
+        String query = "MATCH (:Person{name: 'John', surname: 'Green'})-[r]->(:Person{name: 'Jim', surname: 'Brown'}) RETURN r";
+
+        // when
+        TestUtil.testCall(db, "call apoc.bolt.load(" + BOLT_URL + ",$query, null, $config)",
+                map("query", query, "config", map("virtual", true, "withRelationshipNodeProperties", true)),
+                r -> {
+                    // then
+                    assertNotNull(r);
+                    Map<String, Object> row = (Map<String, Object>) r.get("row");
+                    final Relationship rel = (Relationship) row.get("r");
+                    assertEquals("KNOWS", rel.getType().name());
+                    final Map<String, Object> expectedRel = map("born", point(4979, 56.7, 12.78, 100.0).asPoint(), "since", OffsetTime.parse("12:50:35.556+01:00"));
+                    assertEquals(expectedRel, rel.getAllProperties());
+                    final Node start = rel.getStartNode();
+                    final Map<String, Object> expectedStartNode = map("name", "John", "surname", "Green", "born", point(7203, 2.3, 4.5).asPoint());
+                    assertEquals(expectedStartNode, start.getAllProperties());
+                    final Node end = rel.getEndNode();
+                    final Map<String, Object> expectedEndNode = map("name", "Jim", "surname", "Brown");
+                    assertEquals(expectedEndNode, end.getAllProperties());
+                });
+    }
+
+    @Test
+    public void testLoadFromLocalRelWithNodeProperties() {
+        db.executeTransactionally("create (:LocalNode {name: 'John', surname: 'Green'})");
+        
+        // given
+        String localStatement = "MATCH (local:LocalNode) RETURN local.name as name";
+        String remoteStatement = "MATCH (:Person{name: name, surname: 'Green'})-[r]->(:Person{name: 'Jim', surname: 'Brown'}) RETURN r";
+
+        // when
+        TestUtil.testCall(db, "call apoc.bolt.load.fromLocal(" + BOLT_URL + ", $localStatement, $remoteStatement, $config)",
+                map("localStatement", localStatement, "remoteStatement", remoteStatement, "config", map("virtual", true, "withRelationshipNodeProperties", true)),
+                r -> {
+                    // then
+                    assertNotNull(r);
+                    Map<String, Object> row = (Map<String, Object>) r.get("row");
+                    final Relationship rel = (Relationship) row.get("r");
+                    assertEquals("KNOWS", rel.getType().name());
+                    final Map<String, Object> expectedRel = map("born", point(4979, 56.7, 12.78, 100.0).asPoint(), "since", OffsetTime.parse("12:50:35.556+01:00"));
+                    assertEquals(expectedRel, rel.getAllProperties());
+                    final Node start = rel.getStartNode();
+                    final Map<String, Object> expectedStartNode = map("name", "John", "surname", "Green", "born", point(7203, 2.3, 4.5).asPoint());
+                    assertEquals(expectedStartNode, start.getAllProperties());
+                    final Node end = rel.getEndNode();
+                    final Map<String, Object> expectedEndNode = map("name", "Jim", "surname", "Brown");
+                    assertEquals(expectedEndNode, end.getAllProperties());
+                });
+
+        db.executeTransactionally("match (n:LocalNode) delete n");
     }
 
     @Test
