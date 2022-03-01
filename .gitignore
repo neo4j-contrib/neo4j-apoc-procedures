@@ -35,7 +35,7 @@ Thumbs.db
 .cache-main
 .cache-tests
 bin
-hadoop
+/hadoop/
 progress.csv
 logs/
 store_lock
