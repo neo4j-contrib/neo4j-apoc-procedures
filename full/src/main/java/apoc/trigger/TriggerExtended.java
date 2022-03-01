@@ -3,12 +3,16 @@ package apoc.trigger;
 import apoc.Description;
 import apoc.Extended;
 import apoc.coll.SetBackedList;
+import apoc.result.VirtualNode;
+import apoc.result.VirtualRelationship;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.procedure.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -101,5 +105,42 @@ TriggerExtended {
             }
         }
         return new TriggerInfo(name, null, null, false, false);
+    }
+    
+    @UserFunction
+    @Description("apoc.trigger.rebuildNode(node, $removedLabels, $removedNodeProperties) | function to rebuild a node as a virtual, to be used in triggers with a not 'afterAsync' phase")
+    public Node rebuildNode(@Name("id") Node node, @Name("removedLabels") Map<String, List<Node>> removedLabels, @Name("removedNodeProperties") Map<String, List<Map>> removedNodeProperties) {
+
+        final long id = node.getId();
+        final Label[] labels = removedLabels.entrySet().stream()
+                .filter(i -> i.getValue().stream().anyMatch(l -> l.getId() == id))
+                .map(e -> Label.label(e.getKey()))
+                .toArray(Label[]::new);
+
+        final Map<String, Object> props = removedNodeProperties.entrySet().stream()
+                .map(i -> i.getValue().stream()
+                        .filter(l -> ((Node) l.get("node")).getId() == id)
+                        .findAny()
+                        .map(v -> new AbstractMap.SimpleEntry<>(i.getKey(), v.get("old"))))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+
+        return new VirtualNode(labels, props);
+    }
+    
+    @UserFunction
+    @Description("apoc.trigger.rebuildRelationship(rel, $removedRelationshipProperties) | function to rebuild a relationship as a virtual, to be used in triggers with a not 'afterAsync' phase")
+    public Relationship rebuildRelationship(@Name("id") Relationship rel, @Name("removedRelationshipProperties") Map<String, List<Map>> removedRelationshipProperties) {
+        final Map<String, Object> props = removedRelationshipProperties.entrySet().stream()
+                .map(i -> i.getValue().stream()
+                        .filter(l -> ((Relationship) l.get("relationship")).getId() == rel.getId())
+                        .findAny()
+                        .map(v -> new AbstractMap.SimpleEntry<>(i.getKey(), v.get("old"))))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+        
+        return new VirtualRelationship(rel.getStartNode(), rel.getEndNode(), rel.getType(), props);
     }
 }
