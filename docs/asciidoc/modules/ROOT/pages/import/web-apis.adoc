@@ -60,6 +60,19 @@ The S3 URL must be in the following format:
 * `s3://endpoint:port/bucket/key`
 if the accessKey, secretKey, and the optional sessionToken are provided in the environment variables
 
+== Using hdfs protocol
+
+To use the hdfs protocol we need to download and copy the additional jars not included in the APOC Library.
+We can download it from https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-redis-dependencies-{apoc-release}.jar[this link] or locally downloading the apoc repository:
+----
+git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
+cd neo4j-apoc-procedures/extra-dependencies
+./gradlew shadow
+----
+and a jar named `apoc-hadoop-dependencies-{apoc-release}.jar` will be created into the `neo4j-apoc-procedures/extra-dependencies/hadoop/build/lib` folder.
+
+Once that file is downloaded/created, it should be placed in the `plugins` directory and the Neo4j Server restarted.
+
 == Using Google Cloud Storage
 
 In order to use https://cloud.google.com/storage/[Google Cloud Storage], you need to add the following Google Cloud dependencies in the plugins directory:
