@@ -46,10 +46,10 @@ public class PathFindingTest {
             "(b)-[:ROAD {d:20}]->(c), " +
             "(c)-[:ROAD {d:30}]->(d), " +
             "(a)-[:ROAD {d:20}]->(c) ";
-    private static final String SETUP_GEO = "CREATE (b:City {name:'Berlin',lat:52.52464,lon:13.40514})\n" +
-            "CREATE (m:City {name:'München',lat:48.1374,lon:11.5755})\n" +
-            "CREATE (f:City {name:'Frankfurt',lat:50.1167,lon:8.68333})\n" +
-            "CREATE (h:City {name:'Hamburg',lat:53.554423,lon:9.994583})\n" +
+    private static final String SETUP_GEO = "CREATE (b:City {name:'Berlin', coords: point({latitude:52.52464,longitude:13.40514}), lat:52.52464,lon:13.40514})\n" +
+            "CREATE (m:City {name:'München', coords: point({latitude:48.1374,longitude:11.5755, height: 1}), lat:48.1374,lon:11.5755})\n" +
+            "CREATE (f:City {name:'Frankfurt',coords: point({latitude:50.1167,longitude:8.68333, height: 1}), lat:50.1167,lon:8.68333})\n" +
+            "CREATE (h:City {name:'Hamburg', coords: point({latitude:53.554423,longitude:9.994583, height: 1}), lat:53.554423,lon:9.994583})\n" +
             "CREATE (b)-[:DIRECT {dist:255.64*1000}]->(h)\n" +
             "CREATE (b)-[:DIRECT {dist:504.47*1000}]->(m)\n" +
             "CREATE (b)-[:DIRECT {dist:424.12*1000}]->(f)\n" +
@@ -77,6 +77,17 @@ public class PathFindingTest {
     }
 
     @Test
+    public void testAStarWithPoint() {
+        db.executeTransactionally(SETUP_GEO);
+        testResult(db,
+                "MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'}) " +
+                        "CALL apoc.algo.aStarWithPoint(from, to, 'DIRECT', 'dist', 'coords') yield path, weight " +
+                        "RETURN path, weight" ,
+                this::assertAStarResult
+        );
+    }
+
+    @Test
     public void testAStarConfig() {
         db.executeTransactionally(SETUP_GEO);
         testResult(db,
@@ -84,6 +95,17 @@ public class PathFindingTest {
                         "CALL apoc.algo.aStarConfig(from, to, 'DIRECT', {weight:'dist',y:'lat', x:'lon',default:100}) yield path, weight " +
                         "RETURN path, weight" ,
                 r -> assertAStarResult(r)
+        );
+    }
+
+    @Test
+    public void testAStarConfigWithPoint() {
+        db.executeTransactionally(SETUP_GEO);
+        testResult(db,
+                "MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'}) " +
+                        "CALL apoc.algo.aStarConfig(from, to, 'DIRECT', {pointPropName:'coords', weight:'dist', default:100}) yield path, weight " +
+                        "RETURN path, weight" ,
+                this::assertAStarResult
         );
     }
 

@@ -11,6 +11,7 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.values.storable.PointValue;
 
 import java.util.Collections;
 import java.util.Map;
@@ -19,11 +20,77 @@ import java.util.stream.StreamSupport;
 
 public class PathFinding {
 
+    public static class GeoEstimateEvaluatorPointCustom implements EstimateEvaluator<Double> {
+
+        // -- from org.neo4j.graphalgo.impl.util.GeoEstimateEvaluator
+        private static final double EARTH_RADIUS = 6371 * 1000; // Meters
+        private Node cachedGoal;
+        private final String pointPropertyKey;
+        private double[] cachedGoalCoordinates;
+        
+        public GeoEstimateEvaluatorPointCustom(String pointPropertyKey) {
+            this.pointPropertyKey = pointPropertyKey;
+        }
+        
+        @Override
+        public Double getCost( Node node, Node goal) {
+            double[] nodeCoordinates = getCoordinates(node);
+            if ( cachedGoal == null || !cachedGoal.equals( goal ) )
+            {
+                cachedGoalCoordinates = getCoordinates(goal);
+                cachedGoal = goal;
+            }
+            return distance(nodeCoordinates[0], nodeCoordinates[1],
+                    cachedGoalCoordinates[0], cachedGoalCoordinates[1] );
+        }
+        
+        private static double distance( double latitude1, double longitude1,
+                                        double latitude2, double longitude2 ) {
+            latitude1 = Math.toRadians( latitude1 );
+            longitude1 = Math.toRadians( longitude1 );
+            latitude2 = Math.toRadians( latitude2 );
+            longitude2 = Math.toRadians( longitude2 );
+            double cLa1 = Math.cos( latitude1 );
+            double xA = EARTH_RADIUS * cLa1 * Math.cos( longitude1 );
+            double yA = EARTH_RADIUS * cLa1 * Math.sin( longitude1 );
+            double zA = EARTH_RADIUS * Math.sin( latitude1 );
+            double cLa2 = Math.cos( latitude2 );
+            double xB = EARTH_RADIUS * cLa2 * Math.cos( longitude2 );
+            double yB = EARTH_RADIUS * cLa2 * Math.sin( longitude2 );
+            double zB = EARTH_RADIUS * Math.sin( latitude2 );
+            return Math.sqrt( ( xA - xB ) * ( xA - xB ) + ( yA - yB )
+                    * ( yA - yB ) + ( zA - zB ) * ( zA - zB ) );
+        }
+        // -- end from org.neo4j.graphalgo.impl.util.GeoEstimateEvaluator
+
+        private double[] getCoordinates(Node node) {
+            return ((PointValue) node.getProperty(pointPropertyKey)).coordinate();
+        }
+    }
+
     @Context
     public GraphDatabaseService db;
 
     @Context
     public Transaction tx;
+
+    @Procedure
+    @Description("apoc.algo.aStarWithPoint(startNode, endNode, 'relTypesAndDirs', 'distance','pointProp') - " +
+            "equivalent to apoc.algo.aStar but accept a Point type as a pointProperty instead of Number types as latitude and longitude properties")
+    public Stream<WeightedPathResult> aStarWithPoint(
+            @Name("startNode") Node startNode,
+            @Name("endNode") Node endNode,
+            @Name("relationshipTypesAndDirections") String relTypesAndDirs,
+            @Name("weightPropertyName") String weightPropertyName,
+            @Name("pointPropertyName") String pointPropertyName) {
+
+        PathFinder<WeightedPath> algo = GraphAlgoFactory.aStar(
+                new BasicEvaluationContext(tx, db),
+                buildPathExpander(relTypesAndDirs),
+                CommonEvaluators.doubleCostEvaluator(weightPropertyName),
+                new GeoEstimateEvaluatorPointCustom(pointPropertyName));
+        return WeightedPathResult.streamWeightedPathResult(startNode, endNode, algo);
+    }
 
     @Procedure
     @Description("apoc.algo.aStar(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 'distance','lat','lon') " +
@@ -45,8 +112,8 @@ public class PathFinding {
     }
 
     @Procedure
-    @Description("apoc.algo.aStar(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', {weight:'dist',default:10," +
-            "x:'lon',y:'lat'}) YIELD path, weight - run A* with relationship property name as cost function")
+    @Description("apoc.algo.aStarConfig(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', {weight:'dist',default:10," +
+            "x:'lon',y:'lat', pointPropName:'point'}) YIELD path, weight - run A* with relationship property name as cost function")
     public Stream<WeightedPathResult> aStarConfig(
             @Name("startNode") Node startNode,
             @Name("endNode") Node endNode,
@@ -56,14 +123,20 @@ public class PathFinding {
         config = config == null ? Collections.emptyMap() : config;
         String relationshipCostPropertyKey = config.getOrDefault("weight", "distance").toString();
         double defaultCost = ((Number) config.getOrDefault("default", Double.MAX_VALUE)).doubleValue();
-        String latPropertyName = config.getOrDefault("y", "latitude").toString();
-        String lonPropertyName = config.getOrDefault("x", "longitude").toString();
-
+        String pointPropertyName = (String) config.get("pointPropName");
+        final EstimateEvaluator<Double> estimateEvaluator;
+        if (pointPropertyName != null) {
+            estimateEvaluator = new GeoEstimateEvaluatorPointCustom(pointPropertyName);
+        } else {
+            String latPropertyName = config.getOrDefault("y", "latitude").toString();
+            String lonPropertyName = config.getOrDefault("x", "longitude").toString();
+            estimateEvaluator = CommonEvaluators.geoEstimateEvaluator(latPropertyName, lonPropertyName);
+        }
         PathFinder<WeightedPath> algo = GraphAlgoFactory.aStar(
                 new BasicEvaluationContext(tx, db),
                 buildPathExpander(relTypesAndDirs),
                 CommonEvaluators.doubleCostEvaluator(relationshipCostPropertyKey, defaultCost),
-                CommonEvaluators.geoEstimateEvaluator(latPropertyName, lonPropertyName));
+                estimateEvaluator);
         return WeightedPathResult.streamWeightedPathResult(startNode, endNode, algo);
     }
 

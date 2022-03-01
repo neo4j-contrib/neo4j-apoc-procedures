@@ -11,7 +11,8 @@ APOC exposes some built in path-finding functions that Neo4j brings along.
 | apoc.algo.dijkstra(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance') YIELD path, weight | run dijkstra with relationship property name as cost function
 | apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>',  'distance', 10) YIELD path, weight | run dijkstra with relationship property name as cost function and a default weight if the property does not exist
 | apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance','lat','lon')  YIELD path, weight | run A* with relationship property name as cost function
-| apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', {weight:'dist',default:10, x:'lon',y:'lat'}) YIELD path, weight | run A* with relationship property name as cost function
+| apoc.algo.aStarWithPoint(startNode, endNode, 'relTypesAndDirs', 'weightPropertyName','pointPropertyName') - equivalent to apoc.algo.aStar but accept a Point type as a pointProperty instead of Number types as latitude and longitude properties
+| apoc.algo.aStarConfig(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', {weight:'dist',default:10, x:'lon',y:'lat',pointPropName:'point'}) YIELD path, weight - run A* with relationship property name as cost function
 | apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 5) YIELD path,  weight | run allSimplePaths with relationships given and maxNodes
 | apoc.stats.degrees(relTypesDirections) yield type, direction, total, min, max, mean, p50, p75, p90, p95, p99, p999 | compute degree distribution in parallel
 |===
@@ -23,4 +24,152 @@ Example: find the weighted shortest path based on relationship property `d` from
 MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'})
 CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as weight
 RETURN path, weight
+----
+
+==== apoc.algo.aStarConfig
+
+Given this dataset: 
+
+[source,cypher]
+----
+CREATE (b:City {name:'Berlin', coords: point({latitude:52.52464,longitude:13.40514}), lat:52.52464,lon:13.40514})
+CREATE (m:City {name:'München', coords: point({latitude:48.1374,longitude:11.5755}), lat:48.1374,lon:11.5755})
+CREATE (f:City {name:'Frankfurt',coords: point({latitude:50.1167,longitude:8.68333}), lat:50.1167,lon:8.68333})
+CREATE (h:City {name:'Hamburg', coords: point({latitude:53.554423,longitude:9.994583}), lat:53.554423,lon:9.994583})
+CREATE (b)-[:DIRECT {dist:255.64*1000}]->(h)
+CREATE (b)-[:DIRECT {dist:504.47*1000}]->(m)
+CREATE (b)-[:DIRECT {dist:424.12*1000}]->(f)
+CREATE (f)-[:DIRECT {dist:304.28*1000}]->(m)
+CREATE (f)-[:DIRECT {dist:393.15*1000}]->(h)
+----
+
+we can execute (leveraging on 'lat' and 'lon' node properties, which are Numbers,
+on 'dist' relationship property and with default cost 100):
+
+[source,cypher]
+----
+MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'})
+CALL apoc.algo.aStarConfig(from, to, 'DIRECT', {weight:'dist',y:'lat', x:'lon',default:100})
+YIELD weight, path
+RETURN weight, path
+----
+
+.Results
+[opts="header"]
+|===
+| weight | path
+| 697430.0 |
+[source,json]
+----
+{
+  "start": {
+"identity": 1520006,
+"labels": [
+      "City"
+    ],
+"properties": {
+"name": "München",
+"lon": 11.5755,
+"lat": 48.1374,
+"coords": point({srid:4326, x:11.5755, y:48.1374})
+    }
+  },
+  "end": {
+"identity": 1520008,
+"labels": [
+      "City"
+    ],
+"properties": {
+"name": "Hamburg",
+"lon": 9.994583,
+"lat": 53.554423,
+"coords": point({srid:4326, x:9.994583, y:53.554423})
+    }
+  },
+  "segments": [
+    {
+      "start": {
+"identity": 1520006,
+"labels": [
+          "City"
+        ],
+"properties": {
+"name": "München",
+"lon": 11.5755,
+"lat": 48.1374,
+"coords": point({srid:4326, x:11.5755, y:48.1374})
+        }
+      },
+      "relationship": {
+"identity": 3,
+"start": 1520007,
+"end": 1520006,
+"type": "DIRECT",
+"properties": {
+"dist": 304280.0
+        }
+      },
+      "end": {
+"identity": 1520007,
+"labels": [
+          "City"
+        ],
+"properties": {
+"name": "Frankfurt",
+"lon": 8.68333,
+"lat": 50.1167,
+"coords": point({srid:4326, x:8.68333, y:50.1167})
+        }
+      }
+    },
+    {
+      "start": {
+"identity": 1520007,
+"labels": [
+          "City"
+        ],
+"properties": {
+"name": "Frankfurt",
+"lon": 8.68333,
+"lat": 50.1167,
+"coords": point({srid:4326, x:8.68333, y:50.1167})
+        }
+      },
+      "relationship": {
+"identity": 4,
+"start": 1520007,
+"end": 1520008,
+"type": "DIRECT",
+"properties": {
+"dist": 393150.0
+        }
+      },
+      "end": {
+"identity": 1520008,
+"labels": [
+          "City"
+        ],
+"properties": {
+"name": "Hamburg",
+"lon": 9.994583,
+"lat": 53.554423,
+"coords": point({srid:4326, x:9.994583, y:53.554423})
+        }
+      }
+    }
+  ],
+  "length": 2.0
+}
+----
+|===
+
+or equivalently, with the same result, leveraging on 'coords' node property, which is a Point, with the same other configs.
+Note that in case of a 3d-coordinate, the procedure will pick only the x and y or the longitude and latitude values. 
+
+[source,cypher]
+----
+MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'})
+CALL apoc.algo.aStarConfig(from, to, 'DIRECT', {pointPropName:'coords', weight:'dist', default:100})
+YIELD weight, path
+RETURN weight, path
 ----
