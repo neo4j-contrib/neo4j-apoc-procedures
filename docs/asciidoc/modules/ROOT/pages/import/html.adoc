@@ -34,6 +34,7 @@ Config param is optional, the default value is an empty map.
 |===
 |charset | Default: UTF-8
 |baserUri | Default: "", it is use to resolve relative paths
+|htmlString | Default: false, to use an HTML string instead of an url as 1st parameter
 |===
 
 
