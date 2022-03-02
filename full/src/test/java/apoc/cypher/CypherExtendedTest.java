@@ -110,8 +110,8 @@ public class CypherExtendedTest {
                 });
     }
     @Test
-    public void testRunWithPeriodic() throws Exception {
-        testResult(db, "CALL apoc.cypher.runFile('periodic.cypher')",
+    public void testRunFileWithCallInTransactions() throws Exception {
+        testResult(db, "CALL apoc.cypher.runFile('call_in_transactions.cypher')",
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(-1L, row.get("row"));
