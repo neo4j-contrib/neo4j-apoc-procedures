@@ -16,7 +16,7 @@ If you use `RETURN apoc.version()` it displays the current APOC version.
 
 [NOTE]
 ====
-To generate the help output, this procedure uses the built in `dbms.procedures()` and `dbms.functions()` procedures.
+To generate the help output, this procedure uses `SHOW PROCEDURES` and `SHOW FUNCTIONS`.
 ====
 
 ifdef::backend-html5[]

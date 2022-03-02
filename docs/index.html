@@ -846,14 +846,13 @@ MERGE (p:Person {name:person.name})
 And for YIELDing their results the output column name and type.</p>
 </div>
 <div class="paragraph">
-<p>You can see the procedures signature in the output of <code>CALL dbms.procedures()</code>
-(The same applies for functions with <code>CALL dbms.functions()</code>)</p>
+<p>You can see the procedures signature in the output of <code>SHOW PROCEDURES</code>
+(The same applies for functions with <code>SHOW FUNCTIONS</code>)</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL dbms.procedures() YIELD name, signature
-WITH * WHERE name STARTS WITH 'apoc.algo.dijkstra'
-RETURN name, signature</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">SHOW PROCEDURES YIELD *
+WHERE name STARTS WITH 'apoc.algo.dijkstra' RETURN name, signature</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -948,7 +947,7 @@ RETURN name AS undocumented</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>To generate the help output, apoc utilizes the built in <code>dbms.procedures()</code> and <code>dbms.functions()</code> utilities.</p>
+<p>To generate the help output, apoc utilizes the built in <code>SHOW PROCEDURES</code> and <code>SHOW FUNCTIONS</code> utilities.</p>
 </div>
 </div>
 </div>
@@ -3501,11 +3500,11 @@ public String format(@Name("time") long time,
 </tbody>
 </table>
 <div class="paragraph">
-<p>You can list user defined functions with <code>call dbms.functions()</code></p>
+<p>You can list user defined functions with <code>SHOW FUNCTIONS</code></p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/docs/{img}/dbms.functions.jpg" alt="dbms.functions">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/{img}/show_functions.png" alt="show_functions">
 </div>
 </div>
 </div>
