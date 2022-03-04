@@ -5,6 +5,7 @@ import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
 import org.neo4j.kernel.extension.context.ExtensionContext;
+import org.neo4j.kernel.internal.Version;
 import org.neo4j.kernel.lifecycle.Lifecycle;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
@@ -54,6 +55,14 @@ public class RegisterComponentFactory extends ExtensionFactory<RegisterComponent
 
         @Override
         public void init() throws Exception {
+            final String kernelFullVersion = Version.getKernelVersion();
+            final String kernelVersion = getMajorMinVersion(kernelFullVersion);
+            final String apocFullVersion = apoc.version.Version.class.getPackage().getImplementationVersion();
+            if (kernelVersion != null && !kernelVersion.equals(getMajorMinVersion(apocFullVersion))) {
+                log.warn("The apoc version (%s) and the Neo4j version (%s) are incompatible. \n" +
+                        "See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to see the correct version",
+                        apocFullVersion, kernelFullVersion);
+            }
 
             for (ApocGlobalComponents c: Services.loadAll(ApocGlobalComponents.class)) {
                 for (Class clazz: c.getContextClasses()) {
@@ -71,6 +80,14 @@ public class RegisterComponentFactory extends ExtensionFactory<RegisterComponent
                         return instance;
                     }, true)
             );
+        }
+
+        private String getMajorMinVersion(String completeVersion) {
+            if (completeVersion == null) {
+                return null;
+            }
+            final String[] split = completeVersion.split("\\.");
+            return split[0] + "." + split[1];
         }
 
     }
