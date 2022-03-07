@@ -265,20 +265,32 @@ public class SchemasTest {
 
     @Test
     public void testKeepIndex() throws Exception {
-        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
-        testResult(db, "CALL apoc.schema.assert({Foo:['bar', 'foo']},null,false)", (result) -> { 
-            Map<String, Object> r = result.next();
-            assertEquals("Foo", r.get("label"));
-            assertEquals("bar", r.get("key"));
-            assertEquals(false, r.get("unique"));
-            assertEquals("KEPT", r.get("action"));
+        keepIndexCommon(false);
+    }
 
-            r = result.next();
-            assertEquals("Foo", r.get("label"));
-            assertEquals("foo", r.get("key"));
-            assertEquals(false, r.get("unique"));
-            assertEquals("CREATED", r.get("action"));
-        });
+    @Test
+    public void testKeepIndexWithDropExisting() throws Exception {
+        keepIndexCommon(true);
+    }
+
+    private void keepIndexCommon(boolean dropExisting) {
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
+        testResult(db, "CALL apoc.schema.assert({Foo:['bar', 'foo']}, null, $drop)",
+                Map.of("drop", dropExisting),
+                (result) -> {
+                    Map<String, Object> r = result.next();
+                    assertEquals("Foo", r.get("label"));
+                    assertEquals("bar", r.get("key"));
+                    assertEquals(false, r.get("unique"));
+                    assertEquals("KEPT", r.get("action"));
+
+                    r = result.next();
+                    assertEquals("Foo", r.get("label"));
+                    assertEquals("foo", r.get("key"));
+                    assertEquals(false, r.get("unique"));
+                    assertEquals("CREATED", r.get("action"));
+                });
+
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(2, indexes.size());
@@ -434,13 +446,11 @@ public class SchemasTest {
     public void testDropCompoundIndexAndRecreateWithDropExisting() throws Exception {
         db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar,n.baa)");
         awaitIndexesOnline();
-        testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,true)", (result) -> {
-            Map<String, Object> r = result.next();
+        testCall(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,true)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals(expectedKeys("bar", "baa"), r.get("keys"));
             assertEquals(false, r.get("unique"));
-            assertEquals("DROPPED", r.get("action"));
-            result.close();
+            assertEquals("KEPT", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
@@ -469,9 +479,20 @@ public class SchemasTest {
     */
     @Test
     public void testKeepCompoundIndex() throws Exception {
+        testKeepCompoundCommon(false);
+    }
+    
+    @Test
+    public void testKeepCompoundIndexWithDropExisting() throws Exception {
+        testKeepCompoundCommon(true);
+    }
+
+    private void testKeepCompoundCommon(boolean dropExisting) {
         db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar,n.baa)");
         awaitIndexesOnline();
-        testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa'], ['foo','faa']]},null,false)", (result) -> {
+        testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa'], ['foo','faa']]},null,$drop)", 
+                Map.of("drop", dropExisting), 
+                (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
             assertEquals(expectedKeys("bar", "baa"), r.get("keys"));
@@ -484,6 +505,7 @@ public class SchemasTest {
             assertEquals(false, r.get("unique"));
             assertEquals("CREATED", r.get("action"));
         });
+        
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(2, indexes.size());
@@ -566,18 +588,11 @@ public class SchemasTest {
     public void testDropCompoundIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
         db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar,n.baa)");
         awaitIndexesOnline();
-        testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null)", (result) -> {
-            Map<String, Object> r = result.next();
+        testCall(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals(expectedKeys("bar","baa"), r.get("keys"));
             assertEquals(false, r.get("unique"));
-            assertEquals("DROPPED", r.get("action"));
-
-            r = result.next();
-            assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("bar", "baa"), r.get("keys"));
-            assertEquals(false, r.get("unique"));
-            assertEquals("CREATED", r.get("action"));
+            assertEquals("KEPT", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
