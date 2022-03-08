@@ -28,3 +28,16 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew build
+      - name: Check procedures included in apoc full
+        run: git diff --exit-code full/src/main/resources/extended.txt || (echo "extended.txt file does not contain all changes" && exit -1)
+      - name: Archive test results
+        uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: test-results
+          path: |
+            core/build/reports/tests/test/
+            full/build/reports/tests/test/
+            processor/build/reports/tests/test/
+            test-startup/build/reports/tests/test/
+            test-utils/build/reports/tests/test/
