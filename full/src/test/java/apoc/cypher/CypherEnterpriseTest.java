@@ -46,7 +46,7 @@ public class CypherEnterpriseTest {
     @Test
     public void testParallelTransactionGuard() {
         // given
-        int txCountBefore = neo4jContainer.getSession().readTransaction(tx -> tx.run("CALL dbms.listTransactions()").list()).size();
+        int txCountBefore = neo4jContainer.getSession().readTransaction(tx -> tx.run("SHOW TRANSACTIONS").list()).size();
 
         // when
         try {
@@ -58,7 +58,7 @@ public class CypherEnterpriseTest {
         } catch (Exception ignored) {}
 
         // then
-        int txCountAfter = neo4jContainer.getSession().readTransaction(tx -> tx.run("CALL dbms.listTransactions()").list()).size();
+        int txCountAfter = neo4jContainer.getSession().readTransaction(tx -> tx.run("SHOW TRANSACTIONS").list()).size();
         Assert.assertEquals(txCountBefore, txCountAfter);
     }
 }
