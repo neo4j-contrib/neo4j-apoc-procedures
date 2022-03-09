@@ -9,7 +9,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import static apoc.load.LoadCsvTest.assertRow;
 import static apoc.load.XmlTest.XML_XPATH_AS_NESTED_MAP;
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isCI;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
@@ -24,7 +24,7 @@ public class LoadS3Test {
 
     @BeforeClass
     public static void init() {
-        assumeFalse(isTravis());
+        assumeFalse(isCI());
         // In test environment we skip the MD5 validation that can cause issues
         System.setProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation", "true");
     }

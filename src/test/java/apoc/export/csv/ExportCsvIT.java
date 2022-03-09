@@ -11,7 +11,7 @@ import java.util.List;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.*;
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isCI;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeFalse;
@@ -29,7 +29,7 @@ public class ExportCsvIT {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isTravis());
+        assumeFalse(isCI());
         TestUtil.ignoreException(() -> {
             executeGradleTasks("clean", "shadow");
             neo4jContainer = createEnterpriseDB(true);

@@ -24,7 +24,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isCI;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
@@ -71,7 +71,7 @@ public class ExportS3PerformanceTest {
 
     @Test
     public void testExportAllCsvS3() throws Exception {
-        assumeFalse(isTravis());
+        assumeFalse(isCI());
         S3TestUtil s3ExportTestUtils = new S3TestUtil();
         try {
             System.out.println("Data creation started.");

@@ -1,11 +1,9 @@
 package apoc.util;
 
-import org.jetbrains.annotations.NotNull;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
 import org.neo4j.driver.v1.Session;
-import org.testcontainers.containers.GenericContainer;
 
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.SocatContainer;
@@ -117,7 +115,7 @@ public class TestcontainersCausalCluster {
                                                           Map<String, Object> neo4jConfig,
                                                           Map<String, String> envSettings) {
 
-        Neo4jContainerExtension container =  TestContainerUtil.createEnterpriseDB(!TestUtil.isTravis())
+        Neo4jContainerExtension container =  TestContainerUtil.createEnterpriseDB(!TestUtil.isCI())
                 .withLabel("memberType", instanceType.toString())
                 .withNetwork(network)
                 .withNetworkAliases(name)

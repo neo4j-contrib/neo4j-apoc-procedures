@@ -14,7 +14,7 @@ import java.io.File;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isCI;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeFalse;
@@ -30,7 +30,7 @@ public class ExportCsvS3Test {
 
     @BeforeClass
     public static void startS3TestUtil() {
-        assumeFalse(isTravis());
+        assumeFalse(isCI());
         s3TestUtil = new S3TestUtil();
     }
 

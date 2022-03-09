@@ -56,7 +56,7 @@ import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_S
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_UPDATE_ALL_UNWIND;
 import static apoc.export.util.ExportFormat.CYPHER_SHELL;
 import static apoc.export.util.ExportFormat.NEO4J_SHELL;
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isCI;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -77,7 +77,7 @@ public class ExportCypherS3Test {
 
     @BeforeClass
     public static void startS3TestUtil() {
-        assumeFalse(isTravis());
+        assumeFalse(isCI());
         s3TestUtil = new S3TestUtil();
     }
 
