@@ -1,8 +1,8 @@
 :readme:
-:branch: 4.2
-:docs: https://neo4j.com/docs/labs/apoc/current
-:apoc-release: 4.3.0-rc01
-:neo4j-version: 4.3.0
+:branch: 4.4
+:docs: https://neo4j.com/labs/apoc/4.4
+:apoc-release: 4.4.0.3
+:neo4j-version: 4.4.4
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/images
 
 https://community.neo4j.com[image:https://img.shields.io/discourse/users?logo=discourse&server=https%3A%2F%2Fcommunity.neo4j.com[Discourse users]]
