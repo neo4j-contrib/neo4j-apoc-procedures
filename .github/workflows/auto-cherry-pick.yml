@@ -10,7 +10,6 @@ jobs:
       fail-fast: false
       matrix:
         target-branch: [
-          {name: '4.1', comment: '824917901'},
           {name: '4.3', comment: '824917996'}
         ]
     runs-on: ubuntu-latest
