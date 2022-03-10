@@ -28,6 +28,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class TestContainerUtil {
+    public enum Neo4jVersion {
+        ENTERPRISE,
+        COMMUNITY
+    }
+
+    // read neo4j version from build.gradle
+    public static final String neo4jEnterpriseDockerImageVersion = System.getProperty("neo4jDockerImage");
+    public static final String neo4jCommunityDockerImageVersion = System.getProperty("neo4jCommunityDockerImage");
 
     private TestContainerUtil() {}
 
@@ -37,18 +45,30 @@ public class TestContainerUtil {
         return TestcontainersCausalCluster.create(numOfCoreInstances, numberOfReadReplica, Duration.ofMinutes(4), neo4jConfig, envSettings);
     }
 
+    public static Neo4jContainerExtension createDB(Neo4jVersion version, File baseDir, boolean withLogging) {
+        return switch(version) {
+            case ENTERPRISE -> createEnterpriseDB(baseDir, withLogging);
+            case COMMUNITY -> createCommunityDB(baseDir, withLogging);
+        };
+    }
+
     public static Neo4jContainerExtension createEnterpriseDB(boolean withLogging)  {
         return createEnterpriseDB(baseDir, withLogging);
     }
 
-    public static Neo4jContainerExtension createEnterpriseDB(File baseDir, boolean withLogging)  {
+    public static Neo4jContainerExtension createEnterpriseDB(File baseDir, boolean withLogging) {
+        return createNeo4jContainer(neo4jEnterpriseDockerImageVersion, baseDir, withLogging );
+    }
+
+    public static Neo4jContainerExtension createCommunityDB(File baseDir, boolean withLogging) {
+        return createNeo4jContainer(neo4jCommunityDockerImageVersion, baseDir, withLogging );
+    }
+
+    private static Neo4jContainerExtension createNeo4jContainer(String dockerImage, File baseDir, boolean withLogging) {
         executeGradleTasks(baseDir, "shadowJar");
         // We define the container with external volumes
         File importFolder = new File("import");
         importFolder.mkdirs();
-
-        // read neo4j version from build.gradle and use this as default
-        String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:5.0.0-dev-enterprise");
 
         // use a separate folder for mounting plugins jar - build/libs might contain other jars as well.
         File pluginsFolder = new File(baseDir, "build/plugins");
@@ -69,8 +89,8 @@ public class TestContainerUtil {
             e.printStackTrace();
         }
 
-        System.out.println("neo4jDockerImageVersion = " + neo4jDockerImageVersion);
-        Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(neo4jDockerImageVersion)
+        System.out.println("neo4jDockerImageVersion = " + dockerImage);
+        Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(dockerImage)
                 .withPlugins(MountableFile.forHostPath(pluginsFolder.toPath()))
                 .withAdminPassword("apoc")
                 .withEnv("NEO4J_dbms_memory_heap_max__size", "512M")
