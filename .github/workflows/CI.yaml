@@ -10,10 +10,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      TEAMCITY_DOCKER_DEV_URL: ${{ secrets.TEAMCITY_DOCKER_DEV_URL }}
+      DOCKER_ENTERPRISE_DEV_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
+      DOCKER_COMMUNITY_DEV_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
       TEAMCITY_DEV_URL: ${{ secrets.TEAMCITY_DEV_URL }}
       TEAMCITY_USER: ${{ secrets.TEAMCITY_USER }}
       TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
+      ENTERPRISE_TAR: enterprise-docker.tar
+      COMMUNITY_TAR: community-docker.tar
     steps:
       - uses: actions/checkout@v2
 
@@ -25,8 +28,11 @@ jobs:
 
       - name: Download neo4j dev docker container
         run: |
-          curl -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${TEAMCITY_DOCKER_DEV_URL} -o neo4j-docker.tar
-          docker load --input neo4j-docker.tar
+          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_DEV_URL} -o ${ENTERPRISE_TAR} &
+          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_DEV_URL} -o ${COMMUNITY_TAR} &
+          wait
+          docker load --input ${ENTERPRISE_TAR}
+          docker load --input ${COMMUNITY_TAR}
 
       - uses: actions/cache@v2
         with:
@@ -44,12 +50,16 @@ jobs:
         if: ${{ always() }} # run this step even if previous step failed
         run: |
           (find ~/.gradle/caches -name "*neo4j*" -exec rm -rf {} \;) || echo "All neo4j files cleaned"
-          rm -rf neo4j-docker.tar
+          rm -rf ${ENTERPRISE_TAR} ${COMMUNITY_TAR}
 
       - name: Archive test results
         uses: actions/upload-artifact@v2
+        if: ${{ always() }}
         with:
           name: test-results
           path: |
             core/build/reports/tests/test/
             full/build/reports/tests/test/
+            processor/build/reports/tests/test/
+            test-startup/build/reports/tests/test/
+            test-utils/build/reports/tests/test/

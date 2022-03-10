@@ -33,7 +33,7 @@ public class StartupTest {
     @Test
     public void check_basic_deployment() {
         for (var version: Neo4jVersion.values()) {
-            try (Neo4jContainerExtension neo4jContainer = createDB(version, APOC_FULL, true)
+            try (Neo4jContainerExtension neo4jContainer = createDB(version, APOC_FULL, !TestUtil.isRunningInCI())
                     .withNeo4jConfig("dbms.transaction.timeout", "5s")) {
 
                 neo4jContainer.start();
@@ -62,7 +62,7 @@ public class StartupTest {
     @Test
     public void compare_with_sources() {
         for (var version: Neo4jVersion.values()) {
-            try (Neo4jContainerExtension neo4jContainer = createDB(version, APOC_FULL, true)) {
+            try (Neo4jContainerExtension neo4jContainer = createDB(version, APOC_FULL, !TestUtil.isRunningInCI())) {
                 neo4jContainer.start();
 
                 assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
