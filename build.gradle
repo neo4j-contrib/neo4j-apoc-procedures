@@ -97,6 +97,10 @@ subprojects {
                     "--add-opens", "jdk.compiler/com.sun.source.tree=ALL-UNNAMED",
                     "--add-opens", "jdk.compiler/com.sun.source.util=ALL-UNNAMED" ]
 
+        filter {
+            setFailOnNoMatchingTests(false)
+        }
+
         testLogging.showStandardStreams = true
         testLogging.exceptionFormat = 'full'
     }
