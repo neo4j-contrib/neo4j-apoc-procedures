@@ -32,7 +32,7 @@ jobs:
         run: git diff --exit-code full/src/main/resources/extended.txt || (echo "extended.txt file does not contain all changes" && exit -1)
       - name: Archive test results
         uses: actions/upload-artifact@v2
-        if: ${{ always() }}
+        if: always()
         with:
           name: test-results
           path: |
