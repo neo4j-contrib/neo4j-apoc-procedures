@@ -10,7 +10,7 @@ import java.util.function.Function;
 
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.dbms.api.DatabaseManagementService;
-import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
+import org.neo4j.dbms.api.Neo4jDatabaseManagementServiceBuilder;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.ResultTransformer;
@@ -31,11 +31,10 @@ import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAM
 @Deprecated
 public abstract class DbmsRule extends ExternalResource implements GraphDatabaseAPI
 {
-    private DatabaseManagementServiceBuilder databaseBuilder;
+    private Neo4jDatabaseManagementServiceBuilder databaseBuilder;
     private GraphDatabaseAPI database;
     private boolean startEagerly = true;
     private final Map<Setting<?>, Object> globalConfig = new HashMap<>();
-    private final Monitors monitors = new Monitors();
     private DatabaseManagementService managementService;
 
     /**
@@ -188,7 +187,6 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
         try
         {
             databaseBuilder = newFactory();
-            databaseBuilder.setMonitors( monitors );
             configure( databaseBuilder );
             databaseBuilder.setConfig( globalConfig );
         }
@@ -199,14 +197,6 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
         }
     }
 
-    /**
-     * @return the high level monitor in the database.
-     */
-    public Monitors getMonitors()
-    {
-        return monitors;
-    }
-
     protected void deleteResources()
     {
     }
@@ -215,9 +205,9 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
     {
     }
 
-    protected abstract DatabaseManagementServiceBuilder newFactory();
+    protected abstract Neo4jDatabaseManagementServiceBuilder newFactory();
 
-    protected void configure( DatabaseManagementServiceBuilder databaseFactory )
+    protected void configure( Neo4jDatabaseManagementServiceBuilder databaseFactory )
     {
         // Override to configure the database factory
     }
