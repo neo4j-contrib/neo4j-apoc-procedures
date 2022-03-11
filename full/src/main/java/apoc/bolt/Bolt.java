@@ -23,6 +23,7 @@ import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 import org.neo4j.driver.types.Relationship;
+import org.neo4j.driver.internal.async.connection.EventLoopGroupFactory;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.RelationshipType;

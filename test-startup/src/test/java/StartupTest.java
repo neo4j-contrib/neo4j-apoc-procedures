@@ -31,7 +31,7 @@ public class StartupTest {
 
     @Test
     public void check_basic_deployment() {
-        try (Neo4jContainerExtension neo4jContainer = createEnterpriseDB(APOC_FULL, !TestUtil.isRunningInCI())
+        try (Neo4jContainerExtension neo4jContainer = createEnterpriseDB(APOC_FULL, true)
                 .withNeo4jConfig("dbms.transaction.timeout", "5s")) {
 
             neo4jContainer.start();
@@ -50,13 +50,15 @@ public class StartupTest {
             if (TestContainerUtil.isDockerImageAvailable(ex)) {
                 ex.printStackTrace();
                 fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+            } else {
+                throw ex;
             }
         }
     }
 
     @Test
     public void compare_with_sources() {
-        try (Neo4jContainerExtension neo4jContainer = createEnterpriseDB(APOC_FULL, !TestUtil.isRunningInCI())) {
+        try (Neo4jContainerExtension neo4jContainer = createEnterpriseDB(APOC_FULL, true)) {
             neo4jContainer.start();
 
             assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
