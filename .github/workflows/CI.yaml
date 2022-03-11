@@ -54,7 +54,7 @@ jobs:
 
       - name: Archive test results
         uses: actions/upload-artifact@v2
-        if: ${{ always() }}
+        if: always()
         with:
           name: test-results
           path: |
