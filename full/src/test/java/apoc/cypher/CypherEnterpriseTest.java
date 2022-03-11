@@ -27,7 +27,7 @@ public class CypherEnterpriseTest {
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
             neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
-                    .withNeo4jConfig("dbms.transaction.timeout", "5s");
+                    .withNeo4jConfig("dbms.transaction.timeout", "60s");
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);

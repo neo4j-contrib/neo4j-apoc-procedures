@@ -20,7 +20,7 @@ public class StartupTest {
     public void test() {
         try {
             Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
-                    .withNeo4jConfig("dbms.transaction.timeout", "5s");
+                    .withNeo4jConfig("dbms.transaction.timeout", "60s");
 
 
             neo4jContainer.start();

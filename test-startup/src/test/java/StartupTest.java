@@ -34,7 +34,7 @@ public class StartupTest {
     public void check_basic_deployment() {
         for (var version: Neo4jVersion.values()) {
             try (Neo4jContainerExtension neo4jContainer = createDB(version, APOC_FULL, !TestUtil.isRunningInCI())
-                    .withNeo4jConfig("dbms.transaction.timeout", "5s")) {
+                    .withNeo4jConfig("dbms.transaction.timeout", "60s")) {
 
                 neo4jContainer.start();
                 assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
