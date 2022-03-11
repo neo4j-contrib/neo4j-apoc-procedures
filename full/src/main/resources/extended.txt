@@ -78,6 +78,12 @@ apoc.metrics.get
 apoc.metrics.list
 apoc.metrics.storage
 apoc.model.jdbc
+apoc.mongo.aggregate
+apoc.mongo.count
+apoc.mongo.delete
+apoc.mongo.find
+apoc.mongo.insert
+apoc.mongo.update
 apoc.mongodb.count
 apoc.mongodb.delete
 apoc.mongodb.find
@@ -137,6 +143,7 @@ apoc.static.get
 apoc.static.list
 apoc.static.set
 apoc.systemdb.execute
+apoc.systemdb.export.metadata
 apoc.systemdb.graph
 apoc.ttl.expire
 apoc.ttl.expireIn
@@ -150,9 +157,3 @@ apoc.static.getAll
 apoc.trigger.nodesByLabel
 apoc.trigger.propertiesByKey
 apoc.ttl.config
-apoc.mongo.aggregate
-apoc.mongo.count
-apoc.mongo.find
-apoc.mongo.insert
-apoc.mongo.update
-apoc.mongo.delete
