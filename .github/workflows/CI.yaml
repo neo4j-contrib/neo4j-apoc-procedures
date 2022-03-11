@@ -31,7 +31,7 @@ jobs:
           TEAMCITY_DEV_URL: ${{ secrets.TEAMCITY_DEV_URL }}
           TEAMCITY_USER: ${{ secrets.TEAMCITY_USER }}
           TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
-        run: ./gradlew build --continue
+        run: ./gradlew build
       - name: Clean neo4j from the cache
         if: success() || failure() # run this step even if previous step failed
         run: (find ~/.gradle/caches -name "*neo4j*" -exec rm -rf {} \;) || echo "All neo4j files cleaned"
