@@ -35,10 +35,16 @@ jobs:
       - name: Clean neo4j from the cache
         if: success() || failure() # run this step even if previous step failed
         run: (find ~/.gradle/caches -name "*neo4j*" -exec rm -rf {} \;) || echo "All neo4j files cleaned"
+      - name: Check procedures included in apoc full
+        run: git diff --exit-code full/src/main/resources/extended.txt || (echo "extended.txt file does not contain all changes" && exit -1)
       - name: Archive test results
         uses: actions/upload-artifact@v2
+        if: always()
         with:
           name: test-results
           path: |
             core/build/reports/tests/test/
             full/build/reports/tests/test/
+            processor/build/reports/tests/test/
+            test-startup/build/reports/tests/test/
+            test-utils/build/reports/tests/test/
