@@ -7,11 +7,12 @@ import org.neo4j.procedure.UserFunction;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.TypeElement;
+import javax.annotation.processing.SupportedSourceVersion;import javax.lang.model.SourceVersion;import javax.lang.model.element.TypeElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+@SupportedSourceVersion(SourceVersion.RELEASE_17)
 public class ApocProcessor extends AbstractProcessor {
 
     private List<String> procedureSignatures;
