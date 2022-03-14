@@ -1,6 +1,7 @@
 package apoc.nlp.azure
 
 
+import apoc.Extended
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPHelperFunctions.convert
 import apoc.nlp.NLPHelperFunctions.getNodeProperty
@@ -14,6 +15,7 @@ import org.neo4j.logging.Log
 import org.neo4j.procedure.*
 import java.util.stream.Stream
 
+@Extended
 class AzureProcedures {
     @Context
     @JvmField
