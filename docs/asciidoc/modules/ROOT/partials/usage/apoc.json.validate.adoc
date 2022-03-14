@@ -1,0 +1,16 @@
+The parameters have the same behavior of the first 3 parameter of xref::overview/apoc.json/apoc.json.path.adoc[apoc.json.path] functions
+
+[source, cypher]
+----
+CALL apoc.json.validate('{"foo": [{"baz":  18446744062065078016838}],"baz": 18446744062065078016838}', '$')
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| "Error with key baz - Numeric value (18446744062065078016838) out of range of long (-9223372036854775808 - 9223372036854775807)
+at [Source: (String)"{"foo": [{"baz":  18446744062065078016838}],"baz": 18446744062065078016838}"; line: 1, column: 42]"
+| "Error with key baz - Numeric value (18446744062065078016838) out of range of long (-9223372036854775808 - 9223372036854775807)
+at [Source: (String)"{"foo": [{"baz":  18446744062065078016838}],"baz": 18446744062065078016838}"; line: 1, column: 75]"
+|===

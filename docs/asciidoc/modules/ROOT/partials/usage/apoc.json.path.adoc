@@ -58,3 +58,48 @@ RETURN apoc.json.path('{ "columns": {
 | Output
 | [ {"col2": { "_id": "772col2" }} ]
 |===
+
+Also, we can pass a `failSilently` option in the 4th parameter to handle incorrectly formatted JSONs.
+Possible parameters are "FALSE" (default), "WITH_LOG" and "WITH_LIST".
+If the parse fails with one or more elements, using `FALSE` it throws a `RuntimeException`, using `WITH_LOG` a `log.warn` is created for each incorrect item and using `WITH_LIST` a map entry with `errorList` as a key is added to the result with the failed tags.
+With config `WITH_LIST` and `WITH_LOG` will be put a "__ERROR" where the json fails.
+
+For example:
+
+[source, cypher]
+----
+RETURN apoc.json.path('{
+  "foo": ["1", {"bar": 18446744062065078016838}, {"baz":  18446744062065078016838} ],
+  "baz": 7
+}', '$..baz', [], 'WITH_LOG')  AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| [7, "__ERROR"]
+|===
+
+[source, cypher]
+----
+RETURN apoc.json.path('{
+  "foo": [{"baz":  18446744062065078016838}],
+  "baz": 7
+}', '$..baz', [], 'WITH_LIST')  AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+a|
+[source,json]
+----
+[7, "__ERROR", {
+"errorList": [
+    "Error with key baz - Numeric value (18446744062065078016838) out of range of long (-9223372036854775808 - 9223372036854775807) at ..."
+]
+}]
+----
+|===

@@ -83,3 +83,25 @@ RETURN apoc.convert.fromJsonMap('{ "columns": {
 |===
 | Failed to invoke function `apoc.convert.getJsonPropertyMap`: Caused by: com.fasterxml.jackson.databind.exc.MismatchedInputException: Cannot deserialize instance of `java.util.LinkedHashMap<java.lang.Object,java.lang.Object>` out of START_ARRAY token at [Source: UNKNOWN; line: -1, column: -1]
 |===
+
+Also, we can pass a `failSilently` option in the 4th parameter to handle incorrectly formatted JSONs.
+For example:
+
+[source, cypher]
+----
+RETURN apoc.convert.fromJsonMap('{
+  "foo": ["1", {"bar": 18446744062065078016838}, {"baz":  18446744062065078016838} ],
+  "baz": 7
+}', '$', [], 'WITH_LOG')  AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+a|
+[source,json]
+----
+{}
+----
+|===

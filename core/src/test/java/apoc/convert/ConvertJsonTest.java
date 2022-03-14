@@ -15,15 +15,18 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static apoc.convert.Json.NODE;
 import static apoc.convert.Json.RELATIONSHIP;
+import static apoc.load.util.ConversionUtil.ERR_PREFIX;
 import static apoc.util.JsonUtil.PATH_OPTIONS_ERROR_MESSAGE;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -307,6 +310,52 @@ public class ConvertJsonTest {
 		         });
     }
 
+    @Test 
+    public void testFailOnError() {
+        final String jsonString = "{\"foo\":[\"1\", {\n" +
+                "    \"bar\": 18446744062065078016838\n" +
+                "  }, {\"baz\":  1228446744062065078016838}],\n" +
+                "    \"baz\": 7 \n" +
+                "}";
+
+        testCall(db, "RETURN apoc.convert.fromJsonMap($json, null, null, false)  as value",
+	             map("json", jsonString),
+	             (row) -> assertEquals(Collections.emptyMap(), row.get("value")));
+
+        testCall(db, "RETURN apoc.convert.fromJsonMap($json, '$', null, false)  as value",
+	             map("json", jsonString),
+                (row) -> assertEquals(Collections.emptyMap(), row.get("value")));
+
+        testCall(db, "RETURN apoc.json.path($json, '$..baz', [], false)  as value",
+	             map("json", jsonString),
+                (row) -> assertEquals(Collections.emptyList(), row.get("value")));
+        
+        try {
+            testCall(db, "RETURN apoc.convert.fromJsonList($json, '$..bar', [], true)  as value",
+                    map("json", jsonString), 
+                    (row) -> fail());
+        } catch (RuntimeException e) {
+            assertTrue(e.getMessage().contains("out of range"));
+        }
+    }
+
+    @Test 
+    public void testJsonValidate() {
+	    testResult(db, "CALL apoc.json.validate('{\"osvaldo\": [1,2,3],\n" +
+                        "  \"foo\":[\"1\", {\n" +
+                        "    \"bar\": 28446744062065078016838\n" +
+                        "  }, {\"baz\":  18446744062065078016838}],\n" +
+                        "    \"baz\": 7 \n" +
+                        "}', '$')",
+	             (r) -> {
+                     final List<String> value = Iterators.asList(r.columnAs("value"));
+                     assertEquals(2, value.size());
+                     assertTrue(value.stream().allMatch(err -> 
+                             (err.startsWith(ERR_PREFIX + "baz") || err.startsWith(ERR_PREFIX + "bar"))
+                                     && err.contains("out of range of long ")));
+		         });
+    }
+    
     @Test public void testSetJsonProperty() throws Exception {
         testCall(db, "CREATE (n) WITH n CALL apoc.convert.setJsonProperty(n, 'json', [1,2,3]) RETURN n",
                 (row) -> assertEquals("[1,2,3]", ((Node)row.get("n")).getProperty("json")));

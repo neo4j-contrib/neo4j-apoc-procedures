@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.convert.fromJsonMap(map :: STRING?, path =  :: STRING?, pathOptions = null :: LIST? OF STRING?) :: (MAP?)
+¦apoc.convert.fromJsonMap(map :: STRING?, path =  :: STRING?, pathOptions = null :: LIST? OF STRING?, failOnError = true :: BOOLEAN?) :: (MAP?)

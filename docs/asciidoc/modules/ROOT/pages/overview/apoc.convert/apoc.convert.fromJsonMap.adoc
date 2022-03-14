@@ -14,7 +14,7 @@ apoc.convert.fromJsonMap('{"a":42,"b":"foo","c":[1,2,3]}'[,'json-path', 'path-op
 
 [source]
 ----
-apoc.convert.fromJsonMap(map :: STRING?, path =  :: STRING?, pathOptions = null :: LIST? OF STRING?) :: (MAP?)
+apoc.convert.fromJsonMap(map :: STRING?, path =  :: STRING?, pathOptions = null :: LIST? OF STRING?, failOnError = true :: BOOLEAN?) :: (MAP?)
 ----
 
 == Input parameters
@@ -23,7 +23,8 @@ apoc.convert.fromJsonMap(map :: STRING?, path =  :: STRING?, pathOptions = null 
 | Name | Type | Default 
 |map|STRING?|null
 |path|STRING?|
-|pathOptions|LIST? OF STRING?|[]
+|pathOptions|LIST? OF STRING?|null
+|failOnError|BOOLEAN?|true
 |===
 
 [[usage-apoc.convert.fromJsonMap]]

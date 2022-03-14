@@ -22,12 +22,15 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.temporal.Temporal;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static apoc.load.util.ConversionUtil.FailStrategyDeserializer;
 
 /**
  * @author mh
@@ -65,13 +68,13 @@ public class JsonUtil {
         }
     }
 
-    private static Configuration getJsonPathConfig(List<String> options) {
+    private static Configuration getJsonPathConfig(List<String> options, ObjectMapper objectMapper) {
         try {
             Option[] opts = options == null ? defaultJsonPathOptions : options.stream().map(Option::valueOf).toArray(Option[]::new);
             return Configuration.builder()
                     .options(opts)
-                    .jsonProvider(new JacksonJsonProvider(OBJECT_MAPPER))
-                    .mappingProvider(new JacksonMappingProvider(OBJECT_MAPPER))
+                    .jsonProvider(new JacksonJsonProvider(objectMapper))
+                    .mappingProvider(new JacksonMappingProvider(objectMapper))
                     .build();
         } catch (Exception e) {
             throw new RuntimeException(PATH_OPTIONS_ERROR_MESSAGE, e);
@@ -96,7 +99,7 @@ public class JsonUtil {
             JsonParser parser = OBJECT_MAPPER.getFactory().createParser(input);
             MappingIterator<Object> it = OBJECT_MAPPER.readValues(parser, Object.class);
             Stream<Object> stream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(it, 0), false);
-            return StringUtils.isBlank(path) ? stream : stream.map((value) -> JsonPath.parse(value, getJsonPathConfig(options)).read(path));
+            return StringUtils.isBlank(path) ? stream : stream.map((value) -> JsonPath.parse(value, getJsonPathConfig(options, OBJECT_MAPPER)).read(path));
         } catch (IOException e) {
             if(!failOnError) {
                 return Stream.of();
@@ -115,19 +118,50 @@ public class JsonUtil {
     }
     
     public static <T> T parse(String json, String path, Class<T> type, List<String> options) {
+        return parse(json, path, type, options, true,false);
+    }
+    
+    public static <T> T parse(String json, String path, Class<T> type, List<String> options, boolean failOnError) {
+        return parse(json, path, type, options, failOnError, false);
+    }
+    
+    public static <T> T parse(String json, String path, Class<T> type, List<String> options, boolean failOnError, boolean validation) {
+        
         if (json==null || json.isEmpty()) return null;
         try {
+            FailStrategyDeserializer deserializer = new FailStrategyDeserializer(validation, null, null);
+            ObjectMapper objectMapper = getObjectMapper(deserializer);
             final String listOpt = Option.ALWAYS_RETURN_LIST.name();
             if (type == Map.class && options != null && options.contains(listOpt)) {
                 throw new RuntimeException("It's not possible to use " + listOpt + " option because the conversion should return a Map");
             }
             if (path == null || path.isEmpty()) {
-                return OBJECT_MAPPER.readValue(json, type);
+                final T t = (T) objectMapper.readValue(json, Object.class);
+                return getJson(deserializer, t, validation);
             }
-            return JsonPath.parse(json, getJsonPathConfig(options)).read(path, type);
-        } catch (IOException e) {
-            throw new RuntimeException("Can't convert " + json + " to "+type.getSimpleName()+" with path "+path, e);
+            final T jsonParsed = JsonPath.parse(json, getJsonPathConfig(options, objectMapper)).read(path, type);
+            return getJson(deserializer, jsonParsed, validation);
+        } catch (Exception e) {
+            if(!failOnError) {
+                return (T) (type.equals(Map.class) ? Collections.emptyMap() : Collections.emptyList());
+            } else {
+                throw new RuntimeException(e);
+            }
         }
+    }
+
+    private static <T> T getJson(FailStrategyDeserializer deserializer, T json, boolean onlyValidation) {
+        List<String> errorList = deserializer.getErrorList();
+        if (onlyValidation) {
+            return (T) errorList;
+        }
+        return json;
+    }
+
+    private static ObjectMapper getObjectMapper(FailStrategyDeserializer deserializer) {
+        SimpleModule module = new SimpleModule("SilentDeserializer")
+                .addDeserializer(Object.class, deserializer);
+        return OBJECT_MAPPER.copy().registerModule(module);
     }
 
     public static String writeValueAsString(Object json) {

@@ -2,6 +2,7 @@ package apoc.convert;
 
 import apoc.meta.Meta;
 import apoc.result.MapResult;
+import apoc.result.StringResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.Entity;
@@ -81,10 +82,19 @@ public class Json {
     @Context
     public org.neo4j.graphdb.GraphDatabaseService db;
 
+
+    @Procedure("apoc.json.validate")
+    @Description("apoc.json.validate('{json}' [,'json-path' , 'path-options']) - to check if the json is correct (returning an empty result) or not")
+    public Stream<StringResult> validate(@Name("json") String json, @Name(value = "path",defaultValue = "$") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
+        return ((List<String>) JsonUtil.parse(json, path, Object.class, pathOptions, false, true))
+                .stream()
+                .map(StringResult::new);
+    }
+
     @UserFunction("apoc.json.path")
     @Description("apoc.json.path('{json}' [,'json-path' , 'path-options'])")
-    public Object path(@Name("json") String json, @Name(value = "path",defaultValue = "$") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
-        return JsonUtil.parse(json, path, Object.class, pathOptions);
+    public Object path(@Name("json") String json, @Name(value = "path",defaultValue = "$") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions, @Name(value = "failOnError", defaultValue = "true") boolean failOnError) {
+        return JsonUtil.parse(json, path, Object.class, pathOptions, failOnError);
     }
     @UserFunction("apoc.convert.toJson")
     @Description("apoc.convert.toJson([1,2,3]) or toJson({a:42,b:\"foo\",c:[1,2,3]}) or toJson(NODE/REL/PATH)")
@@ -108,28 +118,28 @@ public class Json {
 
     @UserFunction// ("apoc.json.getJsonProperty")
     @Description("apoc.convert.getJsonProperty(node,key[,'json-path', 'path-options']) - converts serialized JSON in property back to original object")
-    public Object getJsonProperty(@Name("node") Node node, @Name("key") String key,@Name(value = "path",defaultValue = "") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
+    public Object getJsonProperty(@Name("node") Node node, @Name("key") String key,@Name(value = "path",defaultValue = "") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions, @Name(value = "failOnError", defaultValue = "true") boolean failOnError) {
         String value = (String) node.getProperty(key, null);
-        return JsonUtil.parse(value, path, Object.class, pathOptions);
+        return JsonUtil.parse(value, path, Object.class, pathOptions, failOnError);
     }
 
     @UserFunction// ("apoc.json.getJsonPropertyMap")
     @Description("apoc.convert.getJsonPropertyMap(node,key[,'json-path', 'path-options']) - converts serialized JSON in property back to map")
-    public Map<String,Object> getJsonPropertyMap(@Name("node") Node node, @Name("key") String key,@Name(value = "path",defaultValue = "") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
+    public Map<String,Object> getJsonPropertyMap(@Name("node") Node node, @Name("key") String key,@Name(value = "path",defaultValue = "") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions, @Name(value = "failOnError", defaultValue = "true") boolean failOnError) {
         String value = (String) node.getProperty(key, null);
-        return JsonUtil.parse(value, path, Map.class, pathOptions);
+        return JsonUtil.parse(value, path, Map.class, pathOptions, failOnError);
     }
 
     @UserFunction
     @Description("apoc.convert.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}'[,'json-path', 'path-options'])")
-    public Map<String,Object> fromJsonMap(@Name("map") String value,@Name(value = "path",defaultValue = "") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
-        return JsonUtil.parse(value, path, Map.class, pathOptions);
+    public Map<String,Object> fromJsonMap(@Name("map") String value,@Name(value = "path",defaultValue = "") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions, @Name(value = "failOnError", defaultValue = "true") boolean failOnError) {
+        return JsonUtil.parse(value, path, Map.class, pathOptions, failOnError);
     }
 
     @UserFunction
     @Description("apoc.convert.fromJsonList('[1,2,3]'[,'json-path', 'path-options'])")
-    public List<Object> fromJsonList(@Name("list") String value, @Name(value = "path",defaultValue = "") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
-        return JsonUtil.parse(value, path, List.class, pathOptions);
+    public List<Object> fromJsonList(@Name("list") String value, @Name(value = "path",defaultValue = "") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions, @Name(value = "failOnError", defaultValue = "true") boolean failOnError) {
+        return JsonUtil.parse(value, path, List.class, pathOptions, failOnError);
     }
 
     @Procedure("apoc.convert.toTree")

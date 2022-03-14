@@ -14,7 +14,7 @@ apoc.convert.fromJsonList('[1,2,3]'[,'json-path', 'path-options'])
 
 [source]
 ----
-apoc.convert.fromJsonList(list :: STRING?, path =  :: STRING?, pathOptions = null :: LIST? OF STRING?) :: (LIST? OF ANY?)
+apoc.convert.fromJsonList(list :: STRING?, path =  :: STRING?, pathOptions = null :: LIST? OF STRING?, failOnError = true :: BOOLEAN?) :: (LIST? OF ANY?)
 ----
 
 == Input parameters
@@ -23,7 +23,8 @@ apoc.convert.fromJsonList(list :: STRING?, path =  :: STRING?, pathOptions = nul
 | Name | Type | Default 
 |list|STRING?|null
 |path|STRING?|
-|pathOptions|LIST? OF STRING?|[]
+|pathOptions|LIST? OF STRING?|null
+|failOnError|BOOLEAN?|true
 |===
 
 [[usage-apoc.convert.fromJsonList]]

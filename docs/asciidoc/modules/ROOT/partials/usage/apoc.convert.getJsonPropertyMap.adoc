@@ -49,3 +49,18 @@ MATCH (n:JsonPathNode) RETURN apoc.convert.getJsonPropertyMap(n, 'prop', '$.colu
 |===
 | Failed to invoke function `apoc.convert.getJsonPropertyMap`: Caused by: com.fasterxml.jackson.databind.exc.MismatchedInputException: Cannot deserialize instance of `java.util.LinkedHashMap<java.lang.Object,java.lang.Object>` out of START_ARRAY token at [Source: UNKNOWN; line: -1, column: -1]
 |===
+
+Also, we can pass a `failSilently` option in the 5th parameter to handle incorrectly formatted JSONs.
+For example, with a node CREATE (n:JsonPathNode {prop: '{"foo": [{"baz":  18446744062065078016838}],"baz": 7}'}):
+
+[source, cypher]
+----
+MATCH (n:JsonPathNode) RETURN apoc.convert.getJsonPropertyMap(n, 'prop', '$',  [], 'WITH_LOG') AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| {}
+|===

@@ -63,3 +63,21 @@ MATCH (n:JsonPathNode) RETURN apoc.convert.getJsonProperty(n, 'prop', '$..column
 | Output
 | [ {"col2": { "_id": "772col2" }} ]
 |===
+
+Also, we can pass a `failOnError` option in the 5th parameter in order to return an empty result if the Json is incorrectly formatted (with false) or to throw an Exception (with true, default value).
+
+For example, with a node CREATE (n:JsonPathNode {prop: '{"foo": [{"baz":  18446744062065078016838}],"baz": 7}'}):
+
+[source, cypher]
+----
+MATCH (n:JsonPathNode) RETURN apoc.convert.getJsonProperty(n, 'prop', '$..baz',  [], false) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| []
+|===
+
+|===

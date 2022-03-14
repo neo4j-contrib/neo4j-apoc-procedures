@@ -72,6 +72,24 @@ RETURN apoc.convert.fromJsonList('{ "columns": {
 | [ {"col2": { "_id": "772col2" }} ]
 |===
 
+Also, we can pass a `failOnError` option in the 4th parameter in order to return an empty result if the Json is incorrectly formatted (with false) or to throw an Exception (with true, default value).
+For example:
+
+[source, cypher]
+----
+RETURN apoc.convert.fromJsonList('{
+  "foo": ["1", {"bar": 18446744062065078016838}, {"baz":  18446744062065078016838} ],
+  "baz": 7
+}', '$..baz', [], false)  AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| []
+|===
+
 
 
 If we try to convert a non-list structure, we'll get an exception.
