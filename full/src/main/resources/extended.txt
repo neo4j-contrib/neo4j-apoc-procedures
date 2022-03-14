@@ -102,6 +102,12 @@ apoc.nlp.aws.keyPhrases.graph
 apoc.nlp.aws.keyPhrases.stream
 apoc.nlp.aws.sentiment.graph
 apoc.nlp.aws.sentiment.stream
+apoc.nlp.azure.entities.graph
+apoc.nlp.azure.entities.stream
+apoc.nlp.azure.keyPhrases.graph
+apoc.nlp.azure.keyPhrases.stream
+apoc.nlp.azure.sentiment.graph
+apoc.nlp.azure.sentiment.stream
 apoc.nlp.gcp.classify.graph
 apoc.nlp.gcp.classify.stream
 apoc.nlp.gcp.entities.graph
