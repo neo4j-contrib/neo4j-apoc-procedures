@@ -172,7 +172,7 @@ public class TestUtil {
     }
 
     public static boolean isRunningInCI() {
-        return "true".equals(System.getenv("CI"));
+        return "true".equals(System.getenv("CI")) || System.getenv("TEAMCITY_VERSION") != null;
     }
 
     public static URL getUrlFileName(String filename) {
