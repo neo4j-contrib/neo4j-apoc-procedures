@@ -277,8 +277,6 @@ test {
         junitXml.enabled = false
         html.enabled = true
     }
-
-    forkEvery 100
 }
 
 javadoc {
