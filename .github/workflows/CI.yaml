@@ -47,7 +47,7 @@ jobs:
         run: chmod +x gradlew && ./gradlew build
 
       - name: Clean neo4j artifacts
-        if: ${{ always() }} # run this step even if previous step failed
+        if: always() # run this step even if previous step failed
         run: |
           (find ~/.gradle/caches -name "*neo4j*" -exec rm -rf {} \;) || echo "All neo4j files cleaned"
           rm -rf ${ENTERPRISE_TAR} ${COMMUNITY_TAR}
