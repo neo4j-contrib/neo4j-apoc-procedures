@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import static apoc.util.TestContainerUtil.cleanBuild;
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testCallInReadTransaction;
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isCI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -36,7 +36,7 @@ public class CypherProceduresClusterTest {
 
     @BeforeClass
     public static void setupCluster() {
-        assumeFalse(isTravis());
+        assumeFalse(isCI());
         TestUtil.ignoreException(() ->  cluster = TestContainerUtil
                         .createEnterpriseCluster(3, 1, Collections.emptyMap(), MapUtil.stringMap("apoc.custom.procedures.refresh", "100")),
                 Exception.class);

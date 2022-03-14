@@ -11,7 +11,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.SQLException;
 
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isCI;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.*;
@@ -27,7 +27,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isTravis());
+        assumeFalse(isCI());
         TestUtil.ignoreException(() -> {
             postgress = new PostgreSQLContainer().withInitScript("init_postgres.sql");
             postgress.start();

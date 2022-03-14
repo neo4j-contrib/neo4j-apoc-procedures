@@ -16,7 +16,7 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import java.io.IOException;
 import java.util.*;
 
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isCI;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 
@@ -48,7 +48,7 @@ public class ElasticSearchTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isTravis());
+        assumeFalse(isCI());
         TestUtil.ignoreException(() -> {
             elastic = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:6.4.1");
             elastic.start();

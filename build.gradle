@@ -264,14 +264,19 @@ test {
         }
     }
 
+    maxHeapSize = "8G"
+    forkEvery = 50
+    maxParallelForks = 1 //Runtime.runtime.availableProcessors().intdiv(2) + 1
 
-    if (System.env.TRAVIS !=null) {
+    if (System.env.CI != null) {
         minHeapSize = "128m"
         maxHeapSize = "512m"
-    } else {
-        maxHeapSize = "4g"
     }
-    forkEvery 100
+
+    reports {
+        junitXml.enabled = false
+        html.enabled = true
+    }
 }
 
 javadoc {
@@ -353,20 +358,6 @@ and not for its dependencies."""
             }
         }
     }
-}
-
-// tweaks for travis
-if (System.env.TRAVIS == 'true') {
-  allprojects {
-    tasks.withType(GroovyCompile) {
-      groovyOptions.fork = false
-    }
-    tasks.withType(Test) {
-      // containers (currently) have 2 dedicated cores and 4GB of memory
-      maxParallelForks = 2
-      minHeapSize = '128m'
-    }
-  }
 }
 
 task copyRuntimeLibs(type: Copy) {

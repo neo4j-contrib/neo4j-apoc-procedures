@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isCI;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -49,7 +49,7 @@ public class DiffTest {
 
     @BeforeClass
     public static void setup() throws Exception {
-        assumeFalse(isTravis());
+        assumeFalse(isCI());
         TestUtil.ignoreException(() -> {
             neo4jContainer = new Neo4jContainerExtension()
                     .withInitScript("init_neo4j_diff.cypher")

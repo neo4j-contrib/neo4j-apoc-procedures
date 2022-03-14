@@ -339,7 +339,7 @@ RETURN m.col_1,m.col_2,m.col_3
     }
 
     @Test public void testWithEmptyQuoteChar() throws Exception {
-        Assume.assumeFalse("skip this on travis it downloads 7.3 MB of data", TestUtil.isTravis());
+        Assume.assumeFalse("skip this on CI it downloads 7.3 MB of data", TestUtil.isCI());
         URL url = new URL("https://www.fhwa.dot.gov/bridge/nbi/2010/delimited/AL10.txt");
         testResult(db, "CALL apoc.load.csv({url}, {quoteChar: '\0'})", map("url",url.toString()),
                 (r) -> assertEquals(16018L, r.stream().count()));

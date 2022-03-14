@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.assumeTravis;
+import static apoc.util.TestUtil.assumeIsCI;
 import static apoc.util.TestUtil.registerProcedure;
 import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallEmpty;
@@ -31,7 +31,7 @@ public class GeocodeTest {
 
     @Before
     public void setUp() throws Exception {
-        assumeTravis();
+        assumeIsCI();
         // Impermanent Database creation with additional configuration
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()

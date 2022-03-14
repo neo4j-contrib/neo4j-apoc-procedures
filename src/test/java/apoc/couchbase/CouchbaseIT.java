@@ -38,7 +38,7 @@ import static apoc.couchbase.CouchbaseTestUtils.createCluster;
 import static apoc.couchbase.CouchbaseTestUtils.fillDB;
 import static apoc.couchbase.CouchbaseTestUtils.getCouchbaseBucket;
 import static apoc.couchbase.CouchbaseTestUtils.getUrl;
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isCI;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertFalse;
@@ -60,7 +60,7 @@ public class CouchbaseIT  {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isTravis());
+        assumeFalse(isCI());
         TestUtil.ignoreException(() -> {
             couchbase = new CouchbaseContainer("couchbase/server:5.5.1")
                     .withCredentials(USERNAME, PASSWORD)

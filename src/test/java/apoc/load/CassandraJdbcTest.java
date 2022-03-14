@@ -13,7 +13,7 @@ import org.testcontainers.containers.CassandraContainer;
 import java.sql.SQLException;
 import java.util.Map;
 
-import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.isCI;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.*;
@@ -26,7 +26,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isTravis());
+        assumeFalse(isCI());
         TestUtil.ignoreException(() -> {
             cassandra = new CassandraContainer();
             cassandra.withInitScript("init_cassandra.cql");
