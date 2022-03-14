@@ -3,4 +3,9 @@ description = 'APOC :: Test Startup Module'
 dependencies {
     testImplementation project(':core')
     testImplementation project(':test-utils')
+
+    configurations.all {
+        exclude group: 'org.slf4j', module: 'slf4j-nop'
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+    }
 }

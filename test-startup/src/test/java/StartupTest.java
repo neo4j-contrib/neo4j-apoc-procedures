@@ -2,7 +2,8 @@ import apoc.ApocSignatures;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
-import org.junit.Test;
+import apoc.util.TestContainerUtil.Neo4jVersion;import org.junit.Test;
+
 import org.neo4j.driver.Session;
 
 import java.io.File;
@@ -10,7 +11,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static apoc.util.TestContainerUtil.createEnterpriseDB;
+import static apoc.util.TestContainerUtil.createDB;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -31,50 +32,58 @@ public class StartupTest {
 
     @Test
     public void check_basic_deployment() {
-        try (Neo4jContainerExtension neo4jContainer = createEnterpriseDB(APOC_FULL, !TestUtil.isRunningInCI())
-                .withNeo4jConfig("dbms.transaction.timeout", "5s")) {
+        for (var version: Neo4jVersion.values()) {
+            try (Neo4jContainerExtension neo4jContainer = createDB(version, APOC_FULL, !TestUtil.isRunningInCI())
+                    .withNeo4jConfig("dbms.transaction.timeout", "60s")) {
 
-            neo4jContainer.start();
-            assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+                neo4jContainer.start();
+                assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
-            Session session = neo4jContainer.getSession();
-            int procedureCount = session.run("SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'apoc' RETURN count(*) AS count").peek().get("count").asInt();
-            int functionCount = session.run("SHOW FUNCTIONS YIELD name WHERE name STARTS WITH 'apoc' RETURN count(*) AS count").peek().get("count").asInt();
-            int coreCount = session.run("CALL apoc.help('') YIELD core WHERE core = true RETURN count(*) AS count").peek().get("count").asInt();
+                Session session = neo4jContainer.getSession();
+                int procedureCount = session.run("SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'apoc' RETURN count(*) AS count").peek().get("count").asInt();
+                int functionCount = session.run("SHOW FUNCTIONS YIELD name WHERE name STARTS WITH 'apoc' RETURN count(*) AS count").peek().get("count").asInt();
+                int coreCount = session.run("CALL apoc.help('') YIELD core WHERE core = true RETURN count(*) AS count").peek().get("count").asInt();
 
-            assertTrue(procedureCount > 0);
-            assertTrue(functionCount > 0);
-            assertTrue(coreCount > 0);
-        } catch (Exception ex) {
-            // if Testcontainers wasn't able to retrieve the docker image we ignore the test
-            if (TestContainerUtil.isDockerImageAvailable(ex)) {
-                ex.printStackTrace();
-                fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+                assertTrue(procedureCount > 0);
+                assertTrue(functionCount > 0);
+                assertTrue(coreCount > 0);
+            } catch (Exception ex) {
+                // if Testcontainers wasn't able to retrieve the docker image we ignore the test
+                if (TestContainerUtil.isDockerImageAvailable(ex)) {
+                    ex.printStackTrace();
+                    fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+                } else if (!TestUtil.isRunningInCI()) {
+                    fail( "The docker image " + TestContainerUtil.neo4jEnterpriseDockerImageVersion + " should be available in the CI");
+                }
             }
         }
     }
 
     @Test
     public void compare_with_sources() {
-        try (Neo4jContainerExtension neo4jContainer = createEnterpriseDB(APOC_FULL, !TestUtil.isRunningInCI())) {
-            neo4jContainer.start();
+        for (var version: Neo4jVersion.values()) {
+            try (Neo4jContainerExtension neo4jContainer = createDB(version, APOC_FULL, !TestUtil.isRunningInCI())) {
+                neo4jContainer.start();
 
-            assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+                assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
-            try (Session session = neo4jContainer.getSession()) {
-                final List<String> functionNames = session.run("CALL apoc.help('') YIELD core, type, name WHERE core = true and type = 'function' RETURN name")
-                        .list(record -> record.get("name").asString());
-                final List<String> procedureNames = session.run("CALL apoc.help('') YIELD core, type, name WHERE core = true and type = 'procedure' RETURN name")
-                        .list(record -> record.get("name").asString());
+                try (Session session = neo4jContainer.getSession()) {
+                    final List<String> functionNames = session.run("CALL apoc.help('') YIELD core, type, name WHERE core = true and type = 'function' RETURN name")
+                            .list(record -> record.get("name").asString());
+                    final List<String> procedureNames = session.run("CALL apoc.help('') YIELD core, type, name WHERE core = true and type = 'procedure' RETURN name")
+                            .list(record -> record.get("name").asString());
 
 
-                assertEquals(sorted(ApocSignatures.PROCEDURES), procedureNames);
-                assertEquals(sorted(ApocSignatures.FUNCTIONS), functionNames);
-            }
-        } catch (Exception ex) {
-            if (TestContainerUtil.isDockerImageAvailable(ex)) {
-                ex.printStackTrace();
-                fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+                    assertEquals(sorted(ApocSignatures.PROCEDURES), procedureNames);
+                    assertEquals(sorted(ApocSignatures.FUNCTIONS), functionNames);
+                }
+            } catch (Exception ex) {
+                if (TestContainerUtil.isDockerImageAvailable(ex)) {
+                    ex.printStackTrace();
+                    fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+                } else {
+                    fail( "The docker image " + TestContainerUtil.neo4jEnterpriseDockerImageVersion + " should be available in the CI");
+                }
             }
         }
     }
