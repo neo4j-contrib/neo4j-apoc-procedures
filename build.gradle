@@ -264,6 +264,15 @@ test {
         }
     }
 
+    maxHeapSize = "8G"
+    forkEvery = 50
+    maxParallelForks = 1 //Runtime.runtime.availableProcessors().intdiv(2) + 1
+
+    if (System.env.CI != null) {
+        minHeapSize = "128m"
+        maxHeapSize = "512m"
+    }
+
     reports {
         junitXml.enabled = false
         html.enabled = true
