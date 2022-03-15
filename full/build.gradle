@@ -7,7 +7,7 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "org.sonarqube"
-    id "org.jetbrains.kotlin.jvm" version "1.3.71"
+    id "org.jetbrains.kotlin.jvm" version "1.6.0"
 }
 
 archivesBaseName = "apoc"
@@ -20,7 +20,7 @@ jar {
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "11"
 }
 
 generateGrammarSource {

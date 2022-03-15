@@ -14,7 +14,7 @@ dependencies {
 
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
 
-    compile group: 'org.gradle', name: 'gradle-tooling-api', version: '6.0.1'
+    compile group: 'org.gradle', name: 'gradle-tooling-api', version: '6.1.1'
 
     def withoutServers = {
         exclude group: 'org.eclipse.jetty'
