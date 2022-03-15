@@ -554,7 +554,7 @@ public class SchemasTest {
     @Test
     public void testSchemaRelationshipsExclude() {
         ignoreException(() -> {
-            db.executeTransactionally("CREATE CONSTRAINT FOR ()-[like:LIKED]-() REQUIRE like.day I");
+            db.executeTransactionally("CREATE CONSTRAINT FOR ()-[like:LIKED]-() REQUIRE like.day IS NOT NULL");
             testResult(db, "CALL apoc.schema.relationships({excludeRelationships:['LIKED']})", (result) -> assertFalse(result.hasNext()));
         }, QueryExecutionException.class);
     }
