@@ -293,7 +293,7 @@ public class CloneSubgraphTest {
 
         TestUtil.testCall(db,
                 "MATCH ()-[r]->() " +
-                        "WHERE r.id IS NULL" +
+                        "WHERE r.id IS NULL " +
                         "RETURN count(r) as relsWithNoId",
                 (row) -> {
                     assertThat(row.get("relsWithNoId"), is(10L)); // 10 cloned rels with skipped id property
