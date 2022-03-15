@@ -1,10 +1,19 @@
 package apoc.refactor.rename;
 
 import apoc.Pools;
-import apoc.periodic.Periodic;
 import apoc.periodic.BatchAndTotalResult;
+import apoc.periodic.Periodic;
 import apoc.util.MapUtil;
 import apoc.util.Util;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -20,14 +29,6 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.TerminationGuard;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author AgileLARUS
@@ -116,7 +117,7 @@ public class Rename {
 															@Name(value="nodes", defaultValue = "[]") List<Node> nodes,
 															@Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 		nodes = nodes.stream().map(n -> Util.rebind(tx, n)).collect(Collectors.toList());
-		String cypherIterate = nodes != null && ! nodes.isEmpty() ? "UNWIND $nodes AS n WITH n WHERE exists (n."+oldName+") return n" : "match (n) where exists (n."+oldName+") return n";
+		String cypherIterate = nodes != null && ! nodes.isEmpty() ? "UNWIND $nodes AS n WITH n WHERE n."+oldName+" IS NOT NULL return n" : "match (n) where n."+oldName+" IS NOT NULL return n";
 		String cypherAction = "set n."+newName+"= n."+oldName+" remove n."+oldName;
 		final Map<String, Object> params = MapUtil.map("nodes", nodes);
 		Map<String, Object> parameters = getPeriodicConfig(config, params);
@@ -133,7 +134,7 @@ public class Rename {
 															@Name(value="rels", defaultValue = "[]") List<Relationship> rels,
 															@Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 		rels = rels.stream().map(r -> Util.rebind(tx, r)).collect(Collectors.toList());
-		String cypherIterate = rels != null && ! rels.isEmpty() ? "UNWIND $rels AS r WITH r WHERE exists (r."+oldName+") return r" : "match ()-[r]->() where exists (r."+oldName+") return r";
+		String cypherIterate = rels != null && ! rels.isEmpty() ? "UNWIND $rels AS r WITH r WHERE r."+oldName+" IS NOT NULL return r" : "match ()-[r]->() where r."+oldName+" IS NOT NULL return r";
 		String cypherAction = "set r."+newName+"= r."+oldName+" remove r."+oldName;
 		final Map<String, Object> params = MapUtil.map("rels", rels);
 		Map<String, Object> parameters = getPeriodicConfig(config, params);

@@ -8,10 +8,6 @@ import apoc.util.Util;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.net.URL;
 import java.util.LinkedHashMap;
@@ -19,10 +15,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
+
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.*;
+import static apoc.util.TestUtil.testCallCount;
+import static apoc.util.TestUtil.testCallEmpty;
+import static apoc.util.TestUtil.testResult;
 import static java.util.Collections.emptyMap;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class SpatialTest {
 
@@ -103,7 +108,7 @@ public class SpatialTest {
     @Test
     public void testSimpleGeocode() {
         String query = "MATCH (a:Event) \n" +
-                "WHERE exists(a.address) AND exists(a.name) \n" +
+                "WHERE a.address IS NOT NULL AND a.name IS NOT NULL \n" +
                 "CALL apoc.spatial.geocodeOnce(a.address) YIELD location\n" +
                 "RETURN a.name, location.latitude AS latitude, \n" +
                 "location.longitude AS longitude, location.description AS description";
@@ -114,7 +119,7 @@ public class SpatialTest {
     public void testGeocodePointAndDistance() {
         String query = "WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel\n" +
                 "MATCH (a:Event) \n" +
-                "WHERE exists(a.address)\n" +
+                "WHERE a.address IS NOT NULL \n" +
                 "CALL apoc.spatial.geocodeOnce(a.address) YIELD location \n" +
                 "WITH location, point.distance(point({latitude: location.latitude, longitude:location.longitude}), eiffel) AS distance\n" +
                 "WHERE distance < 5000\n" +
@@ -127,7 +132,7 @@ public class SpatialTest {
     @Test
     public void testGraphRefactoring() {
         String refactorQuery = "MATCH (a:Event) \n" +
-                "WHERE exists(a.address) AND NOT exists(a.latitude)\n" +
+                "WHERE a.address IS NOT NULL AND a.latitude IS NULL \n" +
                 "WITH a LIMIT 1000\n" +
                 "CALL apoc.spatial.geocodeOnce(a.address) YIELD location \n" +
                 "SET a.latitude = location.latitude\n" +
@@ -135,7 +140,7 @@ public class SpatialTest {
         testCallEmpty(db, refactorQuery, emptyMap());
         String query = "WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel\n" +
                 "MATCH (a:Event) \n" +
-                "WHERE exists(a.latitude) AND exists(a.longitude)\n" +
+                "WHERE a.latitude IS NOT NULL AND a.longitude IS NOT NULL \n" +
                 "WITH a, point.distance(point(a), eiffel) AS distance\n" +
                 "WHERE distance < 5000\n" +
                 "RETURN a.name AS event, distance\n" +
@@ -149,7 +154,7 @@ public class SpatialTest {
         String query = "WITH apoc.date.parse('2016-06-01 00:00:00','h') as due_date,\n" +
                 "     point({latitude: 48.8582532, longitude: 2.294287}) as eiffel\n" +
                 "MATCH (e:Event)\n" +
-                "WHERE exists(e.address) AND exists(e.datetime)\n" +
+                "WHERE e.address IS NOT NULL AND e.datetime IS NOT NULL \n" +
                 "WITH apoc.date.parse(e.datetime,'h') as hours, e, due_date, eiffel\n" +
                 "CALL apoc.spatial.geocodeOnce(e.address) YIELD location\n" +
                 "WITH e, location,\n" +
@@ -179,7 +184,7 @@ public class SpatialTest {
     @Test
     public void testSimpleReverseGeocode() {
         String query = "MATCH (a:Event) \n" +
-                "WHERE exists(a.lat) AND exists(a.lon) AND exists(a.name) \n" +
+                "WHERE a.lat IS NOT NULL AND a.lon IS NOT NULL AND a.name IS NOT NULL \n" +
                 "CALL apoc.spatial.reverseGeocode(a.lat, a.lon) YIELD latitude, longitude\n" +
                 "RETURN a.name, latitude, \n" +
                 "longitude, a.description";

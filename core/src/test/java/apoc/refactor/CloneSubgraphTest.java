@@ -10,14 +10,17 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Collections;
 import java.util.List;
 
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
+
 import static apoc.util.MapUtil.map;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class CloneSubgraphTest {
@@ -290,7 +293,7 @@ public class CloneSubgraphTest {
 
         TestUtil.testCall(db,
                 "MATCH ()-[r]->() " +
-                        "WHERE not exists(r.id)" +
+                        "WHERE r.id IS NULL" +
                         "RETURN count(r) as relsWithNoId",
                 (row) -> {
                     assertThat(row.get("relsWithNoId"), is(10L)); // 10 cloned rels with skipped id property
