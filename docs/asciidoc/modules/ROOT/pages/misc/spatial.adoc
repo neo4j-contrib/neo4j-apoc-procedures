@@ -121,7 +121,7 @@ A more complex, or useful, example which geocodes addresses found in properties 
 [source,cypher]
 ----
 MATCH (a:Place)
-WHERE exists(a.address)
+WHERE a.address IS NOT NULL
 CALL apoc.spatial.geocodeOnce(a.address) YIELD location
 RETURN location.latitude AS latitude, location.longitude AS longitude, location.description AS description
 ----
@@ -135,7 +135,7 @@ latitude and longitude to Cyper Point types, and then use the point.distance() f
 ----
 WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
 MATCH (a:Place)
-WHERE exists(a.address)
+WHERE a.address IS NOT NULL
 CALL apoc.spatial.geocodeOnce(a.address) YIELD location
 WITH location, point.distance(point(location), eiffel) AS distance
 WHERE distance < 5000
@@ -186,7 +186,7 @@ Geocode and persist the result
 [source,cypher]
 ----
 MATCH (a:Place)
-WHERE exists(a.address) AND NOT exists(a.latitude)
+WHERE a.address IS NOT NULL AND a.latitude IS NULL
 WITH a LIMIT 1000
 CALL apoc.spatial.geocodeOnce(a.address) YIELD location
 SET a.latitude = location.latitude
@@ -207,7 +207,7 @@ Now make use of the results in distance queries
 ----
 WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
 MATCH (a:Place)
-WHERE exists(a.latitude) AND exists(a.longitude)
+WHERE a.latitude IS NOT NULL AND a.longitude IS NOT NULL
 WITH a, point.distance(point(a), eiffel) AS distance
 WHERE distance < 5000
 RETURN a.name, distance
@@ -223,7 +223,7 @@ Combining spatial and date-time functions can allow for more complex queries:
 ----
 WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
 MATCH (e:Event)
-WHERE exists(e.address) AND exists(e.datetime)
+WHERE e.address IS NOT NULL AND e.datetime IS NOT NULL
 CALL apoc.spatial.geocodeOnce(e.address) YIELD location
 WITH e, location,
 distance(point(location), eiffel) AS distance,

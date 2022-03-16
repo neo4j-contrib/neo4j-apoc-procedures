@@ -92,7 +92,8 @@ You can export your graph as a weighted network, by specifying the property of a
 .The following exports `ACTED_IN` paths where the `weightproperty` property exists on the relationship type
 [source,cypher]
 ----
-match path = (:Person)-[r:ACTED_IN]->(:Movie) where exists r.weightproperty
+MATCH path = (:Person)-[r:ACTED_IN]->(:Movie)
+WHERE r.weightproperty IS NOT NULL
 WITH path LIMIT 1000
 with collect(path) as paths
 call apoc.gephi.add(null,'workspace0', paths, 'weightproperty') yield nodes, relationships, time
@@ -104,7 +105,8 @@ You can also export with your graph other properties of your nodes and/or relati
 .The following exports `ACTED_IN` paths, but only includes the `birthYear` and `role` properties
 [source,cypher]
 ----
-match path = (:Person)-[r:ACTED_IN]->(:Movie) where exists r.weightproperty
+MATCH path = (:Person)-[r:ACTED_IN]->(:Movie)
+WHERE r.weightproperty IS NOT NULL
 WITH path LIMIT 1000
 with collect(path) as paths
 call apoc.gephi.add(null,'workspace0', paths, 'weightproperty',['birthYear', 'role']) yield nodes, relationships, time

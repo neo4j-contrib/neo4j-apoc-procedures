@@ -11,7 +11,7 @@ The query is executed repeatedly in separate transactions until it returns 0.
 [source,cypher]
 ----
 call apoc.periodic.commit(
-  "match (user:User) WHERE exists( user.city )
+  "match (user:User) WHERE user.city IS NOT NULL
    with user limit $limit
    MERGE (city:City {name:user.city})
    MERGE (user)-[:LIVES_IN]->(city)

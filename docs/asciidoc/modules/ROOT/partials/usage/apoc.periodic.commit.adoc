@@ -15,7 +15,7 @@ If we want to convert the `city` property to a node, we can do this in batches o
 ----
 CALL apoc.periodic.commit(
   "MATCH (person:Person)
-   WHERE exists(person.city)
+   WHERE person.city IS NOT NULL
    WITH person limit $limit
    MERGE (city:City {name:person.city})
    MERGE (person)-[:LIVES_IN]->(city)
@@ -36,12 +36,12 @@ We can check that the refactoring has been done by running the following query:
 [source,cypher]
 ----
 MATCH (p:Person)
-RETURN exists(p.city), count(*);
+RETURN p.city IS NOT NULL as exists, count(*);
 ----
 
 .Results
 [opts="header"]
 |===
-| exists(p.city) | count(*)
-| FALSE          | 10000
+| exists | count(*)
+| FALSE  | 10000
 |===

@@ -5,6 +5,12 @@ import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.QueryExecutionException;
@@ -18,17 +24,14 @@ import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-
-import static apoc.util.TestUtil.*;
+import static apoc.util.TestUtil.ignoreException;
+import static apoc.util.TestUtil.registerProcedure;
+import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
-import static org.neo4j.configuration.SettingImpl.newBuilder;
-import static org.neo4j.configuration.SettingValueParsers.BOOL;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -551,7 +554,7 @@ public class SchemasTest {
     @Test
     public void testSchemaRelationshipsExclude() {
         ignoreException(() -> {
-            db.executeTransactionally("CREATE CONSTRAINT FOR ()-[like:LIKED]-() REQUIRE exists(like.day)");
+            db.executeTransactionally("CREATE CONSTRAINT FOR ()-[like:LIKED]-() REQUIRE like.day IS NOT NULL");
             testResult(db, "CALL apoc.schema.relationships({excludeRelationships:['LIKED']})", (result) -> assertFalse(result.hasNext()));
         }, QueryExecutionException.class);
     }
@@ -587,8 +590,8 @@ public class SchemasTest {
 
     @Test(expected = QueryExecutionException.class)
     public void testConstraintsRelationshipsAndExcludeRelationshipsValuatedShouldFail() {
-        db.executeTransactionally("CREATE CONSTRAINT FOR ()-[like:LIKED]-() REQUIRE exists(like.day)");
-        db.executeTransactionally("CREATE CONSTRAINT FOR ()-[knows:SINCE]-() REQUIRE exists(since.year)");
+        db.executeTransactionally("CREATE CONSTRAINT FOR ()-[like:LIKED]-() REQUIRE like.day IS NOT NULL");
+        db.executeTransactionally("CREATE CONSTRAINT FOR ()-[knows:SINCE]-() REQUIRE since.year IS NOT NULL");
         awaitIndexesOnline();
         try (Transaction tx = db.beginTx()) {
             tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);

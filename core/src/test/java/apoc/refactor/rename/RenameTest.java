@@ -1,19 +1,19 @@
 package apoc.refactor.rename;
 
-
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -145,12 +145,12 @@ public class RenameTest {
 	}
 
 	private long resultRelationshipsMatches(String type, String prop){
-		String query = type != null ? "MATCH ()-[r:"+type+"]->() RETURN count(r) as countResult" : "match ()-[r]->() where exists (r."+prop+") return count(r) as countResult";
+		String query = type != null ? "MATCH ()-[r:"+type+"]->() RETURN count(r) as countResult" : "match ()-[r]->() where r."+prop+" IS NOT NULL return count(r) as countResult";
 		return TestUtil.singleResultFirstColumn(db, query);
 	}
 
 	private long resultNodesMatches(String label, String prop) {
-		String query = label != null ? "MATCH (b:"+label+") RETURN count(b) as countResult" : "match (n) where exists (n."+prop+") return count(n) as countResult";
+		String query = label != null ? "MATCH (b:"+label+") RETURN count(b) as countResult" : "match (n) where n."+prop+" IS NOT NULL return count(n) as countResult";
 		return TestUtil.singleResultFirstColumn(db, query);
 	}
 

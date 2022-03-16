@@ -16,6 +16,6 @@ CALL apoc.schema.relationships();
 .Results
 [opts="header"]
 |===
-| name                                                         | type                              | properties | status
-| "CONSTRAINT ON ()-[liked:LIKED]-() ASSERT exists(liked.day)" | "RELATIONSHIP_PROPERTY_EXISTENCE" | ["day"]    | ""
+| name                                                             | type                              | properties | status
+| "CONSTRAINT ON ()-[liked:LIKED]-() ASSERT liked.day IS NOT NULL" | "RELATIONSHIP_PROPERTY_EXISTENCE" | ["day"]    | ""
 |===
