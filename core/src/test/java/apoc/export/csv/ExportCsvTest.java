@@ -2,7 +2,10 @@ package apoc.export.csv;
 
 import apoc.ApocSettings;
 import apoc.graph.Graphs;
+import apoc.util.BinaryTestUtil;
+import apoc.util.CompressionAlgo;
 import apoc.meta.Meta;
+import apoc.util.CompressionConfig;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.BeforeClass;
@@ -10,21 +13,32 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Result;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.function.Consumer;
 
+import static apoc.util.BinaryTestUtil.getDecompressedData;
+import static apoc.util.CompressionAlgo.DEFLATE;
+import static apoc.util.CompressionAlgo.GZIP;
+import static apoc.util.CompressionAlgo.NONE;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testResult;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 /**
  * @author mh
@@ -108,17 +122,22 @@ public class ExportCsvTest {
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath())
-            .withSetting(ApocSettings.apoc_export_file_enabled, true);
+            .withSetting(ApocSettings.apoc_export_file_enabled, true)
+            .withSetting(ApocSettings.apoc_import_file_enabled, true);
 
     @BeforeClass
     public static void setUp() throws Exception {
-        TestUtil.registerProcedure(db, ExportCSV.class, Graphs.class, Meta.class);
+        TestUtil.registerProcedure(db, ExportCSV.class, Graphs.class, Meta.class, ImportCsv.class);
         db.executeTransactionally("CREATE (f:User1:User {name:'foo',age:42,male:true,kids:['a','b','c']})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})");
         db.executeTransactionally("CREATE (f:Address1:Address {name:'Andrea', city: 'Milano', street:'Via Garibaldi, 7'})-[:NEXT_DELIVERY]->(a:Address {name: 'Bar Sport'}), (b:Address {street: 'via Benni'})");
     }
 
     private String readFile(String fileName) {
-        return TestUtil.readFileToString(new File(directory, fileName));
+        return readFile(fileName, UTF_8, CompressionAlgo.NONE);
+    }
+    
+    private String readFile(String fileName, Charset charset, CompressionAlgo compression) {
+        return BinaryTestUtil.readFileToString(new File(directory, fileName), charset, compression);
     }
 
     @Test
@@ -133,6 +152,40 @@ public class ExportCsvTest {
             final String expectedMessage = "Failed to invoke procedure `apoc.export.csv.all`: Caused by: java.lang.RuntimeException: The string value of the field quote is not valid";
             assertEquals(expectedMessage, e.getMessage());
         }
+    }
+    
+    @Test
+    public void testExportAllCsvCompressed() {
+        final CompressionAlgo compressionAlgo = DEFLATE;
+        String fileName = "all.csv.zz";
+        TestUtil.testCall(db, "CALL apoc.export.csv.all($file, $config)",
+                map("file", fileName, "config", map("compression", compressionAlgo.name())),
+                (r) -> assertResults(fileName, r, "database"));
+        assertEquals(EXPECTED, readFile(fileName, UTF_8, compressionAlgo));
+    }
+    
+    @Test
+    public void testCsvRoundTrip() {
+        db.executeTransactionally("CREATE (f:Roundtrip {name:'foo',age:42,male:true,kids:['a','b','c']}),(b:Roundtrip {name:'bar',age:42}),(c:Roundtrip {age:12})");
+        
+        String fileName = "separatedFiles.csv.gzip";
+        final Map<String, Object> params = map("file", fileName, "query", "MATCH (u:Roundtrip) return u.name as name", 
+                "config", map(CompressionConfig.COMPRESSION, GZIP.name()));
+        TestUtil.testCall(db, "CALL apoc.export.csv.query($query, $file, $config)", params,
+                (r) -> assertEquals(fileName, r.get("file")));
+
+        final String deleteQuery = "MATCH (n:Roundtrip) DETACH DELETE n";
+        db.executeTransactionally(deleteQuery);
+
+        TestUtil.testCall(db, "CALL apoc.import.csv([{fileName: $file, labels: ['Roundtrip']}], [], $config) ", params, 
+                r -> assertEquals(3L, r.get("nodes")));
+
+        TestUtil.testResult(db, "MATCH (n:Roundtrip) return n.name as name", r -> {
+            final Set<String> actual = Iterators.asSet(r.columnAs("name"));
+            assertEquals(Set.of("foo", "bar", ""), actual);
+        });
+
+        db.executeTransactionally(deleteQuery);
     }
 
     @Test
@@ -300,6 +353,17 @@ public class ExportCsvTest {
 
     @Test public void testExportAllCsvStreaming() throws Exception {
         String statement = "CALL apoc.export.csv.all(null,{stream:true,batchSize:2,useOptimizations:{unwindBatchSize:2}})";
+        assertExportStreaming(statement, NONE);
+    }
+    
+    @Test
+    public void testExportAllCsvStreamingCompressed() throws Exception {
+        final CompressionAlgo algo = GZIP;
+        String statement = "CALL apoc.export.csv.all(null, {compression: '" + algo.name() + "',stream:true,batchSize:2,useOptimizations:{unwindBatchSize:2}})";
+        assertExportStreaming(statement, algo);
+    }
+
+    private void assertExportStreaming(String statement, CompressionAlgo algo) {
         StringBuilder sb=new StringBuilder();
         testResult(db, statement, (res) -> {
             Map<String, Object> r = res.next();
@@ -309,10 +373,10 @@ public class ExportCsvTest {
             assertEquals(2L, r.get("rows"));
             assertEquals(0L, r.get("relationships"));
             assertEquals(6L, r.get("properties"));
-            assertNull("Should get file",r.get("file"));
+            assertNull("Should get file", r.get("file"));
             assertEquals("csv", r.get("format"));
             assertTrue("Should get time greater than 0", ((long) r.get("time")) >= 0);
-            sb.append(r.get("data"));
+            sb.append(getDecompressedData(algo, r.get("data")));
             r = res.next();
             assertEquals(2L, r.get("batchSize"));
             assertEquals(2L, r.get("batches"));
@@ -320,8 +384,8 @@ public class ExportCsvTest {
             assertEquals(4L, r.get("rows"));
             assertEquals(0L, r.get("relationships"));
             assertEquals(10L, r.get("properties"));
-            assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
-            sb.append(r.get("data"));
+            assertTrue("Should get time greater than 0", ((long) r.get("time")) >= 0);
+            sb.append(getDecompressedData(algo, r.get("data")));
             r = res.next();
             assertEquals(2L, r.get("batchSize"));
             assertEquals(3L, r.get("batches"));
@@ -329,8 +393,8 @@ public class ExportCsvTest {
             assertEquals(6L, r.get("rows"));
             assertEquals(0L, r.get("relationships"));
             assertEquals(12L, r.get("properties"));
-            assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
-            sb.append(r.get("data"));
+            assertTrue("Should get time greater than 0", ((long) r.get("time")) >= 0);
+            sb.append(getDecompressedData(algo, r.get("data")));
             r = res.next();
             assertEquals(2L, r.get("batchSize"));
             assertEquals(4L, r.get("batches"));
@@ -339,7 +403,7 @@ public class ExportCsvTest {
             assertEquals(2L, r.get("relationships"));
             assertEquals(12L, r.get("properties"));
             assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
-            sb.append(r.get("data"));
+            sb.append(getDecompressedData(algo, r.get("data")));
             res.close();
         });
         assertEquals(EXPECTED, sb.toString());

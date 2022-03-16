@@ -4,6 +4,7 @@ import apoc.ApocConfig;
 import apoc.Pools;
 import apoc.convert.Convert;
 import apoc.export.util.CountingInputStream;
+import apoc.export.util.ExportConfig;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import org.apache.commons.io.IOUtils;
@@ -40,6 +41,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
@@ -380,7 +382,7 @@ public class Util {
                 return getStreamCompressedFile(urlAddress, headers, payload);
             }
             StreamConnection sc = getStreamConnection(urlAddress, headers, payload);
-            return sc.toCountingInputStream();
+            return sc.toCountingInputStream(compressionAlgo);
         } else if (input instanceof byte[]) {
             return FileUtils.getInputStreamFromBinary((byte[]) input, compressionAlgo);
         } else {
@@ -1085,6 +1087,20 @@ public class Util {
 
     private static Object getOrDefault(Map<String, Object> firstMap, Map<String, Object> secondMap, String key) {
         return firstMap.getOrDefault(key, secondMap.get(key));
+    }
+    
+    public static Object getStringOrCompressedData(StringWriter writer, ExportConfig config) {
+        try {
+            final String compression = config.getCompressionAlgo();
+            final String writerString = writer.toString();
+            Object data = compression.equals(CompressionAlgo.NONE.name())
+                    ? writerString
+                    : CompressionAlgo.valueOf(compression).compress(writerString, config.getCharset());
+            writer.getBuffer().setLength(0);
+            return data;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static String toCypherMap(Map<String, Object> map) {
