@@ -1,6 +1,7 @@
 package apoc.export.util;
 
 import apoc.export.cypher.formatter.CypherFormat;
+import apoc.util.CompressionAlgo;
 import apoc.util.CompressionConfig;
 import apoc.util.Util;
 
@@ -14,7 +15,8 @@ import static java.util.Arrays.asList;
  * @since 19.01.14
  */
 public class ExportConfig extends CompressionConfig {
-
+    public static final ExportConfig EMPTY = new ExportConfig(null);
+    
     public static class NodeConfig {
         public String label;
         public String id;

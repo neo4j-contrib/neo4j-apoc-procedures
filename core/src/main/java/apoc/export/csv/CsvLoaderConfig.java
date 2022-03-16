@@ -126,7 +126,7 @@ public class CsvLoaderConfig extends CompressionConfig {
         if (config.get(IGNORE_DUPLICATE_NODES) != null) builder.ignoreDuplicateNodes((boolean) config.get(IGNORE_DUPLICATE_NODES));
         if (config.get(IGNORE_BLANK_STRING) != null) builder.ignoreBlankString((boolean) config.get(IGNORE_BLANK_STRING));
         if (config.get(IGNORE_EMPTY_CELL_ARRAY) != null) builder.ignoreEmptyCellArray((boolean) config.get(IGNORE_EMPTY_CELL_ARRAY));
-        builder.binary((String) config.getOrDefault(COMPRESSION, CompressionAlgo.GZIP.name()));
+        builder.binary((String) config.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name()));
         builder.charset((String) config.getOrDefault(CHARSET, UTF_8.name()));
         
         return builder.build();

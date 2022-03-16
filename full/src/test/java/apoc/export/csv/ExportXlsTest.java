@@ -3,6 +3,9 @@ package apoc.export.csv;
 import apoc.ApocSettings;
 import apoc.export.xls.ExportXls;
 import apoc.graph.Graphs;
+import apoc.load.LoadXls;
+import apoc.util.CompressionAlgo;
+import apoc.util.CompressionConfig;
 import apoc.util.TestUtil;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -26,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -45,11 +49,12 @@ public class ExportXlsTest {
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath())
+            .withSetting(ApocSettings.apoc_import_file_enabled, true)
             .withSetting(ApocSettings.apoc_export_file_enabled, true);
 
     @BeforeClass
     public static void setUp() throws Exception {
-        TestUtil.registerProcedure(db, ExportXls.class, Graphs.class);
+        TestUtil.registerProcedure(db, ExportXls.class, LoadXls.class, Graphs.class);
         db.executeTransactionally("CREATE (f:User1:User {name:'foo',age:42,male:true,kids:['a','b','c'],location:point({longitude: 11.8064153, latitude: 48.1716114}),dob:date({ year:1984, month:10, day:11 }), created: datetime()})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})");
         db.executeTransactionally("CREATE (f:Address1:Address {name:'Andrea', city: 'Milano', street:'Via Garibaldi, 7'})-[:NEXT_DELIVERY]->(a:Address {name: 'Bar Sport'}), (b:Address {street: 'via Benni'})");
     }
@@ -65,7 +70,29 @@ public class ExportXlsTest {
     }
 
     @Test
-    public void testExportGraphXls() throws Exception {
+    public void testExportAllXlsWithCompression() {
+        final CompressionAlgo algo = CompressionAlgo.GZIP;
+        String fileName = "all.xlsx.gz";
+        TestUtil.testCall(db, "CALL apoc.export.xls.all($file, $config)",
+                map("file", fileName, "config", map("compression", algo.name())),
+                (r) -> assertResults(fileName, r, "database"));
+
+        assertExcelFileForGraph(fileName, algo);
+
+        // check xls through load.xls
+        TestUtil.testResult(db, "CALL apoc.load.xls($file, 'Address', $config)",
+                map("file", fileName, "config", map(CompressionConfig.COMPRESSION, algo.name())),
+                (r) -> {
+                    final Set<Object> actual = Iterators.stream(r.<Map>columnAs("map"))
+                            .map(i -> Optional.ofNullable(i.get("name")).orElse(""))
+                            .collect(Collectors.toSet());
+                    assertEquals(3,actual.size());
+                    assertEquals(Set.of("Andrea", "Bar Sport", ""), actual);
+                });
+    }
+
+    @Test
+    public void testExportGraphXls()  {
         String fileName = "graph.xlsx";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
                         "CALL apoc.export.xls.graph(graph, $file,null) " +
@@ -105,7 +132,7 @@ public class ExportXlsTest {
                 map("file", fileName, "conf", map("headerNodeId", nodeId,
                         "headerRelationshipId", relId, "headerStartNodeId", startNodeId, "headerEndNodeId", endNodeId)),
                 (r) -> assertResults(fileName, r, "graph", 208L, 2L, 206));
-        assertExcelFileForGraph(fileName, nodeId, List.of(relId, startNodeId, endNodeId));
+        assertExcelFileForGraph(fileName, nodeId, List.of(relId, startNodeId, endNodeId), CompressionAlgo.NONE);
         db.executeTransactionally("MATCH (n:Test) DETACH DELETE n");
     }
 
@@ -178,11 +205,17 @@ public class ExportXlsTest {
     }
 
     private void assertExcelFileForGraph(String fileName) {
-        assertExcelFileForGraph(fileName, "<nodeId>", List.of("<relationshipId>", "<startNodeId>", "<endNodeId>"));
+        assertExcelFileForGraph(fileName, CompressionAlgo.NONE);
     }
 
-    private void assertExcelFileForGraph(String fileName, String headerNode, List<String> headerRel) {
-        try (InputStream inp = new FileInputStream(new File(directory, fileName)); Transaction tx = db.beginTx()) {
+    private void assertExcelFileForGraph(String fileName, CompressionAlgo algo) {
+        assertExcelFileForGraph(fileName, "<nodeId>", List.of("<relationshipId>", "<startNodeId>", "<endNodeId>"), algo);
+    }
+
+    private void assertExcelFileForGraph(String fileName, String headerNode, List<String> headerRel, CompressionAlgo algo) {
+        try (InputStream fileInputStream = new FileInputStream(new File(directory, fileName));
+             InputStream inp = algo.getInputStream(fileInputStream);
+             Transaction tx = db.beginTx()) {
             Workbook wb = WorkbookFactory.create(inp);
 
             int numberOfSheets = wb.getNumberOfSheets();
@@ -213,7 +246,7 @@ public class ExportXlsTest {
                 assertEquals(expected, actual);
             }
             tx.commit();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

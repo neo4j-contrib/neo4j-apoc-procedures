@@ -826,3 +826,9 @@ The `apoc.cypher.run*` procedures have some optional config:
 
 Make sure to set the config options in your `neo4j.conf`
 
+
+
+[NOTE]
+====
+You can also compress the files to export. xref::overview/apoc.export/compression.adoc[See here for more information]
+====
