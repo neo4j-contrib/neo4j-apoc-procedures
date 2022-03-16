@@ -92,7 +92,7 @@ public class ExportJson {
         final String format = "json";
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, format));
         JsonFormat exporter = new JsonFormat(db, getJsonFormat(config));
-        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, false);
+        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, false, exportConfig);
         if (exportConfig.streamStatements()) {
             return ExportUtils.getProgressInfoStream(db, pools.getDefaultExecutorService() ,terminationGuard, format, exportConfig, reporter, cypherFileManager,
                     (reporterWithConsumer) -> dump(data, exportConfig, reporterWithConsumer, exporter, cypherFileManager));
