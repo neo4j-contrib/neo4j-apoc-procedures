@@ -3,6 +3,7 @@ package apoc.export.csv;
 import apoc.ApocSettings;
 import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
@@ -575,9 +576,12 @@ public class ImportCsvTest {
     }
 
     @Test
-    public void ignoreFieldTypeWithBothBinaryAndFileUrl() {
+    public void ignoreFieldTypeWithBothBinaryAndFileUrl() throws IOException {
+        FileUtils.writeByteArrayToFile(new File(BASE_URL_FILES, "ignore-relationships.csv.zz"),
+                fileToBinary(new File(BASE_URL_FILES, "ignore-relationships.csv"), CompressionAlgo.DEFLATE.name()));
+        
         final Map<String, Object> config = map("nodeFile", fileToBinary(new File(BASE_URL_FILES, "ignore-nodes.csv"), CompressionAlgo.DEFLATE.name()),
-                "relFile", "file:/ignore-relationships.csv",
+                "relFile", "file:/ignore-relationships.csv.zz",
                 "config", map("delimiter", '|', "batchSize", 1, COMPRESSION, CompressionAlgo.DEFLATE.name())
         );
         final String query = "CALL apoc.import.csv([{data: $nodeFile, labels: ['Person']}], [{data: $relFile, type: 'KNOWS'}], $config)";
