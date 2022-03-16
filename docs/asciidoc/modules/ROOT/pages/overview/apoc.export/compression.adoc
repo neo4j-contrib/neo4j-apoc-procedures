@@ -22,7 +22,7 @@ CALL apoc.export.csv.all("testBulk.csv.zz",{compression: "DEFLATE", bulkImport: 
 with a series of `testBulk.<nodes/relationships>.<label/rel>.csv.zz` files.
 
 
-Moreover, you can use it with a a file split into batches:
+Moreover, you can use it with a file split into batches:
 
 [source,cypher]
 ----
