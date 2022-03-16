@@ -120,7 +120,7 @@ public class ExportCypher {
         progressInfo.batchSize = c.getBatchSize();
         ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
         boolean separatedFiles = !onlySchema && c.separateFiles();
-        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, separatedFiles);
+        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, separatedFiles, c);
 
         if (c.streamStatements()) {
             long timeout = c.getTimeoutSeconds();
@@ -158,11 +158,11 @@ public class ExportCypher {
         public long time;
         public long rows;
         public long batchSize;
-        public String cypherStatements;
-        public String nodeStatements;
-        public String relationshipStatements;
-        public String schemaStatements;
-        public String cleanupStatements;
+        public Object cypherStatements;
+        public Object nodeStatements;
+        public Object relationshipStatements;
+        public Object schemaStatements;
+        public Object cleanupStatements;
 
         public DataProgressInfo(ProgressInfo pi) {
             this.file = pi.file;
