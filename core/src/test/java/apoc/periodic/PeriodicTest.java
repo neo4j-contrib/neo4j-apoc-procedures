@@ -112,14 +112,6 @@ public class PeriodicTest {
         assertEquals(RUNDOWN_COUNT, (long)db.executeTransactionally("MATCH (p:Processed) RETURN COUNT(*) AS c", Collections.emptyMap(), result -> Iterators.single(result.columnAs("c"))));
     }
 
-
-
-    private final static String KILL_PERIODIC_QUERY = "call dbms.listQueries() yield queryId, query, status\n" +
-            "with * where query contains ('apoc.' + 'periodic')\n" +
-            "call dbms.killQuery(queryId) yield queryId as killedId\n" +
-            "return killedId";
-
-
     @Test
     public void testPeriodicIterateErrors() {
         final String newline = System.lineSeparator();
