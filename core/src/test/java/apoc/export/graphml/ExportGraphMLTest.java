@@ -69,6 +69,13 @@ public class ExportGraphMLTest {
             "<key id=\"place\" for=\"node\" attr.name=\"place\"/>%n" +
             "<key id=\"age\" for=\"node\" attr.name=\"age\"/>%n" +
             "<key id=\"label\" for=\"edge\" attr.name=\"label\"/>%n";
+    public static final String KEY_TYPES_FALSE_TINKER = "<key id=\"born\" for=\"node\" attr.name=\"born\"/>%n" +
+            "<key id=\"name\" for=\"node\" attr.name=\"name\"/>%n" +
+            "<key id=\"labelV\" for=\"node\" attr.name=\"labelV\"/>%n"+
+            "<key id=\"place\" for=\"node\" attr.name=\"place\"/>%n" +
+            "<key id=\"age\" for=\"node\" attr.name=\"age\"/>%n" +
+            "<key id=\"values\" for=\"node\" attr.name=\"values\"/>" +
+            "<key id=\"labelE\" for=\"edge\" attr.name=\"labelE\"/>%n";        
     public static final String KEY_TYPES_DATA = "<key id=\"name\" for=\"node\" attr.name=\"name\"/>\n" +
             "<key id=\"labels\" for=\"node\" attr.name=\"labels\"/>";
     public static final String KEY_TYPES = "<key id=\"born\" for=\"node\" attr.name=\"born\" attr.type=\"string\"/>%n" +
@@ -86,6 +93,12 @@ public class ExportGraphMLTest {
             "<key id=\"age\" for=\"node\" attr.name=\"age\" attr.type=\"long\"/>%n" +
             "<key id=\"label\" for=\"edge\" attr.name=\"label\" attr.type=\"string\"/>%n" +
             "<key id=\"TYPE\" for=\"edge\" attr.name=\"TYPE\" attr.type=\"string\"/>%n";
+    public static final String KEY_TYPES_PATH_TINKERPOP = "<key id=\"born\" for=\"node\" attr.name=\"born\" attr.type=\"string\"/>%n" +
+            "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
+            "<key id=\"labelV\" for=\"node\" attr.name=\"labelV\" attr.type=\"string\"/>%n"+
+            "<key id=\"place\" for=\"node\" attr.name=\"place\" attr.type=\"string\"/>%n" +
+            "<key id=\"age\" for=\"node\" attr.name=\"age\" attr.type=\"long\"/>%n" +
+            "<key id=\"labelE\" for=\"edge\" attr.name=\"labelE\" attr.type=\"string\"/>%n";
     public static final String KEY_TYPES_CAMEL_CASE = "<key id=\"firstName\" for=\"node\" attr.name=\"firstName\" attr.type=\"string\"/>%n" +
             "<key id=\"ageNow\" for=\"node\" attr.name=\"ageNow\" attr.type=\"long\"/>%n" +
             "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
@@ -99,6 +112,10 @@ public class ExportGraphMLTest {
             "<node id=\"n1\" labels=\":Bar\"><data key=\"labels\">:Bar</data><data key=\"age\">42</data><data key=\"name\">bar</data><data key=\"place\">{\"crs\":\"wgs-84\",\"latitude\":12.78,\"longitude\":56.7,\"height\":null}</data></node>%n" +
             "<node id=\"n2\" labels=\":Bar\"><data key=\"labels\">:Bar</data><data key=\"age\">12</data><data key=\"values\">[1,2,3]</data></node>%n" +
             "<edge id=\"e0\" source=\"n0\" target=\"n1\" label=\"KNOWS\"><data key=\"label\">KNOWS</data></edge>%n";
+    public static final String DATA_TINKER = "<node id=\"n0\"><data key=\"labelV\">Foo:Foo0:Foo2</data><data key=\"place\">{\"crs\":\"wgs-84-3d\",\"latitude\":56.7,\"longitude\":12.78,\"height\":100.0}</data><data key=\"name\">foo</data><data key=\"born\">2018-10-10</data></node>%n" +
+            "<node id=\"n1\"><data key=\"labelV\">Bar</data><data key=\"age\">42</data><data key=\"name\">bar</data><data key=\"place\">{\"crs\":\"wgs-84\",\"latitude\":56.7,\"longitude\":12.78,\"height\":null}</data></node>%n" +
+            "<node id=\"n2\"><data key=\"labelV\">Bar</data><data key=\"age\">12</data><data key=\"values\">[1,2,3]</data></node>%n" +
+            "<edge id=\"e0\" source=\"n0\" target=\"n1\"><data key=\"labelE\">KNOWS</data></edge>%n";
     public static final String DATA_CAMEL_CASE =
             "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"TYPE\">:Foo:Foo0:Foo2</data><data key=\"label\">foo</data><data key=\"firstName\">foo</data></node>%n" +
             "<node id=\"n1\" labels=\":Bar\"><data key=\"TYPE\">:Bar</data><data key=\"label\">bar</data><data key=\"name\">bar</data><data key=\"ageNow\">42</data></node>%n" +
@@ -130,6 +147,10 @@ public class ExportGraphMLTest {
     public static final String DATA_PATH_CAPTION = "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"TYPE\">:Foo:Foo0:Foo2</data><data key=\"label\">foo</data><data key=\"place\">{\"crs\":\"wgs-84-3d\",\"latitude\":12.78,\"longitude\":56.7,\"height\":100.0}</data><data key=\"name\">foo</data><data key=\"born\">2018-10-10</data></node>%n" +
             "<node id=\"n1\" labels=\":Bar\"><data key=\"TYPE\">:Bar</data><data key=\"label\">bar</data><data key=\"age\">42</data><data key=\"name\">bar</data><data key=\"place\">{\"crs\":\"wgs-84\",\"latitude\":12.78,\"longitude\":56.7,\"height\":null}</data></node>%n" +
             "<edge id=\"e0\" source=\"n0\" target=\"n1\" label=\"KNOWS\"><data key=\"label\">KNOWS</data><data key=\"TYPE\">KNOWS</data></edge>%n";
+    
+    public static final String DATA_PATH_CAPTION_TINKER = "<node id=\"n0\"><data key=\"labelV\">Foo:Foo0:Foo2</data><data key=\"place\">{\"crs\":\"wgs-84-3d\",\"latitude\":56.7,\"longitude\":12.78,\"height\":100.0}</data><data key=\"name\">foo</data><data key=\"born\">2018-10-10</data></node>%n" +
+            "<node id=\"n1\"><data key=\"labelV\">Bar</data><data key=\"age\">42</data><data key=\"name\">bar</data><data key=\"place\">{\"crs\":\"wgs-84\",\"latitude\":56.7,\"longitude\":12.78,\"height\":null}</data></node>%n" +
+            "<edge id=\"e0\" source=\"n0\" target=\"n1\"><data key=\"labelE\">KNOWS</data></edge>%n";
 
     public static final String DATA_PATH_CAPTION_DEFAULT = "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"TYPE\">:Foo:Foo0:Foo2</data><data key=\"label\">point({x: 56.7, y: 12.78, z: 100.0, crs: 'wgs-84-3d'})</data><data key=\"place\">{\"crs\":\"wgs-84-3d\",\"latitude\":12.78,\"longitude\":56.7,\"height\":100.0}</data><data key=\"name\">foo</data><data key=\"born\">2018-10-10</data></node>%n" +
             "<node id=\"n1\" labels=\":Bar\"><data key=\"TYPE\">:Bar</data><data key=\"label\">point({x: 56.7, y: 12.78, crs: 'wgs-84'})</data><data key=\"age\">42</data><data key=\"name\">bar</data><data key=\"place\">{\"crs\":\"wgs-84\",\"latitude\":12.78,\"longitude\":56.7,\"height\":null}</data></node>%n" +
@@ -140,10 +161,12 @@ public class ExportGraphMLTest {
 
     private static final String EXPECTED_TYPES_PATH = String.format(HEADER + KEY_TYPES_PATH + GRAPH + DATA_PATH + FOOTER);
     private static final String EXPECTED_TYPES_PATH_CAPTION = String.format(HEADER + KEY_TYPES_PATH + GRAPH + DATA_PATH_CAPTION + FOOTER);
+    private static final String EXPECTED_TYPES_PATH_CAPTION_TINKER = String.format(HEADER + KEY_TYPES_PATH_TINKERPOP + GRAPH + DATA_PATH_CAPTION_TINKER + FOOTER);
     private static final String EXPECTED_TYPES_PATH_WRONG_CAPTION = String.format(HEADER + KEY_TYPES_PATH + GRAPH + DATA_PATH_CAPTION_DEFAULT + FOOTER);
     private static final String EXPECTED_TYPES = String.format(HEADER + KEY_TYPES + GRAPH + DATA + FOOTER);
     private static final String EXPECTED_TYPES_WITHOUT_CHAR_DATA_KEYS = String.format(HEADER + KEY_TYPES  + GRAPH + DATA_WITHOUT_CHAR_DATA_KEYS + FOOTER);
     private static final String EXPECTED_FALSE = String.format(HEADER + KEY_TYPES_FALSE + GRAPH + DATA + FOOTER);
+    private static final String EXPECTED_TINKER = String.format(HEADER + KEY_TYPES_FALSE_TINKER + GRAPH + DATA_TINKER + FOOTER);
     private static final String EXPECTED_DATA = String.format(HEADER + KEY_TYPES_DATA + GRAPH + DATA_DATA + FOOTER);
     private static final String EXPECTED_READ_NODE_EDGE = String.format(HEADER + GRAPH + DATA_NODE_EDGE + FOOTER);
     private static final String EXPECTED_TYPES_PATH_CAMEL_CASE = String.format(HEADER + KEY_TYPES_CAMEL_CASE + GRAPH + DATA_CAMEL_CASE + FOOTER);
@@ -548,6 +571,70 @@ public class ExportGraphMLTest {
                     assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
                 });
         assertXMLEquals(output, EXPECTED_TYPES_PATH_WRONG_CAPTION);
+    }
+
+    @Test
+    public void testExportAllGraphMLTinker() throws Exception {
+        File output = new File(directory, "all.graphml");
+        TestUtil.testCall(db, "CALL apoc.export.graphml.all($file, {format:'tinkerpop'})", map("file", output.getAbsolutePath()),
+                (r) -> assertResults(output, r, "database"));
+        assertXMLEquals(output, EXPECTED_TINKER);
+    }
+
+    public void testExportGraphGraphMLQueryTinkerPop() throws Exception {
+        File output = new File(directory, "query.graphml");
+        TestUtil.testCall(db, "call apoc.export.graphml.query('MATCH p=()-[r]->() RETURN p limit 1000',$file,{useTypes:true, format: 'tinkerpop'}) ", map("file", output.getAbsolutePath()),
+                (r) -> {
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(1L, r.get("relationships"));
+                    assertEquals(6L, r.get("properties"));
+                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    if (r.get("source").toString().contains(":"))
+                        assertEquals("statement" + ": nodes(2), rels(1)", r.get("source"));
+                    else
+                        assertEquals("file", r.get("source"));
+                    assertEquals("graphml", r.get("format"));
+                    assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
+                });
+        assertXMLEquals(output, EXPECTED_TYPES_PATH_CAPTION_TINKER);
+    }
+
+    @Test
+    public void testExportGraphGraphMLQueryTinkerPopWithArrayCaption() throws Exception {
+        File output = new File(directory, "query.graphml");
+        TestUtil.testCall(db, "call apoc.export.graphml.query('MATCH p=()-[r]->() RETURN p limit 1000',$file,{useTypes:true, format: 'tinkerpop', caption: ['bar','name','foo']}) ", map("file", output.getAbsolutePath()),
+                (r) -> {
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(1L, r.get("relationships"));
+                    assertEquals(6L, r.get("properties"));
+                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    if (r.get("source").toString().contains(":"))
+                        assertEquals("statement" + ": nodes(2), rels(1)", r.get("source"));
+                    else
+                        assertEquals("file", r.get("source"));
+                    assertEquals("graphml", r.get("format"));
+                    assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
+                });
+        assertXMLEquals(output, EXPECTED_TYPES_PATH_CAPTION_TINKER);
+    }
+
+    @Test
+    public void testExportGraphGraphMLQueryTinkerPopWithArrayCaptionWrong() throws Exception {
+        File output = new File(directory, "query.graphml");
+        TestUtil.testCall(db, "call apoc.export.graphml.query('MATCH p=()-[r]->() RETURN p limit 1000',$file,{useTypes:true, format: 'tinkerpop', caption: ['c','d','e']}) ", map("file", output.getAbsolutePath()),
+                (r) -> {
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(1L, r.get("relationships"));
+                    assertEquals(6L, r.get("properties"));
+                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    if (r.get("source").toString().contains(":"))
+                        assertEquals("statement" + ": nodes(2), rels(1)", r.get("source"));
+                    else
+                        assertEquals("file", r.get("source"));
+                    assertEquals("graphml", r.get("format"));
+                    assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
+                });
+        assertXMLEquals(output, EXPECTED_TYPES_PATH_CAPTION_TINKER);
     }
 
     @Test(expected = QueryExecutionException.class)
