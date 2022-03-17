@@ -161,34 +161,29 @@ public class TriggerTest {
 
     @Test
     public void testMetaDataBefore() {
-        db.executeTransactionally("CALL apoc.trigger.add('txinfo','UNWIND $createdNodes AS n SET n += $metaData', {phase: 'before'})");
-        testMetaData(false);
+        db.executeTransactionally("CALL apoc.trigger.add('txinfo','UNWIND $createdNodes AS n SET n.label = labels(n)[0], n += $metaData', {phase: 'before'})");
+        testMetaData("MATCH (n:Bar) RETURN n");
     }
 
-    // TODO NC:Why is this failing?
-    @Ignore
     @Test
     public void testMetaDataAfter() {
         db.executeTransactionally("CREATE (n:Another)");
         db.executeTransactionally("CALL apoc.trigger.add('txinfo', 'UNWIND $createdNodes AS n MATCH (a:Another) SET a.label = labels(n)[0], a += $metaData', {phase: 'after'})");
-        testMetaData(true);
+        testMetaData("MATCH (n:Another) RETURN n");
         db.executeTransactionally("MATCH (n:Another) DELETE n");
     }
 
-    private void testMetaData(boolean isAfter) {
+    private void testMetaData(String matchQuery) {
         try (Transaction tx = db.beginTx()) {
             KernelTransaction ktx = ((TransactionImpl)tx).kernelTransaction();
             ktx.setMetaData(Collections.singletonMap("txMeta", "hello"));
             tx.execute("CREATE (f:Bar)");
             tx.commit();
         }
-        String matchQuery = isAfter ? "MATCH (n:Another) RETURN n" : "MATCH (n:Bar) RETURN n";
         TestUtil.testCall(db, matchQuery, (row) -> {
             final Node node = (Node) row.get("n");
-            if (isAfter) {
-                assertEquals("Bar", node.getProperty("label"));
-            }
-            assertEquals("hello",  node.getProperty("txMeta") );
+            assertEquals("Bar", node.getProperty("label"));
+            assertEquals("hello",  node.getProperty("txMeta"));
         });
     }
 
