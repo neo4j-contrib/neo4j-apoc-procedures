@@ -17,7 +17,8 @@ We can create a uniqueness constraint on `:Person(name)` and an index on `:Perso
 | "Person" | "name" | ["name"] | TRUE   | "CREATED"
 |===
 
-We can drop all constraints and indexes by running the following query:
+We can drop all constraints and indexes, except for `LOOKUP`s, index constraints and multi-token indexes (because they cannot be re-created by the `apoc.schema.assert` procedure),
+by running the following query:
 
 [source,cypher]
 ----
