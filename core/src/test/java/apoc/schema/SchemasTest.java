@@ -132,7 +132,6 @@ public class SchemasTest {
     @Test
     public void testDropIndexWhenUsingDropExisting() throws Exception {
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
-        db.executeTransactionally("CREATE FULLTEXT INDEX titlesAndDescriptions FOR (n:Movie|Book) ON EACH [n.title, n.description]");
         testCall(db, "CALL apoc.schema.assert(null,null)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals("bar", r.get("key"));
@@ -141,8 +140,7 @@ public class SchemasTest {
         });
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
-            // the multi-token idx remains
-            assertEquals(1, indexes.size());
+            assertEquals(0, indexes.size());
         }
     }
 

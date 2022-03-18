@@ -168,8 +168,6 @@ public class Schemas {
                 continue;
             if (definition.isConstraintIndex())
                 continue;
-            if (definition.isMultiTokenIndex())
-                continue;
 
             Object label = getLabelForAssert(definition, definition.isNodeIndex());
             List<String> keys = new ArrayList<>();
