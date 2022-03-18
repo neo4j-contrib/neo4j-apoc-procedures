@@ -61,6 +61,8 @@ dependencies {
     }
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.26'
     compile group: 'com.github.seancfoley', name: 'ipaddress', version: '5.3.3'
+    compile group: 'com.github.promeg', name: 'tinypinyin', version: '2.0.3'
+
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
 
     testCompile 'net.sourceforge.jexcelapi:jxl:2.6.12'

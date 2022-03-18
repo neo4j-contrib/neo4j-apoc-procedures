@@ -6,6 +6,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Node;
@@ -772,5 +773,35 @@ public class StringsTest {
     public void testRepeat() {
         testCall(db, "RETURN apoc.text.repeat('a',3) as value", (row) -> assertEquals("aaa", row.get("value")));
         testCall(db, "RETURN apoc.text.repeat('ab',3) as value", (row) -> assertEquals("ababab", row.get("value")));
+    }
+
+    @org.junit.jupiter.api.Test
+    void convertToPinyin() {
+        String text1="测试";
+        String separator="-";
+        boolean uppercase=false;
+        // test no separator and to lowercase
+        testCall(db,
+                "RETURN apoc.text.convertToPinyin($text1) AS value",
+                map("text1", text1),
+                row -> assertEquals("ceshi", row.get("value")));
+
+        // test no separator and to lowercase
+        testCall(db,
+                "RETURN apoc.text.convertToPinyin($text1,$separator,$uppercase) AS value",
+                map("text1", text1,"separator","","uppercase",uppercase),
+                row -> assertEquals("CESHI", row.get("value")));
+
+        // test separator and to lowercase
+        testCall(db,
+                "RETURN apoc.text.convertToPinyin($text1,$separator) AS value",
+                map("text1", text1,"separator",separator),
+                row -> assertEquals("ce-shi", row.get("value")));
+
+        // test separator and to uppercase
+        testCall(db,
+                "RETURN apoc.text.convertToPinyin($text1,$separator,$uppercase) AS value",
+                map("text1", text1,"separator",separator,"uppercase",uppercase),
+                row -> assertEquals("CE-SHI", row.get("value")));
     }
 }

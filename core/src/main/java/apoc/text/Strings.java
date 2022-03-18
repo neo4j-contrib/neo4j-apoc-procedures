@@ -1,6 +1,7 @@
 package apoc.text;
 
 import apoc.util.Util;
+import com.github.promeg.pinyinhelper.Pinyin;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.HammingDistance;
 import org.apache.commons.text.similarity.JaroWinklerDistance;
@@ -18,16 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -592,5 +584,20 @@ public class Strings {
             result.append(item);
         }
         return result.toString();
+    }
+
+
+    @UserFunction
+    @Description("apoc.text.convertToPinyin(chineseCharacters,separator,isToLowerCase) -converter chinese characters to chinese pinyin")
+    public String convertToPinyin(
+            @Name(value = "text", defaultValue = "") String chineseCharacters,
+            @Name(value = "separator", defaultValue = "") String separator,
+            @Name(value = "toLowerCase", defaultValue = "true") boolean toLowerCase
+    ) {
+        String pinyin = Pinyin.toPinyin(chineseCharacters, separator);
+        if (Boolean.TRUE.equals(toLowerCase)) {
+            return pinyin.toLowerCase();
+        }
+        return pinyin;
     }
 }
