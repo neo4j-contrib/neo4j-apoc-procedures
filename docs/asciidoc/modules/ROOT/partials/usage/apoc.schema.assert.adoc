@@ -19,7 +19,7 @@ We can create a uniqueness constraint on `:Person(name)` and an index on `:Perso
 
 We can drop all constraints and indexes, by running the following query.
 Note that the cancellation mechanism doesn't consider indexes of type `LOOKUP` and multi-token indexes, that is indexes applicable to multiple rel-types or multiple labels, 
-for example `CREATE FULLTEXT INDEX titlesAndDescriptions FOR (n:Movie|Book) ON EACH [n.title, n.description]` or `CALL db.index.fulltext.createRelationshipIndex('fullIdxRel', ['TYPE_1', 'TYPE_2'], ['alpha', 'beta'])`. 
+for example `CREATE FULLTEXT INDEX titlesAndDescriptions FOR (n:Movie|Book) ON EACH [n.title, n.description]` or `CREATE FULLTEXT INDEX fullIdxRel FOR ()-[r:TYPE_1|TYPE_2]-() ON EACH [r.alpha, r.beta]`. 
 This because they cannot be re-created by the `apoc.schema.assert` procedure:
 
 [source,cypher]
