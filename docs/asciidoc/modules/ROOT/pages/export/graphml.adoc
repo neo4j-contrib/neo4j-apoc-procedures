@@ -51,7 +51,7 @@ The procedures support the following config parameters:
 [options=header]
 |===
 | param | default | description
-| format | gephi | In export to Graphml script define the export format. Possible value are: "gephi" and "tinkerpop"
+| format | gephi | In export to Graphml script define the export format. Possible value is: "gephi"
 | caption | | It's an array of string (i.e. ['name','title']) that define an ordered set of properties eligible as value for the `Label` value, if no match is found the there is a fallback to the node label, if the node label is missing the then the ID is used
 | useTypes | false | Write the attribute type information to the graphml output
 | batchSize | 20000 | define the batch size
