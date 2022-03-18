@@ -16,15 +16,14 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.config.Setting;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
-import org.neo4j.kernel.impl.security.WebURLAccessRule;import org.neo4j.kernel.lifecycle.LifecycleAdapter;
+import org.neo4j.kernel.impl.security.WebURLAccessRule;
+import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.NullLog;
 import org.neo4j.logging.internal.LogService;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -33,7 +32,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static apoc.util.FileUtils.isFile;import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
+import static apoc.util.FileUtils.isFile;
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.data_directory;
 import static org.neo4j.configuration.GraphDatabaseSettings.load_csv_file_url_root;
 import static org.neo4j.configuration.GraphDatabaseSettings.logs_directory;

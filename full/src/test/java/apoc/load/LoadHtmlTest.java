@@ -1,6 +1,6 @@
 package apoc.load;
 
-import apoc.util.TestUtil;
+import apoc.ApocSettings;import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,7 +45,8 @@ public class LoadHtmlTest {
     private static final String INVALID_CHARSET = "notValid";
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule();
+    public DbmsRule db = new ImpermanentDbmsRule().withSetting(ApocSettings.apoc_import_file_enabled, true);
+
 
     @Before
     public void setup() {
