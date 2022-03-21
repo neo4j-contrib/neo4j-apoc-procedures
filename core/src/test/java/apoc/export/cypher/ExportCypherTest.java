@@ -17,6 +17,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -28,6 +29,7 @@ import static apoc.util.BinaryTestUtil.getDecompressedData;
 import static apoc.util.Util.map;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.*;
+import static org.testcontainers.shaded.org.apache.commons.lang.StringUtils.EMPTY;
 
 /**
  * @author mh
@@ -57,9 +59,9 @@ public class ExportCypherTest {
     public void setUp() throws Exception {
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
-        db.executeTransactionally("CREATE INDEX ON :Bar(first_name, last_name)");
-        db.executeTransactionally("CREATE INDEX ON :Foo(name)");
-        db.executeTransactionally("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE");
+        db.executeTransactionally("CREATE INDEX barIndex FOR (n:Bar) ON (n.first_name, n.last_name)");
+        db.executeTransactionally("CREATE INDEX fooIndex FOR (n:Foo) ON (n.name)");
+        db.executeTransactionally("CREATE CONSTRAINT consBar ON (n:Bar) ASSERT (n.name) IS UNIQUE");
         if (testName.getMethodName().endsWith(OPTIMIZED)) {
             db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar:Person {age:12}),(d:Bar {age:12})," +
                     " (t:Foo {name:'foo2', born:date('2017-09-29')})-[:KNOWS {since:2015}]->(e:Bar {name:'bar2',age:44}),({age:99})");
@@ -214,6 +216,30 @@ public class ExportCypherTest {
     }
 
     @Test
+    public void testExportAllCypherSchemaWithSaveIdxNames() throws Exception {
+        final Map<String, Object> config = new HashMap<>(ExportCypherTest.exportConfig);
+        config.put("saveIndexNames", true);
+        String fileName = "all.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$config)", 
+                map("file", fileName, "config", config),
+                (r) -> assertResults(fileName, r, "database"));
+        final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, " barIndex", " fooIndex", EMPTY);
+        assertEquals(expectedFile, readFile("all.schema.cypher"));
+    }
+
+    @Test
+    public void testExportAllCypherSchemaWithSaveConstraintNames() throws Exception {
+        final Map<String, Object> config = new HashMap<>(ExportCypherTest.exportConfig);
+        config.put("saveConstraintNames", true);
+        String fileName = "all.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$config)", 
+                map("file", fileName, "config", config),
+                (r) -> assertResults(fileName, r, "database"));
+        final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, EMPTY, EMPTY, " consBar");
+        assertEquals(expectedFile, readFile("all.schema.cypher"));
+    }
+
+    @Test
     public void testExportAllCypherCleanUp() throws Exception {
         String fileName = "all.cypher";
         TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$exportConfig)", map("file", fileName, "exportConfig", exportConfig),
@@ -320,6 +346,16 @@ public class ExportCypherTest {
         TestUtil.testCall(db, "CALL apoc.export.cypher.schema($file,$exportConfig)", map("file", fileName, "exportConfig", exportConfig), (r) -> {
         });
         assertEquals(EXPECTED_ONLY_SCHEMA_NEO4J_SHELL, readFile(fileName));
+    }
+
+    @Test
+    public void testExportSchemaCypherWithIdxAndConsNames() throws Exception {
+        final Map<String, Object> config = new HashMap<>(ExportCypherTest.exportConfig);
+        config.putAll(map("saveConstraintNames", true, "saveIndexNames", true));
+        String fileName = "onlySchema.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.schema($file,$config)", 
+                map("file", fileName, "config", config), (r) -> {});
+        assertEquals(EXPECTED_ONLY_SCHEMA_NEO4J_SHELL_WITH_NAMES, readFile(fileName));
     }
 
     @Test
@@ -842,6 +878,14 @@ public class ExportCypherTest {
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 
+        static final String EXPECTED_SCHEMA_WITH_NAMES = "BEGIN%n" +
+                "CREATE INDEX%s FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE INDEX%s FOR (node:Foo) ON (node.name);%n" +
+                "CREATE CONSTRAINT%s ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n";
+
         static final String EXPECTED_SCHEMA_EMPTY = String.format("BEGIN%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
@@ -879,6 +923,13 @@ public class ExportCypherTest {
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
+
+        static final String EXPECTED_ONLY_SCHEMA_NEO4J_SHELL_WITH_NAMES = "BEGIN\n" +
+                "CREATE INDEX barIndex FOR (node:Bar) ON (node.first_name, node.last_name);\n" +
+                "CREATE INDEX fooIndex FOR (node:Foo) ON (node.name);\n" +
+                "CREATE CONSTRAINT consBar ON (node:Bar) ASSERT (node.name) IS UNIQUE;\n" +
+                "COMMIT\n" +
+                "SCHEMA AWAIT\n";
 
         static final String EXPECTED_CYPHER_POINT = String.format("BEGIN%n" +
                 "CREATE (:Test:`UNIQUE IMPORT LABEL` {name:\"foo\", place2d:point({x: 2.3, y: 4.5, crs: 'cartesian'}), place3d1:point({x: 2.3, y: 4.5, z: 1.2, crs: 'cartesian-3d'}), `UNIQUE IMPORT ID`:3});%n" +

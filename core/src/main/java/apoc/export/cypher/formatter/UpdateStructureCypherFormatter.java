@@ -33,12 +33,12 @@ public class UpdateStructureCypherFormatter extends AbstractCypherFormatter impl
 	}
 
 	@Override
-	public String statementForIndex(String label, Iterable<String> key, boolean ifNotExist) {
+	public String statementForIndex(String label, Iterable<String> key, boolean ifNotExist, String idxName) {
 		return "";
 	}
 
 	@Override
-	public String statementForConstraint(String label, Iterable<String> key, boolean ifNotExists) {
+	public String statementForConstraint(String label, Iterable<String> key, boolean ifNotExists, String name) {
 		return "";
 	}
 
