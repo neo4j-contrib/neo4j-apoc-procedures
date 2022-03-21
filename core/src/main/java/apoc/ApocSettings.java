@@ -1,8 +1,5 @@
 package apoc;
 
-import inet.ipaddr.AddressStringException;
-import inet.ipaddr.IPAddressString;
-
 import org.neo4j.annotations.service.ServiceProvider;
 import org.neo4j.configuration.Description;
 import org.neo4j.configuration.SettingValueParser;
@@ -10,7 +7,6 @@ import org.neo4j.configuration.SettingsDeclaration;
 import org.neo4j.graphdb.config.Setting;
 
 import java.time.Duration;
-import java.util.List;
 
 import static apoc.ApocConfig.*;
 import static org.neo4j.configuration.SettingImpl.newBuilder;
@@ -23,43 +19,6 @@ import static org.neo4j.configuration.SettingValueParsers.*;
  */
 @ServiceProvider
 public class ApocSettings implements SettingsDeclaration {
-    /*
-        TODO
-        This needs to be cleaned up in 5.0, along with cypher_ip_blocklist
-        The option was added in the database in 4.4.5, so it would
-        break backwards compatibility with 4.4.xx previous versions
-     */
-    public static final SettingValueParser<IPAddressString> CIDR_IP = new SettingValueParser<>()
-    {
-        @Override
-        public IPAddressString parse( String value )
-        {
-            IPAddressString ipAddress = new IPAddressString( value.trim() );
-            try
-            {
-                ipAddress.validate();
-            }
-            catch ( AddressStringException e )
-            {
-                throw new IllegalArgumentException( String.format( "'%s' is not a valid CIDR ip", value ), e );
-            }
-            return ipAddress;
-        }
-
-        @Override
-        public String getDescription()
-        {
-            return "an ip with subnet in CDIR format. e.g. 127.168.0.1/8";
-        }
-
-        @Override
-        public Class<IPAddressString> getType()
-        {
-            return IPAddressString.class;
-        }
-    };
-
-    public static final Setting<List<IPAddressString>> cypher_ip_blocklist = newBuilder( CYPHER_IP_BLOCKLIST, listOf( CIDR_IP ), List.of() ).build();
 
     public static final Setting<Boolean> apoc_export_file_enabled = newBuilder( APOC_EXPORT_FILE_ENABLED, BOOL, false ).build();
 

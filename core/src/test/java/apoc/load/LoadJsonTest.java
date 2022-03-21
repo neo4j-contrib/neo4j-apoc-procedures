@@ -11,6 +11,7 @@ import org.mockserver.client.server.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 
+import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
@@ -54,7 +55,7 @@ public class LoadJsonTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.cypher_ip_blocklist, List.of(new IPAddressString("127.168.0.0/8")));
+            .withSetting(GraphDatabaseInternalSettings.cypher_ip_blocklist, List.of(new IPAddressString("127.168.0.0/8")));
 //            .withSetting(ApocSettings.apoc_import_file_enabled, true)
 //            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false);
 

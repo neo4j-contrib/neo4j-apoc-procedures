@@ -10,6 +10,7 @@ import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.ex.ConversionException;
 import org.neo4j.configuration.Config;
+import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -43,7 +44,6 @@ import static org.neo4j.configuration.GraphDatabaseSettings.transaction_logs_roo
 
 public class ApocConfig extends LifecycleAdapter {
     public static final String SUN_JAVA_COMMAND = "sun.java.command";
-    public static final String CYPHER_IP_BLOCKLIST = "unsupported.dbms.cypher_ip_blocklist";
     public static final String APOC_IMPORT_FILE_ENABLED = "apoc.import.file.enabled";
     public static final String APOC_EXPORT_FILE_ENABLED = "apoc.export.file.enabled";
     public static final String APOC_IMPORT_FILE_USE_NEO4J_CONFIG = "apoc.import.file.use_neo4j_config";
@@ -105,7 +105,7 @@ public class ApocConfig extends LifecycleAdapter {
 
     public ApocConfig(Config neo4jConfig, LogService log, GlobalProcedures globalProceduresRegistry, DatabaseManagementService databaseManagementService) {
         this.neo4jConfig = neo4jConfig;
-        this.blockedIpRanges = neo4jConfig.get(ApocSettings.cypher_ip_blocklist);
+        this.blockedIpRanges = neo4jConfig.get(GraphDatabaseInternalSettings.cypher_ip_blocklist);
         this.log = log.getInternalLog(ApocConfig.class);
         this.databaseManagementService = databaseManagementService;
         theInstance = this;
@@ -257,7 +257,6 @@ public class ApocConfig extends LifecycleAdapter {
 
     private void checkAllowedUrl(String url) throws IOException {
         try {
-
             if (blockedIpRanges != null && !blockedIpRanges.isEmpty()) {
                 URL parsedUrl = new URL(url);
                 WebURLAccessRule.checkNotBlocked(parsedUrl, blockedIpRanges);

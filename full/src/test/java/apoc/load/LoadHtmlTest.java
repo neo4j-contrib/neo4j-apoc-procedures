@@ -1,6 +1,7 @@
 package apoc.load;
 
-import apoc.ApocSettings;import apoc.util.TestUtil;
+import apoc.ApocSettings;
+import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
