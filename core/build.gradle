@@ -62,6 +62,7 @@ dependencies {
     }
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.26'
     testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
+    implementation group: 'com.github.seancfoley', name: 'ipaddress', version: '5.3.3'
 
     testImplementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
 

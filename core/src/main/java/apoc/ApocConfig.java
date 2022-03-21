@@ -2,6 +2,7 @@ package apoc;
 
 import apoc.export.util.ExportConfig;
 import apoc.util.SimpleRateLimiter;
+import inet.ipaddr.IPAddressString;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.combined.CombinedConfigurationBuilder;
@@ -9,17 +10,20 @@ import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.ex.ConversionException;
 import org.neo4j.configuration.Config;
+import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.config.Setting;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
+import org.neo4j.kernel.impl.security.WebURLAccessRule;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.NullLog;
 import org.neo4j.logging.internal.LogService;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.time.Duration;
@@ -39,7 +43,6 @@ import static org.neo4j.configuration.GraphDatabaseSettings.plugin_dir;
 import static org.neo4j.configuration.GraphDatabaseSettings.transaction_logs_root_path;
 
 public class ApocConfig extends LifecycleAdapter {
-
     public static final String SUN_JAVA_COMMAND = "sun.java.command";
     public static final String APOC_IMPORT_FILE_ENABLED = "apoc.import.file.enabled";
     public static final String APOC_EXPORT_FILE_ENABLED = "apoc.export.file.enabled";
@@ -60,6 +63,7 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_CONFIG_JOBS_POOL_NUM_THREADS = "apoc.jobs.pool.num_threads";
     public static final String APOC_CONFIG_JOBS_QUEUE_SIZE = "apoc.jobs.queue.size";
     public static final String APOC_CONFIG_INITIALIZER = "apoc.initializer";
+    public static final String LOAD_FROM_FILE_ERROR = "Import from files not enabled, please set apoc.import.file.enabled=true in your apoc.conf";
 
     /**
      * @deprecated
@@ -91,6 +95,9 @@ public class ApocConfig extends LifecycleAdapter {
     private LoggingType loggingType;
     private SimpleRateLimiter rateLimiter;
     private GraphDatabaseService systemDb;
+
+    private List<IPAddressString> blockedIpRanges = List.of();
+
     /**
      * keep track if this instance is already initialized so dependent class can wait if needed
      */
@@ -98,6 +105,7 @@ public class ApocConfig extends LifecycleAdapter {
 
     public ApocConfig(Config neo4jConfig, LogService log, GlobalProcedures globalProceduresRegistry, DatabaseManagementService databaseManagementService) {
         this.neo4jConfig = neo4jConfig;
+        this.blockedIpRanges = neo4jConfig.get(GraphDatabaseInternalSettings.cypher_ip_blocklist);
         this.log = log.getInternalLog(ApocConfig.class);
         this.databaseManagementService = databaseManagementService;
         theInstance = this;
@@ -240,10 +248,29 @@ public class ApocConfig extends LifecycleAdapter {
         rateLimiter = new SimpleRateLimiter(getInt( "apoc.user.log.window.time", 10000), getInt("apoc.user.log.window.ops", 10));
     }
 
-    public void checkReadAllowed(String url) {
-        if (isFile(url) && !config.getBoolean(APOC_IMPORT_FILE_ENABLED)) {
-            throw new RuntimeException("Import from files not enabled," +
-                    " please set apoc.import.file.enabled=true in your apoc.conf");
+    // added because with binary file there isn't an url
+    public void isImportFileEnabled() {
+        if (!config.getBoolean(APOC_IMPORT_FILE_ENABLED)) {
+            throw new RuntimeException(LOAD_FROM_FILE_ERROR);
+        }
+    }
+
+    private void checkAllowedUrl(String url) throws IOException {
+        try {
+            if (blockedIpRanges != null && !blockedIpRanges.isEmpty()) {
+                URL parsedUrl = new URL(url);
+                WebURLAccessRule.checkNotBlocked(parsedUrl, blockedIpRanges);
+            }
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+    }
+
+    public void checkReadAllowed(String url) throws IOException {
+        if (isFile(url)) {
+            isImportFileEnabled();
+        } else {
+            checkAllowedUrl(url);
         }
     }
 
