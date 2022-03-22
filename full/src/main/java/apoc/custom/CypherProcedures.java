@@ -23,6 +23,7 @@ import org.neo4j.procedure.Mode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -172,12 +173,12 @@ public class CypherProcedures {
     }
     
     private void validateProcedure(String statement, List<FieldSignature> input, List<FieldSignature> output, Mode mode) {
-        
-        final Set<String> inputSet = input.stream().map(FieldSignature::name).collect(Collectors.toSet());
+
         final Set<String> outputSet = output.stream().map(FieldSignature::name).collect(Collectors.toSet());
 
-        api.executeTransactionally("EXPLAIN " + statement, 
-                inputSet.stream().collect(Collectors.toMap(i -> i, i -> i)),
+        api.executeTransactionally("EXPLAIN " + statement,
+                input.stream().collect(HashMap::new, 
+                                (map, value) -> map.put(value.name(), null), HashMap::putAll),
                 result -> {
                     if (!DEFAULT_MAP_OUTPUT.equals(output)) {
                         checkOutputParams(outputSet, result.columns());
