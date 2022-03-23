@@ -129,8 +129,6 @@ public class TriggerTest {
         });
     }
 
-    // TODO NC:Why is this failing?
-    @Ignore
     @Test
     public void testTxIdAfterAsync() throws Exception {
         db.executeTransactionally("CALL apoc.trigger.add('txinfo','UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime',{phase:'afterAsync'})");
