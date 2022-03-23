@@ -247,12 +247,12 @@ public class XmlTest {
         });
 
         // no node more than one NEXT/NEXT_SIBLING
-        testCallEmpty(db, "match (n) where size( (n)-[:NEXT]->() ) > 1 return n", null);
-        testCallEmpty(db, "match (n) where size( (n)-[:NEXT_SIBLING]->() ) > 1 return n", null);
+        testCallEmpty(db, "match (n) where size([p =  (n)-[:NEXT]->()  | p ]) > 1 return n", null);
+        testCallEmpty(db, "match (n) where size([p =  (n)-[:NEXT_SIBLING]->()  | p ]) > 1 return n", null);
 
         // no node more than one IS_FIRST_CHILD / IS_LAST_CHILD
-        testCallEmpty(db, "match (n) where size( (n)<-[:FIRST_CHILD_OF]-() ) > 1 return n", null);
-        testCallEmpty(db, "match (n) where size( (n)<-[:LAST_CHILD_OF]-() ) > 1 return n", null);
+        testCallEmpty(db, "match (n) where size([p =  (n)<-[:FIRST_CHILD_OF]-()  | p ]) > 1 return n", null);
+        testCallEmpty(db, "match (n) where size([p =  (n)<-[:LAST_CHILD_OF]-()  | p ]) > 1 return n", null);
 
         // NEXT_WORD relationship do connect all word nodes
         testResult(db, "match p=(:XmlDocument)-[:NEXT_WORD*]->(e:XmlWord) where not (e)-[:NEXT_WORD]->() return length(p) as len",
@@ -277,12 +277,12 @@ public class XmlTest {
         });
 
         // no node more than one NEXT/NEXT_SIBLING
-        testCallEmpty(db, "match (n) where size( (n)-[:NEXT]->() ) > 1 return n", null);
-        testCallEmpty(db, "match (n) where size( (n)-[:NEXT_SIBLING]->() ) > 1 return n", null);
+        testCallEmpty(db, "match (n) where size([p =  (n)-[:NEXT]->()  | p ]) > 1 return n", null);
+        testCallEmpty(db, "match (n) where size([p =  (n)-[:NEXT_SIBLING]->()  | p ]) > 1 return n", null);
 
         // no node more than one IS_FIRST_CHILD / IS_LAST_CHILD
-        testCallEmpty(db, "match (n) where size( (n)<-[:FIRST_CHILD_OF]-() ) > 1 return n", null);
-        testCallEmpty(db, "match (n) where size( (n)<-[:LAST_CHILD_OF]-() ) > 1 return n", null);
+        testCallEmpty(db, "match (n) where size([p =  (n)<-[:FIRST_CHILD_OF]-()  | p ]) > 1 return n", null);
+        testCallEmpty(db, "match (n) where size([p =  (n)<-[:LAST_CHILD_OF]-()  | p ]) > 1 return n", null);
 
         // NEXT_WORD relationship do connect all word nodes
         testResult(db, "match p=(:XmlDocument)-[:NE*]->(e:XmlCharacters) where not (e)-[:NE]->() return length(p) as len",
