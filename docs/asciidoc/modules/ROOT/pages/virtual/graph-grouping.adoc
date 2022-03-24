@@ -71,7 +71,7 @@ Possible operators:
 * `avg`
 * `collect`
 
-The default is: `+[{*:count},{*:count}]+` which just counts nodes and relationships.
+The default is: `[{&#96;&#42;&#96;:"count"},{&#96;&#42;&#96;:"count"}]` which just counts nodes and relationships.
 
 == Configuration
 
