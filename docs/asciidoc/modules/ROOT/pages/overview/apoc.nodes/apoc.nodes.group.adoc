@@ -20,7 +20,7 @@ apoc.nodes.group(labels :: LIST? OF STRING?, groupByProperties :: LIST? OF STRIN
 | Name | Type | Default 
 |labels|LIST? OF STRING?|null
 |groupByProperties|LIST? OF STRING?|null
-|aggregations|LIST? OF MAP?|[{*=count}, {*=count}]
+|aggregations|LIST? OF MAP?|`[{&#96;&#42;&#96;:"count"},{&#96;&#42;&#96;:"count"}]`
 |config|MAP?|{}
 |===
 
@@ -38,5 +38,5 @@ apoc.nodes.group(labels :: LIST? OF STRING?, groupByProperties :: LIST? OF STRIN
 == Usage Examples
 include::partial$usage/apoc.nodes.group.adoc[]
 
-xref::graph-querying/node-querying.adoc[More documentation of apoc.nodes.group,role=more information]
+xref::virtual/graph-grouping.adoc[More documentation of apoc.nodes.group,role=more information]
 
