@@ -1,0 +1,5 @@
+¦xref::overview/apoc.create/apoc.create.uuidBase64ToHex.adoc[apoc.create.uuidBase64ToHex icon:book[]] +
+
+ - convert between an UUID encoded with Base64 to HEX format
+¦label:function[]
+¦label:apoc-core[]

@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
+import static apoc.ApocConfig.APOC_UUID_FORMAT;
 
 public class UuidHandler extends LifecycleAdapter implements TransactionEventListener<Void> {
 
@@ -41,6 +42,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     private final DatabaseManagementService databaseManagementService;
     private final ApocConfig apocConfig;
     private final ConcurrentHashMap<String, UuidConfig> configuredLabelAndPropertyNames = new ConcurrentHashMap<>();
+    private final ApocConfig.UuidFormatType uuidFormat;
 
     public static final String NOT_ENABLED_ERROR = "UUID have not been enabled." +
             " Set 'apoc.uuid.enabled=true' or 'apoc.uuid.enabled.%s=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
@@ -50,6 +52,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         this.databaseManagementService = databaseManagementService;
         this.log = log;
         this.apocConfig = apocConfig;
+        this.uuidFormat = apocConfig.getEnumProperty(APOC_UUID_FORMAT, ApocConfig.UuidFormatType.class, ApocConfig.UuidFormatType.hex);
     }
 
     @Override
@@ -107,7 +110,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
             try {
                 nodes.forEach(node -> {
                     if (node.hasLabel(Label.label(label)) && !node.hasProperty(propertyName)) {
-                        String uuid = UUID.randomUUID().toString();
+                        String uuid = generateUuidValue();
                         node.setProperty(propertyName, uuid);
                     }
                 });
@@ -131,10 +134,20 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
 
     }
 
-
     private void checkEnabled() {
         if (!isEnabled()) {
             throw new RuntimeException(String.format(NOT_ENABLED_ERROR, this.db.databaseName()) );
+        }
+    }
+
+    private String generateUuidValue() {
+        UUID uuid = UUID.randomUUID();
+        switch (uuidFormat) {
+            case base64:
+                return UuidUtil.generateBase64Uuid(uuid);
+            case hex:
+            default:
+                return uuid.toString();
         }
     }
 
