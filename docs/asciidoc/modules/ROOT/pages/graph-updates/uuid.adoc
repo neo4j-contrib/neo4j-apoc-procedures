@@ -8,7 +8,7 @@ The library supports manual and automation generation of UUIDs, which can be sto
 
 UUIDs are generated using the https://docs.oracle.com/javase/7/docs/api/java/util/UUID.html#randomUUID()[java randomUUID utility method], which generates a https://www.ietf.org/rfc/rfc4122.txt[v4UUID].
 
-UUID may be encoded into String with well know hexadecimal presentation (32 characters, e.g. `1051af4f-b81d-4a76-8605-ecfb8ef703d5`) or Base64 (22 characters, e.g. `vX8dM5XoSe2ldoc/QzMEyw`)
+UUID may be encoded into String with well-known hexadecimal presentation (32 characters, e.g. `1051af4f-b81d-4a76-8605-ecfb8ef703d5`) or Base64 (22 characters, e.g. `vX8dM5XoSe2ldoc/QzMEyw`)
 
 [[manual-uuids]]
 == Manual UUIDs
