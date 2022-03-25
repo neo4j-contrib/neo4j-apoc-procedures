@@ -3,6 +3,7 @@ package apoc.create;
 import apoc.get.Get;
 import apoc.result.*;
 import apoc.util.Util;
+import apoc.uuid.UuidUtil;
 import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.procedure.*;
@@ -262,6 +263,24 @@ public class Create {
     @Description("apoc.create.uuid() - creates an UUID")
     public String uuid() {
         return UUID.randomUUID().toString();
+    }
+
+    @UserFunction
+    @Description("apoc.create.uuidBase64() - create an UUID encoded with Base64")
+    public String uuidBase64() {
+        return UuidUtil.generateBase64Uuid(UUID.randomUUID());
+    }
+
+    @UserFunction
+    @Description("apoc.create.uuidBase64ToHex() - convert between an UUID encoded with Base64 to HEX format")
+    public String uuidBase64ToHex(@Name("base64Uuid") String base64Uuid) {
+        return UuidUtil.fromBase64ToHex(base64Uuid);
+    }
+
+    @UserFunction
+    @Description("apoc.create.uuidHexToBase64() - convert an UUID in HEX format to encoded with Base64")
+    public String uuidHexToBase64(@Name("uuidHex") String uuidHex) {
+        return UuidUtil.fromHexToBase64(uuidHex);
     }
 
     private Object toPropertyValue(Object value) {

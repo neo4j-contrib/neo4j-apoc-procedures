@@ -1,0 +1,13 @@
+The following converts an UUID encoded with Base64 to HEX representation:
+
+[source,cypher]
+----
+RETURN apoc.create.uuidBase64ToHex("vX8dM5XoSe2ldoc/QzMEyw") as output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "bd7f1d33-95e8-49ed-a576-873f433304cb"
+|===
