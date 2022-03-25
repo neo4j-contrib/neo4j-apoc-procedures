@@ -1,0 +1,5 @@
+¦xref::overview/apoc.create/apoc.create.uuidBase64.adoc[apoc.create.uuidBase64 icon:book[]] +
+
+ - create an UUID encoded with Base64
+¦label:function[]
+¦label:apoc-core[]
