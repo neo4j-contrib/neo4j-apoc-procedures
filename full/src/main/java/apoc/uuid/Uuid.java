@@ -1,5 +1,6 @@
 package apoc.uuid;
 
+import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.Pools;
 import apoc.util.Util;
@@ -33,12 +34,13 @@ public class Uuid {
         UuidConfig uuidConfig = new UuidConfig(config);
         uuidHandler.checkConstraintUuid(tx, label, uuidConfig.getUuidProperty());
 
+        final String uuidFunctionName = getUuidFunctionName();
         Map<String, Object> addToExistingNodesResult = Collections.emptyMap();
         if (uuidConfig.isAddToExistingNodes()) {
             addToExistingNodesResult = Util.inTx(db, pools, txInThread ->
                     txInThread.execute("CALL apoc.periodic.iterate(" +
                             "\"MATCH (n:" + Util.sanitizeAndQuote(label) + ") RETURN n\",\n" +
-                            "\"SET n." + Util.sanitizeAndQuote(uuidConfig.getUuidProperty()) + " = apoc.create.uuid()\", {batchSize:10000, parallel:true})")
+                            "\"SET n." + Util.sanitizeAndQuote(uuidConfig.getUuidProperty()) + " = " + uuidFunctionName + "()\", {batchSize:10000, parallel:true})")
                             .next()
             );
         }
@@ -107,6 +109,17 @@ public class Uuid {
             this.batchComputationResult = batchComputationResult;
         }
 
+    }
+
+    private String getUuidFunctionName() {
+        ApocConfig.UuidFormatType formatType = ApocConfig.apocConfig().getEnumProperty(ApocConfig.APOC_UUID_FORMAT, ApocConfig.UuidFormatType.class, ApocConfig.UuidFormatType.hex);
+        switch(formatType) {
+            case base64:
+                return "apoc.create.uuidBase64";
+            case hex:
+            default:
+                return "apoc.create.uuid";
+        }
     }
 
 }
