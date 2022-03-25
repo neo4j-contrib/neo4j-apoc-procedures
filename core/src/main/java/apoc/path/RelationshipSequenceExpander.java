@@ -13,7 +13,7 @@ import org.neo4j.graphdb.ResourceIterable;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.traversal.BranchState;
 import org.neo4j.internal.helpers.collection.AbstractResourceIterable;
-import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.helpers.collection.NestingResourceIterator;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.helpers.collection.ResourceClosingIterator;
 
@@ -92,19 +92,22 @@ public class RelationshipSequenceExpander implements PathExpander {
         return new AbstractResourceIterable<>() {
             @Override
             protected ResourceIterator<Relationship> newIterator() {
-                return Iterators.concatResourceIterators(stepRels.stream().map(entry -> {
-                   RelationshipType type = entry.first();
-                   Direction dir = entry.other();
+                return new NestingResourceIterator<>(stepRels.iterator()) {
+                    @Override
+                    protected ResourceIterator<Relationship> createNestedIterator( Pair<RelationshipType, Direction> entry ) {
+                        RelationshipType type = entry.first();
+                        Direction dir = entry.other();
 
-                   ResourceIterable<Relationship> relationships;
-                   if (type == null) {
-                       relationships = (dir == Direction.BOTH) ? node.getRelationships() : node.getRelationships(dir);
-                   } else {
-                       relationships = (dir == Direction.BOTH) ? node.getRelationships(type) : node.getRelationships(dir, type);
-                   }
+                        ResourceIterable<Relationship> relationships;
+                        if (type == null) {
+                            relationships = (dir == Direction.BOTH) ? node.getRelationships() : node.getRelationships(dir);
+                        } else {
+                            relationships = (dir == Direction.BOTH) ? node.getRelationships(type) : node.getRelationships(dir, type);
+                        }
 
-                   return ResourceClosingIterator.fromResourceIterable(relationships);
-                }).iterator());
+                        return ResourceClosingIterator.fromResourceIterable(relationships);
+                    }
+                };
             }
         };
     }
