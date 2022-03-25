@@ -1,0 +1,2 @@
+¦signature
+¦apoc.algo.aStar(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, weightPropertyName :: STRING?, latPropertyName :: STRING?, lonPropertyName :: STRING?) :: (path :: PATH?, weight :: FLOAT?)
