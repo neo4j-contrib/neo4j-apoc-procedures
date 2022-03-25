@@ -1,0 +1,11 @@
+[[similarity]]
+= Deprecated: Similarity
+:description: This section describes similarity algorithms in the APOC library.
+
+
+
+[cols="3m,3"]
+|===
+| apoc.algo.cover(nodeIds) YIELD rel | return relationships between this set of nodes
+|===
+

@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.algo.aStarConfig¦apoc.algo.aStarConfig(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, config :: MAP?) :: (path :: PATH?, weight :: FLOAT?)¦apoc.algo.aStar(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', {weight:'dist',default:10,x:'lon',y:'lat'}) YIELD path, weight - run A* with relationship property name as cost function

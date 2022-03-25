@@ -1,0 +1,2 @@
+¦signature
+¦apoc.algo.dijkstra(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, weightPropertyName :: STRING?, defaultWeight = NaN :: FLOAT?, numberOfWantedPaths = 1 :: INTEGER?) :: (path :: PATH?, weight :: FLOAT?)
