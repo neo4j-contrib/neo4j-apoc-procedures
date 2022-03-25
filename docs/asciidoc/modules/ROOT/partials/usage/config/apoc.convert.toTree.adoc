@@ -6,4 +6,5 @@ The procedure support the following config parameters:
 | name | type | default | description
 | nodes | Map<String, List<String>> | {}| properties to include for each node label e.g. `{Movie: ['title']}` or to exclude (e.g. `{Movie: ['-title']}`).
 | rels | Map<String, List<String>> | {} | properties to include for each relationship type e.g. `{`ACTED_IN`: ["roles"]}`  or to exclude (e.g. `{`ACTED_IN`: ["-roles"]}`).
+| sortPaths | boolean | true | to sort the result by path length
 |===
