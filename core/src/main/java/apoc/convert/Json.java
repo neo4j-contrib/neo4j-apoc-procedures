@@ -143,7 +143,11 @@ public class Json {
 
         Map<Long, Map<String, Object>> maps = new HashMap<>(paths.size() * 100);
 
-        paths.stream().sorted(Comparator.comparingInt(Path::length).reversed()).forEach(path -> {
+        Stream<Path> stream = paths.stream();
+        if (conf.isSortPaths()) {
+            stream = stream.sorted(Comparator.comparingInt(Path::length).reversed());
+        }
+        stream.forEach(path -> {
             Iterator<Entity> it = path.iterator();
             while (it.hasNext()) {
                 Node n = (Node) it.next();
