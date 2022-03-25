@@ -1,0 +1,2 @@
+¦signature
+¦apoc.algo.aStarConfig(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, config :: MAP?) :: (path :: PATH?, weight :: FLOAT?)

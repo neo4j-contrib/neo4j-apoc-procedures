@@ -1,0 +1,2 @@
+¦type¦qualified name¦signature¦description
+¦procedure¦apoc.algo.allSimplePaths¦apoc.algo.allSimplePaths(startNode :: NODE?, endNode :: NODE?, relationshipTypesAndDirections :: STRING?, maxNodes :: INTEGER?) :: (path :: PATH?)¦apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 5) YIELD path, weight - run allSimplePaths with relationships given and maxNodes

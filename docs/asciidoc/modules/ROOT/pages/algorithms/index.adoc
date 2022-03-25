@@ -1,0 +1,10 @@
+[[algorithms]]
+= Graph Algorithms
+:description: This chapter describes graph algorithms in the APOC library.
+
+
+
+include::partial$deprecated.adoc[]
+
+* xref::algorithms/path-finding-procedures.adoc[]
+* xref::algorithms/similarity.adoc[]
