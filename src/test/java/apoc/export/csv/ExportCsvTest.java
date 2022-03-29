@@ -166,7 +166,7 @@ public class ExportCsvTest {
 
     @Test
     public void testExportAllCsvHDFS() throws Exception {
-        String hdfsUrl = String.format("hdfs://localhost:12345/user/%s/all.csv", System.getProperty("user.name"));
+        String hdfsUrl = String.format("%s/user/%s/all.csv", miniDFSCluster.getURI().toString(), System.getProperty("user.name"));
         TestUtil.testCall(db, "CALL apoc.export.csv.all({file},null)", map("file", hdfsUrl),
                 (r) -> {
                     try {
