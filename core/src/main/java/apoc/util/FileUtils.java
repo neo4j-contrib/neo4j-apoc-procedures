@@ -283,7 +283,7 @@ public class FileUtils {
 //            "dbms.directories.metrics",  // metrics is only in EE
             "dbms.directories.plugins",
             "dbms.directories.run",
-            "dbms.directories.tx_log",
+            "dbms.directories.transaction.logs.root", // in Neo4j 5.0 GraphDatabaseSettings.transaction_logs_root_path changed from tx_log to this config
             "unsupported.dbms.directories.neo4j_home"
     );
 

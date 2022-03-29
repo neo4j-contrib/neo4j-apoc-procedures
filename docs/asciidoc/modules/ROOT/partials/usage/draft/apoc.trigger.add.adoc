@@ -27,7 +27,7 @@ CALL apoc.trigger.add(
    WITH prop.node as n
    MATCH(n)-[]-(a)
    SET a.surname = n.surname',
-  {phase:'after'}
+  {phase:'afterAsync'}
 );
 ----
 
@@ -38,7 +38,7 @@ CALL apoc.trigger.add(
 | "setAllConnectedNodes" | "UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties,\"surname\") as prop
 WITH prop.node as n
 MATCH(n)-[]-(a)
-SET a.surname = n.surname" | {phase: "after"} | {}     | TRUE      | FALSE
+SET a.surname = n.surname" | {phase: "afterAsync"} | {}     | TRUE      | FALSE
 |===
 
 

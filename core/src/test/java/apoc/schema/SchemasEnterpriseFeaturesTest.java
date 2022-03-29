@@ -5,6 +5,7 @@ import apoc.util.TestUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Record;
@@ -93,7 +94,7 @@ public class SchemasEnterpriseFeaturesTest {
             assertEquals(1, result.size());
             Map<String, Object> firstResult = result.get(0).asMap();
             assertThat( (String) firstResult.get( "createStatement" ) )
-                    .contains( "CREATE CONSTRAINT", "FOR (foo:`Foo`) REQUIRE (foo.`foo`, foo.`bar`) IS NODE KEY" );
+                    .contains( "CREATE CONSTRAINT", "FOR (n:`Foo`) REQUIRE (n.`foo`, n.`bar`) IS NODE KEY" );
             tx.commit();
             return null;
         });
@@ -131,8 +132,8 @@ public class SchemasEnterpriseFeaturesTest {
                     .map(record -> (String) record.asMap().get("createStatement"))
                     .collect(Collectors.toList());
             List<String> expectedDescriptions = List.of(
-                    "FOR (foo:`Foo`) REQUIRE (foo.`foo`, foo.`bar`) IS NODE KEY",
-                    "FOR (foo:`Foo`) REQUIRE (foo.`bar`, foo.`foo`) IS NODE KEY" );
+                    "FOR (n:`Foo`) REQUIRE (n.`foo`, n.`bar`) IS NODE KEY",
+                    "FOR (n:`Foo`) REQUIRE (n.`bar`, n.`foo`) IS NODE KEY" );
             assertMatchesAll( expectedDescriptions, actualDescriptions );
             tx.commit();
             return null;
@@ -162,8 +163,8 @@ public class SchemasEnterpriseFeaturesTest {
                     .map(record -> (String) record.asMap().get("createStatement"))
                     .collect(Collectors.toList());
             List<String> expectedDescriptions = List.of(
-                    "FOR (galileo:`Galileo`) REQUIRE (galileo.`newton`, galileo.`tesla`) IS NODE KEY",
-                    "FOR ( galileo:`Galileo` ) REQUIRE (galileo.`curie`) IS UNIQUE");
+                    "FOR (n:`Galileo`) REQUIRE (n.`newton`, n.`tesla`) IS NODE KEY",
+                    "FOR (n:`Galileo`) REQUIRE (n.`curie`) IS UNIQUE");
             assertMatchesAll( expectedDescriptions, actualDescriptions );
             tx.commit();
             return null;
@@ -206,7 +207,7 @@ public class SchemasEnterpriseFeaturesTest {
             assertEquals(1, result.size());
             Map<String, Object> firstResult = result.get(0).asMap();
             assertThat( (String) firstResult.get( "createStatement" ) )
-                    .contains( "CREATE CONSTRAINT", "FOR (foo:`Foo`) REQUIRE (foo.`baa`, foo.`baz`) IS NODE KEY" );
+                    .contains( "CREATE CONSTRAINT", "FOR (n:`Foo`) REQUIRE (n.`baa`, n.`baz`) IS NODE KEY" );
             tx.commit();
             return null;
         });

@@ -63,6 +63,17 @@ You can use these helper functions to extract nodes or relationships by label/re
 | apoc.trigger.propertiesByKey($assignedNodeProperties,'key') | function to filter propertyEntries by property-key, to be used within a trigger statement with $assignedNode/RelationshipProperties and $removedNode/RelationshipProperties. Returns [{old,[new],key,node,relationship}]
 |===
 
+[WARNING]
+====
+Unlike Neo4j up to 4, with Neo4j 5 it's not possible to modify an entity created in phase: "after". 
+For example this query will throw an Exception with message `can't acquire ExclusiveLock...`:
+```
+CALL apoc.trigger.add('name','UNWIND $createdNodes AS n SET n.txId = $transactionId',{phase:'after'});
+CREATE (f:Baz);
+```
+
+Instead, it's necessary to put another phase or perform only reading operations.
+====
 
 == Triggers Examples
 
