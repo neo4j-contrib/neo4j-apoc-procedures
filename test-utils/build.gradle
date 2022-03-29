@@ -10,7 +10,7 @@ dependencies {
     implementation group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
     implementation group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
 
-    implementation group: 'com.google.guava', name: 'guava', version: '27.0-jre'
+    implementation group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
 
     api group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
 
