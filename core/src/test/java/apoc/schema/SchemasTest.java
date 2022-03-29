@@ -26,6 +26,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static apoc.util.TestUtil.ignoreException;
 import static apoc.util.TestUtil.registerProcedure;
+import static apoc.util.TestUtil.singleResultFirstColumn;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 

@@ -62,7 +62,7 @@ public class MetricsTest {
     @Test
     public void shouldGetMetrics() {
         session.readTransaction(tx -> tx.run("RETURN 1 AS num;"));
-        String metricKey = "neo4j.database.system.check_point.total_time";
+        String metricKey = "neo4j.system.check_point.total_time";
         assertEventually(() -> {
                     try {
                         return session.run("CALL apoc.metrics.get($metricKey)",
