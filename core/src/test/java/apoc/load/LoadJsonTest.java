@@ -8,7 +8,7 @@ import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import inet.ipaddr.IPAddressString;
 import org.junit.*;
-import org.mockserver.client.MockServerClient;
+import org.mockserver.client.server.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 
