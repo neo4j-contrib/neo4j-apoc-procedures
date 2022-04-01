@@ -1,7 +1,7 @@
 description = 'APOC :: Test Utils'
 
 dependencies {
-    api group: 'junit', name: 'junit', version: '4.12'
+    api group: 'junit', name: 'junit', version: '4.13.2'
 
     implementation group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests"
     api group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective // , classifier: "tests"
