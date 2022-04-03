@@ -1,1 +1,0 @@
-CREATE INDEX ON :Node(id);

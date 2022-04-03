@@ -1,1 +1,0 @@
-CREATE CONSTRAINT ON (n:Person) ASSERT n.name IS UNIQUE;
