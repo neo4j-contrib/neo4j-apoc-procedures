@@ -1,7 +1,0 @@
-rootProject.name = 'apoc'
-
-include("processor")
-include("core")
-include("full")
-include("test-utils")
-include("test-startup")
