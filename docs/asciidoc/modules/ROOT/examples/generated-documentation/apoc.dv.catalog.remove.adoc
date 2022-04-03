@@ -1,5 +1,0 @@
-¦xref::overview/apoc.dv/apoc.dv.catalog.remove.adoc[apoc.dv.catalog.remove icon:book[]] +
-
-
-¦label:procedure[]
-¦label:apoc-core[]

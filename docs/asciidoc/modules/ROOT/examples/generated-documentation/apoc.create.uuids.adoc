@@ -1,5 +1,0 @@
-¦xref::overview/apoc.create/apoc.create.uuids.adoc[apoc.create.uuids icon:book[]] +
-
-`apoc.create.uuids(count) yield uuid` - creates 'count' UUIDs 
-¦label:procedure[]
-¦label:apoc-core[]

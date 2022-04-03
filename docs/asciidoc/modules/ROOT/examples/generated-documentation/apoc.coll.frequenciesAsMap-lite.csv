@@ -1,2 +1,0 @@
-¦signature
-¦apoc.coll.frequenciesAsMap(coll :: LIST? OF ANY?) :: (MAP?)

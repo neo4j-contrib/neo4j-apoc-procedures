@@ -1,2 +1,0 @@
-¦signature
-¦apoc.load.ldap(connection :: ANY?, search :: MAP?) :: (entry :: MAP?)

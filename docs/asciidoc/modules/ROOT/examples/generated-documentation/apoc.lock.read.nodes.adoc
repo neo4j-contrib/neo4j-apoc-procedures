@@ -1,5 +1,0 @@
-¦xref::overview/apoc.lock/apoc.lock.read.nodes.adoc[apoc.lock.read.nodes icon:book[]] +
-
-`apoc.lock.read.nodes([nodes]) acquires a read lock on the given nodes`
-¦label:procedure[]
-¦label:apoc-core[]

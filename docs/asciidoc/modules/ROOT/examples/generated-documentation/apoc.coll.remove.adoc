@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.remove.adoc[apoc.coll.remove icon:book[]] +
-
-`apoc.coll.remove(coll, index, [length=1]) | remove range of values from index to length`
-¦label:function[]
-¦label:apoc-core[]

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.rel/apoc.rel.endNode.adoc[apoc.rel.endNode icon:book[]] +
-
-`returns endNode for (virtual) relationships`
-¦label:function[]
-¦label:apoc-core[]

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.map/apoc.map.merge.adoc[apoc.map.merge icon:book[]] +
-
-`apoc.map.merge(first,second)` - merges two maps
-¦label:function[]
-¦label:apoc-core[]

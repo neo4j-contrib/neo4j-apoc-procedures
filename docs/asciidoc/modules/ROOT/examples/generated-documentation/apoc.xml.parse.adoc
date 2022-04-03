@@ -1,5 +1,0 @@
-¦xref::overview/apoc.xml/apoc.xml.parse.adoc[apoc.xml.parse icon:book[]] +
-
-`RETURN apoc.xml.parse(<xml string>, <xPath string>, config, false) AS value`
-¦label:function[]
-¦label:apoc-core[]

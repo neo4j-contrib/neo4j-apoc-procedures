@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.toSet.adoc[apoc.coll.toSet icon:book[]] +
-
-`apoc.coll.toSet([list]) returns a unique list backed by a set`
-¦label:function[]
-¦label:apoc-core[]

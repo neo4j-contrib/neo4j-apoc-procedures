@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.sum.adoc[apoc.coll.sum icon:book[]] +
-
-`apoc.coll.sum([0.5,1,2.3])`
-¦label:function[]
-¦label:apoc-core[]

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.hashing/apoc.hashing.fingerprintGraph.adoc[apoc.hashing.fingerprintGraph icon:book[]] +
-
-`calculate a checksum (md5) over a the full graph. Be aware that this function does use in-memomry datastructures depending on the size of your graph.`
-¦label:function[]
-¦label:apoc-core[]

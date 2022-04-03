@@ -1,5 +1,0 @@
-¦xref::overview/apoc.export/apoc.export.csv.data.adoc[apoc.export.csv.data icon:book[]] +
-
-`apoc.export.csv.data(nodes,rels,file,config)` - exports given nodes and relationships as csv to the provided file
-¦label:procedure[]
-¦label:apoc-core[]

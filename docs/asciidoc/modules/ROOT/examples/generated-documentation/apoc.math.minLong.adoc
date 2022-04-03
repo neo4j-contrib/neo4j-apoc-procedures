@@ -1,5 +1,0 @@
-¦xref::overview/apoc.math/apoc.math.minLong.adoc[apoc.math.minLong icon:book[]] +
-
-`apoc.math.minLong() | return the minimum value a long can have`
-¦label:function[]
-¦label:apoc-core[]

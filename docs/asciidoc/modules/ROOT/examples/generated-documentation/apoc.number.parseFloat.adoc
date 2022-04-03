@@ -1,5 +1,0 @@
-¦xref::overview/apoc.number/apoc.number.parseFloat.adoc[apoc.number.parseFloat icon:book[]] +
-
-`apoc.number.parseFloat(text)  | parse a text using the default system pattern and language to produce a double`
-¦label:function[]
-¦label:apoc-core[]

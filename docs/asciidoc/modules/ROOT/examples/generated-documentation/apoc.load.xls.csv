@@ -1,3 +1,0 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.load.xls¦apoc.load.xls(url :: STRING?, selector :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, list :: LIST? OF ANY?, map :: MAP?)¦apoc.load.xls('url','selector',\{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
- config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false, dateFormat:'iso_date', dateParse:['dd-MM-yyyy']}}

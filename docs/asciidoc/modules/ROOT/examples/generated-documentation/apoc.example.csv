@@ -1,6 +1,0 @@
-¦Qualified Name¦Type¦Release
-|xref::overview/apoc.example/apoc.example.adoc[apoc.example.movies icon:book[]]
-
-apoc.example.movies() \| Creates the sample movies graph
-|label:procedure[]
-|label:apoc-core[]

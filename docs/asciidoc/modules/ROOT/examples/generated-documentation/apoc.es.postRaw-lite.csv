@@ -1,2 +1,0 @@
-¦signature
-¦apoc.es.postRaw(host :: STRING?, path :: STRING?, payload :: ANY?) :: (value :: MAP?)

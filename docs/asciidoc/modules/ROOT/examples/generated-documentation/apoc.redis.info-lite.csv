@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.info(uri :: STRING?, config = {} :: MAP?) :: (value :: ANY?)

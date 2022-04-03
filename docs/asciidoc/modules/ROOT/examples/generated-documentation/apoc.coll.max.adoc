@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.max.adoc[apoc.coll.max icon:book[]] +
-
-`apoc.coll.max([0.5,1,2.3])`
-¦label:function[]
-¦label:apoc-core[]

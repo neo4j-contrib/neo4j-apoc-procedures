@@ -1,5 +1,0 @@
-¦xref::overview/apoc.meta/apoc.meta.cypher.types.adoc[apoc.meta.cypher.types icon:book[]] +
-
-`apoc.meta.cypher.types(node-relationship-map) ` - returns a map of keys to types
-¦label:function[]
-¦label:apoc-core[]

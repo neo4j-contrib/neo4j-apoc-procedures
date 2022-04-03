@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.hdel(uri :: STRING?, key :: ANY?, fields :: LIST? OF ANY?, config = {} :: MAP?) :: (value :: INTEGER?)

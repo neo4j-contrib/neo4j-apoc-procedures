@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.sortNodes.adoc[apoc.coll.sortNodes icon:book[]] +
-
-`apoc.coll.sortNodes([nodes], 'name') sort nodes by property`
-¦label:function[]
-¦label:apoc-core[]

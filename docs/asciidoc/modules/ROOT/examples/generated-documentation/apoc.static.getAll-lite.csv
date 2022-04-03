@@ -1,2 +1,0 @@
-¦signature
-¦apoc.static.getAll(prefix :: STRING?) :: (MAP?)

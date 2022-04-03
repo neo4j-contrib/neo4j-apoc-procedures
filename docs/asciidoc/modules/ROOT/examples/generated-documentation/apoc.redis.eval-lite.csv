@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.eval(uri :: STRING?, script :: STRING?, outputType :: STRING?, keys :: LIST? OF ANY?, values :: LIST? OF ANY?, config = {} :: MAP?) :: (value :: ANY?)

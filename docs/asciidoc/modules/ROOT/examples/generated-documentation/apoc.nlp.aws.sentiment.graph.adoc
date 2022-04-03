@@ -1,5 +1,0 @@
-¦xref::overview/apoc.nlp/apoc.nlp.aws.sentiment.graph.adoc[apoc.nlp.aws.sentiment.graph icon:book[]] +
-
-`Creates a (virtual) sentiment graph for provided text`
-¦label:procedure[]
-¦label:apoc-full[]

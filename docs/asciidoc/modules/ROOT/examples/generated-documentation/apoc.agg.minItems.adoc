@@ -1,5 +1,0 @@
-¦xref::overview/apoc.agg/apoc.agg.minItems.adoc[apoc.agg.minItems icon:book[]] +
-
-`apoc.agg.minItems(item, value, groupLimit: -1)` - returns a map {items:[], value:n} where `value` is the minimum value present, and `items` are all items with the same value. The number of items can be optionally limited.
-¦label:function[]
-¦label:apoc-core[]

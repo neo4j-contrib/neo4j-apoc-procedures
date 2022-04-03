@@ -1,5 +1,0 @@
-¦xref::overview/apoc.refactor/apoc.refactor.collapseNode.adoc[apoc.refactor.collapseNode icon:book[]] +
-
-`apoc.refactor.collapseNode([node1,node2],'TYPE') collapse node to relationship, node with one rel becomes self-relationship`
-¦label:procedure[]
-¦label:apoc-core[]

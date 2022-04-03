@@ -1,5 +1,0 @@
-¦xref::overview/apoc.node/apoc.node.relationship.exists.adoc[apoc.node.relationship.exists icon:book[]] +
-
-`apoc.node.relationship.exists(node, rel-direction-pattern)` - returns true when the node has the relationships of the pattern
-¦label:function[]
-¦label:apoc-core[]

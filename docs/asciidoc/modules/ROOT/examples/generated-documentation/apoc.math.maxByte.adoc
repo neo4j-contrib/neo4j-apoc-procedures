@@ -1,5 +1,0 @@
-¦xref::overview/apoc.math/apoc.math.maxByte.adoc[apoc.math.maxByte icon:book[]] +
-
-`apoc.math.maxByte() | return the maximum value an byte can have`
-¦label:function[]
-¦label:apoc-core[]

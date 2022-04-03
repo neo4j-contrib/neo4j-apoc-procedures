@@ -1,2 +1,0 @@
-¦signature
-¦apoc.graph.validateDocument(json :: ANY?, config = {} :: MAP?) :: (row :: MAP?)

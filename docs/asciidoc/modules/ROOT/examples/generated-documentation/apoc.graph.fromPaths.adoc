@@ -1,5 +1,0 @@
-¦xref::overview/apoc.graph/apoc.graph.fromPaths.adoc[apoc.graph.fromPaths icon:book[]] +
-
-`apoc.graph.fromPaths([paths],'name',\{properties})` - creates a virtual graph object for later processing
-¦label:procedure[]
-¦label:apoc-core[]

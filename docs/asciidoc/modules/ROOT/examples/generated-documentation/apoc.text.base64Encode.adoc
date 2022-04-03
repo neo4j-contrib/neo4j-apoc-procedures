@@ -1,5 +1,0 @@
-¦xref::overview/apoc.text/apoc.text.base64Encode.adoc[apoc.text.base64Encode icon:book[]] +
-
-`apoc.text.base64Encode(text) YIELD value` - Encode a string with Base64
-¦label:function[]
-¦label:apoc-core[]

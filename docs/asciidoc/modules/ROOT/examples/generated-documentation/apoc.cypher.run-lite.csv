@@ -1,2 +1,0 @@
-¦signature
-¦apoc.cypher.run(cypher :: STRING?, params :: MAP?) :: (value :: MAP?)

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.dv/apoc.dv.queryAndLink.adoc[apoc.dv.queryAndLink icon:book[]] +
-
-
-¦label:procedure[]
-¦label:apoc-core[]

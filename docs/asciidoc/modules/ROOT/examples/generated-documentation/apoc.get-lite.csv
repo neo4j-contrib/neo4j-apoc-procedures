@@ -1,3 +1,0 @@
-¦signature
-¦apoc.get.nodes(nodes :: ANY?) :: (node :: NODE?)
-¦apoc.get.rels(relationships :: ANY?) :: (rel :: RELATIONSHIP?)

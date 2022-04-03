@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.hgetall(uri :: STRING?, key :: ANY?, config = {} :: MAP?) :: (value :: MAP?)

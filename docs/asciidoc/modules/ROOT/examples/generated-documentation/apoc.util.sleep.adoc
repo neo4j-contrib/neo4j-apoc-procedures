@@ -1,5 +1,0 @@
-¦xref::overview/apoc.util/apoc.util.sleep.adoc[apoc.util.sleep icon:book[]] +
-
-`apoc.util.sleep(<duration>) | sleeps for <duration> millis, transaction termination is honored`
-¦label:procedure[]
-¦label:apoc-core[]

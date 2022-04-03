@@ -1,3 +1,0 @@
-¦signature
-¦apoc.dv.query(name :: STRING?, params = {} :: ANY?, config = {} :: MAP?) :: (node :: NODE?)
-¦apoc.dv.queryAndLink(node :: NODE?, relName :: STRING?, name :: STRING?, params = {} :: ANY?, config = {} :: MAP?) :: (path :: PATH?)

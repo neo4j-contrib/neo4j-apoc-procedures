@@ -1,5 +1,0 @@
-¦xref::overview/apoc.text/apoc.text.phonetic.adoc[apoc.text.phonetic icon:book[]] +
-
-`apoc.text.phonetic(text) yield value` - Compute the US_ENGLISH phonetic soundex encoding of all words of the text
-¦label:function[]
-¦label:apoc-core[]

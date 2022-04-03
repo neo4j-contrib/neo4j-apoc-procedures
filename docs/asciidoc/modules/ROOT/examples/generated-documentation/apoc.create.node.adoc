@@ -1,5 +1,0 @@
-¦xref::overview/apoc.create/apoc.create.node.adoc[apoc.create.node icon:book[]] +
-
-`apoc.create.node(['Label'], {key:value,...})` - create node with dynamic labels
-¦label:procedure[]
-¦label:apoc-core[]

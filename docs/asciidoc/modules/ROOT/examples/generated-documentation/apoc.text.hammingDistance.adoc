@@ -1,5 +1,0 @@
-¦xref::overview/apoc.text/apoc.text.hammingDistance.adoc[apoc.text.hammingDistance icon:book[]] +
-
-`apoc.text.hammingDistance(text1, text2)` - compare the given strings with the Hamming distance algorithm.
-¦label:function[]
-¦label:apoc-core[]

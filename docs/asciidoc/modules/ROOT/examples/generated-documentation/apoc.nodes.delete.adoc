@@ -1,5 +1,0 @@
-¦xref::overview/apoc.nodes/apoc.nodes.delete.adoc[apoc.nodes.delete icon:book[]] +
-
-`apoc.nodes.delete(node|nodes|id|[ids])` - quickly delete all nodes with these ids
-¦label:procedure[]
-¦label:apoc-core[]

@@ -1,2 +1,0 @@
-¦signature
-¦apoc.text.fuzzyMatch(text1 :: STRING?, text2 :: STRING?) :: (BOOLEAN?)

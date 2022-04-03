@@ -1,2 +1,0 @@
-¦signature
-¦apoc.bolt.load.fromLocal(url :: STRING?, localStatement :: STRING?, remoteStatement :: STRING?, config = {} :: MAP?) :: (row :: MAP?)

@@ -1,2 +1,0 @@
-¦signature
-¦apoc.coll.occurrences(coll :: LIST? OF ANY?, item :: ANY?) :: (INTEGER?)

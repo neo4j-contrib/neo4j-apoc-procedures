@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.runningTotal.adoc[apoc.coll.runningTotal icon:book[]] +
-
-`apoc.coll.runningTotal(list1)` - returns an accumulative array. For example apoc.coll.runningTotal([1,2,3.5]) return [1,3,6.5]
-¦label:function[]
-¦label:apoc-core[]

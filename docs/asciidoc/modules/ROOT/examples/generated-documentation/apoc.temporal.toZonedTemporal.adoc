@@ -1,5 +1,0 @@
-¦xref::overview/apoc.temporal/apoc.temporal.toZonedTemporal.adoc[apoc.temporal.toZonedTemporal icon:book[]] +
-
-`apoc.temporal.toZonedTemporal('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') parse date string using the specified format to specified timezone`
-¦label:function[]
-¦label:apoc-core[]

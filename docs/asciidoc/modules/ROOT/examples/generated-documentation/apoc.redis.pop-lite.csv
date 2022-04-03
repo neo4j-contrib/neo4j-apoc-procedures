@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.pop(uri :: STRING?, key :: ANY?, config = {} :: MAP?) :: (value :: ANY?)

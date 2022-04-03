@@ -1,2 +1,0 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.map.mergeList¦apoc.map.mergeList(maps :: LIST? OF MAP?) :: (MAP?)¦apoc.map.mergeList([\{maps}]) yield value - merges all maps in the list into one

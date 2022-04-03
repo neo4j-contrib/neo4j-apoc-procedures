@@ -1,5 +1,0 @@
-¦xref::overview/apoc.nlp/apoc.nlp.aws.sentiment.stream.adoc[apoc.nlp.aws.sentiment.stream icon:book[]] +
-
-`Returns stream of sentiment for items in provided text`
-¦label:procedure[]
-¦label:apoc-full[]

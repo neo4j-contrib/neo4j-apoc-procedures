@@ -1,2 +1,0 @@
-¦signature
-¦apoc.util.validate(predicate :: BOOLEAN?, message :: STRING?, params :: LIST? OF ANY?) :: VOID

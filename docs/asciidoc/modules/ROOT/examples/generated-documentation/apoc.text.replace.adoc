@@ -1,5 +1,0 @@
-¦xref::overview/apoc.text/apoc.text.replace.adoc[apoc.text.replace icon:book[]] +
-
-`apoc.text.replace(text, regex, replacement)` - replace each substring of the given string that matches the given regular expression with the given replacement.
-¦label:function[]
-¦label:apoc-core[]

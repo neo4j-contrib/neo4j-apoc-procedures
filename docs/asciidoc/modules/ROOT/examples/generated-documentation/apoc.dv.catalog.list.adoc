@@ -1,5 +1,0 @@
-¦xref::overview/apoc.dv/apoc.dv.catalog.list.adoc[apoc.dv.catalog.list icon:book[]] +
-
-
-¦label:procedure[]
-¦label:apoc-core[]

@@ -1,9 +1,0 @@
-The procedure support the following config parameters:
-
-.Config parameters
-[opts=header, cols="1,1,1,5"]
-|===
-| name | type | default | description
-| filename | String | "metadata" | The filename prefix. For example, metadata.customProcedures.dbName.cypher
-| features | List<String> | ["CypherProcedure", "CypherFunction", "Uuid", "Trigger", "DataVirtualizationCatalog"] | A list indicating which functions are to be exported. Possible values are "CypherProcedure", "CypherFunction", "Uuid", "Trigger", "DataVirtualizationCatalog".
-|===

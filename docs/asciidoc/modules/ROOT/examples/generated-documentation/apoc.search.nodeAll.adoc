@@ -1,5 +1,0 @@
-¦xref::overview/apoc.search/apoc.search.nodeAll.adoc[apoc.search.nodeAll icon:book[]] +
-
-`Do a parallel search over multiple indexes returning nodes. usage apoc.search.nodeAll( map of label and properties which will be searched upon, operator: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ) returns all the Nodes found in the different searches.`
-¦label:procedure[]
-¦label:apoc-core[]

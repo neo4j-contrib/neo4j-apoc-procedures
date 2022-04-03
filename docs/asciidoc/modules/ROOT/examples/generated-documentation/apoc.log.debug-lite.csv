@@ -1,2 +1,0 @@
-¦signature
-¦apoc.log.debug(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID

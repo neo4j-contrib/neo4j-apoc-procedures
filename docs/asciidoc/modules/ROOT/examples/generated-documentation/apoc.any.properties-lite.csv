@@ -1,2 +1,0 @@
-¦signature
-¦apoc.any.properties(thing :: ANY?, keys = null :: LIST? OF STRING?) :: (MAP?)

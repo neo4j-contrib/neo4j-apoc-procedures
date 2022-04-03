@@ -1,2 +1,0 @@
-¦signature
-¦apoc.trigger.nodesByLabel(labelEntries :: ANY?, label :: STRING?) :: (LIST? OF ANY?)

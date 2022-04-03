@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.sortText.adoc[apoc.coll.sortText icon:book[]] +
-
-`apoc.coll.sortText(coll) sort on string based collections`
-¦label:function[]
-¦label:apoc-core[]

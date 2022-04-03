@@ -1,2 +1,0 @@
-¦signature
-¦apoc.trigger.propertiesByKey(propertyEntries :: MAP?, key :: STRING?) :: (LIST? OF ANY?)

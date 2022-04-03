@@ -1,2 +1,0 @@
-¦signature
-¦apoc.generate.simple(degrees :: LIST? OF INTEGER?, label :: STRING?, type :: STRING?) :: VOID

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.text/apoc.text.rpad.adoc[apoc.text.rpad icon:book[]] +
-
-`apoc.text.rpad(text,count,delim) YIELD value` - right pad the string to the given width
-¦label:function[]
-¦label:apoc-core[]

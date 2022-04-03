@@ -1,5 +1,0 @@
-¦xref::overview/apoc.create/apoc.create.vRelationship.adoc[apoc.create.vRelationship icon:book[]] +
-
-`apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship`
-¦label:function[]
-¦label:apoc-core[]

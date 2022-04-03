@@ -1,5 +1,0 @@
-¦xref::overview/apoc.load/apoc.load.jsonArray.adoc[apoc.load.jsonArray icon:book[]] +
-
-`apoc.load.jsonArray('url') YIELD value` - load array from JSON URL (e.g. web-api) to import JSON as stream of values
-¦label:procedure[]
-¦label:apoc-core[]

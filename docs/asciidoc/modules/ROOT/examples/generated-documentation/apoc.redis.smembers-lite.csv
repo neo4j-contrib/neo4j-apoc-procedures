@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.smembers(uri :: STRING?, key :: ANY?, config = {} :: MAP?) :: (value :: LIST? OF ANY?)

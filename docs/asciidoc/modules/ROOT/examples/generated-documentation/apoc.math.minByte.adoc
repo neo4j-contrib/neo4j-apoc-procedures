@@ -1,5 +1,0 @@
-¦xref::overview/apoc.math/apoc.math.minByte.adoc[apoc.math.minByte icon:book[]] +
-
-`apoc.math.minByte() | return the minimum value an byte can have`
-¦label:function[]
-¦label:apoc-core[]

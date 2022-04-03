@@ -1,5 +1,0 @@
-¦xref::overview/apoc.nodes/apoc.nodes.relationships.exist.adoc[apoc.nodes.relationships.exist icon:book[]] +
-
-`apoc.nodes.relationships.exist(node|nodes|id|[ids], rel-direction-pattern)` - returns a list of maps where each one has two fields: `node` which is the node subject of the analysis and `exists` which is a map with rel-pattern, boolean for the given relationship patterns
-¦label:function[]
-¦label:apoc-core[]

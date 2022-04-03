@@ -1,5 +1,0 @@
-¦xref::overview/apoc.math/apoc.math.maxInt.adoc[apoc.math.maxInt icon:book[]] +
-
-`apoc.math.maxInt() | return the maximum value an int can have`
-¦label:function[]
-¦label:apoc-core[]

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.util/apoc.util.sha256.adoc[apoc.util.sha256 icon:book[]] +
-
-`apoc.util.sha256([values]) | computes the sha256 of the concatenation of all string values of the list`
-¦label:function[]
-¦label:apoc-core[]

@@ -1,3 +1,0 @@
-¦signature
-¦apoc.config.list() :: (key :: STRING?, value :: ANY?)
-¦apoc.config.map() :: (value :: MAP?)

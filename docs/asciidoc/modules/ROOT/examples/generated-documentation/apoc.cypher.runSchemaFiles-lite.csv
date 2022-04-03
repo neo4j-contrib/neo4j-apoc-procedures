@@ -1,2 +1,0 @@
-¦signature
-¦apoc.cypher.runSchemaFiles(file :: LIST? OF STRING?, config = {} :: MAP?) :: (row :: INTEGER?, result :: MAP?)

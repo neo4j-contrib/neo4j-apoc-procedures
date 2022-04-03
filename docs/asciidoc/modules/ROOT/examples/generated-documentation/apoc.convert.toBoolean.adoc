@@ -1,5 +1,0 @@
-¦xref::overview/apoc.convert/apoc.convert.toBoolean.adoc[apoc.convert.toBoolean icon:book[]] +
-
-`apoc.convert.toBoolean(value) | tries it's best to convert the value to a boolean`
-¦label:function[]
-¦label:apoc-core[]

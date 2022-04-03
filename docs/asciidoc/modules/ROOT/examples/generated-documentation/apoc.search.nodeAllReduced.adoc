@@ -1,5 +1,0 @@
-¦xref::overview/apoc.search/apoc.search.nodeAllReduced.adoc[apoc.search.nodeAllReduced icon:book[]] +
-
-`Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched property. apoc.search.nodeShortAll( map of label and properties which will be searched upon, operator: EXACT / CONTAINS / STARTS WITH | ENDS WITH / = / <> / < / > ..., value ). All 'hits' are returned.`
-¦label:procedure[]
-¦label:apoc-core[]

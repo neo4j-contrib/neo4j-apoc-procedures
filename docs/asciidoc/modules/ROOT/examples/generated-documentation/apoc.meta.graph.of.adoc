@@ -1,5 +1,0 @@
-¦xref::overview/apoc.meta/apoc.meta.graph.of.adoc[apoc.meta.graph.of icon:book[]] +
-
-`apoc.meta.graph.of(\{graph}, \{config}) ` - examines a subset of the graph to provide a graph meta information
-¦label:procedure[]
-¦label:apoc-core[]

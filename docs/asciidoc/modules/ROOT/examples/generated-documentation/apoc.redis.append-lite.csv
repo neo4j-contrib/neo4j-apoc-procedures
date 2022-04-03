@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.append(uri :: STRING?, key :: ANY?, value :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)

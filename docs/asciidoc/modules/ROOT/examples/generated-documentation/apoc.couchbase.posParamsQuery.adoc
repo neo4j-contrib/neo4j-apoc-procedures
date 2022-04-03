@@ -1,5 +1,0 @@
-¦xref::overview/apoc.couchbase/apoc.couchbase.posParamsQuery.adoc[apoc.couchbase.posParamsQuery icon:book[]] +
-
-`apoc.couchbase.posParamsQuery(hostOrKey, bucket, statement, params) yield queryResult` - executes a N1QL statement with positional parameters.
-¦label:procedure[]
-¦label:apoc-full[]

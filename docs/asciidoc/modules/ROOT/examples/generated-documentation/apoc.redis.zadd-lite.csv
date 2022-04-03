@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.zadd(uri :: STRING?, key :: ANY?, value :: LIST? OF ANY?, config = {} :: MAP?) :: (value :: INTEGER?)

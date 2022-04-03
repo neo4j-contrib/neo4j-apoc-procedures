@@ -1,2 +1,0 @@
-¦signature
-¦apoc.coll.combinations(coll :: LIST? OF ANY?, minSelect :: INTEGER?, maxSelect = -1 :: INTEGER?) :: (LIST? OF ANY?)

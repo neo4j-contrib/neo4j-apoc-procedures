@@ -1,2 +1,0 @@
-¦signature
-¦apoc.periodic.rock_n_roll_while(cypherLoop :: STRING?, cypherIterate :: STRING?, cypherAction :: STRING?, batchSize :: INTEGER?) :: (loop :: ANY?, batches :: INTEGER?, total :: INTEGER?)

@@ -1,2 +1,0 @@
-¦signature
-¦apoc.load.csv(urlOrBinary :: ANY?, config = {} :: MAP?) :: (lineNo :: INTEGER?, list :: LIST? OF ANY?, strings :: LIST? OF STRING?, map :: MAP?, stringMap :: MAP?)

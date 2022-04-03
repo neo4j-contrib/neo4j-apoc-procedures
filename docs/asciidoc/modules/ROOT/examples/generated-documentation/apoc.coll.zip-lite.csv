@@ -1,2 +1,0 @@
-¦signature
-¦apoc.coll.zip(list1 :: LIST? OF ANY?, list2 :: LIST? OF ANY?) :: (LIST? OF ANY?)

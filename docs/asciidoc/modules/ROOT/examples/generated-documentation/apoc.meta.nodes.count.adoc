@@ -1,5 +1,0 @@
-¦xref::overview/apoc.meta/apoc.meta.nodes.count.adoc[apoc.meta.nodes.count icon:book[]] +
-
- - Returns the sum of the nodes with a label present in the list.
-¦label:function[]
-¦label:apoc-core[]

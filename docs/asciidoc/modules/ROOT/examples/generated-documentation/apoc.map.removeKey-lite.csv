@@ -1,2 +1,0 @@
-¦signature
-¦apoc.map.removeKey(map :: MAP?, key :: STRING?, config = {} :: MAP?) :: (MAP?)

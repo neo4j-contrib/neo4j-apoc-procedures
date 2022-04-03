@@ -1,2 +1,0 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.load.ldap¦apoc.load.ldap(connection :: ANY?, search :: MAP?) :: (entry :: MAP?)¦apoc.load.ldap("key" or \{connectionMap},\{searchMap}) Load entries from an ldap source (yield entry)

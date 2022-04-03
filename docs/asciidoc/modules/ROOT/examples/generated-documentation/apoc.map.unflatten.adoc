@@ -1,5 +1,0 @@
-¦xref::overview/apoc.map/apoc.map.unflatten.adoc[apoc.map.unflatten icon:book[]] +
-
- - unflat from items separated by delimiter string to nested items (reverse of apoc.map.flatten function)
-¦label:function[]
-¦label:apoc-core[]

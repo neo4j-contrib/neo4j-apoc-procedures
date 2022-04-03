@@ -1,5 +1,0 @@
-¦xref::overview/apoc.config/apoc.config.list.adoc[apoc.config.list icon:book[]] +
-
-`apoc.config.list | Lists the Neo4j configuration as key,value table`
-¦label:procedure[]
-¦label:apoc-full[]

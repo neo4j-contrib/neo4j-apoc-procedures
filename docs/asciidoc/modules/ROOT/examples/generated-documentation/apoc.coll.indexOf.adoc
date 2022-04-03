@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.indexOf.adoc[apoc.coll.indexOf icon:book[]] +
-
-`apoc.coll.indexOf(coll, value) | position of value in the list`
-¦label:function[]
-¦label:apoc-core[]

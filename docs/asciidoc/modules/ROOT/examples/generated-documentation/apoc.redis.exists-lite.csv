@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.exists(uri :: STRING?, keys :: LIST? OF ANY?, config = {} :: MAP?) :: (value :: INTEGER?)

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.node/apoc.node.relationship.types.adoc[apoc.node.relationship.types icon:book[]] +
-
-`apoc.node.relationship.types(node, rel-direction-pattern)` - returns a list of distinct relationship types
-¦label:function[]
-¦label:apoc-core[]

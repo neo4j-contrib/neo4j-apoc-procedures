@@ -1,3 +1,0 @@
-¦signature
-¦apoc.schema.node.constraintExists(labelName :: STRING?, propertyName :: LIST? OF STRING?) :: (BOOLEAN?)
-¦apoc.schema.node.indexExists(labelName :: STRING?, propertyName :: LIST? OF STRING?) :: (BOOLEAN?)

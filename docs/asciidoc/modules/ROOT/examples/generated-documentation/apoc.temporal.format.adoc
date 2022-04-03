@@ -1,5 +1,0 @@
-¦xref::overview/apoc.temporal/apoc.temporal.format.adoc[apoc.temporal.format icon:book[]] +
-
-`apoc.temporal.format(input, format) | Format a temporal value`
-¦label:function[]
-¦label:apoc-core[]

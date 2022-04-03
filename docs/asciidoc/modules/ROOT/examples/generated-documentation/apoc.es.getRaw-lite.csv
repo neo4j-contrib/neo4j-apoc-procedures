@@ -1,2 +1,0 @@
-¦signature
-¦apoc.es.getRaw(host :: STRING?, path :: STRING?, payload :: ANY?) :: (value :: MAP?)

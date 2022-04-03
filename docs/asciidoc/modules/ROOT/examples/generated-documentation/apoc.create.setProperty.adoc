@@ -1,5 +1,0 @@
-¦xref::overview/apoc.create/apoc.create.setProperty.adoc[apoc.create.setProperty icon:book[]] +
-
-`apoc.create.setProperty( [node,id,ids,nodes], key, value)` - sets the given property on the node(s)
-¦label:procedure[]
-¦label:apoc-core[]

@@ -1,2 +1,0 @@
-¦signature
-¦apoc.systemdb.graph() :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)

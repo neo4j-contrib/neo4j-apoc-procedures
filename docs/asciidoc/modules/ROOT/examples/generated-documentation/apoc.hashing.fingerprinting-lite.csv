@@ -1,2 +1,0 @@
-¦signature
-¦apoc.hashing.fingerprinting(some object :: ANY?, conf = {} :: MAP?) :: (STRING?)

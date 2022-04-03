@@ -1,5 +1,0 @@
-¦xref::overview/apoc.nodes/apoc.nodes.collapse.adoc[apoc.nodes.collapse icon:book[]] +
-
-`apoc.nodes.collapse([nodes...],[{properties:'overwrite' or 'discard' or 'combine'}]) yield from, rel, to merge nodes onto first in list`
-¦label:procedure[]
-¦label:apoc-core[]

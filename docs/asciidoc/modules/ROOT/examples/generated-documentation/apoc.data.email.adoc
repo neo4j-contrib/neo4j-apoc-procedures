@@ -1,5 +1,0 @@
-¦xref::overview/apoc.data/apoc.data.email.adoc[apoc.data.email icon:book[]] +
-
-`apoc.data.email('email_address') as {personal,user,domain}` - extract the personal name, user and domain as a map
-¦label:function[]
-¦label:apoc-full[]

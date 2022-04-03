@@ -1,5 +1,0 @@
-¦xref::overview/apoc.refactor/apoc.refactor.rename.typeProperty.adoc[apoc.refactor.rename.typeProperty icon:book[]] +
-
-`apoc.refactor.rename.typeProperty(oldName, newName, [rels], \{config}) | rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only`
-¦label:procedure[]
-¦label:apoc-core[]

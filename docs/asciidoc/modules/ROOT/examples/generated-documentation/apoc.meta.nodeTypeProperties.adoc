@@ -1,5 +1,0 @@
-¦xref::overview/apoc.meta/apoc.meta.nodeTypeProperties.adoc[apoc.meta.nodeTypeProperties icon:book[]] +
-
-`apoc.meta.nodeTypeProperties()`
-¦label:procedure[]
-¦label:apoc-core[]

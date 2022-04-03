@@ -1,2 +1,0 @@
-¦signature
-¦apoc.create.removeLabels(nodes :: ANY?, label :: LIST? OF STRING?) :: (node :: NODE?)

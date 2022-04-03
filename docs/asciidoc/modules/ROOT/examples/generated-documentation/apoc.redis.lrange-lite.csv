@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.lrange(uri :: STRING?, key :: ANY?, start :: INTEGER?, stop :: INTEGER?, config = {} :: MAP?) :: (value :: LIST? OF ANY?)

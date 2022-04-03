@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.zip.adoc[apoc.coll.zip icon:book[]] +
-
-`apoc.coll.zip([list1],[list2])`
-¦label:function[]
-¦label:apoc-core[]

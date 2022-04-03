@@ -1,6 +1,0 @@
-# URI is necessary, empty user name and password are fine if accessing public artifacts.
-ARTIFACTORY_URI=
-ARTIFACTORY_USERNAME=
-ARTIFACTORY_PASSWORD=
-
-# vim: set sw=2 ts=2 ft=sh:

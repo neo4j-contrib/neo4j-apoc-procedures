@@ -1,5 +1,0 @@
-¦xref::overview/apoc.create/apoc.create.vNodes.adoc[apoc.create.vNodes icon:book[]] +
-
-`apoc.create.vNodes(['Label'], [{key:value,...}]) returns virtual nodes`
-¦label:procedure[]
-¦label:apoc-core[]

@@ -1,2 +1,0 @@
-¦signature
-¦apoc.coll.containsDuplicates(coll :: LIST? OF ANY?) :: (BOOLEAN?)

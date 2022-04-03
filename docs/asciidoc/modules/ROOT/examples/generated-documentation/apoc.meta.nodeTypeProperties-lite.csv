@@ -1,2 +1,0 @@
-¦signature
-¦apoc.meta.nodeTypeProperties(config = {} :: MAP?) :: (nodeType :: STRING?, nodeLabels :: LIST? OF STRING?, propertyName :: STRING?, propertyTypes :: LIST? OF STRING?, mandatory :: BOOLEAN?, propertyObservations :: INTEGER?, totalObservations :: INTEGER?)

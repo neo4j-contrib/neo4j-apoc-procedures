@@ -1,2 +1,0 @@
-¦signature
-¦apoc.metrics.list() :: (name :: STRING?, lastUpdated :: INTEGER?)

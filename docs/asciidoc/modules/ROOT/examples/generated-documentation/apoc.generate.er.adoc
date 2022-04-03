@@ -1,5 +1,0 @@
-¦xref::overview/apoc.generate/apoc.generate.er.adoc[apoc.generate.er icon:book[]] +
-
-`apoc.generate.er(noNodes, noEdges, label, type)` - generates a random graph according to the Erdos-Renyi model
-¦label:procedure[]
-¦label:apoc-full[]

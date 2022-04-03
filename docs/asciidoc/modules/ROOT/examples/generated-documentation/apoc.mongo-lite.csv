@@ -1,7 +1,0 @@
-¦signature
-¦apoc.mongo.aggregate(uri :: STRING?, pipeline :: LIST? OF MAP?, config = {} :: MAP?) :: (value :: MAP?)
-¦apoc.mongo.count(uri :: STRING?, query :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
-¦apoc.mongo.delete(uri :: STRING?, query :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)
-¦apoc.mongo.find(uri :: STRING?, query = null :: ANY?, config = {} :: MAP?) :: (value :: MAP?)
-¦apoc.mongo.insert(uri :: STRING?, documents :: LIST? OF ANY?, config = {} :: MAP?) :: VOID
-¦apoc.mongo.update(uri :: STRING?, query :: ANY?, update :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)

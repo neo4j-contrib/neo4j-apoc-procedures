@@ -1,2 +1,0 @@
-¦signature
-¦apoc.monitor.store() :: (logSize :: INTEGER?, stringStoreSize :: INTEGER?, arrayStoreSize :: INTEGER?, relStoreSize :: INTEGER?, propStoreSize :: INTEGER?, totalStoreSize :: INTEGER?, nodeStoreSize :: INTEGER?)

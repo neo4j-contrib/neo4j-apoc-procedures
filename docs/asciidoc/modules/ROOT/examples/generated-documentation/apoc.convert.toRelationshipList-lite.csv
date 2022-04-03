@@ -1,2 +1,0 @@
-¦signature
-¦apoc.convert.toRelationshipList(list :: ANY?) :: (LIST? OF ANY?)

@@ -1,2 +1,0 @@
-¦signature
-¦apoc.map.setPairs(map :: MAP?, pairs :: LIST? OF LIST? OF ANY?) :: (MAP?)

@@ -1,5 +1,0 @@
-¦xref::overview/apoc/apoc.version.adoc[apoc.version icon:book[]] +
-
-`RETURN apoc.version() | return the current APOC installed version`
-¦label:function[]
-¦label:apoc-core[]

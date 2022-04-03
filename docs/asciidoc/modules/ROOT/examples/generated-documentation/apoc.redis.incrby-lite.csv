@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.incrby(uri :: STRING?, key :: ANY?, amount :: INTEGER?, config = {} :: MAP?) :: (value :: INTEGER?)

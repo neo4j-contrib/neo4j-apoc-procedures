@@ -1,2 +1,0 @@
-¦signature
-¦apoc.text.bytes(text :: STRING?, charset = UTF-8 :: STRING?) :: (LIST? OF ANY?)

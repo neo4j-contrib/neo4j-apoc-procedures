@@ -1,5 +1,0 @@
-¦xref::overview/apoc.node/apoc.node.degree.in.adoc[apoc.node.degree.in icon:book[]] +
-
-`apoc.node.degree.in(node, relationshipName)` - returns total number number of incoming relationships
-¦label:function[]
-¦label:apoc-core[]

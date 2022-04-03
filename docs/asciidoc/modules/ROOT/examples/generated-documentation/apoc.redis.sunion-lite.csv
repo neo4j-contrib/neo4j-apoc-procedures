@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.sunion(uri :: STRING?, keys :: LIST? OF ANY?, config = {} :: MAP?) :: (value :: LIST? OF ANY?)

@@ -1,2 +1,0 @@
-¦signature
-¦apoc.convert.toRelationship(relationship :: ANY?) :: (RELATIONSHIP?)

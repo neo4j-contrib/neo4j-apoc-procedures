@@ -1,5 +1,0 @@
-¦xref::overview/apoc.text/apoc.text.snakeCase.adoc[apoc.text.snakeCase icon:book[]] +
-
-`apoc.text.snakeCase(text) YIELD value` - Convert a string to snake-case
-¦label:function[]
-¦label:apoc-core[]

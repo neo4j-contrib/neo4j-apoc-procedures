@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.sumLongs.adoc[apoc.coll.sumLongs icon:book[]] +
-
-`apoc.coll.sumLongs([1,3,3])`
-¦label:function[]
-¦label:apoc-core[]

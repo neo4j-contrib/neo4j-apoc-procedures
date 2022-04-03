@@ -1,2 +1,0 @@
-¦signature
-¦apoc.static.list(prefix :: STRING?) :: (key :: STRING?, value :: ANY?)

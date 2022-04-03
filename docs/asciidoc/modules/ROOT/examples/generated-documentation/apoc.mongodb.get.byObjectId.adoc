@@ -1,5 +1,0 @@
-¦xref::overview/apoc.mongodb/apoc.mongodb.get.byObjectId.adoc[apoc.mongodb.get.byObjectId icon:book[]] +
-
-`apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{}))` - get the document by Object id value
-¦label:procedure[]
-¦label:apoc-full[]

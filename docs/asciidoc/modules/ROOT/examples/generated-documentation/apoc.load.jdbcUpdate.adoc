@@ -1,5 +1,0 @@
-¦xref::overview/apoc.load/apoc.load.jdbcUpdate.adoc[apoc.load.jdbcUpdate icon:book[]] +
-
-`apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row` - update relational database, from a SQL statement with optional parameters
-¦label:procedure[]
-¦label:apoc-full[]

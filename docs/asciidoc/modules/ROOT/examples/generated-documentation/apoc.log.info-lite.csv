@@ -1,2 +1,0 @@
-¦signature
-¦apoc.log.info(message :: STRING?, params = [] :: LIST? OF ANY?) :: VOID

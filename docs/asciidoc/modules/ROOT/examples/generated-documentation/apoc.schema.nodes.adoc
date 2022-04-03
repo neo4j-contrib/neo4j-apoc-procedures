@@ -1,5 +1,0 @@
-¦xref::overview/apoc.schema/apoc.schema.nodes.adoc[apoc.schema.nodes icon:book[]] +
-
-`CALL apoc.schema.nodes([config]) yield name, label, properties, status, type`
-¦label:procedure[]
-¦label:apoc-core[]

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.export/apoc.export.graphml.graph.adoc[apoc.export.graphml.graph icon:book[]] +
-
-`apoc.export.graphml.graph(graph,file,config)` - exports given graph object as graphml to the provided file
-¦label:procedure[]
-¦label:apoc-core[]

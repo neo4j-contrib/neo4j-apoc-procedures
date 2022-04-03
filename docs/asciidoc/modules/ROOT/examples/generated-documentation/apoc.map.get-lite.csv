@@ -1,2 +1,0 @@
-¦signature
-¦apoc.map.get(map :: MAP?, key :: STRING?, value = null :: ANY?, fail = true :: BOOLEAN?) :: (ANY?)

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.load/apoc.load.driver.adoc[apoc.load.driver icon:book[]] +
-
-`apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database`
-¦label:procedure[]
-¦label:apoc-full[]

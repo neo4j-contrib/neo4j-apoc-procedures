@@ -1,2 +1,0 @@
-¦signature
-¦apoc.text.urlencode(text :: STRING?) :: (STRING?)

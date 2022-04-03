@@ -1,5 +1,0 @@
-¦xref::overview/apoc.spatial/apoc.spatial.reverseGeocode.adoc[apoc.spatial.reverseGeocode icon:book[]] +
-
-`apoc.spatial.reverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description` - look up address from latitude and longitude from a geocoding service (the default one is OpenStreetMap)
-¦label:procedure[]
-¦label:apoc-core[]

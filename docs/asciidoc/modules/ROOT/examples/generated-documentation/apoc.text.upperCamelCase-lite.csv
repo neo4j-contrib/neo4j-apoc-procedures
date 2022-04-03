@@ -1,2 +1,0 @@
-¦signature
-¦apoc.text.upperCamelCase(text :: STRING?) :: (STRING?)

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.util/apoc.util.compress.adoc[apoc.util.compress icon:book[]] +
-
-`apoc.util.compress(string, \{config}) | return a compressed byte[] in various format from a string`
-¦label:function[]
-¦label:apoc-core[]

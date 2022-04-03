@@ -1,7 +1,0 @@
-.Config parameters
-[opts=header]
-|===
-| name | type | default | description
-| maxDepth | long | Integer.MAX_VALUE | The max number of hops (relationships) to search for cycles.
-| relTypes | List<String> | [] | The relationship types to detect cycles. By default, all types will be considered.
-|===

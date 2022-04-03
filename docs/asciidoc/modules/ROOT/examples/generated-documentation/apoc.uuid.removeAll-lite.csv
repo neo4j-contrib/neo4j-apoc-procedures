@@ -1,2 +1,0 @@
-¦signature
-¦apoc.uuid.removeAll() :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)

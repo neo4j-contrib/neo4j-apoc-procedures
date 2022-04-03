@@ -1,5 +1,0 @@
-¦xref::overview/apoc.neighbors/apoc.neighbors.byhop.adoc[apoc.neighbors.byhop icon:book[]] +
-
-`apoc.neighbors.byhop(node, rel-direction-pattern, distance)` - returns distinct nodes of the given relationships in the pattern at each distance, can use '>' or '<' for all outgoing or incoming relationships
-¦label:procedure[]
-¦label:apoc-core[]

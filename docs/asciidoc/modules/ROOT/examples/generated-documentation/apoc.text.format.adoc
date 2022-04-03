@@ -1,5 +1,0 @@
-¦xref::overview/apoc.text/apoc.text.format.adoc[apoc.text.format icon:book[]] +
-
-`apoc.text.format(text,[params],language)` - sprintf format the string with the params given
-¦label:function[]
-¦label:apoc-core[]

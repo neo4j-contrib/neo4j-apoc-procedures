@@ -1,5 +1,0 @@
-¦xref::overview/apoc.create/apoc.create.removeLabels.adoc[apoc.create.removeLabels icon:book[]] +
-
-`apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...])` - removes the given labels from the node or nodes
-¦label:procedure[]
-¦label:apoc-core[]

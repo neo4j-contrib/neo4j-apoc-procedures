@@ -1,5 +1,0 @@
-¦xref::overview/apoc.lock/apoc.lock.nodes.adoc[apoc.lock.nodes icon:book[]] +
-
-`apoc.lock.nodes([nodes]) acquires a write lock on the given nodes`
-¦label:procedure[]
-¦label:apoc-core[]

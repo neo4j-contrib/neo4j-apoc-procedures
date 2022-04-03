@@ -1,2 +1,0 @@
-¦signature
-¦apoc.couchbase.replace(hostOrKey :: STRING?, bucket :: STRING?, documentId :: STRING?, json :: STRING?, config = {} :: MAP?) :: (content :: MAP?, id :: STRING?, expiry :: INTEGER?, cas :: INTEGER?, mutationToken :: MAP?)

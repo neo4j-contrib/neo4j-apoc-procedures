@@ -1,5 +1,0 @@
-¦xref::overview/apoc.atomic/apoc.atomic.add.adoc[apoc.atomic.add icon:book[]] +
-
-`apoc.atomic.add(node/relatonship,propertyName,number) Sums the property's value with the 'number' value `
-¦label:procedure[]
-¦label:apoc-core[]

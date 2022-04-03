@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.pttl(uri :: STRING?, key :: ANY?, config = {} :: MAP?) :: (value :: INTEGER?)

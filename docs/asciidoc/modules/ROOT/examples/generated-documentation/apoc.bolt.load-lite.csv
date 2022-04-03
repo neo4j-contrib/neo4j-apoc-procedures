@@ -1,2 +1,0 @@
-¦signature
-¦apoc.bolt.load(url :: STRING?, kernelTransaction :: STRING?, params = {} :: MAP?, config = {} :: MAP?) :: (row :: MAP?)

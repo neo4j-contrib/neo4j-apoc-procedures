@@ -1,5 +1,0 @@
-¦xref::overview/apoc.refactor/apoc.refactor.categorize.adoc[apoc.refactor.categorize icon:book[]] +
-
-`apoc.refactor.categorize(sourceKey, type, outgoing, label, targetKey, copiedKeys, batchSize) turn each unique propertyKey into a category node and connect to it`
-¦label:procedure[]
-¦label:apoc-core[]

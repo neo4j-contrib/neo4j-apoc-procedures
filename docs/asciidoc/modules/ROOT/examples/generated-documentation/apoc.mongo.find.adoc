@@ -1,5 +1,0 @@
-¦xref::overview/apoc.mongo/apoc.mongo.find.adoc[apoc.mongo.find icon:book[]] +
-
-`apoc.mongo.find(uri, query, $config) yield value` - perform a find operation on mongodb collection
-¦label:procedure[]
-¦label:apoc-full[]

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.temporal/apoc.temporal.formatDuration.adoc[apoc.temporal.formatDuration icon:book[]] +
-
-`apoc.temporal.formatDuration(input, format) | Format a Duration`
-¦label:function[]
-¦label:apoc-core[]

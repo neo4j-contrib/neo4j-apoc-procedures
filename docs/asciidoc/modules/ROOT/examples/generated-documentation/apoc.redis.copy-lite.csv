@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.copy(uri :: STRING?, source :: ANY?, destination :: ANY?, config = {} :: MAP?) :: (value :: BOOLEAN?)

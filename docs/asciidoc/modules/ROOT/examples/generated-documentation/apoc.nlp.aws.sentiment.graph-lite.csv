@@ -1,2 +1,0 @@
-¦signature
-¦apoc.nlp.aws.sentiment.graph(source :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)

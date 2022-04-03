@@ -1,2 +1,0 @@
-¦signature
-¦apoc.cypher.mapParallel2(fragment :: STRING?, params :: MAP?, list :: LIST? OF ANY?, partitions :: INTEGER?, timeout = 10 :: INTEGER?) :: (value :: MAP?)

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.refactor/apoc.refactor.normalizeAsBoolean.adoc[apoc.refactor.normalizeAsBoolean icon:book[]] +
-
-`apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) normalize/convert a property to be boolean`
-¦label:procedure[]
-¦label:apoc-core[]

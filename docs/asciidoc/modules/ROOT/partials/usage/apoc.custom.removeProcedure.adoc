@@ -1,6 +1,0 @@
-We can remove a custom procedure named `powers`, by running the following query:
-
-[source,cypher]
-----
-CALL apoc.custom.removeProcedure("powers");
-----

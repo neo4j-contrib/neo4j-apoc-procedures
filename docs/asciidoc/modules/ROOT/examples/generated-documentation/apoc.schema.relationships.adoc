@@ -1,5 +1,0 @@
-¦xref::overview/apoc.schema/apoc.schema.relationships.adoc[apoc.schema.relationships icon:book[]] +
-
-`CALL apoc.schema.relationships([config]) yield name, startLabel, type, endLabel, properties, status`
-¦label:procedure[]
-¦label:apoc-core[]

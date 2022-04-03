@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.zipToRows.adoc[apoc.coll.zipToRows icon:book[]] +
-
-`apoc.coll.zipToRows(list1,list2)` - creates pairs like zip but emits one row per pair
-¦label:procedure[]
-¦label:apoc-core[]

@@ -1,6 +1,0 @@
-We can remove a custom function named `double`, by running the following query:
-
-[source,cypher]
-----
-CALL apoc.custom.removeFunction("double");
-----

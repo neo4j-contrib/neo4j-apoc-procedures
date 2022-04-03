@@ -1,2 +1,0 @@
-¦signature
-¦apoc.es.stats(host :: STRING?) :: (value :: MAP?)

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.create/apoc.create.addLabels.adoc[apoc.create.addLabels icon:book[]] +
-
-`apoc.create.addLabels( [node,id,ids,nodes], ['Label',...])` - adds the given labels to the node or nodes
-¦label:procedure[]
-¦label:apoc-core[]

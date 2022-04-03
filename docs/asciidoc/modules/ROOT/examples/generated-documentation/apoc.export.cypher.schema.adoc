@@ -1,5 +1,0 @@
-¦xref::overview/apoc.export/apoc.export.cypher.schema.adoc[apoc.export.cypher.schema icon:book[]] +
-
-`apoc.export.cypher.schema(file,config)` - exports all schema indexes and constraints to cypher
-¦label:procedure[]
-¦label:apoc-core[]

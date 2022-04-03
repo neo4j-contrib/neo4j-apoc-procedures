@@ -1,5 +1,0 @@
-¦xref::overview/apoc.create/apoc.create.relationship.adoc[apoc.create.relationship icon:book[]] +
-
-`apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) create relationship with dynamic rel-type`
-¦label:procedure[]
-¦label:apoc-core[]

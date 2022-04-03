@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.elements.adoc[apoc.coll.elements icon:book[]] +
-
-`apoc.coll.elements(list,limit,offset) yield _1,_2,..,_10,_1s,_2i,_3f,_4m,_5l,_6n,_7r,_8p` - deconstruct subset of mixed list into identifiers of the correct type
-¦label:procedure[]
-¦label:apoc-core[]

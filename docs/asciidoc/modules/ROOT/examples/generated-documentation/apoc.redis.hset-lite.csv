@@ -1,2 +1,0 @@
-¦signature
-¦apoc.redis.hset(uri :: STRING?, key :: ANY?, field :: ANY?, value :: ANY?, config = {} :: MAP?) :: (value :: BOOLEAN?)

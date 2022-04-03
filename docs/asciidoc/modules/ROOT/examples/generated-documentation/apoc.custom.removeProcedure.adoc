@@ -1,5 +1,0 @@
-¦xref::overview/apoc.custom/apoc.custom.removeProcedure.adoc[apoc.custom.removeProcedure icon:book[]] +
-
-`apoc.custom.removeProcedure(name)` - remove the targeted custom procedure
-¦label:procedure[]
-¦label:apoc-full[]

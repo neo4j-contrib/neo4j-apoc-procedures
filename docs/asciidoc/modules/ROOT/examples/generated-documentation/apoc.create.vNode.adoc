@@ -1,5 +1,0 @@
-¦xref::overview/apoc.create/apoc.create.vNode.adoc[apoc.create.vNode icon:book[]] +
-
-`apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node`
-¦label:function[]
-¦label:apoc-core[]
