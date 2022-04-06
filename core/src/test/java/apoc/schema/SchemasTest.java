@@ -513,10 +513,10 @@ public class SchemasTest {
 
     @Test
     public void testAssertWithFullTextIndexes() {
-        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('fullIdxNode', ['Moon', 'Blah'], ['weightProp', 'anotherProp'])");
-        db.executeTransactionally("CALL db.index.fulltext.createRelationshipIndex('fullIdxRel', ['TYPE_1', 'TYPE_2'], ['alpha', 'beta'])");
+        db.executeTransactionally("CREATE FULLTEXT INDEX fullIdxNode FOR (n:Moon|Blah) ON EACH [n.weightProp, n.anotherProp]");
+        db.executeTransactionally("CREATE FULLTEXT INDEX fullIdxRel FOR ()-[r:TYPE_1|TYPE_2]->() ON EACH [r.alpha, r.beta]");
         // fulltext with single label, should return label field as string
-        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('fullIdxNodeSingle', ['Asd'], ['uno', 'due'])");
+        db.executeTransactionally("CREATE FULLTEXT INDEX fullIdxNodeSingle FOR (n:Asd) ON EACH [n.uno, n.due]");
         awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Bar:[['foo','bar']]}, {One:['two']}) " +
                 "YIELD label, key, keys, unique, action RETURN * ORDER BY label", (result) -> {
@@ -709,8 +709,8 @@ public class SchemasTest {
     @Test
     public void testIndexesWithMultipleLabelsAndRelTypes() {
         final String idxName = "fullIdxNode";
-        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex($idxName, ['Blah', 'Moon'], ['weightProp', 'anotherProp'])", Map.of("idxName", idxName));
-        db.executeTransactionally("CALL db.index.fulltext.createRelationshipIndex('fullIdxRel', ['TYPE_1', 'TYPE_2'], ['alpha', 'beta'])");
+        db.executeTransactionally(String.format("CREATE FULLTEXT INDEX %s FOR (n:Blah|Moon) ON EACH [n.weightProp, n.anotherProp]", idxName));
+        db.executeTransactionally("CREATE FULLTEXT INDEX fullIdxRel FOR ()-[r:TYPE_1|TYPE_2]->() ON EACH [r.alpha, r.beta]");
         awaitIndexesOnline();
         
         testCall(db, "CALL apoc.schema.nodes()", (r) -> {
