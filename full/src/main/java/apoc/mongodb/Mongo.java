@@ -1,5 +1,6 @@
 package apoc.mongodb;
 
+import apoc.Extended;
 import apoc.result.LongResult;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
@@ -21,6 +22,7 @@ import static apoc.mongodb.MongoDBUtils.Coll;
 import static apoc.mongodb.MongoDBUtils.getDocument;
 import static apoc.mongodb.MongoDBUtils.getMongoColl;
 
+@Extended
 public class Mongo {
 
     @Context

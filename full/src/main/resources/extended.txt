@@ -59,6 +59,10 @@ apoc.get.rels
 apoc.load.csv
 apoc.load.csvParams
 apoc.load.directory
+apoc.load.directory.async.add
+apoc.load.directory.async.list
+apoc.load.directory.async.remove
+apoc.load.directory.async.removeAll
 apoc.load.driver
 apoc.load.html
 apoc.load.jdbc
@@ -74,6 +78,12 @@ apoc.metrics.get
 apoc.metrics.list
 apoc.metrics.storage
 apoc.model.jdbc
+apoc.mongo.aggregate
+apoc.mongo.count
+apoc.mongo.delete
+apoc.mongo.find
+apoc.mongo.insert
+apoc.mongo.update
 apoc.mongodb.count
 apoc.mongodb.delete
 apoc.mongodb.find
@@ -139,6 +149,7 @@ apoc.static.get
 apoc.static.list
 apoc.static.set
 apoc.systemdb.execute
+apoc.systemdb.export.metadata
 apoc.systemdb.graph
 apoc.ttl.expire
 apoc.ttl.expireIn
