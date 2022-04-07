@@ -7,13 +7,13 @@ import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mortbay.util.StringMap;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -63,7 +63,7 @@ public class LoadRelativePathTest {
         Map<String, Object> row = r.next();
         Map<String, Object> map = map(data);
         List<Object> values = new ArrayList<>(map.values());
-        StringMap stringMap = new StringMap();
+        Map<String, Object> stringMap = new HashMap<>();
         stringMap.putAll(map);
         assertEquals(map, row.get("map"));
         assertEquals(values, row.get("list"));
