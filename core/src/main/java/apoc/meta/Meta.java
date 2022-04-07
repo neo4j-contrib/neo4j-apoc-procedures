@@ -442,12 +442,14 @@ public class Meta {
             }
 
             public void rel(int typeId, String typeName, long count) {
-                if (count > 0) relStats.put("()-[:" + typeName + "]->()", count);
+                if (count > 0) {
+                    relStatsCount.merge(typeName, count, Long::sum);
+                    relStats.put("()-[:" + typeName + "]->()", count);
+                }
             }
 
             public void rel(int typeId, String typeName, int labelId, String labelName, long out, long in) {
                 if (out > 0) {
-                    relStatsCount.put(typeName, relStatsCount.getOrDefault(typeName, 0L) + out);
                     relStats.put("(:" + labelName + ")-[:" + typeName + "]->()", out);
                 }
                 if (in > 0) {
