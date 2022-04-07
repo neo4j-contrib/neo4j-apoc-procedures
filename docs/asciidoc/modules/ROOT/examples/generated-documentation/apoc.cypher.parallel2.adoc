@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.cypher/apoc.cypher.parallel2.adoc[apoc.cypher.parallel2 icon:book[]] +
 
-``
+ - executes fragments in parallel batches through a list defined in `paramMap` with a key `keyList`
 ¦label:procedure[]
 ¦label:apoc-full[]
