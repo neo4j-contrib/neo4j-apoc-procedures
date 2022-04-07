@@ -877,12 +877,12 @@ apoc.cypher.mapParallel2(fragment, params, list-to-parallelize) yield value - ex
 |label:apoc-full[]
 |xref::overview/apoc.cypher/apoc.cypher.parallel.adoc[apoc.cypher.parallel icon:book[]]
 
-
+apoc.cypher.parallel(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel through a list defined in `paramMap` with a key `keyList`
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.cypher/apoc.cypher.parallel2.adoc[apoc.cypher.parallel2 icon:book[]]
 
-
+apoc.cypher.parallel2(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel batches through a list defined in `paramMap` with a key `keyList`
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.cypher/apoc.cypher.run.adoc[apoc.cypher.run icon:book[]]

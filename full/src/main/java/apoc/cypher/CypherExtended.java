@@ -18,6 +18,7 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.TerminationGuard;
+import org.parboiled.common.StringUtils;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -274,6 +275,7 @@ public class CypherExtended {
     }
 
     @Procedure
+    @Description("apoc.cypher.parallel(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel through a list defined in `paramMap` with a key `keyList`")
     public Stream<MapResult> parallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
         if (params == null) return Cypher.runCypherQuery(tx, fragment, params);
         if (key == null || !params.containsKey(key))
@@ -346,10 +348,11 @@ public class CypherExtended {
     }
 
     @Procedure
+    @Description("apoc.cypher.parallel2(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel batches through a list defined in `paramMap` with a key `keyList`")
     public Stream<MapResult> parallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
         if (params == null) return Cypher.runCypherQuery(tx, fragment, params);
-        if (key == null || !params.containsKey(key))
-            throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet());
+        if (StringUtils.isEmpty(key) || !params.containsKey(key))
+            throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet() + ". Note that parallelizeOn parameter must be not empty");
         Object value = params.get(key);
         if (!(value instanceof Collection))
             throw new RuntimeException("Can't parallelize a non collection " + key + " : " + value);
@@ -387,10 +390,7 @@ public class CypherExtended {
     }
 
     public static String withParamsAndIterator(String fragment, Collection<String> params, String iterator) {
-        boolean noIterator = iterator == null || iterator.isEmpty();
-        if (params.isEmpty() && noIterator) return fragment;
-        String with = Util.withMapping(params.stream().filter((c) -> noIterator || !c.equals(iterator)), (c) -> param(c) + " AS " + quote(c));
-        if (noIterator) return with + fragment;
+        String with = Util.withMapping(params.stream().filter((c) -> !c.equals(iterator)), (c) -> param(c) + " AS " + quote(c));
         return with + " UNWIND " + param(iterator) + " AS " + quote(iterator) + ' ' + fragment;
     }
 
