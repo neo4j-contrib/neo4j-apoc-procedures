@@ -12,3 +12,4 @@ This section includes:
 * xref::cypher-execution/cypher-multiple-statements.adoc[]
 * xref::cypher-execution/run-cypher-scripts.adoc[]
 * xref::cypher-execution/cypher-based-procedures-functions.adoc[]
+* xref::cypher-execution/parallel.adoc[]
