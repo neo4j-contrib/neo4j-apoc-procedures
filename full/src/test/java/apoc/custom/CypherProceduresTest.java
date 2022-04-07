@@ -102,6 +102,82 @@ public class CypherProceduresTest  {
     }
 
     @Test
+    public void  testDeclareFunctionReturnTypes() {
+        // given
+        db.executeTransactionally("UNWIND range(1, 4) as val CREATE (i:Target {value: val});");
+
+        // when
+        db.executeTransactionally("CALL apoc.custom.declareFunction('ret_node(val :: INTEGER) :: NODE ', 'MATCH (t:Target {value : $val}) RETURN t')");
+        db.executeTransactionally("CALL apoc.custom.declareFunction('ret_node_list(val :: INTEGER) :: LIST OF NODE ', 'MATCH (t:Target {value : $val}) RETURN [t]')");
+        db.executeTransactionally("CALL apoc.custom.declareFunction('ret_map(val :: INTEGER) :: MAP ', 'RETURN {value : $val} as value')");
+        db.executeTransactionally("CALL apoc.custom.declareFunction('ret_map_list(val :: INTEGER) :: LIST OF MAP ', 'RETURN [{value : $val}] as value')");
+
+        // then
+        TestUtil.testResult(db, "RETURN custom.ret_node(1) AS val", (result) -> {
+            Node node = result.<Node>columnAs("val").next();
+            assertTrue(node.hasLabel(Label.label("Target")));
+            assertEquals(1L, node.getProperty("value"));
+        });
+        TestUtil.testResult(db, "RETURN custom.ret_node_list(2) AS val", (result) -> {
+            List<List<Node>> nodes = result.<List<List<Node>>>columnAs("val").next();
+            assertEquals(1, nodes.size());
+            Node node = nodes.get(0).get(0);
+            assertTrue(node.hasLabel(Label.label("Target")));
+            assertEquals(2L, node.getProperty("value"));
+        });
+        TestUtil.testResult(db, "RETURN custom.ret_map(3) AS val", (result) -> {
+            Map<String, Map<String, Object>> map = result.<Map<String, Map<String, Object>>>columnAs("val").next();
+            assertEquals(1, map.size());
+            assertEquals(3L, map.get("value").get("value"));
+        });
+        TestUtil.testResult(db, "RETURN custom.ret_map_list(4) AS val", (result) -> {
+            List<Map<String, List<Map<String, Object>>>> list = result.<List<Map<String, List<Map<String, Object>>>>>columnAs("val").next();
+            assertEquals(1, list.size());
+            assertEquals(1, list.get(0).size());
+            assertEquals(4L, list.get(0).get("value").get(0).get("value"));
+        });
+    }
+
+    @Test
+    public void testRegisterFunctionReturnTypes() {
+        // given
+        db.executeTransactionally("UNWIND range(1, 4) as val CREATE (i:Target {value: val});");
+
+        // when
+        db.executeTransactionally("CALL apoc.custom.asFunction('ret_node', 'MATCH (t:Target {value : $val}) RETURN t', 'NODE', [['val', 'INTEGER']])");
+        db.executeTransactionally("CALL apoc.custom.asFunction('ret_node_list', 'MATCH (t:Target {value : $val}) RETURN t', 'LIST OF NODE', [['val', 'INTEGER']])");
+        db.executeTransactionally("CALL apoc.custom.asFunction('ret_map', 'MATCH (t:Target {value : $val}) RETURN t', 'MAP', [['val', 'INTEGER']])");
+        db.executeTransactionally("CALL apoc.custom.asFunction('ret_map_list', 'MATCH (t:Target {value : $val}) RETURN t', 'LIST OF MAP', [['val', 'INTEGER']])");
+        // then
+        TestUtil.testResult(db, "RETURN custom.ret_node(1) AS val", (result) -> {
+            Node node = result.<Node>columnAs("val").next();
+            assertTrue(node.hasLabel(Label.label("Target")));
+            assertEquals(1L, node.getProperty("value"));
+        });
+        TestUtil.testResult(db, "RETURN custom.ret_node_list(2) AS val", (result) -> {
+            List<Node> nodes = result.<List<Node>>columnAs("val").next();
+            assertEquals(1, nodes.size());
+            Node t = nodes.get(0);
+            assertTrue(t.hasLabel(Label.label("Target")));
+            assertEquals(2L, t.getProperty("value"));
+        });
+        TestUtil.testResult(db, "RETURN custom.ret_map(3) AS val", (result) -> {
+            Map<String,Node> map = result.<Map<String, Node>>columnAs("val").next();
+            assertEquals(1, map.size());
+            Node t = map.get("t");
+            assertTrue(t.hasLabel(Label.label("Target")));
+            assertEquals(3L, t.getProperty("value"));
+        });
+        TestUtil.testResult(db, "RETURN custom.ret_map_list(4) AS val", (result) -> {
+            List<Map<String, Node>> nodes = result.<List<Map<String, Node>>>columnAs("val").next();
+            assertEquals(1, nodes.size());
+            Node t = nodes.get(0).get("t");
+            assertTrue(t.hasLabel(Label.label("Target")));
+            assertEquals(4L, t.getProperty("value"));
+        });
+    }
+
+    @Test
     public void testStatementReturningNode() throws Exception {
         db.executeTransactionally("call apoc.custom.asProcedure('answer','create path=(node)-[relationship:FOO]->() return node, relationship, path','write', [['node','Node'], ['relationship','RELATIONSHIP'], ['path','PATH']], [])");
         TestUtil.testCall(db, "call custom.answer()", (row) -> {});
