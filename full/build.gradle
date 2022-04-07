@@ -78,7 +78,7 @@ dependencies {
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
 
-    testImplementation group: 'org.reflections', name: 'reflections', version: '0.9.11', { exclude group: 'com.google.guava', module: 'guava' }
+    testImplementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
 
     testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
     testImplementation group: 'org.neo4j.test', name: 'neo4j-harness', version: neo4jVersionEffective
@@ -106,11 +106,11 @@ dependencies {
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compileOnly group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
 
-    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.0'
-    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.31'
+    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.1'
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 
-    testImplementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.0'
-    testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.31'
+    testImplementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.1'
+    testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 
     testImplementation 'org.mock-server:mockserver-netty:5.6.0'
     testImplementation 'org.mock-server:mockserver-client-java:5.6.0'
