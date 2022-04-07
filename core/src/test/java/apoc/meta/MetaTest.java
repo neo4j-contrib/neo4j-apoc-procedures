@@ -1465,7 +1465,7 @@ public class MetaTest {
             assertEquals(5L, row.get("nodeCount"));
             assertEquals(4L, row.get("labelCount"));
             
-            assertEquals(map("REL", 4L, "ANOTHER", 1L), row.get("relTypesCount"));
+            assertEquals(map("REL", 2L, "ANOTHER", 1L), row.get("relTypesCount"));
             assertEquals(2L, row.get("relTypeCount"));
             assertEquals(3L, row.get("relCount"));
             Map<String, Object> expectedRelTypes = map("(:A)-[:ANOTHER]->()", 1L,
@@ -1484,7 +1484,7 @@ public class MetaTest {
             assertEquals(3L, row.get("nodeCount"));
             assertEquals(2L, row.get("labelCount"));
             
-            assertEquals(map("REL", 4L), row.get("relTypesCount"));
+            assertEquals(map("REL", 2L), row.get("relTypesCount"));
             assertEquals(1L, row.get("relTypeCount"));
             assertEquals(2L, row.get("relCount"));
             Map<String, Object> expectedRelTypes = map("()-[:REL]->(:Node)", 2L,
