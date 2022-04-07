@@ -237,4 +237,12 @@ public class CypherProceduresStorageTest {
         assertEquals("VantagePoint", resource.getLabels().iterator().next().name());
         assertEquals("beta", resource.getProperty("alpha"));
     }
+
+    @Test
+    public void testIssue1714WithRestartDb() throws Exception {
+        db.executeTransactionally("CREATE (i:Target {value: 2});");
+        db.executeTransactionally("CALL apoc.custom.asFunction('n', 'MATCH (t:Target {value : $val}) RETURN t', 'NODE', [['val', 'INTEGER']])");
+        restartDb();
+        TestUtil.testCall(db, "RETURN custom.n(2) as row", (row) -> assertEquals(2L, ((Node) row.get("row")).getProperty("value")));
+    }
 }
