@@ -90,6 +90,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.lang.model.SourceVersion;
 
+import org.neo4j.configuration.Config;
+import org.neo4j.configuration.connectors.BoltConnector;
+import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -116,6 +119,7 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties
 import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
 
 /**
@@ -700,24 +704,12 @@ public class Util {
         return with.isEmpty() ? with : " WITH "+with+" ";
     }
 
-    public static boolean isWriteableInstance(GraphDatabaseAPI db) {
-        try {
-            try {
-                Class hadb = Class.forName("org.neo4j.kernel.ha.HighlyAvailableGraphDatabase");
-                boolean isSlave = hadb.isInstance(db) && !((Boolean)hadb.getMethod("isMaster").invoke(db));
-                if (isSlave) return false;
-            } catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                /* ignore */
-            }
-
-            String role = db.executeTransactionally("CALL dbms.cluster.role($databaseName)",
-                    Collections.singletonMap("databaseName", db.databaseName()),
-                    result -> Iterators.single(result.columnAs("role")));
-            return role.equalsIgnoreCase("LEADER");
-        } catch(QueryExecutionException e) {
-            if (e.getStatusCode().equalsIgnoreCase("Neo.ClientError.Procedure.ProcedureNotFound")) return true;
-            throw e;
-        }
+    public static boolean isWriteableInstance( GraphDatabaseAPI db )
+    {
+        var socketAddress = db.getDependencyResolver().resolveDependency( Config.class ).get( BoltConnector.advertised_address ).toString();
+        String role = db.executeTransactionally( "SHOW DATABASE $databaseName WHERE address = $socketAddress",
+                Map.of( "databaseName", db.databaseName(), "socketAddress", socketAddress ), result -> Iterators.single( result.columnAs( "role" ) ) );
+        return role.equalsIgnoreCase( "LEADER" );
     }
 
     /**
@@ -837,7 +829,7 @@ public class Util {
         if ("TAB".equals(separator)) {
             return '\t';
         }
-        // "NONE" is used to resolve cases like issue #1376. 
+        // "NONE" is used to resolve cases like issue #1376.
         // That is, when I have a line like "VER: AX\GEARBOX\ASSEMBLY" and I don't want to convert it in "VER: AXGEARBOXASSEMBLY"
         if ("NONE".equals(separator)) {
             return '\0';
@@ -979,7 +971,7 @@ public class Util {
         final StringBuilder builder = formatProperties(map);
         return "{" + formatToString(builder) + "}";
     }
-    
+
     public static PointValue toPoint(Map<String, Object> pointMap, Map<String, Object> defaultPointMap) {
         double x;
         double y;
@@ -1006,7 +998,7 @@ public class Util {
 
         return z != null ? Values.pointValue(crs, x, y, z) : Values.pointValue(crs, x, y);
     }
-    
+
     private static Object getOrDefault(Map<String, Object> firstMap, Map<String, Object> secondMap, String key) {
         return firstMap.getOrDefault(key, secondMap.get(key));
     }
