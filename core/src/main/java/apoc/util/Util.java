@@ -707,9 +707,10 @@ public class Util {
     public static boolean isWriteableInstance( GraphDatabaseAPI db )
     {
         var socketAddress = db.getDependencyResolver().resolveDependency( Config.class ).get( BoltConnector.advertised_address ).toString();
-        String role = db.executeTransactionally( "SHOW DATABASE $databaseName WHERE address = $socketAddress",
+        GraphDatabaseService systemDb = db.getDependencyResolver().resolveDependency( DatabaseManagementService.class ).database( SYSTEM_DATABASE_NAME );
+        String role = systemDb.executeTransactionally( "SHOW DATABASE $databaseName WHERE address = $socketAddress",
                 Map.of( "databaseName", db.databaseName(), "socketAddress", socketAddress ), result -> Iterators.single( result.columnAs( "role" ) ) );
-        return role.equalsIgnoreCase( "LEADER" );
+        return role.equalsIgnoreCase( "LEADER" )  || role.equalsIgnoreCase( "standalone" );
     }
 
     /**
