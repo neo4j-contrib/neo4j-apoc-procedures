@@ -1,7 +1,0 @@
-apoc.ApocConfigExtensionFactory
-apoc.TTLConfigExtensionFactory
-apoc.ApocExtensionFactory
-apoc.PoolExtensionFactory
-apoc.RegisterComponentFactory
-apoc.ApocExtendedInitFactory
-apoc.TTLConfigExtensionFactory
