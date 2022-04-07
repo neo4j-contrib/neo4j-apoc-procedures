@@ -35,13 +35,13 @@ we can execute parallel statements through (:Person) nodes with this procedure:
 [source,cypher]
 ----
 MATCH (p:Person) WITH collect(p) as people
-CALL apoc.cypher.parallel('RETURN a.name + t as title', {a: people, t: $suffix}, 'a')
+CALL apoc.cypher.parallel('RETURN a.name + t as title', {a: people, t: ' - suffix'}, 'a')
 YIELD value RETURN value.title as title
 ----
 
 In the above query, we passed a map as a second parameter and a string from the previous map as a third parameter.
 The value with key 'a' will be the the list to cycle in parallel.
-Note that it is not needed to pass parameter in `$suffix` because, under the hood, the procedure will prepend them in the query WITH  $`parameterName` as `parameterName`. So in this case, WITH  $`a` as `a`,  $`t` as `t`.
+Note that it is not needed to pass `a` and `t` as query parameters (that is `$a` and `$t`) because, under the hood, the procedure will prepend them in the query WITH  $`parameterName` as `parameterName`. So in this case, WITH  $`a` as `a`,  $`t` as `t`.
 
 In this example, we execute multiple queries in parallel `WITH  $a as a, $t as t RETURN a.name + t as title`,
 where `a` is one of the (:Person) nodes included in `people` list.
