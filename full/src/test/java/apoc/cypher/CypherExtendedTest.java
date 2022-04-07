@@ -19,6 +19,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
@@ -65,9 +68,36 @@ public class CypherExtendedTest {
     }
 
     @Test
+    public void testParallelWithParamListInQuery() {
+        int numPeople = 9999;
+        db.executeTransactionally("UNWIND range(0, $numPeople) as idx CREATE (:Person {name: idx})", 
+                map("numPeople", numPeople));
+        
+        final String suffix = " - suffix";
+        final Set<String> expected = IntStream.rangeClosed(0, numPeople).boxed()
+                .map(i -> i + suffix)
+                .collect(Collectors.toSet());
+        testResult(db, "MATCH (p:Person) WITH collect(p) as people \n" +
+                        "CALL apoc.cypher.parallel2('RETURN a.name + $t as title', {a: people, t: $suffix}, 'a')\n" +
+                        " YIELD value RETURN value.title as title", map("suffix", suffix),
+                r -> {
+                    final Set<String> actual = Iterators.asSet(r.columnAs("title"));
+                    assertEquals(expected, actual);
+                });
+        
+        testResult(db, "MATCH (p:Person) WITH collect(p) as people \n" +
+                "CALL apoc.cypher.parallel('RETURN a.name + $t as title',{a: people, t: $suffix},'a')\n" +
+                        " yield value RETURN value.title as title", map("suffix", suffix),
+                r -> {
+                    final Set<String> actual = Iterators.asSet(r.columnAs("title"));
+                    assertEquals(expected, actual);
+                });
+    }
+
+    @Test
     public void testParallel() throws Exception {
         int size = 10_000;
-        testResult(db, "CALL apoc.cypher.parallel2('UNWIND range(0,9) as b RETURN b',{a:range(1,$size)},'a')", map("size", size),
+        testResult(db, "CALL apoc.cypher.parallel('UNWIND range(0,9) as b RETURN b',{a:range(1,$size)},'a')", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
 
