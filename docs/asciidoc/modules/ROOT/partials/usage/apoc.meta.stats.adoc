@@ -41,4 +41,4 @@ CALL apoc.meta.stats();
 |===
 
 
-Note that the `relTypesCount` field return, for each relationship type, the `MATCH ()-[r:RELATIONSHIP_TYPE]->() RETURN count(r)`.
+Note that the `relTypesCount` field returns a count equal to `MATCH ()-[r:RELATIONSHIP_TYPE]->() RETURN count(r)` for each relationship type (unique relationships versus unique patterns).
