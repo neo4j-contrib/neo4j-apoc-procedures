@@ -29,7 +29,7 @@ The following sorts a collection of nodes by the `name` property in ascending or
 ----
 MATCH (person:Person)
 WITH collect(person) AS people
-RETURN apoc.coll.sortNodes(people, 'name') AS output;
+RETURN apoc.coll.sortNodes(people, '^name') AS output;
 ----
 
 .Results
