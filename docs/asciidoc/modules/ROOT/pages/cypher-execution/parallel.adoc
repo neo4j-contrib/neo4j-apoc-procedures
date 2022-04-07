@@ -20,3 +20,82 @@ include::example$generated-documentation/apoc.cypher.parallel2.adoc[]
 include::example$generated-documentation/apoc.cypher.mapParallel.adoc[]
 include::example$generated-documentation/apoc.cypher.mapParallel2.adoc[]
 |===
+
+=== apoc.cypher.parallel
+
+Given this dataset:
+
+[source,cypher]
+----
+UNWIND range(0, 9999) as idx CREATE (:Person {name: toString(idx)})
+----
+
+we can execute parallel statements through (:Person) nodes with this procedure:
+
+[source,cypher]
+----
+MATCH (p:Person) WITH collect(p) as people
+CALL apoc.cypher.parallel('RETURN a.name + t as title', {a: people, t: ' - suffix'}, 'a')
+YIELD value RETURN value.title as title
+----
+
+In the above query, we passed a map as a second parameter and a string from the previous map as a third parameter.
+The value with key 'a' will be the list to cycle in parallel.
+Note that it is not needed to pass `a` and `t` as query parameters (that is `$a` and `$t`) because, under the hood, the procedure will prepend them in the query WITH  $`parameterName` as `parameterName`. So in this case, WITH  $`a` as `a`,  $`t` as `t`.
+
+In this example, we execute multiple queries in parallel `WITH  $a as a, $t as t RETURN a.name + t as title`,
+where `a` is one of the (:Person) nodes included in `people` list.
+
+The result of the procedure is:
+
+.Result
+[opts="header"]
+|===
+| title
+| "0 - suffix"
+| "1 - suffix"
+| "2 - suffix"
+| "3 - suffix"
+| "4 - suffix"
+| ...
+| ...
+| ...
+| ...
+|===
+
+=== apoc.cypher.parallel2
+
+This procedure is similar to `apoc.cypher.parallel2`, but works differently under the hood (see below).
+With the previous dataset, we can execute:
+
+[source,cypher]
+----
+MATCH (p:Person) WITH collect(p) as people
+CALL apoc.cypher.parallel('RETURN a.name + t as title', {a: people, t: $suffix}, 'a')
+YIELD value RETURN value.title as title
+----
+
+The result of the procedure is:
+
+
+.Result
+[opts="header"]
+|===
+| title
+| "0 - suffix"
+| "1 - suffix"
+| "2 - suffix"
+| "3 - suffix"
+| "4 - suffix"
+| ...
+| ...
+| ...
+| ...
+|===
+
+The `parallel` put the collection to parallelize - in this case, `people` in a `java.util.parallelStream()` - and then executed multiple queries like this: `WITH $a as a, $t as t RETURN a.name + t as title`.
+
+In the `parallel2` transformation example, the `fragment` parameter first split the collection `people` into batchSizes of `total / partitions`,
+where partitions are `100 * number of processors available to the JVM` (or 1 if total / partitions < 1). Then, it created a `java.util.concurrent.Future` for each batch, where each Future executed a query like this: `WITH $t AS t UNWIND $a AS a RETURN a.name + $t as title` (where `$a` is the current batch of `people`). Finally, it computed the futures.
+
+Generally, the `apoc.cypher.parallel2` procedure is more recommended than the `apoc.cypher.parallel`.
