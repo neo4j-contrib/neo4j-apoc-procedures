@@ -3,6 +3,7 @@ package apoc.util.s3;
 import apoc.util.Util;
 import com.amazonaws.regions.Regions;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
@@ -15,9 +16,15 @@ public class S3ParamsExtractor {
     private static final String SESSION_TOKEN = "sessionToken";
 
     public static S3Params extract(URL url) throws  IllegalArgumentException {
+        return extract(url.toString());
+    }
 
-        if (!PROTOCOL.equals(url.getProtocol())) {
-            throw new IllegalArgumentException("Unsupported protocol '" + url.getProtocol() + "'");
+    public static S3Params extract(String url) throws  IllegalArgumentException {
+
+        URI uri = URI.create(url);
+
+        if (!PROTOCOL.equals(uri.getScheme())) {
+            throw new IllegalArgumentException("Unsupported protocol '" + uri.getScheme() + "'");
         }
 
         //aws credentials
@@ -25,8 +32,8 @@ public class S3ParamsExtractor {
         String secretKey = null;
         String sessionToken = null;
 
-        if (url.getUserInfo() != null) {
-            String[] credentials = url.getUserInfo().split(":");
+        if (uri.getUserInfo() != null) {
+            String[] credentials = uri.getUserInfo().split(":");
             if (credentials.length > 1) {
                 accessKey = credentials[0];
                 secretKey = credentials[1];
@@ -36,7 +43,7 @@ public class S3ParamsExtractor {
             }
             // User info part cannot contain session token.
         } else {
-            Map<String, String> params = Util.getRequestParameter(url.getQuery());
+            Map<String, String> params = Util.getRequestParameter(uri.getQuery());
             if(Objects.nonNull(params)) {
                 if(params.containsKey(ACCESS_KEY)){accessKey = params.get(ACCESS_KEY);}
                 if(params.containsKey(SECRET_KEY)){secretKey = params.get(SECRET_KEY);}
@@ -45,17 +52,17 @@ public class S3ParamsExtractor {
         }
 
         // endpoint
-        String endpoint = url.getHost();
+        String endpoint = uri.getHost();
 
-        Integer slashIndex = url.getPath().lastIndexOf("/");
+        Integer slashIndex = uri.getPath().indexOf("/", 1);
         String key;
         String bucket ;
 
         if(slashIndex > 0){
             // key
-            key = url.getPath().substring(slashIndex + 1);
+            key = uri.getPath().substring(slashIndex + 1);
             // bucket
-            bucket = url.getPath().substring(1, slashIndex);
+            bucket = uri.getPath().substring(1, slashIndex);
         }
         else{
             throw new IllegalArgumentException("Invalid url. Must be:\n's3://accessKey:secretKey@endpoint:port/bucket/key' or\n's3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey'");
@@ -87,8 +94,8 @@ public class S3ParamsExtractor {
             }
         }
 
-        if (url.getPort() != 80 && url.getPort() != 443 && url.getPort() > 0) {
-            endpoint += ":" + url.getPort();
+        if (uri.getPort() != 80 && uri.getPort() != 443 && uri.getPort() > 0) {
+            endpoint += ":" + uri.getPort();
         }
 
         if (Objects.nonNull(endpoint) && endpoint.isEmpty()) {
