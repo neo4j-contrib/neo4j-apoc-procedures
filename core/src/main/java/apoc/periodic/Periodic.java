@@ -207,7 +207,7 @@ public class Periodic {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.repeat('name',statement,rateOrTime, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.")
+    @Description("apoc.periodic.repeat('name',statement, rateOrTime, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.")
     public Stream<JobInfo> repeat(@Name("name") String name, @Name("statement") String statement, @Name("rateOrTime") Object rateOrTime, @Name(value = "config", defaultValue = "{}") Map<String,Object> config ) {
 
         validateQuery(statement);
