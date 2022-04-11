@@ -68,7 +68,7 @@ public class TriggerClusterTest {
     @Ignore
     @Test
     public void testLowerCaseName() throws Exception {
-        cluster.getSession().run("create constraint on (p:Person) assert p.id is unique");
+        cluster.getSession().run("CREATE CONSTRAINT FOR (p:Person) REQUIRE p.id is unique");
         cluster.getSession().run("CALL apoc.trigger.add('lowercase','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n.id = toLower(n.name)',{})");
         cluster.getSession().run("CREATE (f:Person {name:'John Doe'})");
         TestContainerUtil.testCall(cluster.getSession(), "MATCH (f:Person) RETURN f", (row) -> {
