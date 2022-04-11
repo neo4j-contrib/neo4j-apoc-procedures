@@ -395,8 +395,8 @@ public class SchemasEnterpriseFeaturesTest {
     @Test
     public void testSchemaNodeWithRelationshipsConstraintsAndViceVersa() {
         session.writeTransaction(tx -> {
-            tx.run("CREATE CONSTRAINT rel_cons IF NOT EXISTS ON ()-[like:LIKED]-() ASSERT exists(like.day)");
-            tx.run("CREATE CONSTRAINT node_cons IF NOT EXISTS ON (bar:Bar) ASSERT exists(bar.foobar)");
+            tx.run("CREATE CONSTRAINT rel_cons IF NOT EXISTS FOR ()-[like:LIKED]-() REQUIRE like.day IS NOT NULL");
+            tx.run("CREATE CONSTRAINT node_cons IF NOT EXISTS FOR (bar:Bar) REQUIRE bar.foobar IS NOT NULL");
             tx.commit();
             return null;
         });
