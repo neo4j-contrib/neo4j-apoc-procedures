@@ -108,8 +108,8 @@ TriggerExtended {
     }
     
     @UserFunction
-    @Description("apoc.trigger.rebuildNode(node, $removedLabels, $removedNodeProperties) | function to rebuild a node as a virtual, to be used in triggers with a not 'afterAsync' phase")
-    public Node rebuildNode(@Name("id") Node node, @Name("removedLabels") Map<String, List<Node>> removedLabels, @Name("removedNodeProperties") Map<String, List<Map>> removedNodeProperties) {
+    @Description("apoc.trigger.toNode(node, $removedLabels, $removedNodeProperties) | function to rebuild a node as a virtual, to be used in triggers with a not 'afterAsync' phase")
+    public Node toNode(@Name("id") Node node, @Name("removedLabels") Map<String, List<Node>> removedLabels, @Name("removedNodeProperties") Map<String, List<Map>> removedNodeProperties) {
 
         final long id = node.getId();
         final Label[] labels = removedLabels.entrySet().stream()
@@ -130,8 +130,8 @@ TriggerExtended {
     }
     
     @UserFunction
-    @Description("apoc.trigger.rebuildRelationship(rel, $removedRelationshipProperties) | function to rebuild a relationship as a virtual, to be used in triggers with a not 'afterAsync' phase")
-    public Relationship rebuildRelationship(@Name("id") Relationship rel, @Name("removedRelationshipProperties") Map<String, List<Map>> removedRelationshipProperties) {
+    @Description("apoc.trigger.toRelationship(rel, $removedRelationshipProperties) | function to rebuild a relationship as a virtual, to be used in triggers with a not 'afterAsync' phase")
+    public Relationship toRelationship(@Name("id") Relationship rel, @Name("removedRelationshipProperties") Map<String, List<Map>> removedRelationshipProperties) {
         final Map<String, Object> props = removedRelationshipProperties.entrySet().stream()
                 .map(i -> i.getValue().stream()
                         .filter(l -> ((Relationship) l.get("relationship")).getId() == rel.getId())

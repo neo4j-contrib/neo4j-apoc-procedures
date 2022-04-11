@@ -61,8 +61,8 @@ You can use these helper functions to extract nodes or relationships by label/re
 |===
 | apoc.trigger.nodesByLabel($assignedLabels/$assignedNodeProperties,'Label') | function to filter entries by label, to be used within a trigger statement with `$assignedLabels` and `$removedLabels`
 | apoc.trigger.propertiesByKey($assignedNodeProperties,'key') | function to filter propertyEntries by property-key, to be used within a trigger statement with $assignedNode/RelationshipProperties and $removedNode/RelationshipProperties. Returns [{old,[new],key,node,relationship}]
-| apoc.trigger.rebuildNode(node, $removedLabels, $removedNodeProperties) | function to rebuild a node as a virtual, to be used in triggers with a not 'afterAsync' phase
-| apoc.trigger.rebuildRelationship(rel, $removedRelationshipProperties) | function to rebuild a relationship as a virtual, to be used in triggers with a not 'afterAsync' phase
+| apoc.trigger.toNode(node, $removedLabels, $removedNodeProperties) | function to rebuild a node as a virtual, to be used in triggers with a not 'afterAsync' phase
+| apoc.trigger.toRelationship(rel, $removedRelationshipProperties) | function to rebuild a relationship as a virtual, to be used in triggers with a not 'afterAsync' phase
 |===
 
 
@@ -324,7 +324,7 @@ If we to create a 'before' or 'after' trigger query, with `$deletedRelationships
 and then we want to retrieve entities information like labels and/or properties,
 we cannot use the 'classic' cypher functions `labels()` and `properties()`,
 but we can leverage on xref::virtual/virtual-nodes-rels.adoc[virtual nodes and relationships],
-via the functions `apoc.trigger.rebuildNode(node, $removedLabels, $removedNodeProperties)` and `apoc.trigger.rebuildRelationship(rel, $removedRelationshipProperties)`.
+via the functions `apoc.trigger.toNode(node, $removedLabels, $removedNodeProperties)` and `apoc.trigger.toRelationship(rel, $removedRelationshipProperties)`.
 
 So that, we can retrieve information about nodes and relations, 
 using the `apoc.any.properties`, and the `apoc.node.labels` functions.
@@ -335,7 +335,7 @@ For example, if we want to create a new node with the same properties (plus the 
 ----
 CALL apoc.trigger.add('myTrigger', 
 "UNWIND $deletedNodes as deletedNode 
-WITH apoc.trigger.rebuildNode(deletedNode, $removedLabels, $removedNodeProperties) AS deletedNode 
+WITH apoc.trigger.toNode(deletedNode, $removedLabels, $removedNodeProperties) AS deletedNode 
 CREATE (r:Report {id: id(deletedNode)}) WITH r, deletedNode 
 CALL apoc.create.addLabels(r, apoc.node.labels(deletedNode)) yield node with node, deletedNode 
 set node+=apoc.any.properties(deletedNode)" ,
@@ -348,7 +348,7 @@ Or also, if we want to  create a node `Report` with the same properties (plus th
 ----
 CALL apoc.trigger.add('myTrigger', 
 "UNWIND $deletedRelationships as deletedRel 
-WITH apoc.trigger.rebuildRelationship(deletedRel, $removedRelationshipProperties) AS deletedRel 
+WITH apoc.trigger.toRelationship(deletedRel, $removedRelationshipProperties) AS deletedRel 
 CREATE (r:Report {id: id(deletedRel), type: apoc.rel.type(deletedRel)}) 
 WITH r, deletedRelset r+=apoc.any.properties(deletedRel)" ,
 {phase:'before'})
@@ -356,7 +356,7 @@ WITH r, deletedRelset r+=apoc.any.properties(deletedRel)" ,
 
 [NOTE]
 ====
-By using phase 'afterAsync', we don't need to execute `apoc.trigger.rebuildNode` and `apoc.trigger.rebuildRelationship`,
+By using phase 'afterAsync', we don't need to execute `apoc.trigger.toNode` and `apoc.trigger.toRelationship`,
 because using this one, the rebuild of entities is executed automatically under the hood.
 ====
 

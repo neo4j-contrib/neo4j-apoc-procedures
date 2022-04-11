@@ -99,7 +99,7 @@ public class TriggerExtendedTest {
     private void testIssue1152Common(String phase) {
         // we check also that we can execute write operation (through virtualNode functions, e.g. apoc.create.addLabels)
         final String query = "UNWIND $deletedNodes as deletedNode " +
-                "WITH apoc.trigger.rebuildNode(deletedNode, $removedLabels, $removedNodeProperties) AS deletedNode " +
+                "WITH apoc.trigger.toNode(deletedNode, $removedLabels, $removedNodeProperties) AS deletedNode " +
                 "CREATE (r:Report {id: id(deletedNode)}) WITH r, deletedNode " +
                 "CALL apoc.create.addLabels(r, apoc.node.labels(deletedNode)) yield node with node, deletedNode " +
                 "set node+=apoc.any.properties(deletedNode)";
@@ -121,7 +121,7 @@ public class TriggerExtendedTest {
         db.executeTransactionally("CREATE (s:Start)-[r:MY_TYPE {prop1: 'val1', prop2: 'val2'}]->(e:End), (s)-[:REMAINING_REL]->(e)");
         
         final String query = "UNWIND $deletedRelationships as deletedRel " +
-                "WITH apoc.trigger.rebuildRelationship(deletedRel, $removedRelationshipProperties) AS deletedRel " +
+                "WITH apoc.trigger.toRelationship(deletedRel, $removedRelationshipProperties) AS deletedRel " +
                 "MATCH (s)-[r:REMAINING_REL]->(e) WITH r, deletedRel " +
                 "set r+=apoc.any.properties(deletedRel), r.type= type(deletedRel)";
 
@@ -135,7 +135,7 @@ public class TriggerExtendedTest {
         db.executeTransactionally("CREATE (:Start)-[r:MY_TYPE {prop1: 'val1', prop2: 'val2'}]->(:End)");
         
         final String query = "UNWIND $deletedRelationships as deletedRel " +
-                "WITH apoc.trigger.rebuildRelationship(deletedRel, $removedRelationshipProperties) AS deletedRel " +
+                "WITH apoc.trigger.toRelationship(deletedRel, $removedRelationshipProperties) AS deletedRel " +
                 "CREATE (r:Report {type: type(deletedRel)}) WITH r, deletedRel " +
                 "set r+=apoc.any.properties(deletedRel)";
 
