@@ -89,19 +89,19 @@ public class CypherExtended {
         return runFiles(fileNames, config, parameters, schemaOperation);
     }
 
+    // This runs the files sequentially
     private Stream<RowResult> runFiles(List<String> fileNames, Map<String, Object> config, Map<String, Object> parameters, boolean schemaOperation) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",10));
         int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
-        List<Stream<RowResult>> result = new ArrayList<>();
-        for (final String fileName : fileNames) {
+        var result = fileNames.stream().flatMap(fileName -> {
             final Reader reader = readerForFile(fileName);
             final Scanner scanner = createScannerFor(reader);
-            final Stream<RowResult> stream = runManyStatements(scanner, parameters, schemaOperation, addStatistics, timeout, queueCapacity)
+            return runManyStatements(scanner, parameters, schemaOperation, addStatistics, timeout, queueCapacity)
                     .onClose(() -> Util.close(scanner, (e) -> log.info("Cannot close the scanner for file " + fileName + " because the following exception", e)));
-            result.add(stream);
-        }
-        return result.stream().reduce(Stream::concat).orElse(Stream.empty());
+        });
+
+        return result;
     }
 
     @Procedure(mode=Mode.SCHEMA)
