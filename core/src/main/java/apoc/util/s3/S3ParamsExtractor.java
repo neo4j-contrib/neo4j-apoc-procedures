@@ -15,11 +15,11 @@ public class S3ParamsExtractor {
     private static final String SECRET_KEY = "secretKey";
     private static final String SESSION_TOKEN = "sessionToken";
 
-    public static S3Params extract(URL url) throws  IllegalArgumentException {
+    public static S3Params extract(URL url) throws IllegalArgumentException {
         return extract(url.toString());
     }
 
-    public static S3Params extract(String url) throws  IllegalArgumentException {
+    public static S3Params extract(String url) throws IllegalArgumentException {
 
         URI uri = URI.create(url);
 
