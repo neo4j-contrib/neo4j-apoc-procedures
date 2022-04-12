@@ -9,18 +9,13 @@ import org.junit.Test;
 import org.neo4j.driver.Session;
 
 import java.io.File;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.*;
-import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.TestUtil.readFileToString;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
 
 /**
  * @author as
@@ -35,23 +30,14 @@ public class ExportCypherEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isRunningInCI());
-        TestUtil.ignoreException(() -> {
-            // We build the project, the artifact will be placed into ./build/libs
-            neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
-                    .withInitScript("init_neo4j_export_csv.cypher");
-            neo4jContainer.start();
-        }, Exception.class);
-        assumeNotNull(neo4jContainer);
-        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+        neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI()).withInitScript("init_neo4j_export_csv.cypher");
+        neo4jContainer.start();
         session = neo4jContainer.getSession();
     }
 
     @AfterClass
     public static void afterAll() {
-        if (neo4jContainer != null && neo4jContainer.isRunning()) {
-            neo4jContainer.close();
-        }
+        neo4jContainer.close();
     }
 
     private static void beforeTwoLabelsWithOneCompoundConstraintEach() {
@@ -87,7 +73,7 @@ public class ExportCypherEnterpriseFeaturesTest {
         String fileName = "testCypherShellWithCompoundConstraint.cypher";
         testCall(session, "CALL apoc.export.cypher.all($file, $config)",
                 map("file", fileName, "config", Util.map("format", "cypher-shell")), (r) -> {
-                    assertExportStatement(EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT, r, fileName);
+                    assertExportStatement(EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT, fileName);
                 });
     }
 
@@ -96,7 +82,7 @@ public class ExportCypherEnterpriseFeaturesTest {
         String fileName = "testPlainFormatWithCompoundConstraint.cypher";
         testCall(session, "CALL apoc.export.cypher.all($file, $config)",
                 map("file", fileName, "config", Util.map("format", "plain")),
-                (r) -> assertExportStatement(EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT, r, fileName));
+                (r) -> assertExportStatement(EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT, fileName));
     }
 
     @Test
@@ -104,7 +90,7 @@ public class ExportCypherEnterpriseFeaturesTest {
         String fileName = "testNeo4jShellWithCompoundConstraint.cypher";
         testCall(session, "CALL apoc.export.cypher.all($file, $config)",
                 map("file", fileName, "config", Util.map("format", "neo4j-shell")),
-                (r) -> assertExportStatement(EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT, r, fileName));
+                (r) -> assertExportStatement(EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT, fileName));
     }
 
     @Test
@@ -141,7 +127,7 @@ public class ExportCypherEnterpriseFeaturesTest {
         }
     }
 
-    private void assertExportStatement(String expectedStatement, Map<String, Object> result, String fileName) {
-        assertEquals(expectedStatement, isRunningInCI() ? result.get("cypherStatements") : readFileToString(new File(directory, fileName)));
+    private void assertExportStatement(String expectedStatement, String fileName) {
+        assertEquals(expectedStatement, readFileToString(new File(directory, fileName)));
     }
 }
