@@ -289,7 +289,11 @@ public class CypherTest {
 
     @Test
     public void testRunFilesMultiple() throws Exception {
-        testResult(db, "CALL apoc.cypher.runFiles(['src/test/resources/create.cypher', 'src/test/resources/create_delete.cypher'])",
+        // The execution of both these files should happen sequentially
+        // There was a bug in the 4.x versions at some point that made
+        // both executions to interleave and at some point we were
+        // seeing nodesDeleted = 4
+        testResult(db, "CALL apoc.cypher.runFiles(['src/test/resources/create_with_sleep.cypher', 'src/test/resources/create_delete_with_sleep.cypher'])",
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(row.get("row"),((Map)row.get("result")).get("id"));
