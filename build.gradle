@@ -21,7 +21,7 @@ allprojects {
 }
 
 apply plugin: 'java-library'
-if (System.getenv("CI") == "true")
+if (System.env.CI != null)
     apply from: 'teamcity-repository.gradle'
 
 repositories {
@@ -79,9 +79,16 @@ subprojects {
         forkEvery = 50
         maxParallelForks = 1 //Runtime.runtime.availableProcessors().intdiv(2) + 1
 
+        // This would apply only to GitHub Actions
         if (System.env.CI != null) {
             minHeapSize = "128m"
             maxHeapSize = "512m"
+        }
+
+        // This would apply only to TeamCity
+        // We need to ignore the failures because we may have tests muted
+        if (System.env.TEAMCITY_VERSION != null) {
+            ignoreFailures(true)
         }
 
         jvmArgs = [ "--add-opens", "java.base/java.lang=ALL-UNNAMED",
@@ -126,7 +133,7 @@ ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
     neo4jVersion = "5.0.0"
     // This should be removed when the version is stable and released
-    neo4jInDevVersion = (System.getenv("CI") == "true") ? neo4jVersion + "-dev" : neo4jVersion + "-SNAPSHOT"
+    neo4jInDevVersion = (System.env.CI != null) ? neo4jVersion + "-dev" : neo4jVersion + "-SNAPSHOT"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jInDevVersion
     testContainersVersion = '1.16.2'
