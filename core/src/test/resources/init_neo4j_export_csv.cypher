@@ -1,4 +1,4 @@
-CREATE CONSTRAINT FOR (t:Person) REQUIRE (t.name, t.surname) IS NODE KEY;
+CREATE CONSTRAINT PersonRequiresNamesConstraint FOR (t:Person) REQUIRE (t.name, t.surname) IS NODE KEY;
 
 CREATE (a:Person {name: 'John', surname: 'Snow'})
 CREATE (b:Person {name: 'Matt', surname: 'Jackson'})

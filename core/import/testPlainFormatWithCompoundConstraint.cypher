@@ -1,4 +1,4 @@
-CREATE CONSTRAINT FOR (node:Person) REQUIRE (node.name, node.surname) IS NODE KEY;
+CREATE CONSTRAINT PersonRequiresNamesConstraint FOR (node:Person) REQUIRE (node.name, node.surname) IS NODE KEY;
 UNWIND [{surname:"Snow", name:"John", properties:{}}, {surname:"Jackson", name:"Matt", properties:{}}, {surname:"White", name:"Jenny", properties:{}}, {surname:"Brown", name:"Susan", properties:{}}, {surname:"Taylor", name:"Tom", properties:{}}] AS row
 CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;
 UNWIND [{start: {name:"John", surname:"Snow"}, end: {name:"Matt", surname:"Jackson"}, properties:{}}] AS row
