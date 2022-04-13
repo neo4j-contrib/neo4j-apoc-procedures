@@ -6,25 +6,36 @@
   "addresses": [
     {
       "address": "21 rue Paul Bellamy 44000 NANTES FRANCE",
-      "latitude": 47.2221667,
-      "longitude": -1.5566624
+      "osm": {
+        "latitude": 47.2221667,
+        "longitude": -1.5566624
+      }
     },
     {
       "address": "12 Rue Cubain 49000 Angers France",
-      "latitude": 47.4607430,
-      "longitude": -0.5453014
+      "osm": {
+        "latitude": 47.4607430,
+        "longitude": -0.5453014
+      }
     },
     {
       "_comment": "Test for unicode characters",
       "address": "Rämistrasse 71 8006 Zürich Switzerland",
-      "latitude": 47.37457,
-      "longitude": 8.54875
+      "osm": {
+        "latitude": 47.37457,
+        "longitude": 8.54875
+      },
+      "opencage": {
+        "latitude": 47.00016,
+        "longitude": 8.01427
+      }
     },
     {
       "address": "FRANCE",
       "count": {
         "google": 1,
-        "osm": 10
+        "osm": 10,
+        "opencage": 10
       }
     },
     {
