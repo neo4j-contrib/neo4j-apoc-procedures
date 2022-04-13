@@ -58,6 +58,12 @@ The version compatibility matrix explains the mapping between Neo4j and APOC ver
 
 // end::version-matrix[]
 
+If by mistake a jar not compatible with the neo4j version is inserted, a `log.warn` like this will appear in `neo4j.log`:
+```
+The apoc version (<APOC_VERSION>) and the Neo4j DBMS versions [NEO4J_VERSION] are incompatible. 
+See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to see the correct version
+```
+
 [[docker]]
 == Docker
 
