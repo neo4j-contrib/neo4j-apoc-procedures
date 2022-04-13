@@ -25,9 +25,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static apoc.export.json.ImportJsonConfig.WILDCARD_PROPS;
 
 public class JsonImporter implements Closeable {
     private static final String UNWIND = "UNWIND $rows AS row ";
@@ -68,18 +71,33 @@ public class JsonImporter implements Closeable {
 
         manageEntityType(type);
 
+        final List<String> labels;
+        final Map<String, List<String>> propFilter;
         switch (type) {
             case "node":
                 manageNode(param);
+                labels = lastLabels;
+                propFilter = importJsonConfig.getNodePropFilter();
                 break;
             case "relationship":
                 manageRelationship(param);
+                labels = Collections.singletonList((String) lastRelTypes.get("label"));
+                propFilter = importJsonConfig.getRelPropFilter();
                 break;
             default:
                 throw new IllegalArgumentException("Current type not supported: " + type);
         }
 
         final Map<String, Object> properties = (Map<String, Object>) param.getOrDefault("properties", Collections.emptyMap());
+
+        final List<String> defaultProps = propFilter.getOrDefault(WILDCARD_PROPS, Collections.emptyList());
+        
+        properties.keySet()
+                .removeIf(name -> {
+                    final Predicate<String> nameInPropFilter = (i) -> propFilter.getOrDefault(i, defaultProps).contains(name);
+                    return labels.stream().anyMatch(nameInPropFilter);
+                });
+
         updateReporter(type, properties);
         param.put("properties", convertProperties(type, properties, null));
 
