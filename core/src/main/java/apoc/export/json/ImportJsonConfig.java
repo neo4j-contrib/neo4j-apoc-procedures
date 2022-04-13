@@ -6,9 +6,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class ImportJsonConfig extends CompressionConfig {
+    public static final String WILDCARD_PROPS = "_all";
+    private final Map<String, List<String>> nodePropFilter;
+    private final Map<String, List<String>> relPropFilter;
 
     private final Map<String, Map<String, String>> nodePropertyMappings;
     private final Map<String, Map<String, String>> relPropertyMappings;
@@ -29,6 +33,8 @@ public class ImportJsonConfig extends CompressionConfig {
         this.txBatchSize = Util.toInteger(config.getOrDefault("txBatchSize", 5000));
         this.importIdName = (String) config.getOrDefault("importIdName", "neo4jImportId");
         this.cleanup = Util.toBoolean(config.get("cleanup"));
+        this.nodePropFilter = (Map<String, List<String>>) config.getOrDefault("nodePropFilter", Collections.emptyMap());
+        this.relPropFilter = (Map<String, List<String>>) config.getOrDefault("relPropFilter", Collections.emptyMap());
     }
 
     public String typeForNode(Collection<String> labels, String property) {
@@ -57,5 +63,13 @@ public class ImportJsonConfig extends CompressionConfig {
 
     public boolean isCleanup() {
         return cleanup;
+    }
+
+    public Map<String, List<String>> getNodePropFilter() {
+        return nodePropFilter;
+    }
+
+    public Map<String, List<String>> getRelPropFilter() {
+        return relPropFilter;
     }
 }
