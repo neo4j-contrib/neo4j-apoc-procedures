@@ -24,7 +24,7 @@ jobs:
         with:
           pr_branch: ${{ matrix.target-branch.name }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.NEO4J_OSS_BUILD_GH_TOKEN }}
           #          GITBOT_EMAIL: <BOT_EMAIL>
           DRY_RUN: false
       - name: Add commit-id to comment in case the previous step fails
