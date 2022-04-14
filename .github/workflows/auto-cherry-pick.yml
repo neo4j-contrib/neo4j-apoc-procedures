@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v1
+        with:
+          token: ${{ secrets.NEO4J_OSS_BUILD_GH_TOKEN }}
       - name: Create PR to branch ${{ matrix.target-branch.name }}
         uses: conker84/github-action-cherry-pick@0.1.1
         with:
