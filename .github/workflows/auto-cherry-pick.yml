@@ -16,6 +16,8 @@ jobs:
     name: cherry-pick
     if: github.event.pull_request.merged == true
     steps:
+      - name: Avoids safe directory check
+        run: git config --global --add safe.directory /github/workspace
       - name: checkout
         uses: actions/checkout@v1
       - name: Create PR to branch ${{ matrix.target-branch.name }}
