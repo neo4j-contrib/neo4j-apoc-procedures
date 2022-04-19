@@ -12,7 +12,8 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterable;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.traversal.BranchState;
-import org.neo4j.internal.helpers.collection.AbstractResourceIterable;
+import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.NestingResourceIterator;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.helpers.collection.ResourceClosingIterator;
@@ -80,36 +81,34 @@ public class RelationshipSequenceExpander implements PathExpander {
     @Override
     public ResourceIterable<Relationship> expand( Path path, BranchState state ) {
         final Node node = path.endNode();
-        int depth = path.length();
-        List<Pair<RelationshipType, Direction>> stepRels;
+        final int depth = path.length();
+        final List<Pair<RelationshipType, Direction>> stepRels;
 
         if (depth == 0 && initialRels != null) {
             stepRels = initialRels;
         } else {
             stepRels = relSequences.get((initialRels == null ? depth : depth - 1) % relSequences.size());
         }
-
-        return new AbstractResourceIterable<>() {
+        
+        return Iterables.asResourceIterable(Iterators.asList(new NestingResourceIterator<>(stepRels.iterator()) {
             @Override
-            protected ResourceIterator<Relationship> newIterator() {
-                return new NestingResourceIterator<>(stepRels.iterator()) {
-                    @Override
-                    protected ResourceIterator<Relationship> createNestedIterator( Pair<RelationshipType, Direction> entry ) {
-                        RelationshipType type = entry.first();
-                        Direction dir = entry.other();
+            protected ResourceIterator<Relationship> createNestedIterator( Pair<RelationshipType,Direction> entry ) {
+                RelationshipType type = entry.first();
+                Direction dir = entry.other();
 
-                        ResourceIterable<Relationship> relationships;
-                        if (type == null) {
-                            relationships = (dir == Direction.BOTH) ? node.getRelationships() : node.getRelationships(dir);
-                        } else {
-                            relationships = (dir == Direction.BOTH) ? node.getRelationships(type) : node.getRelationships(dir, type);
-                        }
+                ResourceIterable<Relationship> relationships1;
+                if ( type == null )
+                {
+                    relationships1 = (dir == Direction.BOTH) ? node.getRelationships() : node.getRelationships( dir );
+                }
+                else
+                {
+                    relationships1 = (dir == Direction.BOTH) ? node.getRelationships( type ) : node.getRelationships( dir, type );
+                }
 
-                        return ResourceClosingIterator.fromResourceIterable(relationships);
-                    }
-                };
+                return ResourceClosingIterator.fromResourceIterable( relationships1 );
             }
-        };
+        }));
     }
 
     @Override
@@ -117,3 +116,4 @@ public class RelationshipSequenceExpander implements PathExpander {
         throw new RuntimeException("Not implemented");
     }
 }
+
