@@ -44,8 +44,8 @@ public class ExportCypherTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath())
-            .withSetting(newBuilder( "unsupported.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
-            .withSetting(newBuilder( "unsupported.dbms.debug.trace_cursors", BOOL, false ).build(), false);
+            .withSetting(newBuilder( "internal.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
+            .withSetting(newBuilder( "internal.dbms.debug.trace_cursors", BOOL, false ).build(), false);
 
     @Rule
     public TestName testName = new TestName();

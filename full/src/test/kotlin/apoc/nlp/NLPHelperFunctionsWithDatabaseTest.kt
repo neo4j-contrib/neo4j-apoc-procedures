@@ -17,8 +17,8 @@ class NLPHelperFunctionsWithDatabaseTest {
         @ClassRule
         @JvmField
         val neo4j = ImpermanentDbmsRule()
-                .withSetting(SettingImpl.newBuilder( "unsupported.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
-                .withSetting(SettingImpl.newBuilder( "unsupported.dbms.debug.trace_cursors", BOOL, false ).build(), false)
+                .withSetting(SettingImpl.newBuilder( "internal.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
+                .withSetting(SettingImpl.newBuilder( "internal.dbms.debug.trace_cursors", BOOL, false ).build(), false)
     }
 
     @Test

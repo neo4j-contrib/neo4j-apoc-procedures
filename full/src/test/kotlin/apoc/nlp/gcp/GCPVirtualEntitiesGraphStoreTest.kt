@@ -22,8 +22,8 @@ class GCPVirtualEntitiesGraphStoreTest {
         @ClassRule
         @JvmField
         val neo4j = ImpermanentDbmsRule()
-                .withSetting(SettingImpl.newBuilder("unsupported.dbms.debug.track_cursor_close", SettingValueParsers.BOOL, false).build(), false)
-                .withSetting(SettingImpl.newBuilder("unsupported.dbms.debug.trace_cursors", SettingValueParsers.BOOL, false).build(), false)
+                .withSetting(SettingImpl.newBuilder("internal.dbms.debug.track_cursor_close", SettingValueParsers.BOOL, false).build(), false)
+                .withSetting(SettingImpl.newBuilder("internal.dbms.debug.trace_cursors", SettingValueParsers.BOOL, false).build(), false)
     }
 
     @Test
