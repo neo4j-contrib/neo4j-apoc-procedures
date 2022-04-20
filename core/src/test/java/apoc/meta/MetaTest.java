@@ -64,8 +64,8 @@ public class MetaTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.procedure_unrestricted, singletonList("apoc.*"))
-            .withSetting(newBuilder( "unsupported.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
-            .withSetting(newBuilder( "unsupported.dbms.debug.trace_cursors", BOOL, false ).build(), false);
+            .withSetting(newBuilder( "internal.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
+            .withSetting(newBuilder( "internal.dbms.debug.trace_cursors", BOOL, false ).build(), false);
 
     @Before
     public void setUp() throws Exception {

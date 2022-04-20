@@ -25,8 +25,8 @@ class AWSVirtualEntitiesGraphStoreTest {
         @ClassRule
         @JvmField
         val neo4j = ImpermanentDbmsRule()
-                .withSetting(newBuilder( "unsupported.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
-                .withSetting(newBuilder( "unsupported.dbms.debug.trace_cursors", BOOL, false ).build(), false)
+                .withSetting(newBuilder( "internal.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
+                .withSetting(newBuilder( "internal.dbms.debug.trace_cursors", BOOL, false ).build(), false)
 
     }
 
