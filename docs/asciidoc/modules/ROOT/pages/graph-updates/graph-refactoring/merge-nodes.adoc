@@ -47,7 +47,11 @@ In addition, mergeNodes supports the following config properties:
 | singleElementAsArray | false/true: if is `false` (default) and `type` is `combine` in case the merge of two arrays is a new array with size 1 it extracts the single value.
 |===
 
-Relationships properties are managed with the same nodes' method, if properties parameter isn't set relationships properties are combined.
+If properties parameter is a map, properties with a name not included in parameter map are overridden.
+
+Relationships properties are managed with the same nodes' method,
+except when the properties parameter is null, in this case entity properties are combined.
+
 
 //If relationships have same start and end nodes will be merged into one, and properties managed by the properties config.
 //If relationships have different start/end nodes (related to direction), relationships will be maintained and properties will be combine in all relationship.
