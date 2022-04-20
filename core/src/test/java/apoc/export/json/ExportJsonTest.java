@@ -33,6 +33,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static apoc.export.json.JsonFormat.Format;
 
 public class ExportJsonTest {
 
@@ -76,7 +77,7 @@ public class ExportJsonTest {
         TestUtil.testCall(db, "CALL apoc.export.json.all($file, $config)", params,
                 (r) -> assertResults(filename, r, "database")
         );
-        
+
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
 
         TestUtil.testCall(db, "CALL apoc.import.json($file, $config) ", params,
@@ -88,17 +89,17 @@ public class ExportJsonTest {
             assertEquals(12L, first.getProperty("age"));
             assertFalse(first.hasProperty("name"));
             assertEquals(List.of(Label.label("User")), first.getLabels());
-            
+
             final Node second = iterator.next();
             assertEquals(42L, second.getProperty("age"));
             assertEquals("Adam", second.getProperty("name"));
             assertEquals(List.of(Label.label("User")), second.getLabels());
-            
+
             final Node third = iterator.next();
             assertEquals(42L, third.getProperty("age"));
             assertEquals("Jim", third.getProperty("name"));
             assertEquals(List.of(Label.label("User")), third.getLabels());
-            
+
             assertFalse(iterator.hasNext());
         });
 
@@ -140,6 +141,23 @@ public class ExportJsonTest {
                     assertStreamEquals(filename, r.get("data").toString());
                 }
         );
+    }
+
+    @Test
+    public void testExportAllJsonStreamWithFormatConfig() {
+        Map.of(Format.JSON_LINES.name(), "all.json",
+                Format.JSON.name(), "all_fields.json",
+                Format.ARRAY_JSON.name(), "all_array.json",
+                Format.JSON_ID_AS_KEYS.name(), "all_id_as_keys.json").forEach((jsonFormat, fileName) -> {
+
+            TestUtil.testCall(db, "CALL apoc.export.json.all(null, $config)",
+                    map("config", map("jsonFormat", jsonFormat, "stream", true)),
+                    (r) -> {
+                        assertStreamResults(r, "database");
+                        assertStreamEquals(fileName, r.get("data").toString());
+                    }
+            );
+        });
     }
 
     @Test
@@ -225,7 +243,7 @@ public class ExportJsonTest {
         assertEquals(filename, r.get("file"));
         assertEquals("json", r.get("format"));
     }
-    
+
     @Test
     public void testExportListRel() throws Exception {
         String filename = "listRel.json";
@@ -512,7 +530,7 @@ public class ExportJsonTest {
         assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
     }
 
-    private void assertStreamEquals(String fileName, String actualText) { 
+    private void assertStreamEquals(String fileName, String actualText) {
         String expectedText = TestUtil.readFileToString(new File(directoryExpected, fileName));
         String[] actualArray = actualText.split("\n");
         String[] expectArray = expectedText.split("\n");
