@@ -61,14 +61,22 @@ This is what the legacy traversal framework does.
 [[expand-subgraph-nodes-relationship-filters]]
 === Relationship Filters
 
-The syntax for relationship filters is described below:
+Relationship Filters are a comma-separated sequence of filters. Individual filters are one or more patterns separated by |.
+
+The simplest Relationship Filters have only one filter that is applied to every relationship traversed. We'll discuss the behaviour of longer sequences later. 
+
+The syntax for individual relationship filters is described below:
 
 include::partial$relationship-filter.adoc[]
 
 [[expand-subgraph-nodes-label-filters]]
 === Label Filters
 
-The syntax for label filters is described below:
+Label Filters are a comma-separated sequence of filters. Individual filters are one or more patterns separated by |.
+
+The simplest Label Filters have only one filter that is applied to every node visited. We'll discuss the behaviour of longer sequences later. 
+
+The syntax for individual label filters is described below:
 
 include::partial$label-filter.adoc[]
 
