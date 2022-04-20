@@ -75,24 +75,6 @@ public class PathFinding {
     public Transaction tx;
 
     @Procedure
-    @Description("apoc.algo.aStarWithPoint(startNode, endNode, 'relTypesAndDirs', 'distance','pointProp') - " +
-            "equivalent to apoc.algo.aStar but accept a Point type as a pointProperty instead of Number types as latitude and longitude properties")
-    public Stream<WeightedPathResult> aStarWithPoint(
-            @Name("startNode") Node startNode,
-            @Name("endNode") Node endNode,
-            @Name("relationshipTypesAndDirections") String relTypesAndDirs,
-            @Name("weightPropertyName") String weightPropertyName,
-            @Name("pointPropertyName") String pointPropertyName) {
-
-        PathFinder<WeightedPath> algo = GraphAlgoFactory.aStar(
-                new BasicEvaluationContext(tx, db),
-                buildPathExpander(relTypesAndDirs),
-                CommonEvaluators.doubleCostEvaluator(weightPropertyName),
-                new GeoEstimateEvaluatorPointCustom(pointPropertyName));
-        return WeightedPathResult.streamWeightedPathResult(startNode, endNode, algo);
-    }
-
-    @Procedure
     @Description("apoc.algo.aStar(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 'distance','lat','lon') " +
             "YIELD path, weight - run A* with relationship property name as cost function")
     public Stream<WeightedPathResult> aStar(
@@ -198,7 +180,7 @@ public class PathFinding {
         return WeightedPathResult.streamWeightedPathResult(startNode, endNode, algo);
     }
 
-    private PathExpander<Double> buildPathExpander(String relationshipsAndDirections) {
+    public static PathExpander<Double> buildPathExpander(String relationshipsAndDirections) {
         PathExpanderBuilder builder = PathExpanderBuilder.empty();
         for (Pair<RelationshipType, Direction> pair : RelationshipTypeAndDirections
                 .parse(relationshipsAndDirections)) {
