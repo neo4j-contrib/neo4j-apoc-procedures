@@ -2,6 +2,7 @@ package apoc.refactor.util;
 
 import apoc.util.ArrayBackedList;
 import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.Relationship;
 
 import java.lang.reflect.Array;
 import java.util.LinkedHashSet;
@@ -20,7 +21,7 @@ public class PropertiesManager {
     public static void mergeProperties(Map<String, Object> properties, Entity target, RefactorConfig refactorConfig) {
         for (Map.Entry<String, Object> prop : properties.entrySet()) {
             String key = prop.getKey();
-            String mergeMode = refactorConfig.getMergeMode(key);
+            String mergeMode = refactorConfig.getMergeMode(key, target instanceof Relationship);
             mergeProperty(target, refactorConfig, prop, key, mergeMode);
         }
     }
