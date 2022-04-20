@@ -1,7 +1,6 @@
 package apoc.schema;
 
 import apoc.util.Neo4jContainerExtension;
-import apoc.util.TestUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -18,14 +17,10 @@ import java.util.stream.Collectors;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testResult;
-import static apoc.util.TestUtil.isRunningInCI;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
 
 /**
  * @author as
@@ -38,23 +33,15 @@ public class SchemasEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isRunningInCI());
-        TestUtil.ignoreException(() -> {
-            // We build the project, the artifact will be placed into ./build/libs
-            neo4jContainer = createEnterpriseDB(true);
-            neo4jContainer.start();
-        }, Exception.class);
-        assumeNotNull(neo4jContainer);
-        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+        neo4jContainer = createEnterpriseDB(true);
+        neo4jContainer.start();
         session = neo4jContainer.getSession();
     }
 
     @AfterClass
     public static void afterAll() {
-        if (neo4jContainer != null && neo4jContainer.isRunning()) {
-            session.close();
-            neo4jContainer.close();
-        }
+        session.close();
+        neo4jContainer.close();
     }
 
     // coherently with SchemasTest we remove all indexes/constraints before (e.g. to get rid of lookup indexes)
@@ -401,7 +388,7 @@ public class SchemasEnterpriseFeaturesTest {
             tx.commit();
             return null;
         });
-        
+
         testResult(session, "CALL apoc.schema.relationships()", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("CONSTRAINT ON ()-[liked:LIKED]-() ASSERT (liked.day) IS NOT NULL", r.get("name"));
