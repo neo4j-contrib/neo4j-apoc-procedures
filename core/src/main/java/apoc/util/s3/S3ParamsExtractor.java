@@ -51,8 +51,14 @@ public class S3ParamsExtractor {
             }
         }
 
-        // endpoint
-        String endpoint = uri.getHost();
+        // We have to use the getAuthority here instead of getHost, because addresses
+        // like us-east-1.127.0.0.1:55220 would return null for the later one.
+        // The downside is we have to clean the credentials preceding the @ if they are there,
+        // which .getHost would not return
+        String endpoint = uri.getAuthority();
+        int atIndex = endpoint.indexOf( "@" );
+        if (atIndex != -1)
+            endpoint = endpoint.substring( atIndex + 1 );
 
         Integer slashIndex = uri.getPath().indexOf("/", 1);
         String key;
@@ -94,8 +100,8 @@ public class S3ParamsExtractor {
             }
         }
 
-        if (uri.getPort() != 80 && uri.getPort() != 443 && uri.getPort() > 0) {
-            endpoint += ":" + uri.getPort();
+        if (endpoint != null) {
+            endpoint = endpoint.replaceAll( ":443", "").replaceAll( ":80", "" );
         }
 
         if (Objects.nonNull(endpoint) && endpoint.isEmpty()) {
