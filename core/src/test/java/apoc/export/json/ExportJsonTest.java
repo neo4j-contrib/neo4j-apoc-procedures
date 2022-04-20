@@ -17,6 +17,7 @@ import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.*;
+import static apoc.export.json.JsonFormat.Format;
 
 public class ExportJsonTest {
 
@@ -87,6 +88,23 @@ public class ExportJsonTest {
                     assertStreamEquals(filename, r.get("data").toString());
                 }
         );
+    }
+
+    @Test
+    public void testExportAllJsonStreamWithFormatConfig() {
+        Map.of(Format.JSON_LINES.name(), "all.json", 
+                Format.JSON.name(), "all_fields.json",
+                Format.ARRAY_JSON.name(), "all_array.json",
+                Format.JSON_ID_AS_KEYS.name(), "all_id_as_keys.json").forEach((jsonFormat, fileName) -> {
+
+            TestUtil.testCall(db, "CALL apoc.export.json.all(null, $config)",
+                    map("config", map("jsonFormat", jsonFormat, "stream", true)),
+                    (r) -> {
+                        assertStreamResults(r, "database");
+                        assertStreamEquals(fileName, r.get("data").toString());
+                    }
+            );   
+        });
     }
 
     @Test
