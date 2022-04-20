@@ -1,7 +1,6 @@
 package apoc.schema;
 
 import apoc.util.Neo4jContainerExtension;
-import apoc.util.TestUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -18,15 +17,11 @@ import java.util.stream.Collectors;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testResult;
-import static apoc.util.TestUtil.isRunningInCI;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
 
 /**
  * @author as
@@ -39,23 +34,15 @@ public class SchemasEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isRunningInCI());
-        TestUtil.ignoreException(() -> {
-            // We build the project, the artifact will be placed into ./build/libs
-            neo4jContainer = createEnterpriseDB(true);
-            neo4jContainer.start();
-        }, Exception.class);
-        assumeNotNull(neo4jContainer);
-        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+        neo4jContainer = createEnterpriseDB(true);
+        neo4jContainer.start();
         session = neo4jContainer.getSession();
     }
 
     @AfterClass
     public static void afterAll() {
-        if (neo4jContainer != null && neo4jContainer.isRunning()) {
-            session.close();
-            neo4jContainer.close();
-        }
+        session.close();
+        neo4jContainer.close();
     }
 
     // coherently with SchemasTest we remove all indexes/constraints before (e.g. to get rid of lookup indexes)
@@ -395,8 +382,8 @@ public class SchemasEnterpriseFeaturesTest {
     @Test
     public void testSchemaNodeWithRelationshipsConstraintsAndViceVersa() {
         session.writeTransaction(tx -> {
-            tx.run("CREATE CONSTRAINT rel_cons IF NOT EXISTS ON ()-[like:LIKED]-() ASSERT exists(like.day)");
-            tx.run("CREATE CONSTRAINT node_cons IF NOT EXISTS ON (bar:Bar) ASSERT exists(bar.foobar)");
+            tx.run("CREATE CONSTRAINT rel_cons IF NOT EXISTS FOR ()-[like:LIKED]-() REQUIRE like.day IS NOT NULL");
+            tx.run("CREATE CONSTRAINT node_cons IF NOT EXISTS FOR (bar:Bar) REQUIRE bar.foobar IS NOT NULL");
             tx.commit();
             return null;
         });
