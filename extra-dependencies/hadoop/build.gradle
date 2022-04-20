@@ -1,0 +1,42 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '4.0.3'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+archivesBaseName = 'apoc-hadoop-dependencies'
+description = """APOC Apache Hadoop Dependencies"""
+
+jar {
+    manifest {
+        attributes 'Implementation-Version': version
+    }
+}
+
+/*
+we use mergeServiceFiles() to exclude commons classes like org.apache.hadoop.fs.FileSystem, 
+coming from both hadoop-hdfs-client and hadoop-common
+alternatively, we have to set into HdfsConfiguration
+conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
+conf.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem");
+*/
+shadowJar {
+    mergeServiceFiles()
+}
+
+def commonExclusions = {
+    exclude group: 'io.netty'
+    exclude group: 'com.sun.jersey'
+}
+
+dependencies {
+    compile group: 'org.apache.hadoop', name: 'hadoop-hdfs-client', version: '3.3.1', commonExclusions
+    compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.1', commonExclusions
+}
+
+
+
+

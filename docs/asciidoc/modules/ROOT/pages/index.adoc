@@ -37,6 +37,7 @@ The guide covers the following areas:
 * xref::operational/index.adoc[] -- A detailed guide to operational procedures.
 * xref::misc/index.adoc[] -- A detailed guide to miscellaneous procedures and functions, including map and collection functions, text functions, and spatial functionality.
 * xref::indexes/index.adoc[] -- A detailed guide to indexing procedures.
+* xref::algorithms/index.adoc[] -- A detailed guide to Graph Algorithms.
 
 //include::introduction/index.adoc[]
 //
@@ -83,6 +84,16 @@ The guide covers the following areas:
 //include::misc/index.adoc[]
 //
 //include::indexes/index.adoc[]
+//
+//include::algorithms/index.adoc[]
+
+////
+[[algorithms]]
+[[similarity]]
+[[community-detection]]
+[[pagerank]]
+[[centrality]]
+////
 
 ////
 == Performance Tests

@@ -20,11 +20,11 @@ jobs:
       - name: checkout
         uses: actions/checkout@v1
       - name: Create PR to branch ${{ matrix.target-branch.name }}
-        uses: conker84/github-action-cherry-pick@0.1.1
+        uses: conker84/github-action-cherry-pick@0.1.2
         with:
           pr_branch: ${{ matrix.target-branch.name }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.NEO4J_OSS_BUILD_GH_TOKEN }}
           #          GITBOT_EMAIL: <BOT_EMAIL>
           DRY_RUN: false
       - name: Add commit-id to comment in case the previous step fails
