@@ -1021,6 +1021,57 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
     }
 
     @Test
+    public void shouldAlwaysOverrideNodePropsIfNotSetAndCombineRelPropsIfPropertyIsNull() {
+        // test case from https://trello.com/c/7yO7mniS/924-s2cast-softwareapocrefactormergenodes-is-not-producing-desired-output
+        final String query = "CREATE (n1:Test:Obj {Name:1})\n" +
+                "CREATE (n2:Test:Obj {Name:2})\n" +
+                "CREATE (t:Test:Tran {Name:'t'})\n" +
+                "MERGE (t)-[:Contains {isReduced:true}]->(n1)\n" +
+                "MERGE (t)-[:Contains {isReduced:false, onlyForn2:true}]->(n2)\n" +
+                "WITH collect(n1) + collect(n2) AS nodes\n" +
+                "CALL apoc.refactor.mergeNodes(nodes, $config)\n" +
+                "YIELD node WITH node\n" +
+                "MATCH (node)-[r]-(t:Test:Tran) RETURN node, collect(r) AS rels";
+        
+        testCall(db, query, map("config", map()), r -> {
+            assertOverrideNode(r);
+            final List<Relationship> rels = (List<Relationship>) r.get("rels");
+            assertEquals(2, rels.size());
+        });
+        
+        testCall(db, query, map("config", 
+                map("mergeRels", true, "produceSelfRel", false, "properties", null)
+        ), r -> {
+            assertOverrideNode(r);
+            final List<Relationship> rels = (List<Relationship>) r.get("rels");
+            assertEquals(1, rels.size());
+            assertArrayEquals(new boolean[] {true, false}, (boolean[]) rels.get(0).getProperty("isReduced"));
+        });
+
+        testCall(db, query, map("config", 
+                map("properties", map())
+        ), r -> {
+            assertOverrideNode(r);
+            final List<Relationship> rels = (List<Relationship>) r.get("rels");
+            assertEquals(2, rels.size());
+        });
+
+        testCall(db, query, map("config", 
+                map("mergeRels", true, "properties", map())
+        ), r -> {
+            assertOverrideNode(r);
+            final List<Relationship> rels = (List<Relationship>) r.get("rels");
+            assertEquals(1, rels.size());
+            assertEquals(false, rels.get(0).getProperty("isReduced"));
+        });
+    }
+
+    private void assertOverrideNode(Map<String, Object> r) {
+        final Node node = (Node) r.get("node");
+        assertEquals(2L, node.getProperty("Name"));
+    }
+
+    @Test
     public void testMergeNodeShouldNotCreateSelfRelationshipsAndCancelThePreExistingSelfRelAfterMerge() {
         db.executeTransactionally("CREATE (a:TestNode {a:'a'})-[:TEST_REL]->(b:TestNode {a:'b'})-[:TEST_REL]->(c:TestNode {a:'c'})\n" +
                 "WITH a, c CREATE (a)-[:TEST_REL {prop: 'one'}]->(a), (a)-[:TEST_REL {prop: 'two'}]->(a) WITH c CREATE (c)-[:TEST_REL]->(c);");

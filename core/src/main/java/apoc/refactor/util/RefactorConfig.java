@@ -37,7 +37,9 @@ public class RefactorConfig {
 	private final RelationshipSelectionStrategy relationshipSelectionStrategy;
 
 	public RefactorConfig(Map<String,Object> config) {
-
+		if (config == null) {
+			config = Collections.emptyMap();
+		}
 		this.mergeRelsAllowed = toBoolean(config.get("mergeRels"));
 		this.mergeVirtualRels = toBoolean(config.getOrDefault("mergeRelsVirtual", true));
 		this.selfRel = toBoolean(config.get("selfRel"));
@@ -56,12 +58,14 @@ public class RefactorConfig {
 			this.propertiesManagement = Collections.singletonMap(MATCH_ALL, value.toString());
 		} else if (value instanceof Map) {
 			this.propertiesManagement = (Map<String,String>)value;
-		} else if (mergeRelsAllowed && !hasProperties) {
-			this.propertiesManagement = Collections.singletonMap(MATCH_ALL, COMBINE);
 		}
 	}
 
-	public String getMergeMode(String name){
+	public String getMergeMode(String name, boolean isRel) {
+		// coherently with https://github.com/neo4j-contrib/neo4j-apoc-procedures/pull/1051
+		if (!hasProperties && isRel) {
+			return COMBINE;
+		}
 		for (String key : propertiesManagement.keySet()) {
 			if (!key.equals(MATCH_ALL) && name.matches(key)) {
 				return propertiesManagement.get(key);
