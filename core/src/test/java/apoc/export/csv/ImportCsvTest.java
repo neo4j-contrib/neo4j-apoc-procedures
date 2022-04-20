@@ -102,6 +102,11 @@ public class ImportCsvTest {
                             ":ID(MultiType-ID)|date1:datetime{timezone:Europe/Stockholm}|date2:datetime|foo:string|joined:date|active:boolean|points:int\n" +
                             "1|2018-05-10T10:30|2018-05-10T12:30|Joe Soap|2017-05-05|true|10\n" +
                             "2|2018-05-10T10:30[Europe/Berlin]|2018-05-10T12:30[Europe/Berlin]|Jane Doe|2017-08-21|true|15\n"),
+                    new AbstractMap.SimpleEntry<>("emptyDate",
+                            "id:ID,:LABEL,str:STRING,int:INT,date:DATE\n" +
+                                    "1,Lab,hello,1,2020-01-01\n" +
+                                    "2,Lab,world,2,2020-01-01\n" +
+                                    "3,Lab,,,\n"),
                     new AbstractMap.SimpleEntry<>("relMultiTypes",
                             ":START_ID(MultiType-ID)|:END_ID(MultiType-ID)|prop1:IGNORE|prop2:time{timezone:+02:00}[]|foo:int|time:duration[]|baz:localdatetime[]|bar:localtime[]\n" +
                             "1|2|a|15:30|1|P14DT16H12M|2020-01-01T00:00:00|11:00:00\n" +
@@ -429,6 +434,26 @@ public class ImportCsvTest {
 
         Assert.assertEquals("John Jane", TestUtil.singleResultFirstColumn(db, "MATCH (p1:Person)-[:FRIENDS_WITH]->(p2:Person) RETURN p1.name + ' ' + p2.name AS pair ORDER BY pair"));
         Assert.assertEquals("Jane John", TestUtil.singleResultFirstColumn(db, "MATCH (p1:Person)-[:KNOWS]->(p2:Person) RETURN p1.name + ' ' + p2.name AS pair ORDER BY pair"));
+    }
+
+    @Test
+    public void testEmptyDate() {
+        TestUtil.testCall(db, "CALL apoc.import.csv([{fileName: 'file:/emptyDate.csv', labels: ['Entity']}], [], {date: {nullValues: ['']}})",
+                r -> assertEquals(3L, r.get("nodes")));
+
+        TestUtil.testResult(db, "MATCH (node:Entity:Lab) RETURN node ORDER BY node.id", r -> {
+            final Node firstNode = (Node) r.next().get("node");
+            final Map<String, Object> expectedFirstNode = Map.of("date", LocalDate.of(2020, 1, 1),
+                    "int", 1L, "id", "1", "str", "hello");
+            assertEquals(expectedFirstNode, firstNode.getAllProperties());
+            final Node secondNode = (Node) r.next().get("node");
+            final Map<String, Object> expectedSecondNode = Map.of("date", LocalDate.of(2020, 1, 1), 
+                    "int", 2L, "id", "2", "str", "world");
+            assertEquals(expectedSecondNode, secondNode.getAllProperties());
+            final Node thirdNode = (Node) r.next().get("node");
+            assertEquals(Map.of("str", "", "id", "3"), thirdNode.getAllProperties());
+            assertFalse(r.hasNext());
+        });
     }
     
     @Test
