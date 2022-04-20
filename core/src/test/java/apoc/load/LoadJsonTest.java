@@ -120,7 +120,7 @@ public class LoadJsonTest {
                                                            (r) -> {}
                                             )
             );
-            assertTrue(e.getMessage().contains("access to /127.168.0.0 is blocked via the configuration property unsupported.dbms.cypher_ip_blocklist"));
+            assertTrue(e.getMessage().contains("access to /127.168.0.0 is blocked via the configuration property internal.dbms.cypher_ip_blocklist"));
         }
     }
     @Test public void testLoadMultiJsonPaths() throws Exception {
