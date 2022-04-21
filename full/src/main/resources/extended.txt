@@ -1,3 +1,4 @@
+apoc.algo.aStarWithPoint
 apoc.bolt.execute
 apoc.bolt.load
 apoc.bolt.load.fromLocal
