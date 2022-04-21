@@ -1,22 +1,14 @@
 package apoc.path;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.PathExpander;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.ResourceIterable;
-import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.BranchState;
-import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.internal.helpers.collection.NestingResourceIterator;
+import org.neo4j.internal.helpers.collection.NestingIterator;
 import org.neo4j.internal.helpers.collection.Pair;
-import org.neo4j.internal.helpers.collection.ResourceClosingIterator;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * An expander for repeating sequences of relationships. The sequence provided should be a string consisting of
@@ -30,9 +22,9 @@ import org.neo4j.internal.helpers.collection.ResourceClosingIterator;
  * The remaining relationship steps will be used as the repeating relationship sequence.
  */
 public class RelationshipSequenceExpander implements PathExpander {
-
     private final List<List<Pair<RelationshipType, Direction>>> relSequences = new ArrayList<>();
     private List<Pair<RelationshipType, Direction>> initialRels = null;
+
 
     public RelationshipSequenceExpander(String relSequenceString, boolean beginSequenceAtStart) {
         int index = 0;
@@ -79,36 +71,36 @@ public class RelationshipSequenceExpander implements PathExpander {
     }
 
     @Override
-    public ResourceIterable<Relationship> expand( Path path, BranchState state ) {
+    public Iterable<Relationship> expand( Path path, BranchState state ) {
         final Node node = path.endNode();
-        final int depth = path.length();
-        final List<Pair<RelationshipType, Direction>> stepRels;
+        int depth = path.length();
+        List<Pair<RelationshipType, Direction>> stepRels;
 
         if (depth == 0 && initialRels != null) {
             stepRels = initialRels;
         } else {
             stepRels = relSequences.get((initialRels == null ? depth : depth - 1) % relSequences.size());
         }
-        
-        return Iterables.asResourceIterable(Iterators.asList(new NestingResourceIterator<>(stepRels.iterator()) {
+
+        return Iterators.asList(
+         new NestingIterator<Relationship, Pair<RelationshipType, Direction>>(
+                stepRels.iterator() )
+        {
             @Override
-            protected ResourceIterator<Relationship> createNestedIterator( Pair<RelationshipType,Direction> entry ) {
+            protected Iterator<Relationship> createNestedIterator(
+                    Pair<RelationshipType, Direction> entry )
+            {
                 RelationshipType type = entry.first();
                 Direction dir = entry.other();
-
-                ResourceIterable<Relationship> relationships1;
-                if ( type == null )
-                {
-                    relationships1 = (dir == Direction.BOTH) ? node.getRelationships() : node.getRelationships( dir );
+                if (type != null) {
+                    return ((dir == Direction.BOTH) ? node.getRelationships(type) :
+                            node.getRelationships(dir, type)).iterator();
+                } else {
+                    return ((dir == Direction.BOTH) ? node.getRelationships() :
+                            node.getRelationships(dir)).iterator();
                 }
-                else
-                {
-                    relationships1 = (dir == Direction.BOTH) ? node.getRelationships( type ) : node.getRelationships( dir, type );
-                }
-
-                return ResourceClosingIterator.fromResourceIterable( relationships1 );
             }
-        }));
+        });
     }
 
     @Override
@@ -116,4 +108,3 @@ public class RelationshipSequenceExpander implements PathExpander {
         throw new RuntimeException("Not implemented");
     }
 }
-
