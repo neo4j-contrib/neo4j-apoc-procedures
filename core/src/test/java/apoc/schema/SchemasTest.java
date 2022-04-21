@@ -545,18 +545,6 @@ public class SchemasTest {
         testResult(db, "CALL apoc.schema.assert({Bar:[['foo','bar']]}, {One:['two']}) " +
                 "YIELD label, key, keys, unique, action RETURN * ORDER BY label", (result) -> {
             Map<String, Object> r = result.next();
-            assertEquals(expectedKeys("Moon", "Blah"), r.get("label"));
-            assertEquals(expectedKeys("weightProp", "anotherProp"), r.get("keys"));
-            assertEquals(false, r.get("unique"));
-            assertEquals("DROPPED", r.get("action"));
-
-            r = result.next();
-            assertEquals(expectedKeys("TYPE_1", "TYPE_2"), r.get("label"));
-            assertEquals(expectedKeys("alpha", "beta"), r.get("keys"));
-            assertEquals(false, r.get("unique"));
-            assertEquals("DROPPED", r.get("action"));
-
-            r = result.next();
             assertEquals("Asd", r.get("label"));
             assertEquals(expectedKeys("uno", "due"), r.get("keys"));
             assertEquals(false, r.get("unique"));
@@ -577,7 +565,7 @@ public class SchemasTest {
         });
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
-            assertEquals(2, indexes.size());
+            assertEquals(4, indexes.size());
             List<ConstraintDefinition> constraints = Iterables.asList(tx.schema().getConstraints());
             assertEquals(1, constraints.size());
         }
