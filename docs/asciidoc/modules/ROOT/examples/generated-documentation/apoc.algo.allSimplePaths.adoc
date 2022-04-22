@@ -1,0 +1,5 @@
+¦xref::overview/apoc.algo/apoc.algo.allSimplePaths.adoc[apoc.algo.allSimplePaths icon:book[]] +
+
+ - run allSimplePaths with relationships given and maxNodes
+¦label:procedure[]
+¦label:apoc-core[]

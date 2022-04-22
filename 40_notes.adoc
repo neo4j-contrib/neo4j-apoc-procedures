@@ -8,7 +8,7 @@ All freetext/fulltext stuff has been removed in favour of 3.5+ productized fullt
 apoc.index.relatedNodes (index feature ootb)
 apoc.index.orderedRange (index feature ootb)
 
-apoc.algo.* (use separate graph algo package instead)
+apoc.algo.* (use separate graph algo apackage instead)
 
 apoc.static.get (proc deleted, function exists)
 apoc.static.getAll (proc deleted, function exists)
