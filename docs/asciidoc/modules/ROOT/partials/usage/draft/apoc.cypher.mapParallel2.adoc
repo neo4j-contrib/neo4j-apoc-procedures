@@ -29,12 +29,12 @@ CALL {
     MERGE (minute:Minute {id:hour.id + duration({minutes: minuteOfHour})})
     SET minute.minuteOfHour = minuteOfHour
     MERGE (hour)-[:MINUTE]->(minute)
-    RETURN count(*)
+    RETURN count(*) AS count
   }
 
-  RETURN count(*) AS count
+  RETURN count AS count2
 }
-RETURN day, count;
+RETURN day, count2;
 
 CALL apoc.periodic.iterate(
   "MATCH (m:Minute) RETURN m",
