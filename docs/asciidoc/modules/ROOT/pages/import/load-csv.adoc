@@ -117,7 +117,7 @@ RETURN *;
 
 == Transaction Batching
 
-To handle large files, `USING PERIODIC COMMIT` can be prepended to `LOAD CSV`, you'll have to watch  out though for *Eager* operations which might break that behavior.
+To handle large files, `CALL ... IN TRANSACTIONS` can be used together with `LOAD CSV`, you'll have to watch  out though for *Eager* operations which might break that behavior.
 
 In apoc you can combine any data source with `apoc.periodic.iterate` to achieve the same.
 
