@@ -48,7 +48,7 @@ public class TestContainerUtil {
         importFolder.mkdirs();
 
         // read neo4j version from build.gradle and use this as default
-        String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:4.4.2-enterprise");
+        String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:4.4-enterprise");
 
         // use a separate folder for mounting plugins jar - build/libs might contain other jars as well.
         File pluginsFolder = new File(baseDir, "build/plugins");
@@ -80,7 +80,7 @@ public class TestContainerUtil {
                 .withFileSystemBind(canonicalPath, "/var/lib/neo4j/import") // map the "target/import" dir as the Neo4j's import dir
                 .withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 //                .withDebugger()  // uncomment this line for remote debbuging inside docker's neo4j instance
-                .withCreateContainerCmdModifier(cmd -> cmd.withMemory(1024 * 1024 * 1024l))
+                .withCreateContainerCmdModifier(cmd -> cmd.withMemory(2024 * 1024 * 1024l))
 
                 // set uid if possible - export tests do write to "/import"
                 .withCreateContainerCmdModifier(cmd -> {
