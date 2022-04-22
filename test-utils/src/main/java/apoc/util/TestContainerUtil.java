@@ -100,7 +100,7 @@ public class TestContainerUtil {
                 .withFileSystemBind(canonicalPath, "/var/lib/neo4j/import") // map the "target/import" dir as the Neo4j's import dir
                 .withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 //                .withDebugger()  // uncomment this line for remote debbuging inside docker's neo4j instance
-                .withCreateContainerCmdModifier(cmd -> cmd.withMemory(1024 * 1024 * 1024l))
+                .withCreateContainerCmdModifier(cmd -> cmd.withMemory(2024 * 1024 * 1024l))
 
                 // set uid if possible - export tests do write to "/import"
                 .withCreateContainerCmdModifier(cmd -> {
