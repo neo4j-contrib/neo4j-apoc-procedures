@@ -1,12 +1,17 @@
 package apoc.generate;
 
+import apoc.export.xls.ExportXls;
 import apoc.generate.config.BarabasiAlbertConfig;
 import apoc.generate.config.BasicGeneratorConfig;
 import apoc.generate.node.SocialNetworkNodeCreator;
 import apoc.generate.relationship.BarabasiAlbertRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
+import apoc.graph.Graphs;
+import apoc.util.TestUtil;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.neo4j.graphdb.Transaction;
@@ -46,6 +51,10 @@ public class BarabasiAlbertGeneratorParameterizedTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
+    }
 
     @Test
     public void shouldGenerateCorrectNumberOfNodesAndRelationships() throws Exception {

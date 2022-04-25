@@ -2,6 +2,8 @@ package apoc.load;
 
 import apoc.util.TestUtil;
 import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -22,13 +24,17 @@ public class LoadGoogleCloudStorageTest {
         Assume.assumeNotNull(BUCKET_NAME);
     }
 
-
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class);
+    }
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

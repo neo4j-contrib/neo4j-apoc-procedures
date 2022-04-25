@@ -3,6 +3,7 @@ package apoc.ttl;
 import apoc.ApocSettings;
 import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -23,6 +24,11 @@ public class TTLTest {
     public static DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_ttl_schedule, Duration.ofMillis(3000))
             .withSetting(ApocSettings.apoc_ttl_enabled, true);
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
+    }
 
     @Test
     public void testExpireManyNodes() throws Exception {

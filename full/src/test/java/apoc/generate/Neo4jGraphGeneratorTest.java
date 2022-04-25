@@ -13,6 +13,8 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
@@ -34,6 +36,11 @@ public class Neo4jGraphGeneratorTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Generate.class);
+    }
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

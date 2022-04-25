@@ -8,6 +8,8 @@ import apoc.generate.relationship.SocialNetworkRelationshipCreator;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
@@ -24,6 +26,11 @@ public class BarabasiAlbertGeneratorTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
+    }
 
     @Test
     public void shouldGeneratePowerLawDistribution() {

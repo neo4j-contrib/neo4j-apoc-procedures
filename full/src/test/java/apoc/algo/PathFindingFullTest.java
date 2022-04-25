@@ -1,6 +1,7 @@
 package apoc.algo;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -15,12 +16,16 @@ public class PathFindingFullTest {
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
 
-
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, PathFindingFull.class);
     }
-    
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
+    }
+
     @Test
     public void testAStarWithPoint() {
         db.executeTransactionally(SETUP_GEO);

@@ -9,6 +9,8 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Result;
@@ -39,6 +41,11 @@ public class UUIDTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Uuid.class, Create.class, Periodic.class);
+    }
+
+    @AfterAll
+    public void tearDown() {
+       db.shutdown();
     }
 
     @Test

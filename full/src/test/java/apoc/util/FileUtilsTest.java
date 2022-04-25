@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.rules.TestName;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.test.rule.DbmsRule;
@@ -54,6 +55,12 @@ public class FileUtilsTest {
             apocConfig().setProperty("dbms.directories.import", importFolder);
         }
         TestUtil.registerProcedure(db, Config.class);
+    }
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
+
     }
 
     @Test

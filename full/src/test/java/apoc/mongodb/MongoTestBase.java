@@ -84,6 +84,7 @@ public class MongoTestBase {
         if (mongo != null) {
             mongo.stop();
         }
+        db.shutdown();
     }
 
     @Before
@@ -117,7 +118,6 @@ public class MongoTestBase {
                 commands = new String[]{"mongo", "test", "--eval", "db.serverStatus().connections"};
             }
             mongo.start();
-
         }, Exception.class);
         assumeNotNull(mongo);
         assumeTrue("Mongo DB must be running", mongo.isRunning());

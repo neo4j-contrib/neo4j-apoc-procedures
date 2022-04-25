@@ -6,6 +6,8 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -16,6 +18,8 @@ import static org.junit.Assert.*;
 
 public class KernelProcedureTest {
 
+    private SimpleDateFormat format = new SimpleDateFormat(Date.DEFAULT_FORMAT);
+
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
@@ -24,7 +28,10 @@ public class KernelProcedureTest {
         TestUtil.registerProcedure(db, Kernel.class);
     }
 
-    private SimpleDateFormat format = new SimpleDateFormat(Date.DEFAULT_FORMAT);
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
+    }
 
     @Test
     public void testGetKernelInfo() {

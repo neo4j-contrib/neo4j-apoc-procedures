@@ -46,7 +46,6 @@ public class RedisTest {
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
 
-
     @BeforeClass
     public static void beforeClass() {
         TestUtil.ignoreException(() -> {
@@ -67,6 +66,7 @@ public class RedisTest {
         if (redis != null) {
             redis.stop();
         }
+        db.shutdown();
     }
 
     @After
