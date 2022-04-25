@@ -2,6 +2,7 @@ package apoc.schema;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -95,6 +96,11 @@ public class SchemasTest {
     public void setUp() throws Exception {
         registerProcedure(db, Schemas.class);
         dropSchema();
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

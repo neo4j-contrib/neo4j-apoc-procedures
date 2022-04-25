@@ -37,6 +37,11 @@ public class GeocodeTest {
         assumeRunningInCI();
     }
 
+    @After
+    public void tearDown() {
+        db.shutdown();
+    }
+
     @Test
     public void testGeocodeOSM() throws Exception {
         testGeocodeWithThrottling("osm", false);

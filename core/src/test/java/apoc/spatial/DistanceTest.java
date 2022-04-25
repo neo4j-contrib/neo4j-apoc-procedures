@@ -2,6 +2,7 @@ package apoc.spatial;
 
 import apoc.result.DistancePathResult;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,6 +32,11 @@ public class DistanceTest {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, Distance.class);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     /* This test fails due to a bug in neo with Path objects returned in scala

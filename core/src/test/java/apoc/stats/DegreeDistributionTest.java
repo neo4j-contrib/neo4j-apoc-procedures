@@ -1,6 +1,7 @@
 package apoc.stats;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -26,6 +27,11 @@ public class DegreeDistributionTest {
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, DegreeDistribution.class);
         db.executeTransactionally("UNWIND range(1,10) as rels CREATE (f:Foo) WITH * UNWIND range(1,rels) as r CREATE (f)-[:BAR]->(f)");
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

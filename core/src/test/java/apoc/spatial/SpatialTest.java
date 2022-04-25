@@ -5,6 +5,7 @@ import apoc.date.Date;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -88,6 +89,11 @@ public class SpatialTest {
         }
         MockGeocode.geocodeResults = (Map<String, Map>) tests.get("geocode");
         MockGeocode.reverseGeocodeResults = (Map<String, Map>) tests.get("reverseGeocode");
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     private void addEventData(Map<String, Object> event) {

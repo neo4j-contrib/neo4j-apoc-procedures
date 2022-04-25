@@ -1,6 +1,7 @@
 package apoc.text;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,6 +20,11 @@ public class PhoneticTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Phonetic.class);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

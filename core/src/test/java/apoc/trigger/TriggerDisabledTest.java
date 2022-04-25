@@ -1,6 +1,7 @@
 package apoc.trigger;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,6 +40,11 @@ public class TriggerDisabledTest {
         exceptionRule.expect(RuntimeException.class);
         exceptionRule.expectMessage(TriggerHandler.NOT_ENABLED_ERROR);
         TestUtil.registerProcedure(db, Trigger.class);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

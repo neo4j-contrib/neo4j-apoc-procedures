@@ -2,6 +2,7 @@ package apoc.text;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.junit.After;import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -47,6 +48,11 @@ public class StringsTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, Strings.class);
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

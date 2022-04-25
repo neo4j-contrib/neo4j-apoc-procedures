@@ -2,6 +2,7 @@ package apoc.refactor.rename;
 
 import apoc.util.TestUtil;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,6 +35,11 @@ public class RenameTest {
 	@Before public void setUp() throws Exception {
 		TestUtil.registerProcedure(db, Rename.class);
 	}
+
+    @After
+    public void tearDown() {
+        db.shutdown();
+    }
 
 	@Test
 	public void testRenameLabelForSomeNodes() throws Exception {

@@ -1,5 +1,6 @@
 package apoc.util;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -30,6 +31,11 @@ public class UtilTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
+    }
 
     private static Node node;
 

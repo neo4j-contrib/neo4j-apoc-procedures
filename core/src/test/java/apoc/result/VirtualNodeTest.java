@@ -3,6 +3,7 @@ package apoc.result;
 import apoc.util.Util;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.AfterClass;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Relationship;
@@ -20,6 +21,11 @@ public class VirtualNodeTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
+    }
 
     @Test
     public void shouldCreateVirtualNode() {

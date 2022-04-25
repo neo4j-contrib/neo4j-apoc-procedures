@@ -4,6 +4,7 @@ import apoc.refactor.GraphRefactoring;
 import apoc.util.ArrayBackedList;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,6 +38,11 @@ public class PropertiesManagerTest {
 	public void setUp() throws Exception {
 		TestUtil.registerProcedure(db, GraphRefactoring.class);
 	}
+
+    @After
+    public void tearDown() {
+        db.shutdown();
+    }
 
 	@Test
 	public void testCombinePropertiesTargetArrayValuesSourceSingleValuesSameType(){
