@@ -16,9 +16,7 @@ import java.util.function.Predicate;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testResult;
-import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
@@ -33,7 +31,6 @@ public class MetaEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isRunningInCI());
 //        executeGradleTasks("clean", "shadow");
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs

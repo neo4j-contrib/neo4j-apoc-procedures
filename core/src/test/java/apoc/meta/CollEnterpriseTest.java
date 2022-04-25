@@ -8,9 +8,7 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.neo4j.driver.Session;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
-import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
@@ -21,7 +19,6 @@ public class CollEnterpriseTest {
 
     @BeforeAll
     public static void beforeAll() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
             neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI());

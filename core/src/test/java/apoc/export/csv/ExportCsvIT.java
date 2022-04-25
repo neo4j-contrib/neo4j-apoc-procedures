@@ -13,10 +13,8 @@ import java.util.List;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
-import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
@@ -31,7 +29,6 @@ public class ExportCsvIT {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             neo4jContainer = createEnterpriseDB(true);
             neo4jContainer.start();

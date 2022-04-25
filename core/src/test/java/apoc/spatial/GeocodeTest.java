@@ -22,7 +22,6 @@ public class GeocodeTest {
 
     @Before
     public void initDb() throws Exception {
-        assumeRunningInCI();
         apocConfig().setProperty("apoc.spatial.geocode.provider", "opencage");
         apocConfig().setProperty("apoc.spatial.geocode.opencage.key", "<YOUR_API_KEY>");
         apocConfig().setProperty("apoc.spatial.geocode.opencage.url", "https://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY");
@@ -30,11 +29,6 @@ public class GeocodeTest {
 
 //        List<String> strings = Iterators.asList(apocConfig().getConfig().getKeys("apoc.spatial.geocode.opencage"));
         TestUtil.registerProcedure(db, Geocode.class);
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        assumeRunningInCI();
     }
 
     @Test
