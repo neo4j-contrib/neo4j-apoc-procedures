@@ -34,7 +34,6 @@ public class UUIDMultiDbTest {
 
     @BeforeClass
     public static void setupContainer() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
                     .withEnv(Map.of(String.format(APOC_UUID_ENABLED_DB, dbTest), "false",

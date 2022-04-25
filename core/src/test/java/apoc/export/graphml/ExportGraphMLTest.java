@@ -198,7 +198,6 @@ public class ExportGraphMLTest {
 
     @Test
     public void testImportGraphMLLargeFile() {
-        assumeFalse(isRunningInCI());
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
 
         final String file = ClassLoader.getSystemResource("largeFile.graphml").toString();

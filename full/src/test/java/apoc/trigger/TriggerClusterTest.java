@@ -24,7 +24,6 @@ public class TriggerClusterTest {
 
     @BeforeClass
     public static void setupCluster() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() ->  cluster = TestContainerUtil
                 .createEnterpriseCluster(3, 1, Collections.emptyMap(), MapUtil.stringMap(
                         "apoc.trigger.refresh", "100",

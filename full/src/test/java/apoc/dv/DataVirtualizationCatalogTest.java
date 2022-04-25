@@ -55,7 +55,6 @@ public class DataVirtualizationCatalogTest {
 
     @BeforeClass
     public static void setUpContainer() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             mysql = new MySQLContainer().withInitScript("init_mysql.sql");
             mysql.start();

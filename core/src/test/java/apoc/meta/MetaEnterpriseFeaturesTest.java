@@ -33,7 +33,6 @@ public class MetaEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isRunningInCI());
 //        executeGradleTasks("clean", "shadow");
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs

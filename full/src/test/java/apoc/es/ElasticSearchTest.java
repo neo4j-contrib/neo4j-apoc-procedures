@@ -50,7 +50,6 @@ public class ElasticSearchTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             elastic = new ElasticsearchContainer();
             elastic.start();

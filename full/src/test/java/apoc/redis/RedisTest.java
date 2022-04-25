@@ -49,7 +49,6 @@ public class RedisTest {
 
     @BeforeClass
     public static void beforeClass() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             redis = new GenericContainer("redis:" + REDIS_VERSION)
                     .withCommand("redis-server --requirepass " + PASSWORD)

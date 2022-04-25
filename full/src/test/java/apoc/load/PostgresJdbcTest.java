@@ -30,7 +30,6 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             postgress = new PostgreSQLContainer().withInitScript("init_postgres.sql");
             postgress.start();

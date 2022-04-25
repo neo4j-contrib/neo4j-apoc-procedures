@@ -30,7 +30,6 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             cassandra = new CassandraContainer();
             cassandra.withInitScript("init_cassandra.cql");

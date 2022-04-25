@@ -31,7 +31,6 @@ public class ExportCsvIT {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             neo4jContainer = createEnterpriseDB(true);
             neo4jContainer.start();

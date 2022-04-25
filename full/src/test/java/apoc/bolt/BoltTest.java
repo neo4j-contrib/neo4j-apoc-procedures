@@ -47,7 +47,6 @@ public class BoltTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             neo4jContainer = TestContainerUtil.createEnterpriseDB(isRunningInCI())
                     .withInitScript("init_neo4j_bolt.cypher")

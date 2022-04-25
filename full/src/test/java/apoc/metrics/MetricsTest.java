@@ -37,7 +37,6 @@ public class MetricsTest {
 
     @BeforeClass
     public static void beforeAll() throws InterruptedException {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             neo4jContainer = createEnterpriseDB(true)
                     .withDebugger()

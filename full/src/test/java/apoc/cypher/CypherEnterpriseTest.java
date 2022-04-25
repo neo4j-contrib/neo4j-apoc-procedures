@@ -23,7 +23,6 @@ public class CypherEnterpriseTest {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
             neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())

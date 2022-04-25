@@ -36,7 +36,6 @@ public class TTLMultiDbTest {
 
     @BeforeClass
     public static void setupContainer() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
                     .withEnv(Map.of("apoc.ttl.enabled." + DB_TEST, "false",

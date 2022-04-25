@@ -137,7 +137,6 @@ public class CouchbaseTestUtils {
     }
 
     protected static void createCouchbaseContainer() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             // 7.0 support stably multi collections and scopes
             couchbase = new CouchbaseContainer("couchbase/server:7.0.0")
