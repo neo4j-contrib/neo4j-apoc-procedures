@@ -5,6 +5,7 @@ import apoc.load.LoadJson;
 import apoc.load.Xml;
 import apoc.util.TestUtil;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -36,6 +37,11 @@ public class LoadRelativePathTest {
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadJson.class, Xml.class);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     //JSON

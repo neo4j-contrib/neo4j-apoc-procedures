@@ -17,7 +17,6 @@ import static apoc.util.TestUtil.testCall;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-
 public class MaxAndMinItemsAggregationTest {
 
     @ClassRule

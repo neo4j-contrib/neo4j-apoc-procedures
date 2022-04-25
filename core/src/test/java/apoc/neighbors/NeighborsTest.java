@@ -2,6 +2,7 @@ package apoc.neighbors;
 
 import apoc.util.TestUtil;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.Node;
@@ -30,6 +31,11 @@ public class NeighborsTest {
                 "(b)-[:KNOWS]->(a), " +
                 "(b)-[:KNOWS]->(c), " +
                 "(c)-[:KNOWS]->(d) ");
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

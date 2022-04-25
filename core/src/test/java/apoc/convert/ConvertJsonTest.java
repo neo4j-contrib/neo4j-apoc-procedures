@@ -47,6 +47,11 @@ public class ConvertJsonTest {
 	@Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Json.class);
     }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
+    }
     
 	@After 
     public void clear() {

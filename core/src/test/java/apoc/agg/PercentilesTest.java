@@ -1,6 +1,7 @@
 package apoc.agg;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -21,6 +22,11 @@ public class PercentilesTest {
 
     @BeforeClass public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, Percentiles.class);
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

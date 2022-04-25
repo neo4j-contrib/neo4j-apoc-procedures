@@ -6,6 +6,7 @@ import apoc.util.TestUtil;
 import apoc.xml.XmlTestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,6 +47,11 @@ public class XmlTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Xml.class);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

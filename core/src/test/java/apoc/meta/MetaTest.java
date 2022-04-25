@@ -6,6 +6,7 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.assertj.core.api.Assertions;
 import org.junit.Assert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,6 +71,11 @@ public class MetaTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Meta.class, Graphs.class);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     public static boolean hasRecordMatching(List<Map<String,Object>> records, Map<String,Object> record) {

@@ -4,6 +4,7 @@ import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -75,6 +76,11 @@ public class ExportCypherTest {
         } else {
             db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12})");
         }
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

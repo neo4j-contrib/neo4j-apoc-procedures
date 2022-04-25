@@ -2,6 +2,7 @@ package apoc.number;
 
 import apoc.util.TestUtil;
 import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
@@ -15,10 +16,14 @@ public class ArabicRomanTest {
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
 
-
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, ArabicRoman.class);
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

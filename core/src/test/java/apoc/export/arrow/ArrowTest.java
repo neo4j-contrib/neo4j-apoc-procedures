@@ -7,6 +7,7 @@ import apoc.meta.Meta;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -95,6 +96,11 @@ public class ArrowTest {
     public static void beforeClass() {
         db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015-05-18T19:32:24.000'), place:point({latitude: 13.1, longitude: 33.46789, height: 100.0})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42})");
         TestUtil.registerProcedure(db, ExportArrow.class, LoadArrow.class, Graphs.class, Meta.class);
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     private byte[] extractByteArray(Result result) {

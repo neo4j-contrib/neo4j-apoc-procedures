@@ -2,6 +2,7 @@ package apoc.periodic;
 
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,6 +56,11 @@ public class PeriodicTest {
     public void initDb() throws Exception {
         TestUtil.registerProcedure(db, Periodic.class);
         db.executeTransactionally("call apoc.periodic.list() yield name call apoc.periodic.cancel(name) yield name as name2 return count(*)");
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

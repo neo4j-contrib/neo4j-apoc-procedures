@@ -1,6 +1,7 @@
 package apoc.example;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,6 +22,11 @@ public class ExamplesTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db,Examples.class);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

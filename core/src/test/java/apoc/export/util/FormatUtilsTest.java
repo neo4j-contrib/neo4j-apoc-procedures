@@ -2,6 +2,7 @@ package apoc.export.util;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.After;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
@@ -18,6 +19,11 @@ public class FormatUtilsTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
+
+    @After
+    public void tearDown() {
+        db.shutdown();
+    }
 
     @Test
     public void formatString() throws Exception {

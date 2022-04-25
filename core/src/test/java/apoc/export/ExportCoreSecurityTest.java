@@ -12,6 +12,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -52,6 +53,11 @@ public class ExportCoreSecurityTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, ExportCSV.class, ExportJson.class, ExportGraphML.class, ExportCypher.class);
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Before

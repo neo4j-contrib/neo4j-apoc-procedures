@@ -2,6 +2,7 @@ package apoc.coll;
 
 import apoc.util.ArrayBackedIterator;
 import apoc.util.ArrayBackedList;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphalgo.impl.util.PathImpl;
@@ -24,6 +25,11 @@ public class EqualityTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
+    }
 
     @Test
     public void testSpecial() throws Exception {

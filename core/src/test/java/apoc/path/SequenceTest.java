@@ -3,6 +3,7 @@ package apoc.path;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphdb.Transaction;
@@ -31,6 +32,11 @@ public class SequenceTest {
             tx.execute(additionalLink);
             tx.commit();
         }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test
