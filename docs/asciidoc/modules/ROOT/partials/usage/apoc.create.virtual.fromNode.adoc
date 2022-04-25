@@ -2,7 +2,7 @@ The examples in this section are based on the following graph:
 
 [source,cypher]
 ----
-CREATE (a:Account {type: 'checking', ownerName: 'Maria Perez', ownerId: '123456789', accountNumber: 101010101, routingNumber: 010101010, amount: 1000.00, bank: 'Best Bank'});
+CREATE (a:Account {type: 'checking', ownerName: 'Maria Perez', ownerId: '123456789', accountNumber: 101010101, routingNumber: 10101010, amount: 1000.00, bank: 'Best Bank'});
 CREATE (p:Person {name: 'Jane Doe', birthdate: date('1990-01-13'), favoriteColor: 'green', favoriteDessert: 'ice cream', favoriteMusic: 'classical', favoriteBand: 'The Beatles', favoriteVacation: 'beach', favoriteAnimal: 'horse', favoriteBeverage: 'coffee', favoriteFlower: 'lily'});
 ----
 

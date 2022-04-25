@@ -5,7 +5,7 @@
 
 
 Cypher is great for querying graphs and importing and updating graph structures.
-While during imports you can use `PERIODIC COMMIT` to control transaction sizes in memory, but for other graph refactorings it's not that easy to commit transactions regularly to free memory for new update state.
+While during imports you can use `CALL ... IN TRANSACTIONS` to control transaction sizes in memory, but for other graph refactorings it's not that easy to commit transactions regularly to free memory for new update state.
 
 
 [[periodic-execution-proc-overview]]
