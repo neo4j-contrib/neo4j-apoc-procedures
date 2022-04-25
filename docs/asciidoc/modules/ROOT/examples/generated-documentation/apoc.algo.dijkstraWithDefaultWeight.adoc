@@ -1,0 +1,5 @@
+¦xref::overview/apoc.algo/apoc.algo.dijkstraWithDefaultWeight.adoc[apoc.algo.dijkstraWithDefaultWeight icon:book[]] +
+
+ - run dijkstra with relationship property name as cost function and a default weight if the property does not exist
+¦label:procedure[]
+¦label:apoc-core[]
