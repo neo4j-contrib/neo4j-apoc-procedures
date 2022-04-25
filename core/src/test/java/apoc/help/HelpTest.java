@@ -4,6 +4,7 @@ import apoc.bitwise.BitwiseOperations;
 import apoc.coll.Coll;
 import apoc.util.TestUtil;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
@@ -24,6 +25,11 @@ public class HelpTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Help.class, BitwiseOperations.class,Coll.class);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

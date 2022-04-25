@@ -2,6 +2,7 @@ package apoc.path;
 
 import apoc.util.TestUtil;
 import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
@@ -26,6 +27,11 @@ public class PathsTest {
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, Paths.class);
         db.executeTransactionally("CREATE (a:A)-[:NEXT]->(b:B)-[:NEXT]->(c:C)-[:NEXT]->(d:D)");
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

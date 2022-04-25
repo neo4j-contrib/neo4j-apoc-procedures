@@ -72,6 +72,8 @@ public class CypherTest {
             tx.schema().getIndexes().forEach(IndexDefinition::drop);
             tx.commit();
         }
+
+        db.shutdown();
     }
 
     @Test

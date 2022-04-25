@@ -5,6 +5,7 @@ import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import apoc.util.s3.S3TestUtil;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.Ignore;
@@ -151,6 +152,11 @@ public class ExportGraphMLS3Test {
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, Boolean.toString(!testName.getMethodName().endsWith(TEST_WITH_NO_IMPORT)));
 
         db.executeTransactionally("CREATE (f:Foo:Foo2:Foo0 {name:'foo', born:Date('2018-10-10'), place:point({ longitude: 56.7, latitude: 12.78, height: 100 })})-[:KNOWS]->(b:Bar {name:'bar',age:42, place:point({ longitude: 56.7, latitude: 12.78})}),(c:Bar {age:12,values:[1,2,3]})");
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

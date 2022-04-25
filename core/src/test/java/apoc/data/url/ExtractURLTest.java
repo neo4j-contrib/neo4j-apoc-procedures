@@ -1,6 +1,7 @@
 package apoc.data.url;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -55,6 +56,11 @@ public class ExtractURLTest {
                 "protocol","neo4j", "user", null, "host","graphapps", "port",null, "path","/neo4j-browser", "file","/neo4j-browser?cmd=play&arg=cypher", "query","cmd=play&arg=cypher", "anchor",null)
         );
 
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

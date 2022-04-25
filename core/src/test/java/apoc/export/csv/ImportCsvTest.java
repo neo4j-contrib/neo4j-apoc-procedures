@@ -6,6 +6,7 @@ import apoc.util.TestUtil;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -159,6 +160,11 @@ public class ImportCsvTest {
         }
 
         TestUtil.registerProcedure(db, ImportCsv.class);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

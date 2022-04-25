@@ -11,6 +11,7 @@ import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import apoc.util.Utils;
 import org.junit.Assert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -62,6 +63,11 @@ public class ImportJsonTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, ImportJson.class, Schemas.class, Utils.class);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

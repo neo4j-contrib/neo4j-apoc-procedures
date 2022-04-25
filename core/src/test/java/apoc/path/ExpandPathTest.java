@@ -5,6 +5,7 @@ import apoc.util.Util;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -42,6 +43,11 @@ public class ExpandPathTest {
 			tx.execute(bigbrother);
 			tx.commit();
 		 }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @After

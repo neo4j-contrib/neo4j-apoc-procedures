@@ -11,6 +11,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.Ignore;
@@ -68,6 +69,11 @@ public class ExportS3PerformanceTest {
             S3_BUCKET_NAME = getEnvVar("S3_BUCKET_NAME");
         }
         TestUtil.registerProcedure(db, ExportCSV.class, Graphs.class);
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

@@ -2,6 +2,7 @@ package apoc.label;
 
 import apoc.util.TestUtil;
 import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
@@ -18,6 +19,11 @@ public class LabelTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, Label.class);
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

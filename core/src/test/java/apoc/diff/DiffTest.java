@@ -2,6 +2,7 @@ package apoc.diff;
 
 import apoc.create.Create;
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -50,6 +51,11 @@ public class DiffTest {
             node3.setProperty("prop4", "for");
             tx.commit();
         }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

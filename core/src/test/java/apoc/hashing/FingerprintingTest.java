@@ -6,6 +6,7 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.QueryExecutionException;
@@ -34,6 +35,11 @@ public class FingerprintingTest  {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, Fingerprinting.class, Graphs.class, Coll.class);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

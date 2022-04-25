@@ -1,6 +1,7 @@
 package apoc.date;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -53,6 +54,11 @@ public class DateTest {
 	public static void sUp() throws Exception {
 		TestUtil.registerProcedure(db, Date.class);
 	}
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
+    }
 
 	@Test public void testToDays() throws Exception {
 		testCall(db,

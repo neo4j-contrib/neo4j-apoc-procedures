@@ -3,6 +3,7 @@ package apoc.merge;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
@@ -21,10 +22,14 @@ public class MergeTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
-
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Merge.class);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

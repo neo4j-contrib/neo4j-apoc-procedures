@@ -3,6 +3,7 @@ package apoc.math;
 import apoc.util.TestUtil;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
@@ -16,11 +17,16 @@ import static org.junit.Assert.assertEquals;
 public class RegressionTest {
 
     @ClassRule
-public static DbmsRule db = new ImpermanentDbmsRule();
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, Regression.class);
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

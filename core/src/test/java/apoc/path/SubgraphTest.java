@@ -8,6 +8,7 @@ import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -54,6 +55,11 @@ public class SubgraphTest {
 			fullGraphCount = (Long) row.get("graphCount");
 		}
 	}
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
+    }
 
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();

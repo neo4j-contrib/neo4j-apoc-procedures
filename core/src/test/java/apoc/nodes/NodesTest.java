@@ -6,6 +6,7 @@ import apoc.result.VirtualRelationship;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -59,6 +60,11 @@ public class NodesTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Nodes.class, Create.class);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

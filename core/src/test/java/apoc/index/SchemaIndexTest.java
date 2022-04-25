@@ -2,6 +2,7 @@ package apoc.index;
 
 import apoc.util.TestUtil;
 import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphdb.Result;
@@ -61,6 +62,11 @@ SchemaIndexTest {
             tx.schema().awaitIndexesOnline(2,TimeUnit.SECONDS);
             tx.commit();
         }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

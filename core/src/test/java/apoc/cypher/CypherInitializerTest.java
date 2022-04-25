@@ -6,12 +6,12 @@ import apoc.test.annotations.Env;
 import apoc.test.annotations.EnvSetting;
 import apoc.util.TestUtil;
 import apoc.util.Utils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 
-import java.util.Collection;
 import java.util.Collections;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -29,18 +29,23 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
 
 public class CypherInitializerTest {
 
-    public DbmsRule dbmsRule = new ImpermanentDbmsRule();
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Rule
-    public RuleChain ruleChain = new EnvSettingRule().around(dbmsRule);
+    public RuleChain ruleChain = new EnvSettingRule().around(db);
 
     @Before
     public void waitForInitializerBeingFinished() {
         // we need at least on APOC proc being registered in finished CypherInitializers
-        TestUtil.registerProcedure(dbmsRule, Utils.class);
+        TestUtil.registerProcedure(db, Utils.class);
 
         waitForInitializerBeingFinished(SYSTEM_DATABASE_NAME);
         waitForInitializerBeingFinished(DEFAULT_DATABASE_NAME);
+    }
+
+    @After
+    public void tearDown() {
+        db.shutdown();
     }
 
     private void waitForInitializerBeingFinished(String dbName) {
@@ -60,7 +65,7 @@ public class CypherInitializerTest {
      * @return
      */
     private CypherInitializer getInitializer(String dbName) {
-        var api = ((GraphDatabaseAPI) (dbmsRule.getManagementService().database( dbName )));
+        var api = ((GraphDatabaseAPI) (db.getManagementService().database( dbName )));
         var apoc = api.getDependencyResolver().resolveDependency( ApocExtensionFactory.ApocLifecycle.class );
         var listeners = apoc.getRegisteredListeners();
         for ( AvailabilityListener listener : listeners )
@@ -118,12 +123,12 @@ public class CypherInitializerTest {
             @EnvSetting(key= APOC_CONFIG_INITIALIZER + "." + SYSTEM_DATABASE_NAME, value="create user dummy set password 'abc'")
     })
     public void databaseSpecificInitializersForSystem() {
-        GraphDatabaseService systemDb = dbmsRule.getManagementService().database(SYSTEM_DATABASE_NAME);
+        GraphDatabaseService systemDb = db.getManagementService().database(SYSTEM_DATABASE_NAME);
         long numberOfUsers = systemDb.executeTransactionally("show users", Collections.emptyMap(), Iterators::count);
         assertEquals(2l, numberOfUsers);
     }
 
     private void expectNodeCount(long i) {
-        assertEquals(i, TestUtil.count(dbmsRule, "match (n) return n"));
+        assertEquals(i, TestUtil.count(db, "match (n) return n"));
     }
 }

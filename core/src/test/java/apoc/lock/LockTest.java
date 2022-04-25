@@ -2,6 +2,7 @@ package apoc.lock;
 
 import apoc.util.TestUtil;
 import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -28,6 +29,11 @@ public class LockTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, Lock.class);
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

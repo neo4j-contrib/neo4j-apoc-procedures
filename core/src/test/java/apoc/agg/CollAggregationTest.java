@@ -1,6 +1,7 @@
 package apoc.agg;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -19,6 +20,11 @@ public class CollAggregationTest {
     @BeforeClass
     public static void setUp() {
         TestUtil.registerProcedure(db, CollAggregation.class);
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

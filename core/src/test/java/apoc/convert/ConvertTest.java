@@ -1,6 +1,7 @@
 package apoc.convert;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -27,6 +28,11 @@ public class ConvertTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
+
+    @After
+    public void tearDown() {
+        db.shutdown();
+    }
 
     @BeforeClass
     public static void initDb() throws Exception {
