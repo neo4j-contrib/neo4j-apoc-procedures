@@ -1,9 +1,11 @@
 package apoc.data.email;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -20,6 +22,11 @@ public class ExtractEmailTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, ExtractEmail.class);
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test

@@ -8,6 +8,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -45,6 +47,11 @@ public class LoadXlsTest {
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadXls.class);
+    }
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test public void testLoadXls() throws Exception {

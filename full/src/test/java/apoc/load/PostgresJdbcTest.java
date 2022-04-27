@@ -44,6 +44,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
         if (postgress != null) {
             postgress.stop();
         }
+        db.shutdown();
     }
 
     @Test

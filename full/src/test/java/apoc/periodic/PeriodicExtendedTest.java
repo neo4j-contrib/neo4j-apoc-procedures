@@ -5,6 +5,8 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -31,6 +33,11 @@ public class PeriodicExtendedTest {
     @Before
     public void initDb() {
         TestUtil.registerProcedure(db, Periodic.class, PeriodicExtended.class, Jdbc.class);
+    }
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

@@ -6,6 +6,8 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -23,6 +25,11 @@ public class ErdosRenyiGraphRelationshipGeneratorTest  {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, Generate.class);
+    }
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

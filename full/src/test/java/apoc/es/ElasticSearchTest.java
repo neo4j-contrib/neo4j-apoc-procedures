@@ -65,6 +65,7 @@ public class ElasticSearchTest {
         if (elastic != null) {
             elastic.stop();
         }
+        db.shutdown();
     }
 
     /**

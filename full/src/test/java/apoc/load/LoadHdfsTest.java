@@ -11,6 +11,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -46,6 +48,11 @@ public class LoadHdfsTest {
 
     @After public void tearDown() {
         miniDFSCluster.shutdown();
+    }
+
+    @AfterAll
+    public void tearDownAll() {
+        db.shutdown();
     }
 
     @Test public void testLoadCsvFromHDFS() throws Exception {

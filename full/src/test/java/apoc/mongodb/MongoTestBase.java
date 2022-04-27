@@ -82,6 +82,7 @@ public class MongoTestBase {
         if (mongo != null) {
             mongo.stop();
         }
+        db.shutdown();
     }
 
     @Before

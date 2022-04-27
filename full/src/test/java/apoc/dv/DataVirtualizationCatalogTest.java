@@ -19,6 +19,8 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+
+import org.junit.jupiter.api.AfterAll;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MySQLContainer;
 
@@ -66,6 +68,11 @@ public class DataVirtualizationCatalogTest {
         if (mysql != null) {
             mysql.stop();
         }
+    }
+
+    @AfterAll
+    public void tearDownDb() {
+        db.shutdown();
     }
 
     @Test

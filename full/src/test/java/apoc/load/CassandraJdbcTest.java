@@ -46,6 +46,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
         if (cassandra != null) {
             cassandra.stop();
         }
+        db.shutdown();
     }
 
     @Test

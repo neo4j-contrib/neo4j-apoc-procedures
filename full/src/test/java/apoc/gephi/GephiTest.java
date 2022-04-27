@@ -1,5 +1,6 @@
 package apoc.gephi;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -45,6 +46,11 @@ public class GephiTest {
         assumeTrue(isGephiRunning());
         registerProcedure(db, Gephi.class);
         db.executeTransactionally("CREATE (:Foo {name:'Foo'})-[:KNOWS{weight:7.2,foo:'foo',bar:3.0,directed:'error',label:'foo'}]->(:Bar {name:'Bar'})");
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
     }
 
     @Test
