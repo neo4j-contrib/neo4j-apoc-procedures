@@ -7,6 +7,7 @@ import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.types.Node;
 import org.neo4j.internal.helpers.collection.MapUtil;
@@ -44,7 +45,7 @@ public class TriggerClusterTest {
         cluster.getSession().run("MATCH (n) DETACH DELETE n");
     }
 
-
+    @Ignore
     @Test
     public void testTimeStampTriggerForUpdatedProperties() throws Exception {
         cluster.getSession().run("CALL apoc.trigger.add('timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
@@ -54,6 +55,7 @@ public class TriggerClusterTest {
         });
     }
 
+    @Ignore
     @Test
     public void testReplication() throws Exception {
         cluster.getSession().run("CALL apoc.trigger.add('timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
@@ -63,6 +65,7 @@ public class TriggerClusterTest {
                 (value) -> "timestamp".equals(value), 30, TimeUnit.SECONDS);
     }
 
+    @Ignore
     @Test
     public void testLowerCaseName() throws Exception {
         cluster.getSession().run("create constraint on (p:Person) assert p.id is unique");
@@ -73,6 +76,8 @@ public class TriggerClusterTest {
             assertEquals("John Doe", ((Node)row.get("f")).get("name").asString());
         });
     }
+
+    @Ignore
     @Test
     public void testSetLabels() throws Exception {
         cluster.getSession().run("CREATE (f {name:'John Doe'})");
@@ -87,7 +92,7 @@ public class TriggerClusterTest {
         assertEquals(1L, count);
     }
 
-
+    @Ignore
     @Test
     public void testTxIdAfterAsync() throws Exception {
         cluster.getSession().run("CALL apoc.trigger.add('triggerTest','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, \"_executed\") as prop " +
