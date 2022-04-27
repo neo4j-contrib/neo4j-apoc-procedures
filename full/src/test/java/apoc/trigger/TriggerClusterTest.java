@@ -14,9 +14,7 @@ import org.neo4j.internal.helpers.collection.MapUtil;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
-import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeFalse;
 
 public class TriggerClusterTest {
 
@@ -24,7 +22,6 @@ public class TriggerClusterTest {
 
     @BeforeClass
     public static void setupCluster() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() ->  cluster = TestContainerUtil
                 .createEnterpriseCluster(3, 1, Collections.emptyMap(), MapUtil.stringMap(
                         "apoc.trigger.refresh", "100",

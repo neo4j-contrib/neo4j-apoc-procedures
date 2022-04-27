@@ -18,10 +18,8 @@ import java.util.stream.Stream;
 import static apoc.util.FileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testResult;
-import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 import static org.neo4j.test.assertion.Assert.assertEventually;
@@ -37,7 +35,6 @@ public class MetricsTest {
 
     @BeforeClass
     public static void beforeAll() throws InterruptedException {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             neo4jContainer = createEnterpriseDB(true)
                     .withDebugger()

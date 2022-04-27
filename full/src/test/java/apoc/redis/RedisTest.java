@@ -23,11 +23,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 import static org.neo4j.test.assertion.Assert.assertEventually;
@@ -46,10 +44,8 @@ public class RedisTest {
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
 
-
     @BeforeClass
     public static void beforeClass() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             redis = new GenericContainer("redis:" + REDIS_VERSION)
                     .withCommand("redis-server --requirepass " + PASSWORD)
