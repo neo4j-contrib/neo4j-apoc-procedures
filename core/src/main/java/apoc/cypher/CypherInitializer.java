@@ -33,7 +33,6 @@ public class CypherInitializer implements AvailabilityListener {
      * indicates the status of the initializer, to be used for tests to ensure initializer operations are already done
      */
     private boolean finished = false;
-    private boolean checkedVersion = false;
 
     public CypherInitializer(GraphDatabaseAPI db, Log userLog) {
         this.db = db;
@@ -65,19 +64,13 @@ public class CypherInitializer implements AvailabilityListener {
                 }
 
                 if (defaultDb.equals(db.databaseName())) {
-                    try {
-                        final String apocFullVersion = Version.class.getPackage().getImplementationVersion();
-                        final String apocVersion = getMajorMinVersion(apocFullVersion);
-                        final List<String> versions = db.executeTransactionally("CALL dbms.components", Collections.emptyMap(),
-                                r -> (List<String>) r.next().get("versions"));
-                        final boolean versionDifferent = versions.stream().noneMatch(kernelVersion -> getMajorMinVersion(kernelVersion).equals(apocVersion));
-                        if (versionDifferent) {
-                            userLog.warn("The apoc version (%s) and the Neo4j DBMS versions %s are incompatible. \n" +
-                                            "See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to see the correct version",
-                                    apocFullVersion, versions.toString());
-                        }
-                    } catch (Exception ignored) {
-                        // with embedded testdb, "call dbms.components" is not recognized here 
+                    final List<String> versions = db.executeTransactionally("CALL dbms.components", Collections.emptyMap(),
+                            r -> (List<String>) r.next().get("versions"));
+                    final String apocFullVersion = Version.class.getPackage().getImplementationVersion();
+                    if (isVersionDifferent(versions, apocFullVersion)) {
+                        userLog.warn("The apoc version (%s) and the Neo4j DBMS versions %s are incompatible. \n" +
+                                        "See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to see the correct version",
+                                apocFullVersion, versions.toString());
                     }
                 }
                 Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
@@ -98,12 +91,9 @@ public class CypherInitializer implements AvailabilityListener {
         }).start();
     }
 
-    private String getMajorMinVersion(String completeVersion) {
-        if (completeVersion == null) {
-            return null;
-        }
-        final String[] split = completeVersion.split("\\.");
-        return split[0] + "." + split[1];
+    // only for testing purpose
+    public static boolean isVersionDifferent(List<String> versions, String apocFullVersion) {
+        return versions.stream().noneMatch(apocFullVersion::startsWith);
     }
 
     private Collection<String> collectInitializers(boolean isSystemDatabase, Configuration config) {
