@@ -7,6 +7,8 @@ import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+
+import org.junit.jupiter.api.AfterAll;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
@@ -50,6 +52,11 @@ public class DocsTest {
         new File(GENERATED_DOCUMENTATION_DIR).mkdirs();
         new File(GENERATED_PARTIALS_DOCUMENTATION_DIR).mkdirs();
         new File(GENERATED_OVERVIEW_DIR).mkdirs();
+    }
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

@@ -21,6 +21,7 @@ import org.bson.types.MinKey;
 import org.bson.types.ObjectId;
 import org.bson.types.Symbol;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.ResourceIterator;
@@ -430,6 +431,7 @@ public class MongoTest extends MongoTestBase {
         }
     }
 
+    @Ignore
     @Test
     public void shouldInsertDataIntoNeo4jWithFromDocument() throws Exception {
         Date date = DateUtils.parseDate("11-10-1935", "dd-MM-yyyy");

@@ -15,10 +15,8 @@ import java.util.Map;
 
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testCallInReadTransaction;
-import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 
 public class CypherProceduresClusterTest {
@@ -27,7 +25,6 @@ public class CypherProceduresClusterTest {
 
     @BeforeClass
     public static void setupCluster() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() ->  cluster = TestContainerUtil
                 .createEnterpriseCluster(3, 1, Collections.emptyMap(), MapUtil.stringMap("apoc.custom.procedures.refresh", "100")),
                 Exception.class);

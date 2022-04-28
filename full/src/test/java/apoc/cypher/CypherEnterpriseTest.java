@@ -10,9 +10,7 @@ import org.neo4j.driver.Session;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testResult;
-import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.Util.map;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
@@ -23,7 +21,6 @@ public class CypherEnterpriseTest {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
             neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())

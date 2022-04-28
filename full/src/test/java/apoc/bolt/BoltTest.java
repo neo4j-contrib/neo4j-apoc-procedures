@@ -27,7 +27,6 @@ import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 import static org.neo4j.driver.Values.isoDuration;
@@ -47,7 +46,6 @@ public class BoltTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             neo4jContainer = TestContainerUtil.createEnterpriseDB(isRunningInCI())
                     .withInitScript("init_neo4j_bolt.cypher")

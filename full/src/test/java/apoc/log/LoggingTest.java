@@ -4,6 +4,7 @@ import apoc.ApocConfig;
 import apoc.util.SimpleRateLimiter;
 import apoc.util.TestUtil;
 import org.jetbrains.annotations.NotNull;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -27,6 +28,11 @@ public class LoggingTest {
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule(logProvider);
 
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
+    }
+    
     @Test
     public void shouldWriteSafeStrings() {
         // given

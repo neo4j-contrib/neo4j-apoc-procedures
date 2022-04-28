@@ -4,6 +4,7 @@ import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.QueryExecutionException;
@@ -74,6 +75,11 @@ public class JdbcTest extends AbstractJdbcTest {
         }
         System.clearProperty("derby.connection.requireAuthentication");
         System.clearProperty("derby.user.apoc");
+    }
+
+    @AfterAll
+    public void tearDownAll() {
+        db.shutdown();
     }
 
     @Test

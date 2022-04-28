@@ -13,6 +13,8 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -54,6 +56,11 @@ public class SystemDbTest {
         apocConfig().setProperty(ApocConfig.APOC_UUID_ENABLED, true);
         apocConfig().setProperty(ApocConfig.APOC_TRIGGER_ENABLED, true);
         TestUtil.registerProcedure(db, SystemDb.class, Trigger.class, CypherProcedures.class, Uuid.class, Periodic.class, DataVirtualizationCatalog.class, CypherExtended.class);
+    }
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

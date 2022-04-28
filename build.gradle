@@ -76,13 +76,9 @@ subprojects {
 
         maxHeapSize = "8G"
         forkEvery = 50
-        maxParallelForks = 1 //Runtime.runtime.availableProcessors().intdiv(2) + 1
-
-        // This would apply only to GitHub Actions
-        if (System.env.CI != null) {
-            minHeapSize = "128m"
-            maxHeapSize = "512m"
-        }
+        maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+        minHeapSize = "128m"
+        maxHeapSize = "512m"
 
         // This would apply only to TeamCity
         // We need to ignore the failures because we may have tests muted

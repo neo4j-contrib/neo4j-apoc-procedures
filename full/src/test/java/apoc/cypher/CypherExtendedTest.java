@@ -49,6 +49,11 @@ public class CypherExtendedTest {
         TestUtil.registerProcedure(db, Cypher.class, CypherExtended.class, Utils.class, CypherFunctions.class, Timeboxed.class, Strings.class);
     }
 
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
+    }
+
     @After
     public void clearDB() {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");

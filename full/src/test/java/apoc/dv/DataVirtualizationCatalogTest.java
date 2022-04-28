@@ -19,6 +19,8 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+
+import org.junit.jupiter.api.AfterAll;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MySQLContainer;
 
@@ -28,13 +30,11 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static apoc.util.TestUtil.getUrlFileName;
-import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
@@ -55,7 +55,6 @@ public class DataVirtualizationCatalogTest {
 
     @BeforeClass
     public static void setUpContainer() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             mysql = new MySQLContainer().withInitScript("init_mysql.sql");
             mysql.start();
@@ -69,6 +68,11 @@ public class DataVirtualizationCatalogTest {
         if (mysql != null) {
             mysql.stop();
         }
+    }
+
+    @AfterAll
+    public void tearDownDb() {
+        db.shutdown();
     }
 
     @Test

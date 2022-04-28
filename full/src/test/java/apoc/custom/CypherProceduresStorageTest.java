@@ -6,6 +6,7 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
@@ -33,19 +34,24 @@ public class CypherProceduresStorageTest {
     public TemporaryFolder STORE_DIR = new TemporaryFolder();
 
     private GraphDatabaseService db;
-    private DatabaseManagementService databaseManagementService;
+    private DatabaseManagementService dbms;
 
     @Before
     public void setUp() throws Exception {
-        databaseManagementService = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot().toPath()).build();
-        db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
+        dbms = new TestDatabaseManagementServiceBuilder( STORE_DIR.getRoot().toPath()).build();
+        db = dbms.database( GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         TestUtil.registerProcedure(db, CypherProcedures.class, PathExplorer.class);
     }
 
+    @AfterAll
+    public void tearDown() {
+        dbms.shutdown();
+    }
+
     private void restartDb() throws IOException {
-        databaseManagementService.shutdown();
-        databaseManagementService = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot().toPath()).build();
-        db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
+        dbms.shutdown();
+        dbms = new TestDatabaseManagementServiceBuilder( STORE_DIR.getRoot().toPath()).build();
+        db = dbms.database( GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         assertTrue(db.isAvailable(1000));
         TestUtil.registerProcedure(db, CypherProcedures.class, PathExplorer.class);
     }
