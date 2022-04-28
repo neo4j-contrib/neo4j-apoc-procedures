@@ -16,6 +16,8 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.*;
 import static apoc.util.TestUtil.readFileToString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author as
@@ -30,14 +32,20 @@ public class ExportCypherEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI()).withInitScript("init_neo4j_export_csv.cypher");
-        neo4jContainer.start();
+        TestUtil.ignoreException(() -> {
+            neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI()).withInitScript("init_neo4j_export_csv.cypher");
+            neo4jContainer.start();
+        }, Exception.class );
+        assumeNotNull(neo4jContainer);
+        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
         session = neo4jContainer.getSession();
     }
 
     @AfterClass
     public static void afterAll() {
-        neo4jContainer.close();
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
+            neo4jContainer.close();
+        }
     }
 
     private static void beforeTwoLabelsWithOneCompoundConstraintEach() {

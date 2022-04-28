@@ -1,6 +1,7 @@
 package apoc.schema;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -22,6 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author as
@@ -34,15 +37,21 @@ public class SchemasEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        neo4jContainer = createEnterpriseDB(true);
-        neo4jContainer.start();
+        TestUtil.ignoreException( () -> {
+          neo4jContainer = createEnterpriseDB( true );
+          neo4jContainer.start();
+        }, Exception.class);
+        assumeNotNull(neo4jContainer);
+        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
         session = neo4jContainer.getSession();
     }
 
     @AfterClass
     public static void afterAll() {
-        session.close();
-        neo4jContainer.close();
+        if (neo4jContainer != null && neo4jContainer.isRunning()) {
+            session.close();
+            neo4jContainer.close();
+        }
     }
 
     // coherently with SchemasTest we remove all indexes/constraints before (e.g. to get rid of lookup indexes)
