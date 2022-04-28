@@ -75,11 +75,10 @@ subprojects {
                 'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise' : 'neo4j:5.0.0-dev-enterprise',
                 'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") : 'neo4j:5.0.0-dev'
 
-        maxHeapSize = "8G"
         forkEvery = 50
         maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
-        minHeapSize = "128m"
-        maxHeapSize = "512m"
+        minHeapSize = "512m"
+        maxHeapSize = "1024m"
 
         // This would apply only to TeamCity
         // We need to ignore the failures because we may have tests muted
