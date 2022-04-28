@@ -4,6 +4,7 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
 
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -19,6 +20,11 @@ public class TransactionProcedureTest {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, Transaction.class);
+    }
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

@@ -17,7 +17,6 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import java.io.IOException;
 import java.util.*;
 
-import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 
@@ -50,7 +49,6 @@ public class ElasticSearchTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             elastic = new ElasticsearchContainer();
             elastic.start();
@@ -67,6 +65,7 @@ public class ElasticSearchTest {
         if (elastic != null) {
             elastic.stop();
         }
+        db.shutdown();
     }
 
     /**

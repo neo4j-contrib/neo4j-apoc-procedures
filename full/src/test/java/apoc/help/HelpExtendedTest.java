@@ -8,6 +8,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+
+import org.junit.jupiter.api.AfterAll;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
@@ -46,6 +48,11 @@ public class HelpExtendedTest {
                 TestUtil.registerProcedure(db, klass);
             }
         }
+    }
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
     }
 
     private Set<Class<?>> extendedClasses() {

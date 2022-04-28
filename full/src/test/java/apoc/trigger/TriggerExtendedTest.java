@@ -4,6 +4,8 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.test.rule.DbmsRule;
@@ -30,6 +32,11 @@ public class TriggerExtendedTest {
     public void setUp() throws Exception {
         start = System.currentTimeMillis();
         TestUtil.registerProcedure(db, Trigger.class, TriggerExtended.class);
+    }
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
     }
 
     @Test

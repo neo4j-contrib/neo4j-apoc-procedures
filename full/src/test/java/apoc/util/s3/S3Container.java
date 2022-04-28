@@ -46,6 +46,7 @@ public class S3Container implements AutoCloseable {
 
     public void close() {
         Util.close(localstack);
+        s3.shutdown();
     }
 
     public AwsClientBuilder.EndpointConfiguration getEndpointConfiguration() {

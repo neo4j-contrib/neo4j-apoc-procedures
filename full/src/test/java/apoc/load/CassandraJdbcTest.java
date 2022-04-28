@@ -15,7 +15,6 @@ import org.testcontainers.containers.CassandraContainer;
 import java.sql.SQLException;
 import java.util.Map;
 
-import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -30,7 +29,6 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             cassandra = new CassandraContainer();
             cassandra.withInitScript("init_cassandra.cql");
@@ -48,6 +46,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
         if (cassandra != null) {
             cassandra.stop();
         }
+        db.shutdown();
     }
 
     @Test

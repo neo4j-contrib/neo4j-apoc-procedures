@@ -12,6 +12,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.driver.internal.util.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -56,6 +58,11 @@ public class LoadS3Test {
     @After
     public void tearDown() throws Exception {
         minio.close();
+    }
+
+    @AfterAll
+    public void tearDownAll() {
+        db.shutdown();
     }
 
     @Test

@@ -26,13 +26,11 @@ import java.util.stream.Stream;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static apoc.util.TestUtil.isRunningInCI;
 import static com.couchbase.client.java.ClusterOptions.clusterOptions;
 import static com.couchbase.client.java.query.QueryOptions.queryOptions;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 import static org.junit.Assume.assumeNotNull;
 
@@ -137,7 +135,6 @@ public class CouchbaseTestUtils {
     }
 
     protected static void createCouchbaseContainer() {
-        assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             // 7.0 support stably multi collections and scopes
             couchbase = new CouchbaseContainer("couchbase/server:7.0.0")

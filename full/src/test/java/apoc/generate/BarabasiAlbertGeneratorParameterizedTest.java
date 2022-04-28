@@ -7,6 +7,7 @@ import apoc.generate.relationship.BarabasiAlbertRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.neo4j.graphdb.Transaction;
@@ -46,6 +47,10 @@ public class BarabasiAlbertGeneratorParameterizedTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
+    }
 
     @Test
     public void shouldGenerateCorrectNumberOfNodesAndRelationships() throws Exception {

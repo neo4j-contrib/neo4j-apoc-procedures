@@ -5,6 +5,8 @@ import apoc.generate.relationship.ErdosRenyiRelationshipGenerator;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -14,9 +16,13 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
  */
 public class ErdosRenyiGeneratorLargeTest {
 
-
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
+    }
 
     @Test(timeout = 60 * 1000)
     @Ignore("very long running test")

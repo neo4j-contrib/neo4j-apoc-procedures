@@ -7,6 +7,7 @@ import apoc.generate.relationship.ErdosRenyiRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -49,6 +50,11 @@ public class ErdosRenyiGeneratorTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
+    }
 
     @Test
     public void shouldGenerateCorrectNumberOfNodesAndRelationships() throws Exception {

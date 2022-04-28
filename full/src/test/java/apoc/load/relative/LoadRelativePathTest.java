@@ -7,6 +7,8 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
@@ -40,6 +42,11 @@ public class LoadRelativePathTest {
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class, Xml.class);
+    }
+
+    @AfterAll
+    public void tearDown() {
+        db.shutdown();
     }
 
     //CSV

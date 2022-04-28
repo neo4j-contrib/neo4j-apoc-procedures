@@ -64,6 +64,7 @@ public class ExportCsvTest {
         if (miniDFSCluster!= null) {
             miniDFSCluster.shutdown();
         }
+        db.shutdown();
     }
 
     @Test
