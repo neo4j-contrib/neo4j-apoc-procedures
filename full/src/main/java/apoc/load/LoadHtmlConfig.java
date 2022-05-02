@@ -12,6 +12,7 @@ public class LoadHtmlConfig {
     private final boolean headless;
     private final boolean acceptInsecureCerts;
     private final boolean children;
+    private final boolean htmlString;
     
     private final String charset;
     private final String baseUri;
@@ -20,17 +21,20 @@ public class LoadHtmlConfig {
     private final FailSilently failSilently;
     
     private final long wait;
-    
+    private final int textSize;
+
     public LoadHtmlConfig(Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
         this.headless = Util.toBoolean(config.getOrDefault("headless", true));
         this.acceptInsecureCerts = Util.toBoolean(config.getOrDefault("acceptInsecureCerts", true));
-        this.children = Util.toBoolean(config.getOrDefault("children", false));
+        this.children = Util.toBoolean(config.get("children"));
         this.charset = (String) config.getOrDefault("charset", "UTF-8"); 
         this.baseUri = (String) config.getOrDefault("baseUri", ""); 
         this.browser = Browser.valueOf((String) config.getOrDefault("browser", Browser.NONE.toString()));
         this.failSilently = FailSilently.valueOf((String) config.getOrDefault("failSilently", FailSilently.FALSE.toString()));
         this.wait = Util.toLong(config.getOrDefault("wait", 0));
+        this.textSize = Util.toInteger(config.getOrDefault("textSize", 80));
+        this.htmlString = Util.toBoolean(config.get("htmlString"));
     }
 
     public boolean isHeadless() {
@@ -43,6 +47,10 @@ public class LoadHtmlConfig {
 
     public boolean isChildren() {
         return children;
+    }
+
+    public boolean isHtmlString() {
+        return htmlString;
     }
 
     public String getCharset() {
@@ -59,6 +67,10 @@ public class LoadHtmlConfig {
 
     public FailSilently getFailSilently() {
         return failSilently;
+    }
+    
+    public int getTextSize() {
+        return textSize;
     }
 
     public long getWait() {
