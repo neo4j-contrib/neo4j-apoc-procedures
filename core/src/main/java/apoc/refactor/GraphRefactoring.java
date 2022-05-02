@@ -278,8 +278,9 @@ public class GraphRefactoring {
     public Stream<NodeResult> mergeNodes(@Name("nodes") List<Node> nodes, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (nodes == null || nodes.isEmpty()) return Stream.empty();
         RefactorConfig conf = new RefactorConfig(config);
+        Set<Node> nodesSet = new LinkedHashSet<>(nodes);
         // grab write locks upfront consistently ordered
-        nodes.stream().distinct().sorted(Comparator.comparingLong(Node::getId)).forEach(tx::acquireWriteLock);
+        nodesSet.stream().sorted(Comparator.comparingLong(Node::getId)).forEach(tx::acquireWriteLock);
 
         final Node first = nodes.get(0);
         final List<Long> existingSelfRelIds = conf.isPreservingExistingSelfRels()
@@ -288,7 +289,7 @@ public class GraphRefactoring {
                     .collect(Collectors.toList())
                 : Collections.emptyList();
 
-        nodes.stream().skip(1).distinct().forEach(node -> mergeNodes(node, first, conf, existingSelfRelIds));
+        nodesSet.stream().skip(1).forEach(node -> mergeNodes(node, first, conf, existingSelfRelIds));
         return Stream.of(new NodeResult(first));
     }
 
@@ -300,8 +301,9 @@ public class GraphRefactoring {
     @Description("apoc.refactor.mergeRelationships([rel1,rel2]) merge relationships onto first in list")
     public Stream<RelationshipResult> mergeRelationships(@Name("rels") List<Relationship> relationships, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (relationships == null || relationships.isEmpty()) return Stream.empty();
+        Set<Relationship> relationshipsSet = new LinkedHashSet<>(relationships);
         RefactorConfig conf = new RefactorConfig(config);
-        Iterator<Relationship> it = relationships.iterator();
+        Iterator<Relationship> it = relationshipsSet.iterator();
         Relationship first = it.next();
         while (it.hasNext()) {
             Relationship other = it.next();
