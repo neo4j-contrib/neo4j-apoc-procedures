@@ -25,7 +25,9 @@ The results of the data-driven  statement are passed to the operation statement 
 |===
 | name | type | default | description
 | batchSize | Long | 10000 | run the specified number of operation statements in a single tx - params: {_count, _batch}
-| parallel | boolean | false | run operation statements in parallel (note that statements might deadlock if conflicting)
+| parallel | boolean | false | run operation statements in parallel (note that statements might deadlock if conflicting) +
+Please note that, in case of `parallel: false`, APOC is designed to reuse the same `java.util.concurrent.ThreadPoolExecutor` with a maximum pool size equal 1, in order to prevent parallelism; this means that if you want to execute multiple apoc.periodic.iterate each one will be executed when the previous one has been completed. Instead, with
+`parallel: true`,  APOC will use a `ThreadPoolExecutor` with a configurable maximum pool size via the `apoc.jobs.pool.num_threads` config or as default with the number of available processor * 2. Therefore, if we execute multiple `apoc.periodic.iterate` each one will be executed in parallel if the queue pool size can accept new tasks. Furthermore, to be noted that running in parallel affects all databases, and not the single database you are using. So with e.g. 2 databases `db1` and `db2`, the `apoc.periodic.iterate` on `db1` will impact on performance if we execute an `apoc.periodic.iterate` on `db2`.
 | retries | Long | 0 | if the operation statement fails with an error, sleep 100ms and retry until retries-count is reached - param {_retry}
 | batchMode | String | "BATCH" a| how data-driven statements should be processed by operation statement. Valid values are:
 
