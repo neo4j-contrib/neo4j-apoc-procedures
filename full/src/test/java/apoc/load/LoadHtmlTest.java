@@ -47,6 +47,14 @@ public class LoadHtmlTest {
     private static final String INVALID_PATH = new File("src/test/resources/wikipedia1.html").getName();
     private static final String VALID_PATH = new File("src/test/resources/wikipedia.html").toURI().toString();
     private static final String INVALID_CHARSET = "notValid";
+    
+    private static final String HTML_TEXT = "<!DOCTYPE html> <html> <body> " +
+            "<h1>My First Heading</h1> " +
+            "<p class='firstClass'>My first paragraph.</p> " +
+            "<p class='secondClass'>My second paragraph.</p> " +
+            "<p class='thirdClass'>My third paragraph. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p> " +
+            "<ul><li>Coffee</li><li>Tea</li><li>Milk</li></ul>  " +
+            "</body> </html>";
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
@@ -119,6 +127,170 @@ public class LoadHtmlTest {
                     Map<String, Object> row = result.next();
                     assertEquals(map("metadata",asList(RESULT_QUERY_METADATA)).toString().trim(), row.get("value").toString().trim());
                     assertFalse(result.hasNext());
+                });
+    }
+
+    @Test
+    public void testQueryMetadataWithGetElementById() {
+        Map<String, Object> query = map("siteSubElement", "#siteSub");
+
+        testCall(db, "CALL apoc.load.html($url,$query)", 
+                map("url", new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
+                row -> {
+                    final List<Map<String, Object>> expected = asList(map("attributes", map("id", "siteSub", "class", "noprint"),
+                            "text", "From Wikipedia, the free encyclopedia",
+                            "tagName", "div"));
+                    final Object actual = ((Map<String, Object>) row.get("value")).get("siteSubElement");
+                    assertEquals(expected, actual);
+                });
+    }
+    
+    @Test
+    public void shouldEmulateJsoupFunctions() {
+        // getElementsByTag
+        loadHtmlWithSelector(48, "div");
+        
+        // getElementsByAttribute
+        loadHtmlWithSelector(10, "[type]");
+        
+        // getElementsByAttributeStarting
+        loadHtmlWithSelector(15, "[^ro]");
+        
+        // getElementsByAttributeValue
+        loadHtmlWithSelector(1, "*[role=button]");
+        
+        // getElementsByAttributeValueContaining
+        loadHtmlWithSelector(1, "[role*=utto]");
+        
+        // getElementsByAttributeValueEnding
+        loadHtmlWithSelector(4, "*[class$=editsection]");
+        
+        // getElementsByAttributeValueNot
+        loadHtmlWithSelector(426, "*:not([class=\"mw-editsection\"])");
+        
+        // getElementsByAttributeValueStarting
+        loadHtmlWithSelector(2, "div[id^=site]");
+        
+        // getElementsByAttributeValueMatching
+        loadHtmlWithSelector(3, "div[id~=content]");
+        
+        // getElementsByIndexEquals
+        loadHtmlWithSelector(3, "*:nth-child(12)");
+        
+        // getElementsByIndexGreaterThan
+        loadHtmlWithSelector(12, "*:gt(12)");
+        
+        // getElementsByIndexLessThan
+        loadHtmlWithSelector(47, "div:lt(12)");
+        
+        // getElementsContainingOwnText
+        loadHtmlWithSelector(5, "i:containsOwn(Kaa)");
+        
+        // getElementsContainingText
+        loadHtmlWithSelector(6, "i:contains(Kaa)");
+        
+        // getElementsContainingText
+        loadHtmlWithSelector(6, "i:matches((?i)kaa)");
+        
+        // getElementsContainingText
+        loadHtmlWithSelector(5, "i:matchesOwn((?i)kaa)");
+        
+        // getAllElements
+        loadHtmlWithSelector(430, "*");
+    }
+
+    private void loadHtmlWithSelector(int expected, String selector) {
+        final String urlFile = new File("src/test/resources/wikipedia.html").toURI().toString();
+        testCall(db, "CALL apoc.load.html($url,$query, {failSilently: 'WITH_LOG'})",
+                map("url", urlFile, "query", map("selector", selector)),
+                row -> {
+                    final List actual = (List) ((Map) row.get("value")).get("selector");
+                    assertEquals(expected, actual.size());
+                });
+    }
+
+    @Test
+    public void testQueryMetadataWithGetLinks() {
+        Map<String, Object> query = map("links", "a[href]");
+
+        testCall(db, "CALL apoc.load.html($url,$query)", 
+                map("url", new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
+                row -> {
+                    final List<Map<String, Object>> actual = (List) ((Map) row.get("value")).get("links");
+                    assertEquals(106, actual.size());
+                    assertTrue(actual.stream().allMatch(i -> i.get("tagName").equals("a")));
+                });
+    }
+
+    @Test
+    public void testQueryMetadataWithGetElementsByClassAndHtmlString() {
+        Map<String, Object> query = map("firstClass", ".firstClass",
+                "secondClass", ".secondClass");
+
+        testCall(db, "CALL apoc.load.html($html, $query, $config)", 
+                map("html", HTML_TEXT, 
+                        "query", query,
+                        "config", map("htmlString", true)),
+                row -> {
+                    final Map<String, List<Map<String, Object>>> value = (Map) row.get("value");
+                    final List firstClass = value.get("firstClass");
+                    assertEquals(map("attributes", map("class", "firstClass"), "text", "My first paragraph.", "tagName", "p"), firstClass.get(0));
+                    final List secondClass = value.get("secondClass");
+                    assertEquals(map("attributes", map("class", "secondClass"), "text", "My second paragraph.", "tagName", "p"), secondClass.get(0));
+                    System.out.println("LoadHtmlTest.testQueryMetadataWithGetElementsByClass");
+                });
+    }
+
+    @Test
+    public void testQueryMetadataWithGetElementsByClass() {
+        Map<String, Object> query = map("siteSubElement", ".toclevel-1");
+
+        testCall(db, "CALL apoc.load.html($url,$query)", 
+                map("url", new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
+                row -> {
+                    final List<Map<String, Object>> actual = (List) ((Map) row.get("value")).get("siteSubElement");
+                    assertEquals(4, actual.size());
+                    assertTrue(actual.stream().allMatch(item -> item.get("tagName").equals("li")));
+                });
+    }
+
+    @Test
+    public void testQueryMetadataPlainText() {
+        final String secondPar = "\nMy second paragraph. \n";
+        
+        final String thirdPar = "\nMy third paragraph. Lorem Ipsum is simply dummy text of the printing and typesetting industry. \n" +
+                "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown \n" +
+                "printer took a galley of type and scrambled it to make a type specimen book. \n";
+
+        testCall(db, "CALL apoc.load.htmlPlainText($url, $query, {htmlString: true})", 
+                map("url", HTML_TEXT, "query", map("siteSubElement", "body")),
+                row -> {
+                    String expected = "\nMy First Heading \n" +
+                            "\nMy first paragraph. \n" +
+                            secondPar +
+                            thirdPar +
+                            "\n" +
+                            " - Coffee \n" +
+                            " - Tea \n" +
+                            " - Milk ";
+                    final String actual = (String) ((Map) row.get("value")).get("siteSubElement");
+                    assertEquals(expected, actual);
+                });
+
+        testCall(db, "CALL apoc.load.htmlPlainText($url, $query, {htmlString: true})",
+                map("url", HTML_TEXT, "query", 
+                        map("thirdClass", ".thirdClass", "secondClass", ".secondClass")),
+                row -> {
+                    final Map<String, Object> actual = (Map) row.get("value");
+                    assertEquals(secondPar, actual.get("secondClass"));
+                    assertEquals(thirdPar, actual.get("thirdClass"));
+                });
+        
+        testCall(db, "CALL apoc.load.htmlPlainText($url,$query, {htmlString: true, textSize: 9999})",
+                map("url", HTML_TEXT, "query", map("thirdClass", ".thirdClass")),
+                row -> {
+                    String expected = "\nMy third paragraph. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. \n";
+                    assertEquals(expected, ((Map) row.get("value")).get("thirdClass"));
                 });
     }
 
