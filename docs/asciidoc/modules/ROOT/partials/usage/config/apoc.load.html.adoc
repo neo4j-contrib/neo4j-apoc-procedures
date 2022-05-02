@@ -16,4 +16,5 @@ The procedure support the following config parameters:
 | acceptInsecureCerts | boolean | true | If true, allow to read html from insecure certificates
 | baseUri | String | "" | Base URI used to resolve relative paths
 | failSilently | Enum [FALSE, WITH_LOG, WITH_LIST] | FALSE | If the parse fails with one or more elements, using `FALSE` it throws a `RuntimeException`, using `WITH_LOG` a `log.warn` is created for each incorrect item and using `WITH_LIST` an `errorList` key is added to the result with the failed tags.
+|htmlString | boolean |  true | to use a string instead of an url as 1st parameter
 |===
