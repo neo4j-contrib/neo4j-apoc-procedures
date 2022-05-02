@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 public class CypherInitializer implements AvailabilityListener {
@@ -91,9 +92,11 @@ public class CypherInitializer implements AvailabilityListener {
         }).start();
     }
 
-    // only for testing purpose
+    // the visibility is public only for testing purpose, it could be private otherwise
     public static boolean isVersionDifferent(List<String> versions, String apocFullVersion) {
-        return versions.stream().noneMatch(apocFullVersion::startsWith);
+        return Optional.ofNullable(apocFullVersion)
+                .map(v -> versions.stream().noneMatch(v::startsWith))
+                .orElse(true);
     }
 
     private Collection<String> collectInitializers(boolean isSystemDatabase, Configuration config) {
