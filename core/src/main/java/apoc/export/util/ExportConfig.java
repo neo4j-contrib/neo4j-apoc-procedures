@@ -222,11 +222,11 @@ public class ExportConfig extends CompressionConfig {
         return ifNotExists;
     }
 
-    public boolean isSaveIndexNames() {
+    public boolean shouldSaveIndexNames() {
         return saveIndexNames;
     }
 
-    public boolean isSaveConstraintNames() {
+    public boolean shouldSaveConstraintNames() {
         return saveConstraintNames;
     }
 }

@@ -264,7 +264,7 @@ public class MultiStatementCypherSubGraphExporter {
                         return new AbstractMap.SimpleEntry<>(FULL, fullTextIndex);
                     }
                     // "normal" schema index
-                    String idxName = getIdxName(name, config.isSaveIndexNames());
+                    String idxName = getIdxName(name, config.shouldSaveIndexNames());
                     String tokenName = tokenNames.get(0);
                     return new AbstractMap.SimpleEntry<>(NORMAL, this.cypherFormat.statementForIndex(tokenName, props, exportConfig.ifNotExists(), idxName));
 
@@ -308,7 +308,7 @@ public class MultiStatementCypherSubGraphExporter {
         return StreamSupport.stream(graph.getIndexes().spliterator(), false)
                 .filter(index -> index.isConstraintIndex())
                 .map(index -> {
-                    String name = getIdxName(index.getName(), config.isSaveConstraintNames());
+                    String name = getIdxName(index.getName(), config.shouldSaveConstraintNames());
                     String label = Iterables.single(index.getLabels()).name();
                     Iterable<String> props = index.getPropertyKeys();
                     return this.cypherFormat.statementForConstraint(label, props, exportConfig.ifNotExists(), name);
