@@ -7,15 +7,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.Transaction;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
@@ -137,42 +130,4 @@ public class ExportCypherEnterpriseFeaturesTest {
     private void assertExportStatement(String expectedStatement, String fileName) {
         assertEquals(expectedStatement, readFileToString(new File(directory, fileName)));
     }
-
-    private static final String EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT = String.format("BEGIN%n" +
-            "CREATE CONSTRAINT FOR (node:Person) REQUIRE (node.name, node.surname) IS NODE KEY;%n" +
-            "COMMIT%n" +
-            "SCHEMA AWAIT%n" +
-            "BEGIN%n" +
-            "UNWIND [{surname:\"Snow\", name:\"John\", properties:{}}, {surname:\"Jackson\", name:\"Matt\", properties:{}}, {surname:\"White\", name:\"Jenny\", properties:{}}, {surname:\"Brown\", name:\"Susan\", properties:{}}, {surname:\"Taylor\", name:\"Tom\", properties:{}}] AS row%n" +
-            "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
-            "COMMIT%n" +
-            "BEGIN%n" +
-            "UNWIND [{start: {name:\"John\", surname:\"Snow\"}, end: {name:\"Matt\", surname:\"Jackson\"}, properties:{}}] AS row%n" +
-            "MATCH (start:Person{surname: row.start.surname, name: row.start.name})%n" +
-            "MATCH (end:Person{surname: row.end.surname, name: row.end.name})%n" +
-            "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n" +
-            "COMMIT");
-
-    private static final String EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT = String.format(":begin%n" +
-            "CREATE CONSTRAINT FOR (node:Person) REQUIRE (node.name, node.surname) IS NODE KEY;%n" +
-            ":commit%n" +
-            "CALL db.awaitIndexes(300);%n" +
-            ":begin%n" +
-            "UNWIND [{surname:\"Snow\", name:\"John\", properties:{}}, {surname:\"Jackson\", name:\"Matt\", properties:{}}, {surname:\"White\", name:\"Jenny\", properties:{}}, {surname:\"Brown\", name:\"Susan\", properties:{}}, {surname:\"Taylor\", name:\"Tom\", properties:{}}] AS row%n" +
-            "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
-            ":commit%n" +
-            ":begin%n" +
-            "UNWIND [{start: {name:\"John\", surname:\"Snow\"}, end: {name:\"Matt\", surname:\"Jackson\"}, properties:{}}] AS row%n" +
-            "MATCH (start:Person{surname: row.start.surname, name: row.start.name})%n" +
-            "MATCH (end:Person{surname: row.end.surname, name: row.end.name})%n" +
-            "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n" +
-            ":commit");
-
-    private static final String EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT = String.format("CREATE CONSTRAINT FOR (node:Person) REQUIRE (node.name, node.surname) IS NODE KEY;%n" +
-            "UNWIND [{surname:\"Snow\", name:\"John\", properties:{}}, {surname:\"Jackson\", name:\"Matt\", properties:{}}, {surname:\"White\", name:\"Jenny\", properties:{}}, {surname:\"Brown\", name:\"Susan\", properties:{}}, {surname:\"Taylor\", name:\"Tom\", properties:{}}] AS row%n" +
-            "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
-            "UNWIND [{start: {name:\"John\", surname:\"Snow\"}, end: {name:\"Matt\", surname:\"Jackson\"}, properties:{}}] AS row%n" +
-            "MATCH (start:Person{surname: row.start.surname, name: row.start.name})%n" +
-            "MATCH (end:Person{surname: row.end.surname, name: row.end.name})%n" +
-            "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;");
 }
