@@ -163,4 +163,6 @@ apoc.static.get
 apoc.static.getAll
 apoc.trigger.nodesByLabel
 apoc.trigger.propertiesByKey
+apoc.trigger.toNode
+apoc.trigger.toRelationship
 apoc.ttl.config
