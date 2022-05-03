@@ -28,6 +28,11 @@ public class VirtualRelationship implements Relationship {
     private final long id;
     private final Map<String, Object> props = new HashMap<>();
 
+    public VirtualRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props) {
+        this(startNode, endNode, type);
+        this.props.putAll(props);
+    }
+
     public VirtualRelationship(Node startNode, Node endNode, RelationshipType type) {
         validateNodes(startNode, endNode);
         this.id = MIN_ID.getAndDecrement();
