@@ -182,22 +182,28 @@ public class ImportJsonTest {
         new Thread(() -> db.executeTransactionally(query,  map("file", filename))).start();
 
         // waiting for 'apoc.import.json() query to cancel when it is found
-        assertEventually(() -> db.executeTransactionally("call dbms.listQueries() YIELD query, queryId " +
-                        "WHERE query = $query WITH queryId as id CALL dbms.killQuery(id) YIELD queryId RETURN true",
-                map("query", query),
+        final String transactionId = TestUtil.singleResultFirstColumn(db, 
+                "SHOW TRANSACTIONS YIELD currentQuery, transactionId WHERE currentQuery = $query RETURN transactionId",
+                map("query", query));
+        
+        assertEventually(() -> db.executeTransactionally("TERMINATE TRANSACTION $transactionId",
+                map("transactionId", transactionId),
                 result -> {
-                    final ResourceIterator<Boolean> booleanIterator = result.columnAs("true");
-                    return booleanIterator.hasNext() && booleanIterator.next();
+                    final ResourceIterator<String> msgIterator = result.columnAs("message");
+                    return msgIterator.hasNext() && msgIterator.next().equals("Transaction terminated.");
                 }), (value) -> value, 10L, TimeUnit.SECONDS);
 
         // checking for query cancellation
-        assertEventually(() -> db.executeTransactionally("call dbms.listQueries",
-                map("query", query),
-                result -> {
-                    final ResourceIterator<String> queryIterator = result.columnAs("query");
-                    final String first = queryIterator.next();
-                    return first.equals("call dbms.listQueries") && !queryIterator.hasNext();
-                } ), (value) -> value, 10L, TimeUnit.SECONDS);
+        assertEventually(() -> {
+            final String transactionListCommand = "SHOW TRANSACTIONS";
+            return db.executeTransactionally(transactionListCommand,
+                    map("query", query),
+                    result -> {
+                        final ResourceIterator<String> queryIterator = result.columnAs("currentQuery");
+                        final String first = queryIterator.next();
+                        return first.equals(transactionListCommand) && !queryIterator.hasNext();
+                    } );
+        }, (value) -> value, 10L, TimeUnit.SECONDS);
     }
 
     @Test
