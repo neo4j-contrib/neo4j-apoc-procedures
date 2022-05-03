@@ -33,7 +33,6 @@ import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.Util.ERROR_BYTES_OR_STRING;
 import static apoc.util.Util.readHttpInputStream;
-import static org.eclipse.jetty.util.URIUtil.encodePath;
 
 /**
  * @author mh
@@ -182,15 +181,13 @@ public class FileUtils {
             throw new RuntimeException(ERROR_BYTES_OR_STRING);
         }
     }
-
-    public static String changeFileUrlIfImportDirectoryConstrained(String urlNotEncoded) throws IOException {
-        final String url = encodeExceptQM(urlNotEncoded);
-
+    
+    public static String changeFileUrlIfImportDirectoryConstrained(String url) throws IOException {
         if (isFile(url) && isImportUsingNeo4jConfig()) {
             if (!apocConfig().getBoolean(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM)) {
                 throw new RuntimeException(String.format(ERROR_READ_FROM_FS_NOT_ALLOWED, url));
             }
-            final Path resolvedPath = resolvePath(urlNotEncoded);
+            final Path resolvedPath = resolvePath(url);
             return resolvedPath
                     .normalize()
                     .toUri()
@@ -349,11 +346,6 @@ public class FileUtils {
 
     public static Path getPathFromUrlString(String urlDir) {
         return Paths.get(URI.create(urlDir));
-    }
-
-    // to exclude cases like 'testload.tar.gz?raw=true'
-    private static String encodeExceptQM(String url) {
-        return encodePath(url).replace("%3F", "?");
     }
 
     public static CountingInputStream getInputStreamFromBinary(byte[] urlOrBinary, String compressionAlgo) {
