@@ -67,7 +67,6 @@ public class FileUtils {
                     return FileUtils.openS3InputStream(urlAddress);
                 case hdfs:
                     return FileUtils.openHdfsInputStream(urlAddress);
-                case ftp:
                 case http:
                 case https:
                 case gs:
@@ -181,12 +180,6 @@ public class FileUtils {
         } else {
             throw new RuntimeException(ERROR_BYTES_OR_STRING);
         }
-    }
-
-    public static CountingReader readFile(String fileName) throws IOException, FileNotFoundException {
-        File file = new File(fileName);
-        if (!file.exists() || !file.isFile() || !file.canRead()) throw new IOException("Cannot open file "+fileName+" for reading.");
-        return new CountingReader(file);
     }
 
     public static String changeFileUrlIfImportDirectoryConstrained(String url) throws IOException {
