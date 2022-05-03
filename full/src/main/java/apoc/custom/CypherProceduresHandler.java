@@ -273,11 +273,14 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     }
 
     private String serializeSignatures(List<FieldSignature> signatures) {
-        List<Map<String, Object>> mapped = signatures.stream().map(fs -> map(
-                "name", fs.name(),
-                "type", fs.neo4jType().toString(),
-                "default", fs.defaultValue().orElse(DefaultParameterValue.nullValue(new Neo4jTypes.AnyType())).value()
-        )).collect(Collectors.toList());
+        List<Map<String, Object>> mapped = signatures.stream().map(fs -> {
+            final Map<String, Object> map = map(
+                    "name", fs.name(),
+                    "type", fs.neo4jType().toString()
+            );
+            fs.defaultValue().map(defVal -> map.put("default", defVal.value()));
+            return map;
+        }).collect(Collectors.toList());
         return Util.toJson(mapped);
     }
 
@@ -289,12 +292,11 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                 typeString = typeString.substring(0, typeString.length() - 1);
             }
             AnyType type = typeof(typeString);
-
-            Object deflt = map.get("default");
-            if (deflt == null) {
-                return FieldSignature.inputField((String) map.get("name"), type);
+            // we insert the default value only if is present
+            if (map.containsKey("default")) {
+                return FieldSignature.inputField((String) map.get("name"), type, new DefaultParameterValue(map.get("default"), type));
             } else {
-                return FieldSignature.inputField((String) map.get("name"), type, new DefaultParameterValue(deflt, type));
+                return FieldSignature.inputField((String) map.get("name"), type);
             }
         }).collect(Collectors.toList());
     }

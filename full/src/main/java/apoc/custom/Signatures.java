@@ -53,6 +53,13 @@ public class Signatures {
     public ProcedureSignature toProcedureSignature(SignatureParser.ProcedureContext signature) {
         return toProcedureSignature(signature, null, Mode.DEFAULT);
     }
+    
+    public static FieldSignature getInputField(String name, Neo4jTypes.AnyType type, DefaultParameterValue defaultValue) {
+        if (defaultValue == null) {
+            return FieldSignature.inputField(name, type);
+        }
+        return FieldSignature.inputField(name, type, defaultValue);
+    }
 
     public ProcedureSignature toProcedureSignature(SignatureParser.ProcedureContext signature, String description, Mode mode) {
         QualifiedName name = new QualifiedName(namespace(signature.namespace()), name(signature.name()));
@@ -66,7 +73,7 @@ public class Signatures {
                         signature.results().result().stream().map(p ->
                                 FieldSignature.outputField(name(p.name()), type(p.type()))).collect(Collectors.toList());
         // todo deprecated + default value
-        List<FieldSignature> inputSignatures = signature.parameter().stream().map(p -> FieldSignature.inputField(name(p.name()), type(p.type()), defaultValue(p.defaultValue(), type(p.type())))).collect(Collectors.toList());
+        List<FieldSignature> inputSignatures = signature.parameter().stream().map(p -> getInputField(name(p.name()), type(p.type()), defaultValue(p.defaultValue(), type(p.type())))).collect(Collectors.toList());
         boolean admin = false;
         String deprecated = "";
         String[] allowed = new String[0];
@@ -98,7 +105,7 @@ public class Signatures {
 
         Neo4jTypes.AnyType type = type(signature.type());
 
-        List<FieldSignature> inputSignatures = signature.parameter().stream().map(p -> FieldSignature.inputField(name(p.name()), type(p.type()), defaultValue(p.defaultValue(), type(p.type())))).collect(Collectors.toList());
+        List<FieldSignature> inputSignatures = signature.parameter().stream().map(p -> getInputField(name(p.name()), type(p.type()), defaultValue(p.defaultValue(), type(p.type())))).collect(Collectors.toList());
 
         String deprecated = "";
         String[] allowed = new String[0];
@@ -107,7 +114,9 @@ public class Signatures {
     }
 
     private DefaultParameterValue defaultValue(SignatureParser.DefaultValueContext defaultValue, Neo4jTypes.AnyType type) {
-        if (defaultValue == null) return DefaultParameterValue.nullValue(type);
+        // pass a default value = null into the signature string is not equal to having `defaultValue == null`
+        // the defaultValue is null only when we don't pass the default value part
+        if (defaultValue == null) return null;
         SignatureParser.ValueContext v = defaultValue.value();
         if (v.nullValue() != null)
             return DefaultParameterValue.nullValue(type);
