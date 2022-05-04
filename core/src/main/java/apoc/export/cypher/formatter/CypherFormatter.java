@@ -19,13 +19,13 @@ public interface CypherFormatter {
 
 	String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties);
 
-	String statementForIndex(String label, Iterable<String> keys, boolean ifNotExist);
+	String statementForIndex(String label, Iterable<String> keys, boolean ifNotExist, String idxName);
 
 	String statementForNodeFullTextIndex(String name, Iterable<Label> labels, Iterable<String> keys);
 
 	String statementForRelationshipFullTextIndex(String name, Iterable<RelationshipType> types, Iterable<String> keys);
 
-	String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExist);
+	String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExist, String name);
 
 	String statementForCleanUp(int batchSize);
 

@@ -63,6 +63,8 @@ The procedures support the following config parameters:
 * `UNWIND_BATCH` - exports the file by batching the entities with the `UNWIND` method as explained in Michael Hunger's article on https://medium.com/neo4j/5-tips-tricks-for-fast-batched-updates-of-graph-structures-with-neo4j-and-cypher-73c7f693c8cc[fast batched writes^].
 * `UNWIND_BATCH_PARAMS` - similar to `UNWIND_BATCH`, but also uses parameters where appropriate
 | awaitForIndexes | Long | 300 | Timeout to use for `db.awaitIndexes` when using `format: "cypher-shell"`
+| saveIndexNames | boolean | false | Save name indexes on export
+| saveConstraintNames | boolean | false | Save name constraints on export
 |===
 
 [[export-cypher-file-export]]
