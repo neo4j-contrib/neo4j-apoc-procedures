@@ -52,7 +52,7 @@ public class FileUtilsTest {
         importFolder = db.databaseLayout().databaseDirectory().toFile().getAbsolutePath() + "/import/";
         TEST_FILE_RELATIVE = Paths.get(importFolder, "test.csv").toUri().toString();
         if (testName.getMethodName().endsWith(TEST_WITH_DIRECTORY_IMPORT)) {
-            apocConfig().setProperty("dbms.directories.import", importFolder);
+            apocConfig().setProperty("server.directories.import", importFolder);
         }
         TestUtil.registerProcedure(db, Config.class);
     }
