@@ -31,7 +31,7 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.quote;
  */
 abstract class AbstractCypherFormatter implements CypherFormatter {
 
-	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT%s ON (node:%s) ASSERT (%s) %s;";
+	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT%s%s ON (node:%s) ASSERT (%s) %s;";
 
 	private static final String STATEMENT_NODE_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR (n:%s) ON EACH [%s];";
 	private static final String STATEMENT_REL_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR ()-[rel:%s]-() ON EACH [%s];";
@@ -44,16 +44,18 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 
 	@Override
-	public String statementForNodeIndex(String label, Iterable<String> keys, boolean ifNotExists) {
-		return String.format("CREATE INDEX%s FOR (node:%s) ON (%s);", 
+	public String statementForNodeIndex(String label, Iterable<String> keys, boolean ifNotExists, String idxName) {
+		return String.format("CREATE INDEX%s%s FOR (node:%s) ON (%s);",
+				idxName,
 				getIfNotExists(ifNotExists),
 				Util.quote(label),
 				getPropertiesQuoted(keys, "node."));
 	}
 	
 	@Override
-	public String statementForIndexRelationship(String type, Iterable<String> keys, boolean ifNotExists) {
-		return String.format("CREATE INDEX%s FOR ()-[rel:%s]-() ON (%s);", 
+	public String statementForIndexRelationship(String type, Iterable<String> keys, boolean ifNotExists, String idxName) {
+		return String.format("CREATE INDEX%s%s FOR ()-[rel:%s]-() ON (%s);",
+				idxName,
 				getIfNotExists(ifNotExists), 
 				Util.quote(type), 
 				getPropertiesQuoted(keys, "rel."));
@@ -82,10 +84,10 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 
 	@Override
-	public String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExists) {
+	public String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExists, String name) {
 		String keysString = getPropertiesQuoted(keys, "node.");
 
-		return String.format(STATEMENT_CONSTRAINTS, getIfNotExists(ifNotExists), Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
+		return String.format(STATEMENT_CONSTRAINTS, name, getIfNotExists(ifNotExists), Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
 	}
 
 	private String getIfNotExists(boolean ifNotExists) {
