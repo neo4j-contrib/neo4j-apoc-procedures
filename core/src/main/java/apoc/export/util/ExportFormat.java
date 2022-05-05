@@ -17,7 +17,9 @@ public enum ExportFormat {
 
     PLAIN_FORMAT("plain", "", "", "", ""),
 
-    GEPHI("gephi", "", "", "", "");
+    GEPHI("gephi", "", "", "", ""),
+
+    TINKERPOP("tinkerpop", "", "", "", "");
 
 
     private final String format;
