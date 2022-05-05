@@ -1,5 +1,6 @@
 package apoc.export.cypher;
 
+import apoc.cypher.Cypher;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -10,13 +11,20 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_CLEAN_UP;
@@ -57,13 +65,30 @@ import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_S
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_SCHEMA_EMPTY;
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_SCHEMA_OPTIMIZED;
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_UPDATE_ALL_UNWIND;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_REL;
 import static apoc.export.util.ExportFormat.CYPHER_SHELL;
 import static apoc.export.util.ExportFormat.NEO4J_SHELL;
 import static apoc.export.util.ExportFormat.PLAIN_FORMAT;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static apoc.export.cypher.ExportCypherTestUtils.CLEANUP;
+import static apoc.export.cypher.ExportCypherTestUtils.CLEANUP_EMPTY;
+import static apoc.export.cypher.ExportCypherTestUtils.NODES_MULTI_RELS;
+import static apoc.export.cypher.ExportCypherTestUtils.NODES_MULTI_RELS_ADD_STRUCTURE;
+import static apoc.export.cypher.ExportCypherTestUtils.NODES_MULTI_REL_CREATE;
+import static apoc.export.cypher.ExportCypherTestUtils.NODES_UNWIND;
+import static apoc.export.cypher.ExportCypherTestUtils.NODES_UNWIND_ADD_STRUCTURE;
+import static apoc.export.cypher.ExportCypherTestUtils.NODES_UNWIND_UPDATE_STRUCTURE;
+import static apoc.export.cypher.ExportCypherTestUtils.RELSUPDATE_STRUCTURE_2;
+import static apoc.export.cypher.ExportCypherTestUtils.RELS_ADD_STRUCTURE_MULTI_RELS;
+import static apoc.export.cypher.ExportCypherTestUtils.RELS_MULTI_RELS;
+import static apoc.export.cypher.ExportCypherTestUtils.RELS_UNWIND_MULTI_RELS;
+import static apoc.export.cypher.ExportCypherTestUtils.RELS_UNWIND_UPDATE_ALL_MULTI_RELS;
+import static apoc.export.cypher.ExportCypherTestUtils.SCHEMA_MULTI_REL;
+import static apoc.export.cypher.ExportCypherTestUtils.SCHEMA_UPDATE_STRUCTURE_MULTI_REL;
 
 /**
  * @author mh
@@ -84,6 +109,7 @@ public class ExportCypherTest {
 
     public static final String OPTIMIZED = "Optimized";
     public static final String ODD = "OddDataset";
+    public static final String MULTI_REL = "MultiRel";
 
     @Before
     public void setUp() throws Exception {
@@ -91,7 +117,10 @@ public class ExportCypherTest {
                 .setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
                 .setConfig("apoc.export.file.enabled", "true")
                 .newGraphDatabase();
-        TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
+        TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class, Cypher.class);
+        if (testName.getMethodName().endsWith(MULTI_REL)) {
+            return; // we exclude setUp query statement in order to lighten assertions
+        }
         db.execute("CREATE INDEX ON :Bar(first_name, last_name)").close();
         db.execute("CREATE INDEX ON :Foo(name)").close();
         db.execute("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE").close();
@@ -126,6 +155,176 @@ public class ExportCypherTest {
         });
     }
 
+    
+    @Test
+    public void teastMultiRel() {
+        String expectedCypherStatement = NODES_MULTI_RELS + SCHEMA_MULTI_REL + RELS_MULTI_RELS + CLEANUP;
+        final Map<String, Object> map = withoutOptimization(
+                map("cypherFormat", "updateAll"));
+
+        multiRelTestsCommon(expectedCypherStatement, map);
+    }
+    
+    @Test
+    public void cypherFormatOptimizationNonedMultiRel() {
+        String expectedCypherStatement = NODES_MULTI_REL_CREATE + SCHEMA_MULTI_REL + RELS_ADD_STRUCTURE_MULTI_RELS + CLEANUP;
+        final Map<String, Object> map = withoutOptimization(
+                map("cypherFormat", "create"));
+
+        multiRelTestsCommon(expectedCypherStatement, map);
+    }
+    
+    @Test
+    public void addStructureOptimizationNoneMultiRel() {
+        String expectedCypherStatement = NODES_MULTI_RELS_ADD_STRUCTURE + SCHEMA_UPDATE_STRUCTURE_MULTI_REL + RELS_ADD_STRUCTURE_MULTI_RELS + CLEANUP_EMPTY;
+        final Map<String, Object> map = withoutOptimization(
+                map( "cypherFormat", "addStructure"));
+        multiRelTestsCommon(expectedCypherStatement, map);
+    }
+    
+    @Test
+    public void updateStructureOptimizationNoneMultiRel() {
+        String expectedCypherStatement = ":begin\n:commit\n" + SCHEMA_UPDATE_STRUCTURE_MULTI_REL + RELSUPDATE_STRUCTURE_2 + CLEANUP_EMPTY;
+        final Map<String, Object> map = withoutOptimization(
+                map("cypherFormat", "updateStructure"));
+
+        multiRelTestsCommon(expectedCypherStatement, map, true, true);
+    }
+    
+    
+    @Test
+    public void updateAllMultiRel() {
+        String expectedCypherStatement = SCHEMA_MULTI_REL + NODES_UNWIND_UPDATE_STRUCTURE + RELS_UNWIND_UPDATE_ALL_MULTI_RELS + CLEANUP;
+        final Map<String, Object> map = withOptimizationSmallBatch(
+                map("cypherFormat", "updateAll"));
+
+        multiRelTestsCommon(expectedCypherStatement, map);
+    }
+    
+    @Test
+    public void createMultiRel() {
+        String expectedCypherStatement = SCHEMA_MULTI_REL + NODES_UNWIND + RELS_UNWIND_MULTI_RELS + CLEANUP;
+        final Map<String, Object> map = withOptimizationSmallBatch(
+                map("cypherFormat", "create"));
+
+        multiRelTestsCommon(expectedCypherStatement, map);
+    }
+    
+    @Test
+    public void addStructureMultiRel() {
+        String expectedCypherStatement = SCHEMA_UPDATE_STRUCTURE_MULTI_REL + NODES_UNWIND_ADD_STRUCTURE + RELS_UNWIND_MULTI_RELS + CLEANUP_EMPTY;
+        final Map<String, Object> map = withOptimizationSmallBatch
+                (map("cypherFormat", "addStructure"));
+
+        multiRelTestsCommon(expectedCypherStatement, map);
+    }
+    
+    @Test
+    public void addStructureWithoutCleanupMultiRel() {
+        String expectedCypherStatement = SCHEMA_UPDATE_STRUCTURE_MULTI_REL + NODES_UNWIND_ADD_STRUCTURE + RELS_UNWIND_MULTI_RELS + CLEANUP_EMPTY;
+        final Map<String, Object> map = withOptimizationSmallBatch
+                (map("cypherFormat", "addStructure", "cleanup", false));
+
+        multiRelTestsCommon(expectedCypherStatement, map, false, true);
+    }
+    
+    @Test
+    public void updateStructureMultiRel() {
+        String expectedCypherStatement = SCHEMA_UPDATE_STRUCTURE_MULTI_REL + RELS_UNWIND_UPDATE_ALL_MULTI_RELS + CLEANUP_EMPTY;
+        final Map<String, Object> map = withOptimizationSmallBatch(
+                map("cypherFormat", "updateStructure"));
+
+        multiRelTestsCommon(expectedCypherStatement, map, true, true);
+    }
+
+    private Map<String, Object> withoutOptimization(Map<String, Object> map) {
+        map.put("useOptimizations", map("type", "none"));
+        return map;
+    }
+
+    private Map<String, Object> withOptimizationSmallBatch(Map<String, Object> map) {
+        map.put("useOptimizations", map("type", "unwind_batch", "unwindBatchSize", 5L));
+        return map;
+    }
+
+    private void multiRelTestsCommon(String expectedCypherStatement, Map<String, Object> otherConfigs) {
+        multiRelTestsCommon(expectedCypherStatement, otherConfigs, false, false);
+    }
+
+    private void multiRelTestsCommon(String expectedCypherStatement, Map<String, Object> otherConfigs, boolean recreateNodes, boolean withRelId) {
+        db.execute("MATCH (n) DETACH DELETE n");
+        // we create a :Person node with a triple rel with :Project node and other 2 single rels
+        db.execute("create (pers:Person {name: 'MyName'})-[:WORKS_FOR {id: 1}]->(proj:Project {a: 1}), \n" +
+                "(pers)-[:WORKS_FOR {id: 2}]->(proj), " +
+                "(pers)-[:WORKS_FOR {id: 2}]->(proj), \n" +
+                "(pers)-[:WORKS_FOR {id: 3}]->(proj), \n" +
+                "(pers)-[:WORKS_FOR {id: 4}]->(proj), \n" +
+                "(pers)-[:WORKS_FOR {id: 5}]->(proj), \n" +
+                "(pers)-[:IS_TEAM_MEMBER_OF {name: 'aaa'}]->(:Team {name: 'one'}),\n" +
+                "(pers)-[:IS_TEAM_MEMBER_OF {name: 'eee'}]->(:Team {name: 'two'})").close();
+        
+        multiRelConsistencyCheck(false);
+
+        // all test with batch size, to ensure it works and with uniqueIdRels: true
+        final Map<String, Object> config = map("stream", true, "uniqueIdRels", true, "batchSize", 5);
+        config.putAll(otherConfigs);
+        final String cypherStatements = Iterators.stream(db.execute("CALL apoc.export.cypher.all(null, $config)", 
+                map("config",  config)).columnAs("cypherStatements"))
+                .map(s -> (String) s)
+                .collect(Collectors.joining("\n"));
+        
+        // check cypherStatements result
+        assertEquals(expectedCypherStatement, cypherStatements.replace("  ", " "));
+        
+        // delete and recreate using export nodeStatements, relationshipStatements
+        db.execute("MATCH (n) DETACH DELETE n");
+
+        // re-create all
+        if (recreateNodes) {
+            // for 'cypherFormat: updateStructure', because doesn't create nodes, only match them
+            db.execute("CREATE (:Person:`UNIQUE IMPORT LABEL`{name: 'MyName', `UNIQUE IMPORT ID`:0}), " +
+                    "(:Project:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:1})," +
+                    "(:Team:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:2, name: 'one'})," +
+                    "(:Team:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:3, name: 'two'})").close();
+        }
+        db.execute("call apoc.cypher.runMany($statements, {})", map("statements", cypherStatements)).close();
+
+        // check that before and after import the results are equivalents
+        multiRelConsistencyCheck(withRelId);
+    }
+
+    private void multiRelConsistencyCheck(boolean withRelId) {
+        TestUtil.testResult(db, "match p=(start:Person {name: 'MyName'})-[rel:WORKS_FOR]->(end:Project) return rel ORDER BY rel.id", r -> {
+            final ResourceIterator<Relationship> rels = r.columnAs("rel");
+            Relationship next = rels.next();
+            final Node startNode = next.getStartNode();
+            final Node endNode = next.getEndNode();
+            if (withRelId) {
+                assertTrue(next.hasProperty(UNIQUE_ID_REL));
+            }
+            assertEquals(1L, next.getProperty("id"));
+            multiRelAssertions(rels.next(), startNode, endNode, 2L, withRelId);
+            multiRelAssertions(rels.next(), startNode, endNode, 2L, withRelId);
+            multiRelAssertions(rels.next(), startNode, endNode, 3L, withRelId);
+            multiRelAssertions(rels.next(), startNode, endNode, 4L, withRelId);
+            multiRelAssertions(rels.next(), startNode, endNode, 5L, withRelId);
+            assertFalse(rels.hasNext());
+        });
+
+        final List<Object> teams = Iterators.asList(db.execute("match p=(start {name: 'MyName'})-[rel:IS_TEAM_MEMBER_OF]->(end:Team) return end.name as name order by end.name")
+                .columnAs("name"));
+        assertEquals(Arrays.asList("one", "two"), teams);
+    }
+
+    private void multiRelAssertions(Relationship next, Node startNode, Node endNode, long id, boolean withRelId) {
+        assertEquals(startNode, next.getStartNode());
+        assertEquals(endNode, next.getEndNode());
+        assertEquals(id, next.getProperty("id"));
+        if (withRelId) {
+            assertTrue(next.hasProperty(UNIQUE_ID_REL));
+        }
+    }
+    
     @Test
     public void testExportAllCypherStreaming() {
         StringBuilder sb = new StringBuilder();

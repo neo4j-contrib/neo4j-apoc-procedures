@@ -27,6 +27,8 @@ public class ExportConfig {
 
     private int batchSize;
     private boolean silent;
+    private boolean uniqueIdRels; 
+    private boolean cleanupUniqueRels;
     private boolean bulkImport = false;
     private String delim;
     private String quotes;
@@ -80,6 +82,14 @@ public class ExportConfig {
 
     public CypherFormat getCypherFormat() { return cypherFormat; }
 
+    public boolean isUniqueIdRels() {
+        return uniqueIdRels;
+    }
+
+    public boolean isCleanupUniqueIdRels() {
+        return cleanupUniqueRels;
+    }
+
     public ExportConfig(Map<String,Object> config) {
         config = config != null ? config : Collections.emptyMap();
         this.silent = toBoolean(config.getOrDefault("silent",false));
@@ -101,6 +111,8 @@ public class ExportConfig {
         this.batchSize = ((Number)config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE)).intValue();
         this.unwindBatchSize = ((Number)getOptimizations().getOrDefault("unwindBatchSize", DEFAULT_UNWIND_BATCH_SIZE)).intValue();
         this.awaitForIndexes = ((Number)config.getOrDefault("awaitForIndexes", 300)).longValue();
+        this.uniqueIdRels = toBoolean(config.get("uniqueIdRels"));
+        this.cleanupUniqueRels = toBoolean(config.getOrDefault("cleanupUniqueRels", uniqueIdRels));
         validate();
     }
 

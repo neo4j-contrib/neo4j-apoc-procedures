@@ -5,6 +5,7 @@ import apoc.export.util.Reporter;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 
 import java.io.PrintWriter;
 import java.util.Map;
@@ -23,12 +24,17 @@ public class AddStructureCypherFormatter extends AbstractCypherFormatter impleme
 	}
 
 	@Override
-	public String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties) {
-		return new CreateCypherFormatter().statementForRelationship(relationship, uniqueConstraints, indexedProperties);
+	public String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, ExportConfig exportConfig) {
+		return new CreateCypherFormatter().statementForRelationship(relationship, uniqueConstraints, indexedProperties, exportConfig);
 	}
 
 	@Override
 	public String statementForCleanUp(int batchSize) {
+		return "";
+	}
+
+	@Override
+	public String statementForCleanUpRel(RelationshipType type, int batchSize) {
 		return "";
 	}
 
@@ -48,7 +54,7 @@ public class AddStructureCypherFormatter extends AbstractCypherFormatter impleme
 	}
 
 	@Override
-	public void statementForRelationships(Iterable<Relationship> relationship, Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig, PrintWriter out, Reporter reporter, GraphDatabaseService db) {
-		buildStatementForRelationships("CREATE ", " SET ", relationship, uniqueConstraints, exportConfig, out, reporter, db);
+	public void statementForRelationships(Iterable<Relationship> relationship, Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig, PrintWriter out, Reporter reporter, GraphDatabaseService db, Map<RelationshipType, Long> relsCount) {
+		buildStatementForRelationships("CREATE ", " SET ", relationship, uniqueConstraints, exportConfig, out, reporter, db, relsCount);
 	}
 }

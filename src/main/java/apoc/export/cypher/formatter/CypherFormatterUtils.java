@@ -26,6 +26,8 @@ public class CypherFormatterUtils {
     public final static String UNIQUE_ID_LABEL = "UNIQUE IMPORT LABEL";
     public final static String UNIQUE_ID_PROP = "UNIQUE IMPORT ID";
     public final static String Q_UNIQUE_ID_LABEL = quote(UNIQUE_ID_LABEL);
+    public final static String UNIQUE_ID_REL = "UNIQUE IMPORT ID REL";
+    public final static String Q_UNIQUE_ID_REL = quote(UNIQUE_ID_REL);
 
     public final static String FUNCTION_TEMPLATE = "%s('%s')";
 

@@ -15,7 +15,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static apoc.export.cypher.formatter.CypherFormatterUtils.*;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.Q_UNIQUE_ID_LABEL;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.Q_UNIQUE_ID_REL;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_PROP;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_REL;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.quote;
 
 /**
  * @author AgileLARUS
@@ -35,6 +39,13 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		return "MATCH (n:" + Q_UNIQUE_ID_LABEL + ") " +
 				" WITH n LIMIT " + batchSize +
 				" REMOVE n:" + Q_UNIQUE_ID_LABEL + " REMOVE n." + quote(UNIQUE_ID_PROP) + ";";
+	}
+	
+	@Override
+	public String statementForCleanUpRel(RelationshipType type, int batchSize) {
+		return String.format("MATCH ()-[rel:%1$s]->() WHERE rel.%2$s IS NOT NULL" +
+				" WITH rel LIMIT %3$s REMOVE rel.%2$s;",
+				Util.quote(type.name()), Q_UNIQUE_ID_REL, batchSize);
 	}
 
 	@Override
@@ -98,13 +109,16 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		return result.toString();
 	}
 
-	public String mergeStatementForRelationship(CypherFormat cypherFormat, Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties) {
+	public String mergeStatementForRelationship(CypherFormat cypherFormat, Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, ExportConfig exportConfig) {
 		StringBuilder result = new StringBuilder(1000);
 		result.append("MATCH ");
 		result.append(CypherFormatterUtils.formatNodeLookup("n1", relationship.getStartNode(), uniqueConstraints, indexedProperties));
 		result.append(", ");
 		result.append(CypherFormatterUtils.formatNodeLookup("n2", relationship.getEndNode(), uniqueConstraints, indexedProperties));
-		result.append(" MERGE (n1)-[r:" + CypherFormatterUtils.quote(relationship.getType().name()) + "]->(n2)");
+		String mergeUniqueKey = exportConfig.isUniqueIdRels()
+				? String.format("{%s:%s}", Util.quote(UNIQUE_ID_REL), relationship.getId())
+				: "";
+		result.append(" MERGE (n1)-[r:" + Util.quote(relationship.getType().name()) + mergeUniqueKey + "]->(n2)");
 		if (relationship.getPropertyKeys().iterator().hasNext()) {
 			result.append(cypherFormat.equals(CypherFormat.UPDATE_STRUCTURE) ? " ON CREATE SET " : " SET ");
 			result.append(CypherFormatterUtils.formatRelationshipProperties("r", relationship, false));
@@ -225,7 +239,8 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 											   String setClause, Iterable<Relationship> relationship,
 											   Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig,
 											   PrintWriter out, Reporter reporter,
-											   GraphDatabaseService db) {
+											   GraphDatabaseService db,
+											   Map<RelationshipType, Long> relsCount) {
 		AtomicInteger relCount = new AtomicInteger(0);
 
 		Function<Relationship, Map<String, Object>> keyMapper = (rel) -> {
@@ -245,6 +260,9 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 						"start", new AbstractMap.SimpleImmutableEntry<>(startLabels, CypherFormatterUtils.getNodeIdProperties(start, uniqueConstraints).keySet()),
 						"end", new AbstractMap.SimpleImmutableEntry<>(endLabels, CypherFormatterUtils.getNodeIdProperties(end, uniqueConstraints).keySet()));
 
+				if (exportConfig.isUniqueIdRels()) {
+					key.put(UNIQUE_ID_REL, rel.getId());
+				}
 				tx.success();
 				return key;
 			}
@@ -263,7 +281,11 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 			relCount.addAndGet(relSize);
 			final Relationship last = relationshipList.get(relSize - 1);
 			for (int index = 0; index < relationshipList.size(); index++) {
+				
 				Relationship rel = relationshipList.get(index);
+				if (exportConfig.isUniqueIdRels()) {
+					relsCount.merge(rel.getType(), 1L, (o, n) -> o + (long) n);
+				}
 				writeBatchBegin(exportConfig, out, batchCount);
 				writeUnwindStart(exportConfig, out, unwindCount);
 				batchCount.incrementAndGet();
@@ -317,7 +339,10 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 
 		// create the relationship (depends on the strategy)
 		out.append(relationshipClause);
-		out.append("(start)-[r:" + Util.quote(path.get("type").toString()) + "]->(end) ");
+		String mergeUniqueKey = Optional.ofNullable(path.get(UNIQUE_ID_REL))
+				.map(val -> String.format("{%s:%s}", Q_UNIQUE_ID_REL, val))
+				.orElse("");
+		out.append("(start)-[r:" + Util.quote(path.get("type").toString()) + mergeUniqueKey + "]->(end) ");
 		out.append(setClause);
 		out.append("r += row.properties;");
 		out.append(StringUtils.LF);
