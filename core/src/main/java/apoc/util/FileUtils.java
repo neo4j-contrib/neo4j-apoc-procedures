@@ -144,7 +144,7 @@ public class FileUtils {
 
     public static final String ERROR_READ_FROM_FS_NOT_ALLOWED = "Import file %s not enabled, please set " + APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM + "=true in your neo4j.conf";
     public static final String ACCESS_OUTSIDE_DIR_ERROR = "You're providing a directory outside the import directory " +
-            "defined into `dbms.directories.import`";
+            "defined into `server.directories.import`";
 
     public static CountingReader readerFor(Object input) throws IOException {
         return readerFor(input, null, null, CompressionAlgo.NONE.name());
@@ -290,8 +290,8 @@ public class FileUtils {
      * @return a File pointing to Neo4j's log directory, if it exists and is readable, null otherwise.
      */
     public static File getLogDirectory() {
-        String neo4jHome = apocConfig().getString("dbms.directories.neo4j_home", "");
-        String logDir = apocConfig().getString("dbms.directories.logs", "");
+        String neo4jHome = apocConfig().getString("server.directories.neo4j_home", "");
+        String logDir = apocConfig().getString("server.directories.logs", "");
 
         File logs = logDir.isEmpty() ? new File(neo4jHome, "logs") : new File(logDir);
 
@@ -308,7 +308,7 @@ public class FileUtils {
      */
     public static File getMetricsDirectory() {
         String neo4jHome = apocConfig().getString(GraphDatabaseSettings.neo4j_home.name());
-        String metricsSetting = apocConfig().getString("dbms.directories.metrics", neo4jHome + File.separator + "metrics");
+        String metricsSetting = apocConfig().getString("server.directories.metrics", neo4jHome + File.separator + "metrics");
 
         File metricsDir = metricsSetting.isEmpty() ? new File(neo4jHome, "metrics") : new File(metricsSetting);
 
@@ -327,15 +327,15 @@ public class FileUtils {
     // More likely, they'll be largely similar metrics.
     public static final List<String> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = Arrays.asList(
 //            "dbms.directories.certificates",  // not in 4.x version
-            "dbms.directories.data",
-            "dbms.directories.import",
-            "dbms.directories.lib",
-            "dbms.directories.logs",
-//            "dbms.directories.metrics",  // metrics is only in EE
-            "dbms.directories.plugins",
-            "dbms.directories.run",
-            "dbms.directories.transaction.logs.root", // in Neo4j 5.0 GraphDatabaseSettings.transaction_logs_root_path changed from tx_log to this config
-            "dbms.directories.neo4j_home"
+            "server.directories.data",
+            "server.directories.import",
+            "server.directories.lib",
+            "server.directories.logs",
+//            "server.directories.metrics",  // metrics is only in EE
+            "server.directories.plugins",
+            "server.directories.run",
+            "server.directories.transaction.logs.root", // in Neo4j 5.0 GraphDatabaseSettings.transaction_logs_root_path changed from tx_log to this config
+            "server.directories.neo4j_home"
     );
 
     public static void closeReaderSafely(CountingReader reader) {

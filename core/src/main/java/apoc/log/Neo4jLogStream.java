@@ -47,7 +47,7 @@ public class Neo4jLogStream {
         File logDir = FileUtils.getLogDirectory();
 
         if (logDir == null) {
-            throw new RuntimeException("Neo4j configured dbms.directories.logs points to a directory that " +
+            throw new RuntimeException("Neo4j configured server.directories.logs points to a directory that " +
                     "does not exist or is not readable.  Please ensure this configuration is correct.");
         }
 

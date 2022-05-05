@@ -13,7 +13,7 @@ If we try to use any of the export procedures without having first set this prop
 | Failed to invoke procedure: Caused by: java.lang.RuntimeException: Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf
 |===
 
-Export files are written to the `import` directory, which is defined by the `dbms.directories.import` property.
+Export files are written to the `import` directory, which is defined by the `server.directories.import` property.
 This means that any file path that we provide is relative to this directory.
 If we try to write to an absolute path, such as `/tmp/filename`, we'll get an error message similar to the following one:
 

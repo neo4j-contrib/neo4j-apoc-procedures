@@ -13,7 +13,7 @@ If we try to use any of the import procedures without having first set this prop
 | Failed to invoke procedure: Caused by: java.lang.RuntimeException: Import from files not enabled, please set apoc.import.file.enabled=true in your apoc.conf
 |===
 
-Import files are read from the `import` directory, which is defined by the `dbms.directories.import` property.
+Import files are read from the `import` directory, which is defined by the `server.directories.import` property.
 This means that any file path that we provide is relative to this directory.
 If we try to read from an absolute path, such as `/tmp/filename`, we'll get an error message similar to the following one:
 

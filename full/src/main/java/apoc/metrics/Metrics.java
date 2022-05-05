@@ -188,7 +188,7 @@ public class Metrics {
 
     @Procedure(mode=Mode.DBMS)
     @Description("apoc.metrics.storage(directorySetting) - retrieve storage metrics about the devices Neo4j uses for data storage. " +
-            "directorySetting may be any valid neo4j directory setting name, such as 'dbms.directories.data'.  If null is provided " +
+            "directorySetting may be any valid neo4j directory setting name, such as 'server.directories.data'.  If null is provided " +
             "as a directorySetting, you will get back all available directory settings.  For a list of available directory settings, " +
             "see the Neo4j operations manual reference on configuration settings.   Directory settings are **not** paths, they are " +
             "a neo4j.conf setting key name")
