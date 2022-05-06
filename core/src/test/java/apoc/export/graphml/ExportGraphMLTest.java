@@ -217,6 +217,91 @@ public class ExportGraphMLTest {
 
         TestUtil.testCall(db, "MATCH  (c:Bar {age: 12, values: [1,2,3]}) RETURN COUNT(c) AS c", null, (r) -> assertEquals(1L, r.get("c")));
     }
+    
+    @Test
+    public void testRoundTripWithSeparatedImport() {
+        Map<String, Object> exportConfig = map("useTypes", true);
+
+        Map<String, Object> importConfig = map("readLabels", true, "storeNodeIds", true,
+                "source", map("label", "Foo"),
+                "target", map("label", "Bar"));
+
+        // we didn't specified a source/target in export config
+        // so we have to store the nodeIds and looking for them during relationship import
+        separatedFileCommons(exportConfig, importConfig);
+    }
+
+    @Test
+    public void testImportSeparatedFilesWithCustomId() {
+        Map<String, Object> exportConfig = map("useTypes", true,
+                "source", map("id", "name"), 
+                "target", map("id", "age"));
+        
+        Map<String, Object> importConfig = map("readLabels", true,
+                "source", map("label", "Foo", "id", "name"), 
+                "target", map("label", "Bar", "id", "age"));
+        
+        // we specified a source/target in export config
+        // so storeNodeIds config is unnecessary and we search nodes by properties Foo.name and Bar.age
+        separatedFileCommons(exportConfig, importConfig);
+    }
+
+    private void separatedFileCommons(Map<String, Object> exportConfig, Map<String, Object> importConfig) {
+        db.executeTransactionally("CREATE (:Foo {name: 'zzz'})-[:KNOWS]->(:Bar {age: 0}), (:Foo {name: 'aaa'})-[:KNOWS {id: 1}]->(:Bar {age: 666})");
+
+        // we export 3 files: 1 for source nodes, 1 for end nodes, 1 for relationships
+        String outputNodesFoo = new File(directory, "queryNodesFoo.graphml").getAbsolutePath();
+        String outputNodesBar = new File(directory, "queryNodesBar.graphml").getAbsolutePath();
+        String outputRelationships = new File(directory, "queryRelationship.graphml").getAbsolutePath();
+
+        TestUtil.testCall(db, "CALL apoc.export.graphml.query('MATCH (start:Foo)-[:KNOWS]->(:Bar) RETURN start',$file, $config)",
+                map("file", outputNodesFoo, "config", exportConfig),
+                (r) -> assertEquals(3L, r.get("nodes")));
+
+        TestUtil.testCall(db, "CALL apoc.export.graphml.query('MATCH (:Foo)-[:KNOWS]->(end:Bar) RETURN end', $file, $config) ",
+                map("file", outputNodesBar, "config", exportConfig),
+                (r) -> assertEquals(3L, r.get("nodes")));
+
+        TestUtil.testCall(db, "MATCH (:Foo)-[rel:KNOWS]->(:Bar) WITH collect(rel) as rels \n" +
+                        "call apoc.export.graphml.data([], rels, $file, $config) " +
+                        "YIELD nodes, relationships RETURN nodes, relationships",
+                map("file", outputRelationships, "config", exportConfig),
+                (r) -> assertEquals(3L, r.get("relationships")));
+
+        // delete current entities and re-import
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+
+        TestUtil.testCall(db, "CALL apoc.import.graphml($file, $config)",
+                map("file", outputNodesFoo, "config", importConfig),
+                (r) -> assertEquals(3L, r.get("nodes")));
+
+        TestUtil.testCall(db, "CALL apoc.import.graphml($file, $config)",
+                map("file", outputNodesBar, "config", importConfig),
+                (r) -> assertEquals(3L, r.get("nodes")));
+
+        TestUtil.testCall(db, "CALL apoc.import.graphml($file, $config)",
+                map("file", outputRelationships, "config", importConfig),
+                (r) -> assertEquals(3L, r.get("relationships")));
+
+        TestUtil.testResult(db, "MATCH (start:Foo)-[rel:KNOWS]->(end:Bar) \n" +
+                        "RETURN start.name AS startName, rel.id AS relId, end.age AS endAge \n" +
+                        "ORDER BY start.name",
+                (r) -> {
+                    Map<String, Object> row = r.next();
+                    assertions(row, "aaa", 1L, 666L);
+                    row = r.next();
+                    assertions(row, "foo", null, 42L);
+                    row = r.next();
+                    assertions(row, "zzz", null, 0L);
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    private void assertions(Map<String, Object> row, String expectedSource, Long expectedRel, Long expectedTarget) {
+        assertEquals(expectedSource, row.get("startName"));
+        assertEquals(expectedRel, row.get("relId"));
+        assertEquals(expectedTarget, row.get("endAge"));
+    }
 
     @Test
     public void testImportGraphMLLargeFile() {
