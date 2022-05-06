@@ -12,8 +12,6 @@ dependencies {
 
     compile group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
 
-    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
-
     compile group: 'org.gradle', name: 'gradle-tooling-api', version: '6.1.1'
 
     def withoutServers = {
@@ -22,11 +20,11 @@ dependencies {
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
 
-    compile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.1', withoutServers
-    compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.1', withoutServers
-    compile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.3.1', withoutServers
+    compile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.2', withoutServers
+    compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.2', withoutServers
+    compile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.3.2', withoutServers
 
-    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
+    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.5'
     compile group: 'org.jetbrains', name: 'annotations', version: "17.0.0"
 
     // Test Containers

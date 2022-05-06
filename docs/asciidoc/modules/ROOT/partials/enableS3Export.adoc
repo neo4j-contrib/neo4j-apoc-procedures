@@ -19,8 +19,8 @@ When using the S3 protocol we need to download and copy the following jars into 
 
 * aws-java-sdk-core-1.11.250.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-core/1.11.250)
 * aws-java-sdk-s3-1.11.250.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3/1.11.250)
-* httpclient-4.4.8.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient/4.5.4)
-* httpcore-4.5.4.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore/4.4.8)
+* httpclient-4.5.4.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient/4.5.4)
+* httpcore-4.4.8.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore/4.4.8)
 * joda-time-2.9.9.jar (https://mvnrepository.com/artifact/joda-time/joda-time/2.9.9)
 
 Once those files have been copied we'll need to restart the database.

@@ -18,7 +18,7 @@ jar {
 }
 
 dependencies {
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
+//    compile group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
     compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.1'
     compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 }

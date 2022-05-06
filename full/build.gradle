@@ -48,7 +48,7 @@ dependencies {
 //    compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
-    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
+    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.5'
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
 
     antlr "org.antlr:antlr4:4.7.2", {
@@ -104,8 +104,8 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver:3.2.2'
     testCompile 'org.mongodb:mongodb-driver:3.2.2'
 
-    compileOnly group: 'com.couchbase.client', name: 'java-client', version: '3.2.4'
-    testCompile group: 'com.couchbase.client', name: 'java-client', version: '3.2.4'
+    compileOnly group: 'com.couchbase.client', name: 'java-client', version: '3.3.0'
+    testCompile group: 'com.couchbase.client', name: 'java-client', version: '3.3.0'
 
     compileOnly group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
     testCompile group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
@@ -127,7 +127,7 @@ dependencies {
     compile group: 'com.opencsv', name: 'opencsv', version: '4.6'
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
-    compile group: 'com.github.javafaker', name: 'javafaker', version: '0.10'
+    compile group: 'com.github.javafaker', name: 'javafaker', version: '1.0.2'
 
     // schemacrawler
     compile group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'
@@ -145,8 +145,8 @@ dependencies {
     testCompile group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
     testCompile group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
 
-    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '1.92.0'
-    testCompile group: 'com.google.cloud', name: 'google-cloud-storage', version: '1.92.0', {
+    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.1'
+    testCompile group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.1', {
         exclude group: 'com.google.guava', module: 'guava'
     }
 

@@ -104,8 +104,8 @@ dependencies {
 
     testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.1', withoutServers
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.1', withoutServers
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.2', withoutServers
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.2', withoutServers
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     // explicit update comomns.io version
@@ -122,8 +122,8 @@ dependencies {
     testCompile group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
     testCompile group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
 
-    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '1.92.0'
-    testCompile group: 'com.google.cloud', name: 'google-cloud-storage', version: '1.92.0', {
+    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.1'
+    testCompile group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.1', {
         exclude group: 'com.google.guava', module: 'guava'
     }
 
