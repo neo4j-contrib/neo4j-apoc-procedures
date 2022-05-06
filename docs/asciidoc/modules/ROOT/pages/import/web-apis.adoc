@@ -72,6 +72,7 @@ Once that file is downloaded/created, it should be placed in the `plugins` direc
 
 == Using Google Cloud Storage
 
+todo...
 In order to use https://cloud.google.com/storage/[Google Cloud Storage], you need to add the following Google Cloud dependencies in the plugins directory:
 
 * api-common-1.8.1.jar
