@@ -273,7 +273,7 @@ This function parses a date string in a specified format and converts it to a Ne
 
 [NOTE]
 ====
-This function has been renamed to `apoc.temporal.toZonedTemporal` and moved to the temporal section.
+This function has been deprecated by `apoc.temporal.toZonedTemporal`, therefore it's recommended to use this one instead.
 See xref::temporal/temporal-conversions.adoc[].
 ====
 
