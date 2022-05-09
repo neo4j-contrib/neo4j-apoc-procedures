@@ -120,10 +120,10 @@ dependencies {
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
 
-    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2'
+//    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2'
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 
-    testCompile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2'
+//    testCompile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2'
     testCompile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 
     testCompile 'org.mock-server:mockserver-netty:5.6.0'
