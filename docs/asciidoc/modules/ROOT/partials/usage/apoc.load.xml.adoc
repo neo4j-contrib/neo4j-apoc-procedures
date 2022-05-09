@@ -321,7 +321,34 @@ you can extract all the children of the `graph` tag via:
 
 [source,cypher]
 ----
-CALL apoc.load.xml('largeFile.xml', '/graphml/*', {})
+CALL apoc.load.xml('databases.xml', '/graphml/graph/*', {}) 
+YIELD value RETURN value ORDER BY value.id
+----
+
+.Results
+[options="header"]
+|===
+| value
+| {"_children":[{"_type":"data","_text":"ACTED_IN","key":"label"},{"_type":"data","_text":"["Morpheus"]","key":"roles"}],"_type":"edge","id":"e17","label":"ACTED_IN","source":"n3","target":"n10"}
+| {"_children":[{"_type":"data","_text":"ACTED_IN","key":"label"},{"_type":"data","_text":"["Agent Smith"]","key":"roles"}],"_type":"edge","id":"e18","label":"ACTED_IN","source":"n4","target":"n10"}
+| {"_type":"foo","id":"id2","_text":"foo2"}
+| {"_type":"foo","id":"id3","_text":"foo3"}
+| {"_children":[{"_type":"data","_text":":Movie","key":"labels"},{"_type":"data","_text":"The Matrix","key":"title"},{"_type":"data","_text":"Welcome to the Real World","key":"tagline"},{"_type":"data","_text":"1999","key":"released"}],"_type":"node","id":"n0","labels":":Movie"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1964","key":"born"},{"_type":"data","_text":"Keanu Reeves","key":"name"}],"_type":"node","id":"n1","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1967","key":"born"},{"_type":"data","_text":"Carrie-Anne Moss","key":"name"}],"_type":"node","id":"n2","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1961","key":"born"},{"_type":"data","_text":"Laurence Fishburne","key":"name"}],"_type":"node","id":"n3","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1960","key":"born"},{"_type":"data","_text":"Hugo Weaving","key":"name"}],"_type":"node","id":"n4","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1967","key":"born"},{"_type":"data","_text":"Lilly Wachowski","key":"name"}],"_type":"node","id":"n5","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1965","key":"born"},{"_type":"data","_text":"Lana Wachowski","key":"name"}],"_type":"node","id":"n6","labels":":Person"}
+|===
+
+
+Or if you want to include only `node` tag:
+
+[source,cypher]
+----
+CALL apoc.load.xml('largeFile.xml', '/graphml/graph/node', {})
+YIELD value RETURN value ORDER BY value.id
 ----
 
 .Results
@@ -333,25 +360,8 @@ CALL apoc.load.xml('largeFile.xml', '/graphml/*', {})
 | {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1967","key":"born"},{"_type":"data","_text":"Carrie-Anne Moss","key":"name"}],"_type":"node","id":"n2","labels":":Person"}
 | {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1961","key":"born"},{"_type":"data","_text":"Laurence Fishburne","key":"name"}],"_type":"node","id":"n3","labels":":Person"}
 | {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1960","key":"born"},{"_type":"data","_text":"Hugo Weaving","key":"name"}],"_type":"node","id":"n4","labels":":Person"}
-| {"_children":[{"_type":"data","_text":"ACTED_IN","key":"label"}],"_type":"edge","id":"e18","label":"ACTED_IN","source":"n4","target":"n10"}
-| {"_type":"foo","id":"id2","_text":"foo2"}
-| {"_type":"foo","id":"id3","_text":"foo3"}
-|===
-
-
-Or if you want to include only `node` tag:
-
-[source,cypher]
-----
-CALL apoc.load.xml('largeFile.xml', '/graphml/node', {})
-----
-
-.Results
-[options="header"]
-|===
-| value
-| {"_children":[{"_type":"data","_text":":Movie","key":"labels"},{"_type":"data","_text":"The Matrix","key":"title"},{"_type":"data","_text":"Welcome to the Real World","key":"tagline"},{"_type":"data","_text":"1999","key":"released"}],"_type":"node","id":"n0","labels":":Movie"}
-| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1964","key":"born"},{"_type":"data","_text":"Keanu Reeves","key":"name"}],"_type":"node","id":"n1","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1967","key":"born"},{"_type":"data","_text":"Lilly Wachowski","key":"name"}],"_type":"node","id":"n5","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1965","key":"born"},{"_type":"data","_text":"Lana Wachowski","key":"name"}],"_type":"node","id":"n6","labels":":Person"}
 |===
 
 You can also include multiple tag names with `or`, e.g.:
@@ -359,15 +369,22 @@ You can also include multiple tag names with `or`, e.g.:
 [source,cypher]
 ----
 CALL apoc.load.xml('largeFile.xml', 'graphml/graph/*[self::node or self::edge]', {})
+YIELD value RETURN value ORDER BY value.id
 ----
 
 .Results
 [options="header"]
 |===
 | value
+| {"_children":[{"_type":"data","_text":"ACTED_IN","key":"label"},{"_type":"data","_text":"["Morpheus"]","key":"roles"}],"_type":"edge","id":"e17","label":"ACTED_IN","source":"n3","target":"n10"}
+| {"_children":[{"_type":"data","_text":"ACTED_IN","key":"label"},{"_type":"data","_text":"["Agent Smith"]","key":"roles"}],"_type":"edge","id":"e18","label":"ACTED_IN","source":"n4","target":"n10"}
 | {"_children":[{"_type":"data","_text":":Movie","key":"labels"},{"_type":"data","_text":"The Matrix","key":"title"},{"_type":"data","_text":"Welcome to the Real World","key":"tagline"},{"_type":"data","_text":"1999","key":"released"}],"_type":"node","id":"n0","labels":":Movie"}
 | {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1964","key":"born"},{"_type":"data","_text":"Keanu Reeves","key":"name"}],"_type":"node","id":"n1","labels":":Person"}
-| {"_children":[{"_type":"data","_text":"ACTED_IN","key":"label"}],"_type":"edge","id":"e18","label":"ACTED_IN","source":"n4","target":"n10"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1967","key":"born"},{"_type":"data","_text":"Carrie-Anne Moss","key":"name"}],"_type":"node","id":"n2","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1961","key":"born"},{"_type":"data","_text":"Laurence Fishburne","key":"name"}],"_type":"node","id":"n3","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1960","key":"born"},{"_type":"data","_text":"Hugo Weaving","key":"name"}],"_type":"node","id":"n4","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1967","key":"born"},{"_type":"data","_text":"Lilly Wachowski","key":"name"}],"_type":"node","id":"n5","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1965","key":"born"},{"_type":"data","_text":"Lana Wachowski","key":"name"}],"_type":"node","id":"n6","labels":":Person"}
 |===
 
 See https://docs.oracle.com/javase/7/docs/api/javax/xml/xpath/XPath.html[Java Xpath Doc] and https://www.w3schools.com/xml/xpath_intro.asp[w3School tutorial] for more examples and details.
