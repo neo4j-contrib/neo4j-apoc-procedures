@@ -1,12 +1,3 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'org.owasp:dependency-check-gradle:7.0.0'
-    }
-}
-
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '4.0.3'  apply false
@@ -17,9 +8,6 @@ plugins {
     id "com.github.hierynomus.license-report" version"0.15.0"
 }
 
-apply plugin: 'org.owasp.dependencycheck'
-check.dependsOn dependencyCheckAggregate
-
 downloadLicenses {
     excludeDependencies = [
             'org.neo4j.*'
@@ -27,7 +15,6 @@ downloadLicenses {
 }
 
 allprojects {
-    task printAllDependencies(type: DependencyReportTask) {}
     group = 'org.neo4j.procedure'
     version = '4.4.0.4'
     archivesBaseName = 'apoc'

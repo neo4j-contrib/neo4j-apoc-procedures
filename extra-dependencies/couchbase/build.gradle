@@ -17,7 +17,7 @@ jar {
 }
 
 dependencies {
-    compile group: 'com.couchbase.client', name: 'java-client', version: '3.2.4' // 3.3.0
+    compile group: 'com.couchbase.client', name: 'java-client', version: '3.3.0'
 }
 
 
