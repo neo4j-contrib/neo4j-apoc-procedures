@@ -18,9 +18,3 @@ You should be able to get them from the following links:
 - https://mvnrepository.com/artifact/org.mongodb/mongodb-driver/3.4.2[mongodb-driver]
 - https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-core/3.4.2[mongodb-driver-core]
 - https://mvnrepository.com/artifact/org.mongodb/bson/3.4.2[BSON]
-
-Or you get them locally from your gradle build of apoc:
-----
-gradle copyRuntimeLibs
-cp lib/mongodb*.jar lib/bson*.jar $NEO4J_HOME/plugins/
-----
