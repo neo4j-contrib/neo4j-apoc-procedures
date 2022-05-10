@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CypherInitializer implements AvailabilityListener {
 
@@ -68,7 +70,8 @@ public class CypherInitializer implements AvailabilityListener {
                     final List<String> versions = db.executeTransactionally("CALL dbms.components", Collections.emptyMap(),
                             r -> (List<String>) r.next().get("versions"));
                     final String apocFullVersion = Version.class.getPackage().getImplementationVersion();
-                    if (isVersionDifferent(versions, apocFullVersion)) {
+                    // we expect that APOC versioning is always consistent to Neo4j versioning
+                    if (isVersionDifferent(versions, apocFullVersion, ".")) {
                         userLog.warn("The apoc version (%s) and the Neo4j DBMS versions %s are incompatible. \n" +
                                         "See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to see the correct version",
                                 apocFullVersion, versions.toString());
@@ -93,10 +96,18 @@ public class CypherInitializer implements AvailabilityListener {
     }
 
     // the visibility is public only for testing purpose, it could be private otherwise
-    public static boolean isVersionDifferent(List<String> versions, String apocFullVersion) {
-        return Optional.ofNullable(apocFullVersion)
-                .map(v -> versions.stream().noneMatch(v::startsWith))
-                .orElse(true);
+    public static boolean isVersionDifferent(List<String> versions, String apocFullVersion, String versionSeparator) {
+        final String apocVersion = getMajorMinVersion(apocFullVersion, versionSeparator);
+        return versions.stream()
+                .noneMatch(kernelVersion -> getMajorMinVersion(kernelVersion, versionSeparator).equals(apocVersion));
+    }
+
+    private static String getMajorMinVersion(String completeVersion, String versionSeparator) {
+        if (completeVersion == null) {
+            return null;
+        }
+        final String[] split = completeVersion.split(String.format("\\%s", versionSeparator));
+        return split.length == 1 ? split[0] : (split[0] + versionSeparator + split[1]);
     }
 
     private Collection<String> collectInitializers(boolean isSystemDatabase, Configuration config) {
