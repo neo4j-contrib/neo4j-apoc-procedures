@@ -24,6 +24,7 @@ import java.util.Collections;
 
 import static apoc.ApocConfig.APOC_CONFIG_INITIALIZER;
 import static apoc.ApocConfig.APOC_CONFIG_INITIALIZER_CYPHER;
+import static apoc.util.CypherInitializerUtil.getInitializer;
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
@@ -40,12 +41,12 @@ public class CypherInitializerTest {
         // we need at least on APOC proc being registered in finished CypherInitializers
         TestUtil.registerProcedure(dbmsRule, Utils.class);
 
-        waitForInitializerBeingFinished(SYSTEM_DATABASE_NAME);
-        waitForInitializerBeingFinished(DEFAULT_DATABASE_NAME);
+        waitForInitializerBeingFinished(SYSTEM_DATABASE_NAME, dbmsRule);
+        waitForInitializerBeingFinished(DEFAULT_DATABASE_NAME, dbmsRule);
     }
 
-    private void waitForInitializerBeingFinished(String dbName) {
-        CypherInitializer initializer = getInitializer(dbName);
+    private static void waitForInitializerBeingFinished(String dbName, DbmsRule dbmsRule) {
+        CypherInitializer initializer = getInitializer(dbName, dbmsRule, CypherInitializer.class);
         while (!initializer.isFinished()) {
             try {
                 Thread.sleep(10);
@@ -56,26 +57,6 @@ public class CypherInitializerTest {
         }
     }
 
-    /**
-     * get a reference to CypherInitializer for diagnosis. This needs to use reflection.
-     * @return
-     */
-    private CypherInitializer getInitializer(String dbName) {
-        GraphDatabaseAPI api = ((GraphDatabaseAPI) (dbmsRule.getManagementService().database(dbName)));
-        DatabaseAvailabilityGuard availabilityGuard = (DatabaseAvailabilityGuard) api.getDependencyResolver().resolveDependency(AvailabilityGuard.class);;
-        try {
-            Listeners<AvailabilityListener> listeners = ReflectionUtil.getPrivateField(availabilityGuard, "listeners", Listeners.class);
-            for (AvailabilityListener listener: listeners) {
-                if (listener instanceof CypherInitializer) {
-                     return (CypherInitializer) listener;
-                }
-            }
-            throw new IllegalStateException("found no cypher initializer");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-    }
 
     @Test
     @Env
