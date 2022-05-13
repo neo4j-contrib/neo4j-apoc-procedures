@@ -64,7 +64,9 @@ RETURN location.description;
 
 === Configuring Geocode
 
-There are a few options that can be set in the apoc.conf file to control the service:
+There are a few options that can be set in the apoc.conf file or via `$config` parameter (see below the `Configure via config parameter map` section) to control the service.
+
+In the `apoc.conf` we can pass:
 
 * apoc.spatial.geocode.provider=osm (osm, google, opencage, etc.)
 * apoc.spatial.geocode.osm.throttle=5000 (ms to delay between queries to not overload OSM servers)
@@ -107,12 +109,52 @@ apoc.spatial.geocode.opencage.reverse.url=http://api.opencagedata.com/geocode/v1
 * Restart the Neo4j server and then test the geocode procedures to see that they work
 * If you are unsure if the provider is correctly configured try verify with:
 
-
-
 [source,cypher]
 ----
 CALL apoc.spatial.showConfig()
 ----
+
+
+=== Configure via config parameter map 
+
+Alternatively, we can pass a config map. + 
+**Note that these configs take precedence over the `apoc.conf` settings.** +
+We can pass a provider key, which will be equivalent to `apoc.spatial.geocode.provider` setting key,
+and the other keys will be equivalent to `apoc.spatial.geocode.<PROVIDER>.<KEY>` settings.
+
+For example:
+[source,cypher]
+----
+CALL apoc.spatial.geocodeOnce('<MY_PLACE>', {
+  provider: 'opencage', 
+  url: 'http://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY',
+  reverseUrl: 'http://api.opencagedata.com/geocode/v1/json?q=LAT+LNG&key=KEY',
+  key: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+})
+----
+
+is equivalent to these (note that we transform `UpperCamelCase` keys in `dot.case`, e.g from `reverseUrl` to `reverse.url`):
+----
+apoc.spatial.geocode.provider=opencage
+apoc.spatial.geocode.opencage.key=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+apoc.spatial.geocode.opencage.url=http://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY
+apoc.spatial.geocode.opencage.reverse.url=http://api.opencagedata.com/geocode/v1/json?q=LAT+LNG&key=KEY
+----
+
+If we don't pass the provider via config map, the setting `apoc.spatial.geocode.provider` will be choose, otherwise the default `'osm'`. For example:
+
+[source,cypher]
+----
+/* apoc.conf
+  ...
+  apoc.spatial.geocode.provider=google
+  ...
+*/
+CALL apoc.spatial.geocodeOnce('<MY_PLACE>', {key: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'})
+----
+
+will pass a config like `apoc.spatial.geocode.google.key=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`.
+
 
 == Using Geocode within a bigger Cypher query
 

@@ -7,6 +7,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -216,7 +217,7 @@ public class Geocode {
         }
     }
 
-    class GoogleSupplier implements GeocodeSupplier {
+    private static class GoogleSupplier implements GeocodeSupplier {
         private final Throttler throttler;
         private Configuration config;
 
@@ -285,6 +286,15 @@ public class Geocode {
     }
 
     private GeocodeSupplier getSupplier(Map<String, Object> configMap) {
+        return getSupplier(configMap, terminationGuard);
+    }
+    
+    public static GeocodeSupplier getSupplier(Map<String, Object> configMap, TerminationGuard terminationGuard) {
+        final AbstractMap.SimpleEntry<GeocodeSupplier, String> results = getSupplierEntry(terminationGuard, configMap);
+        return results.getKey();
+    }
+    
+    public static AbstractMap.SimpleEntry<GeocodeSupplier, String> getSupplierEntry(TerminationGuard terminationGuard, Map<String, Object> configMap) {
         Configuration activeConfig = apocConfig().getConfig().subset(PREFIX);
         // with configMap we overwrite the ApocConfig, if none of these is found, we choose the default one, 'osm'
         final String provider = (String) configMap.getOrDefault(GEOCODE_PROVIDER_KEY,
@@ -297,9 +307,15 @@ public class Geocode {
         });
 
         String supplier = provider.toLowerCase();
+        final GeocodeSupplier geocodeSupplier = getGeocodeSupplier(terminationGuard, activeConfig, supplier);
+        // we return both GeocodeSupplier for real implementations and String supplier for mock tests
+        return new AbstractMap.SimpleEntry<>(geocodeSupplier, supplier);
+    }
+
+    private static GeocodeSupplier getGeocodeSupplier(TerminationGuard terminationGuard, Configuration activeConfig, String supplier) {
         switch (supplier) {
             case "google" : return new GoogleSupplier(activeConfig, terminationGuard);
-            case "osm" : return new OSMSupplier(activeConfig,terminationGuard);
+            case "osm" : return new OSMSupplier(activeConfig, terminationGuard);
             default: return new SupplierWithKey(activeConfig, terminationGuard, supplier);
         }
     }
@@ -326,7 +342,7 @@ public class Geocode {
     }
 
     @Procedure
-    @Description("apoc.spatial.reverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description - look up address from latitude and longitude from a geocoding service (the default one is OpenStreetMap)")
+    @Description("apoc.spatial.reverseGeocode(latitude,longitude, quotaException, $config) YIELD location, latitude, longitude, description - look up address from latitude and longitude from a geocoding service (the default one is OpenStreetMap)")
     public Stream<GeoCodeResult> reverseGeocode(@Name("latitude") double latitude, @Name("longitude") double longitude, @Name(value = "quotaException",defaultValue = "false") boolean quotaException, @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
         try {
             return getSupplier(config).reverseGeocode(latitude, longitude);

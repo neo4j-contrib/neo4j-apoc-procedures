@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.MapUtil.map;
@@ -68,7 +69,7 @@ public class GeocodeTest {
     public void testReverseGeocodeOpenCageViaConfigMap() throws Exception {
         Assume.assumeNotNull(OPENCAGE_KEY);
         // overwrite ApocConfig provider
-        testGeocodeWithThrottling("osm", true, 
+        testGeocode("osm", 1000, true, 
                 map("provider", "openCage", "reverseUrl", "https://api.opencagedata.com/geocode/v1/json?q=LAT+LNG&key=KEY", "key", OPENCAGE_KEY));
     }
     
@@ -153,17 +154,26 @@ public class GeocodeTest {
     }
 
     private void testReverseGeocodeAddress(Object latitude, Object longitude, Map<String, Object> config) {
+        ignoreQuotaError(() -> {
+            testResult(db, "CALL apoc.spatial.reverseGeocode($latitude, $longitude, false, $config)",
+                    map("latitude", latitude, "longitude", longitude, "config", config), (row) -> {
+                        row.forEachRemaining((r) -> {
+                            assertNotNull(r.get("description"));
+                            assertNotNull(r.get("location"));
+                            assertNotNull(r.get("data"));
+                        });
+                    });
+        });
+    }
+    
+    private void ignoreQuotaError(Runnable runnable) {
         try {
-            testResult(db,"CALL apoc.spatial.reverseGeocode($latitude, $longitude)",
-                    map("latitude", latitude, "longitude", longitude, "config", config), (row)->{
-                row.forEachRemaining((r)->{
-                    assertNotNull(r.get("description"));
-                    assertNotNull(r.get("location"));
-                    assertNotNull(r.get("data"));
-                });
-            });
+            runnable.run();
         } catch(Exception e) {
-            if (e.getMessage().contains("Server returned HTTP response code: 400")) {
+            final String message = e.getMessage().toLowerCase();
+            final boolean isQuotaError = Stream.of("request entity too large", "too many requests", "quota exceeded")
+                    .anyMatch(message::contains);
+            if (isQuotaError) {
                 Assume.assumeNoException("out of quota", e);
             }
             throw e;
@@ -177,22 +187,17 @@ public class GeocodeTest {
     }
 
     private void testGeocodeAddress(Map map, String provider, Map<String, Object> config) {
-        try {
+        ignoreQuotaError(() -> {
             testResult(db,"CALL apoc.spatial.geocode('FRANCE',1,true,$config)",
                     map("config", config), (row)->{
-                Assume.assumeTrue(row.hasNext());
-                row.forEachRemaining((r)->{
-                    assertNotNull(r.get("description"));
-                    assertNotNull(r.get("location"));
-                    assertNotNull(r.get("data"));
-                });
-            });
-        } catch(Exception e) {
-            if (e.getMessage().contains("Server returned HTTP response code: 400")) {
-                Assume.assumeNoException("out of quota", e);
-            }
-            throw e;
-        }
+                        assertTrue(row.hasNext());
+                        row.forEachRemaining((r)->{
+                            assertNotNull(r.get("description"));
+                            assertNotNull(r.get("location"));
+                            assertNotNull(r.get("data"));
+                        });
+                    });
+        });
         if (map.containsKey("noresults")) {
             for (String field : new String[]{"address", "noresults"}) {
                 checkJsonFields(map, field);
