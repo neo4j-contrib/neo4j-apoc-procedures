@@ -4,6 +4,7 @@ import apoc.ApocConfig;
 import apoc.util.Util;
 import apoc.version.Version;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -19,10 +20,7 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CypherInitializer implements AvailabilityListener {
 
@@ -70,8 +68,7 @@ public class CypherInitializer implements AvailabilityListener {
                     final List<String> versions = db.executeTransactionally("CALL dbms.components", Collections.emptyMap(),
                             r -> (List<String>) r.next().get("versions"));
                     final String apocFullVersion = Version.class.getPackage().getImplementationVersion();
-                    // we expect that APOC versioning is always consistent to Neo4j versioning
-                    if (isVersionDifferent(versions, apocFullVersion, ".")) {
+                    if (isVersionDifferent(versions, apocFullVersion)) {
                         userLog.warn("The apoc version (%s) and the Neo4j DBMS versions %s are incompatible. \n" +
                                         "See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to see the correct version",
                                 apocFullVersion, versions.toString());
@@ -96,18 +93,22 @@ public class CypherInitializer implements AvailabilityListener {
     }
 
     // the visibility is public only for testing purpose, it could be private otherwise
-    public static boolean isVersionDifferent(List<String> versions, String apocFullVersion, String versionSeparator) {
-        final String apocVersion = getMajorMinVersion(apocFullVersion, versionSeparator);
+    public static boolean isVersionDifferent(List<String> versions, String apocVersion) {
+        final String[] apocSplit = splitVersion(apocVersion);
         return versions.stream()
-                .noneMatch(kernelVersion -> getMajorMinVersion(kernelVersion, versionSeparator).equals(apocVersion));
+                .noneMatch(kernelVersion -> {
+                    final String[] kernelSplit = splitVersion(kernelVersion);
+                    return apocSplit != null && kernelSplit != null
+                            && apocSplit[0].equals(kernelSplit[0])
+                            && apocSplit[1].equals(kernelSplit[1]);
+                });
     }
 
-    private static String getMajorMinVersion(String completeVersion, String versionSeparator) {
-        if (completeVersion == null) {
+    private static String[] splitVersion(String completeVersion) {
+        if (StringUtils.isBlank(completeVersion)) {
             return null;
         }
-        final String[] split = completeVersion.split(String.format("\\%s", versionSeparator));
-        return split.length == 1 ? split[0] : (split[0] + versionSeparator + split[1]);
+        return completeVersion.split("[^\\d]");
     }
 
     private Collection<String> collectInitializers(boolean isSystemDatabase, Configuration config) {
