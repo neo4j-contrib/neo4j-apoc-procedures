@@ -42,7 +42,7 @@ dependencies {
 
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     implementation group: 'commons-codec', name: 'commons-codec', version: '1.14'
-    implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
+    implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.7.0'
     implementation group: 'net.minidev', name: 'json-smart', version: '2.4.8'
     implementation group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
 
