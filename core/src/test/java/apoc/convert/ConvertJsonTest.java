@@ -341,9 +341,51 @@ public class ConvertJsonTest {
                     assertEquals(6, ((Map<String, Object>) innerList.get(0)).size());
                 });
     }
+
+    @Test public void testConvertToTreeIssue1685() {
+        String movies = Util.readResourceFile("movies.cypher");
+        db.executeTransactionally(movies);
+
+        // same use case as `testToTreeIssue1685`, but with fewer results, due to non-ordering
+        testCall(db, "match path = (k:Person {name:'Keanu Reeves'})-[*..5]-(x) " +
+                        "with collect(path) as paths " +
+                        "call apoc.convert.toGraph(paths) yield value " +
+                        "return value",
+                (row) -> {
+                    Map root = (Map) row.get("value");
+                    assertEquals("Person", root.get("_type"));
+                    List<Object> actedInList = (List<Object>) root.get("acted_in");
+                    assertEquals(3, actedInList.size());
+                    assertFalse(((Map)actedInList.get(1)).containsKey("acted_in"));
+                });
+	    
+    }
     
     @Test public void testToTreeIssue2190() {
-	    db.executeTransactionally("CREATE (root:TreeNode {name:'root'})\n" +
+        String query = "MATCH(root:TreeNode) WHERE root.name = \"root\"\n" +
+                "MATCH path = (root)-[cl:CHILD*]->(c:TreeNode)\n" +
+                "WITH path, [r IN relationships(path) | r.order] AS orders\n" +
+                "ORDER BY orders\n" +
+                "WITH COLLECT(path) AS paths\n" +
+                "CALL apoc.convert.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n" +
+                "RETURN tree";
+        testIssue2190Common(query);
+    }
+
+    @Test public void testConvertToGraph() {
+	    // apoc.convert.toGraph is equivalent to apoc.convert.toTree with {sortPaths: false}
+	    String query = "MATCH(root:TreeNode) WHERE root.name = \"root\"\n" +
+                "MATCH path = (root)-[cl:CHILD*]->(c:TreeNode)\n" +
+                "WITH path, [r IN relationships(path) | r.order] AS orders\n" +
+                "ORDER BY orders\n" +
+                "WITH COLLECT(path) AS paths\n" +
+                "CALL apoc.convert.toGraph(paths, true) YIELD value AS tree\n" +
+                "RETURN tree";
+        testIssue2190Common(query);
+    }
+    
+    private void testIssue2190Common(String query) {
+        db.executeTransactionally("CREATE (root:TreeNode {name:'root'})\n" +
                 "CREATE (c0:TreeNode {name: 'c0'})\n" +
                 "CREATE (c1:TreeNode {name: 'c1'})\n" +
                 "CREATE (c2:TreeNode {name: 'c2'})\n" +
@@ -359,21 +401,14 @@ public class ConvertJsonTest {
                 "CREATE (c1)-[:CHILD {order: 0}]->(c10)\n" +
                 "CREATE (c10)-[:CHILD {order: 0}]->(c100)");
 
-        testCall(db, "MATCH(root:TreeNode) WHERE root.name = \"root\"\n" +
-                        "MATCH path = (root)-[cl:CHILD*]->(c:TreeNode)\n" +
-                        "WITH path, [r IN relationships(path) | r.order] AS orders\n" +
-                        "ORDER BY orders\n" +
-                        "WITH COLLECT(path) AS paths\n" +
-                        "CALL apoc.convert.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n" +
-                        "RETURN tree",
-                (row) -> {
-                    Map tree = (Map) row.get("tree");
-                    final List<Map> child = (List<Map>) tree.get("child");
-                    final Object firstChildName = child.get(0).get("name");
-                    assertEquals("c0", firstChildName);
-                });
-                    
-	    db.executeTransactionally("MATCH (n:TreeNode) DETACH DELETE n");
+        testCall(db, query, (row) -> {
+            Map tree = (Map) row.get("tree");
+            final List<Map> child = (List<Map>) tree.get("child");
+            final Object firstChildName = child.get(0).get("name");
+            assertEquals("c0", firstChildName);
+        });
+
+        db.executeTransactionally("MATCH (n:TreeNode) DETACH DELETE n");
     }
 
     @Test public void testToTree() throws Exception {

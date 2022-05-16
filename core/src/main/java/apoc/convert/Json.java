@@ -132,6 +132,13 @@ public class Json {
         return JsonUtil.parse(value, path, List.class, pathOptions);
     }
 
+    @Procedure("apoc.convert.toGraph")
+    @Description("apoc.convert.toGraph([paths],[lowerCaseRels=true], [config]) - equivalent to apoc.convert.toTree but it does not perform sorting operations")
+    public Stream<MapResult> toGraph(@Name("paths") List<Path> paths, @Name(value = "lowerCaseRels",defaultValue = "true") boolean lowerCaseRels, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        config.put("sortPaths", false);
+        return toTree(paths, lowerCaseRels, config);
+    }
+
     @Procedure("apoc.convert.toTree")
     @Description("apoc.convert.toTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the at least one root of these paths")
     // todo optinally provide root node
