@@ -2,6 +2,7 @@ package apoc.export.cypher;
 
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -25,7 +26,6 @@ import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
 import static apoc.export.util.ExportFormat.*;
 import static apoc.util.Util.map;
 import static org.junit.Assert.*;
-import static org.testcontainers.shaded.org.apache.commons.lang.StringUtils.EMPTY;
 import static org.neo4j.configuration.SettingImpl.newBuilder;
 import static org.neo4j.configuration.SettingValueParsers.BOOL;
 
@@ -192,7 +192,7 @@ public class ExportCypherTest {
         TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$config)", 
                 map("file", fileName, "config", config),
                 (r) -> assertResults(fileName, r, "database"));
-        final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, " barIndex", " fooIndex", EMPTY);
+        final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, " barIndex", " fooIndex", StringUtils.EMPTY);
         assertEquals(expectedFile, readFile("all.schema.cypher"));
     }
 
@@ -204,7 +204,7 @@ public class ExportCypherTest {
         TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$config)", 
                 map("file", fileName, "config", config),
                 (r) -> assertResults(fileName, r, "database"));
-        final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, EMPTY, EMPTY, " consBar");
+        final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, StringUtils.EMPTY, StringUtils.EMPTY, " consBar");
         assertEquals(expectedFile, readFile("all.schema.cypher"));
     }
 
