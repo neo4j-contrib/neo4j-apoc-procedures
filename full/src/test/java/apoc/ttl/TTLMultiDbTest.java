@@ -21,8 +21,6 @@ import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
 
 public class TTLMultiDbTest {
 
@@ -36,18 +34,14 @@ public class TTLMultiDbTest {
 
     @BeforeClass
     public static void setupContainer() {
-        TestUtil.ignoreException(() -> {
-            neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI())
-                    .withEnv(Map.of("apoc.ttl.enabled." + DB_TEST, "false",
-                            "apoc.ttl.enabled", "true",
-                            "apoc.ttl.schedule", "2",
-                            "apoc.ttl.schedule." + DB_FOO, "7",
-                            "apoc.ttl.limit", "200",
-                            "apoc.ttl.limit." + DB_BAR, "2000"));
-            neo4jContainer.start();
-        }, Exception.class);
-        assumeNotNull(neo4jContainer);
-        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI())
+                .withEnv(Map.of("apoc.ttl.enabled." + DB_TEST, "false",
+                        "apoc.ttl.enabled", "true",
+                        "apoc.ttl.schedule", "2",
+                        "apoc.ttl.schedule." + DB_FOO, "7",
+                        "apoc.ttl.limit", "200",
+                        "apoc.ttl.limit." + DB_BAR, "2000"));
+        neo4jContainer.start();
 
         driver = GraphDatabase.driver(neo4jContainer.getBoltUrl(), AuthTokens.basic("neo4j", "apoc"));
 
@@ -56,7 +50,6 @@ public class TTLMultiDbTest {
             session.writeTransaction(tx -> tx.run("CREATE DATABASE " + DB_FOO + " WAIT;"));
             session.writeTransaction(tx -> tx.run("CREATE DATABASE " + DB_BAR + " WAIT;"));
         }
-
     }
 
     @After

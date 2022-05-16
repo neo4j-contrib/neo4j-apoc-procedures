@@ -23,8 +23,6 @@ import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.uuid.UuidHandler.NOT_ENABLED_ERROR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
 
 public class UUIDMultiDbTest {
 
@@ -34,14 +32,9 @@ public class UUIDMultiDbTest {
 
     @BeforeClass
     public static void setupContainer() {
-        TestUtil.ignoreException(() -> {
-            neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI())
-                    .withEnv(Map.of(String.format(APOC_UUID_ENABLED_DB, dbTest), "false",
-                            APOC_UUID_ENABLED, "true"));
-            neo4jContainer.start();
-        }, Exception.class);
-        assumeNotNull(neo4jContainer);
-        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI()).withEnv(
+                Map.of(String.format(APOC_UUID_ENABLED_DB, dbTest), "false", APOC_UUID_ENABLED, "true"));
+        neo4jContainer.start();
 
         driver = GraphDatabase.driver(neo4jContainer.getBoltUrl(), AuthTokens.basic("neo4j", "apoc"));
 
@@ -52,9 +45,7 @@ public class UUIDMultiDbTest {
 
     @AfterClass
     public static void bringDownContainer() {
-        if (neo4jContainer != null && neo4jContainer.isRunning()) {
-            neo4jContainer.close();
-        }
+        neo4jContainer.close();
     }
 
     @Test(expected = RuntimeException.class)

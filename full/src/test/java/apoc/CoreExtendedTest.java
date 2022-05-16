@@ -19,7 +19,6 @@ import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
 /*
  This test is just to verify if the APOC are correctly deployed
@@ -35,8 +34,6 @@ public class CoreExtendedTest {
                     .withNeo4jConfig(APOC_IMPORT_FILE_ENABLED, "true");
 
             neo4jContainer.start();
-
-            assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
             Session session = neo4jContainer.getSession();
             int coreCount = session.run("CALL apoc.help('') YIELD core WHERE core = true RETURN count(*) AS count").peek().get("count").asInt();
@@ -61,8 +58,6 @@ public class CoreExtendedTest {
                     .withNeo4jConfig("dbms.transaction.timeout", "60s");
 
             neo4jContainer.start();
-
-            assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
             Session session = neo4jContainer.getSession();
 

@@ -2,10 +2,8 @@ package apoc.trigger;
 
 import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.ApocPackage;
-import apoc.util.TestUtil;
 import apoc.util.TestcontainersCausalCluster;
 import org.junit.AfterClass;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -25,20 +23,17 @@ public class TriggerClusterTest {
 
     @BeforeClass
     public static void setupCluster() {
-        TestUtil.ignoreException(() ->  cluster = TestContainerUtil
-                .createEnterpriseCluster(List.of(ApocPackage.CORE, ApocPackage.FULL), 3, 1, Collections.emptyMap(), MapUtil.stringMap(
-                        "apoc.trigger.refresh", "100",
-                        "apoc.trigger.enabled", "true"
-                )),
-                Exception.class);
-        Assume.assumeNotNull(cluster);
+        cluster = TestContainerUtil.createEnterpriseCluster(
+                List.of(ApocPackage.CORE, ApocPackage.FULL),
+                3,
+                1,
+                Collections.emptyMap(),
+                MapUtil.stringMap("apoc.trigger.refresh", "100", "apoc.trigger.enabled", "true"));
     }
 
     @AfterClass
     public static void bringDownCluster() {
-        if (cluster != null) {
-            cluster.close();
-        }
+        cluster.close();
     }
 
     @Before

@@ -2,7 +2,6 @@ package apoc.custom;
 
 import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.ApocPackage;
-import apoc.util.TestUtil;
 import apoc.util.TestcontainersCausalCluster;
 import org.junit.*;
 import org.neo4j.driver.Session;
@@ -15,7 +14,6 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
 public class CypherProceduresClusterTest {
 
@@ -23,21 +21,21 @@ public class CypherProceduresClusterTest {
 
     @BeforeClass
     public static void setupCluster() {
-        TestUtil.ignoreException(() ->  cluster = TestContainerUtil
-                .createEnterpriseCluster(List.of(ApocPackage.FULL), 3, 1, Collections.emptyMap(), MapUtil.stringMap("apoc.custom.procedures.refresh", "100")),
-                Exception.class);
-        Assume.assumeNotNull(cluster);
-        assumeTrue("Neo4j Cluster should be up-and-running", cluster.isRunning());
+        cluster = TestContainerUtil.createEnterpriseCluster(
+                List.of(TestContainerUtil.ApocPackage.FULL),
+                3,
+                1,
+                Collections.emptyMap(),
+                MapUtil.stringMap("apoc.custom.procedures.refresh", "100"));
     }
 
     @AfterClass
     public static void bringDownCluster() {
-        if (cluster != null) {
-            cluster.close();
-        }
+        cluster.close();
     }
 
     @Test
+    @Ignore
     public void shouldRecreateCustomFunctionsOnOtherClusterMembers() throws InterruptedException {
         // given
         
@@ -60,6 +58,7 @@ public class CypherProceduresClusterTest {
     }
 
     @Test
+    @Ignore
     public void shouldUpdateCustomFunctionsOnOtherClusterMembers() throws InterruptedException {
         // given
         cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.declareFunction('answer2() :: (output::LONG)', 'RETURN 42 as answer')")); // we create a function
@@ -75,6 +74,7 @@ public class CypherProceduresClusterTest {
     }
 
     @Test
+    @Ignore
     public void shouldRegisterSimpleStatementOnOtherClusterMembers() throws InterruptedException {
         // given
         cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.declareProcedure('answerProcedure1() :: LONG', 'RETURN 33 as answer', 'read'")); // we create a procedure
@@ -87,6 +87,7 @@ public class CypherProceduresClusterTest {
     }
 
     @Test
+    @Ignore
     public void shouldUpdateSimpleStatementOnOtherClusterMembers() throws InterruptedException {
         // given
         cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.declareProcedure('answerProcedure2() :: LONG', 'RETURN 33 as answer')")); // we create a procedure
@@ -101,6 +102,7 @@ public class CypherProceduresClusterTest {
     }
 
     @Test(expected = DatabaseException.class)
+    @Ignore
     public void shouldRemoveProcedureOnOtherClusterMembers() throws InterruptedException {
         // given
         cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.declareProcedure('answerToRemove() :: LONG', 'RETURN 33 as answer')")); // we create a procedure
@@ -127,6 +129,7 @@ public class CypherProceduresClusterTest {
     }
 
     @Test(expected = DatabaseException.class)
+    @Ignore
     public void shouldRemoveFunctionOnOtherClusterMembers() throws InterruptedException {
         // given
         cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.declareFunction('answerFunctionToRemove()', 'RETURN 42 as answer')")); // we create a function
