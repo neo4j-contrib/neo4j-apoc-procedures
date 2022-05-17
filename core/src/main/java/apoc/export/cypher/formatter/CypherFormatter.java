@@ -27,7 +27,7 @@ public interface CypherFormatter {
 
 	String statementForRelationshipFullTextIndex(String name, Iterable<RelationshipType> types, Iterable<String> keys);
 
-	String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExist, String name);
+	String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExist, String idxName);
 
 	String statementForCleanUp(int batchSize);
 

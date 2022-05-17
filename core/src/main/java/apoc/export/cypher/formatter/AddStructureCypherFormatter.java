@@ -43,7 +43,7 @@ public class AddStructureCypherFormatter extends AbstractCypherFormatter impleme
 	}
 
 	@Override
-	public String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExists, String name) {
+	public String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExists, String idxName) {
 		return "";
 	}
 
