@@ -42,8 +42,8 @@ dependencies {
 
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
-    compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
-    compile group: 'net.minidev', name: 'json-smart', version: '2.4.2'
+    compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.7.0'
+    compile group: 'net.minidev', name: 'json-smart', version: '2.4.8'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
 
     antlr "org.antlr:antlr4:4.7.2", {
@@ -97,7 +97,6 @@ dependencies {
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
 
-    testCompile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
     compile group: 'com.opencsv', name: 'opencsv', version: '4.6'
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
@@ -118,7 +117,7 @@ dependencies {
     testCompile group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
     testCompile group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
 
-    testCompile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.9.7'
+    testCompile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.13.2'
     testCompile group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
     testCompile group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
 
@@ -131,10 +130,19 @@ dependencies {
 
     compile group: 'xerces', name: 'xercesImpl', version: '2.12.1'
 
-    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '6.0.0'
-    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '6.0.0'
-    testCompile group: 'org.apache.arrow', name: 'arrow-vector', version: '6.0.0'
-    testCompile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '6.0.0'
+    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '7.0.0', {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+        exclude group: 'io.netty', module: 'netty-common'
+    }
+    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '7.0.0', {
+        exclude group: 'com.google.guava', module: 'guava'
+        exclude group: 'io.netty', module: 'netty-common'
+        exclude group: 'io.netty', module: 'netty-buffer'
+    }
+    testCompile group: 'org.apache.arrow', name: 'arrow-vector', version: '7.0.0'
+    testCompile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '7.0.0'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
