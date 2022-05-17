@@ -1,5 +1,6 @@
 package apoc.trigger;
 
+import apoc.nodes.Nodes;
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -8,6 +9,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.impl.coreapi.TransactionImpl;
@@ -15,12 +17,14 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocSettings.apoc_trigger_enabled;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
 import static org.neo4j.internal.helpers.collection.MapUtil.map;
 
 /**
@@ -31,6 +35,7 @@ public class TriggerTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(procedure_unrestricted, List.of("apoc*"))
             .withSetting(apoc_trigger_enabled, true);  // need to use settings here, apocConfig().setProperty in `setUp` is too late
 
     private long start;
@@ -38,7 +43,7 @@ public class TriggerTest {
     @Before
     public void setUp() throws Exception {
         start = System.currentTimeMillis();
-        TestUtil.registerProcedure(db, Trigger.class);
+        TestUtil.registerProcedure(db, Trigger.class, Nodes.class);
     }
 
     @Test
@@ -64,6 +69,16 @@ public class TriggerTest {
         TestUtil.testCall(db, "MATCH (c:Counter) RETURN c.count as count", (row) -> {
             assertEquals(1L, row.get("count"));
         });
+    }
+
+    @Test
+    public void testIssue2247() {
+        db.executeTransactionally("CREATE (n:ToBeDeleted)");
+        db.executeTransactionally("CALL apoc.trigger.add('myTrig', 'RETURN 1', {phase: 'afterAsync'})");
+
+        db.executeTransactionally("MATCH (n:ToBeDeleted) DELETE n");
+
+        db.executeTransactionally("CALL apoc.trigger.remove('myTrig')");
     }
 
     @Test
@@ -266,20 +281,73 @@ public class TriggerTest {
     }
 
     @Test
-    public void testDeleteRelationshipsAsync() throws Exception {
-        db.executeTransactionally("CREATE (a:A {name: \"A\"})-[:R1]->(z:Z {name: \"Z\"}), (a)-[:R2]->(z)");
-        db.executeTransactionally("CALL apoc.trigger.add('trigger-after-async', 'UNWIND $deletedRelationships AS r\n" +
+    public void testDeleteRelationshipsAsync() {
+        db.executeTransactionally("CREATE (a:A {name: \"A\"})-[:R1 {omega: 3}]->(z:Z {name: \"Z\"}), (a)-[:R2 {alpha: 1}]->(z)");
+        final String query = "UNWIND $deletedRelationships AS r\n" +
                 "MATCH (a)-[r1:R1]->(z)\n" +
-                "SET r1.triggerAfterAsync = size($deletedRelationships) > 0, r1.size = size($deletedRelationships), r1.deleted = type(r) RETURN *', {phase: 'afterAsync'})");
-        db.executeTransactionally("MATCH (a:A {name: \"A\"})-[r:R2]->(z:Z {name: \"Z\"})\n" +
-                "DELETE r");
+                "SET a.alpha = apoc.any.property(r, \"alpha\"), r1.triggerAfterAsync = size($deletedRelationships) > 0, r1.size = size($deletedRelationships), r1.deleted = type(r) RETURN *";
+        db.executeTransactionally("CALL apoc.trigger.add('trigger-after-async-1', $query, {phase: 'afterAsync'})",
+                map("query", query));
+
+        // delete rel
+        commonDeleteAfterAsync("MATCH (a:A {name: 'A'})-[r:R2]->(z:Z {name: 'Z'}) DELETE r");
+    }
+
+    @Test
+    public void testDeleteRelationshipsAsyncWithCreationInQuery() {
+        db.executeTransactionally("CREATE (a:A {name: \"A\"})-[:R1 {omega: 3}]->(z:Z {name: \"Z\"}), (a)-[:R2 {alpha: 1}]->(z)");
+        final String query = "UNWIND $deletedRelationships AS r\n" +
+                "CREATE (a:A)-[r1:R1 {omega: 3}]->(z)\n" +
+                "SET a.alpha = apoc.any.property(r, \"alpha\"), r1.triggerAfterAsync = size($deletedRelationships) > 0, r1.size = size($deletedRelationships), r1.deleted = type(r) RETURN *";
+        db.executeTransactionally("CALL apoc.trigger.add('trigger-after-async-2', $query, {phase: 'afterAsync'})",
+                map("query", query));
+
+        // delete rel
+        commonDeleteAfterAsync("MATCH (a:A {name: 'A'})-[r:R2]->(z:Z {name: 'Z'}) DELETE r");
+    }
+
+    @Test
+    public void testDeleteNodesAsync() {
+        db.executeTransactionally("CREATE (a:A {name: 'A'})-[:R1 {omega: 3}]->(z:Z {name: 'Z'}), (:R2:Other {alpha: 1})");
+        final String query = "UNWIND $deletedNodes AS n\n" +
+                "MATCH (a)-[r1:R1]->(z)\n" +
+                "SET a.alpha = apoc.any.property(n, \"alpha\"), r1.triggerAfterAsync = size($deletedNodes) > 0, r1.size = size($deletedNodes), r1.deleted = apoc.node.labels(n)[0] RETURN *";
+        
+        db.executeTransactionally("CALL apoc.trigger.add('trigger-after-async-3', $query, {phase: 'afterAsync'})", 
+                map("query", query));
+
+        // delete node
+        commonDeleteAfterAsync("MATCH (n:R2) DELETE n");
+    }
+
+    @Test
+    public void testDeleteNodesAsyncWithCreationQuery() {
+        db.executeTransactionally("CREATE (:R2:Other {alpha: 1})");
+        final String query = "UNWIND $deletedNodes AS n\n" +
+                "CREATE (a:A)-[r1:R1 {omega: 3}]->(z:Z)\n" +
+                "SET a.alpha = apoc.any.property(n, \"alpha\"), r1.triggerAfterAsync = size($deletedNodes) > 0, r1.size = size($deletedNodes), r1.deleted = apoc.node.labels(n)[0] RETURN *";
+        
+        db.executeTransactionally("CALL apoc.trigger.add('trigger-after-async-4', $query, {phase: 'afterAsync'})", 
+                map("query", query));
+
+        // delete node
+        commonDeleteAfterAsync("MATCH (n:R2) DELETE n");
+    }
+    
+    private void commonDeleteAfterAsync(String deleteQuery) {
+        db.executeTransactionally(deleteQuery);
+        
+        final Map<String, Object> expectedProps = Map.of("deleted", "R2",
+                "triggerAfterAsync", true,
+                "size", 1L,
+                "omega", 3L);
 
         org.neo4j.test.assertion.Assert.assertEventually(() ->
-                        db.executeTransactionally("MATCH ()-[r:R1]->() RETURN r", Map.of(),
+                        db.executeTransactionally("MATCH (a:A {alpha: 1})-[r:R1]->() RETURN r", Map.of(),
                                 result -> {
-                                    final Relationship r = result.<Relationship>columnAs("r").next();
-                                    return (boolean) r.getProperty("triggerAfterAsync", false)
-                                            && r.getProperty("deleted", "").equals("R2");
+                                    final ResourceIterator<Relationship> relIterator = result.columnAs("r");
+                                    return relIterator.hasNext()
+                                            && relIterator.next().getAllProperties().equals(expectedProps);
                                 })
                 , (value) -> value, 30L, TimeUnit.SECONDS);
     }
