@@ -33,9 +33,9 @@ RETURN apoc.rel.startNode(rel) AS start, rel, apoc.rel.endNode(rel) AS end;
 [opts="header"]
 |===
 | start                                                   | rel                         | end
-| (:Person {gender: "female", min_age: 28, `count_*`: 2}) | [:MEMBER_OF {`count_*`: 3}] | (:Forum {gender: NULL, `count_*`: 2})
-| (:Person {gender: "female", min_age: 28, `count_*`: 2}) | [:KNOWS {`count_*`: 2}]     | (:Person {gender: "male", min_age: 42, `count_*`: 1})
-| (:Person {gender: "female", min_age: 28, `count_*`: 2}) | [:KNOWS {`count_*`: 2}]     | (:Person {gender: "male", min_age: 42, `count_*`: 1})
-| (:Person {gender: "male", min_age: 42, `count_*`: 1})   | [:MEMBER_OF {`count_*`: 1}] | (:Forum {gender: NULL, `count_*`: 2})
+| (:Person {gender: "female", min_age: 28, &#96;count_*&#96;: 2}) | [:MEMBER_OF {&#96;count_*&#96;: 3}] | (:Forum {gender: NULL, &#96;count_*&#96;: 2})
+| (:Person {gender: "female", min_age: 28, &#96;count_*&#96;: 2}) | [:KNOWS {&#96;count_*&#96;: 2}]     | (:Person {gender: "male", min_age: 42, &#96;count_*&#96;: 1})
+| (:Person {gender: "female", min_age: 28, &#96;count_*&#96;: 2}) | [:KNOWS {&#96;count_*&#96;: 2}]     | (:Person {gender: "male", min_age: 42, &#96;count_*&#96;: 1})
+| (:Person {gender: "male", min_age: 42, &#96;count_*&#96;: 1})   | [:MEMBER_OF {&#96;count_*&#96;: 1}] | (:Forum {gender: NULL, &#96;count_*&#96;: 2})
 
 |===
