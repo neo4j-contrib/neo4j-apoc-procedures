@@ -32,18 +32,10 @@ The `<relationships>` parameter is also a list, where each element is a map defi
 | type | relationship type | 'WORKS_AT'
 |===
 
-The `<config>` parameter is a map
+The `<config>` parameter is a map containing optional configurations.
 
-[opts=header,cols="m,a,m,m"]
-|===
-| name | description | default | https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin-import/[import tool counterpart]
-| delimiter | delimiter character between columns | , | --delimiter=,
-| arrayDelimiter | delimiter character in arrays | ; | --array-delimiter=;
-| ignoreDuplicateNodes | for duplicate nodes, only load the first one and skip the rest (true) or fail the import (false) | false | --ignore-duplicate-nodes=false
-| quotationCharacter | quotation character | " | --quote='"'
-| stringIds | treat ids as strings | true | --id-type=STRING
-| skipLines | lines to skip (incl. header) | 1 | N/A
-|===
+include::partial$usage/config/apoc.import.csv.adoc[]
+
 
 == Examples for apoc.import.csv
 
