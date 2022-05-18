@@ -1,3 +1,53 @@
+Here is a simple example:
+
+[source,cypher]
+----
+CALL apoc.custom.declareProcedure('answerInteger() :: (row::INT)', 'RETURN 42 as answer')
+----
+
+This registers the statement as procedure `custom.answer` that you then can call.
+[source,cypher]
+----
+CALL custom.answerInteger
+----
+
+.Results
+[opts="header"]
+|===
+| answer
+| 42
+|===
+
+Or you can also write in this way:
+
+[source,cypher]
+----
+CALL apoc.custom.declareProcedure('answer() :: (row::MAP)', 'RETURN 42 as answer')
+----
+
+In this case the result is wrapped in a stream of maps called `row`. Therefore, you can do:
+
+[source,cypher]
+----
+CALL custom.answer() YIELD row
+RETURN row.answer
+----
+
+.Results
+[opts="header"]
+|===
+| answer
+| 42
+|===
+
+which is equivalent to deprecated one:
+
+[source,cypher]
+----
+CALL apoc.custom.asProcedure('answer','RETURN 42 as answer')
+----
+
+
 We can create the function `custom.powers` that returns a stream of the powers of the first parameter, up to and including the power provided by the second parameter:
 
 [source,cypher]
@@ -27,3 +77,14 @@ call custom.powers(4,3);
 | 16.0
 | 64.0
 |===
+
+
+Furthermore, we can pass as the 3rd parameter a string to specify the procedure mode (with default "WRITE").
+Can be:
+- "READ" - if the procedure will only perform read operations against the graph
+- "WRITE" - if it may perform both read and write operations against the graph
+- "SCHEMA" - if it will perform operations against the schema
+- "DBMS" - if it will perform system operations - i.e. not against the graph
+
+Moreover, we can pass a `description` parameter as the 4th parameter, 
+which will be returned by the `call apoc.custom.list` and the `show procedures`.
