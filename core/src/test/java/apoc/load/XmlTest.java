@@ -11,6 +11,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
@@ -53,6 +54,25 @@ public class XmlTest {
         testCall(db, "CALL apoc.load.xml('file:databases.xml')", //  YIELD value RETURN value
                 (row) -> {
                     assertEquals(XmlTestUtils.XML_AS_NESTED_MAP, row.get("value"));
+                });
+    }
+
+    @Test
+    public void testLoadXmlAsStream() {
+        testResult(db, "CALL apoc.load.xml('file:databases.xml', '/parent/child')", //  YIELD value RETURN value
+                (res) -> {
+                    final ResourceIterator<Map<String, Object>> value = res.columnAs("value");
+                    final Map<String, String> expectedFirstRow = Map.of("_type", "child", "name", "Neo4j", "_text", "Neo4j is a graph database");
+                    final Map<String, Object> expectedSecondRow = Map.of("_type", "child", "name", "relational", "_children",
+                            List.of(
+                                    Map.of("_type", "grandchild", "name", "MySQL", "_text", "MySQL is a database & relational"),
+                                    Map.of("_type", "grandchild", "name", "Postgres", "_text", "Postgres is a relational database")
+                            ));
+                    Map<String, Object> next = value.next();
+                    assertEquals(expectedFirstRow, next);
+                    next = value.next();
+                    assertEquals(expectedSecondRow, next);
+                    assertFalse(value.hasNext());
                 });
     }
 
