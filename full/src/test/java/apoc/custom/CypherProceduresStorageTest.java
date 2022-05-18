@@ -290,7 +290,7 @@ public class CypherProceduresStorageTest {
     }
 
     private void functionAssertions() {
-        TestUtil.testResult(db, "SHOW FUNCTIONS YIELD signature, name WHERE name STARTS WITH 'custom.sumFun' RETURN DISTINCT name, signature ORDER BY name",
+        TestUtil.testResult(db, "CALL dbms.functions() YIELD signature, name WHERE name STARTS WITH 'custom.sumFun' RETURN DISTINCT name, signature ORDER BY name",
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals("custom.sumFun1(input1 = null :: INTEGER?, input2 = null :: INTEGER?) :: (INTEGER?)", row.get("signature"));
@@ -322,7 +322,7 @@ public class CypherProceduresStorageTest {
     }
 
     private void procedureAssertions() {
-        TestUtil.testResult(db, "SHOW PROCEDURES YIELD signature, name WHERE name STARTS WITH 'custom.sum' RETURN DISTINCT name, signature ORDER BY name",
+        TestUtil.testResult(db, "CALL dbms.procedures() YIELD signature, name WHERE name STARTS WITH 'custom.sum' RETURN DISTINCT name, signature ORDER BY name",
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals("custom.sum1(input1 = null :: INTEGER?, input2 = null :: INTEGER?) :: (answer :: INTEGER?)", row.get("signature"));
