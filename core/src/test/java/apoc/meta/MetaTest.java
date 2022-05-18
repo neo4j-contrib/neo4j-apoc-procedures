@@ -316,20 +316,47 @@ public class MetaTest {
     }
 
     @Test
-    public void testMetaData() throws Exception {
+    public void testMetaData() {
         db.executeTransactionally("create index on :Movie(title)");
         db.executeTransactionally("create constraint on (a:Actor) assert a.name is unique");
-        db.executeTransactionally("CREATE (:Actor {name:'Tom Hanks'})-[:ACTED_IN {roles:'Forrest'}]->(:Movie {title:'Forrest Gump'}) ");
-        TestUtil.testResult(db, "CALL apoc.meta.data()",
-                (r) -> {
-                    int count = 0;
-                    while (r.hasNext()) {
-                        Map<String, Object> row = r.next();
-                        // todo more assertions
-                        count ++;
-                    }
-                    assertEquals(5,count);
-                });
+        db.executeTransactionally("CREATE (actor1:Actor {name:'Tom Hanks'})-[:ACTED_IN {roles:'Forrest'}]->(movie1:Movie {title:'Forrest Gump'}), \n" +
+                "    (actor2:Actor {name: 'Bruce Lee'})-[:ACTED_IN {roles:'FooBaz'}]->(movie1),\n" +
+                "    (actor1)-[:ACTED_IN {roles:'Movie2Role'}]->(:Movie {title:'Movie2'}), (actor1)-[:ACTED_IN {roles:'Movie3Role'}]->(:Movie {title:'Movie3'})");
+        TestUtil.testResult(db, "CALL apoc.meta.data() \n" +
+                        "yield label,property,count,unique,index,existence,type,array,leftCount,rightCount,left,right,other,otherLabels,elementType\n" +
+                        "return * order by property", (r) -> {
+            Map<String, Object> row = r.next();
+            assertEquals("node", row.get("elementType"));
+            assertRelationshipsMetaData(row);
+            row = r.next();
+            assertEquals("relationship", row.get("elementType"));
+            assertRelationshipsMetaData(row);
+            row = r.next();
+            assertPropertiesMetaData(row);
+            row = r.next();
+            assertPropertiesMetaData(row);
+            row = r.next();
+            assertPropertiesMetaData(row);
+            assertFalse(r.hasNext());
+        });
+    }
+
+    private void assertRelationshipsMetaData(Map<String, Object> row) {
+        assertEquals(4L, row.get("count"));
+        assertEquals(10L, row.get("leftCount"));
+        assertEquals(6L, row.get("rightCount"));
+        assertEquals(2L, row.get("left"));
+        assertEquals(1L, row.get("right"));
+        assertEquals(Meta.Types.RELATIONSHIP.name(), row.get("type"));
+    }
+
+    private void assertPropertiesMetaData(Map<String, Object> row) {
+        assertEquals(0L, row.get("count"));
+        assertEquals(0L, row.get("leftCount"));
+        assertEquals(0L, row.get("rightCount"));
+        assertEquals(0L, row.get("left"));
+        assertEquals(0L, row.get("right"));
+        assertEquals(Meta.Types.STRING.name(), row.get("type"));
     }
 
     @Test
