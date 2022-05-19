@@ -34,6 +34,7 @@ import java.util.Map;
 
 import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.EXPORT_TO_FILE_ERROR;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.MapUtil.map;
@@ -464,7 +465,7 @@ public class ExportGraphMLTest {
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             TestCase.assertTrue(except instanceof RuntimeException);
-            assertEquals("Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf", except.getMessage());
+            assertEquals(EXPORT_TO_FILE_ERROR, except.getMessage());
             throw e;
         }
     }
