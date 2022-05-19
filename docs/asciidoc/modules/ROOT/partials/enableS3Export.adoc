@@ -10,7 +10,9 @@ apoc.export.file.enabled=true
 If we try to use any of the export procedures without having first set this property, we'll get the following error message:
 
 |===
-| Failed to invoke procedure: Caused by: java.lang.RuntimeException: Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf
+| Failed to invoke procedure: Caused by: java.lang.RuntimeException: Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf. 
+Otherwise, if you are running in a cloud environment without filesystem access, you can use the `{stream:true}` config and null as a 'file' parameter to stream the export back to your client.
+Note that the stream mode cannot be used with the apoc.export.xls.* procedures.
 |===
 
 == Using S3 protocol
