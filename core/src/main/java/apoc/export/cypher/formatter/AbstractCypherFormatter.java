@@ -46,15 +46,15 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 
 	@Override
-	public String statementForNodeIndex(String indexType, String label, Iterable<String> keys, boolean ifNotExists) {
-		return String.format("CREATE %s INDEX%s FOR (n:%s) ON (%s);", 
-				indexType, getIfNotExists(ifNotExists), Util.quote(label), getPropertiesQuoted(keys, "n."));
+	public String statementForNodeIndex(String indexType, String label, Iterable<String> keys, boolean ifNotExists, String idxName) {
+		return String.format("CREATE %s INDEX%s%s FOR (n:%s) ON (%s);", 
+				indexType, idxName, getIfNotExists(ifNotExists), Util.quote(label), getPropertiesQuoted(keys, "n."));
 	}
 	
 	@Override
-	public String statementForIndexRelationship(String indexType, String type, Iterable<String> keys, boolean ifNotExists) {
-		return String.format("CREATE %s INDEX%s FOR ()-[rel:%s]-() ON (%s);", 
-				indexType, getIfNotExists(ifNotExists), Util.quote(type), getPropertiesQuoted(keys, "rel."));
+	public String statementForIndexRelationship(String indexType, String type, Iterable<String> keys, boolean ifNotExists, String idxName) {
+		return String.format("CREATE %s INDEX%s%s FOR ()-[rel:%s]-() ON (%s);", 
+				indexType, idxName, getIfNotExists(ifNotExists), Util.quote(type), getPropertiesQuoted(keys, "rel."));
 	}
 
 	@Override

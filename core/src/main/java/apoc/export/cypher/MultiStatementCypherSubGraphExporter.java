@@ -259,12 +259,15 @@ public class MultiStatementCypherSubGraphExporter {
                         }
                     }
                     // "normal" schema index
+                    String idxName = exportConfig.shouldSaveIndexNames()
+                            ? " " + name
+                            : StringUtils.EMPTY;
                     String tokenName = tokenNames.get(0);
                     final boolean ifNotExist = exportConfig.ifNotExists();
                     if (isNode) {
-                        return this.cypherFormat.statementForNodeIndex(indexType, tokenName, props, ifNotExist);
+                        return this.cypherFormat.statementForNodeIndex(indexType, tokenName, props, ifNotExist, idxName);
                     } else {
-                        return this.cypherFormat.statementForIndexRelationship(indexType, tokenName, props, ifNotExist);
+                        return this.cypherFormat.statementForIndexRelationship(indexType, tokenName, props, ifNotExist, idxName);
                     }
 
                 })
