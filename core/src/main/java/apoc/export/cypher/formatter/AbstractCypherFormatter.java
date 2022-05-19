@@ -84,10 +84,10 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 
 	@Override
-	public String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExists, String idxName) {
+	public String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExists, String name) {
 		String keysString = getPropertiesQuoted(keys, "node.");
 
-		return String.format(STATEMENT_CONSTRAINTS, idxName, getIfNotExists(ifNotExists), Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
+		return String.format(STATEMENT_CONSTRAINTS, name, getIfNotExists(ifNotExists), Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
 	}
 
 	private String getIfNotExists(boolean ifNotExists) {
