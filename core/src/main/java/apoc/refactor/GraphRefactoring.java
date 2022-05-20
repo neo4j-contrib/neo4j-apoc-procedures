@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -26,6 +27,7 @@ import java.util.stream.StreamSupport;
 import static apoc.refactor.util.PropertiesManager.mergeProperties;
 import static apoc.refactor.util.RefactorConfig.RelationshipSelectionStrategy.MERGE;
 import static apoc.refactor.util.RefactorUtil.*;
+import static apoc.util.Util.withTransactionAndRebind;
 
 public class GraphRefactoring {
     @Context
@@ -45,16 +47,20 @@ public class GraphRefactoring {
         return nodes.stream().map(node -> Util.rebind(tx, node)).map(node -> {
             NodeRefactorResult result = new NodeRefactorResult(node.getId());
             try {
-                Node newNode = copyLabels(node, tx.createNode());
+                Node copy = withTransactionAndRebind(db, tx, transaction -> {
+                    Node newNode = copyLabels(node, transaction.createNode());
 
-                Map<String, Object> properties = node.getAllProperties();
-                if (skipProperties != null && !skipProperties.isEmpty())
-                    for (String skip : skipProperties) properties.remove(skip);
+                    Map<String, Object> properties = node.getAllProperties();
+                    if (skipProperties != null && !skipProperties.isEmpty())
+                        for (String skip : skipProperties) properties.remove(skip);
 
-                Node copy = copyProperties(properties, newNode);
-                if (withRelationships) {
-                    copyRelationships(node, copy, false, true);
-                }
+                    newNode = copyProperties(properties, newNode);
+                    copyLabels(node, newNode);
+                    if (withRelationships) {
+                        copyRelationships(node, newNode, false, true);
+                    }
+                    return newNode;
+                });
                 return result.withOther(copy);
             } catch (Exception e) {
                 return result.withError(e);
@@ -68,8 +74,11 @@ public class GraphRefactoring {
         return Util.relsStream(tx, rels).map((rel) -> {
             NodeRefactorResult result = new NodeRefactorResult(rel.getId());
             try {
-                Node copy = copyProperties(rel, tx.createNode(Util.labels(labels)));
-                copy.createRelationshipTo(rel.getEndNode(), RelationshipType.withName(outType));
+                Node copy = withTransactionAndRebind(db, tx, transaction -> {
+                    Node copyNode = copyProperties(rel, transaction.createNode(Util.labels(labels)));
+                    copyNode.createRelationshipTo(rel.getEndNode(), RelationshipType.withName(outType));
+                    return copyNode;
+                });
                 rel.getStartNode().createRelationshipTo(copy, RelationshipType.withName(inType));
                 rel.delete();
                 return result.withOther(copy);
@@ -209,14 +218,16 @@ public class GraphRefactoring {
 
             NodeRefactorResult result = new NodeRefactorResult(node.getId());
             try {
-                Node copy = copyLabels(node, tx.createNode());
-
-                Map<String, Object> properties = node.getAllProperties();
-                if (skipProperties != null && !skipProperties.isEmpty()) {
-                    for (String skip : skipProperties) properties.remove(skip);
-                }
-                copy = copyProperties(properties, copy);
-
+                Node copy = withTransactionAndRebind(db, tx, transaction -> {
+                    Node copyTemp = transaction.createNode();
+                    Map<String, Object> properties = node.getAllProperties();
+                    if (skipProperties != null && !skipProperties.isEmpty()) {
+                        for (String skip : skipProperties) properties.remove(skip);
+                    }
+                    copyProperties(properties, copyTemp);
+                    copyLabels(node, copyTemp);
+                    return copyTemp;
+                });
                 resultStream.add(result.withOther(copy));
                 copyMap.put(node, copy);
             } catch (Exception e) {
