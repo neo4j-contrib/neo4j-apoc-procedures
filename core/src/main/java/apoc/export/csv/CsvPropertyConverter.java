@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetTime;
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,7 +23,11 @@ public class CsvPropertyConverter {
         if (field.isArray()) {
             final List list = (List) value;
             final boolean listContainingNull = list.stream().anyMatch(Objects::isNull);
-            if (listContainingNull) {
+            // todo - to maintain compatibility with neo4j-admin import, we skip ONLY empty cells
+            //  while array cell like "...., ,....", will be imported as propKey: [" "]
+            //  might be worth add another config to ignore blank item as well, and/or array elements, e.g "...,a;b;;;c,..."
+            final boolean isEmptyCell = config.isIgnoreEmptyCellArray() && list.equals(Collections.singletonList(""));
+            if (listContainingNull || isEmptyCell) {
                 return false;
             }
             final Object[] prototype = getPrototypeFor(field.getType().toUpperCase());
