@@ -119,3 +119,39 @@ RETURN apoc.temporal.format( duration.between( datetime.transaction(), datetime.
 | Output
 | "00:00:00.0110"
 |===
+
+== To ZonedDateTime
+
+You can pass a string to be converted as a 1st parameter,
+a pattern to convert the string into a `ZonedDateTime` as a 2nd parameter  (default: 'yyyy-MM-dd HH:mm:ss'),
+and the timezone as a 3rd parameter (default: 'UTC').
+
+
+For example, using the default pattern and timezone:
+
+[source,cypher]
+----
+RETURN apoc.temporal.toZonedTemporal('2015-12-23 23:59:59') AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "2015-12-23T23:59:59[UTC]"
+|===
+
+or:
+
+[source,cypher]
+----
+RETURN apoc.temporal.toZonedTemporal('2012-12-23T23:59:59', "yyyy-MM-dd'T'HH:mm:ss", "Asia/Tokyo") AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "2012-12-23T23:59:59[Asia/Tokyo]"
+
+|===
