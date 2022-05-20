@@ -4,6 +4,7 @@ import apoc.ApocConfig;
 import apoc.util.Util;
 import apoc.version.Version;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -19,7 +20,6 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 
 public class CypherInitializer implements AvailabilityListener {
@@ -93,10 +93,22 @@ public class CypherInitializer implements AvailabilityListener {
     }
 
     // the visibility is public only for testing purpose, it could be private otherwise
-    public static boolean isVersionDifferent(List<String> versions, String apocFullVersion) {
-        return Optional.ofNullable(apocFullVersion)
-                .map(v -> versions.stream().noneMatch(v::startsWith))
-                .orElse(true);
+    public static boolean isVersionDifferent(List<String> versions, String apocVersion) {
+        final String[] apocSplit = splitVersion(apocVersion);
+        return versions.stream()
+                .noneMatch(kernelVersion -> {
+                    final String[] kernelSplit = splitVersion(kernelVersion);
+                    return apocSplit != null && kernelSplit != null
+                            && apocSplit[0].equals(kernelSplit[0])
+                            && apocSplit[1].equals(kernelSplit[1]);
+                });
+    }
+
+    private static String[] splitVersion(String completeVersion) {
+        if (StringUtils.isBlank(completeVersion)) {
+            return null;
+        }
+        return completeVersion.split("[^\\d]");
     }
 
     private Collection<String> collectInitializers(boolean isSystemDatabase, Configuration config) {
