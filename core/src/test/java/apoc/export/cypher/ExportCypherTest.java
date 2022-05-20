@@ -2,6 +2,7 @@ package apoc.export.cypher;
 
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -15,6 +16,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -57,8 +59,8 @@ public class ExportCypherTest {
     public void setUp() throws Exception {
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
-        db.executeTransactionally("CREATE RANGE INDEX FOR (n:Bar) ON (n.first_name, n.last_name)");
-        db.executeTransactionally("CREATE RANGE INDEX FOR (n:Foo) ON (n.name)");
+        db.executeTransactionally("CREATE RANGE INDEX barIndex FOR (n:Bar) ON (n.first_name, n.last_name)");
+        db.executeTransactionally("CREATE RANGE INDEX fooIndex FOR (n:Foo) ON (n.name)");
         db.executeTransactionally("CREATE CONSTRAINT uniqueConstraint FOR (b:Bar) REQUIRE b.name IS UNIQUE");
         if (testName.getMethodName().endsWith(OPTIMIZED)) {
             db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar:Person {age:12}),(d:Bar {age:12})," +
@@ -183,6 +185,17 @@ public class ExportCypherTest {
     }
 
     @Test
+    public void testExportAllCypherSchemaWithSaveIdxNames() throws Exception {
+        final Map<String, Object> config = new HashMap<>(ExportCypherTest.exportConfig);
+        config.put("saveIndexNames", true);
+        String fileName = "all.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$config)", 
+                map("file", fileName, "config", config),
+                (r) -> assertResults(fileName, r, "database"));
+        assertEquals(EXPECTED_SCHEMA_WITH_NAMES, readFile("all.schema.cypher"));
+    }
+
+    @Test
     public void testExportAllCypherCleanUp() throws Exception {
         String fileName = "all.cypher";
         TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$exportConfig)", map("file", fileName, "exportConfig", exportConfig),
@@ -289,6 +302,16 @@ public class ExportCypherTest {
         TestUtil.testCall(db, "CALL apoc.export.cypher.schema($file,$exportConfig)", map("file", fileName, "exportConfig", exportConfig), (r) -> {
         });
         assertEquals(EXPECTED_ONLY_SCHEMA_NEO4J_SHELL, readFile(fileName));
+    }
+
+    @Test
+    public void testExportSchemaCypherWithIdxNames() throws Exception {
+        final Map<String, Object> config = new HashMap<>(ExportCypherTest.exportConfig);
+        config.putAll(map("saveIndexNames", true));
+        String fileName = "onlySchema.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.schema($file,$config)", 
+                map("file", fileName, "config", config), (r) -> {});
+        assertEquals(EXPECTED_ONLY_SCHEMA_NEO4J_SHELL_WITH_NAMES, readFile(fileName));
     }
 
     @Test
@@ -747,18 +770,32 @@ public class ExportCypherTest {
         String fileName = "relIndex.cypher";
         db.executeTransactionally("CREATE RANGE INDEX rel_index_name FOR ()-[r:KNOWS]-() ON (r.since, r.foo)");
 
-        relIndexTestCommon(fileName, EXPECTED_SCHEMA_WITH_RELS_OPTIMIZED, false);
+        relIndexTestCommon(fileName, EXPECTED_SCHEMA_WITH_RELS_OPTIMIZED, map("ifNotExists", false));
 
         // with ifNotExists: true
-        relIndexTestCommon(fileName, EXPECTED_SCHEMA_WITH_RELS_AND_IF_NOT_EXISTS, true);
+        relIndexTestCommon(fileName, EXPECTED_SCHEMA_WITH_RELS_AND_IF_NOT_EXISTS, map("ifNotExists", true));
+
+        db.executeTransactionally("DROP INDEX rel_index_name");
+    }
+    
+    @Test
+    public void shouldSaveCorrectlyRelIndexesWithNameOptimized() throws FileNotFoundException {
+        String fileName = "relIndex.cypher";
+        db.executeTransactionally("CREATE RANGE INDEX rel_index_name FOR ()-[r:KNOWS]-() ON (r.since, r.foo)");
+
+        relIndexTestCommon(fileName, EXPECTED_SCHEMA_WITH_RELS_AND_NAME_OPTIMIZED, map("ifNotExists", false, "saveIndexNames", true));
+
+        // with ifNotExists: true
+        relIndexTestCommon(fileName, EXPECTED_SCHEMA_OPTIMIZED_WITH_RELS_IF_NOT_EXISTS_AND_NAME, map("ifNotExists", true, "saveIndexNames", true));
 
         db.executeTransactionally("DROP INDEX rel_index_name");
     }
 
-    private void relIndexTestCommon(String fileName, String expectedSchema, boolean ifNotExists) throws FileNotFoundException {
+    private void relIndexTestCommon(String fileName, String expectedSchema, Map<String, Object> config) throws FileNotFoundException {
+        Map<String, Object> exportConfig = map("separateFiles", true, "format", "neo4j-shell");
+        exportConfig.putAll(config);
         TestUtil.testCall(db, "CALL apoc.export.cypher.all($file, $exportConfig)",
-                map("file", fileName, "exportConfig", 
-                        map("ifNotExists", ifNotExists, "separateFiles", true, "format", "neo4j-shell")),
+                map("file", fileName, "exportConfig", exportConfig),
                 (r) -> assertResultsOptimized(fileName, r));
         assertEquals(EXPECTED_NODES_OPTIMIZED, readFile("relIndex.nodes.cypher"));
         assertEquals(EXPECTED_RELATIONSHIPS_OPTIMIZED, readFile("relIndex.relationships.cypher"));
@@ -806,13 +843,20 @@ public class ExportCypherTest {
         static final String EXPECTED_NODES_EMPTY = String.format("BEGIN%n" +
                 "COMMIT%n");
 
+        private static final String EXPECTED_CONSTRAINTS_AND_AWAIT = "CREATE CONSTRAINT uniqueConstraint FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT UNIQUE_IMPORT_NAME FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n";
+        
         static final String EXPECTED_SCHEMA = String.format("BEGIN%n" +
                 "CREATE RANGE INDEX FOR (n:Bar) ON (n.first_name, n.last_name);%n" +
                 "CREATE RANGE INDEX FOR (n:Foo) ON (n.name);%n" +
-                "CREATE CONSTRAINT uniqueConstraint FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT UNIQUE_IMPORT_NAME FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
-                "COMMIT%n" +
-                "SCHEMA AWAIT%n");
+                EXPECTED_CONSTRAINTS_AND_AWAIT);
+
+        static final String EXPECTED_SCHEMA_WITH_NAMES = String.format("BEGIN%n" +
+                "CREATE RANGE INDEX barIndex FOR (n:Bar) ON (n.first_name, n.last_name);%n" +
+                "CREATE RANGE INDEX fooIndex FOR (n:Foo) ON (n.name);%n" +
+                EXPECTED_CONSTRAINTS_AND_AWAIT);
 
         static final String EXPECTED_SCHEMA_EMPTY = String.format("BEGIN%n" +
                 "COMMIT%n" +
@@ -851,6 +895,13 @@ public class ExportCypherTest {
                 "CREATE CONSTRAINT uniqueConstraint FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
+
+        static final String EXPECTED_ONLY_SCHEMA_NEO4J_SHELL_WITH_NAMES = "BEGIN\n" +
+                "CREATE RANGE INDEX barIndex FOR (n:Bar) ON (n.first_name, n.last_name);\n" +
+                "CREATE RANGE INDEX fooIndex FOR (n:Foo) ON (n.name);\n" +
+                "CREATE CONSTRAINT uniqueConstraint FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;\n" +
+                "COMMIT\n" +
+                "SCHEMA AWAIT\n";
 
         static final String EXPECTED_CYPHER_POINT = String.format("BEGIN%n" +
                 "CREATE (:Test:`UNIQUE IMPORT LABEL` {name:\"foo\", place2d:point({x: 2.3, y: 4.5, crs: 'cartesian'}), place3d1:point({x: 2.3, y: 4.5, z: 1.2, crs: 'cartesian-3d'}), `UNIQUE IMPORT ID`:3});%n" +
@@ -955,6 +1006,15 @@ public class ExportCypherTest {
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
         
+        static final String EXPECTED_SCHEMA_WITH_RELS_AND_NAME_OPTIMIZED = String.format("BEGIN%n" +
+                "CREATE RANGE INDEX barIndex FOR (n:Bar) ON (n.first_name, n.last_name);%n" +
+                "CREATE RANGE INDEX fooIndex FOR (n:Foo) ON (n.name);%n" +
+                "CREATE RANGE INDEX rel_index_name FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
+                "CREATE CONSTRAINT uniqueConstraint FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT UNIQUE_IMPORT_NAME FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n");
+        
         static final String EXPECTED_SCHEMA_WITH_RELS_AND_IF_NOT_EXISTS = String.format("BEGIN%n" +
                 "CREATE RANGE INDEX IF NOT EXISTS FOR (n:Bar) ON (n.first_name, n.last_name);%n" +
                 "CREATE RANGE INDEX IF NOT EXISTS FOR (n:Foo) ON (n.name);%n" +
@@ -975,6 +1035,15 @@ public class ExportCypherTest {
         static final String EXPECTED_SCHEMA_OPTIMIZED_WITH_IF_NOT_EXISTS = String.format("BEGIN%n" +
                 "CREATE RANGE INDEX IF NOT EXISTS FOR (n:Bar) ON (n.first_name, n.last_name);%n" +
                 "CREATE RANGE INDEX IF NOT EXISTS FOR (n:Foo) ON (n.name);%n" +
+                "CREATE CONSTRAINT uniqueConstraint IF NOT EXISTS FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT UNIQUE_IMPORT_NAME IF NOT EXISTS FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n");
+
+        static final String EXPECTED_SCHEMA_OPTIMIZED_WITH_RELS_IF_NOT_EXISTS_AND_NAME = String.format("BEGIN%n" +
+                "CREATE RANGE INDEX barIndex IF NOT EXISTS FOR (n:Bar) ON (n.first_name, n.last_name);%n" +
+                "CREATE RANGE INDEX fooIndex IF NOT EXISTS FOR (n:Foo) ON (n.name);%n" +
+                "CREATE RANGE INDEX rel_index_name IF NOT EXISTS FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
                 "CREATE CONSTRAINT uniqueConstraint IF NOT EXISTS FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT UNIQUE_IMPORT_NAME IF NOT EXISTS FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
