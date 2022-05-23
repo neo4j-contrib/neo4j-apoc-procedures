@@ -56,12 +56,12 @@ so `ACTED_IN` in the example above.
 
 The `leftCount`, `rightCount`, `left` and `right` columns regard only rows with column `type` equals to `"RELATIONSHIP"` (otherwise they are equal to `0`)
 In particular, `leftCount`, `rightCount` are "weighted" counts of respectively outgoing and incoming relationships,
-which for each node it will increase the count with the number of outgoing relations of that type for itself.
+which for each node will increase the count with the node's number of outgoing/incoming relationships of that type squared.
 That is, if the node has 1 outgoing relationship with the provided type, the count will be increased by 1,
-if it has 2 outgoing relationships, increased by 3, with 3 relationships, increased by 9, and so on.
+if it has 2 outgoing relationships, increased by 4, with 3 relationships, increased by 9, and so on.
 Same thing for `rightCount`, but with incoming relationships instead.
 So, with the above dataset, `(Person {name:'Keanu Reeves'})` has 5 relationships, so the count is 25,
-and `(:Person {name:'Tom Hanks'})` has 4 relationships, so the count is 16, this explain the total of 41.
-Vice versa, every `(:Movie)` ha a single relationship, so the total il 9, like `count` result.
+and `(:Person {name:'Tom Hanks'})` has 4 relationships, so the count is 16, this explain the total `leftCount` of 41.
+Vice versa, every of the nine `(:Movie)` nodes has a single incoming relationship, so the total `rightCount`result is 9.
 
 The `right` and `left` results are the ratio (rounded down) of respectively `rightCount` and `leftCount` to `count`.
