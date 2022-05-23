@@ -133,7 +133,7 @@ public class Json {
     }
 
     @Procedure("apoc.convert.toGraph")
-    @Description("apoc.convert.toGraph([paths],[lowerCaseRels=true], [config]) - equivalent to apoc.convert.toTree but it does not perform sorting operations")
+    @Description("apoc.convert.toGraph([paths],[lowerCaseRels=true], [config]) - equivalent to apoc.convert.toTree, but the `paths` passed as the first parameter are not initially sorted descending by path length")
     public Stream<MapResult> toGraph(@Name("paths") List<Path> paths, @Name(value = "lowerCaseRels",defaultValue = "true") boolean lowerCaseRels, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         config.put("sortPaths", false);
         return toTree(paths, lowerCaseRels, config);

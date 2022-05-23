@@ -367,8 +367,8 @@ public class ConvertJsonTest {
                 "WITH path, [r IN relationships(path) | r.order] AS orders\n" +
                 "ORDER BY orders\n" +
                 "WITH COLLECT(path) AS paths\n" +
-                "CALL apoc.convert.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n" +
-                "RETURN tree";
+                "CALL apoc.convert.toTree(paths, true, {sortPaths: false}) YIELD value\n" +
+                "RETURN value";
         testIssue2190Common(query);
     }
 
@@ -379,8 +379,8 @@ public class ConvertJsonTest {
                 "WITH path, [r IN relationships(path) | r.order] AS orders\n" +
                 "ORDER BY orders\n" +
                 "WITH COLLECT(path) AS paths\n" +
-                "CALL apoc.convert.toGraph(paths, true) YIELD value AS tree\n" +
-                "RETURN tree";
+                "CALL apoc.convert.toGraph(paths, true) YIELD value\n" +
+                "RETURN value";
         testIssue2190Common(query);
     }
     
@@ -402,8 +402,8 @@ public class ConvertJsonTest {
                 "CREATE (c10)-[:CHILD {order: 0}]->(c100)");
 
         testCall(db, query, (row) -> {
-            Map tree = (Map) row.get("tree");
-            final List<Map> child = (List<Map>) tree.get("child");
+            Map result = (Map) row.get("value");
+            final List<Map> child = (List<Map>) result.get("child");
             final Object firstChildName = child.get(0).get("name");
             assertEquals("c0", firstChildName);
         });

@@ -15,7 +15,7 @@ apoc.convert.setJsonProperty(node,key,complexValue) - sets value serialized to J
 |label:apoc-core[]
 |xref::overview/apoc.convert/apoc.convert.toGraph.adoc[apoc.convert.toGraph icon:book[]]
 
-apoc.convert.toGraph([paths],[lowerCaseRels=true], [config]) - equivalent to apoc.convert.toTree but it does not perform sorting operations
+apoc.convert.toGraph([paths],[lowerCaseRels=true], [config]) - equivalent to apoc.convert.toTree, but the `paths` passed as the first parameter are not initially sorted descending by path length
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.convert/apoc.convert.toTree.adoc[apoc.convert.toTree icon:book[]]
