@@ -13,6 +13,7 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import java.util.Map;
 import static apoc.load.LoadHtmlTest.RESULT_QUERY_H2;
 import static apoc.load.LoadHtmlTest.RESULT_QUERY_METADATA;
 import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.isRunningInTeamCity;
 import static apoc.util.TestUtil.testResult;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
@@ -44,8 +46,12 @@ public class LoadHtmlTestParameterized {
 
     @Parameters
     public static Collection<Object> data() {
-        // At the moment, we have to skip 'FIREFOX' parameter, because in TeamCity we don't have a docker image with Firefox installed
-        return List.of("notSet", "NONE", "CHROME"/*, "FIREFOX"*/);
+        final List<Object> browsers = new ArrayList<>(asList("notSet", "NONE", "CHROME"));
+        // At the moment, we have to skip 'FIREFOX' parameter in TeamCity, because we don't have a docker image with Firefox installed
+        if (!isRunningInTeamCity()) {
+            browsers.add("FIREFOX");
+        }
+        return browsers;
     }
 
     @Parameter

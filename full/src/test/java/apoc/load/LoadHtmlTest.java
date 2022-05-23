@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static apoc.load.LoadHtml.KEY_ERROR;
 import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.isRunningInTeamCity;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
@@ -67,13 +68,11 @@ public class LoadHtmlTest {
     }
 
     @Test
-    @Ignore("At the moment, we have to ignore this test because in TeamCity we don't have a docker image with Firefox installed")
-    public void testParseGeneratedJsWithFirefox() {
-        testCallGeneratedJsWithBrowser("FIREFOX");
-    }
-
-    @Test
-    public void testParseGeneratedJsWithChrome() {
+    public void testParseGeneratedJs() {
+        // At the moment, we have to skip the test with 'FIREFOX' in TeamCity, because we don't have a docker image with Firefox installed
+        if (!isRunningInTeamCity()) {
+            testCallGeneratedJsWithBrowser("FIREFOX");
+        }
         testCallGeneratedJsWithBrowser("CHROME");
     }
 
