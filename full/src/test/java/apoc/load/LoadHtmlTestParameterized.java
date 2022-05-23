@@ -44,7 +44,8 @@ public class LoadHtmlTestParameterized {
 
     @Parameters
     public static Collection<Object> data() {
-        return List.of("notSet", "NONE", "CHROME", "FIREFOX");
+        // At the moment, we have to skip 'FIREFOX' parameter, because in TeamCity we don't have a docker image with Firefox installed
+        return List.of("notSet", "NONE", "CHROME"/*, "FIREFOX"*/);
     }
 
     @Parameter

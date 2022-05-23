@@ -4,6 +4,7 @@ import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.QueryExecutionException;
@@ -66,8 +67,13 @@ public class LoadHtmlTest {
     }
 
     @Test
-    public void testParseGeneratedJs() {
+    @Ignore("At the moment, we have to ignore this test because in TeamCity we don't have a docker image with Firefox installed")
+    public void testParseGeneratedJsWithFirefox() {
         testCallGeneratedJsWithBrowser("FIREFOX");
+    }
+
+    @Test
+    public void testParseGeneratedJsWithChrome() {
         testCallGeneratedJsWithBrowser("CHROME");
     }
 
