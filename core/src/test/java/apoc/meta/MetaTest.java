@@ -320,43 +320,90 @@ public class MetaTest {
         db.executeTransactionally("create index on :Movie(title)");
         db.executeTransactionally("create constraint on (a:Actor) assert a.name is unique");
         db.executeTransactionally("CREATE (actor1:Actor {name:'Tom Hanks'})-[:ACTED_IN {roles:'Forrest'}]->(movie1:Movie {title:'Forrest Gump'}), \n" +
-                "    (actor2:Actor {name: 'Bruce Lee'})-[:ACTED_IN {roles:'FooBaz'}]->(movie1),\n" +
-                "    (actor1)-[:ACTED_IN {roles:'Movie2Role'}]->(:Movie {title:'Movie2'}), (actor1)-[:ACTED_IN {roles:'Movie3Role'}]->(:Movie {title:'Movie3'})");
+                "(actor2:Actor {name: 'Bruce Lee'})-[:ACTED_IN {roles:'FooBaz'}]->(movie1),\n" +
+                "(actor1)-[:ACTED_IN {roles:'Movie2Role'}]->(movie2:Movie {title:'Movie2'}), (actor1)-[:ACTED_IN {roles:'Movie3Role'}]->(movie3:Movie {title:'Movie3'}),\n" +
+                "(actor1)-[:DIRECTED {foo: 'first'}]->(movie2), (actor1)-[:DIRECTED {foo: 'second'}]->(:Movie {title:'Movie4'}),\n" +
+                "(:Studio {name: 'Pixar'})-[:ANIMATED {bar: 'alpha'}]->(movie2)");
         TestUtil.testResult(db, "CALL apoc.meta.data() \n" +
-                        "yield label,property,count,unique,index,existence,type,array,leftCount,rightCount,left,right,other,otherLabels,elementType\n" +
-                        "return * order by property", (r) -> {
+                        "YIELD label, property, count, unique, index, existence, type, array, leftCount, rightCount, left, right, other, otherLabels, elementType\n" +
+                        "RETURN * ORDER BY elementType, property", (r) -> {
             Map<String, Object> row = r.next();
             assertEquals("node", row.get("elementType"));
-            assertRelationshipsMetaData(row);
+            assertEquals("ACTED_IN", row.get("property"));
+            assertEquals("Actor", row.get("label"));
+            assertRelationshipActedIdMetaData(row);
+            row = r.next();
+            assertEquals("node", row.get("elementType"));
+            assertEquals("ANIMATED", row.get("property"));
+            assertEquals("Studio", row.get("label"));
+            assertRelationshipsAnimatedMetaData(row);
+            row = r.next();
+            assertEquals("node", row.get("elementType"));
+            assertEquals("DIRECTED", row.get("property"));
+            assertEquals("Actor", row.get("label"));
+            assertRelationshipsDirectedMetaData(row);
+            row = r.next();
+            assertEquals("node", row.get("elementType"));
+            assertPropertiesMetaData(row);
+            row = r.next();
+            assertEquals("node", row.get("elementType"));
+            assertPropertiesMetaData(row);
+            row = r.next();
+            assertEquals("node", row.get("elementType"));
+            assertPropertiesMetaData(row);
             row = r.next();
             assertEquals("relationship", row.get("elementType"));
-            assertRelationshipsMetaData(row);
+            assertEquals("ACTED_IN", row.get("label"));
+            assertEquals("Actor", row.get("property"));
+            assertRelationshipActedIdMetaData(row);
             row = r.next();
+            assertEquals("relationship", row.get("elementType"));
+            assertEquals("DIRECTED", row.get("label"));
+            assertEquals("Actor", row.get("property"));
+            assertRelationshipsDirectedMetaData(row);
+            row = r.next();
+            assertEquals("relationship", row.get("elementType"));
+            assertEquals("ANIMATED", row.get("label"));
+            assertEquals("Studio", row.get("property"));
+            assertRelationshipsAnimatedMetaData(row);
+            row = r.next();
+            assertEquals("relationship", row.get("elementType"));
             assertPropertiesMetaData(row);
             row = r.next();
+            assertEquals("relationship", row.get("elementType"));
             assertPropertiesMetaData(row);
             row = r.next();
+            assertEquals("relationship", row.get("elementType"));
             assertPropertiesMetaData(row);
             assertFalse(r.hasNext());
         });
     }
 
-    private void assertRelationshipsMetaData(Map<String, Object> row) {
-        assertEquals(4L, row.get("count"));
-        assertEquals(10L, row.get("leftCount"));
-        assertEquals(6L, row.get("rightCount"));
-        assertEquals(2L, row.get("left"));
-        assertEquals(1L, row.get("right"));
-        assertEquals(Meta.Types.RELATIONSHIP.name(), row.get("type"));
+    private void assertRelationshipsDirectedMetaData(Map<String, Object> row) {
+        assertRowMetaData(row, 2L, 4L, 2L, 2L, 1L, Meta.Types.RELATIONSHIP);
+    }
+    
+    private void assertRelationshipsAnimatedMetaData(Map<String, Object> row) {
+        assertRowMetaData(row, 1L, 1L, 1L, 1L, 1L, Meta.Types.RELATIONSHIP);
+    }
+
+    private void assertRelationshipActedIdMetaData(Map<String, Object> row) {
+        assertRowMetaData(row, 4L, 10L,6L, 2L, 1L, Meta.Types.RELATIONSHIP);
     }
 
     private void assertPropertiesMetaData(Map<String, Object> row) {
-        assertEquals(0L, row.get("count"));
-        assertEquals(0L, row.get("leftCount"));
-        assertEquals(0L, row.get("rightCount"));
-        assertEquals(0L, row.get("left"));
-        assertEquals(0L, row.get("right"));
-        assertEquals(Meta.Types.STRING.name(), row.get("type"));
+        assertRowMetaData(row,  0L, 0L, 0L, 0L, 0L, Meta.Types.STRING);
+    }
+
+    private void assertRowMetaData(Map<String, Object> row,
+                                   long count, long leftCount, long rightCount, long left, long right,
+                                   Meta.Types type) {
+        assertEquals(count, row.get("count"));
+        assertEquals(leftCount, row.get("leftCount"));
+        assertEquals(rightCount, row.get("rightCount"));
+        assertEquals(left, row.get("left"));
+        assertEquals(right, row.get("right"));
+        assertEquals(type.name(), row.get("type"));
     }
 
     @Test
