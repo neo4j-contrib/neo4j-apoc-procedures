@@ -189,6 +189,31 @@ public class ImportCsvTest {
         List<Long> ids = TestUtil.firstColumn(db, "MATCH (n:Person) RETURN n.id AS id ORDER BY id");
         assertThat(ids, Matchers.contains(1L, 2L));
     }
+    
+    @Test
+    public void testImportCsvWithSkipLines() {
+        // skip header and another one
+        testSkipLine(1L, 2);
+
+        // skip only-header (default config)
+        testSkipLine(2L, 1);
+
+        // skip header and another two (no result because the file has 3 lines)
+        testSkipLine(3L, 0);
+    }
+
+    private void testSkipLine(long skipLine, int nodes) {
+        TestUtil.testCall(db,
+                "call apoc.import.csv([{fileName: 'id-idspaces.csv', labels: ['SkipLine']}], [], $config)",
+                map("config", 
+                        map("delimiter", '|', "skipLines", skipLine)),
+                (r) -> assertEquals((long) nodes, r.get("nodes"))
+        );
+
+        TestUtil.testCallCount(db, "MATCH (n:SkipLine) RETURN n", nodes);
+        
+        db.executeTransactionally("MATCH (n:SkipLine) DETACH DELETE n");
+    }
 
     @Test
     public void testNodesAndRelsWithMultiTypes() {
