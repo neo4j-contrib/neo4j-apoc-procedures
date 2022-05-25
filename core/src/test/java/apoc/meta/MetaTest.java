@@ -4,6 +4,7 @@ import apoc.graph.Graphs;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Before;
@@ -29,6 +30,7 @@ import org.neo4j.values.storable.LocalTimeValue;
 import org.neo4j.values.storable.TimeValue;
 import org.neo4j.values.storable.Values;
 
+import java.io.InputStreamReader;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -1755,6 +1757,37 @@ public class MetaTest {
         TestUtil.testCall(db, "RETURN apoc.meta.nodes.count(['MyCountLabel', 'AnotherCountLabel'], {rels: ['MY_COUNT_REL>', 'MY_COUNT_REL<', 'ANOTHER_MY_COUNT_REL']}) AS count",
                 row -> assertEquals(3L, row.get("count")));
         
+    }
+
+    @Test
+    public void testRelTypePropertiesMovies() throws Exception {
+        final String query = IOUtils.toString(new InputStreamReader(Thread.currentThread().getContextClassLoader().getResourceAsStream("movies.cypher")));
+
+        db.executeTransactionally(query);
+        
+        TestUtil.testResult( db, "CALL apoc.meta.relTypeProperties($config)",
+                Map.of("config", Map.of("includeRels", List.of("REVIEWED"))), r -> {
+                    final Set<Map<String, Object>> actual = r.stream().collect(Collectors.toSet());
+                    final Set<Map<String, Object>> expected = Set.of(
+                            Map.of("relType", ":`REVIEWED`",
+                                    "sourceNodeLabels", List.of("Person"),
+                                    "targetNodeLabels", List.of("Movie"),
+                                    "propertyTypes", List.of("Long"),
+                                    "mandatory", false,
+                                    "propertyObservations", 8L,
+                                    "totalObservations", 8L,
+                                    "propertyName", "rating"),
+                            Map.of("relType", ":`REVIEWED`",
+                                    "sourceNodeLabels", List.of("Person"),
+                                    "targetNodeLabels", List.of("Movie"),
+                                    "propertyTypes", List.of("String"),
+                                    "mandatory", false,
+                                    "propertyObservations", 8L,
+                                    "totalObservations", 8L,
+                                    "propertyName", "summary")
+                    );
+                    Assert.assertEquals(expected, actual);
+                });
     }
 
 }
