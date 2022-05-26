@@ -23,7 +23,7 @@ that is:
 
 Note that, for both procedures and functions, the `= defaultValue` are optionals.
 
-The `type`s are what you would expect and see in outputs of `SHOW PROCEDURES`, `SHOW FUNCTIONS` or `apoc.help` just without the `?`.
+The `type`s are what you would expect to see in outputs of `SHOW PROCEDURES`, `SHOW FUNCTIONS` or `apoc.help` just without the `?`.
 
 .Type Names
 * FLOAT, DOUBLE, INT, INTEGER, NUMBER, LONG

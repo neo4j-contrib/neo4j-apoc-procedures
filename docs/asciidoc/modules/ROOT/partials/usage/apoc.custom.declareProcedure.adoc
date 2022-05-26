@@ -79,8 +79,8 @@ call custom.powers(4,3);
 |===
 
 
-Furthermore, we can pass as the 3rd parameter a string to specify the procedure mode (with default "WRITE").
-Can be:
+Furthermore, we can pass as the 3rd parameter a string to specify the procedure mode (default "WRITE").
+It can be:
 - "READ" - if the procedure will only perform read operations against the graph
 - "WRITE" - if it may perform both read and write operations against the graph
 - "SCHEMA" - if it will perform operations against the schema
