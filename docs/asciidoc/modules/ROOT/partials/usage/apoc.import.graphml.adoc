@@ -229,3 +229,6 @@ RETURN source, format, nodes, relationships, properties
 | source    | format    | nodes | relationships | properties
 | "binary"  | "graphml" | 2     | 1             | 7
 |===
+
+[[roundtip-separated-files]]
+include::partial$roundtripSeparatedGraphml.adoc[]
