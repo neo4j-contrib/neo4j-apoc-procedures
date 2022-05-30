@@ -38,6 +38,7 @@ public class Neo4jLogStream {
         }
     }
 
+    @Admin
     @Procedure(mode=Mode.DBMS)
     @Description( "apoc.log.stream('neo4j.log', { last: n }) - retrieve log file contents, optionally return only the last n lines" )
     public Stream<FileEntry> stream(
