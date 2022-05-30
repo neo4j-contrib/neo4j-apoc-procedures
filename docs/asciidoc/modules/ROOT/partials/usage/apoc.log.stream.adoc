@@ -1,3 +1,6 @@
+NOTE: To use the `apoc.log.stream` procedure the user must have the `admin` role, otherwise the procedure throws with an error `permission has not been granted for user 'xxx'`,
+to make sure that only the Administrator can access the logs, which could provide sensitive data.
+
 The following returns the last 10 lines in `neo4j.log`:
 
 [source,cypher]
