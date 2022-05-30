@@ -1,7 +1,6 @@
 package apoc.monitor;
 
 import apoc.date.Date;
-import apoc.date.DateExpiry;
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
