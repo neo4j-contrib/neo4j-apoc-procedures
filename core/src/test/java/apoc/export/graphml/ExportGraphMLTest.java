@@ -1,6 +1,5 @@
 package apoc.export.graphml;
 
-import apoc.ApocSettings;
 import apoc.graph.Graphs;
 import apoc.util.BinaryTestUtil;
 import apoc.util.CompressionAlgo;
@@ -41,6 +40,7 @@ import java.util.Set;
 
 import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
 import static apoc.ApocConfig.EXPORT_TO_FILE_ERROR;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.BinaryTestUtil.getDecompressedData;
@@ -195,7 +195,6 @@ public class ExportGraphMLTest {
                 .withSetting(GraphDatabaseSettings.memory_tracking, true)
                 .withSetting(GraphDatabaseSettings.tx_state_memory_allocation, OFF_HEAP)
                 .withSetting(GraphDatabaseSettings.tx_state_max_off_heap_memory, BYTES.parse("200m"))
-                .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false)
                 .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
 
     private static File directory = new File("target/import");
@@ -208,6 +207,7 @@ public class ExportGraphMLTest {
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, ExportGraphML.class, Graphs.class);
 
+        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, Boolean.toString(!testName.getMethodName().endsWith(TEST_WITH_NO_EXPORT)));
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, Boolean.toString(!testName.getMethodName().endsWith(TEST_WITH_NO_IMPORT)));
 

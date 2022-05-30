@@ -186,15 +186,6 @@ public class ApocConfig extends LifecycleAdapter {
                     .configure(new Parameters().fileBased().setURL(resource));
             config = builder.getConfiguration();
 
-            // copy apoc settings from neo4j.conf for legacy support
-            neo4jConfig.getDeclaredSettings().entrySet().stream()
-                    .filter(e -> !config.containsKey(e.getKey()))
-                    .filter(e -> e.getKey().startsWith("apoc."))
-                    .forEach(e -> {
-                        log.info("setting from neo4j.conf: " + e.getKey() + "=" + neo4jConfig.get(e.getValue()));
-                        config.setProperty(e.getKey(), neo4jConfig.get(e.getValue()));
-                    });
-
             addDbmsDirectoriesMetricsSettings();
             for (Setting s : NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES) {
                 Object value = neo4jConfig.get(s);

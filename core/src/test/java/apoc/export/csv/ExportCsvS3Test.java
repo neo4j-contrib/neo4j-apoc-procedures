@@ -1,6 +1,6 @@
 package apoc.export.csv;
 
-import apoc.ApocSettings;
+import apoc.ApocConfig;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import apoc.util.s3.S3TestUtil;
@@ -19,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 
+import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.util.MapUtil.map;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -88,8 +89,7 @@ public class ExportCsvS3Test {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath())
-            .withSetting(ApocSettings.apoc_export_file_enabled, true);
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
 
     private static String getEnvVar(String envVarKey) throws Exception {
         return Optional.ofNullable(System.getenv(envVarKey)).orElseThrow(
@@ -102,6 +102,8 @@ public class ExportCsvS3Test {
         if (S3_BUCKET_NAME == null) {
             S3_BUCKET_NAME = getEnvVar("S3_BUCKET_NAME");
         }
+        ApocConfig apocConfig = ApocConfig.apocConfig();
+        apocConfig.setProperty( APOC_EXPORT_FILE_ENABLED, true );
         TestUtil.registerProcedure(db, ExportCSV.class, Graphs.class);
         db.executeTransactionally("CREATE (f:User1:User {name:'foo',age:42,male:true,kids:['a','b','c']})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})");
         db.executeTransactionally("CREATE (f:Address1:Address {name:'Andrea', city: 'Milano', street:'Via Garibaldi, 7'})-[:NEXT_DELIVERY]->(a:Address {name: 'Bar Sport'}), (b:Address {street: 'via Benni'})");
@@ -109,6 +111,8 @@ public class ExportCsvS3Test {
 
     @AfterClass
     public static void tearDown() {
+        ApocConfig apocConfig = ApocConfig.apocConfig();
+        apocConfig.setProperty( APOC_EXPORT_FILE_ENABLED, false );
     }
 
     private static String getS3Url(String key) {

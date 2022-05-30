@@ -1,6 +1,6 @@
 package apoc.export;
 
-import apoc.ApocSettings;
+import apoc.ApocConfig;
 import apoc.export.csv.ExportCSV;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
@@ -10,6 +10,7 @@ import apoc.util.s3.S3ParamsExtractor;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -23,6 +24,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
+import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.util.MapUtil.map;
 import static junit.framework.TestCase.assertTrue;
 
@@ -59,15 +61,23 @@ public class ExportS3PerformanceTest {
     }
 
     @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_export_file_enabled, true);
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     @BeforeClass
     public static void setUp() throws Exception {
         if (S3_BUCKET_NAME == null) {
             S3_BUCKET_NAME = getEnvVar("S3_BUCKET_NAME");
         }
+        ApocConfig apocConfig = ApocConfig.apocConfig();
+        apocConfig.setProperty( APOC_EXPORT_FILE_ENABLED, true );
         TestUtil.registerProcedure(db, ExportCSV.class, Graphs.class);
+    }
+
+    @AfterClass
+    public static void afterClass() throws Exception
+    {
+        ApocConfig apocConfig = ApocConfig.apocConfig();
+        apocConfig.setProperty( APOC_EXPORT_FILE_ENABLED, false );
     }
 
     @Test

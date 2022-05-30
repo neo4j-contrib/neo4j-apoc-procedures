@@ -1,11 +1,12 @@
 package apoc.load;
 
-import apoc.ApocSettings;
+import apoc.ApocConfig;
 import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
 import apoc.xml.XmlTestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,6 +27,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.TestUtil.*;
@@ -37,16 +40,25 @@ public class XmlTest {
     public static final String FILE_SHORTENED = "src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5-shortened.xml";
     
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, true)
-            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false);
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
     @Before
     public void setUp() throws Exception {
+        ApocConfig apocConfig = ApocConfig.apocConfig();
+        apocConfig.setProperty( APOC_IMPORT_FILE_ENABLED, true );
+        apocConfig.setProperty( APOC_EXPORT_FILE_ENABLED, true );
         TestUtil.registerProcedure(db, Xml.class);
+    }
+
+    @After
+    public void tearDown() throws Exception
+    {
+        ApocConfig apocConfig = ApocConfig.apocConfig();
+        apocConfig.setProperty( APOC_IMPORT_FILE_ENABLED, false );
+        apocConfig.setProperty( APOC_EXPORT_FILE_ENABLED, false );
     }
 
     @Test

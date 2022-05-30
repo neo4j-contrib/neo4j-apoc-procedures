@@ -1,6 +1,6 @@
 package apoc.export.json;
 
-import apoc.ApocSettings;
+import apoc.ApocConfig;
 import apoc.schema.Schemas;
 import apoc.util.CompressionAlgo;
 import apoc.util.JsonUtil;
@@ -9,6 +9,7 @@ import apoc.util.Util;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import apoc.util.Utils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,6 +39,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.export.json.ImportJsonConfig.WILDCARD_PROPS;
 import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR_MSG;
 import static apoc.util.BinaryTestUtil.fileToBinary;
@@ -60,17 +63,25 @@ public class ImportJsonTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getCanonicalFile().toPath())
-            .withSetting(GraphDatabaseSettings.procedure_unrestricted, List.of("apoc.*"))
-            .withSetting(ApocSettings.apoc_import_file_enabled, true);
+            .withSetting(GraphDatabaseSettings.procedure_unrestricted, List.of("apoc.*"));
 
     public ImportJsonTest() throws IOException {
     }
 
     @Before
     public void setUp() throws Exception {
+        ApocConfig apocConfig = ApocConfig.apocConfig();
+        apocConfig.setProperty( APOC_IMPORT_FILE_ENABLED, true );
         TestUtil.registerProcedure(db, ImportJson.class, Schemas.class, Utils.class);
     }
-    
+
+    @After
+    public void tearDown() throws Exception
+    {
+        ApocConfig apocConfig = ApocConfig.apocConfig();
+        apocConfig.setProperty( APOC_IMPORT_FILE_ENABLED, false );
+    }
+
     @Test
     public void shouldImportAllJsonWithoutImportId() {
         shouldImportAllCommon(map("cleanup", true), 8, 0L);

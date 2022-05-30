@@ -1,10 +1,11 @@
 package apoc.spatial;
 
-import apoc.ApocSettings;
+import apoc.ApocConfig;
 import apoc.date.Date;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,6 +21,7 @@ import org.neo4j.procedure.Procedure;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallEmpty;
@@ -32,8 +34,7 @@ import static org.junit.Assert.assertTrue;
 public class SpatialTest {
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, true);
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     private Map<String, Map<String, Object>> eventNodes = new LinkedHashMap<>();
     private Map<String, Map<String, Object>> spaceNodes = new LinkedHashMap<>();
@@ -79,6 +80,8 @@ public class SpatialTest {
 
     @Before
     public void setUp() throws Exception {
+        ApocConfig apocConfig = ApocConfig.apocConfig();
+        apocConfig.setProperty( APOC_IMPORT_FILE_ENABLED, true );
         TestUtil.registerProcedure(db, Date.class);
         TestUtil.registerProcedure(db, MockGeocode.class);
         URL url = ClassLoader.getSystemResource("spatial.json");
@@ -88,6 +91,13 @@ public class SpatialTest {
         }
         MockGeocode.geocodeResults = (Map<String, Map>) tests.get("geocode");
         MockGeocode.reverseGeocodeResults = (Map<String, Map>) tests.get("reverseGeocode");
+    }
+
+    @After
+    public void tearDown() throws Exception
+    {
+        ApocConfig apocConfig = ApocConfig.apocConfig();
+        apocConfig.setProperty( APOC_IMPORT_FILE_ENABLED, false );
     }
 
     private void addEventData(Map<String, Object> event) {

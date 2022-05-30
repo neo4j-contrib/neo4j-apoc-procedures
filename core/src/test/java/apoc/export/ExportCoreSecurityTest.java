@@ -1,7 +1,6 @@
 package apoc.export;
 
 import apoc.ApocConfig;
-import apoc.ApocSettings;
 import apoc.export.csv.ExportCSV;
 import apoc.export.cypher.ExportCypher;
 import apoc.export.graphml.ExportGraphML;
@@ -17,10 +16,6 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.graphdb.Result;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +25,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.Result;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
+
+import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -46,8 +47,7 @@ public class ExportCoreSecurityTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath())
-            .withSetting(ApocSettings.apoc_export_file_enabled, false);
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -56,12 +56,12 @@ public class ExportCoreSecurityTest {
 
     @Before
     public void before() {
-        ApocConfig.apocConfig().setProperty(ApocSettings.apoc_export_file_enabled, false);
+        ApocConfig.apocConfig().setProperty( APOC_EXPORT_FILE_ENABLED, false);
     }
 
     @After
     public void after() {
-        ApocConfig.apocConfig().setProperty(ApocSettings.apoc_export_file_enabled, false);
+        ApocConfig.apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
     }
 
     private static Collection<String[]> data(Map<String, List<String>> apocProcedureArguments) {
@@ -162,14 +162,14 @@ public class ExportCoreSecurityTest {
         public void testIllegalExternalFSAccessExport() {
             final String message = apocProcedure + " should throw an exception";
             try {
-                ApocConfig.apocConfig().setProperty(ApocSettings.apoc_export_file_enabled, true);
+                ApocConfig.apocConfig().setProperty( APOC_EXPORT_FILE_ENABLED, true);
                 db.executeTransactionally("CALL " + apocProcedure, Map.of(),
                         Result::resultAsString);
                 fail(message);
             } catch (Exception e) {
                 assertError(e, FileUtils.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, apocProcedure);
             } finally {
-                ApocConfig.apocConfig().setProperty(ApocSettings.apoc_export_file_enabled, false);
+                ApocConfig.apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
             }
         }
     }
@@ -192,14 +192,14 @@ public class ExportCoreSecurityTest {
         @Test
         public void testIllegalExternalFSAccessExportCypherSchema() {
             try {
-                ApocConfig.apocConfig().setProperty(ApocSettings.apoc_export_file_enabled, true);
+                ApocConfig.apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
                 db.executeTransactionally(String.format("CALL " + apocProcedure, "'../hello', {}"), Map.of(),
                         Result::resultAsString);
                 fail(message);
             } catch (Exception e) {
                 assertError(e, FileUtils.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, apocProcedure);
             } finally {
-                ApocConfig.apocConfig().setProperty(ApocSettings.apoc_export_file_enabled, false);
+                ApocConfig.apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
             }
         }
     }

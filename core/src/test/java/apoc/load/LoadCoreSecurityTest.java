@@ -1,7 +1,6 @@
 package apoc.load;
 
 import apoc.ApocConfig;
-import apoc.ApocSettings;
 import apoc.util.FileUtils;
 import apoc.util.SensitivePathGenerator;
 import apoc.util.TestUtil;
@@ -29,6 +28,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -49,8 +49,7 @@ public class LoadCoreSecurityTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, import_folder)
-            .withSetting(ApocSettings.apoc_import_file_enabled, false);
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, import_folder);
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -59,12 +58,13 @@ public class LoadCoreSecurityTest {
 
     @Before
     public void before() {
-        ApocConfig.apocConfig().setProperty(ApocSettings.apoc_import_file_enabled, false);
+        ApocConfig.apocConfig().setProperty( APOC_IMPORT_FILE_ENABLED, false);
     }
 
     @After
-    public void after() {
-        ApocConfig.apocConfig().setProperty(ApocSettings.apoc_import_file_enabled, false);
+    public void after()
+    {
+        ApocConfig.apocConfig().setProperty( APOC_IMPORT_FILE_ENABLED, false );
     }
 
     private static final Map<String, List<String>> APOC_PROCEDURE_WITH_ARGUMENTS = Map.of(
@@ -104,7 +104,7 @@ public class LoadCoreSecurityTest {
 
         @Test
         public void testIllegalFSAccessWithImportDisabled() {
-            ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, false);
+            ApocConfig.apocConfig().setProperty( APOC_IMPORT_FILE_ENABLED, false);
             final String message = apocProcedure + " should throw an exception";
             try {
                 db.executeTransactionally("CALL " + apocProcedure,
@@ -120,7 +120,7 @@ public class LoadCoreSecurityTest {
         public void testIllegalFSAccessWithImportEnabled() {
             final String message = apocProcedure + " should throw an exception";
             final String fileName = SensitivePathGenerator.etcPasswd(db).first();
-            ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, true);
+            ApocConfig.apocConfig().setProperty( APOC_IMPORT_FILE_ENABLED, true);
             ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
             ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, false);
             try {
@@ -138,7 +138,7 @@ public class LoadCoreSecurityTest {
             // as we're defining ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM to true
             // and ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM to false the next call should work
             final String fileName = SensitivePathGenerator.etcPasswd(db).first();
-            ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, true);
+            ApocConfig.apocConfig().setProperty( APOC_IMPORT_FILE_ENABLED, true);
             ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
             ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, true);
             try {

@@ -1,7 +1,8 @@
 package apoc.export.csv;
 
-import apoc.ApocSettings;
+import apoc.ApocConfig;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -15,6 +16,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.util.MapUtil.map;
 
 public class ImportCsvLdbcTest {
@@ -113,13 +116,14 @@ public class ImportCsvLdbcTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, true)
-            .withSetting(ApocSettings.apoc_export_file_enabled, true)
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File("src/test/resources/csv-inputs").toPath().toAbsolutePath())
             .withSetting(GraphDatabaseSettings.allow_file_urls, true);
 
     @Before
     public void setUp() throws Exception {
+        ApocConfig apocConfig = ApocConfig.apocConfig();
+        apocConfig.setProperty( APOC_IMPORT_FILE_ENABLED, true );
+        apocConfig.setProperty( APOC_EXPORT_FILE_ENABLED, true );
         for (Map.Entry<String, String> entry : nodeCsvs.entrySet()) {
             CsvTestUtil.saveCsvFile(entry.getKey(), entry.getValue());
         }
@@ -128,6 +132,14 @@ public class ImportCsvLdbcTest {
         }
 
         TestUtil.registerProcedure(db, ImportCsv.class);
+    }
+
+    @After
+    public void tearDown() throws Exception
+    {
+        ApocConfig apocConfig = ApocConfig.apocConfig();
+        apocConfig.setProperty( APOC_IMPORT_FILE_ENABLED, false );
+        apocConfig.setProperty( APOC_EXPORT_FILE_ENABLED, false );
     }
 
     @Test
