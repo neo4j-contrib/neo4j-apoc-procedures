@@ -47,7 +47,7 @@ dependencies {
 //    implementation group: 'commons-codec', name: 'commons-codec', version: '1.14'
     implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
     implementation group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
-    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver-slim', version: '4.4.3'
+    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver-slim', version: '4.4.5'
     implementation group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
 
     antlr "org.antlr:antlr4:4.7.2", {
