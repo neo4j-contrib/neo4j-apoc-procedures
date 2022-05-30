@@ -15,7 +15,7 @@ public class KernelInfoResult {
 
     public String databaseName;
 
-    public long storeLogVersion;
+    public String storeLogVersion;
 
     public String storeCreationDate;
 
@@ -25,7 +25,7 @@ public class KernelInfoResult {
             String storeId,
             Date kernelStartTime,
             String databaseName,
-            long storeLogVersion,
+            String storeLogVersion,
             Date storeCreationDate) {
 
         SimpleDateFormat format = new SimpleDateFormat(apoc.date.Date.DEFAULT_FORMAT);
