@@ -94,6 +94,16 @@ public class CollTest {
         testCall(db, "RETURN apoc.coll.avg([1.4,2,3.2]) as value",
                 (row) -> assertEquals(2.2D, (double) row.get("value"), 0.1));
     }
+    
+    @Test
+    public void testAvgDuration() throws Exception {
+        testCall(db, "with [duration('P2DT3H'), duration('PT1H45S')] AS dur " +
+                        "RETURN apoc.coll.avgDuration(dur) AS value",
+                (row) -> {
+                    final Object value = row.get("value");
+                    assertEquals(asList(1L, 3L, 6L, 10L, 15.5D, 16.5D), value);
+                });
+    }
 
     @Test
     public void testMin() throws Exception {
