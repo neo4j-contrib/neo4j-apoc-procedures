@@ -73,7 +73,7 @@ But you can also integrate them into your Cypher statements which makes them so 
 .Load JSON example
 [source,cypher,subs=attributes]
 ----
-WITH 'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/person.json' AS url
+WITH 'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/person.json' AS url
 
 CALL apoc.load.json(url) YIELD value as person
 

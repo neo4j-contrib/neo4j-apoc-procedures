@@ -24,14 +24,14 @@ The examples in this section are based on the Microsoft https://msdn.microsoft.c
 ...
 ----
 
-This file can be downloaded from https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml[GitHub].
+This file can be downloaded from https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml[GitHub].
 
 We can write the following query to create a graph structure of the Microsoft books XML file.
 
 [source,cypher,subs=attributes]
 ----
 CALL apoc.import.xml(
-  "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml",
+  "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml",
   {relType:'NEXT_WORD', label:'XmlWord'}
 )
 YIELD node
@@ -41,7 +41,7 @@ RETURN node;
 [options="header"]
 |===
 | node
-| (:XmlDocument {_xmlVersion: "1.0", _xmlEncoding: "UTF-8", url: "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/4.0/src/test/resources/xml/books.xml"})
+| (:XmlDocument {_xmlVersion: "1.0", _xmlEncoding: "UTF-8", url: "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml"})
 |===
 
 The Neo4j Browser visualization below shows the imported graph:
