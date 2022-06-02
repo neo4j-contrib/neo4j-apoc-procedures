@@ -142,12 +142,13 @@ with the current date and the property updated, we can do:
 [source,cypher]
 ----
 CALL apoc.trigger.add('setLastUpdate',
-'UNWIND keys($assignedNodeProperties) as k
-UNWIND $assignedNodeProperties[k] AS map
-with map.node as node, collect(map.key) as propList
-match (n) where id(n) = id(node)
-and not "lasts" in propList               // to prevent loops
-SET n.time = date(),  n.lasts = propList', {phase:'afterAsync'});
+  "UNWIND keys($assignedNodeProperties) AS k
+  UNWIND $assignedNodeProperties[k] AS map
+  WITH map.node AS node, collect(map.key) AS propList
+  MATCH (n)
+  WHERE id(n) = id(node) AND NOT 'lasts' in propList // to prevent loops
+  SET n.time = date(),  n.lasts = propList",
+  {phase: 'afterAsync'});
 ----
 
 In the example above, we put `match (n) where id(n) = id(node)` to demonstrate that the we pull the node by id into parameters.
