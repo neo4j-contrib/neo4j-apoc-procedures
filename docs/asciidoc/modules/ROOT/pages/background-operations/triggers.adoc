@@ -153,7 +153,7 @@ CALL apoc.trigger.add('setLastUpdate',
 
 In the example above, we put `match (n) where id(n) = id(node)` to demonstrate that the we pull the node by id into parameters.
 Anyway, we can get rid off this one and change last row with `SET node.time = date(),  node.lasts = propList`.
-Note that we have to add the condition `and not "lasts" in propList` to prevent infinite cascade SET.
+Note that we have to add the condition `and not "lasts" in propList` to prevent an infinite loop as this `SET` will trigger this query again.
 
 Then, we can execute:
 [source,cypher]
