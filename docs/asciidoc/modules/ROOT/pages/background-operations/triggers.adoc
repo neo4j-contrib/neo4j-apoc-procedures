@@ -104,8 +104,8 @@ CREATE (j)-[:SON_OF]->(d)
 image::apoc.trigger.add.setAllConnectedNodes.dataset.png[width=800]
 
 With the above dataset, if we add a trigger and we execute for example, `MATCH (n:Person) WHERE n.name IN ['Daniel', 'Mary'] SET n.age=55, n.surname='Quinn'`,
-the `$assignedNodeProperties` which can be used in the trigger statement, 
-will be as follows (where `NODE(1)` is `(:Person {name: 'Daniel'})`, and NODE(2) is `(:Person {name: 'Mary'})`): 
+the `$assignedNodeProperties` which can be used in the trigger statement,
+will be as follows (where `NODE(1)` is `(:Person {name: 'Daniel'})`, and NODE(2) is `(:Person {name: 'Mary'})`):
 [source,json]
 ----
 {
@@ -121,7 +121,7 @@ will be as follows (where `NODE(1)` is `(:Person {name: 'Daniel'})`, and NODE(2)
          old: 47,
          key: "age"
       }],
-   
+
    surname: [{
          node: NODE(1),
          new: "Quinn",
@@ -146,23 +146,24 @@ The `$removedNodeProperties` parameter has the same structure and logic (of cour
 Same thing regarding `assignedRelationshipProperties` and `removedRelationshipProperties`,
 with the only difference that instead of `node: NODE(n)` key, we'll have `relationship: RELATIONSHIP(n)`.
 
-For example, if we want to create a trigger that at every set, update 2 property "time" and "lasts" 
+For example, if we want to create a trigger that at every `SET`, updates 2 properties `time` and `lasts`
 with the current date and the property updated, we can do:
 
 [source,cypher]
 ----
 CALL apoc.trigger.add('setLastUpdate',
-'UNWIND keys($assignedNodeProperties) as k 
-UNWIND $assignedNodeProperties[k] AS map
-with map.node as node, collect(map.key) as propList
-match (n) where id(n) = id(node)
-where not "lasts" in propList               // to prevent loops
-SET n.time = date(),  n.lasts = propList', {phase:'afterAsync'});
+  "UNWIND keys($assignedNodeProperties) AS k
+  UNWIND $assignedNodeProperties[k] AS map
+  WITH map.node AS node, collect(map.key) AS propList
+  MATCH (n)
+  WHERE id(n) = id(node) AND NOT 'lasts' in propList // to prevent loops
+  SET n.time = date(),  n.lasts = propList",
+  {phase: 'afterAsync'});
 ----
 
 In the example above, we put `match (n) where id(n) = id(node)` to demonstrate that the we pull the node by id into parameters.
 Anyway, we can get rid off this one and change last row with `SET node.time = date(),  node.lasts = propList`.
-Note that we have to put the clause `where not "lasts" in propList` to prevent infinite cascade SET.
+Note that we have to add the condition `AND NOT 'lasts' IN propList` to prevent an infinite loop as this `SET` will trigger this query again.
 
 Then, we can execute:
 [source,cypher]
@@ -337,18 +338,18 @@ we cannot use the 'classic' cypher functions `labels()` and `properties()`,
 but we can leverage on xref::virtual/virtual-nodes-rels.adoc[virtual nodes and relationships],
 via the functions `apoc.trigger.toNode(node, $removedLabels, $removedNodeProperties)` and `apoc.trigger.toRelationship(rel, $removedRelationshipProperties)`.
 
-So that, we can retrieve information about nodes and relations, 
+So that, we can retrieve information about nodes and relations,
 using the `apoc.any.properties`, and the `apoc.node.labels` functions.
 
 For example, if we want to create a new node with the same properties (plus the id) and with an additional label retrieved for each deleted node, we can execute:
 
 [source,cypher]
 ----
-CALL apoc.trigger.add('myTrigger', 
-"UNWIND $deletedNodes as deletedNode 
-WITH apoc.trigger.toNode(deletedNode, $removedLabels, $removedNodeProperties) AS deletedNode 
-CREATE (r:Report {id: id(deletedNode)}) WITH r, deletedNode 
-CALL apoc.create.addLabels(r, apoc.node.labels(deletedNode)) yield node with node, deletedNode 
+CALL apoc.trigger.add('myTrigger',
+"UNWIND $deletedNodes as deletedNode
+WITH apoc.trigger.toNode(deletedNode, $removedLabels, $removedNodeProperties) AS deletedNode
+CREATE (r:Report {id: id(deletedNode)}) WITH r, deletedNode
+CALL apoc.create.addLabels(r, apoc.node.labels(deletedNode)) yield node with node, deletedNode
 set node+=apoc.any.properties(deletedNode)" ,
 {phase:'before'})
 ----
@@ -357,10 +358,10 @@ Or also, if we want to  create a node `Report` with the same properties (plus th
 
 [source,cypher]
 ----
-CALL apoc.trigger.add('myTrigger', 
-"UNWIND $deletedRelationships as deletedRel 
-WITH apoc.trigger.toRelationship(deletedRel, $removedRelationshipProperties) AS deletedRel 
-CREATE (r:Report {id: id(deletedRel), type: apoc.rel.type(deletedRel)}) 
+CALL apoc.trigger.add('myTrigger',
+"UNWIND $deletedRelationships as deletedRel
+WITH apoc.trigger.toRelationship(deletedRel, $removedRelationshipProperties) AS deletedRel
+CREATE (r:Report {id: id(deletedRel), type: apoc.rel.type(deletedRel)})
 WITH r, deletedRelset r+=apoc.any.properties(deletedRel)" ,
 {phase:'before'})
 ----
