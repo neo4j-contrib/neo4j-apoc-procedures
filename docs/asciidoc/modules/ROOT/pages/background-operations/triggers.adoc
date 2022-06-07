@@ -136,7 +136,7 @@ The `$removedNodeProperties` parameter has the same structure and logic (of cour
 Same thing regarding `assignedRelationshipProperties` and `removedRelationshipProperties`,
 with the only difference that instead of `node: NODE(n)` key, we'll have `relationship: RELATIONSHIP(n)`.
 
-For example, if we want to create a trigger that at every set, update 2 property "time" and "lasts"
+For example, if we want to create a trigger that at every `SET`, updates 2 properties `time` and `lasts`
 with the current date and the property updated, we can do:
 
 [source,cypher]
