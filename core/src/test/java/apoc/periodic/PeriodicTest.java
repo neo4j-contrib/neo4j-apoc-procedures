@@ -110,8 +110,8 @@ public class PeriodicTest {
                 applyPlanner("MATCH (n:cypher) RETURN n", Periodic.Planner.IDP));
         assertEquals("cypher planner=dp  runtime=compiled MATCH (n) RETURN n", 
                 applyPlanner("cypher runtime=compiled MATCH (n) RETURN n", Periodic.Planner.DP));
-        assertEquals("cypher planner=dp  3.1 MATCH (n) RETURN n", 
-                applyPlanner("cypher 3.1 MATCH (n) RETURN n", Periodic.Planner.DP));
+        assertEquals("cypher planner=dp MATCH (n) RETURN n",
+                applyPlanner("MATCH (n) RETURN n", Periodic.Planner.DP));
         assertEquals("cypher planner=idp  expressionEngine=compiled MATCH (n) RETURN n", 
                 applyPlanner("cypher expressionEngine=compiled MATCH (n) RETURN n", Periodic.Planner.IDP));
         assertEquals("cypher expressionEngine=compiled  planner=cost  MATCH (n) RETURN n",
@@ -126,8 +126,7 @@ public class PeriodicTest {
         assertTrue(Periodic.slottedRuntime("MATCH (n) RETURN n").contains("cypher runtime=slotted "));
         assertFalse(Periodic.slottedRuntime(" cypher runtime=compiled MATCH (n) RETURN n").contains("cypher runtime=slotted "));
         assertFalse(Periodic.slottedRuntime("cypher runtime=compiled MATCH (n) RETURN n").contains("cypher runtime=slotted cypher"));
-        assertTrue(Periodic.slottedRuntime(" cypher 3.1 MATCH (n) RETURN n").contains(" runtime=slotted "));
-        assertFalse(Periodic.slottedRuntime("cypher 3.1 MATCH (n) RETURN n").contains(" runtime=slotted cypher "));
+        assertTrue(Periodic.slottedRuntime(" MATCH (n) RETURN n").contains(" runtime=slotted "));
         assertTrue(Periodic.slottedRuntime("cypher expressionEngine=compiled MATCH (n) RETURN n").contains(" runtime=slotted "));
         assertFalse(Periodic.slottedRuntime("cypher expressionEngine=compiled MATCH (n) RETURN n").contains(" runtime=slotted cypher"));
 
