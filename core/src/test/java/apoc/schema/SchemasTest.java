@@ -58,7 +58,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        Assertions.assertThat( r.get( "userDescription").toString() ).contains("name='index1', type='GENERAL RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )");
+        Assertions.assertThat( r.get( "userDescription").toString() ).contains("name='index1', type='RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )");
 
         assertTrue(!result.hasNext());
     }
@@ -74,7 +74,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index1', type='GENERAL RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )" );
+        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index1', type='RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )" );
 
         r = result.next();
 
@@ -86,7 +86,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index3', type='GENERAL TEXT', schema=(:Person {name}), indexProvider='text-1.0' )" );
+        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index3', type='TEXT', schema=(:Person {name}), indexProvider='text-1.0' )" );
 
         assertTrue(!result.hasNext());
     }
@@ -336,7 +336,7 @@ public class SchemasTest {
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(100d, r.get("populationProgress"));
             assertEquals(1d, r.get("valuesSelectivity"));
-            Assertions.assertThat(r.get("userDescription").toString()).contains("name='index1', type='GENERAL RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )");
+            Assertions.assertThat(r.get("userDescription").toString()).contains("name='index1', type='RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )");
 
             assertFalse(result.hasNext());
         });
@@ -691,7 +691,7 @@ public class SchemasTest {
             assertEquals("NO FAILURE", row.get("failure"));
             assertEquals(100d, row.get("populationProgress"));
             assertEquals(1d, row.get("valuesSelectivity"));
-            assertTrue(row.get("userDescription").toString().contains("name='node_label_lookup_index', type='TOKEN LOOKUP', schema=(:<any-labels>), indexProvider='token-lookup-1.0' )"));
+            assertTrue(row.get("userDescription").toString().contains("name='node_label_lookup_index', type='LOOKUP', schema=(:<any-labels>), indexProvider='token-lookup-1.0' )"));
         });
         testCall(db, "CALL apoc.schema.relationships()", (row) -> {
             assertEquals(":" + TOKEN_REL_TYPE + "()", row.get("name"));
@@ -729,7 +729,7 @@ public class SchemasTest {
             assertEquals(1d, r.get("valuesSelectivity"));
             final long indexId = db.executeTransactionally("CALL db.indexes() YIELD id, name WHERE name = $indexName RETURN id",
                     Map.of("indexName", idxName), res -> res.<Long>columnAs("id").next());
-            String expectedIndexDescription = String.format("Index( id=%s, name='%s', type='GENERAL FULLTEXT', " +
+            String expectedIndexDescription = String.format("Index( id=%s, name='%s', type='FULLTEXT', " +
                     "schema=(:Blah:Moon {weightProp, anotherProp}), indexProvider='fulltext-1.0' )", indexId, idxName);
             assertEquals(expectedIndexDescription, r.get("userDescription"));
         });
