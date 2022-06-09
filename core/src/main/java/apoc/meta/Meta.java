@@ -209,13 +209,18 @@ public class Meta {
             count ++;
             return this;
         }
-        public MetaResult rel(long out, long in) {
+
+        public MetaResult counts(long currLeftCount, long currRightCount, long currLeft, long currRight)  {
+            leftCount += currLeftCount;
+            rightCount += currRightCount;
+            left += currLeft;
+            right += currRight;
+            return this;
+        }
+        
+        public MetaResult rel(long out) {
             this.type = Types.RELATIONSHIP.name();
             if (out>1) array = true;
-            leftCount += out;
-            rightCount += in;
-            left = leftCount / count;
-            right = rightCount / count;
             return this;
         }
 
@@ -750,7 +755,7 @@ public class Meta {
                                         "properties", ((Map<String, Object>) relationships.getOrDefault(metaResult.property, Map.of())).get("properties")));
                         metaResult.other.forEach(o -> {
                             Map<String, Object> mirroredRelationship = new LinkedHashMap<>();
-                            mirroredRelationship.put(metaResult.property, MapUtil.map("direction", "in", "count", metaResult.leftCount, "labels", new LinkedList<>(Arrays.asList(metaResult.label)) ,
+                            mirroredRelationship.put(metaResult.property, MapUtil.map("direction", "in", "count", metaResult.count, "labels", new LinkedList<>(Arrays.asList(metaResult.label)) ,
                                     "properties", ((Map<String, Object>) relationships.getOrDefault(metaResult.property, Map.of())).get("properties")));
 
                             if (startNodeNameToRelationshipsMap.containsKey(o))
@@ -836,12 +841,41 @@ public class Meta {
     }
 
     private void addProperties(Map<String, MetaResult> properties, String labelName, Iterable<ConstraintDefinition> constraints, Set<String> indexed, Entity pc, Node node) {
+        long leftCount = 0L;
+        long rightCount = 0L;
+        long left = 0L;
+        long right = 0L;
+        if (pc instanceof Node) {
+            for (RelationshipType type: node.getRelationshipTypes()) {
+                if (node.hasRelationship(Direction.OUTGOING, type)) {
+                    left++;
+                }
+                if (node.hasRelationship(Direction.INCOMING, type)) {
+                    right++;
+                }
+            }
+            leftCount = node.getDegree(Direction.OUTGOING);
+            rightCount = node.getDegree(Direction.INCOMING);
+            left = leftCount == 0L ? 0L : leftCount / left;
+            right = rightCount == 0L ? 0L : rightCount / right;
+        }
         for (String prop : pc.getPropertyKeys()) {
-            if (properties.containsKey(prop)) continue;
-            MetaResult res = metaResultForProp(pc, labelName, prop);
+            MetaResult res = properties.get(prop);
+            if (res != null) {
+                addNodeCounts(pc, leftCount, rightCount, left, right, res);
+                continue;
+            }
+            res = metaResultForProp(pc, labelName, prop);
             res.elementType(Types.of(pc).name());
             addSchemaInfo(res, prop, constraints, indexed, node);
+            addNodeCounts(pc, leftCount, rightCount, left, right, res);
             properties.put(prop,res);
+        }
+    }
+
+    private void addNodeCounts(Entity pc, long leftCount, long rightCount, long left, long right, MetaResult res) {
+        if (pc instanceof Node) {
+            res.counts(leftCount, rightCount, left, right);
         }
     }
 
@@ -880,9 +914,8 @@ public class Meta {
         for (Relationship rel : node.getRelationships(Direction.OUTGOING, type)) {
             Node endNode = rel.getEndNode();
             List<String> labels = toStrings(endNode.getLabels());
-            int in = endNode.getDegree(type, Direction.INCOMING);
-            relMeta.inc().other(labels).rel(out , in);
-            relNodeMeta.inc().other(labels).rel(out,in);
+            relMeta.inc().other(labels).rel(out);
+            relNodeMeta.inc().other(labels).rel(out);
             addProperties(typeMeta, type.name(), relConstraints, indexes, rel, node);
             relNodeMeta.elementType(Types.RELATIONSHIP.name());
         }
