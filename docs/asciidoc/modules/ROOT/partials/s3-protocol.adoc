@@ -1,0 +1,20 @@
+== Using S3 protocol
+
+When using the S3 protocol we need to download and copy the following jars into the plugins directory:
+
+* aws-java-sdk-core-1.12.136.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-core/1.12.136)
+* aws-java-sdk-s3-1.12.136.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3/1.12.136)
+* httpclient-4.5.13.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient/4.5.13)
+* httpcore-4.4.15.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore/4.4.15)
+* joda-time-2.10.13.jar (https://mvnrepository.com/artifact/joda-time/joda-time/2.10.13)
+
+Once those files have been copied we'll need to restart the database.
+
+The S3 URL must be in the following format:
+
+* `s3://accessKey:secretKey[:sessionToken]@endpoint:port/bucket/key`
+(where the sessionToken is optional) or
+* `s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey[&sessionToken=sessionToken]`
+(where the sessionToken is optional) or
+* `s3://endpoint:port/bucket/key`
+if the accessKey, secretKey, and the optional sessionToken are provided in the environment variables
