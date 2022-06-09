@@ -123,4 +123,4 @@ CALL apoc.custom.declareFunction('forceSingleFalse(input::ANY) :: LIST OF INT',
 |===
 
 Moreover, we can pass a `description` parameter as the 4th parameter,
-which will be returned by the `call apoc.custom.list` and the `show functions`.
+which will be returned by the `call apoc.custom.list` and `SHOW FUNCTIONS`.

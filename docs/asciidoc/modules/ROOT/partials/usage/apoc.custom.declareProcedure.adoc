@@ -87,4 +87,4 @@ It can be:
 - "DBMS" - if it will perform system operations - i.e. not against the graph
 
 Moreover, we can pass a `description` parameter as the 4th parameter, 
-which will be returned by the `call apoc.custom.list` and the `show procedures`.
+which will be returned by the `call apoc.custom.list` and `SHOW PROCEDURES`.
