@@ -1,3 +1,56 @@
+Here is a simple example:
+
+[source,cypher]
+----
+CALL apoc.custom.declareFunction('answerFun() :: INT', 'RETURN 42 as answer')
+----
+
+This registers the statement as procedure `custom.answer` that you then can call.
+[source,cypher]
+----
+RETURN custom.answerFun()
+----
+
+.Results
+[opts="header"]
+|===
+| answer
+| 42
+|===
+
+Or you can also write in this way:
+
+[source,cypher]
+----
+CALL apoc.custom.declareFunction('answerFunMap() :: MAP', 'RETURN 42 as answer')
+----
+
+In this case the result is wrapped in a stream of maps called `row`. Therefore, you can do:
+
+[source,cypher]
+----
+WITH custom.answerFunMap() YIELD row
+RETURN row.answer
+----
+
+.Results
+[opts="header"]
+|===
+| answer
+| 42
+|===
+
+We can create the function `custom.powers` that returns a stream of the powers of the first parameter, up to and including the power provided by the second parameter:
+
+[source,cypher]
+----
+CALL apoc.custom.declareProcedure(
+  'powers(input::INT, power::INT) :: (answer::INT)',
+  'UNWIND range(0, $power) AS power
+   RETURN $input ^ power AS answer'
+);
+----
+
 We can create the function `custom.double`, that doubles the provided value, by running the following function:
 
 [source,cypher]
@@ -23,3 +76,43 @@ RETURN custom.double(83) AS value;
 | value
 | 166
 |===
+
+Furthermore, we can pass as a 3rd parameter a boolean (with default false) which, if true, 
+in case the function returns a list of a single element, it will return only the single element itself and not the list.
+
+For example:
+
+[source,cypher]
+----
+CALL apoc.custom.declareFunction('forceSingleTrue(input::ANY) :: LIST OF INT',
+  'RETURN 1', 
+  true
+);
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| 1
+|===
+
+otherwise with false the result will be a singleton list:
+
+[source,cypher]
+----
+CALL apoc.custom.declareFunction('forceSingleFalse(input::ANY) :: LIST OF INT',
+  'RETURN 1',
+  false
+);
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| [1]
+|===
+
+Moreover, we can pass a `description` parameter as the 4th parameter,
+which will be returned by the `call apoc.custom.list` and `SHOW FUNCTIONS`.

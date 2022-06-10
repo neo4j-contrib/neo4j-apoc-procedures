@@ -7,52 +7,23 @@
 
 I wanted for a long time to be able to register Cypher statements as proper procedures and functions, so that they become callable in a standalone way.
 
-You can achieve that with the `apoc.custom.declareProcedure` and `apoc.custom.dclareFunction` procedure calls.
+You can achieve that with the `apoc.custom.declareProcedure` and `apoc.custom.declareFunction` procedure calls.
 Those register a given Cypher statement, prefixed with the `custom.*` namespace, overriding potentially existing ones, so you can redefine them as needed.
 
-Here is a simple example:
 
-[source,cypher]
-----
-CALL apoc.custom.declareProcedure('answer() :: INT','RETURN 42 as answer')
-----
 
-This registers the statement as procedure `custom.answer` that you then can call.
-As no information on parameter and return types is given, it just returns a stream of columns of maps called `row`.
+The first parameter of the `apoc.custom.declareProcedure` and `apoc.custom.declareFunction` procedures,
+is the signature of the procedure/function you want to create.
+This looks similar to the `signature` results returned by the `SHOW PROCEDURES YIELD signature`, `SHOW FUNCTIONS YIELD signature` cypher commands, or by the `CALL apoc.help('<fun_or_procedure_name>') YIELD signature` procedure, just without the `?`.
+That is:
+- for a procedure: `nameProcedure(firstParam = defaultValue :: typeParam , secondParam = defaultValue :: typeParam, ....) :: (firstResult :: typeResult, secondResult :: typeResult, ... )`
+- for a function: `nameFunction(firstParam = defaultValue :: typeParam , secondParam = defaultValue :: typeParam, ....) :: typeResult`
 
-[source,cypher]
-----
-CALL custom.answer() YIELD row
-RETURN row.answer()
-----
-
-The same is possible as a function:
-
-[source,cypher]
-----
-CALL apoc.custom.declareFunction('answer() :: (result::INT)','RETURN 42')
-----
-
-NOTE: If you override procedures or functions you might need to call `call dbms.clearQueryCaches()` as lookups to internal ids are kept in compiled query plans.
-
-== Custom Procedures with `apoc.custom.declareProcedure`
-
-The given statement will be registered as a procedure, the results will be turned into a stream of records.
-
-== Input parameters
-[.procedures, opts=header]
-|===
-| Name | Type | Default
-|signature|STRING?|null
-|statement|STRING?|null
-|mode|STRING?|read
-|description|STRING?|
-|===
-
-The type names are what you would expect and see in outputs of `SHOW PROCEDURES` or `apoc.help` just without the `?`.
+Note that, for both procedures and functions, the `= defaultValue` are optionals.
 The default values are parsed as JSON.
 
 .Type Names
+The `typeParam` and `typeResult` in the signature parameter can be one of the following values:
 * FLOAT, DOUBLE, INT, INTEGER, NUMBER, LONG
 * TEXT, STRING
 * BOOL, BOOLEAN
@@ -63,35 +34,17 @@ The default values are parsed as JSON.
 * LIST TYPE, LIST OF TYPE (where `TYPE` can be one of the previous values)
 * ANY
 
-.Find neighbours of a node by name
-[source,cypher]
-----
-CALL apoc.custom.declareProcedure('neighbours(name::STRING) :: NODE',
-  'MATCH (n:Person {name:$name})-->(nb) RETURN nb as neighbour','read',
-  'get neighbours of a person');
 
-CALL custom.neighbours('Keanu Reeves') YIELD neighbour;
-----
+NOTE: If you override procedures or functions you might need to call `call db.clearQueryCaches()` as lookups to internal id's are kept in compiled query plans.
 
+
+== Custom Procedures with `apoc.custom.declareProcedure`
+
+include::partial$usage/apoc.custom.declareProcedure.adoc[]
 
 == Custom Functions with `apoc.custom.declareFunction`
 
-Given statement will be registered as a statement, the results into a single value.
-If the given output type is a list, results will be collected into a list, otherwise the first row will be used.
-The statement needs to return a single column, otherwise an error is thrown.
-
-== Input parameters
-[.procedures, opts=header]
-|===
-| Name | Type | Default
-|signature|STRING?|null
-|statement|STRING?|null
-|forceSingle|BOOLEAN?|false
-|description|STRING?|
-|===
-
-The type names are what you would expect and see in outputs of `SHOW PROCEDURES` or `apoc.help` just without the `?`.
-The default values are parsed as JSON.
+include::partial$usage/apoc.custom.declareFunction.adoc[]
 
 
 == List of registered procedures/function with `apoc.custom.list`
@@ -106,7 +59,7 @@ Given the this call:
 CALL apoc.custom.list
 ----
 
-The the output will look like the following table:
+The output will look like the following table:
 
 [%autowidth,opts=header]
 |===
