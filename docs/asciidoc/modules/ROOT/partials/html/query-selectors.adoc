@@ -1,0 +1,31 @@
+== Css / jQuery selectors
+
+The jsoup class https://jsoup.org/apidocs/org/jsoup/nodes/Element.html[org.jsoup.nodes.Element]
+provides a set of functions that can be used.
+Anyway, we can emulate all of them using the appropriate css/jQuery selectors in these ways
+(except for the last one, we can substitute the `*` with a tag name to search into it instead of everywhere. Furthermore, by removing the `*` selector will be returned the same result):
+
+
+[opts="header"]
+|===
+| jsoup function | css/jQuery selector | description
+| `getElementById(id)` | `#id` | Find an element by ID, including or under this element.
+| `getElementsByTag(tag)`  | `tag` | Finds elements, including and recursively under this element, with the specified tag name.
+| `getElementsByClass(className)` | `.className`  | Find elements that have this class, including or under this element.
+| `getElementsByAttribute(key)` | `[key]`  | Find elements that have a named attribute set.
+| `getElementsByAttributeStarting(keyPrefix)` | `*[^keyPrefix]`  | Find elements that have an attribute name starting with the supplied prefix. Use data | to find elements that have HTML5 datasets.
+| `getElementsByAttributeValue(key,value)`  | `*[key=value]` | Find elements that have an attribute with the specific value.
+| `getElementsByAttributeValueContaining(key,match)` |`*[key*=match]` | Find elements that have attributes whose value contains the match string.
+| `getElementsByAttributeValueEnding(key,valueSuffix)` | `*[class$="test"]` | Find elements that have attributes that end with the value suffix.
+| `getElementsByAttributeValueMatching(key,regex)` |`*[id~=content]` | Find elements that have attributes whose values match the supplied regular expression.
+| `getElementsByAttributeValueNot(key,value)` |`*:not([key="value"])` | Find elements that either do not have this attribute, or have it with a different value.
+| `getElementsByAttributeValueStarting(key,valuePrefix)` |`*[key^=valuePrefix]` | Find elements that have attributes that start with the value prefix.
+| `getElementsByIndexEquals(index)` |`*:nth-child(index)` | Find elements whose sibling index is equal to the supplied index.
+| `getElementsByIndexGreaterThan(index)` |`*:gt(index)` | Find elements whose sibling index is greater than the supplied index.
+| `getElementsByIndexLessThan(index)` |`*:lt(index)` | Find elements whose sibling index is less than the supplied index.
+| `getElementsContainingOwnText(searchText)` |`*:containsOwn(searchText)` | Find elements that directly contain the specified string.
+| `getElementsContainingText(searchText)` |`*:contains('searchText')` | Find elements that contain the specified string.
+| `getElementsMatchingOwnText(regex)` |`*:matches(regex)` | Find elements whose text matches the supplied regular expression.
+| `getElementsMatchingText(pattern)` |`*:matchesOwn(pattern)` | Find elements whose text matches the supplied regular expression.
+| `getAllElements()` |`*` | Find all elements under document (including self, and children of children).
+|===
