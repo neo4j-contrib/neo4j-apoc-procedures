@@ -39,7 +39,7 @@ public class DateParseUtil {
         } catch (Exception e) {
             throw new RuntimeException(e);
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            throw new RuntimeException(throwable.getMessage());
         }
         throw new RuntimeException("Can't format the date with the pattern");
     }

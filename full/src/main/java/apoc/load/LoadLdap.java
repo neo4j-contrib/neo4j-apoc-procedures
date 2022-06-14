@@ -87,7 +87,6 @@ public class LoadLdap {
                 Spliterator<Map<String, Object>> spliterator = Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
                 return StreamSupport.stream(spliterator, false).map(LDAPResult::new).onClose(() -> closeIt(lc));
             } catch (Exception e) {
-                e.printStackTrace();
                 throw new RuntimeException(e);
             }
         }
@@ -132,7 +131,6 @@ public class LoadLdap {
                 lc.disconnect();
             } catch (Exception e) {
                 // ignore
-                e.printStackTrace();
             }
         }
 
@@ -202,11 +200,9 @@ public class LoadLdap {
                         if (val != null) entry.put(attr.getName(), readValue(attr));
                     }
                 }
-                //System.out.println("entry " + entry);
                 return entry;
 
             } catch (LDAPException e) {
-                e.printStackTrace();
                 throw new RuntimeException("Error getting next ldap entry " + e.getLDAPErrorMessage());
             }
         }
