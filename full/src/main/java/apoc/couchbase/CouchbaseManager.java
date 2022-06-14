@@ -1,12 +1,6 @@
 package apoc.couchbase;
 
-import com.couchbase.client.core.env.CompressionConfig;
-import com.couchbase.client.core.env.IoConfig;
-import com.couchbase.client.core.env.IoEnvironment;
 import com.couchbase.client.core.env.PasswordAuthenticator;
-import com.couchbase.client.core.env.SecurityConfig;
-import com.couchbase.client.core.env.TimeoutConfig;
-import com.couchbase.client.java.env.ClusterEnvironment;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang.StringUtils;
 
@@ -14,16 +8,10 @@ import org.neo4j.internal.helpers.collection.Pair;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Collections;
 import java.util.List;
 import java.util.Arrays;
 
 import static apoc.ApocConfig.apocConfig;
-import static java.time.Duration.ofMillis;
 
 /**
  * Creates a {@link CouchbaseConnection} though that all of the operations

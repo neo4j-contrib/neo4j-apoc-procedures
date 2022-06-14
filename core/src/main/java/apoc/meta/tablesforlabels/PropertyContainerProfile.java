@@ -1,15 +1,9 @@
 package apoc.meta.tablesforlabels;
 
 import apoc.meta.Meta.ConstraintTracker;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Entity;
-import org.neo4j.graphdb.schema.ConstraintDefinition;
 
 import java.util.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * A profile of a particular ordered label set (or relationship type) has a set of possible properties that can exist, and

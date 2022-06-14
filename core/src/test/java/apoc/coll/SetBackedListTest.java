@@ -6,7 +6,6 @@ import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.EMPTY_SET;
-import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
 

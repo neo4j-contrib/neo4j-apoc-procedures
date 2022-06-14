@@ -1,28 +1,18 @@
 package apoc.refactor;
 
 import apoc.util.Neo4jContainerExtension;
-import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.internal.value.NullValue;
-
-import java.util.Map;
 
 import static apoc.refactor.GraphRefactoringTest.CLONE_NODES_QUERY;
 import static apoc.refactor.GraphRefactoringTest.CLONE_SUBGRAPH_QUERY;
 import static apoc.refactor.GraphRefactoringTest.EXTRACT_QUERY;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
-import static apoc.util.TestUtil.isRunningInCI;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
 
 public class GraphRefactoringEnterpriseTest {
     private static final String CREATE_REL_FOR_EXTRACT_NODE = "CREATE (:Start)-[r:TO_MOVE {name: 'foobar', surname: 'baz'}]->(:End)";

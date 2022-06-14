@@ -18,7 +18,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.MapUtil;
@@ -38,7 +37,6 @@ import static apoc.systemdb.SystemDbConfig.FEATURES_KEY;
 import static apoc.systemdb.SystemDbConfig.FILENAME_KEY;
 import static apoc.util.TestUtil.readFileLines;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class SystemDbTest {
     private static File directory = new File("target/import");

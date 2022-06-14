@@ -31,7 +31,6 @@ import static apoc.load.LoadDirectoryHandler.getPathDependingOnUseNeo4jConfig;
 import static apoc.util.FileUtils.getPathFromUrlString;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_WRITE;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType.WRITE;
-import static org.eclipse.jetty.util.URIUtil.encodePath;
 
 @Extended
 public class LoadDirectory {
