@@ -35,6 +35,7 @@ public class Help {
             }
         } catch (IOException e) {
             // Failed to load extended file
+            throw new RuntimeException("Failed to load extended file with error: " + e.getMessage());
         }
     }
 

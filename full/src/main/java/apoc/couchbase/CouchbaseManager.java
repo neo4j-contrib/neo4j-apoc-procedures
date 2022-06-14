@@ -67,12 +67,12 @@ public class CouchbaseManager {
 
         Object username, password;
         if ((username = couchbaseConfig.getString(USERNAME_CONFIG_KEY)) == null || (password = couchbaseConfig.getString(PASSWORD_CONFIG_KEY)) == null) {
-            throw new RuntimeException("Please check you 'apoc.couchbase." + configurationKey + "' configuration, username and password are missing");
+            throw new RuntimeException("Please check your 'apoc.couchbase." + configurationKey + "' configuration, username and/or password is missing");
         }
 
         Object url;
         if ((url = couchbaseConfig.getString(URI_CONFIG_KEY)) == null) {
-            throw new RuntimeException("Please check you 'apoc.couchbase." + configurationKey + "' configuration, url is missing");
+            throw new RuntimeException("Please check your 'apoc.couchbase." + configurationKey + "' configuration, url is missing");
         }
 
         return Pair.of(
@@ -88,13 +88,13 @@ public class CouchbaseManager {
      * @return a tuple2, the connections objects that we need to establish a connection to a Couchbase Server
      */
     protected static Pair<PasswordAuthenticator, List<String>> getConnectionObjectsFromHost(URI host) {
-        List<String> nodes = Collections.emptyList();
+        List<String> nodes;
         try {
             nodes = Arrays.asList(new URI(host.getScheme(),
                     null, host.getHost(), host.getPort(),
                     null, null, null).toString());
         } catch (URISyntaxException e) {
-
+            throw new RuntimeException("The supplied URL was not able to be parsed, failed with error: " + e.getMessage());
         }
         String[] credentials = host.getUserInfo().split(":");
 

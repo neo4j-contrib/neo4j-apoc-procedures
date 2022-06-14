@@ -28,7 +28,8 @@ public class DateParseUtil {
                             return getParse(date, value);
                         }
                     } catch (Exception e) {
-                        continue;
+                        // Ignore here as we are in a loop checking formats
+                        // if all formats fail, a later exception will be called
                     }
                 }
             } else {

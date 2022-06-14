@@ -724,13 +724,13 @@ public class Util {
         }
     }
 
-    public static void close(AutoCloseable closeable, Consumer<Exception> onErrror) {
+    public static void close(AutoCloseable closeable, Consumer<Exception> onError) {
         try {
             if (closeable!=null) closeable.close();
         } catch (Exception e) {
-            // ignore
-            if (onErrror != null) {
-                onErrror.accept(e);
+            // Consume the exception if requested, else ignore
+            if (onError != null) {
+                onError.accept(e);
             }
         }
     }
