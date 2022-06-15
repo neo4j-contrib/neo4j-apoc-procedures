@@ -9,5 +9,19 @@ The procedure support the following config parameters:
 | storeNodeIds | Boolean | false | store the `id` property of `node` elements
 | batchSize | Integer | 20000 | The number of elements to process per transaction
 | compression | `Enum[NONE, BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]` | `null` | Allow taking binary data, either not compressed (value: `NONE`) or compressed (other values)
+| source | Map<String,String> | Empty map | See below
+| target | Map<String,String> | Empty map | See below
 See the xref::overview/apoc.load/apoc.load.csv.adoc#_binary_file[Binary file example]
 |===
+
+=== source / target config
+
+Allows the import of relations in case the source and / or target nodes are not present in the file, searching for nodes via a custom label and property.
+To do this, we can insert into the config map `source: {label: '<MY_SOURCE_LABEL>', id: `'<MY_SOURCE_ID>'`}` and/or `source: {label: '<MY_TARGET_LABEL>', id: `'<MY_TARGET_ID>'`}`
+In this way, we can search start and end nodes via the source and end attribute of `edge` tag.
+
+For example, with a config map `{source: {id: 'myId', label: 'Foo'}, target: {id: 'other', label: 'Bar'}}`
+with a edge row like `<edge id="e0" source="n0" target="n1" label="KNOWS"><data key="label">KNOWS</data></edge>`
+we search a source node `(:Foo {myId: 'n0'})` and an end node `(:Bar {other: 'n1'})`.
+The id key is optional (the default is `'id'`).
+

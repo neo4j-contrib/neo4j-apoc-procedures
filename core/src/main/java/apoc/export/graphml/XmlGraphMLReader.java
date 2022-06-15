@@ -1,6 +1,7 @@
 package apoc.export.graphml;
 
 import apoc.export.util.BatchTransaction;
+import apoc.export.util.ExportConfig;
 import apoc.export.util.Reporter;
 import apoc.util.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -19,6 +20,7 @@ import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -31,6 +33,8 @@ public class XmlGraphMLReader {
     private final Transaction tx;
     private boolean storeNodeIds;
     private RelationshipType defaultRelType = RelationshipType.withName("UNKNOWN");
+    private ExportConfig.NodeConfig source;
+    private ExportConfig.NodeConfig target;
     private int batchSize = 40000;
     private Reporter reporter;
     private boolean labels;
@@ -55,12 +59,28 @@ public class XmlGraphMLReader {
         return this;
     }
 
+    public XmlGraphMLReader source(ExportConfig.NodeConfig sourceConfig) {
+        this.source = sourceConfig;
+        return this;
+    }
+
+    public XmlGraphMLReader target(ExportConfig.NodeConfig targetConfig) {
+        this.target = targetConfig;
+        return this;
+    }
+
     public XmlGraphMLReader reporter(Reporter reporter) {
         this.reporter = reporter;
         return this;
     }
 
+    public ExportConfig.NodeConfig getSource() {
+        return source;
+    }
 
+    public ExportConfig.NodeConfig getTarget() {
+        return target;
+    }
 
     enum Type {
         BOOLEAN() {
@@ -255,11 +275,9 @@ public class XmlGraphMLReader {
                     }
                     if (name.equals("edge")) {
                         tx.increment();
-                        String source = getAttribute(element, SOURCE);
-                        String target = getAttribute(element, TARGET);
                         String label = getAttribute(element, LABEL);
-                        Node from = tx.getTransaction().getNodeById(cache.get(source));
-                        Node to = tx.getTransaction().getNodeById(cache.get(target));
+                        Node from = getByNodeId(cache, tx.getTransaction(), element, XmlNodeExport.NodeType.SOURCE);
+                        Node to = getByNodeId(cache, tx.getTransaction(), element, XmlNodeExport.NodeType.TARGET);
 
                         RelationshipType relationshipType = label == null ? getRelationshipType(reader) : RelationshipType.withName(label);
                         Relationship relationship = from.createRelationshipTo(to, relationshipType);
@@ -272,6 +290,27 @@ public class XmlGraphMLReader {
             }
         }
         return count;
+    }
+
+    private Node getByNodeId(Map<String, Long> cache, Transaction tx, StartElement element, XmlNodeExport.NodeType nodeType) {
+        final XmlNodeExport.ExportNode xmlNodeInterface = nodeType.get();
+        final ExportConfig.NodeConfig nodeConfig = xmlNodeInterface.getNodeConfigReader(this);
+        
+        final String sourceTargetValue = getAttribute(element, QName.valueOf(nodeType.getName()));
+        
+        final Long id = cache.get(sourceTargetValue);
+        // without source/target config, we look for the internal id
+        if (StringUtils.isBlank(nodeConfig.label)) {
+            return tx.getNodeById(id);
+        }
+        // with source/target configured, we search a node with a specified label 
+        // and with a type specified in sourceType, if present, or string by default
+        final String attribute = getAttribute(element, QName.valueOf(nodeType.getNameType()));
+        final Object value = attribute == null 
+                ? sourceTargetValue 
+                : Type.forType(attribute).parse(sourceTargetValue);
+        
+        return tx.findNode(Label.label(nodeConfig.label), Optional.ofNullable(nodeConfig.id).orElse("id"), value);
     }
 
     private RelationshipType getRelationshipType(XMLEventReader reader) throws XMLStreamException {
