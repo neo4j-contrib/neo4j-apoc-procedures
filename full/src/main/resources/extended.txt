@@ -66,6 +66,7 @@ apoc.load.directory.async.remove
 apoc.load.directory.async.removeAll
 apoc.load.driver
 apoc.load.html
+apoc.load.htmlPlainText
 apoc.load.jdbc
 apoc.load.jdbcParams
 apoc.load.jdbcUpdate

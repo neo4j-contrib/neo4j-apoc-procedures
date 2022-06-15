@@ -12,6 +12,7 @@ Bolt procedures allows to accessing other databases via bolt protocol.
 ¦Qualified Name¦Type¦Release
 include::example$generated-documentation/apoc.bolt.execute.adoc[]
 include::example$generated-documentation/apoc.bolt.load.adoc[]
+include::example$generated-documentation/apoc.bolt.load.fromLocal.adoc[]
 |===
 
 **urlOrKey** param allows users to decide if send url by apoc or if put it into apoc.conf file.
@@ -65,6 +66,23 @@ Config available are:
 
 * `statistics`: possible values are true/false, the default value is false. This config print the execution statistics;
 * `virtual`: possible values are true/false, the default value is false. This config return result in virtual format and not in map format, in apoc.bolt.load.
+* `databaseName`: the database instance name on the remote Neo4j instance. The default value is 'neo4j'. Put `null` to connect through protocol which not support database name (for neo4j before 4.x).
+
+
+In addition, the `apoc.bolt.load.fromLocal` can have:
+* `streamStatements`: if true and used in combination with the cypher export procedures it streams the statement from local to remote database.
+* `readOnly`: default false. To execute or not, read-only statements.  
+* `localParams`: to put optional parameters to local cypher statement
+
+== Install Dependencies
+
+The Bolt procedures have dependencies on a client library that is not included in the APOC Library.
+
+You can download it from https://repo1.maven.org/maven2/org/neo4j/driver/neo4j-java-driver/4.0.0/neo4j-java-driver-4.0.0.jar[mvnrepository]
+or https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-bolt-dependencies-{apoc-release}.jar[apoc repository].
+Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
+
+
 
 == Driver configuration
 

@@ -33,5 +33,5 @@ apoc.cypher.mapParallel(fragment :: STRING?, params :: MAP?, list :: LIST? OF AN
 |value|MAP?
 |===
 
-xref::cypher-execution/index.adoc[More documentation of apoc.cypher.mapParallel,role=more information]
+xref::cypher-execution/parallel.adoc[More documentation of apoc.cypher.mapParallel,role=more information]
 

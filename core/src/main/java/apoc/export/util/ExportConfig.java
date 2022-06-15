@@ -1,6 +1,7 @@
 package apoc.export.util;
 
 import apoc.export.cypher.formatter.CypherFormat;
+import apoc.util.CompressionAlgo;
 import apoc.util.CompressionConfig;
 import apoc.util.Util;
 
@@ -25,6 +26,8 @@ public class ExportConfig extends CompressionConfig {
             this.id = config.get("id");
         }
     }
+
+    public static final ExportConfig EMPTY = new ExportConfig(null);
     
     public static final char QUOTECHAR = '"';
     public static final String NONE_QUOTES = "none";

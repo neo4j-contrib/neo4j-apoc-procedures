@@ -39,24 +39,20 @@ apoc.load.csv("pathToCompressedFile/file.zip!pathToCsvFileInZip/fileName.csv")
 apoc.load.json("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tgz?raw=true!person.json");
 ----
 
-== Using S3 protocol
+include::partial$s3-protocol.adoc[]
 
-When using the S3 protocol we need to download and copy the following jars into the plugins directory:
+== Using hdfs protocol
 
-* aws-java-sdk-core-1.12.136.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-core/1.12.136)
-* aws-java-sdk-s3-1.12.136.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3/1.12.136)
-* httpclient-4.5.13.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient/4.5.13)
-* httpcore-4.4.15.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore/4.4.15)
-* joda-time-2.10.13.jar (https://mvnrepository.com/artifact/joda-time/joda-time/2.10.13)
+To use the hdfs protocol we need to download and copy the additional jars not included in the APOC Library.
+We can download it from https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-redis-dependencies-{apoc-release}.jar[this link] or locally downloading the apoc repository:
+----
+git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
+cd neo4j-apoc-procedures/extra-dependencies
+./gradlew shadow
+----
+and a jar named `apoc-hadoop-dependencies-{apoc-release}.jar` will be created into the `neo4j-apoc-procedures/extra-dependencies/hadoop/build/lib` folder.
 
-Once those files have been copied we'll need to restart the database.
-
-The S3 URL must be in the following format:
-
-* `s3://accessKey:secretKey@endpoint:port/bucket/key`
-or
-* `s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey`
-
+Once that file is downloaded/created, it should be placed in the `plugins` directory and the Neo4j Server restarted.
 
 == Using Google Cloud Storage
 

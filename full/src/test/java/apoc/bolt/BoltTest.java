@@ -7,6 +7,7 @@ import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -66,6 +67,15 @@ public class BoltTest {
             neo4jContainer.close();
         }
     }
+    
+    @Test
+    public void testNeo4jBolt() {
+        final String uriDbBefore4 = System.getenv("URI_DB_BEFORE_4");
+        Assume.assumeNotNull(uriDbBefore4);
+        TestUtil.testCall(db, "CALL apoc.bolt.load($uri, 'RETURN 1', {}, {databaseName: null})", 
+                Map.of("uri", uriDbBefore4),
+                r -> assertEquals(Map.of("1", 1L), r.get("row")));
+    }
 
     @Test
     public void testLoadNodeVirtual() throws Exception {
@@ -114,7 +124,7 @@ public class BoltTest {
 
     @Test
     public void testLoadPathVirtual() throws Exception {
-            TestUtil.testCall(db, "call apoc.bolt.load(" + BOLT_URL + ",'MATCH (neo) WHERE id(neo) = $idNode  MATCH path= (neo)-[r:KNOWS*..3]->(other) return path', {idNode:1}, {virtual:true})", r -> {
+            TestUtil.testCall(db, "call apoc.bolt.load(" + BOLT_URL + ",'MATCH (neo) WHERE neo.surname = $surnameNode  MATCH path= (neo)-[r:KNOWS*..3]->(other) return path', {surnameNode:'Burton'}, {virtual:true})", r -> {
                 assertNotNull(r);
                 Map<String, Object> row = (Map<String, Object>) r.get("row");
                 List<Object> path = (List<Object>) row.get("path");
@@ -252,7 +262,7 @@ public class BoltTest {
 
     @Test
     public void testLoadPath() throws Exception {
-            TestUtil.testCall(db, "call apoc.bolt.load(" + BOLT_URL + ",'MATCH path= (neo)-[r:KNOWS*..3]->(other) where id(neo) = $idNode return path', {idNode:1}, {})", r -> {
+            TestUtil.testCall(db, "call apoc.bolt.load(" + BOLT_URL + ",'MATCH path= (neo)-[r:KNOWS*..3]->(other) where neo.surname = $surnameNode return path', {surnameNode: 'Burton'}, {})", r -> {
                 assertNotNull(r);
                 Map<String, Object> row = (Map<String, Object>) r.get("row");
                 List<Object> path = (List<Object>) row.get("path");
@@ -359,7 +369,7 @@ public class BoltTest {
 
     @Test
     public void testLoadBigPathVirtual() throws Exception {
-            TestUtil.testCall(db, "call apoc.bolt.load(" + BOLT_URL + ",'MATCH path= (neo)-[r:KNOWS*3]->(other) WHERE id(neo) = $idNode return path', {idNode:3}, {virtual:true})", r -> {
+            TestUtil.testCall(db, "call apoc.bolt.load(" + BOLT_URL + ",'MATCH path= (neo)-[r:KNOWS*3]->(other) WHERE neo.surname = $surnameNode return path', {surnameNode: 'Loagan'}, {virtual:true})", r -> {
                 Map<String, Object> row = (Map<String, Object>) r.get("row");
                 List<Object> path = (List<Object>) row.get("path");
                 Node start = (Node) path.get(0);

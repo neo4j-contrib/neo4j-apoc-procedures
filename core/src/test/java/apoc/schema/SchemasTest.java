@@ -58,7 +58,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        Assertions.assertThat( r.get( "userDescription").toString() ).contains("name='index1', type='GENERAL RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )");
+        Assertions.assertThat( r.get( "userDescription").toString() ).contains("name='index1', type='RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )");
 
         assertTrue(!result.hasNext());
     }
@@ -74,7 +74,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index1', type='GENERAL RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )" );
+        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index1', type='RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )" );
 
         r = result.next();
 
@@ -86,7 +86,7 @@ public class SchemasTest {
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
         assertEquals(1d, r.get("valuesSelectivity"));
-        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index3', type='GENERAL TEXT', schema=(:Person {name}), indexProvider='text-1.0' )" );
+        Assertions.assertThat( r.get( "userDescription").toString() ).contains( "name='index3', type='TEXT', schema=(:Person {name}), indexProvider='text-1.0' )" );
 
         assertTrue(!result.hasNext());
     }
@@ -134,6 +134,7 @@ public class SchemasTest {
     @Test
     public void testDropIndexWhenUsingDropExisting() throws Exception {
         db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
+        db.executeTransactionally("CREATE FULLTEXT INDEX titlesAndDescriptions FOR (n:Movie|Book) ON EACH [n.title, n.description]");
         testCall(db, "CALL apoc.schema.assert(null,null)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals("bar", r.get("key"));
@@ -142,7 +143,8 @@ public class SchemasTest {
         });
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
-            assertEquals(0, indexes.size());
+            // the multi-token idx remains
+            assertEquals(1, indexes.size());
         }
     }
 
@@ -263,20 +265,32 @@ public class SchemasTest {
 
     @Test
     public void testKeepIndex() throws Exception {
-        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
-        testResult(db, "CALL apoc.schema.assert({Foo:['bar', 'foo']},null,false)", (result) -> { 
-            Map<String, Object> r = result.next();
-            assertEquals("Foo", r.get("label"));
-            assertEquals("bar", r.get("key"));
-            assertEquals(false, r.get("unique"));
-            assertEquals("KEPT", r.get("action"));
+        keepIndexCommon(false);
+    }
 
-            r = result.next();
-            assertEquals("Foo", r.get("label"));
-            assertEquals("foo", r.get("key"));
-            assertEquals(false, r.get("unique"));
-            assertEquals("CREATED", r.get("action"));
-        });
+    @Test
+    public void testKeepIndexWithDropExisting() throws Exception {
+        keepIndexCommon(true);
+    }
+
+    private void keepIndexCommon(boolean dropExisting) {
+        db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar)");
+        testResult(db, "CALL apoc.schema.assert({Foo:['bar', 'foo']}, null, $drop)",
+                Map.of("drop", dropExisting),
+                (result) -> {
+                    Map<String, Object> r = result.next();
+                    assertEquals("Foo", r.get("label"));
+                    assertEquals("bar", r.get("key"));
+                    assertEquals(false, r.get("unique"));
+                    assertEquals("KEPT", r.get("action"));
+
+                    r = result.next();
+                    assertEquals("Foo", r.get("label"));
+                    assertEquals("foo", r.get("key"));
+                    assertEquals(false, r.get("unique"));
+                    assertEquals("CREATED", r.get("action"));
+                });
+
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(2, indexes.size());
@@ -322,7 +336,7 @@ public class SchemasTest {
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(100d, r.get("populationProgress"));
             assertEquals(1d, r.get("valuesSelectivity"));
-            Assertions.assertThat(r.get("userDescription").toString()).contains("name='index1', type='GENERAL RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )");
+            Assertions.assertThat(r.get("userDescription").toString()).contains("name='index1', type='RANGE', schema=(:Foo {bar}), indexProvider='range-1.0' )");
 
             assertFalse(result.hasNext());
         });
@@ -432,13 +446,11 @@ public class SchemasTest {
     public void testDropCompoundIndexAndRecreateWithDropExisting() throws Exception {
         db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar,n.baa)");
         awaitIndexesOnline();
-        testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,true)", (result) -> {
-            Map<String, Object> r = result.next();
+        testCall(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,true)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals(expectedKeys("bar", "baa"), r.get("keys"));
             assertEquals(false, r.get("unique"));
-            assertEquals("DROPPED", r.get("action"));
-            result.close();
+            assertEquals("KEPT", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
@@ -467,9 +479,20 @@ public class SchemasTest {
     */
     @Test
     public void testKeepCompoundIndex() throws Exception {
+        testKeepCompoundCommon(false);
+    }
+    
+    @Test
+    public void testKeepCompoundIndexWithDropExisting() throws Exception {
+        testKeepCompoundCommon(true);
+    }
+
+    private void testKeepCompoundCommon(boolean dropExisting) {
         db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar,n.baa)");
         awaitIndexesOnline();
-        testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa'], ['foo','faa']]},null,false)", (result) -> {
+        testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa'], ['foo','faa']]},null,$drop)", 
+                Map.of("drop", dropExisting), 
+                (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
             assertEquals(expectedKeys("bar", "baa"), r.get("keys"));
@@ -482,6 +505,7 @@ public class SchemasTest {
             assertEquals(false, r.get("unique"));
             assertEquals("CREATED", r.get("action"));
         });
+        
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(2, indexes.size());
@@ -521,18 +545,6 @@ public class SchemasTest {
         testResult(db, "CALL apoc.schema.assert({Bar:[['foo','bar']]}, {One:['two']}) " +
                 "YIELD label, key, keys, unique, action RETURN * ORDER BY label", (result) -> {
             Map<String, Object> r = result.next();
-            assertEquals(expectedKeys("Moon", "Blah"), r.get("label"));
-            assertEquals(expectedKeys("weightProp", "anotherProp"), r.get("keys"));
-            assertEquals(false, r.get("unique"));
-            assertEquals("DROPPED", r.get("action"));
-
-            r = result.next();
-            assertEquals(expectedKeys("TYPE_1", "TYPE_2"), r.get("label"));
-            assertEquals(expectedKeys("alpha", "beta"), r.get("keys"));
-            assertEquals(false, r.get("unique"));
-            assertEquals("DROPPED", r.get("action"));
-
-            r = result.next();
             assertEquals("Asd", r.get("label"));
             assertEquals(expectedKeys("uno", "due"), r.get("keys"));
             assertEquals(false, r.get("unique"));
@@ -553,7 +565,7 @@ public class SchemasTest {
         });
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
-            assertEquals(2, indexes.size());
+            assertEquals(4, indexes.size());
             List<ConstraintDefinition> constraints = Iterables.asList(tx.schema().getConstraints());
             assertEquals(1, constraints.size());
         }
@@ -564,18 +576,11 @@ public class SchemasTest {
     public void testDropCompoundIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
         db.executeTransactionally("CREATE INDEX FOR (n:Foo) ON (n.bar,n.baa)");
         awaitIndexesOnline();
-        testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null)", (result) -> {
-            Map<String, Object> r = result.next();
+        testCall(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals(expectedKeys("bar","baa"), r.get("keys"));
             assertEquals(false, r.get("unique"));
-            assertEquals("DROPPED", r.get("action"));
-
-            r = result.next();
-            assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("bar", "baa"), r.get("keys"));
-            assertEquals(false, r.get("unique"));
-            assertEquals("CREATED", r.get("action"));
+            assertEquals("KEPT", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
@@ -686,7 +691,7 @@ public class SchemasTest {
             assertEquals("NO FAILURE", row.get("failure"));
             assertEquals(100d, row.get("populationProgress"));
             assertEquals(1d, row.get("valuesSelectivity"));
-            assertTrue(row.get("userDescription").toString().contains("name='node_label_lookup_index', type='TOKEN LOOKUP', schema=(:<any-labels>), indexProvider='token-lookup-1.0' )"));
+            assertTrue(row.get("userDescription").toString().contains("name='node_label_lookup_index', type='LOOKUP', schema=(:<any-labels>), indexProvider='token-lookup-1.0' )"));
         });
         testCall(db, "CALL apoc.schema.relationships()", (row) -> {
             assertEquals(":" + TOKEN_REL_TYPE + "()", row.get("name"));
@@ -724,7 +729,7 @@ public class SchemasTest {
             assertEquals(1d, r.get("valuesSelectivity"));
             final long indexId = db.executeTransactionally("CALL db.indexes() YIELD id, name WHERE name = $indexName RETURN id",
                     Map.of("indexName", idxName), res -> res.<Long>columnAs("id").next());
-            String expectedIndexDescription = String.format("Index( id=%s, name='%s', type='GENERAL FULLTEXT', " +
+            String expectedIndexDescription = String.format("Index( id=%s, name='%s', type='FULLTEXT', " +
                     "schema=(:Blah:Moon {weightProp, anotherProp}), indexProvider='fulltext-1.0' )", indexId, idxName);
             assertEquals(expectedIndexDescription, r.get("userDescription"));
         });

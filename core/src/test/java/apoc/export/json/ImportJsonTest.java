@@ -6,7 +6,6 @@ import apoc.util.CompressionAlgo;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import com.google.common.collect.Iterables;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import apoc.util.Utils;
@@ -15,11 +14,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.spatial.Point;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.neo4j.values.storable.CoordinateReferenceSystem;
@@ -30,16 +31,22 @@ import org.neo4j.values.storable.Values;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
+import static apoc.export.json.ImportJsonConfig.WILDCARD_PROPS;
+import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR_MSG;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
-import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR_MSG;
 import static apoc.util.MapUtil.map;
 import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
@@ -63,21 +70,30 @@ public class ImportJsonTest {
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, ImportJson.class, Schemas.class, Utils.class);
     }
+    
+    @Test
+    public void shouldImportAllJsonWithoutImportId() {
+        shouldImportAllCommon(map("cleanup", true), 8, 0L);
+    }
 
     @Test
     public void shouldImportAllJson() throws Exception {
+        shouldImportAllCommon(Collections.emptyMap(), 9, 1L);
+    }
+
+    private void shouldImportAllCommon(Map<String, Object> config, int expectedPropSize, long relCount) {
         db.executeTransactionally("CREATE CONSTRAINT FOR (n:User) REQUIRE n.neo4jImportId IS UNIQUE");
-        
+
         // given
         String filename = "all.json";
 
         // when
-        TestUtil.testCall(db, "CALL apoc.import.json($file, null)",
-                map("file", filename),
+        TestUtil.testCall(db, "CALL apoc.import.json($file, $config)",
+                map("file", filename, "config", config),
                 (r) -> assertionsAllJsonProgressInfo(r, false)
         );
 
-        assertionsAllJsonDbResult();
+        assertionsAllJsonDbResult(expectedPropSize, relCount);
     }
 
     @Test
@@ -207,6 +223,65 @@ public class ImportJsonTest {
     }
 
     @Test
+    public void shouldImportAllNodesAndRelsWithFilterAll() {
+        createConstraints(List.of("FirstLabel", "Stream", "User", "Game", "Team", "Language", "$User", "$Stream"));
+        assertEntities(0L, 0L);
+
+        String filename = "multiLabels.json";
+
+        TestUtil.testCall(db, "CALL apoc.import.json($file, $config)",
+                map("file", filename, 
+                        "config", map("nodePropFilter", map(WILDCARD_PROPS, List.of("name")),
+                                "relPropFilter", map(WILDCARD_PROPS, List.of("bffSince")))), 
+                r -> {
+                    assertEquals(NODES_BIG_JSON, r.get("nodes"));
+                    assertEquals(RELS_BIG_JSON, r.get("relationships"));
+                });
+
+        final Consumer<Node> nodeConsumer = node -> assertFalse(node.hasProperty("name"));
+        final Consumer<Relationship> relConsumer = rel -> assertFalse(rel.hasProperty("bffSince"));
+        assertEntities(NODES_BIG_JSON, RELS_BIG_JSON, nodeConsumer, relConsumer);
+    }
+    
+    @Test
+    public void shouldImportAllNodesAndRelsWithLabelAndRelTypeFilter() {
+        createConstraints(List.of("FirstLabel", "Stream", "User", "Game", "Team", "Language", "$User", "$Stream"));
+        assertEntities(0L, 0L);
+
+        String filename = "multiLabels.json";
+
+        TestUtil.testCall(db, "CALL apoc.import.json($file, $config)",
+                map("file", filename, 
+                        "config", map("nodePropFilter", map("Stream", List.of("name"), 
+                                        "$User", List.of("total_view_count", "url"), 
+                                        "$Stream", List.of("name", "id")), 
+                                "relPropFilter", map("REL_GAME_TO_LANG", List.of("since")))
+                ), r -> {
+                    assertEquals(NODES_BIG_JSON, r.get("nodes"));
+                    assertEquals(RELS_BIG_JSON, r.get("relationships"));
+                });
+
+        final Consumer<Node> nodeConsumer = node -> {
+            if (node.hasLabel(Label.label("Stream"))) {
+                final Set<String> actual = Iterables.asSet(node.getPropertyKeys());
+                assertEquals(Set.of("createdAt", "followers", "description", "id", "total_view_count", "url", "neo4jImportId"), actual);
+            }
+            if (node.hasLabel(Label.label("$User"))) {
+                final Set<String> actual = Iterables.asSet(node.getPropertyKeys());
+                assertEquals(Set.of("createdAt", "followers", "description", "neo4jImportId"), actual);
+            }
+        };
+        
+        final Consumer<Relationship> relConsumer = rel -> {
+            final boolean hasTypeRelGameToLang = rel.getType().name().equals("REL_GAME_TO_LANG");
+            assertEquals(!hasTypeRelGameToLang, rel.hasProperty("since"));
+            assertTrue(rel.hasProperty("bffSince"));
+        };
+
+        assertEntities(NODES_BIG_JSON, RELS_BIG_JSON, nodeConsumer, relConsumer);
+    }
+    
+    @Test
     public void shouldImportAllNodesAndRels() {
         createConstraints(List.of("FirstLabel", "Stream", "User", "Game", "Team", "Language", "$User", "$Stream"));
         assertEntities(0L, 0L);
@@ -268,6 +343,10 @@ public class ImportJsonTest {
     }
 
     private void assertionsAllJsonDbResult() {
+        assertionsAllJsonDbResult(9, 1L);
+    }
+    
+    private void assertionsAllJsonDbResult(int expectedPropSize, long relCount) {
         try(Transaction tx = db.beginTx()) {
             final long countNodes = tx.execute("MATCH (n:User) RETURN count(n) AS count")
                     .<Long>columnAs("count")
@@ -277,14 +356,14 @@ public class ImportJsonTest {
             final long countRels = tx.execute("MATCH ()-[r:KNOWS]->() RETURN count(r) AS count")
                     .<Long>columnAs("count")
                     .next();
-            Assert.assertEquals(1L, countRels);
+            Assert.assertEquals(relCount, countRels);
 
             final Map<String, Object> props = tx.execute("MATCH (n:User {name: 'Adam'}) RETURN n")
                     .<Node>columnAs("n")
                     .next()
                     .getAllProperties();
 
-            Assert.assertEquals(9, props.size());
+            Assert.assertEquals(expectedPropSize, props.size());
             Assert.assertEquals("wgs-84", props.get("place.crs"));
             Assert.assertEquals(13.1D, props.get("place.latitude"));
             Assert.assertEquals(33.46789D, props.get("place.longitude"));
@@ -308,9 +387,21 @@ public class ImportJsonTest {
     }
 
     private void assertEntities(long expectedNodes, long expectedRels) {
+        assertEntities(expectedNodes, expectedRels, null, null);
+    }
+
+    private void assertEntities(long expectedNodes, long expectedRels, Consumer<Node> nodeConsumer, Consumer<Relationship> relConsumer) {
         try (Transaction tx = db.beginTx()) {
-            assertEquals(expectedNodes, Iterables.size(tx.getAllNodes()));
-            assertEquals(expectedRels, Iterables.size(tx.getAllRelationships()));
+            final List<Node> nodeList = org.neo4j.internal.helpers.collection.Iterables.asList(tx.getAllNodes());
+            final List<Relationship> relList = org.neo4j.internal.helpers.collection.Iterables.asList((tx.getAllRelationships()));
+            assertEquals(expectedNodes, nodeList.size());
+            assertEquals(expectedRels, relList.size());
+            if (nodeConsumer != null) {
+                nodeList.forEach(nodeConsumer);
+            }
+            if (relConsumer != null) {
+                relList.forEach(relConsumer);
+            }
         }
     }
 }

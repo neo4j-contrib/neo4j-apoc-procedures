@@ -34,7 +34,18 @@ import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.UserFunction;
 import org.neo4j.token.api.TokenConstants;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -168,22 +179,29 @@ public class Schemas {
                 continue;
             if (definition.isConstraintIndex())
                 continue;
+            if (definition.isMultiTokenIndex())
+                continue;
 
             Object label = getLabelForAssert(definition, definition.isNodeIndex());
             List<String> keys = new ArrayList<>();
             definition.getPropertyKeys().forEach(keys::add);
 
             AssertSchemaResult info = new AssertSchemaResult(label, keys);
-            if(indexes.containsKey(label)) {
-                if (keys.size() > 1) {
-                    indexes.get(label).remove(keys);
-                } else if (keys.size() == 1) {
-                    indexes.get(label).remove(keys.get(0));
-                } else
-                    throw new IllegalArgumentException("Label given with no keys.");
-            }
 
-            if (dropExisting) {
+            final boolean included = Optional.ofNullable(indexes.get(label))
+                    .map(lbl -> {
+                        if (keys.size() > 1) {
+                            return lbl.remove(keys);
+                        }
+                        if (keys.size() == 1) {
+                            return lbl.remove(keys.get(0));
+                        }
+                        // todo - it shouldn't be needed. only LOOKUP indexes, absent in 4.2 and previous and filtered for 4.3+, can be without keys
+                        throw new IllegalArgumentException("Label given with no keys.");
+                    })
+                    .orElse(false);
+
+            if (dropExisting && !included) {
                 definition.drop();
                 info.dropped();
             }
@@ -191,8 +209,6 @@ public class Schemas {
             result.add(info);
         }
 
-        if (dropExisting)
-            indexes = copyMapOfObjects(indexes0);
 
         for (Map.Entry<String, List<Object>> index : indexes.entrySet()) {
             for (Object key : index.getValue()) {

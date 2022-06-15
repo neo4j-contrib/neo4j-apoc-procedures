@@ -8,7 +8,7 @@ public interface ExportFileManager {
 
     StringWriter getStringWriter(String type);
 
-    String drain(String type);
+    Object drain(String type);
 
     String getFileName();
 

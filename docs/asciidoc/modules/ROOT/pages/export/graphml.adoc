@@ -608,3 +608,9 @@ RETURN file, nodes, relationships, properties, data;
   "
 ----
 |===
+
+
+[NOTE]
+====
+You can also compress the files to export. xref::overview/apoc.export/compression.adoc[See here for more information]
+====

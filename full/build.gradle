@@ -47,7 +47,7 @@ dependencies {
 //    implementation group: 'commons-codec', name: 'commons-codec', version: '1.14'
     implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
     implementation group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
-    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver-slim', version: '4.4.3'
+    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver-slim', version: '4.4.5'
     implementation group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
 
     antlr "org.antlr:antlr4:4.7.2", {
@@ -65,6 +65,12 @@ dependencies {
 
     implementation 'org.jsoup:jsoup:1.14.3'
 
+    // currently we cannot update selenium to the latest version due to guava minimum version required (31.0.1-jre)
+    compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59', { exclude group: 'com.google.guava', module: 'guava' }
+    testImplementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59', { exclude group: 'com.google.guava', module: 'guava' }
+    compileOnly group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.1.0'
+    testImplementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.1.0'
+    
     implementation group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
     implementation(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7') {
         exclude group: "org.yaml"
@@ -104,7 +110,6 @@ dependencies {
     testImplementation group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
-    compileOnly group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
 
     compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2'
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
@@ -121,7 +126,6 @@ dependencies {
     testImplementation group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
     implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     implementation group: 'com.opencsv', name: 'opencsv', version: '4.6'
-    implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
     implementation group: 'com.github.javafaker', name: 'javafaker', version: '0.10'
 
