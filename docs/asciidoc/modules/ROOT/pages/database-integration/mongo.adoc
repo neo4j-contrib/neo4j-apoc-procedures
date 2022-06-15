@@ -19,27 +19,9 @@
 |===
 
 
-
 [[mongodb-dependencies]]
 == Install Dependencies
-
-The `apoc.mongo.*` procedures have dependencies on a client library that is not included in the APOC Library.
-
-To use them, copy these jars into the plugins directory:
-
-* bson-3.4.2.jar
-* mongo-java-driver-3.4.2.jar
-* mongodb-driver-3.4.2.jar
-* mongodb-driver-core-3.4.2.jar
-
-You should be able to get them from https://mongodb.github.io/mongo-java-driver/[here], and https://mvnrepository.com/artifact/org.mongodb/bson/3.4.2[here (BSON)] (via Download)
-
-Or you can get them locally from your gradle build of apoc.
-
-----
-gradle copyRuntimeLibs
-cp lib/mongodb*.jar lib/bson*.jar $NEO4J_HOME/plugins/
-----
+include::partial$mongodb-dependencies.adoc[]
 
 
 [[mongodb-fields]]

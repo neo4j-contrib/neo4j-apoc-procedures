@@ -78,7 +78,7 @@ In addition, the `apoc.bolt.load.fromLocal` can have:
 
 The Bolt procedures have dependencies on a client library that is not included in the APOC Library.
 
-You can download it from https://repo1.maven.org/maven2/org/neo4j/driver/neo4j-java-driver/4.0.0/neo4j-java-driver-4.0.0.jar[mvnrepository]
+You can download it from https://repo1.maven.org/maven2/org/neo4j/driver/neo4j-java-driver/4.4.5/neo4j-java-driver-4.4.5.jar[mvnrepository]
 or https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-bolt-dependencies-{apoc-release}.jar[apoc repository].
 Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
 

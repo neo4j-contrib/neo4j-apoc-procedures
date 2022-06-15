@@ -33,8 +33,8 @@ def commonExclusions = {
 }
 
 dependencies {
-    compile group: 'org.apache.hadoop', name: 'hadoop-hdfs-client', version: '3.3.1', commonExclusions
-    compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.1', commonExclusions
+    compile group: 'org.apache.hadoop', name: 'hadoop-hdfs-client', version: '3.3.2', commonExclusions
+    compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.2', commonExclusions
 }
 
 
