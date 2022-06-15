@@ -1,0 +1,14 @@
+We can set a listener on one or more folders, to run custom cypher query via the following procedures:
+
+[separator=¦,opts=header,cols="5,1m,1m"]
+|===
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.load.directory.async.add.adoc[]
+include::example$generated-documentation/apoc.load.directory.async.remove.adoc[]
+include::example$generated-documentation/apoc.load.directory.async.removeAll.adoc[]
+include::example$generated-documentation/apoc.load.directory.async.list.adoc[]
+|===
+
+
+== Usage Examples
+include::partial$usage/apoc.load.directory.async.adoc[]

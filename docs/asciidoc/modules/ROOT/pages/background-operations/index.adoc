@@ -13,7 +13,6 @@ The `apoc.periodic.*` procedures provide such capabilities.
 * xref::background-operations/periodic-background.adoc[]
 * xref::background-operations/triggers.adoc[]
 
+It's also possible to set listeners on one or more folders, in order to execute custom cypher queries:
 
-
-
-
+* xref::background-operations/apoc-load-directory-async.adoc[]

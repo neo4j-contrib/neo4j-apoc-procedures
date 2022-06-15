@@ -46,5 +46,5 @@ include::partial$usage/config/apoc.load.directory.async.add.adoc[]
 
 [[usage-apoc.load.directory.async.add]]
 == Usage Examples
-include::partial$usage/apoc.load.directory.async.add.adoc[]
+include::partial$usage/apoc.load.directory.async.adoc[]
 

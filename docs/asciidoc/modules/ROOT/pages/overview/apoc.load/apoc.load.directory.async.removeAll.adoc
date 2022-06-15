@@ -32,5 +32,5 @@ apoc.load.directory.async.removeAll() :: (name :: STRING?, status :: STRING?, pa
 
 [[usage-apoc.load.directory.async.removeAll]]
 == Usage Examples
-include::partial$usage/apoc.load.directory.async.removeAll.adoc[]
+include::partial$usage/apoc.load.directory.async.adoc[]
 

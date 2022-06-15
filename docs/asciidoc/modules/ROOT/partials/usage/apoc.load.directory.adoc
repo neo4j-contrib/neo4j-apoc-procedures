@@ -1,5 +1,5 @@
 The first parameter is the pattern of file to search for.
-By default is '*', that is, search all files.
+By default is '*', that is, search all files and it leverage the https://commons.apache.org/proper/commons-io/apidocs/org/apache/commons/io/filefilter/WildcardFileFilter.html[WildcardFileFilter - Apache Commons IO].
 The second is the search path of directory.
 By default is an empty string, that is, search file in `import` directory.
 

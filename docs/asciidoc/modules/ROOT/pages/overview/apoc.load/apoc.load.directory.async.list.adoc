@@ -32,5 +32,5 @@ apoc.load.directory.async.list() :: (name :: STRING?, status :: STRING?, pattern
 
 [[usage-apoc.load.directory.async.list]]
 == Usage Examples
-include::partial$usage/apoc.load.directory.async.list.adoc[]
+include::partial$usage/apoc.load.directory.async.adoc[]
 
