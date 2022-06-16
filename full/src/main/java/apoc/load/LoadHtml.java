@@ -4,7 +4,6 @@ import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.MissingDependencyException;
 import apoc.util.FileUtils;
-import apoc.util.Util;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;

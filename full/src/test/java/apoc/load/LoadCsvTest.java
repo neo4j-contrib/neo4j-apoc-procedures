@@ -32,7 +32,6 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
 import static org.mockserver.model.HttpRequest.request;

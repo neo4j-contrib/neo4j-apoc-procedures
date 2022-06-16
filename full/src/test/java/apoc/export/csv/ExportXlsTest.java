@@ -24,9 +24,9 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -213,7 +213,7 @@ public class ExportXlsTest {
     }
 
     private void assertExcelFileForGraph(String fileName, String headerNode, List<String> headerRel, CompressionAlgo algo) {
-        try (InputStream fileInputStream = new FileInputStream(new File(directory, fileName));
+        try (InputStream fileInputStream = Files.newInputStream(new File(directory, fileName).toPath());
              InputStream inp = algo.getInputStream(fileInputStream);
              Transaction tx = db.beginTx()) {
             Workbook wb = WorkbookFactory.create(inp);
@@ -252,7 +252,7 @@ public class ExportXlsTest {
     }
 
     private void assertSheets(String fileName, int sheets) {
-        try (InputStream inp = new FileInputStream(new File(directory, fileName))) {
+        try (InputStream inp = Files.newInputStream(new File(directory, fileName).toPath())) {
             Workbook wb = WorkbookFactory.create(inp);
 
             int numberOfSheets = wb.getNumberOfSheets();

@@ -1,6 +1,5 @@
 package apoc.meta.tablesforlabels;
 
-import apoc.meta.Tables4LabelsProfile;
 import org.neo4j.graphdb.Label;
 
 import java.util.ArrayList;

@@ -3,7 +3,6 @@ package apoc.nlp.gcp
 import apoc.graph.document.builder.DocumentToGraph
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPVirtualGraph
-import apoc.nlp.aws.AWSVirtualEntitiesGraph
 import apoc.result.NodeValueErrorMapResult
 import apoc.result.VirtualGraph
 import apoc.result.VirtualNode

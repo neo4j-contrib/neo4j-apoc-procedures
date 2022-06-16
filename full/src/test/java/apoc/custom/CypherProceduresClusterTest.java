@@ -1,6 +1,5 @@
 package apoc.custom;
 
-import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import apoc.util.TestcontainersCausalCluster;
@@ -13,8 +12,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.TestContainerUtil.testCall;
-import static apoc.util.TestContainerUtil.testCallInReadTransaction;
 import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
