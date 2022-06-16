@@ -220,9 +220,11 @@ public class Convert {
         } catch (NumberFormatException nfe) {
             try {
                 return (long)Double.parseDouble(input);
-            } catch(NumberFormatException nfe2) {}
+            } catch(NumberFormatException nfe2) {
+                // String was not able to be parsed, return null
+                return null;
+            }
         }
-        return null;
     }
 
     @UserFunction(deprecatedBy = "Neo4j toFloat(value) / toFloatOrNull(value) functions. This function will be removed in 5.0")

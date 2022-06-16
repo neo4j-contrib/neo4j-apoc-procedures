@@ -7,9 +7,6 @@ import apoc.export.util.CountingInputStream;
 import apoc.export.util.ExportConfig;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
@@ -736,13 +733,13 @@ public class Util {
         }
     }
 
-    public static void close(AutoCloseable closeable, Consumer<Exception> onErrror) {
+    public static void close(AutoCloseable closeable, Consumer<Exception> onError) {
         try {
             if (closeable!=null) closeable.close();
         } catch (Exception e) {
-            // ignore
-            if (onErrror != null) {
-                onErrror.accept(e);
+            // Consume the exception if requested, else ignore
+            if (onError != null) {
+                onError.accept(e);
             }
         }
     }
@@ -821,7 +818,7 @@ public class Util {
         if ("TAB".equals(separator)) {
             return '\t';
         }
-        // "NONE" is used to resolve cases like issue #1376. 
+        // "NONE" is used to resolve cases like issue #1376.
         // That is, when I have a line like "VER: AX\GEARBOX\ASSEMBLY" and I don't want to convert it in "VER: AXGEARBOXASSEMBLY"
         if ("NONE".equals(separator)) {
             return '\0';
@@ -958,7 +955,7 @@ public class Util {
     public static boolean isSelfRel(Relationship rel) {
         return rel.getStartNodeId() == rel.getEndNodeId();
     }
-    
+
     public static PointValue toPoint(Map<String, Object> pointMap, Map<String, Object> defaultPointMap) {
         double x;
         double y;
@@ -985,11 +982,11 @@ public class Util {
 
         return z != null ? Values.pointValue(crs, x, y, z) : Values.pointValue(crs, x, y);
     }
-    
+
     private static Object getOrDefault(Map<String, Object> firstMap, Map<String, Object> secondMap, String key) {
         return firstMap.getOrDefault(key, secondMap.get(key));
     }
-    
+
     public static Object getStringOrCompressedData(StringWriter writer, ExportConfig config) {
         try {
             final String compression = config.getCompressionAlgo();

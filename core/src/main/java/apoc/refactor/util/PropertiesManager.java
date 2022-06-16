@@ -57,12 +57,14 @@ public class PropertiesManager {
             else
                 values.add(prop.getValue());
             Object array = createPropertyValueFromSet(values, refactorConfig);
-            target.setProperty(prop.getKey(), array);
+            if (array != null) {
+                target.setProperty(prop.getKey(), array);
+            }
         }
     }
 
     private static Object createPropertyValueFromSet(Set<Object> input, RefactorConfig refactorConfig) {
-        Object array = null;
+        Object array;
         try {
             if (input.size() == 1 && !refactorConfig.isSingleElementAsArray()) {
                 return input.toArray()[0];
@@ -79,7 +81,8 @@ public class PropertiesManager {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (NegativeArraySizeException | ClassNotFoundException e) {
+            return null;
         }
         return array;
     }

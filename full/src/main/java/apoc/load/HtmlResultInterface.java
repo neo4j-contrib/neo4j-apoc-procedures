@@ -4,7 +4,6 @@ import org.jsoup.nodes.Document;
 import org.neo4j.logging.Log;
 
 import java.util.List;
-import java.util.Map;
 
 public interface HtmlResultInterface {
 

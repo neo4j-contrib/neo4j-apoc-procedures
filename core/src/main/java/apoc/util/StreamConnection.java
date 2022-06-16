@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URLConnection;
-import java.util.Optional;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
 

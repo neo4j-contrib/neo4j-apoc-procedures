@@ -2,7 +2,6 @@ package apoc.nlp
 
 import apoc.result.VirtualGraph
 import org.neo4j.graphdb.Node
-import org.neo4j.graphdb.RelationshipType
 import org.neo4j.graphdb.Transaction
 
 abstract class NLPVirtualGraph {
