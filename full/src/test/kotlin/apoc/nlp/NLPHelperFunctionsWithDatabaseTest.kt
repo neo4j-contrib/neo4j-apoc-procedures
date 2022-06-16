@@ -6,7 +6,6 @@ import org.hamcrest.MatcherAssert
 import org.junit.ClassRule
 import org.junit.Test
 import org.neo4j.configuration.SettingImpl
-import org.neo4j.configuration.SettingValueParser
 import org.neo4j.configuration.SettingValueParsers.BOOL
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.RelationshipType

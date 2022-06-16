@@ -2,7 +2,6 @@ package apoc.nlp.azure
 
 import apoc.nlp.NodeMatcher
 import apoc.result.VirtualNode
-import com.amazonaws.services.comprehend.model.*
 import junit.framework.Assert.assertEquals
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
