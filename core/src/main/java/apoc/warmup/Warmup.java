@@ -99,7 +99,6 @@ public class Warmup {
                         }
                         return new PageResult(fileName, index, pagedFile.fileSize(), pages, null, start);
                     } catch (IOException e) {
-                        e.printStackTrace();
                         return new PageResult(fileName, index, -1L, pages, e.getMessage(), start);
                     } 
                 })).collect(Collectors.toMap(r -> r.file, r -> r));

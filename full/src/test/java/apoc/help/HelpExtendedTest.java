@@ -1,7 +1,6 @@
 package apoc.help;
 
 import apoc.Extended;
-import apoc.periodic.PeriodicExtended;
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
@@ -16,12 +15,8 @@ import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ConfigurationBuilder;
 
 import java.io.*;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;

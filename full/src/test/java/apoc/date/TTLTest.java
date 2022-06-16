@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
-import org.neo4j.configuration.SettingValueParsers;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -17,14 +16,11 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Collections;
-import java.util.Map;
 
 import static apoc.ApocConfig.APOC_TTL_ENABLED;
 import static apoc.ApocConfig.APOC_TTL_SCHEDULE;
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
-import static org.neo4j.configuration.SettingImpl.newBuilder;
-import static org.neo4j.configuration.SettingValueParsers.BOOL;
 
 /**
  * @author mh

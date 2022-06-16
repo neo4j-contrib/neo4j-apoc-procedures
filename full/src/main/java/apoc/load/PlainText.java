@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -12,7 +11,6 @@ import org.jsoup.select.NodeVisitor;
 import org.neo4j.logging.Log;
 
 import java.util.List;
-import java.util.Map;
 
 import static apoc.load.LoadHtml.withError;
 

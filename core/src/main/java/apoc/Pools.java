@@ -91,8 +91,8 @@ public class Pools extends LifecycleAdapter {
             try {
                 service.shutdown();
                 service.awaitTermination(10, TimeUnit.SECONDS);
-            } catch (InterruptedException ignore) {
-
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Shutdown failed to complete with error: " + e.getMessage());
             }
         });
     }

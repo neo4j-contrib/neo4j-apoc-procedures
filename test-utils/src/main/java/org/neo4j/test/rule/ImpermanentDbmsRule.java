@@ -1,6 +1,5 @@
 package org.neo4j.test.rule;
 
-import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
 import org.neo4j.dbms.api.Neo4jDatabaseManagementServiceBuilder;
 import org.neo4j.logging.ExternalLogProviderWrapper;
 import org.neo4j.logging.LogProvider;

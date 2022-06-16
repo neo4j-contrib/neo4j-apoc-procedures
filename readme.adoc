@@ -299,3 +299,13 @@ $NEO4J_HOME/bin/neo4j restart
 A full build including running the tests can be run by `./gradlew build`.
 
 // end::build[]
+// tag::codestyle[]
+=== Applying Code-style
+
+----
+./gradlew spotlessApply
+----
+
+To apply the https://github.com/diffplug/spotless/tree/main/plugin-gradle#how-do-i-preview-what-spotlessapply-will-do[spotless] code-style, run the above gradle command, this will remove all unused imports
+
+// end::codestyle[]

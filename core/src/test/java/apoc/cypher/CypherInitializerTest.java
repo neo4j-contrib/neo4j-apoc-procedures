@@ -11,7 +11,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 
-import java.util.Collection;
 import java.util.Collections;
 
 import org.neo4j.graphdb.GraphDatabaseService;

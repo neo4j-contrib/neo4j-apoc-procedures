@@ -6,7 +6,6 @@ import apoc.util.FileUtils;
 import apoc.util.SensitivePathGenerator;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

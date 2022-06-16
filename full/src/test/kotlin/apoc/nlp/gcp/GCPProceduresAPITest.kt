@@ -7,9 +7,7 @@ import apoc.nlp.RelationshipMatcher
 import apoc.result.VirtualNode
 import apoc.util.TestUtil
 import org.junit.Assert
-import org.hamcrest.MatcherAssert
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers
 import org.hamcrest.Matchers.hasItem
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass

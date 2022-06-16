@@ -38,7 +38,6 @@ public class ClosedAwareDelegatingIterator<T> implements Iterator<T> {
 
             return delegate.next();
         } catch (Exception e) {
-            e.printStackTrace();
             throw e;
         }
     }
