@@ -15,6 +15,18 @@ import static java.util.Arrays.asList;
  * @since 19.01.14
  */
 public class ExportConfig extends CompressionConfig {
+
+    public static class NodeConfig {
+        public String label;
+        public String id;
+
+        public NodeConfig(Map<String, String> config) {
+            config = config == null ? Collections.emptyMap() : config;
+            this.label = config.get("label");
+            this.id = config.get("id");
+        }
+    }
+
     public static final ExportConfig EMPTY = new ExportConfig(null);
     
     public static class NodeConfig {
