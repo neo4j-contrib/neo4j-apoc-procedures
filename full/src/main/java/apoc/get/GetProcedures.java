@@ -3,7 +3,6 @@ package apoc.get;
 import apoc.Extended;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
-import apoc.util.Util;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;

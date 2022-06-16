@@ -1,6 +1,5 @@
 package apoc.schema;
 
-import apoc.Pools;
 import apoc.result.AssertSchemaResult;
 import apoc.result.IndexConstraintNodeInfo;
 import apoc.result.IndexConstraintRelationshipInfo;

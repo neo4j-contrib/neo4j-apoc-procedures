@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -219,7 +220,7 @@ public class ExportXlsTest {
     }
 
     private void assertSheets(String fileName, int sheets) {
-        try (InputStream inp = new FileInputStream(new File(directory, fileName))) {
+        try (InputStream inp = Files.newInputStream(new File(directory, fileName).toPath())) {
             Workbook wb = WorkbookFactory.create(inp);
 
             int numberOfSheets = wb.getNumberOfSheets();

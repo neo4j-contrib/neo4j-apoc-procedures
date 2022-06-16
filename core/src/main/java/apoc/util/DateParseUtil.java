@@ -28,6 +28,8 @@ public class DateParseUtil {
                             return getParse(date, value);
                         }
                     } catch (Exception e) {
+                        // Ignore here as we are in a loop checking formats
+                        // if all formats fail, a later exception will be called
                         continue;
                     }
                 }
@@ -38,7 +40,7 @@ public class DateParseUtil {
         } catch (Exception e) {
             throw new RuntimeException(e);
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            throw new RuntimeException(throwable.getMessage());
         }
         throw new RuntimeException("Can't format the date with the pattern");
     }

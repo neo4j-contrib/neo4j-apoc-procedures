@@ -22,7 +22,6 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.xml.sax.SAXParseException;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;

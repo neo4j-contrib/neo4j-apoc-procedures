@@ -4,6 +4,14 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "org.sonarqube"
+    id "com.diffplug.spotless" version "6.7.2"
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        removeUnusedImports()
+    }
 }
 
 archivesBaseName = "apoc"

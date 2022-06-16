@@ -1,6 +1,5 @@
 package apoc.text;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.hamcrest.number.IsCloseTo.closeTo;
