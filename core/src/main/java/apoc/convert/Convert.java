@@ -216,9 +216,9 @@ public class Convert {
                 return (long)Double.parseDouble(input);
             } catch(NumberFormatException nfe2) {
                 // String was not able to be parsed, return null
+                return null;
             }
         }
-        return null;
     }
 
     @UserFunction

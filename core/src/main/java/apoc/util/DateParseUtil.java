@@ -30,6 +30,7 @@ public class DateParseUtil {
                     } catch (Exception e) {
                         // Ignore here as we are in a loop checking formats
                         // if all formats fail, a later exception will be called
+                        continue;
                     }
                 }
             } else {
