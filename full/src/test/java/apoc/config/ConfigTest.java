@@ -9,8 +9,6 @@ import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author mh
  * @since 28.10.16

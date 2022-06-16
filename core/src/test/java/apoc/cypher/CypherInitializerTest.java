@@ -9,18 +9,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
+import java.util.Collections;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.internal.helpers.Listeners;
 import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.kernel.availability.AvailabilityGuard;
-import org.neo4j.kernel.availability.AvailabilityListener;
-import org.neo4j.kernel.availability.DatabaseAvailabilityGuard;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.test.ReflectionUtil;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.Collections;
 
 import static apoc.ApocConfig.APOC_CONFIG_INITIALIZER;
 import static apoc.ApocConfig.APOC_CONFIG_INITIALIZER_CYPHER;

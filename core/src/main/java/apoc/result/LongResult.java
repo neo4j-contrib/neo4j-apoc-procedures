@@ -1,7 +1,5 @@
 package apoc.result;
 
-import java.util.stream.Stream;
-
 /**
  * @author mh
  * @since 26.02.16

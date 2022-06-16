@@ -50,7 +50,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -65,12 +64,6 @@ import java.util.stream.Stream;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.FileUtils.getInputStreamFromBinary;
 import static apoc.util.Util.ERROR_BYTES_OR_STRING;
-import static apoc.util.Util.cleanUrl;
-import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
-import static javax.xml.stream.XMLStreamConstants.END_DOCUMENT;
-import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
-import static javax.xml.stream.XMLStreamConstants.START_DOCUMENT;
-import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 
 public class Xml {
 

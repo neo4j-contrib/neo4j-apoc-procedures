@@ -55,7 +55,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -69,8 +68,6 @@ import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonMap;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_LABEL;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 

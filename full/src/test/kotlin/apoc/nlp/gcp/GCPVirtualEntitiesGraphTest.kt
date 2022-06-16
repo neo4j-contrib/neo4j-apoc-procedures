@@ -2,7 +2,6 @@ package apoc.nlp.gcp
 
 import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
-import apoc.nlp.aws.AWSVirtualKeyPhrasesGraph
 import apoc.result.NodeValueErrorMapResult
 import apoc.result.VirtualNode
 import junit.framework.Assert.assertEquals

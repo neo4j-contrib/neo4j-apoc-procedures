@@ -3,8 +3,6 @@ package apoc.date;
 import apoc.util.DateFormatUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
 import org.neo4j.procedure.*;
 
 import java.text.DateFormat;

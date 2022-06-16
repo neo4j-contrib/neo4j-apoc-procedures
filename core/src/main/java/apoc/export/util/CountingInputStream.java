@@ -5,6 +5,7 @@ import org.apache.commons.io.input.BOMInputStream;
 
 import java.io.*;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
 
 /**
  * @author mh
@@ -16,8 +17,8 @@ public class CountingInputStream extends FilterInputStream implements SizeCounte
     private long count=0;
     private long newLines;
 
-    public CountingInputStream(File file) throws FileNotFoundException {
-        super(toBufferedStream(new FileInputStream(file)));
+    public CountingInputStream(File file) throws IOException {
+        super(toBufferedStream(Files.newInputStream(file.toPath())));
         this.total = file.length();
     }
     public CountingInputStream(InputStream stream, long total) throws FileNotFoundException {

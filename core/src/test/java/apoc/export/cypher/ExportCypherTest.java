@@ -2,7 +2,7 @@ package apoc.export.cypher;
 
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Ignore;

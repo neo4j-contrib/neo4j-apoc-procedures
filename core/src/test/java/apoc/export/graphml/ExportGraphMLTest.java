@@ -415,7 +415,7 @@ public class ExportGraphMLTest {
     @Test
     public void testImportGraphMLNodeEdgeWithBinary() throws Exception {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
-        
+
         commonAssertionImportNodeEdge(null, "CALL apoc.import.graphml($file,{readLabels:true, compression: 'DEFLATE'})",
                 map("file", fileToBinary(new File(directory, "importNodeEdges.graphml"), "DEFLATE")));
     }

@@ -1,7 +1,6 @@
 package apoc.export.csv;
 
 import apoc.meta.Meta;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.commons.text.WordUtils.capitalize;
 import static org.apache.commons.text.WordUtils.capitalizeFully;
 
 public class LabelBuilder {

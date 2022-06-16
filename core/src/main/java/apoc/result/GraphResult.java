@@ -3,7 +3,6 @@ package apoc.result;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
