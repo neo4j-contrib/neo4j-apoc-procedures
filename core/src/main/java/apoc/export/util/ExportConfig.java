@@ -15,6 +15,18 @@ import static java.util.Arrays.asList;
  * @since 19.01.14
  */
 public class ExportConfig extends CompressionConfig {
+
+    public static class NodeConfig {
+        public String label;
+        public String id;
+
+        public NodeConfig(Map<String, String> config) {
+            config = config == null ? Collections.emptyMap() : config;
+            this.label = config.get("label");
+            this.id = config.get("id");
+        }
+    }
+
     public static final ExportConfig EMPTY = new ExportConfig(null);
     
     public static final char QUOTECHAR = '"';
@@ -29,6 +41,8 @@ public class ExportConfig extends CompressionConfig {
     public static final String DEFAULT_QUOTES = ALWAYS_QUOTES;
     private final boolean streamStatements;
     private final boolean ifNotExists;
+    private final NodeConfig source;
+    private final NodeConfig target;
 
     private int batchSize;
     private boolean silent;
@@ -114,6 +128,8 @@ public class ExportConfig extends CompressionConfig {
         this.samplingConfig = (Map<String, Object>) config.getOrDefault("samplingConfig", new HashMap<>());
         this.unwindBatchSize = ((Number)getOptimizations().getOrDefault("unwindBatchSize", DEFAULT_UNWIND_BATCH_SIZE)).intValue();
         this.awaitForIndexes = ((Number)config.getOrDefault("awaitForIndexes", 300)).longValue();
+        this.source = new NodeConfig((Map<String, String>) config.get("source"));
+        this.target = new NodeConfig((Map<String, String>) config.get("target"));
         validate();
     }
 
@@ -153,6 +169,14 @@ public class ExportConfig extends CompressionConfig {
 
     public String defaultRelationshipType() {
         return config.getOrDefault("defaultRelationshipType","RELATED").toString();
+    }
+
+    public NodeConfig getSource() {
+        return source;
+    }
+
+    public NodeConfig getTarget() {
+        return target;
     }
 
     public boolean readLabels() {
