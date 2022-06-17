@@ -168,7 +168,7 @@ The examples in this section are based on the Microsoft https://msdn.microsoft.c
 ...
 ----
 
-This file can be downloaded from https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml[GitHub].
+This file can be downloaded from https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml[GitHub].
 
 [[load-xml-examples-local-file]]
 === Import from local file
@@ -227,7 +227,7 @@ Every time an XML element is nested inside another one, it is accessible via the
 We can write the following query to get a better understanding of what our file contains.
 
 .The following query processes `book.xml` and parses the results to pull out the title, description, genre, and authors
-[source,cypher]
+[source,cypher,subs=attributes]
 ----
 CALL apoc.load.xml("file:///books.xml")
 YIELD value
@@ -306,7 +306,7 @@ This means that the XML will be parsed in simple mode.
 .The following query loads the books.xml file from GitHub using simple mode
 [source,cypher,subs=attributes]
 ----
-WITH "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml" AS uri
+WITH "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml" AS uri
 CALL apoc.load.xml(uri, '', {}, true)
 YIELD value
 RETURN value;
@@ -327,7 +327,7 @@ We can write the following query to get a better understanding of what our file 
 .The following query processes `book.xml` and parses the results to pull out the title, description, genre, and authors
 [source,cypher]
 ----
-WITH "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/4.0/src/test/resources/xml/books.xml" AS uri
+WITH "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml" AS uri
 CALL apoc.load.xml(uri, '', {}, true)
 YIELD value
 UNWIND value._catalog AS catalog
@@ -359,9 +359,9 @@ RETURN catalog.id AS bookId,
 Rather than just returning that data, we can create a graph of books and their metadata, authors, and genres.
 
 .The following query processes `book.xml` and parses the results to pull out the title, description, genre, and authors
-[source,cypher]
+[source,cypher,subs=attributes]
 ----
-WITH "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/4.0/src/test/resources/xml/books.xml" AS uri
+WITH "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml" AS uri
 CALL apoc.load.xml(uri, '', {}, true)
 YIELD value
 UNWIND value._catalog AS catalog
@@ -396,7 +396,7 @@ If we only want to return books that have the `Computer` genre, we could write t
 [source,cypher,subs=attributes]
 ----
 CALL apoc.load.xml(
-  "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml",
+  "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml",
   '/catalog/book[genre=\"Computer\"]'
 )
 YIELD value as book
@@ -422,7 +422,7 @@ For example, the following query returns the `author` of the book with `id = bg1
 [source,cypher,subs=attributes]
 ----
 CALL apoc.load.xml(
-  'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml',
+  'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml',
   '/catalog/book[@id="bk102"]/author'
 )
 YIELD value as result
@@ -444,7 +444,7 @@ We can turn values into a map using the `apoc.map.fromPairs` function.
 
 [source,cypher,subs=attributes]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml")
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml")
 yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
@@ -474,7 +474,7 @@ And now we can cleanly access the attributes from the map.
 
 [source,cypher,subs=attributes]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml")
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml")
 yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
@@ -511,7 +511,7 @@ We can write the following query to create a graph structure of the Microsoft bo
 [source,cypher,subs=attributes]
 ----
 CALL apoc.import.xml(
-  "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml",
+  "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml",
   {relType:'NEXT_WORD', label:'XmlWord'}
 )
 YIELD node
@@ -521,7 +521,7 @@ RETURN node;
 [options="header"]
 |===
 | node
-| (:XmlDocument {_xmlVersion: "1.0", _xmlEncoding: "UTF-8", url: "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/4.0/src/test/resources/xml/books.xml"})
+| (:XmlDocument {_xmlVersion: "1.0", _xmlEncoding: "UTF-8", url: "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml"})
 |===
 
 The Neo4j Browser visualization below shows the imported graph:
