@@ -2,4 +2,4 @@
 
 `apoc.coll.avgDuration([duration('P2DT3H'), duration('PT1H45S'), ...])` -  returns the average of a list of duration values
 ¦label:function[]
-¦label:apoc-core[]
+¦label:apoc-full[]

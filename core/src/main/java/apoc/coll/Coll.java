@@ -2,10 +2,7 @@ package apoc.coll;
 
 import apoc.result.ListResult;
 import com.google.common.util.concurrent.AtomicDouble;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.commons.lang3.time.DurationUtils;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.apache.commons.math3.util.Combinations;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -20,11 +17,9 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.UserFunction;
-import org.neo4j.values.storable.DurationValue;
 
 import java.lang.reflect.Array;
 import java.text.Collator;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,7 +35,6 @@ import java.util.Random;
 import java.util.RandomAccess;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -128,30 +122,6 @@ public class Coll {
     }
 
     @UserFunction
-    @Description("apoc.coll.avgDuration([duration('P2DT3H'), duration('PT1H45S'), ...]) -  returns the average of a list of duration values")
-    public DurationValue avgDuration(@Name("numbers") List<DurationValue> list) {
-        if (CollectionUtils.isEmpty(list)) return null;
-        long count = list.size();
-        final AtomicDouble monthsRunningAvg = new AtomicDouble();
-        final AtomicDouble daysRunningAvg = new AtomicDouble();
-        final AtomicDouble secondsRunningAvg = new AtomicDouble();
-        final AtomicDouble nanosRunningAvg = new AtomicDouble();
-        for (DurationValue duration : list) {
-            monthsRunningAvg.addAndGet(duration.get(ChronoUnit.MONTHS));
-            daysRunningAvg.addAndGet(duration.get(ChronoUnit.DAYS));
-            secondsRunningAvg.addAndGet(duration.get(ChronoUnit.SECONDS));
-            nanosRunningAvg.addAndGet(duration.get(ChronoUnit.NANOS));
-        }
-        
-        return DurationValue.duration(
-                (long) monthsRunningAvg.get() / count,
-                (long)daysRunningAvg.get() / count,
-                (long) secondsRunningAvg.get() / count,
-                (long) nanosRunningAvg.get() / count
-        );
-    }
-
-    @UserFunction
     @Description("apoc.coll.avg([0.5,1,2.3])")
     public Double avg(@Name("numbers") List<Number> list) {
 		if (list == null || list.isEmpty()) return null;
@@ -161,7 +131,6 @@ public class Coll {
         }
         return (avg/(double)list.size());
     }
-    
     @UserFunction
     @Description("apoc.coll.min([0.5,1,2.3])")
     public Object min(@Name("values") List<Object> list) {
