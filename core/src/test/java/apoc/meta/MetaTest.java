@@ -321,9 +321,9 @@ public class MetaTest {
         db.executeTransactionally("create constraint on (a:Actor) assert a.name is unique");
         db.executeTransactionally("CREATE (actor1:Actor {name:'Tom Hanks'})-[:ACTED_IN {roles:'Forrest'}]->(movie1:Movie {title:'Forrest Gump'}), \n" +
                 "(actor2:Actor {name: 'Bruce Lee'})-[:ACTED_IN {roles:'FooBaz'}]->(movie1),\n" +
-                "(actor1)-[:ACTED_IN {roles:'Movie2Role'}]->(movie2:Movie {title:'Movie2', tagline: 'abcd'}), (actor1)-[:ACTED_IN {roles:'Movie3Role'}]->(movie3:Movie {title:'Movie3'}),\n" +
+                "(actor1)-[:ACTED_IN {roles:'Movie2Role'}]->(movie2:Movie {title:'Movie2'}), (actor1)-[:ACTED_IN {roles:'Movie3Role'}]->(movie3:Movie {title:'Movie3'}),\n" +
                 "(actor1)-[:DIRECTED {foo: 'first'}]->(movie2), (actor1)-[:DIRECTED {foo: 'second'}]->(:Movie {title:'Movie4'}),\n" +
-                "(studio:Studio {name: 'Pixar'})<-[:ANIMATED {bar: 'alpha'}]-(movie2), (studio)<-[:ANIMATED {bar: 'omega'}]-(movie2)");
+                "(:Studio {name: 'Pixar'})-[:ANIMATED {bar: 'alpha'}]->(movie2)");
         TestUtil.testResult(db, "CALL apoc.meta.data() \n" +
                         "YIELD label, property, count, unique, index, existence, type, array, leftCount, rightCount, left, right, other, otherLabels, elementType\n" +
                         "RETURN * ORDER BY elementType, property", (r) -> {
@@ -331,67 +331,68 @@ public class MetaTest {
             assertEquals("node", row.get("elementType"));
             assertEquals("ACTED_IN", row.get("property"));
             assertEquals("Actor", row.get("label"));
-            assertRelationshipsMetaData(row, 4L);
+            assertRelationshipActedIdMetaData(row);
             row = r.next();
             assertEquals("node", row.get("elementType"));
             assertEquals("ANIMATED", row.get("property"));
-            assertEquals("Movie", row.get("label"));
-            assertRelationshipsMetaData(row, 2L);
+            assertEquals("Studio", row.get("label"));
+            assertRelationshipsAnimatedMetaData(row);
             row = r.next();
             assertEquals("node", row.get("elementType"));
             assertEquals("DIRECTED", row.get("property"));
             assertEquals("Actor", row.get("label"));
-            assertRelationshipsMetaData(row, 2L);
+            assertRelationshipsDirectedMetaData(row);
             row = r.next();
             assertEquals("node", row.get("elementType"));
-            assertPropertiesMetaData(row, 6L, 3L, 0L, 0L, "name", "Actor");
+            assertPropertiesMetaData(row);
             row = r.next();
             assertEquals("node", row.get("elementType"));
-            assertPropertiesMetaData(row, 0L, 0L, 2L, 2L, "name", "Studio");
+            assertPropertiesMetaData(row);
             row = r.next();
             assertEquals("node", row.get("elementType"));
-            assertPropertiesMetaData(row, 2L, 2L, 2L, 1L, "tagline", "Movie");
-            row = r.next();
-            assertEquals("node", row.get("elementType"));
-            assertPropertiesMetaData(row, 2L, 2L, 6L, 5L, "title", "Movie");
+            assertPropertiesMetaData(row);
             row = r.next();
             assertEquals("relationship", row.get("elementType"));
             assertEquals("ACTED_IN", row.get("label"));
             assertEquals("Actor", row.get("property"));
-            assertRelationshipsMetaData(row, 4L);
+            assertRelationshipActedIdMetaData(row);
             row = r.next();
             assertEquals("relationship", row.get("elementType"));
             assertEquals("DIRECTED", row.get("label"));
             assertEquals("Actor", row.get("property"));
-            assertRelationshipsMetaData(row, 2L);
+            assertRelationshipsDirectedMetaData(row);
             row = r.next();
             assertEquals("relationship", row.get("elementType"));
             assertEquals("ANIMATED", row.get("label"));
-            assertEquals("Movie", row.get("property"));
-            assertRelationshipsMetaData(row, 2L);
+            assertEquals("Studio", row.get("property"));
+            assertRelationshipsAnimatedMetaData(row);
             row = r.next();
             assertEquals("relationship", row.get("elementType"));
-            assertPropertiesMetaData(row, 0L, 0L, 0L, 0L, "bar", "ANIMATED");
+            assertPropertiesMetaData(row);
             row = r.next();
             assertEquals("relationship", row.get("elementType"));
-            assertPropertiesMetaData(row, 0L, 0L, 0L, 0L, "foo", "DIRECTED");
+            assertPropertiesMetaData(row);
             row = r.next();
             assertEquals("relationship", row.get("elementType"));
-            assertPropertiesMetaData(row, 0L, 0L, 0L, 0L, "roles", "ACTED_IN");
+            assertPropertiesMetaData(row);
             assertFalse(r.hasNext());
         });
     }
 
-    private void assertRelationshipsMetaData(Map<String, Object> row, long count) {
-        assertRowMetaData(row, count, 0L, 0L, 0L, 0L, Meta.Types.RELATIONSHIP);
+    private void assertRelationshipsDirectedMetaData(Map<String, Object> row) {
+        assertRowMetaData(row, 2L, 4L, 2L, 2L, 1L, Meta.Types.RELATIONSHIP);
+    }
+    
+    private void assertRelationshipsAnimatedMetaData(Map<String, Object> row) {
+        assertRowMetaData(row, 1L, 1L, 1L, 1L, 1L, Meta.Types.RELATIONSHIP);
     }
 
-    private void assertPropertiesMetaData(Map<String, Object> row,
-                                          long leftCount, long left, long rightCount, long right,
-                                          String property, String label) {
-        assertEquals(property, row.get("property"));
-        assertEquals(label, row.get("label"));
-        assertRowMetaData(row,  0L, leftCount, rightCount, left, right, Meta.Types.STRING);
+    private void assertRelationshipActedIdMetaData(Map<String, Object> row) {
+        assertRowMetaData(row, 4L, 10L,6L, 2L, 1L, Meta.Types.RELATIONSHIP);
+    }
+
+    private void assertPropertiesMetaData(Map<String, Object> row) {
+        assertRowMetaData(row,  0L, 0L, 0L, 0L, 0L, Meta.Types.STRING);
     }
 
     private void assertRowMetaData(Map<String, Object> row,
@@ -1361,10 +1362,10 @@ public class MetaTest {
                 "(p)-[:VIEWED]->(m), (p)-[:BOUGHT{quantity: 10}]->(pr)");
         Set<Map<String, Object>> expectedResult = new HashSet<>();
         expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","BOUGHT","right",0L,"type","INTEGER","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","quantity","elementType","relationship","otherLabels",List.of()));
-        expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Product","right",1L,"type","STRING","sample",null,"rightCount",1L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
-        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","BOUGHT","right",0L,"type","RELATIONSHIP","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","Person","elementType","relationship","otherLabels",List.of()));
-        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","Person","right",0L,"type","RELATIONSHIP","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","BOUGHT","elementType","node","otherLabels",List.of()));
-        expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Person","right",0L,"type","STRING","sample",null,"rightCount",0L,"leftCount",2L,"array",false,"left",1L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Product","right",0L,"type","STRING","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","BOUGHT","right",1L,"type","RELATIONSHIP","sample",null,"rightCount",1L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","Person","elementType","relationship","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","Person","right",1L,"type","RELATIONSHIP","sample",null,"rightCount",1L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","BOUGHT","elementType","node","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Person","right",0L,"type","STRING","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
 
         String keys = expectedResult.stream()
                 .findAny()
