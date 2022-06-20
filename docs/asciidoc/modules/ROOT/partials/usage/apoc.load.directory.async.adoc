@@ -192,17 +192,21 @@ We obtain this result calling `MATCH (n:JsonToNode) RETURN properties(n) as prop
 
 === List and remove procedures
 
-We can see the list of 
+We can see the list of listeners executing:
 
 [source,cypher]
 ----
-CALL apoc.trigger.list();
+CALL apoc.load.directory.list();
 ----
 
-For example, if we execute a
-`CALL apoc.load.directory.async.add('csvImport',
+For example, if we execute a:
+
+[source,cypher]
+----
+CALL apoc.load.directory.async.add('csvImport',
 "CALL apoc.load.csv($filePath) yield list WITH list CREATE (n:CsvToNode {content: list, fileName: $fileName, fileDirectory: $fileDirectory, listenEventType: $listenEventType})",
-"*.csv", "csvFolder" ,{listenEventType: ["CREATE", "MODIFY"]})`,
+"*.csv", "csvFolder" ,{listenEventType: ["CREATE", "MODIFY"]})
+----
 the result will be:
 
 .Results
@@ -212,6 +216,18 @@ the result will be:
 | "csvImport"	 | "RUNNING"	 | "*.csv" | "CALL apoc.load.csv($filePath) yield list WITH list CREATE (n:CsvToNode {content: list, fileName: $fileName, fileDirectory: $fileDirectory, listenEventType: $listenEventType})" | <importUrlDir> | {"listenEventType": ["CREATE", "MODIFY"], "interval": 1000 } | ""
 |===
 
+We can remove a specific listener executing the
+[source,cypher]
+----
+CALL apoc.load.directory.async.remove('<LISTENER_NAME>')
+----
+the result will be the list of remaining ones.
+
+Moreover, we can remove everything with the following procedure (which will return an empty result):
+[source,cypher]
+----
+CALL apoc.load.directory.async.removeAll()
+----
 
 === Error handling
 
