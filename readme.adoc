@@ -1,7 +1,7 @@
 :readme:
 :branch: 4.4
 :docs: https://neo4j.com/labs/apoc/4.4
-:apoc-release: 4.4.0.5
+:apoc-release: 4.4.0.6
 :neo4j-version: 4.4.4
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/images
 
@@ -73,7 +73,7 @@ But you can also integrate them into your Cypher statements which makes them so 
 .Load JSON example
 [source,cypher,subs=attributes]
 ----
-WITH 'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/person.json' AS url
+WITH 'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/person.json' AS url
 
 CALL apoc.load.json(url) YIELD value as person
 
@@ -299,3 +299,13 @@ $NEO4J_HOME/bin/neo4j restart
 A full build including running the tests can be run by `./gradlew build`.
 
 // end::build[]
+// tag::codestyle[]
+=== Applying Code-style
+
+----
+./gradlew spotlessApply
+----
+
+To apply the https://github.com/diffplug/spotless/tree/main/plugin-gradle#how-do-i-preview-what-spotlessapply-will-do[spotless] code-style, run the above gradle command, this will remove all unused imports
+
+// end::codestyle[]

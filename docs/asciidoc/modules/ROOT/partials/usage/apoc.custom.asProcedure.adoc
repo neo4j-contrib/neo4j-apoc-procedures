@@ -1,3 +1,54 @@
+Please note that `apoc.custom.asFunction` and `apoc.custom.asProcedure` are deprecated in favor of `apoc.custom.declareFunction` and `apoc.custom.declareProcedure`.
+xref::cypher-execution/cypher-based-procedures-functions.adoc[See here for more info].
+
+This is the list of input parameters, `name` and `statement` are mandatory fields:
+
+.Parameters
+[%autowidth,opts=header,cols="m,m,a"]
+|===
+| name | default | description
+
+| name | none | dot-separated name, will be prefixed with `custom`
+| statement | none | cypher statement to run, can use $parameters
+| mode | read | execution mode of the procedure: read, write, or schema
+| outputs | [["row","MAP"]] | List of pairs of name-type to be used as output columns, need to be in-order with the cypher statement, the default is a special case, that will collect all columns of the statement result into a map
+| inputs | [["params","MAP","{}"]] | Pairs or triples of name-type-default, to be used as input parameters. The default just takes an optional map, otherwise they will become proper paramters in order
+| description | "" | A general description about the business rules implemented into the procedure
+|===
+
+Given statement will be registered as a procedure, the results will be turned into a stream of records.
+The type names can be the same as `apoc.custom.declare*` analogues.
+
+
+Here is a simple example:
+
+[source,cypher]
+----
+CALL apoc.custom.asProcedure('answer','RETURN 42 as answer')
+----
+
+This registers the statement as procedure `custom.answer` that you then can call.
+As no information on a parameter and return types is given, it just returns a stream of columns of maps called `row`.
+
+[source,cypher]
+----
+CALL custom.answer() YIELD row
+RETURN row.answer
+----
+
+
+
+.Find neighbours of a node by name
+[source,cypher]
+----
+CALL apoc.custom.asProcedure('neighbours',
+  'MATCH (n:Person {name:$name})-->(nb) RETURN nb as neighbour','read',
+  [['neighbour','NODE']],[['name','STRING']], 'get neighbours of a person');
+
+CALL custom.neighbours('Keanu Reeves') YIELD neighbour;
+----
+
+
 We can create the function `custom.powers` that returns a stream of the powers of the first parameter, up to and including the power provided by the second parameter:
 
 [source,cypher]

@@ -15,26 +15,8 @@ Otherwise, if you are running in a cloud environment without filesystem access, 
 Note that the stream mode cannot be used with the apoc.export.xls.* procedures.
 |===
 
-== Using S3 protocol
 
-When using the S3 protocol we need to download and copy the following jars into the plugins directory:
-
-* aws-java-sdk-core-1.11.250.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-core/1.11.250)
-* aws-java-sdk-s3-1.11.250.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3/1.11.250)
-* httpclient-4.4.8.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient/4.5.4)
-* httpcore-4.5.4.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore/4.4.8)
-* joda-time-2.9.9.jar (https://mvnrepository.com/artifact/joda-time/joda-time/2.9.9)
-
-Once those files have been copied we'll need to restart the database.
-
-Exporting to S3 can be done by simply replacing the file output with an S3 endpoint. The S3 URL must be in the following format:
-
-* `s3://accessKey:secretKey[:sessionToken]@endpoint:port/bucket/key`
-(where the sessionToken is optional) or
-* `s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey[&sessionToken=sessionToken]`
-(where the sessionToken is optional) or
-* `s3://endpoint:port/bucket/key`
-if the accessKey, secretKey, and the optional sessionToken are provided in the environment variables
+include::partial$s3-protocol.adoc[]
 
 == Memory Requirements
 

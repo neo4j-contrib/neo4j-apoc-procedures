@@ -4,9 +4,6 @@ import apoc.Extended;
 import apoc.result.StoreInfoResult;
 import org.apache.commons.io.FileUtils;
 
-import java.io.File;
-import java.util.stream.Stream;
-
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.io.layout.recordstorage.RecordDatabaseLayout;
 import org.neo4j.kernel.database.Database;
