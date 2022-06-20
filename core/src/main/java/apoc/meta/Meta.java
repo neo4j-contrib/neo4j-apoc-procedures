@@ -864,25 +864,26 @@ public class Meta {
                     Iterable<ConstraintDefinition> constraints = relConstraints.get(typeName);
                     Set<String> indexes = relIndexes.get(typeName);
                     if (!nodeMeta.containsKey(typeName)) nodeMeta.put(typeName, new MetaResult(labelName,typeName));
-//            int in = node.getDegree(type, Direction.INCOMING);
+                    int in = node.getDegree(type, Direction.INCOMING);
 
                     Map<String, MetaResult> typeMeta = metaData.get(Set.of(typeName, Types.RELATIONSHIP.name()));
                     if (!typeMeta.containsKey(labelName)) typeMeta.put(labelName,new MetaResult(typeName,labelName));
                     MetaResult relMeta = nodeMeta.get(typeName);
-                    addOtherNodeInfo(node, labelName, out, type, relMeta , typeMeta, constraints, indexes);
+                    addOtherNodeInfo(node, labelName, out, in, type, relMeta , typeMeta, constraints, indexes);
                 });
     }
 
-    private void addOtherNodeInfo(Node node, String labelName, int out, RelationshipType type, MetaResult relMeta, Map<String, MetaResult> typeMeta,
+    private void addOtherNodeInfo(Node node, String labelName, int out, int in, RelationshipType type, MetaResult relMeta, Map<String, MetaResult> typeMeta,
                                   Iterable<ConstraintDefinition> relConstraints, Set<String> indexes) {
         MetaResult relNodeMeta = typeMeta.get(labelName);
         relMeta.elementType(Types.of(node).name());
+        relMeta.inc().rel(out , in);
+        relNodeMeta.inc().rel(out,in);
         for (Relationship rel : node.getRelationships(Direction.OUTGOING, type)) {
             Node endNode = rel.getEndNode();
             List<String> labels = toStrings(endNode.getLabels());
-            int in = endNode.getDegree(type, Direction.INCOMING);
-            relMeta.inc().other(labels).rel(out , in);
-            relNodeMeta.inc().other(labels).rel(out,in);
+            relMeta.other(labels);
+            relNodeMeta.other(labels);
             addProperties(typeMeta, type.name(), relConstraints, indexes, rel, node);
             relNodeMeta.elementType(Types.RELATIONSHIP.name());
         }

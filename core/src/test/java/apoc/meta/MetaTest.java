@@ -331,7 +331,7 @@ public class MetaTest {
             assertEquals("node", row.get("elementType"));
             assertEquals("ACTED_IN", row.get("property"));
             assertEquals("Actor", row.get("label"));
-            assertRelationshipActedIdMetaData(row);
+            assertRelationshipActedInMetaData(row);
             row = r.next();
             assertEquals("node", row.get("elementType"));
             assertEquals("ANIMATED", row.get("property"));
@@ -355,7 +355,7 @@ public class MetaTest {
             assertEquals("relationship", row.get("elementType"));
             assertEquals("ACTED_IN", row.get("label"));
             assertEquals("Actor", row.get("property"));
-            assertRelationshipActedIdMetaData(row);
+            assertRelationshipActedInMetaData(row);
             row = r.next();
             assertEquals("relationship", row.get("elementType"));
             assertEquals("DIRECTED", row.get("label"));
@@ -380,15 +380,15 @@ public class MetaTest {
     }
 
     private void assertRelationshipsDirectedMetaData(Map<String, Object> row) {
-        assertRowMetaData(row, 2L, 4L, 2L, 2L, 1L, Meta.Types.RELATIONSHIP);
+        assertRowMetaData(row, 1L, 2L, 0L, 2L, 0L, Meta.Types.RELATIONSHIP);
     }
     
     private void assertRelationshipsAnimatedMetaData(Map<String, Object> row) {
-        assertRowMetaData(row, 1L, 1L, 1L, 1L, 1L, Meta.Types.RELATIONSHIP);
+        assertRowMetaData(row, 1L, 1L, 0L, 1L, 0L, Meta.Types.RELATIONSHIP);
     }
 
-    private void assertRelationshipActedIdMetaData(Map<String, Object> row) {
-        assertRowMetaData(row, 4L, 10L,6L, 2L, 1L, Meta.Types.RELATIONSHIP);
+    private void assertRelationshipActedInMetaData(Map<String, Object> row) {
+        assertRowMetaData(row, 2L, 4L,0L, 2L, 0L, Meta.Types.RELATIONSHIP);
     }
 
     private void assertPropertiesMetaData(Map<String, Object> row) {
@@ -1363,8 +1363,8 @@ public class MetaTest {
         Set<Map<String, Object>> expectedResult = new HashSet<>();
         expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","BOUGHT","right",0L,"type","INTEGER","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","quantity","elementType","relationship","otherLabels",List.of()));
         expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Product","right",0L,"type","STRING","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
-        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","BOUGHT","right",1L,"type","RELATIONSHIP","sample",null,"rightCount",1L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","Person","elementType","relationship","otherLabels",List.of()));
-        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","Person","right",1L,"type","RELATIONSHIP","sample",null,"rightCount",1L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","BOUGHT","elementType","node","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","BOUGHT","right",0L,"type","RELATIONSHIP","sample",null,"rightCount",0L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","Person","elementType","relationship","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","Person","right",0L,"type","RELATIONSHIP","sample",null,"rightCount",0L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","BOUGHT","elementType","node","otherLabels",List.of()));
         expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Person","right",0L,"type","STRING","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
 
         String keys = expectedResult.stream()
