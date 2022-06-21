@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -26,6 +27,7 @@ import java.util.stream.StreamSupport;
 import static apoc.refactor.util.PropertiesManager.mergeProperties;
 import static apoc.refactor.util.RefactorConfig.RelationshipSelectionStrategy.MERGE;
 import static apoc.refactor.util.RefactorUtil.*;
+import static apoc.util.Util.withTransactionAndRebind;
 
 public class GraphRefactoring {
     @Context
@@ -45,16 +47,20 @@ public class GraphRefactoring {
         return nodes.stream().map(node -> Util.rebind(tx, node)).map(node -> {
             NodeRefactorResult result = new NodeRefactorResult(node.getId());
             try {
-                Node newNode = copyLabels(node, tx.createNode());
+                Node copy = withTransactionAndRebind(db, tx, transaction -> {
+                    Node newNode = copyLabels(node, transaction.createNode());
 
-                Map<String, Object> properties = node.getAllProperties();
-                if (skipProperties != null && !skipProperties.isEmpty())
-                    for (String skip : skipProperties) properties.remove(skip);
+                    Map<String, Object> properties = node.getAllProperties();
+                    if (skipProperties != null && !skipProperties.isEmpty())
+                        for (String skip : skipProperties) properties.remove(skip);
 
-                Node copy = copyProperties(properties, newNode);
-                if (withRelationships) {
-                    copyRelationships(node, copy, false, true);
-                }
+                    newNode = copyProperties(properties, newNode);
+                    copyLabels(node, newNode);
+                    if (withRelationships) {
+                        copyRelationships(node, newNode, false, true);
+                    }
+                    return newNode;
+                });
                 return result.withOther(copy);
             } catch (Exception e) {
                 return result.withError(e);
@@ -68,8 +74,11 @@ public class GraphRefactoring {
         return Util.relsStream(tx, rels).map((rel) -> {
             NodeRefactorResult result = new NodeRefactorResult(rel.getId());
             try {
-                Node copy = copyProperties(rel, tx.createNode(Util.labels(labels)));
-                copy.createRelationshipTo(rel.getEndNode(), RelationshipType.withName(outType));
+                Node copy = withTransactionAndRebind(db, tx, transaction -> {
+                    Node copyNode = copyProperties(rel, transaction.createNode(Util.labels(labels)));
+                    copyNode.createRelationshipTo(rel.getEndNode(), RelationshipType.withName(outType));
+                    return copyNode;
+                });
                 rel.getStartNode().createRelationshipTo(copy, RelationshipType.withName(inType));
                 rel.delete();
                 return result.withOther(copy);
@@ -209,14 +218,16 @@ public class GraphRefactoring {
 
             NodeRefactorResult result = new NodeRefactorResult(node.getId());
             try {
-                Node copy = copyLabels(node, tx.createNode());
-
-                Map<String, Object> properties = node.getAllProperties();
-                if (skipProperties != null && !skipProperties.isEmpty()) {
-                    for (String skip : skipProperties) properties.remove(skip);
-                }
-                copy = copyProperties(properties, copy);
-
+                Node copy = withTransactionAndRebind(db, tx, transaction -> {
+                    Node copyTemp = transaction.createNode();
+                    Map<String, Object> properties = node.getAllProperties();
+                    if (skipProperties != null && !skipProperties.isEmpty()) {
+                        for (String skip : skipProperties) properties.remove(skip);
+                    }
+                    copyProperties(properties, copyTemp);
+                    copyLabels(node, copyTemp);
+                    return copyTemp;
+                });
                 resultStream.add(result.withOther(copy));
                 copyMap.put(node, copy);
             } catch (Exception e) {
@@ -278,8 +289,9 @@ public class GraphRefactoring {
     public Stream<NodeResult> mergeNodes(@Name("nodes") List<Node> nodes, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (nodes == null || nodes.isEmpty()) return Stream.empty();
         RefactorConfig conf = new RefactorConfig(config);
+        Set<Node> nodesSet = new LinkedHashSet<>(nodes);
         // grab write locks upfront consistently ordered
-        nodes.stream().distinct().sorted(Comparator.comparingLong(Node::getId)).forEach(tx::acquireWriteLock);
+        nodesSet.stream().sorted(Comparator.comparingLong(Node::getId)).forEach(tx::acquireWriteLock);
 
         final Node first = nodes.get(0);
         final List<Long> existingSelfRelIds = conf.isPreservingExistingSelfRels()
@@ -288,7 +300,7 @@ public class GraphRefactoring {
                     .collect(Collectors.toList())
                 : Collections.emptyList();
 
-        nodes.stream().skip(1).distinct().forEach(node -> mergeNodes(node, first, conf, existingSelfRelIds));
+        nodesSet.stream().skip(1).forEach(node -> mergeNodes(node, first, conf, existingSelfRelIds));
         return Stream.of(new NodeResult(first));
     }
 
@@ -300,8 +312,9 @@ public class GraphRefactoring {
     @Description("apoc.refactor.mergeRelationships([rel1,rel2]) merge relationships onto first in list")
     public Stream<RelationshipResult> mergeRelationships(@Name("rels") List<Relationship> relationships, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (relationships == null || relationships.isEmpty()) return Stream.empty();
+        Set<Relationship> relationshipsSet = new LinkedHashSet<>(relationships);
         RefactorConfig conf = new RefactorConfig(config);
-        Iterator<Relationship> it = relationships.iterator();
+        Iterator<Relationship> it = relationshipsSet.iterator();
         Relationship first = it.next();
         while (it.hasNext()) {
             Relationship other = it.next();

@@ -46,6 +46,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetTime;
 import java.time.ZonedDateTime;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,6 +68,9 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
+import static java.lang.String.format;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonMap;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_LABEL;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 
@@ -470,30 +474,25 @@ public class Meta {
     private void collectStats(SubGraph subGraph, Collection<String> labelNames, Collection<String> relTypeNames, StatsCallback cb) {
         TokenRead tokenRead = kernelTx.tokenRead();
 
-        Map<String, Integer> labelMap = subGraph.labelsInUse(tokenRead, labelNames);
-        Map<String, Integer> typeMap = subGraph.relTypesInUse(tokenRead, relTypeNames);
-
-        Iterable<Label> labels = CollectionUtils.isNotEmpty(labelNames)
-                ? labelNames.stream().map(Label::label).collect(Collectors.toList()) : subGraph.getAllLabelsInUse();
-        Iterable<RelationshipType> types = CollectionUtils.isNotEmpty(relTypeNames)
-                ? relTypeNames.stream().map(RelationshipType::withName).collect(Collectors.toList()) : subGraph.getAllRelationshipTypesInUse();
+        Iterable<Label> labels = subGraph.labelsInUse(labelNames);
+        Iterable<RelationshipType> types = subGraph.relTypesInUse(relTypeNames);
 
         labels.forEach(label -> {
             long count = subGraph.countsForNode(label);
             if (count > 0) {
                 String name = label.name();
-                int id = labelMap.get(name);
+                int id = tokenRead.nodeLabel(name);
                 cb.label(id, name, count);
                 types.forEach(type -> {
                     long relCountOut = subGraph.countsForRelationship(label, type);
                     long relCountIn = subGraph.countsForRelationship(type, label);
-                    cb.rel(typeMap.get(type.name()), type.name(), id, name, relCountOut, relCountIn);
+                    cb.rel(tokenRead.relationshipType(type.name()), type.name(), id, name, relCountOut, relCountIn);
                 });
             }
         });
         types.forEach(type -> {
             String name = type.name();
-            int id = typeMap.get(name);
+            int id = tokenRead.relationshipType(name);
             cb.rel(id, name, subGraph.countsForRelationship(type));
         });
     }
@@ -536,11 +535,20 @@ public class Meta {
     public Stream<MapResult> schema(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         MetaStats metaStats = collectStats();
         MetaConfig metaConfig = new MetaConfig(config);
-        Map<String, Map<String, MetaResult>> metaData = collectMetaData(new DatabaseSubGraph(transaction), metaConfig);
+        Map<Set<String>, Map<String, MetaResult>> metaData = collectMetaData(new DatabaseSubGraph(transaction), metaConfig);
 
         Map<String, Object> relationships = collectRelationshipsMetaData(metaStats, metaData);
         Map<String, Object> nodes = collectNodesMetaData(metaStats, metaData, relationships);
-
+        final Collection<String> commonKeys = CollectionUtils.intersection(nodes.keySet(), relationships.keySet());
+        if (!commonKeys.isEmpty()) {
+            relationships = relationships.entrySet().stream()
+                    .map(e -> { 
+                        final String key = e.getKey();
+                        return commonKeys.contains(key)
+                                ? new AbstractMap.SimpleEntry<>(format("%s (%s)", key, Types.RELATIONSHIP.name()), e.getValue())
+                                : e;
+                    }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
         nodes.putAll(relationships);
         return Stream.of(new MapResult(nodes));
     }
@@ -653,21 +661,22 @@ public class Meta {
 
     // End new code
 
-    private Map<String, Map<String, MetaResult>> collectMetaData(SubGraph graph, MetaConfig config) {
-        Map<String,Map<String,MetaResult>> metaData = new LinkedHashMap<>(100);
+    private Map<Set<String>, Map<String, MetaResult>> collectMetaData(SubGraph graph, MetaConfig config) {
+        Map<Set<String>, Map<String,MetaResult>> metaData = new LinkedHashMap<>(100);
 
         Set<RelationshipType> types = Iterables.asSet(graph.getAllRelationshipTypesInUse());
         Map<String, Iterable<ConstraintDefinition>> relConstraints = new HashMap<>(20);
         Map<String, Set<String>> relIndexes = new HashMap<>();
         for (RelationshipType type : graph.getAllRelationshipTypesInUse()) {
-            metaData.put(type.name(), new LinkedHashMap<>(10));
+            metaData.put(Set.of(Types.RELATIONSHIP.name(), type.name()), new LinkedHashMap<>(10));
             relConstraints.put(type.name(),graph.getConstraints(type));
             relIndexes.put(type.name(), getIndexedProperties(graph.getIndexes(type)));
         }
         for (Label label : graph.getAllLabelsInUse()) {
             Map<String,MetaResult> nodeMeta = new LinkedHashMap<>(50);
             String labelName = label.name();
-            metaData.put(labelName, nodeMeta);
+            // workaround in case of duplicated keys
+            metaData.put(Set.of(Types.NODE.name(), labelName), nodeMeta);
             Iterable<ConstraintDefinition> constraints = graph.getConstraints(label);
             Set<String> indexed = getIndexedProperties(graph.getIndexes(label));
             long labelCount = graph.countsForNode(label);
@@ -715,15 +724,15 @@ public class Meta {
         }
     }
 
-    private Map<String, Object> collectNodesMetaData(MetaStats metaStats, Map<String, Map<String, MetaResult>> metaData, Map<String, Object> relationships) {
+    private Map<String, Object> collectNodesMetaData(MetaStats metaStats, Map<Set<String>, Map<String, MetaResult>> metaData, Map<String, Object> relationships) {
         Map<String, Object> nodes = new LinkedHashMap<>();
         Map<String, List<Map<String, Object>>> startNodeNameToRelationshipsMap = new HashMap<>();
-        for (String entityName : metaData.keySet()) {
-            Map<String, MetaResult> entityData = metaData.get(entityName);
+        for (Set<String> metadataKey : metaData.keySet()) {
+            Map<String, MetaResult> entityData = metaData.get(metadataKey);
             Map<String, Object> entityProperties = new LinkedHashMap<>();
             Map<String, Object> entityRelationships = new LinkedHashMap<>();
             List<String> labels = new LinkedList<>();
-            boolean isNode = true;
+            boolean isNode = metaStats.labels.keySet().stream().anyMatch(metadataKey::contains);
             for (String entityDataKey : entityData.keySet()) {
                 MetaResult metaResult = entityData.get(entityDataKey);
                 if (metaResult.elementType.equals("relationship")) {
@@ -738,11 +747,11 @@ public class Meta {
                     } else {
                         entityRelationships.put(metaResult.property,
                                 MapUtil.map("direction", "out", "count", metaResult.rightCount, "labels", metaResult.other,
-                                        "properties", ((Map<String, Object>) relationships.get(metaResult.property)).get("properties")));
+                                        "properties", ((Map<String, Object>) relationships.getOrDefault(metaResult.property, Map.of())).get("properties")));
                         metaResult.other.forEach(o -> {
                             Map<String, Object> mirroredRelationship = new LinkedHashMap<>();
                             mirroredRelationship.put(metaResult.property, MapUtil.map("direction", "in", "count", metaResult.leftCount, "labels", new LinkedList<>(Arrays.asList(metaResult.label)) ,
-                                    "properties", ((Map<String, Object>) relationships.get(metaResult.property)).get("properties")));
+                                    "properties", ((Map<String, Object>) relationships.getOrDefault(metaResult.property, Map.of())).get("properties")));
 
                             if (startNodeNameToRelationshipsMap.containsKey(o))
                                 startNodeNameToRelationshipsMap.get(o).add(mirroredRelationship);
@@ -756,9 +765,10 @@ public class Meta {
                 }
             }
             if (isNode) {
-                nodes.put(entityName, MapUtil.map(
+                String key = getKeyFromEntityName(metadataKey, Types.NODE.name());
+                nodes.put(key, MapUtil.map(
                         "type", "node",
-                        "count", metaStats.labels.get(entityName),
+                        "count", metaStats.labels.get(key),
                         "labels", labels,
                         "properties", entityProperties,
                         "relationships", entityRelationships
@@ -790,12 +800,12 @@ public class Meta {
         });
     }
 
-    private Map<String, Object> collectRelationshipsMetaData(MetaStats metaStats, Map<String, Map<String, MetaResult>> metaData) {
+    private Map<String, Object> collectRelationshipsMetaData(MetaStats metaStats, Map<Set<String>, Map<String, MetaResult>> metaData) {
         Map<String, Object> relationships = new LinkedHashMap<>();
-        for(String entityName : metaData.keySet()) {
-            Map<String, MetaResult> entityData = metaData.get(entityName);
+        for(Set<String> metadataKey : metaData.keySet()) {
+            Map<String, MetaResult> entityData = metaData.get(metadataKey);
             Map<String, Object> entityProperties = new LinkedHashMap<>();
-            boolean isRelationship = metaStats.relTypesCount.containsKey(entityName);
+            boolean isRelationship = metaStats.relTypesCount.keySet().stream().anyMatch(metadataKey::contains);
             for (String entityDataKey : entityData.keySet()) {
                 MetaResult metaResult = entityData.get(entityDataKey);
                 if (!metaResult.elementType.equals("relationship")) {
@@ -811,13 +821,18 @@ public class Meta {
                 }
             }
             if (isRelationship) {
-                relationships.put(entityName, MapUtil.map(
+                String key = getKeyFromEntityName(metadataKey, Types.RELATIONSHIP.name());
+                relationships.put(key, MapUtil.map(
                         "type", "relationship",
-                        "count", metaStats.relTypesCount.get(entityName),
+                        "count", metaStats.relTypesCount.get(key),
                         "properties", entityProperties));
             }
         }
         return relationships;
+    }
+
+    private String getKeyFromEntityName(Set<String> entityName, String suffix) {
+        return new HashSet<>(entityName).stream().filter(entity -> !entity.equals(suffix)).findFirst().get();
     }
 
     private void addProperties(Map<String, MetaResult> properties, String labelName, Iterable<ConstraintDefinition> constraints, Set<String> indexed, Entity pc, Node node) {
@@ -830,7 +845,7 @@ public class Meta {
         }
     }
 
-    private void addRelationships(Map<String, Map<String, MetaResult>> metaData,
+    private void addRelationships(Map<Set<String>, Map<String, MetaResult>> metaData,
                                   Map<String, MetaResult> nodeMeta,
                                   String labelName,
                                   Node node,
@@ -849,25 +864,26 @@ public class Meta {
                     Iterable<ConstraintDefinition> constraints = relConstraints.get(typeName);
                     Set<String> indexes = relIndexes.get(typeName);
                     if (!nodeMeta.containsKey(typeName)) nodeMeta.put(typeName, new MetaResult(labelName,typeName));
-//            int in = node.getDegree(type, Direction.INCOMING);
+                    int in = node.getDegree(type, Direction.INCOMING);
 
-                    Map<String, MetaResult> typeMeta = metaData.get(typeName);
+                    Map<String, MetaResult> typeMeta = metaData.get(Set.of(typeName, Types.RELATIONSHIP.name()));
                     if (!typeMeta.containsKey(labelName)) typeMeta.put(labelName,new MetaResult(typeName,labelName));
                     MetaResult relMeta = nodeMeta.get(typeName);
-                    addOtherNodeInfo(node, labelName, out, type, relMeta , typeMeta, constraints, indexes);
+                    addOtherNodeInfo(node, labelName, out, in, type, relMeta , typeMeta, constraints, indexes);
                 });
     }
 
-    private void addOtherNodeInfo(Node node, String labelName, int out, RelationshipType type, MetaResult relMeta, Map<String, MetaResult> typeMeta,
+    private void addOtherNodeInfo(Node node, String labelName, int out, int in, RelationshipType type, MetaResult relMeta, Map<String, MetaResult> typeMeta,
                                   Iterable<ConstraintDefinition> relConstraints, Set<String> indexes) {
         MetaResult relNodeMeta = typeMeta.get(labelName);
         relMeta.elementType(Types.of(node).name());
+        relMeta.inc().rel(out , in);
+        relNodeMeta.inc().rel(out,in);
         for (Relationship rel : node.getRelationships(Direction.OUTGOING, type)) {
             Node endNode = rel.getEndNode();
             List<String> labels = toStrings(endNode.getLabels());
-            int in = endNode.getDegree(type, Direction.INCOMING);
-            relMeta.inc().other(labels).rel(out , in);
-            relNodeMeta.inc().other(labels).rel(out,in);
+            relMeta.other(labels);
+            relNodeMeta.other(labels);
             addProperties(typeMeta, type.name(), relConstraints, indexes, rel, node);
             relNodeMeta.elementType(Types.RELATIONSHIP.name());
         }
@@ -1022,15 +1038,13 @@ public class Meta {
     private Stream<GraphResult> metaGraph(SubGraph subGraph, Collection<String> labelNames, Collection<String> relTypeNames, boolean removeMissing, MetaConfig metaConfig) {
         TokenRead tokenRead = kernelTx.tokenRead();
 
-        Map<String, Integer> typeMap = subGraph.relTypesInUse(tokenRead, relTypeNames);
+        Iterable<RelationshipType> types = subGraph.relTypesInUse(relTypeNames);
         Iterable<Label> labels = CollectionUtils.isNotEmpty(labelNames)
                 ? labelNames.stream().map(Label::label).collect(Collectors.toList()) : subGraph.getAllLabelsInUse();
-        Iterable<RelationshipType> types = CollectionUtils.isNotEmpty(relTypeNames)
-                ? relTypeNames.stream().map(RelationshipType::withName).collect(Collectors.toList()) : subGraph.getAllRelationshipTypesInUse();
 
 
         Map<String, Node> vNodes = new TreeMap<>();
-        Map<Pattern, Relationship> vRels = new HashMap<>(typeMap.size() * 2);
+        Map<Pattern, Relationship> vRels = new HashMap<>((int) Iterables.count(types) * 2);
 
         labels.forEach(label -> {
             long count = subGraph.countsForNode(label);

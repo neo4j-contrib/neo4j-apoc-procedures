@@ -29,6 +29,8 @@ public class ExportConfig extends CompressionConfig {
 
     private int batchSize;
     private boolean silent;
+    private boolean saveIndexNames;
+    private boolean saveConstraintNames;
     private boolean bulkImport = false;
     private boolean sampling;
     private String delim;
@@ -88,6 +90,8 @@ public class ExportConfig extends CompressionConfig {
         super(config);
         config = config != null ? config : Collections.emptyMap();
         this.silent = toBoolean(config.getOrDefault("silent",false));
+        this.saveIndexNames = toBoolean(config.getOrDefault("saveIndexNames",false));
+        this.saveConstraintNames = toBoolean(config.getOrDefault("saveConstraintNames",false));
         this.delim = delim(config.getOrDefault("delim", DEFAULT_DELIM).toString());
         this.arrayDelim = delim(config.getOrDefault("arrayDelim", DEFAULT_ARRAY_DELIM).toString());
         this.useTypes = toBoolean(config.get("useTypes"));
@@ -213,5 +217,13 @@ public class ExportConfig extends CompressionConfig {
     
     public boolean ifNotExists() {
         return ifNotExists;
+    }
+
+    public boolean shouldSaveIndexNames() {
+        return saveIndexNames;
+    }
+
+    public boolean shouldSaveConstraintNames() {
+        return saveConstraintNames;
     }
 }

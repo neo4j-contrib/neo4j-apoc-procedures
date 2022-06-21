@@ -16,7 +16,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.config.Setting;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -32,6 +31,7 @@ import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.isSelfRel;
@@ -47,6 +47,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.SettingImpl.newBuilder;
 import static org.neo4j.configuration.SettingValueParsers.BOOL;
@@ -57,6 +58,11 @@ import static org.neo4j.graphdb.Label.label;
  * @since 25.03.16
  */
 public class GraphRefactoringTest {
+    protected static final String CLONE_NODES_QUERY = "match (n:MyBook) with n call apoc.refactor.cloneNodes([n], true) " +
+            "YIELD output, error RETURN output, error";
+    protected static final String CLONE_SUBGRAPH_QUERY = "MATCH (n:MyBook) with n call apoc.refactor.cloneSubgraph([n], [], {}) YIELD output, error RETURN output, error";
+    protected static final String EXTRACT_QUERY = "MATCH p=(:Start)-[r:TO_MOVE]->(:End) with r call apoc.refactor.extractNode([r], ['MyBook'], 'OUT', 'IN') " +
+            "YIELD output, error RETURN output, error";
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
@@ -523,7 +529,23 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
                     assertEquals(1L, rel.getProperty("a"));
                 });
     }
+    
+    @Test
+    public void testRefactorWithSameEntities() {
+        Node node = db.executeTransactionally("CREATE (n:SingleNode) RETURN n", emptyMap(), 
+                r -> Iterators.single(r.columnAs("n")));
+        testCall(db, "MATCH (n:SingleNode) CALL apoc.refactor.mergeNodes([n,n]) yield node return node",
+                r -> assertEquals(node, r.get("node")));
+        testCallCount(db, "MATCH (n:SingleNode) RETURN n", 1);
 
+        Relationship rel = db.executeTransactionally("CREATE (n:Start)-[r:REL_TO_MERGE]->(:End) RETURN r", emptyMap(), 
+                r -> Iterators.single(r.columnAs("r")));
+        testCall(db, "MATCH (n:Start)-[r:REL_TO_MERGE]->(:End) CALL apoc.refactor.mergeRelationships([r,r]) yield rel return rel", r -> {
+            assertEquals(rel, r.get("rel"));
+        });
+        testCallCount(db, "MATCH (n:Start)-[r:REL_TO_MERGE]->(:End) RETURN r", 1);
+    }
+    
     @Test
     public void testCollapseNode() throws Exception {
         Long id = db.executeTransactionally("CREATE (f:Foo)-[:FOO {a:1}]->(b:Bar {c:3})-[:BAR {b:2}]->(f) RETURN id(b) as id", emptyMap(), result -> Iterators.single(result.columnAs("id")));
@@ -1243,6 +1265,43 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
                     assertSelfRel(relIterator.next(), "Q");
                     assertFalse(relIterator.hasNext());
                 });
+    }
+
+    @Test
+    public void issue2797WithCloneNodes() {
+        issue2797Common(CLONE_NODES_QUERY);
+    }
+
+    @Test
+    public void issue2797WithExtractNode() {
+        db.executeTransactionally("CREATE (:Start)-[r:TO_MOVE {name: 1}]->(:End)");
+        issue2797Common(EXTRACT_QUERY);
+    }
+
+    @Test
+    public void issue2797WithCloneSubgraph() {
+        issue2797Common(CLONE_SUBGRAPH_QUERY);
+    }
+    
+    private void issue2797Common(String extractQuery) {
+        db.executeTransactionally(("CREATE CONSTRAINT unique_book ON (book:MyBook) ASSERT book.name IS UNIQUE"));
+
+        db.executeTransactionally(("CREATE (n:MyBook {name: 1})"));
+        
+        testCall(db, extractQuery, r -> {
+            final String actualError = (String) r.get("error");
+            assertTrue(actualError.contains("already exists with label `MyBook` and property `name` = 1"));
+            assertNull(r.get("output"));
+        });
+
+        testCall(db, "MATCH (n:MyBook) RETURN properties(n) AS props", 
+                r -> {
+                    final Map<String, Long> expected = Map.of("name", 1L);
+                    assertEquals(expected, r.get("props"));
+                });
+
+        db.executeTransactionally("DROP CONSTRAINT unique_book");
+        db.executeTransactionally("MATCH (n:MyBook) DELETE n");
     }
 
     private void assertSelfRel(Relationship next) {

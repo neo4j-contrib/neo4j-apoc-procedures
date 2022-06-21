@@ -66,6 +66,12 @@ dependencies {
 
     compile 'org.jsoup:jsoup:1.14.3'
 
+    // currently we cannot update selenium to the latest version due to guava minimum version required (31.0.1-jre)
+    compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59', { exclude group: 'com.google.guava', module: 'guava' }
+    testCompile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59', { exclude group: 'com.google.guava', module: 'guava' }
+    compileOnly group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.0.3'
+    testCompile group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.0.3'
+
     compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
     compile(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7') {
         exclude group: "org.yaml"

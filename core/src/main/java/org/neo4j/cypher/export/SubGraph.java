@@ -12,10 +12,10 @@ import org.neo4j.internal.kernel.api.TokenRead;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toMap;
 
 public interface SubGraph
 {
@@ -43,24 +43,20 @@ public interface SubGraph
 
     Iterator<Node> findNodes(Label label);
 
-    default Map<String, Integer> relTypesInUse(TokenRead ops, Collection<String> relTypeNames) {
+    default List<RelationshipType> relTypesInUse(Collection<String> relTypeNames) {
         Stream<RelationshipType> stream = Iterables.stream(this.getAllRelationshipTypesInUse());
         if (CollectionUtils.isNotEmpty(relTypeNames)) {
             stream = stream.filter(rel -> relTypeNames.contains(rel.name()));
         }
-        return stream
-                .map(RelationshipType::name)
-                .collect(toMap(t -> t, ops::relationshipType));
+        return stream.collect(Collectors.toList());
     }
 
-    default Map<String, Integer> labelsInUse(TokenRead ops, Collection<String> labelNames) {
+    default List<Label> labelsInUse(Collection<String> labelNames) {
         Stream<Label> stream = Iterables.stream(this.getAllLabelsInUse());
         if (CollectionUtils.isNotEmpty(labelNames)) {
             stream = stream.filter(rel -> labelNames.contains(rel.name()));
         }
-        return stream
-                .map(Label::name)
-                .collect(toMap(t -> t, ops::nodeLabel));
+        return stream.collect(Collectors.toList());
     }
 
     /**

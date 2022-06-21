@@ -331,7 +331,7 @@ public class MetaTest {
             assertEquals("node", row.get("elementType"));
             assertEquals("ACTED_IN", row.get("property"));
             assertEquals("Actor", row.get("label"));
-            assertRelationshipActedIdMetaData(row);
+            assertRelationshipActedInMetaData(row);
             row = r.next();
             assertEquals("node", row.get("elementType"));
             assertEquals("ANIMATED", row.get("property"));
@@ -355,7 +355,7 @@ public class MetaTest {
             assertEquals("relationship", row.get("elementType"));
             assertEquals("ACTED_IN", row.get("label"));
             assertEquals("Actor", row.get("property"));
-            assertRelationshipActedIdMetaData(row);
+            assertRelationshipActedInMetaData(row);
             row = r.next();
             assertEquals("relationship", row.get("elementType"));
             assertEquals("DIRECTED", row.get("label"));
@@ -380,15 +380,15 @@ public class MetaTest {
     }
 
     private void assertRelationshipsDirectedMetaData(Map<String, Object> row) {
-        assertRowMetaData(row, 2L, 4L, 2L, 2L, 1L, Meta.Types.RELATIONSHIP);
+        assertRowMetaData(row, 1L, 2L, 0L, 2L, 0L, Meta.Types.RELATIONSHIP);
     }
     
     private void assertRelationshipsAnimatedMetaData(Map<String, Object> row) {
-        assertRowMetaData(row, 1L, 1L, 1L, 1L, 1L, Meta.Types.RELATIONSHIP);
+        assertRowMetaData(row, 1L, 1L, 0L, 1L, 0L, Meta.Types.RELATIONSHIP);
     }
 
-    private void assertRelationshipActedIdMetaData(Map<String, Object> row) {
-        assertRowMetaData(row, 4L, 10L,6L, 2L, 1L, Meta.Types.RELATIONSHIP);
+    private void assertRelationshipActedInMetaData(Map<String, Object> row) {
+        assertRowMetaData(row, 2L, 4L,0L, 2L, 0L, Meta.Types.RELATIONSHIP);
     }
 
     private void assertPropertiesMetaData(Map<String, Object> row) {
@@ -533,6 +533,29 @@ public class MetaTest {
                 }));
     }
 
+    @Test
+    public void testIssue1861LabelAndTypeWithSameName() {
+        db.executeTransactionally("CREATE (s0 :person{id:1} ) SET s0.name = 'rose'\n" +
+                "CREATE (t0 :person{id:2}) SET t0.name = 'jack'\n" +
+                "MERGE (s0) -[r0:person {alfa: 'beta'}] -> (t0)");
+        testCall(db,"CALL apoc.meta.schema()", (row) -> {
+            Map<String, Object> value = (Map<String, Object>) row.get("value");
+            assertEquals(2, value.size());
+            
+            Map<String, Object>  personRelationship = (Map<String, Object>) value.get("person (RELATIONSHIP)");
+            assertEquals(1L, personRelationship.get("count"));
+            assertEquals("relationship", personRelationship.get("type"));
+            Map<String, Object>  relationshipProps = (Map<String, Object>) personRelationship.get("properties");
+            assertEquals(Set.of("alfa"), relationshipProps.keySet());
+            
+            Map<String, Object> personNode = (Map<String, Object>) value.get("person");
+            assertEquals(2L, personNode.get("count"));
+            assertEquals("node", personNode.get("type"));
+            Map<String, Object>  nodeProps = (Map<String, Object>) personNode.get("properties");
+            assertEquals(Set.of("name", "id"), nodeProps.keySet());
+        });
+    }
+    
     @Test
     public void testSubGraphNoLimits() throws Exception {
         db.executeTransactionally("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)");
@@ -1340,8 +1363,8 @@ public class MetaTest {
         Set<Map<String, Object>> expectedResult = new HashSet<>();
         expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","BOUGHT","right",0L,"type","INTEGER","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","quantity","elementType","relationship","otherLabels",List.of()));
         expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Product","right",0L,"type","STRING","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
-        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","BOUGHT","right",1L,"type","RELATIONSHIP","sample",null,"rightCount",1L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","Person","elementType","relationship","otherLabels",List.of()));
-        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","Person","right",1L,"type","RELATIONSHIP","sample",null,"rightCount",1L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","BOUGHT","elementType","node","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","BOUGHT","right",0L,"type","RELATIONSHIP","sample",null,"rightCount",0L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","Person","elementType","relationship","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","Person","right",0L,"type","RELATIONSHIP","sample",null,"rightCount",0L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","BOUGHT","elementType","node","otherLabels",List.of()));
         expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Person","right",0L,"type","STRING","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
 
         String keys = expectedResult.stream()

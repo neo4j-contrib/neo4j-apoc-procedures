@@ -48,7 +48,7 @@ Furthermore, we can specify a `maxDepth` to consider cycles with only `n` interm
 MATCH (m1:Start) WITH collect(m1) as nodes CALL apoc.nodes.cycles(nodes, {maxDepth: 1}) YIELD path RETURN path
 ----
 
-image::cycles_max_depth_1.png
+image::cycles_max_depth_1.png[width=800]
 
 
 

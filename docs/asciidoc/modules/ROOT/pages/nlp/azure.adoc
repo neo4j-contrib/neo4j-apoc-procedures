@@ -28,6 +28,13 @@ include::example$generated-documentation/apoc.nlp.azure.sentiment.graph.adoc[]
 include::example$generated-documentation/apoc.nlp.azure.sentiment.stream.adoc[]
 |===
 
+
+[NOTE]
+====
+At the moment, Microsoft Azure Cognitive Services API supports text input in more than 10 languages.  
+For better results, make sure that your text is one of the https://docs.microsoft.com/en-us/azure/cognitive-services/text-analytics/language-support?tabs=named-entity-recognition[supported languages by Cognitive Services].
+====
+
 [[nlp-azure-entities]]
 === Entity Extraction
 
