@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import static apoc.ApocConfig.EXPORT_TO_FILE_ERROR;
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.configuration.SettingImpl.newBuilder;
 import static org.neo4j.configuration.SettingValueParsers.BOOL;
@@ -52,8 +53,7 @@ public class ExportStreamsStatementsTest {
             TestUtil.testCall(db, statement, (res) -> {});
         } catch (RuntimeException e) {
             String expectedMessage = "Failed to invoke procedure `apoc.export.csv.all`: " +
-                    "Caused by: java.lang.RuntimeException: Export to files not enabled, " +
-                    "please set apoc.export.file.enabled=true in your apoc.conf";
+                    "Caused by: java.lang.RuntimeException: " + EXPORT_TO_FILE_ERROR;
             assertEquals(expectedMessage, e.getMessage());
             throw e;
         }
@@ -94,8 +94,7 @@ public class ExportStreamsStatementsTest {
             TestUtil.testCall(db, statement, (res) -> {});
         } catch (RuntimeException e) {
             String expectedMessage = "Failed to invoke procedure `apoc.export.cypher.all`: " +
-                    "Caused by: java.lang.RuntimeException: Export to files not enabled, " +
-                    "please set apoc.export.file.enabled=true in your apoc.conf";
+                    "Caused by: java.lang.RuntimeException: " + EXPORT_TO_FILE_ERROR;
             assertEquals(expectedMessage, e.getMessage());
             throw e;
         }

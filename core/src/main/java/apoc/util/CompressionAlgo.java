@@ -17,7 +17,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 
 import static apoc.ApocConfig.apocConfig;
@@ -48,19 +47,23 @@ public enum CompressionAlgo {
         }
     }
 
-    private OutputStream getOutputStream(ByteArrayOutputStream stream) throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        return compressor == null ? stream : (OutputStream) compressor.getConstructor(OutputStream.class).newInstance(stream);
+    public OutputStream getOutputStream(OutputStream stream) throws Exception {
+        return isNone() ? stream : (OutputStream) compressor.getConstructor(OutputStream.class).newInstance(stream);
     }
 
     public String decompress(byte[] byteArray, Charset charset) throws Exception {
         try (ByteArrayInputStream stream = new ByteArrayInputStream(byteArray);
-                InputStream inputStream = getInputStream(stream)) {
+             InputStream inputStream = getInputStream(stream)) {
             return IOUtils.toString(inputStream, charset);
         }
     }
 
-    private InputStream getInputStream(ByteArrayInputStream stream) throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        return decompressor == null ? stream : (InputStream) decompressor.getConstructor(InputStream.class).newInstance(stream);
+    public InputStream getInputStream(InputStream stream) throws Exception {
+        return isNone() ? stream : (InputStream) decompressor.getConstructor(InputStream.class).newInstance(stream);
+    }
+
+    public boolean isNone() {
+        return compressor == null;
     }
 
     public CountingInputStream toInputStream(byte[] data) {

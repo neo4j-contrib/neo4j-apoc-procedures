@@ -8,6 +8,14 @@ plugins {
     id 'antlr'
     id "org.sonarqube"
     id "org.jetbrains.kotlin.jvm" version "1.6.0"
+    id "com.diffplug.spotless" version "6.7.2"
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        removeUnusedImports()
+    }
 }
 
 archivesBaseName = "apoc"
@@ -46,7 +54,6 @@ dependencies {
     testCompile "org.jetbrains.kotlin:kotlin-stdlib"
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
 //    compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
-    compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
     compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.5'
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'

@@ -13,7 +13,6 @@ import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author mh

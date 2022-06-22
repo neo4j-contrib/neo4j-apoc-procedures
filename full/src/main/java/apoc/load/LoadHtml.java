@@ -4,7 +4,6 @@ import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.MissingDependencyException;
 import apoc.util.FileUtils;
-import apoc.util.Util;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
@@ -43,24 +42,32 @@ public class LoadHtml {
     @Context
     public Log log;
 
+    @Procedure
+    @Description("apoc.load.htmlPlainText('urlOrHtml',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map")
+    public Stream<MapResult> htmlPlainText(@Name("urlOrHtml") String urlOrHtml, @Name(value = "query",defaultValue = "{}") Map<String, String> query, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+        return readHtmlPage(urlOrHtml, query, config, HtmlResultInterface.Type.PLAIN_TEXT);
+    }
 
     @Procedure
     @Description("apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map")
     public Stream<MapResult> html(@Name("url") String url, @Name(value = "query",defaultValue = "{}") Map<String, String> query, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
-        return readHtmlPage(url, query, new LoadHtmlConfig(config));
+        return readHtmlPage(url, query, config, HtmlResultInterface.Type.DEFAULT);
     }
 
-    private Stream<MapResult> readHtmlPage(String url, Map<String, String> query, LoadHtmlConfig config) {
+    private Stream<MapResult> readHtmlPage(String url, Map<String, String> query, Map<String, Object> conf, HtmlResultInterface.Type type) {
+        LoadHtmlConfig config = new LoadHtmlConfig(conf);
         try {
             // baseUri is used to resolve relative paths
-            Document document = Jsoup.parse(getHtmlInputStream(url, query, config), config.getCharset(), config.getBaseUri());
+            Document document = config.isHtmlString()
+                    ? Jsoup.parseBodyFragment(url)
+                    : Jsoup.parse(getHtmlInputStream(url, query, config), config.getCharset(), config.getBaseUri());
 
             Map<String, Object> output = new HashMap<>();
             List<String> errorList = new ArrayList<>();
 
             query.keySet().forEach(key -> {
-                        Elements elements = document.select(query.get(key));
-                        output.put(key, getElements(elements, config, errorList));
+                final Object value = type.get().getResult(document, query.get(key), config, errorList, log);
+                output.put(key, value);
             });
             if (!errorList.isEmpty()) {
                 output.put(KEY_ERROR, errorList);
@@ -77,7 +84,7 @@ public class LoadHtml {
             throw new RuntimeException("Can't read the HTML from: "+ url, e);
         }
     }
-    
+
     private InputStream getHtmlInputStream(String url, Map<String, String> query, LoadHtmlConfig config) throws IOException {
 
         final boolean isHeadless = config.isHeadless();
@@ -92,47 +99,35 @@ public class LoadHtml {
         }
     }
 
-    private List<Map<String, Object>> getElements(Elements elements, LoadHtmlConfig conf, List<String> errorList) {
+    public static List<Map<String, Object>> getElements(Elements elements, LoadHtmlConfig conf, List<String> errorList, Log log) {
 
         List<Map<String, Object>> elementList = new ArrayList<>();
 
         for (Element element : elements) {
-            try {
-                    Map<String, Object> result = new HashMap<>();
-                    if(element.attributes().size() > 0) result.put("attributes", getAttributes(element));
-                    if(!element.data().isEmpty()) result.put("data", element.data());
-                    if(!element.val().isEmpty()) result.put("value", element.val());
-                    if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
+            withError(element, errorList, conf.getFailSilently(), log, () -> {
+                Map<String, Object> result = new HashMap<>();
+                if(element.attributes().size() > 0) result.put("attributes", getAttributes(element));
+                if(!element.data().isEmpty()) result.put("data", element.data());
+                if(!element.val().isEmpty()) result.put("value", element.val());
+                if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
 
-                    if (conf.isChildren()) {
-                        if(element.hasText()) result.put("text", element.ownText());
+                if (conf.isChildren()) {
+                    if(element.hasText()) result.put("text", element.ownText());
 
-                        result.put("children", getElements(element.children(), conf, errorList));
-                    }
-                    else {
-                        if(element.hasText()) result.put("text", element.text());
-                    }
-
-                    elementList.add(result);
-            } catch (Exception e) {
-                final String parseError = "Error during parsing element: " + element;
-                switch (conf.getFailSilently()) {
-                    case WITH_LOG:
-                        log.warn(parseError);
-                        break;
-                    case WITH_LIST:
-                        errorList.add(element.toString());
-                        break;
-                    default:
-                        throw new RuntimeException(parseError);
+                    result.put("children", getElements(element.children(), conf, errorList, log));
                 }
-            }
+                else {
+                    if(element.hasText()) result.put("text", element.text());
+                }
+                elementList.add(result);
+                return null;
+            });
         }
 
         return elementList;
     }
 
-    private Map<String, String> getAttributes(Element element) {
+    private static Map<String, String> getAttributes(Element element) {
         Map<String, String> attributes = new HashMap<>();
         for (Attribute attribute : element.attributes()) {
             if (!attribute.hasDeclaredValue() && !Attribute.isBooleanAttribute(attribute.getKey())) {
@@ -147,6 +142,26 @@ public class LoadHtml {
         }
 
         return attributes;
+    }
+
+    public static <T> T withError(Element element, List<String> errorList, LoadHtmlConfig.FailSilently failConfig, Log log, Supplier<T> fun) {
+
+        try {
+            return fun.get();
+        } catch (Exception e) {
+            final String parseError = "Error during parsing element: " + element;
+            switch (failConfig) {
+                case WITH_LOG:
+                    log.warn(parseError);
+                    break;
+                case WITH_LIST:
+                    errorList.add(element.toString());
+                    break;
+                default:
+                    throw new RuntimeException(parseError);
+            }
+        }
+        return null;
     }
 
     private InputStream withSeleniumBrowser(Supplier<InputStream> action) {

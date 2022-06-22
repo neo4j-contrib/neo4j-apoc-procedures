@@ -1,7 +1,7 @@
 This procedure supports the following config parameters:
 
 .Config parameters
-[opts=header]
+[opts=header, cols='1a,1a,1a,3a']
 |===
 | name | type |default | description
 | unwindBatchSize | Integer | `5000` | the batch size of the unwind
@@ -12,6 +12,13 @@ This procedure supports the following config parameters:
 | compression | `Enum[NONE, BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]` | `null` | Allow taking binary data, either not compressed (value: `NONE`) or compressed (other values)
 See the xref::overview/apoc.load/apoc.load.csv.adoc#_binary_file[Binary file example]
 | cleanup | boolean | false | To remove the "id" field present into the json, if present. Note that in this way we cannot import relationship, because we leverage on "id" field to connect the nodes.
+| nodePropFilter | Map<String, List<String>> | `{}` | A map with the labels as keys, and the list of property keys to filter during the import as values. 
+For example `{ User: ['name', 'surname'], Another: ['foo']}` will skip the properties 'name' and 'surname' of nodes with label 'User' and the property 'foo' of (:Another) nodes. +
+Note that if a node has multiple labels, in this example `(:User:Another {})`, all properties of both labels will be filtered, that is 'name', 'surname', and 'foo'. +
+We can also pass a key `_all` to filter properties of all nodes, for example `{_all: ['myProp']}`
+| relPropFilter | Map<String, List<String>> | `{}` | A map with the relationship types as keys, and the list of property keys to filter during the import as values.  
+For example `{ MY_REL: ['foo', 'baz'] }` will skip the properties 'foo' and 'baz' of '[:MY_REL]' relationship. +
+We can also pass a key `_all` to filter properties of all relationships, for example `{_all: ['myProp']}`
 |===
 
 `nodePropertyMappings` and `relPropertyMappings` support the following Neo4j types:

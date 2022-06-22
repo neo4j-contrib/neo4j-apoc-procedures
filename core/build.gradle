@@ -4,6 +4,14 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "org.sonarqube"
+    id "com.diffplug.spotless" version "6.7.2"
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        removeUnusedImports()
+    }
 }
 
 archivesBaseName = "apoc"
@@ -42,7 +50,8 @@ dependencies {
 
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
-    compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
+    // when json-path is changed, it have to be changed in json-path-version version in antora.yml as well.
+    compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.7.0'
     compile group: 'net.minidev', name: 'json-smart', version: '2.4.8'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
 
@@ -135,7 +144,7 @@ dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
 
     compile group: 'xerces', name: 'xercesImpl', version: '2.12.1'
-// todo - escludere com.fasterxml.jackson.core???
+
     compile group: 'org.apache.arrow', name: 'arrow-vector', version: '7.0.0', {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'

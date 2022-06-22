@@ -33,17 +33,17 @@ public class AddStructureCypherFormatter extends AbstractCypherFormatter impleme
 	}
 
 	@Override
-	public String statementForNodeIndex(String label, Iterable<String> key, boolean ifNotExist) {
+	public String statementForNodeIndex(String label, Iterable<String> key, boolean ifNotExist, String idxName) {
 		return "";
 	}
 	
 	@Override
-	public String statementForIndexRelationship(String type, Iterable<String> key, boolean ifNotExists) {
+	public String statementForIndexRelationship(String type, Iterable<String> key, boolean ifNotExists, String idxName) {
 		return "";
 	}
 
 	@Override
-	public String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExists) {
+	public String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExists, String name) {
 		return "";
 	}
 

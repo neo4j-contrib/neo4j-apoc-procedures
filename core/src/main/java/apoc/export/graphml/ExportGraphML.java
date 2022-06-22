@@ -69,6 +69,8 @@ public class ExportGraphML {
             XmlGraphMLReader graphMLReader = new XmlGraphMLReader(db, tx).reporter(reporter)
                     .batchSize(exportConfig.getBatchSize())
                     .relType(exportConfig.defaultRelationshipType())
+                    .source(exportConfig.getSource())
+                    .target(exportConfig.getTarget())
                     .nodeLabels(exportConfig.readLabels());
 
             if (exportConfig.storeNodeIds()) graphMLReader.storeNodeIds();
@@ -119,7 +121,7 @@ public class ExportGraphML {
         final String format = "graphml";
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, format));
         XmlGraphMLWriter exporter = new XmlGraphMLWriter();
-        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, false);
+        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, false, exportConfig);
         final PrintWriter graphMl = cypherFileManager.getPrintWriter(format);
         if (exportConfig.streamStatements()) {
             return ExportUtils.getProgressInfoStream(db, pools.getDefaultExecutorService() ,terminationGuard, format, exportConfig, reporter, cypherFileManager,

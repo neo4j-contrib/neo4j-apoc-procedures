@@ -24,7 +24,7 @@ The examples in this section are based on the Microsoft https://msdn.microsoft.c
 ...
 ----
 
-This file can be downloaded from https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml[GitHub].
+This file can be downloaded from https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml[GitHub].
 
 [[load-xml-examples-local-file]]
 === Import from local file
@@ -146,7 +146,7 @@ This means that the XML will be parsed in simple mode.
 .The following query loads the books.xml file from GitHub using simple mode
 [source,cypher,subs=attributes]
 ----
-WITH "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml" AS uri
+WITH "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml" AS uri
 CALL apoc.load.xml(uri, '', {}, true)
 YIELD value
 RETURN value;
@@ -165,9 +165,9 @@ This time nested XML elements are accessible via a property of the element name 
 We can write the following query to get a better understanding of what our file contains.
 
 .The following query processes `book.xml` and parses the results to pull out the title, description, genre, and authors
-[source,cypher]
+[source,cypher,subs=attributes]
 ----
-WITH "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/4.0/src/test/resources/xml/books.xml" AS uri
+WITH "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml" AS uri
 CALL apoc.load.xml(uri, '', {}, true)
 YIELD value
 UNWIND value._catalog AS catalog
@@ -199,9 +199,9 @@ RETURN catalog.id AS bookId,
 Rather than just returning that data, we can create a graph of books and their metadata, authors, and genres.
 
 .The following query processes `book.xml` and parses the results to pull out the title, description, genre, and authors
-[source,cypher]
+[source,cypher,subs=attributes]
 ----
-WITH "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/4.0/src/test/resources/xml/books.xml" AS uri
+WITH "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml" AS uri
 CALL apoc.load.xml(uri, '', {}, true)
 YIELD value
 UNWIND value._catalog AS catalog
@@ -236,7 +236,7 @@ If we only want to return books that have the `Computer` genre, we could write t
 [source,cypher,subs=attributes]
 ----
 CALL apoc.load.xml(
-  "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml",
+  "https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml",
   '/catalog/book[genre=\"Computer\"]'
 )
 YIELD value as book
@@ -262,7 +262,7 @@ For example, the following query returns the `author` of the book with `id = bg1
 [source,cypher,subs=attributes]
 ----
 CALL apoc.load.xml(
-  'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml',
+  'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml',
   '/catalog/book[@id="bk102"]/author'
 )
 YIELD value as result
@@ -277,6 +277,118 @@ RETURN author;
 | "Ralls, Kim"
 |===
 
+
+=== Avoid OOM using Xpath
+
+Generally, to avoid Heap Space Errors,
+to handle large files you should always try to return the result as a stream, and not as a unique result, to avoid `java.lang.OutOfMemoryError: Java heap space`, if possible
+For example, with a file like this:
+.book.xml
+[largeFile,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"> -->
+<graphml name="databases">
+<key id="name" for="node" attr.name="name"/>
+<key id="tagline" for="node" attr.name="tagline"/>
+<key id="title" for="node" attr.name="title"/>
+<key id="labels" for="node" attr.name="labels"/>
+<key id="summary" for="edge" attr.name="summary"/>
+<key id="label" for="edge" attr.name="label"/>
+<graph id="G" edgedefault="directed">
+  <node id="n0" labels=":Movie"><data key="labels">:Movie</data><data key="title">The Matrix</data><data key="tagline">Welcome to the Real World</data><data key="released">1999</data></node>
+  <node id="n1" labels=":Person"><data key="labels">:Person</data><data key="born">1964</data><data key="name">Keanu Reeves</data></node>
+  <node id="n2" labels=":Person"><data key="labels">:Person</data><data key="born">1967</data><data key="name">Carrie-Anne Moss</data></node>
+  <node id="n3" labels=":Person"><data key="labels">:Person</data><data key="born">1961</data><data key="name">Laurence Fishburne</data></node>
+  <node id="n4" labels=":Person"><data key="labels">:Person</data><data key="born">1960</data><data key="name">Hugo Weaving</data></node>
+  <node id="n5" labels=":Person"><data key="labels">:Person</data><data key="born">1967</data><data key="name">Lilly Wachowski</data></node>
+  <node id="n6" labels=":Person"><data key="labels">:Person</data><data key="born">1965</data><data key="name">Lana Wachowski</data></node>
+    // a lot of other node tags...
+
+  <edge id="e17" source="n3" target="n10" label="ACTED_IN"><data key="label">ACTED_IN</data><data key="roles">["Morpheus"]</data></edge>
+  <edge id="e18" source="n4" target="n10" label="ACTED_IN"><data key="label">ACTED_IN</data><data key="roles">["Agent Smith"]</data></edge>
+    // a lot of other edge tags...
+
+  <foo id="id2">foo2</foo>
+  <foo id="id3">foo3</foo>
+ // ...
+</graph>
+</graphml>
+
+----
+
+you can extract all the children of the `graph` tag via:
+
+[source,cypher]
+----
+CALL apoc.load.xml('databases.xml', '/graphml/graph/*', {}) 
+YIELD value RETURN value ORDER BY value.id
+----
+
+.Results
+[options="header"]
+|===
+| value
+| {"_children":[{"_type":"data","_text":"ACTED_IN","key":"label"},{"_type":"data","_text":"["Morpheus"]","key":"roles"}],"_type":"edge","id":"e17","label":"ACTED_IN","source":"n3","target":"n10"}
+| {"_children":[{"_type":"data","_text":"ACTED_IN","key":"label"},{"_type":"data","_text":"["Agent Smith"]","key":"roles"}],"_type":"edge","id":"e18","label":"ACTED_IN","source":"n4","target":"n10"}
+| {"_type":"foo","id":"id2","_text":"foo2"}
+| {"_type":"foo","id":"id3","_text":"foo3"}
+| {"_children":[{"_type":"data","_text":":Movie","key":"labels"},{"_type":"data","_text":"The Matrix","key":"title"},{"_type":"data","_text":"Welcome to the Real World","key":"tagline"},{"_type":"data","_text":"1999","key":"released"}],"_type":"node","id":"n0","labels":":Movie"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1964","key":"born"},{"_type":"data","_text":"Keanu Reeves","key":"name"}],"_type":"node","id":"n1","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1967","key":"born"},{"_type":"data","_text":"Carrie-Anne Moss","key":"name"}],"_type":"node","id":"n2","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1961","key":"born"},{"_type":"data","_text":"Laurence Fishburne","key":"name"}],"_type":"node","id":"n3","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1960","key":"born"},{"_type":"data","_text":"Hugo Weaving","key":"name"}],"_type":"node","id":"n4","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1967","key":"born"},{"_type":"data","_text":"Lilly Wachowski","key":"name"}],"_type":"node","id":"n5","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1965","key":"born"},{"_type":"data","_text":"Lana Wachowski","key":"name"}],"_type":"node","id":"n6","labels":":Person"}
+|===
+
+
+Or if you want to include only `node` tag:
+
+[source,cypher]
+----
+CALL apoc.load.xml('largeFile.xml', '/graphml/graph/node', {})
+YIELD value RETURN value ORDER BY value.id
+----
+
+.Results
+[options="header"]
+|===
+| value
+| {"_children":[{"_type":"data","_text":":Movie","key":"labels"},{"_type":"data","_text":"The Matrix","key":"title"},{"_type":"data","_text":"Welcome to the Real World","key":"tagline"},{"_type":"data","_text":"1999","key":"released"}],"_type":"node","id":"n0","labels":":Movie"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1964","key":"born"},{"_type":"data","_text":"Keanu Reeves","key":"name"}],"_type":"node","id":"n1","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1967","key":"born"},{"_type":"data","_text":"Carrie-Anne Moss","key":"name"}],"_type":"node","id":"n2","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1961","key":"born"},{"_type":"data","_text":"Laurence Fishburne","key":"name"}],"_type":"node","id":"n3","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1960","key":"born"},{"_type":"data","_text":"Hugo Weaving","key":"name"}],"_type":"node","id":"n4","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1967","key":"born"},{"_type":"data","_text":"Lilly Wachowski","key":"name"}],"_type":"node","id":"n5","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1965","key":"born"},{"_type":"data","_text":"Lana Wachowski","key":"name"}],"_type":"node","id":"n6","labels":":Person"}
+|===
+
+You can also include multiple tag names with `or`, e.g.:
+
+[source,cypher]
+----
+CALL apoc.load.xml('largeFile.xml', 'graphml/graph/*[self::node or self::edge]', {})
+YIELD value RETURN value ORDER BY value.id
+----
+
+.Results
+[options="header"]
+|===
+| value
+| {"_children":[{"_type":"data","_text":"ACTED_IN","key":"label"},{"_type":"data","_text":"["Morpheus"]","key":"roles"}],"_type":"edge","id":"e17","label":"ACTED_IN","source":"n3","target":"n10"}
+| {"_children":[{"_type":"data","_text":"ACTED_IN","key":"label"},{"_type":"data","_text":"["Agent Smith"]","key":"roles"}],"_type":"edge","id":"e18","label":"ACTED_IN","source":"n4","target":"n10"}
+| {"_children":[{"_type":"data","_text":":Movie","key":"labels"},{"_type":"data","_text":"The Matrix","key":"title"},{"_type":"data","_text":"Welcome to the Real World","key":"tagline"},{"_type":"data","_text":"1999","key":"released"}],"_type":"node","id":"n0","labels":":Movie"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1964","key":"born"},{"_type":"data","_text":"Keanu Reeves","key":"name"}],"_type":"node","id":"n1","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1967","key":"born"},{"_type":"data","_text":"Carrie-Anne Moss","key":"name"}],"_type":"node","id":"n2","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1961","key":"born"},{"_type":"data","_text":"Laurence Fishburne","key":"name"}],"_type":"node","id":"n3","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1960","key":"born"},{"_type":"data","_text":"Hugo Weaving","key":"name"}],"_type":"node","id":"n4","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1967","key":"born"},{"_type":"data","_text":"Lilly Wachowski","key":"name"}],"_type":"node","id":"n5","labels":":Person"}
+| {"_children":[{"_type":"data","_text":":Person","key":"labels"},{"_type":"data","_text":"1965","key":"born"},{"_type":"data","_text":"Lana Wachowski","key":"name"}],"_type":"node","id":"n6","labels":":Person"}
+|===
+
+See https://docs.oracle.com/javase/7/docs/api/javax/xml/xpath/XPath.html[Java Xpath Doc] and https://www.w3schools.com/xml/xpath_intro.asp[w3School tutorial] for more examples and details.
+
 [[load-xml-examples-extracting-datastructures]]
 === Extracting data structures
 
@@ -284,7 +396,7 @@ We can turn values into a map using the `apoc.map.fromPairs` function.
 
 [source,cypher,subs=attributes]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml")
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml")
 yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
@@ -314,7 +426,7 @@ And now we can cleanly access the attributes from the map.
 
 [source,cypher,subs=attributes]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml")
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/core/src/test/resources/xml/books.xml")
 yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs

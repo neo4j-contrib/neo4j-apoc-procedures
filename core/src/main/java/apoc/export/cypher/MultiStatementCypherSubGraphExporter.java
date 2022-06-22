@@ -215,7 +215,7 @@ public class MultiStatementCypherSubGraphExporter {
             out.println(index);
         }
         if (artificialUniques > 0) {
-            String cypher = this.cypherFormat.statementForConstraint(UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP), config.ifNotExists());
+            String cypher = this.cypherFormat.statementForConstraint(UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP), config.ifNotExists(), StringUtils.EMPTY);
             if (cypher != null && !"".equals(cypher)) {
                 out.println(cypher);
             }
@@ -257,12 +257,13 @@ public class MultiStatementCypherSubGraphExporter {
                         }
                     }
                     // "normal" schema index
+                    String idxName = getIdxName(name, exportConfig.shouldSaveIndexNames());
                     String tokenName = tokenNames.get(0);
                     final boolean ifNotExist = exportConfig.ifNotExists();
                     if (isNode) {
-                        return this.cypherFormat.statementForNodeIndex(tokenName, props, ifNotExist);
+                        return this.cypherFormat.statementForNodeIndex(tokenName, props, ifNotExist, idxName);
                     } else {
-                        return this.cypherFormat.statementForIndexRelationship(tokenName, props, ifNotExist);
+                        return this.cypherFormat.statementForIndexRelationship(tokenName, props, ifNotExist, idxName);
                     }
 
                 })
@@ -303,12 +304,17 @@ public class MultiStatementCypherSubGraphExporter {
         return StreamSupport.stream(graph.getIndexes().spliterator(), false)
                 .filter(index -> index.isConstraintIndex())
                 .map(index -> {
+                    String name = getIdxName(index.getName(), exportConfig.shouldSaveConstraintNames());
                     String label = Iterables.single(index.getLabels()).name();
                     Iterable<String> props = index.getPropertyKeys();
-                    return this.cypherFormat.statementForConstraint(label, props, exportConfig.ifNotExists());
+                    return this.cypherFormat.statementForConstraint(label, props, exportConfig.ifNotExists(), name);
                 })
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList());
+    }
+
+    private String getIdxName(String name, boolean saveName) {
+        return saveName ? " " + name : StringUtils.EMPTY;
     }
 
     // ---- CleanUp ----
@@ -325,7 +331,7 @@ public class MultiStatementCypherSubGraphExporter {
                 artificialUniques -= batchSize;
             }
             begin(out);
-            String cypher = this.cypherFormat.statementForConstraint(UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP), false)
+            String cypher = this.cypherFormat.statementForConstraint(UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP), false, StringUtils.EMPTY)
                     .replaceAll("^CREATE", "DROP");
             if (cypher != null && !"".equals(cypher)) {
                 out.println(cypher);

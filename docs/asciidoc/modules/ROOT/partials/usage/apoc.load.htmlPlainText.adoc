@@ -1,0 +1,315 @@
+We can extract the <h1> tag and the tag with id `mp-right` the https://en.wikipedia.org/[Wikipedia home page^], by running the following query:
+
+[source,cypher]
+----
+CALL apoc.load.htmlPlainText("https://en.wikipedia.org/",{h1:"h1", mp:"#mp-right"});
+----
+
+with a result like this (that is, a map of `mp: "content of tag with id mp-right",  h1: "content of h1 tags"`):
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+a|
+----
+{
+  "mp": "
+
+In the news 
+
+Elizabeth II 
+ - In Nigeria, at least 40 people are killed in an attack  at a Catholic church  in Owo , Ondo State . 
+ - A fire and explosions  at a storage depot in Sitakunda , Bangladesh, kill at least 49 people and 
+injure more than 450 others. 
+ - The Commonwealth of Nations  celebrates the Platinum Jubilee  of Elizabeth 
+
+II (pictured) . 
+ - Denmark votes  to eliminate its opt-out  of the European Union 's Common Security and Defence 
+Policy . Ongoing : 
+ - COVID-19 pandemic 
+ - Russian invasion of Ukraine Recent deaths : 
+ - Paula Rego 
+ - Christopher Pratt 
+ - 
+Dorothy E. Smith 
+
+ - Zeta Emilianidou 
+ - 
+Ann Turner Cook 
+
+ - Barry Sussman 
+ - Nominate an article 
+
+On this day 
+
+
+June 10 
+Frederick Barbarossa 
+ - 1190  – Third Crusade : Frederick Barbarossa (pictured) , Holy Roman Emperor , drowned in the 
+Saleph River  in Anatolia . 
+ - 1692  – Bridget Bishop  became the first person to be executed for witchcraft  in the Salem witch 
+trials  in colonial Massachusetts . 
+ - 1878  – The League of Prizren  was officially founded to "struggle in arms to defend the wholeness 
+of the territories of Albania". 
+ - 1925  – The United Church of Canada , the country's largest Protestant  denomination, held its 
+inaugural service at the Mutual Street Arena  in Toronto. 
+ - 2008  – Sudan Airways Flight 109  crashed on landing at Khartoum International Airport , killing 
+30 of the 214 occupants on board. 
+ - Theodor Philipsen  ( b. 
+ 1840) 
+ - Margarito Bautista  ( b. 
+ 1878) 
+ - Margaret Abbott  ( d. 
+ 1955)  More anniversaries: 
+ - June 9 
+ - June 10 
+ - June 11 
+ - Archive 
+ - By email 
+ - List of days of the year "
+,
+
+  "h1": "
+Main Page 
+
+
+Welcome to Wikipedia 
+
+"
+}
+----
+|===
+
+or we can extract and get the whole body document by running:
+
+[source,cypher]
+----
+CALL apoc.load.htmlPlainText("https://en.wikipedia.org/",{body:"body"})
+YIELD value
+RETURN value["body"]
+----
+
+with a result similar to this:
+
+.Results
+[opts="header",cols="1"]
+|===
+| body
+a|
+----
+"
+Main Page 
+From Wikipedia, the free encyclopedia Jump to navigation Jump to search 
+
+Welcome to Wikipedia 
+
+, the free encyclopedia  that anyone can edit . 6,510,947  articles in English 
+
+
+From today's featured article 
+
+Life restoration  of Mosasaurus hoffmanni 
+Mosasaurus  is a genus  of mosasaurs , an extinct group of aquatic scaly reptiles . It lived from 
+about 82 to 66 million years ago during the Late Cretaceous . Its earliest fossils were found as 
+skulls near the River Meuse  ( Mosa  in Latin). In 1808, Georges Cuvier  concluded that the skulls 
+belonged to a giant marine lizard with similarities to monitors  but otherwise unlike any known 
+living animal, supporting the then-developing idea of extinction . Scientists continue to 
+debate whether its closest living relatives are monitors or snakes . Mosasaurus  had jaws  
+capable of swinging back and forth and was capable of powerful bites, using dozens of teeth 
+designed for cutting prey. Its four limbs were shaped into paddles to steer underwater. 
+Mosasaurus  was a predator with excellent vision but a poor sense of smell, and a high metabolic 
+rate suggesting it was warm-blooded . It lived in much of the Atlantic  and in a wide range of 
+oceanic climates including tropical, subtropical, temperate, and subpolar. ( Full 
+article... ) 
+ Recently featured: 
+ - On the Job  (2013 film) 
+ - White swamphen 
+ - Lake Estancia 
+ - Archive 
+ - By email 
+ - More featured articles 
+
+Did you know ... 
+
+Bare formula shelves with purchase limit notice, January 2022 
+ - ... that the ongoing infant formula shortage in the United States (example pictured)  also 
+affects non-infant medical patients who require nasogastric feeding ? 
+ - ... that John Jacob Withrow  allegedly did not consult anyone before announcing a permanent 
+exhibition  in Toronto? 
+ - ... that the Hawaii Civil Liberties Committee  was designated as a Communist front  by the House 
+Un-American Activities Committee ? 
+ - ... that Mahendra Raj 
+'s 
+ engineering work on the Hindustan Lever pavilion  resembled a crumpled sheet of paper? 
+ - ... that the clown character Mombo was created for The Dr. Max Show  after being blamed for an 
+off-stage noise? 
+ - ... that Roddie Fleming  was expecting to inherit the family business, but it was sold to Chase 
+Bank  instead? 
+ - ... that Darkness Visible: A Study of Vergil's Aeneid  was thought by one reviewer to have "the 
+remarkable qualities of the oracular"? 
+ - ... that Sunny Low  and his sister were dubbed the "King and Queen of Cha-Cha-Cha and Rock 'n' 
+Roll"? 
+ - Archive 
+ - Start a new article 
+ - Nominate an article 
+
+In the news 
+
+Elizabeth II 
+ - In Nigeria, at least 40 people are killed in an attack  at a Catholic church  in Owo , Ondo State . 
+ - A fire and explosions  at a storage depot in Sitakunda , Bangladesh, kill at least 49 people and 
+injure more than 450 others. 
+ - The Commonwealth of Nations  celebrates the Platinum Jubilee  of Elizabeth 
+
+II (pictured) . 
+ - Denmark votes  to eliminate its opt-out  of the European Union 's Common Security and Defence 
+Policy . Ongoing : 
+ - COVID-19 pandemic 
+ - Russian invasion of Ukraine Recent deaths : 
+ - Paula Rego 
+ - Christopher Pratt 
+ - 
+Dorothy E. Smith 
+
+ - Zeta Emilianidou 
+ - 
+Ann Turner Cook 
+
+ - Barry Sussman 
+ - Nominate an article 
+
+On this day 
+
+
+June 10 
+Frederick Barbarossa 
+ - 1190  – Third Crusade : Frederick Barbarossa (pictured) , Holy Roman Emperor , drowned in the 
+Saleph River  in Anatolia . 
+ - 1692  – Bridget Bishop  became the first person to be executed for witchcraft  in the Salem witch 
+trials  in colonial Massachusetts . 
+ - 1878  – The League of Prizren  was officially founded to "struggle in arms to defend the wholeness 
+of the territories of Albania". 
+ - 1925  – The United Church of Canada , the country's largest Protestant  denomination, held its 
+inaugural service at the Mutual Street Arena  in Toronto. 
+ - 2008  – Sudan Airways Flight 109  crashed on landing at Khartoum International Airport , killing 
+30 of the 214 occupants on board. 
+ - Theodor Philipsen  ( b. 
+ 1840) 
+ - Margarito Bautista  ( b. 
+ 1878) 
+ - Margaret Abbott  ( d. 
+ 1955)  More anniversaries: 
+ - June 9 
+ - June 10 
+ - June 11 
+ - Archive 
+ - By email 
+ - List of days of the year 
+
+
+....
+
+
+"
+----
+|===
+
+
+Note that the procedure returns empty results in case of tags without textual content, for example:
+[source,cypher]
+----
+CALL apoc.load.htmlPlainText("https://en.wikipedia.org/", {meta:"meta"});
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| { "meta": "" }
+|===
+
+
+include::partial$html/runtime.adoc[]
+
+For example, with the above file we can execute:
+
+[source,cypher]
+----
+CALL apoc.load.htmlPlainText("test.html", {strong: "strong"}, {browser: "FIREFOX"});
+----
+.Results
+[opts="header"]
+|===
+| Output
+a|
+[source,json]
+----
+{ "body": "This is a new text node " }
+----
+|===
+
+If we have to parse a tag from a slow async call, we can use `wait` config to waiting for 10 second (in this example):
+
+[source,cypher]
+----
+CALL apoc.load.htmlPlainText("test.html", {asyncTag: "#asyncTag"}, {browser: "FIREFOX", wait: 10});
+----
+
+
+We can also pass an HTML string into the 1st parameter by putting as a config parameter `htmlString: true`, for example:
+
+[source,cypher]
+----
+CALL apoc.load.htmlPlainText("<!DOCTYPE html> <html> <body> <p class='firstClass'>My first paragraph.</p> </body> </html>",{body:"body"}, {htmlString: true})
+YIELD value
+RETURN value["body"] as body
+----
+
+.Results
+[opts="header"]
+|===
+| body
+----
+"
+My first paragraph. 
+"
+----
+|===
+
+
+include::partial$html/query-selectors.adoc[]
+
+For example, we can execute:
+
+[source,cypher]
+----
+CALL apoc.load.htmlPlainText($url, {nameKey: '#idName'})
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+a|
+[source,json]
+----
+{
+  "h6": [
+    {
+      "attributes": {
+        "id": "idName"
+      },
+      "text": "test",
+      "tagName": "h6"
+    }
+  ]
+}
+----
+|===
+
+== Html as json list
+
+If, instead of a map of plain text representations,
+you want to get a map of json list results,
+you can use the xref::overview/apoc.load/apoc.load.html.adoc[apoc.load.html procedure], which use the same syntax, logic and config parameters as `apoc.load.htmlPlainText`.

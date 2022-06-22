@@ -21,14 +21,20 @@ public interface StreamConnection {
     long getLength();
     String getName();
 
-    default CountingInputStream toCountingInputStream() throws IOException {
+    default CountingInputStream toCountingInputStream(String algo) throws IOException {
         if ("gzip".equals(getEncoding()) || getName().endsWith(".gz")) {
             return new CountingInputStream(new GZIPInputStream(getInputStream()), getLength());
         }
         if ("deflate".equals(getName())) {
             return new CountingInputStream(new DeflaterInputStream(getInputStream()), getLength());
         }
-        return new CountingInputStream(getInputStream(), getLength());
+        try {
+            final InputStream inputStream = CompressionAlgo.valueOf(algo == null ? CompressionAlgo.NONE.name() : algo)
+                    .getInputStream(getInputStream());
+            return new CountingInputStream(inputStream, getLength());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     static class UrlStreamConnection implements StreamConnection {

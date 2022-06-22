@@ -5,6 +5,7 @@ import apoc.export.util.CountingReader;
 import apoc.load.CSVResult;
 import apoc.load.LoadCsv;
 import apoc.load.util.LoadCsvConfig;
+import apoc.util.CompressionAlgo;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.neo4j.logging.Log;
@@ -174,7 +175,7 @@ public class Metrics {
         try {
             reader = FileUtils.SupportedProtocols.file
                     .getStreamConnection(url, null, null)
-                    .toCountingInputStream()
+                    .toCountingInputStream(CompressionAlgo.NONE.name())
                     .asReader();
             return new LoadCsv()
                     .streamCsv(url, new LoadCsvConfig(config), reader)

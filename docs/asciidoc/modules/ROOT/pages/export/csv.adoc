@@ -374,11 +374,18 @@ RETURN file, nodes, relationships, properties, data;
   "
 |===
 
+[NOTE]
+====
+You can also compress the files to export. xref::overview/apoc.export/compression.adoc[See here for more information]
+====
+
 When the config `bulkImport` is enable it create a list of file that can be used for Neo4j Bulk Import.
 
 *This config can be used only with `apoc.export.csv.all` and `apoc.export.csv.graph`*
 
 All file create are named as follow:
+
+// end::export.csv[]
 
 * Nodes file are construct with the name of the input file append with `.nodes.[LABEL_NAME].csv`
 * Rel file are construct with the name of the input file append with `.relationships.[TYPE_NAME].csv`

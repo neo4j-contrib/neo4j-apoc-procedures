@@ -3,11 +3,8 @@ package apoc.nlp.azure
 import apoc.nlp.NLPVirtualGraph
 import apoc.result.VirtualGraph
 import apoc.result.VirtualNode
-import com.amazonaws.services.comprehend.model.BatchDetectSentimentResult
-import org.apache.commons.text.WordUtils
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
-import org.neo4j.graphdb.RelationshipType
 import org.neo4j.graphdb.Transaction
 
 data class AzureVirtualSentimentVirtualGraph(private val results: List<Map<String, Any>>, private val sourceNodes: List<Node>): NLPVirtualGraph() {

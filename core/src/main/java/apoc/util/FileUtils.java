@@ -3,6 +3,7 @@ package apoc.util;
 import apoc.ApocConfig;
 import apoc.export.util.CountingInputStream;
 import apoc.export.util.CountingReader;
+import apoc.export.util.ExportConfig;
 import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
 import apoc.util.s3.S3UploadUtils;
@@ -17,7 +18,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
@@ -88,8 +88,9 @@ public class FileUtils {
             }
         }
 
-        public OutputStream getOutputStream(String fileName) {
+        public OutputStream getOutputStream(String fileName, ExportConfig config) {
             if (fileName == null) return null;
+            final CompressionAlgo compressionAlgo = CompressionAlgo.valueOf(config.getCompressionAlgo());
             final OutputStream outputStream;
             try {
                 switch (this) {
@@ -103,8 +104,8 @@ public class FileUtils {
                         final Path path = resolvePath(fileName);
                         outputStream = new FileOutputStream(path.toFile());
                 }
-                return new BufferedOutputStream(outputStream);
-            } catch (IOException e) {
+                return new BufferedOutputStream(compressionAlgo.getOutputStream(outputStream));
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
@@ -254,10 +255,14 @@ public class FileUtils {
     }
 
     public static OutputStream getOutputStream(String fileName) {
+        return getOutputStream(fileName, ExportConfig.EMPTY);
+    }
+
+    public static OutputStream getOutputStream(String fileName, ExportConfig config) {
         if (fileName.equals("-")) {
             return null;
         }
-        return SupportedProtocols.from(fileName).getOutputStream(fileName);
+        return SupportedProtocols.from(fileName).getOutputStream(fileName, config);
     }
 
     public static boolean isImportUsingNeo4jConfig() {

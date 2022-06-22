@@ -471,30 +471,25 @@ public class Meta {
     private void collectStats(SubGraph subGraph, Collection<String> labelNames, Collection<String> relTypeNames, StatsCallback cb) {
         TokenRead tokenRead = kernelTx.tokenRead();
 
-        Map<String, Integer> labelMap = subGraph.labelsInUse(tokenRead, labelNames);
-        Map<String, Integer> typeMap = subGraph.relTypesInUse(tokenRead, relTypeNames);
-
-        Iterable<Label> labels = CollectionUtils.isNotEmpty(labelNames)
-                ? labelNames.stream().map(Label::label).collect(Collectors.toList()) : subGraph.getAllLabelsInUse();
-        Iterable<RelationshipType> types = CollectionUtils.isNotEmpty(relTypeNames)
-                ? relTypeNames.stream().map(RelationshipType::withName).collect(Collectors.toList()) : subGraph.getAllRelationshipTypesInUse();
+        Iterable<Label> labels = subGraph.labelsInUse(labelNames);
+        Iterable<RelationshipType> types = subGraph.relTypesInUse(relTypeNames);
 
         labels.forEach(label -> {
             long count = subGraph.countsForNode(label);
             if (count > 0) {
                 String name = label.name();
-                int id = labelMap.get(name);
+                int id = tokenRead.nodeLabel(name);
                 cb.label(id, name, count);
                 types.forEach(type -> {
                     long relCountOut = subGraph.countsForRelationship(label, type);
                     long relCountIn = subGraph.countsForRelationship(type, label);
-                    cb.rel(typeMap.get(type.name()), type.name(), id, name, relCountOut, relCountIn);
+                    cb.rel(tokenRead.relationshipType(type.name()), type.name(), id, name, relCountOut, relCountIn);
                 });
             }
         });
         types.forEach(type -> {
             String name = type.name();
-            int id = typeMap.get(name);
+            int id = tokenRead.relationshipType(name);
             cb.rel(id, name, subGraph.countsForRelationship(type));
         });
     }
@@ -649,18 +644,13 @@ public class Meta {
                     while (nodes.hasNext()) {
                         Node node = nodes.next();
                         if(count++ % sample == 0) {
-                            boolean skipNode = false;
-                            for (RelationshipType rel : node.getRelationshipTypes()) {
-                                String relName = rel.name();
-                                if (excludeRels.contains(relName)) {
-                                    // Skip if explicitly excluded
-                                    skipNode = true;
-                                } else if (!includeRels.isEmpty() && !includeRels.contains(relName)) {
-                                    // Skip if included set is specified and this is not in it.
-                                    skipNode = true;
-                                }
-                            }
-                            if (skipNode != true) {
+                            boolean acceptNode = !node.hasRelationship()
+                                    || Iterables.stream(node.getRelationshipTypes())
+                                        .map(RelationshipType::name)
+                                        .anyMatch(relName -> !excludeRels.contains(relName) 
+                                                && (includeRels.isEmpty() || includeRels.contains(relName)));
+
+                            if (acceptNode) {
                                 profile.observe(node, config);
                             }
                         }
@@ -1050,15 +1040,13 @@ public class Meta {
     private Stream<GraphResult> metaGraph(SubGraph subGraph, Collection<String> labelNames, Collection<String> relTypeNames, boolean removeMissing, MetaConfig metaConfig) {
         TokenRead tokenRead = kernelTx.tokenRead();
 
-        Map<String, Integer> typeMap = subGraph.relTypesInUse(tokenRead, relTypeNames);
+        Iterable<RelationshipType> types = subGraph.relTypesInUse(relTypeNames);
         Iterable<Label> labels = CollectionUtils.isNotEmpty(labelNames)
                 ? labelNames.stream().map(Label::label).collect(Collectors.toList()) : subGraph.getAllLabelsInUse();
-        Iterable<RelationshipType> types = CollectionUtils.isNotEmpty(relTypeNames)
-                ? relTypeNames.stream().map(RelationshipType::withName).collect(Collectors.toList()) : subGraph.getAllRelationshipTypesInUse();
 
 
         Map<String, Node> vNodes = new TreeMap<>();
-        Map<Pattern, Relationship> vRels = new HashMap<>(typeMap.size() * 2);
+        Map<Pattern, Relationship> vRels = new HashMap<>((int) Iterables.count(types) * 2);
 
         labels.forEach(label -> {
             long count = subGraph.countsForNode(label);

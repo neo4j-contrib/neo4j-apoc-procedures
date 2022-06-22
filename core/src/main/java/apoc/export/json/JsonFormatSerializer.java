@@ -2,7 +2,6 @@ package apoc.export.json;
 
 import apoc.export.util.ExportConfig;
 import com.fasterxml.jackson.core.JsonGenerator;
-import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 

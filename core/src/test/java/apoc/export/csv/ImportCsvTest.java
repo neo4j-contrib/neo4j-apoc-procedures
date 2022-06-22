@@ -3,6 +3,7 @@ package apoc.export.csv;
 import apoc.ApocSettings;
 import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
@@ -37,7 +38,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Arrays.asList;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.MapUtil.map;
@@ -148,7 +148,14 @@ public class ImportCsvTest {
                             ":ID(node_space_1),:LABEL,str_attribute:STRING,int_attribute:INT,int_attribute_array:INT[],double_attribute_array:FLOAT[]\n" +
                             "n1,Thing,once upon a time,1,\"2;3\",\"2.3;3.5\"\n" +
                             "n2,Thing,,2,\"4;5\",\"2.6;3.6\"\n" +
-                            "n3,Thing,,,,\n"
+                            "n3,Thing,,,,\n"),
+                    new AbstractMap.SimpleEntry<>("emptyArray", 
+                            "id:ID,:LABEL,arr:STRING[],description:STRING\n" +
+                            "1,Arrays,a;b;c;d;e,normal,\n" +
+                            "2,Arrays,,withNull\n" +
+                            "3,Arrays,a;;c;;e,withEmptyItem\n" +
+                            "4,Arrays,a; ;c; ;e,withBlankItem\n" +
+                            "5,Arrays, ,withWhiteSpace\n"
                     )
             ).collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue)));
 
@@ -483,6 +490,38 @@ public class ImportCsvTest {
     }
 
     @Test
+    public void testEmptyArray() {
+        TestUtil.testCall(db, "CALL apoc.import.csv([{fileName: 'file:/emptyArray.csv', labels:[]}], [], $conf)",
+                map( "conf", map("ignoreEmptyCellArray", true)),
+                r -> assertEquals(5L, r.get("nodes")));
+
+        TestUtil.testResult(db, "MATCH (node:Arrays) RETURN node ORDER BY node.id", r -> {
+            final Map<String, Object> propsOne = ((Node) r.next().get("node")).getAllProperties();
+            assertEquals("normal", propsOne.get("description"));
+            assertArrayEquals(new String[] { "a", "b", "c", "d", "e" }, (String[]) propsOne.get("arr"));
+            
+            final Map<String, Object> propsTwo = ((Node) r.next().get("node")).getAllProperties();
+            assertEquals("withNull", propsTwo.get("description"));
+            assertFalse(propsTwo.containsKey("arr"));
+            
+            final Map<String, Object> propsThree = ((Node) r.next().get("node")).getAllProperties();
+            assertEquals("withEmptyItem", propsThree.get("description"));
+            assertArrayEquals(new String[] { "a", "", "c", "", "e" }, (String[]) propsThree.get("arr"));
+            
+            final Map<String, Object> propsFour = ((Node) r.next().get("node")).getAllProperties();
+            assertEquals("withBlankItem", propsFour.get("description"));
+            assertArrayEquals(new String[] { "a", " ", "c", " ", "e" }, (String[]) propsFour.get("arr"));
+            
+            final Map<String, Object> propsFive = ((Node) r.next().get("node")).getAllProperties();
+            assertEquals("withWhiteSpace", propsFive.get("description"));
+            assertArrayEquals(new String[] { " " }, (String[]) propsFive.get("arr"));
+            
+            assertFalse(r.hasNext());
+        });
+        
+    }
+
+    @Test
     public void testRelationshipWithoutIdSpaces() {
         TestUtil.testCall(
                 db,
@@ -601,9 +640,12 @@ public class ImportCsvTest {
     }
 
     @Test
-    public void ignoreFieldTypeWithBothBinaryAndFileUrl() {
+    public void ignoreFieldTypeWithBothBinaryAndFileUrl() throws IOException {
+        FileUtils.writeByteArrayToFile(new File(BASE_URL_FILES, "ignore-relationships.csv.zz"),
+                fileToBinary(new File(BASE_URL_FILES, "ignore-relationships.csv"), CompressionAlgo.DEFLATE.name()));
+        
         final Map<String, Object> config = map("nodeFile", fileToBinary(new File(BASE_URL_FILES, "ignore-nodes.csv"), CompressionAlgo.DEFLATE.name()),
-                "relFile", "file:/ignore-relationships.csv",
+                "relFile", "file:/ignore-relationships.csv.zz",
                 "config", map("delimiter", '|', "batchSize", 1, COMPRESSION, CompressionAlgo.DEFLATE.name())
         );
         final String query = "CALL apoc.import.csv([{data: $nodeFile, labels: ['Person']}], [{data: $relFile, type: 'KNOWS'}], $config)";

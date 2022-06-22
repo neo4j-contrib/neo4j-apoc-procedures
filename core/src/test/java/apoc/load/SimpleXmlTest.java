@@ -11,9 +11,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-
 @RunWith(Parameterized.class)
 public class SimpleXmlTest {
 

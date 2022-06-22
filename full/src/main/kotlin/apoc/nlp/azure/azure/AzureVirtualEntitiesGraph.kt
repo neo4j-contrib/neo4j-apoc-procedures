@@ -3,7 +3,6 @@ package apoc.nlp.azure
 import apoc.graph.document.builder.DocumentToGraph
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPVirtualGraph
-import apoc.result.NodeValueErrorMapResult
 import apoc.result.VirtualGraph
 import apoc.result.VirtualNode
 import org.apache.commons.text.WordUtils

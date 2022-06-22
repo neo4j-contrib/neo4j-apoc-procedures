@@ -226,30 +226,9 @@ a|
 ----
 |===
 
-If we have a `.html` file with a jQuery script like:
+include::partial$html/runtime.adoc[]
 
-[source,html]
-----
-<!DOCTYPE html>
-<head>
-    <script type="text/javascript">
-    $(() => {
-        var newP = document.createElement("strong");
-        var textNode = document.createTextNode("This is a new text node");
-        newP.appendChild(textNode);
-        document.getElementById("appendStuff").appendChild(newP);
-    });
-    </script>
-    <meta charset="UTF-8"/>
-</head>
-<body onLoad="loadData()" class="mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns-subject page-Aap_Kaa_Hak rootpage-Aap_Kaa_Hak skin-vector action-view">
-	<div id="appendStuff"></div>
-</body>
-</html>
-----
-
-we can read the generated js through the `browser` config.
-Note that to use a browser, you have to install <<selenium-depencencies,this dependencies>>:
+For example, with the above file we can execute:
 
 [source,cypher]
 ----
@@ -273,17 +252,73 @@ a|
 ----
 |===
 
-If we can parse a tag from a slow async call, we can use `wait` config to waiting for 10 second (in this example):
+If we have to parse a tag from a slow async call, we can use `wait` config to waiting for 10 second (in this example):
 
 [source,cypher]
 ----
 CALL apoc.load.html("test.html",{asyncTag: "#asyncTag"}, {browser: "FIREFOX", wait: 10});
 ----
 
-[[selenium-depencencies]]
-== Dependencies
 
-To use the `apoc.load.html` proceduree with `browser` config (not `NONE`), you have to add additional dependencies.
 
-This dependency is included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-selenium-dependencies-{apoc-release}.jar[apoc-selenium-dependencies-{apoc-release}.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
-Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
+We can also pass an HTML string into the 1st parameter by putting as a config parameter `htmlString: true`, for example:
+
+[source,cypher]
+----
+CALL apoc.load.html("<!DOCTYPE html> <html> <body> <p class='firstClass'>My first paragraph.</p> </body> </html>",{body:"body"}, {htmlString: true})
+YIELD value
+RETURN value["body"] as body
+----
+
+.Results
+[opts="header"]
+|===
+| body
+a|
+[source, json]
+----
+[{
+  "attributes": {},
+  "text": "My first paragraph.",
+  "tagName": "body"
+}]
+----
+|===
+
+
+include::partial$html/query-selectors.adoc[]
+
+For example, we can execute:
+
+[source,cypher]
+----
+CALL apoc.load.html($url, {nameKey: '#idName'})
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+a|
+[source,json]
+----
+{
+  "h6": [
+    {
+      "attributes": {
+        "id": "idName"
+      },
+      "text": "test",
+      "tagName": "h6"
+    }
+  ]
+}
+----
+|===
+
+== Html plain text representation
+
+If, instead of a map of json list results, 
+you want to get a map of plain text representations,
+you can use the xref::overview/apoc.load/apoc.load.htmlPlainText.adoc[apoc.load.htmlPlainText procedure], which use the same syntax, logic and config parameters as `apoc.load.html`.
+

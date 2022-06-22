@@ -47,12 +47,12 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.SettingImpl.newBuilder;
 import static org.neo4j.configuration.SettingValueParsers.BOOL;
@@ -888,6 +888,54 @@ public class MetaTest {
             assertEquals( 1, records.size() );
             assertEquals( records.get( 0 ).get( "propertyName" ).equals( "c" ), true );
         } );
+    }
+
+    @Test
+    public void testRelTypePropertiesIncludesWithDoubleRel() {
+        db.executeTransactionally( "CREATE (a:A)-[:FIRST_A {a: 1}]->(b:B), (a)-[:SECOND_B {b: '2'}]->(c)" );
+        db.executeTransactionally( "CREATE (:Alpha)-[:FIRST_A {c: true}]->(:Beta), (:Gamma)-[:SECOND_B {d: datetime()}]->(:Delta)" );
+
+        final Consumer<Result> assertFirstRel = res -> {
+            Map<String, Object> r = res.next();
+            assertEquals("a", r.get("propertyName"));
+            assertEquals(":`FIRST_A`", r.get("relType"));
+            assertEquals(List.of("Long"), r.get("propertyTypes"));
+            r = res.next();
+            assertEquals("c", r.get("propertyName"));
+            assertEquals(":`FIRST_A`", r.get("relType"));
+            assertEquals(List.of("Boolean"), r.get("propertyTypes"));
+            assertFalse(res.hasNext());
+        };
+        
+        final Consumer<Result> assertSecondRel = res -> {
+            Map<String, Object> r = res.next();
+            assertEquals("b", r.get("propertyName"));
+            assertEquals(":`SECOND_B`", r.get("relType"));
+            assertEquals(List.of("String"), r.get("propertyTypes"));
+            r = res.next();
+            assertEquals("d", r.get("propertyName"));
+            assertEquals(":`SECOND_B`", r.get("relType"));
+            assertEquals(List.of("DateTime"), r.get("propertyTypes"));
+            assertFalse(res.hasNext());
+        };
+
+        final String query = "CALL apoc.meta.relTypeProperties($conf) YIELD propertyName, relType, propertyTypes RETURN * ORDER BY relType";
+        
+        testResult(db, query, map("conf", 
+                    map("includeRels", List.of("FIRST_A"))), 
+                assertFirstRel);
+        testResult(db, query, map("conf", 
+                    map("excludeRels", List.of("SECOND_B"))), 
+                assertFirstRel);
+
+        testResult(db, query, map("conf", 
+                    map("excludeRels", List.of("FIRST_A"))), 
+                assertSecondRel);
+        testResult(db, query, map("conf", 
+                    map("includeRels", List.of("SECOND_B"))),
+                assertSecondRel);
+
+        TestUtil.testCallCount(db, "CALL apoc.meta.relTypeProperties()", emptyMap(), 4);
     }
 
     @Test

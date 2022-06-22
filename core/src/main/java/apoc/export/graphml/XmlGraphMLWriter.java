@@ -1,9 +1,11 @@
 package apoc.export.graphml;
 
 import apoc.export.util.*;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Relationship;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -131,8 +133,8 @@ public class XmlGraphMLWriter {
     private int writeRelationship(XMLStreamWriter writer, Relationship rel, ExportConfig config) throws XMLStreamException {
         writer.writeStartElement("edge");
         writer.writeAttribute("id", id(rel));
-        writer.writeAttribute("source", id(rel.getStartNode()));
-        writer.writeAttribute("target", id(rel.getEndNode()));
+        getNodeAttribute(writer, XmlNodeExport.NodeType.SOURCE, config, rel);
+        getNodeAttribute(writer, XmlNodeExport.NodeType.TARGET, config, rel);
         if (config.getFormat() == ExportFormat.TINKERPOP) {
             writeData(writer, "labelE", rel.getType().name());
         } else {
@@ -145,6 +147,29 @@ public class XmlGraphMLWriter {
         int props = writeProps(writer, rel);
         endElement(writer);
         return props;
+    }
+
+    private void getNodeAttribute(XMLStreamWriter writer, XmlNodeExport.NodeType nodeType, ExportConfig config, Relationship rel) throws XMLStreamException {
+
+        final XmlNodeExport.ExportNode xmlNodeInterface = nodeType.get();
+        final Node node = xmlNodeInterface.getNode(rel);
+        final String name = nodeType.getName();
+        final ExportConfig.NodeConfig nodeConfig = xmlNodeInterface.getNodeConfig(config);
+        // without config the source/target configs, we leverage the internal node id
+        if (StringUtils.isBlank(nodeConfig.id)) {
+            writer.writeAttribute(name, id(node));
+            return;
+        }
+        // with source/target with an id configured 
+        // we put a source with the property value and a sourceType with the prop type of node
+        try {
+            final Object nodeProperty = node.getProperty(nodeConfig.id);
+            writer.writeAttribute(name, nodeProperty.toString());
+            writer.writeAttribute(nodeType.getNameType(), MetaInformation.typeFor(nodeProperty.getClass(), MetaInformation.GRAPHML_ALLOWED));
+        } catch (NotFoundException e) {
+            throw new RuntimeException(
+                    "The config source and/or target cannot be used because the node with id " + node.getId() + " doesn't have property " + nodeConfig.id);
+        }
     }
 
     private String id(Relationship rel) {

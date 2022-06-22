@@ -4,11 +4,9 @@ import apoc.ApocConfig;
 import apoc.Pools;
 import apoc.convert.Convert;
 import apoc.export.util.CountingInputStream;
+import apoc.export.util.ExportConfig;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
@@ -31,6 +29,7 @@ import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
+import org.neo4j.logging.NullLog;
 import org.neo4j.procedure.TerminationGuard;
 import org.neo4j.values.storable.CoordinateReferenceSystem;
 import org.neo4j.values.storable.PointValue;
@@ -42,6 +41,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
@@ -376,7 +376,7 @@ public class Util {
             }
 
             StreamConnection sc = getStreamConnection(urlAddress, headers, payload);
-            return sc.toCountingInputStream();
+            return sc.toCountingInputStream(compressionAlgo);
         } else if (input instanceof byte[]) {
             return FileUtils.getInputStreamFromBinary((byte[]) input, compressionAlgo);
         } else {
@@ -733,13 +733,13 @@ public class Util {
         }
     }
 
-    public static void close(AutoCloseable closeable, Consumer<Exception> onErrror) {
+    public static void close(AutoCloseable closeable, Consumer<Exception> onError) {
         try {
             if (closeable!=null) closeable.close();
         } catch (Exception e) {
-            // ignore
-            if (onErrror != null) {
-                onErrror.accept(e);
+            // Consume the exception if requested, else ignore
+            if (onError != null) {
+                onError.accept(e);
             }
         }
     }
@@ -818,7 +818,7 @@ public class Util {
         if ("TAB".equals(separator)) {
             return '\t';
         }
-        // "NONE" is used to resolve cases like issue #1376. 
+        // "NONE" is used to resolve cases like issue #1376.
         // That is, when I have a line like "VER: AX\GEARBOX\ASSEMBLY" and I don't want to convert it in "VER: AXGEARBOXASSEMBLY"
         if ("NONE".equals(separator)) {
             return '\0';
@@ -955,7 +955,7 @@ public class Util {
     public static boolean isSelfRel(Relationship rel) {
         return rel.getStartNodeId() == rel.getEndNodeId();
     }
-    
+
     public static PointValue toPoint(Map<String, Object> pointMap, Map<String, Object> defaultPointMap) {
         double x;
         double y;
@@ -982,13 +982,32 @@ public class Util {
 
         return z != null ? Values.pointValue(crs, x, y, z) : Values.pointValue(crs, x, y);
     }
-    
+
     private static Object getOrDefault(Map<String, Object> firstMap, Map<String, Object> secondMap, String key) {
         return firstMap.getOrDefault(key, secondMap.get(key));
+    }
+
+    public static Object getStringOrCompressedData(StringWriter writer, ExportConfig config) {
+        try {
+            final String compression = config.getCompressionAlgo();
+            final String writerString = writer.toString();
+            Object data = compression.equals(CompressionAlgo.NONE.name())
+                    ? writerString
+                    : CompressionAlgo.valueOf(compression).compress(writerString, config.getCharset());
+            writer.getBuffer().setLength(0);
+            return data;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static String toCypherMap(Map<String, Object> map) {
         final StringBuilder builder = formatProperties(map);
         return "{" + formatToString(builder) + "}";
+    }
+
+    public static <T extends Entity> T withTransactionAndRebind(GraphDatabaseService db, Transaction transaction, Function<Transaction, T> action) {
+        T result = retryInTx(NullLog.getInstance(), db, action, 0, 0, r -> {});
+        return rebind(transaction, result);
     }
 }

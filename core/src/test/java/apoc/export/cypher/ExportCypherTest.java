@@ -1,7 +1,10 @@
 package apoc.export.cypher;
 
 import apoc.graph.Graphs;
+import apoc.util.BinaryTestUtil;
+import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -15,6 +18,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -22,7 +26,9 @@ import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
 import static apoc.export.util.ExportFormat.*;
+import static apoc.util.BinaryTestUtil.getDecompressedData;
 import static apoc.util.Util.map;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.*;
 import static org.neo4j.configuration.SettingImpl.newBuilder;
 import static org.neo4j.configuration.SettingValueParsers.BOOL;
@@ -57,9 +63,9 @@ public class ExportCypherTest {
     public void setUp() throws Exception {
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
-        db.executeTransactionally("CREATE INDEX ON :Bar(first_name, last_name)");
-        db.executeTransactionally("CREATE INDEX ON :Foo(name)");
-        db.executeTransactionally("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE");
+        db.executeTransactionally("CREATE INDEX barIndex FOR (n:Bar) ON (n.first_name, n.last_name)");
+        db.executeTransactionally("CREATE INDEX fooIndex FOR (n:Foo) ON (n.name)");
+        db.executeTransactionally("CREATE CONSTRAINT consBar ON (n:Bar) ASSERT (n.name) IS UNIQUE");
         if (testName.getMethodName().endsWith(OPTIMIZED)) {
             db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar:Person {age:12}),(d:Bar {age:12})," +
                     " (t:Foo {name:'foo2', born:date('2017-09-29')})-[:KNOWS {since:2015}]->(e:Bar {name:'bar2',age:44}),({age:99})");
@@ -87,8 +93,35 @@ public class ExportCypherTest {
 
     @Test
     public void testExportAllCypherStreaming() {
+        final String query = "CALL apoc.export.cypher.all(null,{useOptimizations: { type: 'none'}, streamStatements:true,batchSize:3, format: 'neo4j-shell'})";
+        assertExportAllCypherStreaming(CompressionAlgo.NONE, query);
+    }
+
+    @Test
+    public void testExportAllWithCompressionCypherStreaming() {
+        final CompressionAlgo algo = CompressionAlgo.BZIP2;
+        final String query = "CALL apoc.export.cypher.all(null,{compression: '" + algo.name() + "', useOptimizations: { type: 'none'}, streamStatements:true,batchSize:3, format: 'neo4j-shell'})";
+        assertExportAllCypherStreaming(algo, query);
+    }
+    
+    @Test
+    public void testExportAllWithStreamingSeparatedAndCompressedFile() {
+        final CompressionAlgo algo = CompressionAlgo.BZIP2;
+        final Map<String, Object> config = map("compression", algo.name(),
+                "useOptimizations", map("type", "none"), 
+                "stream", true, "separateFiles", true, "format", "neo4j-admin");
+        
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all(null, $config)", map("config", config), r -> {
+            assertEquals(EXPECTED_NODES, getDecompressedData(algo, r.get("nodeStatements")));
+            assertEquals(EXPECTED_RELATIONSHIPS, getDecompressedData(algo, r.get("relationshipStatements")));
+            assertEquals(EXPECTED_SCHEMA, getDecompressedData(algo, r.get("schemaStatements")));
+            assertEquals(EXPECTED_CLEAN_UP, getDecompressedData(algo, r.get("cleanupStatements")));
+        });
+    }
+
+    private void assertExportAllCypherStreaming(CompressionAlgo algo, String query) {
         StringBuilder sb = new StringBuilder();
-        TestUtil.testResult(db, "CALL apoc.export.cypher.all(null,{useOptimizations: { type: 'none'}, streamStatements:true,batchSize:3, format: 'neo4j-shell'})", (res) -> {
+        TestUtil.testResult(db, query, (res) -> {
             Map<String, Object> r = res.next();
             assertEquals(3L, r.get("batchSize"));
             assertEquals(1L, r.get("batches"));
@@ -99,7 +132,7 @@ public class ExportCypherTest {
             assertNull("Should get file",r.get("file"));
             assertEquals("cypher", r.get("format"));
             assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
-            sb.append(r.get("cypherStatements"));
+            sb.append(getDecompressedData(algo, r.get("cypherStatements")));
             r = res.next();
             assertEquals(3L, r.get("batchSize"));
             assertEquals(2L, r.get("batches"));
@@ -108,7 +141,7 @@ public class ExportCypherTest {
             assertEquals(1L, r.get("relationships"));
             assertEquals(6L, r.get("properties"));
             assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
-            sb.append(r.get("cypherStatements"));
+            sb.append(getDecompressedData(algo, r.get("cypherStatements")));
         });
         assertEquals(EXPECTED_NEO4J_SHELL.replace("LIMIT 20000", "LIMIT 3"), sb.toString());
     }
@@ -142,8 +175,12 @@ public class ExportCypherTest {
         assertEquals(EXPECTED_NEO4J_SHELL, readFile(fileName));
     }
 
-    private static String readFile(String fileName) throws FileNotFoundException {
-        return TestUtil.readFileToString(new File(directory, fileName));
+    private static String readFile(String fileName) {
+        return readFile(fileName, CompressionAlgo.NONE);
+    }
+    
+    private static String readFile(String fileName, CompressionAlgo algo) {
+        return BinaryTestUtil.readFileToString(new File(directory, fileName), UTF_8, algo);
     }
 
     @Test
@@ -180,6 +217,30 @@ public class ExportCypherTest {
         TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$exportConfig)", map("file", fileName, "exportConfig", exportConfig),
                 (r) -> assertResults(fileName, r, "database"));
         assertEquals(EXPECTED_SCHEMA, readFile("all.schema.cypher"));
+    }
+
+    @Test
+    public void testExportAllCypherSchemaWithSaveIdxNames() throws Exception {
+        final Map<String, Object> config = new HashMap<>(ExportCypherTest.exportConfig);
+        config.put("saveIndexNames", true);
+        String fileName = "all.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$config)", 
+                map("file", fileName, "config", config),
+                (r) -> assertResults(fileName, r, "database"));
+        final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, " barIndex", " fooIndex", StringUtils.EMPTY);
+        assertEquals(expectedFile, readFile("all.schema.cypher"));
+    }
+
+    @Test
+    public void testExportAllCypherSchemaWithSaveConstraintNames() throws Exception {
+        final Map<String, Object> config = new HashMap<>(ExportCypherTest.exportConfig);
+        config.put("saveConstraintNames", true);
+        String fileName = "all.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$config)", 
+                map("file", fileName, "config", config),
+                (r) -> assertResults(fileName, r, "database"));
+        final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, StringUtils.EMPTY, StringUtils.EMPTY, " consBar");
+        assertEquals(expectedFile, readFile("all.schema.cypher"));
     }
 
     @Test
@@ -289,6 +350,16 @@ public class ExportCypherTest {
         TestUtil.testCall(db, "CALL apoc.export.cypher.schema($file,$exportConfig)", map("file", fileName, "exportConfig", exportConfig), (r) -> {
         });
         assertEquals(EXPECTED_ONLY_SCHEMA_NEO4J_SHELL, readFile(fileName));
+    }
+
+    @Test
+    public void testExportSchemaCypherWithIdxAndConsNames() throws Exception {
+        final Map<String, Object> config = new HashMap<>(ExportCypherTest.exportConfig);
+        config.putAll(map("saveConstraintNames", true, "saveIndexNames", true));
+        String fileName = "onlySchema.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.schema($file,$config)", 
+                map("file", fileName, "config", config), (r) -> {});
+        assertEquals(EXPECTED_ONLY_SCHEMA_NEO4J_SHELL_WITH_NAMES, readFile(fileName));
     }
 
     @Test
@@ -479,6 +550,16 @@ public class ExportCypherTest {
     }
 
     @Test
+    public void testExportQueryCypherShellWithCompressionWithUnwindBatchSizeWithBatchSizeOptimized() throws Exception {
+        final CompressionAlgo algo = CompressionAlgo.DEFLATE;
+        String fileName = "allPlainOptimized.cypher.ZZ";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,{compression: '" + algo.name() + "', format:'cypher-shell', useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}, batchSize: 2})",
+                map("file", fileName),
+                (r) -> assertResultsOptimized(fileName, r));
+        assertEquals(EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED_UNWIND, readFile(fileName, algo));
+    }
+
+    @Test
     public void testExportQueryCypherShellWithUnwindBatchSizeWithBatchSizeOddDataset() throws Exception {
         String fileName = "allPlainOdd.cypher";
         TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,{format:'cypher-shell', useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}, batchSize: 2})",
@@ -493,6 +574,16 @@ public class ExportCypherTest {
                 map("file", fileName),
                 (r) -> assertResultsOdd(fileName, r));
         assertEquals(EXPECTED_QUERY_CYPHER_SHELL_PARAMS_OPTIMIZED_ODD, readFile(fileName));
+    }
+    
+    @Test
+    public void testExportWithCompressionQueryCypherShellUnwindBatchParamsWithOddDataset() {
+        final CompressionAlgo algo = CompressionAlgo.BZIP2;
+        String fileName = "allPlainOdd.cypher.bz2";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,{compression: '" + algo.name() + "', format:'cypher-shell', useOptimizations: { type: 'unwind_batch_params', unwindBatchSize: 2}, batchSize:2})",
+                map("file", fileName),
+                (r) -> assertResultsOdd(fileName, r));
+        assertEquals(EXPECTED_QUERY_CYPHER_SHELL_PARAMS_OPTIMIZED_ODD, readFile(fileName, algo));
     }
 
     @Test
@@ -747,18 +838,32 @@ public class ExportCypherTest {
         String fileName = "relIndex.cypher";
         db.executeTransactionally("CREATE INDEX rel_index_name FOR ()-[r:KNOWS]-() ON (r.since, r.foo)");
 
-        relIndexTestCommon(fileName, EXPECTED_SCHEMA_WITH_RELS_OPTIMIZED, false);
+        relIndexTestCommon(fileName, EXPECTED_SCHEMA_WITH_RELS_OPTIMIZED, map("ifNotExists", false));
 
         // with ifNotExists: true
-        relIndexTestCommon(fileName, EXPECTED_SCHEMA_WITH_RELS_AND_IF_NOT_EXISTS, true);
+        relIndexTestCommon(fileName, EXPECTED_SCHEMA_WITH_RELS_AND_IF_NOT_EXISTS, map("ifNotExists", true));
+
+        db.executeTransactionally("DROP INDEX rel_index_name");
+    }
+    
+    @Test
+    public void shouldSaveCorrectlyRelIndexesWithNameOptimized() throws FileNotFoundException {
+        String fileName = "relIndex.cypher";
+        db.executeTransactionally("CREATE INDEX rel_index_name FOR ()-[r:KNOWS]-() ON (r.since, r.foo)");
+
+        relIndexTestCommon(fileName, EXPECTED_SCHEMA_WITH_RELS_AND_NAME_OPTIMIZED, map("ifNotExists", false, "saveIndexNames", true, "saveConstraintNames", true));
+
+        // with ifNotExists: true
+        relIndexTestCommon(fileName, EXPECTED_SCHEMA_OPTIMIZED_WITH_RELS_IF_NOT_EXISTS_AND_NAME, map("ifNotExists", true, "saveIndexNames", true, "saveConstraintNames", true));
 
         db.executeTransactionally("DROP INDEX rel_index_name");
     }
 
-    private void relIndexTestCommon(String fileName, String expectedSchema, boolean ifNotExists) throws FileNotFoundException {
+    private void relIndexTestCommon(String fileName, String expectedSchema, Map<String, Object> config) throws FileNotFoundException {
+        Map<String, Object> exportConfig = map("separateFiles", true, "format", "neo4j-shell");
+        exportConfig.putAll(config);
         TestUtil.testCall(db, "CALL apoc.export.cypher.all($file, $exportConfig)",
-                map("file", fileName, "exportConfig", 
-                        map("ifNotExists", ifNotExists, "separateFiles", true, "format", "neo4j-shell")),
+                map("file", fileName, "exportConfig", exportConfig),
                 (r) -> assertResultsOptimized(fileName, r));
         assertEquals(EXPECTED_NODES_OPTIMIZED, readFile("relIndex.nodes.cypher"));
         assertEquals(EXPECTED_RELATIONSHIPS_OPTIMIZED, readFile("relIndex.relationships.cypher"));
@@ -814,6 +919,14 @@ public class ExportCypherTest {
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 
+        static final String EXPECTED_SCHEMA_WITH_NAMES = "BEGIN%n" +
+                "CREATE INDEX%s FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE INDEX%s FOR (node:Foo) ON (node.name);%n" +
+                "CREATE CONSTRAINT%s ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n";
+
         static final String EXPECTED_SCHEMA_EMPTY = String.format("BEGIN%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
@@ -851,6 +964,13 @@ public class ExportCypherTest {
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
+
+        static final String EXPECTED_ONLY_SCHEMA_NEO4J_SHELL_WITH_NAMES = "BEGIN\n" +
+                "CREATE INDEX barIndex FOR (node:Bar) ON (node.first_name, node.last_name);\n" +
+                "CREATE INDEX fooIndex FOR (node:Foo) ON (node.name);\n" +
+                "CREATE CONSTRAINT consBar ON (node:Bar) ASSERT (node.name) IS UNIQUE;\n" +
+                "COMMIT\n" +
+                "SCHEMA AWAIT\n";
 
         static final String EXPECTED_CYPHER_POINT = String.format("BEGIN%n" +
                 "CREATE (:Test:`UNIQUE IMPORT LABEL` {name:\"foo\", place2d:point({x: 2.3, y: 4.5, crs: 'cartesian'}), place3d1:point({x: 2.3, y: 4.5, z: 1.2, crs: 'cartesian-3d'}), `UNIQUE IMPORT ID`:3});%n" +
@@ -955,6 +1075,15 @@ public class ExportCypherTest {
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
         
+        static final String EXPECTED_SCHEMA_WITH_RELS_AND_NAME_OPTIMIZED = String.format("BEGIN%n" +
+                "CREATE INDEX barIndex FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE INDEX fooIndex FOR (node:Foo) ON (node.name);%n" +
+                "CREATE INDEX rel_index_name FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
+                "CREATE CONSTRAINT consBar ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n");
+        
         static final String EXPECTED_SCHEMA_WITH_RELS_AND_IF_NOT_EXISTS = String.format("BEGIN%n" +
                 "CREATE INDEX IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE INDEX IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
@@ -976,6 +1105,15 @@ public class ExportCypherTest {
                 "CREATE INDEX IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE INDEX IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT IF NOT EXISTS ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n");
+
+        static final String EXPECTED_SCHEMA_OPTIMIZED_WITH_RELS_IF_NOT_EXISTS_AND_NAME = String.format("BEGIN%n" +
+                "CREATE INDEX barIndex IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE INDEX fooIndex IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
+                "CREATE INDEX rel_index_name IF NOT EXISTS FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
+                "CREATE CONSTRAINT consBar IF NOT EXISTS ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
