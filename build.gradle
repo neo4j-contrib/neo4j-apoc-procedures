@@ -85,6 +85,10 @@ subprojects {
         // We need to ignore the failures because we may have tests muted
         if (System.env.TEAMCITY_VERSION != null) {
             ignoreFailures(true)
+            if (project.hasProperty('excludeSeleniumTests')) {
+                exclude '**/LoadHtmlTest*'
+                exclude '**/LoadHtmlTestParameterized*'
+            }
         }
 
         jvmArgs = [ "--add-opens", "java.base/java.lang=ALL-UNNAMED",
