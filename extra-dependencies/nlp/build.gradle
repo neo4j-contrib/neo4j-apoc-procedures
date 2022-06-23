@@ -17,9 +17,14 @@ jar {
     }
 }
 
+def withoutJacksons = {
+    exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
+    exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+}
+
 dependencies {
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
-    compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.1'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
+    compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.1', withoutJacksons
     compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 }
 

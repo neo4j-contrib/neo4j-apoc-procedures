@@ -56,7 +56,7 @@ dependencies {
 //    compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
-    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
+    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.5'
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
 
     antlr "org.antlr:antlr4:4.7.2", {
@@ -108,34 +108,42 @@ dependencies {
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
 
+    def withoutJacksons = {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+    }
 
-    compileOnly 'org.mongodb:mongodb-driver:3.2.2'
-    testCompile 'org.mongodb:mongodb-driver:3.2.2'
+    compileOnly 'org.mongodb:mongodb-driver:3.2.2', {
+        exclude group: 'io.netty'
+    }
+    testCompile 'org.mongodb:mongodb-driver:3.2.2', {
+        exclude group: 'io.netty'
+    }
 
-    compileOnly group: 'com.couchbase.client', name: 'java-client', version: '3.2.4'
-    testCompile group: 'com.couchbase.client', name: 'java-client', version: '3.2.4'
+    compileOnly group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', withoutJacksons
+    testCompile group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', withoutJacksons
 
     compileOnly group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
     testCompile group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
 
-    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2'
+    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2', withoutJacksons
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 
-    testCompile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2'
+    testCompile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2', withoutJacksons
     testCompile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 
     testCompile 'org.mock-server:mockserver-netty:5.6.0'
     testCompile 'org.mock-server:mockserver-client-java:5.6.0'
 
-    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
-    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.11.683'
+    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
+    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
 
     compile group: 'com.opencsv', name: 'opencsv', version: '4.6'
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
-    compile group: 'com.github.javafaker', name: 'javafaker', version: '0.10'
+    compile group: 'com.github.javafaker', name: 'javafaker', version: '1.0.2'
 
     // schemacrawler
     compile group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'
@@ -153,8 +161,8 @@ dependencies {
     testCompile group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
     testCompile group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
 
-    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '1.92.0'
-    testCompile group: 'com.google.cloud', name: 'google-cloud-storage', version: '1.92.0', {
+    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.1'
+    testCompile group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.1', {
         exclude group: 'com.google.guava', module: 'guava'
     }
 
