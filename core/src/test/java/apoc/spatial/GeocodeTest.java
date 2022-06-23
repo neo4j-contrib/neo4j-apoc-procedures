@@ -20,8 +20,6 @@ import static org.junit.Assert.*;
 
 public class GeocodeTest {
 
-    private static final String OPENCAGE_KEY = System.getenv("OPENCAGE_KEY");
-    
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
@@ -29,7 +27,7 @@ public class GeocodeTest {
     public void initDb() throws Exception {
         assumeRunningInCI();
         apocConfig().setProperty("apoc.spatial.geocode.provider", "opencage");
-        apocConfig().setProperty("apoc.spatial.geocode.opencage.key", OPENCAGE_KEY);
+        apocConfig().setProperty("apoc.spatial.geocode.opencage.key", "<YOUR_API_KEY>");
         apocConfig().setProperty("apoc.spatial.geocode.opencage.url", "https://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY");
         apocConfig().setProperty("apoc.spatial.geocode.opencage.reverse.url", "https://api.opencagedata.com/geocode/v1/json?q=LAT+LNG&key=KEY");
 
@@ -57,22 +55,6 @@ public class GeocodeTest {
                 map("provider", "opencage", "url", "https://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY111"));
     }
     
-    @Test
-    public void testGeocodeOpenCageViaConfigMap() throws Exception {
-        Assume.assumeNotNull(OPENCAGE_KEY);
-        // overwrite ApocConfig provider
-        testGeocode("osm", 1000, false, 
-                map("provider", "opencage", "url", "https://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY", "key", OPENCAGE_KEY));
-    }
-    
-    @Test
-    public void testReverseGeocodeOpenCageViaConfigMap() throws Exception {
-        Assume.assumeNotNull(OPENCAGE_KEY);
-        // overwrite ApocConfig provider
-        testGeocode("osm", 1000, true, 
-                map("provider", "openCage", "reverseUrl", "https://api.opencagedata.com/geocode/v1/json?q=LAT+LNG&key=KEY", "key", OPENCAGE_KEY));
-    }
-    
     // -- with apoc config
     @Test
     public void testGeocodeOSM() throws Exception {
@@ -84,28 +66,22 @@ public class GeocodeTest {
         testGeocodeWithThrottling("osm", true);
     }
 
-    private void checkGoogleKey() {
-        String keyGoogle = System.getenv("GMAPS_KEY");
-        Assume.assumeNotNull(keyGoogle);
-        apocConfig().setProperty("apoc.spatial.geocode.google.key", keyGoogle);
-    }
-
+    @Ignore
     @Test
     public void testGeocodeGoogle() throws Exception {
-        checkGoogleKey();
         testGeocodeWithThrottling("google", false);
     }
 
     @Test
     public void testReverseGeocodeGoogle() throws Exception {
-        checkGoogleKey();
         testGeocodeWithThrottling("google", true);
     }
 
     @Test
     public void testGeocodeOpenCage() throws Exception {
         // If the key is not defined the test won't fail
-        Assume.assumeNotNull(OPENCAGE_KEY);
+        String provider = apocConfig().getString(Geocode.PREFIX +"." + Geocode.GEOCODE_PROVIDER_KEY).toLowerCase();
+        Assume.assumeTrue(!"<YOUR_API_KEY>".equals(apocConfig().getString(Geocode.PREFIX +"." + provider + ".key")));
 
         // We use testGeocode() instead of testGeocodeWithThrottling() because the slow test takes less time than the fast one
         // The overall execution is strictly tight to the remote service according to quota and request policies
@@ -115,7 +91,8 @@ public class GeocodeTest {
     @Test
     public void testReverseGeocodeOpenCage() throws Exception {
         // If the key is not defined the test won't fail
-        Assume.assumeNotNull(OPENCAGE_KEY);
+        String provider = apocConfig().getString(Geocode.PREFIX +"." + Geocode.GEOCODE_PROVIDER_KEY).toLowerCase();
+        Assume.assumeTrue(!"<YOUR_API_KEY>".equals(apocConfig().getString(Geocode.PREFIX +"." + provider + ".key")));
         testGeocode("openCage",1000, true);
     }
 
@@ -157,7 +134,7 @@ public class GeocodeTest {
         ignoreQuotaError(() -> {
             testResult(db, "CALL apoc.spatial.reverseGeocode($latitude, $longitude, false, $config)",
                     map("latitude", latitude, "longitude", longitude, "config", config), (row) -> {
-                        row.forEachRemaining((r) -> {
+                        row.forEachRemaining((r)->{
                             assertNotNull(r.get("description"));
                             assertNotNull(r.get("location"));
                             assertNotNull(r.get("data"));
@@ -190,7 +167,6 @@ public class GeocodeTest {
         ignoreQuotaError(() -> {
             testResult(db,"CALL apoc.spatial.geocode('FRANCE',1,true,$config)",
                     map("config", config), (row)->{
-                        assertTrue(row.hasNext());
                         row.forEachRemaining((r)->{
                             assertNotNull(r.get("description"));
                             assertNotNull(r.get("location"));
