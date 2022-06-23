@@ -190,15 +190,16 @@ public class CypherProceduresTest  {
             assertEquals(2L, node.getProperty("value"));
         });
         TestUtil.testResult(db, "RETURN custom.ret_map(3) AS val", (result) -> {
-            Map<String, Map<String, Object>> map = result.<Map<String, Map<String, Object>>>columnAs("val").next();
+            Map<String, Object> map = result.<Map<String, Object>>columnAs("val").next();
             assertEquals(1, map.size());
-            assertEquals(3L, map.get("value").get("value"));
+            assertEquals(3L, map.get("value"));
         });
         TestUtil.testResult(db, "RETURN custom.ret_map_list(4) AS val", (result) -> {
-            List<Map<String, List<Map<String, Object>>>> list = result.<List<Map<String, List<Map<String, Object>>>>>columnAs("val").next();
+            List<List<Map<String, Object>>> list = result.<List<List<Map<String, Object>>>>columnAs("val").next();
             assertEquals(1, list.size());
-            assertEquals(1, list.get(0).size());
-            assertEquals(4L, list.get(0).get("value").get(0).get("value"));
+            List<Map<String, Object>> map = list.get(0);
+            assertEquals(1, map.size());
+            assertEquals(4L, map.get(0).get("value"));
         });
     }
 
@@ -226,18 +227,16 @@ public class CypherProceduresTest  {
             assertEquals(2L, t.getProperty("value"));
         });
         TestUtil.testResult(db, "RETURN custom.ret_map(3) AS val", (result) -> {
-            Map<String,Node> map = result.<Map<String, Node>>columnAs("val").next();
-            assertEquals(1, map.size());
-            Node t = map.get("t");
-            assertTrue(t.hasLabel(Label.label("Target")));
-            assertEquals(3L, t.getProperty("value"));
+            Node node = result.<Node>columnAs("val").next();
+            assertTrue(node.hasLabel(Label.label("Target")));
+            assertEquals(3L, node.getProperty("value"));
         });
         TestUtil.testResult(db, "RETURN custom.ret_map_list(4) AS val", (result) -> {
-            List<Map<String, Node>> nodes = result.<List<Map<String, Node>>>columnAs("val").next();
+            List<Node> nodes = result.<List<Node>>columnAs("val").next();
             assertEquals(1, nodes.size());
-            Node t = nodes.get(0).get("t");
-            assertTrue(t.hasLabel(Label.label("Target")));
-            assertEquals(4L, t.getProperty("value"));
+            Node node = nodes.get(0);
+            assertTrue(node.hasLabel(Label.label("Target")));
+            assertEquals(4L, node.getProperty("value"));
         });
     }
 
