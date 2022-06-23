@@ -192,10 +192,10 @@ public class ImportCsvTest {
     
     @Test
     public void testImportCsvWithSkipLines() {
-        // skip header and another one
+        // skip only-header (default config)
         testSkipLine(1L, 2);
 
-        // skip only-header (default config)
+        // skip header and another one
         testSkipLine(2L, 1);
 
         // skip header and another two (no result because the file has 3 lines)
