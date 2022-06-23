@@ -17,7 +17,9 @@ jar {
 }
 
 dependencies {
-    compile group: 'com.couchbase.client', name: 'java-client', version: '3.2.4'
+    compile group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+    }
 }
 
 
