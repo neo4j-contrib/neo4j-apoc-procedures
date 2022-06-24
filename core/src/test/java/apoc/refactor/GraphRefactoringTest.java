@@ -16,6 +16,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -627,6 +628,31 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
     @Test
     public void testCategorizeIncoming() throws Exception {
         categorizeWithDirection(Direction.INCOMING);
+    }
+
+    @Test
+    public void testIssue3000() {
+        db.executeTransactionally("CREATE (a:Person {name: 'Mark', city: 'London'})\n" +
+                "CREATE (b:Person {name: 'Dan', city: 'Hull'})\n" +
+                "CREATE (a)-[r:FRIENDS_WITH]->(b)");
+        
+        testResult(db, "MATCH (p:Person) WITH collect(p) as people \n" +
+                        "CALL apoc.refactor.cloneNodes(people, true) \n" +
+                        "YIELD output \n" +
+                        "RETURN output ORDER BY output.name",
+                (row) -> {
+                    final ResourceIterator<Node> nodes = row.columnAs("output");
+                    final Node first = nodes.next();
+                    assertEquals("Dan", first.getProperty("name"));
+                    first.getRelationships()
+                            .forEach(i -> assertEquals("Mark", i.getStartNode().getProperty("name")));
+                    final Node second = nodes.next();
+                    assertEquals("Mark", second.getProperty("name"));
+                    second.getRelationships()
+                            .forEach(i -> assertEquals("Dan", i.getEndNode().getProperty("name")));
+                    assertFalse(nodes.hasNext());
+                }
+        );
     }
 
     @Test
