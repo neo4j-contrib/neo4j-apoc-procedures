@@ -21,7 +21,7 @@ apoc.coll.avgDuration(durations :: LIST? OF DURATION?) :: (DURATION?)
 [.procedures, opts=header]
 |===
 | Name | Type | Default 
-|numbers|LIST? OF DURATION?|null
+|durations|LIST? OF DURATION?|null
 |===
 
 [[usage-apoc.coll.avgDuration]]
