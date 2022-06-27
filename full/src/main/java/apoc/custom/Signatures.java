@@ -112,9 +112,10 @@ public class Signatures {
         List<FieldSignature> inputSignatures = signature.parameter().stream().map(p -> getInputField(name(p.name()), type(p.type()), defaultValue(p.defaultValue(), type(p.type())))).collect(Collectors.toList());
 
         String deprecated = "";
-        String[] allowed = new String[0];
         boolean caseInsensitive = true;
-        return new UserFunctionSignature(name, inputSignatures, type, deprecated, allowed, description, "apoc.custom",caseInsensitive);
+        boolean isBuiltIn = false;
+        boolean internal = false;
+        return new UserFunctionSignature(name, inputSignatures, type, deprecated, description, "apoc.custom", caseInsensitive, isBuiltIn, internal);
     }
 
     private DefaultParameterValue defaultValue(SignatureParser.DefaultValueContext defaultValue, Neo4jTypes.AnyType type) {
