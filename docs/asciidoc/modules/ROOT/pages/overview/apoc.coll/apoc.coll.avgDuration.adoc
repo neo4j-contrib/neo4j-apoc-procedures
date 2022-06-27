@@ -14,7 +14,7 @@ apoc.coll.avgDuration([duration('P2DT3H'), duration('PT1H45S'), ...]) -  returns
 
 [source]
 ----
-apoc.coll.avgDuration(numbers :: LIST? OF DURATION?) :: (DURATION?)
+apoc.coll.avgDuration(durations :: LIST? OF DURATION?) :: (DURATION?)
 ----
 
 == Input parameters
@@ -23,4 +23,8 @@ apoc.coll.avgDuration(numbers :: LIST? OF DURATION?) :: (DURATION?)
 | Name | Type | Default 
 |numbers|LIST? OF DURATION?|null
 |===
+
+[[usage-apoc.coll.avgDuration]]
+== Usage Examples
+include::partial$usage/apoc.coll.avgDuration.adoc[]
 

@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-import org.neo4j.values.storable.DurationValue;
 
 import java.util.*;
 
@@ -35,13 +34,6 @@ public class CollTest {
     public void testRunningTotal() throws Exception {
         testCall(db, "RETURN apoc.coll.runningTotal([1,2,3,4,5.5,1]) as value",
                 (row) -> assertEquals(asList(1L, 3L, 6L, 10L, 15.5D, 16.5D), row.get("value")));
-    }
-    
-    @Test
-    public void testAvgDuration() {
-        testCall(db, "with [duration('P2DT3H'), duration('PT1H45S')] AS dur " +
-                        "RETURN apoc.coll.avgDuration(dur) AS value",
-                (row) -> assertEquals(DurationValue.parse("P1DT2H22.5S"), row.get("value")));
     }
 
     @Test

@@ -1,7 +1,6 @@
 package apoc.coll;
 
 import apoc.Extended;
-import com.google.common.util.concurrent.AtomicDouble;
 import org.apache.commons.collections4.CollectionUtils;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -16,25 +15,24 @@ public class CollFull {
 
     @UserFunction
     @Description("apoc.coll.avgDuration([duration('P2DT3H'), duration('PT1H45S'), ...]) -  returns the average of a list of duration values")
-    public DurationValue avgDuration(@Name("numbers") List<DurationValue> list) {
+    public DurationValue avgDuration(@Name("durations") List<DurationValue> list) {
         if (CollectionUtils.isEmpty(list)) return null;
-        long count = list.size();
-        final AtomicDouble monthsRunningAvg = new AtomicDouble();
-        final AtomicDouble daysRunningAvg = new AtomicDouble();
-        final AtomicDouble secondsRunningAvg = new AtomicDouble();
-        final AtomicDouble nanosRunningAvg = new AtomicDouble();
+
+        long count = 0;
+
+        double monthsRunningAvg = 0;
+        double daysRunningAvg = 0;
+        double secondsRunningAvg = 0;
+        double nanosRunningAvg = 0;
         for (DurationValue duration : list) {
-            monthsRunningAvg.addAndGet(duration.get(ChronoUnit.MONTHS));
-            daysRunningAvg.addAndGet(duration.get(ChronoUnit.DAYS));
-            secondsRunningAvg.addAndGet(duration.get(ChronoUnit.SECONDS));
-            nanosRunningAvg.addAndGet(duration.get(ChronoUnit.NANOS));
+            count++;
+            monthsRunningAvg += (duration.get(ChronoUnit.MONTHS) - monthsRunningAvg) / count;
+            daysRunningAvg  += (duration.get(ChronoUnit.DAYS) - daysRunningAvg) / count;
+            secondsRunningAvg  += (duration.get(ChronoUnit.SECONDS) - secondsRunningAvg) / count;
+            nanosRunningAvg  += (duration.get(ChronoUnit.NANOS) - nanosRunningAvg) / count;
         }
 
-        return DurationValue.approximate(
-                monthsRunningAvg.get() / count,
-                daysRunningAvg.get() / count,
-                secondsRunningAvg.get() / count,
-                nanosRunningAvg.get() / count
-        ).normalize();
+        return DurationValue.approximate(monthsRunningAvg, daysRunningAvg, secondsRunningAvg, nanosRunningAvg)
+                .normalize();
     }
 }

@@ -5,7 +5,7 @@
 ¦apoc.coll.split(values :: LIST? OF ANY?, value :: ANY?) :: (value :: LIST? OF ANY?)
 ¦apoc.coll.zipToRows(list1 :: LIST? OF ANY?, list2 :: LIST? OF ANY?) :: (value :: LIST? OF ANY?)
 ¦apoc.coll.avg(numbers :: LIST? OF NUMBER?) :: (FLOAT?)
-¦apoc.coll.avgDuration(numbers :: LIST? OF DURATION?) :: (DURATION?)
+¦apoc.coll.avgDuration(durations :: LIST? OF DURATION?) :: (DURATION?)
 ¦apoc.coll.combinations(coll :: LIST? OF ANY?, minSelect :: INTEGER?, maxSelect = -1 :: INTEGER?) :: (LIST? OF ANY?)
 ¦apoc.coll.contains(coll :: LIST? OF ANY?, value :: ANY?) :: (BOOLEAN?)
 ¦apoc.coll.containsAll(coll :: LIST? OF ANY?, values :: LIST? OF ANY?) :: (BOOLEAN?)
