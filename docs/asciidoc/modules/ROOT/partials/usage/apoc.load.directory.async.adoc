@@ -1,31 +1,8 @@
-We can pass from 2 to 5 parameter in the `apoc.load.directory.async.add`.
+=== Adding a directory listener
 
-The first parameter is the name of our custom watch listener.
-If we use an already existing listener name, that listener will be overwritten.
-The second parameter is the cypher query that will be executed.
-The query can have the following parameters:
+With other load procedures such as `apoc.load.csv` or `apoc.load.json`, it is possible to load files asynchronously.
 
-* $fileName: the name of the file which triggered the event
-* $filePath: the absolute path of the file which triggered the event if `apoc.import.file.use_neo4j_config=false`, otherwise the relative path starting from `$IMPORT_DIR`
-* $fileDirectory: the absolute path directory of the file which triggered the event if `apoc.import.file.use_neo4j_config=false`, otherwise the relative path starting from `$IMPORT_DIR`
-* $listenEventType: the triggered event ("CREATE", "DELETE" or "MODIFY"). The event "CREATE" happens when a file is inserted in the folder,
-"DELETE" when a file is removed from the folder and "MODIFY" when a file in the folder is changed.
-Please note that if a file is renamed, will be triggered 2 event, that is first "DELETE" and then"CREATE"
-
-The third parameter is the pattern of file to search for.
-By default is '*', that is, search all files and it leverages the https://commons.apache.org/proper/commons-io/apidocs/org/apache/commons/io/filefilter/WildcardFileFilter.html[WildcardFileFilter - Apache Commons IO].
-
-The fourth is the search path of directory.
-By default is an empty string, that is, search file in `import` directory.
-
-
-=== Examples of interoperability with other procedures
-
-We can use another load procedure as query parameter, like `apoc.load.csv` or `apoc.load.json`.
-
-Here are two examples.
-
-We can execute:
+This example creates nodes with the parameters supplied by the trigger, triggered only on create and modifications of files in the csvFolder:
 
 [source,cypher]
 ----
@@ -39,8 +16,7 @@ where `$fileName` is the file created/modified,
 `$fileDirectory` is the relative path of the directory, that is `$IMPORT_DIR/csvFolder`
 and `$listenEventType` is the triggered event, that is `CREATE` or `MODIFY`.
 
-
-If we upload the following file in `$IMPORT_DIR/csvFolder` folder:
+Given that our IMPORT_DIR is set to `import` and the following file is uploaded to `import/csvFolder` folder:
 
 .test.csv
 [source,csv]
@@ -213,13 +189,13 @@ the result will be:
 [opts="header"]
 |===
 | name | status | pattern | cypher | urlDir | config | error
-| "csvImport"	 | "RUNNING"	 | "*.csv" | "CALL apoc.load.csv($filePath) yield list WITH list CREATE (n:CsvToNode {content: list, fileName: $fileName, fileDirectory: $fileDirectory, listenEventType: $listenEventType})" | <importUrlDir> | {"listenEventType": ["CREATE", "MODIFY"], "interval": 1000 } | ""
+| "csvImport"	 | "RUNNING"	 | "*.csv" | "CALL apoc.load.csv($filePath) yield list WITH list CREATE (n:CsvToNode {content: list, fileName: $fileName, fileDirectory: $fileDirectory, listenEventType: $listenEventType})" | <importUrlDir>/csvFolder | {"listenEventType": ["CREATE", "MODIFY"], "interval": 1000 } | ""
 |===
 
-We can remove a specific listener executing the
+We can remove a specific listener executing the remove procedure with the given name as a parameter:
 [source,cypher]
 ----
-CALL apoc.load.directory.async.remove('<LISTENER_NAME>')
+CALL apoc.load.directory.async.remove('csvImport')
 ----
 the result will be the list of remaining ones.
 
@@ -240,10 +216,9 @@ If we execute `call apoc.load.directory.async.list`, we obtain, for example:
 | `listenerName` | `ERROR` | `*.csv` | `'create (n:Node)'` | `'path'` | `{}` | `"org.neo4j.graphdb.QueryExecutionException: Failed to invoke procedure apoc.load.csv: Caused by: java.io.FileNotFoundException ....`
 |===
 
-=== Procedure enabling
+=== Configuration
 
-Please note that to use the `apoc.load.directory.async.*` procedures,
-we'll have to enable the following config option:
+Please note that to use the `apoc.load.directory.async.*` procedures, the following config needs to be enabled:
 
 .apoc.conf
 [source,properties]
@@ -251,46 +226,12 @@ we'll have to enable the following config option:
 apoc.import.file.enabled=true
 ----
 
-
-=== Configuration Examples
-
-Let's suppose we have set the config option:
+The following setting wil allow you to change the import folder
 ----
-apoc.import.file.use_neo4j_config=true
+dbms.directories.import=import
 ----
 
-We can do the following procedure:
-
-[source,cypher]
-----
-CALL apoc.load.directory.async.add('test', 'CREATE (n:Test)');
-----
-so every time, in `import` folder, a file is created/deleted/updated will be executed the query `CREATE (n:Test)`.
-
-We can listen only for specified event kinds, for example for file creation, and create an import report:
-----
-CALL apoc.load.directory.async.add('test', 'CREATE (n:Import {fileName: $fileName})', '*', '', {listenEventType: ['ENTRY_CREATE']});
-----
-to listen only for file creation. So, if we import two file "foo.csv" and "bar.csv", will be created 2 nodes: `(n:Import {fileName: 'foo.csv'})` and `(n:Import {fileName: 'bar.csv'})`.
-
-
-Moreover, we can set a specific file pattern, for example:
-
-[source,cypher]
-----
-CALL apoc.load.directory.async.add('test', 'CREATE (n:Test)', '*.csv');
-----
-in this case, every time in `import` folder, a file `.csv` is created/deleted/updated will be executed the query `CREATE (n:Test)`.
-
-Furthermore, we can also set a path, like:
-----
-CALL apoc.load.directory.async.add('test', 'CREATE (n:Test)', '*.csv', 'subfolderImport');
-----
-to listen in a subfolder called `subfolderImport` in `import` folder.
-
-
-
-Instead, if we set `apoc.import.file.use_neo4j_config=false`, we can search with an absolute path:
+It is possible to set `apoc.import.file.use_neo4j_config=false` to search for files in an absolute paths:
 ----
 CALL apoc.load.directory.async.add('test', 'CREATE (n:Test)', '*.csv', 'file:///Users/username/Downloads');
 ----

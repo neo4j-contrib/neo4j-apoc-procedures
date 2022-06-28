@@ -49,7 +49,7 @@ public class LoadDirectory {
 
 
     @Procedure(name="apoc.load.directory.async.add", mode = Mode.WRITE)
-    @Description("apoc.load.directory.async.add(name, cypher, pattern, urlDir, {}) YIELD name, status, pattern, cypher, urlDir, config, error - Add or replace a folder listener with a specific name, pattern and url directory that execute the specified cypher query when an event is triggered and return listener list")
+    @Description("apoc.load.directory.async.add(name, cypher, pattern, urlDir, {}) YIELD name, status, pattern, cypher, urlDir, config, error - Adds or replaces a folder listener with a specific name, which is triggered for all files with the given pattern and executes the specified Cypher query when triggered. Returns a list of all listeners.")
     public Stream<LoadDirectoryItem.LoadDirectoryResult> add(@Name("name") String name,
                                                              @Name("cypher") String cypher,
                                                              @Name(value = "pattern", defaultValue = "*") String pattern,
@@ -66,27 +66,27 @@ public class LoadDirectory {
     }
 
     @Procedure("apoc.load.directory.async.remove")
-    @Description("apoc.load.directory.async.remove(name) YIELD name, status, pattern, cypher, urlDir, config, error - Remove a folder listener by name and return remaining listeners, if any")
+    @Description("apoc.load.directory.async.remove(name) YIELD name, status, pattern, cypher, urlDir, config, error - Removes a folder listener by name and returns all remaining listeners, if any")
     public Stream<LoadDirectoryItem.LoadDirectoryResult> remove(@Name("name") String name) {
         loadDirectoryHandler.remove(name);
         return loadDirectoryHandler.list();
     }
 
     @Procedure("apoc.load.directory.async.removeAll")
-    @Description("apoc.load.directory.async.removeAll() - Remove all folder listeners")
+    @Description("apoc.load.directory.async.removeAll() - Removes all folder listeners")
     public Stream<LoadDirectoryItem.LoadDirectoryResult> removeAll() {
         loadDirectoryHandler.removeAll();
         return Stream.empty();
     }
 
     @Procedure("apoc.load.directory.async.list")
-    @Description("apoc.load.directory.async.list() YIELD name, status, pattern, cypher, urlDir, config, error - List of all folder listeners")
+    @Description("apoc.load.directory.async.list() YIELD name, status, pattern, cypher, urlDir, config, error - lists all folder listeners")
     public Stream<LoadDirectoryItem.LoadDirectoryResult> list() {
         return loadDirectoryHandler.list();
     }
 
     @Procedure
-    @Description("apoc.load.directory('pattern', 'urlDir', {config}) YIELD value - Loads list of all files in folder specified by urlDir or in import folder if urlDir string is empty or not specified")
+    @Description("apoc.load.directory('pattern', 'urlDir', {config}) YIELD value - Loads list of all files in the folder specified by the parameter urlDir satisfying the given pattern. If the parameter urlDir is not specified or empty, the files of the import folder are loaded instead.")
     public Stream<StringResult> directory(@Name(value = "pattern", defaultValue = "*") String pattern, @Name(value = "urlDir", defaultValue = "") String urlDir, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
 
         if (urlDir == null) {

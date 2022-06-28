@@ -1,14 +1,9 @@
-The first parameter is the pattern of file to search for.
-By default is '*', that is, search all files and it leverage the https://commons.apache.org/proper/commons-io/apidocs/org/apache/commons/io/filefilter/WildcardFileFilter.html[WildcardFileFilter - Apache Commons IO].
-The second is the search path of directory.
-By default is an empty string, that is, search file in `import` directory.
-
-Let's suppose we have set the config option:
+Given the config:
 ----
 apoc.import.file.use_neo4j_config=true
 ----
 
-and in the `import` directory the following files:
+and the following files in the `import` directory:
 
 .Files
 [opts=header]
@@ -29,12 +24,14 @@ and in the `import` directory the following files:
 | 10.txt | subfolder2
 |===
 
-We can do the following query:
+The Query:
 
 [source,cypher]
 ----
 CALL apoc.load.directory();
 ----
+
+will give the following output:
 
 .Results
 [opts="header"]
@@ -56,7 +53,7 @@ CALL apoc.load.directory();
 | "subfolder1/6.xls"
 |===
 
-We can set a file pattern, for example:
+We can set a file pattern, for example searching for files with the file ending `.csv`:
 
 [source,cypher]
 ----
@@ -74,7 +71,7 @@ CALL apoc.load.directory("*.csv");
 | "subfolder1/5.csv"
 |===
 
-Furthermore we can also set a path, like:
+We can also set a path, for example searching only the files in `subfolder1` and its subfolders:
 
 [source, cypher]
 ----
@@ -87,22 +84,7 @@ CALL apoc.load.directory("*.csv", "subfolder1");
 | "subfolder1/5.csv"
 |===
 
-[source, cypher]
-----
-CALL apoc.load.directory("*", "subfolder1");
-----
-.Results
-[opts="header"]
-|===
-| value
-| "subfolder1/5.csv"
-| "subfolder1/.DS_Store"
-| "subfolder1/7.xls"
-| "subfolder1/foo/20.xls"
-| "subfolder1/6.xls"
-|===
-
-And we can search only in current folder:
+It is possible to limit the search to only a single folder without traversing any subfolders:
 
 [source, cypher]
 ----
@@ -117,7 +99,7 @@ CALL apoc.load.directory("*", "subfolder2", {recursive: false});
 | "subfolder2/9.xls"
 |===
 
-Instead, if we set `apoc.import.file.use_neo4j_config=false`, we can search with an absolute path:
+If we set `apoc.import.file.use_neo4j_config=false`, we can search with an absolute path:
 
 [source, cypher]
 ----
@@ -149,7 +131,7 @@ so we can execute this query:
 
 [source, cypher]
 ----
-CALL apoc.load.directory('*.csv', 'path/to/directory')
+CALL apoc.load.directory('*.csv')
 YIELD value WITH value as url ORDER BY url DESC
 CALL apoc.load.csv(url, {results:['map']}) YIELD map RETURN map
 ----

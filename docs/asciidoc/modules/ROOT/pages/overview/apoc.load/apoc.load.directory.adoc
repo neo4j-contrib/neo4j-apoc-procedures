@@ -20,9 +20,10 @@ apoc.load.directory(pattern = * :: STRING?, urlDir =  :: STRING?, config = {} ::
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default 
-|pattern|STRING?|*
-|urlDir|STRING?|
+| Name | Type | Description
+|pattern|STRING?| The pattern describing the files that should be listed. The pattern supports '?' and '*' to represent single or multiple wildcard characters, see https://commons.apache.org/proper/commons-io/apidocs/org/apache/commons/io/filefilter/WildcardFileFilter.html[WildcardFileFilter - Apache Commons IO] for more information.
+Default value: *
+|urlDir|STRING?| The directory searched for files. Default value: empty String, which is replaced by the configured `import` directory
 |config|MAP?|{}
 |===
 

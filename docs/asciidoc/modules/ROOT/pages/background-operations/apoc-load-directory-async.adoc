@@ -1,4 +1,6 @@
-We can set a listener on one or more folders, to run custom cypher query via the following procedures:
+The following procedures allow list, remove and add triggers.
+Each trigger consists of a listener observing one or more folders
+which will trigger the execution of a custom cypher query via the following procedures:
 
 [separator=¦,opts=header,cols="5,1m,1m"]
 |===

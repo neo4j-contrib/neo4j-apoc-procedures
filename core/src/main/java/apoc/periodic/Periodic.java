@@ -179,7 +179,7 @@ public class Periodic {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.")
+    @Description("apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background query. The parameter 'config' is optional and can contain a 'params' entry usable in nested Cypher statement.")
     public Stream<JobInfo> repeat(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate, @Name(value = "config", defaultValue = "{}") Map<String,Object> config ) {
         validateQuery(statement);
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
