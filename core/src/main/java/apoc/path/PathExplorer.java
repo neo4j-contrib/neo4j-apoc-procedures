@@ -219,7 +219,7 @@ public class PathExplorer {
 		return optionalStream;
 	}
 
-	public static Traverser traverse(TraversalDescription traversalDescription,
+	public static Traverser traverse(TraversalDescription td,
 									 Iterable<Node> startNodes,
 									 String pathFilter,
 									 String labelFilter,
@@ -231,7 +231,6 @@ public class PathExplorer {
 									 EnumMap<NodeFilter, List<Node>> nodeFilter,
 									 String sequence,
 									 boolean beginSequenceAtStart) {
-		TraversalDescription td = traversalDescription;
 		// based on the pathFilter definition now the possible relationships and directions must be shown
 
 		td = bfs ? td.breadthFirst() : td.depthFirst();
