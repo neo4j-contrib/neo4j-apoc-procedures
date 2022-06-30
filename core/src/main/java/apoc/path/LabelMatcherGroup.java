@@ -3,6 +3,9 @@ package apoc.path;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.traversal.Evaluation;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.neo4j.graphdb.traversal.Evaluation.*;
 
 /**
@@ -68,19 +71,22 @@ public class LabelMatcherGroup {
     }
 
     public Evaluation evaluate(Node node, boolean belowMinLevel) {
-        if (blacklistMatcher.matchesLabels(node)) {
+        Set<String> nodeLabels = new HashSet<>();
+        node.getLabels().forEach(label -> nodeLabels.add(label.name()));
+
+        if (blacklistMatcher.matchesLabels(nodeLabels)) {
             return EXCLUDE_AND_PRUNE;
         }
 
-        if (terminatorNodeMatcher.matchesLabels(node)) {
+        if (terminatorNodeMatcher.matchesLabels(nodeLabels)) {
             return belowMinLevel ? EXCLUDE_AND_CONTINUE : INCLUDE_AND_PRUNE;
         }
 
-        if (endNodeMatcher.matchesLabels(node)) {
+        if (endNodeMatcher.matchesLabels(nodeLabels)) {
             return belowMinLevel ? EXCLUDE_AND_CONTINUE : INCLUDE_AND_CONTINUE;
         }
 
-        if (whitelistMatcher.isEmpty() || whitelistMatcher.matchesLabels(node)) {
+        if (whitelistMatcher.isEmpty() || whitelistMatcher.matchesLabels(nodeLabels)) {
             return endNodesOnly || belowMinLevel ? EXCLUDE_AND_CONTINUE : INCLUDE_AND_CONTINUE;
         }
 
