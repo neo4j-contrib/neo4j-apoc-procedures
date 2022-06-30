@@ -123,7 +123,7 @@ public class CsvLoaderConfig extends CompressionConfig {
         if (config.get(QUOTATION_CHARACTER) != null) builder.quotationCharacter(getCharacterOrString(config, QUOTATION_CHARACTER));
         if (config.get(STRING_IDS) != null) builder.stringIds((boolean) config.get(STRING_IDS));
         if (config.get(SKIP_LINES) != null) builder.skipLines(Util.toInteger(config.get(SKIP_LINES)));
-        if (config.get(BATCH_SIZE) != null) builder.batchSize((int) config.get(BATCH_SIZE));
+        if (config.get(BATCH_SIZE) != null) builder.batchSize(Util.toInteger(config.get(BATCH_SIZE)));
         if (config.get(IGNORE_DUPLICATE_NODES) != null) builder.ignoreDuplicateNodes((boolean) config.get(IGNORE_DUPLICATE_NODES));
         if (config.get(IGNORE_BLANK_STRING) != null) builder.ignoreBlankString((boolean) config.get(IGNORE_BLANK_STRING));
         if (config.get(IGNORE_EMPTY_CELL_ARRAY) != null) builder.ignoreEmptyCellArray((boolean) config.get(IGNORE_EMPTY_CELL_ARRAY));

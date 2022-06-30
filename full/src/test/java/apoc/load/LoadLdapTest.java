@@ -16,22 +16,23 @@ public class LoadLdapTest {
     @Test
     public void testLoadLDAP() throws Exception {
         Map<String, Object> connParms = new HashMap<>();
-        connParms.put("ldapHost", "ldap.forumsys.com");
+        connParms.put("ldapHost", "ipa.demo1.freeipa.org");
         connParms.put("ldapPort", 389l);
-        connParms.put("loginDN", "cn=read-only-admin,dc=example,dc=com");
-        connParms.put("loginPW", "password");
+        connParms.put("loginDN", "uid=admin,cn=users,cn=accounts,dc=demo1,dc=freeipa,dc=org");
+        connParms.put("loginPW", "Secret123");
         LoadLdap.LDAPManager mgr = new LoadLdap.LDAPManager(LoadLdap.getConnectionMap(connParms));
         Map<String, Object> searchParms = new HashMap<>();
-        searchParms.put("searchBase", "dc=example,dc=com");
+        searchParms.put("searchBase", "dc=demo1,dc=freeipa,dc=org");
         searchParms.put("searchScope", "SCOPE_ONE");
-        searchParms.put("searchFilter", "(&(objectClass=*)(uid=training))");
+        searchParms.put("searchFilter", "(&(objectclass=*)(cn=alt))");
         ArrayList<String> ats = new ArrayList<>();
-        ats.add("uid");
+        final String attrName = "cn";
+        ats.add(attrName);
         searchParms.put("attributes", ats);
         LDAPSearchResults results = mgr.doSearch(searchParms);
         LDAPEntry le = results.next();
-        assertEquals("uid=training,dc=example,dc=com", le.getDN());
-        assertEquals("training", le.getAttribute("uid").getStringValue());
+        assertEquals("cn=alt,dc=demo1,dc=freeipa,dc=org", le.getDN());
+        assertEquals("alt", le.getAttribute(attrName).getStringValue());
     }
 
 }
