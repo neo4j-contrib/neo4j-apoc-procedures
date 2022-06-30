@@ -16,18 +16,15 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
 
 public class LoadHtmlBrowser {
     
     public static InputStream getChromeInputStream(String url, Map<String, String> query, LoadHtmlConfig config, boolean isHeadless, boolean isAcceptInsecureCerts) {
-        final WebDriverManager chromedriver = WebDriverManager.chromedriver();
-//        chromedriver.setup();
-        setupWebDriverManager(chromedriver, config);
+        setupWebDriverManager(WebDriverManager.chromedriver(), config);
+
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.setHeadless(isHeadless);
         chromeOptions.setAcceptInsecureCerts(isAcceptInsecureCerts);
@@ -35,8 +32,7 @@ public class LoadHtmlBrowser {
     }
     
     public static InputStream getFirefoxInputStream(String url, Map<String, String> query, LoadHtmlConfig config, boolean isHeadless, boolean isAcceptInsecureCerts) {
-        final WebDriverManager firefoxdriver = WebDriverManager.firefoxdriver();
-        setupWebDriverManager(firefoxdriver, config);
+        setupWebDriverManager(WebDriverManager.firefoxdriver(), config);
         
         FirefoxOptions firefoxOptions = new FirefoxOptions();
         firefoxOptions.setHeadless(isHeadless);

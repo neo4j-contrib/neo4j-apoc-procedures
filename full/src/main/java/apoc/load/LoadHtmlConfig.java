@@ -1,10 +1,8 @@
 package apoc.load;
 
 import apoc.util.Util;
-import io.github.bonigarcia.wdm.config.Architecture;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 public class LoadHtmlConfig {
@@ -20,11 +18,11 @@ public class LoadHtmlConfig {
     private final String proxy;
     private final String proxyUser;
     private final String proxyPass;
+    private final String gitHubToken;
     private final Integer ttlBrowsers;
     private final Integer timeout;
     private final boolean useLocalVersionsPropertiesFirst;
     private final boolean clearDriverCache;
-    private final List<String> ignoreDriverVersions;
     private final boolean forceDownload;
     private final boolean avoidExport;
     private final boolean avoidReadReleaseFromRepository;
@@ -36,7 +34,6 @@ public class LoadHtmlConfig {
     private final boolean avoidFallback;
     private final boolean avoidBrowserDetection;
     private final boolean avoidTmpFolder;
-//    private final Architecture architecture;
 
     enum Browser { NONE, CHROME, FIREFOX }
     enum FailSilently { FALSE, WITH_LOG, WITH_LIST }
@@ -67,51 +64,38 @@ public class LoadHtmlConfig {
         this.wait = Util.toLong(config.getOrDefault("wait", 0));
         this.textSize = Util.toInteger(config.getOrDefault("textSize", 80));
         this.htmlString = Util.toBoolean(config.get("htmlString"));
-        
+
         this.driverVersion = (String) config.get("driverVersion");
         this.browserVersion = (String) config.get("browserVersion");
-        this.architecture = (String) config.get("architecture"); // todo - enum??
-        this.operatingSystem = (String) config.get("operatingSystem"); // todo - enum??
+        this.architecture = (String) config.get("architecture");
+        this.operatingSystem = (String) config.get("operatingSystem");
         this.driverRepositoryUrl = (String) config.get("driverRepositoryUrl");
         this.versionsPropertiesUrl = (String) config.get("versionsPropertiesUrl");
         this.commandsPropertiesUrl = (String) config.get("commandsPropertiesUrl");
-        
         this.cachePath = (String) config.get("cachePath");
         this.resolutionCachePath = (String) config.get("resolutionCachePath");
-        
         this.proxy = (String) config.get("proxy");
         this.proxyUser = (String) config.get("proxyUser");
         this.proxyPass = (String) config.get("proxyPass");
-        
-        this.ignoreDriverVersions = (List<String>) config.get("ignoreDriverVersions");
-        
-        
+        this.gitHubToken = (String) config.get("gitHubToken");
+
         this.forceDownload = Util.toBoolean(config.get("forceDownload"));
         this.useBetaVersions = Util.toBoolean(config.get("useBetaVersions"));
         this.useMirror = Util.toBoolean(config.get("useMirror"));
-        
         this.avoidExport = Util.toBoolean(config.get("avoidExport"));
         this.avoidOutputTree = Util.toBoolean(config.get("avoidOutputTree"));
-        
         this.clearDriverCache = Util.toBoolean(config.get("clearDriverCache"));
         this.clearResolutionCache = Util.toBoolean(config.get("clearResolutionCache"));
-        
         this.avoidFallback = Util.toBoolean(config.get("avoidFallback"));
         this.avoidBrowserDetection = Util.toBoolean(config.get("avoidBrowserDetection"));
         this.avoidReadReleaseFromRepository = Util.toBoolean(config.get("avoidReadReleaseFromRepository"));
         this.avoidTmpFolder = Util.toBoolean(config.get("avoidTmpFolder"));
         this.useLocalVersionsPropertiesFirst = Util.toBoolean(config.get("useLocalVersionsPropertiesFirst"));
-        
-        
-        
+
         this.timeout = Util.toInteger(config.get("timeout"));
         this.ttl = Util.toInteger(config.get("ttl"));
         this.ttlBrowsers = Util.toInteger(config.get("ttlBrowsers"));
         
-    }
-
-    public String getDriverVersion() {
-        return driverVersion;
     }
 
     public boolean isHeadless() {
@@ -152,6 +136,10 @@ public class LoadHtmlConfig {
 
     public long getWait() {
         return wait;
+    }
+
+    public String getDriverVersion() {
+        return driverVersion;
     }
 
     public String getBrowserVersion() {
@@ -206,16 +194,16 @@ public class LoadHtmlConfig {
         return timeout;
     }
 
+    public String getGitHubToken() {
+        return gitHubToken;
+    }
+
     public boolean isUseLocalVersionsPropertiesFirst() {
         return useLocalVersionsPropertiesFirst;
     }
 
     public boolean isClearDriverCache() {
         return clearDriverCache;
-    }
-
-    public List<String> getIgnoreDriverVersions() {
-        return ignoreDriverVersions;
     }
 
     public boolean isForceDownload() {
