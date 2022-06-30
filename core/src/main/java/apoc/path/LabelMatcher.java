@@ -1,7 +1,5 @@
 package apoc.path;
 
-import org.neo4j.graphdb.Node;
-
 import java.util.*;
 
 /**
@@ -24,7 +22,7 @@ public class LabelMatcher {
 
     private static LabelMatcher ACCEPTS_ALL_LABEL_MATCHER = new LabelMatcher() {
         @Override
-        public boolean matchesLabels(Node node) {
+        public boolean matchesLabels(Set<String> nodeLabels) {
             return true;
         }
 
@@ -66,10 +64,7 @@ public class LabelMatcher {
         return this;
     }
 
-    public boolean matchesLabels(Node node) {
-        Set<String> nodeLabels = new HashSet<>();
-        node.getLabels().forEach(label -> nodeLabels.add(label.name()));
-
+    public boolean matchesLabels(Set<String> nodeLabels) {
         for ( String label : labels ) {
             if (nodeLabels.contains(label)) {
                 return true;
