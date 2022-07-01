@@ -26,6 +26,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class LoadHtmlTest {
 
@@ -47,6 +48,9 @@ public class LoadHtmlTest {
     private static final String INVALID_PATH = new File("src/test/resources/wikipedia1.html").getName();
     private static final String VALID_PATH = new File("src/test/resources/wikipedia.html").toURI().toString();
     private static final String INVALID_CHARSET = "notValid";
+    private static final String URL_HTML_JS = new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString();
+    private static final String CHROME = LoadHtmlConfig.Browser.CHROME.name();
+    private static final String FIREFOX = LoadHtmlConfig.Browser.FIREFOX.name();
     
     private static final String HTML_TEXT = "<!DOCTYPE html> <html> <body> " +
             "<h1>My First Heading</h1> " +
@@ -72,9 +76,34 @@ public class LoadHtmlTest {
     }
 
     @Test
+    public void testParseGeneratedJsWrongConfigs() {
+        String errorInvalidConfig = "Invalid config";
+        assertWrongConfig(errorInvalidConfig,
+                map("browser", CHROME, "operatingSystem", "dunno"));
+
+        assertWrongConfig(errorInvalidConfig,
+                map("browser", FIREFOX, "architecture", "dunno"));
+
+        assertWrongConfig("Error HTTP 401 executing",
+                map("browser", FIREFOX,
+                        "gitHubToken", "12345",
+                        "forceDownload", true));
+    }
+
+    private void assertWrongConfig(String msgError, Map<String, Object> config) {
+        try {
+            testCall(db, "CALL apoc.load.html($url, $query, $config)",
+                    map("url", URL_HTML_JS, "query", map("a", "a"), "config", config),
+                    r -> fail("Should fails due to wrong configuration"));
+        } catch (RuntimeException e) {
+            assertTrue(e.getMessage().contains(msgError));
+        }
+    }
+
+    @Test
     public void testWithWaitUntilAndOneElementNotFound() {
         testCall(db, "CALL apoc.load.html($url,$query,$config)",
-                map("url",new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString(),
+                map("url", URL_HTML_JS,
                         "query", map("elementExistent", "strong", "elementNotExistent", ".asdfgh"),
                         "config", map("browser", "CHROME", "wait", 5)),
                 result -> {
@@ -95,7 +124,7 @@ public class LoadHtmlTest {
 
         final String baseUri = new File("src/test/resources").toURI().toString();
         testCall(db, "CALL apoc.load.html($url,$query, $config)",
-                map("url", new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString(),
+                map("url", URL_HTML_JS,
                         "query", query,
                         "config", map("baseUri", baseUri)),
                 result -> {
@@ -446,9 +475,9 @@ public class LoadHtmlTest {
 
     private void testCallGeneratedJsWithBrowser(String browser) {
         testCall(db, "CALL apoc.load.html($url,$query,$config)",
-                map("url",new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString(),
+                map("url", URL_HTML_JS,
                         "query", map("td", "td", "strong", "strong"),
-                        "config", map("browser", browser)),
+                        "config", map("browser", browser, "driverVersion", "0.30.0")),
                 result -> {
                     Map<String, Object> value = (Map<String, Object>) result.get("value");
                     List<Map<String, Object>> tdList = (List<Map<String, Object>>) value.get("td");
