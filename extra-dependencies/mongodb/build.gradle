@@ -17,7 +17,9 @@ jar {
 }
 
 dependencies {
-    compile 'org.mongodb:mongodb-driver:3.2.2'
+    compile 'org.mongodb:mongodb-driver:3.2.2', {
+        exclude group: 'io.netty'
+    }
 }
 
 

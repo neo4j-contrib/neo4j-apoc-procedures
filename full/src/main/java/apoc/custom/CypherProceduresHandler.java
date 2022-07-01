@@ -584,7 +584,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                     return VirtualValues.list(objects);
                 } else if (toConvert instanceof Map) {
                     Map<String, Object> map = (Map) toConvert;
-                    MapValueBuilder builder = new MapValueBuilder(map.size());
+                    MapValueBuilder builder = new MapValueBuilder();
                     map.entrySet().stream().forEach(e -> {
                         builder.add(e.getKey(), convertToValueRecursive(e.getValue()));
                     });

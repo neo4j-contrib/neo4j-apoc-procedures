@@ -7,12 +7,15 @@ import apoc.load.CSVResult;
 import apoc.load.Mapping;
 import apoc.load.util.Results;
 import apoc.util.FileUtils;
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import org.neo4j.graphdb.*;
 import org.neo4j.logging.Log;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,7 +51,6 @@ public class CsvEntityLoader {
         
         try (final CountingReader reader = FileUtils.readerFor(fileName, clc.getCompressionAlgo())) {
             final String header = readFirstLine(reader);
-            reader.skip(clc.getSkipLines() - 1);
             final List<CsvHeaderField> fields = CsvHeaderFields.processHeader(header, clc.getDelimiter(), clc.getQuotationCharacter());
 
             final Optional<CsvHeaderField> idField = fields.stream()
@@ -67,17 +69,23 @@ public class CsvEntityLoader {
 
             final Map<String, Mapping> mapping = getMapping(fields);
 
-            final CSVReader csv = new CSVReader(reader, clc.getDelimiter(), clc.getQuotationCharacter());
+            final CSVReader csv = new CSVReaderBuilder(reader)
+                    .withCSVParser(new CSVParserBuilder()
+                            .withSeparator(clc.getDelimiter())
+                            .withQuoteChar(clc.getQuotationCharacter())
+                            .build())
+                    .withSkipLines(clc.getSkipLines() - 1)
+                    .build();
 
             final String[] loadCsvCompatibleHeader = fields.stream().map(f -> f.getName()).toArray(String[]::new);
-            int lineNo = 0;
+            AtomicInteger lineNo = new AtomicInteger();
             try (BatchTransaction btx = new BatchTransaction(db, clc.getBatchSize(), reporter)) {
-                for (String[] line : csv.readAll()) {
-                    lineNo++;
+                csv.forEach(line -> {
+                    lineNo.getAndIncrement();
 
                     final EnumSet<Results> results = EnumSet.of(Results.map);
                     final CSVResult result = new CSVResult(
-                            loadCsvCompatibleHeader, line, lineNo, false, mapping, Collections.emptyList(), results
+                            loadCsvCompatibleHeader, line, lineNo.get(), false, mapping, Collections.emptyList(), results
                     );
 
                     final String nodeCsvId = (String) idAttribute.map(result.map::get).orElse(null);
@@ -86,7 +94,7 @@ public class CsvEntityLoader {
                     // we either fail the loading process or skip it depending on the 'ignore duplicate nodes' setting
                     if (idField.isPresent() && idspaceIdMapping.containsKey(nodeCsvId)) {
                         if (clc.getIgnoreDuplicateNodes()) {
-                            continue;
+                            return;
                         } else {
                             throw new IllegalStateException("Duplicate node with id " + nodeCsvId + " found on line " + lineNo + "\n"
                                     + Arrays.toString(line));
@@ -129,8 +137,9 @@ public class CsvEntityLoader {
                             props += propertyAdded ? 1 : 0;
                         }
                     }
+                    btx.increment();
                     reporter.update(1, 0, props++);
-                }
+                });
             }
         }
     }
@@ -175,14 +184,14 @@ public class CsvEntityLoader {
             final CSVReader csv = new CSVReader(reader, clc.getDelimiter());
             final String[] loadCsvCompatibleHeader = fields.stream().map(f -> f.getName()).toArray(String[]::new);
 
-            int lineNo = 0;
+            AtomicInteger lineNo = new AtomicInteger();
             try (BatchTransaction btx = new BatchTransaction(db, clc.getBatchSize(), reporter)) {
-                for (String[] line : csv.readAll()) {
-                    lineNo++;
+                csv.forEach(line -> {
+                    lineNo.getAndIncrement();
 
                     final EnumSet<Results> results = EnumSet.of(Results.map);
                     final CSVResult result = new CSVResult(
-                            loadCsvCompatibleHeader, line, lineNo, false, mapping, Collections.emptyList(), results
+                            loadCsvCompatibleHeader, line, lineNo.get(), false, mapping, Collections.emptyList(), results
                     );
 
                     final Object startId = result.map.get(CsvLoaderConstants.START_ID_ATTR);
@@ -216,8 +225,9 @@ public class CsvEntityLoader {
                         boolean propertyAdded = CsvPropertyConverter.addPropertyToGraphEntity(rel, field, value, clc);
                         props += propertyAdded ? 1 : 0;
                     }
+                    btx.increment();
                     reporter.update(0, 1, props);
-                }
+                });
             }
         }
     }

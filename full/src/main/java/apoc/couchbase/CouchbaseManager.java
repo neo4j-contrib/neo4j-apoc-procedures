@@ -2,7 +2,7 @@ package apoc.couchbase;
 
 import com.couchbase.client.core.env.PasswordAuthenticator;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.internal.helpers.collection.Pair;
 
 import java.net.URI;
