@@ -727,7 +727,7 @@ public class SchemasTest {
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(100d, r.get("populationProgress"));
             assertEquals(1d, r.get("valuesSelectivity"));
-            final long indexId = db.executeTransactionally("CALL db.indexes() YIELD id, name WHERE name = $indexName RETURN id",
+            final long indexId = db.executeTransactionally("SHOW INDEXES YIELD id, name WHERE name = $indexName RETURN id",
                     Map.of("indexName", idxName), res -> res.<Long>columnAs("id").next());
             String expectedIndexDescription = String.format("Index( id=%s, name='%s', type='FULLTEXT', " +
                     "schema=(:Blah:Moon {weightProp, anotherProp}), indexProvider='fulltext-1.0' )", indexId, idxName);
