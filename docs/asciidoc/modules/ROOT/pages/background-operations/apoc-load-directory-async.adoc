@@ -1,6 +1,6 @@
-The following procedures allow list, remove and add triggers.
-Each trigger consists of a listener observing one or more folders
-which will trigger the execution of a custom cypher query via the following procedures:
+The apoc.load.directory.async procedures are used for managing triggers.
+Each trigger consists of a listener observing one or more folders which will trigger the execution of a custom cypher query.
+The following procedures can be used to add, remove and list triggers:
 
 [separator=¦,opts=header,cols="5,1m,1m"]
 |===

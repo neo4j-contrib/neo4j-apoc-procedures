@@ -1,6 +1,5 @@
-=== Adding a directory listener
-
-With other load procedures such as `apoc.load.csv` or `apoc.load.json`, it is possible to load files asynchronously.
+=== Adding a folder listener
+Together with other load procedures such as `apoc.load.csv` or `apoc.load.json`, it is possible to load files asynchronously.
 
 This example creates nodes with the parameters supplied by the trigger, triggered only on create and modifications of files in the csvFolder:
 
@@ -172,7 +171,7 @@ We can see the list of listeners executing:
 
 [source,cypher]
 ----
-CALL apoc.load.directory.list();
+CALL apoc.load.directory.async.list();
 ----
 
 For example, if we execute a:

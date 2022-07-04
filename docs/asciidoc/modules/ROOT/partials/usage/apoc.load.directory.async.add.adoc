@@ -1,0 +1,25 @@
+=== Additional information about the `apoc.load.directory.async.add` procedure parameters
+* The name parameter defines the name assigned to the trigger. If the name already exists, the existing trigger will be overwritten.
+
+* The cypher parameter should contain a Cypher query, which is executed when the trigger is activated.
+
+* The pattern parameter describes the files that should be considered by the trigger. The pattern supports '?' and '*' to represent single or multiple wildcard characters, see https://commons.apache.org/proper/commons-io/apidocs/org/apache/commons/io/filefilter/WildcardFileFilter.html[WildcardFileFilter - Apache Commons IO] for more information.
+Default value: *
+
+* The urlDir parameter defined the directory watched for changes. Default value: empty String, which will observe the `import` directory
+
+* The config parameter allows additional configuration. Default value: {}
+
+
+=== Additional Trigger Event Context Parameters known in the Cypher query
+The Cypher query can have the following parameters giving additional context on the trigger event:
+
+* $fileName: the name of the file which triggered the event
+* $filePath: the absolute path of the file which triggered the event if `apoc.import.file.use_neo4j_config=false`, otherwise the relative path starting from `$IMPORT_DIR`
+* $fileDirectory: the absolute path directory of the file which triggered the event if `apoc.import.file.use_neo4j_config=false`, otherwise the relative path starting from `$IMPORT_DIR`
+* $listenEventType: the triggered event ("CREATE", "DELETE" or "MODIFY"). The event "CREATE" happens when a file is inserted in the folder,
+"DELETE" when a file is removed from the folder and "MODIFY" when a file in the folder is changed.
+
+
+[NOTE]
+If a file is renamed, it will trigger 2 events, first "DELETE" and then "CREATE".

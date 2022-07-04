@@ -1,0 +1,2 @@
+=== Additional information about the `apoc.load.directory.async.remove` procedure parameters
+The name parameter defines the name of folder listener being removed. The name can be found by executing: `CALL apoc.load.directory.async.list()`

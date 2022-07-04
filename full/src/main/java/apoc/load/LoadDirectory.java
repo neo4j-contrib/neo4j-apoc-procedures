@@ -49,7 +49,7 @@ public class LoadDirectory {
 
 
     @Procedure(name="apoc.load.directory.async.add", mode = Mode.WRITE)
-    @Description("apoc.load.directory.async.add(name, cypher, pattern, urlDir, {}) YIELD name, status, pattern, cypher, urlDir, config, error - Adds or replaces a folder listener with a specific name, which is triggered for all files with the given pattern and executes the specified Cypher query when triggered. Returns a list of all listeners.")
+    @Description("apoc.load.directory.async.add(name, cypher, pattern, urlDir, {}) YIELD name, status, pattern, cypher, urlDir, config, error - Adds or replaces a folder listener with a specific name, which is triggered for all files with the given pattern and executes the specified Cypher query when triggered. Returns a list of all listeners. It is possible to specify the event type in the config parameter.")
     public Stream<LoadDirectoryItem.LoadDirectoryResult> add(@Name("name") String name,
                                                              @Name("cypher") String cypher,
                                                              @Name(value = "pattern", defaultValue = "*") String pattern,
