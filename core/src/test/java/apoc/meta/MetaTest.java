@@ -53,7 +53,6 @@ import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.SettingImpl.newBuilder;
 import static org.neo4j.configuration.SettingValueParsers.BOOL;
@@ -325,7 +324,7 @@ public class MetaTest {
                 "(actor1)-[:DIRECTED {foo: 'first'}]->(movie2), (actor1)-[:DIRECTED {foo: 'second'}]->(:Movie {title:'Movie4'}),\n" +
                 "(:Studio {name: 'Pixar'})-[:ANIMATED {bar: 'alpha'}]->(movie2)");
         TestUtil.testResult(db, "CALL apoc.meta.data() \n" +
-                        "YIELD label, property, count, unique, index, existence, type, array, leftCount, rightCount, left, right, other, otherLabels, elementType\n" +
+                        "YIELD label, property, count, unique, index, existence, type, array, left, right, other, otherLabels, elementType\n" +
                         "RETURN * ORDER BY elementType, property", (r) -> {
             Map<String, Object> row = r.next();
             assertEquals("node", row.get("elementType"));
@@ -380,27 +379,25 @@ public class MetaTest {
     }
 
     private void assertRelationshipsDirectedMetaData(Map<String, Object> row) {
-        assertRowMetaData(row, 1L, 2L, 0L, 2L, 0L, Meta.Types.RELATIONSHIP);
+        assertRowMetaData(row, 1L, 2L, 0L, Meta.Types.RELATIONSHIP);
     }
     
     private void assertRelationshipsAnimatedMetaData(Map<String, Object> row) {
-        assertRowMetaData(row, 1L, 1L, 0L, 1L, 0L, Meta.Types.RELATIONSHIP);
+        assertRowMetaData(row, 1L,1L, 0L, Meta.Types.RELATIONSHIP);
     }
 
     private void assertRelationshipActedInMetaData(Map<String, Object> row) {
-        assertRowMetaData(row, 2L, 4L,0L, 2L, 0L, Meta.Types.RELATIONSHIP);
+        assertRowMetaData(row, 2L, 2L, 0L, Meta.Types.RELATIONSHIP);
     }
 
     private void assertPropertiesMetaData(Map<String, Object> row) {
-        assertRowMetaData(row,  0L, 0L, 0L, 0L, 0L, Meta.Types.STRING);
+        assertRowMetaData(row,  0L, 0L, 0L, Meta.Types.STRING);
     }
 
     private void assertRowMetaData(Map<String, Object> row,
-                                   long count, long leftCount, long rightCount, long left, long right,
+                                   long count, long left, long right,
                                    Meta.Types type) {
         assertEquals(count, row.get("count"));
-        assertEquals(leftCount, row.get("leftCount"));
-        assertEquals(rightCount, row.get("rightCount"));
         assertEquals(left, row.get("left"));
         assertEquals(right, row.get("right"));
         assertEquals(type.name(), row.get("type"));
@@ -1361,11 +1358,11 @@ public class MetaTest {
         db.executeTransactionally("CREATE (p:Person {name:'Tom Hanks'}), (m:Movie {title:'Forrest Gump'}), (pr:Product{name: 'Awesome Product'}), " +
                 "(p)-[:VIEWED]->(m), (p)-[:BOUGHT{quantity: 10}]->(pr)");
         Set<Map<String, Object>> expectedResult = new HashSet<>();
-        expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","BOUGHT","right",0L,"type","INTEGER","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","quantity","elementType","relationship","otherLabels",List.of()));
-        expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Product","right",0L,"type","STRING","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
-        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","BOUGHT","right",0L,"type","RELATIONSHIP","sample",null,"rightCount",0L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","Person","elementType","relationship","otherLabels",List.of()));
-        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","Person","right",0L,"type","RELATIONSHIP","sample",null,"rightCount",0L,"leftCount",1L,"array",false,"left",1L,"unique",false,"property","BOUGHT","elementType","node","otherLabels",List.of()));
-        expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Person","right",0L,"type","STRING","sample",null,"rightCount",0L,"leftCount",0L,"array",false,"left",0L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","BOUGHT","right",0L,"type","INTEGER","sample",null,"array",false,"left",0L,"unique",false,"property","quantity","elementType","relationship","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Product","right",0L,"type","STRING","sample",null,"array",false,"left",0L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","BOUGHT","right",0L,"type","RELATIONSHIP","sample",null,"array",false,"left",1L,"unique",false,"property","Person","elementType","relationship","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of("Product"),"count",1L,"existence",false,"index",false,"label","Person","right",0L,"type","RELATIONSHIP","sample",null,"array",false,"left",1L,"unique",false,"property","BOUGHT","elementType","node","otherLabels",List.of()));
+        expectedResult.add(MapUtil.map("other",List.of(),"count",0L,"existence",false,"index",false,"label","Person","right",0L,"type","STRING","sample",null,"array",false,"left",0L,"unique",false,"property","name","elementType","node","otherLabels",List.of()));
 
         String keys = expectedResult.stream()
                 .findAny()
