@@ -12,6 +12,7 @@ include::example$generated-documentation/apoc.refactor.cloneNodes.adoc[]
 include::example$generated-documentation/apoc.refactor.cloneNodesWithRelationships.adoc[]
 |===
 
+NOTE: The `apoc.refactor.cloneNodesWithRelationships(<nodes>)` has been deprecated in favor of `apoc.refactor.cloneNodes(<nodes>, true)`.
 
 == Example Usage
 
@@ -32,13 +33,48 @@ image::apoc.refactor.cloneNodes.dataset.png[scaledwidth="100%"]
 ----
 MATCH (f:Foo{name:'Foo'}),(b:Bar{name:'Bar'})
 CALL apoc.refactor.cloneNodes([f,b])
-YIELD input, output
+YIELD input, output, error
 RETURN *
 ----
+
+where `input` is the source node id, `output` is the node cloned and `error` is the possible error message.
 
 If we execute this query, it will result in the following graph:
 
 image::apoc.refactor.cloneNodes.png[scaledwidth="100%"]
+
+In case of an error, the message will be thrown in the `error` result, for example with this constraint:
+[source,cypher]
+----
+CREATE CONSTRAINT ON (n:UniqueLabel) ASSERT n.key IS UNIQUE
+----
+
+We can create this node:
+
+[source,cypher]
+----
+CREATE (:UniqueLabel {key: 1})
+----
+
+and then we can execute:
+
+[source,cypher]
+----
+MATCH (n:UniqueLabel) WITH n
+CALL apoc.refactor.cloneNodes([n]) 
+YIELD error, output
+RETURN error, output
+----
+
+getting as a result:
+
+.Results
+[opts="header",cols="1"]
+|===
+| error | output
+| "Node(<NNN>) already exists with label &#96;UniqueLabel&#96; and property &#96;key&#96; = 1" | null
+|===
+
 
 === Clone nodes with relationships
 
@@ -57,12 +93,41 @@ image::apoc.refactor.cloneNodesWithRelationships.dataset.png[scaledwidth="100%"]
 
 [source,cypher]
 ----
-MATCH (k:Actor {name:'Keanu Reeves'}), (t:Actor {name:'Tom Hanks'})
-CALL apoc.refactor.cloneNodesWithRelationships([k,t])
-YIELD input, output
+MATCH (k:Actor {name:'Keanu Reeves'}) 
+MATCH (t:Actor {name:'Tom Hanks'})
+CALL apoc.refactor.cloneNodes([k,t], true)
+YIELD output
+MATCH p=(output)--()
 RETURN *
 ----
 
 As result we have a copy of the nodes and relationships
 
 image::apoc.refactor.cloneNodesWithRelationships.png[scaledwidth="100%"]
+
+
+=== Clone nodes skipping properties
+
+We can clone nodes excluding some properties, by specifying the `propertyKey`s list as the third parameter
+For example, with this node:
+
+[source,cypher]
+----
+CREATE (f:Foo{name:'Bar', surname: 'Baz', age: 66})
+----
+
+we can execute:
+[source,cypher]
+----
+MATCH (n:Foo)
+CALL apoc.refactor.cloneNodes([n], false, ["age"])
+YIELD output 
+RETURN properties(output) AS props
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| props
+| { "surname": "Baz", "name": "Bar" }
+|===
