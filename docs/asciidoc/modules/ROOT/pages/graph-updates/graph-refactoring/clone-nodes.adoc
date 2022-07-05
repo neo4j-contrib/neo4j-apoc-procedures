@@ -12,7 +12,7 @@ include::example$generated-documentation/apoc.refactor.cloneNodes.adoc[]
 include::example$generated-documentation/apoc.refactor.cloneNodesWithRelationships.adoc[]
 |===
 
-NOTE: The `apoc.refactor.cloneNodesWithRelationships(<nodes>)` it's been deprecated in favor of `apoc.refactor.cloneNodes(<nodes>, true)`.
+NOTE: The `apoc.refactor.cloneNodesWithRelationships(<nodes>)` has been deprecated in favor of `apoc.refactor.cloneNodes(<nodes>, true)`.
 
 == Example Usage
 
@@ -43,7 +43,7 @@ If we execute this query, it will result in the following graph:
 
 image::apoc.refactor.cloneNodes.png[scaledwidth="100%"]
 
-In case of error, the message will be thrown in the `error` result, for example with this constraint:
+In case of an error, the message will be thrown in the `error` result, for example with this constraint:
 [source,cypher]
 ----
 CREATE CONSTRAINT ON (n:UniqueLabel) ASSERT n.key IS UNIQUE
@@ -62,7 +62,8 @@ and then we can execute:
 ----
 MATCH (n:UniqueLabel) WITH n
 CALL apoc.refactor.cloneNodes([n]) 
-YIELD error, output RETURN error, output
+YIELD error, output
+RETURN error, output
 ----
 
 getting as a result:
