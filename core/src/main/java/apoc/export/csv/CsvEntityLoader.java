@@ -7,7 +7,9 @@ import apoc.load.CSVResult;
 import apoc.load.Mapping;
 import apoc.load.util.Results;
 import apoc.util.FileUtils;
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import org.neo4j.graphdb.*;
 import org.neo4j.logging.Log;
 
@@ -48,7 +50,6 @@ public class CsvEntityLoader {
         
         try (final CountingReader reader = FileUtils.readerFor(fileName, clc.getCompressionAlgo())) {
             final String header = readFirstLine(reader);
-            reader.skip(clc.getSkipLines() - 1);
             final List<CsvHeaderField> fields = CsvHeaderFields.processHeader(header, clc.getDelimiter(), clc.getQuotationCharacter());
 
             final Optional<CsvHeaderField> idField = fields.stream()
@@ -67,7 +68,13 @@ public class CsvEntityLoader {
 
             final Map<String, Mapping> mapping = getMapping(fields);
 
-            final CSVReader csv = new CSVReader(reader, clc.getDelimiter(), clc.getQuotationCharacter());
+            final CSVReader csv = new CSVReaderBuilder(reader)
+                    .withCSVParser(new CSVParserBuilder()
+                            .withSeparator(clc.getDelimiter())
+                            .withQuoteChar(clc.getQuotationCharacter())
+                            .build())
+                    .withSkipLines(clc.getSkipLines() - 1)
+                    .build();
 
             final String[] loadCsvCompatibleHeader = fields.stream().map(f -> f.getName()).toArray(String[]::new);
             int lineNo = 0;
