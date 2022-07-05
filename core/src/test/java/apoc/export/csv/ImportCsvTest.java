@@ -49,6 +49,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.neo4j.configuration.GraphDatabaseSettings.TransactionStateMemoryAllocation.OFF_HEAP;
 import static org.neo4j.configuration.SettingValueParsers.BYTES;
+import static org.junit.Assert.fail;
 
 public class ImportCsvTest {
     public static final String BASE_URL_FILES = "src/test/resources/csv-inputs";
@@ -226,6 +227,28 @@ public class ImportCsvTest {
         TestUtil.testCallCount(db, "MATCH (n:SkipLine) RETURN n", nodes);
         
         db.executeTransactionally("MATCH (n:SkipLine) DETACH DELETE n");
+    }
+
+    @Test
+    public void issue2826WithImportCsv() {
+        db.executeTransactionally("CREATE (n:Person {name: 'John'})");
+        db.executeTransactionally("CREATE CONSTRAINT unique_person ON (n:Person) ASSERT n.name IS UNIQUE");
+        try {
+            TestUtil.testCall(db,
+                    "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
+                    map("file", "file:/id.csv", "config", map("delimiter", '|')),
+                    (r) -> fail());
+        } catch (RuntimeException e) {
+            String expected = "Failed to invoke procedure `apoc.import.csv`: " +
+                    "Caused by: IndexEntryConflictException{propertyValues=( String(\"John\") ), addedNodeId=-1, existingNodeId=0}";
+            assertEquals(expected, e.getMessage());
+        }
+
+        // should return only 1 node due to constraint exception
+        TestUtil.testCall(db, "MATCH (n:Person) RETURN properties(n) AS props",
+                r -> assertEquals(Map.of("name", "John"), r.get("props")));
+
+        db.executeTransactionally("DROP CONSTRAINT unique_person");
     }
 
     @Test
