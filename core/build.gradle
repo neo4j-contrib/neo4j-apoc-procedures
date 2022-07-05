@@ -121,8 +121,8 @@ dependencies {
 
     testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.1', withoutServers
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.1', withoutServers
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.2.3', withoutServers
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.2.3', withoutServers
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     // explicit update comomns.io version
