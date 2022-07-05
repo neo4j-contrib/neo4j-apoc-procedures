@@ -226,30 +226,9 @@ a|
 ----
 |===
 
-If we have a `.html` file with a jQuery script like:
+include::partial$html/runtime.adoc[]
 
-[source,html]
-----
-<!DOCTYPE html>
-<head>
-    <script type="text/javascript">
-    $(() => {
-        var newP = document.createElement("strong");
-        var textNode = document.createTextNode("This is a new text node");
-        newP.appendChild(textNode);
-        document.getElementById("appendStuff").appendChild(newP);
-    });
-    </script>
-    <meta charset="UTF-8"/>
-</head>
-<body onLoad="loadData()" class="mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns-subject page-Aap_Kaa_Hak rootpage-Aap_Kaa_Hak skin-vector action-view">
-	<div id="appendStuff"></div>
-</body>
-</html>
-----
-
-we can read the generated js through the `browser` config.
-Note that to use a browser, you have to install <<selenium-depencencies,this dependencies>>:
+For example, with the above file we can execute:
 
 [source,cypher]
 ----
@@ -273,57 +252,41 @@ a|
 ----
 |===
 
-If we can parse a tag from a slow async call, we can use `wait` config to waiting for 10 second (in this example):
+If we have to parse a tag from a slow async call, we can use `wait` config to waiting for 10 second (in this example):
 
 [source,cypher]
 ----
 CALL apoc.load.html("test.html",{asyncTag: "#asyncTag"}, {browser: "FIREFOX", wait: 10});
 ----
 
-[[selenium-depencencies]]
-== Dependencies
 
-To use the `apoc.load.html` proceduree with `browser` config (not `NONE`), you have to add additional dependencies.
-
-This dependency is included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-selenium-dependencies-{apoc-release}.jar[apoc-selenium-dependencies-{apoc-release}.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
-Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
 
 We can also pass an HTML string into the 1st parameter by putting as a config parameter `htmlString: true`, for example:
 
 [source,cypher]
 ----
-CALL apoc.load.html("<!DOCTYPE html> <html> <body> <p class='firstClass'>My first paragraph.</p> </body> </html>",{metadata:"meta", h2:"h2"}, {htmlString: true});
+CALL apoc.load.html("<!DOCTYPE html> <html> <body> <p class='firstClass'>My first paragraph.</p> </body> </html>",{body:"body"}, {htmlString: true})
+YIELD value
+RETURN value["body"] as body
 ----
 
-The jsoup class https://jsoup.org/apidocs/org/jsoup/nodes/Element.html[org.jsoup.nodes.Element]
-provides a set of functions that can be used. 
-Anyway, we can emulate all of them using the appropriate css/jQuery selectors in these ways 
-(except for the last one, we can substitute the `*` with a tag name to search into it instead of everywhere. Furthermore, by removing the `*` selector will be returned the same result):
-
-
+.Results
 [opts="header"]
 |===
-| jsoup function | css/jQuery selector | description
-| `getElementById(id)` | `#id` | Find an element by ID, including or under this element.
-| `getElementsByTag(tag)`  | `tag` | Finds elements, including and recursively under this element, with the specified tag name.
-| `getElementsByClass(className)` | `.className`  | Find elements that have this class, including or under this element.
-| `getElementsByAttribute(key)` | `[key]`  | Find elements that have a named attribute set.
-| `getElementsByAttributeStarting(keyPrefix)` | `*[^keyPrefix]`  | Find elements that have an attribute name starting with the supplied prefix. Use data | to find elements that have HTML5 datasets.
-| `getElementsByAttributeValue(key,value)`  | `*[key=value]` | Find elements that have an attribute with the specific value.
-| `getElementsByAttributeValueContaining(key,match)` |`*[key*=match]` | Find elements that have attributes whose value contains the match string.
-| `getElementsByAttributeValueEnding(key,valueSuffix)` | `*[class$="test"]` | Find elements that have attributes that end with the value suffix.
-| `getElementsByAttributeValueMatching(key,regex)` |`*[id~=content]` | Find elements that have attributes whose values match the supplied regular expression.
-| `getElementsByAttributeValueNot(key,value)` |`*:not([key="value"])` | Find elements that either do not have this attribute, or have it with a different value.
-| `getElementsByAttributeValueStarting(key,valuePrefix)` |`*[key^=valuePrefix]` | Find elements that have attributes that start with the value prefix.
-| `getElementsByIndexEquals(index)` |`*:nth-child(index)` | Find elements whose sibling index is equal to the supplied index.
-| `getElementsByIndexGreaterThan(index)` |`*:gt(index)` | Find elements whose sibling index is greater than the supplied index.
-| `getElementsByIndexLessThan(index)` |`*:lt(index)` | Find elements whose sibling index is less than the supplied index.
-| `getElementsContainingOwnText(searchText)` |`*:containsOwn(searchText)` | Find elements that directly contain the specified string.
-| `getElementsContainingText(searchText)` |`*:contains('searchText')` | Find elements that contain the specified string.
-| `getElementsMatchingOwnText(regex)` |`*:matches(regex)` | Find elements whose text matches the supplied regular expression.
-| `getElementsMatchingText(pattern)` |`*:matchesOwn(pattern)` | Find elements whose text matches the supplied regular expression.
-| `getAllElements()` |`*` | Find all elements under document (including self, and children of children).
+| body
+a|
+[source, json]
+----
+[{
+  "attributes": {},
+  "text": "My first paragraph.",
+  "tagName": "body"
+}]
+----
 |===
+
+
+include::partial$html/query-selectors.adoc[]
 
 For example, we can execute:
 
@@ -355,16 +318,7 @@ a|
 
 == Html plain text representation
 
-Using the same syntax and logic as `apoc.load.html`, 
-we can get a plain text representation of the whole document, using the `apoc.load.htmlPlainText(URL_OR_TEXT, QUERY_MAP, CONFIG_MAP)` procedure, for example:
+If, instead of a map of json list results, 
+you want to get a map of plain text representations,
+you can use the xref::overview/apoc.load/apoc.load.htmlPlainText.adoc[apoc.load.htmlPlainText procedure], which use the same syntax, logic and config parameters as `apoc.load.html`.
 
-[source,cypher]
-----
-CALL apoc.load.htmlPlainText($urlOrString, {nameKey: 'body'})
-----
-
-or of some elements, with a selector:
-[source,cypher]
-----
-CALL apoc.load.htmlPlainText($urlOrString, {nameKey: 'div'})
-----

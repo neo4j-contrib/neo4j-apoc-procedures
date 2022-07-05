@@ -1,0 +1,28 @@
+== Load from runtime generated file
+
+If we have a `test.html` file with a jQuery script like:
+
+[source,html]
+----
+<!DOCTYPE html>
+<html>
+    <head>
+      <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+      <script type="text/javascript">
+        $(() => {
+            var newP = document.createElement("strong");
+            var textNode = document.createTextNode("This is a new text node");
+            newP.appendChild(textNode);
+            document.getElementById("appendStuff").appendChild(newP);
+        });
+      </script>
+    </head>
+    <body>
+        <div id="appendStuff"></div>
+    </body>
+</html>
+----
+
+we can read the generated js through the `browser` config.
+Note that to use the `browser` config (except with `"NONE"` value), you have to install additional dependencies
+which can be downloaded  https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-selenium-dependencies-{apoc-release}.jar[from this link].
