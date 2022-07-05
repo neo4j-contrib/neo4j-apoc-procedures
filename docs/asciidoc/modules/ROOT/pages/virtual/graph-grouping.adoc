@@ -86,6 +86,8 @@ In the config there are more options:
 | limitRels | -1 | limit to maximum of rels
 | relsPerNode | -1 | limit number of relationships per node
 | filter | null | a min/max filter by property value, e.g. `{User.count_*.min:2}` see below
+| includeRels | List<String> \| String | [] | relationship types to include. Default is to include all relationship types. Can be a list of types or a single type.
+| excludeRels | List<String> \| String | [] | relationship types to exclude. Default is to not exclude any relationship type. . Can be a list of types or a single type.
 |===
 
 The `filter` config option is a map of `{Label/TYPE.operator_property.min/max: number}` where the `Label/TYPE.` prefix is optional.

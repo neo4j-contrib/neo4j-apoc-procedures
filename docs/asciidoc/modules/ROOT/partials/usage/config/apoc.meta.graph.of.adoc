@@ -1,0 +1,11 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| sample | Long | 1000 | number of  nodes to sample per label
+| maxRels | Long | 100 | number of relationships to be analyzed, by type of relationship and start and end label, in order to remove / add relationships incorrectly inserted / not inserted by the sample result.
+| addRelationshipsBetweenNodes | boolean | true | number of relationships to sample per relationship type
+|===
+

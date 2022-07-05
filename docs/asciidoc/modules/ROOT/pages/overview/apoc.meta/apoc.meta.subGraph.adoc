@@ -24,6 +24,9 @@ apoc.meta.subGraph(config :: MAP?) :: (nodes :: LIST? OF NODE?, relationships ::
 |config|MAP?|null
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.meta.subGraph.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
