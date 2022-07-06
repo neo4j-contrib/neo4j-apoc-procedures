@@ -65,6 +65,7 @@ The procedures support the following config parameters:
 | awaitForIndexes | Long | 300 | Timeout to use for `db.awaitIndexes` when using `format: "cypher-shell"`
 | saveIndexNames | boolean | false | Save name indexes on export
 | saveConstraintNames | boolean | false | Save name constraints on export
+| multipleRelationshipsWithType | boolean | false | In case of multiple relationships of the same type between two nodes, add a `UNIQUE IMPORT ID REL` property in order to distinguish them when using `MERGE`.
 |===
 
 [[export-cypher-file-export]]
@@ -705,6 +706,70 @@ RETURN nodes, relationships, properties, nodeStatements, relationshipStatements,
 
 We can then copy/paste the content of each of these columns (excluding the double quotes) into a Cypher Shell session, or into a local file that we stream into a Cypher Shell session.
 If we want to export Cypher statements that can be pasted into the Neo4j Browser query editor, we need to use the config `format: "plain"`, as described in <<export-cypher-neo4j-browser>>.
+
+[[export-cypher-multiple-relationships]]
+=== Export with multiple relationships with the same type
+
+With the following dataset:
+
+[source,cypher]
+----
+create (pers:Person {name: 'MyName'})-[:WORKS_FOR {id: 1}]->(proj:Project {a: 1}),
+    (pers)-[:WORKS_FOR {id: 2}]->(proj),
+    (pers)-[:WORKS_FOR {id: 2}]->(proj),
+    (pers)-[:WORKS_FOR {id: 3}]->(proj),
+    (pers)-[:WORKS_FOR {id: 4}]->(proj),
+    (pers)-[:WORKS_FOR {id: 5}]->(proj),
+    (pers)-[:IS_TEAM_MEMBER_OF {name: 'aaa'}]->(:Team {name: 'one'}),
+    (pers)-[:IS_TEAM_MEMBER_OF {name: 'eee'}]->(:Team {name: 'two'})
+----
+
+we can see that between `:Person` and `:Project` nodes, there are several relationships with the same type (`WORKS_FOR`).
+
+In these cases, if we export relationships via a `MERGE` clause,
+we must use the config `{multipleRelationshipsWithType: true}`, otherwise we cannot distinguish them, and a script would be exported which would create only one `WORKS_FOR` relationship. 
+
+For example, we can execute:
+[source,cypher]
+----
+CALL apoc.export.cypher.all(null, {stream: true, multipleRelationshipsWithType: true}) YIELD cypherStatements
+----
+
+.Results
+[opts="header"]
+|===
+| cypherStatements
+| ":begin
+CREATE CONSTRAINT ON (node:&#96;UNIQUE IMPORT LABEL&#96;) ASSERT (node.&#96;UNIQUE IMPORT ID&#96;) IS UNIQUE;
+:commit
+CALL db.awaitIndexes(300);
+:begin
+UNWIND [{_id:1, properties:{a:1}}] AS row
+CREATE (n:&#96;UNIQUE IMPORT LABEL&#96;{&#96;UNIQUE IMPORT ID&#96;: row._id}) SET n += row.properties SET n:Project;
+UNWIND [{_id:2, properties:{name:"one"}}, {_id:3, properties:{name:"two"}}] AS row
+CREATE (n:&#96;UNIQUE IMPORT LABEL&#96;{&#96;UNIQUE IMPORT ID&#96;: row._id}) SET n += row.properties SET n:Team;
+UNWIND [{_id:0, properties:{name:"MyName"}}] AS row
+CREATE (n:&#96;UNIQUE IMPORT LABEL&#96;{&#96;UNIQUE IMPORT ID&#96;: row._id}) SET n += row.properties SET n:Person;
+:commit
+:begin
+UNWIND [{start: {_id:0}, end: {_id:2}, properties:{name:"aaa"}}, {start: {_id:0}, end: {_id:3}, properties:{name:"eee"}}] AS row
+MATCH (start:&#96;UNIQUE IMPORT LABEL&#96;{&#96;UNIQUE IMPORT ID&#96;: row.start._id})
+MATCH (end:&#96;UNIQUE IMPORT LABEL&#96;{&#96;UNIQUE IMPORT ID&#96;: row.end._id})
+CREATE (start)-[r:IS_TEAM_MEMBER_OF]->(end) SET r += row.properties;
+UNWIND [{start: {_id:0}, id: 0, end: {_id:1}, properties:{id:1}}, {start: {_id:0}, id: 1, end: {_id:1}, properties:{id:2}}, {start: {_id:0}, id: 2, end: {_id:1}, properties:{id:2}}, {start: {_id:0}, id: 3, end: {_id:1}, properties:{id:3}}, {start: {_id:0}, id: 4, end: {_id:1}, properties:{id:4}}, {start: {_id:0}, id: 5, end: {_id:1}, properties:{id:5}}] AS row
+MATCH (start:&#96;UNIQUE IMPORT LABEL&#96;{&#96;UNIQUE IMPORT ID&#96;: row.start._id})
+MATCH (end:&#96;UNIQUE IMPORT LABEL&#96;{&#96;UNIQUE IMPORT ID&#96;: row.end._id})
+CREATE (start)-[r:WORKS_FOR{&#96;UNIQUE IMPORT ID REL&#96;:row.id}]->(end) SET r += row.properties;
+:commit
+:begin
+MATCH (n:&#96;UNIQUE IMPORT LABEL&#96;)  WITH n LIMIT 20000 REMOVE n:&#96;UNIQUE IMPORT LABEL&#96; REMOVE n.&#96;UNIQUE IMPORT ID&#96;;
+:commit
+:begin
+DROP CONSTRAINT ON (node:&#96;UNIQUE IMPORT LABEL&#96;) ASSERT (node.&#96;UNIQUE IMPORT ID&#96;) IS UNIQUE;
+:commit
+"
+|===
+
 
 [[export-cypher-examples-roundtrip]]
 === Round trip

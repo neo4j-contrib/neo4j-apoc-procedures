@@ -17,7 +17,7 @@ public interface CypherFormatter {
 
 	String statementForNode(Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames);
 
-	String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties);
+	String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, ExportConfig exportConfig);
 
 	String statementForNodeIndex(String label, Iterable<String> keys, boolean ifNotExist, String idxName);
 
