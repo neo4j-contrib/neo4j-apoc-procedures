@@ -31,12 +31,13 @@ For example:
 
 .Loading a compressed CSV file
 ----
-apoc.load.csv("pathToCompressedFile/file.zip!pathToCsvFileInZip/fileName.csv")
+CALL apoc.load.csv("pathToCompressedFile/file.zip!pathToCsvFileInZip/fileName.csv")
 ----
 
 .Loading a compressed JSON file
+[subs=attributes]
 ----
-apoc.load.json("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tgz?raw=true!person.json");
+CALL apoc.load.json("https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/{branch}/core/src/test/resources/testload.tgz?raw=true!person.json");
 ----
 
 include::partial$s3-protocol.adoc[]
