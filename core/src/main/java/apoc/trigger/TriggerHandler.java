@@ -42,6 +42,7 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     private enum Phase {before, after, rollback, afterAsync}
 
     public static final String TRIGGER_REFRESH = "apoc.trigger.refresh";
+    public static final String TRIGGER_PERSIST = "apoc.trigger.persist";
 
     private final ConcurrentHashMap<String, Map<String,Object>> activeTriggers = new ConcurrentHashMap();
     private final Log log;
@@ -283,23 +284,35 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
 
     @Override
     public void start() throws Exception {
-        updateCache();
-        long refreshInterval = apocConfig().getInt(TRIGGER_REFRESH, 60000);
-        restoreTriggerHandler = jobScheduler.scheduleRecurring(Group.STORAGE_MAINTENANCE, () -> {
-            if (getLastUpdate() > lastUpdate) {
-                updateCache();
-            }
-        }, refreshInterval, refreshInterval, TimeUnit.MILLISECONDS);
+        ifPersistDo(() -> {
+            updateCache();
+            long refreshInterval = apocConfig().getInt(TRIGGER_REFRESH, 60000);
+            restoreTriggerHandler = jobScheduler.scheduleRecurring(Group.STORAGE_MAINTENANCE, () -> {
+                if (getLastUpdate() > lastUpdate) {
+                    updateCache();
+                }
+            }, refreshInterval, refreshInterval, TimeUnit.MILLISECONDS);
+        });
     }
 
     @Override
     public void stop() {
-        if(registeredWithKernel.compareAndSet(true, false)) {
-            databaseManagementService.unregisterTransactionEventListener(db.databaseName(), this);
+        ifPersistDo(() -> {
+            if(registeredWithKernel.compareAndSet(true, false)) {
+                databaseManagementService.unregisterTransactionEventListener(db.databaseName(), this);
+            }
+            if (restoreTriggerHandler != null) {
+                restoreTriggerHandler.cancel();
+            }
+        });
+    }
+
+    public void ifPersistDo(Runnable runnable) { 
+        if (!apocConfig.getBoolean(TRIGGER_PERSIST, true)) { 
+            removeAll(); 
+            return; 
         }
-        if (restoreTriggerHandler != null) {
-            restoreTriggerHandler.cancel();
-        }
+        runnable.run(); 
     }
 
     private <T> T withSystemDb(Function<Transaction, T> action) {

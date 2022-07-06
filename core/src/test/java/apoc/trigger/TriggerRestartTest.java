@@ -16,6 +16,7 @@ import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 import java.util.Collections;
 import java.util.Map;
 
+import static apoc.trigger.TriggerHandler.TRIGGER_PERSIST;
 import static org.junit.Assert.assertTrue;
 
 public class TriggerRestartTest {
@@ -62,5 +63,20 @@ public class TriggerRestartTest {
 
         db.executeTransactionally("CREATE (p:Person{id:2})");
         TestUtil.testCallCount(db, "match (n:Person{trigger:true}) return n", Collections.emptyMap(), 2);
+    }
+
+    @Test
+    public void testTriggerRunsAfterRestartWithoutPersist() {
+        ApocConfig.apocConfig().setProperty(TRIGGER_PERSIST, false);
+
+        db.executeTransactionally("CALL apoc.trigger.add('myTrigger', 'UNWIND $createdNodes as n set n.trigger=true', {phase:'before'})");
+        
+        db.executeTransactionally("CREATE (p:Person)");
+        TestUtil.testCallCount(db, "match (n:Person{trigger:true}) return n", Collections.emptyMap(), 1);
+
+        restartDb();
+
+        db.executeTransactionally("CREATE (p:Person)");
+        TestUtil.testCallCount(db, "match (n:Person{trigger:true}) return n", Collections.emptyMap(), 1);
     }
 }
