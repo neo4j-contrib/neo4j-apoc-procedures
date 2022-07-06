@@ -816,59 +816,54 @@ public class CypherProceduresTest  {
 
     @Test
     public void shouldDeclareFunctionWithDefaultListAndMaps() {
+        db.executeTransactionally("call apoc.custom.declareFunction('funWithFloatList(minScore = [1.1,2.2,3.3] :: LIST OF FLOAT) :: FLOAT',\n" +
+                "    'return $minScore[0]')");
+        testCall(db, "RETURN custom.funWithFloatList() AS res",
+                (row) -> assertEquals(1.1D, (double) row.get("res"), 0.1D));
+        testCall(db, "RETURN custom.funWithFloatList([9.1, 2.6, 3.1, 4.3, 5.5]) AS res", 
+                (row) -> assertEquals(9.1D, (double) row.get("res"), 0.1D));
+        
         db.executeTransactionally("CALL apoc.custom.declareFunction('funWithIntList(minScore = [1,2,3] :: LIST OF INT) :: BOOLEAN',\n" +
-                "    'return size($minScore) < 4 as res')");
-        testCall(db, "RETURN custom.funWithIntList() AS res", (row) -> {
-            assertEquals(true, row.get("res"));
-        });
-        testCall(db, "RETURN custom.funWithIntList([9,2,3,4,5]) AS res", (row) -> {
-            assertEquals(false, row.get("res"));
-        });
+                "    'return size($minScore) < 4')");
+        testCall(db, "RETURN custom.funWithIntList() AS res",
+                (row) -> assertEquals(true, row.get("res")));
+        testCall(db, "RETURN custom.funWithIntList([9,2,3,4,5]) AS res", 
+                (row) -> assertEquals(false, row.get("res")));
 
         db.executeTransactionally("CALL apoc.custom.declareFunction('funWithListString(minScore = [\"1\",\"2\",\"3\"] :: LIST OF STRING) :: BOOLEAN',\n" +
-                "    'return size($minScore) < 4 as res')");
-        testCall(db, "RETURN custom.funWithListString() AS res", (row) -> {
-            assertEquals(true, row.get("res"));
-        });
-        testCall(db, "RETURN custom.funWithListString(['aaa','bbb','ccc','ddd','eee']) AS res", (row) -> {
-            assertEquals(false, row.get("res"));
-        });
+                "    'return size($minScore) < 4')");
+        testCall(db, "RETURN custom.funWithListString() AS res", 
+                (row) -> assertEquals(true, row.get("res")));
+        testCall(db, "RETURN custom.funWithListString(['aaa','bbb','ccc','ddd','eee']) AS res", 
+                (row) -> assertEquals(false, row.get("res")));
 
         db.executeTransactionally("CALL apoc.custom.declareFunction('funWithListStringPlain(minScore = [1, 2, 3] :: LIST OF STRING) :: BOOLEAN',\n" +
-                "    'return size($minScore) < 4 as res')");
-        testCall(db, "RETURN custom.funWithListStringPlain() AS res", (row) -> {
-            assertEquals(true, row.get("res"));
-        });
-        testCall(db, "RETURN custom.funWithListStringPlain(['aaa','bbb','ccc','ddd','eee']) AS res", (row) -> {
-            assertEquals(false, row.get("res"));
-        });
+                "    'return size($minScore) < 4')");
+        testCall(db, "RETURN custom.funWithListStringPlain() AS res",
+                (row) -> assertEquals(true, row.get("res")));
+        testCall(db, "RETURN custom.funWithListStringPlain(['aaa','bbb','ccc','ddd','eee']) AS res",
+                (row) -> assertEquals(false, row.get("res")));
 
         db.executeTransactionally("CALL apoc.custom.declareFunction(\"funWithListStringQuoted(minScore = ['1','2','3'] :: LIST OF STRING) :: BOOLEAN\",\n" +
-                "    'return size($minScore) < 4 as res')");
-        testCall(db, "RETURN custom.funWithListStringQuoted() AS res", (row) -> {
-            assertEquals(true, row.get("res"));
-        });
-        testCall(db, "RETURN custom.funWithListStringQuoted(['aaa','bbb','ccc','ddd','eee']) AS res", (row) -> {
-            assertEquals(false, row.get("res"));
-        });
+                "    'return size($minScore) < 4')");
+        testCall(db, "RETURN custom.funWithListStringQuoted() AS res",
+                (row) -> assertEquals(true, row.get("res")));
+        testCall(db, "RETURN custom.funWithListStringQuoted(['aaa','bbb','ccc','ddd','eee']) AS res",
+                (row) -> assertEquals(false, row.get("res")));
 
         db.executeTransactionally("CALL apoc.custom.declareFunction('funWithListStringVars(minScore = [true,false,null] :: LIST OF STRING) :: BOOLEAN',\n" +
-                "    'return size($minScore) < 4 as res')");
-        testCall(db, "RETURN custom.funWithListStringVars() AS res", (row) -> {
-            assertEquals(true, row.get("res"));
-        });
-        testCall(db, "RETURN custom.funWithListStringVars(['aaa','bbb','ccc','ddd','eee']) AS res", (row) -> {
-            assertEquals(false, row.get("res"));
-        });
+                "    'return size($minScore) < 4')");
+        testCall(db, "RETURN custom.funWithListStringVars() AS res",
+                (row) -> assertEquals(true, row.get("res")));
+        testCall(db, "RETURN custom.funWithListStringVars(['aaa','bbb','ccc','ddd','eee']) AS res",
+                (row) -> assertEquals(false, row.get("res")));
 
         db.executeTransactionally("CALL apoc.custom.declareFunction('funWithMapList(minScore = {aa: 1, bb: \"2\"} :: MAP) :: MAP',\n" +
-                "    'return $minScore as res')");
-        testCall(db, "RETURN custom.funWithMapList() AS res", (row) -> {
-            assertEquals(Map.of("res", Map.of("aa", 1L, "bb", "2")), row.get("res"));
-        });
-        testCall(db, "RETURN custom.funWithMapList({c: true}) AS res", (row) -> {
-            assertEquals(Map.of("res", Map.of("c", true)), row.get("res"));
-        });
+                "    'return $minScore AS mapRes')");
+        testCall(db, "RETURN custom.funWithMapList() AS res",
+                (row) -> assertEquals(Map.of("mapRes", Map.of("aa", 1L, "bb", "2")), row.get("res")));
+        testCall(db, "RETURN custom.funWithMapList({c: true}) AS res",
+                (row) -> assertEquals(Map.of("mapRes", Map.of("c", true)), row.get("res")));
     }
 
     @Test
