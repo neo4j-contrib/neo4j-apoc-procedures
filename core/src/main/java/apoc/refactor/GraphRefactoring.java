@@ -55,11 +55,11 @@ public class GraphRefactoring {
 
                     newNode = copyProperties(properties, newNode);
                     copyLabels(node, newNode);
-                    if (withRelationships) {
-                        copyRelationships(node, newNode, false, true);
-                    }
                     return newNode;
                 });
+                if (withRelationships) {
+                    copyRelationships(node, copy, false, true);
+                }
                 return result.withOther(copy);
             } catch (Exception e) {
                 return result.withError(e);
