@@ -131,7 +131,7 @@ public class Signatures {
         if (v.INT_VALUE() != null)
             return DefaultParameterValue.ntInteger(Integer.parseInt(v.INT_VALUE().getText()));
         if (v.FLOAT_VALUE() != null)
-            return DefaultParameterValue.ntFloat(Integer.parseInt(v.FLOAT_VALUE().getText()));
+            return DefaultParameterValue.ntFloat(Float.parseFloat(v.FLOAT_VALUE().getText()));
         if (v.mapValue() != null) {
             Map map = JsonUtil.parse(v.mapValue().getText(), null, Map.class);
             return DefaultParameterValue.ntMap(map);
