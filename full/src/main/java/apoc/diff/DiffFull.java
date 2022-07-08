@@ -1,6 +1,7 @@
 package apoc.diff;
 
 import apoc.Description;
+import apoc.Extended;
 import apoc.export.util.FormatUtils;
 import apoc.export.util.MapSubGraph;
 import apoc.export.util.NodesAndRelsSubGraph;
@@ -38,6 +39,7 @@ import java.util.stream.StreamSupport;
 import static apoc.diff.Diff.getPropertiesDiffering;
 import static apoc.util.Util.map;
 
+@Extended
 public class DiffFull {
 
     public static final String NODE = "Node";
