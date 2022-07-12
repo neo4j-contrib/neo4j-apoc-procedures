@@ -22,9 +22,9 @@ dependencies {
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
 
-    api group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.1', withoutServers
-    api group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.1', withoutServers
-    api group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.3.1', withoutServers
+    api group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.2', withoutServers
+    api group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.2', withoutServers
+    api group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.3.2', withoutServers
 
     implementation group: 'org.jetbrains', name: 'annotations', version: "17.0.0"
 

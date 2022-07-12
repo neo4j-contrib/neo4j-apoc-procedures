@@ -2,3 +2,19 @@ The Mongo procedures have dependencies on a client library that is not included 
 
 This dependency is included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-mongodb-dependencies-{apoc-release}.jar[apoc-mongodb-dependencies-{apoc-release}.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
 Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
+
+
+
+Alternatively, you could copy these jars into the plugins directory:
+
+* bson-3.4.2.jar
+* mongo-java-driver-3.4.2.jar, 
+* mongodb-driver-3.4.2.jar
+* mongodb-driver-core-3.4.2.jar
+
+You should be able to get them from the following links:
+
+- https://mvnrepository.com/artifact/org.mongodb/mongo-java-driver/3.4.2[mongo-java-driver]
+- https://mvnrepository.com/artifact/org.mongodb/mongodb-driver/3.4.2[mongodb-driver]
+- https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-core/3.4.2[mongodb-driver-core]
+- https://mvnrepository.com/artifact/org.mongodb/bson/3.4.2[BSON]
