@@ -1,0 +1,6 @@
+=== Additional information about the `apoc.load.directory.async.directory` procedure parameters
+* The pattern parameter describes the files that should be listed.
+The pattern supports '?' and '*' to represent single or multiple wildcard characters. The default value is *.
+See https://commons.apache.org/proper/commons-io/apidocs/org/apache/commons/io/filefilter/WildcardFileFilter.html[WildcardFileFilter - Apache Commons IO] for more information.
+
+* The parameter urlDir describes the directory searched for files. The default valu is an empty String, which is replaced by the configured `import` directory
