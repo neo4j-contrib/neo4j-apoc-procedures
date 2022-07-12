@@ -7,7 +7,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
-import java.io.UnsupportedEncodingException;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -217,7 +217,7 @@ public class Geocode {
         }
     }
 
-    class GoogleSupplier implements GeocodeSupplier {
+    private static class GoogleSupplier implements GeocodeSupplier {
         private final Throttler throttler;
         private Configuration config;
 
@@ -285,33 +285,55 @@ public class Geocode {
         }
     }
 
-    private GeocodeSupplier getSupplier() {
+    private GeocodeSupplier getSupplier(Map<String, Object> configMap) {
+        return getSupplier(configMap, terminationGuard);
+    }
+    
+    public static GeocodeSupplier getSupplier(Map<String, Object> configMap, TerminationGuard terminationGuard) {
+        final AbstractMap.SimpleEntry<GeocodeSupplier, String> results = getSupplierEntry(terminationGuard, configMap);
+        return results.getKey();
+    }
+    
+    public static AbstractMap.SimpleEntry<GeocodeSupplier, String> getSupplierEntry(TerminationGuard terminationGuard, Map<String, Object> configMap) {
         Configuration activeConfig = apocConfig().getConfig().subset(PREFIX);
-        if (activeConfig.containsKey(GEOCODE_PROVIDER_KEY)) {
-            String supplier = activeConfig.getString(GEOCODE_PROVIDER_KEY).toLowerCase();
-            switch (supplier) {
-                case "google" : return new GoogleSupplier(activeConfig, terminationGuard);
-                case "osm" : return new OSMSupplier(activeConfig,terminationGuard);
-                default: return new SupplierWithKey(activeConfig, terminationGuard, supplier);
-            }
+        // with configMap we overwrite the ApocConfig, if none of these is found, we choose the default one, 'osm'
+        final String provider = (String) configMap.getOrDefault(GEOCODE_PROVIDER_KEY,
+                activeConfig.getString(GEOCODE_PROVIDER_KEY, "osm"));
+        
+        configMap.forEach((key, value) -> {
+            // we transform e.g. key `reverseUrl` to `reverse.url`, consistently to ApocConfig
+            final String dotCase = key.replaceAll("[A-Z][a-z]", ".$0").toLowerCase();
+            activeConfig.setProperty(provider  + "." + dotCase, value);
+        });
+
+        String supplier = provider.toLowerCase();
+        final GeocodeSupplier geocodeSupplier = getGeocodeSupplier(terminationGuard, activeConfig, supplier);
+        // we return both GeocodeSupplier for real implementations and String supplier for mock tests
+        return new AbstractMap.SimpleEntry<>(geocodeSupplier, supplier);
+    }
+
+    private static GeocodeSupplier getGeocodeSupplier(TerminationGuard terminationGuard, Configuration activeConfig, String supplier) {
+        switch (supplier) {
+            case "google" : return new GoogleSupplier(activeConfig, terminationGuard);
+            case "osm" : return new OSMSupplier(activeConfig, terminationGuard);
+            default: return new SupplierWithKey(activeConfig, terminationGuard, supplier);
         }
-        return new OSMSupplier(activeConfig, terminationGuard);
     }
 
     @Procedure
-    @Description("apoc.spatial.geocodeOnce('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)")
-    public Stream<GeoCodeResult> geocodeOnce(@Name("location") String address) throws UnsupportedEncodingException {
-        return geocode(address, 1L, false);
+    @Description("apoc.spatial.geocodeOnce('address', $config) YIELD location, latitude, longitude, description, osmData - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)")
+    public Stream<GeoCodeResult> geocodeOnce(@Name("location") String address, @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
+        return geocode(address, 1L, false, config);
     }
 
     @Procedure
-    @Description("apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)")
-    public Stream<GeoCodeResult> geocode(@Name("location") String address, @Name(value = "maxResults",defaultValue = "100") long maxResults, @Name(value = "quotaException",defaultValue = "false") boolean quotaException) {
+    @Description("apoc.spatial.geocode('address', maxResults, quotaException, $config) YIELD location, latitude, longitude, description, osmData - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)")
+    public Stream<GeoCodeResult> geocode(@Name("location") String address, @Name(value = "maxResults",defaultValue = "100") long maxResults, @Name(value = "quotaException",defaultValue = "false") boolean quotaException, @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
         if (address == null || address.isEmpty())
             return Stream.empty();
         else {
             try {
-                return getSupplier().geocode(address, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults, 1), MAX_RESULTS));
+                return getSupplier(config).geocode(address, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults, 1), MAX_RESULTS));
             } catch (IllegalStateException re) {
                 if (!quotaException && re.getMessage().startsWith("QUOTA_EXCEEDED")) return Stream.empty();
                 throw re;
@@ -320,10 +342,10 @@ public class Geocode {
     }
 
     @Procedure
-    @Description("apoc.spatial.reverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description - look up address from latitude and longitude from a geocoding service (the default one is OpenStreetMap)")
-    public Stream<GeoCodeResult> reverseGeocode(@Name("latitude") double latitude, @Name("longitude") double longitude, @Name(value = "quotaException",defaultValue = "false") boolean quotaException) {
+    @Description("apoc.spatial.reverseGeocode(latitude,longitude, quotaException, $config) YIELD location, latitude, longitude, description - look up address from latitude and longitude from a geocoding service (the default one is OpenStreetMap)")
+    public Stream<GeoCodeResult> reverseGeocode(@Name("latitude") double latitude, @Name("longitude") double longitude, @Name(value = "quotaException",defaultValue = "false") boolean quotaException, @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
         try {
-            return getSupplier().reverseGeocode(latitude, longitude);
+            return getSupplier(config).reverseGeocode(latitude, longitude);
         } catch(IllegalStateException re) {
             if (!quotaException && re.getMessage().startsWith("QUOTA_EXCEEDED")) return Stream.empty();
             throw re;

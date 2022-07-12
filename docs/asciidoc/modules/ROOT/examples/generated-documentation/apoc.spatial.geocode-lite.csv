@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.spatial.geocode(location :: STRING?, maxResults = 100 :: INTEGER?, quotaException = false :: BOOLEAN?) :: (location :: MAP?, data :: MAP?, latitude :: FLOAT?, longitude :: FLOAT?, description :: STRING?)
+¦apoc.spatial.geocode(location :: STRING?, maxResults = 100 :: INTEGER?, quotaException = false :: BOOLEAN?, config = {} :: MAP?) :: (location :: MAP?, data :: MAP?, latitude :: FLOAT?, longitude :: FLOAT?, description :: STRING?)
