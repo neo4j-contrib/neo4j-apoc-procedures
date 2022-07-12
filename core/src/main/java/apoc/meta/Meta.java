@@ -1118,8 +1118,8 @@ public class Meta {
             long sample = getSampleForLabelCount(labelCount, metaConfig.getSample());
             while (nodes.hasNext()) {
                 count++;
+                Node node = nodes.next();
                 if(count % sample == 0) {
-                    Node node = nodes.next();
                     long maxRels = metaConfig.getMaxRels();
                     for (Relationship rel : node.getRelationships(direction, relationshipType)) {
                         Node otherNode = direction == Direction.OUTGOING ? rel.getEndNode() : rel.getStartNode();
