@@ -1,19 +1,15 @@
 [[job-management]]
 = Background Operations
-:description: This chapter describes procedures that can be used to schedule execution of Cypher statements to run in the background.
+:description: This chapter describes procedures that can be used to schedule the asynchronous execution of Cypher statements.
 
 
 
-Sometimes you want to schedule execution of Cypher statements to run regularly in the background or asynchronously ("fire & forget").
-This can also be useful in cloud environments that limit the runtime of statements (e.g. to 2 or 5 minutes) by scheduling execution in the background.
-
-The `apoc.periodic.*` procedures provide such capabilities.
-
+The `apoc.periodic.*` procedures can be used to schedule the execution of Cypher statements as asynchronous background jobs.
+This can also be useful in cloud environments that limit the execution time of statements (e.g. to 2 or 5 minutes).
 
 * xref::background-operations/periodic-background.adoc[]
 * xref::background-operations/triggers.adoc[]
 
+It is also possible to define listeners on one or more folders which trigger the executing of custom cypher queries if changes are observed:
 
-
-
-
+* xref::background-operations/apoc-load-directory-async.adoc[]

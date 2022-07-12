@@ -3,7 +3,7 @@
 :description: This section describes procedures that can be used to register triggers whenever data in Neo4j is created, updated, or deleted.
 
 
-In a trigger you register Cypher statements that are called when data in Neo4j is changed (created, updated, deleted).
+Triggers allow the registration of Cypher queries that are called when data in Neo4j is changed (created, updated, deleted).
 You can run them before or after commit.
 
 
