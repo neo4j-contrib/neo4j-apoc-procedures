@@ -43,7 +43,7 @@ public class ExportCypherTest {
 
     private static File directory = new File("target/import");
 
-    static { //noinspection ResultOfMetcore/src/test/java/apoc/export/cypher/ExportCypherMultiRelTest.javahodCallIgnored
+    static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
     }
 
