@@ -8,9 +8,11 @@ The procedure support the following config parameters:
 | includeRels | List<String> | [] | relationship types to include. Default is to include all relationship types
 | excludeLabels | List<String> | [] | labels to exclude. Default is to not exclude any label
 | excludeRels | List<String> | [] | relationship types to exclude. Default is to not exclude any relationship type
-| sample | Long | 1000 | number of  nodes to sample per label
+| sample | Long | 1000 | number of nodes to sample per label. See "Sampling" section below.
 | maxRels | Long | 100 | number of relationships to sample per relationship type
 |===
+
+include::partial$usage/config/sample.config.adoc[]
 
 .Deprecated parameters
 [opts=header]

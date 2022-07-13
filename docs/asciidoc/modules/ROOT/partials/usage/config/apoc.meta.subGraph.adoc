@@ -7,7 +7,17 @@ The procedure support the following config parameters:
 | includeLabels | List<String> | [] | labels to include. Default is to include all labels
 | includeRels | List<String> | [] | relationship types to include. Default is to include all relationship types
 | excludeLabels | List<String> | [] | labels to exclude. Default is to not exclude any label
-| sample | Long | 1000 | number of  nodes to sample per label
+| sample | Long | 1000 | number of nodes to sample per label. See "Sampling" section below.
 | maxRels | Long | 100 | number of relationships to be analyzed, by type of relationship and start and end label, in order to remove / add relationships incorrectly inserted / not inserted by the sample result.
 |===
 
+include::partial$usage/config/sample.config.adoc[]
+
+.Deprecated parameters
+[opts=header]
+|===
+| name | type | default | description
+| labels | List<String> | [] | deprecated, use `includeLabels`
+| rels | List<String> | [] | deprecated, use `includeRels`
+| excludes | List<String> | [] | deprecated, use `excludeLabels`
+|===

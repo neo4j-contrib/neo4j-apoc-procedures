@@ -4,9 +4,8 @@ The procedure support the following config parameters:
 [opts=header]
 |===
 | name | type | default | description
-| sample | Long | 1000 | number of  nodes to sample per label
-| maxRels | Long | 100 | number of relationships to sample per relationship type
+| sample | Long | 1000 | number of nodes to sample per label. See "Sampling" section below.
 | addRelationshipsBetweenNodes | boolean | true | number of relationships to sample per relationship type
-| sample | Long | 1000 | number of  nodes to sample per label
 |===
 
+include::partial$usage/config/sample.config.adoc[]

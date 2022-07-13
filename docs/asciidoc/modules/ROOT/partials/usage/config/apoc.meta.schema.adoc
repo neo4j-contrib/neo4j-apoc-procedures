@@ -4,5 +4,7 @@ The procedure support the following config parameters:
 [opts=header]
 |===
 | name | type | default | description
-| sample | Long | 1000 | number of  nodes to sample per label
+| sample | Long | 1000 | number of nodes to sample per label. See "Sampling" section below.
 |===
+
+include::partial$usage/config/sample.config.adoc[]
