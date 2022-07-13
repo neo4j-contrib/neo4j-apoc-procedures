@@ -25,6 +25,9 @@ apoc.meta.data.of(graph :: ANY?, config = {} :: MAP?) :: (label :: STRING?, prop
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.meta.data.of.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===

@@ -46,12 +46,12 @@ CALL apoc.meta.nodeTypeProperties();
 | ":`Movie`"  | ["Movie"]  | "released"   | ["Long"]      | FALSE     | 9                    | 9
 |===
 
-We can return metadata for a subset of labels by specifying the `labels` config parameter.
+We can return metadata for a subset of labels by specifying the `includeLabels` config parameter.
 The following returns the metadata for the `Person` label:
 
 [source,cypher]
 ----
-CALL apoc.meta.nodeTypeProperties({labels: ["Person"]});
+CALL apoc.meta.nodeTypeProperties({includeLabels: ["Person"]});
 ----
 
 .Results

@@ -5,6 +5,7 @@ The procedure support the following config parameters:
 |===
 | name | type | default | description
 | sample | Long | 1000 | number of nodes to sample per label. See "Sampling" section below.
+| addRelationshipsBetweenNodes | boolean | true | number of relationships to sample per relationship type
 |===
 
 include::partial$usage/config/sample.config.adoc[]
