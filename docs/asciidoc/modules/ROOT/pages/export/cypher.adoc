@@ -724,7 +724,7 @@ create (pers:Person {name: 'MyName'})-[:WORKS_FOR {id: 1}]->(proj:Project {a: 1}
     (pers)-[:IS_TEAM_MEMBER_OF {name: 'eee'}]->(:Team {name: 'two'})
 ----
 
-we can see that between `:Person` and `:Project` nodes, there are several relationships with the same type (`WORKS_FOR`).
+We can see that between `:Person` and `:Project` nodes, there are several relationships with the same type (`WORKS_FOR`).
 
 In these cases, if we export relationships via a `MERGE` clause,
 we must use the config `{multipleRelationshipsWithType: true}`, otherwise we cannot distinguish them, and a script would be exported which would create only one `WORKS_FOR` relationship. 
