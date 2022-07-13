@@ -319,18 +319,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         });
     }
 
-    public ProcedureSignature procedureSignature(String name, String mode, List<List<String>> outputs, List<List<String>> inputs, String description) {
-        boolean admin = false; // TODO
-        return new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
-                Mode.valueOf(mode.toUpperCase()), admin, null, new String[0], description, null, false, false, true, false, false
-        );
-    }
-
-    public UserFunctionSignature functionSignature(String name, String output, List<List<String>> inputs, String description) {
-        AnyType outType = typeof(output.isEmpty() ? "LIST OF MAP" : output);
-        return new UserFunctionSignature(qualifiedName(name), inputSignatures(inputs), outType, null, description, "apoc.custom", false, false, false);
-    }
-
     /**
      *
      * @param signature
@@ -445,11 +433,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                             FieldSignature.inputField(pair.get(0), typeof(pair.get(1)), defaultValue);
                 }).collect(Collectors.toList());
         return inputSignature;
-    }
-
-    public List<FieldSignature> outputSignatures(@Name(value = "outputs", defaultValue = "null") List<List<String>> outputs) {
-        return outputs == null ? singletonList(FieldSignature.inputField("row", NTMap)) :
-                outputs.stream().map(pair -> FieldSignature.outputField(pair.get(0), typeof(pair.get(1)))).collect(Collectors.toList());
     }
 
     private static Neo4jTypes.AnyType typeof(String typeName) {

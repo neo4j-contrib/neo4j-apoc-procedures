@@ -22,10 +22,7 @@ public class CypherFunctions {
     @Context
     public Transaction tx;
 
-    @UserFunction
-    @Deprecated
-    @Description("use either apoc.cypher.runFirstColumnMany for a list return or apoc.cypher.runFirstColumnSingle for returning the first row of the first column")
-    public Object runFirstColumn(@Name("cypher") String statement, @Name("params") Map<String, Object> params, @Name(value = "expectMultipleValues",defaultValue = "true") boolean expectMultipleValues) {
+    public Object runFirstColumn(String statement, Map<String, Object> params, boolean expectMultipleValues) {
         if (params == null) params = Collections.emptyMap();
         String resolvedStatement = withParamMapping(statement, params.keySet());
         if (!resolvedStatement.contains(" runtime")) resolvedStatement = "cypher runtime=slotted " + resolvedStatement;

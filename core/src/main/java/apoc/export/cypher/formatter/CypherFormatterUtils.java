@@ -27,9 +27,9 @@ public class CypherFormatterUtils {
     public final static String UNIQUE_ID_NAME = "UNIQUE_IMPORT_NAME";
     public final static String UNIQUE_ID_LABEL = "UNIQUE IMPORT LABEL";
     public final static String UNIQUE_ID_PROP = "UNIQUE IMPORT ID";
-    public final static String Q_UNIQUE_ID_LABEL = quote(UNIQUE_ID_LABEL);
+    public final static String Q_UNIQUE_ID_LABEL = Util.quote(UNIQUE_ID_LABEL);
     public final static String UNIQUE_ID_REL = "UNIQUE IMPORT ID REL";
-    public final static String Q_UNIQUE_ID_REL = quote(UNIQUE_ID_REL);
+    public final static String Q_UNIQUE_ID_REL = Util.quote(UNIQUE_ID_REL);
 
     public final static String FUNCTION_TEMPLATE = "%s('%s')";
 
@@ -46,7 +46,7 @@ public class CypherFormatterUtils {
             StringBuilder props = new StringBuilder(100);
             for (String prop : nodeIdProperties.keySet()) {
                 props.append(", ");
-                props.append(quote(prop));
+                props.append(Util.quote(prop));
                 props.append(":");
                 props.append(CypherFormatterUtils.toString(nodeIdProperties.get(prop)));
             }
@@ -198,7 +198,7 @@ public class CypherFormatterUtils {
     }
 
     public static String formatPropertyName(String id, String prop, Object value, boolean jsonStyle) {
-        return (id != null && !"".equals(id) ? id + "." : "") + quote(prop) + (jsonStyle ? ":" : "=" ) + toString(value);
+        return (id != null && !"".equals(id) ? id + "." : "") + Util.quote(prop) + (jsonStyle ? ":" : "=" ) + toString(value);
     }
 
     // ---- to string ----
@@ -207,7 +207,7 @@ public class CypherFormatterUtils {
         StringBuilder builder = new StringBuilder();
         for (Iterator<String> iterator = ids.iterator(); iterator.hasNext(); ) {
             String id = iterator.next();
-            builder.append(quote(id));
+            builder.append(Util.quote(id));
             if (iterator.hasNext()) {
                 builder.append(",");
             }
@@ -215,16 +215,8 @@ public class CypherFormatterUtils {
         return builder.toString();
     }
 
-    @Deprecated
-    /**
-     * use {@link Util#quote()}
-     */
-    public static String quote(String id) {
-        return Util.quote(id);
-    }
-
     public static String label(String id) {
-        return ":" + quote(id);
+        return ":" + Util.quote(id);
     }
 
     public static String toString(Object value) {
@@ -280,7 +272,7 @@ public class CypherFormatterUtils {
     public static String cypherNode(Label label) {
         return String.format("(%s)", label == null ? "" : ":" + Util.quote(label.name()));
     }
-    
+
     public static String simpleKeyValue(String key, Object value) {
         return String.format("{%s:%s}", key, value);
     }

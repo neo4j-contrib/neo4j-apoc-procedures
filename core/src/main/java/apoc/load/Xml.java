@@ -478,13 +478,6 @@ public class Xml {
         }
     }
 
-    @Procedure(mode = Mode.WRITE, value = "apoc.xml.import")
-    @Deprecated
-    @Description("Deprecated by apoc.import.xml")
-    public Stream<NodeResult> importToGraphDeprecated(@Name("url") String url, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {
-        return importToGraph(url, config);
-    }
-
     @Procedure(mode = Mode.WRITE, value = "apoc.import.xml")
     @Description("apoc.import.xml(file,config) - imports graph from provided file")
     public Stream<NodeResult> importToGraph(@Name("urlOrBinary") Object urlOrBinary, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {

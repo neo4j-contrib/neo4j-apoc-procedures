@@ -242,66 +242,6 @@ public class Meta {
         }
     }
 
-    @Deprecated
-    @UserFunction
-    @Description("apoc.meta.type(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
-    public String type(@Name("value") Object value) {
-        return typeName(value);
-    }
-    @Deprecated
-    @UserFunction
-    @Description("apoc.meta.typeName(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
-    public String typeName(@Name("value") Object value) {
-        Types type = Types.of(value);
-
-        String typeName;
-
-        // In order to keep the backwards compatibility
-        switch (type) {
-            case POINT: case DATE: case DATE_TIME: case LOCAL_TIME: case LOCAL_DATE_TIME: case TIME: case DURATION: case ANY:
-                typeName = value.getClass().getSimpleName();
-                break;
-            case LIST:
-                Class<?> clazz = value.getClass();
-                if (value != null && clazz.isArray()) {
-                    typeName = clazz.getComponentType().getSimpleName() + "[]";
-                    break;
-                }
-            default:
-                typeName = type.name();
-        }
-
-        return typeName;
-
-    }
-
-    @Deprecated
-    @UserFunction
-    @Description("apoc.meta.types(node-relationship-map)  - returns a map of keys to types")
-    public Map<String,Object> types(@Name("properties") Object target) {
-        Map<String,Object> properties = Collections.emptyMap();
-        if (target instanceof Node) properties = ((Node)target).getAllProperties();
-        if (target instanceof Relationship) properties = ((Relationship)target).getAllProperties();
-        if (target instanceof Map) {
-            //noinspection unchecked
-            properties = (Map<String, Object>) target;
-        }
-
-        Map<String,Object> result = new LinkedHashMap<>(properties.size());
-        properties.forEach((key,value) -> {
-            result.put(key, typeName(value));
-        });
-
-        return result;
-    }
-
-    @Deprecated
-    @UserFunction
-    @Description("apoc.meta.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
-    public boolean isType(@Name("value") Object value, @Name("type") String type) {
-        return type.equalsIgnoreCase(typeName(value));
-    }
-
     @UserFunction("apoc.meta.cypher.isType")
     @Description("apoc.meta.cypher.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION)")
     public boolean isTypeCypher(@Name("value") Object value, @Name("type") String type) {

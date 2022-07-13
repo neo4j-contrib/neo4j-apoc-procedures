@@ -125,13 +125,6 @@ public class SystemDbTest {
         final String declareProcedure = "CALL apoc.custom.declareProcedure('declareBar(one = 2 :: INTEGER?, two = 3 :: INTEGER?) :: (sum :: INTEGER?)', 'RETURN $one + $two as sum', 'READ', '');";
         db.executeTransactionally(declareProcedure);
 
-        // We test custom procedures and functions with deprecated syntax
-        // the expected exported cypher queries will leverage the new procedures (declareFunction and declareProcedure) 
-        db.executeTransactionally("CALL apoc.custom.asProcedure('procName','RETURN $input as answer','read',[['answer','number']],[['input','int','42']], 'Procedure that answer to the Ultimate Question of Life, the Universe, and Everything');");
-        db.executeTransactionally("CALL apoc.custom.asFunction('funName','RETURN $input as answer', 'long', [['input','number']], false);");
-        String declareStatementFromFunction = "CALL apoc.custom.declareFunction('funName(input :: NUMBER?) :: (INTEGER?)', 'RETURN $input as answer', false, '');";
-        String declareStatementFromProcedure = "CALL apoc.custom.declareProcedure('procName(input = 42 :: INTEGER?) :: (answer :: NUMBER?)', 'RETURN $input as answer', 'READ', 'Procedure that answer to the Ultimate Question of Life, the Universe, and Everything');";
-
         // We test uuid, we also need to export the related constraint (in another file)
         final String constraintForUuid = "CREATE CONSTRAINT Person_alpha IF NOT EXISTS FOR (n:Person) REQUIRE n.alpha IS UNIQUE;";
         db.executeTransactionally(constraintForUuid);
@@ -143,7 +136,7 @@ public class SystemDbTest {
         db.executeTransactionally(dvStatement);
 
         TestUtil.testCall(db, "CALL apoc.systemdb.export.metadata", row -> {
-            assertEquals(8L, row.get("rows"));
+            assertEquals(6L, row.get("rows"));
             assertEquals(true, row.get("done"));
             assertEquals("metadata", row.get("file"));
         });
@@ -151,8 +144,8 @@ public class SystemDbTest {
         assertEquals(Set.of(constraintForUuid), readFileLines("metadata.Uuid.schema.neo4j.cypher", directory));
         assertEquals(Set.of(uuidStatement), readFileLines("metadata.Uuid.neo4j.cypher", directory));
         assertEquals(Set.of(triggerOne, triggerTwo, pauseTrigger), readFileLines("metadata.Trigger.neo4j.cypher", directory));
-        assertEquals(Set.of(declareProcedure, declareStatementFromProcedure), readFileLines("metadata.CypherProcedure.neo4j.cypher", directory));
-        assertEquals(Set.of(declareFunction, declareStatementFromFunction), readFileLines("metadata.CypherFunction.neo4j.cypher", directory));
+        assertEquals(Set.of(declareProcedure), readFileLines("metadata.CypherProcedure.neo4j.cypher", directory));
+        assertEquals(Set.of(declareFunction), readFileLines("metadata.CypherFunction.neo4j.cypher", directory));
         assertEquals(Set.of(dvStatement), readFileLines("metadata.DataVirtualizationCatalog.neo4j.cypher", directory));
         
         // -- with config and uuid constrain dropped

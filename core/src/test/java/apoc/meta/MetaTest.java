@@ -5,7 +5,6 @@ import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.assertj.core.api.Assertions;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,11 +12,9 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -57,7 +54,6 @@ import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.SettingImpl.newBuilder;
 import static org.neo4j.configuration.SettingValueParsers.BOOL;
 import static org.neo4j.driver.Values.isoDuration;
-import static org.neo4j.graphdb.traversal.Evaluators.toDepth;
 
 public class MetaTest {
 
@@ -169,91 +165,6 @@ public class MetaTest {
             assertEquals(3,nodes.size());
             assertEquals(2,relationships.size());
         });
-    }
-
-    @Test
-    public void testMetaType() throws Exception {
-        try (Transaction tx = db.beginTx()) {
-            Node node = tx.createNode();
-            Relationship rel = node.createRelationshipTo(node, RelationshipType.withName("FOO"));
-            testTypeName(node, "NODE");
-            testTypeName(rel, "RELATIONSHIP");
-            Path path = tx.traversalDescription().evaluator(toDepth(1)).traverse(node).iterator().next();
-// TODO PATH FAILS              testTypeName(path, "PATH");
-            tx.rollback();
-        }
-        testTypeName(singletonMap("a", 10), "MAP");
-        testTypeName(asList(1, 2), "LIST");
-        testTypeName(1L, "INTEGER");
-        testTypeName(1, "INTEGER");
-        testTypeName(1.0D, "FLOAT");
-        testTypeName(1.0, "FLOAT");
-        testTypeName("a", "STRING");
-        testTypeName(false, "BOOLEAN");
-        testTypeName(true, "BOOLEAN");
-        testTypeName(null, "NULL");
-    }
-
-    @Test
-    public void testMetaTypeArray() throws Exception {
-        testTypeName(asList(1,2), "LIST");
-        testTypeName(asList(LocalDate.of(2018, 1, 1),2), "LIST");
-        testTypeName(new Integer[] {1, 2}, "int[]");
-        testTypeName(new Float[] {1f, 2f}, "float[]");
-        testTypeName(new Double[] {1d, 2d}, "double[]");
-        testTypeName(new String[] {"a", "b"}, "String[]");
-        testTypeName(new Long[] {1l, 2l}, "long[]");
-        testTypeName(new LocalDate[] {LocalDate.of(2018, 1, 1), LocalDate.of(2018, 1, 1)}, "LIST");
-        testTypeName(new Object[] {1d, ""}, "LIST");
-    }
-
-    @Test
-    public void testMetaIsType() throws Exception {
-        try (Transaction tx = db.beginTx()) {
-            Node node = tx.createNode();
-            Relationship rel = node.createRelationshipTo(node, RelationshipType.withName("FOO"));
-            testIsTypeName(node, "NODE");
-            testIsTypeName(rel, "RELATIONSHIP");
-            Path path = tx.traversalDescription().evaluator(toDepth(1)).traverse(node).iterator().next();
-// TODO PATH FAILS            testIsTypeName(path, "PATH");
-            tx.rollback();
-        }
-        testIsTypeName(singletonMap("a", 10), "MAP");
-        testIsTypeName(asList(1, 2), "LIST");
-        testIsTypeName(1L, "INTEGER");
-        testIsTypeName(1, "INTEGER");
-        testIsTypeName(1.0D, "FLOAT");
-        testIsTypeName(1.0, "FLOAT");
-        testIsTypeName("a", "STRING");
-        testIsTypeName(false, "BOOLEAN");
-        testIsTypeName(true, "BOOLEAN");
-        testIsTypeName(null, "NULL");
-    }
-    @Test
-    public void testMetaTypes() throws Exception {
-
-        Map<String, Object> param = map("MAP", singletonMap("a", 10),
-                "LIST", asList(1, 2),
-                "INTEGER", 1L,
-                "FLOAT", 1.0D,
-                "STRING", "a",
-                "BOOLEAN", true,
-                "NULL", null);
-        TestUtil.testCall(db, "RETURN apoc.meta.types($param) AS value", singletonMap("param",param), row -> {
-            Map<String,String> res = (Map) row.get("value");
-            res.forEach(Assert::assertEquals);
-        });
-
-    }
-
-    private void testTypeName(Object value, String type) {
-        TestUtil.testCall(db, "RETURN apoc.meta.typeName($value) AS value", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
-//        TestUtil.testCall(db, "RETURN apoc.meta.type($value) AS value", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
-    }
-
-    private void testIsTypeName(Object value, String type) {
-        TestUtil.testCall(db, "RETURN apoc.meta.isType($value,$type) AS value", map("value", value, "type", type), result -> assertEquals("type was not "+type,true, result.get("value")));
-        TestUtil.testCall(db, "RETURN apoc.meta.isType($value,$type) AS value", map("value", value, "type", type + "foo"), result -> assertEquals(false, result.get("value")));
     }
 
     @Test

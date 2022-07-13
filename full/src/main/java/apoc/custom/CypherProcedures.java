@@ -12,7 +12,6 @@ import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
 import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
 import org.neo4j.internal.kernel.api.procs.FieldSignature;
 import org.neo4j.internal.kernel.api.procs.Neo4jTypes;
-import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -51,34 +50,10 @@ public class CypherProcedures {
     public GraphDatabaseAPI api;
 
     @Context
-    public KernelTransaction ktx;
-
-    @Context
     public Log log;
 
     @Context
     public CypherProceduresHandler cypherProceduresHandler;
-
-    /*
-     * store in graph properties, load at startup
-     * allow to register proper params as procedure-params
-     * allow to register proper return columns
-     * allow to register mode
-     */
-    @Procedure(value = "apoc.custom.asProcedure",mode = Mode.WRITE, deprecatedBy = "apoc.custom.declareProcedure")
-    @Description("apoc.custom.asProcedure(name, statement, mode, outputs, inputs, description) - register a custom cypher procedure")
-    @Deprecated
-    public void asProcedure(@Name("name") String name, @Name("statement") String statement,
-                            @Name(value = "mode",defaultValue = "read") String mode,
-                            @Name(value= "outputs", defaultValue = "null") List<List<String>> outputs,
-                            @Name(value= "inputs", defaultValue = "null") List<List<String>> inputs,
-                            @Name(value= "description", defaultValue = "") String description
-    ) throws ProcedureException {
-        ProcedureSignature signature = cypherProceduresHandler.procedureSignature(name, mode, outputs, inputs, description);
-        Mode modeProcedure = cypherProceduresHandler.mode(mode);
-        validateProcedure(statement, signature.inputSignature(), signature.outputSignature(), modeProcedure);
-        cypherProceduresHandler.storeProcedure(signature, statement);
-    }
 
     @Procedure(value = "apoc.custom.declareProcedure", mode = Mode.WRITE)
     @Description("apoc.custom.declareProcedure(signature, statement, mode, description) - register a custom cypher procedure")
@@ -93,20 +68,6 @@ public class CypherProcedures {
             throw new IllegalStateException("Error registering procedure " + procedureSignature.name() + ", see log.");
         }
         cypherProceduresHandler.storeProcedure(procedureSignature, statement);
-    }
-
-
-    @Procedure(value = "apoc.custom.asFunction",mode = Mode.WRITE, deprecatedBy = "apoc.custom.declareFunction")
-    @Description("apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description) - register a custom cypher function")
-    @Deprecated
-    public void asFunction(@Name("name") String name, @Name("statement") String statement,
-                           @Name(value= "outputs", defaultValue = "") String output,
-                           @Name(value= "inputs", defaultValue = "null") List<List<String>> inputs,
-                           @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
-                           @Name(value = "description", defaultValue = "") String description) throws ProcedureException {
-        UserFunctionSignature signature = cypherProceduresHandler.functionSignature(name, output, inputs, description);
-        validateFunction(statement, signature.inputSignature());
-        cypherProceduresHandler.storeFunction(signature, statement, forceSingle);
     }
 
     @Procedure(value = "apoc.custom.declareFunction", mode = Mode.WRITE)

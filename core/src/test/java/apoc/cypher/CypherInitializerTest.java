@@ -21,7 +21,6 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static apoc.ApocConfig.APOC_CONFIG_INITIALIZER;
-import static apoc.ApocConfig.APOC_CONFIG_INITIALIZER_CYPHER;
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
@@ -80,7 +79,7 @@ public class CypherInitializerTest {
 
     @Test
     @Env({
-            @EnvSetting(key= APOC_CONFIG_INITIALIZER_CYPHER, value="")
+            @EnvSetting(key= APOC_CONFIG_INITIALIZER + "." + DEFAULT_DATABASE_NAME, value="")
     })
     public void emptyInitializerWorks() {
         expectNodeCount(0);
@@ -88,7 +87,7 @@ public class CypherInitializerTest {
 
     @Test
     @Env({
-            @EnvSetting(key= APOC_CONFIG_INITIALIZER_CYPHER, value="create()")
+            @EnvSetting(key= APOC_CONFIG_INITIALIZER + "." + DEFAULT_DATABASE_NAME, value="create()")
     })
     public void singleInitializerWorks() {
         expectNodeCount(1);
@@ -96,8 +95,8 @@ public class CypherInitializerTest {
 
     @Test
     @Env({  // this only creates 2 nodes if the statements run in same order
-            @EnvSetting(key= APOC_CONFIG_INITIALIZER_CYPHER + ".0", value="create()"),
-            @EnvSetting(key= APOC_CONFIG_INITIALIZER_CYPHER + ".1", value="match (n) create ()")
+            @EnvSetting(key= APOC_CONFIG_INITIALIZER + "." + DEFAULT_DATABASE_NAME + ".0", value="create()"),
+            @EnvSetting(key= APOC_CONFIG_INITIALIZER + "." + DEFAULT_DATABASE_NAME + ".1", value="match (n) create ()")
     })
     public void multipleInitializersWorks() {
         expectNodeCount(2);
@@ -105,8 +104,8 @@ public class CypherInitializerTest {
 
     @Test
     @Env({  // this only creates 1 node since the first statement doesn't do anything
-            @EnvSetting(key= APOC_CONFIG_INITIALIZER_CYPHER + ".0", value="match (n) create ()"),
-            @EnvSetting(key= APOC_CONFIG_INITIALIZER_CYPHER + ".1", value="create()")
+            @EnvSetting(key= APOC_CONFIG_INITIALIZER + "." + DEFAULT_DATABASE_NAME + ".0", value="match (n) create ()"),
+            @EnvSetting(key= APOC_CONFIG_INITIALIZER + "." + DEFAULT_DATABASE_NAME + ".1", value="create()")
     })
     public void multipleInitializersWorks2() {
         expectNodeCount(1);

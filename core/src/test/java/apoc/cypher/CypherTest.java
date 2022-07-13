@@ -140,21 +140,6 @@ public class CypherTest {
     }
 
     @Test
-    public void testRunFirstColumnBugDirection() {
-        db.executeTransactionally("CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'})");
-        String query = "MATCH (m:Movie {title:'MovieA'}) RETURN apoc.cypher.runFirstColumn('WITH $m AS m MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10', {m:m}, true) as rec";
-        testCall(db, query,
-                r -> assertEquals("MovieB", ((Node)((List)r.get("rec")).get(0)).getProperty("title")));
-    }
-
-    @Test
-    public void testRunFirstColumnMultipleValues() {
-        List expected = Arrays.asList(1L, 2L, 3L);
-        testCall(db, "RETURN apoc.cypher.runFirstColumn('UNWIND [1, 2, 3] AS e RETURN e', {}, true) AS arr",
-                r -> assertEquals(expected, r.get("arr")));
-    }
-
-    @Test
     public void testSingular() {
         int size = 10_000;
         testResult(db, "CALL apoc.cypher.run('UNWIND a as row UNWIND range(0,9) as b RETURN b',{a:range(1,$size)})", map("size", size),

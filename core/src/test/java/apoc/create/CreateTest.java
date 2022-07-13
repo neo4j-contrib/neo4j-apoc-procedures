@@ -197,39 +197,6 @@ public class CreateTest {
     }
 
     @Test
-    public void testCreatePattern() throws Exception {
-        testCall(db, "CALL apoc.create.vPattern({_labels:['Person'],name:'John'},'KNOWS',{since:2010},{_labels:['Person'],name:'Jane'})",
-                (row) -> {
-                    Node john = (Node) row.get("from");
-                    assertEquals(true, john.hasLabel(PERSON));
-                    assertEquals("John", john.getProperty("name"));
-                    Relationship rel = (Relationship) row.get("rel");
-                    assertEquals(true, rel.isType(RelationshipType.withName("KNOWS")));
-                    assertEquals(2010L, rel.getProperty("since"));
-                    Node jane = (Node) row.get("to");
-                    assertEquals(true, jane.hasLabel(PERSON));
-                    assertEquals("Jane", jane.getProperty("name"));
-                });
-    }
-
-    @Test
-    public void testCreatePatternFull() throws Exception {
-        testCall(db, "CALL apoc.create.vPatternFull(['Person'],{name:'John'},'KNOWS',{since:2010},['Person'],{name:'Jane'})",
-                (row) -> {
-                    Node john = (Node) row.get("from");
-                    assertEquals(true, john.hasLabel(PERSON));
-                    assertEquals("John", john.getProperty("name"));
-                    Relationship rel = (Relationship) row.get("rel");
-                    assertEquals(true, rel.isType(RelationshipType.withName("KNOWS")));
-                    assertEquals(2010L, rel.getProperty("since"));
-                    Node jane = (Node) row.get("to");
-                    assertEquals(true, jane.hasLabel(PERSON));
-                    assertEquals("Jane", jane.getProperty("name"));
-                });
-    }
-
-
-    @Test
     public void testVirtualFromNodeFunction() throws Exception {
         testCall(db, "CREATE (n:Person{name:'Vincent', born: 1974} )  RETURN apoc.create.virtual.fromNode(n, ['name']) as node",
                 (row) -> {

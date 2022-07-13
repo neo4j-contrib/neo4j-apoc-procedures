@@ -8,7 +8,6 @@ import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.procedure.*;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -180,34 +179,6 @@ public class Create {
     @Description("apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship")
     public Relationship vRelationshipFunction(@Name("from") Node from, @Name("relType") String relType, @Name("props") Map<String, Object> props, @Name("to") Node to) {
         return new VirtualRelationship(from, to, withName(relType)).withProperties(props);
-    }
-
-    @Procedure(deprecatedBy = "apoc.create.virtualPath")
-    @Deprecated
-    @Description("apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) returns a virtual pattern")
-    public Stream<VirtualPathResult> vPattern(@Name("from") Map<String, Object> n,
-                                              @Name("relType") String relType, @Name("props") Map<String, Object> props,
-                                              @Name("to") Map<String, Object> m) {
-        n = new LinkedHashMap<>(n);
-        m = new LinkedHashMap<>(m);
-        RelationshipType type = withName(relType);
-        VirtualNode from = new VirtualNode(Util.labels(n.remove("_labels")), n);
-        VirtualNode to = new VirtualNode(Util.labels(m.remove("_labels")), m);
-        Relationship rel = new VirtualRelationship(from, to, withName(relType)).withProperties(props);
-        return Stream.of(new VirtualPathResult(from, rel, to));
-    }
-
-    @Procedure(deprecatedBy = "apoc.create.virtualPath")
-    @Deprecated
-    @Description("apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual pattern")
-    public Stream<VirtualPathResult> vPatternFull(@Name("labelsN") List<String> labelsN, @Name("n") Map<String, Object> n,
-                                                  @Name("relType") String relType, @Name("props") Map<String, Object> props,
-                                                  @Name("labelsM") List<String> labelsM, @Name("m") Map<String, Object> m) {
-        RelationshipType type = withName(relType);
-        VirtualNode from = new VirtualNode(Util.labels(labelsN), n);
-        VirtualNode to = new VirtualNode(Util.labels(labelsM), m);
-        Relationship rel = new VirtualRelationship(from, to, type).withProperties(props);
-        return Stream.of(new VirtualPathResult(from, rel, to));
     }
 
     @Procedure

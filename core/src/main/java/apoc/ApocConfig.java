@@ -70,14 +70,6 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_CONFIG_INITIALIZER = "apoc.initializer";
     public static final String LOAD_FROM_FILE_ERROR = "Import from files not enabled, please set apoc.import.file.enabled=true in your apoc.conf";
 
-    /**
-     * @deprecated
-     * This has been replaced by database-specific initialisers.
-     * Use apoc.initializer.<database name> instead.
-     */
-    @Deprecated
-    public static final String APOC_CONFIG_INITIALIZER_CYPHER = APOC_CONFIG_INITIALIZER + ".cypher";
-
     private static final List<Setting> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = new ArrayList<>(Arrays.asList(
             data_directory,
             load_csv_file_url_root,
