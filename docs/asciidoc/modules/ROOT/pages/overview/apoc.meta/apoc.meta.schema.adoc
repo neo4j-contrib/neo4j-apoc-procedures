@@ -24,6 +24,9 @@ apoc.meta.schema(config = {} :: MAP?) :: (value :: MAP?)
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.meta.schema.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
