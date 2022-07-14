@@ -14,6 +14,7 @@ import static java.util.Arrays.asList;
  * @since 19.01.14
  */
 public class ExportConfig extends CompressionConfig {
+    public static final String RELS_WITH_TYPE_KEY = "multipleRelationshipsWithType";
 
     public static class NodeConfig {
         public String label;
@@ -43,6 +44,7 @@ public class ExportConfig extends CompressionConfig {
 
     private int batchSize;
     private boolean silent;
+    private boolean multipleRelationshipsWithType; 
     private boolean saveIndexNames;
     private boolean saveConstraintNames;
     private boolean bulkImport = false;
@@ -100,6 +102,10 @@ public class ExportConfig extends CompressionConfig {
 
     public CypherFormat getCypherFormat() { return cypherFormat; }
 
+    public boolean isMultipleRelationshipsWithType() {
+        return multipleRelationshipsWithType;
+    }
+
     public ExportConfig(Map<String,Object> config) {
         super(config);
         config = config != null ? config : Collections.emptyMap();
@@ -127,6 +133,7 @@ public class ExportConfig extends CompressionConfig {
         this.samplingConfig = (Map<String, Object>) config.getOrDefault("samplingConfig", new HashMap<>());
         this.unwindBatchSize = ((Number)getOptimizations().getOrDefault("unwindBatchSize", DEFAULT_UNWIND_BATCH_SIZE)).intValue();
         this.awaitForIndexes = ((Number)config.getOrDefault("awaitForIndexes", 300)).longValue();
+        this.multipleRelationshipsWithType = toBoolean(config.get(RELS_WITH_TYPE_KEY));
         this.source = new NodeConfig((Map<String, String>) config.get("source"));
         this.target = new NodeConfig((Map<String, String>) config.get("target"));
         validate();
