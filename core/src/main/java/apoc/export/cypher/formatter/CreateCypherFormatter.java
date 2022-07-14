@@ -36,7 +36,7 @@ public class CreateCypherFormatter extends AbstractCypherFormatter implements Cy
     }
 
     @Override
-    public String statementForRelationship(Relationship relationship,  Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties) {
+    public String statementForRelationship(Relationship relationship,  Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, ExportConfig exportConfig) {
         StringBuilder result = new StringBuilder(100);
         result.append("MATCH ");
         result.append(CypherFormatterUtils.formatNodeLookup("n1", relationship.getStartNode(), uniqueConstraints, indexedProperties));

@@ -23,8 +23,8 @@ public class AddStructureCypherFormatter extends AbstractCypherFormatter impleme
 	}
 
 	@Override
-	public String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties) {
-		return new CreateCypherFormatter().statementForRelationship(relationship, uniqueConstraints, indexedProperties);
+	public String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, ExportConfig exportConfig) {
+		return new CreateCypherFormatter().statementForRelationship(relationship, uniqueConstraints, indexedProperties, exportConfig);
 	}
 
 	@Override
