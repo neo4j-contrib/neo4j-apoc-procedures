@@ -142,8 +142,6 @@ public class DocsTest {
         docs.put("apoc.mongodb.*", "database-integration/mongodb.adoc");
         docs.put("apoc.neighbors.*", "graph-querying/neighborhood.adoc");
         docs.put("apoc.monitor.*", "database-introspection/monitoring.adoc");
-        docs.put("apoc.periodic.rock_n_roll", "graph-updates/periodic-execution.adoc#periodic-rock-n-roll");
-        docs.put("apoc.refactor.cloneNodesWithRelationships", "graph-updates/graph-refactoring/clone-nodes.adoc");
         docs.put("apoc.refactor.merge.*", "graph-updates/graph-refactoring/merge-nodes.adoc");
         docs.put("apoc.refactor.to|apoc.refactor.from", "graph-updates/graph-refactoring/redirect-relationship.adoc");
         docs.put("apoc.refactor.invert", "graph-updates/graph-refactoring/invert-relationship.adoc");

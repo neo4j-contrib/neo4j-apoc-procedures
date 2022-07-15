@@ -2,7 +2,6 @@ apoc.algo.aStarWithPoint
 apoc.bolt.execute
 apoc.bolt.load
 apoc.bolt.load.fromLocal
-apoc.cluster.graph
 apoc.config.list
 apoc.config.map
 apoc.couchbase.append
@@ -16,8 +15,6 @@ apoc.couchbase.query
 apoc.couchbase.remove
 apoc.couchbase.replace
 apoc.couchbase.upsert
-apoc.custom.asFunction
-apoc.custom.asProcedure
 apoc.custom.declareFunction
 apoc.custom.declareProcedure
 apoc.custom.list
@@ -31,8 +28,6 @@ apoc.cypher.runFile
 apoc.cypher.runFiles
 apoc.cypher.runSchemaFile
 apoc.cypher.runSchemaFiles
-apoc.date.expire
-apoc.date.expireIn
 apoc.dv.catalog.add
 apoc.dv.catalog.list
 apoc.dv.catalog.remove
@@ -68,7 +63,6 @@ apoc.load.driver
 apoc.load.html
 apoc.load.htmlPlainText
 apoc.load.jdbc
-apoc.load.jdbcParams
 apoc.load.jdbcUpdate
 apoc.load.ldap
 apoc.load.xls
@@ -86,14 +80,7 @@ apoc.mongo.delete
 apoc.mongo.find
 apoc.mongo.insert
 apoc.mongo.update
-apoc.mongodb.count
-apoc.mongodb.delete
-apoc.mongodb.find
-apoc.mongodb.first
-apoc.mongodb.get
 apoc.mongodb.get.byObjectId
-apoc.mongodb.insert
-apoc.mongodb.update
 apoc.monitor.ids
 apoc.monitor.kernel
 apoc.monitor.store
@@ -114,8 +101,6 @@ apoc.nlp.gcp.classify.graph
 apoc.nlp.gcp.classify.stream
 apoc.nlp.gcp.entities.graph
 apoc.nlp.gcp.entities.stream
-apoc.periodic.rock_n_roll
-apoc.periodic.rock_n_roll_while
 apoc.redis.append
 apoc.redis.configGet
 apoc.redis.configSet
@@ -147,7 +132,6 @@ apoc.redis.zadd
 apoc.redis.zcard
 apoc.redis.zrangebyscore
 apoc.redis.zrem
-apoc.static.get
 apoc.static.list
 apoc.static.set
 apoc.systemdb.execute

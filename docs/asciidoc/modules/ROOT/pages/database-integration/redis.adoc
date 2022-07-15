@@ -159,7 +159,7 @@ CALL apoc.redis.incrby($uri, 'myKey', 2)
 
 [source,cypher]
 ----
-CALL apoc.mongodb.push($uri, 'myListKey', ['foo','bar','baz'])
+CALL apoc.redis.push($uri, 'myListKey', ['foo','bar','baz'])
 ----
 
 .Results

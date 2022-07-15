@@ -29,16 +29,6 @@ apoc.periodic.list - list all jobs
 apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.
 |label:procedure[]
 |label:apoc-core[]
-|xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.rock_n_roll icon:book[]]
-
-apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows
-|label:procedure[]
-|label:apoc-full[]
-|xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.rock_n_roll_while icon:book[]]
-
-apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows
-|label:procedure[]
-|label:apoc-full[]
 |xref::overview/apoc.periodic/apoc.periodic.adoc[apoc.periodic.submit icon:book[]]
 
 apoc.periodic.submit('name',statement,params) - submit a one-off background statement; parameter 'params' is optional and can contain query parameters for Cypher statement

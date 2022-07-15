@@ -82,7 +82,7 @@ we can run the following procedures.
 
 [source,cypher]
 ----
-CALL apoc.mongodb.aggregate('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', [{`$match`: {foo: 'bar'}}, {`$set`: {aggrField: 'Y'} }])
+CALL apoc.mongo.aggregate('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', [{`$match`: {foo: 'bar'}}, {`$set`: {aggrField: 'Y'} }])
 ----
 
 .Results
@@ -126,7 +126,7 @@ CALL apoc.mongodb.aggregate('mongodb://user:pass@localhost:27017/myDb.Person?aut
 
 [source,cypher]
 ----
-CALL apoc.mongodb.count('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin')
+CALL apoc.mongo.count('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin')
 ----
 
 .Results
@@ -140,7 +140,7 @@ We can also pass the collection name through the config parameter:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.count('mongodb://user:pass@localhost:27017/myDb?authSource=admin', {collection: 'Person'})
+CALL apoc.mongo.count('mongodb://user:pass@localhost:27017/myDb?authSource=admin', {collection: 'Person'})
 ----
 
 .Results
@@ -158,7 +158,7 @@ If we want to extract the all `Person`s with default parameter:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin')
+CALL apoc.mongo.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin')
 ----
 
 .Results
@@ -213,7 +213,7 @@ In addition, we can pass the query param like:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {expr: {`$regex`: 'bar*', `$options`: ''}})
+CALL apoc.mongo.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {expr: {`$regex`: 'bar*', `$options`: ''}})
 ----
 
 .Results
@@ -243,7 +243,7 @@ If we want to extract `bought` references, through config parameter:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {expr: {`$regex`: 'foo*', `$options`: ''}}, {extractReferences: true})
+CALL apoc.mongo.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {expr: {`$regex`: 'foo*', `$options`: ''}}, {extractReferences: true})
 ----
 
 .Results
@@ -291,7 +291,7 @@ Moreover, we can retrieve the `ObjectId` s with theirs `HexString` representatio
 
 [source,cypher]
 ----
-CALL apoc.mongodb.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {expr: {`$regex`: 'foo*', `$options`: ''}}, {objectIdAsMap: false, extractReferences: true})
+CALL apoc.mongo.first('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {expr: {`$regex`: 'foo*', `$options`: ''}}, {objectIdAsMap: false, extractReferences: true})
 ----
 
 .Results
@@ -379,7 +379,7 @@ CALL apoc.mongo.first('mongodb://user:pass@localhost:27017/myDb.Person?authSourc
 Furthermore, we can use the `limit` parameter, for example:
 
 ----
-CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', null, {skip: 1, limit: 1, project: {age: 1}})
+CALL apoc.mongo.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', null, {skip: 1, limit: 1, project: {age: 1}})
 ----
 
 .Results
@@ -404,7 +404,7 @@ Furthermore, we can pass a `sort` parameter, for example:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', null, {sort: {name: -1}, objectIdAsMap: false, project: {name: 1}})
+CALL apoc.mongo.find('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', null, {sort: {name: -1}, objectIdAsMap: false, project: {name: 1}})
 ----
 
 .Results
@@ -439,7 +439,7 @@ To update the `age` property of the `John` document:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.update('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {name: "John"}, {`$set`: {age:99}})
+CALL apoc.mongo.update('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {name: "John"}, {`$set`: {age:99}})
 ----
 
 with the number of row affected as result:
@@ -459,7 +459,7 @@ To delete the `John` document:
 
 [source,cypher]
 ----
-CALL apoc.mongodb.update('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {name: "John"})
+CALL apoc.mongo.update('mongodb://user:pass@localhost:27017/myDb.Person?authSource=admin', {name: "John"})
 ----
 
 with the number of row affected as result:

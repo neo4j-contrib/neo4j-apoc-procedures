@@ -1,5 +1,0 @@
-¦xref::overview/apoc.export/apoc.export.cypherAll.adoc[apoc.export.cypherAll icon:book[]] +
-
-`apoc.export.cypherAll(file,config)` - exports whole database incl. indexes as cypher statements to the provided file
-¦label:procedure[]
-¦label:apoc-core[]

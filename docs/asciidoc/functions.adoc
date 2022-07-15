@@ -76,10 +76,6 @@ In our APOC procedure library we already converted about https://github.com/neo4
 | 8
 | apoc.convert.toMap(value)
 
-| type information and checking
-| 4
-| apoc.meta.type(value)
-
 | collection and map functions
 | 25
 | apoc.map.fromList(["k1",v1,"k2",v2,"k3",v3])

@@ -1,2 +1,0 @@
-¦signature
-¦apoc.coll.reverse(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)

@@ -1,14 +1,4 @@
 ¦Qualified Name¦Type¦Release
-|xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.asFunction icon:book[]]
-
-apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description) - register a custom cypher function
-|label:procedure[]
-|label:apoc-full[]
-|xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.asProcedure icon:book[]]
-
-apoc.custom.asProcedure(name, statement, mode, outputs, inputs, description) - register a custom cypher procedure
-|label:procedure[]
-|label:apoc-full[]
 |xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.declareFunction icon:book[]]
 
 apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function

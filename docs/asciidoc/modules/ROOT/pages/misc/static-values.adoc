@@ -14,9 +14,6 @@ include::example$generated-documentation/apoc.static.getAll.adoc[]
 include::example$generated-documentation/apoc.static.set.adoc[]
 |===
 
-
-NOTE: `apoc.static.get` and `apoc.static.getAll` have been migrated to functions, the procedures have been deprecated.
-
 This section includes the following sub sections:
 
 * <<api-credentials>>

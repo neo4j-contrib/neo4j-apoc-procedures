@@ -313,7 +313,7 @@ For this example, we would like that all the `reference` node properties are of 
 ----
 CALL apoc.trigger.add("forceStringType",
 "UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, 'reference') AS prop
-CALL apoc.util.validate(apoc.meta.type(prop) <> 'STRING', 'expected string property type, got %s', [apoc.meta.type(prop)]) RETURN null", {phase:'before'})
+CALL apoc.util.validate(apoc.meta.cypher.type(prop) <> 'STRING', 'expected string property type, got %s', [apoc.meta.type(prop)]) RETURN null", {phase:'before'})
 ----
 
 [source,cypher]

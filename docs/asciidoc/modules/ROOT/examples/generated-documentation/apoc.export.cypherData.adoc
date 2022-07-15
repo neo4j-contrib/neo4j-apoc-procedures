@@ -1,5 +1,0 @@
-¦xref::overview/apoc.export/apoc.export.cypherData.adoc[apoc.export.cypherData icon:book[]] +
-
-`apoc.export.cypherData(nodes,rels,file,config)` - exports given nodes and relationships incl. indexes as cypher statements to the provided file
-¦label:procedure[]
-¦label:apoc-core[]

@@ -189,11 +189,6 @@ apoc.coll.remove(coll, index, [length=1]) \| remove range of values from index t
 apoc.coll.removeAll(first, second) - returns first list with all elements of second list removed
 |label:function[]
 |label:apoc-core[]
-|xref::overview/apoc.coll/apoc.coll.adoc[apoc.coll.reverse icon:book[]]
-
-apoc.coll.reverse(coll) - returns reversed list
-|label:function[]
-|label:apoc-core[]
 |xref::overview/apoc.coll/apoc.coll.adoc[apoc.coll.runningTotal icon:book[]]
 
 apoc.coll.runningTotal(list1) - returns an accumulative array. For example apoc.coll.runningTotal([1,2,3.5]) return [1,3,6.5]

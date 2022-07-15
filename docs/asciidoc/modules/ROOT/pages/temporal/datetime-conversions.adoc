@@ -38,7 +38,6 @@ include::example$generated-documentation/apoc.date.fields.adoc[]
 include::example$generated-documentation/apoc.date.format.adoc[]
 include::example$generated-documentation/apoc.date.fromISO8601.adoc[]
 include::example$generated-documentation/apoc.date.parse.adoc[]
-include::example$generated-documentation/apoc.date.parseAsZonedDateTime.adoc[]
 include::example$generated-documentation/apoc.date.systemTimezone.adoc[]
 include::example$generated-documentation/apoc.date.toISO8601.adoc[]
 include::example$generated-documentation/apoc.date.toYears.adoc[]
@@ -265,17 +264,6 @@ It accepts the following parameters:
 |===
 
 xref::overview/apoc.date/apoc.date.parse.adoc#usage-apoc.date.parse[View usage examples,role=more information]
-
-[[datetime-available-procedures-apoc.date.parseAsZonedDateTime]]
-=== `apoc.date.parseAsZonedDateTime`
-
-This function parses a date string in a specified format and converts it to a Neo4j-supported temporal type with date, time, and timezone.
-
-[NOTE]
-====
-This function has been deprecated by `apoc.temporal.toZonedTemporal`, therefore it's recommended to use that one instead.
-See xref::temporal/temporal-conversions.adoc[].
-====
 
 [[datetime-available-procedures-apoc.date.systemTimezone]]
 === `apoc.date.systemTimezone`

@@ -1,2 +1,0 @@
-¦signature
-¦apoc.mongodb.delete(host :: STRING?, db :: STRING?, collection :: STRING?, query :: MAP?) :: (value :: INTEGER?)
