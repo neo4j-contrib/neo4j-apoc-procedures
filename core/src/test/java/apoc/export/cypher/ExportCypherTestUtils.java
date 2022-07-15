@@ -50,7 +50,7 @@ public class ExportCypherTestUtils {
             ":commit\n";
 
     protected final static String SCHEMA_WITH_UNIQUE_IMPORT_ID = ":begin\n" +
-            "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;\n" +
+            "CREATE CONSTRAINT UNIQUE_IMPORT_NAME FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;\n" +
             ":commit\n" +
             "CALL db.awaitIndexes(300);\n";
 
@@ -141,7 +141,7 @@ public class ExportCypherTestUtils {
             "MATCH (n:`UNIQUE IMPORT LABEL`) WITH n LIMIT 5 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;\n" +
             ":commit\n" +
             ":begin\n" +
-            "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;\n" +
+            "DROP CONSTRAINT UNIQUE_IMPORT_NAME;\n" +
             ":commit\n";
 
     protected final static String CLEANUP_EMPTY = ":begin\n:commit\n:begin\n:commit\n";

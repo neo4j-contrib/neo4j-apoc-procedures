@@ -44,7 +44,7 @@ public class ExportCypherMultiRelTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            // as for the GraphRefactoringTest, we need to set unsupported.dbms.debug.trace_cursors=false 
+            // as for the GraphRefactoringTest, we need to set internal.dbms.debug.trace_cursors=false 
             // because, with DbmsRule, using structures like StreamSupport.stream(node.getRelationships(dir, type).spliterator(), false)..etc.. an 'IllegalStateException: Closeable RelationshipTraversalCursor[..] was not closed!' is thrown. 
             // With a non-test instance it works without this config
             .withSetting(newBuilder("internal.dbms.debug.track_cursor_close", BOOL, false).build(), false);
