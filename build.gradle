@@ -28,7 +28,7 @@ idea {
 }
 
 group = 'org.neo4j.procedure'
-version = '3.5.0.17'
+version = '3.5.0.18'
 archivesBaseName = 'apoc'
 
 jar {
@@ -41,7 +41,7 @@ description = """neo4j-apoc-procedures"""
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "3.5.19"
+    neo4jVersion = "3.5.34"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.15.3'
@@ -102,7 +102,7 @@ dependencies {
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
     compile group: 'net.minidev', name: 'json-smart', version: '2.4.2'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
-    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.7.3'
+    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.7.6'
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
 
     def withoutAntlr =  {
@@ -300,7 +300,7 @@ asciidoctor {
     sources { include 'index.adoc' }
     outputDir = file('build/docs')
     attributes  'apoc-version' : version,
-                'apoc-release' : "3.5.0.15",
+                'apoc-release' : "3.5.0.18",
                 'neo4j-version' : neo4jVersionEffective,
                 'branch' : "3.5"
 }
