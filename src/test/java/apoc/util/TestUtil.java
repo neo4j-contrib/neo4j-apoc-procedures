@@ -160,7 +160,7 @@ public class TestUtil {
     }
 
     public static boolean isCI() {
-        return "true".equals(System.getenv("CI"));
+        return "true".equals(System.getenv("CI")) || System.getenv("TEAMCITY_VERSION") != null;
     }
 
     public static GraphDatabaseBuilder apocGraphDatabaseBuilder() {
