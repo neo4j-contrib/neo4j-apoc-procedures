@@ -1,0 +1,515 @@
+[[deprecations-and-additions]]
+= Deprecations and additions
+:description: This chapter lists all the features that have been removed, deprecated, added or extended in the recent versions of APOC.
+
+This chapter lists all the features that have been removed, deprecated, added or extended in the recent versions of APOC.
+
+[[apoc-deprecations-additions-removals-5.0]]
+== Version 5.0
+
+=== Removed procedures
+
+[cols="2", options="header"]
+|===
+| Feature
+| Details
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.data.domain('url_or_email_address') YIELD domain
+----
+a|
+Replaced by ExtractEmail or ExtractURI:
+[source, cypher, role="noheader"]
+----
+apoc.data.email('email_address')
+----
+[source, cypher, role="noheader"]
+----
+apoc.data.url('url')
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS', 'distance', 10) YIELD path, weight
+----
+a|
+Use the following instead:
+[source, cypher, role="noheader"]
+----
+apoc.algo.dijkstra(startNode, endNode, 'KNOWS', 'distance', defaultValue, numberOfWantedResults) YIELD path, weight
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset')
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.temporal.toZonedTemporal('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset')
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.coll.reverse(coll)
+----
+a|
+Replaced in Cypher with:
+[source, cypher, role="noheader"]
+----
+WITH [4923,'abc',521, null, 487] AS ids
+RETURN reverse(ids)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.export.cypherAll(file,config)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.export.cypher.all(file,config)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.export.cypherData(nodes,rels,file,config)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.export.cypher.data(nodes,rels,file,config)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.export.cypherGraph(graph,file,config)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.export.cypher.graph(graph,file,config)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.export.cypherQuery(query,file,config)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.export.cypher.query(query,file,config)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.meta.type(value)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.meta.cypher.type(value)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.meta.types(node-relationship-map)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.meta.cypher.types(node-relationship-map)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.meta.isType(value,type)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.meta.cypher.isType(value,type)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.meta.typeName(value)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.meta.cypher.type(value)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total
+----
+a|
+Partially replaced in Cypher with:
+[source, cypher, role="noheader"]
+----
+CALL {} IN TRANSACTIONS OF n ROWS
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total
+----
+a|
+Replaced in Cypher with:
+[source, cypher, role="noheader"]
+----
+CALL {} IN TRANSACTIONS OF n ROWS
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) returns a virtual pattern
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value})
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual pattern
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value})
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.xml.import(url, config)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.import.xml(file,config)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.refactor.cloneNodesWithRelationships([node1,node2,...])
+----
+a|
+Use the following instead, and set withRelationships = true:
+[source, cypher, role="noheader"]
+----
+apoc.refactor.cloneNodes(nodes, withRelationships, skipProperties)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.text.phonetic(value) yield value
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.text.phonetic(text) yield value
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.text.doubleMetaphone(value) yield value
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.text.doubleMetaphone(text) yield value
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.math.round(value,[prec],mode=[CEILING,FLOOR,UP,DOWN,HALF_EVEN,HALF_DOWN,HALF_UP,DOWN,UNNECESSARY])
+----
+a|
+Replaced by the Neo4j round() function:
+[source, cypher, role="noheader"]
+----
+RETURN round(3.141592, 3)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.warmup.run(loadProperties=false,loadDynamicProperties=false,loadIndexes=false)
+----
+a|
+This procedure duplicated functionality of page cache warm up which is a part of the DBMS.
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.date.expire(node,time,'time-unit')
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.ttl.expire(node,time,'time-unit')
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.date.expireIn(node,time,'time-unit')
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.ttl.expireIn(node,timeDelta,'time-unit')
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.mongodb.get()
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.mongo.find(uri, query, $config) yield value
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.mongodb.count(host-or-key,db,collection,query) yield value
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.mongo.count(uri, query, $config) yield value
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.mongodb.first() yield value
+----
+a|
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.mongodb.find() yield value
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.mongo.find(uri, query, $config) yield value
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.mongodb.insert(host-or-key,db,collection,documents)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.mongo.insert(uri, documents, $config) yield value
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.mongodb.delete(host-or-key,db,collection,query)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.mongo.delete(uri, query, $config)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.mongodb.update(host-or-key,db,collection,query,update)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.mongo.update(uri, query, update, $config)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.cluster.graph()
+----
+a|
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.load.jdbcParams()
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.load.jdbc('key or url','',[params]) YIELD row
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.custom.asProcedure(name, statement, mode, outputs, inputs, description)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.custom.declareProcedure(signature, statement, mode, description)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.custom.declareFunction(signature, statement, forceSingle, description)
+----
+
+a|
+label:procedure[]
+label:removed[]
+[source, cypher, role="noheader"]
+----
+apoc.cypher.runFirstColumn(statement, params, expectMultipleValues)
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.cypher.runFirstColumnMany(statement, params)
+----
+[source, cypher, role="noheader"]
+----
+apoc.cypher.runFirstColumnSingle(statement, params)
+----
+|===

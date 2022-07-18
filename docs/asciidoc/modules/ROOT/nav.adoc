@@ -154,3 +154,5 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::algorithms/similarity.adoc[]
 
 * xref::transaction/index.adoc[]
+
+* xref::deprecations-and-additions/index.adoc[]
