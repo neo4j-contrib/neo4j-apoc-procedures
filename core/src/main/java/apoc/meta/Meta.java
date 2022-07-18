@@ -877,8 +877,8 @@ public class Meta {
                                   Iterable<ConstraintDefinition> relConstraints, Set<String> indexes) {
         MetaItem relNodeMeta = typeMeta.get(labelName);
         relMeta.elementType(Types.of(node).name());
-        relMeta.inc().rel(out , in);
-        relNodeMeta.inc().rel(out,in);
+        relMeta.inc().rel(out, in);
+        relNodeMeta.inc().rel(out, in);
         for (Relationship rel : node.getRelationships(Direction.OUTGOING, type)) {
             Node endNode = rel.getEndNode();
             List<String> labels = toStrings(endNode.getLabels());
