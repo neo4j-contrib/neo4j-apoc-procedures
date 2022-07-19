@@ -97,7 +97,7 @@ Please note that, because we examine a sample, these counts are just estimates t
 In particular the `count` column indicates the number of nodes with an outgoing relationship 
 (e.g. the row with label = `ACTED_IN` and property = `Person` has `count` 2 because there are 2 nodes `(node:Person)-[:ACTED_IN]->()`, i.e. `(Keanu)` and `(TomH)`).
 
-The `left` value represents the ratio (rounded down) of the count of patterns for a certain label and a specific type of relationship to `count`.
+The `left` value represents the ratio (rounded down) of the count of the outgoing patterns for a certain label and a specific type of relationship to `count`.
 In cypher, it corresponds to:
 [source,cypher]
 ----
@@ -113,9 +113,9 @@ So the `left` value is 1 (2 relationships divided by 2 nodes found).
 Instead, regarding the row with label = `LIKES` and property = `Person`, there are 8 relationships `(:Person)-[rel:LIKES]->()`, 7 starting from `(Keanu)` node, and 1 from `(Carrie)`.
 Then the `left` value is 4 (8 relationships divided by 2 nodes found).
 
-The `right` value is the ratio (rounded down) of the sum of incoming node-degrees to `count`, for each relationship, 
-where the incoming node-degrees included in the count are those in which there is an equivalent outgoing relationship.
-In cypher it correspond to:
+The `right` value is the ratio (rounded down) of the count of the incoming patterns for a certain label and a specific type of relationship to `count`, 
+where the patterns included in the count are those in which there is an equivalent outgoing relationship.
+In cypher it corresponds to:
 [source,cypher]
 ----
 MATCH p=(start:`<LABEL>`)<-[:`<TYPE>`]-()
@@ -124,6 +124,6 @@ WITH count(distinct start) as nodes, count(p) as counts
 RETURN CASE when nodes = 0 then 0 else counts / nodes end
 ----
 
-For example, the row with label = `RELATED_TO` and property = `Movie`, the `(TheMatrix)` node, which has an outgoing `RELATED_TO` relationship, has 3 incoming relationships as well, while the `TheMatrixReloaded` node has 1 incoming relationship. So the `right` value is 2, that is 4 divided by 2 node founds.
+For example, regarding the row with label = `RELATED_TO` and property = `Movie`, the `(TheMatrix)` node, which has an outgoing `RELATED_TO` relationship, has 3 incoming relationships as well, while the `TheMatrixReloaded` node has 1 incoming relationship. So the `right` value is 2, that is 4 divided by 2 node founds.
 
 Therefore, via the `right` and `left` values, we provide a dataset estimate of the possible degree averages.
