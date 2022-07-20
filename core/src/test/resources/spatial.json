@@ -6,25 +6,36 @@
   "addresses": [
     {
       "address": "21 rue Paul Bellamy 44000 NANTES FRANCE",
-      "latitude": 47.2221667,
-      "longitude": -1.5566624
+      "osm": {
+        "latitude": 47.2221667,
+        "longitude": -1.5566624
+      }
     },
     {
       "address": "12 Rue Cubain 49000 Angers France",
-      "latitude": 47.4607430,
-      "longitude": -0.5453014
+      "osm": {
+        "latitude": 47.4607430,
+        "longitude": -0.5453014
+      }
     },
     {
       "_comment": "Test for unicode characters",
       "address": "Rämistrasse 71 8006 Zürich Switzerland",
-      "latitude": 47.37457,
-      "longitude": 8.54875
+      "osm": {
+        "latitude": 47.37457,
+        "longitude": 8.54875
+      },
+      "opencage": {
+        "latitude": 47.00016,
+        "longitude": 8.01427
+      }
     },
     {
       "address": "FRANCE",
       "count": {
         "google": 1,
-        "osm": 10
+        "osm": 10,
+        "opencage": 10
       }
     },
     {
@@ -53,154 +64,250 @@
   ],
   "geocode": {
     "18 Avenue de Suffren, 75007 Paris, France": {
-      "place_id": "71721231",
-      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
-      "osm_type": "way",
-      "osm_id": "51260152",
-      "boundingbox": [
-        "48.851181",
-        "48.8511907",
-        "2.300904",
-        "2.3009296"
-      ],
-      "lat": "48.851181",
-      "lon": "2.3009296",
-      "display_name": "Avenue de Suffren, Grenelle, 15th Arrondissement, Paris, Ile-de-France, Metropolitan France, 75015, France",
-      "class": "highway",
-      "type": "tertiary",
-      "importance": 0.62
+      "osm": {
+        "place_id": "71721231",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
+        "osm_type": "way",
+        "osm_id": "51260152",
+        "boundingbox": [
+          "48.851181",
+          "48.8511907",
+          "2.300904",
+          "2.3009296"
+        ],
+        "lat": "48.851181",
+        "lon": "2.3009296",
+        "display_name": "Avenue de Suffren, Grenelle, 15th Arrondissement, Paris, Ile-de-France, Metropolitan France, 75015, France",
+        "class": "highway",
+        "type": "tertiary",
+        "importance": 0.62
+      },
+      "opencage": {
+        "lat": "48.851181",
+        "lon": "2.3009296",
+        "display_name": "Somewhere in France"
+      },
+      "google": {
+        "lat": "48.851181",
+        "lon": "2.3009296",
+        "display_name": "Somewhere in France"
+      }
     },
     "27 Avenue de la Bourdonnais, 75007 Paris, France": {
-      "place_id": "11734823",
-      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
-      "osm_type": "node",
-      "osm_id": "1181635043",
-      "boundingbox": [
-        "48.8589761",
-        "48.8590761",
-        "2.2981881",
-        "2.2982881"
-      ],
-      "lat": "48.8590261",
-      "lon": "2.2982381",
-      "display_name": "27, Avenue de la Bourdonnais, Gros-Caillou, 7th Arrondissement, Paris, Ile-de-France, Metropolitan France, 75007, France",
-      "class": "place",
-      "type": "house",
-      "importance": 0.621
+      "osm": {
+        "place_id": "11734823",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
+        "osm_type": "node",
+        "osm_id": "1181635043",
+        "boundingbox": [
+          "48.8589761",
+          "48.8590761",
+          "2.2981881",
+          "2.2982881"
+        ],
+        "lat": "48.8590261",
+        "lon": "2.2982381",
+        "display_name": "27, Avenue de la Bourdonnais, Gros-Caillou, 7th Arrondissement, Paris, Ile-de-France, Metropolitan France, 75007, France",
+        "class": "place",
+        "type": "house",
+        "importance": 0.621
+      },
+      "opencage": {
+        "lon": 2.2982381,
+        "lat": 48.8590261,
+        "display_name": "Somewhere in France"
+      },
+      "google": {
+        "lon": 2.300566,
+        "lat": 48.85119,
+        "display_name": "Somewhere in France"
+      }
     },
     "21 Rue Benjamin Franklin, 75116 Paris, France": {
-      "place_id": "9864688",
-      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
-      "osm_type": "node",
-      "osm_id": "963924738",
-      "boundingbox": [
-        "48.8602007",
-        "48.8603007",
-        "2.285589",
-        "2.285689"
-      ],
-      "lat": "48.8602507",
-      "lon": "2.285639",
-      "display_name": "21, Rue Benjamin Franklin, Muette, 16th Arrondissement, Paris, Ile-de-France, Metropolitan France, 75016;75116, France",
-      "class": "place",
-      "type": "house",
-      "importance": 0.521
+      "osm": {
+        "place_id": "9864688",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
+        "osm_type": "node",
+        "osm_id": "963924738",
+        "boundingbox": [
+          "48.8602007",
+          "48.8603007",
+          "2.285589",
+          "2.285689"
+        ],
+        "lat": "48.8602507",
+        "lon": "2.285639",
+        "display_name": "21, Rue Benjamin Franklin, Muette, 16th Arrondissement, Paris, Ile-de-France, Metropolitan France, 75016;75116, France",
+        "class": "place",
+        "type": "house",
+        "importance": 0.521
+      },
+      "opencage": {
+        "lon": 2.2982381,
+        "lat": 48.8590261,
+        "display_name": "Somewhere in France"
+      },
+      "google": {
+        "lon": 2.300566,
+        "lat": 48.85119,
+        "display_name": "Somewhere in France"
+      }
     },
     "17 Rue Villeneuve, 92110 Clichy, France": {
-      "place_id": "99446390",
-      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
-      "osm_type": "way",
-      "osm_id": "173213868",
-      "boundingbox": [
-        "48.9028417",
-        "48.9034881",
-        "2.3039654",
-        "2.3057864"
-      ],
-      "lat": "48.9031474",
-      "lon": "2.3049003",
-      "display_name": "Rue Villeneuve, Clichy, Nanterre, Hauts-de-Seine, Ile-de-France, Metropolitan France, 92110, France",
-      "class": "highway",
-      "type": "residential",
-      "importance": 0.52
+      "osm": {
+        "place_id": "99446390",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
+        "osm_type": "way",
+        "osm_id": "173213868",
+        "boundingbox": [
+          "48.9028417",
+          "48.9034881",
+          "2.3039654",
+          "2.3057864"
+        ],
+        "lat": "48.9031474",
+        "lon": "2.3049003",
+        "display_name": "Rue Villeneuve, Clichy, Nanterre, Hauts-de-Seine, Ile-de-France, Metropolitan France, 92110, France",
+        "class": "highway",
+        "type": "residential",
+        "importance": 0.52
+      },
+      "opencage": {
+        "lon": 2.2982381,
+        "lat": 48.8590261,
+        "display_name": "Somewhere in France"
+      },
+      "google": {
+        "lon": 2.300566,
+        "lat": 48.85119,
+        "display_name": "Somewhere in France"
+      }
     }
   },
   "reverseGeocode": {
     "48.851181,2.3009296" : {
-      "place_id": "71721231",
-      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
-      "osm_type": "way",
-      "osm_id": "51260152",
-      "boundingbox": [
-        "48.851181",
-        "48.8511907",
-        "2.300904",
-        "2.3009296"
-      ],
-      "lat": "48.851181",
-      "lon": "2.3009296",
-      "address" : "18 Avenue de Suffren, 75007 Paris, France",
-      "display_name": "Avenue de Suffren, Grenelle, 15th Arrondissement, Paris, Ile-de-France, Metropolitan France, 75015, France",
-      "class": "highway",
-      "type": "tertiary",
-      "importance": 0.62
+      "osm": {
+        "place_id": "71721231",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
+        "osm_type": "way",
+        "osm_id": "51260152",
+        "boundingbox": [
+          "48.851181",
+          "48.8511907",
+          "2.300904",
+          "2.3009296"
+        ],
+        "lat": "48.851181",
+        "lon": "2.3009296",
+        "address": "18 Avenue de Suffren, 75007 Paris, France",
+        "display_name": "Avenue de Suffren, Grenelle, 15th Arrondissement, Paris, Ile-de-France, Metropolitan France, 75015, France",
+        "class": "highway",
+        "type": "tertiary",
+        "importance": 0.62
+      },
+      "opencage": {
+        "lon": 2.300566,
+        "lat": 48.85119,
+        "display_name": "Somewhere in France"
+      },
+      "google": {
+        "lon": 2.300566,
+        "lat": 48.85119,
+        "display_name": "Somewhere in France"
+      }
     },
     "48.8590261,2.2982381" : {
-      "place_id": "11734823",
-      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
-      "osm_type": "node",
-      "osm_id": "1181635043",
-      "boundingbox": [
-        "48.8589761",
-        "48.8590761",
-        "2.2981881",
-        "2.2982881"
-      ],
-      "lat": "48.8590261",
-      "lon": "2.2982381",
-      "address": "27 Avenue de la Bourdonnais, 75007 Paris, France",
-      "display_name": "27, Avenue de la Bourdonnais, Gros-Caillou, 7th Arrondissement, Paris, Ile-de-France, Metropolitan France, 75007, France",
-      "class": "place",
-      "type": "house",
-      "importance": 0.621
+      "osm": {
+        "place_id": "11734823",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
+        "osm_type": "node",
+        "osm_id": "1181635043",
+        "boundingbox": [
+          "48.8589761",
+          "48.8590761",
+          "2.2981881",
+          "2.2982881"
+        ],
+        "lat": "48.8590261",
+        "lon": "2.2982381",
+        "address": "27 Avenue de la Bourdonnais, 75007 Paris, France",
+        "display_name": "27, Avenue de la Bourdonnais, Gros-Caillou, 7th Arrondissement, Paris, Ile-de-France, Metropolitan France, 75007, France",
+        "class": "place",
+        "type": "house",
+        "importance": 0.621
+      },
+      "opencage": {
+        "lon": 2.300566,
+        "lat": 48.85119,
+        "display_name": "Somewhere in France"
+      },
+      "google": {
+        "lon": 2.300566,
+        "lat": 48.85119,
+        "display_name": "Somewhere in France"
+      }
     },
     "48.8602507,2.285639": {
-      "place_id": "9864688",
-      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
-      "osm_type": "node",
-      "osm_id": "963924738",
-      "boundingbox": [
-        "48.8602007",
-        "48.8603007",
-        "2.285589",
-        "2.285689"
-      ],
-      "lat": "48.8602507",
-      "lon": "2.285639",
-      "address" : "21 Rue Benjamin Franklin, 75116 Paris, France",
-      "display_name": "21, Rue Benjamin Franklin, Muette, 16th Arrondissement, Paris, Ile-de-France, Metropolitan France, 75016;75116, France",
-      "class": "place",
-      "type": "house",
-      "importance": 0.521
+      "osm": {
+        "place_id": "9864688",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
+        "osm_type": "node",
+        "osm_id": "963924738",
+        "boundingbox": [
+          "48.8602007",
+          "48.8603007",
+          "2.285589",
+          "2.285689"
+        ],
+        "lat": "48.8602507",
+        "lon": "2.285639",
+        "address": "21 Rue Benjamin Franklin, 75116 Paris, France",
+        "display_name": "21, Rue Benjamin Franklin, Muette, 16th Arrondissement, Paris, Ile-de-France, Metropolitan France, 75016;75116, France",
+        "class": "place",
+        "type": "house",
+        "importance": 0.521
+      },
+      "opencage": {
+        "lon": 2.300566,
+        "lat": 48.85119,
+        "display_name": "Somewhere in France"
+      },
+      "google": {
+        "lon": 2.300566,
+        "lat": 48.85119,
+        "display_name": "Somewhere in France"
+      }
     },
     "48.9031474,2.3049003": {
-      "place_id": "99446390",
-      "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
-      "osm_type": "way",
-      "osm_id": "173213868",
-      "boundingbox": [
-        "48.9028417",
-        "48.9034881",
-        "2.3039654",
-        "2.3057864"
-      ],
-      "lat": "48.9031474",
-      "lon": "2.3049003",
-      "address": "17 Rue Villeneuve, 92110 Clichy, France",
-      "display_name": "Rue Villeneuve, Clichy, Nanterre, Hauts-de-Seine, Ile-de-France, Metropolitan France, 92110, France",
-      "class": "highway",
-      "type": "residential",
-      "importance": 0.52
+      "osm": {
+        "place_id": "99446390",
+        "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
+        "osm_type": "way",
+        "osm_id": "173213868",
+        "boundingbox": [
+          "48.9028417",
+          "48.9034881",
+          "2.3039654",
+          "2.3057864"
+        ],
+        "lat": "48.9031474",
+        "lon": "2.3049003",
+        "address": "17 Rue Villeneuve, 92110 Clichy, France",
+        "display_name": "Rue Villeneuve, Clichy, Nanterre, Hauts-de-Seine, Ile-de-France, Metropolitan France, 92110, France",
+        "class": "highway",
+        "type": "residential",
+        "importance": 0.52
+      },
+      "opencage": {
+        "lon": 2.300566,
+        "lat": 48.85119,
+        "display_name": "Somewhere in France"
+      },
+      "google": {
+        "lon": 2.300566,
+        "lat": 48.85119,
+        "display_name": "Somewhere in France"
+      }
     }
   }
 }

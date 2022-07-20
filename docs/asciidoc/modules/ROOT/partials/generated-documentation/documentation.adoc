@@ -1540,27 +1540,27 @@ apoc.load.csvParams('urlOrBinary', {httpHeader: value}, payload, \{config}) YIEL
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.directory.adoc[apoc.load.directory icon:book[]]
 
-apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of all files in folder specified by urlDir or in import folder if urlDir string is empty or not specified
+apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of all files in the folder specified by the parameter urlDir satisfying the given pattern. If the parameter urlDir is not specified or empty, the files of the import folder are loaded instead.
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.directory.async.add.adoc[apoc.load.directory.async.add icon:book[]]
 
-apoc.load.directory.async.add(name, cypher, pattern, urlDir, {}) YIELD name, status, pattern, cypher, urlDir, config, error - Add or replace a folder listener with a specific name, pattern and url directory that execute the specified cypher query when an event is triggered and return listener list
+apoc.load.directory.async.add(name, cypher, pattern, urlDir, {}) YIELD name, status, pattern, cypher, urlDir, config, error - Adds or replaces a folder listener with a specific name, which is triggered for all files with the given pattern and executes the specified Cypher query when triggered. Returns a list of all listeners. It is possible to specify the event type in the config parameter.
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.directory.async.list.adoc[apoc.load.directory.async.list icon:book[]]
 
-apoc.load.directory.async.list() YIELD name, status, pattern, cypher, urlDir, config, error - List of all folder listeners
+apoc.load.directory.async.list() YIELD name, status, pattern, cypher, urlDir, config, error - lists all folder listeners
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.directory.async.remove.adoc[apoc.load.directory.async.remove icon:book[]]
 
-apoc.load.directory.async.remove(name) YIELD name, status, pattern, cypher, urlDir, config, error - Remove a folder listener by name and return remaining listeners, if any
+apoc.load.directory.async.remove(name) YIELD name, status, pattern, cypher, urlDir, config, error - Removes a folder listener by name and returns all remaining listeners, if any
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.directory.async.removeAll.adoc[apoc.load.directory.async.removeAll icon:book[]]
 
-apoc.load.directory.async.removeAll() - Remove all folder listeners
+apoc.load.directory.async.removeAll() - Removes all folder listeners
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.driver.adoc[apoc.load.driver icon:book[]]
@@ -2553,7 +2553,7 @@ apoc.periodic.commit(statement,params) - runs the given statement in separate tr
 |label:apoc-core[]
 |xref::overview/apoc.periodic/apoc.periodic.countdown.adoc[apoc.periodic.countdown icon:book[]]
 
-apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) submit a repeatedly-called background statement until it returns 0
+apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) creates a background job that will repeatedly execute the given Cypher statement until it returns 0.
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.periodic/apoc.periodic.iterate.adoc[apoc.periodic.iterate icon:book[]]
@@ -2568,7 +2568,7 @@ apoc.periodic.list - list all jobs
 |label:apoc-core[]
 |xref::overview/apoc.periodic/apoc.periodic.repeat.adoc[apoc.periodic.repeat icon:book[]]
 
-apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.
+apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background query. The parameter 'config' is optional and can contain a 'params' entry usable in nested Cypher statement.
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.periodic/apoc.periodic.rock_n_roll.adoc[apoc.periodic.rock_n_roll icon:book[]]
@@ -2583,7 +2583,7 @@ apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cy
 |label:apoc-full[]
 |xref::overview/apoc.periodic/apoc.periodic.submit.adoc[apoc.periodic.submit icon:book[]]
 
-apoc.periodic.submit('name',statement,params) - submit a one-off background statement; parameter 'params' is optional and can contain query parameters for Cypher statement
+apoc.periodic.submit('name',statement,params) - creates a background job which executes a Cypher statement once. The parameter 'params' is optional and can contain query parameters for the Cypher statement
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.periodic/apoc.periodic.truncate.adoc[apoc.periodic.truncate icon:book[]]
@@ -2993,17 +2993,17 @@ Do a parallel search over multiple indexes returning a reduced representation of
 | Qualified Name | Type | Release
 |xref::overview/apoc.spatial/apoc.spatial.geocode.adoc[apoc.spatial.geocode icon:book[]]
 
-apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)
+apoc.spatial.geocode('address', maxResults, quotaException, $config) YIELD location, latitude, longitude, description, osmData - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.spatial/apoc.spatial.geocodeOnce.adoc[apoc.spatial.geocodeOnce icon:book[]]
 
-apoc.spatial.geocodeOnce('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)
+apoc.spatial.geocodeOnce('address', $config) YIELD location, latitude, longitude, description, osmData - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.spatial/apoc.spatial.reverseGeocode.adoc[apoc.spatial.reverseGeocode icon:book[]]
 
-apoc.spatial.reverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description - look up address from latitude and longitude from a geocoding service (the default one is OpenStreetMap)
+apoc.spatial.reverseGeocode(latitude,longitude, quotaException, $config) YIELD location, latitude, longitude, description - look up address from latitude and longitude from a geocoding service (the default one is OpenStreetMap)
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.spatial/apoc.spatial.sortByDistance.adoc[apoc.spatial.sortByDistance icon:book[]]

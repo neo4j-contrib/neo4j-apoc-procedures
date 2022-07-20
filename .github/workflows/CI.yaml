@@ -21,6 +21,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
+
           key: ${{ runner.os }}-gradle-${{ hashFiles('*.gradle*', '**/*.gradle*', '**/gradle-wrapper.properties') }}
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew

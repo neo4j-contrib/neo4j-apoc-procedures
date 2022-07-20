@@ -55,7 +55,7 @@ dependencies {
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
 //    compile group: 'commons-codec', name: 'commons-codec', version: '1.14'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
-    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.5'
+    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.9'
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
 
     antlr "org.antlr:antlr4:4.7.2", {
@@ -80,7 +80,7 @@ dependencies {
     testCompile group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.1.0'
 
     compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
-    compile(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7') {
+    compile(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.8.0') {
         exclude group: "org.yaml"
         exclude module: "snakeyaml"
     }

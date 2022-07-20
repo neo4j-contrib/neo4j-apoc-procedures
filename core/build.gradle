@@ -64,9 +64,16 @@ dependencies {
     // testCompile "org.antlr:antlr4-runtime:4.7.2"
 
     compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
-    compile(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7') {
+    compile(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.8.0') {
         exclude group: "org.yaml"
         exclude module: "snakeyaml"
+    }
+
+    // This was reported here https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/3048
+    compile(group: 'org.apache.commons', name: 'commons-lang3') {
+        version {
+            strictly '3.12.0'
+        }
     }
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.26'
     compile group: 'com.github.seancfoley', name: 'ipaddress', version: '5.3.3'

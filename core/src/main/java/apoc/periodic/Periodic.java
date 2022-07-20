@@ -163,7 +163,7 @@ public class Periodic {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.submit('name',statement,params) - submit a one-off background statement; parameter 'params' is optional and can contain query parameters for Cypher statement")
+    @Description("apoc.periodic.submit('name',statement,params) - creates a background job which executes a Cypher statement once. The parameter 'params' is optional and can contain query parameters for the Cypher statement")
     public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement, @Name(value = "params", defaultValue = "{}") Map<String,Object> config) {
         validateQuery(statement);
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
@@ -179,7 +179,7 @@ public class Periodic {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.")
+    @Description("apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background query. The parameter 'config' is optional and can contain a 'params' entry usable in nested Cypher statement.")
     public Stream<JobInfo> repeat(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate, @Name(value = "config", defaultValue = "{}") Map<String,Object> config ) {
         validateQuery(statement);
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
@@ -194,7 +194,7 @@ public class Periodic {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) submit a repeatedly-called background statement until it returns 0")
+    @Description("apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) creates a background job that will repeatedly execute the given Cypher statement until it returns 0.")
     public Stream<JobInfo> countdown(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
         validateQuery(statement);
         JobInfo info = submit(name, new Countdown(name, statement, rate, log), log);

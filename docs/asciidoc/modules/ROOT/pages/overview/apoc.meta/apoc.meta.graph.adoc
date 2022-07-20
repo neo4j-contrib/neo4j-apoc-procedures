@@ -24,6 +24,9 @@ apoc.meta.graph(config = {} :: MAP?) :: (nodes :: LIST? OF NODE?, relationships 
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.meta.graph.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
