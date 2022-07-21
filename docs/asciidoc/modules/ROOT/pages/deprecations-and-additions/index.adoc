@@ -513,3 +513,18 @@ apoc.cypher.runFirstColumnMany(statement, params)
 apoc.cypher.runFirstColumnSingle(statement, params)
 ----
 |===
+
+=== Removed Config Settings
+
+[cols="2", options="header"]
+|===
+| Setting
+| Details
+
+a|
+label:setting[]
+label:removed[]
+apoc.initializer.cypher - a cypher statement to be executed once the database is started
+a|
+This has been replaced by database-specific initializers. Use apoc.initializer.<database name> instead.
+|===

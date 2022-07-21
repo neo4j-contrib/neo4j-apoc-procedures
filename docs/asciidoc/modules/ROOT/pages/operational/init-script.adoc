@@ -29,13 +29,3 @@ apoc.initializer.neo4j.0=create index person_index for (p:Person) on (p.name)
 apoc.initializer.neo4j.1=create (:Person{name:'foo'})
 apoc.initializer.neo4j.2=create (:Person{name:'bar'})
 ----
-
-WARNING: There's deprecated syntax originating back from the 3.x days - see below. This old style syntax will be removed in future. Note that the initializers in old syntax are applied to *all* databases (except `system`)
-
-[source,config]
-----
-apoc.initializer.cypher=CALL apoc.cypher.runSchemaFile("file:///indexes.cypher")
-----
-
-For running multiple statements you can also add suffixes to the config options, like `cypher.1`, `cypher.2`.
-The statements will then be executed in sort-order.

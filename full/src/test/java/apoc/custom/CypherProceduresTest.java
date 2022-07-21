@@ -25,8 +25,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.custom.CypherProcedures.ERROR_MISMATCHED_INPUTS;
-import static apoc.custom.CypherProcedures.ERROR_MISMATCHED_OUTPUTS;
 import static apoc.custom.CypherProceduresHandler.FUNCTION;
 import static apoc.custom.CypherProceduresHandler.PROCEDURE;
 import static apoc.custom.Signatures.SIGNATURE_SYNTAX_ERROR;

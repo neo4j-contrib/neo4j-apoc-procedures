@@ -42,8 +42,6 @@ procedures
 | apoc.http.timeout.read=<number> (default 60000) | Sets the read timeout to a specified timeout, in milliseconds. A non-zero value specifies the timeout when reading from a connection established to a resource. If the timeout expires before there is data available for read, a Neo.ClientError.Procedure.ProcedureCallFailed exception is raised. A timeout of zero is interpreted as an infinite timeout.
 | apoc.import.file.enabled=false/true | Enable reading local files from disk
 | apoc.import.file.use_neo4j_config=true/false (default `true`) | the procedures check whether file system access is allowed and possibly constrained to a specific directory by reading the two configuration parameters `dbms.security.allow_csv_import_from_file_urls` and `server.directories.import` respectively
-| apoc.initializer.cypher | a cypher statment to be executed once the database is started
-| apoc.initializer.cypher.<key> | multiple cypher statements to be executed once the database is started
 | apoc.jdbc.<key>.uri=jdbc-url-with-credentials | store jdbc-urls under a key to be used by apoc.load.jdbc
 | apoc.jobs.scheduled.num_threads=number-of-threads (default: number of CPU cores / 4) | Many periodic procedures rely on a scheduled executor that has
 a pool of threads with a default fixed size. You can configure the pool size using this configuration property
