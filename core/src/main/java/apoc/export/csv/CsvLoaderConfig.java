@@ -2,6 +2,7 @@ package apoc.export.csv;
 
 import apoc.util.CompressionAlgo;
 import apoc.util.CompressionConfig;
+import apoc.util.Util;
 
 import java.util.Map;
 
@@ -121,7 +122,7 @@ public class CsvLoaderConfig extends CompressionConfig {
         if (config.get(ARRAY_DELIMITER) != null) builder.arrayDelimiter(getCharacterOrString(config, ARRAY_DELIMITER));
         if (config.get(QUOTATION_CHARACTER) != null) builder.quotationCharacter(getCharacterOrString(config, QUOTATION_CHARACTER));
         if (config.get(STRING_IDS) != null) builder.stringIds((boolean) config.get(STRING_IDS));
-        if (config.get(SKIP_LINES) != null) builder.skipLines((int) config.get(SKIP_LINES));
+        if (config.get(SKIP_LINES) != null) builder.skipLines(Util.toInteger(config.get(SKIP_LINES)));
         if (config.get(BATCH_SIZE) != null) builder.batchSize((int) config.get(BATCH_SIZE));
         if (config.get(IGNORE_DUPLICATE_NODES) != null) builder.ignoreDuplicateNodes((boolean) config.get(IGNORE_DUPLICATE_NODES));
         if (config.get(IGNORE_BLANK_STRING) != null) builder.ignoreBlankString((boolean) config.get(IGNORE_BLANK_STRING));

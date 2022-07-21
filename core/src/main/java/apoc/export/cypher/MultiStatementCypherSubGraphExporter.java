@@ -197,7 +197,7 @@ public class MultiStatementCypherSubGraphExporter {
     }
 
     private void appendRelationship(PrintWriter out, Relationship rel, Reporter reporter) {
-        String cypher = this.cypherFormat.statementForRelationship(rel, uniqueConstraints, indexedProperties);
+        String cypher = this.cypherFormat.statementForRelationship(rel, uniqueConstraints, indexedProperties, exportConfig);
         if (cypher != null && !"".equals(cypher)) {
             out.println(cypher);
             reporter.update(0, 1, Iterables.count(rel.getPropertyKeys()));

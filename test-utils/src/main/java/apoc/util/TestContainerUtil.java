@@ -37,6 +37,8 @@ public class TestContainerUtil {
     public static final String neo4jEnterpriseDockerImageVersion = System.getProperty("neo4jDockerImage");
     public static final String neo4jCommunityDockerImageVersion = System.getProperty("neo4jCommunityDockerImage");
 
+    public static final String password = "apoc";
+
     private TestContainerUtil() {}
 
     private static File baseDir = Paths.get(".").toFile();
@@ -57,14 +59,20 @@ public class TestContainerUtil {
     }
 
     public static Neo4jContainerExtension createEnterpriseDB(File baseDir, boolean withLogging) {
-        return createNeo4jContainer(neo4jEnterpriseDockerImageVersion, baseDir, withLogging );
+        return createNeo4jContainer(baseDir, withLogging, Neo4jVersion.ENTERPRISE);
     }
 
     public static Neo4jContainerExtension createCommunityDB(File baseDir, boolean withLogging) {
-        return createNeo4jContainer(neo4jCommunityDockerImageVersion, baseDir, withLogging );
+        return createNeo4jContainer(baseDir, withLogging, Neo4jVersion.COMMUNITY);
     }
 
-    private static Neo4jContainerExtension createNeo4jContainer(String dockerImage, File baseDir, boolean withLogging) {
+    private static Neo4jContainerExtension createNeo4jContainer(File baseDir, boolean withLogging, Neo4jVersion version) {
+        String dockerImage;
+        if (version == Neo4jVersion.ENTERPRISE) {
+            dockerImage = neo4jEnterpriseDockerImageVersion;
+        } else {
+            dockerImage = neo4jCommunityDockerImageVersion;
+        }
         executeGradleTasks(baseDir, "shadowJar");
         // We define the container with external volumes
         File importFolder = new File("import");
@@ -93,7 +101,7 @@ public class TestContainerUtil {
         Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(dockerImage)
                 .withPlugins(MountableFile.forHostPath(pluginsFolder.toPath()))
                 .withTmpFs(Map.of("/logs", "rw", "/data", "rw", pluginsFolder.toPath().toAbsolutePath().toString(), "rw"))
-                .withAdminPassword("apoc")
+                .withAdminPassword(password)
                 .withEnv("NEO4J_dbms_memory_heap_max__size", "512M")
                 .withEnv("NEO4J_dbms_memory_pagecache_size", "256M")
                 .withEnv("apoc.export.file.enabled", "true")
@@ -117,10 +125,12 @@ public class TestContainerUtil {
                         // ignore since it may fail depending on operating system
                     }
                 });
+
         if (withLogging) {
             neo4jContainer.withLogging();
         }
-        return neo4jContainer;
+
+        return neo4jContainer.withWaitForNeo4jDatabaseReady(password, version);
     }
 
     public static void executeGradleTasks(File baseDir, String... tasks) {

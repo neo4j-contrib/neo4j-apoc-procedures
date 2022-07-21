@@ -262,8 +262,11 @@ public class ConvertJsonTest {
 
     @Test
     public void testToJsonListOfPath() throws Exception {
-	    testCall(db, "CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baa:Baz {a:'b'}), q=(:Omega {alpha: 'beta'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www'}) RETURN apoc.convert.toJson(collect(p)+q) AS value",
-	             (row) -> {
+        testCall( db, """
+                          CREATE p=(a:Test {foo: 7})-[:TEST]->(b:Baa:Baz {a:'b'}), q=(:Omega {alpha: 'beta'})<-[:TEST_2 {aa:'bb'}]-(:Bar {one:'www'})
+                          WITH collect(p) AS collectP, q RETURN apoc.convert.toJson(collectP+q) AS value""",
+                  ( row ) ->
+                  {
                      List<String> test = List.of("Test");
                      List<String> bar = List.of("Bar");
                      List<String> bazBaa = List.of("Baa", "Baz");

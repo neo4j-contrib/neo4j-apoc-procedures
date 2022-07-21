@@ -55,6 +55,11 @@ apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of
 apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map
 |label:procedure[]
 |label:apoc-full[]
+|xref::overview/apoc.load/apoc.load.htmlPlainText.adoc[apoc.load.htmlPlainText icon:book[]]
+
+apoc.load.htmlPlainText('urlOrHtml',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map
+|label:procedure[]
+|label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.jdbc.adoc[apoc.load.jdbc icon:book[]]
 
 apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement
