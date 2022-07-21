@@ -1,0 +1,10 @@
+[[warmup]]
+= Warmup
+:description: This section describes a procedure that can be used to warm up the database.
+
+
+[separator=¦,opts=header,cols="5,1m,1m"]
+|===
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.warmup.run.adoc[]
+|===

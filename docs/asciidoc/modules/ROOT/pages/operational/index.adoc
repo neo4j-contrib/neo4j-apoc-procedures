@@ -7,4 +7,5 @@
 For more information on how to use these procedures, see:
 
 * xref::operational/init-script.adoc[]
+* xref::operational/warmup.adoc[]
 * xref::operational/log.adoc[]

@@ -1,0 +1,6 @@
+¦Qualified Name¦Type¦Release
+|xref::overview/apoc.warmup/apoc.warmup.adoc[apoc.warmup.run icon:book[]]
+
+apoc.warmup.run(loadProperties=false,loadDynamicProperties=false,loadIndexes=false) - quickly loads all nodes and rels into memory by skipping one page at a time
+|label:procedure[]
+|label:apoc-core[]
