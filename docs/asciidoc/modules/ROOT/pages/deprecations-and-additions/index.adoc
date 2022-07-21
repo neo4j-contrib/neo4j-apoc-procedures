@@ -15,7 +15,7 @@ This chapter lists all the features that have been removed, deprecated, added or
 | Details
 
 a|
-label:procedure[]
+label:function[]
 label:removed[]
 [source, cypher, role="noheader"]
 ----
@@ -47,7 +47,7 @@ apoc.algo.dijkstra(startNode, endNode, 'KNOWS', 'distance', defaultValue, number
 ----
 
 a|
-label:procedure[]
+label:function[]
 label:removed[]
 [source, cypher, role="noheader"]
 ----
@@ -61,7 +61,7 @@ apoc.temporal.toZonedTemporal('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-
 ----
 
 a|
-label:procedure[]
+label:function[]
 label:removed[]
 [source, cypher, role="noheader"]
 ----
@@ -132,7 +132,7 @@ apoc.export.cypher.query(query,file,config)
 ----
 
 a|
-label:procedure[]
+label:function[]
 label:removed[]
 [source, cypher, role="noheader"]
 ----
@@ -146,7 +146,7 @@ apoc.meta.cypher.type(value)
 ----
 
 a|
-label:procedure[]
+label:function[]
 label:removed[]
 [source, cypher, role="noheader"]
 ----
@@ -160,7 +160,7 @@ apoc.meta.cypher.types(node-relationship-map)
 ----
 
 a|
-label:procedure[]
+label:function[]
 label:removed[]
 [source, cypher, role="noheader"]
 ----
@@ -174,7 +174,7 @@ apoc.meta.cypher.isType(value,type)
 ----
 
 a|
-label:procedure[]
+label:function[]
 label:removed[]
 [source, cypher, role="noheader"]
 ----
@@ -276,13 +276,13 @@ label:procedure[]
 label:removed[]
 [source, cypher, role="noheader"]
 ----
-apoc.text.phonetic(value) yield value
+CALL apoc.text.phonetic(value) yield value
 ----
 a|
-Replaced by:
+Replaced by the function:
 [source, cypher, role="noheader"]
 ----
-apoc.text.phonetic(text) yield value
+RETURN apoc.text.phonetic(text) yield value
 ----
 
 a|
@@ -290,17 +290,17 @@ label:procedure[]
 label:removed[]
 [source, cypher, role="noheader"]
 ----
-apoc.text.doubleMetaphone(value) yield value
+CALL apoc.text.doubleMetaphone(value) yield value
 ----
 a|
-Replaced by:
+Replaced by the function:
 [source, cypher, role="noheader"]
 ----
-apoc.text.doubleMetaphone(text) yield value
+RETURN apoc.text.doubleMetaphone(text) yield value
 ----
 
 a|
-label:procedure[]
+label:function[]
 label:removed[]
 [source, cypher, role="noheader"]
 ----
@@ -496,7 +496,7 @@ apoc.custom.declareFunction(signature, statement, forceSingle, description)
 ----
 
 a|
-label:procedure[]
+label:function[]
 label:removed[]
 [source, cypher, role="noheader"]
 ----
