@@ -14,6 +14,9 @@ import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
 import org.testcontainers.ext.ScriptUtils;
+import org.testcontainers.containers.wait.strategy.Wait;
+import static apoc.util.TestContainerUtil.Neo4jVersion;
+import static apoc.util.TestContainerUtil.Neo4jVersion.ENTERPRISE;
 
 import java.io.InputStream;
 import java.time.Duration;
@@ -121,6 +124,28 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
         addFixedExposedPort(5005, 5005);
         withExposedPorts(5005);
         return this;
+    }
+
+    private Neo4jContainerExtension withWaitForDatabaseReady(
+            String username, String password, String database, Duration timeout, TestContainerUtil.Neo4jVersion version) {
+        if (version == ENTERPRISE) {
+            this.setWaitStrategy(Wait.forHttp("/db/" + database + "/cluster/available")
+                    .withBasicCredentials(username, password)
+                    .forPort(7474)
+                    .forStatusCode(200)
+                    .withStartupTimeout(timeout));
+        } else {
+            this.setWaitStrategy(Wait.forHttp("/")
+                    .forPort(7474)
+                    .forStatusCode(200)
+                    .withStartupTimeout(timeout));
+        }
+
+        return this;
+    }
+
+    public Neo4jContainerExtension withWaitForNeo4jDatabaseReady(String password, Neo4jVersion version) {
+        return withWaitForDatabaseReady("neo4j", password, "neo4j", Duration.ofSeconds(60), version);
     }
 
     @Override
