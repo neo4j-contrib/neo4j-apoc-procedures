@@ -91,7 +91,7 @@ public class HelpExtendedTest {
                     });
         }
 
-        TestUtil.testCall(db, "CALL apoc.help($text)", map("text", "rock_n_roll_while"), (row) -> {
+        TestUtil.testCall(db, "CALL apoc.help($text)", map("text", "expireIn"), (row) -> {
             assertEquals(false, row.get("core"));
         });
     }
