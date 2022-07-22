@@ -230,32 +230,38 @@ public class MultiStatementCypherSubGraphExporter {
     }
 
     private List<String> exportIndexes() {
-        return db.executeTransactionally("CALL db.indexes()", Collections.emptyMap(), result -> result.stream()
-                .map(map -> {
-                    String indexType = (String) map.get("type");
-                    if ("LOOKUP".equals(indexType)) {
+        return StreamSupport.stream(graph.getIndexes().spliterator(), false)
+                .map(index -> {
+                    String name = index.getName();
+                    IndexType indexType = index.getIndexType();
+                    boolean isNodeIndex = index.isNodeIndex();
+
+                    if (indexType == IndexType.LOOKUP) {
                         return "";
                     }
-                    List<String> props = (List<String>) map.get("properties");
-                    List<String> tokenNames = (List<String>) map.get("labelsOrTypes");
-                    String name = (String) map.get("name");
+
+                    Iterable<String> props = index.getPropertyKeys();
+                    List<String> tokenNames;
+                    if (isNodeIndex) {
+                        tokenNames = Iterables.asList(Iterables.map(Label::name, index.getLabels()));
+                    } else {
+                        tokenNames = Iterables.asList(Iterables.map(RelationshipType::name, index.getRelationshipTypes()));
+                    }
+
                     boolean inGraph = tokensInGraph(tokenNames);
                     if (!inGraph) {
                         return null;
                     }
 
-                    if ("UNIQUE".equals(map.get("uniqueness"))) {
+                    if (index.isConstraintIndex()) {
                         return null;  // delegate to the constraint creation
                     }
 
-                    boolean isNode = "NODE".equals(map.get("entityType"));
-                    if ("FULLTEXT".equals(indexType)) {
-                        if (isNode) {
-                            List<Label> labels = toLabels(tokenNames);
-                            return this.cypherFormat.statementForNodeFullTextIndex(name, labels, props);
+                    if (indexType == IndexType.FULLTEXT) {
+                        if (isNodeIndex) {
+                            return this.cypherFormat.statementForNodeFullTextIndex(name, index.getLabels(), props);
                         } else {
-                            List<RelationshipType> types = toRelationshipTypes(tokenNames);
-                            return this.cypherFormat.statementForRelationshipFullTextIndex(name, types, props);
+                            return this.cypherFormat.statementForRelationshipFullTextIndex(name, index.getRelationshipTypes(), props);
                         }
                     }
                     // "normal" schema index
@@ -264,15 +270,16 @@ public class MultiStatementCypherSubGraphExporter {
                             : StringUtils.EMPTY;
                     String tokenName = tokenNames.get(0);
                     final boolean ifNotExist = exportConfig.ifNotExists();
-                    if (isNode) {
-                        return this.cypherFormat.statementForNodeIndex(indexType, tokenName, props, ifNotExist, idxName);
+                    if (isNodeIndex) {
+                        return this.cypherFormat.statementForNodeIndex(indexType.toString(), tokenName, props, ifNotExist, idxName);
                     } else {
-                        return this.cypherFormat.statementForIndexRelationship(indexType, tokenName, props, ifNotExist, idxName);
+                        return this.cypherFormat.statementForIndexRelationship(indexType.toString(), tokenName, props, ifNotExist, idxName);
                     }
 
                 })
                 .filter(StringUtils::isNotBlank)
-                .collect(Collectors.toList()));
+                .sorted()
+                .collect(Collectors.toList());
     }
 
     private boolean tokensInGraph(List<String> tokens) {
@@ -290,18 +297,6 @@ public class MultiStatementCypherSubGraphExporter {
                         return labelNames.containsAll(tokens);
                     }
                 });
-    }
-
-    private List<Label> toLabels(List<String> tokenNames) {
-        return tokenNames.stream()
-                .map(Label::label)
-                .collect(Collectors.toList());
-    }
-
-    private List<RelationshipType> toRelationshipTypes(List<String> tokenNames) {
-        return tokenNames.stream()
-                .map(RelationshipType::withName)
-                .collect(Collectors.toList());
     }
 
     private List<String> exportConstraints() {

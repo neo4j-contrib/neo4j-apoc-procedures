@@ -49,10 +49,10 @@ public class SchemasEnterpriseFeaturesTest {
     @Before
     public void removeAllConstraints() {
         session.writeTransaction(tx -> {
-            final List<String> constraints = tx.run("CALL db.constraints() YIELD name").list(i -> i.get("name").asString());
+            final List<String> constraints = tx.run("SHOW CONSTRAINTS YIELD name").list(i -> i.get("name").asString());
             constraints.forEach(name -> tx.run(String.format("DROP CONSTRAINT %s", name)));
 
-            final List<String> indexes = tx.run("CALL db.indexes() YIELD name").list(i -> i.get("name").asString());
+            final List<String> indexes = tx.run("SHOW INDEXES YIELD name").list(i -> i.get("name").asString());
             indexes.forEach(name -> tx.run(String.format("DROP INDEX %s", name)));
             tx.commit();
             return null;
