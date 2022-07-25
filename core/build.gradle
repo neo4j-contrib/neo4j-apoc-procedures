@@ -63,10 +63,10 @@ dependencies {
     // testCompile "org.antlr:antlr4-runtime:4.7.2"
 
     implementation group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
-    implementation group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7'
-    implementation(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.7') {
+    implementation(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.8.0') {
         exclude group: "org.yaml"
         exclude module: "snakeyaml"
+        exclude module: "commons-lang3"
     }
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.26'
     testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
@@ -75,12 +75,6 @@ dependencies {
     testImplementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
 
     // This was reported here https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/3048
-    implementation(group: 'org.apache.commons', name: 'commons-lang3') {
-        version {
-            strictly '3.12.0'
-        }
-    }
-
     implementation(group: 'org.apache.commons', name: 'commons-lang3') {
         version {
             strictly '3.12.0'
