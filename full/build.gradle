@@ -83,6 +83,7 @@ dependencies {
     compile(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.8.0') {
         exclude group: "org.yaml"
         exclude module: "snakeyaml"
+        exclude module: "commons-lang3"
     }
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.26'
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
