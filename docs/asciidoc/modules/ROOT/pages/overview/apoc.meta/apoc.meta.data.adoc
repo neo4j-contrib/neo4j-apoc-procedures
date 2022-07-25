@@ -14,7 +14,7 @@ apoc.meta.data(\{config})  - examines a subset of the graph to provide a tabular
 
 [source]
 ----
-apoc.meta.data(config = {} :: MAP?) :: (label :: STRING?, property :: STRING?, count :: INTEGER?, unique :: BOOLEAN?, index :: BOOLEAN?, existence :: BOOLEAN?, type :: STRING?, array :: BOOLEAN?, sample :: LIST? OF ANY?, leftCount :: INTEGER?, rightCount :: INTEGER?, left :: INTEGER?, right :: INTEGER?, other :: LIST? OF STRING?, otherLabels :: LIST? OF STRING?, elementType :: STRING?)
+apoc.meta.data(config = {} :: MAP?) :: (label :: STRING?, property :: STRING?, count :: INTEGER?, unique :: BOOLEAN?, index :: BOOLEAN?, existence :: BOOLEAN?, type :: STRING?, array :: BOOLEAN?, sample :: LIST? OF ANY?, left :: INTEGER?, right :: INTEGER?, other :: LIST? OF STRING?, otherLabels :: LIST? OF STRING?, elementType :: STRING?)
 ----
 
 == Input parameters
@@ -40,8 +40,6 @@ include::partial$usage/config/apoc.meta.data.adoc[]
 |type|STRING?
 |array|BOOLEAN?
 |sample|LIST? OF ANY?
-|leftCount|INTEGER?
-|rightCount|INTEGER?
 |left|INTEGER?
 |right|INTEGER?
 |other|LIST? OF STRING?
