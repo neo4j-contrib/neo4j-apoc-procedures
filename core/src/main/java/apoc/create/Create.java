@@ -230,26 +230,27 @@ public class Create {
         else pc.setProperty(key, toPropertyValue(value));
     }
 
-    @UserFunction
-    @Description("apoc.create.uuid() - creates an UUID")
+    @UserFunction(deprecatedBy = "Neo4j randomUUID() function")
+    @Deprecated
+    @Description("apoc.create.uuid() - creates a UUID")
     public String uuid() {
         return UUID.randomUUID().toString();
     }
 
     @UserFunction
-    @Description("apoc.create.uuidBase64() - create an UUID encoded with Base64")
+    @Description("apoc.create.uuidBase64() - create a UUID encoded with Base64")
     public String uuidBase64() {
         return UuidUtil.generateBase64Uuid(UUID.randomUUID());
     }
 
     @UserFunction
-    @Description("apoc.create.uuidBase64ToHex() - convert between an UUID encoded with Base64 to HEX format")
+    @Description("apoc.create.uuidBase64ToHex() - convert between a UUID encoded with Base64 to HEX format")
     public String uuidBase64ToHex(@Name("base64Uuid") String base64Uuid) {
         return UuidUtil.fromBase64ToHex(base64Uuid);
     }
 
     @UserFunction
-    @Description("apoc.create.uuidHexToBase64() - convert an UUID in HEX format to encoded with Base64")
+    @Description("apoc.create.uuidHexToBase64() - convert a UUID in HEX format to encoded with Base64")
     public String uuidHexToBase64(@Name("uuidHex") String uuidHex) {
         return UuidUtil.fromHexToBase64(uuidHex);
     }
@@ -264,7 +265,8 @@ public class Create {
         return value;
     }
 
-    @Procedure
+    @Procedure(deprecatedBy = "Neo4j's randomUUID() function can be used as a replacement, for example: `UNWIND range(0,$count) AS row RETURN row, randomUUID() AS uuid`")
+    @Deprecated
     @Description("apoc.create.uuids(count) yield uuid - creates 'count' UUIDs ")
     public Stream<UUIDResult> uuids(@Name("count") long count) {
         return LongStream.range(0, count).mapToObj(UUIDResult::new);

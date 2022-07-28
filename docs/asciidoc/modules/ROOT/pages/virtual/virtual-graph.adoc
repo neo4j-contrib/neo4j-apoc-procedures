@@ -34,7 +34,7 @@ The config is composed by the following parameters:
 * *write*, _type boolean_: persist the graph otherwise return a Virtual Graph, default *false*
 * *labelField*, _type String_: the field name that became the label of the node, default *type*
 * *idField*, _type String_: the document field name that will become the id field of the created nodes (used for node resolution when you create relationships between nodes), default *id*
-* *generateId*, _type boolean_: in case of missing id-field value it generates an UUID for it, default *true*
+* *generateId*, _type boolean_: in case of missing id-field value it generates a UUID for it, default *true*
 * *defaultLabel*, _type String_: in case of missing label-field value is uses the provided default label, default is empty
 * *skipValidation*, _type boolean_: in case you want skip the validation process into the `apoc.graph.fromDocument` procedure *false*
 * *mappings*, _type Map<String, String>_: you can use a JSON path like syntax for:
