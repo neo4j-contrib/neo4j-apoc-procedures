@@ -63,7 +63,6 @@ The `replace`, `split` and `regexGroups` functions work with regular expressions
 |===
 | apoc.data.url('url') as {protocol,user,host,port,path,query,file,anchor} | turn URL into map structure
 | apoc.data.email('email_address') as {personal,user,domain} | extract the personal name, user and domain as a map (needs javax.mail jar)
-| apoc.data.domain(email_or_url) | *deprecated* returns domain part of the value
 |===
 
 [[text-functions-text-similarity]]
@@ -383,24 +382,6 @@ The `valid` parameter will accept the following regex patterns, alternatively yo
 [source,cypher]
 ----
 RETURN apoc.text.random(10, "A-Z0-9.$")
-----
-
-[[text-functions-extract-domain]]
-== Extract Domain
-
-The User Function `apoc.data.domain` will take a url or email address and try to determine the domain name.
-This can be useful to make easier correlations and equality tests between differently formatted email addresses, and between urls to the same domains but specifying different locations.
-
-[source,cypher]
-----
-WITH 'foo@bar.com' AS email
-RETURN apoc.data.domain(email) // will return 'bar.com'
-----
-
-[source,cypher]
-----
-WITH 'http://www.example.com/all-the-things' AS url
-RETURN apoc.data.domain(url) // will return 'www.example.com'
 ----
 
 [[text-functions-hashing]]

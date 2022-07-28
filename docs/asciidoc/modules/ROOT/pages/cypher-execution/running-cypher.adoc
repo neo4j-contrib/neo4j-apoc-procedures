@@ -23,7 +23,6 @@ include::example$generated-documentation/apoc.cypher.parallel.adoc[]
 include::example$generated-documentation/apoc.cypher.parallel2.adoc[]
 include::example$generated-documentation/apoc.cypher.mapParallel.adoc[]
 include::example$generated-documentation/apoc.cypher.mapParallel2.adoc[]
-include::example$generated-documentation/apoc.cypher.runFirstColumn.adoc[]
 include::example$generated-documentation/apoc.cypher.runFirstColumnMany.adoc[]
 include::example$generated-documentation/apoc.cypher.runFirstColumnSingle.adoc[]
 |===

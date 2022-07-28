@@ -1,5 +1,0 @@
-¦xref::overview/apoc.math/apoc.math.round.adoc[apoc.math.round icon:book[]] +
-
-`apoc.math.round(value,[prec],mode=[CEILING,FLOOR,UP,DOWN,HALF_EVEN,HALF_DOWN,HALF_UP,DOWN,UNNECESSARY])`
-¦label:function[]
-¦label:apoc-core[]

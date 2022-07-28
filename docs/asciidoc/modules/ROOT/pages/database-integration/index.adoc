@@ -13,7 +13,6 @@ For more information on how to use these procedures, see:
 * xref::database-integration/database-modeling.adoc[]
 * xref::database-integration/elasticsearch.adoc[]
 * xref::database-integration/mongo.adoc[]
-* xref::database-integration/mongodb.adoc[]
 * xref::database-integration/couchbase.adoc[]
 * xref::database-integration/bolt-neo4j.adoc[]
 * xref::database-integration/load-ldap.adoc[]

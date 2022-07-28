@@ -18,8 +18,6 @@ The list of procedures that start their own transaction:
 * apoc.nodes.delete
 * apoc.nodes.group
 * apoc.periodic.iterate
-* apoc.periodic.rock_n_roll
-* apoc.periodic.rock_n_roll_while
 * apoc.refactor.categorize
 * apoc.schema.properties.distinctCount
 * apoc.stats.degrees

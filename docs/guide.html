@@ -479,28 +479,8 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns the information stored in the transactional database statistics</p></td>
 </tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.type(value)</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">type name of a value (<code>INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST</code>)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.isType(value,type)</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">returns a row if type name matches none if not</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.types(node or relationship or map) YIELD value</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">returns a a map of property-keys to their names</p></td>
-</tr>
 </tbody>
 </table>
-<div class="listingblock">
-<div class="title">isType example</div>
-<div class="content">
-<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (n:Person)
-CALL apoc.meta.isType(n.age,"INTEGER")
-RETURN n LIMIT 5<!--/code--></pre>
-</div>
-</div>
 	</div>
   </div>
 </slide>
@@ -821,67 +801,6 @@ config contains any of: <code>{skip:1,limit:5,header:false,sep:'TAB',ignore:['tm
 
 <slide class="row-fluid">
   <div class="col-sm-12">
-    <h3>Interacting with MongoDB</h3>
-    <br/>
-    <div>
-      <table class="tableblock frame-all grid-all spread">
-<colgroup>
-<col style="width: 60%;">
-<col style="width: 40%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.get(host-or-port,db-or-null,collection-or-null,query-or-null) yield value</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">perform a find operation on mongodb collection</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.count(host-or-port,db-or-null,collection-or-null,query-or-null) yield value</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">perform a find operation on mongodb collection</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.first(host-or-port,db-or-null,collection-or-null,query-or-null) yield value</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">perform a first operation on mongodb collection</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null) yield value</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">perform a find,project,sort operation on mongodb collection</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.insert(host-or-port,db-or-null,collection-or-null,list-of-maps)</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">inserts the given documents into the mongodb collection</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps)</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">inserts the given documents into the mongodb collection</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps)</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">inserts the given documents into the mongodb collection</p></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p>Copy these jars into the plugins directory:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>mvn dependency:copy-dependencies
-cp target/dependency/mongodb*.jar target/dependency/bson*.jar $NEO4J_HOME/plugins/</pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDocument'})<!--/code--></pre>
-</div>
-</div>
-	</div>
-  </div>
-</slide>
-
-
-
-<slide class="row-fluid">
-  <div class="col-sm-12">
     <h3>Interacting with Couchbase</h3>
     <br/>
     <div>
@@ -1091,14 +1010,6 @@ Please note that they have negative id&#8217;s.</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,&#8230;&#8203;}, nodeTo)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns a virtual relationship</p></td>
 </tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,&#8230;&#8203;}, {_labels:['LabelB'],key:value})</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">returns a virtual pattern</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,&#8230;&#8203;},['LabelB'],{key:value})</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">returns a virtual pattern</p></td>
-</tr>
 </tbody>
 </table>
 <div class="paragraph">
@@ -1213,32 +1124,6 @@ CALL apoc.generate.ws(1000, null, null, null)
 CALL apoc.generate.simple([2,2,2,2], null, null)<!--/code--></pre>
 </div>
 </div>
-	</div>
-  </div>
-</slide>
-
-
-
-<slide class="row-fluid">
-  <div class="col-sm-12">
-    <h3>Warmup</h3>
-    <br/>
-    <div>
-      <div class="paragraph">
-<p>(thanks @SaschaPeukert)</p>
-</div>
-<table class="tableblock frame-all grid-all spread">
-<colgroup>
-<col style="width: 16.6666%;">
-<col style="width: 83.3334%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.warmup.run()</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Warmup the node and relationship page-caches by loading one page at a time</p></td>
-</tr>
-</tbody>
-</table>
 	</div>
   </div>
 </slide>
@@ -1401,10 +1286,6 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 <td class="tableblock halign-left valign-top"><p class="tableblock">submit a repeatedly-called background statement until it returns 0</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g.</p></td>
-</tr>
-<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,parallel:true}) YIELD batches, total</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">run the second statement for each item returned by the first statement. Returns number of batches and total processed rows</p></td>
 </tr>
@@ -1419,14 +1300,6 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 <p>jobs list is checked / cleared every 10s for finished jobs</p>
 </li>
 </ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (p) where id(p)={id_p} SET p.lastname =p.name', 20000)<!--/code--></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>copies over the <code>name</code> property of each person to <code>lastname</code>.</p>
 </div>
 	</div>
   </div>
@@ -1448,10 +1321,6 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.cloneNodes([node1,node2,&#8230;&#8203;])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">clone nodes with their labels and properties</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.cloneNodesWithRelationships([node1,node2,&#8230;&#8203;])</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">clone nodes with their labels, properties and relationships</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.mergeNodes([node1,node2])</code></p></td>
@@ -1828,7 +1697,6 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.data.domain(email_or_url) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns domain part of the value</p></td>
 </tr>
 </tbody>
@@ -2241,10 +2109,6 @@ call apoc.search.nodeReduced({Person: 'born', Movie: ['released']},'&gt;',2000) 
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.dijkstra(startNode, endNode, 'KNOWS|&lt;WORKS_WITH|IS_MANAGER_OF&gt;', 'distance') YIELD path, weight</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">run dijkstra with relationship property name as cost function</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS|&lt;WORKS_WITH|IS_MANAGER_OF&gt;',  'distance', 10) YIELD path, weight</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">run dijkstra with relationship property name as cost function and a default weight if the property does not exist</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.aStar(startNode, endNode, 'KNOWS|&lt;WORKS_WITH|IS_MANAGER_OF&gt;', 'distance','lat','lon')  YIELD path, weight</code></p></td>
@@ -2856,28 +2720,6 @@ RETURN value // will return 'H436'<!--/code--></pre>
 
 
 
-   <h4>Extract Domain</h4>
-   <div class="paragraph">
-<p>The procedure <code>apoc.data.domain</code> will take a url or email address and try to determine the domain name.
-This can be useful to make easier correlations and equality tests between differently formatted email addresses, and between urls to the same domains but specifying different locations.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->WITH 'foo@bar.com' AS email
-CALL apoc.data.domain(email) YIELD domain
-RETURN domain // will return 'bar.com'<!--/code--></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->WITH 'http://www.example.com/all-the-things' AS url
-CALL apoc.data.domain(url) YIELD domain
-RETURN domain // will return 'www.example.com'<!--/code--></pre>
-</div>
-</div>
-
-
-
 <slide class="row-fluid">
   <div class="col-sm-12">
     <h3>TimeToLive (TTL) - Expire Nodes</h3>
@@ -2911,15 +2753,6 @@ RETURN domain // will return 'www.example.com'<!--/code--></pre>
 <div class="listingblock">
 <div class="content">
 <pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (n:Foo) WHERE n.bar SET n:TTL, n.ttl = timestamp() + 10000;<!--/code--></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>There is also a procedure that does the same:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->CALL apoc.date.expire(node,time,'time-unit');
-CALL apoc.date.expire(n,100,'s');<!--/code--></pre>
 </div>
 </div>
 	</div>

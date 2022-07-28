@@ -138,19 +138,6 @@ image::apoc-load-jdbc.jpg[width=800]
 
 // apoc.load.jdbc('jdbc:derby:derbyDB/key','PERSON' || 'SELECT * FROM PERSON WHERE AGE > 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement
 
-== Load JDBC with params Examples
-
-[source,cypher]
-----
-WITH "select firstname, lastname from employees where firstname like ? and lastname like ?" as sql
-CALL apoc.load.jdbcParams("northwind", sql, ['F%', '%w'])
-YIELD row
-RETURN row
-----
-
-JDBC pretends positional "?" for parameters, so the third apoc parameter has to be an array with values coherent with that positions.
-In case of 2 parameters, firstname and lastname ['firstname-position','lastname-position']
-
 == Load data in transactional batches
 
 You can load data from jdbc and create/update the graph using the query results in batches (and in parallel).

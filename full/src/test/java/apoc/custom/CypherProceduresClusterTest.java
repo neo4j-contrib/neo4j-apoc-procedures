@@ -41,7 +41,7 @@ public class CypherProceduresClusterTest {
         // given
         
         try(Session session = cluster.getDriver().session()) {
-            session.writeTransaction(tx -> tx.run("call apoc.custom.asFunction('answer1', 'RETURN 42 as answer')")); // we create a function
+            session.writeTransaction(tx -> tx.run("call apoc.custom.declareFunction('answer1() :: (output::LONG)', 'RETURN 42 as answer')")); // we create a function
         }
 
         // whencypher procedures
@@ -61,11 +61,11 @@ public class CypherProceduresClusterTest {
     @Test
     public void shouldUpdateCustomFunctionsOnOtherClusterMembers() throws InterruptedException {
         // given
-        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.asFunction('answer2', 'RETURN 42 as answer')")); // we create a function
+        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.declareFunction('answer2() :: (output::LONG)', 'RETURN 42 as answer')")); // we create a function
         TestContainerUtil.testCall(cluster.getSession(), "return custom.answer2() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
 
         // when
-        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.asFunction('answer2', 'RETURN 52 as answer')")); // we update the function
+        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.declareFunction('answer2() :: (output::LONG)', 'RETURN 52 as answer')")); // we update the function
         Thread.sleep(1000);
 
         // then
@@ -76,7 +76,7 @@ public class CypherProceduresClusterTest {
     @Test
     public void shouldRegisterSimpleStatementOnOtherClusterMembers() throws InterruptedException {
         // given
-        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.asProcedure('answerProcedure1', 'RETURN 33 as answer', 'read', [['answer','long']])")); // we create a procedure
+        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.declareProcedure('answerProcedure1() :: LONG', 'RETURN 33 as answer', 'read'")); // we create a procedure
 
         // when
         TestContainerUtil.testCall(cluster.getSession(), "call custom.answerProcedure1()", (row) -> Assert.assertEquals(33L, row.get("answer")));
@@ -88,11 +88,11 @@ public class CypherProceduresClusterTest {
     @Test
     public void shouldUpdateSimpleStatementOnOtherClusterMembers() throws InterruptedException {
         // given
-        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.asProcedure('answerProcedure2', 'RETURN 33 as answer', 'read', [['answer','long']])")); // we create a procedure
+        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.declareProcedure('answerProcedure2() :: LONG', 'RETURN 33 as answer')")); // we create a procedure
         TestContainerUtil.testCall(cluster.getSession(), "call custom.answerProcedure2()", (row) -> Assert.assertEquals(33L, row.get("answer")));
 
         // when
-        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.asProcedure('answerProcedure2', 'RETURN 55 as answer', 'read', [['answer','long']])")); // we create a procedure
+        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.declareProcedure('answerProcedure2() :: LONG', 'RETURN 55 as answer')")); // we create a procedure
 
         Thread.sleep(1000);
         // then
@@ -102,7 +102,7 @@ public class CypherProceduresClusterTest {
     @Test(expected = DatabaseException.class)
     public void shouldRemoveProcedureOnOtherClusterMembers() throws InterruptedException {
         // given
-        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.asProcedure('answerToRemove', 'RETURN 33 as answer', 'read', [['answer','long']])")); // we create a procedure
+        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.declareProcedure('answerToRemove() :: LONG', 'RETURN 33 as answer')")); // we create a procedure
         Thread.sleep(1000);
         try {
             TestContainerUtil.testCallInReadTransaction(cluster.getSession(), "call custom.answerToRemove()", (row) -> Assert.assertEquals(33L, row.get("answer")));
@@ -128,7 +128,7 @@ public class CypherProceduresClusterTest {
     @Test(expected = DatabaseException.class)
     public void shouldRemoveFunctionOnOtherClusterMembers() throws InterruptedException {
         // given
-        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.asFunction('answerFunctionToRemove', 'RETURN 42 as answer')")); // we create a function
+        cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.declareFunction('answerFunctionToRemove()', 'RETURN 42 as answer')")); // we create a function
         Thread.sleep(1000);
         try {
             TestContainerUtil.testCallInReadTransaction(cluster.getSession(), "return custom.answerFunctionToRemove() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));

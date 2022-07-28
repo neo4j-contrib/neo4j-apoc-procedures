@@ -256,7 +256,7 @@ public class XmlTest {
         thrown.expect(QueryExecutionException.class);
         thrown.expectMessage("usage of `createNextWordRelationships` is no longer allowed. Use `{relType:'NEXT_WORD', label:'XmlWord'}` instead.");
 
-        db.executeTransactionally("call apoc.xml.import('file:" + FILE_SHORTENED + "', " +
+        db.executeTransactionally("call apoc.import.xml('file:" + FILE_SHORTENED + "', " +
                 "{createNextWordRelationships: true, filterLeadingWhitespace: true}) yield node");
     }
 
@@ -273,7 +273,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlWithNextWordRelsWithNewConfigOptions() {
-        final String query = "call apoc.xml.import('file:" + FILE_SHORTENED + "', " +
+        final String query = "call apoc.import.xml('file:" + FILE_SHORTENED + "', " +
                 "{relType: 'NEXT_WORD', label: 'XmlWord', filterLeadingWhitespace: true}) yield node";
         commonAssertionsWithNextWordRels(query, Collections.emptyMap());
     }
@@ -307,7 +307,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlWithNextEntityRels() {
-        testCall(db, "call apoc.xml.import('file:" + FILE_SHORTENED + "', " +
+        testCall(db, "call apoc.import.xml('file:" + FILE_SHORTENED + "', " +
                         "{connectCharacters: true, filterLeadingWhitespace: true}) yield node",
                 row -> assertNotNull(row.get("node")));
         testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {

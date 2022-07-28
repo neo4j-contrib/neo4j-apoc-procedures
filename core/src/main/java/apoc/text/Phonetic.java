@@ -2,7 +2,6 @@ package apoc.text;
 
 import org.apache.commons.codec.language.DoubleMetaphone;
 import org.neo4j.procedure.Description;
-import apoc.result.StringResult;
 import org.apache.commons.codec.EncoderException;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -10,7 +9,6 @@ import org.neo4j.procedure.UserFunction;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static org.apache.commons.codec.language.Soundex.US_ENGLISH;
 
@@ -18,16 +16,6 @@ public class Phonetic {
 
     private static final DoubleMetaphone DOUBLE_METAPHONE = new DoubleMetaphone();
 
-    @Procedure
-    @Deprecated
-    @Description("apoc.text.phonetic(value) yield value - Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings")
-    public Stream<StringResult> phonetic(final @Name("value") Object value) {
-        Stream<Object> stream = value instanceof Iterable ? StreamSupport.stream(((Iterable) value).spliterator(), false) : Stream.of(value);
-
-        return stream.map(str -> str == null ? StringResult.EMPTY :
-                new StringResult(Stream.of(str.toString().split("\\W+"))
-                .map(US_ENGLISH::soundex).reduce("", (a, s)->a+s)));
-    }
     @UserFunction
     @Description("apoc.text.phonetic(text) yield value - Compute the US_ENGLISH phonetic soundex encoding of all words of the text")
     public String phonetic(final @Name("value") String value) {
@@ -43,21 +31,6 @@ public class Phonetic {
         } catch (EncoderException e) {
             throw new RuntimeException("Error encoding text "+text1+" or "+text2+" for delta measure",e);
         }
-    }
-
-    @Procedure
-    @Deprecated
-    @Description("apoc.text.doubleMetaphone(value) yield value - Compute the Double Metaphone phonetic encoding of all words of the text value which can be a single string or a list of strings")
-    public Stream<StringResult> doubleMetaphone(final @Name("value") Object value)
-    {
-        Stream<Object> stream = value instanceof Iterable ? StreamSupport.stream(((Iterable) value).spliterator(), false) : Stream.of(value);
-
-        return stream.map(str ->
-                (str == null) ? StringResult.EMPTY :
-                str.toString().trim().isEmpty() ?
-                        new StringResult("") :
-                        new StringResult(Stream.of(str.toString().trim().split("\\W+")).map(DOUBLE_METAPHONE::doubleMetaphone).collect(Collectors.joining(""))
-                                 ));
     }
 
     @UserFunction

@@ -834,22 +834,6 @@ public class Coll {
         return flattenRecursive(aObject, aDepth, -1); // we only stop when all lists are flattened
     }
 
-    @Deprecated
-    @UserFunction
-    @Description("apoc.coll.reverse(coll) - returns reversed list")
-    public List<Object> reverse(@Name("coll") List<Object> coll) {
-        if (coll == null || coll.isEmpty()) {
-            return Collections.emptyList();
-        } else if (coll.size() == 1) {
-            return coll;
-        }
-
-        List<Object> reversed = new ArrayList<Object>(coll);
-        Collections.reverse(reversed);
-
-        return reversed;
-    }
-
     @UserFunction("apoc.coll.sortMulti")
     @Description("apoc.coll.sortMulti(coll, ['^name','age'],[limit],[skip]) - sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip")
     public List<Map<String,Object>> sortMulti(@Name("coll") java.util.List<Map<String,Object>> coll,

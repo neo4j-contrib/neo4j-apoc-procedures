@@ -5,7 +5,6 @@
 [separator=¦,opts=header,cols="5,1m,1m"]
 |===
 ¦Qualified Name¦Type¦Release
-include::example$generated-documentation/apoc.math.round.adoc[]
 include::example$generated-documentation/apoc.math.maxLong.adoc[]
 include::example$generated-documentation/apoc.math.minLong.adoc[]
 include::example$generated-documentation/apoc.math.maxDouble.adoc[]

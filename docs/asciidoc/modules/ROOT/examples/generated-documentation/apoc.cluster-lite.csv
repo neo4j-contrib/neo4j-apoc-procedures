@@ -1,2 +1,0 @@
-¦signature
-¦apoc.cluster.graph() :: (nodes :: LIST? OF NODE?, relationships :: LIST? OF RELATIONSHIP?)

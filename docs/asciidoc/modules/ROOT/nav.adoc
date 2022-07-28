@@ -42,8 +42,8 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::database-integration/load-jdbc.adoc[]
     ** xref::database-integration/database-modeling.adoc[]
     ** xref::database-integration/elasticsearch.adoc[]
-    ** xref::database-integration/mongodb.adoc[]
     ** xref::database-integration/couchbase.adoc[]
+    ** xref::database-integration/mongo.adoc[]
     ** xref::database-integration/bolt-neo4j.adoc[]
     ** xref::database-integration/load-ldap.adoc[]
     ** xref::database-integration/redis.adoc[]
@@ -139,7 +139,6 @@ include::partial$generated-documentation/nav.adoc[]
 
 * xref:operational/index.adoc[]
     ** xref::operational/init-script.adoc[]
-    ** xref::operational/warmup.adoc[]
     ** xref::operational/log.adoc[]
 
 * xref:misc/index.adoc[]
@@ -156,3 +155,5 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::algorithms/similarity.adoc[]
 
 * xref::transaction/index.adoc[]
+
+* xref::deprecations-and-additions/index.adoc[]

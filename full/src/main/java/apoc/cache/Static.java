@@ -28,13 +28,6 @@ public class Static {
 
     private static Map<String,Object> storage = new HashMap<>();
 
-    @Procedure("apoc.static.get")
-    @Deprecated
-    @Description("apoc.static.get(name) - returns statically stored value from config (apoc.static.<key>) or server lifetime storage")
-    public Stream<ObjectResult> getProcedure(@Name("key") String key) {
-        return Stream.of(new ObjectResult(storage.getOrDefault(key, fromConfig(key))));
-    }
-
     @UserFunction("apoc.static.get")
     @Description("apoc.static.get(name) - returns statically stored value from config (apoc.static.<key>) or server lifetime storage")
     public Object get(@Name("key") String key) {

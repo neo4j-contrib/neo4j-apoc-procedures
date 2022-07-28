@@ -24,7 +24,6 @@ import java.util.stream.StreamSupport;
 import static apoc.export.cypher.formatter.CypherFormatterUtils.Q_UNIQUE_ID_LABEL;
 import static apoc.export.cypher.formatter.CypherFormatterUtils.Q_UNIQUE_ID_REL;
 import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_PROP;
-import static apoc.export.cypher.formatter.CypherFormatterUtils.quote;
 import static apoc.export.cypher.formatter.CypherFormatterUtils.simpleKeyValue;
 
 /**
@@ -46,7 +45,7 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	public String statementForCleanUp(int batchSize) {
 		return "MATCH (n:" + Q_UNIQUE_ID_LABEL + ") " +
 				" WITH n LIMIT " + batchSize +
-				" REMOVE n:" + Q_UNIQUE_ID_LABEL + " REMOVE n." + quote(UNIQUE_ID_PROP) + ";";
+				" REMOVE n:" + Q_UNIQUE_ID_LABEL + " REMOVE n." + Util.quote(UNIQUE_ID_PROP) + ";";
 	}
 
 	@Override
@@ -103,7 +102,7 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 
 	private String getPropertiesQuoted(Iterable<String> keys, String prefix) {
 		String keysString = StreamSupport.stream(keys.spliterator(), false)
-				.map(key -> prefix + CypherFormatterUtils.quote(key))
+				.map(key -> prefix + Util.quote(key))
 				.collect(Collectors.joining(", "));
 		return keysString;
 	}

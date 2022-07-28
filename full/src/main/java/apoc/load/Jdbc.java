@@ -66,14 +66,6 @@ public class Jdbc {
         return executeQuery(urlOrKey, tableOrSelect, config, params.toArray(new Object[params.size()]));
     }
 
-    @Procedure
-    @Deprecated
-    @Description("deprecated - please use: apoc.load.jdbc('key or url','',[params]) YIELD row - load from relational database, from a sql statement with parameters")
-    public Stream<RowResult> jdbcParams(@Name("jdbc") String urlOrKey, @Name("sql") String select, @Name("params") List<Object> params, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
-        params = params != null ? params : Collections.emptyList();
-        return executeQuery(urlOrKey, select, config, params.toArray(new Object[params.size()]));
-    }
-
     private Stream<RowResult> executeQuery(String urlOrKey, String tableOrSelect, Map<String, Object> config, Object... params) {
         LoadJdbcConfig loadJdbcConfig = new LoadJdbcConfig(config);
         String url = getUrlOrKey(urlOrKey);

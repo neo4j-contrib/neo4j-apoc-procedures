@@ -2,6 +2,7 @@ package apoc.export.cypher.formatter;
 
 import apoc.export.util.ExportConfig;
 import apoc.export.util.Reporter;
+import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -42,7 +43,7 @@ public class CreateCypherFormatter extends AbstractCypherFormatter implements Cy
         result.append(CypherFormatterUtils.formatNodeLookup("n1", relationship.getStartNode(), uniqueConstraints, indexedProperties));
         result.append(", ");
         result.append(CypherFormatterUtils.formatNodeLookup("n2", relationship.getEndNode(), uniqueConstraints, indexedProperties));
-        result.append(" CREATE (n1)-[r:" + CypherFormatterUtils.quote(relationship.getType().name()));
+        result.append(" CREATE (n1)-[r:" + Util.quote(relationship.getType().name()));
         if (relationship.getPropertyKeys().iterator().hasNext()) {
             result.append(" {");
             result.append(CypherFormatterUtils.formatRelationshipProperties("", relationship, true));

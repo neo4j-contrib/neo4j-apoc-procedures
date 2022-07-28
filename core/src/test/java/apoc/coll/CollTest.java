@@ -746,19 +746,6 @@ public class CollTest {
     }
 
     @Test
-    public void testReverseOnNullAndEmptyList() throws Exception {
-        testCall(db, "RETURN apoc.coll.reverse([]) as value",
-                (row) -> assertEquals(Collections.EMPTY_LIST, row.get("value")));
-        testCall(db, "RETURN apoc.coll.reverse(null) as value",
-                (row) -> assertEquals(Collections.EMPTY_LIST, row.get("value")));
-    }
-
-    @Test
-    public void testReverse() throws Exception {
-        testCall(db, "RETURN apoc.coll.reverse([1,2,1,3,2,5,2,3,1,2]) as value",
-                (row) -> assertEquals(asList(2l, 1l, 3l, 2l, 5l, 2l, 3l, 1l, 2l, 1l), row.get("value")));
-    }
-    @Test
     public void testFlatten() throws Exception {
         testCall(db, "RETURN apoc.coll.flatten([[1,2],[3,4],[4],[5,6,7]]) as value",
                 (row) -> assertEquals(asList(1L,2L,3L,4L,4L,5L,6L,7L), row.get("value")));

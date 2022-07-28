@@ -18,24 +18,14 @@ The table below describes the available procedures:
 ¦Qualified Name¦Type¦Release
 include::example$generated-documentation/apoc.periodic.iterate.adoc[]
 include::example$generated-documentation/apoc.periodic.commit.adoc[]
-include::example$generated-documentation/apoc.periodic.rock_n_roll.adoc[]
 |===
 
 include::partial$periodic-iterate.adoc[leveloffset=+1]
 include::partial$periodic-commit.adoc[leveloffset=+1]
 
-[[periodic-rock-n-roll]]
-== Periodic Rock 'n' Roll
-
-.copies over the `name` property of each person to `lastname`
-[source,cypher]
-----
-CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (p) where id(p)={id_p} SET p.lastname =p.name', 20000)
-----
-
 === Progress logs
 
-To visualize verbose progresses' logs of `apoc.periodic.iterate`, `apoc.periodic.commit`, `apoc.periodic.rock_n_roll`, `apoc.periodic.rock_n_roll_while`, please set `dbms.logs.debug.level=DEBUG` in `neo4j.conf`.
+To visualize verbose progresses' logs of `apoc.periodic.iterate` or `apoc.periodic.commit` please set `dbms.logs.debug.level=DEBUG` in `neo4j.conf`.
 
 As example, with this query:
 

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.date/apoc.date.expire.adoc[apoc.date.expire icon:book[]] +
-
-`CALL apoc.date.expire(node,time,'time-unit')` - expire node at specified time by setting :TTL label and `ttl` property
-¦label:procedure[]
-¦label:apoc-full[]

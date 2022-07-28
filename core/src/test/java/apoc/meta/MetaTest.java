@@ -183,7 +183,7 @@ public class MetaTest {
             tx.rollback();
         }
         testTypeName(singletonMap("a", 10), "MAP");
-        testTypeName(asList(1, 2), "LIST");
+        testTypeName(asList(1, 2), "LIST OF INTEGER");
         testTypeName(1L, "INTEGER");
         testTypeName(1, "INTEGER");
         testTypeName(1.0D, "FLOAT");
@@ -196,15 +196,15 @@ public class MetaTest {
 
     @Test
     public void testMetaTypeArray() throws Exception {
-        testTypeName(asList(1,2), "LIST");
-        testTypeName(asList(LocalDate.of(2018, 1, 1),2), "LIST");
-        testTypeName(new Integer[] {1, 2}, "int[]");
-        testTypeName(new Float[] {1f, 2f}, "float[]");
-        testTypeName(new Double[] {1d, 2d}, "double[]");
-        testTypeName(new String[] {"a", "b"}, "String[]");
-        testTypeName(new Long[] {1l, 2l}, "long[]");
-        testTypeName(new LocalDate[] {LocalDate.of(2018, 1, 1), LocalDate.of(2018, 1, 1)}, "LIST");
-        testTypeName(new Object[] {1d, ""}, "LIST");
+        testTypeName(asList(1,2), "LIST OF INTEGER");
+        testTypeName(asList(LocalDate.of(2018, 1, 1),2), "LIST OF ANY");
+        testTypeName(new Integer[] {1, 2}, "LIST OF INTEGER");
+        testTypeName(new Float[] {1f, 2f}, "LIST OF FLOAT");
+        testTypeName(new Double[] {1d, 2d}, "LIST OF FLOAT");
+        testTypeName(new String[] {"a", "b"}, "LIST OF STRING");
+        testTypeName(new Long[] {1l, 2l}, "LIST OF INTEGER");
+        testTypeName(new LocalDate[] {LocalDate.of(2018, 1, 1), LocalDate.of(2018, 1, 1)}, "LIST OF DATE");
+        testTypeName(new Object[] {1d, ""}, "LIST OF ANY");
     }
 
     @Test
@@ -219,7 +219,7 @@ public class MetaTest {
             tx.rollback();
         }
         testIsTypeName(singletonMap("a", 10), "MAP");
-        testIsTypeName(asList(1, 2), "LIST");
+        testIsTypeName(asList(1, 2), "LIST OF INTEGER");
         testIsTypeName(1L, "INTEGER");
         testIsTypeName(1, "INTEGER");
         testIsTypeName(1.0D, "FLOAT");
@@ -233,13 +233,13 @@ public class MetaTest {
     public void testMetaTypes() throws Exception {
 
         Map<String, Object> param = map("MAP", singletonMap("a", 10),
-                "LIST", asList(1, 2),
+                "LIST OF INTEGER", asList(1, 2),
                 "INTEGER", 1L,
                 "FLOAT", 1.0D,
                 "STRING", "a",
                 "BOOLEAN", true,
                 "NULL", null);
-        TestUtil.testCall(db, "RETURN apoc.meta.types($param) AS value", singletonMap("param",param), row -> {
+        TestUtil.testCall(db, "RETURN apoc.meta.cypher.types($param) AS value", singletonMap("param",param), row -> {
             Map<String,String> res = (Map) row.get("value");
             res.forEach(Assert::assertEquals);
         });
@@ -247,13 +247,12 @@ public class MetaTest {
     }
 
     private void testTypeName(Object value, String type) {
-        TestUtil.testCall(db, "RETURN apoc.meta.typeName($value) AS value", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
-//        TestUtil.testCall(db, "RETURN apoc.meta.type($value) AS value", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
+        TestUtil.testCall(db, "RETURN apoc.meta.cypher.type($value) AS value", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
     }
 
     private void testIsTypeName(Object value, String type) {
-        TestUtil.testCall(db, "RETURN apoc.meta.isType($value,$type) AS value", map("value", value, "type", type), result -> assertEquals("type was not "+type,true, result.get("value")));
-        TestUtil.testCall(db, "RETURN apoc.meta.isType($value,$type) AS value", map("value", value, "type", type + "foo"), result -> assertEquals(false, result.get("value")));
+        TestUtil.testCall(db, "RETURN apoc.meta.cypher.isType($value,$type) AS value", map("value", value, "type", type), result -> assertEquals("type was not "+type,true, result.get("value")));
+        TestUtil.testCall(db, "RETURN apoc.meta.cypher.isType($value,$type) AS value", map("value", value, "type", type + "foo"), result -> assertEquals(false, result.get("value")));
     }
 
     @Test

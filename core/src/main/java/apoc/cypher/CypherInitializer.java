@@ -76,7 +76,7 @@ public class CypherInitializer implements AvailabilityListener {
                 }
                 Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
 
-                for (String query : collectInitializers(isSystemDatabase, config)) {
+                for (String query : collectInitializers(config)) {
                     try {
                         // we need to apply a retry strategy here since in systemdb we potentially conflict with
                         // creating constraints which could cause our query to fail with a transient error.
@@ -111,17 +111,11 @@ public class CypherInitializer implements AvailabilityListener {
         return completeVersion.split("[^\\d]");
     }
 
-    private Collection<String> collectInitializers(boolean isSystemDatabase, Configuration config) {
+    private Collection<String> collectInitializers(Configuration config) {
         Map<String, String> initializers = new TreeMap<>();
 
         config.getKeys(ApocConfig.APOC_CONFIG_INITIALIZER + "." + db.databaseName())
                 .forEachRemaining(key -> putIfNotBlank(initializers, key, config.getString(key)));
-
-        // add legacy style initializers
-        if (!isSystemDatabase) {
-            config.getKeys(ApocConfig.APOC_CONFIG_INITIALIZER_CYPHER)
-                    .forEachRemaining(key -> initializers.put(key, config.getString(key)));
-        }
 
         return initializers.values();
     }

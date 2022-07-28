@@ -69,22 +69,19 @@ public class StaticTest {
 
     @Test
     public void testOverrideConfig() throws Exception {
-        TestUtil.testCall(db, "call apoc.static.get('test')", r -> assertEquals(VALUE,r.get("value")));
         TestUtil.testCall(db, "return apoc.static.get('test') as value", r -> assertEquals(VALUE,r.get("value")));
         TestUtil.testCall(db, "call apoc.static.set('test',42)", r -> assertEquals(VALUE,r.get("value")));
-        TestUtil.testCall(db, "call apoc.static.get('test')", r -> assertEquals(42L,r.get("value")));
         TestUtil.testCall(db, "return apoc.static.get('test') as value", r -> assertEquals(42L,r.get("value")));
         TestUtil.testCall(db, "call apoc.static.set('test',null)", r -> assertEquals(42L,r.get("value")));
-        TestUtil.testCall(db, "call apoc.static.get('test')", r -> assertEquals(VALUE,r.get("value")));
         TestUtil.testCall(db, "return apoc.static.get('test') as value", r -> assertEquals(VALUE,r.get("value")));
     }
 
     @Test
     public void testSet() throws Exception {
-        TestUtil.testCall(db, "call apoc.static.get('test2')", r -> assertNull(r.get("value")));
+        TestUtil.testCall(db, "return apoc.static.get('test2') as value", r -> assertNull(r.get("value")));
         TestUtil.testCall(db, "call apoc.static.set('test2',42)", r -> assertNull(r.get("value")));
-        TestUtil.testCall(db, "call apoc.static.get('test2')", r -> assertEquals(42L,r.get("value")));
+        TestUtil.testCall(db, "return apoc.static.get('test2') as value", r -> assertEquals(42L,r.get("value")));
         TestUtil.testCall(db, "call apoc.static.set('test2',null)", r -> assertEquals(42L,r.get("value")));
-        TestUtil.testCall(db, "call apoc.static.get('test2')", r -> assertNull(r.get("value")));
+        TestUtil.testCall(db, "return apoc.static.get('test2') as value", r -> assertNull(r.get("value")));
     }
 }

@@ -63,9 +63,9 @@ public class CypherProceduresStorageTest {
 
     @Test
     public void registerSimpleStatement() {
-        db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('answer() :: (answer::LONG)','RETURN 42 as answer')");
         restartDb();
-        TestUtil.testCall(db, "call custom.answer()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+        TestUtil.testCall(db, "call custom.answer()", (row) -> assertEquals(42L, row.get("answer")));
         TestUtil.testCall(db, "call apoc.custom.list()", row -> {
             assertEquals("answer", row.get("name"));
             assertEquals("procedure", row.get("type"));
@@ -74,14 +74,14 @@ public class CypherProceduresStorageTest {
 
     @Test
     public void registerSimpleFunctionWithDotInName() {
-        db.executeTransactionally("call apoc.custom.asFunction('foo.bar.baz','RETURN 42 as answer')");
-        TestUtil.testCall(db, "return custom.foo.bar.baz() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        db.executeTransactionally("CALL apoc.custom.declareFunction('foo.bar.baz() :: LONG','RETURN 42 as answer')");
+        TestUtil.testCall(db, "return custom.foo.bar.baz() as answer", (row) -> assertEquals(42L, row.get("answer")));
         TestUtil.testCall(db, "call apoc.custom.list()", row -> {
             assertEquals("foo.bar.baz", row.get("name"));
             assertEquals("function", row.get("type"));
         });
         restartDb();
-        TestUtil.testCall(db, "return custom.foo.bar.baz() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        TestUtil.testCall(db, "return custom.foo.bar.baz() as answer", (row) -> assertEquals(42L, row.get("answer")));
         TestUtil.testCall(db, "call apoc.custom.list()", row -> {
             assertEquals("foo.bar.baz", row.get("name"));
             assertEquals("function", row.get("type"));
@@ -90,14 +90,14 @@ public class CypherProceduresStorageTest {
 
     @Test
     public void registerSimpleProcedureWithDotInName() {
-        db.executeTransactionally("call apoc.custom.asProcedure('foo.bar.baz','RETURN 42 as answer')");
-        TestUtil.testCall(db, "call custom.foo.bar.baz()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('foo.bar.baz() :: (answer::LONG)','RETURN 42 as answer')");
+        TestUtil.testCall(db, "call custom.foo.bar.baz()", (row) -> assertEquals(42L, row.get("answer")));
         TestUtil.testCall(db, "call apoc.custom.list()", row -> {
             assertEquals("foo.bar.baz", row.get("name"));
             assertEquals("procedure", row.get("type"));
         });
         restartDb();
-        TestUtil.testCall(db, "call custom.foo.bar.baz()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+        TestUtil.testCall(db, "call custom.foo.bar.baz()", (row) -> assertEquals(42L, row.get("answer")));
         TestUtil.testCall(db, "call apoc.custom.list()", row -> {
             assertEquals("foo.bar.baz", row.get("name"));
             assertEquals("procedure", row.get("type"));
@@ -106,46 +106,47 @@ public class CypherProceduresStorageTest {
 
     @Test
     public void registerSimpleStatementConcreteResults() {
-        db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN 42 as answer','read',[['answer','long']])");
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('answer() :: (answer::LONG)','RETURN 42 as answer')");
         restartDb();
         TestUtil.testCall(db, "call custom.answer()", (row) -> assertEquals(42L, row.get("answer")));
     }
 
     @Test
     public void registerParameterStatement() {
-        db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN $answer as answer')");
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('answer(answer::LONG) :: (answer::LONG)','RETURN $answer as answer')");
         restartDb();
-        TestUtil.testCall(db, "call custom.answer({answer:42})", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+        TestUtil.testCall(db, "call custom.answer(42)", (row) -> assertEquals(42L, row.get("answer")));
     }
 
     @Test
     public void registerConcreteParameterStatement() {
-        db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN $input as answer','read',null,[['input','number']])");
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('answer(answer::LONG) :: (answer::LONG)','RETURN $answer as answer')");
         restartDb();
-        TestUtil.testCall(db, "call custom.answer(42)", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+        TestUtil.testCall(db, "call custom.answer(42)", (row) -> assertEquals(42L, row.get("answer")));
     }
 
     @Test
     public void registerConcreteParameterAndReturnStatement() {
-        db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN $input as answer','read',[['answer','number']],[['input','int','42']])");
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('answer(input = 42 ::LONG) :: (answer::LONG)','RETURN $input as answer')");
         restartDb();
         TestUtil.testCall(db, "call custom.answer()", (row) -> assertEquals(42L, row.get("answer")));
     }
 
     @Test
     public void testAllParameterTypes() {
-        db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN [$int,$float,$string,$map,$`list int`,$bool,$date,$datetime,$point] as data','read',null," +
-                "[['int','int'],['float','float'],['string','string'],['map','map'],['list int','list int'],['bool','bool'],['date','date'],['datetime','datetime'],['point','point']])");
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('answer(int::INTEGER, float::FLOAT,string::STRING,map::MAP,listInt::LIST OF INTEGER,bool::BOOLEAN,date::DATE,datetime::DATETIME,point::POINT) :: (data::LIST OF ANY)','RETURN  [$int,$float,$string,$map,$listInt,$bool,$date,$datetime,$point] as data')");
+
         restartDb();
-        TestUtil.testCall(db, "call custom.answer(42,3.14,'foo',{a:1},[1],true,date(),datetime(),point({x:1,y:2}))", (row) -> assertEquals(9, ((List)((Map)row.get("row")).get("data")).size()));
+        TestUtil.testCall(db, "call custom.answer(42,3.14,'foo',{a:1},[1],true,date(),datetime(),point({x:1,y:2}))",
+                (row) -> assertEquals(9, ((List) row.get("data")).size()));
     }
 
     @Test
     public void registerSimpleStatementFunction() {
-        db.executeTransactionally("call apoc.custom.asFunction('answer','RETURN 42 as answer')");
-        TestUtil.testCall(db, "return custom.answer() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        db.executeTransactionally("CALL apoc.custom.declareFunction('answer() :: LONG','RETURN 42 as answer')");
+        TestUtil.testCall(db, "return custom.answer() as answer", (row) -> assertEquals(42L, row.get("answer")));
         restartDb();
-        TestUtil.testCall(db, "return custom.answer() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        TestUtil.testCall(db, "return custom.answer() as answer", (row) -> assertEquals(42L, row.get("answer")));
         TestUtil.testCall(db, "call apoc.custom.list()", row -> {
             assertEquals("answer", row.get("name"));
             assertEquals("function", row.get("type"));
@@ -154,14 +155,14 @@ public class CypherProceduresStorageTest {
 
     @Test
     public void registerSimpleStatementFunctionWithDotInName() {
-        db.executeTransactionally("call apoc.custom.asFunction('foo.bar.baz','RETURN 42 as answer')");
-        TestUtil.testCall(db, "return custom.foo.bar.baz() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        db.executeTransactionally("CALL apoc.custom.declareFunction('foo.bar.baz() :: LONG','RETURN 42 as answer')");
+        TestUtil.testCall(db, "return custom.foo.bar.baz() as answer", (row) -> assertEquals(42L, row.get("answer")));
         TestUtil.testCall(db, "call apoc.custom.list()", row -> {
             assertEquals("foo.bar.baz", row.get("name"));
             assertEquals("function", row.get("type"));
         });
         restartDb();
-        TestUtil.testCall(db, "return custom.foo.bar.baz() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        TestUtil.testCall(db, "return custom.foo.bar.baz() as answer", (row) -> assertEquals(42L, row.get("answer")));
         TestUtil.testCall(db, "call apoc.custom.list()", row -> {
             assertEquals("foo.bar.baz", row.get("name"));
             assertEquals("function", row.get("type"));
@@ -170,65 +171,63 @@ public class CypherProceduresStorageTest {
 
     @Test
     public void registerSimpleStatementConcreteResultsFunction() {
-        db.executeTransactionally("call apoc.custom.asFunction('answer','RETURN 42 as answer','long')");
+        db.executeTransactionally("CALL apoc.custom.declareFunction('answer() :: LONG','RETURN 42 as answer')");
         restartDb();
         TestUtil.testCall(db, "return custom.answer() as answer", (row) -> assertEquals(42L, row.get("answer")));
     }
 
     @Test
     public void registerSimpleStatementConcreteResultsFunctionUnnamedResultColumn() {
-        db.executeTransactionally("call apoc.custom.asFunction('answer','RETURN 42','long')");
+        db.executeTransactionally("CALL apoc.custom.declareFunction('answer() :: LONG','RETURN 42 as answer')");
         restartDb();
         TestUtil.testCall(db, "return custom.answer() as answer", (row) -> assertEquals(42L, row.get("answer")));
     }
 
     @Test
     public void registerParameterStatementFunction() {
-        db.executeTransactionally("call apoc.custom.asFunction('answer','RETURN $answer as answer','long')");
-        restartDb();
-        TestUtil.testCall(db, "return custom.answer({answer:42}) as answer", (row) -> assertEquals(42L, row.get("answer")));
-    }
-
-    @Test
-    public void registerConcreteParameterAndReturnStatementFunction() {
-        db.executeTransactionally("call apoc.custom.asFunction('answer','RETURN $input as answer','long',[['input','number']])");
+        db.executeTransactionally("CALL apoc.custom.declareFunction('answer(answer::LONG) :: LONG','RETURN $answer as answer')");
         restartDb();
         TestUtil.testCall(db, "return custom.answer(42) as answer", (row) -> assertEquals(42L, row.get("answer")));
     }
 
     @Test
+    public void registerConcreteParameterAndReturnStatementFunction() {
+        db.executeTransactionally("CALL apoc.custom.declareFunction('answer(input::LONG) :: LONG','RETURN $input as answer')");
+        TestUtil.testCall(db, "return custom.answer(42) as answer", (row) -> assertEquals(42L, row.get("answer")));
+    }
+
+    @Test
     public void testAllParameterTypesFunction() {
-        db.executeTransactionally("call apoc.custom.asFunction('answer','RETURN [$int,$float,$string,$map,$`list int`,$bool,$date,$datetime,$point] as data','list of any'," +
-                "[['int','int'],['float','float'],['string','string'],['map','map'],['list int','list int'],['bool','bool'],['date','date'],['datetime','datetime'],['point','point']], true)");
+        db.executeTransactionally("CALL apoc.custom.declareFunction('answer(int::INTEGER, float::FLOAT,string::STRING,map::MAP,listInt::LIST OF INTEGER,bool::BOOLEAN,date::DATE,datetime::DATETIME,point::POINT) :: LIST OF ANY','RETURN  [$int,$float,$string,$map,$listInt,$bool,$date,$datetime,$point] as data')");
         restartDb();
-        TestUtil.testCall(db, "return custom.answer(42,3.14,'foo',{a:1},[1],true,date(),datetime(),point({x:1,y:2})) as data", (row) -> assertEquals(9, ((List)row.get("data")).size()));
+        TestUtil.testCall(db, "return custom.answer(42,3.14,'foo',{a:1},[1],true,date(),datetime(),point({x:1,y:2})) as data",
+                (row) -> {
+                    System.out.println(row);
+                    assertEquals(9, ((List<List>) row.get("data")).get(0).size());
+                });
     }
 
     @Test
     public void testIssue1744() throws Exception {
         db.executeTransactionally("CREATE (:Area {name: 'foo'})-[:CURRENT]->(:VantagePoint {alpha: 'beta'})");
-        db.executeTransactionally("CALL apoc.custom.asProcedure('vantagepoint_within_area',\n" +
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('vantagepoint_within_area(areaName::STRING) :: (resource::NODE)',\n" +
             "  \"MATCH (start:Area {name: $areaName} )\n" +
             "    CALL apoc.path.expand(start,'CONTAINS>|<SEES|CURRENT','',0,100) YIELD path\n" +
             "    UNWIND nodes(path) as node\n" +
             "    WITH node\n" +
             "    WHERE node:VantagePoint\n" +
             "    RETURN DISTINCT node as resource\",\n" +
-            "  'read',\n" +
-            "  [['resource','NODE']],\n" +
-            "  [['areaName', 'STRING']],\n" +
-            "  \"Get vantage points within an area and all included areas\");");
+            "  'READ',\n" +
+            "  'Get vantage points within an area and all included areas');");
 
         // function analogous to procedure
-        db.executeTransactionally("CALL apoc.custom.asFunction('vantagepoint_within_area',\n" +
+        db.executeTransactionally("CALL apoc.custom.declareFunction('vantagepoint_within_area(areaName::STRING) ::NODE',\n" +
             "  \"MATCH (start:Area {name: $areaName} )\n" +
             "    CALL apoc.path.expand(start,'CONTAINS>|<SEES|CURRENT','',0,100) YIELD path\n" +
             "    UNWIND nodes(path) as node\n" +
             "    WITH node\n" +
             "    WHERE node:VantagePoint\n" +
-            "    RETURN DISTINCT node as resource\",\n" +
-            "  'read',\n" +
-            "  [['areaName', 'STRING']]);");
+            "    RETURN DISTINCT node as resource\");");
 
         testCallIssue1744();
         restartDb();
@@ -360,8 +359,8 @@ public class CypherProceduresStorageTest {
     @Test
     public void testIssue1714WithRestartDb() throws Exception {
         db.executeTransactionally("CREATE (i:Target {value: 2});");
-        db.executeTransactionally("CALL apoc.custom.asFunction('n', 'MATCH (t:Target {value : $val}) RETURN t', 'NODE', [['val', 'INTEGER']])");
+        db.executeTransactionally("CALL apoc.custom.declareFunction('nn(val::INTEGER) :: NODE', 'MATCH (t:Target {value : $val}) RETURN t')");
         restartDb();
-        TestUtil.testCall(db, "RETURN custom.n(2) as row", (row) -> assertEquals(2L, ((Node) row.get("row")).getProperty("value")));
+        TestUtil.testCall(db, "RETURN custom.nn(2) as row", (row) -> assertEquals(2L, ((Node) row.get("row")).getProperty("value")));
     }
 }

@@ -7,14 +7,14 @@
 
 I wanted for a long time to be able to register Cypher statements as proper procedures and functions, so that they become callable in a standalone way.
 
-You can achieve that with the `apoc.custom.asProcedure` and `apoc.custom.asFunction` procedure calls.
+You can achieve that with the `apoc.custom.declareProcedure` and `apoc.custom.dclareFunction` procedure calls.
 Those register a given Cypher statement, prefixed with the `custom.*` namespace, overriding potentially existing ones, so you can redefine them as needed.
 
 Here is a simple example:
 
 [source,cypher]
 ----
-CALL apoc.custom.asProcedure('answer','RETURN 42 as answer')
+CALL apoc.custom.declareProcedure('answer() :: INT','RETURN 42 as answer')
 ----
 
 This registers the statement as procedure `custom.answer` that you then can call.
@@ -22,36 +22,31 @@ As no information on parameter and return types is given, it just returns a stre
 
 [source,cypher]
 ----
-CALL custom.answer YIELD row
-RETURN row.answer
+CALL custom.answer() YIELD row
+RETURN row.answer()
 ----
 
 The same is possible as a function:
 
 [source,cypher]
 ----
-CALL apoc.custom.asFunction('answer','RETURN 42')
+CALL apoc.custom.declareFunction('answer() :: (result::INT)','RETURN 42')
 ----
 
-NOTE: If you override procedures or functions you might need to call `call dbms.clearQueryCaches()` as lookups to internal id's are kept in compiled query plans.
+NOTE: If you override procedures or functions you might need to call `call dbms.clearQueryCaches()` as lookups to internal ids are kept in compiled query plans.
 
-== Custom Procedures with `apoc.custom.asProcedure`
+== Custom Procedures with `apoc.custom.declareProcedure`
 
-Given statement will be registered as a procedure, the results will be turned into a stream of records.
+The given statement will be registered as a procedure, the results will be turned into a stream of records.
 
-.Parameters
-[%autowidth,opts=header,cols="m,m,a"]
+== Input parameters
+[.procedures, opts=header]
 |===
-| name
-| default
-| description
-
-| name | none | dot-separated name, will be prefixed with `custom`
-| statement | none | cypher statement to run, can use $parameters
-| mode | read | execution mode of the procedure: read, write, or schema
-| outputs | [["row","MAP"]] | List of pairs of name-type to be used as output columns, need to be in-order with the cypher statement, the default is a special case, that will collect all columns of the statement result into a map
-| inputs | [["params","MAP","{}"]] | Pairs or triples of name-type-default, to be used as input parameters. The default just takes an optional map, otherwise they will become proper paramters in order
-| description | "" | A general description about the business rules implemented into the procedure
+| Name | Type | Default
+|signature|STRING?|null
+|statement|STRING?|null
+|mode|STRING?|read
+|description|STRING?|
 |===
 
 The type names are what you would expect and see in outputs of `SHOW PROCEDURES` or `apoc.help` just without the `?`.
@@ -71,34 +66,28 @@ The default values are parsed as JSON.
 .Find neighbours of a node by name
 [source,cypher]
 ----
-CALL apoc.custom.asProcedure('neighbours',
+CALL apoc.custom.declareProcedure('neighbours(name::STRING) :: NODE',
   'MATCH (n:Person {name:$name})-->(nb) RETURN nb as neighbour','read',
-  [['neighbour','NODE']],[['name','STRING']], 'get neighbours of a person');
+  'get neighbours of a person');
 
 CALL custom.neighbours('Keanu Reeves') YIELD neighbour;
 ----
 
 
-== Custom Functions with `apoc.custom.asFunction`
+== Custom Functions with `apoc.custom.declareFunction`
 
 Given statement will be registered as a statement, the results into a single value.
 If the given output type is a list, results will be collected into a list, otherwise the first row will be used.
 The statement needs to return a single column, otherwise an error is thrown.
 
-.Parameters
-[%autowidth,opts=header, cols="m,m,a"]
+== Input parameters
+[.procedures, opts=header]
 |===
-| name
-| default
-| description
-
-| name | none | dot-separated name, will be prefixed with `custom`
-| statement | none | cypher statement to run, can use $parameters
-| outputs | "LIST OF MAP" | Output type for single output, if the type is a list, then all rows will be collected, otherwise just the first row. Only single column results are allowed.
-If your single row result is a list you can force a single row by setting the last parameter to `true`
-| inputs | [["params","MAP","{}"]] | Pairs or triples of name-type-default, to be used as input parameters. The default just takes an optional map, otherwise they will become proper paramters in order
-| singleRow | false | If set to true, the statement is treated as single row even with the list result type, then your statement has to return a list.
-| description | "" | A general description about the business rules implemented into the function
+| Name | Type | Default
+|signature|STRING?|null
+|statement|STRING?|null
+|forceSingle|BOOLEAN?|false
+|description|STRING?|
 |===
 
 The type names are what you would expect and see in outputs of `SHOW PROCEDURES` or `apoc.help` just without the `?`.
@@ -108,7 +97,7 @@ The default values are parsed as JSON.
 == List of registered procedures/function with `apoc.custom.list`
 
 The procedure `apoc.custom.list` provide a list of all registered procedures/function via
-`apoc.custom.asProcedure` and `apoc.custom.asFunction`
+`apoc.custom.declareProcedure` and `apoc.custom.declareFunction`
 
 Given the this call:
 

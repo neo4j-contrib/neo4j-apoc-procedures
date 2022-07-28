@@ -160,26 +160,6 @@ public class PathFinding {
                 .map(PathResult::new);
     }
 
-    @Procedure(deprecatedBy = "apoc.algo.dijkstra")
-    @Description("apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', " +
-            "'distance', 10) YIELD path, weight - run dijkstra with relationship property name as cost function" +
-            " and a default weight if the property does not exist")
-    @Deprecated
-    public Stream<WeightedPathResult> dijkstraWithDefaultWeight(
-            @Name("startNode") Node startNode,
-            @Name("endNode") Node endNode,
-            @Name("relationshipTypesAndDirections") String relTypesAndDirs,
-            @Name("weightPropertyName") String weightPropertyName,
-            @Name("defaultWeight") double defaultWeight) {
-
-        PathFinder<WeightedPath> algo = GraphAlgoFactory.dijkstra(
-                new BasicEvaluationContext(tx, db),
-                buildPathExpander(relTypesAndDirs),
-                (relationship, direction) -> Util.toDouble(relationship.getProperty(weightPropertyName, defaultWeight))
-        );
-        return WeightedPathResult.streamWeightedPathResult(startNode, endNode, algo);
-    }
-
     public static PathExpander<Double> buildPathExpander(String relationshipsAndDirections) {
         PathExpanderBuilder builder = PathExpanderBuilder.empty();
         for (Pair<RelationshipType, Direction> pair : RelationshipTypeAndDirections

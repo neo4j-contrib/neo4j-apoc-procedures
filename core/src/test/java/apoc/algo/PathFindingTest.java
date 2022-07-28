@@ -112,20 +112,6 @@ public class PathFindingTest {
     }
 
     @Test
-    public void testDijkstraWithDefaultWeight() {
-        db.executeTransactionally(SETUP_MISSING_PROPERTY);
-        testCall(db,
-                "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
-                        "CALL apoc.algo.dijkstraWithDefaultWeight(from, to, 'ROAD>', 'd', 10.5) yield path, weight " +
-                        "RETURN path, weight",
-                row -> {
-                    assertEquals(30.5, row.get("weight"));
-                    assertEquals(2, ((Path) (row.get("path"))).length()); // 3nodes, 2 rels
-                }
-        );
-    }
-
-    @Test
     public void testDijkstraMultipleShortest() {
         db.executeTransactionally(SETUP_SIMPLE);
         testResult(db,

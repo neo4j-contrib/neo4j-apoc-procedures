@@ -127,16 +127,6 @@ public class GraphRefactoring {
     }
 
     /**
-     * this procedure takes a list of nodes and clones them with their labels, properties and relationships
-     */
-    @Procedure(mode = Mode.WRITE)
-    @Deprecated
-    @Description("apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) clone nodes with their labels, properties and relationships")
-    public Stream<NodeRefactorResult> cloneNodesWithRelationships(@Name("nodes") List<Node> nodes) {
-        return doCloneNodes(nodes, true, Collections.emptyList());
-    }
-
-    /**
      * this procedure clones a subgraph defined by a list of nodes and relationships. The resulting clone is a disconnected subgraph,
      * with no relationships connecting with the original nodes, nor with any other node outside the subgraph clone.
      * This can be overridden by supplying a list of node pairings in the `standinNodes` config property, so any relationships that went to the old node, when cloned, will instead be redirected to the standin node.

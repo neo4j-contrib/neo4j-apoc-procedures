@@ -23,5 +23,3 @@ RETURN custom.double(83) AS value;
 | value
 | 166
 |===
-
-If we don't need fine grained control over our function's signature, see xref::overview/apoc.custom/apoc.custom.asFunction.adoc[].

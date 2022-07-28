@@ -165,14 +165,6 @@ public class Date {
 		return value == null ? null : unit(unit).convert(value, TimeUnit.MILLISECONDS);
 	}
 
-	@UserFunction(deprecatedBy = "apoc.temporal.toZonedTemporal")
-	@Description("apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') - parse date string using the specified format to specified timezone")
-	@Deprecated
-	public ZonedDateTime parseAsZonedDateTime(@Name("time") String time, @Name(value = "format", defaultValue = DEFAULT_FORMAT) String format, final @Name(value = "timezone", defaultValue = "UTC") String timezone) {
-		Long value = parseOrThrow(time, getFormat(format, timezone));
-		return value == null ? null : Instant.ofEpochMilli(value).atZone(ZoneId.of(timezone));
-	}
-
 	@UserFunction
 	@Description("apoc.date.systemTimezone() - returns the system timezone display name")
 	public String systemTimezone() {

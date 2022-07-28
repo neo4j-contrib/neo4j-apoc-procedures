@@ -121,11 +121,6 @@ apoc.algo.cover(nodes) yield rel - returns all relationships between this set of
 apoc.algo.dijkstra(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance', defaultValue, numberOfWantedResults) YIELD path, weight - run dijkstra with relationship property name as cost function
 |label:procedure[]
 |label:apoc-core[]
-|xref::overview/apoc.algo/apoc.algo.dijkstraWithDefaultWeight.adoc[apoc.algo.dijkstraWithDefaultWeight icon:book[]]
-
-apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance', 10) YIELD path, weight - run dijkstra with relationship property name as cost function and a default weight if the property does not exist
-|label:procedure[]
-|label:apoc-core[]
 |===
 
 [discrete]
@@ -213,19 +208,6 @@ apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other 
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.bolt/apoc.bolt.load.fromLocal.adoc[apoc.bolt.load.fromLocal icon:book[]]
-
-
-|label:procedure[]
-|label:apoc-full[]
-|===
-
-[discrete]
-== xref::overview/apoc.cluster/index.adoc[]
-
-[.procedures, opts=header, cols='5a,1a,1a']
-|===
-| Qualified Name | Type | Release
-|xref::overview/apoc.cluster/apoc.cluster.graph.adoc[apoc.cluster.graph icon:book[]]
 
 
 |label:procedure[]
@@ -415,11 +397,6 @@ apoc.coll.remove(coll, index, [length=1]) \| remove range of values from index t
 |xref::overview/apoc.coll/apoc.coll.removeAll.adoc[apoc.coll.removeAll icon:book[]]
 
 apoc.coll.removeAll(first, second) - returns first list with all elements of second list removed
-|label:function[]
-|label:apoc-core[]
-|xref::overview/apoc.coll/apoc.coll.reverse.adoc[apoc.coll.reverse icon:book[]]
-
-apoc.coll.reverse(coll) - returns reversed list
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.coll/apoc.coll.runningTotal.adoc[apoc.coll.runningTotal icon:book[]]
@@ -781,26 +758,6 @@ apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node
 apoc.create.vNodes(['Label'], [{key:value,...}]) returns virtual nodes
 |label:procedure[]
 |label:apoc-core[]
-|xref::overview/apoc.create/apoc.create.clonePathToVirtual.adoc[apoc.create.clonePathToVirtual icon:book[]]
-
-apoc.create.clonePathToVirtual
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.create/apoc.create.clonePathsToVirtual.adoc[apoc.create.clonePathsToVirtual icon:book[]]
-
-apoc.create.clonePathsToVirtual
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.create/apoc.create.vPattern.adoc[apoc.create.vPattern icon:book[]]
-
-apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) returns a virtual pattern
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.create/apoc.create.vPatternFull.adoc[apoc.create.vPatternFull icon:book[]]
-
-apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual pattern
-|label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.create/apoc.create.vRelationship.adoc[apoc.create.vRelationship icon:book[]]
 
 apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship
@@ -838,16 +795,6 @@ apoc.create.virtual.fromNode(node, [propertyNames]) returns a virtual node built
 [.procedures, opts=header, cols='5a,1a,1a']
 |===
 | Qualified Name | Type | Release
-|xref::overview/apoc.custom/apoc.custom.asFunction.adoc[apoc.custom.asFunction icon:book[]]
-
-apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description) - register a custom cypher function
-|label:procedure[]
-|label:apoc-full[]
-|xref::overview/apoc.custom/apoc.custom.asProcedure.adoc[apoc.custom.asProcedure icon:book[]]
-
-apoc.custom.asProcedure(name, statement, mode, outputs, inputs, description) - register a custom cypher procedure
-|label:procedure[]
-|label:apoc-full[]
 |xref::overview/apoc.custom/apoc.custom.declareFunction.adoc[apoc.custom.declareFunction icon:book[]]
 
 apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function
@@ -955,11 +902,6 @@ apoc.cypher.runTimeboxed('cypherStatement',\{params}, timeout) - abort kernelTra
 apoc.cypher.runWrite(statement, params) yield value - alias for apoc.cypher.doIt
 |label:procedure[]
 |label:apoc-core[]
-|xref::overview/apoc.cypher/apoc.cypher.runFirstColumn.adoc[apoc.cypher.runFirstColumn icon:book[]]
-
-use either apoc.cypher.runFirstColumnMany for a list return or apoc.cypher.runFirstColumnSingle for returning the first row of the first column
-|label:function[]
-|label:apoc-core[]
 |xref::overview/apoc.cypher/apoc.cypher.runFirstColumnMany.adoc[apoc.cypher.runFirstColumnMany icon:book[]]
 
 apoc.cypher.runFirstColumnMany(statement, params) - executes statement with given parameters, returns first column only collected into a list, params are available as identifiers
@@ -972,16 +914,12 @@ apoc.cypher.runFirstColumnSingle(statement, params) - executes statement with gi
 |label:apoc-core[]
 |===
 
+[discrete]
 == xref::overview/apoc.data/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
 |===
 | Qualified Name | Type | Release
-|xref::overview/apoc.data/apoc.data.domain.adoc[apoc.data.domain icon:book[]]
-
-apoc.data.domain('url_or_email_address') YIELD domain - extract the domain name from a url or an email address. If nothing was found, yield null.
-|label:function[]
-|label:apoc-core[]
 |xref::overview/apoc.data/apoc.data.email.adoc[apoc.data.email icon:book[]]
 
 apoc.data.email('email_address') as {personal,user,domain} - extract the personal name, user and domain as a map
@@ -999,16 +937,6 @@ apoc.data.url('url') as {protocol,host,port,path,query,file,anchor,user} \| turn
 [.procedures, opts=header, cols='5a,1a,1a']
 |===
 | Qualified Name | Type | Release
-|xref::overview/apoc.date/apoc.date.expire.adoc[apoc.date.expire icon:book[]]
-
-CALL apoc.date.expire(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property
-|label:procedure[]
-|label:apoc-full[]
-|xref::overview/apoc.date/apoc.date.expireIn.adoc[apoc.date.expireIn icon:book[]]
-
-CALL apoc.date.expireIn(node,time,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
-|label:procedure[]
-|label:apoc-full[]
 |xref::overview/apoc.date/apoc.date.add.adoc[apoc.date.add icon:book[]]
 
 apoc.date.add(12345, 'ms', -365, 'd') - given a timestamp in one time unit, adds a value of the specified time unit
@@ -1052,11 +980,6 @@ apoc.date.fromISO8601('yyyy-MM-ddTHH:mm:ss.SSSZ') - return number representation
 |xref::overview/apoc.date/apoc.date.parse.adoc[apoc.date.parse icon:book[]]
 
 apoc.date.parse('2012-12-23','ms\|s\|m\|h\|d','yyyy-MM-dd') - parse date string using the specified format into the specified time unit
-|label:function[]
-|label:apoc-core[]
-|xref::overview/apoc.date/apoc.date.parseAsZonedDateTime.adoc[apoc.date.parseAsZonedDateTime icon:book[]]
-
-apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-hour-offset') - parse date string using the specified format to specified timezone
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.date/apoc.date.systemTimezone.adoc[apoc.date.systemTimezone icon:book[]]
@@ -1242,26 +1165,6 @@ apoc.export.cypher.query(query,file,config) - exports nodes and relationships fr
 |xref::overview/apoc.export/apoc.export.cypher.schema.adoc[apoc.export.cypher.schema icon:book[]]
 
 apoc.export.cypher.schema(file,config) - exports all schema indexes and constraints to cypher
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.export/apoc.export.cypherAll.adoc[apoc.export.cypherAll icon:book[]]
-
-apoc.export.cypherAll(file,config) - exports whole database incl. indexes as cypher statements to the provided file
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.export/apoc.export.cypherData.adoc[apoc.export.cypherData icon:book[]]
-
-apoc.export.cypherData(nodes,rels,file,config) - exports given nodes and relationships incl. indexes as cypher statements to the provided file
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.export/apoc.export.cypherGraph.adoc[apoc.export.cypherGraph icon:book[]]
-
-apoc.export.cypherGraph(graph,file,config) - exports given graph object incl. indexes as cypher statements to the provided file
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.export/apoc.export.cypherQuery.adoc[apoc.export.cypherQuery icon:book[]]
-
-apoc.export.cypherQuery(query,file,config) - exports nodes and relationships from the cypher kernelTransaction incl. indexes as cypher statements to the provided file
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.export/apoc.export.graphml.all.adoc[apoc.export.graphml.all icon:book[]]
@@ -1573,11 +1476,6 @@ apoc.load.htmlPlainText('urlOrHtml',{name: jquery, name2: jquery}, config) YIELD
 apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement
 |label:procedure[]
 |label:apoc-full[]
-|xref::overview/apoc.load/apoc.load.jdbcParams.adoc[apoc.load.jdbcParams icon:book[]]
-
-deprecated - please use: apoc.load.jdbc('key or url','',[params]) YIELD row - load from relational database, from a sql statement with parameters
-|label:procedure[]
-|label:apoc-full[]
 |xref::overview/apoc.load/apoc.load.jdbcUpdate.adoc[apoc.load.jdbcUpdate icon:book[]]
 
 apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - update relational database, from a SQL statement with optional parameters
@@ -1872,11 +1770,6 @@ apoc.math.minInt() \| return the minimum value an int can have
 apoc.math.minLong() \| return the minimum value a long can have
 |label:function[]
 |label:apoc-core[]
-|xref::overview/apoc.math/apoc.math.round.adoc[apoc.math.round icon:book[]]
-
-apoc.math.round(value,[prec],mode=[CEILING,FLOOR,UP,DOWN,HALF_EVEN,HALF_DOWN,HALF_UP,DOWN,UNNECESSARY])
-|label:function[]
-|label:apoc-core[]
 |xref::overview/apoc.math/apoc.math.sech.adoc[apoc.math.sech icon:book[]]
 
 apoc.math.sech(val) \| returns the hyperbolic secant
@@ -2001,29 +1894,9 @@ apoc.meta.cypher.type(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEA
 apoc.meta.cypher.types(node-relationship-map)  - returns a map of keys to types
 |label:function[]
 |label:apoc-core[]
-|xref::overview/apoc.meta/apoc.meta.isType.adoc[apoc.meta.isType icon:book[]]
-
-apoc.meta.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)
-|label:function[]
-|label:apoc-core[]
 |xref::overview/apoc.meta/apoc.meta.nodes.count.adoc[apoc.meta.nodes.count icon:book[]]
 
 apoc.meta.nodes.count([labels], $config) - Returns the sum of the nodes with a label present in the list.
-|label:function[]
-|label:apoc-core[]
-|xref::overview/apoc.meta/apoc.meta.type.adoc[apoc.meta.type icon:book[]]
-
-apoc.meta.type(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)
-|label:function[]
-|label:apoc-core[]
-|xref::overview/apoc.meta/apoc.meta.typeName.adoc[apoc.meta.typeName icon:book[]]
-
-apoc.meta.typeName(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)
-|label:function[]
-|label:apoc-core[]
-|xref::overview/apoc.meta/apoc.meta.types.adoc[apoc.meta.types icon:book[]]
-
-apoc.meta.types(node-relationship-map)  - returns a map of keys to types
 |label:function[]
 |label:apoc-core[]
 |===
@@ -2105,44 +1978,9 @@ apoc.mongo.update(uri, query, update, $config) - updates the given documents fro
 [.procedures, opts=header, cols='5a,1a,1a']
 |===
 | Qualified Name | Type | Release
-|xref::overview/apoc.mongodb/apoc.mongodb.count.adoc[apoc.mongodb.count icon:book[]]
-
-apoc.mongodb.count(host-or-key,db,collection,query) yield value - perform a find operation on mongodb collection
-|label:procedure[]
-|label:apoc-full[]
-|xref::overview/apoc.mongodb/apoc.mongodb.delete.adoc[apoc.mongodb.delete icon:book[]]
-
-apoc.mongodb.delete(host-or-key,db,collection,query) - delete the given documents from the mongodb collection and returns the number of affected documents
-|label:procedure[]
-|label:apoc-full[]
-|xref::overview/apoc.mongodb/apoc.mongodb.find.adoc[apoc.mongodb.find icon:book[]]
-
-apoc.mongodb.find(host-or-key,db,collection,query,projection,sort,[compatibleValues=false\|true],skip-or-null,limit-or-null,[extractReferences=false\|true],[objectIdAsMap=true\|false]) yield value - perform a find,project,sort operation on mongodb collection
-|label:procedure[]
-|label:apoc-full[]
-|xref::overview/apoc.mongodb/apoc.mongodb.first.adoc[apoc.mongodb.first icon:book[]]
-
-apoc.mongodb.first(host-or-key,db,collection,query,[compatibleValues=false\|true],[extractReferences=false\|true],[objectIdAsMap=true\|false]) yield value - perform a first operation on mongodb collection
-|label:procedure[]
-|label:apoc-full[]
-|xref::overview/apoc.mongodb/apoc.mongodb.get.adoc[apoc.mongodb.get icon:book[]]
-
-apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false\|true],skip-or-null,limit-or-null,[extractReferences=false\|true],[objectIdAsMap=true\|false]) yield value - perform a find operation on mongodb collection
-|label:procedure[]
-|label:apoc-full[]
 |xref::overview/apoc.mongodb/apoc.mongodb.get.byObjectId.adoc[apoc.mongodb.get.byObjectId icon:book[]]
 
 apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value
-|label:procedure[]
-|label:apoc-full[]
-|xref::overview/apoc.mongodb/apoc.mongodb.insert.adoc[apoc.mongodb.insert icon:book[]]
-
-apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection
-|label:procedure[]
-|label:apoc-full[]
-|xref::overview/apoc.mongodb/apoc.mongodb.update.adoc[apoc.mongodb.update icon:book[]]
-
-apoc.mongodb.update(host-or-key,db,collection,query,update) - updates the given documents from the mongodb collection and returns the number of affected documents
 |label:procedure[]
 |label:apoc-full[]
 |===
@@ -2561,16 +2399,6 @@ apoc.periodic.list - list all jobs
 apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.
 |label:procedure[]
 |label:apoc-core[]
-|xref::overview/apoc.periodic/apoc.periodic.rock_n_roll.adoc[apoc.periodic.rock_n_roll icon:book[]]
-
-apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows
-|label:procedure[]
-|label:apoc-full[]
-|xref::overview/apoc.periodic/apoc.periodic.rock_n_roll_while.adoc[apoc.periodic.rock_n_roll_while icon:book[]]
-
-apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows
-|label:procedure[]
-|label:apoc-full[]
 |xref::overview/apoc.periodic/apoc.periodic.submit.adoc[apoc.periodic.submit icon:book[]]
 
 apoc.periodic.submit('name',statement,params) - submit a one-off background statement; parameter 'params' is optional and can contain query parameters for Cypher statement
@@ -2703,11 +2531,6 @@ apoc.redis.sadd(uri, key, members, \{config}) \| Execute the 'SADD key members' 
 apoc.redis.scard(uri, key, \{config}) \| Execute the 'SCARD key' command
 |label:procedure[]
 |label:apoc-full[]
-|xref::overview/apoc.redis/apoc.redis.getSet.adoc[apoc.redis.getSet icon:book[]]
-
-apoc.redis.getSet(uri, key, value, \{config}) \| Execute the 'SET key value' command and return old value stored (or null if did not exists)
-|label:procedure[]
-|label:apoc-full[]
 |xref::overview/apoc.redis/apoc.redis.smembers.adoc[apoc.redis.smembers icon:book[]]
 
 apoc.redis.smembers(uri, key, \{config}) \| Execute the 'SMEMBERS key' command
@@ -2758,11 +2581,6 @@ apoc.refactor.categorize(sourceKey, type, outgoing, label, targetKey, copiedKeys
 |xref::overview/apoc.refactor/apoc.refactor.cloneNodes.adoc[apoc.refactor.cloneNodes icon:book[]]
 
 apoc.refactor.cloneNodes([node1,node2,...]) clone nodes with their labels and properties
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.refactor/apoc.refactor.cloneNodesWithRelationships.adoc[apoc.refactor.cloneNodesWithRelationships icon:book[]]
-
-apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) clone nodes with their labels, properties and relationships
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.refactor/apoc.refactor.cloneSubgraph.adoc[apoc.refactor.cloneSubgraph icon:book[]]
@@ -3008,11 +2826,6 @@ apoc.spatial.sortByDistance(List<Path>) sort the given paths based on the geo in
 [.procedures, opts=header, cols='5a,1a,1a']
 |===
 | Qualified Name | Type | Release
-|xref::overview/apoc.static/apoc.static.get.adoc[apoc.static.get icon:book[]]
-
-apoc.static.get(name) - returns statically stored value from config (apoc.static.<key>) or server lifetime storage
-|label:procedure[]
-|label:apoc-full[]
 |xref::overview/apoc.static/apoc.static.list.adoc[apoc.static.list icon:book[]]
 
 apoc.static.list(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage
@@ -3098,16 +2911,6 @@ apoc.temporal.toZonedTemporal('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC-
 [.procedures, opts=header, cols='5a,1a,1a']
 |===
 | Qualified Name | Type | Release
-|xref::overview/apoc.text/apoc.text.doubleMetaphone.adoc[apoc.text.doubleMetaphone icon:book[]]
-
-apoc.text.doubleMetaphone(value) yield value - Compute the Double Metaphone phonetic encoding of all words of the text value which can be a single string or a list of strings
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.text/apoc.text.phonetic.adoc[apoc.text.phonetic icon:book[]]
-
-apoc.text.phonetic(value) yield value - Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
-|label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.text/apoc.text.phoneticDelta.adoc[apoc.text.phoneticDelta icon:book[]]
 
 apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta - Compute the US_ENGLISH soundex character difference between two given strings
@@ -3500,29 +3303,11 @@ CALL apoc.uuid.removeAll() yield label, installed, properties \| it removes all 
 |===
 
 [discrete]
-== xref::overview/apoc.warmup/index.adoc[]
-
-[.procedures, opts=header, cols='5a,1a,1a']
-|===
-| Qualified Name | Type | Release
-|xref::overview/apoc.warmup/apoc.warmup.run.adoc[apoc.warmup.run icon:book[]]
-
-apoc.warmup.run(loadProperties=false,loadDynamicProperties=false,loadIndexes=false) - quickly loads all nodes and rels into memory by skipping one page at a time
-|label:procedure[]
-|label:apoc-core[]
-|===
-
-[discrete]
 == xref::overview/apoc.xml/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
 |===
 | Qualified Name | Type | Release
-|xref::overview/apoc.xml/apoc.xml.import.adoc[apoc.xml.import icon:book[]]
-
-Deprecated by apoc.import.xml
-|label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.xml/apoc.xml.parse.adoc[apoc.xml.parse icon:book[]]
 
 RETURN apoc.xml.parse(<xml string>, <xPath string>, config, false) AS value
