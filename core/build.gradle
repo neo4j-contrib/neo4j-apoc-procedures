@@ -46,6 +46,8 @@ generateGrammarSource {
 
 dependencies {
     implementation project(":common")
+    testImplementation project(':test-utils')
+    testImplementation group: 'junit', name: 'junit', version: '4.13.2'
 }
 
 // tweaks for CI
