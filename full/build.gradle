@@ -45,7 +45,7 @@ shadowJar {
 }
 
 dependencies {
-    implementation project(":core")
+    implementation project(":common")
     apt project(":processor")
     testImplementation project(':test-utils')
 
