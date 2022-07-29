@@ -15,6 +15,15 @@ import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.Parameter.param;
 import static org.mockserver.model.RegexBody.regex;
 
+/**
+ * Mocks the API of a Gephi Server with the GraphStreaming plugin added. This could not be mocked in Docker directly,
+ * although some (dubious) Gephi images exist. The reason it could not be mocked is that APOC uses Gephi's
+ * GraphStreaming API which doesn't come package with Gephi by default. The GephiStreaming plugin is designed to be
+ * installed by Gephi inside of a special graphical user interface that has buttons a human is expected to click. The
+ * plugin would be very hard to install programmatically.
+ *
+ * https://github.com/gephi/gephi/wiki/GraphStreaming
+ */
 public class GephiMock {
     private final ClientAndServer server;
 
