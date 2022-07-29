@@ -15,6 +15,12 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+
+// TODO: Remove the @Ignore annotations after fixing clustering
+// I investigated the clustering setup over the course of a couple of days and could not get it to work either. Nor our
+// existing setup or nor Michael's setup [1] work reliably 100% of the time. There is a real possibility
+// that clustering might be broken in dev because it is undergoing many changes.
+// [1] https://github.com/michael-simons/junit-jupiter-causal-cluster-testcontainer-extension
 public class CypherProceduresClusterTest {
 
     private static TestcontainersCausalCluster cluster;

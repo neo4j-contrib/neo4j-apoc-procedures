@@ -47,6 +47,7 @@ public class MetricsTest {
         neo4jContainer.close();
     }
 
+    // TODO: Investigate broken test. It hangs for more than 30 seconds for no reason.
     @Test
     @Ignore
     public void shouldGetMetrics() {
