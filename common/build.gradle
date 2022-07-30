@@ -155,7 +155,7 @@ dependencies {
 
 
 // tweaks for CI
-if (System.env.CI == 'true') {
+if (System.env.CI == 'true' || System.env.TEAMCITY_VERSION != null) {
   allprojects {
     tasks.withType(GroovyCompile) {
       groovyOptions.fork = false
