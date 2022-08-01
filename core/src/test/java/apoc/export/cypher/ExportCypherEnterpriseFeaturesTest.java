@@ -11,7 +11,7 @@ import org.neo4j.driver.Session;
 import java.io.File;
 import java.util.stream.Stream;
 
-import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.*;
 import static apoc.util.TestUtil.readFileToString;
@@ -73,7 +73,7 @@ public class ExportCypherEnterpriseFeaturesTest {
         String fileName = "testCypherShellWithCompoundConstraint.cypher";
         testCall(session, "CALL apoc.export.cypher.all($file, $config)",
                 map("file", fileName, "config", Util.map("format", "cypher-shell")), (r) -> {
-                    assertExportStatement(EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT, fileName);
+                    assertExportStatement(ExportCypherResults.EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT, fileName);
                 });
     }
 
@@ -82,7 +82,7 @@ public class ExportCypherEnterpriseFeaturesTest {
         String fileName = "testPlainFormatWithCompoundConstraint.cypher";
         testCall(session, "CALL apoc.export.cypher.all($file, $config)",
                 map("file", fileName, "config", Util.map("format", "plain")),
-                (r) -> assertExportStatement(EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT, fileName));
+                (r) -> assertExportStatement(ExportCypherResults.EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT, fileName));
     }
 
     @Test
@@ -90,7 +90,7 @@ public class ExportCypherEnterpriseFeaturesTest {
         String fileName = "testNeo4jShellWithCompoundConstraint.cypher";
         testCall(session, "CALL apoc.export.cypher.all($file, $config)",
                 map("file", fileName, "config", Util.map("format", "neo4j-shell")),
-                (r) -> assertExportStatement(EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT, fileName));
+                (r) -> assertExportStatement(ExportCypherResults.EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT, fileName));
     }
 
     @Test
