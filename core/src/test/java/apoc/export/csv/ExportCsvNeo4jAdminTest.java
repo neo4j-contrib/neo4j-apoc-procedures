@@ -8,8 +8,6 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -119,9 +117,8 @@ public class ExportCsvNeo4jAdminTest {
     
     @Test
     public void testCypherExportCsvForAdminNeo4jImportWithConfigWithCompression() {
-        String fileBaseName = "query_nodes_with_csvgz_ext";
-        String fileExpectedExt = ".csv" + GZIP_EXT;
-        assertionTestExportForAdminNeo4jImport(GZIP, fileBaseName, fileExpectedExt);
+        String fileBaseName = "query_nodes_with_csvgz_ext.csv";
+        assertionTestExportForAdminNeo4jImport(GZIP, fileBaseName, GZIP_EXT);
     }
     
     @Test
@@ -138,9 +135,8 @@ public class ExportCsvNeo4jAdminTest {
 
     @Test
     public void testCypherExportCsvForAdminNeo4jImportWithCompressionAndWithoutExtensionAndMultiDotInName() {
-        String fileBaseName = "query_nodes_with_ext.dots";
-        String fileExpectedExt = ".name" + GZIP_EXT;
-        assertionTestExportForAdminNeo4jImport(GZIP, fileBaseName, fileExpectedExt);
+        String fileBaseName = "query_nodes_with_ext.dots.name";
+        assertionTestExportForAdminNeo4jImport(GZIP, fileBaseName, GZIP_EXT);
     }
 
     private void assertionTestExportForAdminNeo4jImport(CompressionAlgo algo, String fileBaseName, String fileExpectedExt) {
