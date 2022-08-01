@@ -527,6 +527,7 @@ public class ApocSplitTest {
         "apoc.mongo.update",
         "apoc.mongo.delete",
         "apoc.mongodb.get.byObjectId",
+        // TODO Re-add this once it's included in the package
         //"apoc.load.xls",
         "apoc.load.csv",
         "apoc.load.csvParams",
@@ -563,10 +564,11 @@ public class ApocSplitTest {
         "apoc.es.postRaw",
         "apoc.es.post",
         "apoc.es.put",
-//        "apoc.export.xls.all",
-//        "apoc.export.xls.data",
-//        "apoc.export.xls.graph",
-//        "apoc.export.xls.query",
+        // TODO Re-add this once it's included in the package
+        // "apoc.export.xls.all",
+        // "apoc.export.xls.data",
+        // "apoc.export.xls.graph",
+        // "apoc.export.xls.query",
         "apoc.custom.declareProcedure",
         "apoc.custom.declareFunction",
         "apoc.custom.list",
@@ -603,6 +605,7 @@ public class ApocSplitTest {
         "apoc.static.get",
         "apoc.static.getAll",
         "apoc.coll.avgDuration"
+        // TODO Re-add this once it's included in the package
         //"apoc.data.email"
        );
 

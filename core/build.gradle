@@ -51,20 +51,6 @@ dependencies {
     testImplementation group: 'junit', name: 'junit', version: '4.13.2'
 }
 
-// tweaks for CI
-if (System.env.CI == 'true' || System.env.TEAMCITY_VERSION != null) {
-    allprojects {
-        tasks.withType(GroovyCompile) {
-            groovyOptions.fork = false
-        }
-        tasks.withType(Test) {
-            // containers (currently) have 2 dedicated cores and 4GB of memory
-            maxParallelForks = 1
-            minHeapSize = '128m'
-        }
-    }
-}
-
 task copyRuntimeLibs(type: Copy) {
     into "lib"
     from configurations.testRuntimeClasspath

@@ -200,7 +200,8 @@ public class ApocSplitTest {
         "apoc.neighbors.athop",
         "apoc.neighbors.athop.count");
 
-    public static final Set<String> CORE_FUNCTIONS = Set.of("apoc.temporal.format",
+    public static final Set<String> CORE_FUNCTIONS = Set.of(
+        "apoc.temporal.format",
         "apoc.temporal.formatDuration",
         "apoc.temporal.toZonedTemporal",
         "apoc.util.sha1",
