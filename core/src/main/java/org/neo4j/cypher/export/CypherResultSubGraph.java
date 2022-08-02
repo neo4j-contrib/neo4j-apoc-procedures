@@ -37,18 +37,24 @@ public class CypherResultSubGraph implements SubGraph
         labels.addAll( Iterables.asCollection( data.getLabels() ) );
     }
 
-    public void add( Relationship rel )
+    public void add( Relationship rel, boolean addNodes )
     {
         final long id = rel.getId();
         if ( !relationships.containsKey( id ) )
         {
             addRel( id, rel );
-            add( rel.getStartNode() );
-            add( rel.getEndNode() );
+            if (addNodes) {
+                add( rel.getStartNode() );
+                add( rel.getEndNode() );
+            }
         }
     }
 
-    public static SubGraph from(Transaction tx, Result result, boolean addBetween)
+    public static SubGraph from(Transaction tx, Result result, boolean addBetween) {
+        return from(tx, result, addBetween, true);
+    }
+        
+    public static SubGraph from(Transaction tx, Result result, boolean addBetween, boolean addRelNodes)
     {
         final CypherResultSubGraph graph = new CypherResultSubGraph();
         final List<String> columns = result.columns();
@@ -57,7 +63,7 @@ public class CypherResultSubGraph implements SubGraph
             for ( String column : columns )
             {
                 final Object value = row.get( column );
-                graph.addToGraph( value );
+                graph.addToGraph( value, addRelNodes );
             }
         }
         for ( IndexDefinition def : tx.schema().getIndexes() )
@@ -124,7 +130,7 @@ public class CypherResultSubGraph implements SubGraph
         }
     }
 
-    private void addToGraph( Object value )
+    private void addToGraph( Object value, boolean addNodes )
     {
         if ( value instanceof Node )
         {
@@ -132,13 +138,13 @@ public class CypherResultSubGraph implements SubGraph
         }
         if ( value instanceof Relationship )
         {
-            add( (Relationship) value );
+            add( (Relationship) value, addNodes );
         }
         if ( value instanceof Iterable )
         {
             for ( Object inner : (Iterable) value )
             {
-                addToGraph( inner );
+                addToGraph( inner, addNodes );
             }
         }
     }

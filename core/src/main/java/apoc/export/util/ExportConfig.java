@@ -55,6 +55,7 @@ public class ExportConfig extends CompressionConfig {
     private Set<String> caption;
     private boolean writeNodeProperties;
     private boolean nodesOfRelationships;
+    private boolean addRelNodes;
     private ExportFormat format;
     private CypherFormat cypherFormat;
     private final Map<String, Object> config;
@@ -133,6 +134,7 @@ public class ExportConfig extends CompressionConfig {
         this.samplingConfig = (Map<String, Object>) config.getOrDefault("samplingConfig", new HashMap<>());
         this.unwindBatchSize = ((Number)getOptimizations().getOrDefault("unwindBatchSize", DEFAULT_UNWIND_BATCH_SIZE)).intValue();
         this.awaitForIndexes = ((Number)config.getOrDefault("awaitForIndexes", 300)).longValue();
+        this.addRelNodes = toBoolean(config.getOrDefault("addRelNodes", true));
         this.multipleRelationshipsWithType = toBoolean(config.get(RELS_WITH_TYPE_KEY));
         this.source = new NodeConfig((Map<String, String>) config.get("source"));
         this.target = new NodeConfig((Map<String, String>) config.get("target"));
@@ -161,7 +163,6 @@ public class ExportConfig extends CompressionConfig {
             this.quotes = toBoolean(config.get("quotes")) ? ALWAYS_QUOTES : NONE_QUOTES;
         }
     }
-
     public boolean getRelsInBetween() {
         return nodesOfRelationships;
     }
@@ -248,6 +249,10 @@ public class ExportConfig extends CompressionConfig {
     
     public boolean ifNotExists() {
         return ifNotExists;
+    }
+
+    public boolean isAddRelNodes() {
+        return addRelNodes;
     }
 
     public boolean shouldSaveIndexNames() {

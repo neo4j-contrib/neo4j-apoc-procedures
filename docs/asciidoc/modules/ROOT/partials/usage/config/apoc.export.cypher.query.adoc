@@ -26,4 +26,7 @@ The procedure support the following config parameters:
 * `UNWIND_BATCH_PARAMS` - similar to `UNWIND_BATCH`, but also uses parameters where appropriate
 | awaitForIndexes | Long | 300 | Timeout to use for `db.awaitIndexes` when using `format: "cypher-shell"`
 | ifNotExists | boolean | false | If true adds the keyword `IF NOT EXISTS` to constraints and indexes
+| addRelNodes | true | if enabled export start and end nodes, in case of query returning relationships
+| nodesOfRelationships | false | if enabled export other terminal nodes, in case of query returning relationships and start or end nodes.
+    Note that both `addRelNodes` and `nodesOfRelationships` have to be false not to return other node, because with `addRelNodes=true` the start and end nodes are always returned.
 |===

@@ -110,7 +110,7 @@ public class ExportGraphML {
     public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         ExportConfig c = new ExportConfig(config);
         Result result = tx.execute(query);
-        SubGraph graph = CypherResultSubGraph.from(tx, result, c.getRelsInBetween());
+        SubGraph graph = CypherResultSubGraph.from(tx, result, c.getRelsInBetween(), c.isAddRelNodes());
         String source = String.format("statement: nodes(%d), rels(%d)",
                 Iterables.count(graph.getNodes()), Iterables.count(graph.getRelationships()));
         return exportGraphML(fileName, source, graph, c);

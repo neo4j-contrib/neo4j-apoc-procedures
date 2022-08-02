@@ -39,6 +39,7 @@ import static apoc.ApocConfig.apocConfig;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.isRunningInCI;
+import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -174,6 +175,21 @@ public class ExportGraphMLTest {
     private static final String DATA_EMPTY = "<node id=\"n0\" labels=\":Test\"><data key=\"labels\">:Test</data><data key=\"name\"></data><data key=\"limit\">3</data></node>%n";
     private static final String EXPECTED_TYPES_EMPTY = String.format(HEADER + KEY_TYPES_EMPTY + GRAPH + DATA_EMPTY + FOOTER);
     private static final String EXPECTED_TYPES_NO_DATA_KEY = String.format(HEADER + KEY_TYPES_NO_DATA_KEY + GRAPH + DATA_NO_DATA_KEY + FOOTER);
+
+    private static final String EDGES_QUERY = "<edge id=\"e1\" source=\"n3\" target=\"n4\" label=\"REL\"><data key=\"label\">REL</data><data key=\"foo\">bar</data></edge>%n";
+    private static final String EDGES_KEYS_QUERY = "<key id=\"foo\" for=\"edge\" attr.name=\"foo\"/>%n" +
+            "<key id=\"label\" for=\"edge\" attr.name=\"label\"/>%n";
+
+    private static final String START_NODE_QUERY = "<node id=\"n3\" labels=\":Start\"><data key=\"labels\">:Start</data><data key=\"startId\">1</data></node>%n";
+    private static final String START_NODE_KEYS_QUERY = "<key id=\"startId\" for=\"node\" attr.name=\"startId\"/>%n";
+    private static final String LABEL_KEY_QUERY = "<key id=\"labels\" for=\"node\" attr.name=\"labels\"/>%n";
+    private static final String END_NODE_QUERY = "<node id=\"n4\" labels=\":End\"><data key=\"labels\">:End</data><data key=\"endId\">1</data></node>%n";
+    private static final String END_NODE_KEYS_QUERY = "<key id=\"endId\" for=\"node\" attr.name=\"endId\"/>%n";
+    private static final String EXPECTED = String.format(HEADER + 
+            END_NODE_KEYS_QUERY + START_NODE_KEYS_QUERY + LABEL_KEY_QUERY + EDGES_KEYS_QUERY +
+            GRAPH +
+            START_NODE_QUERY + END_NODE_QUERY + EDGES_QUERY +
+            FOOTER);
 
     @Rule
     public TestName testName = new TestName();
@@ -603,6 +619,7 @@ public class ExportGraphMLTest {
         assertTrue("Should get time greater than 0", ((long) r.get("time")) > 0);
     }
 
+    @Test
     public void testExportGraphGraphMLQueryGephi() throws Exception {
         File output = new File(directory, "query.graphml");
         TestUtil.testCall(db, "call apoc.export.graphml.query('MATCH p=()-[r]->() RETURN p limit 1000',$file,{useTypes:true, format: 'gephi'}) ", map("file", output.getAbsolutePath()),
@@ -619,6 +636,49 @@ public class ExportGraphMLTest {
                     assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
                 });
         assertXMLEquals(output, EXPECTED_TYPES_PATH);
+    }
+    
+    @Test
+    public void testAddRelNodesWhenReturnOnlyRels() {
+        db.executeTransactionally("create (:Start {startId: 1})-[:REL {foo: 'bar'}]->(:End {endId: '1'})");
+        
+        final String query = "CALL apoc.export.graphml.query('MATCH (start:Start)-[rel:REL]->(end:End) RETURN rel', null, $conf)\n" +
+                "YIELD  data";
+
+        String expectedWithoutNodes = String.format(HEADER + EDGES_KEYS_QUERY + GRAPH + EDGES_QUERY + FOOTER);
+        
+        testCall(db, query, map("conf", map( "stream", true)), 
+                r -> assertXMLEquals(r.get("data"), EXPECTED));
+        
+        testCall(db, query, map("conf", map("addRelNodes", false, "stream", true)), 
+                r -> assertXMLEquals(r.get("data"), expectedWithoutNodes));
+
+        db.executeTransactionally("match (n) detach delete n");
+    }
+    
+    @Test
+    public void testAddEndNodesOfRelationshipsWhenReturnOnlyStartNodeAndRel() {
+        db.executeTransactionally("create (:Start {startId: 1})-[:REL {foo: 'bar'}]->(:End {endId: '1'})");
+        
+        String expectedWithoutEndNode = String.format(HEADER +
+                START_NODE_KEYS_QUERY + LABEL_KEY_QUERY + EDGES_KEYS_QUERY +
+                GRAPH +
+                START_NODE_QUERY + EDGES_QUERY +
+                FOOTER);
+        
+        final String query2 = "CALL apoc.export.graphml.query('MATCH (start:Start)-[rel:REL]->(end:End) RETURN start, rel', null, $conf)\n" +
+                "YIELD  data";
+
+        final Map<String, Object> confMap = map("stream", true, "addRelNodes", false);
+        testCall(db, query2, map("conf", confMap),
+                r -> assertXMLEquals(r.get("data"), expectedWithoutEndNode));
+
+        // now the same config as above but with nodesOfRelationships: true
+        confMap.put("nodesOfRelationships", true);
+        testCall(db, query2, map("conf", confMap),
+                r -> assertXMLEquals(r.get("data"), EXPECTED));
+        
+        db.executeTransactionally("match (n) detach delete n");
     }
 
     @Test

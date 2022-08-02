@@ -96,7 +96,7 @@ public class ExportCypher {
         Result result = tx.execute(query);
         SubGraph graph;
         try {
-            graph = CypherResultSubGraph.from(tx, result, c.getRelsInBetween());
+            graph = CypherResultSubGraph.from(tx, result, c.getRelsInBetween(), c.isAddRelNodes());
         } catch (IllegalStateException e) {
             throw new RuntimeException("Full-text indexes on relationships are not supported, please delete them in order to complete the process");
         }

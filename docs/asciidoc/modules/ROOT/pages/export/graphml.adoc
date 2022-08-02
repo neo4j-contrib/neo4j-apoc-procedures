@@ -64,6 +64,9 @@ The procedures support the following config parameters:
 | defaultRelationshipType | "RELATED" | set relationship type (import/export graphml)
 | separateFiles | false | export results in separated file by type (nodes, relationships..)
 | stream | false | stream the xml directly to the client into the `data` field
+| addRelNodes | true | if enabled export start and end nodes, in case of query returning relationships
+| nodesOfRelationships | false | if enabled export other terminal nodes, in case of query returning relationships and start or end nodes..
+    Note that both `addRelNodes` and `nodesOfRelationships` have to be false not to return other node, because with `addRelNodes=true` the start and end nodes are always returned.
 | useTypes | false | Write the attribute type information to the graphml output
 | source | Map<String,String> | Empty map | To be used together with `target` to import (via `apoc.import.graphml`) a relationships-only file. In this case the source and target attributes of `edge` tag are not based on an internal id of nodes but on a custom property value. + 
 For example, with a path like `(:Foo {name: "aaa"})-[:KNOWS]->(:Bar {age: 666})`, we can export the `KNOWS` rel with a config `<edge id="e2" source="aaa" sourceType="string" target="666" targetType="long" label="KNOWS"><data key="label">KNOWS</data><data key="id">1</data></edge>`. Note the additional `sourceType`/`targetType` to detect the right type during the import.
