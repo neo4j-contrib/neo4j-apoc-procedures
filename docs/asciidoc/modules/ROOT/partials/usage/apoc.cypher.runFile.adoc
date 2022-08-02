@@ -37,3 +37,37 @@ CALL apoc.cypher.runFile("create_delete.cypher", {statistics: false});
 |===
 | row | result
 |===
+
+
+=== Status details
+
+For long running procedures, we can use the `statusDetails` field present in `dbms.listTransactions` procedure to check progresses, using `{statistics: true}`.
+
+[source,cypher]
+----
+CALL dbms.listTransactions() yield statusDetails, currentQuery WHERE currentQuery STARTS WITH 'CALL apoc.cypher.runFile' RETURN statusDetails
+----
+
+.Results
+[opts="header"]
+|===
+| statusDetails
+| - nodesCreated: 1111 +
+- nodesDeleted: 0 +
+- nodesDeleted: 0 +
+- labelsAdded: 0 +
+- labelsRemoved: 0 +
+- relationshipsCreated: 0 +
+- relationshipsDeleted: 0 +
+- propertiesSet: 0 +
+- constraintsAdded: 0 +
+- constraintsRemoved: 0 +
+- indexesAdded: 0 +
+- indexesRemoved: 0 +
+- rows: 1111 +
+- time: 2222
+|===
+
+The result of `CALL dbms.listTransactions()` will be like below:
+
+image::apoc.statusDetails.png[width=800]

@@ -29,6 +29,7 @@ import org.apache.arrow.vector.dictionary.DictionaryProvider;
 import org.apache.arrow.vector.ipc.ArrowStreamWriter;
 import org.apache.arrow.vector.ipc.ArrowWriter;
 import org.apache.arrow.vector.types.pojo.Schema;
+import org.neo4j.graphdb.Transaction;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -71,7 +72,7 @@ public interface ExportArrowStreamStrategy<IN> extends ExportArrowStrategy<IN, S
         }
     }
 
-    default Stream<ByteArrayResult> export(IN data, ArrowConfig config) {
+    default Stream<ByteArrayResult> export(IN data, ArrowConfig config, Transaction tx) {
         final BlockingQueue<apoc.result.ByteArrayResult> queue = new ArrayBlockingQueue<>(100);
         Util.inTxFuture(getExecutorService(), getGraphDatabaseApi(), txInThread -> {
             int batchCount = 0;

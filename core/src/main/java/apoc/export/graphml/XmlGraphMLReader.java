@@ -233,7 +233,6 @@ public class XmlGraphMLReader {
         int count = 0;
         BatchTransaction tx = new BatchTransaction(db, batchSize * 10, reporter);
         try {
-
             while (reader.hasNext()) {
                 XMLEvent event;
                 try {

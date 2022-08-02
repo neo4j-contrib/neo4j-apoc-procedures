@@ -22,6 +22,7 @@ import apoc.ApocConfig;
 import apoc.Pools;
 import apoc.convert.Convert;
 import apoc.export.util.CountingInputStream;
+import apoc.export.util.FormatUtils;
 import apoc.export.util.ExportConfig;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
@@ -1185,6 +1186,19 @@ public class Util {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static <T> void setKernelStatusMap(Transaction tx, Map<String, T> map) {
+        // we don't write anything if transaction is not an InternalTransaction
+        if (tx instanceof InternalTransaction) {
+            final KernelTransaction ktx = ((InternalTransaction) tx).kernelTransaction();
+            ktx.setStatusDetails(FormatUtils.asListed(map));
+        }
+    }
+
+    public static void setKernelStatus(Transaction tx, Object...data) {
+        Map<String, Object> map = map(data);
+        setKernelStatusMap(tx, map);
     }
 
     public static String toCypherMap(Map<String, Object> map) {

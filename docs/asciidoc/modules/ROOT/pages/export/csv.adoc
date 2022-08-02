@@ -385,6 +385,40 @@ When the config `bulkImport` is enable it create a list of file that can be used
 
 All file create are named as follow:
 
+
+=== Status details
+
+For long running procedures, we can use the `statusDetails` field present in `dbms.listTransactions` procedure to check progresses.
+
+[source,cypher]
+----
+CALL dbms.listTransactions() yield statusDetails, currentQuery WHERE currentQuery STARTS WITH 'CALL apoc.export.csv' RETURN statusDetails
+----
+
+.Results
+[opts="header"]
+|===
+| file 
+| - file: status.csv +
+- source: database: nodes(40000), rels(0) +
+- format: csv +
+- nodes: 0 +
+- relationships: 0 +
+- properties: 0 +
+- time: 0 +
+- rows: 0 +
+- batchSize: 20000 +
+- batches: 0 +
+- done: false +
+- data: null
+|===
+
+The result of `CALL dbms.listTransactions()` will be like below:
+
+image::apoc.statusDetails.png[width=800]
+
+
+
 // end::export.csv[]
 
 * Nodes file are construct with the name of the input file append with `.nodes.[LABEL_NAME].csv`

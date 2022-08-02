@@ -22,12 +22,14 @@ import apoc.Extended;
 import apoc.export.util.CountingReader;
 import apoc.load.util.LoadCsvConfig;
 import apoc.util.FileUtils;
+import apoc.util.JsonUtil;
 import apoc.util.Util;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -42,6 +44,7 @@ import java.util.stream.StreamSupport;
 import apoc.load.util.Results;
 import static apoc.util.FileUtils.closeReaderSafely;
 import static apoc.util.Util.cleanUrl;
+import static apoc.util.Util.setKernelStatusMap;
 import static java.util.Collections.emptyList;
 
 @Extended
@@ -49,6 +52,9 @@ public class LoadCsv {
 
     @Context
     public GraphDatabaseService db;
+
+    @Context
+    public Transaction tx;
 
     @Procedure
     @Description("apoc.load.csv('urlOrBinary',{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
@@ -93,7 +99,7 @@ public class LoadCsv {
         String[] header = getHeader(csv, config);
         boolean checkIgnore = !config.getIgnore().isEmpty() || config.getMappings().values().stream().anyMatch(m -> m.ignore);
         return StreamSupport.stream(new CSVSpliterator(csv, header, url, config.getSkip(), config.getLimit(),
-                checkIgnore, config.getMappings(), config.getNullValues(), config.getResults(), config.getIgnoreErrors()), false)
+                checkIgnore, config.getMappings(), config.getNullValues(), config.getResults(), config.getIgnoreErrors(), tx), false)
                 .onClose(() -> closeReaderSafely(reader));
     }
 
@@ -115,6 +121,7 @@ public class LoadCsv {
 
     private static class CSVSpliterator extends Spliterators.AbstractSpliterator<CSVResult> {
         private final CSVReader csv;
+        private final Transaction tx;
         private final String[] header;
         private final String url;
         private final long limit;
@@ -125,9 +132,10 @@ public class LoadCsv {
         private final boolean ignoreErrors;
         long lineNo;
 
-        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results, boolean ignoreErrors) throws IOException, CsvValidationException {
+        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results, boolean ignoreErrors, Transaction tx) throws IOException, CsvValidationException {
             super(Long.MAX_VALUE, Spliterator.ORDERED);
             this.csv = csv;
+            this.tx = tx;
             this.header = header;
             this.url = url;
             this.ignore = ignore;
@@ -147,8 +155,10 @@ public class LoadCsv {
             try {
                 String[] row = csv.readNext();
                 if (row != null && lineNo < limit) {
-                    action.accept(new CSVResult(header, row, lineNo, ignore,mapping, nullValues,results));
+                    final CSVResult result = new CSVResult(header, row, lineNo, ignore, mapping, nullValues, results);
+                    action.accept(result);
                     lineNo++;
+                    setKernelStatusMap(tx, JsonUtil.convertToMap(result));
                     return true;
                 }
                 return false;

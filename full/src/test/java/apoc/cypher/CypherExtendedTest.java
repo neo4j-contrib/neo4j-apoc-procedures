@@ -19,6 +19,7 @@
 package apoc.cypher;
 
 import apoc.text.Strings;
+import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.Utils;
@@ -47,6 +48,7 @@ import java.util.stream.StreamSupport;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.kernel.KernelTestUtils.checkStatusDetails;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallEmpty;
@@ -177,6 +179,12 @@ public class CypherExtendedTest {
                 });
 
         testCallCount(db, "MATCH (n:AutoTransaction) RETURN n", Collections.emptyMap(), expectedCount);
+    }
+
+    @Test
+    public void testImportExportStatusDetails() {
+            checkStatusDetails(db, "CALL apoc.cypher.runFile('status.nodes.cypher', {statistics: true})", 
+                    Map.of(), "CALL apoc.cypher.runFile");
     }
     
     @Test

@@ -57,3 +57,24 @@ RETURN source, format, nodes, relationships, properties
 | source | format | nodes | relationships | properties 
 | "binary" | "json" | 1     | 0             | 2 
 |===
+
+For long running procedures, we can use the `statusDetails` field present in `dbms.listTransactions` procedure to check progresses.
+
+[source,cypher]
+----
+CALL dbms.listTransactions() yield statusDetails, currentQuery WHERE currentQuery STARTS WITH 'CALL apoc.import.json' RETURN statusDetails
+----
+
+.Results
+[opts="header"]
+|===
+| file
+| - nodes: 1111 +
+- relationships: 12 +
+- properties: 2222 +
+- rows: 1123
+|===
+
+The result of `CALL dbms.listTransactions()` will be like below:
+
+image::apoc.statusDetails.png[width=800]
