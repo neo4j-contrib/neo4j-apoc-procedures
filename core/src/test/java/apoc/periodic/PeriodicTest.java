@@ -35,7 +35,6 @@ import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.KernelTransactionHandle;
 import org.neo4j.kernel.impl.api.KernelTransactions;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;

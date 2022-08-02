@@ -19,7 +19,6 @@
 package apoc.cypher;
 
 import apoc.text.Strings;
-import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.Utils;

@@ -46,7 +46,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static apoc.kernel.KernelTestUtils.checkStatusDetails;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.MapUtil.map;

@@ -20,7 +20,6 @@ package apoc.cypher;
 
 import apoc.Extended;
 import apoc.Pools;
-import apoc.export.util.FormatUtils;
 import apoc.result.MapResult;
 import apoc.util.FileUtils;
 import apoc.util.QueueBasedSpliterator;
@@ -40,7 +39,6 @@ import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.TerminationGuard;
 import org.parboiled.common.StringUtils;
 
-import javax.ws.rs.HEAD;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
