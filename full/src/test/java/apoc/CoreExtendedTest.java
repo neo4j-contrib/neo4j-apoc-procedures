@@ -2,9 +2,8 @@ package apoc;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
-import apoc.util.TestContainerUtil.ApocPackage;
-import apoc.util.TestUtil;
 import org.junit.Test;
+import apoc.util.TestContainerUtil.ApocPackage;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
@@ -29,7 +28,7 @@ public class CoreExtendedTest {
     @Test
     public void checkForCoreAndExtended() {
         try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE, ApocPackage.FULL), !TestUtil.isRunningInCI())
+            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE, ApocPackage.FULL), true)
                     .withNeo4jConfig("dbms.transaction.timeout", "60s")
                     .withNeo4jConfig(APOC_IMPORT_FILE_ENABLED, "true");
 
@@ -54,7 +53,7 @@ public class CoreExtendedTest {
     @Test
     public void matchesSpreadsheet() {
         try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE, ApocPackage.FULL), !TestUtil.isRunningInCI())
+            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE, TestContainerUtil.ApocPackage.FULL), true)
                     .withNeo4jConfig("dbms.transaction.timeout", "60s");
 
             neo4jContainer.start();

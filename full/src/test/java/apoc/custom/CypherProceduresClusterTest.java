@@ -28,7 +28,7 @@ public class CypherProceduresClusterTest {
     @BeforeClass
     public static void setupCluster() {
         cluster = TestContainerUtil.createEnterpriseCluster(
-                List.of(TestContainerUtil.ApocPackage.FULL),
+                List.of(ApocPackage.FULL),
                 3,
                 1,
                 Collections.emptyMap(),

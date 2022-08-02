@@ -1,7 +1,6 @@
 package apoc.ttl;
 
 import apoc.util.Neo4jContainerExtension;
-import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -33,7 +32,7 @@ public class TTLMultiDbTest {
 
     @BeforeClass
     public static void setupContainer() {
-        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI())
+        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), true)
                 .withEnv(Map.of("apoc.ttl.enabled." + DB_TEST, "false",
                         "apoc.ttl.enabled", "true",
                         "apoc.ttl.schedule", "2",

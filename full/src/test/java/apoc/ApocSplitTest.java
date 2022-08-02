@@ -176,7 +176,7 @@ public class ApocSplitTest {
     @Test
     public void test() {
         if (!TestUtil.isRunningInCI()) {
-            Neo4jContainerExtension neo4jContainer = TestContainerUtil.createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI())
+            Neo4jContainerExtension neo4jContainer = TestContainerUtil.createEnterpriseDB(List.of(ApocPackage.FULL), true)
                     .withNeo4jConfig("dbms.transaction.timeout", "60s");
 
 

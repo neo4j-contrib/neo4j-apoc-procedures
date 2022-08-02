@@ -1,5 +1,6 @@
 package apoc.util;
 
+import org.apache.commons.io.FileUtils;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
@@ -18,6 +19,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import static apoc.util.TestContainerUtil.Neo4jVersion;
 import static apoc.util.TestContainerUtil.Neo4jVersion.ENTERPRISE;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.Scanner;
@@ -60,15 +62,26 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
 
     @Override
     public void start() {
-        super.start();
-        if (withDriver) {
-            driver = GraphDatabase.driver(getBoltUrl(), getAuth());
-            session = driver.session();
-            if (filePath != null && !filePath.isEmpty()) {
-                executeScript(filePath);
+        try {
+            super.start();
+            if (withDriver) {
+                driver = GraphDatabase.driver(getBoltUrl(), getAuth());
+                session = driver.session();
+                if (filePath != null && !filePath.isEmpty()) {
+                    executeScript(filePath);
+                }
             }
+            isRunning = true;
+        } catch (Exception startException) {
+            try {
+                System.out.println(this.execInContainer("cat", "logs/debug.log").toString());
+                System.out.println(this.execInContainer("cat", "logs/http.log").toString());
+                System.out.println(this.execInContainer("cat", "logs/security.log").toString());
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+            throw startException;
         }
-        isRunning = true;
     }
 
     private void executeScript(String filePath) {
@@ -124,12 +137,20 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
             this.setWaitStrategy(Wait.forHttp("/db/" + database + "/cluster/available")
                     .withBasicCredentials(username, password)
                     .forPort(7474)
-                    .forStatusCode(200)
+                    .forStatusCodeMatching(t -> {
+                        logger.debug("/db/" + database + "/cluster/available [" + t.toString() + "]");
+                        return t == 200;
+                    })
+                    .withReadTimeout(Duration.ofSeconds(3))
                     .withStartupTimeout(timeout));
         } else {
             this.setWaitStrategy(Wait.forHttp("/")
                     .forPort(7474)
-                    .forStatusCode(200)
+                    .forStatusCodeMatching(t -> {
+                        logger.debug("/ [" + t.toString() + "]");
+                        return t == 200;
+                    })
+                    .withReadTimeout(Duration.ofSeconds(3))
                     .withStartupTimeout(timeout));
         }
 
