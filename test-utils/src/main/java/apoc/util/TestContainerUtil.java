@@ -129,6 +129,7 @@ public class TestContainerUtil {
                 .withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 //                .withDebugger()  // uncomment this line for remote debbuging inside docker's neo4j instance
                 .withCreateContainerCmdModifier(cmd -> cmd.withMemory(2024 * 1024 * 1024l))
+                .withExposedPorts(7687, 7473, 7474)
 
                 // set uid if possible - export tests do write to "/import"
                 .withCreateContainerCmdModifier(cmd -> {

@@ -15,13 +15,14 @@ public class GoogleCloudStorageContainerExtension extends GenericContainer<Googl
 
     public GoogleCloudStorageContainerExtension() {
         super("fsouza/fake-gcs-server:latest");
-        this.addFixedExposedPort(4443, 4443);
         this.withCommand("-scheme http");
 
         setWaitStrategy(new HttpWaitStrategy()
                 .forPath("/storage/v1/b")
                 .forPort(4443)
                 .forStatusCodeMatching(response -> response == HTTP_OK));
+
+        addExposedPort(4443);
     }
 
     public GoogleCloudStorageContainerExtension withMountedResourceFile(String resourceFilePath, String gcsPath) {

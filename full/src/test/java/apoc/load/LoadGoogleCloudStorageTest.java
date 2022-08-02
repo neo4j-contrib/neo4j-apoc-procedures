@@ -17,9 +17,6 @@ import static org.junit.Assert.assertFalse;
 
 public class LoadGoogleCloudStorageTest {
 
-    private static final String GCS_URL = "http://localhost:4443/storage/v1";
-
-    @ClassRule
     public static GoogleCloudStorageContainerExtension gcs = new GoogleCloudStorageContainerExtension()
             .withMountedResourceFile("test.csv", "/folder/test.csv")
             .withMountedResourceFile("map.json", "/folder/map.json");
@@ -29,6 +26,7 @@ public class LoadGoogleCloudStorageTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
+        gcs.start();
         TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class);
     }
 
@@ -40,7 +38,8 @@ public class LoadGoogleCloudStorageTest {
 
     @Test
     public void testLoadCsv() {
-        String url = GCS_URL + "/b/folder/o/test.csv?alt=media";
+        String url = gcsUrl("b/folder/o/test.csv?alt=media");
+
         testResult(db, "CALL apoc.load.csv($url)", map("url", url), (r) -> {
             assertRow(r, "Selma", "8", 0L);
             assertRow(r, "Rana", "11", 1L);
@@ -51,9 +50,13 @@ public class LoadGoogleCloudStorageTest {
 
     @Test
     public void testLoadJSON() {
-        String url = GCS_URL  + "/b/folder/o/map.json?alt=media";
+        String url = gcsUrl("b/folder/o/map.json?alt=media");
         testCall(db, "CALL apoc.load.jsonArray($url, '$.foo')", map("url", url), (r) -> {
             assertEquals(asList(1L,2L,3L), r.get("value"));
         });
+    }
+
+    private String gcsUrl(String path) {
+        return String.format("http://%s:%d/storage/v1/%s", gcs.getContainerIpAddress(), gcs.getMappedPort(4443), path);
     }
 }

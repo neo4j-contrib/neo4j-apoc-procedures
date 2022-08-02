@@ -17,5 +17,7 @@ public class MySQLContainerExtension extends MySQLContainer<MySQLContainerExtens
         setWaitStrategy(new LogMessageWaitStrategy()
                 .withRegEx(".*ready for connections.")
                 .withStartupTimeout(Duration.ofMinutes(2)));
+
+        addExposedPort(3306);
     };
 }

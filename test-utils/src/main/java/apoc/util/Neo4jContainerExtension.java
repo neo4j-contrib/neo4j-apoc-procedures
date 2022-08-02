@@ -46,9 +46,6 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
 
     public Neo4jContainerExtension(String dockerImage) {
         setDockerImageName(dockerImage);
-
-        addFixedExposedPort(7474, 7474);
-        addFixedExposedPort(7687, 7687);
     }
 
     public Neo4jContainerExtension withInitScript(String filePath) {
