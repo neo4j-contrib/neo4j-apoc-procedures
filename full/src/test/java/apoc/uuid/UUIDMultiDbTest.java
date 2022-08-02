@@ -28,19 +28,19 @@ public class UUIDMultiDbTest {
 
     private static Neo4jContainerExtension neo4jContainer;
     private static Driver driver;
-    private static String dbTest = "dbtest";
+    private static Session neo4jSession;
+    private static Session dbTestSession;
+    private static final String DB_TEST = "dbtest";
 
     @BeforeClass
     public static void setupContainer() {
-        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI()).withEnv(
-                Map.of(String.format(APOC_UUID_ENABLED_DB, dbTest), "false", APOC_UUID_ENABLED, "true"));
+        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI())
+                .withEnv(String.format(APOC_UUID_ENABLED_DB, DB_TEST), "false")
+                .withEnv(APOC_UUID_ENABLED, "true");
         neo4jContainer.start();
-
-        driver = GraphDatabase.driver(neo4jContainer.getBoltUrl(), AuthTokens.basic("neo4j", "apoc"));
-
-        try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
-            session.writeTransaction(tx -> tx.run(String.format("CREATE DATABASE %s WAIT;", dbTest)));
-        }
+        driver = neo4jContainer.getDriver();
+        createDatabases();
+        createSessions();
     }
 
     @AfterClass
@@ -49,66 +49,59 @@ public class UUIDMultiDbTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void testWithSpecificDatabaseWithUUIDDisabled() throws Exception {
-
-        Session session = driver.session(SessionConfig.forDatabase(dbTest));
-        try{
-            session.writeTransaction(tx -> tx.run(
-                    "CREATE (d:Foo {name:'Test'})-[:WORK]->(l:Bar {name:'Baz'})")
-            );
-
-            session.writeTransaction(tx -> tx.run(
-                    "CREATE CONSTRAINT FOR (foo:Foo) REQUIRE foo.uuid IS UNIQUE")
-            );
-
-            session.writeTransaction(tx -> tx.run(
-                    "CALL apoc.uuid.install('Foo', {addToExistingNodes: false }) YIELD label RETURN label")
-            );
-
+    public void testWithSpecificDatabaseWithUUIDDisabled() {
+        try {
+            dbTestSession.writeTransaction(tx -> tx.run("CREATE CONSTRAINT FOR (foo:Foo) REQUIRE foo.uuid IS UNIQUE"));
+            dbTestSession.writeTransaction(tx -> {
+                tx.run("CREATE (d:Foo {name:'Test'})-[:WORK]->(l:Bar {name:'Baz'})");
+                return tx.run("CALL apoc.uuid.install('Foo', {addToExistingNodes: false }) YIELD label RETURN label");
+            });
         } catch (RuntimeException e) {
             String expectedMessage = "Failed to invoke procedure `apoc.uuid.install`: " +
-                    "Caused by: java.lang.RuntimeException: " + String.format(NOT_ENABLED_ERROR, dbTest);
+                    "Caused by: java.lang.RuntimeException: " + String.format(NOT_ENABLED_ERROR, DB_TEST);
             assertEquals(expectedMessage, e.getMessage());
             throw e;
         }
     }
 
     @Test
-    public void testWithDefaultDatabaseWithUUIDEnabled() throws InterruptedException {
-        try (Session session = driver.session(SessionConfig.forDatabase("neo4j"))) {
+    public void testWithDefaultDatabaseWithUUIDEnabled() {
+        neo4jSession.writeTransaction(tx -> tx.run("CREATE CONSTRAINT FOR (foo:Foo) REQUIRE foo.uuid IS UNIQUE"));
+        neo4jSession.writeTransaction(tx -> {
+            tx.run("CALL apoc.uuid.install('Foo', {addToExistingNodes: false }) YIELD label RETURN label");
+            return tx.run("CREATE (d:Foo {name:'Test'})-[:WORK]->(l:Bar {name:'Baz'})");
+        });
 
-            session.writeTransaction(tx -> tx.run(
-                    "CREATE CONSTRAINT FOR (foo:Foo) REQUIRE foo.uuid IS UNIQUE")
-            );
+        String call = "MATCH (n:Foo) RETURN n.uuid as uuid";
+        AtomicBoolean nodeHasUUID = new AtomicBoolean(false);
+        Consumer<Iterator<Map<String, Object>>> resultConsumer = (result) -> {
+            Map<String, Object> r = result.next();
+            nodeHasUUID.set(r.get("uuid") != null);
+        };
 
-            session.writeTransaction(tx -> tx.run(
-                    "CALL apoc.uuid.install('Foo', {addToExistingNodes: false }) YIELD label RETURN label")
-            );
-            session.writeTransaction(tx -> tx.run(
-                    "CREATE (d:Foo {name:'Test'})-[:WORK]->(l:Bar {name:'Baz'})")
-            );
+        long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(5);
+        while (System.currentTimeMillis() < timeout && !nodeHasUUID.get()) {
+            neo4jSession.writeTransaction(tx -> {
+                Map<String, Object> p = Collections.<String, Object>emptyMap();
+                resultConsumer.accept(tx.run(call, p).list()
+                        .stream()
+                        .map(org.neo4j.driver.Record::asMap)
+                        .collect(Collectors.toList()).iterator());
+                tx.commit();
+                return null;
+            });
+        }
+        assertTrue("UUID not set on node after 5 seconds", nodeHasUUID.get());
+    }
 
-            String call = "MATCH (n:Foo) RETURN n.uuid as uuid";
-            AtomicBoolean nodeHasUUID = new AtomicBoolean(false);
-            Consumer<Iterator<Map<String, Object>>> resultConsumer = (result) -> {
-                Map<String, Object> r = result.next();
-                nodeHasUUID.set(r.get("uuid") != null);
-            };
-
-            long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(5);
-            while (System.currentTimeMillis() < timeout && !nodeHasUUID.get()) {
-                session.writeTransaction(tx -> {
-                    Map<String, Object> p = Collections.<String, Object>emptyMap();
-                    resultConsumer.accept(tx.run(call, p).list()
-                            .stream()
-                            .map(org.neo4j.driver.Record::asMap)
-                            .collect(Collectors.toList()).iterator());
-                    tx.commit();
-                    return null;
-                });
-            }
-            assertTrue("UUID not set on node after 5 seconds", nodeHasUUID.get());
+    private static void createDatabases() {
+        try (Session systemSession = driver.session(SessionConfig.forDatabase("system"))) {
+            systemSession.writeTransaction(tx -> tx.run(String.format("CREATE DATABASE %s WAIT;", DB_TEST)));
         }
     }
 
+    private static void createSessions() {
+        neo4jSession = neo4jContainer.getSession();
+        dbTestSession = driver.session(SessionConfig.forDatabase(DB_TEST));
+    }
 }
