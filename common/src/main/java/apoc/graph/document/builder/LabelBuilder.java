@@ -1,7 +1,6 @@
 package apoc.graph.document.builder;
 
 import apoc.graph.util.GraphsConfig;
-import apoc.text.Strings;
 import org.neo4j.graphdb.Label;
 
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ public class LabelBuilder {
     }
 
     public Label[] buildLabel(Map<String, Object> obj, String path) {
-        Strings strings = new Strings();
 
         List<String> rawLabels = new ArrayList<>();
 

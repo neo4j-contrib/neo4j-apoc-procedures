@@ -2,7 +2,7 @@ package apoc.util;
 
 import apoc.ApocConfig;
 import apoc.Pools;
-import apoc.convert.Convert;
+import apoc.convert.utils.ConvertUtils;
 import apoc.export.util.CountingInputStream;
 import apoc.export.util.ExportConfig;
 import apoc.result.VirtualNode;
@@ -164,7 +164,7 @@ public class Util {
     }
 
     public static Stream<Object> stream(Object values) {
-        return Convert.convertToList(values).stream();
+        return ConvertUtils.convertToList(values).stream();
     }
 
     public static Stream<Node> nodeStream(Transaction tx, Object ids) {
