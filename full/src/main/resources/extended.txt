@@ -1,4 +1,5 @@
 apoc.algo.aStarWithPoint
+apoc.algo.travellingSalesman
 apoc.bolt.execute
 apoc.bolt.load
 apoc.bolt.load.fromLocal

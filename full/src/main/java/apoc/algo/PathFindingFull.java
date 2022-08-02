@@ -15,6 +15,8 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static apoc.algo.PathFinding.buildPathExpander;
@@ -44,6 +46,16 @@ public class PathFindingFull {
                 CommonEvaluators.doubleCostEvaluator(weightPropertyName),
                 new PathFinding.GeoEstimateEvaluatorPointCustom(pointPropertyName));
         return WeightedPathResult.streamWeightedPathResult(startNode, endNode, algo);
+    }
+
+    @Procedure
+    @Description("apoc.algo.travellingSalesman(nodes,  $config) - resolve travelling salesman problem via simulated annealing algo")
+    public Stream<TravellingSalesman.Result> travellingSalesman(@Name("startNode") List<Node> nodes, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        if (nodes.isEmpty()) {
+            throw new RuntimeException("The nodes parameter must have at least 3 nodes");
+        }
+        TravellingSalesman.Config conf = new TravellingSalesman.Config(config);
+        return Stream.of(TravellingSalesman.Algo.simulateAnnealing(nodes, conf));
     }
     
 }
