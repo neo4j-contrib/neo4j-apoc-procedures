@@ -65,6 +65,7 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -350,6 +351,11 @@ public class Schemas {
      * @return
      */
     private Stream<IndexConstraintNodeInfo> indexesAndConstraintsForNode(Map<String,Object> config) {
+        return indexesAndConstraintsForNode(config, ktx,
+                (constraintNodeInfoStream, indexNodeInfoStream) -> Stream.of(constraintNodeInfoStream, indexNodeInfoStream).flatMap(e -> e));
+    }
+
+    public static <T> T indexesAndConstraintsForNode(Map<String,Object> config, KernelTransaction ktx, BiFunction<Stream<IndexConstraintNodeInfo>, Stream<IndexConstraintNodeInfo>, T> function) {
         Schema schema = tx.schema();
 
         SchemaConfig schemaConfig = new SchemaConfig(config);
@@ -409,14 +415,14 @@ public class Schemas {
                     .sorted(Comparator.comparing(i -> i.label.toString()));
 
             Stream<IndexConstraintNodeInfo> indexNodeInfoStream = StreamSupport.stream(indexesIterator.spliterator(), false)
-                    .map(indexDescriptor -> this.nodeInfoFromIndexDefinition(indexDescriptor, schemaRead, tokenRead))
+                    .map(indexDescriptor -> nodeInfoFromIndexDefinition(indexDescriptor, schemaRead, tokenRead))
                     .sorted(Comparator.comparing(i -> i.label.toString()));
 
-            return Stream.of(constraintNodeInfoStream, indexNodeInfoStream).flatMap(e -> e);
+            return function.apply(constraintNodeInfoStream, indexNodeInfoStream);
         }
     }
 
-    private List<IndexDescriptor> getIndexesFromSchema(Iterator<IndexDescriptor> allIndex, Predicate<IndexDescriptor> indexDescriptorPredicate) {
+    private static List<IndexDescriptor> getIndexesFromSchema(Iterator<IndexDescriptor> allIndex, Predicate<IndexDescriptor> indexDescriptorPredicate) {
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(allIndex, Spliterator.ORDERED), false)
                 .filter(indexDescriptorPredicate).collect(Collectors.toList());
     }
@@ -427,6 +433,12 @@ public class Schemas {
      * @return
      */
     private Stream<IndexConstraintRelationshipInfo> indexesAndConstraintsForRelationships(Map<String,Object> config) {
+        return indexesAndConstraintsForRelationships(config, tx, ktx,
+                (constraintRelationshipInfoStream, indexRelationshipInfoStream) -> Stream.of(constraintRelationshipInfoStream, indexRelationshipInfoStream).flatMap(e -> e));
+    }
+
+
+    public static  <T> T indexesAndConstraintsForRelationships(Map<String,Object> config, Transaction tx, KernelTransaction ktx, BiFunction<Stream<IndexConstraintRelationshipInfo>, Stream<IndexConstraintRelationshipInfo>, T> function) {
         Schema schema = tx.schema();
 
         SchemaConfig schemaConfig = new SchemaConfig(config);
@@ -458,14 +470,6 @@ public class Schemas {
                             return StreamSupport.stream(indexesForRelType.spliterator(), false);
                         })
                         .collect(Collectors.toList());
-
-                indexesIterator = includeRelationships.stream()
-                        .filter(type -> !excludeRelationships.contains(type) && tokenRead.relationshipType(type) != TokenConstants.NO_TOKEN)
-                        .flatMap(type -> {
-                            Iterable<IndexDescriptor> indexesForRelType = () -> schemaRead.indexesGetForRelationshipType(tokenRead.relationshipType(type));
-                            return StreamSupport.stream(indexesForRelType.spliterator(), false);
-                        })
-                        .collect(Collectors.toList());
             } else {
                 Iterable<ConstraintDefinition> allConstraints = schema.getConstraints();
                 constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
@@ -480,12 +484,12 @@ public class Schemas {
             }
 
             Stream<IndexConstraintRelationshipInfo> constraintRelationshipInfoStream = StreamSupport.stream(constraintsIterator.spliterator(), false)
-                    .map(this::relationshipInfoFromConstraintDefinition);
+                    .map(Schemas::relationshipInfoFromConstraintDefinition);
 
             Stream<IndexConstraintRelationshipInfo> indexRelationshipInfoStream = StreamSupport.stream(indexesIterator.spliterator(), false)
                     .map(index -> relationshipInfoFromIndexDescription(index, tokenRead, schemaRead));
 
-            return Stream.of(constraintRelationshipInfoStream, indexRelationshipInfoStream).flatMap(e -> e);
+            return function.apply(constraintRelationshipInfoStream, indexRelationshipInfoStream);
         }
     }
 
@@ -500,7 +504,7 @@ public class Schemas {
      * @param tokens
      * @return
      */
-    private IndexConstraintNodeInfo nodeInfoFromConstraintDefinition(ConstraintDefinition constraintDefinition, TokenNameLookup tokens) {
+    private static IndexConstraintNodeInfo nodeInfoFromConstraintDefinition(ConstraintDefinition constraintDefinition, TokenNameLookup tokens) {
         String labelName = constraintDefinition.getLabel().name();
         List<String> properties = Iterables.asList(constraintDefinition.getPropertyKeys());
         return new IndexConstraintNodeInfo(
@@ -526,7 +530,7 @@ public class Schemas {
      * @param tokens
      * @return
      */
-    private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexDescriptor indexDescriptor, SchemaRead schemaRead, TokenNameLookup tokens){
+    private static IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexDescriptor indexDescriptor, SchemaRead schemaRead, TokenNameLookup tokens){
         int[] labelIds = indexDescriptor.schema().getEntityTokenIds();
         int length = labelIds.length;
         final Object labelName;
@@ -574,7 +578,7 @@ public class Schemas {
         }
     }
 
-    private IndexConstraintRelationshipInfo relationshipInfoFromIndexDescription(IndexDescriptor indexDescriptor, TokenNameLookup tokens, SchemaRead schemaRead) {
+    private static IndexConstraintRelationshipInfo relationshipInfoFromIndexDescription(IndexDescriptor indexDescriptor, TokenNameLookup tokens, SchemaRead schemaRead) {
         int[] relIds = indexDescriptor.schema().getEntityTokenIds();
         int length = relIds.length;
         // to handle LOOKUP indexes
@@ -612,7 +616,7 @@ public class Schemas {
      * @param constraintDefinition
      * @return
      */
-    private IndexConstraintRelationshipInfo relationshipInfoFromConstraintDefinition(ConstraintDefinition constraintDefinition) {
+    private static IndexConstraintRelationshipInfo relationshipInfoFromConstraintDefinition(ConstraintDefinition constraintDefinition) {
         return new IndexConstraintRelationshipInfo(
                 String.format("CONSTRAINT %s", constraintDefinition.toString()),
                 constraintDefinition.getConstraintType().name(),
@@ -626,7 +630,7 @@ public class Schemas {
         return indexDescriptor.getIndexType().name();
     }
 
-    private String getSchemaInfoName(Object labelOrType, List<String> properties) {
+    private static String getSchemaInfoName(Object labelOrType, List<String> properties) {
         final String labelOrTypeAsString = labelOrType instanceof String ? (String) labelOrType : StringUtils.join(labelOrType, ",");
         return String.format(":%s(%s)", labelOrTypeAsString, StringUtils.join(properties, ","));
     }

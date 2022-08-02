@@ -157,6 +157,8 @@ apoc.redis.zadd
 apoc.redis.zcard
 apoc.redis.zrangebyscore
 apoc.redis.zrem
+apoc.schema.node.compareIndexesAndConstraints
+apoc.schema.relationship.compareIndexesAndConstraints
 apoc.static.get
 apoc.static.list
 apoc.static.set
