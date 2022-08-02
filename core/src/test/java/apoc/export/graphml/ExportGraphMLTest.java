@@ -42,6 +42,7 @@ import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.EXPORT_TO_FILE_ERROR;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.BinaryTestUtil.getDecompressedData;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
@@ -53,6 +54,7 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 import static org.neo4j.configuration.GraphDatabaseSettings.TransactionStateMemoryAllocation.OFF_HEAP;
 import static org.neo4j.configuration.SettingValueParsers.BYTES;
+import static org.neo4j.graphdb.Label.label;
 import static org.xmlunit.diff.ElementSelectors.byName;
 
 /**
