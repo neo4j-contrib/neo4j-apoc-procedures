@@ -45,22 +45,10 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
     }
 
     public Neo4jContainerExtension(String dockerImage) {
-        // http on 4.0 seems to deliver a 404 first
         setDockerImageName(dockerImage);
 
         addFixedExposedPort(7474, 7474);
         addFixedExposedPort(7687, 7687);
-
-        WaitStrategy waitForBolt = new LogMessageWaitStrategy()
-                .withRegEx(String.format(".*Bolt enabled on (0\\.0\\.0\\.0:%d|\\[0:0:0:0:0:0:0:0%%0\\]:%1$s)\\.\n", 7687));
-        WaitStrategy waitForHttp = new HttpWaitStrategy()
-                .forPort(7474)
-                .forStatusCodeMatching(response -> response == HTTP_OK);
-
-        setWaitStrategy(new WaitAllStrategy()
-                .withStrategy(waitForBolt)
-                .withStrategy(waitForHttp)
-                .withStartupTimeout(Duration.ofMinutes(2)));
     }
 
     public Neo4jContainerExtension withInitScript(String filePath) {
@@ -148,7 +136,7 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
     }
 
     public Neo4jContainerExtension withWaitForNeo4jDatabaseReady(String password, Neo4jVersion version) {
-        return withWaitForDatabaseReady("neo4j", password, "neo4j", Duration.ofSeconds(60), version);
+        return withWaitForDatabaseReady("neo4j", password, "neo4j", Duration.ofSeconds(120), version);
     }
 
     @Override
