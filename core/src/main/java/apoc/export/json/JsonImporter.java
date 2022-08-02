@@ -2,12 +2,13 @@ package apoc.export.json;
 
 import apoc.export.util.Reporter;
 import apoc.util.Util;
-import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.Schema;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.values.storable.DurationValue;
 import org.neo4j.values.storable.PointValue;
 
@@ -24,6 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -174,7 +176,8 @@ public class JsonImporter implements Closeable {
             final String importIdName = importJsonConfig.getImportIdName();
             final String missingConstraint = labels.stream().filter(label -> 
                     StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false)
-                            .noneMatch(constraint -> Iterables.contains(constraint.getPropertyKeys(), importIdName))
+                            .filter(c -> c.isConstraintType(ConstraintType.UNIQUENESS) || c.isConstraintType(ConstraintType.NODE_KEY))
+                            .noneMatch(constraint -> Iterables.asSet(constraint.getPropertyKeys()).equals(Set.of(importIdName)))
             ).findAny()
             .orElse(null);
             if (missingConstraint != null) {
