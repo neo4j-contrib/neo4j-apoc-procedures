@@ -37,12 +37,20 @@ public class Uuid {
         final String uuidFunctionName = getUuidFunctionName();
         Map<String, Object> addToExistingNodesResult = Collections.emptyMap();
         if (uuidConfig.isAddToExistingNodes()) {
-            addToExistingNodesResult = Util.inTx(db, pools, txInThread ->
+            try {
+                addToExistingNodesResult = Util.inTx(db, pools, txInThread ->
                     txInThread.execute("CALL apoc.periodic.iterate(" +
                             "\"MATCH (n:" + Util.sanitizeAndQuote(label) + ") RETURN n\",\n" +
                             "\"SET n." + Util.sanitizeAndQuote(uuidConfig.getUuidProperty()) + " = " + uuidFunctionName + "()\", {batchSize:10000, parallel:true})")
                             .next()
-            );
+                );
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains( "There is no procedure with the name `apoc.periodic.iterate` registered for this database instance" )) {
+                    throw new RuntimeException("apoc core needs to be installed when using apoc.uuid.install with the flag addToExistingNodes = true");
+                } else {
+                    throw e;
+                }
+            }
         }
         uuidHandler.add(tx, label, uuidConfig);
         return Stream.of(new UuidInstallInfo(label, true, 
