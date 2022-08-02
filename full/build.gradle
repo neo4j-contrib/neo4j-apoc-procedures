@@ -46,8 +46,10 @@ shadowJar {
 
 dependencies {
     implementation project(":common")
-    apt project(":processor")
+    testImplementation project(":common").sourceSets.test.output
     testImplementation project(':test-utils')
+    testImplementation project(":core")
+    apt project(":processor")
 
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib"
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib"
