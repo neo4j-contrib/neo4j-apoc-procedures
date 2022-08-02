@@ -48,7 +48,121 @@ dependencies {
     implementation project(":common")
     testImplementation project(":common").sourceSets.test.output
     testImplementation project(':test-utils')
+
+    apt project(':processor')
+
+    apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
+    implementation group: 'commons-codec', name: 'commons-codec', version: '1.14'
+    implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.7.0'
+    implementation group: 'net.minidev', name: 'json-smart', version: '2.4.8'
+    implementation group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
+
+    antlr "org.antlr:antlr4:4.7.2", {
+        exclude group: 'org.glassfish'
+        exclude group: 'com.ibm.icu'
+        exclude group: 'org.abego.treelayout'
+    }
+
+    implementation group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
+    implementation(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.8.0') {
+        exclude group: "org.yaml"
+        exclude module: "snakeyaml"
+        exclude module: "commons-lang3"
+    }
+    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.26'
+    testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
+    implementation group: 'com.github.seancfoley', name: 'ipaddress', version: '5.3.3'
+
+    testImplementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
+
+    // This was reported here https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/3048
+    implementation(group: 'org.apache.commons', name: 'commons-lang3') {
+        version {
+            strictly '3.12.0'
+        }
+    }
+
+    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
+    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
+
+    testImplementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
     testImplementation group: 'junit', name: 'junit', version: '4.13.2'
+    testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
+    testImplementation group: 'org.neo4j.test', name: 'neo4j-harness', version: neo4jVersionEffective
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.2.22.v20170606'
+    testImplementation group: 'org.apache.derby', name: 'derby', version: '10.12.1.1'
+
+    testImplementation group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests"
+    testImplementation group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective // , classifier: "tests"
+    testImplementation group: 'org.neo4j', name: 'log-test-utils', version: neo4jVersionEffective // , classifier: "tests"
+
+
+    testImplementation group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
+    testImplementation group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
+
+
+    def withoutServers = {
+        exclude group: 'org.eclipse.jetty'
+        exclude group: 'org.eclipse.jetty.aggregate'
+        exclude group: 'org.apache.hive', module: 'hive-service'
+    }
+
+    def withoutJacksons = {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+    }
+
+    compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
+
+    testImplementation 'org.mock-server:mockserver-netty:5.6.0'
+    testImplementation 'org.mock-server:mockserver-client-java:5.6.0'
+
+    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
+    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
+
+    testImplementation group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
+    implementation group: 'com.opencsv', name: 'opencsv', version: '4.6'
+    compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
+
+    testImplementation group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
+
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.2', withoutServers
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.2', withoutServers
+
+    implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+    testImplementation group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
+    testImplementation group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
+
+    testImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.13.2'
+    testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
+    testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.2.0'
+
+    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.1'
+    testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.1', {
+        exclude group: 'com.google.guava', module: 'guava'
+    }
+
+    implementation group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
+
+    implementation group: 'org.apache.arrow', name: 'arrow-vector', version: '7.0.0', {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+        exclude group: 'io.netty', module: 'netty-common'
+    }
+    implementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '7.0.0', {
+        exclude group: 'com.google.guava', module: 'guava'
+        exclude group: 'io.netty', module: 'netty-common'
+        exclude group: 'io.netty', module: 'netty-buffer'
+    }
+    testImplementation group: 'org.apache.arrow', name: 'arrow-vector', version: '7.0.0'
+    testImplementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '7.0.0'
+
+    configurations.all {
+        exclude group: 'org.slf4j', module: 'slf4j-nop'
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+    }
 }
 
 task copyRuntimeLibs(type: Copy) {
