@@ -54,7 +54,7 @@ public interface ExportArrowStreamStrategy<IN> extends ExportArrowStrategy<IN, S
     }
 
     default Stream<ByteArrayResult> export(IN data, ArrowConfig config) {
-        final BlockingQueue<apoc.result.ByteArrayResult> queue = new ArrayBlockingQueue<>(100);
+        final BlockingQueue<ByteArrayResult> queue = new ArrayBlockingQueue<>(100);
         Util.inTxFuture(getExecutorService(), getGraphDatabaseApi(), txInThread -> {
             int batchCount = 0;
             List<Map<String, Object>> rows = new ArrayList<>(config.getBatchSize());
@@ -80,7 +80,7 @@ public interface ExportArrowStreamStrategy<IN> extends ExportArrowStrategy<IN, S
             }
             return true;
         });
-        QueueBasedSpliterator<apoc.result.ByteArrayResult> spliterator = new QueueBasedSpliterator<>(queue, apoc.result.ByteArrayResult.NULL, getTerminationGuard(), Integer.MAX_VALUE);
+        QueueBasedSpliterator<ByteArrayResult> spliterator = new QueueBasedSpliterator<>(queue, ByteArrayResult.NULL, getTerminationGuard(), Integer.MAX_VALUE);
         return StreamSupport.stream(spliterator, false);
     }
 

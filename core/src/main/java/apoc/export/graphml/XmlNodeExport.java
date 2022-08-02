@@ -17,7 +17,7 @@ public class XmlNodeExport {
     enum NodeType {
         SOURCE("source", new ExportNode() {
             @Override
-            public ExportConfig.NodeConfig getNodeConfig(ExportConfig config) {
+            public NodeConfig getNodeConfig(ExportConfig config) {
                 return config.getSource();
             }
 
@@ -31,10 +31,10 @@ public class XmlNodeExport {
                 return reader.getSource();
             }
         }),
-        
+
         TARGET("target", new ExportNode() {
             @Override
-            public ExportConfig.NodeConfig getNodeConfig(ExportConfig config) {
+            public NodeConfig getNodeConfig(ExportConfig config) {
                 return config.getTarget();
             }
 
