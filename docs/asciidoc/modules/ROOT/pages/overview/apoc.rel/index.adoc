@@ -18,6 +18,11 @@ returns endNode for (virtual) relationships
 returns id for (virtual) relationships
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.rel/apoc.rel.rebind.adoc[apoc.rel.rebind icon:book[]]
+
+apoc.rel.rebind(rel) - to rebind a rel (i.e. executing a Transaction.getRelationshipById(rel.getId())  
+|label:function[]
+|label:apoc-core[]
 |xref::overview/apoc.rel/apoc.rel.startNode.adoc[apoc.rel.startNode icon:book[]]
 
 returns startNode for (virtual) relationships

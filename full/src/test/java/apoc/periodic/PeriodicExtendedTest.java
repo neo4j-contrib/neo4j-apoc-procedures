@@ -1,6 +1,9 @@
 package apoc.periodic;
 
+import apoc.create.Create;
 import apoc.load.Jdbc;
+import apoc.nlp.gcp.GCPProcedures;
+import apoc.nodes.Nodes;
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
@@ -15,22 +18,78 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
 
 public class PeriodicExtendedTest {
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule();
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(procedure_unrestricted, Collections.singletonList("apoc.*"));
 
     @Before
     public void initDb() {
-        TestUtil.registerProcedure(db, Periodic.class, PeriodicExtended.class, Jdbc.class);
+        TestUtil.registerProcedure(db, Periodic.class, GCPProcedures.class, Create.class, Nodes.class, PeriodicExtended.class, Jdbc.class);
+    }
+    
+    @Test
+    public void testRebindWithNlpWriteProcedure() {
+        // use case: https://community.neo4j.com/t5/neo4j-graph-platform/use-of-apoc-periodic-iterate-with-apoc-nlp-gcp-classify-graph/m-p/56846#M33854
+        final Map<String, Object> conf = map("rebind", true);
+        final String iterate = "MATCH (node:Article) RETURN node";
+        final String action = "CALL apoc.nlp.gcp.classify.graph(node, $nlpConf) YIELD graph RETURN null";
+
+        testRebindCommon(conf, iterate, action, 2, r -> assertEquals(Collections.emptyMap(), r.get("errorMessages")));
+
+        testRebindCommon(map(), iterate, action, 0, this::assertNodeDeletedErr);
+    }
+
+    @Test
+    public void testManualRebindWithNlpWriteProcedure() {
+        final String iterate = "MATCH (node:Article) RETURN id(node) AS id";
+        final String action = "MATCH (node) WHERE id(node) = id CALL apoc.nlp.gcp.classify.graph(node, $nlpConf) YIELD graph RETURN null";
+
+        testRebindCommon(map(), iterate, action, 2, r -> assertEquals(Collections.emptyMap(), r.get("errorMessages")));
+    }
+    
+    @Test
+    public void testRebindWithMapIterationAndCreateRelationshipProcedure() {
+        final Map<String, Object> conf = map("rebind", true);
+        final String iterate = "MATCH (art:Article) RETURN {key: art, key2: 'another'} as map";
+        final String action = "CREATE (node:Category) with map.key as art, node call apoc.create.relationship(art, 'CATEGORY', {b: 1}, node) yield rel return rel";
+
+        testRebindCommon(conf, iterate, action, 1, r -> assertEquals(Collections.emptyMap(), r.get("errorMessages")));
+        
+        testRebindCommon(map(), iterate, action, 0, this::assertNodeDeletedErr);
+    }
+
+    private void assertNodeDeletedErr(Map<String, Object> r) {
+        assertTrue(((Map<String, Object>) r.get("errorMessages"))
+                .keySet().stream()
+                .anyMatch(k -> k.matches("Node\\[\\d+] is deleted and cannot be used to create a relationship")));
+    }
+
+    private void testRebindCommon(Map<String, Object> conf, String iterate, String action, int expected, Consumer<Map<String, Object>> assertions) {
+        final Map<String, Object> nlpConf = map("key", "myKey", "nodeProperty", "content", "write", true, "unsupportedDummyClient", true);
+        final Map<String, Object> baseConf = map("params", map("nlpConf", nlpConf));
+        baseConf.putAll(conf);
+        db.executeTransactionally("CREATE (:Article {content: 'contentBody'})");
+        testCall(db,"CALL apoc.periodic.iterate($iterate, $action, $config)", 
+                map( "iterate" , iterate, "action", action, "config", baseConf),
+                assertions);
+
+        testCallCount(db, "MATCH p=(:Category)<-[:CATEGORY]-(:Article) RETURN p", expected);
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
 
     @Test

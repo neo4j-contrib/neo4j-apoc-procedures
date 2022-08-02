@@ -271,19 +271,29 @@ public class Periodic {
         BatchMode batchMode = BatchMode.fromConfig(config);
         Map<String,Object> params = (Map<String, Object>) config.getOrDefault("params", Collections.emptyMap());
 
+        final boolean rebind = Util.toBoolean(config.get("rebind"));
+        if (rebind) {
+            params = Util.anyRebind(tx, params);
+        }
+        
         try (Result result = tx.execute(slottedRuntime(cypherIterate),params)) {
-            Pair<String,Boolean> prepared = PeriodicUtils.prepareInnerStatement(cypherAction, batchMode, result.columns(), "_batch");
+            final List<String> columns = result.columns();
+            if (rebind) {
+                cypherAction = Util.withMapping(columns.stream(), (c) ->  "apoc.any.rebind(" + Util.quote(c) + ") AS " + Util.quote(c)) + cypherAction;
+            }
+            Pair<String,Boolean> prepared = PeriodicUtils.prepareInnerStatement(cypherAction, batchMode, columns, "_batch");
             String innerStatement = applyPlanner(prepared.first(), Planner.valueOf((String) config.getOrDefault("planner", Planner.DEFAULT.name())));
             boolean iterateList = prepared.other();
             String periodicId = UUID.randomUUID().toString();
             if (log.isDebugEnabled()) {
             	log.debug("Starting periodic iterate from `%s` operation using iteration `%s` in separate thread with id: `%s`", cypherIterate,cypherAction, periodicId);
             }
+            Map<String, Object> finalParams = params;
             return PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
                     db, terminationGuard, log, pools,
                     (int)batchSize, parallel, iterateList, retries, result,
                     (tx, p) -> {
-                        final Result r = tx.execute(innerStatement, merge(params, p));
+                        final Result r = tx.execute(innerStatement, merge(finalParams, p));
                         Iterators.count(r); // XXX: consume all results
                         return r.getQueryStatistics();
                     },
