@@ -191,6 +191,22 @@ public class ExportCsvTest {
     @Test
     public void testExportAllCsv() throws Exception {
         String fileName = "all.csv";
+        testExportCsvAllCommon(fileName);
+    }
+
+    @Test
+    public void testExportAllCsvWithDotInName() {
+        String fileName = "all.with.dot.filename.csv";
+        testExportCsvAllCommon(fileName);
+    }
+
+    @Test
+    public void testExportAllCsvWithoutExtension() {
+        String fileName = "all";
+        testExportCsvAllCommon(fileName);
+    }
+
+    private void testExportCsvAllCommon(String fileName) {
         TestUtil.testCall(db, "CALL apoc.export.csv.all($file,null)", map("file", fileName),
                 (r) -> assertResults(fileName, r, "database"));
         assertEquals(EXPECTED, readFile(fileName));
