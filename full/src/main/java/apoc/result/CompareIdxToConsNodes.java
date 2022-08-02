@@ -1,8 +1,5 @@
 package apoc.result;
 
-import java.util.Map;
-import java.util.Set;
-
 public class CompareIdxToConsNodes extends CompareIdxToCons {
     public String label;
 
