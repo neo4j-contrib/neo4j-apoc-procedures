@@ -1,5 +1,6 @@
 package apoc.periodic;
 
+import apoc.kernel.KernelTestUtils;
 import apoc.cypher.Cypher;
 import apoc.schema.Schemas;
 import apoc.util.MapUtil;
@@ -16,6 +17,7 @@ import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.KernelTransactionHandle;
 import org.neo4j.kernel.impl.api.KernelTransactions;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -315,6 +317,27 @@ public class PeriodicTest {
                 "MATCH (p:Person) where p.lastname is not null return count(p) as count",
                 row -> assertEquals(100L, row.get("count"))
         );
+    }
+    
+    @Test
+    public void testStatusDetailsPeriodicIterate() {
+        db.executeTransactionally("UNWIND range(1,9999) AS x CREATE (:StatusIterate)");
+        KernelTestUtils.checkStatusDetails(db, 
+                "CALL apoc.periodic.iterate('match (p:StatusIterate) return p', 'SET p.lastname =p.name REMOVE p.name', {batchSize:10,parallel:true})", 
+                Collections.emptyMap(), 
+                "cypher runtime=slotted match (p:StatusIterate)");
+        db.executeTransactionally("MATCH (s:StatusIterate) DELETE s");
+    }
+    
+    @Test
+    public void testStatusDetailsPeriodicCommit() {
+        db.executeTransactionally("UNWIND range(1,9999) AS x CREATE (:StatusIterate)");
+
+        String query = "MATCH (p:StatusIterate) WHERE NOT p:Processed WITH p LIMIT 200 SET p:Processed RETURN count(*)";
+        KernelTestUtils.checkStatusDetails(db, 
+                "CALL apoc.periodic.commit($query, {})", 
+                map("query", query));
+        db.executeTransactionally("MATCH (s:StatusIterate) DELETE s");
     }
 
     @Test

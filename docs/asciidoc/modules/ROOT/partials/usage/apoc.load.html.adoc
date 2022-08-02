@@ -322,3 +322,24 @@ If, instead of a map of json list results,
 you want to get a map of plain text representations,
 you can use the xref::overview/apoc.load/apoc.load.htmlPlainText.adoc[apoc.load.htmlPlainText procedure], which use the same syntax, logic and config parameters as `apoc.load.html`.
 
+
+
+=== Status details
+
+For long running procedures, we can use the `statusDetails` field present in `dbms.listTransactions` procedure to check progresses.
+
+[source,cypher]
+----
+CALL dbms.listTransactions() yield statusDetails, currentQuery WHERE currentQuery STARTS WITH 'CALL apoc.load.html' RETURN statusDetails
+----
+
+.Results
+[opts="header"]
+|===
+| file
+| - rows: 1234
+|===
+
+The result of `CALL dbms.listTransactions()` will be like below:
+
+image::apoc.statusDetails.png[width=800]

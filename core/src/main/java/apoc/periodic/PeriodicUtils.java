@@ -61,7 +61,7 @@ public class PeriodicUtils {
             GraphDatabaseService db, TerminationGuard terminationGuard, Log log, Pools pools,
             int batchsize, boolean parallel, boolean iterateList, long retries,
             Iterator<Map<String, Object>> iterator, BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer,
-            int concurrency, int failedParams, String periodicId) {
+            int concurrency, int failedParams, String periodicId, Transaction tx) {
 
         ExecutorService pool = parallel ? pools.getDefaultExecutorService() : pools.getSingleExecutorService();
         List<Future<Long>> futures = new ArrayList<>(concurrency);
@@ -90,6 +90,9 @@ public class PeriodicUtils {
                         retries,
                         retryCount -> collector.incrementRetried(),
                         onComplete -> {
+                            Util.setKernelStatus(tx, 
+                                    "successes", collector.getBatches() - collector.getFailedBatches().get(), 
+                                    "errors", collector.getFailedBatches().get());
                             collector.incrementBatches();
                             executeBatch.release();
                             activeFutures.decrementAndGet();

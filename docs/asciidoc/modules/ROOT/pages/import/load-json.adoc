@@ -457,3 +457,23 @@ CALL apoc.load.jsonParams(
 | {description: "", weight: 0.01821548491716385, title: "2.3. Expressions - Chapter 2. Syntax", uri: "https://neo4j.com/docs/cypher-manual/4.0/syntax/expressions/"}
 
 |===
+
+=== Status details
+
+For long running procedures, we can use the `statusDetails` field present in `dbms.listTransactions` procedure to check progresses.
+
+[source,cypher]
+----
+CALL dbms.listTransactions() yield statusDetails, currentQuery WHERE currentQuery STARTS WITH 'CALL apoc.load.json' RETURN statusDetails
+----
+
+.Results
+[opts="header"]
+|===
+| file
+| - rows: 1234
+|===
+
+The result of `CALL dbms.listTransactions()` will be like below:
+
+image::apoc.statusDetails.png[width=800]

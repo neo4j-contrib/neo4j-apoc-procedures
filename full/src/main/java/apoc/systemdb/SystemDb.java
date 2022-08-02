@@ -73,7 +73,7 @@ public class SystemDb {
         apocConfig.checkWriteAllowed(null, fileName);
 
         ProgressInfo progressInfo = new ProgressInfo(fileName, null, "cypher");
-        ProgressReporter progressReporter = new ProgressReporter(null, null, progressInfo);
+        ProgressReporter progressReporter = new ProgressReporter(null, null, progressInfo, null);
         ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName + ".cypher", true);
         withSystemDbTransaction(tx -> {
             tx.getAllNodes()

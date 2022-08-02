@@ -6,6 +6,7 @@ import apoc.util.CompressionAlgo;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -15,9 +16,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static apoc.util.CompressionConfig.COMPRESSION;
+import static apoc.util.Util.setKernelStatus;
 
 public class LoadJson {
 
@@ -27,13 +30,18 @@ public class LoadJson {
     @Context
     public GraphDatabaseService db;
 
+    @Context
+    public Transaction tx;
+
     @SuppressWarnings("unchecked")
     @Procedure
     @Description("apoc.load.jsonArray('url') YIELD value - load array from JSON URL (e.g. web-api) to import JSON as stream of values")
     public Stream<ObjectResult> jsonArray(@Name("url") String url, @Name(value = "path",defaultValue = "") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+        AtomicInteger rows = new AtomicInteger();
         return JsonUtil.loadJson(url, null, null, path, true, (List<String>) config.get("pathOptions"))
                 .flatMap((value) -> {
                     if (value instanceof List) {
+                        setKernelStatus(tx, "rows", rows.incrementAndGet());
                         List list = (List) value;
                         if (list.isEmpty()) return Stream.empty();
                         if (list.get(0) instanceof Map) return list.stream().map(ObjectResult::new);
@@ -57,23 +65,26 @@ public class LoadJson {
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
         String compressionAlgo = (String) config.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name());
         List<String> pathOptions = (List<String>) config.get("pathOptions");
-        return loadJsonStream(urlOrKeyOrBinary, headers, payload, path, failOnError, compressionAlgo, pathOptions);
+        return loadJsonStream(urlOrKeyOrBinary, headers, payload, path, failOnError, compressionAlgo, pathOptions, tx);
     }
 
     public static Stream<MapResult> loadJsonStream(@Name("url") Object url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload) {
-        return loadJsonStream(url, headers, payload, "", true, null, null);
+        return loadJsonStream(url, headers, payload, "", true, null, null, null);
     }
-    public static Stream<MapResult> loadJsonStream(@Name("urlOrKeyOrBinary") Object urlOrKeyOrBinary, @Name("headers") Map<String, Object> headers, @Name("payload") String payload, String path, boolean failOnError, String compressionAlgo, List<String> pathOptions) {
+    public static Stream<MapResult> loadJsonStream(@Name("urlOrKeyOrBinary") Object urlOrKeyOrBinary, @Name("headers") Map<String, Object> headers, @Name("payload") String payload, String path, boolean failOnError, String compressionAlgo, List<String> pathOptions, Transaction tx) {
         if (urlOrKeyOrBinary instanceof String) {
             headers = null != headers ? headers : new HashMap<>();
             headers.putAll(Util.extractCredentialsIfNeeded((String) urlOrKeyOrBinary, failOnError));
         }
         Stream<Object> stream = JsonUtil.loadJson(urlOrKeyOrBinary,headers,payload, path, failOnError, compressionAlgo, pathOptions);
+        AtomicInteger rows = new AtomicInteger();
         return stream.flatMap((value) -> {
             if (value instanceof Map) {
+                setKernelStatus(tx, "rows", rows.incrementAndGet());
                 return Stream.of(new MapResult((Map) value));
             }
             if (value instanceof List) {
+                setKernelStatus(tx, "rows", rows.incrementAndGet());
                 if (((List)value).isEmpty()) return Stream.empty();
                 if (((List) value).get(0) instanceof Map)
                     return ((List) value).stream().map((v) -> new MapResult((Map) v));

@@ -87,7 +87,7 @@ public class ExportXls {
             XlsExportConfig config = new XlsExportConfig(configMap);
             ProgressInfo progressInfo = new ProgressInfo(fileName, source, "xls");
             progressInfo.batchSize = config.getBatchSize();
-            ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
+            ProgressReporter reporter = new ProgressReporter(null, null, progressInfo, tx);
 
             Map<Class, CellStyle> styles = buildCellStyles(config, wb);
 

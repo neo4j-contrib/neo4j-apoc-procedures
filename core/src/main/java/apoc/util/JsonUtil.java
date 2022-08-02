@@ -160,6 +160,11 @@ public class JsonUtil {
     
     }
 
+    
+    public static Map<String, Object> convertToMap(Object value) {
+        return OBJECT_MAPPER.convertValue(value, Map.class);
+    }
+    
     public static String writeValueAsString(Object json) {
         try {
             return OBJECT_MAPPER.writeValueAsString(json);

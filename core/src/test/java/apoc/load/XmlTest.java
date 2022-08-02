@@ -2,6 +2,7 @@ package apoc.load;
 
 import apoc.ApocSettings;
 import apoc.util.CompressionAlgo;
+import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.xml.XmlTestUtils;
 import inet.ipaddr.IPAddressString;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static apoc.kernel.KernelTestUtils.checkStatusDetails;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.TestUtil.*;
@@ -87,6 +89,12 @@ public class XmlTest {
     public void testMixedContent() {
         testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/mixedcontent.xml") + "')", //  YIELD value RETURN value
                 this::commonAssertionsMixedContent);
+    }
+    
+    @Test
+    public void testXmlStatusDetails() {
+        final String file = ClassLoader.getSystemResource("largeFile.xml").toString();
+        checkStatusDetails(db, "CALL apoc.import.xml($file)", MapUtil.map("file", file));
     }
 
     @Test

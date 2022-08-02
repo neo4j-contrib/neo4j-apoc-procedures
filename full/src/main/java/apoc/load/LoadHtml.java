@@ -4,6 +4,7 @@ import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.MissingDependencyException;
 import apoc.util.FileUtils;
+import apoc.util.Util;
 import java.nio.charset.UnsupportedCharsetException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
@@ -11,6 +12,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -38,6 +40,9 @@ public class LoadHtml {
 
     @Context
     public GraphDatabaseService db;
+
+    @Context
+    public Transaction tx;
 
     @Context
     public Log log;
@@ -102,6 +107,7 @@ public class LoadHtml {
     public static List<Map<String, Object>> getElements(Elements elements, LoadHtmlConfig conf, List<String> errorList, Log log) {
 
         List<Map<String, Object>> elementList = new ArrayList<>();
+        int rows = 0;
 
         for (Element element : elements) {
             withError(element, errorList, conf.getFailSilently(), log, () -> {

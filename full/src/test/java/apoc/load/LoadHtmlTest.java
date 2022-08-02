@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static apoc.kernel.KernelTestUtils.checkStatusDetails;
 import static apoc.load.LoadHtml.KEY_ERROR;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -371,6 +372,13 @@ public class LoadHtmlTest {
                     assertEquals(2, ((List) value.get(KEY_ERROR)).size());
                     assertFalse(result.hasNext());
                 });
+    }
+
+    @Test
+    public void testQueryWithFailsSilentlyWithListAndChildren1() {
+        final String file = new File("src/test/resources/wikipedia.html").toURI().toString();
+        checkStatusDetails(db, "CALL apoc.load.html($file, {all: '*'}, {failSilently: 'WITH_LIST', children: true})", 
+                map("file", file));
     }
 
     @Test

@@ -80,7 +80,7 @@ public class PeriodicExtended {
                     PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
                             db, terminationGuard, log, pools,
                             (int) batchSize, false, false, 0,
-                            result, (tx, params) -> tx.execute(cypherAction, params).getQueryStatistics(), 50, -1, periodicId);
+                            result, (tx, params) -> tx.execute(cypherAction, params).getQueryStatistics(), 50, -1, periodicId,  tx);
                 final Object loopParam = value;
                 allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
             }
@@ -123,7 +123,7 @@ public class PeriodicExtended {
             return PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
                     db, terminationGuard, log, pools,
                     (int)batchSize, false, false, 0, result,
-                    (tx, p) -> tx.execute(cypherAction, p).getQueryStatistics(), 50, -1, periodicId);
+                    (tx, p) -> tx.execute(cypherAction, p).getQueryStatistics(), 50, -1, periodicId,  tx);
         }
     }
 

@@ -1,11 +1,15 @@
 package apoc.export.util;
 
 import apoc.result.ProgressInfo;
+import apoc.util.JsonUtil;
 import org.neo4j.graphdb.QueryStatistics;
+import org.neo4j.graphdb.Transaction;
 
 import java.io.PrintWriter;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import static apoc.util.Util.setKernelStatusMap;
 
 /**
  * @author mh
@@ -15,6 +19,7 @@ public class ProgressReporter implements Reporter {
     private final SizeCounter sizeCounter;
     private final PrintWriter out;
     private final long batchSize;
+    public final Transaction tx;
     long time;
     int counter;
     long totalEntities = 0;
@@ -23,12 +28,15 @@ public class ProgressReporter implements Reporter {
     private final ProgressInfo progressInfo;
     private Consumer<ProgressInfo> consumer;
 
-    public ProgressReporter(SizeCounter sizeCounter, PrintWriter out, ProgressInfo progressInfo) {
+    public ProgressReporter(SizeCounter sizeCounter, PrintWriter out, ProgressInfo progressInfo, Transaction tx) {
         this.sizeCounter = sizeCounter;
         this.out = out;
         this.time = start;
         this.progressInfo = progressInfo;
         this.batchSize = progressInfo.batchSize;
+        this.tx = tx;
+        // init status
+        updateStatus();
     }
 
     public ProgressReporter withConsumer(Consumer<ProgressInfo> consumer) {
@@ -55,6 +63,7 @@ public class ProgressReporter implements Reporter {
     public void update(long nodes, long relationships, long properties) {
         time = System.currentTimeMillis();
         progressInfo.update(nodes, relationships, properties);
+        updateStatus();
         totalEntities += nodes + relationships;
         acceptBatch();
     }
@@ -72,6 +81,7 @@ public class ProgressReporter implements Reporter {
         lastBatch = Math.max(totalEntities / batchSize,lastBatch);
         progressInfo.batches = lastBatch;
         this.progressInfo.rows = totalEntities;
+        updateStatus();
         this.progressInfo.updateTime(start);
     }
 
@@ -108,8 +118,14 @@ public class ProgressReporter implements Reporter {
 
     public void nextRow() {
         this.progressInfo.nextRow();
+        updateStatus();
         this.totalEntities++;
         acceptBatch();
     }
 
+    private void updateStatus() {
+        if (this.tx != null) {
+            setKernelStatusMap(tx, JsonUtil.convertToMap(this.progressInfo));
+        }
+    }
 }

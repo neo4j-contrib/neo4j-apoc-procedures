@@ -20,6 +20,7 @@ import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.FieldType;
 import org.apache.arrow.vector.types.pojo.Schema;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
 import org.neo4j.values.storable.DurationValue;
@@ -39,7 +40,7 @@ import java.util.concurrent.ExecutorService;
 
 public interface ExportArrowStrategy<IN, OUT> {
 
-    OUT export(IN data, ArrowConfig config);
+    OUT export(IN data, ArrowConfig config, Transaction tx);
 
     Object convertValue(Object data);
 

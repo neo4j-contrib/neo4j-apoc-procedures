@@ -31,6 +31,7 @@ import static apoc.periodic.PeriodicUtils.submitJob;
 import static apoc.periodic.PeriodicUtils.submitProc;
 import static apoc.periodic.PeriodicUtils.wrapTask;
 import static apoc.util.Util.merge;
+import static apoc.util.Util.setKernelStatus;
 
 public class Periodic {
     
@@ -55,7 +56,7 @@ public class Periodic {
 
         iterate("MATCH ()-[r]->() RETURN id(r) as id", "MATCH ()-[r]->() WHERE id(r) = id DELETE r", config);
         iterate("MATCH (n) RETURN id(n) as id", "MATCH (n) WHERE id(n) = id DELETE n", config);
-
+        
         if (Util.toBoolean(config.get("dropSchema"))) {
             Schema schema = tx.schema();
             schema.getConstraints().forEach(ConstraintDefinition::drop);
@@ -103,6 +104,8 @@ public class Periodic {
                     return 0L;
                 }
             }), commitErrors, failedCommits, 0L);
+            setKernelStatus(tx,
+                    "successes", batches.get() - failedBatches.get(), "errors", failedBatches.get());
             total += updates;
             if (updates > 0) executions++;
             if (log.isDebugEnabled()) {
@@ -258,7 +261,7 @@ public class Periodic {
                         Iterators.count(r); // XXX: consume all results
                         return r.getQueryStatistics();
                     },
-                    concurrency, failedParams, periodicId);
+                    concurrency, failedParams, periodicId, tx);
         }
     }
 
