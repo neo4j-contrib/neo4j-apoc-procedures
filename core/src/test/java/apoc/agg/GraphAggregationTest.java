@@ -26,7 +26,7 @@ public class GraphAggregationTest {
     public static DbmsRule db = new ImpermanentDbmsRule();
 
     @BeforeClass public static void setUp() throws Exception {
-        TestUtil.registerProcedure(db, apoc.agg.Graph.class);
+        TestUtil.registerProcedure(db, Graph.class);
         db.executeTransactionally("CREATE (a:A {id:'a'})-[:AB {id:'ab'}]->(b:B {id:'b'})-[:BC {id:'bc'}]->(c:C {id:'c'}),(a)-[:AC {id:'ac'}]->(c)");
     }
 

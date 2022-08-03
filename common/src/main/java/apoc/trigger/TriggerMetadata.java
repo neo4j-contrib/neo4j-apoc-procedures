@@ -1,6 +1,6 @@
 package apoc.trigger;
 
-import apoc.convert.Convert;
+import apoc.convert.utils.ConvertUtils;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.util.Util;
@@ -75,10 +75,10 @@ public class TriggerMetadata {
         } catch (Exception ignored) {
             commitTime = -1L;
         }
-        List<Node> createdNodes = Convert.convertToList(txData.createdNodes());
-        List<Relationship> createdRelationships = Convert.convertToList(txData.createdRelationships());
-        List<Node> deletedNodes = rebindDeleted ? rebindDeleted(Convert.convertToList(txData.deletedNodes()), txData) : Convert.convertToList(txData.deletedNodes());
-        List<Relationship> deletedRelationships = rebindDeleted ? rebindDeleted(Convert.convertToList(txData.deletedRelationships()), txData) : Convert.convertToList(txData.deletedRelationships());
+        List<Node> createdNodes = ConvertUtils.convertToList(txData.createdNodes());
+        List<Relationship> createdRelationships = ConvertUtils.convertToList(txData.createdRelationships());
+        List<Node> deletedNodes = rebindDeleted ? rebindDeleted(ConvertUtils.convertToList(txData.deletedNodes()), txData) : ConvertUtils.convertToList(txData.deletedNodes());
+        List<Relationship> deletedRelationships = rebindDeleted ? rebindDeleted(ConvertUtils.convertToList(txData.deletedRelationships()), txData) : ConvertUtils.convertToList(txData.deletedRelationships());
         Map<String, List<Node>> removedLabels = aggregateLabels(txData.removedLabels());
         Map<String, List<Node>> assignedLabels = aggregateLabels(txData.assignedLabels());
         Map<String, List<PropertyEntryContainer<Node>>> removedNodeProperties = aggregatePropertyKeys(txData.removedNodeProperties(), true);
