@@ -392,8 +392,8 @@ public class ImportJsonTest {
 
     private void assertEntities(long expectedNodes, long expectedRels, Consumer<Node> nodeConsumer, Consumer<Relationship> relConsumer) {
         try (Transaction tx = db.beginTx()) {
-            final List<Node> nodeList = org.neo4j.internal.helpers.collection.Iterables.asList(tx.getAllNodes());
-            final List<Relationship> relList = org.neo4j.internal.helpers.collection.Iterables.asList((tx.getAllRelationships()));
+            final List<Node> nodeList = Iterables.asList(tx.getAllNodes());
+            final List<Relationship> relList = Iterables.asList((tx.getAllRelationships()));
             assertEquals(expectedNodes, nodeList.size());
             assertEquals(expectedRels, relList.size());
             if (nodeConsumer != null) {
