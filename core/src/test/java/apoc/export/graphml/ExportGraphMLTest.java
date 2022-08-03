@@ -229,6 +229,59 @@ public class ExportGraphMLTest {
     }
     
     @Test
+    public void testRoundtripInvalidUnicode() {
+        String fileName = new File(directory, "allUnicode.graphml").getAbsolutePath();
+        final String query = "CALL apoc.export.graphml.all($file, null)";
+
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+        testRoundtripInvalidUnicodeCommon(query, fileName);
+    }
+
+    @Test
+    public void testRoundtripInvalidUnicodeWithExportQuery() {
+        String file = new File(directory, "allQuery.graphml").getAbsolutePath();
+        // trello issue case: https://trello.com/c/6GboqUau/1070-s3cast-software-issue-with-apocimportgraphml
+        final String query = "CALL apoc.export.graphml.query('MATCH (n:Unicode) RETURN n', $file, {useTypes: true, readLabels:true})";
+        
+        testRoundtripInvalidUnicodeCommon(query, file);
+    }
+
+    private void testRoundtripInvalidUnicodeCommon(String query, String file) {
+        db.executeTransactionally("CREATE (n:Unicode {propOne: '1628\\u000eX', propTwo: 'abcde\\u001ef', propThree: 'aj\\u0000eje', propFour: 'braz\\u0001orf'})");
+
+        TestUtil.testCall(db, query, map("file", file),
+                (r) -> assertEquals(1L, r.get("nodes")));
+
+        db.executeTransactionally("MATCH (n:Unicode) DETACH DELETE n");
+        testImportInvalidUnicode(file);
+    }
+    
+    @Test
+    public void testImportInvalidUnicodeFile() {
+        final String file = ClassLoader.getSystemResource("fileWithUnicode.graphml").toString();
+        testImportInvalidUnicode(file);
+    }
+
+    private void testImportInvalidUnicode(String file) {
+        TestUtil.testCall(db, "CALL apoc.import.graphml($file, {readLabels:true})",  map("file", file),
+                r -> {
+                    assertEquals(true, r.get("done"));
+                    assertEquals(1L, r.get("nodes"));
+                });
+
+        TestUtil.testCall(db, "MATCH (n:Unicode) RETURN n",
+                r -> {
+                    final Node node = (Node) r.get("n");
+                    assertEquals("1628X", node.getProperty("propOne"));
+                    assertEquals("abcdef", node.getProperty("propTwo"));
+                    assertEquals("ajeje", node.getProperty("propThree"));
+                    assertEquals("brazorf", node.getProperty("propFour"));
+                });
+
+        db.executeTransactionally("MATCH (n:Unicode) DETACH DELETE n");
+    }
+
+    @Test
     public void testRoundTripWithSeparatedImport() {
         Map<String, Object> exportConfig = map("useTypes", true);
 
@@ -659,6 +712,7 @@ public class ExportGraphMLTest {
         assertTrue("Should get time greater than 0", ((long) r.get("time")) > 0);
     }
 
+    @Test
     public void testExportGraphGraphMLQueryGephi() throws Exception {
         File output = new File(directory, "query.graphml");
         TestUtil.testCall(db, "call apoc.export.graphml.query('MATCH p=()-[r]->() RETURN p limit 1000',$file,{useTypes:true, format: 'gephi'}) ", map("file", output.getAbsolutePath()),
