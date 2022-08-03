@@ -39,3 +39,4 @@ bin
 progress.csv
 logs/
 store_lock
+.hprof

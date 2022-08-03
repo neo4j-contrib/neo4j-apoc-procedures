@@ -34,17 +34,24 @@ public class UUIDTest {
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.auth_enabled, true)
             .withSetting(ApocSettings.apoc_uuid_enabled, true);
+    @Rule
+    public DbmsRule dbWithoutApocPeriodic = new ImpermanentDbmsRule()
+            .withSetting(GraphDatabaseSettings.auth_enabled, true)
+            .withSetting(ApocSettings.apoc_uuid_enabled, true);
+
 
     private static final String UUID_TEST_REGEXP = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
 
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Uuid.class, Create.class, Periodic.class);
+        TestUtil.registerProcedure(dbWithoutApocPeriodic, Uuid.class, Create.class);
     }
 
     @AfterAll
     public void tearDown() {
-       db.shutdown();
+        db.shutdown();
+        dbWithoutApocPeriodic.shutdown();
     }
 
     @Test
@@ -313,6 +320,21 @@ public class UUIDTest {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
             assertEquals("No constraint found for label: Wrong, please add the constraint with the following : `CREATE CONSTRAINT FOR (wrong:Wrong) REQUIRE wrong.foo IS UNIQUE`", except.getMessage());
+            throw e;
+        }
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testAddToAllExistingNodesIfCoreNotInstalled() {
+        try {
+            // when
+            dbWithoutApocPeriodic.executeTransactionally("CREATE CONSTRAINT FOR (p:Person) REQUIRE p.uuid IS UNIQUE");
+            dbWithoutApocPeriodic.executeTransactionally("CALL apoc.uuid.install('Person') YIELD label RETURN label");
+        } catch (RuntimeException e) {
+            // then
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof RuntimeException);
+            assertEquals("apoc core needs to be installed when using apoc.uuid.install with the flag addToExistingNodes = true", except.getMessage());
             throw e;
         }
     }
