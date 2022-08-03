@@ -558,24 +558,26 @@ public class ApocSplitTest {
 
     @Test
     public void test() {
-        Neo4jContainerExtension neo4jContainer = TestContainerUtil.createEnterpriseDB(!TestUtil.isRunningInCI())
-                .withNeo4jConfig("dbms.transaction.timeout", "60s");
+        if (!TestUtil.isRunningInCI()) {
+            Neo4jContainerExtension neo4jContainer = TestContainerUtil.createEnterpriseDB(!TestUtil.isRunningInCI())
+                    .withNeo4jConfig("dbms.transaction.timeout", "60s");
 
 
-        neo4jContainer.start();
+            neo4jContainer.start();
 
-        assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+            assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
-        Session session = neo4jContainer.getSession();
-        Set<String> procedureNames = session.run("SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'apoc' RETURN name").stream().map(s -> s.get( "name" ).asString()).collect(Collectors.toSet());
-        Set<String> functionNames = session.run("SHOW FUNCTIONS YIELD name WHERE name STARTS WITH 'apoc' RETURN name").stream().map(s -> s.get( "name" ).asString()).collect(Collectors.toSet());
+            Session session = neo4jContainer.getSession();
+            Set<String> procedureNames = session.run("SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'apoc' RETURN name").stream().map(s -> s.get( "name" ).asString()).collect(Collectors.toSet());
+            Set<String> functionNames = session.run("SHOW FUNCTIONS YIELD name WHERE name STARTS WITH 'apoc' RETURN name").stream().map(s -> s.get( "name" ).asString()).collect(Collectors.toSet());
 
-        var expectedProcedures = Stream.concat(PROCEDURES_FROM_CORE.stream(), FULL_PROCEDURES.stream()).collect(Collectors.toSet());
-        var expectedFunctions = Stream.concat(FUNCTIONS_FROM_CORE.stream(), FULL_FUNCTIONS.stream()).collect(Collectors.toSet());
+            var expectedProcedures = Stream.concat(PROCEDURES_FROM_CORE.stream(), FULL_PROCEDURES.stream()).collect(Collectors.toSet());
+            var expectedFunctions = Stream.concat(FUNCTIONS_FROM_CORE.stream(), FULL_FUNCTIONS.stream()).collect(Collectors.toSet());
 
-        assertTrue(procedureNames.containsAll(expectedProcedures) && procedureNames.size() == expectedProcedures.size());
-        assertTrue(functionNames.containsAll(expectedFunctions) && functionNames.size() == expectedFunctions.size());
+            assertTrue(procedureNames.containsAll(expectedProcedures) && procedureNames.size() == expectedProcedures.size());
+            assertTrue(functionNames.containsAll(expectedFunctions) && functionNames.size() == expectedFunctions.size());
 
-        neo4jContainer.close();
+            neo4jContainer.close();
+        }
     }
 }
