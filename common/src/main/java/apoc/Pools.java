@@ -1,6 +1,6 @@
 package apoc;
 
-import apoc.periodic.Periodic;
+import apoc.periodic.PeriodicUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
@@ -40,7 +40,7 @@ public class Pools extends LifecycleAdapter {
     private ScheduledExecutorService scheduledExecutorService;
     private ExecutorService defaultExecutorService;
 
-    private final Map<Periodic.JobInfo,Future> jobList = new ConcurrentHashMap<>();
+    private final Map<PeriodicUtils.JobInfo,Future> jobList = new ConcurrentHashMap<>();
 
     public Pools(LogService log, GlobalProcedures globalProceduresRegistry, ApocConfig apocConfig) {
 
@@ -78,8 +78,8 @@ public class Pools extends LifecycleAdapter {
         );
 
         scheduledExecutorService.scheduleAtFixedRate(() -> {
-            for (Iterator<Map.Entry<Periodic.JobInfo, Future>> it = jobList.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<Periodic.JobInfo, Future> entry = it.next();
+            for (Iterator<Map.Entry<PeriodicUtils.JobInfo, Future>> it = jobList.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<PeriodicUtils.JobInfo, Future> entry = it.next();
                 if (entry.getValue().isDone() || entry.getValue().isCancelled()) it.remove();
             }
         },10,10,TimeUnit.SECONDS);
@@ -109,7 +109,7 @@ public class Pools extends LifecycleAdapter {
         return defaultExecutorService;
     }
 
-    public Map<Periodic.JobInfo, Future> getJobList() {
+    public Map<PeriodicUtils.JobInfo, Future> getJobList() {
         return jobList;
     }
 
