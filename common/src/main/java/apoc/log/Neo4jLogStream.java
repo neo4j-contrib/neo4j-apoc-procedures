@@ -56,8 +56,7 @@ public class Neo4jLogStream {
         File f = new File(logDir, logName);
 
         try {
-            String canonicalPath = f.getCanonicalPath();
-            if (!canonicalPath.startsWith(logDir.getAbsolutePath())) {
+            if (!f.getCanonicalFile().toPath().startsWith(logDir.getAbsolutePath())) {
                 throw new RuntimeException("The path you are trying to access has a canonical path outside of the logs " +
                         "directory, and this procedure is only permitted to access files in the log directory.  This may " +
                         "occur if the path in question is a symlink or other link.");
