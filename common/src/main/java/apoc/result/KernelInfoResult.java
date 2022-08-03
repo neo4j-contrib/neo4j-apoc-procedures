@@ -28,7 +28,7 @@ public class KernelInfoResult {
             String storeLogVersion,
             Date storeCreationDate) {
 
-        SimpleDateFormat format = new SimpleDateFormat(apoc.date.Date.DEFAULT_FORMAT);
+        SimpleDateFormat format = new SimpleDateFormat(apoc.date.DateUtils.DEFAULT_FORMAT);
 
         this.readOnly = readOnly;
         this.kernelVersion = kernelVersion;

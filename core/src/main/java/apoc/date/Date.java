@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static apoc.date.DateUtils.unit;
 import static java.time.temporal.ChronoField.*;
 
 
@@ -29,7 +30,7 @@ import static java.time.temporal.ChronoField.*;
  * @since 9.04.2016
  */
 public class Date {
-	public static final String DEFAULT_FORMAT = "yyyy-MM-dd HH:mm:ss";
+	public static final String DEFAULT_FORMAT = DateUtils.DEFAULT_FORMAT;
 	private static final int MILLIS_IN_SECOND = 1000;
 	private static final String UTC_ZONE_ID = "UTC";
 	private static final List<TemporalQuery<Consumer<FieldResult>>> DT_FIELDS_SELECTORS = Arrays.asList(
@@ -104,24 +105,6 @@ public class Date {
 		public Map<String, Object> asMap() {
 			return value;
 		}
-	}
-
-	public static TimeUnit unit(String unit) {
-		if (unit == null) return TimeUnit.MILLISECONDS;
-
-		switch (unit.toLowerCase()) {
-			case "ms": case "milli":  case "millis": case "milliseconds": return TimeUnit.MILLISECONDS;
-			case "s":  case "second": case "seconds": return TimeUnit.SECONDS;
-			case "m":  case "minute": case "minutes": return TimeUnit.MINUTES;
-			case "h":  case "hour":   case "hours":   return TimeUnit.HOURS;
-			case "d":  case "day":    case "days":    return TimeUnit.DAYS;
-//			case "month":case "months": return TimeUnit.MONTHS;
-//			case "years":case "year": return TimeUnit.YEARS;
-		}
-
-		throw new IllegalArgumentException("The unit: "+ unit + " is not correct");
-
-		//return TimeUnit.MILLISECONDS;
 	}
 
 	private ChronoField chronoField(String unit) {
