@@ -1,6 +1,6 @@
 package apoc.export.util;
 
-import apoc.meta.Meta;
+import apoc.meta.Types;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.neo4j.cypher.export.SubGraph;
@@ -95,7 +95,7 @@ public class MetaInformation {
     
     public static String typeFor(Class value, Set<String> allowed) {
         if (value == void.class) return null; // Is this necessary?
-        Meta.Types type = Meta.Types.of(value);
+        Types type = Types.of(value);
         String name = (value.isArray() ? value.getComponentType() : value).getSimpleName().toLowerCase();
         boolean isAllowed = allowed != null && allowed.contains(name);
         switch (type) {
