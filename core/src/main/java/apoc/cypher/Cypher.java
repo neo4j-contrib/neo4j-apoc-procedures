@@ -18,7 +18,6 @@ import org.neo4j.procedure.TerminationGuard;
 
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -32,10 +31,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.cypher.CypherUtils.runCypherQuery;
+import static apoc.cypher.CypherUtils.withParamMapping;
 import static apoc.util.MapUtil.map;
-import static java.lang.String.format;
-import static java.lang.String.join;
-import static java.util.stream.Collectors.toList;
 import static org.neo4j.procedure.Mode.READ;
 import static org.neo4j.procedure.Mode.SCHEMA;
 import static org.neo4j.procedure.Mode.WRITE;
@@ -70,12 +68,6 @@ public class Cypher {
     public Stream<MapResult> run(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         return runCypherQuery(tx, statement, params);
     }
-
-    public static Stream<MapResult> runCypherQuery(Transaction tx, @Name("cypher") String statement, @Name("params") Map<String, Object> params) {
-        if (params == null) params = Collections.emptyMap();
-        return tx.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
-    }
-
 
     private Stream<RowResult> runManyStatements(Reader reader, Map<String, Object> params, boolean schemaOperation, boolean addStatistics, int timeout, int queueCapacity) {
         BlockingQueue<RowResult> queue = runInSeparateThreadAndSendTombstone(queueCapacity, internalQueue -> {
@@ -236,12 +228,6 @@ public class Cypher {
             this.row = row;
             this.result = result;
         }
-    }
-
-    public static String withParamMapping(String fragment, Collection<String> keys) {
-        if (keys.isEmpty()) return fragment;
-        String declaration = " WITH " + join(", ", keys.stream().map(s -> format(" $`%s` as `%s` ", s, s)).collect(toList()));
-        return declaration + fragment;
     }
 
     @Procedure(mode = WRITE)

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static apoc.cypher.Cypher.withParamMapping;
+import static apoc.cypher.CypherUtils.withParamMapping;
 
 /**
  * Created by lyonwj on 9/29/17.
