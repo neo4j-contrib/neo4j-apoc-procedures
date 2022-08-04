@@ -1,7 +1,7 @@
 package apoc.gephi;
 
 import apoc.Extended;
-import apoc.graph.Graphs;
+import apoc.graph.GraphsUtils;
 import apoc.result.ProgressInfo;
 import apoc.util.JsonUtil;
 import apoc.util.UrlResolver;
@@ -54,7 +54,7 @@ public class Gephi {
         HashSet<Relationship> rels = new HashSet<>(10000);
         List<String> propertyNames = new ArrayList<>(exportproperties);
         propertyNames.removeAll(RESERVED);
-        if (Graphs.extract(data, nodes, rels)) {
+        if (GraphsUtils.extract(data, nodes, rels)) {
             String payload = toGephiStreaming(nodes, rels, weightproperty, propertyNames.toArray(new String[propertyNames.size()]));
             JsonUtil.loadJson(url,map("method","POST","Content-Type","application/json; charset=utf-8"), payload).count();
             return Stream.of(new ProgressInfo(url,"graph","gephi").update(nodes.size(),rels.size(),nodes.size()).done(start));
