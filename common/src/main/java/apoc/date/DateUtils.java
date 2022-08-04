@@ -14,12 +14,8 @@ public class DateUtils {
             case "m":  case "minute": case "minutes": return TimeUnit.MINUTES;
             case "h":  case "hour":   case "hours":   return TimeUnit.HOURS;
             case "d":  case "day":    case "days":    return TimeUnit.DAYS;
-//			case "month":case "months": return TimeUnit.MONTHS;
-//			case "years":case "year": return TimeUnit.YEARS;
         }
 
         throw new IllegalArgumentException("The unit: "+ unit + " is not correct");
-
-        //return TimeUnit.MILLISECONDS;
     }
 }
