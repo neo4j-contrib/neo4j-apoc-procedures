@@ -2,7 +2,7 @@ package apoc.convert;
 
 import apoc.coll.SetBackedList;
 import apoc.convert.utils.ConvertUtils;
-import apoc.meta.Meta.Types;
+import apoc.meta.Types;
 import apoc.util.Util;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Node;

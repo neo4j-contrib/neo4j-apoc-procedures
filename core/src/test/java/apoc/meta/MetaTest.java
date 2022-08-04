@@ -378,24 +378,24 @@ public class MetaTest {
     }
 
     private void assertRelationshipsDirectedMetaData(Map<String, Object> row) {
-        assertRowMetaData(row, 1L, 2L, 0L, Meta.Types.RELATIONSHIP);
+        assertRowMetaData(row, 1L, 2L, 0L, Types.RELATIONSHIP);
     }
     
     private void assertRelationshipsAnimatedMetaData(Map<String, Object> row) {
-        assertRowMetaData(row, 1L,1L, 0L, Meta.Types.RELATIONSHIP);
+        assertRowMetaData(row, 1L,1L, 0L, Types.RELATIONSHIP);
     }
 
     private void assertRelationshipActedInMetaData(Map<String, Object> row) {
-        assertRowMetaData(row, 2L, 2L, 0L, Meta.Types.RELATIONSHIP);
+        assertRowMetaData(row, 2L, 2L, 0L, Types.RELATIONSHIP);
     }
 
     private void assertPropertiesMetaData(Map<String, Object> row) {
-        assertRowMetaData(row,  0L, 0L, 0L, Meta.Types.STRING);
+        assertRowMetaData(row,  0L, 0L, 0L, Types.STRING);
     }
 
     private void assertRowMetaData(Map<String, Object> row,
                                    long count, long left, long right,
-                                   Meta.Types type) {
+                                   Types type) {
         assertEquals(count, row.get("count"));
         assertEquals(left, row.get("left"));
         assertEquals(right, row.get("right"));
