@@ -1,6 +1,5 @@
 package apoc.export.arrow;
 
-import apoc.meta.Meta;
 import apoc.util.JsonUtil;
 import org.apache.arrow.memory.ArrowBuf;
 import org.apache.arrow.memory.BufferAllocator;
@@ -57,7 +56,7 @@ public interface ExportArrowStrategy<IN, OUT> {
 
     Log getLogger();
 
-    static String fromMetaType(Meta.Types type) {
+    static String fromMetaType(apoc.meta.Types type) {
         switch (type) {
             case INTEGER:
                 return "Long";
@@ -65,8 +64,8 @@ public interface ExportArrowStrategy<IN, OUT> {
                 return "Double";
             case LIST:
                 String inner = type.toString().substring("LIST OF ".length()).trim();
-                final Meta.Types innerType = Meta.Types.from(inner);
-                if (innerType == Meta.Types.LIST) {
+                final apoc.meta.Types innerType = apoc.meta.Types.from(inner);
+                if (innerType == apoc.meta.Types.LIST) {
                     return "AnyArray";
                 }
                 return fromMetaType(innerType) + "Array";

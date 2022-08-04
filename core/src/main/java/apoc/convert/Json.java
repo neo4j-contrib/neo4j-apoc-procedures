@@ -1,6 +1,7 @@
 package apoc.convert;
 
-import apoc.convert.utils.ConvertUtils;import apoc.meta.Meta;
+import apoc.convert.utils.ConvertUtils;
+import apoc.meta.Types;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
@@ -26,7 +27,7 @@ public class Json {
     public static String RELATIONSHIP = "relationship";
 
     public static Object writeJsonResult(Object value) {
-        Meta.Types type = Meta.Types.of(value);
+        Types type = Types.of(value);
         switch (type) {
             case NODE:
                 return nodeToMap((Node) value);

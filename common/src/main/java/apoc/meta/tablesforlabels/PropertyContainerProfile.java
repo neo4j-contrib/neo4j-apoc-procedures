@@ -1,6 +1,6 @@
 package apoc.meta.tablesforlabels;
 
-import apoc.meta.Meta.ConstraintTracker;
+import apoc.meta.ConstraintTracker;
 import org.neo4j.graphdb.Entity;
 
 import java.util.*;

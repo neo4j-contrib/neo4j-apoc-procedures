@@ -4,7 +4,7 @@ import apoc.export.cypher.ExportFileManager;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.Format;
 import apoc.export.util.Reporter;
-import apoc.meta.Meta;
+import apoc.meta.Types;
 import apoc.result.ProgressInfo;
 import apoc.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -215,7 +215,7 @@ public class JsonFormat implements Format {
     }
 
     private void write(Reporter reporter, JsonGenerator jsonGenerator, ExportConfig config, String keyName, Object value, boolean writeKey) throws IOException {
-        Meta.Types type = Meta.Types.of(value);
+        Types type = Types.of(value);
         switch (type) {
             case NODE:
                 writeFieldName(jsonGenerator, keyName, writeKey);
