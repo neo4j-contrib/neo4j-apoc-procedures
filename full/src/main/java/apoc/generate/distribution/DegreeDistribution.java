@@ -1,9 +1,10 @@
 package apoc.generate.distribution;
 
+import apoc.generate.relationship.RelationshipGenerator;
 import java.util.List;
 
 /**
- * A distribution of node degrees for {@link apoc.generate.relationship.RelationshipGenerator}s.
+ * A distribution of node degrees for {@link RelationshipGenerator}s.
  */
 public interface DegreeDistribution {
 

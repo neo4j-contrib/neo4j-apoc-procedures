@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.load.LoadJsonUtils.loadJsonStream;import static apoc.util.CompressionConfig.COMPRESSION;
+import static apoc.load.LoadJsonUtils.loadJsonStream;
+import static apoc.util.CompressionConfig.COMPRESSION;
 
 public class LoadJson {
 

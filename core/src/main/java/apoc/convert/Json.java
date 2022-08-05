@@ -1,6 +1,5 @@
 package apoc.convert;
 
-import apoc.convert.utils.ConvertUtils;
 import apoc.meta.Types;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;

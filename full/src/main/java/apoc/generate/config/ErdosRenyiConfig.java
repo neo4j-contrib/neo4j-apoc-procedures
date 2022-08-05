@@ -1,9 +1,10 @@
 package apoc.generate.config;
 
+import apoc.generate.relationship.ErdosRenyiRelationshipGenerator;
 import java.math.BigInteger;
 
 /**
- * {@link RelationshipGeneratorConfig} for {@link apoc.generate.relationship.ErdosRenyiRelationshipGenerator}.
+ * {@link RelationshipGeneratorConfig} for {@link ErdosRenyiRelationshipGenerator}.
  *
  * numberOfNodes: number of nodes in the graph. 1 &lt; numberOfNodes
  * numberOfEdges: number of edges present in the generated graph. Range: 0 &lt; numberOfEdges &lt; (numberOfNodes*(numberOfNodes - 1)/2).

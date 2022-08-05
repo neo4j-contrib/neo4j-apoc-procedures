@@ -1,11 +1,12 @@
 package apoc.generate.config;
 
+import apoc.generate.GraphGenerator;
 import apoc.generate.node.NodeCreator;
 import apoc.generate.relationship.RelationshipCreator;
 import apoc.generate.relationship.RelationshipGenerator;
 
 /**
- * A configuration of a {@link apoc.generate.GraphGenerator}.
+ * A configuration of a {@link GraphGenerator}.
  */
 public interface GeneratorConfiguration {
 

@@ -1,6 +1,7 @@
 package apoc.generate.relationship;
 
 import apoc.generate.config.DistributionBasedConfig;
+import apoc.generate.distribution.DegreeDistribution;
 import apoc.generate.distribution.MutableDegreeDistribution;
 import apoc.generate.distribution.MutableSimpleDegreeDistribution;
 import apoc.generate.utils.WeightedReservoirSampler;
@@ -10,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A simple minded {@link RelationshipGenerator} based on a {@link apoc.generate.distribution.DegreeDistribution}
+ * A simple minded {@link RelationshipGenerator} based on a {@link DegreeDistribution}
  * <p/>
  * Please note that the distribution of randomly generated graphs isn't exactly uniform (see the paper below)
  * <p/>

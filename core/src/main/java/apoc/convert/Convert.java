@@ -1,7 +1,6 @@
 package apoc.convert;
 
 import apoc.coll.SetBackedList;
-import apoc.convert.utils.ConvertUtils;
 import apoc.meta.Types;
 import apoc.util.Util;
 import org.neo4j.graphdb.Entity;
