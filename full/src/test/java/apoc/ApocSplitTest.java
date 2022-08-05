@@ -16,29 +16,9 @@ import static org.junit.Assert.assertTrue;
  This test is just to verify the split of core and full
  */
 public class ApocSplitTest {
-    public static final List<String> PROCEDURES_FROM_CORE = List.of(
-        "apoc.example.movies",
-        "apoc.load.jsonArray",
-        "apoc.load.json",
-        "apoc.load.jsonParams",
-        "apoc.load.xml",
-        "apoc.import.xml",
-        "apoc.load.arrow.stream",
-        "apoc.load.arrow",
-        "apoc.log.stream",
-        "apoc.warmup.run",
-        "apoc.stats.degrees",
-        "apoc.help");
+    public static final List<String> PROCEDURES_FROM_CORE = List.of("apoc.help");
 
-    public static final List<String> FUNCTIONS_FROM_CORE = List.of(
-        "apoc.label.exists",
-        "apoc.diff.nodes",
-        "apoc.xml.parse",
-        "apoc.version",
-        "apoc.scoring.existence",
-        "apoc.scoring.pareto",
-        "apoc.bitwise.op",
-        "apoc.data.url");
+    public static final List<String> FUNCTIONS_FROM_CORE = List.of("apoc.version");
 
     public static final List<String> FULL_PROCEDURES = List.of(
         "apoc.metrics.list",
