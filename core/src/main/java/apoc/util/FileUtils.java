@@ -42,6 +42,7 @@ public class FileUtils {
     public enum SupportedProtocols {
         http(true, null),
         https(true, null),
+        ftp(true, null),
         s3(Util.classExists("com.amazonaws.services.s3.AmazonS3"),
                 "apoc.util.s3.S3UrlStreamHandlerFactory"),
         gs(Util.classExists("com.google.cloud.storage.Storage"),
@@ -65,6 +66,7 @@ public class FileUtils {
                     return FileUtils.openS3InputStream(urlAddress);
                 case hdfs:
                     return FileUtils.openHdfsInputStream(urlAddress);
+                case ftp:
                 case http:
                 case https:
                 case gs:
