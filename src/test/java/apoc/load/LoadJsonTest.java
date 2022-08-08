@@ -1,9 +1,11 @@
 package apoc.load;
 
+import apoc.ApocConfiguration;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -20,6 +22,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -57,6 +60,7 @@ public class LoadJsonTest {
                 .setConfig("apoc.import.file.use_neo4j_config", "false")
                 .setConfig("apoc.json.zip.url","https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.zip?raw=true!person.json")
                 .setConfig("apoc.json.simpleJson.url", url.toString())
+                .setConfig(ApocConfiguration.CYPHER_IP_BLOCKLIST, "127.168.0.0/8")
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, LoadJson.class);
     }
@@ -71,6 +75,21 @@ public class LoadJsonTest {
                 (row) -> {
                     assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
                 });
+    }
+
+    @Test public void testLoadJsonFromBlockedIpRange() throws Exception {
+        List<String> protocols = Arrays.asList("https", "http");
+
+        for (String protocol: protocols) {
+            QueryExecutionException e = Assert.assertThrows(QueryExecutionException.class,
+                                                             () -> testCall(db,
+                                                                           "CALL apoc.load.json('" + protocol + "://127.168.0.0/test.csv')",
+                                                                           map(),
+                                                                           (r) -> {}
+                                                            )
+            );
+            assertTrue(e.getMessage().contains("access to /127.168.0.0 is blocked via the configuration property unsupported.dbms.cypher_ip_blocklist"));
+        }
     }
 
     @Test public void testLoadMultiJson() throws Exception {
@@ -268,8 +287,8 @@ public class LoadJsonTest {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof IOException);
             final String message = except.getMessage();
-            assertTrue(message.startsWith("Cannot open file "));
-            assertTrue(message.endsWith("foo for reading."));
+            System.out.println("This is the message: " + message);
+            assertTrue(message.startsWith("no protocol: foo"));
             throw e;
         }
     }

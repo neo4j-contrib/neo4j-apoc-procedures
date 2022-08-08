@@ -418,6 +418,7 @@ public class Util {
     }
 
     public static StreamConnection readHttpInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
+        FileUtils.checkReadAllowed(urlAddress);
         URLConnection con = openUrlConnection(urlAddress, headers);
         writePayload(con, payload);
         String newUrl = handleRedirect(con, urlAddress);

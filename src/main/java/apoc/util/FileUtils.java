@@ -249,10 +249,14 @@ public class FileUtils {
         return ApocConfiguration.get("dbms.directories.import", "import");
     }
 
-    public static void checkReadAllowed(String url) {
-        if (isFile(url) && !ApocConfiguration.isEnabled("import.file.enabled"))
-            throw new RuntimeException(LOAD_FROM_FILE_ERROR);
+    public static void checkReadAllowed(String url) throws IOException {
+        if (isFile(url) && !ApocConfiguration.isEnabled("import.file.enabled")) {
+            throw new RuntimeException( LOAD_FROM_FILE_ERROR );
+        } else {
+            ApocConfiguration.checkAllowedUrl(url);
+        }
     }
+
     public static void checkWriteAllowed(ExportConfig exportConfig, String fileName) {
         if (!ApocConfiguration.isEnabled("export.file.enabled"))
             if (exportConfig == null || (fileName != null && !fileName.equals("")) || !exportConfig.streamStatements()) {
