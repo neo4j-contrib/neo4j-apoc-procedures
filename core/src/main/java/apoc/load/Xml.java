@@ -8,6 +8,7 @@ import apoc.result.NodeResult;
 import apoc.util.CompressionAlgo;
 import apoc.util.CompressionConfig;
 import apoc.util.FileUtils;
+import apoc.util.Util;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
@@ -160,8 +161,8 @@ public class Xml {
             String url = (String) urlOrBinary;
             apocConfig.checkReadAllowed(url);
             url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
-            URLConnection urlConnection = new URL(url).openConnection();
-            inputStream = urlConnection.getInputStream();
+            var sc = Util.openInputStream(url, null, null, null);
+            inputStream = sc.getStream();
         } else if (urlOrBinary instanceof byte[]) {
             inputStream = getInputStreamFromBinary((byte[]) urlOrBinary, config.getCompressionAlgo());
         } else {

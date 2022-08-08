@@ -288,7 +288,7 @@ docker run \
 git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
 cd neo4j-apoc-procedures
 ./gradlew shadow
-cp build/libs/apoc-<version>-all.jar $NEO4J_HOME/plugins/
+cp build/full/libs/apoc-<version>-all.jar $NEO4J_HOME/plugins/
 $NEO4J_HOME/bin/neo4j restart
 ----
 
