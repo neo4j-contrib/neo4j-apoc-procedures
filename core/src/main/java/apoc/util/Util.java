@@ -1,5 +1,6 @@
 package apoc.util;
 
+import apoc.ApocConfig;
 import apoc.Pools;
 import apoc.convert.Convert;
 import apoc.export.util.CountingInputStream;
@@ -420,6 +421,7 @@ public class Util {
     }
 
     public static StreamConnection readHttpInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
+        ApocConfig.apocConfig().checkReadAllowed(urlAddress);
         URLConnection con = openUrlConnection(urlAddress, headers);
         writePayload(con, payload);
         String newUrl = handleRedirect(con, urlAddress);
