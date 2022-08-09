@@ -43,7 +43,7 @@ public class UUIDMultiDbTest {
 
         driver = GraphDatabase.driver(neo4jContainer.getBoltUrl(), AuthTokens.basic("neo4j", "apoc"));
 
-        try (Session session = driver.session()) {
+        try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
             session.writeTransaction(tx -> tx.run(String.format("CREATE DATABASE %s WAIT;", dbTest)));
         }
     }
@@ -69,7 +69,7 @@ public class UUIDMultiDbTest {
             );
 
             session.writeTransaction(tx -> tx.run(
-                    "CALL apoc.uuid.install('Foo') YIELD label RETURN label")
+                    "CALL apoc.uuid.install('Foo', {addToExistingNodes: false }) YIELD label RETURN label")
             );
 
         } catch (RuntimeException e) {
@@ -89,7 +89,7 @@ public class UUIDMultiDbTest {
             );
 
             session.writeTransaction(tx -> tx.run(
-                    "CALL apoc.uuid.install('Foo') YIELD label RETURN label")
+                    "CALL apoc.uuid.install('Foo', {addToExistingNodes: false }) YIELD label RETURN label")
             );
             session.writeTransaction(tx -> tx.run(
                     "CREATE (d:Foo {name:'Test'})-[:WORK]->(l:Bar {name:'Baz'})")

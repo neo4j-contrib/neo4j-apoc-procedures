@@ -49,7 +49,7 @@ public class TTLMultiDbTest {
 
         driver = GraphDatabase.driver(neo4jContainer.getBoltUrl(), AuthTokens.basic("neo4j", "apoc"));
 
-        try (Session session = driver.session()) {
+        try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
             session.writeTransaction(tx -> tx.run("CREATE DATABASE " + DB_TEST + " WAIT;"));
             session.writeTransaction(tx -> tx.run("CREATE DATABASE " + DB_FOO + " WAIT;"));
             session.writeTransaction(tx -> tx.run("CREATE DATABASE " + DB_BAR + " WAIT;"));

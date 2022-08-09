@@ -1,7 +1,7 @@
 package apoc.load;
 
 import apoc.load.util.LoadCsvConfig;
-import apoc.meta.Meta;
+import apoc.meta.Types;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.values.storable.DateTimeValue;
@@ -31,7 +31,7 @@ public class Mapping {
     public static final Mapping EMPTY = new Mapping("", Collections.emptyMap(), LoadCsvConfig.DEFAULT_ARRAY_SEP, false);
     final String name;
     final Collection<String> nullValues;
-    final Meta.Types type;
+    final Types type;
     final boolean array;
     final boolean ignore;
     final char arraySep;
@@ -46,7 +46,7 @@ public class Mapping {
         this.ignore = (Boolean) mapping.getOrDefault("ignore", ignore);
         this.nullValues = (Collection<String>) mapping.getOrDefault("nullValues", emptyList());
         this.arraySep = parseCharFromConfig(mapping, "arraySep", arraySep);
-        this.type = Meta.Types.from(mapping.getOrDefault("type", "STRING").toString());
+        this.type = Types.from(mapping.getOrDefault("type", "STRING").toString());
         this.arrayPattern = Pattern.compile(String.valueOf(this.arraySep), Pattern.LITERAL);
 
         if (this.type == null) {
@@ -71,10 +71,10 @@ public class Mapping {
     }
 
     private Object convertType(String value) {
-        if (nullValues.contains(value) || (StringUtils.isBlank(value) && !type.equals(Meta.Types.STRING))) {
+        if (nullValues.contains(value) || (StringUtils.isBlank(value) && !type.equals(Types.STRING))) {
             return null;
         }
-        if (type == Meta.Types.STRING) return value;
+        if (type == Types.STRING) return value;
 
         final Supplier<ZoneId> timezone = () -> ZoneId.of((String) optionalData.getOrDefault("timezone", apocConfig().getString(db_temporal_timezone.name())));
         switch (type) {

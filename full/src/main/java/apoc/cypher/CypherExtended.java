@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.cypher.CypherUtils.runCypherQuery;
 import static apoc.util.MapUtil.map;
 import static apoc.util.Util.param;
 import static apoc.util.Util.quote;
@@ -277,7 +278,7 @@ public class CypherExtended {
     @Procedure
     @Description("apoc.cypher.parallel(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel through a list defined in `paramMap` with a key `keyList`")
     public Stream<MapResult> parallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        if (params == null) return Cypher.runCypherQuery(tx, fragment, params);
+        if (params == null) return runCypherQuery(tx, fragment, params);
         if (key == null || !params.containsKey(key))
             throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet());
         Object value = params.get(key);
@@ -350,7 +351,7 @@ public class CypherExtended {
     @Procedure
     @Description("apoc.cypher.parallel2(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel batches through a list defined in `paramMap` with a key `keyList`")
     public Stream<MapResult> parallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        if (params == null) return Cypher.runCypherQuery(tx, fragment, params);
+        if (params == null) return runCypherQuery(tx, fragment, params);
         if (StringUtils.isEmpty(key) || !params.containsKey(key))
             throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet() + ". Note that parallelizeOn parameter must be not empty");
         Object value = params.get(key);

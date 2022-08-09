@@ -1,6 +1,6 @@
 package apoc.export.csv;
 
-import apoc.meta.Meta;
+import apoc.meta.Types;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -85,7 +85,7 @@ public class CsvHeaderField {
             }
         }
         
-        final String type = (typeExtracted != null) ? typeExtracted : Meta.Types.STRING.name();
+        final String type = (typeExtracted != null) ? typeExtracted : Types.STRING.name();
         final String name = nameAndTypeToAttribute(rawName, type);
 
         // we use a default, global id space if the id space is not defined explicitly

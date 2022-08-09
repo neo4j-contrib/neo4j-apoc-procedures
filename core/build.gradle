@@ -45,7 +45,10 @@ generateGrammarSource {
 }
 
 dependencies {
+    implementation project(":common")
+    testImplementation project(":common").sourceSets.test.output
     testImplementation project(':test-utils')
+
     apt project(':processor')
 
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
@@ -59,8 +62,6 @@ dependencies {
         exclude group: 'com.ibm.icu'
         exclude group: 'org.abego.treelayout'
     }
-    // compileOnly "org.antlr:antlr4-runtime:4.7.2"
-    // testCompile "org.antlr:antlr4-runtime:4.7.2"
 
     implementation group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
     implementation(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.8.0') {
@@ -105,7 +106,7 @@ dependencies {
         exclude group: 'org.eclipse.jetty.aggregate'
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
-    
+
     def withoutJacksons = {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
@@ -129,10 +130,6 @@ dependencies {
     compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.2', withoutServers
 
     implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
-    //compileOnly group: 'org.apache.commons', name: 'commons-text', version: '1.7'
-//    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
-//    jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
-
     testImplementation group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
     testImplementation group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
 
@@ -166,21 +163,6 @@ dependencies {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
         exclude group: 'ch.qos.logback', module: 'logback-classic'
     }
-}
-
-
-// tweaks for CI
-if (System.env.CI == 'true') {
-  allprojects {
-    tasks.withType(GroovyCompile) {
-      groovyOptions.fork = false
-    }
-    tasks.withType(Test) {
-      // containers (currently) have 2 dedicated cores and 4GB of memory
-      maxParallelForks = 2
-      minHeapSize = '128m'
-    }
-  }
 }
 
 task copyRuntimeLibs(type: Copy) {

@@ -43,19 +43,23 @@ public class CypherEnterpriseTest {
     @Test
     public void testParallelTransactionGuard() {
         // given
-        int txCountBefore = neo4jContainer.getSession().readTransaction(tx -> tx.run("SHOW TRANSACTIONS").list()).size();
+        String parallelQuery = "UNWIND range(0,9) as id CALL apoc.util.sleep(10000) WITH id RETURN id";
 
         // when
         try {
             int size = 10_000;
             testResult(neo4jContainer.getSession(),
-                    "CALL apoc.cypher.parallel2('UNWIND range(0,9) as id CALL apoc.util.sleep(10000) WITH id RETURN id', {a: range(1, $size)}, 'a')",
+                    "CALL apoc.cypher.parallel2('" + parallelQuery + "', {a: range(1, $size)}, 'a')",
                     map("size", size),
                     r -> {});
         } catch (Exception ignored) {}
 
         // then
-        int txCountAfter = neo4jContainer.getSession().readTransaction(tx -> tx.run("SHOW TRANSACTIONS").list()).size();
-        Assert.assertEquals(txCountBefore, txCountAfter);
+        boolean anyLingeringParallelTx = neo4jContainer.getSession().readTransaction(tx -> {
+            var currentTxs = tx.run("SHOW TRANSACTIONS").stream();
+            return currentTxs.anyMatch( record -> record.get( "currentQuery" ).toString().contains(parallelQuery));
+        });
+
+        Assert.assertFalse(anyLingeringParallelTx);
     }
 }

@@ -1,6 +1,6 @@
 package apoc.export.csv;
 
-import apoc.meta.Meta;
+import apoc.meta.Types;
 import org.junit.Test;
 
 import java.util.regex.Matcher;
@@ -55,7 +55,7 @@ public class CsvHeaderFieldTests {
     public void testCsvField4() {
         CsvHeaderField field = CsvHeaderField.parse(0, TEST_FIELD_4, '"');
         assertEquals(TEST_NAME, field.getName());
-        assertEquals(Meta.Types.STRING.name(), field.getType());
+        assertEquals(Types.STRING.name(), field.getType());
         assertEquals(CsvLoaderConstants.DEFAULT_IDSPACE, field.getIdSpace());
         assertFalse(field.isArray());
     }

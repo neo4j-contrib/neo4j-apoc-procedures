@@ -2,7 +2,7 @@ package apoc.load;
 
 import apoc.Extended;
 import apoc.export.util.CountingInputStream;
-import apoc.meta.Meta;
+import apoc.meta.Types;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
@@ -147,7 +147,7 @@ public class LoadXls {
         public static final Mapping EMPTY = new Mapping("", Collections.emptyMap(), DEFAULT_ARRAY_SEP, false);
         final String name;
         final Collection<Object> nullValues;
-        final Meta.Types type;
+        final Types type;
         final boolean array;
         final boolean ignore;
         final char arraySep;
@@ -161,7 +161,7 @@ public class LoadXls {
             this.ignore = (Boolean) mapping.getOrDefault("ignore", ignore);
             this.nullValues = (Collection<Object>) mapping.getOrDefault("nullValues", emptyList());
             this.arraySep = separator(mapping.getOrDefault("arraySep", arraySep).toString(),DEFAULT_ARRAY_SEP);
-            this.type = Meta.Types.from(mapping.getOrDefault("type", "STRING").toString());
+            this.type = Types.from(mapping.getOrDefault("type", "STRING").toString());
             this.arrayPattern = Pattern.compile(String.valueOf(this.arraySep), Pattern.LITERAL);
             this.dateFormat = mapping.getOrDefault("dateFormat", StringUtils.EMPTY).toString();
             this.dateParse = convertFormat(mapping.getOrDefault("dateParse", null));
