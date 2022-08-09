@@ -7,7 +7,43 @@ This chapter lists all the features that have been removed, deprecated, added or
 [[apoc-deprecations-additions-removals-5.0]]
 == Version 5.0
 
-=== Removed procedures
+=== Deprecated procedures and functions
+
+[cols="2", options="header"]
+|===
+| Feature
+| Details
+a|
+label:function[]
+label:deprecated[]
+[source, cypher, role="noheader"]
+----
+RETURN apoc.create.uuid()
+----
+a|
+Replaced by Neo4j Function randomUUID():
+[source, cypher, role="noheader"]
+----
+RETURN randomUUID()
+----
+
+a|
+label:procedure[]
+label:deprecated[]
+[source, cypher, role="noheader"]
+----
+CALL apoc.create.uuids($count)
+----
+a|
+Replaced by Neo4j Function randomUUID():
+[source, cypher, role="noheader"]
+----
+UNWIND range(0,$count) AS row RETURN row, randomUUID() AS uuid
+----
+
+|===
+
+=== Removed procedures and functions
 
 [cols="2", options="header"]
 |===

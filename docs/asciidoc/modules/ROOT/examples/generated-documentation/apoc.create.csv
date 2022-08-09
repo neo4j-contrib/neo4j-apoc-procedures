@@ -96,7 +96,7 @@ apoc.create.virtualPath(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'
 |label:apoc-core[]
 |xref::overview/apoc.create/apoc.create.adoc[apoc.create.uuid icon:book[]]
 
-apoc.create.uuid() - creates an UUID
+apoc.create.uuid() - creates a UUID
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.create/apoc.create.adoc[apoc.create.vNode icon:book[]]

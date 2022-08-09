@@ -37,6 +37,11 @@ RETURN apoc.create.uuid() AS uuid;
 | "1051af4f-b81d-4a76-8605-ecfb8ef703d5"
 |===
 
+[NOTE]
+====
+This function has been deprecated and will be removed in upcoming versions of APOC. Use Neo4j's `randomUUID()` function instead.
+====
+
 The following creates a `Person` node, using a UUID as the merging key:
 
 [source, cypher]
