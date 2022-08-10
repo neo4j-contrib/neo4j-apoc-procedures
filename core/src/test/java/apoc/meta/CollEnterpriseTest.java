@@ -1,10 +1,12 @@
 package apoc.meta;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestUtil;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
+import java.util.List;
 import org.neo4j.driver.Session;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
@@ -24,7 +26,7 @@ public class CollEnterpriseTest {
         assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
-            neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI());
+            neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE), !TestUtil.isRunningInCI());
             neo4jContainer.start();
         }, Exception.class);
         assumeTrue(neo4jContainer.isRunning());

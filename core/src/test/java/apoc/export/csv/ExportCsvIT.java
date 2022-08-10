@@ -1,6 +1,7 @@
 package apoc.export.csv;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -33,7 +34,7 @@ public class ExportCsvIT {
     public static void beforeAll() {
         assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
-            neo4jContainer = createEnterpriseDB(true);
+            neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE), true);
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);

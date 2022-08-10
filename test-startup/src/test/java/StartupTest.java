@@ -2,12 +2,12 @@ import apoc.ApocSignatures;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
-import apoc.util.TestContainerUtil.Neo4jVersion;import org.junit.Test;
+import apoc.util.TestContainerUtil.Neo4jVersion;
+import apoc.util.TestContainerUtil.ApocPackage;
+import org.junit.Test;
 
 import org.neo4j.driver.Session;
 
-import java.io.File;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,18 +22,10 @@ import static org.junit.Assert.fail;
  */
 public class StartupTest {
 
-    private static final File APOC_FULL;
-
-    static {
-        final String file = StartupTest.class.getClassLoader().getResource(".").getFile();
-        final int endIndex = file.indexOf("test-startup");
-        APOC_FULL = Paths.get(file.substring(0, endIndex).concat("/full")).toFile();
-    }
-
     @Test
     public void check_basic_deployment() {
         for (var version: Neo4jVersion.values()) {
-            try (Neo4jContainerExtension neo4jContainer = createDB(version, APOC_FULL, !TestUtil.isRunningInCI())
+            try (Neo4jContainerExtension neo4jContainer = createDB(version, List.of(ApocPackage.CORE), !TestUtil.isRunningInCI())
                     .withNeo4jConfig("dbms.transaction.timeout", "60s")) {
 
                 neo4jContainer.start();
@@ -62,7 +54,7 @@ public class StartupTest {
     @Test
     public void compare_with_sources() {
         for (var version: Neo4jVersion.values()) {
-            try (Neo4jContainerExtension neo4jContainer = createDB(version, APOC_FULL, !TestUtil.isRunningInCI())) {
+            try (Neo4jContainerExtension neo4jContainer = createDB(version, List.of(ApocPackage.CORE), !TestUtil.isRunningInCI())) {
                 neo4jContainer.start();
 
                 assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());

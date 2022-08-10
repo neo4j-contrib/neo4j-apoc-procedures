@@ -33,6 +33,11 @@ public class TestContainerUtil {
         COMMUNITY
     }
 
+    public enum ApocPackage {
+        CORE,
+        FULL
+    }
+
     // read neo4j version from build.gradle
     public static final String neo4jEnterpriseDockerImageVersion = System.getProperty("neo4jDockerImage");
     public static final String neo4jCommunityDockerImageVersion = System.getProperty("neo4jCommunityDockerImage");
@@ -41,60 +46,74 @@ public class TestContainerUtil {
 
     private TestContainerUtil() {}
 
-    private static File baseDir = Paths.get(".").toFile();
+    private static File baseDir = Paths.get("..").toFile();
+    private static File coreDir = new File(baseDir, "core");
+    private static File fullDir = new File(baseDir, "full");
 
-    public static TestcontainersCausalCluster createEnterpriseCluster(int numOfCoreInstances, int numberOfReadReplica, Map<String, Object> neo4jConfig, Map<String, String> envSettings) {
-        return TestcontainersCausalCluster.create(numOfCoreInstances, numberOfReadReplica, Duration.ofMinutes(4), neo4jConfig, envSettings);
+    public static TestcontainersCausalCluster createEnterpriseCluster(List<ApocPackage> apocPackages, int numOfCoreInstances, int numberOfReadReplica, Map<String, Object> neo4jConfig, Map<String, String> envSettings) {
+        return TestcontainersCausalCluster.create(apocPackages, numOfCoreInstances, numberOfReadReplica, Duration.ofMinutes(4), neo4jConfig, envSettings);
     }
 
-    public static Neo4jContainerExtension createDB(Neo4jVersion version, File baseDir, boolean withLogging) {
+    public static Neo4jContainerExtension createDB(Neo4jVersion version, List<ApocPackage> apocPackages, boolean withLogging) {
         return switch(version) {
-            case ENTERPRISE -> createEnterpriseDB(baseDir, withLogging);
-            case COMMUNITY -> createCommunityDB(baseDir, withLogging);
+            case ENTERPRISE -> createEnterpriseDB(apocPackages, withLogging);
+            case COMMUNITY -> createCommunityDB(apocPackages, withLogging);
         };
     }
 
-    public static Neo4jContainerExtension createEnterpriseDB(boolean withLogging)  {
-        return createEnterpriseDB(baseDir, withLogging);
+    public static Neo4jContainerExtension createEnterpriseDB(List<ApocPackage> apocPackages, boolean withLogging) {
+        return createNeo4jContainer(apocPackages, withLogging, Neo4jVersion.ENTERPRISE);
     }
 
-    public static Neo4jContainerExtension createEnterpriseDB(File baseDir, boolean withLogging) {
-        return createNeo4jContainer(baseDir, withLogging, Neo4jVersion.ENTERPRISE);
+    public static Neo4jContainerExtension createCommunityDB(List<ApocPackage> apocPackages, boolean withLogging) {
+        return createNeo4jContainer(apocPackages, withLogging, Neo4jVersion.COMMUNITY);
     }
 
-    public static Neo4jContainerExtension createCommunityDB(File baseDir, boolean withLogging) {
-        return createNeo4jContainer(baseDir, withLogging, Neo4jVersion.COMMUNITY);
-    }
-
-    private static Neo4jContainerExtension createNeo4jContainer(File baseDir, boolean withLogging, Neo4jVersion version) {
+    private static Neo4jContainerExtension createNeo4jContainer(List<ApocPackage> apocPackages, boolean withLogging, Neo4jVersion version) {
         String dockerImage;
         if (version == Neo4jVersion.ENTERPRISE) {
             dockerImage = neo4jEnterpriseDockerImageVersion;
         } else {
             dockerImage = neo4jCommunityDockerImageVersion;
         }
-        executeGradleTasks(baseDir, "shadowJar");
+
+        File pluginsFolder = new File(baseDir, "build/plugins");
+        try {
+            FileUtils.deleteDirectory( pluginsFolder );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        File projectDir;
         // We define the container with external volumes
         File importFolder = new File("import");
         importFolder.mkdirs();
-
         // use a separate folder for mounting plugins jar - build/libs might contain other jars as well.
-        File pluginsFolder = new File(baseDir, "build/plugins");
         pluginsFolder.mkdirs();
-
-        Collection<File> files = FileUtils.listFiles(new File(baseDir, "build/libs"), new WildcardFileFilter(Arrays.asList("*-all.jar", "*-core.jar")), null);
-        for (File file: files) {
-            try {
-                FileUtils.copyFileToDirectory(file, pluginsFolder);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
         String canonicalPath = null;
+
         try {
             canonicalPath = importFolder.getCanonicalPath();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        for (ApocPackage apocPackage: apocPackages) {
+            if (apocPackage == ApocPackage.CORE) {
+                projectDir = coreDir;
+            } else {
+                projectDir = fullDir;
+            }
+
+            executeGradleTasks(projectDir, "shadowJar");
+
+            Collection<File> files = FileUtils.listFiles(new File(projectDir, "build/libs"), new WildcardFileFilter(Arrays.asList("*-all.jar", "*-core.jar")), null);
+            for (File file: files) {
+                try {
+                    FileUtils.copyFileToDirectory(file, pluginsFolder);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
 
         System.out.println("neo4jDockerImageVersion = " + dockerImage);

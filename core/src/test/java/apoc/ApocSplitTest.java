@@ -2,9 +2,11 @@ package apoc;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
+import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestUtil;
 import org.junit.Assert;
 import org.junit.Test;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.neo4j.driver.Session;
@@ -457,7 +459,7 @@ public class ApocSplitTest {
     @Test
     public void test() {
         if (!TestUtil.isRunningInCI()) {
-            Neo4jContainerExtension neo4jContainer = TestContainerUtil.createEnterpriseDB(!TestUtil.isRunningInCI())
+            Neo4jContainerExtension neo4jContainer = TestContainerUtil.createEnterpriseDB(List.of(ApocPackage.CORE), !TestUtil.isRunningInCI())
                     .withNeo4jConfig("dbms.transaction.timeout", "60s");
 
             neo4jContainer.start();

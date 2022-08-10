@@ -1,6 +1,7 @@
 package apoc.metrics;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -36,7 +37,7 @@ public class MetricsTest {
     @BeforeClass
     public static void beforeAll() throws InterruptedException {
         TestUtil.ignoreException(() -> {
-            neo4jContainer = createEnterpriseDB(true)
+            neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), true)
                     .withDebugger()
                     .withNeo4jConfig("apoc.import.file.enabled", "true")
                     .withNeo4jConfig("metrics.enabled", "true")

@@ -1,6 +1,7 @@
 package apoc.trigger;
 
 import apoc.util.TestContainerUtil;
+import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestUtil;
 import apoc.util.TestcontainersCausalCluster;
 import org.junit.AfterClass;
@@ -13,6 +14,7 @@ import org.neo4j.driver.types.Node;
 import org.neo4j.internal.helpers.collection.MapUtil;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -24,7 +26,7 @@ public class TriggerClusterTest {
     @BeforeClass
     public static void setupCluster() {
         TestUtil.ignoreException(() ->  cluster = TestContainerUtil
-                .createEnterpriseCluster(3, 1, Collections.emptyMap(), MapUtil.stringMap(
+                .createEnterpriseCluster(List.of(ApocPackage.CORE, ApocPackage.FULL), 3, 1, Collections.emptyMap(), MapUtil.stringMap(
                         "apoc.trigger.refresh", "100",
                         "apoc.trigger.enabled", "true"
                 )),
