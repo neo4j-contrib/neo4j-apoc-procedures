@@ -1,7 +1,7 @@
 description = 'APOC :: Test Startup Module'
 
 dependencies {
-    testImplementation project(':common')
+    testImplementation project(':core')
     testImplementation project(':test-utils')
 
     configurations.all {

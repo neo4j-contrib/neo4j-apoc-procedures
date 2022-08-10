@@ -3,7 +3,6 @@ package apoc.mongodb;
 import apoc.util.JsonUtil;
 import apoc.util.MissingDependencyException;
 import apoc.util.Util;
-import apoc.version.Version;
 import org.bson.Document;
 
 import java.io.Closeable;
@@ -65,7 +64,6 @@ public class MongoDBUtils {
         try {
             coll = action.get();
         } catch (NoClassDefFoundError e) {
-            final String version = Version.class.getPackage().getImplementationVersion().substring(0, 3);
             throw new MissingDependencyException(String.format("Cannot find the jar into the plugins folder. \n" +
                     "Please put these jar in the plugins folder :\n\n" +
                     "bson-x.y.z.jar\n" +
@@ -76,7 +74,7 @@ public class MongoDBUtils {
                     "\n" +
                     "mongodb-driver-core-x.y.z.jar\n" +
                     "\n" +
-                    "jackson-annotations-x.y.z.jar\n\njackson-core-x.y.z.jar\n\njackson-databind-x.y.z.jar\n\nSee the documentation: https://neo4j.com/labs/apoc/%s/database-integration/mongodb/", version));
+                    "jackson-annotations-x.y.z.jar\n\njackson-core-x.y.z.jar\n\njackson-databind-x.y.z.jar\n\nSee the documentation: https://neo4j.com/labs/apoc/4.4/database-integration/mongodb/"));
         } catch (Exception e) {
             throw new RuntimeException("Error during connection", e);
         }
