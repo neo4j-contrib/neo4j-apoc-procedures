@@ -1,6 +1,7 @@
 package apoc.schema;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil.ApocPackage;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,7 +35,7 @@ public class SchemasEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        neo4jContainer = createEnterpriseDB(true);
+        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE), true);
         neo4jContainer.start();
         session = neo4jContainer.getSession();
     }

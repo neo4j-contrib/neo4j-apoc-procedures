@@ -1,6 +1,7 @@
 package apoc.custom;
 
 import apoc.util.TestContainerUtil;
+import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestUtil;
 import apoc.util.TestcontainersCausalCluster;
 import org.junit.*;
@@ -23,7 +24,7 @@ public class CypherProceduresClusterTest {
     @BeforeClass
     public static void setupCluster() {
         TestUtil.ignoreException(() ->  cluster = TestContainerUtil
-                .createEnterpriseCluster(3, 1, Collections.emptyMap(), MapUtil.stringMap("apoc.custom.procedures.refresh", "100")),
+                .createEnterpriseCluster(List.of(ApocPackage.FULL), 3, 1, Collections.emptyMap(), MapUtil.stringMap("apoc.custom.procedures.refresh", "100")),
                 Exception.class);
         Assume.assumeNotNull(cluster);
         assumeTrue("Neo4j Cluster should be up-and-running", cluster.isRunning());

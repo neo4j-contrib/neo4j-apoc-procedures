@@ -2,6 +2,7 @@ package apoc.ttl;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
+import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -13,6 +14,7 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 
+import java.util.List;
 import java.util.Map;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
@@ -35,7 +37,7 @@ public class TTLMultiDbTest {
     @BeforeClass
     public static void setupContainer() {
         TestUtil.ignoreException(() -> {
-            neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
+            neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI())
                     .withEnv(Map.of("apoc.ttl.enabled." + DB_TEST, "false",
                             "apoc.ttl.enabled", "true",
                             "apoc.ttl.schedule", "2",

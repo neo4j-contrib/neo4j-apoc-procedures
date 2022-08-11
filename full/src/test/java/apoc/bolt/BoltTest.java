@@ -4,6 +4,7 @@ import apoc.cypher.Cypher;
 import apoc.export.cypher.ExportCypher;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
+import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.AfterClass;
@@ -48,7 +49,7 @@ public class BoltTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.ignoreException(() -> {
-            neo4jContainer = TestContainerUtil.createEnterpriseDB(isRunningInCI())
+            neo4jContainer = TestContainerUtil.createEnterpriseDB(List.of(ApocPackage.FULL), isRunningInCI())
                     .withInitScript("init_neo4j_bolt.cypher")
                     .withLogging()
                     .withAdminPassword("neo4j2020");

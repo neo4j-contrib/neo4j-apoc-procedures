@@ -2,6 +2,7 @@ package apoc;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
+import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestUtil;
 import org.junit.Test;
 import java.util.List;
@@ -16,9 +17,9 @@ import static org.junit.Assert.assertTrue;
  This test is just to verify the split of core and full
  */
 public class ApocSplitTest {
-    public static final List<String> PROCEDURES_FROM_CORE = List.of("apoc.help");
+    public static final List<String> PROCEDURES_FROM_CORE = List.of();
 
-    public static final List<String> FUNCTIONS_FROM_CORE = List.of("apoc.version");
+    public static final List<String> FUNCTIONS_FROM_CORE = List.of();
 
     public static final List<String> FULL_PROCEDURES = List.of(
         "apoc.metrics.list",
@@ -175,7 +176,7 @@ public class ApocSplitTest {
     @Test
     public void test() {
         if (!TestUtil.isRunningInCI()) {
-            Neo4jContainerExtension neo4jContainer = TestContainerUtil.createEnterpriseDB(!TestUtil.isRunningInCI())
+            Neo4jContainerExtension neo4jContainer = TestContainerUtil.createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI())
                     .withNeo4jConfig("dbms.transaction.timeout", "60s");
 
 

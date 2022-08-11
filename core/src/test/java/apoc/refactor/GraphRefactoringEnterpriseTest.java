@@ -1,9 +1,11 @@
 package apoc.refactor;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil.ApocPackage;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import java.util.List;
 import org.neo4j.driver.Session;
 
 import static apoc.refactor.GraphRefactoringTest.CLONE_NODES_QUERY;
@@ -22,7 +24,7 @@ public class GraphRefactoringEnterpriseTest {
 
     @BeforeClass
     public static void beforeAll() {
-        neo4jContainer = createEnterpriseDB(true);
+        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE), true);
         neo4jContainer.start();
         session = neo4jContainer.getSession();
     }
