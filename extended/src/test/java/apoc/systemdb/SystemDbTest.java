@@ -84,7 +84,7 @@ public class SystemDbTest {
 
     @Test
     public void testExecute() {
-        TestUtil.testResult(db, "CALL apoc.systemdb.execute('SHOW DATABASES') YIELD row RETURN row", result -> {
+        TestUtil.testResult(db, "CALL apoc.systemdb.execute('SHOW DATABASES YIELD name, default, currentStatus, role, requestedStatus, error, address, aliases, access, home') YIELD row RETURN row", result -> {
             List<Map<String, Object>> rows = Iterators.asList(result.columnAs("row"));
             // removed key "systemDefault"
             org.hamcrest.MatcherAssert.assertThat(rows, Matchers.containsInAnyOrder(
@@ -105,7 +105,7 @@ public class SystemDbTest {
         // count exhaust the result - this is important here
         TestUtil.count(db, "CALL apoc.systemdb.execute([\"CREATE USER dummy SET PASSWORD '123'\"])");
 
-        assertEquals(2l, TestUtil.count(db, "CALL apoc.systemdb.execute('SHOW USERS')"));
+        assertEquals(2L, TestUtil.count(db, "CALL apoc.systemdb.execute('SHOW USERS')"));
     }
     
     @Test
