@@ -2,4 +2,4 @@
 
 `CALL apoc.uuid.list() yield label, installed, properties | provides a list of all the uuid handlers installed with the related configuration`
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

@@ -2,4 +2,4 @@
 
 `apoc.generate.ws(noNodes, degree, beta, label, type)` - generates a random graph according to the Watts-Strogatz model
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

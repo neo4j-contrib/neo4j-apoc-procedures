@@ -3,9 +3,9 @@
 
 Creates a (virtual) sentiment graph for provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.nlp.aws.sentiment/apoc.nlp.aws.sentiment.adoc[apoc.nlp.aws.sentiment.stream icon:book[]]
 
 Returns stream of sentiment for items in provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]

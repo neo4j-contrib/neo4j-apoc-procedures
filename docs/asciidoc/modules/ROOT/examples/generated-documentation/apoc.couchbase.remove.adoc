@@ -2,4 +2,4 @@
 
 `apoc.couchbase.remove(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content` - remove the couchbase json document identified by its unique ID.
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

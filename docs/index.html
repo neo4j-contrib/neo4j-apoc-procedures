@@ -794,7 +794,7 @@ to find the latest release and download the binary jar to place into your <code>
 <div class="content">
 <pre class="highlight"><code class="language-bash" data-lang="bash">mkdir plugins
 pushd plugins
-wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.1.2.5/apoc-3.1.2.5-all.jar
+wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.1.2.5/apoc-3.1.2.5-extended.jar
 popd
 docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.1.2</code></pre>
 </div>
@@ -806,7 +806,7 @@ docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687
 <div class="content">
 <pre>git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
 ./gradlew shadow
-cp build/libs/apoc-&lt;version&gt;-SNAPSHOT-all.jar $NEO4J_HOME/plugins/
+cp build/libs/apoc-&lt;version&gt;-SNAPSHOT-extended.jar $NEO4J_HOME/plugins/
 $NEO4J_HOME/bin/neo4j restart</pre>
 </div>
 </div>

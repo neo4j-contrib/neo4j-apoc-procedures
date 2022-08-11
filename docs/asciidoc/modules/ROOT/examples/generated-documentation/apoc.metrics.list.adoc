@@ -2,4 +2,4 @@
 
 `apoc.metrics.list()` - get a list of available metrics
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

@@ -2,4 +2,4 @@
 
 `apoc.log.debug(message, params)` - logs debug message
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

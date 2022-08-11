@@ -2,4 +2,4 @@
 
 `apoc.bolt.load(url-or-key, kernelTransaction, params, config)` - access to other databases via bolt for read
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

@@ -1,7 +1,7 @@
 
 [source,cypher,subs=attributes]
 ----
-CALL apoc.load.xls("https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/full/src/test/resources/load_test.xls",
+CALL apoc.load.xls("https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/extended/src/test/resources/load_test.xls",
   'Full',{ mapping: {
   Integer:{type:'int'},
   Array:{type:'int',array:true,arraySep:';'}
@@ -17,7 +17,7 @@ CALL apoc.load.xls("https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{
 
 [source,cypher,subs=attributes]
 ----
-CALL apoc.load.xls("https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/full/src/test/resources/load_test.xls",
+CALL apoc.load.xls("https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/extended/src/test/resources/load_test.xls",
   'Kids'
 );
 ----
@@ -35,7 +35,7 @@ Some examples with type/dateFormat and dateParse:
 
 [source,cypher,subs=attributes]
 ----
-CALL apoc.load.xls('https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/full/src/test/resources/test_date.xlsx',
+CALL apoc.load.xls('https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/extended/src/test/resources/test_date.xlsx',
   'sheet',{ mapping:{
   Date:{type:'String'}
 }});
@@ -56,7 +56,7 @@ CALL apoc.load.xls('https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{
 
 [source,cypher,subs=attributes]
 ----
-CALL apoc.load.xls('https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/full/src/test/resources/test_date.xlsx',
+CALL apoc.load.xls('https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/extended/src/test/resources/test_date.xlsx',
   'sheet', { mapping: {
     Date:{type:'String',dateFormat:'iso_date'}
 }});
@@ -77,7 +77,7 @@ CALL apoc.load.xls('https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{
 
 [source,cypher,subs=attributes]
 ----
-CALL apoc.load.xls('https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/full/src/test/resources/test_date.xlsx',
+CALL apoc.load.xls('https://github.com/neo4j-contrib/neo4j-apoc-procedures/raw/{branch}/extended/src/test/resources/test_date.xlsx',
   'sheet',{ mapping:{
   Date:{type:'String',dateParse:["wrongPath", "dd-MM-yyyy", "dd/MM/yyyy", "yyyy/MM/dd", "yyyy/dd/MM", "yyyy-dd-MM'T'hh:mm:ss"]}
 }});

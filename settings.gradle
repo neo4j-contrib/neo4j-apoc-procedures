@@ -3,6 +3,6 @@ rootProject.name = 'apoc'
 include("processor")
 include("common")
 include("core")
-include("full")
+include("extended")
 include("test-utils")
 include("test-startup")

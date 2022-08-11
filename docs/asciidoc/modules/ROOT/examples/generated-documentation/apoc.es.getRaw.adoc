@@ -2,4 +2,4 @@
 
 `apoc.es.getRaw(host-or-port,path,payload-or-null) yield value` - perform a raw GET operation on elastic search
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

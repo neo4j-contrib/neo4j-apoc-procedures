@@ -2,4 +2,4 @@
 
 `apoc.generate.complete(noNodes, label, type)` - generates a random complete graph
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

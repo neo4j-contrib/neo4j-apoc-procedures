@@ -2,4 +2,4 @@
 
 `apoc.mongo.aggregate(uri, pipeline, $config) yield value` - perform an aggregate operation on mongodb collection
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

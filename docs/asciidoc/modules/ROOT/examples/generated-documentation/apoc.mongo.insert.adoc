@@ -2,4 +2,4 @@
 
 `apoc.mongo.insert(uri, documents, $config) yield value` - inserts the given documents into the mongodb collection
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

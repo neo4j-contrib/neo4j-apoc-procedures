@@ -2,4 +2,4 @@
 
 `apoc.custom.list()` - provide a list of custom procedures/function registered
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

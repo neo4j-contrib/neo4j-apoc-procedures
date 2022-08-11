@@ -2,4 +2,4 @@
 
 `Creates a (virtual) entity graph for provided text`
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

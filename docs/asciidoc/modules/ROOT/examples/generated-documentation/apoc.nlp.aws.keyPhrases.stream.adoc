@@ -2,4 +2,4 @@
 
 `Returns a stream of key phrases for provided text`
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

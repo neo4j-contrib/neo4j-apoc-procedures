@@ -3,9 +3,9 @@
 
 Creates a (virtual) key phrases graph for provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.nlp.aws.keyPhrases/apoc.nlp.aws.keyPhrases.adoc[apoc.nlp.aws.keyPhrases.stream icon:book[]]
 
 Returns a stream of key phrases for provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]

@@ -3,4 +3,4 @@
 
 apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]

@@ -3,7 +3,7 @@
 
 apoc.data.email('email_address') as {personal,user,domain} - extract the personal name, user and domain as a map
 |label:function[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.data/apoc.data.adoc[apoc.data.url icon:book[]]
 
 apoc.data.url('url') as {protocol,host,port,path,query,file,anchor,user} \| turn URL into map structure

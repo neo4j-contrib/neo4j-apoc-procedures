@@ -5,11 +5,11 @@
 
 
 _APOC Core_ is packaged with Neo4j and can be found in the `$NEO4J_HOME/labs` directory.
-_APOC Full_ can be downloaded using one of the methods described in the sections below.
+_APOC Extended_ can be downloaded using one of the methods described in the sections below.
 
 [WARNING]
 ====
-_APOC Full_ contains all the procedures and functions included in _APOC Core_.
+_APOC Extended_ contains all the procedures and functions included in _APOC Core_.
 You *must not* install both libraries.
 ====
 

@@ -2,4 +2,4 @@
 
 `apoc.couchbase.upsert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content` - insert or overwrite a couchbase json document with its unique ID.
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]
