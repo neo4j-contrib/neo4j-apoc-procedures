@@ -1,7 +1,9 @@
 package apoc.generate.config;
 
+import apoc.generate.relationship.RelationshipGenerator;
+
 /**
- * Configuration for a {@link apoc.generate.relationship.RelationshipGenerator}.
+ * Configuration for a {@link RelationshipGenerator}.
  */
 public interface RelationshipGeneratorConfig {
 

@@ -2,7 +2,7 @@ package apoc.util;
 
 import apoc.ApocConfig;
 import apoc.Pools;
-import apoc.convert.utils.ConvertUtils;
+import apoc.convert.ConvertUtils;
 import apoc.export.util.CountingInputStream;
 import apoc.export.util.ExportConfig;
 import apoc.result.VirtualNode;

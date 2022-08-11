@@ -1,6 +1,6 @@
 package apoc.trigger;
 
-import apoc.convert.utils.ConvertUtils;
+import apoc.convert.ConvertUtils;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.util.Util;

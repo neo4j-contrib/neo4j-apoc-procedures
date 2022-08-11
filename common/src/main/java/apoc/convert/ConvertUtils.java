@@ -1,4 +1,4 @@
-package apoc.convert.utils;
+package apoc.convert;
 
 import org.neo4j.internal.helpers.collection.Iterators;
 

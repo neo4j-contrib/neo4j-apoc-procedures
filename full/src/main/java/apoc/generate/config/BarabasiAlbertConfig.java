@@ -1,7 +1,9 @@
 package apoc.generate.config;
 
+import apoc.generate.relationship.BarabasiAlbertRelationshipGenerator;
+
 /**
- * {@link RelationshipGeneratorConfig} for {@link apoc.generate.relationship.BarabasiAlbertRelationshipGenerator}.
+ * {@link RelationshipGeneratorConfig} for {@link BarabasiAlbertRelationshipGenerator}.
  * <p/>
  * Permitted values: 0 &lt; edgesPerNode &lt; numberOfNodes
  * Recommended values: Interested in phenomenological model? Use low edgesPerNode value (2 ~ 3)

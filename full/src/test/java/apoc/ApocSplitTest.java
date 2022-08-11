@@ -189,6 +189,10 @@ public class ApocSplitTest {
 
             var expectedProcedures = Stream.concat(PROCEDURES_FROM_CORE.stream(), FULL_PROCEDURES.stream()).collect(Collectors.toSet());
             var expectedFunctions = Stream.concat(FUNCTIONS_FROM_CORE.stream(), FULL_FUNCTIONS.stream()).collect(Collectors.toSet());
+            expectedProcedures.stream().filter(s -> !procedureNames.contains( s ) ).collect(Collectors.toList()).forEach( s -> System.out.println(s) );
+            expectedFunctions.stream().filter(s -> !functionNames.contains( s ) ).collect(Collectors.toList()).forEach( s -> System.out.println(s) );
+            procedureNames.stream().filter(s -> !expectedProcedures.contains( s ) ).collect(Collectors.toList()).forEach( s -> System.out.println(s) );
+            functionNames.stream().filter(s -> !expectedFunctions.contains( s ) ).collect(Collectors.toList()).forEach( s -> System.out.println(s) );
 
             assertTrue(procedureNames.containsAll(expectedProcedures) && procedureNames.size() == expectedProcedures.size());
             assertTrue(functionNames.containsAll(expectedFunctions) && functionNames.size() == expectedFunctions.size());

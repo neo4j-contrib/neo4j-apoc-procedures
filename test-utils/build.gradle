@@ -1,34 +1,19 @@
 description = 'APOC :: Test Utils'
 
 dependencies {
-    api group: 'junit', name: 'junit', version: '4.13.2'
-
-    implementation group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests"
-    api group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective // , classifier: "tests"
-    api group: 'org.neo4j', name: 'log-test-utils', version: neo4jVersionEffective // , classifier: "tests"
-
-    implementation group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
-    implementation group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
-
-    implementation group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
-
-    api group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
-
-    implementation group: 'org.gradle', name: 'gradle-tooling-api', version: '7.2'
-
     def withoutServers = {
         exclude group: 'org.eclipse.jetty'
         exclude group: 'org.eclipse.jetty.aggregate'
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
 
+    api group: 'junit', name: 'junit', version: '4.13.2'
+    api group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective // , classifier: "tests"
+    api group: 'org.neo4j', name: 'log-test-utils', version: neo4jVersionEffective // , classifier: "tests"
+    api group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0'
     api group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.2', withoutServers
     api group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.2', withoutServers
     api group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.3.2', withoutServers
-
-    implementation group: 'org.jetbrains', name: 'annotations', version: "17.0.0"
-
-    // Test Containers
     api group: 'org.testcontainers', name: 'testcontainers', version: testContainersVersion
     api group: 'org.testcontainers', name: 'neo4j', version: testContainersVersion
     api group: 'org.testcontainers', name: 'elasticsearch', version: testContainersVersion
@@ -39,4 +24,10 @@ dependencies {
     api group: 'org.testcontainers', name: 'localstack', version: testContainersVersion
     api group: 'org.apache.arrow', name: 'arrow-vector', version: '7.0.0'
     api group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '7.0.0'
+
+    implementation group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests"
+    implementation group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
+    implementation group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
+    implementation group: 'org.gradle', name: 'gradle-tooling-api', version: '7.2'
+    implementation group: 'org.jetbrains', name: 'annotations', version: "17.0.0"
 }

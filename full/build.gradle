@@ -5,7 +5,6 @@ plugins {
     id 'com.github.johnrengelman.shadow'
     id 'maven-publish'
     id 'antlr'
-    id "org.sonarqube"
     id "org.jetbrains.kotlin.jvm" version "1.6.0"
     id "com.diffplug.spotless" version "6.7.2"
 }
@@ -45,65 +44,14 @@ shadowJar {
 }
 
 dependencies {
-    implementation project(":common")
-    testImplementation project(":common").sourceSets.test.output
-    testImplementation project(':test-utils')
-    testImplementation project(":core")
-
     apt project(":processor")
-
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib"
-    testImplementation "org.jetbrains.kotlin:kotlin-stdlib"
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
-//    implementation group: 'commons-codec', name: 'commons-codec', version: '1.14'
-    implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
-    implementation group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
-    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver-slim', version: '4.4.5'
-    implementation group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
 
     antlr "org.antlr:antlr4:4.7.2", {
         exclude group: 'org.glassfish'
         exclude group: 'com.ibm.icu'
         exclude group: 'org.abego.treelayout'
     }
-    // compileOnly "org.antlr:antlr4-runtime:4.7.2"
-    // testImplementation "org.antlr:antlr4-runtime:4.7.2"
-
-    compileOnly "org.apache.poi:poi:5.1.0"
-    testImplementation "org.apache.poi:poi:5.1.0"
-    compileOnly "org.apache.poi:poi-ooxml:5.1.0"
-    testImplementation "org.apache.poi:poi-ooxml:5.1.0"
-
-    implementation 'org.jsoup:jsoup:1.14.3'
-
-    // currently we cannot update selenium to the latest version due to guava minimum version required (31.0.1-jre)
-    compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59', { exclude group: 'com.google.guava', module: 'guava' }
-    testImplementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59', { exclude group: 'com.google.guava', module: 'guava' }
-    compileOnly group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.1.0'
-    testImplementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.1.0'
-    
-    implementation group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
-    implementation(group: 'org.apache.commons', name: 'commons-configuration2', version: '2.8.0') {
-        exclude group: "org.yaml"
-        exclude module: "snakeyaml"
-        exclude module: "commons-lang3"
-    }
-    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.26'
-    testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
-
-    testImplementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
-
-    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
-    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
-
-    testImplementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
-
-    testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
-    testImplementation group: 'org.neo4j.test', name: 'neo4j-harness', version: neo4jVersionEffective
-    testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.2.22.v20170606'
-    testImplementation group: 'org.apache.derby', name: 'derby', version: '10.12.1.1'
-
-    testImplementation group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
 
     def withoutServers = {
         exclude group: 'org.eclipse.jetty'
@@ -116,62 +64,64 @@ dependencies {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
     }
 
+    // These will be dependencies packaged with the .jar
+    implementation project(":common")
+    implementation group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.14.3'
+    implementation group: 'com.opencsv', name: 'opencsv', version: '4.6'
+    implementation group: 'com.github.javafaker', name: 'javafaker', version: '1.0.2'
+    implementation group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'
+
+    // These will be dependencies not packaged with the .jar
+    // They need to be provided either through the database or in an extra .jar
+    compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
+    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver-slim', version: '4.4.5'
+    compileOnly group: 'org.apache.poi', name: 'poi', version: '5.1.0'
+    compileOnly group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
+    compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59', {
+        exclude group: 'com.google.guava', module: 'guava'
+    }
+    compileOnly group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.1.0'
     compileOnly 'org.mongodb:mongodb-driver:3.2.2', {
         exclude group: 'io.netty'
     }
-    testImplementation 'org.mongodb:mongodb-driver:3.2.2', {
+    compileOnly group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', withoutJacksons
+    compileOnly group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
+    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2', withoutJacksons
+    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
+    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
+    compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
+    compileOnly group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: '1.6.0'
+
+    // These dependencies affect the tests only, they will not be packaged in the resulting .jar
+    testImplementation project(":common").sourceSets.test.output
+    testImplementation project(':test-utils')
+    testImplementation project(":core")
+    testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0'
+    testImplementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
+    testImplementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
+    testImplementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.1.0'
+    testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
+    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
+    testImplementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
+    testImplementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: '1.6.0'
+    testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
+    testImplementation group: 'org.apache.derby', name: 'derby', version: '10.12.1.1'
+    testImplementation group: 'org.mongodb', name: 'mongodb-driver', version: '3.2.2', {
         exclude group: 'io.netty'
     }
-
-    compileOnly group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', withoutJacksons
     testImplementation group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', withoutJacksons
-
-    compileOnly group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
     testImplementation group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
-
-    compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
-
-    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2', withoutJacksons
-    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
-
-    testImplementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2', withoutJacksons
-    testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
-
-    testImplementation 'org.mock-server:mockserver-netty:5.6.0'
-    testImplementation 'org.mock-server:mockserver-client-java:5.6.0'
-
-    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
+    testImplementation group: 'org.mock-server', name: 'mockserver-netty', version: '5.6.0'
+    testImplementation group: 'org.mock-server', name: 'mockserver-client-java', version: '5.6.0'
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
-
     testImplementation group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
-    implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
-    implementation group: 'com.opencsv', name: 'opencsv', version: '4.6'
-    compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
-    implementation group: 'com.github.javafaker', name: 'javafaker', version: '1.0.2'
-
-    // schemacrawler
-    implementation group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'
     testImplementation group: 'us.fatehi', name: 'schemacrawler-mysql', version: '15.04.01'
-
-    testImplementation group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
-
-    implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
-
     testImplementation group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
     testImplementation group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
-
-
     testImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.13.2'
-    testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
-    testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
-
-    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.1'
-    testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.1', {
-        exclude group: 'com.google.guava', module: 'guava'
-    }
-
-    compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     testImplementation group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
+    testImplementation group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'

@@ -3,7 +3,6 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.0'  apply false
     id 'maven-publish'
     id 'antlr'
-    id "org.sonarqube" version "2.7"
     id "com.github.hierynomus.license-report" version"0.16.1"
 }
 
@@ -71,7 +70,7 @@ subprojects {
 
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
-                'user.country ' : 'US',
+                'user.country' : 'US',
                 'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise' : 'neo4j:5.0.0-dev-enterprise',
                 'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") : 'neo4j:5.0.0-dev'
 

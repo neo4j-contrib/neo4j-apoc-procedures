@@ -1,7 +1,9 @@
 package apoc.generate.config;
 
+import apoc.generate.relationship.WattsStrogatzRelationshipGenerator;
+
 /**
- * {@link RelationshipGeneratorConfig} for {@link apoc.generate.relationship.WattsStrogatzRelationshipGenerator}.
+ * {@link RelationshipGeneratorConfig} for {@link WattsStrogatzRelationshipGenerator}.
  *
  * meanDegree: degree which a node in the graph has on average (best to choose something &lt; 10)
  * numberOfNodes: number of nodes present in the graph
