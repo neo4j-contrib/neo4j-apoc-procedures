@@ -180,7 +180,7 @@ dependencies {
     // schemacrawler
     compile group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'
     testCompile group: 'us.fatehi', name: 'schemacrawler-mysql', version: '15.04.01'
-
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.7'
 
     testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
