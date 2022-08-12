@@ -73,6 +73,7 @@ public class Trigger {
         return Stream.of(new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"), (Map<String, Object>) removed.get("params"),false, false));
     }
 
+    //some comment
     @Procedure(mode = Mode.WRITE)
     @Description("removes all previously added trigger, returns trigger information")
     public Stream<TriggerInfo> removeAll() {
