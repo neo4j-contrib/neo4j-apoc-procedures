@@ -2,4 +2,4 @@
 
  - executes fragments in parallel batches through a list defined in `paramMap` with a key `keyList`
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

@@ -2,4 +2,4 @@
 
 `apoc.monitor.store() returns informations about the sizes of the different parts of the neo4j graph store`
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

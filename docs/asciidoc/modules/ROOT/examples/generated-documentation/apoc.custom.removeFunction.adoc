@@ -2,4 +2,4 @@
 
 `apoc.custom.removeFunction(name, type)` - remove the targeted custom function
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

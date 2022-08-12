@@ -2,4 +2,4 @@
 
 `apoc.get.rels(rel|id|[ids])` - quickly returns all relationships with these id's
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

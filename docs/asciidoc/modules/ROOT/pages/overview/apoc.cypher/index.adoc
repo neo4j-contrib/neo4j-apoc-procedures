@@ -17,22 +17,22 @@ apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with 
 
 apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.mapParallel2.adoc[apoc.cypher.mapParallel2 icon:book[]]
 
 apoc.cypher.mapParallel2(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.parallel.adoc[apoc.cypher.parallel icon:book[]]
 
 apoc.cypher.parallel(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel through a list defined in `paramMap` with a key `keyList`
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.parallel2.adoc[apoc.cypher.parallel2 icon:book[]]
 
 apoc.cypher.parallel2(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel batches through a list defined in `paramMap` with a key `keyList`
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.run.adoc[apoc.cypher.run icon:book[]]
 
 apoc.cypher.run(fragment, params) yield value - executes reading fragment with the given parameters - currently no schema operations
@@ -42,12 +42,12 @@ apoc.cypher.run(fragment, params) yield value - executes reading fragment with t
 
 apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.runFiles.adoc[apoc.cypher.runFiles icon:book[]]
 
 apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each statement in the files, all semicolon separated
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.runMany.adoc[apoc.cypher.runMany icon:book[]]
 
 apoc.cypher.runMany('cypher;\nstatements;', $params, [{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations
@@ -67,12 +67,12 @@ apoc.cypher.runSchema(statement, params) yield value - executes query schema sta
 
 apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.runSchemaFiles.adoc[apoc.cypher.runSchemaFiles icon:book[]]
 
 apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema statement in the files, all semicolon separated
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.runTimeboxed.adoc[apoc.cypher.runTimeboxed icon:book[]]
 
 apoc.cypher.runTimeboxed('cypherStatement',\{params}, timeout) - abort kernelTransaction after timeout ms if not finished

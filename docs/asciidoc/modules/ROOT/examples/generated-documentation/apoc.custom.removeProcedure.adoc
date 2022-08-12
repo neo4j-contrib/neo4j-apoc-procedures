@@ -2,4 +2,4 @@
 
 `apoc.custom.removeProcedure(name)` - remove the targeted custom procedure
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

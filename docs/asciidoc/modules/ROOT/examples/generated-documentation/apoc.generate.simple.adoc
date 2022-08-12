@@ -2,4 +2,4 @@
 
 `apoc.generate.simple(degrees, label, type)` - generates a simple random graph according to the given degree distribution
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

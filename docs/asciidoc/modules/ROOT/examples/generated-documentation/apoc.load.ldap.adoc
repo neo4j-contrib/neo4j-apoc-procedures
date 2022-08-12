@@ -2,4 +2,4 @@
 
 `apoc.load.ldap("key" or \{connectionMap},\{searchMap}) Load entries from an ldap source (yield entry)`
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

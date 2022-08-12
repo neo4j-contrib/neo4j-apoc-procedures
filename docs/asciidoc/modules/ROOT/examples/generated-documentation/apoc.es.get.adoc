@@ -2,4 +2,4 @@
 
 `apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value` - perform a GET operation on elastic search
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

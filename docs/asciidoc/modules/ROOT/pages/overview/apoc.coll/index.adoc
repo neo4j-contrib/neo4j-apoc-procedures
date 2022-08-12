@@ -37,7 +37,7 @@ apoc.coll.avg([0.5,1,2.3])
 
 apoc.coll.avgDuration([duration('P2DT3H'), duration('PT1H45S'), ...]) -  returns the average of a list of duration values
 |label:function[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.coll/apoc.coll.combinations.adoc[apoc.coll.combinations icon:book[]]
 
 apoc.coll.combinations(coll, minSelect, maxSelect:minSelect) - Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive

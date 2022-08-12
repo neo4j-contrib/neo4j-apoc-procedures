@@ -206,12 +206,12 @@ apoc.bolt.execute(url-or-key, kernelTransaction, params, config) - access to oth
 
 apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.bolt/apoc.bolt.load.fromLocal.adoc[apoc.bolt.load.fromLocal icon:book[]]
 
 
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.coll/index.adoc[]
@@ -248,7 +248,7 @@ apoc.coll.avg([0.5,1,2.3])
 
 apoc.coll.avgDuration([duration('P2DT3H'), duration('PT1H45S'), ...]) -  returns the average of a list of duration values
 |label:function[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.coll/apoc.coll.combinations.adoc[apoc.coll.combinations icon:book[]]
 
 apoc.coll.combinations(coll, minSelect, maxSelect:minSelect) - Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive
@@ -491,12 +491,12 @@ apoc.coll.zip([list1],[list2])
 
 apoc.config.list \| Lists the Neo4j configuration as key,value table
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.config/apoc.config.map.adoc[apoc.config.map icon:book[]]
 
 apoc.config.map \| Lists the Neo4j configuration as map
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.convert/index.adoc[]
@@ -625,57 +625,57 @@ apoc.convert.toStringList(value) \| tries it's best to convert the value to a li
 
 apoc.couchbase.append(hostOrKey, bucket, documentId, content, config) yield id, expiry, cas, mutationToken, content - append a couchbase json document to an existing one.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.couchbase/apoc.couchbase.exists.adoc[apoc.couchbase.exists icon:book[]]
 
 apoc.couchbase.exists(hostOrKey, bucket, documentId, config) yield value - check whether a couchbase json document with the given ID does exist.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.couchbase/apoc.couchbase.get.adoc[apoc.couchbase.get icon:book[]]
 
 apoc.couchbase.get(hostOrKey, bucket, documentId, config) yield id, expiry, cas, mutationToken, content - retrieves a couchbase json document by its unique ID.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.couchbase/apoc.couchbase.insert.adoc[apoc.couchbase.insert icon:book[]]
 
 apoc.couchbase.insert(hostOrKey, bucket, documentId, jsonDocument, config) yield id, expiry, cas, mutationToken, content - insert a couchbase json document with its unique ID.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.couchbase/apoc.couchbase.namedParamsQuery.adoc[apoc.couchbase.namedParamsQuery icon:book[]]
 
 apoc.couchbase.namedParamsQuery(hostkOrKey, bucket, statement, paramNames, paramValues, config) yield queryResult - executes a N1QL statement with named parameters.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.couchbase/apoc.couchbase.posParamsQuery.adoc[apoc.couchbase.posParamsQuery icon:book[]]
 
 apoc.couchbase.posParamsQuery(hostOrKey, bucket, statement, params, config) yield queryResult - executes a N1QL statement with positional parameters.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.couchbase/apoc.couchbase.prepend.adoc[apoc.couchbase.prepend icon:book[]]
 
 apoc.couchbase.prepend(hostOrKey, bucket, documentId, content, config) yield id, expiry, cas, mutationToken, content - prepend a couchbase json document to an existing one.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.couchbase/apoc.couchbase.query.adoc[apoc.couchbase.query icon:book[]]
 
 apoc.couchbase.query(hostOrKey, bucket, statement, config) yield queryResult - executes a plain un-parameterized N1QL statement.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.couchbase/apoc.couchbase.remove.adoc[apoc.couchbase.remove icon:book[]]
 
 apoc.couchbase.remove(hostOrKey, bucket, documentId, config) yield id, expiry, cas, mutationToken, content - remove the couchbase json document identified by its unique ID.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.couchbase/apoc.couchbase.replace.adoc[apoc.couchbase.replace icon:book[]]
 
 apoc.couchbase.replace(hostOrKey, bucket, documentId, jsonDocument, config) yield id, expiry, cas, mutationToken, content - replace the content of the couchbase json document identified by its unique ID.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.couchbase/apoc.couchbase.upsert.adoc[apoc.couchbase.upsert icon:book[]]
 
 apoc.couchbase.upsert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert or overwrite a couchbase json document with its unique ID.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.create/index.adoc[]
@@ -799,27 +799,27 @@ apoc.create.virtual.fromNode(node, [propertyNames]) returns a virtual node built
 
 apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.custom/apoc.custom.declareProcedure.adoc[apoc.custom.declareProcedure icon:book[]]
 
 apoc.custom.declareProcedure(signature, statement, mode, description) - register a custom cypher procedure
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.custom/apoc.custom.list.adoc[apoc.custom.list icon:book[]]
 
 apoc.custom.list() - provide a list of custom procedures/function registered
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.custom/apoc.custom.removeFunction.adoc[apoc.custom.removeFunction icon:book[]]
 
 apoc.custom.removeFunction(name, type) - remove the targeted custom function
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.custom/apoc.custom.removeProcedure.adoc[apoc.custom.removeProcedure icon:book[]]
 
 apoc.custom.removeProcedure(name) - remove the targeted custom procedure
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.cypher/index.adoc[]
@@ -836,22 +836,22 @@ apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with 
 
 apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.mapParallel2.adoc[apoc.cypher.mapParallel2 icon:book[]]
 
 apoc.cypher.mapParallel2(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.parallel.adoc[apoc.cypher.parallel icon:book[]]
 
 apoc.cypher.parallel(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel through a list defined in `paramMap` with a key `keyList`
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.parallel2.adoc[apoc.cypher.parallel2 icon:book[]]
 
 apoc.cypher.parallel2(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel batches through a list defined in `paramMap` with a key `keyList`
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.run.adoc[apoc.cypher.run icon:book[]]
 
 apoc.cypher.run(fragment, params) yield value - executes reading fragment with the given parameters - currently no schema operations
@@ -861,12 +861,12 @@ apoc.cypher.run(fragment, params) yield value - executes reading fragment with t
 
 apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.runFiles.adoc[apoc.cypher.runFiles icon:book[]]
 
 apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each statement in the files, all semicolon separated
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.runMany.adoc[apoc.cypher.runMany icon:book[]]
 
 apoc.cypher.runMany('cypher;\nstatements;', $params, [{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations
@@ -886,12 +886,12 @@ apoc.cypher.runSchema(statement, params) yield value - executes query schema sta
 
 apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.runSchemaFiles.adoc[apoc.cypher.runSchemaFiles icon:book[]]
 
 apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema statement in the files, all semicolon separated
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.cypher/apoc.cypher.runTimeboxed.adoc[apoc.cypher.runTimeboxed icon:book[]]
 
 apoc.cypher.runTimeboxed('cypherStatement',\{params}, timeout) - abort kernelTransaction after timeout ms if not finished
@@ -924,7 +924,7 @@ apoc.cypher.runFirstColumnSingle(statement, params) - executes statement with gi
 
 apoc.data.email('email_address') as {personal,user,domain} - extract the personal name, user and domain as a map
 |label:function[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.data/apoc.data.url.adoc[apoc.data.url icon:book[]]
 
 apoc.data.url('url') as {protocol,host,port,path,query,file,anchor,user} \| turn URL into map structure
@@ -1071,37 +1071,37 @@ Query a virtualized resource by name and return virtual nodes linked using virtu
 
 apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a GET operation on elastic search
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.es/apoc.es.getRaw.adoc[apoc.es.getRaw icon:book[]]
 
 apoc.es.getRaw(host-or-port,path,payload-or-null) yield value - perform a raw GET operation on elastic search
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.es/apoc.es.post.adoc[apoc.es.post icon:book[]]
 
 apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a POST operation on elastic search
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.es/apoc.es.postRaw.adoc[apoc.es.postRaw icon:book[]]
 
 apoc.es.postRaw(host-or-port,path,payload-or-null) yield value - perform a raw POST operation on elastic search
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.es/apoc.es.put.adoc[apoc.es.put icon:book[]]
 
 apoc.es.put(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a PUT operation on elastic search
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.es/apoc.es.query.adoc[apoc.es.query icon:book[]]
 
 apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a SEARCH operation on elastic search
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.es/apoc.es.stats.adoc[apoc.es.stats icon:book[]]
 
 apoc.es.stats(host-url-Key) - elastic search statistics
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 [discrete]
@@ -1211,22 +1211,22 @@ apoc.export.json.query(query,file,{config,...,params:\{params}}) - exports resul
 
 apoc.export.xls.all(file,config) - exports whole database as xls to the provided file
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.export/apoc.export.xls.data.adoc[apoc.export.xls.data icon:book[]]
 
 apoc.export.xls.data(nodes,rels,file,config) - exports given nodes and relationships as xls to the provided file
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.export/apoc.export.xls.graph.adoc[apoc.export.xls.graph icon:book[]]
 
 apoc.export.xls.graph(graph,file,config) - exports given graph object as xls to the provided file
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.export/apoc.export.xls.query.adoc[apoc.export.xls.query icon:book[]]
 
 apoc.export.xls.query(query,file,{config,...,params:\{params}}) - exports results from the cypher statement as xls to the provided file
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.generate/index.adoc[]
@@ -1238,27 +1238,27 @@ apoc.export.xls.query(query,file,{config,...,params:\{params}}) - exports result
 
 apoc.generate.ba(noNodes, edgesPerNode, label, type) - generates a random graph according to the Barabasi-Albert model
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.generate/apoc.generate.complete.adoc[apoc.generate.complete icon:book[]]
 
 apoc.generate.complete(noNodes, label, type) - generates a random complete graph
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.generate/apoc.generate.er.adoc[apoc.generate.er icon:book[]]
 
 apoc.generate.er(noNodes, noEdges, label, type) - generates a random graph according to the Erdos-Renyi model
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.generate/apoc.generate.simple.adoc[apoc.generate.simple icon:book[]]
 
 apoc.generate.simple(degrees, label, type) - generates a simple random graph according to the given degree distribution
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.generate/apoc.generate.ws.adoc[apoc.generate.ws icon:book[]]
 
 apoc.generate.ws(noNodes, degree, beta, label, type) - generates a random graph according to the Watts-Strogatz model
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 [discrete]
@@ -1271,7 +1271,7 @@ apoc.generate.ws(noNodes, degree, beta, label, type) - generates a random graph 
 
 apoc.gephi.add(url-or-key, workspace, data, weightproperty, ['exportproperty']) \| streams passed in data to Gephi
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 [discrete]
@@ -1284,12 +1284,12 @@ apoc.gephi.add(url-or-key, workspace, data, weightproperty, ['exportproperty']) 
 
 apoc.get.nodes(node\|id\|[ids]) - quickly returns all nodes with these id's
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.get/apoc.get.rels.adoc[apoc.get.rels icon:book[]]
 
 apoc.get.rels(rel\|id\|[ids]) - quickly returns all relationships with these id's
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.graph/index.adoc[]
@@ -1424,63 +1424,63 @@ apoc.label.exists(element, label) - returns true or false related to label exist
 apoc.load.csv('urlOrBinary',\{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.csvParams.adoc[apoc.load.csvParams icon:book[]]
 
 apoc.load.csvParams('urlOrBinary', {httpHeader: value}, payload, \{config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.directory.adoc[apoc.load.directory icon:book[]]
 
 apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of all files in folder specified by urlDir or in import folder if urlDir string is empty or not specified
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.directory.async.add.adoc[apoc.load.directory.async.add icon:book[]]
 
 apoc.load.directory.async.add(name, cypher, pattern, urlDir, {}) YIELD name, status, pattern, cypher, urlDir, config, error - Add or replace a folder listener with a specific name, pattern and url directory that execute the specified cypher query when an event is triggered and return listener list
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.directory.async.list.adoc[apoc.load.directory.async.list icon:book[]]
 
 apoc.load.directory.async.list() YIELD name, status, pattern, cypher, urlDir, config, error - List of all folder listeners
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.directory.async.remove.adoc[apoc.load.directory.async.remove icon:book[]]
 
 apoc.load.directory.async.remove(name) YIELD name, status, pattern, cypher, urlDir, config, error - Remove a folder listener by name and return remaining listeners, if any
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.directory.async.removeAll.adoc[apoc.load.directory.async.removeAll icon:book[]]
 
 apoc.load.directory.async.removeAll() - Remove all folder listeners
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.driver.adoc[apoc.load.driver icon:book[]]
 
 apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.html.adoc[apoc.load.html icon:book[]]
 
 apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.htmlPlainText.adoc[apoc.load.htmlPlainText icon:book[]]
 
 apoc.load.htmlPlainText('urlOrHtml',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.jdbc.adoc[apoc.load.jdbc icon:book[]]
 
 apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.jdbcUpdate.adoc[apoc.load.jdbcUpdate icon:book[]]
 
 apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - update relational database, from a SQL statement with optional parameters
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.json.adoc[apoc.load.json icon:book[]]
 
 apoc.load.json('urlOrKeyOrBinary',path, config) YIELD value - import JSON as stream of values if the JSON was an array or a single value if it was a map
@@ -1500,13 +1500,13 @@ apoc.load.jsonParams('urlOrKeyOrBinary',{header:value},payload, config) YIELD va
 
 apoc.load.ldap("key" or \{connectionMap},\{searchMap}) Load entries from an ldap source (yield entry)
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.xls.adoc[apoc.load.xls icon:book[]]
 
 apoc.load.xls('url','selector',\{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
  config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false, dateFormat:'iso_date', dateParse:['dd-MM-yyyy']}}
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.xml.adoc[apoc.load.xml icon:book[]]
 
 apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.
@@ -1555,17 +1555,17 @@ apoc.lock.rels([relationships]) acquires a write lock on the given relationship
 
 apoc.log.debug(message, params) - logs debug message
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.log/apoc.log.error.adoc[apoc.log.error icon:book[]]
 
 apoc.log.error(message, params) - logs error message
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.log/apoc.log.info.adoc[apoc.log.info icon:book[]]
 
 apoc.log.info(message, params) - logs info message
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.log/apoc.log.stream.adoc[apoc.log.stream icon:book[]]
 
 apoc.log.stream('neo4j.log', { last: n }) - retrieve log file contents, optionally return only the last n lines
@@ -1575,7 +1575,7 @@ apoc.log.stream('neo4j.log', { last: n }) - retrieve log file contents, optional
 
 apoc.log.warn(message, params) - logs warn message
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.map/index.adoc[]
@@ -1910,17 +1910,17 @@ apoc.meta.nodes.count([labels], $config) - Returns the sum of the nodes with a l
 
 apoc.metrics.get(metricName, {}) - retrieve a system metric by its metric name. Additional configuration options may be passed matching the options available for apoc.load.csv.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.metrics/apoc.metrics.list.adoc[apoc.metrics.list icon:book[]]
 
 apoc.metrics.list() - get a list of available metrics
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.metrics/apoc.metrics.storage.adoc[apoc.metrics.storage icon:book[]]
 
 apoc.metrics.storage(directorySetting) - retrieve storage metrics about the devices Neo4j uses for data storage. directorySetting may be any valid neo4j directory setting name, such as 'server.directories.data'.  If null is provided as a directorySetting, you will get back all available directory settings.  For a list of available directory settings, see the Neo4j operations manual reference on configuration settings.   Directory settings are **not** paths, they are a neo4j.conf setting key name
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 [discrete]
@@ -1933,7 +1933,7 @@ apoc.metrics.storage(directorySetting) - retrieve storage metrics about the devi
 
 apoc.model.jdbc('key or url', {schema:'<schema>', write: <true/false>, filters: { tables:[], views: [], columns: []}) YIELD nodes, relationships - load schema from relational database
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.mongo/index.adoc[]
@@ -1945,32 +1945,32 @@ apoc.model.jdbc('key or url', {schema:'<schema>', write: <true/false>, filters: 
 
 apoc.mongo.aggregate(uri, pipeline, $config) yield value - perform an aggregate operation on mongodb collection
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.mongo/apoc.mongo.count.adoc[apoc.mongo.count icon:book[]]
 
 apoc.mongo.count(uri, query, $config) yield value - perform a count operation on mongodb collection
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.mongo/apoc.mongo.delete.adoc[apoc.mongo.delete icon:book[]]
 
 apoc.mongo.delete(uri, query, $config) - delete the given documents from the mongodb collection and returns the number of affected documents
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.mongo/apoc.mongo.find.adoc[apoc.mongo.find icon:book[]]
 
 apoc.mongo.find(uri, query, $config) yield value - perform a find operation on mongodb collection
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.mongo/apoc.mongo.insert.adoc[apoc.mongo.insert icon:book[]]
 
 apoc.mongo.insert(uri, documents, $config) yield value - inserts the given documents into the mongodb collection
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.mongo/apoc.mongo.update.adoc[apoc.mongo.update icon:book[]]
 
 apoc.mongo.update(uri, query, update, $config) - updates the given documents from the mongodb collection and returns the number of affected documents
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.mongodb/index.adoc[]
@@ -1982,7 +1982,7 @@ apoc.mongo.update(uri, query, update, $config) - updates the given documents fro
 
 apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.monitor/index.adoc[]
@@ -1994,22 +1994,22 @@ apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(def
 
 apoc.monitor.ids() returns the object ids in use for this neo4j instance
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.monitor/apoc.monitor.kernel.adoc[apoc.monitor.kernel icon:book[]]
 
 apoc.monitor.kernel() returns informations about the neo4j kernel
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.monitor/apoc.monitor.store.adoc[apoc.monitor.store icon:book[]]
 
 apoc.monitor.store() returns informations about the sizes of the different parts of the neo4j graph store
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.monitor/apoc.monitor.tx.adoc[apoc.monitor.tx icon:book[]]
 
 apoc.monitor.tx() returns informations about the neo4j transaction manager
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.neighbors/index.adoc[]
@@ -2058,32 +2058,32 @@ apoc.neighbors.tohop.count(node, rel-direction-pattern, distance) - returns dist
 
 Creates a (virtual) entity graph for provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.nlp/apoc.nlp.aws.entities.stream.adoc[apoc.nlp.aws.entities.stream icon:book[]]
 
 Returns a stream of entities for provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.nlp/apoc.nlp.aws.keyPhrases.graph.adoc[apoc.nlp.aws.keyPhrases.graph icon:book[]]
 
 Creates a (virtual) key phrases graph for provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.nlp/apoc.nlp.aws.keyPhrases.stream.adoc[apoc.nlp.aws.keyPhrases.stream icon:book[]]
 
 Returns a stream of key phrases for provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.nlp/apoc.nlp.aws.sentiment.graph.adoc[apoc.nlp.aws.sentiment.graph icon:book[]]
 
 Creates a (virtual) sentiment graph for provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.nlp/apoc.nlp.aws.sentiment.stream.adoc[apoc.nlp.aws.sentiment.stream icon:book[]]
 
 Returns stream of sentiment for items in provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.nlp/apoc.nlp.azure.entities.graph.adoc[apoc.nlp.azure.entities.graph icon:book[]]
 
 Creates a (virtual) entity graph for provided text
@@ -2118,22 +2118,22 @@ Provides a sentiment analysis for provided text
 
 Classifies a document into categories.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.nlp/apoc.nlp.gcp.classify.stream.adoc[apoc.nlp.gcp.classify.stream icon:book[]]
 
 Classifies a document into categories.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.nlp/apoc.nlp.gcp.entities.graph.adoc[apoc.nlp.gcp.entities.graph icon:book[]]
 
 Creates a (virtual) entity graph for provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.nlp/apoc.nlp.gcp.entities.stream.adoc[apoc.nlp.gcp.entities.stream icon:book[]]
 
 Returns a stream of entities for provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.node/index.adoc[]
@@ -2420,152 +2420,152 @@ apoc.periodic.truncate(\{config}) - removes all entities (and optionally indexes
 
 apoc.redis.append(uri, key, value, \{config}) \| Execute the 'APPEND key value' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.configGet.adoc[apoc.redis.configGet icon:book[]]
 
 apoc.redis.configGet(uri, parameter, \{config}) \| Execute the 'CONFIG GET parameter' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.configSet.adoc[apoc.redis.configSet icon:book[]]
 
 apoc.redis.configSet(uri, parameter, \{config}) \| Execute the 'CONFIG SET parameter value' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.copy.adoc[apoc.redis.copy icon:book[]]
 
 apoc.redis.copy(uri, source, destination, \{config}) \| Execute the 'COPY source destination' command and returns true if source was copied and false otherwise
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.eval.adoc[apoc.redis.eval icon:book[]]
 
 apoc.redis.eval(uri, script, outputType, keys, values, \{config}) \| Execute the 'EVAL script' command. In the parameters provided to the procedure, keys are bound to the KEYS[n] like special array of the Lua script and values are bound to the ARGV[n] like special array of the Lua script.
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.exists.adoc[apoc.redis.exists icon:book[]]
 
 apoc.redis.exists(uri, keys, \{config}) \| Execute the 'EXISTS keys' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.get.adoc[apoc.redis.get icon:book[]]
 
 apoc.redis.get(uri, key, \{config}) \| Execute the 'GET key' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.hdel.adoc[apoc.redis.hdel icon:book[]]
 
 apoc.redis.hdel(uri, key, fields, \{config}) \| Execute the 'HDEL key fields' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.hexists.adoc[apoc.redis.hexists icon:book[]]
 
 apoc.redis.hexists(uri, key, field, \{config}) \| Execute the 'HEXISTS key field' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.hget.adoc[apoc.redis.hget icon:book[]]
 
 apoc.redis.hget(uri, key, field, \{config}) \| Execute the 'HGET key field' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.hgetall.adoc[apoc.redis.hgetall icon:book[]]
 
 apoc.redis.hgetall(uri, key, \{config}) \| Execute the 'HGETALL key' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.hincrby.adoc[apoc.redis.hincrby icon:book[]]
 
 apoc.redis.hincrby(uri, key, field, amount, \{config}) \| Execute the 'HINCRBY key field amount' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.hset.adoc[apoc.redis.hset icon:book[]]
 
 apoc.redis.hset(uri, key, field, value, \{config}) \| Execute the 'HSET key field value' command and returns true if it is a new field in the hash or false if the field already exists
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.incrby.adoc[apoc.redis.incrby icon:book[]]
 
 apoc.redis.incrby(uri, key, amount, \{config}) \| Execute the 'INCRBY key increment' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.info.adoc[apoc.redis.info icon:book[]]
 
 apoc.redis.info(uri, \{config}) \| Execute the 'INFO' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.lrange.adoc[apoc.redis.lrange icon:book[]]
 
 apoc.redis.lrange(uri, key, start, stop, \{config}) \| Execute the 'LRANGE key start stop' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.persist.adoc[apoc.redis.persist icon:book[]]
 
 apoc.redis.persist(uri, key, \{config}) \| Execute the 'PERSIST key' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.pexpire.adoc[apoc.redis.pexpire icon:book[]]
 
 apoc.redis.pexpire(uri, key, time, isExpireAt \{config}) \| Execute the 'PEXPIRE key time' command, or the 'PEPXPIREAT' if isExpireAt=true
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.pop.adoc[apoc.redis.pop icon:book[]]
 
 apoc.redis.pop(uri, key, \{config}) \| Execute the 'LPOP key' command, or the 'RPOP' if config right=true (default)
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.pttl.adoc[apoc.redis.pttl icon:book[]]
 
 apoc.redis.pttl(uri, key, \{config}) \| Execute the 'PTTL key' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.push.adoc[apoc.redis.push icon:book[]]
 
 apoc.redis.push(uri, key, values, \{config}) \| Execute the 'LPUSH key field values' command, or the 'RPUSH' if config right=true (default)
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.sadd.adoc[apoc.redis.sadd icon:book[]]
 
 apoc.redis.sadd(uri, key, members, \{config}) \| Execute the 'SADD key members' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.scard.adoc[apoc.redis.scard icon:book[]]
 
 apoc.redis.scard(uri, key, \{config}) \| Execute the 'SCARD key' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.smembers.adoc[apoc.redis.smembers icon:book[]]
 
 apoc.redis.smembers(uri, key, \{config}) \| Execute the 'SMEMBERS key' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.spop.adoc[apoc.redis.spop icon:book[]]
 
 apoc.redis.spop(uri, key, \{config}) \| Execute the 'SPOP key' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.sunion.adoc[apoc.redis.sunion icon:book[]]
 
 apoc.redis.sunion(uri, keys, \{config}) \| Execute the 'SUNION keys' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.zadd.adoc[apoc.redis.zadd icon:book[]]
 
 apoc.redis.zadd(uri, keys, scoresAndMembers, \{config}) \| Execute the 'ZADD key scoresAndMembers' command, where scoresAndMembers is a list of score,member,score,member,...
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.zcard.adoc[apoc.redis.zcard icon:book[]]
 
 apoc.redis.zcard(uri, key, \{config}) \| Execute the 'ZCARD key' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.zrangebyscore.adoc[apoc.redis.zrangebyscore icon:book[]]
 
 apoc.redis.zrangebyscore(uri, key, min, max, \{config}) \| Execute the 'ZRANGEBYSCORE key min max' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.redis/apoc.redis.zrem.adoc[apoc.redis.zrem icon:book[]]
 
 apoc.redis.zrem(uri, key, members, \{config}) \| Execute the 'ZREM key members' command
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.refactor/index.adoc[]
@@ -2830,22 +2830,22 @@ apoc.spatial.sortByDistance(List<Path>) sort the given paths based on the geo in
 
 apoc.static.list(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.static/apoc.static.set.adoc[apoc.static.set icon:book[]]
 
 apoc.static.set(name, value) - stores value under key for server lifetime storage, returns previously stored or configured value
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.static/apoc.static.get.adoc[apoc.static.get icon:book[]]
 
 apoc.static.get(name) - returns statically stored value from config (apoc.static.<key>) or server lifetime storage
 |label:function[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.static/apoc.static.getAll.adoc[apoc.static.getAll icon:book[]]
 
 apoc.static.getAll(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage
 |label:function[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 [discrete]
@@ -2871,7 +2871,7 @@ apoc.static.getAll(prefix) - returns statically stored values from config (apoc.
 
 
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.systemdb/apoc.systemdb.export.metadata.adoc[apoc.systemdb.export.metadata icon:book[]]
 
 
@@ -2881,7 +2881,7 @@ apoc.static.getAll(prefix) - returns statically stored values from config (apoc.
 
 
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.temporal/index.adoc[]
@@ -3187,12 +3187,12 @@ CALL apoc.trigger.resume(name) \| it resumes the paused trigger
 
 
 |label:function[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.trigger/apoc.trigger.propertiesByKey.adoc[apoc.trigger.propertiesByKey icon:book[]]
 
 
 |label:function[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.ttl/index.adoc[]
@@ -3204,17 +3204,17 @@ CALL apoc.trigger.resume(name) \| it resumes the paused trigger
 
 CALL apoc.ttl.expire(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.ttl/apoc.ttl.expireIn.adoc[apoc.ttl.expireIn icon:book[]]
 
 CALL apoc.ttl.expireIn(node,timeDelta,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.ttl/apoc.ttl.config.adoc[apoc.ttl.config icon:book[]]
 
 
 |label:function[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 == xref::overview/apoc.util/index.adoc[]
@@ -3284,22 +3284,22 @@ apoc.util.validatePredicate(predicate, message, params) \| if the predicate yiel
 CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult \| it will add the uuid transaction handler
 for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.uuid/apoc.uuid.list.adoc[apoc.uuid.list icon:book[]]
 
 CALL apoc.uuid.list() yield label, installed, properties \| provides a list of all the uuid handlers installed with the related configuration
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.uuid/apoc.uuid.remove.adoc[apoc.uuid.remove icon:book[]]
 
 CALL apoc.uuid.remove(label) yield label, installed, properties \| remove previously added uuid handler and returns uuid information. All the existing uuid properties are left as-is
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.uuid/apoc.uuid.removeAll.adoc[apoc.uuid.removeAll icon:book[]]
 
 CALL apoc.uuid.removeAll() yield label, installed, properties \| it removes all previously added uuid handlers and returns uuids information. All the existing uuid properties are left as-is
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |===
 
 [discrete]

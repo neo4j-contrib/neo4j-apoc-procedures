@@ -2,4 +2,4 @@
 
 `apoc.couchbase.append(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content` - append a couchbase json document to an existing one.
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

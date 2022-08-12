@@ -2,4 +2,4 @@
 
 `apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row` - update relational database, from a SQL statement with optional parameters
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

@@ -2,4 +2,4 @@
 
 `apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}]))` - runs each statement in the files, all semicolon separated
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

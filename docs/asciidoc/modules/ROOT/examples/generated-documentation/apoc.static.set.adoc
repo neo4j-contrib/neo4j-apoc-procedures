@@ -2,4 +2,4 @@
 
 `apoc.static.set(name, value)` - stores value under key for server lifetime storage, returns previously stored or configured value
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

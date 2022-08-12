@@ -3,24 +3,24 @@
 
 apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.declareProcedure icon:book[]]
 
 apoc.custom.declareProcedure(signature, statement, mode, description) - register a custom cypher procedure
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.list icon:book[]]
 
 apoc.custom.list() - provide a list of custom procedures/function registered
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.removeFunction icon:book[]]
 
 apoc.custom.removeFunction(name, type) - remove the targeted custom function
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.custom/apoc.custom.adoc[apoc.custom.removeProcedure icon:book[]]
 
 apoc.custom.removeProcedure(name) - remove the targeted custom procedure
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]

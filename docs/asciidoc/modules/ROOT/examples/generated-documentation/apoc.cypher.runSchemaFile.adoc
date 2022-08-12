@@ -2,4 +2,4 @@
 
 `apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}])` - allows only schema operations, runs each schema statement in the file, all semicolon separated
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

@@ -2,4 +2,4 @@
 
 `apoc.log.error(message, params)` - logs error message
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

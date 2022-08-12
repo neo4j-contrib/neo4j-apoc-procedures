@@ -2,4 +2,4 @@
 
 `apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database`
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

@@ -2,4 +2,4 @@
 
 `apoc.export.xls.query(query,file,{config,...,params:\{params}})` - exports results from the cypher statement as xls to the provided file
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

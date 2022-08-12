@@ -2,4 +2,4 @@
 
 `apoc.redis.spop(uri, key, \{config}) | Execute the 'SPOP key' command`
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

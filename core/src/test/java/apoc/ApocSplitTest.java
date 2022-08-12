@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import org.neo4j.driver.Session;
 
 /*
- This test is just to verify the split of core and full
+ This test is just to verify the split of core and extended
  */
 public class ApocSplitTest {
     public static final Set<String> CORE_PROCEDURES = Set.of(
