@@ -2,4 +2,4 @@
 
 `apoc.custom.declareProcedure(signature, statement, mode, description)` - register a custom cypher procedure
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

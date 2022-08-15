@@ -2,4 +2,4 @@
 
 `apoc.metrics.get(metricName, {})` - retrieve a system metric by its metric name. Additional configuration options may be passed matching the options available for apoc.load.csv.
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

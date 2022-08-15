@@ -2,4 +2,4 @@
 
 `apoc.monitor.tx() returns informations about the neo4j transaction manager`
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

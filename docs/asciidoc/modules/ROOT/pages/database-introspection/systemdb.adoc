@@ -23,7 +23,7 @@ include::example$generated-documentation/apoc.systemdb.execute.adoc[]
 
 
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]
 
 |===
 

@@ -2,4 +2,4 @@
 
 `apoc.gephi.add(url-or-key, workspace, data, weightproperty, ['exportproperty']) | streams passed in data to Gephi`
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

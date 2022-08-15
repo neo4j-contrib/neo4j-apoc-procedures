@@ -3,9 +3,9 @@
 
 Creates a (virtual) entity graph for provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
 |xref::overview/apoc.nlp.gcp.entities/apoc.nlp.gcp.entities.adoc[apoc.nlp.gcp.entities.stream icon:book[]]
 
 Returns a stream of entities for provided text
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]

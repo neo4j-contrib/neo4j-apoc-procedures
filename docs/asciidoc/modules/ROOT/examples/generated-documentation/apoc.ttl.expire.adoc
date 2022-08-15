@@ -2,4 +2,4 @@
 
 `CALL apoc.ttl.expire(node,time,'time-unit')` - expire node at specified time by setting :TTL label and `ttl` property
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

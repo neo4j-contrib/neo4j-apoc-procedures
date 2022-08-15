@@ -2,4 +2,4 @@
 
 `apoc.es.stats(host-url-Key)` - elastic search statistics
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

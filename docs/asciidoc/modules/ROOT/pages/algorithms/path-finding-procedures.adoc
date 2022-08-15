@@ -10,7 +10,7 @@ APOC exposes some built in path-finding functions that Neo4j brings along.
 |===
 | apoc.algo.dijkstra(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance') YIELD path, weight | run dijkstra with relationship property name as cost function
 | apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance','lat','lon')  YIELD path, weight | run A* with relationship property name as cost function
-| label:apoc-full[] apoc.algo.aStarWithPoint(startNode, endNode, 'relTypesAndDirs', 'weightPropertyName','pointPropertyName') - equivalent to apoc.algo.aStar but accept a Point type as a pointProperty instead of Number types as latitude and longitude properties
+| label:apoc-extended[] apoc.algo.aStarWithPoint(startNode, endNode, 'relTypesAndDirs', 'weightPropertyName','pointPropertyName') - equivalent to apoc.algo.aStar but accept a Point type as a pointProperty instead of Number types as latitude and longitude properties
 | apoc.algo.aStarConfig(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', {weight:'dist',default:10, x:'lon',y:'lat',pointPropName:'point'}) YIELD path, weight - run A* with relationship property name as cost function
 | apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 5) YIELD path,  weight | run allSimplePaths with relationships given and maxNodes
 | apoc.stats.degrees(relTypesDirections) yield type, direction, total, min, max, mean, p50, p75, p90, p95, p99, p999 | compute degree distribution in parallel

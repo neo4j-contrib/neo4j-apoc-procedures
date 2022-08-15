@@ -2,4 +2,4 @@
 
 `apoc.static.list(prefix)` - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

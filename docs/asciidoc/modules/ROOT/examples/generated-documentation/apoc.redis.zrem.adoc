@@ -2,4 +2,4 @@
 
 `apoc.redis.zrem(uri, key, members, \{config}) | Execute the 'ZREM key members' command`
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

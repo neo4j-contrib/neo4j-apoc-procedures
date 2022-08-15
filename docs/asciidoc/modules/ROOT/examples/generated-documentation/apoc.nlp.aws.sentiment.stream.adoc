@@ -2,4 +2,4 @@
 
 `Returns stream of sentiment for items in provided text`
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

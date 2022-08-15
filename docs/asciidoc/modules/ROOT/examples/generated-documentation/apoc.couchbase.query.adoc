@@ -2,4 +2,4 @@
 
 `apoc.couchbase.query(hostOrKey, bucket, statement) yield queryResult` - executes a plain un-parameterized N1QL statement.
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

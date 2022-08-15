@@ -35,7 +35,7 @@ public class TestContainerUtil {
 
     public enum ApocPackage {
         CORE,
-        FULL
+        EXTENDED
     }
 
     // read neo4j version from build.gradle
@@ -48,7 +48,7 @@ public class TestContainerUtil {
 
     private static File baseDir = Paths.get("..").toFile();
     private static File coreDir = new File(baseDir, "core");
-    private static File fullDir = new File(baseDir, "full");
+    private static File extendedDir = new File(baseDir, "extended");
 
     public static TestcontainersCausalCluster createEnterpriseCluster(List<ApocPackage> apocPackages, int numOfCoreInstances, int numberOfReadReplica, Map<String, Object> neo4jConfig, Map<String, String> envSettings) {
         return TestcontainersCausalCluster.create(apocPackages, numOfCoreInstances, numberOfReadReplica, Duration.ofMinutes(4), neo4jConfig, envSettings);
@@ -101,12 +101,12 @@ public class TestContainerUtil {
             if (apocPackage == ApocPackage.CORE) {
                 projectDir = coreDir;
             } else {
-                projectDir = fullDir;
+                projectDir = extendedDir;
             }
 
             executeGradleTasks(projectDir, "shadowJar");
 
-            Collection<File> files = FileUtils.listFiles(new File(projectDir, "build/libs"), new WildcardFileFilter(Arrays.asList("*-all.jar", "*-core.jar")), null);
+            Collection<File> files = FileUtils.listFiles(new File(projectDir, "build/libs"), new WildcardFileFilter(Arrays.asList("*-extended.jar", "*-core.jar")), null);
             for (File file: files) {
                 try {
                     FileUtils.copyFileToDirectory(file, pluginsFolder);

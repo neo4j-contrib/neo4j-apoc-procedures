@@ -2,7 +2,7 @@
 
 // tag::install-desktop[]
 
-APOC Full can be installed with http://neo4j.com/download[Neo4j Desktop], after creating your database, by going to the `Manage` screen, and then the `Plugins` tab.
+APOC Extended can be installed with http://neo4j.com/download[Neo4j Desktop], after creating your database, by going to the `Manage` screen, and then the `Plugins` tab.
 Click `Install` in the APOC box and wait until you see a green check mark near "APOC".
 
 image::desktop-apoc.jpg[width=800]

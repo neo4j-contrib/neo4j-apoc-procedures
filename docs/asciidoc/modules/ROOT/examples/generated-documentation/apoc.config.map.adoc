@@ -2,4 +2,4 @@
 
 `apoc.config.map | Lists the Neo4j configuration as map`
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

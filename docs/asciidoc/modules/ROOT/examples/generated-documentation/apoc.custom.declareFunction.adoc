@@ -2,4 +2,4 @@
 
 `apoc.custom.declareFunction(signature, statement, forceSingle, description)` - register a custom cypher function
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

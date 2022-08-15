@@ -2,4 +2,4 @@
 
 `apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value` - Load Html page and return the result as a Map
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

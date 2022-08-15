@@ -2,4 +2,4 @@
 
 `apoc.couchbase.exists(hostOrKey, bucket, documentId) yield value` - check whether a couchbase json document with the given ID does exist.
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

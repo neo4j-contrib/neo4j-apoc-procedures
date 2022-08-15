@@ -2,4 +2,4 @@
 
 `apoc.couchbase.posParamsQuery(hostOrKey, bucket, statement, params) yield queryResult` - executes a N1QL statement with positional parameters.
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

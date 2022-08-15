@@ -2,4 +2,4 @@
 
 `apoc.couchbase.namedParamsQuery(hostkOrKey, bucket, statement, paramNames, paramValues) yield queryResult` - executes a N1QL statement with named parameters.
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

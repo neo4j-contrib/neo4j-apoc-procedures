@@ -2,4 +2,4 @@
 
 `apoc.es.postRaw(host-or-port,path,payload-or-null) yield value` - perform a raw POST operation on elastic search
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

@@ -2,4 +2,4 @@
 
 `apoc.export.xls.all(file,config)` - exports whole database as xls to the provided file
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

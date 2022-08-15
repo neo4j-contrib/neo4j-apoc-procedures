@@ -2,4 +2,4 @@
 
 `apoc.generate.ba(noNodes, edgesPerNode, label, type)` - generates a random graph according to the Barabasi-Albert model
 ¦label:procedure[]
-¦label:apoc-full[]
+¦label:apoc-extended[]

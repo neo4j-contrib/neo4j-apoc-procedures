@@ -3,4 +3,4 @@
 
 apoc.model.jdbc('key or url', {schema:'<schema>', write: <true/false>, filters: { tables:[], views: [], columns: []}) YIELD nodes, relationships - load schema from relational database
 |label:procedure[]
-|label:apoc-full[]
+|label:apoc-extended[]
