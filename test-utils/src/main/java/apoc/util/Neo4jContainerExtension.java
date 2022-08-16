@@ -158,7 +158,7 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
     }
 
     public Neo4jContainerExtension withWaitForNeo4jDatabaseReady(String password, Neo4jVersion version) {
-        return withWaitForDatabaseReady("neo4j", password, "neo4j", Duration.ofSeconds(150), version); // daniel
+        return withWaitForDatabaseReady("neo4j", password, "neo4j", Duration.ofSeconds(120), version);
     }
 
     @Override
