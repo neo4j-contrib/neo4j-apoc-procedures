@@ -15,7 +15,6 @@ import java.sql.SQLException;
 
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.*;
 
 public class PostgresJdbcTest extends AbstractJdbcTest {
 
@@ -29,21 +28,15 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        TestUtil.ignoreException(() -> {
-            postgress = new PostgreSQLContainer().withInitScript("init_postgres.sql");
-            postgress.start();
-        },Exception.class);
-        assumeNotNull("Postgres container has to exist", postgress);
-        assumeTrue("Postgres must be running", postgress.isRunning());
+        postgress = new PostgreSQLContainer().withInitScript("init_postgres.sql");
+        postgress.start();
         TestUtil.registerProcedure(db,Jdbc.class);
         db.executeTransactionally("CALL apoc.load.driver('org.postgresql.Driver')");
     }
 
     @AfterClass
     public static void tearDown() throws SQLException {
-        if (postgress != null) {
-            postgress.stop();
-        }
+        postgress.stop();
         db.shutdown();
     }
 

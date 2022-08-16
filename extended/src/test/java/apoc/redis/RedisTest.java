@@ -26,8 +26,6 @@ import static apoc.util.MapUtil.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 @RunWith(Parameterized.class)
@@ -46,24 +44,18 @@ public class RedisTest {
 
     @BeforeClass
     public static void beforeClass() {
-        TestUtil.ignoreException(() -> {
-            redis = new GenericContainer("redis:" + REDIS_VERSION)
-                    .withCommand("redis-server --requirepass " + PASSWORD)
-                    .withExposedPorts(REDIS_DEFAULT_PORT);
-            redis.start();
-        }, Exception.class);
+        redis = new GenericContainer("redis:" + REDIS_VERSION)
+                .withCommand("redis-server --requirepass " + PASSWORD)
+                .withExposedPorts(REDIS_DEFAULT_PORT);
+        redis.start();
         TestUtil.registerProcedure(db, Redis.class);
-        assumeNotNull(redis);
-        assumeTrue("Redis must be running", redis.isRunning());
         URI = String.format("redis://%s@%s:%s", PASSWORD, redis.getHost(), redis.getMappedPort(REDIS_DEFAULT_PORT));
         BEFORE_CONNECTION = getNumConnections();
     }
 
     @AfterClass
     public static void tearDown() {
-        if (redis != null) {
-            redis.stop();
-        }
+        redis.stop();
         db.shutdown();
     }
 

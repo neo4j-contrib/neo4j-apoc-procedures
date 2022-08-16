@@ -1,5 +1,6 @@
 package apoc.util;
 
+import org.apache.commons.io.FileUtils;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
@@ -18,6 +19,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import static apoc.util.TestContainerUtil.Neo4jVersion;
 import static apoc.util.TestContainerUtil.Neo4jVersion.ENTERPRISE;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.Scanner;
@@ -45,19 +47,7 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
     }
 
     public Neo4jContainerExtension(String dockerImage) {
-        // http on 4.0 seems to deliver a 404 first
         setDockerImageName(dockerImage);
-
-        WaitStrategy waitForBolt = new LogMessageWaitStrategy()
-                .withRegEx(String.format(".*Bolt enabled on (0\\.0\\.0\\.0:%d|\\[0:0:0:0:0:0:0:0%%0\\]:%1$s)\\.\n", 7687));
-        WaitStrategy waitForHttp = new HttpWaitStrategy()
-                .forPort(7474)
-                .forStatusCodeMatching(response -> response == HTTP_OK);
-
-        setWaitStrategy(new WaitAllStrategy()
-                .withStrategy(waitForBolt)
-                .withStrategy(waitForHttp)
-                .withStartupTimeout(Duration.ofMinutes(2)));
     }
 
     public Neo4jContainerExtension withInitScript(String filePath) {
@@ -72,15 +62,26 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
 
     @Override
     public void start() {
-        super.start();
-        if (withDriver) {
-            driver = GraphDatabase.driver(getBoltUrl(), getAuth());
-            session = driver.session();
-            if (filePath != null && !filePath.isEmpty()) {
-                executeScript(filePath);
+        try {
+            super.start();
+            if (withDriver) {
+                driver = GraphDatabase.driver(getBoltUrl(), getAuth());
+                session = driver.session();
+                if (filePath != null && !filePath.isEmpty()) {
+                    executeScript(filePath);
+                }
             }
+            isRunning = true;
+        } catch (Exception startException) {
+            try {
+                System.out.println(this.execInContainer("cat", "logs/debug.log").toString());
+                System.out.println(this.execInContainer("cat", "logs/http.log").toString());
+                System.out.println(this.execInContainer("cat", "logs/security.log").toString());
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+            throw startException;
         }
-        isRunning = true;
     }
 
     private void executeScript(String filePath) {
@@ -109,6 +110,10 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
         return session;
     }
 
+    public Driver getDriver() {
+        return driver;
+    }
+
     private AuthToken getAuth() {
         return getAdminPassword() != null && !getAdminPassword().isEmpty()
                 ? AuthTokens.basic("neo4j", getAdminPassword()): AuthTokens.none();
@@ -132,12 +137,20 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
             this.setWaitStrategy(Wait.forHttp("/db/" + database + "/cluster/available")
                     .withBasicCredentials(username, password)
                     .forPort(7474)
-                    .forStatusCode(200)
+                    .forStatusCodeMatching(t -> {
+                        logger.debug("/db/" + database + "/cluster/available [" + t.toString() + "]");
+                        return t == 200;
+                    })
+                    .withReadTimeout(Duration.ofSeconds(3))
                     .withStartupTimeout(timeout));
         } else {
             this.setWaitStrategy(Wait.forHttp("/")
                     .forPort(7474)
-                    .forStatusCode(200)
+                    .forStatusCodeMatching(t -> {
+                        logger.debug("/ [" + t.toString() + "]");
+                        return t == 200;
+                    })
+                    .withReadTimeout(Duration.ofSeconds(3))
                     .withStartupTimeout(timeout));
         }
 
@@ -145,7 +158,7 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
     }
 
     public Neo4jContainerExtension withWaitForNeo4jDatabaseReady(String password, Neo4jVersion version) {
-        return withWaitForDatabaseReady("neo4j", password, "neo4j", Duration.ofSeconds(60), version);
+        return withWaitForDatabaseReady("neo4j", password, "neo4j", Duration.ofSeconds(120), version);
     }
 
     @Override
