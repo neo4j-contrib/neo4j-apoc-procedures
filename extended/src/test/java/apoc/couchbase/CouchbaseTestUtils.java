@@ -1,7 +1,6 @@
 package apoc.couchbase;
 
 import apoc.couchbase.document.CouchbaseJsonDocument;
-import apoc.util.TestUtil;
 import com.couchbase.client.core.env.SeedNode;
 import com.couchbase.client.core.io.CollectionIdentifier;
 import com.couchbase.client.java.Bucket;
@@ -31,8 +30,6 @@ import static com.couchbase.client.java.query.QueryOptions.queryOptions;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
-import static org.junit.Assume.assumeNotNull;
 
 public class CouchbaseTestUtils {
 
@@ -135,15 +132,11 @@ public class CouchbaseTestUtils {
     }
 
     protected static void createCouchbaseContainer() {
-        TestUtil.ignoreException(() -> {
-            // 7.0 support stably multi collections and scopes
-            couchbase = new CouchbaseContainer("couchbase/server:7.0.0")
-                    .withCredentials(USERNAME, PASSWORD)
-                    .withBucket(new BucketDefinition(BUCKET_NAME));
-            couchbase.start();
-        }, Exception.class);
-        assumeNotNull(couchbase);
-        assumeTrue("couchbase must be running", couchbase.isRunning());
+        // 7.0 support stably multi collections and scopes
+        couchbase = new CouchbaseContainer("couchbase/server:7.0.0")
+                .withCredentials(USERNAME, PASSWORD)
+                .withBucket(new BucketDefinition(BUCKET_NAME));
+        couchbase.start();
 
         ClusterEnvironment environment = ClusterEnvironment.create();
 
@@ -155,7 +148,6 @@ public class CouchbaseTestUtils {
         Cluster cluster = Cluster.connect(seedNodes, clusterOptions(USERNAME, PASSWORD).environment(environment));
 
         boolean isFilled = fillDB(cluster);
-        assumeTrue("should fill Couchbase with data", isFilled);
         HOST = getUrl(couchbase);
         Bucket bucket = cluster.bucket(BUCKET_NAME);
         collection = bucket.defaultCollection();

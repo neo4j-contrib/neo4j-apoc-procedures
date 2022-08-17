@@ -9,7 +9,6 @@ import org.junit.Assert.assertTrue
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.junit.*
-import org.junit.Assume.assumeTrue
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
@@ -30,7 +29,6 @@ class AzureProceduresAPIWithDummyClientTest {
         @JvmStatic
         fun beforeClass() {
             TestUtil.registerProcedure(neo4j, AzureProcedures::class.java)
-            assumeTrue(apiKey != null)
         }
     }
 
