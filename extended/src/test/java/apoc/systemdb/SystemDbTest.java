@@ -25,7 +25,6 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -84,12 +83,12 @@ public class SystemDbTest {
 
     @Test
     public void testExecute() {
-        TestUtil.testResult(db, "CALL apoc.systemdb.execute('SHOW DATABASES YIELD name, default, currentStatus, role, requestedStatus, error, address, aliases, access, home') YIELD row RETURN row", result -> {
+        TestUtil.testResult(db, "CALL apoc.systemdb.execute('SHOW DATABASES YIELD name, default, currentStatus, home') YIELD row RETURN row", result -> {
             List<Map<String, Object>> rows = Iterators.asList(result.columnAs("row"));
             // removed key "systemDefault"
             org.hamcrest.MatcherAssert.assertThat(rows, Matchers.containsInAnyOrder(
-                    MapUtil.map( "name", "system", "default", false, "currentStatus", "online", "role", "standalone", "requestedStatus", "online", "error", "", "address", "localhost:7687", "aliases", Collections.EMPTY_LIST, "access", "read-write", "home", false),
-                    MapUtil.map("name", "neo4j", "default", true, "currentStatus", "online", "role", "standalone", "requestedStatus", "online", "error", "", "address", "localhost:7687", "aliases", Collections.EMPTY_LIST, "access", "read-write", "home", true)
+                    MapUtil.map( "name", "system", "default", false, "currentStatus", "online", "home", false),
+                    MapUtil.map("name", "neo4j", "default", true, "currentStatus", "online", "home", true)
             ));
         });
     }
