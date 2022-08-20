@@ -2,6 +2,7 @@ package apoc;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 import apoc.util.TestContainerUtil.ApocPackage;
 import org.neo4j.driver.Record;
@@ -25,6 +26,8 @@ import static org.junit.Assert.fail;
  If you don't have docker installed it will fail, and you can simply ignore it.
  */
 public class CoreExtendedTest {
+    // TODO [Nacho] Ignored for the moment because we cannot build core from here anymore. This needs rethinking
+    @Ignore
     @Test
     public void checkForCoreAndExtended() {
         try {
@@ -50,6 +53,8 @@ public class CoreExtendedTest {
         }
     }
 
+    // TODO [Nacho] Ignored for the moment because we cannot build core from here anymore. This needs rethinking
+    @Ignore
     @Test
     public void matchesSpreadsheet() {
         try {

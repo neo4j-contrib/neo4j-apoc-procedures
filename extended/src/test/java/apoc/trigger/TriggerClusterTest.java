@@ -24,6 +24,7 @@ public class TriggerClusterTest {
     @BeforeClass
     public static void setupCluster() {
         cluster = TestContainerUtil.createEnterpriseCluster(
+                // TODO [Nacho] We cannot build core from here anymore. This needs rethinking
                 List.of(ApocPackage.CORE, ApocPackage.EXTENDED),
                 3,
                 1,
