@@ -1,5 +1,0 @@
-¦xref::overview/apoc.agg/apoc.agg.median.adoc[apoc.agg.median icon:book[]] +
-
-`apoc.agg.median(number)` - returns median for non-null numeric values
-¦label:function[]
-¦label:apoc-core[]

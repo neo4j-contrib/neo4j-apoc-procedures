@@ -1,5 +1,0 @@
-¦xref::overview/apoc.nodes/apoc.nodes.cycles.adoc[apoc.nodes.cycles icon:book[]] +
-
- - Detect all path cycles from node list
-¦label:procedure[]
-¦label:apoc-core[]

@@ -1,2 +1,0 @@
-¦signature
-¦apoc.text.base64UrlDecode(url :: STRING?) :: (STRING?)

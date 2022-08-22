@@ -1,5 +1,0 @@
-¦xref::overview/apoc.date/apoc.date.format.adoc[apoc.date.format icon:book[]] +
-
-`apoc.date.format(12345,('ms|s|m|h|d'),('yyyy-MM-dd HH:mm:ss zzz'),('TZ'))` - get string representation of time value optionally using the specified unit (default ms) using specified format (default ISO) and specified time zone (default current TZ)
-¦label:function[]
-¦label:apoc-core[]

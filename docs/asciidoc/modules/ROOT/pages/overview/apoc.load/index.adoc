@@ -19,7 +19,7 @@ apoc.load.csv('urlOrBinary',\{config}) YIELD lineNo, list, map - load CSV from U
 apoc.load.csvParams('urlOrBinary', {httpHeader: value}, payload, \{config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,
  config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-extended[]
 |xref::overview/apoc.load/apoc.load.directory.adoc[apoc.load.directory icon:book[]]
 
 apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of all files in folder specified by urlDir or in import folder if urlDir string is empty or not specified
@@ -75,21 +75,6 @@ deprecated - please use: apoc.load.jdbc('key or url','',[params]) YIELD row - lo
 apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - update relational database, from a SQL statement with optional parameters
 |label:procedure[]
 |label:apoc-extended[]
-|xref::overview/apoc.load/apoc.load.json.adoc[apoc.load.json icon:book[]]
-
-apoc.load.json('urlOrKeyOrBinary',path, config) YIELD value - import JSON as stream of values if the JSON was an array or a single value if it was a map
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.load/apoc.load.jsonArray.adoc[apoc.load.jsonArray icon:book[]]
-
-apoc.load.jsonArray('url') YIELD value - load array from JSON URL (e.g. web-api) to import JSON as stream of values
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.load/apoc.load.jsonParams.adoc[apoc.load.jsonParams icon:book[]]
-
-apoc.load.jsonParams('urlOrKeyOrBinary',{header:value},payload, config) YIELD value - load from JSON URL (e.g. web-api) while sending headers / payload to import JSON as stream of values if the JSON was an array or a single value if it was a map
-|label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.load/apoc.load.ldap.adoc[apoc.load.ldap icon:book[]]
 
 apoc.load.ldap("key" or \{connectionMap},\{searchMap}) Load entries from an ldap source (yield entry)
@@ -101,10 +86,5 @@ apoc.load.xls('url','selector',\{config}) YIELD lineNo, list, map - load XLS fom
  config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false, dateFormat:'iso_date', dateParse:['dd-MM-yyyy']}}
 |label:procedure[]
 |label:apoc-extended[]
-|xref::overview/apoc.load/apoc.load.xml.adoc[apoc.load.xml icon:book[]]
-
-apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.
-|label:procedure[]
-|label:apoc-core[]
 |===
 

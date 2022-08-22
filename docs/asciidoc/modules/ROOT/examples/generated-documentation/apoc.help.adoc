@@ -1,5 +1,0 @@
-¦xref::overview/apoc/apoc.help.adoc[apoc.help icon:book[]] +
-
-`Provides descriptions of available procedures. To narrow the results, supply a search string. To also search in the description text, append + to the end of the search string.`
-¦label:procedure[]
-¦label:apoc-core[]

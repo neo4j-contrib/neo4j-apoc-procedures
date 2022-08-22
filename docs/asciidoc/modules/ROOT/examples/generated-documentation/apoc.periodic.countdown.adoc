@@ -1,5 +1,0 @@
-¦xref::overview/apoc.periodic/apoc.periodic.countdown.adoc[apoc.periodic.countdown icon:book[]] +
-
-`apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) submit a repeatedly-called background statement until it returns 0`
-¦label:procedure[]
-¦label:apoc-core[]

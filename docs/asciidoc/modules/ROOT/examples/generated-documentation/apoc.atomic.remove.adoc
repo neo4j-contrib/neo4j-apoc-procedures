@@ -1,5 +1,0 @@
-¦xref::overview/apoc.atomic/apoc.atomic.remove.adoc[apoc.atomic.remove icon:book[]] +
-
-`apoc.atomic.remove(node/relatonship,propertyName,position) remove the element at position 'position'`
-¦label:procedure[]
-¦label:apoc-core[]

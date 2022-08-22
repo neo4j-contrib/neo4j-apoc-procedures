@@ -1,2 +1,0 @@
-¦signature
-¦apoc.load.xml(urlOrBinary :: ANY?, path = / :: STRING?, config = {} :: MAP?, simple = false :: BOOLEAN?) :: (value :: MAP?)

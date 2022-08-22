@@ -1,5 +1,0 @@
-¦xref::overview/apoc.map/apoc.map.removeKeys.adoc[apoc.map.removeKeys icon:book[]] +
-
-`apoc.map.removeKeys(map,[keys],{recursive:true/false})` - remove the keys from the map (recursively if recursive is true)
-¦label:function[]
-¦label:apoc-core[]

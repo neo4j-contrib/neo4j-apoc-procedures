@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.intersection.adoc[apoc.coll.intersection icon:book[]] +
-
-`apoc.coll.intersection(first, second)` - returns the unique intersection of the two lists
-¦label:function[]
-¦label:apoc-core[]

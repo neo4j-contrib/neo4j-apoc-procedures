@@ -1,5 +1,0 @@
-¦xref::overview/apoc.json/apoc.json.path.adoc[apoc.json.path icon:book[]] +
-
-`apoc.json.path('\{json}','json-path')`
-¦label:function[]
-¦label:apoc-core[]

@@ -62,7 +62,4 @@ apoc.spatial.geocode.<providerName>.<key>=<value>
 | apoc.uuid.enabled.<name_db>=false/true (default true) | Enable/disable uuid handlers for a specific db. Please note that this key has to be set necessarily in `apoc.conf`. If is true UUID is enabled for the db even if apoc.uuid.enabled is false, instead if is false is disabled for the db even if apoc.uuid.enabled is true
 
 
-//public static final String APOC_JSON_ZIP_URL = "apoc.json.zip.url";
-//public static final String APOC_JSON_SIMPLE_JSON_URL = "apoc.json.simpleJson.url";
-
 |===

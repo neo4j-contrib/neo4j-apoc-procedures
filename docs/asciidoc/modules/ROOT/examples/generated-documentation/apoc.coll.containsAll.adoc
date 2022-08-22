@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.containsAll.adoc[apoc.coll.containsAll icon:book[]] +
-
-`apoc.coll.containsAll(coll, values) optimized contains-all operation (using a HashSet) (returns single row or not)`
-¦label:function[]
-¦label:apoc-core[]

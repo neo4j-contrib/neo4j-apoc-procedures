@@ -2,7 +2,7 @@
 
 // tag::docker[]
 
-APOC Extended can be used with the https://hub.docker.com/_/neo4j/[Neo4j Docker image] via the `NEO4JLABS_PLUGINS` environment variable.
+APOC Core can be used with the https://hub.docker.com/_/neo4j/[Neo4j Docker image] via the `NEO4JLABS_PLUGINS` environment variable.
 If we use this environment variable, the APOC plugin will be downloaded and configured at runtime.
 
 [NOTE]

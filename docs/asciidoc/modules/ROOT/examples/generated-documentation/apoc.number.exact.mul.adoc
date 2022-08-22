@@ -1,5 +1,0 @@
-¦xref::overview/apoc.number.exact/apoc.number.exact.mul.adoc[apoc.number.exact.mul icon:book[]] +
-
-`apoc.number.exact.mul(stringA,stringB,[prec],[roundingModel])` - return the multiplication's result of two large numbers 
-¦label:function[]
-¦label:apoc-core[]

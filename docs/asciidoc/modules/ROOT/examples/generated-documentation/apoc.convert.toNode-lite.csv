@@ -1,2 +1,0 @@
-¦signature
-¦apoc.convert.toNode(node :: ANY?) :: (NODE?)

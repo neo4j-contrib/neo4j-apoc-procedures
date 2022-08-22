@@ -1,5 +1,0 @@
-¦xref::overview/apoc.path/apoc.path.spanningTree.adoc[apoc.path.spanningTree icon:book[]] +
-
-`apoc.path.spanningTree(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false, limit:-1, optional:false, endNodes:[], terminatorNodes:[], sequence, beginSequenceAtStart:true}) yield path` - expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters
-¦label:procedure[]
-¦label:apoc-core[]

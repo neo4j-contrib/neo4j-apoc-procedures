@@ -1,5 +1,0 @@
-¦xref::overview/apoc.map/apoc.map.setEntry.adoc[apoc.map.setEntry icon:book[]] +
-
-`apoc.map.setEntry(map,key,value)`
-¦label:function[]
-¦label:apoc-core[]

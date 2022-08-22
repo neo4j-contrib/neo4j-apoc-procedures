@@ -1,5 +1,0 @@
-¦xref::overview/apoc.node/apoc.node.id.adoc[apoc.node.id icon:book[]] +
-
-`returns id for (virtual) nodes`
-¦label:function[]
-¦label:apoc-core[]

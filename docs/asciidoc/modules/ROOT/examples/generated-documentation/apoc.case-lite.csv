@@ -1,2 +1,0 @@
-¦signature
-¦apoc.case(conditionals :: LIST? OF ANY?, elseQuery =  :: STRING?, params = {} :: MAP?) :: (value :: MAP?)

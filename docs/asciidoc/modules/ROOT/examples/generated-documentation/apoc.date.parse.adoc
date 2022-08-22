@@ -1,5 +1,0 @@
-¦xref::overview/apoc.date/apoc.date.parse.adoc[apoc.date.parse icon:book[]] +
-
-`apoc.date.parse('2012-12-23','ms|s|m|h|d','yyyy-MM-dd')` - parse date string using the specified format into the specified time unit
-¦label:function[]
-¦label:apoc-core[]

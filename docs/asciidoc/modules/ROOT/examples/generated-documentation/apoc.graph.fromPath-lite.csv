@@ -1,2 +1,0 @@
-¦signature
-¦apoc.graph.fromPath(path :: PATH?, name :: STRING?, properties :: MAP?) :: (graph :: MAP?)

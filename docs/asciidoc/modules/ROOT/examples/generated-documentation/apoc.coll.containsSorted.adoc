@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.containsSorted.adoc[apoc.coll.containsSorted icon:book[]] +
-
-`apoc.coll.containsSorted(coll, value) optimized contains on a sorted list operation (Collections.binarySearch) (returns single row or not)`
-¦label:function[]
-¦label:apoc-core[]

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.date/apoc.date.field.adoc[apoc.date.field icon:book[]] +
-
-`apoc.date.field(12345,('ms|s|m|h|d|month|year'),('TZ')`
-¦label:function[]
-¦label:apoc-core[]

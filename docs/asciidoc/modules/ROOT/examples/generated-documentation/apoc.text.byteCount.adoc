@@ -1,5 +1,0 @@
-¦xref::overview/apoc.text/apoc.text.byteCount.adoc[apoc.text.byteCount icon:book[]] +
-
-`apoc.text.byteCount(text,[charset])` - return size of text in bytes
-¦label:function[]
-¦label:apoc-core[]

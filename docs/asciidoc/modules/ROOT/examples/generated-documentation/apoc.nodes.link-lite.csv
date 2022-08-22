@@ -1,2 +1,0 @@
-¦signature
-¦apoc.nodes.link(nodes :: LIST? OF NODE?, type :: STRING?, config = {} :: MAP?) :: VOID

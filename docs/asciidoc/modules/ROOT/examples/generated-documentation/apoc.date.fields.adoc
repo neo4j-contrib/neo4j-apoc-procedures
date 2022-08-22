@@ -1,5 +1,0 @@
-¦xref::overview/apoc.date/apoc.date.fields.adoc[apoc.date.fields icon:book[]] +
-
-`apoc.date.fields('2012-12-23',('yyyy-MM-dd'))` - return columns and a map representation of date parsed with the given format with entries for years,months,weekdays,days,hours,minutes,seconds,zoneid
-¦label:function[]
-¦label:apoc-core[]

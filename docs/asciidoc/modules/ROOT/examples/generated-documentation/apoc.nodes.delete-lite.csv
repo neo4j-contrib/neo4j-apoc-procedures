@@ -1,2 +1,0 @@
-¦signature
-¦apoc.nodes.delete(nodes :: ANY?, batchSize :: INTEGER?) :: (value :: INTEGER?)

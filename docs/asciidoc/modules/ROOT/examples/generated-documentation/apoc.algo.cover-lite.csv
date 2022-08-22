@@ -1,2 +1,0 @@
-¦signature
-¦apoc.algo.cover(nodes :: ANY?) :: (rel :: RELATIONSHIP?)

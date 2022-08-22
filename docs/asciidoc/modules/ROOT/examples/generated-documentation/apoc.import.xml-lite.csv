@@ -1,2 +1,0 @@
-¦signature
-¦apoc.import.xml(urlOrBinary :: ANY?, config = {} :: MAP?) :: (node :: NODE?)

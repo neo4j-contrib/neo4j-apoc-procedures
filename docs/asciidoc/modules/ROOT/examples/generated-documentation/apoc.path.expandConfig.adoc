@@ -1,5 +1,0 @@
-¦xref::overview/apoc.path/apoc.path.expandConfig.adoc[apoc.path.expandConfig icon:book[]] +
-
-`apoc.path.expandConfig(startNode <id>|Node|list, {minLevel,maxLevel,uniqueness,relationshipFilter,labelFilter,uniqueness:'RELATIONSHIP_PATH',bfs:true, filterStartNode:false, limit:-1, optional:false, endNodes:[], terminatorNodes:[], sequence, beginSequenceAtStart:true}) yield path` - expand from start node following the given relationships from min to max-level adhering to the label filters. 
-¦label:procedure[]
-¦label:apoc-core[]

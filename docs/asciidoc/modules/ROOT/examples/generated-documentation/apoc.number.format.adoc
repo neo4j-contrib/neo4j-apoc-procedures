@@ -1,5 +1,0 @@
-¦xref::overview/apoc.number/apoc.number.format.adoc[apoc.number.format icon:book[]] +
-
-`apoc.number.format(number)  | format a long or double using the default system pattern and language to produce a string`
-¦label:function[]
-¦label:apoc-core[]

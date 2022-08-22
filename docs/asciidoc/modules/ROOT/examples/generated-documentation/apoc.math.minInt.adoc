@@ -1,5 +1,0 @@
-¦xref::overview/apoc.math/apoc.math.minInt.adoc[apoc.math.minInt icon:book[]] +
-
-`apoc.math.minInt() | return the minimum value an int can have`
-¦label:function[]
-¦label:apoc-core[]

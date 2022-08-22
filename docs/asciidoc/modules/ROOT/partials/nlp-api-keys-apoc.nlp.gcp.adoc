@@ -8,7 +8,6 @@ Once we've created a key, we can populate and execute the following command to c
 ----
 
 Alternatively we can add these credentials to `apoc.conf` and load them using the static value storage functions.
-See xref::misc/static-values.adoc[].
 
 .apoc.conf
 [source,properties]

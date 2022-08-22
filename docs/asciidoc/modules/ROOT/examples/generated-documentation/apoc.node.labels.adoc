@@ -1,5 +1,0 @@
-¦xref::overview/apoc.node/apoc.node.labels.adoc[apoc.node.labels icon:book[]] +
-
-`returns labels for (virtual) nodes`
-¦label:function[]
-¦label:apoc-core[]

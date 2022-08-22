@@ -1,5 +1,0 @@
-¦xref::overview/apoc.path/apoc.path.expand.adoc[apoc.path.expand icon:book[]] +
-
-`apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path` - expand from start node following the given relationships from min to max-level adhering to the label filters
-¦label:procedure[]
-¦label:apoc-core[]

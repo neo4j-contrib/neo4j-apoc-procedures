@@ -1,5 +1,0 @@
-¦xref::overview/apoc.number.exact/apoc.number.exact.toFloat.adoc[apoc.number.exact.toFloat icon:book[]] +
-
-`apoc.number.exact.toFloat(string,[prec],[roundingMode])` - return the Float value of a large number
-¦label:function[]
-¦label:apoc-core[]

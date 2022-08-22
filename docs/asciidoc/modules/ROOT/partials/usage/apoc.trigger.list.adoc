@@ -1,4 +1,4 @@
-This example assumes that we've first added the trigger described in xref::overview/apoc.trigger/apoc.trigger.add.adoc[]:
+This example assumes that we've first added the trigger:
 
 [source,cypher]
 ----

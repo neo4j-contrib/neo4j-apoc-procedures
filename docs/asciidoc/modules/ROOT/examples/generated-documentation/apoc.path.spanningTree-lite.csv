@@ -1,2 +1,0 @@
-¦signature
-¦apoc.path.spanningTree(start :: ANY?, config :: MAP?) :: (path :: PATH?)

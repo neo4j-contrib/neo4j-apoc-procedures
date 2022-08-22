@@ -1,5 +1,0 @@
-¦xref::overview/apoc.periodic/apoc.periodic.repeat.adoc[apoc.periodic.repeat icon:book[]] +
-
-`apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.`
-¦label:procedure[]
-¦label:apoc-core[]

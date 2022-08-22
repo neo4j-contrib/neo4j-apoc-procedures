@@ -1,5 +1,0 @@
-¦xref::overview/apoc.map/apoc.map.clean.adoc[apoc.map.clean icon:book[]] +
-
-`apoc.map.clean(map,[skip,keys],[skip,values]) yield map filters the keys and values contained in those lists, good for data cleaning from CSV/JSON`
-¦label:function[]
-¦label:apoc-core[]

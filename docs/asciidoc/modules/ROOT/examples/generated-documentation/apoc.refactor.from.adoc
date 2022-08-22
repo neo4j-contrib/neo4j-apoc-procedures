@@ -1,5 +1,0 @@
-¦xref::overview/apoc.refactor/apoc.refactor.from.adoc[apoc.refactor.from icon:book[]] +
-
-`apoc.refactor.from(rel, startNode) redirect relationship to use new start-node`
-¦label:procedure[]
-¦label:apoc-core[]

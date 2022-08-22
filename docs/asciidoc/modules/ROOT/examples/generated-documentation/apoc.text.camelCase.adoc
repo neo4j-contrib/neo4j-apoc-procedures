@@ -1,5 +1,0 @@
-¦xref::overview/apoc.text/apoc.text.camelCase.adoc[apoc.text.camelCase icon:book[]] +
-
-`apoc.text.camelCase(text) YIELD value` - Convert a string to camelCase
-¦label:function[]
-¦label:apoc-core[]

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.refactor/apoc.refactor.setType.adoc[apoc.refactor.setType icon:book[]] +
-
-`apoc.refactor.setType(rel, 'NEW-TYPE') change relationship-type`
-¦label:procedure[]
-¦label:apoc-core[]

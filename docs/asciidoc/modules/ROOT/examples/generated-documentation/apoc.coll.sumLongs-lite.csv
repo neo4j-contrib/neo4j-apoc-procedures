@@ -1,2 +1,0 @@
-¦signature
-¦apoc.coll.sumLongs(numbers :: LIST? OF NUMBER?) :: (INTEGER?)

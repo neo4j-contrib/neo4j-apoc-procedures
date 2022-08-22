@@ -1,5 +1,0 @@
-¦xref::overview/apoc.refactor/apoc.refactor.extractNode.adoc[apoc.refactor.extractNode icon:book[]] +
-
-`apoc.refactor.extractNode([rel1,rel2,...], [labels],'OUT','IN') extract node from relationships`
-¦label:procedure[]
-¦label:apoc-core[]

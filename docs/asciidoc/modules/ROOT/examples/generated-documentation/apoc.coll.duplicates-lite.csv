@@ -1,2 +1,0 @@
-¦signature
-¦apoc.coll.duplicates(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)

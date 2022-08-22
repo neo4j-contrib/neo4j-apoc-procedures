@@ -276,7 +276,7 @@ RETURN apoc.static.getAll("aws") AS aws;
 [[nlp-aws-examples-batching]]
 == Batching Requests
 
-Batching requests to the AWS API and the processing of results can be done using xref:graph-updates/periodic-execution.adoc#commit-batching[Periodic Iterate].
+Batching requests to the AWS API and the processing of results can be done using Periodic Iterate.
 This approach is useful if we want to make parallel requests to the AWS API and reduce the amount of transaction state kept in memory while running procedures that write to the database.
 
 

@@ -1,2 +1,0 @@
-¦signature
-¦apoc.schema.relationship.indexExists(labelName :: STRING?, propertyName :: LIST? OF STRING?) :: (BOOLEAN?)

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.cypher/apoc.cypher.runManyReadOnly.adoc[apoc.cypher.runManyReadOnly icon:book[]] +
-
- - runs each semicolon separated, read-only statement and returns summary
-¦label:procedure[]
-¦label:apoc-core[]

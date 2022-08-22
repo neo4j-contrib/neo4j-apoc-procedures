@@ -1,5 +1,0 @@
-¦xref::overview/apoc.create/apoc.create.setRelProperty.adoc[apoc.create.setRelProperty icon:book[]] +
-
-`apoc.create.setRelProperty( [rel,id,ids,rels], key, value)` - sets the given property on the relationship(s)
-¦label:procedure[]
-¦label:apoc-core[]

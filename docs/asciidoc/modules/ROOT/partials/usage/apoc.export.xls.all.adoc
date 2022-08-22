@@ -61,9 +61,3 @@ CALL apoc.load.xls("file://movies.xls", "ACTED_IN");
 | 3      | [3, 4, 0, "Agent Smith"] | {`<startNodeId>`: 4, `<endNodeId>`: 0, `<relationshipId>`: 3, roles: "Agent Smith"}
 
 |===
-
-
-[NOTE]
-====
-You can also compress the files to export. xref::overview/apoc.export/compression.adoc[See here for more information]
-====

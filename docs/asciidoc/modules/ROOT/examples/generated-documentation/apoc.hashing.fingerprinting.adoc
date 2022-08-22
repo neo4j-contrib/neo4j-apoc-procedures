@@ -1,5 +1,0 @@
-¦xref::overview/apoc.hashing/apoc.hashing.fingerprinting.adoc[apoc.hashing.fingerprinting icon:book[]] +
-
-`calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.`
-¦label:function[]
-¦label:apoc-core[]

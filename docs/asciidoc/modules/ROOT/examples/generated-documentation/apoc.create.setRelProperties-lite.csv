@@ -1,2 +1,0 @@
-¦signature
-¦apoc.create.setRelProperties(rels :: ANY?, keys :: LIST? OF STRING?, values :: LIST? OF ANY?) :: (rel :: RELATIONSHIP?)

@@ -44,8 +44,3 @@ CALL apoc.load.xls("file://movies-directed.xls", "Sheet0");
 | 0      | ["Lilly Wachowski", 1967, "The Matrix", "Welcome to the Real World", 1999] | {name: "Lilly Wachowski", tagline: "Welcome to the Real World", title: "The Matrix", released: 1999, born: 1967}
 | 1      | ["Lana Wachowski", 1965, "The Matrix", "Welcome to the Real World", 1999]  | {name: "Lana Wachowski", tagline: "Welcome to the Real World", title: "The Matrix", released: 1999, born: 1965}
 |===
-
-[NOTE]
-====
-You can also compress the files to export. xref::overview/apoc.export/compression.adoc[See here for more information]
-====

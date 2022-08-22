@@ -22,8 +22,6 @@ apoc.monitor.locks() (proc deleted, cannot get information via api)
 
 ## changed behaviour
 
-* apoc.agg.statistics on an empty list returns `null` for `min` and `max`. Used to be `0` previously
-
 * all apoc* configuration option needs to be moved to `apoc.conf`
 ** `apoc.initializer.cypher`
 ** *apoc.initializer.cypher.<anything>`
@@ -51,7 +49,6 @@ NOTE: the following list is incomplete
 * cypher's `length` functions doesn't work on strings any longer. use `size` instead
 * `TransactionEventHandler` renamed to `TransactionListener`
 * `TransactionListener.beforeCommit` gets an additional parameter `Transaction`
-* `apoc.periodic.iterate` might return different error messages.
 
 * on API level a `IndexDefinition` could have multiple labels. Apoc's `Schema` should reflect that - to be discussed.
 * nodes/rels acquired in one tx need to be rebound when used in another tx `tx.getNodeByid(node.getId())`

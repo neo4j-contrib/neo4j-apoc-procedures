@@ -16,15 +16,10 @@ The supported procedures are described in the table below:
 [separator=¦,opts=header,cols="5,1m,1m"]
 |===
 ¦Qualified Name¦Type¦Release
-include::example$generated-documentation/apoc.cypher.doIt.adoc[]
-include::example$generated-documentation/apoc.cypher.run.adoc[]
-include::example$generated-documentation/apoc.cypher.runMany.adoc[]
 include::example$generated-documentation/apoc.cypher.parallel.adoc[]
 include::example$generated-documentation/apoc.cypher.parallel2.adoc[]
 include::example$generated-documentation/apoc.cypher.mapParallel.adoc[]
 include::example$generated-documentation/apoc.cypher.mapParallel2.adoc[]
-include::example$generated-documentation/apoc.cypher.runFirstColumnMany.adoc[]
-include::example$generated-documentation/apoc.cypher.runFirstColumnSingle.adoc[]
 |===
 
 
@@ -61,24 +56,6 @@ MATCH (:Movie) RETURN people, count(*) as movies;
 ----
 
 This query will work out the count by iterating over all nodes, which is a very slow operation
-
-We can use `apoc.cypher.run` to construct the `COUNT()` statements and run each of them individually, so it completes in a few ms.
-
-[source,cypher]
-----
-CALL db.labels() yield label
-CALL apoc.cypher.run("match (:`"+label+"`) return count(*) as count", null) yield value
-return label, value.count as count
-----
-
-You can use a similar approach to get the property-keys per label:
-
-[source,cypher]
-----
-CALL db.labels() yield label
-CALL apoc.cypher.run("MATCH (n:`"+label+"`) RETURN keys(n) as keys LIMIT 1",null) yield value
-RETURN label, value.keys as keys
-----
 
 
 

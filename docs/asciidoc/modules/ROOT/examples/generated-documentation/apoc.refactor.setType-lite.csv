@@ -1,2 +1,0 @@
-¦signature
-¦apoc.refactor.setType(relationship :: RELATIONSHIP?, newType :: STRING?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)

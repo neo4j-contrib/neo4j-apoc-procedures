@@ -1,2 +1,0 @@
-¦signature
-¦apoc.refactor.from(relationship :: RELATIONSHIP?, newNode :: NODE?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)

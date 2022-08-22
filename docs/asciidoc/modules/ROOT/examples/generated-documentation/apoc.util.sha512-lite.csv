@@ -1,2 +1,0 @@
-¦signature
-¦apoc.util.sha512(values :: LIST? OF ANY?) :: (STRING?)

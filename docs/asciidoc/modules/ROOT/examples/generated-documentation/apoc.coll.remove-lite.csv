@@ -1,2 +1,0 @@
-¦signature
-¦apoc.coll.remove(coll :: LIST? OF ANY?, index :: INTEGER?, length = 1 :: INTEGER?) :: (LIST? OF ANY?)

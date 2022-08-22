@@ -14,11 +14,6 @@ apoc.log.error(message, params) - logs error message
 apoc.log.info(message, params) - logs info message
 |label:procedure[]
 |label:apoc-extended[]
-|xref::overview/apoc.log/apoc.log.adoc[apoc.log.stream icon:book[]]
-
-apoc.log.stream('neo4j.log', { last: n }) - retrieve log file contents, optionally return only the last n lines
-|label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.log/apoc.log.adoc[apoc.log.warn icon:book[]]
 
 apoc.log.warn(message, params) - logs warn message

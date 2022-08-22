@@ -46,8 +46,3 @@ CALL apoc.load.xls("file://movies-l.xls", "Person");
 | 1      | [5, 1967, "Lilly Wachowski"]    | {name: "Lilly Wachowski", `<nodeId>`: 5, born: 1967}
 | 2      | [6, 1965, "Lana Wachowski"]     | {name: "Lana Wachowski", `<nodeId>`: 6, born: 1965}
 |===
-
-[NOTE]
-====
-You can also compress the files to export. xref::overview/apoc.export/compression.adoc[See here for more information]
-====

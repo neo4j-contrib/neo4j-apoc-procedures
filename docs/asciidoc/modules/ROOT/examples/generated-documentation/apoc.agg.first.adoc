@@ -1,5 +1,0 @@
-¦xref::overview/apoc.agg/apoc.agg.first.adoc[apoc.agg.first icon:book[]] +
-
-`apoc.agg.first(value)` - returns first value
-¦label:function[]
-¦label:apoc-core[]

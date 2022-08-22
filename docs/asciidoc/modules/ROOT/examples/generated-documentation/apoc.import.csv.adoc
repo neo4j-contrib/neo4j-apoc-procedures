@@ -1,5 +1,0 @@
-¦xref::overview/apoc.import/apoc.import.csv.adoc[apoc.import.csv icon:book[]] +
-
-`apoc.import.csv(nodes, relationships, config)` - imports nodes and relationships from the provided CSV files with given labels and types
-¦label:procedure[]
-¦label:apoc-core[]

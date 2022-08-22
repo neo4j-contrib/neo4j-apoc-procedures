@@ -1,5 +1,0 @@
-¦xref::overview/apoc.text/apoc.text.toCypher.adoc[apoc.text.toCypher icon:book[]] +
-
-`apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end}) | tries it's best to convert the value to a cypher-property-string`
-¦label:function[]
-¦label:apoc-core[]

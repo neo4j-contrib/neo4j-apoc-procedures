@@ -1,5 +1,0 @@
-¦xref::overview/apoc.util/apoc.util.sha384.adoc[apoc.util.sha384 icon:book[]] +
-
-`apoc.util.sha384([values]) | computes the sha384 of the concatenation of all string values of the list`
-¦label:function[]
-¦label:apoc-core[]

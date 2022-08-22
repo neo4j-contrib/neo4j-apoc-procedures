@@ -1,5 +1,0 @@
-¦xref::overview/apoc.neighbors.athop/apoc.neighbors.athop.count.adoc[apoc.neighbors.athop.count icon:book[]] +
-
-`apoc.neighbors.athop.count(node, rel-direction-pattern, distance)` - returns distinct nodes of the given relationships in the pattern at a distance, can use '>' or '<' for all outgoing or incoming relationships
-¦label:procedure[]
-¦label:apoc-core[]

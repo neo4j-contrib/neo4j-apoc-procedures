@@ -9,7 +9,6 @@ Once we've done that, we can populate and execute the following commands to crea
 ----
 
 Alternatively we can add these credentials to `apoc.conf` and retrieve them using the static value storage functions.
-See xref::misc/static-values.adoc[].
 
 .apoc.conf
 [source,properties]

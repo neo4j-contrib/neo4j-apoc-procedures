@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.split.adoc[apoc.coll.split icon:book[]] +
-
-`apoc.coll.split(list,value) | splits collection on given values rows of lists, value itself will not be part of resulting lists`
-¦label:procedure[]
-¦label:apoc-core[]

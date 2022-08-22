@@ -1,9 +1,4 @@
 ¦Qualified Name¦Type¦Release
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.doIt icon:book[]]
-
-apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with the given parameters
-|label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.mapParallel icon:book[]]
 
 apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _
@@ -24,11 +19,6 @@ apoc.cypher.parallel(fragment, `paramMap`, `keyList`) yield value - executes fra
 apoc.cypher.parallel2(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel batches through a list defined in `paramMap` with a key `keyList`
 |label:procedure[]
 |label:apoc-extended[]
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.run icon:book[]]
-
-apoc.cypher.run(fragment, params) yield value - executes reading fragment with the given parameters - currently no schema operations
-|label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runFile icon:book[]]
 
 apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations
@@ -39,31 +29,6 @@ apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - 
 apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each statement in the files, all semicolon separated
 |label:procedure[]
 |label:apoc-extended[]
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runMany icon:book[]]
-
-apoc.cypher.runMany('cypher;\nstatements;', $params, [{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runManyReadOnly icon:book[]]
-
-apoc.cypher.runManyReadOnly('cypher;\nstatements;', $params, [{statistics:true,timeout:10}]) - runs each semicolon separated, read-only statement and returns summary - currently no schema operations
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runSchema icon:book[]]
-
-apoc.cypher.runSchema(statement, params) yield value - executes query schema statement with the given parameters
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runSchema icon:book[]]
-
-apoc.cypher.runSchema(statement, params) yield value - executes query schema statement with the given parameters
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runSchema icon:book[]]
-
-apoc.cypher.runSchema(statement, params) yield value - executes query schema statement with the given parameters
-|label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runSchemaFile icon:book[]]
 
 apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated
@@ -74,23 +39,3 @@ apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows o
 apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema statement in the files, all semicolon separated
 |label:procedure[]
 |label:apoc-extended[]
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runTimeboxed icon:book[]]
-
-apoc.cypher.runTimeboxed('cypherStatement',\{params}, timeout) - abort kernelTransaction after timeout ms if not finished
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runWrite icon:book[]]
-
-apoc.cypher.runWrite(statement, params) yield value - alias for apoc.cypher.doIt
-|label:procedure[]
-|label:apoc-core[]
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runFirstColumnMany icon:book[]]
-
-apoc.cypher.runFirstColumnMany(statement, params) - executes statement with given parameters, returns first column only collected into a list, params are available as identifiers
-|label:function[]
-|label:apoc-core[]
-|xref::overview/apoc.cypher/apoc.cypher.adoc[apoc.cypher.runFirstColumnSingle icon:book[]]
-
-apoc.cypher.runFirstColumnSingle(statement, params) - executes statement with given parameters, returns first element of the first column only, params are available as identifiers
-|label:function[]
-|label:apoc-core[]

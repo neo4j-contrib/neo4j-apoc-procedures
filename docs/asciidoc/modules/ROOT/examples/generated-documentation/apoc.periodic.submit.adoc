@@ -1,5 +1,0 @@
-¦xref::overview/apoc.periodic/apoc.periodic.submit.adoc[apoc.periodic.submit icon:book[]] +
-
-`apoc.periodic.submit('name',statement,params)` - submit a one-off background statement; parameter 'params' is optional and can contain query parameters for Cypher statement
-¦label:procedure[]
-¦label:apoc-core[]

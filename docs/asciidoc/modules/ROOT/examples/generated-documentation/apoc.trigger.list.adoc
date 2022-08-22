@@ -1,5 +1,0 @@
-¦xref::overview/apoc.trigger/apoc.trigger.list.adoc[apoc.trigger.list icon:book[]] +
-
-`list all installed triggers`
-¦label:procedure[]
-¦label:apoc-core[]

@@ -1,2 +1,0 @@
-¦signature
-¦apoc.log.stream(path :: STRING?, config = {} :: MAP?) :: (lineNo :: INTEGER?, line :: STRING?, path :: STRING?)

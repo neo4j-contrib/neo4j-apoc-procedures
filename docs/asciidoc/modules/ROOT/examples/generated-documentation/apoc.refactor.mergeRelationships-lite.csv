@@ -1,2 +1,0 @@
-¦signature
-¦apoc.refactor.mergeRelationships(rels :: LIST? OF RELATIONSHIP?, config = {} :: MAP?) :: (rel :: RELATIONSHIP?)

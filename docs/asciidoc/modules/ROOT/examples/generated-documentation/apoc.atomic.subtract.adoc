@@ -1,5 +1,0 @@
-¦xref::overview/apoc.atomic/apoc.atomic.subtract.adoc[apoc.atomic.subtract icon:book[]] +
-
-`apoc.atomic.subtract(node/relatonship,propertyName,number) Subtracts the 'number' value to the property's value`
-¦label:procedure[]
-¦label:apoc-core[]

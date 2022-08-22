@@ -1,3 +1,0 @@
-¦signature
-¦apoc.node.relationship.exists(node :: NODE?, types =  :: STRING?) :: (BOOLEAN?)
-¦apoc.node.relationship.types(node :: NODE?, types =  :: STRING?) :: (LIST? OF ANY?)

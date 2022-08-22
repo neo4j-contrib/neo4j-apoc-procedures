@@ -1,5 +1,0 @@
-¦xref::overview/apoc.schema.properties/apoc.schema.properties.distinctCount.adoc[apoc.schema.properties.distinctCount icon:book[]] +
-
-`apoc.schema.properties.distinctCount([label], [key]) YIELD label, key, value, count` - quickly returns all distinct values and counts for a given key
-¦label:procedure[]
-¦label:apoc-core[]

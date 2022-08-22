@@ -46,7 +46,7 @@ or:
 CALL apoc.load.csv(`binaryFileNotCompressed`, {compression: 'NONE'}) 
 ----
 
-For example, this one works well with xref::overview/apoc.util/apoc.util.compress.adoc[apoc.util.compress] function:
+For example, this one works well with apoc.util.compress function:
 
 [source,cypher]
 ----

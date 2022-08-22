@@ -1,5 +1,0 @@
-¦xref::overview/apoc.convert/apoc.convert.toString.adoc[apoc.convert.toString icon:book[]] +
-
-`apoc.convert.toString(value) | tries it's best to convert the value to a string`
-¦label:function[]
-¦label:apoc-core[]

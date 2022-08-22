@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.min.adoc[apoc.coll.min icon:book[]] +
-
-`apoc.coll.min([0.5,1,2.3])`
-¦label:function[]
-¦label:apoc-core[]

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.convert/apoc.convert.toInteger.adoc[apoc.convert.toInteger icon:book[]] +
-
-`apoc.convert.toInteger(value) | tries it's best to convert the value to an integer`
-¦label:function[]
-¦label:apoc-core[]

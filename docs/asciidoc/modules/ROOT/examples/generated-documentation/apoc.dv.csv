@@ -3,9 +3,9 @@
 
 Query a virtualized resource by name and return virtual nodes
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-extended[]
 |xref::overview/apoc.dv/apoc.dv.adoc[apoc.dv.queryAndLink icon:book[]]
 
 Query a virtualized resource by name and return virtual nodes linked using virtual rels to the node passed as first param
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-extended[]

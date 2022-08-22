@@ -18,5 +18,3 @@ CALL apoc.log.debug('Hello %s', ['World']);
 ----
 CALL apoc.log.debug('Hello %s', ['World']);
 ----
-
-We can query the contents of `neo4j.log` using xref::overview/apoc.log/apoc.log.stream.adoc[]

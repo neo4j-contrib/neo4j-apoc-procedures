@@ -1,2 +1,0 @@
-¦signature
-¦apoc.cypher.runManyReadOnly(cypher :: STRING?, params :: MAP?, config = {} :: MAP?) :: (row :: INTEGER?, result :: MAP?)

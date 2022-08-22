@@ -1,5 +1,0 @@
-¦xref::overview/apoc.math/apoc.math.maxDouble.adoc[apoc.math.maxDouble icon:book[]] +
-
-`apoc.math.maxDouble() | return the largest positive finite value of type double`
-¦label:function[]
-¦label:apoc-core[]

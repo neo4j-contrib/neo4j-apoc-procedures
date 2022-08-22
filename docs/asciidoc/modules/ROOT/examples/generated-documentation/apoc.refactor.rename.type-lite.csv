@@ -1,2 +1,0 @@
-¦signature
-¦apoc.refactor.rename.type(oldType :: STRING?, newType :: STRING?, rels = [] :: LIST? OF RELATIONSHIP?, config = {} :: MAP?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, constraints :: LIST? OF STRING?, indexes :: LIST? OF STRING?)

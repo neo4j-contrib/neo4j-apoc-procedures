@@ -1,5 +1,0 @@
-¦xref::overview/apoc.map/apoc.map.fromPairs.adoc[apoc.map.fromPairs icon:book[]] +
-
-`apoc.map.fromPairs([[key,value],[key2,value2],...])`
-¦label:function[]
-¦label:apoc-core[]
