@@ -90,6 +90,30 @@ public class UtilTest {
     }
 
     @Test
+    public void testSanitizeBackTicks() {
+        assertEquals("``", Util.sanitizeBackTicks("`"));
+        assertEquals("``", Util.sanitizeBackTicks("\u0060"));
+        assertEquals("``", Util.sanitizeBackTicks("``"));
+        assertEquals("````", Util.sanitizeBackTicks("\u0060\u0060\u0060"));
+        assertEquals("Hello``", Util.sanitizeBackTicks("Hello`"));
+        assertEquals("Hi````there", Util.sanitizeBackTicks("Hi````there"));
+        assertEquals("Hi``````there", Util.sanitizeBackTicks("Hi`````there"));
+        assertEquals("``a``b``c``", Util.sanitizeBackTicks("`a`b`c`"));
+        assertEquals("``a``b``c``d``", Util.sanitizeBackTicks("\u0060a`b`c\u0060d\u0060"));
+        assertEquals("Foo `\\u0060", Util.sanitizeBackTicks("Foo \\u0060"));
+        assertEquals("ABC", Util.sanitizeBackTicks("ABC"));
+        assertEquals("A C", Util.sanitizeBackTicks("A C"));
+        assertEquals("A`` C", Util.sanitizeBackTicks("A` C"));
+        assertEquals("ALabel", Util.sanitizeBackTicks("ALabel"));
+        assertEquals("A Label", Util.sanitizeBackTicks("A Label"));
+        assertEquals("A ``Label", Util.sanitizeBackTicks("A `Label"));
+        assertEquals("``A ``Label", Util.sanitizeBackTicks("`A `Label"));
+        assertEquals("``A ``Label", Util.sanitizeBackTicks("`A `Label"));
+        assertEquals("Spring Data Neo4j⚡️RX", Util.sanitizeBackTicks("Spring Data Neo4j⚡️RX"));
+        assertEquals("Foo ``", Util.sanitizeBackTicks("Foo \u0060"));
+    }
+
+    @Test
     public void testMerge() {
         try {
             final ResultTransformer<Object> resultTransformer = res -> res.next().get("count");

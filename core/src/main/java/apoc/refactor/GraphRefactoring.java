@@ -562,11 +562,14 @@ public class GraphRefactoring {
             node = Util.rebind(innerTx, node);
             Object value = node.getProperty(sourceKey, null);
             if (value != null) {
+                String nodeLabel = Util.sanitizeBackTicks(label);
+                String key = Util.sanitizeBackTicks(targetKey);
+                String relType = Util.sanitizeBackTicks(relationshipType);
                 String q =
                         "WITH $node AS n " +
-                                "MERGE (cat:`" + label + "` {`" + targetKey + "`: $value}) " +
-                                (outgoing ? "MERGE (n)-[:`" + relationshipType + "`]->(cat) "
-                                        : "MERGE (n)<-[:`" + relationshipType + "`]-(cat) ") +
+                                "MERGE (cat:`" + nodeLabel + "` {`" + key + "`: $value}) " +
+                                (outgoing ? "MERGE (n)-[:`" + relType + "`]->(cat) "
+                                        : "MERGE (n)<-[:`" + relType + "`]-(cat) ") +
                                 "RETURN cat";
                 Map<String, Object> params = new HashMap<>(2);
                 params.put("node", node);

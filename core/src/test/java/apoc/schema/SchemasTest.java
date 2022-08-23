@@ -472,6 +472,22 @@ public class SchemasTest {
             assertEquals(1, indexes.size());
         }
     }
+
+    @Test
+    public void testCompoundIndexDoesntAllowCypherInjection() throws Exception {
+        awaitIndexesOnline();
+        testResult(db, "CALL apoc.schema.assert({Foo:[['bar`) MATCH (n) DETACH DELETE n; //','baa']]},null,false)", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("bar`) MATCH (n) DETACH DELETE n; //", "baa"), r.get("keys"));
+            assertEquals(false, r.get("unique"));
+        });
+        try (Transaction tx = db.beginTx()) {
+            List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
+            assertEquals(1, indexes.size());
+        }
+    }
+
     /*
         This is only for 3.2+
     */
