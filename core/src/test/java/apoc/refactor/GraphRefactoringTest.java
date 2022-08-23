@@ -1053,6 +1053,32 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
         assertEquals(8, relsCount);
         db.executeTransactionally("DROP CONSTRAINT ON (n:`" + label + "`) ASSERT n.`" + targetKey + "` IS UNIQUE");
     }
+    @Test
+    public void testRefactorCategoryDoesntAllowCypherInjection() {
+        // given
+        final String label = "Country";
+        final String targetKey = "name";
+        db.executeTransactionally("CREATE CONSTRAINT constraint FOR (n:`" + label + "`) REQUIRE n.`" + targetKey + "` IS UNIQUE");
+        db.executeTransactionally("with [\"IT\", \"DE\"] as countries\n" +
+                "unwind countries as country\n" +
+                "foreach (no in RANGE(1, 4) |\n" +
+                "  create (n:Company {name: country + no, country: country})\n" +
+                ")");
+
+        // when
+        db.executeTransactionally("CALL apoc.refactor.categorize('country', 'FOO`]->() WITH n SET n = {} RETURN n//', true, $label, $targetKey, [], 1)",
+                map("label", label, "targetKey", targetKey));
+
+        // then
+        final long countries = TestUtil.singleResultFirstColumn(db, "MATCH (c:Country) RETURN count(c) AS countries");
+        assertEquals(2, countries);
+        final List<String> countryNames = TestUtil.firstColumn(db, "MATCH (c:Country) RETURN c.name");
+        assertThat(countryNames, Matchers.containsInAnyOrder("IT", "DE"));
+
+        final long relsCount = TestUtil.singleResultFirstColumn(db, "MATCH p = (c:Company)-[:`FOO``]->() WITH n SET n = {} RETURN n//`]->(cc:Country) RETURN count(p) AS relsCount");
+        assertEquals(8, relsCount);
+        db.executeTransactionally("DROP CONSTRAINT constraint");
+    }
 
     @Test
     public void testMergeNodeShouldNotCreateSelfRelationshipsInPreExistingSelfRel() {
