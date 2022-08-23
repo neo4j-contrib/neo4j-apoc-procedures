@@ -59,6 +59,19 @@ public class SchemasEnterpriseFeaturesTest {
     }
 
     @Test
+    public void testAddConstraintDoesntAllowCypherInjection() {
+        String query = "CALL apoc.schema.assert(null,{Bar:[[\"foo`) IS UNIQUE MATCH (n) DETACH DELETE n; //\", \"bar\"]]}, false)";
+        testResult(session, query, (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Bar", r.get("label"));
+            assertEquals(expectedKeys("foo`) IS UNIQUE MATCH (n) DETACH DELETE n; //", "bar"), r.get("keys"));
+            assertEquals(true, r.get("unique"));
+            assertEquals("CREATED", r.get("action"));
+            assertFalse(result.hasNext());
+        });
+    }
+
+    @Test
     public void testKeptNodeKeyAndUniqueConstraintIfExists() {
         String query = "CALL apoc.schema.assert(null,{Foo:[['foo','bar']]}, false)";
         testResult(session, query, (result) -> {
