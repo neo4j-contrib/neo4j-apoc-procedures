@@ -666,6 +666,39 @@ public class CypherProceduresTest  {
         // when
         TestUtil.singleResultFirstColumn(db, "return custom.answer()");
     }
+    
+    @Test
+    public void testIssue2605() {
+        db.executeTransactionally("CREATE (n:Test {id: 1})-[:has]->(:Log), (n)-[:has]->(:System)");
+        String query = "MATCH (node:Test)-[:has]->(log:Log) WHERE node.id = $id WITH node \n" +
+                "MATCH (node)-[:has]->(log:System) RETURN log, node";
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('testIssue2605(id :: INTEGER ) :: (log :: NODE, node :: NODE)', $query, 'read')", Map.of("query", query));
+
+        // check query 
+        TestUtil.testCall(db, "call custom.testIssue2605(1)", (row) -> {
+            assertEquals(List.of(Label.label("Test")), ((Node) row.get("node")).getLabels());
+            assertEquals(List.of(Label.label("System")), ((Node) row.get("log")).getLabels());
+        });
+
+        // UNION ALL github issue case
+        db.executeTransactionally("CREATE (n:ExampleNode {id: 1}), (:OtherExampleNode {identifier: '1'})");
+        String query2 = "MATCH (:ExampleNode)\n" +
+                " OPTIONAL MATCH (o:OtherExampleNode {identifier:$exampleId})\n" +
+                " RETURN o.identifier as value\n" +
+                " UNION ALL\n" +
+                " MATCH (n:ExampleNode)\n" +
+                " OPTIONAL MATCH (o:OtherExampleNode {identifier:$exampleId})\n" +
+                " RETURN o.identifier as value";
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('exampleTest(exampleId::STRING) ::(value::STRING)', $query, 'read')", Map.of("query", query2));
+        
+        // check query 
+        final String identifier = "1";
+        TestUtil.testResult(db, "call custom.exampleTest($id)", Map.of("id", identifier), (r) -> {
+            assertEquals(identifier, r.next().get("value"));
+            assertEquals(identifier, r.next().get("value"));
+            assertFalse(r.hasNext());
+        });
+    }
 
     @Test
     public void shouldFailWithMismatchedParameters() {
