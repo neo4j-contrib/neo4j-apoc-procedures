@@ -81,7 +81,7 @@ public class BoltConnection {
                 String withColumns = "WITH " + localResult.columns().stream()
                         .map(c -> "$" + c + " AS " + c)
                         .collect(Collectors.joining(", ")) + "\n";
-                Map<Long, VirtualNode> nodesCache = new HashMap<>();
+                Map<Long, org.neo4j.graphdb.Node> nodesCache = new HashMap<>();
                 List<RowResult> response = new ArrayList<>();
                 while (localResult.hasNext()) {
                     final Result statementResult;
@@ -129,15 +129,15 @@ public class BoltConnection {
         return function.apply(transaction).onClose(transaction::commit).onClose(transaction::close);
     }
 
-    private Stream<RowResult> buildRowResult(Session session, Record record, Map<Long,VirtualNode> nodesCache) {
+    private Stream<RowResult> buildRowResult(Session session, Record record, Map<Long, org.neo4j.graphdb.Node> nodesCache) {
         return withTransaction(session, tx -> Stream.of(buildRowResult(tx, record, nodesCache)));
     }
     
-    private RowResult buildRowResult(Transaction tx, Record record, Map<Long,VirtualNode> nodesCache) {
+    private RowResult buildRowResult(Transaction tx, Record record, Map<Long,org.neo4j.graphdb.Node> nodesCache) {
         return new RowResult(record.asMap(value -> convert(tx, value, nodesCache)));
     }
 
-    private Object convert(Transaction tx, Object entity, Map<Long, VirtualNode> nodesCache) {
+    private Object convert(Transaction tx, Object entity, Map<Long, org.neo4j.graphdb.Node> nodesCache) {
         if (entity instanceof Value) return convert(tx, ((Value) entity).asObject(), nodesCache);
         if (entity instanceof Node) return toNode(entity, nodesCache);
         if (entity instanceof Relationship) return toRelationship(tx, entity, nodesCache);
@@ -147,20 +147,20 @@ public class BoltConnection {
         return entity;
     }
 
-    private Object toMap(Transaction tx, Map<String, Object> entity, Map<Long, VirtualNode> nodeCache) {
+    private Object toMap(Transaction tx, Map<String, Object> entity, Map<Long, org.neo4j.graphdb.Node> nodeCache) {
         return entity.entrySet().stream()
                 .map(entry -> new AbstractMap.SimpleEntry(entry.getKey(), convert(tx, entry.getValue(), nodeCache)))
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }
 
-    private Object toCollection(Transaction tx, Collection entity, Map<Long, VirtualNode> nodeCache) {
+    private Object toCollection(Transaction tx, Collection entity, Map<Long, org.neo4j.graphdb.Node> nodeCache) {
         return entity.stream()
                 .map(elem -> convert(tx, elem, nodeCache))
                 .collect(Collectors.toList());
     }
 
     private Stream<RowResult> getRowResultStream(Session session, Map<String, Object> params, String statement) {
-        Map<Long, VirtualNode> nodesCache = new HashMap<>();
+        Map<Long, org.neo4j.graphdb.Node> nodesCache = new HashMap<>();
 
         return withTransaction(session, tx -> {
             ClosedAwareDelegatingIterator<Record> iterator = new ClosedAwareDelegatingIterator(tx.run(statement, params));
@@ -168,7 +168,7 @@ public class BoltConnection {
         });
     }
 
-    private Object toNode(Object value, Map<Long, VirtualNode> nodesCache) {
+    private Object toNode(Object value, Map<Long, org.neo4j.graphdb.Node> nodesCache) {
         Node node;
         if (value instanceof Value) {
             node = ((InternalEntity) value).asValue().asNode();
@@ -185,7 +185,7 @@ public class BoltConnection {
             return Util.map("entityType", Meta.Types.NODE.name(), "labels", node.labels(), "id", node.id(), "properties", node.asMap());
     }
 
-    private Object toRelationship(Transaction tx, Object value, Map<Long, VirtualNode> nodesCache) {
+    private Object toRelationship(Transaction tx, Object value, Map<Long, org.neo4j.graphdb.Node> nodesCache) {
         Relationship rel;
         if (value instanceof Value) {
             rel = ((InternalEntity) value).asValue().asRelationship();
@@ -195,8 +195,8 @@ public class BoltConnection {
             throw getUnsupportedConversionException(value);
         }
         if (config.isVirtual()) {
-            VirtualNode start;
-            VirtualNode end;
+            org.neo4j.graphdb.Node start;
+            org.neo4j.graphdb.Node end;
             final long startId = rel.startNodeId();
             final long endId = rel.endNodeId();
             if (config.isWithRelationshipNodeProperties()) {
@@ -218,7 +218,7 @@ public class BoltConnection {
             return Util.map("entityType", Meta.Types.RELATIONSHIP.name(), "type", rel.type(), "id", rel.id(), "start", rel.startNodeId(), "end", rel.endNodeId(), "properties", rel.asMap());
     }
 
-    private Object toPath(Transaction tx, Object value, Map<Long, VirtualNode> nodesCache) {
+    private Object toPath(Transaction tx, Object value, Map<Long, org.neo4j.graphdb.Node> nodesCache) {
         List<Object> entityList = new LinkedList<>();
         Value internalValue = ((InternalPath) value).asValue();
         internalValue.asPath().forEach(p -> {
