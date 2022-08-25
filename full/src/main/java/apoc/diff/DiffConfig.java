@@ -3,44 +3,32 @@ package apoc.diff;
 import apoc.util.Util;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 public class DiffConfig {
-
-    private final boolean leftOnly;
-    private final boolean rightOnly;
-    private final boolean inCommon;
-    private final boolean different;
     private final boolean findById;
+    private final boolean relsInBetween;
+    private final Map<String, Object> boltConfig;
 
     public DiffConfig(Map<String, Object> config) {
         if (config == null) {
             config = Collections.emptyMap();
         }
-        this.leftOnly = Util.toBoolean(config.getOrDefault("leftOnly", true));
-        this.rightOnly = Util.toBoolean(config.getOrDefault("rightOnly", true));
-        this.inCommon = Util.toBoolean(config.getOrDefault("inCommon", true));
-        this.different = Util.toBoolean(config.getOrDefault("different", true));
-        this.findById = Util.toBoolean(config.getOrDefault("findById", false));
-    }
-
-    public boolean isLeftOnly() {
-        return leftOnly;
-    }
-
-    public boolean isRightOnly() {
-        return rightOnly;
-    }
-
-    public boolean isInCommon() {
-        return inCommon;
-    }
-
-    public boolean isDifferent() {
-        return different;
+        this.findById = Util.toBoolean(config.get("findById"));
+        this.relsInBetween = Util.toBoolean(config.get("relsInBetween"));
+        this.boltConfig = (Map<String, Object>) config.getOrDefault("boltConfig", new HashMap<>());
     }
 
     public boolean isFindById() {
         return findById;
+    }
+
+    public Map<String, Object> getBoltConfig() {
+        return boltConfig;
+    }
+
+    public boolean isRelsInBetween() {
+        return relsInBetween;
     }
 }
