@@ -1014,10 +1014,7 @@ public class Util {
 
     public static void validateQuery(GraphDatabaseService db, String statement, Set<Mode> supportedModes , QueryExecutionType.QueryType... supportedQueryTypes) {
         db.executeTransactionally("EXPLAIN " + statement, Collections.emptyMap(), result -> {
-            final boolean isQueryTypeValid = supportedQueryTypes == null || supportedQueryTypes.length == 0 || Stream.of(supportedQueryTypes)
-                    .anyMatch(sqt -> sqt.equals(result.getQueryExecutionType().queryType()));
-            
-            if (!isQueryTypeValid) {
+            if (!isQueryTypeValid(result, supportedQueryTypes)) {
                 throw new RuntimeException("Supported query types for the operation are " + Arrays.toString(supportedQueryTypes));
             }
             
@@ -1027,6 +1024,16 @@ public class Util {
             
             return null;
         });
+    }
+
+    public static boolean isQueryValid(GraphDatabaseService db, String statement, QueryExecutionType.QueryType... supportedQueryTypes) {
+        return db.executeTransactionally("EXPLAIN " + statement, Collections.emptyMap(),
+                res -> isQueryTypeValid(res, supportedQueryTypes));
+    }
+
+    private static boolean isQueryTypeValid(Result result, QueryExecutionType.QueryType[] supportedQueryTypes) {
+        return supportedQueryTypes == null || supportedQueryTypes.length == 0 || Stream.of(supportedQueryTypes)
+                .anyMatch(sqt -> sqt.equals(result.getQueryExecutionType().queryType()));
     }
 
     private static boolean procsAreValid(GraphDatabaseService db, Set<Mode> supportedModes, Result result) {

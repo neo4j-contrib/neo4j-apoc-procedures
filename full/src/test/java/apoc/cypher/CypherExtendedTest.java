@@ -10,6 +10,8 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.graphdb.schema.IndexType;
+import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -22,15 +24,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallCount;
+import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.*;
+import static org.neo4j.driver.internal.util.Iterables.count;
 
 /**
  * @author mh
@@ -56,8 +62,8 @@ public class CypherExtendedTest {
     public void clearDB() {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
         try (Transaction tx = db.beginTx()) {
-            tx.schema().getIndexes().forEach(IndexDefinition::drop);
             tx.schema().getConstraints().forEach(ConstraintDefinition::drop);
+            tx.schema().getIndexes().forEach(IndexDefinition::drop);
             tx.commit();
         }
     }
@@ -277,32 +283,60 @@ public class CypherExtendedTest {
     }
 
     @Test
-    @Ignore
-    public void testSchemaRunFile() throws Exception {
+    public void testSchemaRunFile() {
+        final int expectedBefore;
+        try (Transaction tx = db.beginTx()) {
+            expectedBefore = count(tx.schema().getIndexes());
+        }
+        
         testResult(db, "CALL apoc.cypher.runSchemaFile('schema.cypher')",
                 r -> {
                     Map<String, Object> row = r.next();
                     Map result = (Map) row.get("result");
                     assertEquals(1L, toLong(result.get("indexesAdded")));
-                });
-    }
-
-    @Test
-    @Ignore
-    public void testSchemaRunFiles() throws Exception {
-        testResult(db, "CALL apoc.cypher.runSchemaFiles(['constraints.cypher', 'drop_constraints.cypher', 'index.cypher'])",
-                r -> {
-                    Map<String, Object> row = r.next();
-                    Map result = (Map) row.get("result");
-                    assertEquals(1L, toLong(result.get("constraintsAdded")));
-                    row = r.next();
-                    result = (Map) row.get("result");
-                    assertEquals(1L, toLong(result.get("constraintsRemoved")));
                     row = r.next();
                     result = (Map) row.get("result");
                     assertEquals(1L, toLong(result.get("indexesAdded")));
-
+                    row = r.next();
+                    result = (Map) row.get("result");
+                    assertEquals(1L, toLong(result.get("indexesAdded")));
+                    row = r.next();
+                    result = (Map) row.get("result");
+                    assertEquals(1L, toLong(result.get("indexesAdded")));
+                    assertFalse(r.hasNext());
                 });
+
+        try (Transaction tx = db.beginTx()) {
+            assertEquals(expectedBefore + 4, count(tx.schema().getIndexes()));
+        }
+    }
+
+    @Test
+    public void testSchemaRunFiles() {
+        schemaAssertions(Collections.emptyList(), Collections.emptyList());
+        
+        testCallEmpty(db, "CALL apoc.cypher.runSchemaFiles($files, {statistics: false})",
+                map("files", List.of("constraints.cypher", "drop_constraints.cypher", "schema.cypher")));
+
+        final List<String> another_cons = List.of("CustomerIndex1", "CustomerIndex21", "CustomerIndex231", "another_cons", "node_index_name");
+        final List<String> another_cons1 = List.of("another_cons");
+        
+        schemaAssertions(another_cons, another_cons1);
+    }
+
+    private void schemaAssertions(List<String> expectedIdx, List<String> expectedCons) {
+        try (Transaction tx = db.beginTx()) {
+            final Schema schema = tx.schema();
+            schema.awaitIndexesOnline(20, TimeUnit.SECONDS);
+            final List<String> actualIdx = StreamSupport.stream(schema.getIndexes().spliterator(), false)
+                    .filter(idx -> !idx.getIndexType().equals(IndexType.LOOKUP))
+                    .map(IndexDefinition::getName).sorted().collect(Collectors.toList());
+            final List<String> actualCons = StreamSupport.stream(schema.getConstraints().spliterator(), false)
+                    .map(ConstraintDefinition::getName).sorted()
+                    .collect(Collectors.toList());
+            assertEquals(expectedIdx, actualIdx);
+            assertEquals(expectedCons, actualCons);
+        }
     }
 
     @Test
