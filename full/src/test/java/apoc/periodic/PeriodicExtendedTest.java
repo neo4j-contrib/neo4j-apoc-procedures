@@ -3,7 +3,7 @@ package apoc.periodic;
 import apoc.create.Create;
 import apoc.load.Jdbc;
 import apoc.nlp.gcp.GCPProcedures;
-import apoc.nodes.Nodes;
+import apoc.nodes.NodesExtended;
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,48 +29,46 @@ import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
 
 public class PeriodicExtendedTest {
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(procedure_unrestricted, Collections.singletonList("apoc.*"));
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void initDb() {
-        TestUtil.registerProcedure(db, Periodic.class, GCPProcedures.class, Create.class, Nodes.class, PeriodicExtended.class, Jdbc.class);
+        TestUtil.registerProcedure(db, Periodic.class, NodesExtended.class, GCPProcedures.class, Create.class, PeriodicExtended.class, Jdbc.class);
     }
     
     @Test
     public void testRebindWithNlpWriteProcedure() {
         // use case: https://community.neo4j.com/t5/neo4j-graph-platform/use-of-apoc-periodic-iterate-with-apoc-nlp-gcp-classify-graph/m-p/56846#M33854
-        final Map<String, Object> conf = map("rebind", true);
         final String iterate = "MATCH (node:Article) RETURN node";
         final String action = "CALL apoc.nlp.gcp.classify.graph(node, $nlpConf) YIELD graph RETURN null";
+        testRebindCommon(iterate, action, 0, this::assertNodeDeletedErr);
+        
+        final String actionRebind = "CALL apoc.nlp.gcp.classify.graph(apoc.node.rebind(node), $nlpConf) YIELD graph RETURN null";
+        testRebindCommon(iterate, actionRebind, 2, this::assertNoErrors);
+        
+        // "manual" rebind, i.e. "return id(node) as id" in iterate query, and "match .. where id(n)=id" in action query
+        final String iterateId = "MATCH (node:Article) RETURN id(node) AS id";
+        final String actionId = "MATCH (node) WHERE id(node) = id CALL apoc.nlp.gcp.classify.graph(node, $nlpConf) YIELD graph RETURN null";
 
-        testRebindCommon(conf, iterate, action, 2, r -> assertEquals(Collections.emptyMap(), r.get("errorMessages")));
-
-        testRebindCommon(map(), iterate, action, 0, this::assertNodeDeletedErr);
-    }
-
-    @Test
-    public void testManualRebindWithNlpWriteProcedure() {
-        final String iterate = "MATCH (node:Article) RETURN id(node) AS id";
-        final String action = "MATCH (node) WHERE id(node) = id CALL apoc.nlp.gcp.classify.graph(node, $nlpConf) YIELD graph RETURN null";
-
-        testRebindCommon(map(), iterate, action, 2, r -> assertEquals(Collections.emptyMap(), r.get("errorMessages")));
+        testRebindCommon(iterateId, actionId, 2, this::assertNoErrors);
     }
     
     @Test
     public void testRebindWithMapIterationAndCreateRelationshipProcedure() {
-        final Map<String, Object> conf = map("rebind", true);
         final String iterate = "MATCH (art:Article) RETURN {key: art, key2: 'another'} as map";
         final String action = "CREATE (node:Category) with map.key as art, node call apoc.create.relationship(art, 'CATEGORY', {b: 1}, node) yield rel return rel";
-
-        testRebindCommon(conf, iterate, action, 1, r -> assertEquals(Collections.emptyMap(), r.get("errorMessages")));
+        testRebindCommon(iterate, action, 0, this::assertNodeDeletedErr);
         
-        testRebindCommon(map(), iterate, action, 0, this::assertNodeDeletedErr);
+        final String actionRebind = "WITH apoc.any.rebind(map) AS map " + action;
+        testRebindCommon(iterate, actionRebind, 1, this::assertNoErrors);
+    }
+
+    private void assertNoErrors(Map<String, Object> r) {
+        assertEquals(Collections.emptyMap(), r.get("errorMessages"));
     }
 
     private void assertNodeDeletedErr(Map<String, Object> r) {
@@ -79,13 +77,13 @@ public class PeriodicExtendedTest {
                 .anyMatch(k -> k.matches("Node\\[\\d+] is deleted and cannot be used to create a relationship")));
     }
 
-    private void testRebindCommon(Map<String, Object> conf, String iterate, String action, int expected, Consumer<Map<String, Object>> assertions) {
+    private void testRebindCommon(String iterate, String action, int expected, Consumer<Map<String, Object>> assertions) {
         final Map<String, Object> nlpConf = map("key", "myKey", "nodeProperty", "content", "write", true, "unsupportedDummyClient", true);
-        final Map<String, Object> baseConf = map("params", map("nlpConf", nlpConf));
-        baseConf.putAll(conf);
+        final Map<String, Object> config = map("params", map("nlpConf", nlpConf));
+        
         db.executeTransactionally("CREATE (:Article {content: 'contentBody'})");
         testCall(db,"CALL apoc.periodic.iterate($iterate, $action, $config)", 
-                map( "iterate" , iterate, "action", action, "config", baseConf),
+                map( "iterate" , iterate, "action", action, "config", config),
                 assertions);
 
         testCallCount(db, "MATCH p=(:Category)<-[:CATEGORY]-(:Article) RETURN p", expected);
