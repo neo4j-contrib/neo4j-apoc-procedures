@@ -10,6 +10,8 @@ import org.neo4j.procedure.UserFunction;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author Benjamin Clauss
@@ -45,9 +47,10 @@ public class Diff {
     }
 
     private Map<String, Object> getPropertiesInCommon(Map<String, Object> left, Map<String, Object> right) {
-        Map<String, Object> inCommon = new HashMap<>(left);
-        inCommon.entrySet().retainAll(right.entrySet());
-        return inCommon;
+        // we use filter(entry -> Objects.deepEquals...) instead of retainAll because retainAll use `.equals()`, so it doesn't compare arrays 
+        return left.entrySet().stream()
+                .filter(entry -> Objects.deepEquals(entry.getValue(), right.get(entry.getKey())))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private Map<String, Map<String, Object>> getPropertiesDiffering(Map<String, Object> left, Map<String, Object> right) {
@@ -57,7 +60,7 @@ public class Diff {
         keyPairs.keySet().retainAll(right.keySet());
 
         for (Map.Entry<String, Object> entry : keyPairs.entrySet()) {
-            if (!left.get(entry.getKey()).equals(right.get(entry.getKey()))) {
+            if (!Objects.deepEquals(left.get(entry.getKey()), right.get(entry.getKey()))) {
                 Map<String, Object> pairs = new HashMap<>();
                 pairs.put("left", left.get(entry.getKey()));
                 pairs.put("right", right.get(entry.getKey()));
