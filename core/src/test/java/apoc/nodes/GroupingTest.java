@@ -11,6 +11,7 @@ import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.List;
 import java.util.Map;
 
 import static apoc.util.TestUtil.testResult;
@@ -182,6 +183,39 @@ public class GroupingTest {
     public void testFilterRelationshipsExclude() throws Exception {
         db.executeTransactionally("CREATE (u:User {name:'Joe',gender:'male'})-[:KNOWS]->(u), (u)-[:LOVES]->(u)");
         assertEquals("KNOWS", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['User'],['gender'],null,{excludeRels:'LOVES'}) yield relationship return type(relationship)"));
+    }
+
+    @Test
+    public void testFilterRelationshipsBothExcludeAndInclude() {
+        db.executeTransactionally("CREATE (u:User {name:'Joe',gender:'male'})-[:KNOWS]->(u), (u)-[:LOVES]->(u)");
+        final Map<String, String> conf = map("includeRels", "LOVES", "excludeRels", "LOVES");
+
+        final Object result = TestUtil.singleResultFirstColumn(db, 
+                "CALL apoc.nodes.group(['User'], ['gender'], null, $conf) yield relationship return relationship", 
+                map("conf", conf));
+        assertNull(result);
+    }
+
+    @Test
+    public void testFilterRelationshipsExcludeAsList() {
+        db.executeTransactionally("CREATE (u:User {name:'Joe',gender:'male'})-[:KNOWS]->(u), (u)-[:LOVES]->(u)");
+        final Map<String, Object> conf = map("excludeRels", List.of("KNOWS", "LOVES"));
+
+        final Object result = TestUtil.singleResultFirstColumn(db,
+                "CALL apoc.nodes.group(['User'], ['gender'], null, $conf) yield relationship return relationship",
+                map("conf", conf));
+        assertNull(result);
+    }
+
+    @Test
+    public void testFilterRelationshipsIncludeAsList() {
+        db.executeTransactionally("CREATE (u:User {name:'Joe',gender:'male'})-[:KNOWS]->(u), (u)-[:LOVES]->(u)");
+        final List<String> rels = List.of("KNOWS", "LOVES");
+        final Map<String, Object> conf = map("includeRels", rels);
+
+        testResult(db, "CALL apoc.nodes.group(['User'], ['gender'], null, $conf) yield relationship with type(relationship) as rel return rel order by rel ",
+                map("conf", conf), 
+                r -> assertEquals(rels, Iterators.asList(r.columnAs("rel"))));
     }
 
     @Test
