@@ -19,7 +19,7 @@ public enum JsonFormatSerializer {
         public void writeNode(JsonGenerator jsonGenerator, Node node, ExportConfig config) throws IOException {
             jsonGenerator.writeStartObject();
             jsonGenerator.writeStringField("type", "node");
-            writeNodeDetails(jsonGenerator, node, true);
+            writeNodeDetails(jsonGenerator, node, config.writeNodeProperties());
             jsonGenerator.writeEndObject();
         }
 
