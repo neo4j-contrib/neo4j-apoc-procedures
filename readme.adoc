@@ -210,17 +210,6 @@ The trailing `<apoc>` part of the version number will be incremented with every 
 |===
 
 // end::version-matrix[]
-=== Get APOC Version
-
-To know your current `apoc` version you can use the *function* :
-
-[source,cypher]
-----
-RETURN apoc.version();
-----
-
-
-
 === Using APOC with the Neo4j Docker image
 
 // tag::docker[]

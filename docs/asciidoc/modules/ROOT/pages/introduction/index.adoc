@@ -15,7 +15,10 @@ Neo4j 3.x introduced the concept of user-defined procedures and functions.
 Those are custom implementations of certain functionality, that can't be (easily) expressed in Cypher itself.
 They are implemented in Java and can be easily deployed into your Neo4j instance, and then be called from Cypher directly.
 
-The APOC library consists of many (about 450) procedures and functions to help with many different tasks in areas like data integration, graph algorithms or data conversion.
+The APOC library consists of a lot (about 450) of procedures and functions to help with different tasks in areas like
+data integration, graph algorithms or data conversion.
+
+This documentation handles the extended part of APOC (around 150 procedures and functions).
 
 
 [NOTE]
@@ -38,3 +41,5 @@ _APOC Extended_ :: contains additional procedures and functions, which is availa
 
 
 A list of functions and procedures in _APOC Extended_ can be found in xref::overview/index.adoc[].
+
+Starting from Neo4j 5.0.0, APOC core and extended are split into 2 separate repos, with only core being officially supported by Neo4j.

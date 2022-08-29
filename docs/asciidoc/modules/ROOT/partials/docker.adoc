@@ -2,37 +2,14 @@
 
 // tag::docker[]
 
-APOC Core can be used with the https://hub.docker.com/_/neo4j/[Neo4j Docker image] via the `NEO4JLABS_PLUGINS` environment variable.
-If we use this environment variable, the APOC plugin will be downloaded and configured at runtime.
+APOC Extended can be used with Docker.
 
 [NOTE]
 ====
 This feature is intended to facilitate using APOC in development environments, but it is not recommended for use in production environments.
 ====
 
-.The following runs Neo4j 4.0 in a Docker container with the latest version of the APOC Library
-[source,bash]
-----
-docker run \
-    -p 7474:7474 -p 7687:7687 \
-    -v $PWD/data:/data -v $PWD/plugins:/plugins \
-    --name neo4j-apoc \
-    -e NEO4J_apoc_export_file_enabled=true \
-    -e NEO4J_apoc_import_file_enabled=true \
-    -e NEO4J_apoc_import_file_use__neo4j__config=true \
-    -e NEO4JLABS_PLUGINS=\[\"apoc\"\] \
-    neo4j:4.0
-----
-
-We should see the following two lines in the output after running this command:
-
-[source,text,subs=attributes]
-----
-Fetching versions.json for Plugin 'apoc' from https://neo4j-contrib.github.io/neo4j-apoc-procedures/versions.json
-Installing Plugin 'apoc' from https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/{apoc-release}-extended.jar to /plugins/apoc.jar
-----
-
-In a production environment we should download the APOC release matching our Neo4j version and, copy it to a local folder, and supply it as a data volume mounted at `/plugins`.
+Download the APOC release matching our Neo4j version and, copy it to a local folder, and supply it as a data volume mounted at `/plugins`.
 
 .The following downloads the APOC Library into the `plugins` directory and then mounts that folder to the Neo4j Docker container
 [source,bash,subs=attributes]

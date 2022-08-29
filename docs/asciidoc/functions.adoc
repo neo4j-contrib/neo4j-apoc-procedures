@@ -68,14 +68,6 @@ In our APOC procedure library we already converted about https://github.com/neo4
 | 3
 | apoc.date.parse("time",["unit"],["format"])
 
-| general type conversion
-| 8
-| apoc.convert.toMap(value)
-
-| JSON conversion
-| 4
-| apoc.convert.toJson(value)
-
 
 |===
 

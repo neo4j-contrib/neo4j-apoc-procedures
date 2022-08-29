@@ -14,7 +14,6 @@ If you want to remove these constraints please set `apoc.import.file.use_neo4j_c
 
 [cols="5m,5"]
 |===
-| CALL apoc.load.json('http://example.com/map.json', [path], [config]) YIELD value as person CREATE (p:Person) SET p = person | load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map
 | CALL apoc.load.xml('http://example.com/test.xml', ['xPath'], [config]) YIELD value as doc CREATE (p:Person) SET p.name = doc.name | load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `+_type+`, `+_text+` and `+_children+` fields.
 | CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, strings, map, stringMap | load CSV fom URL as stream of values +
 config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['aColumn'],arraySep:';',results:['map','list','strings','stringMap'], +
@@ -32,11 +31,6 @@ For example:
 .Loading a compressed CSV file
 ----
 apoc.load.csv("pathToCompressedFile/file.zip!pathToCsvFileInZip/fileName.csv")
-----
-
-.Loading a compressed JSON file
-----
-apoc.load.json("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tgz?raw=true!person.json");
 ----
 
 include::partial$s3-protocol.adoc[]
@@ -99,7 +93,6 @@ Example:
 
 `gs://andrea-bucket-1/test-privato.csv?authenticationType=GCP_ENVIRONMENT`
 
-== failOnError
-
+== Fail on Error
 
 Adding the config parameter `failOnError:false` (by default `true`), will mean that in the case of an error the procedure will not fail, but just return zero rows.

@@ -23,7 +23,7 @@ The APOC procedures also support reading compressed files.
 
 The data conversion is useful for setting properties directly, but for computation within Cypher it's problematic as Cypher doesn't know the type of map values so they default to `Any`.
 
-To use them correctly, you'll have to indicate their type to Cypher by using the built-in (e.g. `toInteger`) or apoc (e.g. `apoc.convert.toBoolean`) conversion functions on the value.
+To use them correctly, you'll have to indicate their type to Cypher by using the built-in (e.g. `toInteger`) conversion functions on the value.
 
 For reading from files you'll have to enable the config option:
 
