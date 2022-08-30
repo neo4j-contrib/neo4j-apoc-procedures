@@ -1,11 +1,9 @@
-¦Qualified Name¦Type¦Release
+¦Qualified Name¦Type
 |xref::overview/apoc.nlp.gcp.entities/apoc.nlp.gcp.entities.adoc[apoc.nlp.gcp.entities.graph icon:book[]]
 
 Creates a (virtual) entity graph for provided text
 |label:procedure[]
-|label:apoc-extended[]
 |xref::overview/apoc.nlp.gcp.entities/apoc.nlp.gcp.entities.adoc[apoc.nlp.gcp.entities.stream icon:book[]]
 
 Returns a stream of entities for provided text
 |label:procedure[]
-|label:apoc-extended[]

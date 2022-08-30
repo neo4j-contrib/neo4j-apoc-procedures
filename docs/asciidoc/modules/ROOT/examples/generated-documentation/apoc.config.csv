@@ -1,11 +1,9 @@
-¦Qualified Name¦Type¦Release
+¦Qualified Name¦Type
 |xref::overview/apoc.config/apoc.config.adoc[apoc.config.list icon:book[]]
 
 apoc.config.list \| Lists the Neo4j configuration as key,value table
 |label:procedure[]
-|label:apoc-extended[]
 |xref::overview/apoc.config/apoc.config.adoc[apoc.config.map icon:book[]]
 
 apoc.config.map \| Lists the Neo4j configuration as map
 |label:procedure[]
-|label:apoc-extended[]

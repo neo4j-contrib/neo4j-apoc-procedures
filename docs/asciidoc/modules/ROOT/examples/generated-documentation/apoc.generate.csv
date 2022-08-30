@@ -1,26 +1,21 @@
-¦Qualified Name¦Type¦Release
+¦Qualified Name¦Type
 |xref::overview/apoc.generate/apoc.generate.adoc[apoc.generate.ba icon:book[]]
 
 apoc.generate.ba(noNodes, edgesPerNode, label, type) - generates a random graph according to the Barabasi-Albert model
 |label:procedure[]
-|label:apoc-extended[]
 |xref::overview/apoc.generate/apoc.generate.adoc[apoc.generate.complete icon:book[]]
 
 apoc.generate.complete(noNodes, label, type) - generates a random complete graph
 |label:procedure[]
-|label:apoc-extended[]
 |xref::overview/apoc.generate/apoc.generate.adoc[apoc.generate.er icon:book[]]
 
 apoc.generate.er(noNodes, noEdges, label, type) - generates a random graph according to the Erdos-Renyi model
 |label:procedure[]
-|label:apoc-extended[]
 |xref::overview/apoc.generate/apoc.generate.adoc[apoc.generate.simple icon:book[]]
 
 apoc.generate.simple(degrees, label, type) - generates a simple random graph according to the given degree distribution
 |label:procedure[]
-|label:apoc-extended[]
 |xref::overview/apoc.generate/apoc.generate.adoc[apoc.generate.ws icon:book[]]
 
 apoc.generate.ws(noNodes, degree, beta, label, type) - generates a random graph according to the Watts-Strogatz model
 |label:procedure[]
-|label:apoc-extended[]

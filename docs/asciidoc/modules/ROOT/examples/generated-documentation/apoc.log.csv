@@ -1,21 +1,17 @@
-¦Qualified Name¦Type¦Release
+¦Qualified Name¦Type
 |xref::overview/apoc.log/apoc.log.adoc[apoc.log.debug icon:book[]]
 
 apoc.log.debug(message, params) - logs debug message
 |label:procedure[]
-|label:apoc-extended[]
 |xref::overview/apoc.log/apoc.log.adoc[apoc.log.error icon:book[]]
 
 apoc.log.error(message, params) - logs error message
 |label:procedure[]
-|label:apoc-extended[]
 |xref::overview/apoc.log/apoc.log.adoc[apoc.log.info icon:book[]]
 
 apoc.log.info(message, params) - logs info message
 |label:procedure[]
-|label:apoc-extended[]
 |xref::overview/apoc.log/apoc.log.adoc[apoc.log.warn icon:book[]]
 
 apoc.log.warn(message, params) - logs warn message
 |label:procedure[]
-|label:apoc-extended[]

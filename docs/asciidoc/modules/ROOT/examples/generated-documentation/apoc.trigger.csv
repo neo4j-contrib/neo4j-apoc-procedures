@@ -1,11 +1,9 @@
-¦Qualified Name¦Type¦Release
+¦Qualified Name¦Type
 |xref::overview/apoc.trigger/apoc.trigger.adoc[apoc.trigger.nodesByLabel icon:book[]]
 
 
 |label:function[]
-|label:apoc-extended[]
 |xref::overview/apoc.trigger/apoc.trigger.adoc[apoc.trigger.propertiesByKey icon:book[]]
 
 
 |label:function[]
-|label:apoc-extended[]

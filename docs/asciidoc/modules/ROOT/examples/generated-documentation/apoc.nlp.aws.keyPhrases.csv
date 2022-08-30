@@ -1,11 +1,9 @@
-¦Qualified Name¦Type¦Release
+¦Qualified Name¦Type
 |xref::overview/apoc.nlp.aws.keyPhrases/apoc.nlp.aws.keyPhrases.adoc[apoc.nlp.aws.keyPhrases.graph icon:book[]]
 
 Creates a (virtual) key phrases graph for provided text
 |label:procedure[]
-|label:apoc-extended[]
 |xref::overview/apoc.nlp.aws.keyPhrases/apoc.nlp.aws.keyPhrases.adoc[apoc.nlp.aws.keyPhrases.stream icon:book[]]
 
 Returns a stream of key phrases for provided text
 |label:procedure[]
-|label:apoc-extended[]

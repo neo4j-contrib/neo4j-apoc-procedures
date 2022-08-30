@@ -1,16 +1,13 @@
-¦Qualified Name¦Type¦Release
+¦Qualified Name¦Type
 |xref::overview/apoc.dv.catalog/apoc.dv.adoc[apoc.dv.catalog.add icon:book[]]
 
 Add a virtualized resource configuration
 |label:procedure[]
-|label:apoc-extended[]
 |xref::overview/apoc.dv.catalog/apoc.dv.adoc[apoc.dv.catalog.list icon:book[]]
 
 List all virtualized resource configuration
 |label:procedure[]
-|label:apoc-extended[]
 |xref::overview/apoc.dv.catalog/apoc.dv.adoc[apoc.dv.catalog.remove icon:book[]]
 
 Remove a virtualized resource config by name
 |label:procedure[]
-|label:apoc-extended[]
