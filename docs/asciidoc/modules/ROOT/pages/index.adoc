@@ -24,6 +24,7 @@ The guide covers the following areas:
 * xref::database-integration/index.adoc[] -- A detailed guide to procedures that can be used to integrate with other databases including relational databases, MongoDB, Couchbase, and ElasticSearch.
 * xref::graph-updates/index.adoc[] -- A detailed guide to procedures that can be used to apply graph updates.
 * xref::cypher-execution/index.adoc[] -- A detailed guide to procedures that can be used for Cypher scripting.
+* xref:virtual-resource/index.adoc[] -- A detailed guide to procedures that can be used to create virtual nodes and relationships.
 * xref::nlp/index.adoc[] -- A detailed guide to procedures that can be used to add Natural Language Processing functionality to graph applications.
 * xref::database-introspection/index.adoc[] -- A detailed guide to procedures that can be used to introspect the database.
 * xref::operational/index.adoc[] -- A detailed guide to operational procedures.
