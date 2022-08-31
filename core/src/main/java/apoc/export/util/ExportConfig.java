@@ -55,6 +55,7 @@ public class ExportConfig extends CompressionConfig {
     private boolean useTypes;
     private Set<String> caption;
     private boolean writeNodeProperties;
+    private boolean writeRelationshipProperties;
     private boolean nodesOfRelationships;
     private ExportFormat format;
     private CypherFormat cypherFormat;
@@ -124,7 +125,8 @@ public class ExportConfig extends CompressionConfig {
         this.cypherFormat = CypherFormat.fromString((String) config.getOrDefault("cypherFormat", "create"));
         this.config = config;
         this.streamStatements = toBoolean(config.get("streamStatements")) || toBoolean(config.get("stream"));
-        this.writeNodeProperties = toBoolean(config.get("writeNodeProperties"));
+        this.writeNodeProperties = toBoolean(config.getOrDefault("writeNodeProperties", true));
+        this.writeRelationshipProperties = toBoolean(config.getOrDefault("writeRelationshipProperties", true));
         this.ifNotExists = toBoolean(config.get("ifNotExists"));
         exportQuotes(config);
         this.optimizations = (Map<String, Object>) config.getOrDefault("useOptimizations", Collections.emptyMap());
@@ -211,6 +213,10 @@ public class ExportConfig extends CompressionConfig {
 
     public boolean writeNodeProperties() {
         return writeNodeProperties;
+    }
+
+    public boolean writeRelationshipProperties() {
+        return writeRelationshipProperties;
     }
 
     public long getTimeoutSeconds() {
