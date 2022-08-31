@@ -28,10 +28,8 @@ public enum JsonFormatSerializer {
             Node startNode = rel.getStartNode();
             Node endNode = rel.getEndNode();
             jsonGenerator.writeStartObject();
-            jsonGenerator.writeStringField("id", String.valueOf(rel.getId()));
             jsonGenerator.writeStringField("type", "relationship");
-            jsonGenerator.writeStringField("label", rel.getType().toString());
-            serializeProperties(jsonGenerator, rel.getAllProperties());
+            writeRelationshipDetails(jsonGenerator, rel, config.writeRelationshipProperties());
             writeRelationshipNode(jsonGenerator, "start", startNode, config);
             writeRelationshipNode(jsonGenerator, "end", endNode, config);
             jsonGenerator.writeEndObject();
@@ -83,6 +81,16 @@ public enum JsonFormatSerializer {
                 serializeProperties(jsonGenerator, node.getAllProperties());
             }
         }
+
+        private void writeRelationshipDetails(JsonGenerator jsonGenerator, Relationship rel, boolean witRelationshipProperties) throws IOException {
+            jsonGenerator.writeStringField("id", String.valueOf(rel.getId()));
+            jsonGenerator.writeStringField("label", rel.getType().toString());
+
+            if (witRelationshipProperties) {
+                serializeProperties(jsonGenerator, rel.getAllProperties());
+            }
+        }
+
 
         private void writeRelationshipNode(JsonGenerator jsonGenerator, String type, Node node, ExportConfig config) throws IOException {
             jsonGenerator.writeObjectFieldStart(type);
