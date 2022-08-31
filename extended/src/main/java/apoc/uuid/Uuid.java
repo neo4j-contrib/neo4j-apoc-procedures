@@ -1,5 +1,7 @@
 package apoc.uuid;
 
+import static apoc.util.Util.quote;
+
 import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.Pools;
@@ -40,8 +42,8 @@ public class Uuid {
             try {
                 addToExistingNodesResult = Util.inTx(db, pools, txInThread ->
                     txInThread.execute("CALL apoc.periodic.iterate(" +
-                            "\"MATCH (n:" + Util.sanitizeAndQuote(label) + ") RETURN n\",\n" +
-                            "\"SET n." + Util.sanitizeAndQuote(uuidConfig.getUuidProperty()) + " = " + uuidFunctionName + "()\", {batchSize:10000, parallel:true})")
+                            "\"MATCH (n:" + sanitizeAndQuote(label) + ") RETURN n\",\n" +
+                            "\"SET n." + sanitizeAndQuote(uuidConfig.getUuidProperty()) + " = " + uuidFunctionName + "()\", {batchSize:10000, parallel:true})")
                             .next()
                 );
             } catch (RuntimeException e) {
@@ -128,6 +130,10 @@ public class Uuid {
             default:
                 return "apoc.create.uuid";
         }
+    }
+
+    private static String sanitizeAndQuote(String var) {
+        return quote(var.replaceAll("`", ""));
     }
 
 }
