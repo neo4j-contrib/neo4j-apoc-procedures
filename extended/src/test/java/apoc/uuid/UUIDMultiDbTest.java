@@ -17,7 +17,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
-import static apoc.ApocConfig.APOC_UUID_ENABLED_DB;
+import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED_DB;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.uuid.UuidHandler.NOT_ENABLED_ERROR;
 import static org.junit.Assert.assertEquals;

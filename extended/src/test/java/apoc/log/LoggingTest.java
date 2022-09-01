@@ -1,6 +1,6 @@
 package apoc.log;
 
-import apoc.ApocConfig;
+import apoc.ExtendedApocConfig;
 import apoc.util.SimpleRateLimiter;
 import apoc.util.TestUtil;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static java.util.Arrays.asList;
 
 public class LoggingTest {
@@ -35,7 +35,7 @@ public class LoggingTest {
     @Test
     public void shouldWriteSafeStrings() {
         // given
-        Logging logging = initLogging(ApocConfig.LoggingType.safe, 10000, 10);
+        Logging logging = initLogging(ExtendedApocConfig.LoggingType.safe, 10000, 10);
 
         // when
         String stringWithWhitespaces = logging.format("Test %s ", asList(1));
@@ -49,18 +49,18 @@ public class LoggingTest {
     }
 
     @NotNull
-    private Logging initLogging(ApocConfig.LoggingType safe, int i, int i2) {
-        apocConfig().setLoggingType(safe);
-        apocConfig().setRateLimiter(new SimpleRateLimiter(i, i2));
+    private Logging initLogging(ExtendedApocConfig.LoggingType safe, int i, int i2) {
+        extendedApocConfig().setLoggingType(safe);
+        extendedApocConfig().setRateLimiter(new SimpleRateLimiter(i, i2));
         Logging logging = new Logging();
-        logging.apocConfig = apocConfig();
+        logging.extendedApocConfig = extendedApocConfig();
         return logging;
     }
 
     @Test
     public void shouldWriteRawStrings() {
         // given
-        Logging logging = initLogging(ApocConfig.LoggingType.raw, 10000, 10);
+        Logging logging = initLogging(ExtendedApocConfig.LoggingType.raw, 10000, 10);
 
         // when
         String stringWithWhitespaces = logging.format("Test %s ", asList(1));
@@ -76,7 +76,7 @@ public class LoggingTest {
     @Test
     public void shouldNotLog() {
         // given
-        Logging logging = initLogging(ApocConfig.LoggingType.none, 10000, 10);
+        Logging logging = initLogging(ExtendedApocConfig.LoggingType.none, 10000, 10);
 
         // when
         String stringWithWhitespaces = logging.format("Test %s ", asList(1));
@@ -92,7 +92,7 @@ public class LoggingTest {
     @Test
     public void shouldSkipMessagesFor10Seconds() {
         // given
-        Logging logging = initLogging(ApocConfig.LoggingType.safe, 10000, 10);
+        Logging logging = initLogging(ExtendedApocConfig.LoggingType.safe, 10000, 10);
 
         List<String> all = IntStream.range(0, 10).mapToObj(i -> "test_" + i + "_")
                 .collect(Collectors.toList());
@@ -151,7 +151,7 @@ public class LoggingTest {
     @Test
     public void shouldWrite20MessagesIn1Second() {
         // given
-        Logging logging = initLogging(ApocConfig.LoggingType.safe, 1000, 20);
+        Logging logging = initLogging(ExtendedApocConfig.LoggingType.safe, 1000, 20);
 
         List<String> all = IntStream.range(0, 20).mapToObj(i -> "test_" + i + "_")
                 .collect(Collectors.toList());

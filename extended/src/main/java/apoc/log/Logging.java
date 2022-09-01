@@ -1,7 +1,7 @@
 package apoc.log;
 
-import apoc.ApocConfig;
 import apoc.Extended;
+import apoc.ExtendedApocConfig;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -22,7 +22,7 @@ public class Logging {
     public Log log;
 
     @Context
-    public ApocConfig apocConfig;
+    public ExtendedApocConfig extendedApocConfig;
 
     @Procedure
     @Description("apoc.log.error(message, params) - logs error message")
@@ -55,7 +55,7 @@ public class Logging {
     public String format(String message, List<Object> params) { // visible for testing
         if (canLog()) {
             String formattedMessage = String.format(message, params.isEmpty() ? new Object[0] : params.toArray(new Object[params.size()]));
-            if (ApocConfig.LoggingType.safe == apocConfig.getLoggingType()) {
+            if ( ExtendedApocConfig.LoggingType.safe == extendedApocConfig.getLoggingType()) {
                 return formattedMessage.replaceAll("\\.| |\\t", "_").toLowerCase();
             }
             return formattedMessage;
@@ -71,10 +71,10 @@ public class Logging {
     }
 
     private boolean canLog() {
-        if (ApocConfig.LoggingType.none == apocConfig.getLoggingType()) {
+        if (ExtendedApocConfig.LoggingType.none == extendedApocConfig.getLoggingType()) {
             return false;
         }
-        return apocConfig.getRateLimiter().canExecute();
+        return extendedApocConfig.getRateLimiter().canExecute();
     }
 
 }

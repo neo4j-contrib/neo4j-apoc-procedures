@@ -45,8 +45,7 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
                 "uuid", new UuidHandler(db,
                 dependencies.databaseManagementService(),
                 dependencies.log().getUserLog(Uuid.class),
-                dependencies.apocConfig(),
-                dependencies.globalProceduresRegistry()),
+                dependencies.apocConfig()),
 
                 "directory", new LoadDirectoryHandler(db,
                         dependencies.log().getUserLog(LoadDirectory.class),
