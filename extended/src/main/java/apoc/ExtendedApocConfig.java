@@ -19,6 +19,9 @@ import org.neo4j.logging.internal.LogService;
 
 public class ExtendedApocConfig extends LifecycleAdapter
 {
+    public static final String APOC_TTL_SCHEDULE_DB = "apoc.ttl.schedule.%s";
+    public static final String APOC_TTL_ENABLED_DB = "apoc.ttl.enabled.%s";
+    public static final String APOC_TTL_LIMIT_DB = "apoc.ttl.limit.%s";
     public static final String APOC_UUID_ENABLED_DB = "apoc.uuid.enabled.%s";
     public static final String APOC_UUID_FORMAT = "apoc.uuid.format";
     public enum UuidFormatType { hex, base64 }
