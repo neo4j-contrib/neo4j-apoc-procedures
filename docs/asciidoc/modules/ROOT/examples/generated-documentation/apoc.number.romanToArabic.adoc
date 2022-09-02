@@ -1,5 +1,0 @@
-¦xref::overview/apoc.number/apoc.number.romanToArabic.adoc[apoc.number.romanToArabic icon:book[]] +
-
-`apoc.number.romanToArabic(romanNumber)  | convert roman numbers to arabic`
-¦label:function[]
-¦label:apoc-core[]

@@ -46,17 +46,6 @@ or:
 CALL apoc.load.csv(`binaryFileNotCompressed`, {compression: 'NONE'}) 
 ----
 
-For example, this one works well with xref::overview/apoc.util/apoc.util.compress.adoc[apoc.util.compress] function:
-
-[source,cypher]
-----
-WITH apoc.util.compress("name,age\nSelma,8\nRana,11\nSelina,18", {compression: 'DEFLATE'}) as csvCompressed
-CALL apoc.load.csv(csvCompressed, {compression: 'DEFLATE'}) 
-YIELD lineNo, map, list
-RETURN lineNo, map, list
-----
-
-
 .Results
 [opts="header",cols="1,2,2"]
 |===

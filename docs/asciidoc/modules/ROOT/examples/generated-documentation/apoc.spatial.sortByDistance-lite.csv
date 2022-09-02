@@ -1,2 +1,0 @@
-¦signature
-¦apoc.spatial.sortByDistance(paths :: LIST? OF PATH?) :: (path :: PATH?, distance :: FLOAT?)

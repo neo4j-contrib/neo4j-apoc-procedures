@@ -1,2 +1,0 @@
-¦signature
-¦apoc.atomic.insert(container :: ANY?, propertyName :: STRING?, position :: INTEGER?, value :: ANY?, times = 5 :: INTEGER?) :: (container :: ANY?, property :: STRING?, oldValue :: ANY?, newValue :: ANY?)

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.number/apoc.number.parseInt.adoc[apoc.number.parseInt icon:book[]] +
-
-`apoc.number.parseInt(text)  | parse a text using the default system pattern and language to produce a long`
-¦label:function[]
-¦label:apoc-core[]

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.text/apoc.text.swapCase.adoc[apoc.text.swapCase icon:book[]] +
-
-`apoc.text.swapCase(text) YIELD value` - Swap the case of a string
-¦label:function[]
-¦label:apoc-core[]

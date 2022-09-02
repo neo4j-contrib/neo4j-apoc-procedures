@@ -1,5 +1,0 @@
-¦xref::overview/apoc.refactor/apoc.refactor.to.adoc[apoc.refactor.to icon:book[]] +
-
-`  apoc.refactor.to(rel, endNode) redirect relationship to use new end-node`
-¦label:procedure[]
-¦label:apoc-core[]

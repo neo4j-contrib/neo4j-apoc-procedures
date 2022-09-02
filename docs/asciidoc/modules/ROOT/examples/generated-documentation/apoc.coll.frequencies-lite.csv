@@ -1,2 +1,0 @@
-¦signature
-¦apoc.coll.frequencies(coll :: LIST? OF ANY?) :: (LIST? OF ANY?)

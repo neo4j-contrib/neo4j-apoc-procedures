@@ -1,2 +1,0 @@
-¦signature
-¦apoc.text.swapCase(text :: STRING?) :: (STRING?)

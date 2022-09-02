@@ -87,7 +87,7 @@ Once that file is downloaded, it should be placed in the `plugins` directory and
 == Driver configuration
 
 To set the configuration of the Driver, you can add the parameter `driverConfig` in the config.
-Is's a map of values, the values that we don't pass to the config, are set to the default value.
+It's a map of values, the values that we don't pass to the config, are set to the default value.
 
 [source,cypher]
 ----

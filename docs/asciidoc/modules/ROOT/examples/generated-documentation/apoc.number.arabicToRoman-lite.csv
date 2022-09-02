@@ -1,2 +1,0 @@
-¦signature
-¦apoc.number.arabicToRoman(number :: ANY?) :: (STRING?)

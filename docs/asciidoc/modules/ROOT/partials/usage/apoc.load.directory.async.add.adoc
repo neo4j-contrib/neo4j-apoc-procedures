@@ -12,16 +12,16 @@ Please note that if a file is renamed, will be triggered 2 event, that is first 
 
 
 The third parameter is the pattern of file to search for.
-By default is '*', that is, search all files.
+By default, is '*', that is, search all files.
 The fourth is the search path of directory.
-By default is an empty string, that is, search file in `import` directory.
+By default, is an empty string, that is, search file in `import` directory.
 
 
 === Examples of interoperability with other procedures
 
-We can use another load procedure as query parameter, like `apoc.load.csv` or `apoc.load.json`.
+We can use another load procedure as query parameter, like `apoc.load.csv`.
 
-Here are two examples.
+Here is an example.
 
 We can execute:
 
@@ -130,62 +130,6 @@ we obtain 3 new nodes with these props:
 }
 |===
 
-
-
-Or else, we can execute:
-
-[source,cypher]
-----
-CALL apoc.load.directory.async.add('jsonImport',
-"CALL apoc.load.json($filePath) yield value WITH value CREATE (n:JsonToNode {content: value['foo'], fileName: $fileName, fileDirectory: $fileDirectory})",
-"*.json", "jsonFolder", {listenEventType: ["CREATE"]})
-----
-
-If we upload the following files in `$IMPORT_DIR/jsonFolder` folder:
-
-.fileOne.json
-[source,json]
-----
-{ "foo":[1,2,3] }
-{ "foo":[4,5,6] }
-----
-
-and
-
-.fileTwo.json
-[source,json]
-----
-{ "foo":[11,22,33] }
-{ "foo":[41,51,61] }
-----
-
-We obtain this result calling `MATCH (n:JsonToNode) RETURN properties(n) as props`:
-
-.Results
-[opts="header"]
-|===
-| props
-| {
-  "fileName": "fileOne.json",
-  "fileDirectory": "jsonFolder",
-  "content": [ 1,2,3 ]
-}
-| {
-  "fileName": "fileOne.json",
-  "fileDirectory": "jsonFolder",
-  "content": [ 4,5,6 ]
-}
-| {
-  "fileName": "fileTwo.json",
-  "fileDirectory": "jsonFolder",
-  "content": [ 11,22,33 ]
-}
-| {
-  "fileName": "fileTwo.json",
-  "fileDirectory": "jsonFolder",
-  "content": [ 41,51,61 ]
-}
-|===
 
 === Error handling
 

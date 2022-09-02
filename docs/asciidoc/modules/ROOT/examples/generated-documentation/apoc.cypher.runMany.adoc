@@ -1,5 +1,0 @@
-¦xref::overview/apoc.cypher/apoc.cypher.runMany.adoc[apoc.cypher.runMany icon:book[]] +
-
-`apoc.cypher.runMany('cypher;\nstatements;',\{params},[{statistics:true,timeout:10}])` - runs each semicolon separated statement and returns summary
-¦label:procedure[]
-¦label:apoc-core[]

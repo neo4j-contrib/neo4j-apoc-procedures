@@ -1,5 +1,0 @@
-¦xref::overview/apoc.convert/apoc.convert.toBooleanList.adoc[apoc.convert.toBooleanList icon:book[]] +
-
-`apoc.convert.toBooleanList(value) | tries it's best to convert the value to a list of booleans`
-¦label:function[]
-¦label:apoc-core[]

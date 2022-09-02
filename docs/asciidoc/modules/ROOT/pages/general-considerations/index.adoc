@@ -7,7 +7,7 @@ To use the APOC library it's necessary to consider the following issues.
 .Memory tracker
 
 The APOC procedures (and in general, the Neo4j procedures), currently are not detected by Neo4j Memory Tracker.
-This means that, for example, the xref::overview/apoc.path/apoc.path.expand.adoc[apoc.path.expand] procedure 
+This means that, for example, the apoc.path.expand procedure
 doesn't stop if `dbms.memory.transaction.database_max_size` is reached, 
 and we cannot use the `SHOW TRANSACTIONS yield currentQuery, estimatedUsedHeapMemory` command to monitor the memory usage of the query.
 Therefore, please use the procedure carefully to avoid Java Heap space errors. 

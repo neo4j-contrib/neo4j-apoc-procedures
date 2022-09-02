@@ -1,2 +1,0 @@
-¦signature
-¦apoc.text.levenshteinSimilarity(text1 :: STRING?, text2 :: STRING?) :: (FLOAT?)

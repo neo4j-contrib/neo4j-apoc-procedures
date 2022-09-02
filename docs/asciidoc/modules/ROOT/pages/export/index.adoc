@@ -13,9 +13,4 @@ In addition to exporting data in these formats, we can choose to export the whol
 
 For more information on how to use these procedures, see:
 
-* xref::export/csv.adoc[]
-* xref::export/json.adoc[]
-* xref::export/cypher.adoc[]
-* xref::export/graphml.adoc[]
-* xref::export/gephi.adoc[]
 * xref::export/xls.adoc[]

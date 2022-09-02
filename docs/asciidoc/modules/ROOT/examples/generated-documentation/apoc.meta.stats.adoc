@@ -1,5 +1,0 @@
-¦xref::overview/apoc.meta/apoc.meta.stats.adoc[apoc.meta.stats icon:book[]] +
-
-`apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats | returns the information stored in the transactional database statistics`
-¦label:procedure[]
-¦label:apoc-core[]

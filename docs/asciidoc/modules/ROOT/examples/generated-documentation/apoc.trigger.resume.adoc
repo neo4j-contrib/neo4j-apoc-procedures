@@ -1,5 +1,0 @@
-¦xref::overview/apoc.trigger/apoc.trigger.resume.adoc[apoc.trigger.resume icon:book[]] +
-
-`CALL apoc.trigger.resume(name) | it resumes the paused trigger`
-¦label:procedure[]
-¦label:apoc-core[]

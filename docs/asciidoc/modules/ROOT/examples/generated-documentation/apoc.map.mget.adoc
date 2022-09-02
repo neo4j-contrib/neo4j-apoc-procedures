@@ -1,5 +1,0 @@
-¦xref::overview/apoc.map/apoc.map.mget.adoc[apoc.map.mget icon:book[]] +
-
-`apoc.map.mget(map,key,[defaults],[fail=true]) ` - returns list of values for keys or throws exception if one of the key doesn't exist and no default value given at that position
-¦label:function[]
-¦label:apoc-core[]

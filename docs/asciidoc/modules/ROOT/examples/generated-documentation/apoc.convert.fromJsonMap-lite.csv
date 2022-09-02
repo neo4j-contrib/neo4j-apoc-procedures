@@ -1,2 +1,0 @@
-¦signature
-¦apoc.convert.fromJsonMap(map :: STRING?, path =  :: STRING?, pathOptions = null :: LIST? OF STRING?) :: (MAP?)

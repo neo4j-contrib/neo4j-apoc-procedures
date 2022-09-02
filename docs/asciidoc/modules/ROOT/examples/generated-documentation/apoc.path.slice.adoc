@@ -1,5 +1,0 @@
-¦xref::overview/apoc.path/apoc.path.slice.adoc[apoc.path.slice icon:book[]] +
-
-`apoc.path.slice(path, [offset], [length])` - creates a sub-path with the given offset and length
-¦label:function[]
-¦label:apoc-core[]

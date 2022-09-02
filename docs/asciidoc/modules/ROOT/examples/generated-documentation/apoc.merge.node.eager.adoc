@@ -1,5 +1,0 @@
-¦xref::overview/apoc.merge.node/apoc.merge.node.eager.adoc[apoc.merge.node.eager icon:book[]] +
-
-`apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}})` - merge nodes eagerly, with dynamic labels, with support for setting properties ON CREATE or ON MATCH
-¦label:procedure[]
-¦label:apoc-core[]

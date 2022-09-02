@@ -1,2 +1,0 @@
-¦signature
-¦apoc.refactor.collapseNode(nodes :: ANY?, type :: STRING?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)

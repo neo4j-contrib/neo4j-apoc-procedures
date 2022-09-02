@@ -10,5 +10,3 @@ CALL apoc.log.warn('Hello %s', ['World']);
 ----
 2020-11-18 10:21:37.365+0000 WARN  hello_world
 ----
-
-We can query the contents of `neo4j.log` using xref::overview/apoc.log/apoc.log.stream.adoc[]

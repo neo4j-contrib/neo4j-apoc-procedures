@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.stdev.adoc[apoc.coll.stdev icon:book[]] +
-
-`apoc.coll.stdev(list, isBiasCorrected)` - returns the sample or population standard deviation with isBiasCorrected true or false respectively. For example apoc.coll.stdev([10, 12, 23]) return 7
-¦label:function[]
-¦label:apoc-core[]

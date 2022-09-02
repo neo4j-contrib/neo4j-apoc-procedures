@@ -1,2 +1,0 @@
-¦signature
-¦apoc.text.code(codepoint :: INTEGER?) :: (STRING?)

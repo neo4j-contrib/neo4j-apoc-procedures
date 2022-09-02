@@ -1,5 +1,0 @@
-¦xref::overview/apoc.util/apoc.util.md5.adoc[apoc.util.md5 icon:book[]] +
-
-`apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list`
-¦label:function[]
-¦label:apoc-core[]

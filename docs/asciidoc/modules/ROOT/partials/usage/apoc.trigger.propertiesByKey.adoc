@@ -1,4 +1,4 @@
-This function is used inside a xref::overview/apoc.trigger/apoc.trigger.add.adoc[] Cypher statement.
+This function is used inside an apoc.trigger.add.adoc Cypher statement.
 
 We can use it to conditionally run Cypher statements when properties are added or removed.
 For example, we can connect nodes with a `genre` property to a `Genre` node, with the following trigger:

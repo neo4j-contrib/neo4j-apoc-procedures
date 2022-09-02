@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.randomItem.adoc[apoc.coll.randomItem icon:book[]] +
-
-`apoc.coll.randomItem(coll)- returns a random item from the list, or null on an empty or null list`
-¦label:function[]
-¦label:apoc-core[]

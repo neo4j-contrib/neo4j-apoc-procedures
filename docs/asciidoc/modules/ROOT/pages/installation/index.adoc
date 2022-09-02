@@ -2,26 +2,7 @@
 = Installation
 :description: This section contains instructions for installing the APOC standard library.
 
-
-
-_APOC Core_ is packaged with Neo4j and can be found in the `$NEO4J_HOME/labs` directory.
 _APOC Extended_ can be downloaded using one of the methods described in the sections below.
-
-[WARNING]
-====
-_APOC Extended_ contains all the procedures and functions included in _APOC Core_.
-You *must not* install both libraries.
-====
-
-[[apoc-core]]
-== APOC Core
-
-_APOC Core_ can be installed by moving the APOC jar file from the `$NEO4J_HOME/labs` directory to the `$NEO4J_HOME/plugins` directory and restarting Neo4j.
-
-[[neo4j-desktop]]
-== Neo4j Desktop
-
-include::partial$neo4j-desktop.adoc[tags=install-desktop,leveloffset=2]
 
 [[neo4j-server]]
 == Neo4j Server

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.atomic/apoc.atomic.concat.adoc[apoc.atomic.concat icon:book[]] +
-
-`apoc.atomic.concat(node/relatonship,propertyName,string) Concats the property's value with the 'string' value`
-¦label:procedure[]
-¦label:apoc-core[]

@@ -1,4 +1,0 @@
-¦signature
-¦apoc.meta.cypher.isType(value :: ANY?, type :: STRING?) :: (BOOLEAN?)
-¦apoc.meta.cypher.type(value :: ANY?) :: (STRING?)
-¦apoc.meta.cypher.types(properties :: ANY?) :: (MAP?)

@@ -1,2 +1,0 @@
-¦signature
-¦apoc.coll.avgDuration(durations :: LIST? OF DURATION?) :: (DURATION?)

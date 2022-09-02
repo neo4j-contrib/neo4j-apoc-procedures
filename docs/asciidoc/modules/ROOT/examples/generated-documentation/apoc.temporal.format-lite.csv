@@ -1,2 +1,0 @@
-¦signature
-¦apoc.temporal.format(temporal :: ANY?, format = yyyy-MM-dd :: STRING?) :: (STRING?)

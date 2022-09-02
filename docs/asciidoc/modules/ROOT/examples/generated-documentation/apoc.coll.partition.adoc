@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.partition.adoc[apoc.coll.partition icon:book[]] +
-
-`apoc.coll.partition(list,batchSize)`
-¦label:function[]
-¦label:apoc-core[]

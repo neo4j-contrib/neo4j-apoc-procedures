@@ -1,2 +1,0 @@
-¦signature
-¦apoc.create.clonePathsToVirtual(paths :: LIST? OF PATH?) :: (path :: PATH?)

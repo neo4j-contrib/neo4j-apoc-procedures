@@ -1,5 +1,0 @@
-¦xref::overview/apoc.math/apoc.math.maxLong.adoc[apoc.math.maxLong icon:book[]] +
-
-`apoc.math.maxLong() | return the maximum value a long can have`
-¦label:function[]
-¦label:apoc-core[]

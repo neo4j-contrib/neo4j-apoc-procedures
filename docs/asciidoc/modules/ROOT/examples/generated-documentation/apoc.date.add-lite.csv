@@ -1,2 +1,0 @@
-¦signature
-¦apoc.date.add(time :: INTEGER?, unit :: STRING?, addValue :: INTEGER?, addUnit :: STRING?) :: (INTEGER?)

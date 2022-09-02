@@ -1,5 +1,0 @@
-¦xref::overview/apoc.any/apoc.any.properties.adoc[apoc.any.properties icon:book[]] +
-
-`returns properties for virtual and real, nodes, rels and maps`
-¦label:function[]
-¦label:apoc-core[]

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.path/apoc.path.elements.adoc[apoc.path.elements icon:book[]] +
-
-`apoc.path.elements(path)` - returns a list of node-relationship-node-...
-¦label:function[]
-¦label:apoc-core[]

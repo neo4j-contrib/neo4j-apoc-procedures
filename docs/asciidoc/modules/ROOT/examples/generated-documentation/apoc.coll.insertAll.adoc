@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.insertAll.adoc[apoc.coll.insertAll icon:book[]] +
-
-`apoc.coll.insertAll(coll, index, values) | insert values at index`
-¦label:function[]
-¦label:apoc-core[]

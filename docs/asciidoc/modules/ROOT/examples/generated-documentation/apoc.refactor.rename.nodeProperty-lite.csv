@@ -1,2 +1,0 @@
-¦signature
-¦apoc.refactor.rename.nodeProperty(oldName :: STRING?, newName :: STRING?, nodes = [] :: LIST? OF NODE?, config = {} :: MAP?) :: (batches :: INTEGER?, total :: INTEGER?, timeTaken :: INTEGER?, committedOperations :: INTEGER?, failedOperations :: INTEGER?, failedBatches :: INTEGER?, retries :: INTEGER?, errorMessages :: MAP?, batch :: MAP?, operations :: MAP?, constraints :: LIST? OF STRING?, indexes :: LIST? OF STRING?)

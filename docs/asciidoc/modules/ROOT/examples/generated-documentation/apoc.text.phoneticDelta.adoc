@@ -1,5 +1,0 @@
-¦xref::overview/apoc.text/apoc.text.phoneticDelta.adoc[apoc.text.phoneticDelta icon:book[]] +
-
-`apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta` - Compute the US_ENGLISH soundex character difference between two given strings
-¦label:procedure[]
-¦label:apoc-core[]

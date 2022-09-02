@@ -1,5 +1,0 @@
-¦xref::overview/apoc.graph/apoc.graph.fromDB.adoc[apoc.graph.fromDB icon:book[]] +
-
-`apoc.graph.fromDB('name',\{properties})` - creates a virtual graph object for later processing
-¦label:procedure[]
-¦label:apoc-core[]

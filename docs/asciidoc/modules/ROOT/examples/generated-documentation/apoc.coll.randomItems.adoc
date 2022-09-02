@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.randomItems.adoc[apoc.coll.randomItems icon:book[]] +
-
-`apoc.coll.randomItems(coll, itemCount, allowRepick: false)` - returns a list of itemCount random items from the original list, optionally allowing picked elements to be picked again
-¦label:function[]
-¦label:apoc-core[]

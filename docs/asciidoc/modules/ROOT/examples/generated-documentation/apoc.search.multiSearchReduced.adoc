@@ -1,5 +1,0 @@
-¦xref::overview/apoc.search/apoc.search.multiSearchReduced.adoc[apoc.search.multiSearchReduced icon:book[]] +
-
-`Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched properties. apoc.search.multiSearchReduced( map of label and properties which will be searched upon, operator: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ). Multiple search results for the same node are merged into one record.`
-¦label:procedure[]
-¦label:apoc-core[]

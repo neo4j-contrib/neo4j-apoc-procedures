@@ -1,5 +1,0 @@
-¦xref::overview/apoc.refactor/apoc.refactor.invert.adoc[apoc.refactor.invert icon:book[]] +
-
-`apoc.refactor.invert(rel) inverts relationship direction`
-¦label:procedure[]
-¦label:apoc-core[]

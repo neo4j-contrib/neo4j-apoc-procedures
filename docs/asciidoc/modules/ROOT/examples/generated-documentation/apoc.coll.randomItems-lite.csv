@@ -1,2 +1,0 @@
-¦signature
-¦apoc.coll.randomItems(coll :: LIST? OF ANY?, itemCount :: INTEGER?, allowRepick = false :: BOOLEAN?) :: (LIST? OF ANY?)

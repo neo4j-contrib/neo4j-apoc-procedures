@@ -1,5 +1,0 @@
-¦xref::overview/apoc.merge.relationship/apoc.merge.relationship.eager.adoc[apoc.merge.relationship.eager icon:book[]] +
-
-`apoc.merge.relationship(startNode, relType,  identProps:{key:value, ...}, onCreateProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...})` - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH
-¦label:procedure[]
-¦label:apoc-core[]

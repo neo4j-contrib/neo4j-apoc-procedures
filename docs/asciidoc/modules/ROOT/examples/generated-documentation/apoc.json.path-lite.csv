@@ -1,2 +1,0 @@
-¦signature
-¦apoc.json.path(json :: STRING?, path = $ :: STRING?, pathOptions = null :: LIST? OF STRING?) :: (ANY?)

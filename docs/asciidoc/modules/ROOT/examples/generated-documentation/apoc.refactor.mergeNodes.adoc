@@ -1,5 +1,0 @@
-¦xref::overview/apoc.refactor/apoc.refactor.mergeNodes.adoc[apoc.refactor.mergeNodes icon:book[]] +
-
-`apoc.refactor.mergeNodes([node1,node2],[{properties:'overwrite' or 'discard' or 'combine'}]) merge nodes onto first in list`
-¦label:procedure[]
-¦label:apoc-core[]

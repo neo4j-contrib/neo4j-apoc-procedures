@@ -1,6 +1,0 @@
-¦Qualified Name¦Type¦Release
-|xref::overview/apoc.label/apoc.label.adoc[apoc.label.exists icon:book[]]
-
-apoc.label.exists(element, label) - returns true or false related to label existance
-|label:function[]
-|label:apoc-core[]

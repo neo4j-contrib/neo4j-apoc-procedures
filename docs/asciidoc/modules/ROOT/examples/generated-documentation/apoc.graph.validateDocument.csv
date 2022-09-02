@@ -1,2 +1,0 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.graph.validateDocument¦apoc.graph.validateDocument(json :: ANY?, config = {} :: MAP?) :: (row :: MAP?)¦apoc.graph.validateDocument(\{json}, \{config}) yield row - validates the json, return the result of the validation

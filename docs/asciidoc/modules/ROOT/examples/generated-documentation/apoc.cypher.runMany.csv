@@ -1,2 +1,0 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.cypher.runMany¦apoc.cypher.runMany(cypher :: STRING?, params :: MAP?, config = {} :: MAP?) :: (row :: INTEGER?, result :: MAP?)¦apoc.cypher.runMany('cypher;\nstatements;',\{params},[{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations

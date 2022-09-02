@@ -1,3 +1,0 @@
-¦signature
-¦apoc.data.email(email_address :: STRING?) :: (MAP?)
-¦apoc.data.url(url :: STRING?) :: (MAP?)

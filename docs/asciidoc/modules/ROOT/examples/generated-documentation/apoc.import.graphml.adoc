@@ -1,5 +1,0 @@
-¦xref::overview/apoc.import/apoc.import.graphml.adoc[apoc.import.graphml icon:book[]] +
-
-`apoc.import.graphml(file,config)` - imports graphml file
-¦label:procedure[]
-¦label:apoc-core[]

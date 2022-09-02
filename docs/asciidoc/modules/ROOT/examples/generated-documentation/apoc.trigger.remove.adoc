@@ -1,5 +1,0 @@
-¦xref::overview/apoc.trigger/apoc.trigger.remove.adoc[apoc.trigger.remove icon:book[]] +
-
-`remove previously added trigger, returns trigger information`
-¦label:procedure[]
-¦label:apoc-core[]

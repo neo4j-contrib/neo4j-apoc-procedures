@@ -1,5 +1,5 @@
-¦xref::overview/apoc.nlp.azure.keyPhrases/apoc.nlp.azure.keyPhrases.graph.adoc[apoc.nlp.azure.keyPhrases.graph icon:book[]] +
+¦xref::overview/apoc.nlp/apoc.nlp.azure.keyPhrases.graph.adoc[apoc.nlp.azure.keyPhrases.graph icon:book[]] +
 
 `Creates a (virtual) key phrase graph for provided text`
 ¦label:procedure[]
-¦label:apoc-core[]
+¦label:apoc-extended[]

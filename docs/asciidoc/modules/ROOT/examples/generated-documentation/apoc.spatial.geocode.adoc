@@ -1,5 +1,0 @@
-¦xref::overview/apoc.spatial/apoc.spatial.geocode.adoc[apoc.spatial.geocode icon:book[]] +
-
-`apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData` - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)
-¦label:procedure[]
-¦label:apoc-core[]

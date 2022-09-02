@@ -1,5 +1,0 @@
-¦xref::overview/apoc.map/apoc.map.setPairs.adoc[apoc.map.setPairs icon:book[]] +
-
-`apoc.map.setPairs(map,[[key1,value1],[key2,value2])`
-¦label:function[]
-¦label:apoc-core[]

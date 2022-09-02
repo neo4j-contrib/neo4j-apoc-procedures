@@ -1,5 +1,0 @@
-¦xref::overview/apoc.rel/apoc.rel.id.adoc[apoc.rel.id icon:book[]] +
-
-`returns id for (virtual) relationships`
-¦label:function[]
-¦label:apoc-core[]

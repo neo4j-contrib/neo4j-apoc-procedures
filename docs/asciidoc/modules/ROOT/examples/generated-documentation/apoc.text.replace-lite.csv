@@ -1,2 +1,0 @@
-¦signature
-¦apoc.text.replace(text :: STRING?, regex :: STRING?, replacement :: STRING?) :: (STRING?)

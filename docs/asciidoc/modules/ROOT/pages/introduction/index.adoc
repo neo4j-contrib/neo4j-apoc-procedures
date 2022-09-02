@@ -15,7 +15,10 @@ Neo4j 3.x introduced the concept of user-defined procedures and functions.
 Those are custom implementations of certain functionality, that can't be (easily) expressed in Cypher itself.
 They are implemented in Java and can be easily deployed into your Neo4j instance, and then be called from Cypher directly.
 
-The APOC library consists of many (about 450) procedures and functions to help with many different tasks in areas like data integration, graph algorithms or data conversion.
+The APOC library consists of a lot (about 450) of procedures and functions to help with different tasks in areas like
+data integration, graph algorithms or data conversion.
+
+This documentation handles the extended part of APOC (around 150 procedures and functions).
 
 
 [NOTE]
@@ -34,7 +37,9 @@ http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board 
 Starting from Neo4j 4.1.1, there are two available versions of the APOC Library:
 
 _APOC Core_ :: battle hardened procedures and functions that don't have external dependencies or require configuration. This is also the based of the functionality available in https://neo4j.com/aura[Neo4j AuraDB^] which lists the https://neo4j.com/docs/aura/current/getting-started/apoc/[available APOC surface in their docs^].
-_APOC Extended_ :: contains everything in APOC core, as well as additional procedures and functions, which is available both in https://neo4j.com/sandbox[Neo4j Sandbox^], the https://neo4j.com/docs/operations-manual/current/docker/operations/#docker-neo4jlabs-pluginsneo4j.com[Docker image^] and https://neo4j.com/docs/desktop-manual/current/operations/#install-plugin[Neo4j Desktop^], as well as when you self-host the database and add the apoc-extended jar.
+_APOC Extended_ :: contains additional procedures and functions, which is available when you self-host the database and add the apoc-extended jar.
 
 
-A list of functions and procedures in _APOC Core_ and _APOC Extended_ can be found in xref::overview/index.adoc[].
+A list of functions and procedures in _APOC Extended_ can be found in xref::overview/index.adoc[].
+
+Starting from Neo4j 5.0.0, APOC core and extended are split into 2 separate repos, with only core being officially supported by Neo4j.

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.atomic/apoc.atomic.update.adoc[apoc.atomic.update icon:book[]] +
-
-`apoc.atomic.update(node/relatonship,propertyName,updateOperation) update a property's value with a cypher operation (ex. "n.prop1+n.prop2")`
-¦label:procedure[]
-¦label:apoc-core[]

@@ -9,7 +9,7 @@ data coming from an external source that we can’t (*or don’t want to*) load 
 
 Think for example in a Neo4j graph with a network topology: All the devices, the connections between them,
 the dependencies, etc. You want to query all the devices in a particular site and return the performance metrics for the last two hours.
-This is "time-series data" and you may not want to import it and persist it in the graph. apoc.dv gives you the option of
+This is "time-series data", and you may not want to import it and persist it in the graph. apoc.dv gives you the option of
 accessing that information on-demand at query time and combining it seamlessly with the network topology data in your graph.
 ====
 
@@ -17,7 +17,7 @@ The APOC library supports the definition of a catalog of virtual resources. A vi
 The Virtual Resource Catalog feature combines two APOC elements:
 
 * The xref::import/index.adoc[apoc.load.* procedures] that query data from external sources.
-* The xref::virtual/index.adoc[virtual procedures] that create transient graph structures which can be returned as the result of a query but are never persisted in the graph.
+* The virtual procedures that create transient graph structures which can be returned as the result of a query but are never persisted in the graph.
 
 At a high level, the virtual resource catalog feature decouples the definition of the connection to an external data source and the actual querying. It offers procedures to manage the virtualized resource catalog (create/remove/modify virtualized resources) and also to query them.
 In the current version there is support for relational (RDB) data sources and CSV files.

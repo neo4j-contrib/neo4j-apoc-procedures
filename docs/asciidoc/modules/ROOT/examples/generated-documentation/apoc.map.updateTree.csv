@@ -1,2 +1,0 @@
-¦type¦qualified name¦signature¦description
-¦function¦apoc.map.updateTree¦apoc.map.updateTree(tree :: MAP?, key :: STRING?, data :: LIST? OF LIST? OF ANY?) :: (MAP?)¦apoc.map.updateTree(tree,key,[[value,\{data}]]) returns map - adds the \{data} map on each level of the nested tree, where the key-value pairs match

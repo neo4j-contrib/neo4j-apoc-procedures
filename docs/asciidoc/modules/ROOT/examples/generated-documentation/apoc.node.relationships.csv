@@ -1,6 +1,0 @@
-¦Qualified Name¦Type¦Release
-|xref::overview/apoc.node.relationships/apoc.node.relationships.adoc[apoc.node.relationships.exist icon:book[]]
-
-apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map with rel-pattern, boolean for the given relationship patterns
-|label:function[]
-|label:apoc-core[]

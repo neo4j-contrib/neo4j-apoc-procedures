@@ -1,2 +1,0 @@
-¦signature
-¦apoc.map.groupBy(values :: LIST? OF ANY?, key :: STRING?) :: (MAP?)

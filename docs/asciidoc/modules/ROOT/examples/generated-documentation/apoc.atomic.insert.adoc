@@ -1,5 +1,0 @@
-¦xref::overview/apoc.atomic/apoc.atomic.insert.adoc[apoc.atomic.insert icon:book[]] +
-
-`apoc.atomic.insert(node/relatonship,propertyName,position,value) insert a value into the property's array value at 'position'`
-¦label:procedure[]
-¦label:apoc-core[]

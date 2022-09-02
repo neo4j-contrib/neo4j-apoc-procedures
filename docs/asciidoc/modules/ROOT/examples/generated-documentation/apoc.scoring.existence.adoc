@@ -1,5 +1,0 @@
-¦xref::overview/apoc.scoring/apoc.scoring.existence.adoc[apoc.scoring.existence icon:book[]] +
-
-`apoc.scoring.existence(5, true) returns the provided score if true, 0 if false`
-¦label:function[]
-¦label:apoc-core[]

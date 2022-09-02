@@ -1,4 +1,4 @@
-¦xref::overview/apoc.nlp.aws.keyPhrases/apoc.nlp.aws.keyPhrases.stream.adoc[apoc.nlp.aws.keyPhrases.stream icon:book[]] +
+¦xref::overview/apoc.nlp/apoc.nlp.aws.keyPhrases.stream.adoc[apoc.nlp.aws.keyPhrases.stream icon:book[]] +
 
 `Returns a stream of key phrases for provided text`
 ¦label:procedure[]

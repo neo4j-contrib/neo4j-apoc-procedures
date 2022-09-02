@@ -1,2 +1,0 @@
-¦signature
-¦apoc.path.expandConfig(start :: ANY?, config :: MAP?) :: (path :: PATH?)

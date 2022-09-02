@@ -1,2 +1,0 @@
-¦signature
-¦apoc.trigger.resume(name :: STRING?) :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)

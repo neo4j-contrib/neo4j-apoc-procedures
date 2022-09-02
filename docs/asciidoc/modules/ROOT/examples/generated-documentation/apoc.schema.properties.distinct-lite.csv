@@ -1,2 +1,0 @@
-¦signature
-¦apoc.schema.properties.distinct(label :: STRING?, key :: STRING?) :: (value :: LIST? OF ANY?)

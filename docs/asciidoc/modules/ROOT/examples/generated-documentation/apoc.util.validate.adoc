@@ -1,5 +1,0 @@
-¦xref::overview/apoc.util/apoc.util.validate.adoc[apoc.util.validate icon:book[]] +
-
-`apoc.util.validate(predicate, message, params) | if the predicate yields to true raise an exception`
-¦label:procedure[]
-¦label:apoc-core[]

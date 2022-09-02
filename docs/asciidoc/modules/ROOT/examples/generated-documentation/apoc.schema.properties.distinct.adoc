@@ -1,5 +1,0 @@
-¦xref::overview/apoc.schema.properties/apoc.schema.properties.distinct.adoc[apoc.schema.properties.distinct icon:book[]] +
-
-`apoc.schema.properties.distinct(label, key)` - quickly returns all distinct values for a given key
-¦label:procedure[]
-¦label:apoc-core[]

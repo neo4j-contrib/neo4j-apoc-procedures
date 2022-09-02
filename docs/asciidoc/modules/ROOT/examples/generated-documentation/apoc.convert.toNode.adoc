@@ -1,5 +1,0 @@
-¦xref::overview/apoc.convert/apoc.convert.toNode.adoc[apoc.convert.toNode icon:book[]] +
-
-`apoc.convert.toNode(value) | tries it's best to convert the value to a node`
-¦label:function[]
-¦label:apoc-core[]

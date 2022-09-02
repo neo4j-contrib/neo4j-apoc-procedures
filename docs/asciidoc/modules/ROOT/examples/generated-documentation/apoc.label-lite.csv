@@ -1,2 +1,0 @@
-¦signature
-¦apoc.label.exists(node :: ANY?, label :: STRING?) :: (BOOLEAN?)

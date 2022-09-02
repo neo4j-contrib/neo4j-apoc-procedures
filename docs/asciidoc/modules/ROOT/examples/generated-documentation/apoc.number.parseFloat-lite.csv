@@ -1,2 +1,0 @@
-¦signature
-¦apoc.number.parseFloat(text :: STRING?, pattern =  :: STRING?, lang =  :: STRING?) :: (FLOAT?)

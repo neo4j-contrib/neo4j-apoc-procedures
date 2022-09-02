@@ -1,5 +1,0 @@
-¦xref::overview/apoc.util/apoc.util.decompress.adoc[apoc.util.decompress icon:book[]] +
-
-`apoc.util.decompress(compressed, \{config}) | return a string from a compressed byte[] in various format`
-¦label:function[]
-¦label:apoc-core[]

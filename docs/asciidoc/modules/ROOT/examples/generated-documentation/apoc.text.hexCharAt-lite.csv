@@ -1,2 +1,0 @@
-¦signature
-¦apoc.text.hexCharAt(text :: STRING?, index :: INTEGER?) :: (STRING?)

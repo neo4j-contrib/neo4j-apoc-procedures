@@ -1,11 +1,9 @@
-¦Qualified Name¦Type¦Release
+¦Qualified Name¦Type
 |xref::overview/apoc.nlp.azure.keyPhrases/apoc.nlp.azure.keyPhrases.adoc[apoc.nlp.azure.keyPhrases.graph icon:book[]]
 
 Creates a (virtual) key phrase graph for provided text
 |label:procedure[]
-|label:apoc-core[]
 |xref::overview/apoc.nlp.azure.keyPhrases/apoc.nlp.azure.keyPhrases.adoc[apoc.nlp.azure.keyPhrases.stream icon:book[]]
 
 Provides a entity analysis for provided text
 |label:procedure[]
-|label:apoc-core[]

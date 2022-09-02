@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.set.adoc[apoc.coll.set icon:book[]] +
-
-`apoc.coll.set(coll, index, value) | set index to value`
-¦label:function[]
-¦label:apoc-core[]

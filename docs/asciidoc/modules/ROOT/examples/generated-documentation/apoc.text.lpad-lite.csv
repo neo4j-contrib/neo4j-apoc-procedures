@@ -1,2 +1,0 @@
-¦signature
-¦apoc.text.lpad(text :: STRING?, count :: INTEGER?, delim =   :: STRING?) :: (STRING?)

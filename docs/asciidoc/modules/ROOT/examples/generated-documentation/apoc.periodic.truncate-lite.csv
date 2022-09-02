@@ -1,2 +1,0 @@
-¦signature
-¦apoc.periodic.truncate(config = {} :: MAP?) :: VOID

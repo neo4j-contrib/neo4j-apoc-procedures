@@ -1,5 +1,0 @@
-¦xref::overview/apoc.math/apoc.math.minDouble.adoc[apoc.math.minDouble icon:book[]] +
-
-`apoc.math.minDouble() | return the smallest positive nonzero value of type double`
-¦label:function[]
-¦label:apoc-core[]

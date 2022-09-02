@@ -1,5 +1,0 @@
-¦xref::overview/apoc.convert/apoc.convert.toTree.adoc[apoc.convert.toTree icon:book[]] +
-
-`apoc.convert.toTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the at least one root of these paths`
-¦label:procedure[]
-¦label:apoc-core[]

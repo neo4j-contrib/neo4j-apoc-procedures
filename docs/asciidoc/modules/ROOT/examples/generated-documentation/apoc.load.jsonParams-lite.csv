@@ -1,2 +1,0 @@
-¦signature
-¦apoc.load.jsonParams(urlOrKeyOrBinary :: ANY?, headers :: MAP?, payload :: STRING?, path =  :: STRING?, config = {} :: MAP?) :: (value :: MAP?)

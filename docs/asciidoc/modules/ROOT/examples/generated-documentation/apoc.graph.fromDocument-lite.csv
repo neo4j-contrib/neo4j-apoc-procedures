@@ -1,2 +1,0 @@
-¦signature
-¦apoc.graph.fromDocument(json :: ANY?, config = {} :: MAP?) :: (graph :: MAP?)

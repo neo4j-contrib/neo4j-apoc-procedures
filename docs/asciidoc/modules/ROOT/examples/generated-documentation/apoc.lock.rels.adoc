@@ -1,5 +1,0 @@
-¦xref::overview/apoc.lock/apoc.lock.rels.adoc[apoc.lock.rels icon:book[]] +
-
-`apoc.lock.rels([relationships]) acquires a write lock on the given relationship`
-¦label:procedure[]
-¦label:apoc-core[]

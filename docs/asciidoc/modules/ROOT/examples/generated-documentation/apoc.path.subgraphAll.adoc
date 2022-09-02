@@ -1,5 +1,0 @@
-¦xref::overview/apoc.path/apoc.path.subgraphAll.adoc[apoc.path.subgraphAll icon:book[]] +
-
-`apoc.path.subgraphAll(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false, limit:-1, endNodes:[], terminatorNodes:[], sequence, beginSequenceAtStart:true}) yield nodes, relationships` - expand the subgraph reachable from start node following relationships to max-level adhering to the label filters, and also return all relationships within the subgraph
-¦label:procedure[]
-¦label:apoc-core[]

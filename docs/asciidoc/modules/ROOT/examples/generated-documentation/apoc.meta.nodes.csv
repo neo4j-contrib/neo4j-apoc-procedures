@@ -1,6 +1,0 @@
-¦Qualified Name¦Type¦Release
-|xref::overview/apoc.meta.nodes/apoc.meta.adoc[apoc.meta.nodes.count icon:book[]]
-
-apoc.meta.nodes.count([labels], $config) - Returns the sum of the nodes with a label present in the list.
-|label:function[]
-|label:apoc-core[]

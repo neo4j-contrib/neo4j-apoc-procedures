@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.isEqualCollection.adoc[apoc.coll.isEqualCollection icon:book[]] +
-
-`apoc.coll.isEqualCollection(coll, values) return true if two collections contain the same elements with the same cardinality in any order (using a HashMap)`
-¦label:function[]
-¦label:apoc-core[]

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.convert/apoc.convert.toRelationship.adoc[apoc.convert.toRelationship icon:book[]] +
-
-`apoc.convert.toRelationship(value) | tries it's best to convert the value to a relationship`
-¦label:function[]
-¦label:apoc-core[]

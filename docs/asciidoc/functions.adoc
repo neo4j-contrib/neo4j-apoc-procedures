@@ -68,34 +68,6 @@ In our APOC procedure library we already converted about https://github.com/neo4
 | 3
 | apoc.date.parse("time",["unit"],["format"])
 
-| number conversion
-| 3
-| apoc.number.parse("number",["format"])
-
-| general type conversion
-| 8
-| apoc.convert.toMap(value)
-
-| collection and map functions
-| 25
-| apoc.map.fromList(["k1",v1,"k2",v2,"k3",v3])
-
-| JSON conversion
-| 4
-| apoc.convert.toJson(value)
-
-| string functions
-| 7
-| apoc.text.join(["s1","s2","s3"],"delim")
-
-| hash functions
-| 2
-| apoc.util.md5(value)
-
-| XML parse function
-| 1
-| RETURN apoc.xml.parse('<?xml version="1.0"?><table><tr><td><img src="pix/logo-tl.gif"></img></td></tr></table>') AS value
-
 
 |===
 

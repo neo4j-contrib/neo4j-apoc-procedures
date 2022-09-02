@@ -1,2 +1,0 @@
-¦type¦qualified name¦signature¦description
-¦procedure¦apoc.refactor.to¦apoc.refactor.to(relationship :: RELATIONSHIP?, newNode :: NODE?) :: (input :: INTEGER?, output :: RELATIONSHIP?, error :: STRING?)¦  apoc.refactor.to(rel, endNode) redirect relationship to use new end-node

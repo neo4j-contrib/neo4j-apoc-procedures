@@ -1,5 +1,0 @@
-¦xref::overview/apoc.data/apoc.data.url.adoc[apoc.data.url icon:book[]] +
-
-`apoc.data.url('url') as {protocol,host,port,path,query,file,anchor,user} | turn URL into map structure`
-¦label:function[]
-¦label:apoc-core[]

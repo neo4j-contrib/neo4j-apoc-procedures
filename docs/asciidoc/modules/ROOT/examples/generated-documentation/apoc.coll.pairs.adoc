@@ -1,5 +1,0 @@
-¦xref::overview/apoc.coll/apoc.coll.pairs.adoc[apoc.coll.pairs icon:book[]] +
-
-`apoc.coll.pairs([1,2,3]) returns [1,2],[2,3],[3,null] `
-¦label:function[]
-¦label:apoc-core[]

@@ -1,5 +1,0 @@
-¦xref::overview/apoc.convert/apoc.convert.fromJsonMap.adoc[apoc.convert.fromJsonMap icon:book[]] +
-
-`apoc.convert.fromJsonMap('{"a":42,"b":"foo","c":[1,2,3]}'[,'json-path'])`
-¦label:function[]
-¦label:apoc-core[]

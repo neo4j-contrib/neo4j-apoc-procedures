@@ -1,5 +1,0 @@
-¦xref::overview/apoc.map/apoc.map.updateTree.adoc[apoc.map.updateTree icon:book[]] +
-
-`apoc.map.updateTree(tree,key,[[value,\{data}]]) returns map` - adds the \{data} map on each level of the nested tree, where the key-value pairs match
-¦label:function[]
-¦label:apoc-core[]

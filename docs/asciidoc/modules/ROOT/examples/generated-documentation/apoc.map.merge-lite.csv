@@ -1,2 +1,0 @@
-¦signature
-¦apoc.map.merge(first :: MAP?, second :: MAP?) :: (MAP?)

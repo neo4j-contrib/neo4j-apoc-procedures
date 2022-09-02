@@ -1,5 +1,0 @@
-¦xref::overview/apoc.log/apoc.log.stream.adoc[apoc.log.stream icon:book[]] +
-
-`apoc.log.stream('neo4j.log', { last: n })` - retrieve log file contents, optionally return only the last n lines
-¦label:procedure[]
-¦label:apoc-core[]
