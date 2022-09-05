@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
@@ -17,6 +16,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadHtmlTest.RESULT_QUERY_H2;
 import static apoc.load.LoadHtmlTest.RESULT_QUERY_METADATA;
 import static apoc.util.MapUtil.map;
@@ -33,12 +34,12 @@ public class LoadHtmlTestParameterized {
     // To check that `browser` configuration preserve the result.
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, true);
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, LoadHtml.class);
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
     }
 
 

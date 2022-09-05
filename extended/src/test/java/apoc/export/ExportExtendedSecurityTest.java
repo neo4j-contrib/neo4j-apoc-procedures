@@ -1,14 +1,11 @@
 package apoc.export;
 
 import apoc.ApocConfig;
-import apoc.ApocSettings;
 import apoc.export.xls.ExportXls;
 import apoc.util.FileUtils;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -28,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -48,27 +47,17 @@ public class ExportExtendedSecurityTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath())
-            .withSetting(ApocSettings.apoc_export_file_enabled, false);
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
 
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, ExportXls.class);
+        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
     }
 
     @AfterClass
     public static void tearDown() {
         db.shutdown();
-    }
-
-    @Before
-    public void before() {
-        ApocConfig.apocConfig().setProperty(ApocSettings.apoc_export_file_enabled, false);
-    }
-
-    @After
-    public void after() {
-        ApocConfig.apocConfig().setProperty(ApocSettings.apoc_export_file_enabled, false);
     }
 
     private static Collection<String[]> data(Map<String, List<String>> apocProcedureArguments) {
@@ -169,14 +158,14 @@ public class ExportExtendedSecurityTest {
         public void testIllegalExternalFSAccessExport() {
             final String message = apocProcedure + " should throw an exception";
             try {
-                ApocConfig.apocConfig().setProperty(ApocSettings.apoc_export_file_enabled, true);
+                apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
                 db.executeTransactionally("CALL " + apocProcedure, Map.of(),
                         Result::resultAsString);
                 fail(message);
             } catch (Exception e) {
                 assertError(e, FileUtils.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, apocProcedure);
             } finally {
-                ApocConfig.apocConfig().setProperty(ApocSettings.apoc_export_file_enabled, false);
+                apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
             }
         }
     }
