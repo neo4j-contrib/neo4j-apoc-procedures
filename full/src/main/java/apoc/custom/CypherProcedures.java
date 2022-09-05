@@ -183,7 +183,12 @@ public class CypherProcedures {
                                 (map, value) -> map.put(value.name(), null), HashMap::putAll),
                 result -> {
                     if (!DEFAULT_MAP_OUTPUT.equals(output)) {
-                        checkOutputParams(outputSet, result.columns());
+                        // when there are multiple variables with the same name, e.g within an "UNION ALL" Neo4j adds a suffix "@<number>" to distinguish them, 
+                        //  so to check the correctness of the output parameters we must first remove this suffix from the column names
+                        final Set<String> columns = result.columns().stream()
+                                .map(i -> i.replaceFirst("@[0-9]+", "").trim())
+                                .collect(Collectors.toSet());
+                        checkOutputParams(outputSet, columns);
                     }
                     if (!DEFAULT_INPUTS.equals(input)) {
                         checkInputParams(result);
@@ -210,7 +215,7 @@ public class CypherProcedures {
     }
 
 
-    private void checkOutputParams(Set<String> outputSet, List<String> columns) {
+    private void checkOutputParams(Set<String> outputSet, Set<String> columns) {
         if (!Set.copyOf(columns).equals(outputSet)) {
             throw new RuntimeException(ERROR_MISMATCHED_OUTPUTS);
         }
