@@ -29,7 +29,7 @@ public enum JsonFormatSerializer {
             Node endNode = rel.getEndNode();
             jsonGenerator.writeStartObject();
             jsonGenerator.writeStringField("type", "relationship");
-            writeRelationshipDetails(jsonGenerator, rel, config.writeRelationshipProperties());
+            writeRelationshipDetails(jsonGenerator, rel, config.writeNodeProperties());
             writeRelationshipNode(jsonGenerator, "start", startNode, config);
             writeRelationshipNode(jsonGenerator, "end", endNode, config);
             jsonGenerator.writeEndObject();
@@ -65,7 +65,7 @@ public enum JsonFormatSerializer {
             }
         }
 
-        private void writeNodeDetails(JsonGenerator jsonGenerator, Node node, boolean withNodeProperties) throws IOException {
+        private void writeNodeDetails(JsonGenerator jsonGenerator, Node node, boolean writeProperties) throws IOException {
             jsonGenerator.writeStringField("id", String.valueOf(node.getId()));
 
             if (node.getLabels().iterator().hasNext()) {
@@ -77,16 +77,16 @@ public enum JsonFormatSerializer {
                 }
                 jsonGenerator.writeEndArray();
             }
-            if (withNodeProperties) {
+            if (writeProperties) {
                 serializeProperties(jsonGenerator, node.getAllProperties());
             }
         }
 
-        private void writeRelationshipDetails(JsonGenerator jsonGenerator, Relationship rel, boolean witRelationshipProperties) throws IOException {
+        private void writeRelationshipDetails(JsonGenerator jsonGenerator, Relationship rel, boolean writeProperties) throws IOException {
             jsonGenerator.writeStringField("id", String.valueOf(rel.getId()));
             jsonGenerator.writeStringField("label", rel.getType().toString());
 
-            if (witRelationshipProperties) {
+            if (writeProperties) {
                 serializeProperties(jsonGenerator, rel.getAllProperties());
             }
         }
