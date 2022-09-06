@@ -62,7 +62,7 @@ public class ExportJson {
 
     @Procedure
     @Description("apoc.export.json.data(nodes,rels,file,config) - exports given nodes and relationships as json to the provided file")
-    public Stream<ProgressInfo> data(@Name(value = "nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
+    public Stream<ProgressInfo> data(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         // initialize empty lists if nodes or rels are null
         nodes = nodes == null ? Collections.emptyList() : nodes;
         rels = rels == null ? Collections.emptyList() : rels;
