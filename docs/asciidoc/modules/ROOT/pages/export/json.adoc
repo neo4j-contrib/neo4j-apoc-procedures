@@ -430,7 +430,7 @@ The contents of `knows-with-node-properties.json` are shown below:
 .knows-with-node-properties.json
 [source,json]
 ----
-include::example$data/exportJSON/writeNodeProperties.json[leveloffset]
+include::example$data/exportJSON/with_node_properties.json[leveloffset]
 ----
 
 

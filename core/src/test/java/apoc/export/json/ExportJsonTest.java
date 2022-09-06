@@ -452,10 +452,25 @@ public class ExportJsonTest {
 
     @Test
     public void testExportAllWithWriteNodePropertiesJson() throws Exception {
-        String filename = "writeNodeProperties.json";
+        String filename = "with_node_properties.json";
         String query = "MATCH p = (u:User)-[rel:KNOWS]->(u2:User) RETURN rel";
 
         TestUtil.testCall(db, "CALL apoc.export.json.query($query,$file,{writeNodeProperties:true})",
+                map("file", filename,"query", query),
+                (r) -> {
+                    assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(1)"));
+                    assertEquals(filename, r.get("file"));
+                    assertEquals("json", r.get("format"));
+                });
+        assertFileEquals(filename);
+    }
+
+    @Test
+    public void testExportAllWithoutWriteNodePropertiesJson() throws Exception {
+        String filename = "without_node_properties.json";
+        String query = "MATCH p = (u:User)-[rel:KNOWS]->(u2:User) RETURN rel";
+
+        TestUtil.testCall(db, "CALL apoc.export.json.query($query,$file,{writeNodeProperties:false})",
                 map("file", filename,"query", query),
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(1)"));
