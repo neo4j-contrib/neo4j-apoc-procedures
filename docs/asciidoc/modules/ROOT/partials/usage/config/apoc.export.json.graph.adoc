@@ -4,6 +4,6 @@ The procedure support the following config parameters:
 [opts=header]
 |===
 | name | type | default | description
-| writeNodeProperties | boolean | false | if true export properties too.
+| writeNodeProperties | boolean | true | if true export properties too.
 | stream | boolean | false | stream the json directly to the client into the `data` field
 |===
