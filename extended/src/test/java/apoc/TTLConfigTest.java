@@ -16,7 +16,7 @@ public class TTLConfigTest
     @Test
     public void ttlDisabled() {
         ApocConfig apocConfig = mock(ApocConfig.class);
-        when(apocConfig.getBoolean(ApocConfig.APOC_TTL_ENABLED)).thenReturn(false);
+        when(apocConfig.getBoolean(ExtendedApocConfig.APOC_TTL_ENABLED)).thenReturn(false);
         when(apocConfig.getBoolean("apoc.ttl.enabled.foo")).thenReturn(false);
 
         GraphDatabaseAPI db = mock(GraphDatabaseAPI.class);
@@ -30,7 +30,7 @@ public class TTLConfigTest
     @Test
     public void ttlDisabledForOurDatabase() {
         ApocConfig apocConfig = mock(ApocConfig.class);
-        when(apocConfig.getBoolean(ApocConfig.APOC_TTL_ENABLED)).thenReturn(true);
+        when(apocConfig.getBoolean(ExtendedApocConfig.APOC_TTL_ENABLED)).thenReturn(true);
         when(apocConfig.getBoolean("apoc.ttl.enabled.foo")).thenReturn(false);
 
         GraphDatabaseAPI db = mock(GraphDatabaseAPI.class);
@@ -44,13 +44,13 @@ public class TTLConfigTest
     @Test
     public void ttlEnabledForOurDatabaseOverridesGlobalSettings() {
         ApocConfig apocConfig = mock(ApocConfig.class);
-        when(apocConfig.getBoolean(ApocConfig.APOC_TTL_ENABLED)).thenReturn(false);
+        when(apocConfig.getBoolean(ExtendedApocConfig.APOC_TTL_ENABLED)).thenReturn(false);
         when(apocConfig.getBoolean("apoc.ttl.enabled.foo", false)).thenReturn(true);
 
-        when(apocConfig.getInt(ApocConfig.APOC_TTL_SCHEDULE, DEFAULT_SCHEDULE)).thenReturn(300);
+        when(apocConfig.getInt(ExtendedApocConfig.APOC_TTL_SCHEDULE, DEFAULT_SCHEDULE)).thenReturn(300);
         when(apocConfig.getInt("apoc.ttl.schedule.foo", 300)).thenReturn(500);
 
-        when(apocConfig.getInt(ApocConfig.APOC_TTL_LIMIT, 1000)).thenReturn(5000);
+        when(apocConfig.getInt(ExtendedApocConfig.APOC_TTL_LIMIT, 1000)).thenReturn(5000);
         when(apocConfig.getInt("apoc.ttl.limit.foo", 5000)).thenReturn(1000);
 
         GraphDatabaseAPI db = mock(GraphDatabaseAPI.class);

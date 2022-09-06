@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.ApocConfig.APOC_UUID_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED;
 import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED_DB;
 import static apoc.ExtendedApocConfig.APOC_UUID_FORMAT;
 

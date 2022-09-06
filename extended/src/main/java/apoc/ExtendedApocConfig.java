@@ -6,6 +6,7 @@ import apoc.util.SimpleRateLimiter;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.combined.CombinedConfigurationBuilder;
@@ -19,12 +20,25 @@ import org.neo4j.logging.internal.LogService;
 
 public class ExtendedApocConfig extends LifecycleAdapter
 {
+    public static final String APOC_TTL_SCHEDULE = "apoc.ttl.schedule";
+    public static final String APOC_TTL_ENABLED = "apoc.ttl.enabled";
+    public static final String APOC_TTL_LIMIT = "apoc.ttl.limit";
     public static final String APOC_TTL_SCHEDULE_DB = "apoc.ttl.schedule.%s";
     public static final String APOC_TTL_ENABLED_DB = "apoc.ttl.enabled.%s";
     public static final String APOC_TTL_LIMIT_DB = "apoc.ttl.limit.%s";
+    public static final String APOC_UUID_ENABLED = "apoc.uuid.enabled";
     public static final String APOC_UUID_ENABLED_DB = "apoc.uuid.enabled.%s";
     public static final String APOC_UUID_FORMAT = "apoc.uuid.format";
     public enum UuidFormatType { hex, base64 }
+
+    // These were earlier added via the Neo4j config using the ApocSettings.java class
+    private static final Map<String,Object> configDefaultValues =
+            Map.of(
+                    APOC_TTL_SCHEDULE, Duration.ofMinutes(1),
+                    APOC_TTL_ENABLED, false,
+                    APOC_TTL_LIMIT, 1000L,
+                    APOC_UUID_ENABLED, false
+            );
 
     private final Log log;
 
@@ -101,6 +115,15 @@ public class ExtendedApocConfig extends LifecycleAdapter
             CombinedConfigurationBuilder builder = new CombinedConfigurationBuilder()
                     .configure(new Parameters().fileBased().setURL(resource));
             config = builder.getConfiguration();
+
+            // set config settings not explicitly set in apoc.conf to their default value
+            configDefaultValues.forEach((k,v) -> {
+                if (!config.containsKey(k))
+                {
+                   config.setProperty(k, v);
+                   log.info("setting APOC config to default value: " + k + "=" + v);
+                }
+            });
 
             initLogging();
         } catch ( ConfigurationException e) {
