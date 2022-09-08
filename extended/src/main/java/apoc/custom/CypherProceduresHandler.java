@@ -202,6 +202,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                 "apoc.custom",
                 false,
                 false,
+                false,
                 false
         ), statement, forceSingle);
     }
