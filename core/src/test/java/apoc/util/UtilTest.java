@@ -90,27 +90,45 @@ public class UtilTest {
     }
 
     @Test
-    public void testSanitizeBackTicks() {
-        assertEquals("``", Util.sanitizeBackTicks("`"));
-        assertEquals("``", Util.sanitizeBackTicks("\u0060"));
-        assertEquals("``", Util.sanitizeBackTicks("``"));
-        assertEquals("````", Util.sanitizeBackTicks("\u0060\u0060\u0060"));
-        assertEquals("Hello``", Util.sanitizeBackTicks("Hello`"));
-        assertEquals("Hi````there", Util.sanitizeBackTicks("Hi````there"));
-        assertEquals("Hi``````there", Util.sanitizeBackTicks("Hi`````there"));
-        assertEquals("``a``b``c``", Util.sanitizeBackTicks("`a`b`c`"));
-        assertEquals("``a``b``c``d``", Util.sanitizeBackTicks("\u0060a`b`c\u0060d\u0060"));
-        assertEquals("Foo `\\u0060", Util.sanitizeBackTicks("Foo \\u0060"));
-        assertEquals("ABC", Util.sanitizeBackTicks("ABC"));
-        assertEquals("A C", Util.sanitizeBackTicks("A C"));
-        assertEquals("A`` C", Util.sanitizeBackTicks("A` C"));
-        assertEquals("ALabel", Util.sanitizeBackTicks("ALabel"));
-        assertEquals("A Label", Util.sanitizeBackTicks("A Label"));
-        assertEquals("A ``Label", Util.sanitizeBackTicks("A `Label"));
-        assertEquals("``A ``Label", Util.sanitizeBackTicks("`A `Label"));
-        assertEquals("``A ``Label", Util.sanitizeBackTicks("`A `Label"));
-        assertEquals("Spring Data Neo4j⚡️RX", Util.sanitizeBackTicks("Spring Data Neo4j⚡️RX"));
-        assertEquals("Foo ``", Util.sanitizeBackTicks("Foo \u0060"));
+    public void testSanitize() {
+        assertEquals("``", Util.sanitize("`"));
+        assertEquals("``", Util.sanitize("\u0060"));
+        assertEquals("``", Util.sanitize("``"));
+        assertEquals("````", Util.sanitize("```"));
+        assertEquals("````", Util.sanitize("\u0060\u0060\u0060"));
+        assertEquals("````", Util.sanitize("\\u0060\\u0060\\u0060"));
+        assertEquals("Hello``", Util.sanitize("Hello`"));
+        assertEquals("Hi````there", Util.sanitize("Hi````there"));
+        assertEquals("Hi``````there", Util.sanitize("Hi`````there"));
+        assertEquals("``a``b``c``", Util.sanitize("`a`b`c`"));
+        assertEquals("``a``b``c``d``", Util.sanitize("\u0060a`b`c\u0060d\u0060"));
+        assertEquals("``a``b``c``d``", Util.sanitize("\\u0060a`b`c\\u0060d\\u0060"));
+        assertEquals("Foo ``", Util.sanitize("Foo \\u0060"));
+        assertEquals("ABC", Util.sanitize("ABC"));
+        assertEquals("A C", Util.sanitize("A C"));
+        assertEquals("A`` C", Util.sanitize("A` C"));
+        assertEquals("ALabel", Util.sanitize("ALabel"));
+        assertEquals("A Label", Util.sanitize("A Label"));
+        assertEquals("A ``Label", Util.sanitize("A `Label"));
+        assertEquals("``A ``Label", Util.sanitize("`A `Label"));
+        assertEquals("``A ``Label", Util.sanitize("`A `Label"));
+        assertEquals("Spring Data Neo4j⚡️RX", Util.sanitize("Spring Data Neo4j⚡️RX"));
+        assertEquals("Foo ``", Util.sanitize("Foo \u0060"));
+        assertEquals("Foo``bar", Util.sanitize("Foo\\`bar"));
+        assertEquals("Foo\\``bar", Util.sanitize("Foo\\\\`bar"));
+        assertEquals("ᑖ", Util.sanitize("ᑖ"));
+        assertEquals("⚡️", Util.sanitize("⚡️"));
+        assertEquals("uᑖ", Util.sanitize("\\u0075\\u1456"));
+        assertEquals("ᑖ", Util.sanitize("\u1456"));
+        assertEquals("something\\u005C\\u00751456", Util.sanitize("something\\u005C\\u00751456"));
+        assertEquals("``", Util.sanitize("\u005C\\u0060"));
+        assertEquals("\\u005C\\u00750060", Util.sanitize("\\u005Cu0060"));
+        assertEquals("\\``", Util.sanitize("\\u005C\\u0060"));
+        assertEquals("x\\y", Util.sanitize("x\\y"));
+        assertEquals("x\\y", Util.sanitize("x\\\\y"));
+        assertEquals("x\\\\y", Util.sanitize("x\\\\\\\\y"));
+        assertEquals("x``y", Util.sanitize("x\\`y"));
+        assertEquals("Foo ``", Util.sanitize("Foo \\u0060"));
     }
 
     @Test

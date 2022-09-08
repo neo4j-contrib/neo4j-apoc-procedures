@@ -67,6 +67,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -674,10 +675,73 @@ public class Util {
         return quote(var.replaceAll("`", ""));
     }
 
-    private static final String BACKTICK_OR_UC = "[`\\\\\u0060]";
+    private static final String ESCAPED_UNICODE_BACKTICK = "\\u0060";
 
-    private static final Pattern LABEL_AND_TYPE_QUOTATION = Pattern.compile(
-            String.format("(?<!%1$s)%1$s(?:%1$s{2})*(?!%1$s)", BACKTICK_OR_UC));
+    private static final Pattern PATTERN_ESCAPED_4DIGIT_UNICODE = Pattern.compile("\\\\u+(\\p{XDigit}{4})");
+    private static final Pattern PATTERN_LABEL_AND_TYPE_QUOTATION = Pattern.compile("(?<!`)`(?:`{2})*(?!`)");
+
+    private static final List<String[]> SUPPORTED_ESCAPE_CHARS = Collections.unmodifiableList(Arrays.asList(
+            new String[] { "\\b", "\b" },
+            new String[] { "\\f", "\f" },
+            new String[] { "\\n", "\n" },
+            new String[] { "\\r", "\r" },
+            new String[] { "\\t", "\t" },
+            new String[] { "\\`", "``" }
+    ));
+
+
+    /**
+     * Sanitizes the given input to be used as a valid schema name
+     *
+     * @param value The value to sanitize
+     * @return A value that is safe to be used in string concatenation, an empty optional indicates a value that cannot be safely quoted
+     */
+    public static String sanitize(String value) {
+        return sanitize(value, false);
+    }
+
+    /**
+     * Sanitizes the given input to be used as a valid schema name
+     *
+     * @param value The value to sanitize
+     * @param addQuotes If quotation should be added
+     * @return A value that is safe to be used in string concatenation, an empty optional indicates a value that cannot be safely quoted
+     */
+    public static String sanitize(String value, boolean addQuotes) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+
+        // Replace escaped chars
+        for (String[] pair : SUPPORTED_ESCAPE_CHARS) {
+            value = value.replace(pair[0], pair[1]);
+        }
+        value = value.replace(ESCAPED_UNICODE_BACKTICK, "`");
+
+        // Replace escaped octal hex
+        // Excluding the support for 6 digit literals, as this contradicts the overall example in CIP-59r
+        Matcher matcher = PATTERN_ESCAPED_4DIGIT_UNICODE.matcher(value);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            String replacement = Character.toString((char) Integer.parseInt(matcher.group(1), 16));
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+        }
+
+        matcher.appendTail(sb);
+        value = sb.toString();
+
+        value = value.replace("\\u", "\\u005C\\u0075");
+
+        matcher = PATTERN_LABEL_AND_TYPE_QUOTATION.matcher(value);
+        value = matcher.replaceAll("`$0");
+        value = value.replace("\\\\", "\\");
+
+        if (!addQuotes) {
+            return value;
+        }
+
+        return String.format(Locale.ENGLISH, "`%s`", value);
+    }
 
     /**
      * This is a literal copy of {@code javax.lang.model.SourceVersion#isIdentifier(CharSequence)} included here to
@@ -704,23 +768,6 @@ public class Util {
         }
         return true;
     }
-
-    /**
-     * Escapes the string {@literal potentiallyNonIdentifier} in all cases when it's not a valid Cypher identifier.
-     *
-     * @param potentiallyNonIdentifier A value to escape
-     * @return The escaped value or the same value if no escaping is necessary.
-     */
-    public static String sanitizeBackTicks(String potentiallyNonIdentifier) {
-
-        if (potentiallyNonIdentifier == null || potentiallyNonIdentifier.trim().isEmpty() || isIdentifier(potentiallyNonIdentifier)) {
-            return potentiallyNonIdentifier;
-        }
-
-        Matcher matcher = LABEL_AND_TYPE_QUOTATION.matcher(potentiallyNonIdentifier);
-        return matcher.replaceAll("`$0");
-    }
-
 
     public static String param(String var) {
         return var.charAt(0) == '$' ? var : '$'+quote(var);
