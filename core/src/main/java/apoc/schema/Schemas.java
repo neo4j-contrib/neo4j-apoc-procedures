@@ -157,9 +157,9 @@ public class Schemas {
 
     private AssertSchemaResult createNodeKeyConstraint(String lbl, List<Object> keys) {
         String keyProperties = keys.stream()
-                .map( property -> String.format("n.`%s`", Util.sanitizeBackTicks(property.toString())))
+                .map( property -> String.format("n.`%s`", Util.sanitize(property.toString())))
                 .collect( Collectors.joining( "," ) );
-        tx.execute(String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT (%s) IS NODE KEY", Util.sanitizeBackTicks(lbl), keyProperties)).close();
+        tx.execute(String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT (%s) IS NODE KEY", Util.sanitize(lbl), keyProperties)).close();
         List<String> keysToSting = keys.stream().map(Object::toString).collect(Collectors.toList());
         return new AssertSchemaResult(lbl, keysToSting).unique().created();
     }
@@ -229,9 +229,9 @@ public class Schemas {
 
     private AssertSchemaResult createCompoundIndex(String label, List<String> keys) {
         List<String> backTickedKeys = new ArrayList<>();
-        keys.forEach(key->backTickedKeys.add(String.format("`%s`", Util.sanitizeBackTicks(key))));
+        keys.forEach(key->backTickedKeys.add(String.format("`%s`", Util.sanitize(key))));
 
-        tx.execute(String.format("CREATE INDEX ON :`%s` (%s)", Util.sanitizeBackTicks(label), String.join(",", backTickedKeys))).close();
+        tx.execute(String.format("CREATE INDEX ON :`%s` (%s)", Util.sanitize(label), String.join(",", backTickedKeys))).close();
         return new AssertSchemaResult(label, keys).created();
     }
 
@@ -419,7 +419,7 @@ public class Schemas {
             Iterable<ConstraintDefinition> constraintsIterator;
             Iterable<IndexDescriptor> indexesIterator;
 
-            final Predicate<ConstraintDefinition> isRelConstraint = constraintDefinition -> 
+            final Predicate<ConstraintDefinition> isRelConstraint = constraintDefinition ->
                     constraintDefinition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE);
             if(!includeRelationships.isEmpty()) {
                 constraintsIterator = includeRelationships.stream()

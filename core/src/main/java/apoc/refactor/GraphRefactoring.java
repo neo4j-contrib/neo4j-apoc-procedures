@@ -562,9 +562,9 @@ public class GraphRefactoring {
             node = Util.rebind(innerTx, node);
             Object value = node.getProperty(sourceKey, null);
             if (value != null) {
-                String nodeLabel = Util.sanitizeBackTicks(label);
-                String key = Util.sanitizeBackTicks(targetKey);
-                String relType = Util.sanitizeBackTicks(relationshipType);
+                String nodeLabel = Util.sanitize(label);
+                String key = Util.sanitize(targetKey);
+                String relType = Util.sanitize(relationshipType);
                 String q =
                         "WITH $node AS n " +
                                 "MERGE (cat:`" + nodeLabel + "` {`" + key + "`: $value}) " +
