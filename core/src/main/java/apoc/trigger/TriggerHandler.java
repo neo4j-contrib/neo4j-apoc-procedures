@@ -37,6 +37,120 @@ import java.util.stream.Collectors;
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 
+class SystemTriggerHandler {
+    private final ApocConfig apocConfig;
+
+    public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
+                                                   " Set 'apoc.trigger.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
+
+    private final ConcurrentHashMap<Pair<String, String>, Map<String,Object>> activeTriggers = new ConcurrentHashMap();
+
+    private long lastUpdate;
+
+    public Map<String, Object> getTrigger(String databaseName, String triggerName) {
+        return activeTriggers.get(Pair.of(databaseName, triggerName));
+    }
+
+
+    public SystemTriggerHandler(ApocConfig apocConfig) {
+        this.apocConfig = apocConfig;
+    }
+
+    private boolean isEnabled() {
+        return apocConfig.getBoolean(APOC_TRIGGER_ENABLED);
+    }
+
+    public void checkEnabled() {
+        if (!isEnabled()) {
+            throw new RuntimeException(NOT_ENABLED_ERROR);
+        }
+    }
+
+    private void updateCache(String databaseName) {
+        activeTriggers.clear();
+
+        lastUpdate = System.currentTimeMillis();
+
+        withSystemDb(tx -> {
+            tx.findNodes(SystemLabels.ApocTrigger,
+                         SystemPropertyKeys.database.name(), databaseName).forEachRemaining(
+                    node ->
+                    {
+                        String triggerName = (String) node.getProperty( SystemPropertyKeys.name.name() );
+
+                        activeTriggers.put(
+                                Pair.of( databaseName, triggerName ),
+                                MapUtil.map(
+                                        "statement", node.getProperty( SystemPropertyKeys.statement.name() ),
+                                        "selector", Util.fromJson( (String) node.getProperty( SystemPropertyKeys.selector.name() ), Map.class ),
+                                        "params", Util.fromJson( (String) node.getProperty( SystemPropertyKeys.params.name() ), Map.class ),
+                                        "paused", node.getProperty( SystemPropertyKeys.paused.name() )
+                                )
+                        );
+                    }
+            );
+            return null;
+        });
+
+        reconcileKernelRegistration();
+    }
+
+    public Map<String, Object> add(String databaseName, String name, String statement, Map<String,Object> selector, Map<String,Object> params) {
+        checkEnabled();
+        Map<String, Object> previous = getTrigger(databaseName, name);
+
+        withSystemDb(tx -> {
+            Node node = Util.mergeNode(tx, SystemLabels.ApocTrigger, null,
+                                       Pair.of(SystemPropertyKeys.database.name(), databaseName),
+                                       Pair.of(SystemPropertyKeys.name.name(), name));
+            node.setProperty(SystemPropertyKeys.statement.name(), statement);
+            node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
+            node.setProperty(SystemPropertyKeys.params.name(), Util.toJson(params));
+            node.setProperty(SystemPropertyKeys.paused.name(), false);
+            setLastUpdate(tx, databaseName);
+            return null;
+        });
+
+        updateCache();
+        return previous;
+    }
+
+    public Map<String, Object> remove(String name) {
+        checkEnabled();
+        Map<String, Object> previous = activeTriggers.remove(name);
+
+        withSystemDb(tx -> {
+            tx.findNodes(SystemLabels.ApocTrigger,
+                         SystemPropertyKeys.database.name(), db.databaseName(),
+                         SystemPropertyKeys.name.name(), name)
+              .forEachRemaining(node -> node.delete());
+            setLastUpdate(tx);
+            return null;
+        });
+        updateCache();
+        return previous;
+    }
+
+    private <T> T withSystemDb(Function<Transaction, T> action) {
+        try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
+            T result = action.apply(tx);
+            tx.commit();
+            return result;
+        }
+    }
+
+    private void setLastUpdate(Transaction tx, String databaseName) {
+        Node node = tx.findNode(SystemLabels.ApocTriggerMeta, SystemPropertyKeys.database.name(), databaseName);
+        if (node == null) {
+            node = tx.createNode(SystemLabels.ApocTriggerMeta);
+            node.setProperty(SystemPropertyKeys.database.name(), databaseName);
+        }
+        node.setProperty(SystemPropertyKeys.lastUpdated.name(), System.currentTimeMillis());
+    }
+
+}
+
+
 public class TriggerHandler extends LifecycleAdapter implements TransactionEventListener<Void> {
 
     private enum Phase {before, after, rollback, afterAsync}
@@ -129,30 +243,6 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         }
     }
 
-    public Map<String, Object> add(String name, String statement, Map<String,Object> selector) {
-        return add(name, statement, selector, Collections.emptyMap());
-    }
-
-    public Map<String, Object> add(String name, String statement, Map<String,Object> selector, Map<String,Object> params) {
-        checkEnabled();
-        Map<String, Object> previous = activeTriggers.get(name);
-
-        withSystemDb(tx -> {
-            Node node = Util.mergeNode(tx, SystemLabels.ApocTrigger, null,
-                    Pair.of(SystemPropertyKeys.database.name(), db.databaseName()),
-                    Pair.of(SystemPropertyKeys.name.name(), name));
-            node.setProperty(SystemPropertyKeys.statement.name(), statement);
-            node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
-            node.setProperty(SystemPropertyKeys.params.name(), Util.toJson(params));
-            node.setProperty(SystemPropertyKeys.paused.name(), false);
-            setLastUpdate(tx);
-            return null;
-        });
-
-        updateCache();
-        return previous;
-    }
-
     public Map<String, Object> remove(String name) {
         checkEnabled();
         Map<String, Object> previous = activeTriggers.remove(name);
@@ -200,6 +290,7 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
 
     public Map<String,Map<String,Object>> list() {
         checkEnabled();
+        updateCache();
         return Map.copyOf(activeTriggers);
     }
 

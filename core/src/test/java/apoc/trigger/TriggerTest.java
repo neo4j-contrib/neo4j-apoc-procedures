@@ -49,7 +49,7 @@ public class TriggerTest {
     public void testListTriggers() throws Exception {
         String query = "MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])";
 
-        TestUtil.testCallCount(db, "CALL apoc.trigger.add('count-removals',$query,{}) YIELD name RETURN name",
+        TestUtil.testCallCount(db, "CALL apoc.trigger.add('neo4j','count-removals',$query,{}) YIELD name RETURN name",
                 map("query", query),
                 1);
         TestUtil.testCall(db, "CALL apoc.trigger.list()", (row) -> {

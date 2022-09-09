@@ -1,7 +1,11 @@
 package apoc.trigger;
 
+import apoc.ApocConfig;
 import apoc.util.Util;
+
+import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.kernel.api.procedure.SystemProcedure;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Mode;
@@ -46,22 +50,7 @@ public class Trigger {
     }
 
     @Context public GraphDatabaseService db;
-
     @Context public TriggerHandler triggerHandler;
-
-    @Procedure(mode = Mode.WRITE)
-    @Description("add a trigger kernelTransaction under a name, in the kernelTransaction you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback/afterAsync'} returns previous and new trigger information. Takes in an optional configuration.")
-    public Stream<TriggerInfo> add(@Name("name") String name, @Name("kernelTransaction") String statement, @Name(value = "selector"/*, defaultValue = "{}"*/)  Map<String,Object> selector, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
-        Util.validateQuery(db, statement);
-        Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
-        Map<String, Object> removed = triggerHandler.add(name, statement, selector, params);
-        if (removed != null) {
-            return Stream.of(
-                    new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"), (Map<String, Object>) removed.get("params"),false, false),
-                    new TriggerInfo(name,statement,selector, params,true, false));
-        }
-        return Stream.of(new TriggerInfo(name,statement,selector, params,true, false));
-    }
 
     @Procedure(mode = Mode.WRITE)
     @Description("remove previously added trigger, returns trigger information")
