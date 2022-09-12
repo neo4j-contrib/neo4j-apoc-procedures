@@ -10,12 +10,14 @@ import apoc.result.VirtualRelationship;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
+import org.neo4j.graphalgo.impl.util.PathImpl;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotInTransactionException;
+import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.QueryExecutionType;
 import org.neo4j.graphdb.Relationship;
@@ -23,6 +25,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.TransactionTerminatedException;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
@@ -217,6 +220,7 @@ public class Util {
     public static <T> T retryInTx(Log log, GraphDatabaseService db, Function<Transaction, T> function, long retry, long maxRetries, Consumer<Long> callbackForRetry) {
         try (Transaction tx = db.beginTx()) {
             T result = function.apply(tx);
+            System.out.println("now we commit... " + function);
             tx.commit();
             return result;
         } catch (Exception e) {
@@ -1059,5 +1063,28 @@ public class Util {
     public static <T extends Entity> T withTransactionAndRebind(GraphDatabaseService db, Transaction transaction, Function<Transaction, T> action) {
         T result = retryInTx(NullLog.getInstance(), db, action, 0, 0, r -> {});
         return rebind(transaction, result);
+    }
+
+    public static <T> T anyRebind(Transaction tx, T any) {
+        if (any instanceof Map) {
+            return (T) ((Map<String, Object>) any).entrySet().stream()
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> anyRebind(tx, e.getValue())));
+        }
+        if (any instanceof Path) {
+            final Path path = (Path) any;
+            PathImpl.Builder builder = new PathImpl.Builder(Util.rebind(tx, path.startNode()));
+            for (Relationship rel: path.relationships()) {
+                builder = builder.push(Util.rebind(tx, rel));
+            }
+            return (T) builder.build();
+        }
+        if (any instanceof Iterable) {
+            return (T) Iterables.stream((Iterable) any)
+                    .map(i -> anyRebind(tx, i)).collect(Collectors.toList());
+        }
+        if (any instanceof Entity) {
+            return (T) Util.rebind(tx, (Entity) any);
+        }
+        return any;
     }
 }

@@ -5,6 +5,7 @@ import apoc.result.MapResult;
 import apoc.util.QueueBasedSpliterator;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
@@ -157,7 +158,9 @@ public class Cypher {
         int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
 
         StringReader stringReader = new StringReader(cypher);
-        return runManyStatements(stringReader ,params, false, addStatistics, timeout, queueCapacity);
+        return runManyStatements(stringReader ,params, false, addStatistics, timeout, queueCapacity)
+                .collect(toList()).stream()
+                .map(rowResult -> new RowResult(rowResult.row, Util.anyRebind(tx, rowResult.result)));
     }
 
     @Procedure(mode = READ)
