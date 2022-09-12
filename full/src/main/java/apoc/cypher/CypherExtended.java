@@ -101,7 +101,8 @@ public class CypherExtended {
                     .onClose(() -> Util.close(scanner, (e) -> log.info("Cannot close the scanner for file " + fileName + " because the following exception", e)));
         });
 
-        return result;
+        return result.collect(toList()).stream()
+                .map(rowResult -> new RowResult(rowResult.row, Util.anyRebind(tx, rowResult.result)));
     }
 
     @Procedure(mode=Mode.SCHEMA)

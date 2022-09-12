@@ -157,7 +157,9 @@ public class Cypher {
         int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
 
         StringReader stringReader = new StringReader(cypher);
-        return runManyStatements(stringReader ,params, false, addStatistics, timeout, queueCapacity);
+        return runManyStatements(stringReader ,params, false, addStatistics, timeout, queueCapacity)
+                .collect(toList()).stream()
+                .map(rowResult -> new RowResult(rowResult.row, Util.anyRebind(tx, rowResult.result)));
     }
 
     @Procedure(mode = READ)

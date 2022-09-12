@@ -31,6 +31,8 @@ import java.util.Map;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.CypherTestUtil.datasetRunProcsWithReturn;
+import static apoc.util.CypherTestUtil.cypherRunWithReturnCommon;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testFail;
@@ -195,6 +197,31 @@ public class CypherTest {
         final long count = (long) db.executeTransactionally("MATCH p = (n:Node{name : $name})-[r:X{name: $name2}]->(n) RETURN count(p) AS count",
                 map, Result::next).get("count");
         assertEquals(1, count);
+    }
+
+    @Test
+    public void testRunManyWithCreateAndReturn() {
+        String statements = "CREATE (n:Node {id:1}) RETURN n;\n" +
+                "CREATE (start:Start {id:1})-[rel:REL {id: 2}]->(end:End {id: 3}) RETURN start, rel, end;\n" +
+                "UNWIND range(1,2) as idx WITH idx CREATE path=(:StartPath {id:idx})-[:REL_PATH {id: idx}]->(:EndPath {id: idx}) RETURN path;\n" +
+                "UNWIND range(1,2) as idx WITH idx CREATE path=(:StartPath {id:idx})-[:REL_PATH {id: idx}]->(:EndPath {id: idx}) RETURN collect(path) as paths;";
+
+        testResult(db, "CALL apoc.cypher.runMany($statements, {})",
+                map("statements", statements),
+                r -> cypherRunWithReturnCommon(r, false));
+    }
+
+    @Test
+    public void testRunManyWithOnlyReturn() {
+        datasetRunProcsWithReturn(db);
+        String statements = "MATCH (n:Node {id:1}) RETURN n;\n" +
+                "MATCH (start:Start {id:1})-[rel:REL {id: 2}]->(end:End {id: 3}) RETURN start, rel, end;\n" +
+                "MATCH path=(start:StartPath)-[:REL_PATH]->(:EndPath) RETURN path ORDER BY start.id;\n" +
+                "MATCH path=(start:StartPath)-[:REL_PATH]->(:EndPath) WITH path ORDER BY start.id RETURN collect(path) as paths;";
+
+        testResult(db, "CALL apoc.cypher.runMany($statements, {})",
+                map("statements", statements),
+                r -> cypherRunWithReturnCommon(r, true));
     }
 
     @Test

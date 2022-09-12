@@ -25,6 +25,8 @@ import java.util.stream.IntStream;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.CypherTestUtil.datasetRunProcsWithReturn;
+import static apoc.util.CypherTestUtil.cypherRunWithReturnCommon;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testResult;
@@ -139,6 +141,32 @@ public class CypherExtendedTest {
                     assertEquals(1L, toLong(result.get("nodesDeleted")));
                     assertEquals(false, r.hasNext());
                 });
+    }
+
+    @Test
+    public void testRunFileWithCreateAndReturnFile() {
+        testResult(db, "CALL apoc.cypher.runFile('create_return.cypher')",
+                r -> cypherRunWithReturnCommon(r, false));
+    }
+
+    @Test
+    public void testRunFileWithOnlyReturnFile() {
+        datasetRunProcsWithReturn(db);
+        testResult(db, "CALL apoc.cypher.runFile('only_return.cypher')",
+                r -> cypherRunWithReturnCommon(r, true));
+    }
+
+    @Test
+    public void testRunFileWithCreateAndReturnFiles() {
+        testResult(db, "CALL apoc.cypher.runFiles(['create_return.cypher'])",
+                r -> cypherRunWithReturnCommon(r, false));
+    }
+
+    @Test
+    public void testRunFileWithOnlyReturnFiles() {
+        datasetRunProcsWithReturn(db);
+        testResult(db, "CALL apoc.cypher.runFiles(['only_return.cypher'])",
+                r -> cypherRunWithReturnCommon(r, true));
     }
 
     @Test
