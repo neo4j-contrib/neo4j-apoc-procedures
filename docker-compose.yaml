@@ -34,7 +34,7 @@ services:
       - "7687:7687"
       - "5005:5005"
     volumes:
-      - /Users/ncordon/neo4j/apoc-4.4/full/build/plugins/:/var/lib/neo4j/plugins
+      - /Users/ncordon/neo4j/apoc-4.4/full/build/libs/:/var/lib/neo4j/plugins
     environment:
       <<: *common-core
       NEO4J_causal__clustering_discovery__advertised__address: core1:5000
@@ -57,7 +57,7 @@ services:
       - "7688:7687"
       - "5006:5006"
     volumes:
-      - /Users/ncordon/neo4j/apoc-4.4/full/build/plugins/:/var/lib/neo4j/plugins
+      - /Users/ncordon/neo4j/apoc-4.4/full/build/libs/:/var/lib/neo4j/plugins
     environment:
       <<: *common-core
       NEO4J_causal__clustering_discovery__advertised__address: core2:5000
@@ -80,7 +80,7 @@ services:
       - "7689:7687"
       - "5007:5007"
     volumes:
-      - /Users/ncordon/neo4j/apoc-4.4/full/build/plugins/:/var/lib/neo4j/plugins
+      - /Users/ncordon/neo4j/apoc-4.4/full/build/libs/:/var/lib/neo4j/plugins
     environment:
       <<: *common-core
       NEO4J_causal__clustering_discovery__advertised__address: core3:5000
@@ -103,7 +103,7 @@ services:
       - "7690:7687"
       - "5008:5008"
     volumes:
-      - /Users/ncordon/neo4j/apoc-4.4/full/build/plugins/:/var/lib/neo4j/plugins
+      - /Users/ncordon/neo4j/apoc-4.4/full/build/libs/:/var/lib/neo4j/plugins
     environment:
       <<: *common
       NEO4J_dbms_mode: READ_REPLICA

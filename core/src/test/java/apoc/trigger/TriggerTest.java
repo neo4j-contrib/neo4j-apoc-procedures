@@ -52,7 +52,7 @@ public class TriggerTest {
         TestUtil.testCallCount(db, "CALL apoc.trigger.add('neo4j','count-removals',$query,{}) YIELD name RETURN name",
                 map("query", query),
                 1);
-        TestUtil.testCall(db, "CALL apoc.trigger.list()", (row) -> {
+        TestUtil.testCall(db, "CALL apoc.trigger.list('neo4j')", (row) -> {
             assertEquals("count-removals", row.get("name"));
             assertEquals(query, row.get("query"));
             assertEquals(true, row.get("installed"));
