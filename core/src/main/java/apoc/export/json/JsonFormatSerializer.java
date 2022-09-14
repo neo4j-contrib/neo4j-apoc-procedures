@@ -19,7 +19,7 @@ public enum JsonFormatSerializer {
         public void writeNode(JsonGenerator jsonGenerator, Node node, ExportConfig config) throws IOException {
             jsonGenerator.writeStartObject();
             jsonGenerator.writeStringField("type", "node");
-            writeNodeDetails(jsonGenerator, node, true);
+            writeNodeDetails(jsonGenerator, node, config.writeNodeProperties());
             jsonGenerator.writeEndObject();
         }
 
@@ -28,10 +28,8 @@ public enum JsonFormatSerializer {
             Node startNode = rel.getStartNode();
             Node endNode = rel.getEndNode();
             jsonGenerator.writeStartObject();
-            jsonGenerator.writeStringField("id", String.valueOf(rel.getId()));
             jsonGenerator.writeStringField("type", "relationship");
-            jsonGenerator.writeStringField("label", rel.getType().toString());
-            serializeProperties(jsonGenerator, rel.getAllProperties());
+            writeRelationshipDetails(jsonGenerator, rel, config.writeNodeProperties());
             writeRelationshipNode(jsonGenerator, "start", startNode, config);
             writeRelationshipNode(jsonGenerator, "end", endNode, config);
             jsonGenerator.writeEndObject();
@@ -67,7 +65,7 @@ public enum JsonFormatSerializer {
             }
         }
 
-        private void writeNodeDetails(JsonGenerator jsonGenerator, Node node, boolean withNodeProperties) throws IOException {
+        private void writeNodeDetails(JsonGenerator jsonGenerator, Node node, boolean writeProperties) throws IOException {
             jsonGenerator.writeStringField("id", String.valueOf(node.getId()));
 
             if (node.getLabels().iterator().hasNext()) {
@@ -79,10 +77,20 @@ public enum JsonFormatSerializer {
                 }
                 jsonGenerator.writeEndArray();
             }
-            if (withNodeProperties) {
+            if (writeProperties) {
                 serializeProperties(jsonGenerator, node.getAllProperties());
             }
         }
+
+        private void writeRelationshipDetails(JsonGenerator jsonGenerator, Relationship rel, boolean writeProperties) throws IOException {
+            jsonGenerator.writeStringField("id", String.valueOf(rel.getId()));
+            jsonGenerator.writeStringField("label", rel.getType().toString());
+
+            if (writeProperties) {
+                serializeProperties(jsonGenerator, rel.getAllProperties());
+            }
+        }
+
 
         private void writeRelationshipNode(JsonGenerator jsonGenerator, String type, Node node, ExportConfig config) throws IOException {
             jsonGenerator.writeObjectFieldStart(type);

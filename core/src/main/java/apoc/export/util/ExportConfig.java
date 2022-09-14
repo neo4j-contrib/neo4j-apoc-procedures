@@ -123,7 +123,7 @@ public class ExportConfig extends CompressionConfig {
         this.cypherFormat = CypherFormat.fromString((String) config.getOrDefault("cypherFormat", "create"));
         this.config = config;
         this.streamStatements = toBoolean(config.get("streamStatements")) || toBoolean(config.get("stream"));
-        this.writeNodeProperties = toBoolean(config.get("writeNodeProperties"));
+        this.writeNodeProperties = toBoolean(config.getOrDefault("writeNodeProperties", true));
         this.ifNotExists = toBoolean(config.get("ifNotExists"));
         exportQuotes(config);
         this.optimizations = (Map<String, Object>) config.getOrDefault("useOptimizations", Collections.emptyMap());
