@@ -1,0 +1,1 @@
+{"rel":{"id":"0","type":"relationship","label":"KNOWS","start":{"id":"0","labels":["User"]},"end":{"id":"1","labels":["User"]}}}

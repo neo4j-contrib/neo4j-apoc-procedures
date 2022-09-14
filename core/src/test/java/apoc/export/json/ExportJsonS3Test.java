@@ -348,11 +348,44 @@ public class ExportJsonS3Test {
 
     @Test
     public void testExportAllWithWriteNodePropertiesJson() throws Exception {
-        String filename = "writeNodeProperties.json";
+        String filename = "with_node_properties.json";
         String s3Url = getS3Url(filename);
         String query = "MATCH p = (u:User)-[rel:KNOWS]->(u2:User) RETURN rel";
 
         TestUtil.testCall(db, "CALL apoc.export.json.query($query,$s3,{writeNodeProperties:true})",
+                map("s3", s3Url, "query", query),
+                (r) -> {
+                    assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(1)"));
+                    assertEquals(s3Url, r.get("file"));
+                    assertEquals("json", r.get("format"));
+                });
+        verifyUpload(s3Url, filename);
+    }
+
+    @Test
+    public void testExportAllWithDefaultWriteNodePropertiesJson() throws Exception {
+        String filename = "with_node_properties.json";
+        String s3Url = getS3Url(filename);
+        String query = "MATCH p = (u:User)-[rel:KNOWS]->(u2:User) RETURN rel";
+
+        // default value for writeNodeProperties is true
+        TestUtil.testCall(db, "CALL apoc.export.json.query($query,$s3,{})",
+                map("s3", s3Url, "query", query),
+                (r) -> {
+                    assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(1)"));
+                    assertEquals(s3Url, r.get("file"));
+                    assertEquals("json", r.get("format"));
+                });
+        verifyUpload(s3Url, filename);
+    }
+
+    @Test
+    public void testExportAllWithoutWriteNodePropertiesJson() throws Exception {
+        String filename = "without_node_properties.json";
+        String s3Url = getS3Url(filename);
+        String query = "MATCH p = (u:User)-[rel:KNOWS]->(u2:User) RETURN rel";
+
+        TestUtil.testCall(db, "CALL apoc.export.json.query($query,$s3,{writeNodeProperties:false})",
                 map("s3", s3Url, "query", query),
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(1)"));

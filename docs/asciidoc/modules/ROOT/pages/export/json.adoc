@@ -31,7 +31,7 @@ include::example$generated-documentation/apoc.export.json.query.adoc[]
 [opts=header]
 |===
 | name | type | default | description
-| writeNodeProperties | boolean | false | if true export properties too.
+| writeNodeProperties | boolean | true | if true export properties too.
 | stream | boolean | false | stream the json directly to the client into the `data` field
 | jsonFormat | enum[JSON_LINES, ARRAY_JSON, JSON, JSON_ID_AS_KEYS] | JSON_LINES | the format of the exported json
 |===
@@ -430,7 +430,7 @@ The contents of `knows-with-node-properties.json` are shown below:
 .knows-with-node-properties.json
 [source,json]
 ----
-include::example$data/exportJSON/writeNodeProperties.json[leveloffset]
+include::example$data/exportJSON/with_node_properties.json[leveloffset]
 ----
 
 
