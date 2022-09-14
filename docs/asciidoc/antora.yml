@@ -8,5 +8,5 @@ asciidoc:
     docs-version: "4.4"
     branch: "4.4"
     apoc-release-absolute: "4.4"
-    apoc-release: "4.4.0.8"
+    apoc-release: "4.4.0.9"
     json-path-version: "2.7.0"
