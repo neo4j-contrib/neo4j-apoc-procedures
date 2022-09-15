@@ -65,6 +65,10 @@ dependencies {
     }
 
     // These will be dependencies packaged with the .jar
+    // The next three can be removed once 5.0.0 is released publicly
+    implementation group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests"
+    implementation group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
+    implementation group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
     implementation group: 'org.neo4j.procedure', name: 'apoc-common', version: '5.0.0'
     implementation group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.14.3'
@@ -94,6 +98,10 @@ dependencies {
     compileOnly group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: '1.6.0'
 
     // These dependencies affect the tests only, they will not be packaged in the resulting .jar
+    // The next three can be removed once 5.0.0 is released publicly
+    testImplementation group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective
+    testImplementation group: 'org.neo4j', name: 'log-test-utils', version: neo4jVersionEffective
+    testImplementation group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
     testImplementation group: 'org.neo4j.procedure', name: 'apoc-common', version: '5.0.0-tests'
     testImplementation group: 'org.neo4j.procedure', name: 'apoc-test-utils', version: '5.0.0'
     testImplementation group: 'org.neo4j.procedure', name: 'apoc-core', version: '5.0.0'
