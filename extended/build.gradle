@@ -18,9 +18,11 @@ spotless {
 
 archivesBaseName = "apoc"
 
-// to refresh the submodule every time we compile
-def text = "git submodule update --remote".execute().text
-println text
+// to initialize the submodule when it doesn't exist or refresh it, every time we compile
+"git submodule summary | grep -q '* apoc-core ' && " +
+        "git submodule update --init apoc-core || " +
+        "git submodule update --remote apoc-core"
+                .execute()
 
 jar {
     manifest {
