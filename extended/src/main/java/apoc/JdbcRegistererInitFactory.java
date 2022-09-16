@@ -14,7 +14,7 @@ import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 public class JdbcRegistererInitFactory extends ExtensionFactory<JdbcRegistererInitFactory.Dependencies> {
 
     public interface Dependencies {
-        ApocConfig apocConfig();
+        ExtendedApocConfig extendedApocConfig();
     }
 
     public JdbcRegistererInitFactory() {
@@ -26,15 +26,15 @@ public class JdbcRegistererInitFactory extends ExtensionFactory<JdbcRegistererIn
         return new LifecycleAdapter() {
             @Override
             public void init() throws Exception {
-                // we need to await initialization of ApocConfig. Unfortunately Neo4j's internal service loading tooling does *not* honor the order of service loader META-INF/services files.
+                // we need to await initialization of ExtendedApocConfig. Unfortunately Neo4j's internal service loading tooling does *not* honor the order of service loader META-INF/services files.
                 Util.newDaemonThread(() -> {
-                    ApocConfig apocConfig = dependencies.apocConfig();
-                    while (!apocConfig.isInitialized()) {
+                    ExtendedApocConfig extendedApocConfig = dependencies.extendedApocConfig();
+                    while (!extendedApocConfig.isInitialized()) {
                         Util.sleep(10);
                     }
-                    Iterators.stream(apocConfig.getKeys("apoc.jdbc"))
+                    Iterators.stream(extendedApocConfig.getKeys("apoc.jdbc"))
                             .filter(k -> k.endsWith("driver"))
-                            .forEach(k -> Jdbc.loadDriver(k));
+                            .forEach( Jdbc::loadDriver );
                 }).start();
             }
         };

@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
@@ -19,6 +18,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadHtml.KEY_ERROR;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -59,12 +60,12 @@ public class LoadHtmlTest {
             "</body> </html>";
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, true);
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, LoadHtml.class);
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
     }
 
     @AfterAll

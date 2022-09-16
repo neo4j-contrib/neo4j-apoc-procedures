@@ -19,7 +19,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static apoc.ApocSettings.apoc_trigger_enabled;
+import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
 
@@ -30,8 +31,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestrict
 public class TriggerExtendedTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(procedure_unrestricted, List.of("apoc*"))
-            .withSetting(apoc_trigger_enabled, true);  // need to use settings here, apocConfig().setProperty in `setUp` is too late
+            .withSetting(procedure_unrestricted, List.of("apoc*"));
 
     private long start;
 
@@ -39,6 +39,7 @@ public class TriggerExtendedTest {
     public void setUp() throws Exception {
         start = System.currentTimeMillis();
         TestUtil.registerProcedure(db, Trigger.class, TriggerExtended.class, Nodes.class, Create.class);
+        apocConfig().setProperty(APOC_TRIGGER_ENABLED, true);
     }
 
     @AfterAll

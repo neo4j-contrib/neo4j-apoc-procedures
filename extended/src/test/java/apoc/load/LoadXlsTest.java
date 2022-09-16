@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -27,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -42,11 +43,11 @@ public class LoadXlsTest {
     private static String testColumnsAfterZ = Thread.currentThread().getContextClassLoader().getResource("testLoadXlsColumnsAfterZ.xlsx").getPath();
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, true);
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadXls.class);
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
     }
 
     @AfterAll

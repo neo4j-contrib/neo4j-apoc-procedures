@@ -2,6 +2,7 @@ package apoc.cache;
 
 import apoc.ApocConfig;
 import apoc.Extended;
+import apoc.ExtendedApocConfig;
 import apoc.result.KeyValueResult;
 import apoc.result.ObjectResult;
 import apoc.util.Util;
@@ -26,6 +27,9 @@ public class Static {
     @Context
     public ApocConfig apocConfig;
 
+    @Context
+    public ExtendedApocConfig extendedApocConfig;
+
     private static Map<String,Object> storage = new HashMap<>();
 
     @UserFunction("apoc.static.get")
@@ -44,7 +48,7 @@ public class Static {
 
         HashMap<String, Object> result = new HashMap<>();
         String configPrefix = prefix.isEmpty() ? "apoc.static": "apoc.static." + prefix;
-        Iterators.stream(apocConfig.getKeys(configPrefix)).forEach(s -> result.put(s.substring(configPrefix.length()+1), apocConfig.getString(s)));
+        Iterators.stream(extendedApocConfig.getKeys(configPrefix)).forEach(s -> result.put(s.substring(configPrefix.length()+1), apocConfig.getString(s)));
         result.putAll(Util.subMap(storage, prefix));
         return result;
     }
