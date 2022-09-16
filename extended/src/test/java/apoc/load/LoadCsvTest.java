@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.ApocSettings;
 import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -26,6 +25,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.MapUtil.map;
@@ -59,7 +60,6 @@ public class LoadCsvTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-                .withSetting(ApocSettings.apoc_import_file_enabled, true)
                 .withSetting(GraphDatabaseSettings.load_csv_file_url_root, Paths.get(getUrlFileName("test.csv").toURI()).getParent());
 
     private GenericContainer httpServer;
@@ -69,6 +69,7 @@ public class LoadCsvTest {
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class);
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
     }
 
     @Test public void testLoadCsv() throws Exception {

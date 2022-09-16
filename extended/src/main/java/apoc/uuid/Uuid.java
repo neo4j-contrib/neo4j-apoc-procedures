@@ -2,8 +2,8 @@ package apoc.uuid;
 
 import static apoc.util.Util.quote;
 
-import apoc.ApocConfig;
 import apoc.Extended;
+import apoc.ExtendedApocConfig;
 import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -122,7 +122,8 @@ public class Uuid {
     }
 
     private String getUuidFunctionName() {
-        ApocConfig.UuidFormatType formatType = ApocConfig.apocConfig().getEnumProperty(ApocConfig.APOC_UUID_FORMAT, ApocConfig.UuidFormatType.class, ApocConfig.UuidFormatType.hex);
+        ExtendedApocConfig.UuidFormatType formatType = ExtendedApocConfig.extendedApocConfig().getEnumProperty(ExtendedApocConfig.APOC_UUID_FORMAT,
+                ExtendedApocConfig.UuidFormatType.class, ExtendedApocConfig.UuidFormatType.hex);
         switch(formatType) {
             case base64:
                 return "apoc.create.uuidBase64";

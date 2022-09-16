@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.s3.S3Container;
@@ -18,6 +17,9 @@ import org.neo4j.driver.internal.util.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadCsvTest.assertRow;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -28,9 +30,7 @@ import static org.junit.Assert.assertEquals;
 public class LoadS3Test {
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false)
-            .withSetting(ApocSettings.apoc_import_file_enabled, true);
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     private S3Container minio;
 
@@ -50,6 +50,8 @@ public class LoadS3Test {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class, Xml.class);
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
         minio = new S3Container();
     }
 

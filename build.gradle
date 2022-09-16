@@ -14,7 +14,7 @@ downloadLicenses {
 
 allprojects {
     group = 'org.neo4j.procedure'
-    version = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : '5.0.0-rc02'
+    version = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : '5.0.0'
     archivesBaseName = 'apoc'
     description = """neo4j-apoc-procedures"""
 }
@@ -71,8 +71,8 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country' : 'US',
-                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise' : 'neo4j:5.0.0-dev-enterprise',
-                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") : 'neo4j:5.0.0-dev'
+                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise' : 'neo4j:5.1.0-dev-enterprise',
+                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") : 'neo4j:5.1.0-dev'
 
         maxHeapSize = "8G"
         forkEvery = 50
@@ -129,7 +129,7 @@ subprojects {
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "5.0.0"
+    neo4jVersion = "5.1.0"
     // This should be removed when the version is stable and released
     neo4jInDevVersion = (System.env.CI != null) ? neo4jVersion + "-dev" : neo4jVersion + "-SNAPSHOT"
     // instead we apply the override logic here

@@ -1,6 +1,7 @@
 package apoc.systemdb;
 
 import apoc.ApocConfig;
+import apoc.ExtendedApocConfig;
 import apoc.custom.CypherProcedures;
 import apoc.cypher.CypherExtended;
 import apoc.dv.DataVirtualizationCatalog;
@@ -52,7 +53,7 @@ public class SystemDbTest {
     public void setUp() throws Exception {
         apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, true);
         apocConfig().setProperty(ApocConfig.APOC_EXPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(ApocConfig.APOC_UUID_ENABLED, true);
+        apocConfig().setProperty(ExtendedApocConfig.APOC_UUID_ENABLED, true);
         apocConfig().setProperty(ApocConfig.APOC_TRIGGER_ENABLED, true);
         TestUtil.registerProcedure(db, SystemDb.class, Trigger.class, CypherProcedures.class, Uuid.class, Periodic.class, DataVirtualizationCatalog.class, CypherExtended.class);
     }
