@@ -26,7 +26,7 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
 
-      - name: Download neo4j dev docker container
+      - name: Download neo4j 5.0 docker container
         run: |
           curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_FIVE_URL} -o ${ENTERPRISE_TAR} &
           curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_FIVE_URL} -o ${COMMUNITY_TAR} &
