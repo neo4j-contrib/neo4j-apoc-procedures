@@ -2,7 +2,6 @@ package apoc;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
-import org.junit.Ignore;
 import org.junit.Test;
 import apoc.util.TestContainerUtil.ApocPackage;
 import org.neo4j.driver.Record;

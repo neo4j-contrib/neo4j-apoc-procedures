@@ -278,14 +278,16 @@ docker run \
 ----
 git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
 cd neo4j-apoc-procedures
-./gradlew shadow
+./gradlew --init-script init.gradle shadow
 cp build/extended/libs/apoc-<version>-extended.jar $NEO4J_HOME/plugins/
 $NEO4J_HOME/bin/neo4j restart
 ----
 
 // If you want to run embedded or use neo4j-shell on a disk store, configure your `plugins` directory in `conf/neo4j.conf` with `dbms.plugin.directory=path/to/plugins`.
 
-A full build including running the tests can be run by `./gradlew build`.
+A full build including running the tests can be run by `./gradlew --init-script init.gradle build`.
+
+Note that `--init-script init.gradle` is not needed if you already loaded the gradle changes (e.g. via IntelliJ)
 
 // end::build[]
 // tag::codestyle[]

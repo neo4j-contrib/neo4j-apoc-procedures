@@ -18,12 +18,6 @@ spotless {
 
 archivesBaseName = "apoc"
 
-// to initialize the submodule when it doesn't exist or refresh it, every time we compile
-//"git submodule foreach 'echo $name with branch && git branch --show-current' | grep -q 'apoc-core with branch\ngit_remote_as_repo_core' && " +
-//        "git submodule update --remote apoc-core || "
-        "git submodule add --force --name apoc-core -b git_remote_as_repo_core https://github.com/neo4j/apoc apoc-core"
-                .execute()
-
 jar {
     manifest {
         attributes 'Implementation-Version': version
@@ -47,6 +41,13 @@ javadoc {
 shadowJar {
     mergeServiceFiles()
     archiveClassifier.set('extended')
+}
+
+// to init the submodule in case of new submodule or refresh it if exists, every time we compile 
+task gitSubmoduleLoad {
+    def execute = ["bash", "-c", "git submodule status apoc-core | grep -q \"^-\" && rm -r apoc-core && git submodule update --init apoc-core || git submodule update --remote apoc-core"]
+            .execute()
+    execute.waitForProcessOutput(System.out, System.err)
 }
 
 dependencies {
