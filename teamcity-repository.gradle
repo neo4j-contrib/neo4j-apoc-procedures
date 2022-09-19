@@ -12,6 +12,17 @@ allprojects {
                     basic(BasicAuthentication)
                 }
             }
+            maven {
+                name = 'teamcity-neo4j-five'
+                url =  System.getenv('TEAMCITY_FIVE_URL')
+                credentials {
+                    username System.getenv('TEAMCITY_USER')
+                    password System.getenv('TEAMCITY_PASSWORD')
+                }
+                authentication {
+                    basic(BasicAuthentication)
+                }
+            }
         }
     }
 }

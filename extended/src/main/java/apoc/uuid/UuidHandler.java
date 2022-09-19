@@ -1,6 +1,7 @@
 package apoc.uuid;
 
 import apoc.ApocConfig;
+import apoc.ExtendedApocConfig;
 import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
@@ -17,7 +18,6 @@ import org.neo4j.graphdb.event.TransactionEventListener;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Pair;
-import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
@@ -32,8 +32,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.ApocConfig.APOC_UUID_ENABLED;
-import static apoc.ApocConfig.APOC_UUID_FORMAT;
+import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED_DB;
+import static apoc.ExtendedApocConfig.APOC_UUID_FORMAT;
 
 public class UuidHandler extends LifecycleAdapter implements TransactionEventListener<Void> {
 
@@ -42,17 +43,18 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     private final DatabaseManagementService databaseManagementService;
     private final ApocConfig apocConfig;
     private final ConcurrentHashMap<String, UuidConfig> configuredLabelAndPropertyNames = new ConcurrentHashMap<>();
-    private final ApocConfig.UuidFormatType uuidFormat;
+    private final ExtendedApocConfig.UuidFormatType uuidFormat;
 
     public static final String NOT_ENABLED_ERROR = "UUID have not been enabled." +
             " Set 'apoc.uuid.enabled=true' or 'apoc.uuid.enabled.%s=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
 
-    public UuidHandler(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, Log log, ApocConfig apocConfig, GlobalProcedures globalProceduresRegistry) {
+    public UuidHandler(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, Log log, ApocConfig apocConfig) {
         this.db = db;
         this.databaseManagementService = databaseManagementService;
         this.log = log;
         this.apocConfig = apocConfig;
-        this.uuidFormat = apocConfig.getEnumProperty(APOC_UUID_FORMAT, ApocConfig.UuidFormatType.class, ApocConfig.UuidFormatType.hex);
+        ExtendedApocConfig extendedApocConfig = ExtendedApocConfig.extendedApocConfig();
+        this.uuidFormat = extendedApocConfig.getEnumProperty(APOC_UUID_FORMAT, ExtendedApocConfig.UuidFormatType.class, ExtendedApocConfig.UuidFormatType.hex);
     }
 
     @Override
@@ -64,7 +66,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     }
 
     private boolean isEnabled() {
-        String apocUUIDEnabledDb = String.format(ApocConfig.APOC_UUID_ENABLED_DB, this.db.databaseName());
+        String apocUUIDEnabledDb = String.format(APOC_UUID_ENABLED_DB, this.db.databaseName());
         return apocConfig.getConfig().getBoolean(apocUUIDEnabledDb, apocConfig.getBoolean(APOC_UUID_ENABLED));
     }
 

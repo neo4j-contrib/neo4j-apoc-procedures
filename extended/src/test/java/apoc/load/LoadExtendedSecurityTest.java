@@ -1,14 +1,11 @@
 package apoc.load;
 
 import apoc.ApocConfig;
-import apoc.ApocSettings;
 import apoc.util.FileUtils;
 import apoc.util.SensitivePathGenerator;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -29,6 +26,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -54,6 +53,7 @@ public class LoadExtendedSecurityTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadXls.class, LoadHtml.class, LoadCsv.class);
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, false);
     }
 
     @AfterClass
@@ -69,16 +69,6 @@ public class LoadExtendedSecurityTest {
             "html", List.of("($fileName)"),
             "csv", List.of("($fileName)"),
             "csvParams", List.of("($fileName, {}, '', {})"));
-
-    @Before
-    public void before() {
-        ApocConfig.apocConfig().setProperty(ApocSettings.apoc_import_file_enabled, false);
-    }
-
-    @After
-    public void after() {
-        ApocConfig.apocConfig().setProperty(ApocSettings.apoc_import_file_enabled, false);
-    }
 
     private static Collection<String[]> data() {
         return APOC_PROCEDURE_WITH_ARGUMENTS.entrySet()
@@ -104,7 +94,7 @@ public class LoadExtendedSecurityTest {
 
         @Test
         public void testIllegalFSAccessWithImportDisabled() {
-            ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, false);
+            apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, false);
             final String message = apocProcedure + " should throw an exception";
             try {
                 db.executeTransactionally("CALL " + apocProcedure,
@@ -120,9 +110,9 @@ public class LoadExtendedSecurityTest {
         public void testIllegalFSAccessWithImportEnabled() {
             final String message = apocProcedure + " should throw an exception";
             final String fileName = SensitivePathGenerator.etcPasswd(db).first();
-            ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, true);
-            ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
-            ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, false);
+            apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, true);
+            apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
+            apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, false);
             try {
                 db.executeTransactionally("CALL " + apocProcedure,
                         Map.of("fileName", fileName),
@@ -138,9 +128,9 @@ public class LoadExtendedSecurityTest {
             // as we're defining ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM to true
             // and ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM to false the next call should work
             final String fileName = SensitivePathGenerator.etcPasswd(db).first();
-            ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, true);
-            ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
-            ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, true);
+            apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, true);
+            apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
+            apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, true);
             try {
                 db.executeTransactionally("CALL " + apocProcedure,
                         Map.of("fileName", fileName),

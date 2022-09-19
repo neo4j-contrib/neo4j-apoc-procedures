@@ -13,6 +13,7 @@ jobs:
       DOCKER_ENTERPRISE_DEV_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
       DOCKER_COMMUNITY_DEV_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
       TEAMCITY_DEV_URL: ${{ secrets.TEAMCITY_DEV_URL }}
+      TEAMCITY_FIVE_URL: ${{ secrets.TEAMCITY_FIVE_URL }}
       TEAMCITY_USER: ${{ secrets.TEAMCITY_USER }}
       TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
       ENTERPRISE_TAR: enterprise-docker.tar
