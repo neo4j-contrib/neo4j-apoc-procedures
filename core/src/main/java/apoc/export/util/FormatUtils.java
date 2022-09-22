@@ -84,7 +84,12 @@ public class FormatUtils {
     }
 
     public static String toXmlString(Object value) {
-        return toString(value, StringEscapeUtils::escapeXml10) ;
+        return toString(value, FormatUtils::removeInvalidXMLCharacters);
+    }
+
+    public static String removeInvalidXMLCharacters(String value) {
+        final String invalidChars = "[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\ufffe-\\uffff]";
+        return value.replaceAll(invalidChars, "");
     }
 
     public static String formatPoint(Point value) {
