@@ -98,7 +98,7 @@ public class Rename {
 			params = Collections.emptyMap();
 		}
 		final int batchSize = Util.toInteger(config.getOrDefault("batchSize", 100000));
-		final int concurrency = Util.toInteger(config.getOrDefault("concurrency", 50));
+		final int concurrency = Util.toInteger(config.getOrDefault("concurrency", Runtime.getRuntime().availableProcessors()));
 		final int retries = Util.toInteger(config.getOrDefault("retries", 0));
 		final boolean parallel = Util.toBoolean(config.getOrDefault("parallel", true));
 		final String batchMode = config.getOrDefault("batchMode", "BATCH").toString();
