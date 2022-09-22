@@ -249,7 +249,7 @@ public class Periodic {
      * @param cypherAction
      */
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:50,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows")
+    @Description("apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:<NUM_PROCESSORS>,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows")
     public Stream<BatchAndTotalResult> iterate(
             @Name("cypherIterate") String cypherIterate,
             @Name("cypherAction") String cypherAction,
@@ -260,7 +260,7 @@ public class Periodic {
         if (batchSize < 1) {
             throw new IllegalArgumentException("batchSize parameter must be > 0");
         }
-        int concurrency = Util.toInteger(config.getOrDefault("concurrency", 50));
+        int concurrency = Util.toInteger(config.getOrDefault("concurrency", Runtime.getRuntime().availableProcessors()));
         if (concurrency < 1) {
             throw new IllegalArgumentException("concurrency parameter must be > 0");
         }
