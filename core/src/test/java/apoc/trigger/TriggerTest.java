@@ -1,5 +1,6 @@
 package apoc.trigger;
 
+import apoc.cypher.Cypher;
 import apoc.nodes.Nodes;
 import apoc.util.TestUtil;
 import org.junit.Before;
@@ -10,6 +11,7 @@ import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.TransactionFailureException;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.impl.coreapi.TransactionImpl;
 import org.neo4j.test.rule.DbmsRule;
@@ -23,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import static apoc.ApocSettings.apoc_trigger_enabled;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
 import static org.neo4j.internal.helpers.collection.MapUtil.map;
 
@@ -42,7 +45,32 @@ public class TriggerTest {
     @Before
     public void setUp() throws Exception {
         start = System.currentTimeMillis();
-        TestUtil.registerProcedure(db, Trigger.class, Nodes.class);
+        TestUtil.registerProcedure(db, Trigger.class, Nodes.class, Cypher.class);
+    }
+
+    // This test prevents a regression that was present before:
+    // https://trello.com/c/pvs9iUu7/1093-s4-s2bt-athena-silently-terminating-transactions-during-apoctriggeradd
+    @Test
+    public void testTriggersDoNotLeakMemory() throws Exception {
+        db.executeTransactionally( "CALL apoc.trigger.remove('trigger')" );
+        db.executeTransactionally( "CALL apoc.trigger.add('trigger','CALL apoc.when(true, \"return 1 / 0\")',{phase:\"before\"});" );
+
+        // The next call should fail because we have installed the trigger above that would fail because of the return 1 / 0
+        try {
+            db.executeTransactionally( "CREATE (n:Something)" );
+        } catch ( TransactionFailureException e ) {
+            assertTrue( e.getMessage().contains( "Unable to complete transaction" ) );
+            assertTrue( e.getCause().getMessage().contains( "Error executing triggers" ));
+        }
+
+        // We should be able to remove and re-add the trigger again. We are leaking memory between the CREATE and
+        // the remove trigger step
+        db.executeTransactionally( "CALL apoc.trigger.remove('trigger')" );
+
+        // This fails because we are leaking memory somewhere and
+        //     assert memoryTracker.estimatedHeapMemory() == 0
+        // fails inside KernelTransactionImplementation
+        db.executeTransactionally( "CALL apoc.trigger.add('trigger2','return 2',{phase:\"before\"})" );
     }
 
     @Test
