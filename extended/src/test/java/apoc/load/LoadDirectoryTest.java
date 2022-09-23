@@ -32,12 +32,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static apoc.ApocConfig.APOC_CONFIG_JOBS_POOL_NUM_THREADS;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.TestUtil.getUrlFileName;
-import static apoc.ApocSettings.apoc_jobs_pool_num_threads;
 import static apoc.load.LoadDirectoryItem.DEFAULT_EVENT_TYPES;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallCount;
@@ -86,12 +86,12 @@ public class LoadDirectoryTest {
         importFolder = new File(temporaryFolder.getRoot() + File.separator + IMPORT_DIR);
         importPath = encodePath(FILE_PROTOCOL + importFolder.getPath());
         databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder.toPath())
-                .setConfig(apoc_jobs_pool_num_threads, 10L)
                 .build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
 
         TestUtil.registerProcedure(db, PROCS_TO_REGISTER);
         apocConfig().setProperty(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, true);
+        apocConfig().setProperty(APOC_CONFIG_JOBS_POOL_NUM_THREADS, 10L);
 
         // create temp files and subfolder
         temporaryFolder.newFile("Foo.csv");
@@ -667,7 +667,8 @@ public class LoadDirectoryTest {
     private void restartDb() {
         databaseManagementService.shutdown();
         databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder.toPath())
-                .setConfig(apoc_jobs_pool_num_threads, 40L).build();
+                .build();
+        apocConfig().setProperty(APOC_CONFIG_JOBS_POOL_NUM_THREADS, 10L);
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         assertTrue(db.isAvailable(1000));
         TestUtil.registerProcedure(db, PROCS_TO_REGISTER);
