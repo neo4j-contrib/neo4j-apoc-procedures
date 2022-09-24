@@ -115,7 +115,6 @@ dependencies {
     testImplementation group: 'org.mock-server', name: 'mockserver-netty', version: '5.6.0'
     testImplementation group: 'org.mock-server', name: 'mockserver-client-java', version: '5.6.0'
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
-    testImplementation group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
     testImplementation group: 'us.fatehi', name: 'schemacrawler-mysql', version: '15.04.01'
     testImplementation group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
     testImplementation group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
