@@ -26,14 +26,12 @@ import static org.junit.Assert.fail;
  If you don't have docker installed it will fail, and you can simply ignore it.
  */
 public class CoreExtendedTest {
-    // TODO [Nacho] Ignored for the moment because we cannot build core from here anymore. This needs rethinking
-    @Ignore
     @Test
     public void checkForCoreAndExtended() {
         try {
             Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE, ApocPackage.EXTENDED), true)
                     .withNeo4jConfig("dbms.transaction.timeout", "60s")
-                    .withNeo4jConfig(APOC_IMPORT_FILE_ENABLED, "true");
+                    .withEnv(APOC_IMPORT_FILE_ENABLED, "true");
 
             neo4jContainer.start();
 
@@ -53,8 +51,6 @@ public class CoreExtendedTest {
         }
     }
 
-    // TODO [Nacho] Ignored for the moment because we cannot build core from here anymore. This needs rethinking
-    @Ignore
     @Test
     public void matchesSpreadsheet() {
         try {

@@ -1,0 +1,4 @@
+[submodule "apoc-core"]
+	path = apoc-core
+	url = https://github.com/neo4j/apoc
+	branch = git_remote_as_repo_core
