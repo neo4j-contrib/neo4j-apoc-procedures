@@ -239,7 +239,14 @@ public class ExportGraphMLTest {
     }
 
     private void testRoundtripInvalidUnicodeCommon(String query, String file) {
-        db.executeTransactionally("CREATE (n:Unicode {propOne: '1628\\u000eX', propTwo: 'abcde\\u001ef', propThree: 'aj\\u0000eje', propFour: 'braz\\u0001orf'})");
+        db.executeTransactionally("CREATE (n:Unicode $props)",
+                map("props", map("propZero", "\u007FnotEscaped'", 
+                        "propOne", "\u00101628\u000eX",
+                        "propTwo", "abcde\u001ef",
+                        "propThree", "aj\u0000eje>",
+                        "propFour", "b\u0018ra\u000fz\u0001or'f",
+                        "propFive", "a\u0014noth&r\uffff \" one")
+                ));
 
         TestUtil.testCall(db, query, map("file", file),
                 (r) -> assertEquals(1L, r.get("nodes")));
@@ -264,10 +271,13 @@ public class ExportGraphMLTest {
         TestUtil.testCall(db, "MATCH (n:Unicode) RETURN n",
                 r -> {
                     final Node node = (Node) r.get("n");
+                    // valid unicode chars remain as they are
+                    assertEquals("\u007FnotEscaped'", node.getProperty("propZero"));
                     assertEquals("1628X", node.getProperty("propOne"));
                     assertEquals("abcdef", node.getProperty("propTwo"));
-                    assertEquals("ajeje", node.getProperty("propThree"));
-                    assertEquals("brazorf", node.getProperty("propFour"));
+                    assertEquals("ajeje>", node.getProperty("propThree"));
+                    assertEquals("brazor'f", node.getProperty("propFour"));
+                    assertEquals("anoth&r \" one", node.getProperty("propFive"));
                 });
 
         db.executeTransactionally("MATCH (n:Unicode) DETACH DELETE n");
@@ -721,6 +731,7 @@ public class ExportGraphMLTest {
         assertXMLEquals(output, EXPECTED_TINKER);
     }
 
+    @Test
     public void testExportGraphGraphMLQueryTinkerPop() throws Exception {
         File output = new File(directory, "query.graphml");
         TestUtil.testCall(db, "call apoc.export.graphml.query('MATCH p=()-[r]->() RETURN p limit 1000',$file,{useTypes:true, format: 'tinkerpop'}) ", map("file", output.getAbsolutePath()),
