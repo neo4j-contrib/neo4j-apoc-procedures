@@ -640,22 +640,24 @@ public class Meta {
                 long labelCount = countStore.get(labelName);
                 long sample = getSampleForLabelCount(labelCount, config.getSample());
 
-                //System.out.println("Sampling " + sample + " for " + labelName);
-
                 try (ResourceIterator<Node> nodes = tx.findNodes(label)) {
                     int count = 1;
                     while (nodes.hasNext()) {
                         Node node = nodes.next();
-                        if(count++ % sample == 0) {
-                            boolean acceptNode = !node.hasRelationship()
-                                    || Iterables.stream(node.getRelationshipTypes())
-                                    .map(RelationshipType::name)
-                                    .anyMatch(relName -> !excludeRels.contains(relName)
-                                            && (includeRels.isEmpty() || includeRels.contains(relName)));
-
-                            if (acceptNode) {
-                                profile.observe(node, config);
-                            }
+                        if (count++ % sample == 0) {
+                            final Set<Boolean> skips = StreamSupport
+                                    // we analyze the node for each its relationship type
+                                    .stream(node.getRelationshipTypes().spliterator(), false)
+                                    .map(rel -> excludeRels.contains(rel.name()) // we skip a node when the user said that must be excluded
+                                            // or when the user provided and inclusion list, but it's not in the provided list
+                                            || (!includeRels.isEmpty() && !includeRels.contains(rel.name())))
+                                    .collect(Collectors.toSet());
+                            // if the Set has just one element and is true we skip the node
+                            // if there are two elements [true, false] we don't skip it as give it means that
+                            // it have a relationship that satisfies the condition provided
+                            // by the configuration
+                            if (skips.size() == 1 && skips.iterator().next()) continue;
+                            profile.observe(node, config);
                         }
                     }
                 }

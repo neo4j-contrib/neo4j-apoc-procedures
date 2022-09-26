@@ -65,13 +65,17 @@ public class CypherInitializer implements AvailabilityListener {
                 }
 
                 if (defaultDb.equals(db.databaseName())) {
-                    final List<String> versions = db.executeTransactionally("CALL dbms.components", Collections.emptyMap(),
-                            r -> (List<String>) r.next().get("versions"));
-                    final String apocFullVersion = Version.class.getPackage().getImplementationVersion();
-                    if (isVersionDifferent(versions, apocFullVersion)) {
-                        userLog.warn("The apoc version (%s) and the Neo4j DBMS versions %s are incompatible. \n" +
-                                        "See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to see the correct version",
-                                apocFullVersion, versions.toString());
+                    try {
+                        final List<String> versions = db.executeTransactionally("CALL dbms.components", Collections.emptyMap(),
+                                r -> (List<String>) r.next().get("versions"));
+                        final String apocFullVersion = Version.class.getPackage().getImplementationVersion();
+                        if (isVersionDifferent(versions, apocFullVersion)) {
+                            userLog.warn("The apoc version (%s) and the Neo4j DBMS versions %s are incompatible. \n" +
+                                            "See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to see the correct version",
+                                    apocFullVersion, versions.toString());
+                        }
+                    } catch (Exception ignored) {
+                        userLog.info("Cannot check APOC version compatibility because of a transient error. Retrying your request at a later time may succeed");
                     }
                 }
                 Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
