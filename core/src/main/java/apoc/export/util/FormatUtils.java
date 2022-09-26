@@ -12,6 +12,7 @@ import org.neo4j.graphdb.spatial.Point;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -57,7 +58,7 @@ public class FormatUtils {
         }
         throw new RuntimeException("Invalid graph element "+pc);
     }
-    public static String toString(Object value) {
+    public static String toString(Object value, Function<String, String> escapeFunction) {
         if (value == null) return "";
         if (value instanceof Path) {
             return toString(StreamSupport.stream(((Path)value).spliterator(),false).map(FormatUtils::toMap).collect(Collectors.toList()));
@@ -74,7 +75,20 @@ public class FormatUtils {
         if (value instanceof Point) {
             return formatPoint((Point) value);
         }
-        return value.toString();
+        return escapeFunction.apply(value.toString());
+    }
+
+    public static String toString(Object value) {
+        return toString(value, Function.identity());
+    }
+
+    public static String toXmlString(Object value) {
+        return toString(value, FormatUtils::removeInvalidXMLCharacters);
+    }
+
+    public static String removeInvalidXMLCharacters(String value) {
+        final String invalidChars = "[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\ufffe-\\uffff]";
+        return value.replaceAll(invalidChars, "");
     }
 
     public static String formatPoint(Point value) {

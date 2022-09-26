@@ -17,6 +17,7 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.Reader;
 import java.lang.reflect.Array;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -213,7 +214,16 @@ public class XmlGraphMLReader {
         try (BatchTransaction tx = new BatchTransaction(db, batchSize * 10, reporter)) {
 
             while (reader.hasNext()) {
-                XMLEvent event = (XMLEvent) reader.next();
+                XMLEvent event;
+                try {
+                    event = (XMLEvent) reader.next();
+                } catch (Exception e) {
+                    // in case of unicode invalid chars we skip the event, or we exit in case of EOF
+                    if (e.getMessage().contains("Unexpected EOF")) {
+                        break;
+                    }
+                    continue;
+                }
                 if (event.isStartElement()) {
 
                     StartElement element = event.asStartElement();
@@ -239,11 +249,9 @@ public class XmlGraphMLReader {
                         boolean isNode = last instanceof Node;
                         Key key = isNode ? nodeKeys.get(id) : relKeys.get(id);
                         if (key == null) key = Key.defaultKey(id, isNode);
-                        Object value = key.defaultValue;
-                        XMLEvent next = peek(reader);
-                        if (next.isCharacters()) {
-                            value = key.parseValue(reader.nextEvent().asCharacters().getData());
-                        }
+                        final Map.Entry<XMLEvent, Object> eventEntry = getDataEventEntry(reader, key);
+                        final XMLEvent next = eventEntry.getKey();
+                        final Object value = eventEntry.getValue();
                         if (value != null) {
                             if (this.labels && isNode && id.equals("labels")) {
                                 addLabels((Node)last,value.toString());
@@ -290,6 +298,34 @@ public class XmlGraphMLReader {
             }
         }
         return count;
+    }
+
+    private Map.Entry<XMLEvent, Object> getDataEventEntry(XMLEventReader reader, Key key) {
+        Object value = key.defaultValue;
+        
+        final Map.Entry<XMLEvent, String> peekEntry = peekRecursively(reader, null);
+        if (peekEntry.getValue() != null) {
+            value = key.parseValue(peekEntry.getValue());
+        }
+        return new AbstractMap.SimpleEntry<>(peekEntry.getKey(), value);
+    }
+
+    private Map.Entry<XMLEvent, String> peekRecursively(XMLEventReader reader, String data) {
+        try {
+            final XMLEvent peek = peek(reader);
+            // in case of char, we concat the result to the current value and redo the peek
+            //  in order to obtain e.g. from a string "ab<invalid_char>cd<invalid_char>ef" --> "abcdef"
+            if (peek.isCharacters()) {
+                data = StringUtils.join(data,
+                        reader.nextEvent().asCharacters().getData());
+                return peekRecursively(reader, data);
+            }
+            // in case the event is not a char we continue setting labels/properties 
+            return new AbstractMap.SimpleEntry<>(peek, data);
+        } catch (Exception e) {
+            // in case of unicode invalid chars we continue until we get a valid event
+            return peekRecursively(reader, data);
+        }
     }
 
     private Node getByNodeId(Map<String, Long> cache, Transaction tx, StartElement element, XmlNodeExport.NodeType nodeType) {
