@@ -37,7 +37,7 @@ public class TriggerDisabledTest {
     public void setUp() throws Exception {
         apocConfig().setProperty(APOC_TRIGGER_ENABLED, false);
         exceptionRule.expect(RuntimeException.class);
-        exceptionRule.expectMessage(TriggerHandler.NOT_ENABLED_ERROR);
+        exceptionRule.expectMessage(TriggerUtils.NOT_ENABLED_ERROR);
         TestUtil.registerProcedure(db, Trigger.class);
     }
 
@@ -64,5 +64,29 @@ public class TriggerDisabledTest {
     @Test
     public void testTriggerDisabledPause() {
         db.executeTransactionally("CALL apoc.trigger.pause('test-trigger')");
+    }
+
+    @Test
+    public void testTriggerDisabledInstall() {
+        db.executeTransactionally("CALL apoc.trigger.install('neo4j', 'test-trigger', 'RETURN 1', {phase: 'before'})");
+    }
+    @Test
+    public void testTriggerDisabledDrop() {
+        db.executeTransactionally("CALL apoc.trigger.drop('neo4j', 'test-trigger')");
+    }
+    
+    @Test
+    public void testTriggerDisabledDropAll() {
+        db.executeTransactionally("CALL apoc.trigger.dropAll('neo4j')");
+    }
+
+    @Test
+    public void testTriggerDisabledStart() {
+        db.executeTransactionally("CALL apoc.trigger.start('neo4j', 'test-trigger')");
+    }
+
+    @Test
+    public void testTriggerDisabledStop() {
+        db.executeTransactionally("CALL apoc.trigger.stop('neo4j', 'test-trigger')");
     }
 }

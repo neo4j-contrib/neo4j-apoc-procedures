@@ -10,11 +10,9 @@ import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.util.Collections;
-import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
 
@@ -48,13 +46,19 @@ public class TriggerRestartTest {
 
     @Test
     public void testTriggerRunsAfterRestart() throws Exception {
+        final String query = "CALL apoc.trigger.add('myTrigger', 'unwind $createdNodes as n set n.trigger=true', {phase:'before'})";
+        testTriggerRestartCommon(query);
+    }
 
-//        db.execute("CALL apoc.trigger.add('myTrigger', 'unwind $createdNodes as n set n.trigger=true', {phase:'before'})");
-        TestUtil.testResult(db, "CALL apoc.trigger.add('myTrigger', 'unwind $createdNodes as n set n.trigger=true', {phase:'before'})",
-                result -> {
-                    Map<String, Object> single = Iterators.single(result);
-                    System.out.println(single);
-                });
+    @Test
+    public void testTriggerViaInstallRunsAfterRestart() {
+        final String query = "CALL apoc.trigger.install('neo4j', 'myTrigger', 'unwind $createdNodes as n set n.trigger=true', {phase:'before'})";
+        testTriggerRestartCommon(query);
+    }
+
+    private void testTriggerRestartCommon(String query) {
+        TestUtil.testCall(db, query, row -> {});
+        
         db.executeTransactionally("CREATE (p:Person{id:1})");
         TestUtil.testCallCount(db, "match (n:Person{trigger:true}) return n", Collections.emptyMap(), 1);
 

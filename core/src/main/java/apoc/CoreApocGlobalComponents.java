@@ -18,7 +18,6 @@ public class CoreApocGlobalComponents implements ApocGlobalComponents {
     public Map<String,Lifecycle> getServices(GraphDatabaseAPI db, ApocExtensionFactory.Dependencies dependencies) {
         return Collections.singletonMap("trigger", new TriggerHandler(db,
                 dependencies.databaseManagementService(),
-                dependencies.apocConfig(),
                 dependencies.log().getUserLog(TriggerHandler.class),
                 dependencies.pools(),
                 dependencies.scheduler())

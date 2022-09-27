@@ -29,7 +29,6 @@ import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.graphdb.ExecutionPlanDescription;
 import org.neo4j.graphdb.Result;
@@ -783,18 +782,14 @@ public class Util {
         return with.isEmpty() ? with : " WITH "+with+" ";
     }
 
-    public static boolean isWriteableInstance(GraphDatabaseAPI db) {
+    public static boolean isWriteableInstance(GraphDatabaseService db) {
+        return isWriteableInstance(db, db.databaseName());
+    }
+    
+    public static boolean isWriteableInstance(GraphDatabaseService db, String dbName) {
         try {
-            try {
-                Class hadb = Class.forName("org.neo4j.kernel.ha.HighlyAvailableGraphDatabase");
-                boolean isSlave = hadb.isInstance(db) && !((Boolean)hadb.getMethod("isMaster").invoke(db));
-                if (isSlave) return false;
-            } catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                /* ignore */
-            }
-
             String role = db.executeTransactionally("CALL dbms.cluster.role($databaseName)",
-                    Collections.singletonMap("databaseName", db.databaseName()),
+                    Collections.singletonMap("databaseName", dbName),
                     result -> Iterators.single(result.columnAs("role")));
             return role.equalsIgnoreCase("LEADER");
         } catch(QueryExecutionException e) {
