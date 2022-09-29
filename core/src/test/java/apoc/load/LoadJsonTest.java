@@ -265,8 +265,7 @@ public class LoadJsonTest {
     }
 
     @Test public void testLoadJsonTarByUrl() throws Exception {
-        // todo - change to https://github.com/neo4j/apoc/blob/dev/core/src/test/resources/testload.tar?raw=true
-        URL url = new URL("https://github.com/neo4j/apoc/blob/issue_11/core/src/test/resources/testload.tar?raw=true");
+        URL url = new URL("https://github.com/neo4j/apoc/blob/dev/core/src/test/resources/testload.tar?raw=true");
         testCall(db, "CALL apoc.load.json($url)",map("url",url.toString()+"!person.json"),
                 (row) -> {
                     Map<String,Object> r = (Map<String, Object>) row.get("value");
@@ -277,8 +276,7 @@ public class LoadJsonTest {
     }
 
     @Test public void testLoadJsonTarGzByUrl() throws Exception {
-        // todo - change to https://github.com/neo4j/apoc/blob/dev/core/src/test/resources/testload.tar.gz?raw=true
-        URL url = new URL("https://github.com/neo4j/apoc/blob/issue_11/core/src/test/resources/testload.tar.gz?raw=true");
+        URL url = new URL("https://github.com/neo4j/apoc/blob/dev/core/src/test/resources/testload.tar.gz?raw=true");
         testCall(db, "CALL apoc.load.json($url)",map("url",url.toString()+"!person.json"),
                 (row) -> {
                     Map<String,Object> r = (Map<String, Object>) row.get("value");
@@ -289,8 +287,7 @@ public class LoadJsonTest {
     }
 
     @Test public void testLoadJsonTgzByUrl() throws Exception {
-        // todo - change to https://github.com/neo4j/apoc/blob/dev/core/src/test/resources/testload.tgz?raw=true
-        URL url = new URL("https://github.com/neo4j/apoc/blob/issue_11/core/src/test/resources/testload.tgz?raw=true");
+        URL url = new URL("https://github.com/neo4j/apoc/blob/dev/core/src/test/resources/testload.tgz?raw=true");
         testCall(db, "CALL apoc.load.json($url)",map("url",url.toString()+"!person.json"),
                 (row) -> {
                     Map<String,Object> r = (Map<String, Object>) row.get("value");
