@@ -7,3 +7,17 @@ project(':core').projectDir = new File(rootDir, 'apoc-core/core')
 project(':common').projectDir = new File(rootDir, 'apoc-core/common')
 project(':processor').projectDir = new File(rootDir, 'apoc-core/processor')
 project(':test-utils').projectDir = new File(rootDir, 'apoc-core/test-utils')
+
+startParameter.excludedTaskNames = [
+        ':core:build',
+        ':common:build',
+        ':processor:build',
+        ':test-utils:build',
+        ':core:test',
+        ':common:test',
+        ':processor:test',
+        ':test-utils:test',
+        ':core:publish',
+        ':common:publish',
+        ':test-utils:publish'
+]
