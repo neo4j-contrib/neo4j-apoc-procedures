@@ -17,6 +17,11 @@ apoc.custom.declareProcedure(signature, statement, mode, description) - register
 apoc.custom.declareProcedure(signature :: STRING?, statement :: STRING?, mode = read :: STRING?, description =  :: STRING?) :: VOID
 ----
 
+[WARNING]
+====
+This procedure is not intended to be used in a cluster environment, and may act unpredictably.
+====
+
 == Input parameters
 [.procedures, opts=header]
 |===
