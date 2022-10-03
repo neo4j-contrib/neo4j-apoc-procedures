@@ -30,7 +30,12 @@ import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.neo4j.internal.helpers.collection.MapUtil.map;
 
 public class XmlTest {
@@ -452,10 +457,40 @@ public class XmlTest {
                 r.close();
             });
         } catch (Exception e) {
-            // We want test that the cause of the exception is SAXParseException with the correct cause message
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof SAXParseException);
             assertEquals("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true.", except.getMessage());
+            throw e;
+        }
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testXmlParsePreventXXEVulnerabilityThrowsQueryExecutionException() {
+        try {
+            final var xml = "<?xml version=\"1.0\"?><!DOCTYPE GVI [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><foo>&xxe;</foo>";
+            testResult(db, "RETURN apoc.xml.parse('" + xml + "')", (r) -> {
+                r.next();
+                r.close();
+            });
+        } catch (Exception e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof SAXParseException);
+            assertEquals("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true.", except.getMessage());
+            throw e;
+        }
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testImportXmlPreventXXEVulnerabilityThrowsQueryExecutionException() {
+        try {
+            testResult(db, "CALL apoc.import.xml('file:src/test/resources/xml/xxe.xml')", (r) -> {
+                r.next();
+                r.close();
+            });
+        } catch (Exception e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof com.ctc.wstx.exc.WstxParsingException);
+            assertThat(except.getMessage(), containsString("Encountered a reference to external entity \"xxe\""));
             throw e;
         }
     }
