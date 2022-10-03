@@ -69,6 +69,7 @@ public class Xml {
     private static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();
     static {
         FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
+        FACTORY.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
     }
 
     @Context
