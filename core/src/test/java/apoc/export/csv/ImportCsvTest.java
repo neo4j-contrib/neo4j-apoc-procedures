@@ -179,7 +179,7 @@ public class ImportCsvTest {
         TestUtil.testCall(db, "CALL apoc.import.csv([{fileName: $nodeFile, labels: ['Person']}], [], $config)",
                 map("nodeFile", "file:/largeFile.csv",
                         "config", map("batchSize", 100L)),
-                (r) -> assertEquals(664850L, r.get("nodes")));
+                (r) -> assertEquals(277442L, r.get("nodes")));
     }
 
     @Test
