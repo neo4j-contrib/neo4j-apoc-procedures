@@ -1,0 +1,5 @@
+¦xref::overview/apoc.schema/apoc.schema.relationship.compareIndexesAndConstraints.adoc[apoc.schema.relationship.compareIndexesAndConstraints icon:book[]] +
+
+CALL apoc.schema.relationship.compareIndexesAndConstraints($config) - to compare rel constraints and indexes
+¦label:procedure[]
+¦label:apoc-full[]

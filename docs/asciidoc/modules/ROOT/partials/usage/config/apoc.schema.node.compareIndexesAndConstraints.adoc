@@ -1,0 +1,9 @@
+The procedure supports the following config parameters:
+
+.Config parameters
+[opts=header, cols="1,1,1,5"]
+|===
+| name | type | default | description
+| labels | List<String> | Empty List | List of labels to include in the comparison. By default, all label will be included.
+| excludeLabels | List<String> | Empty List | List of labels to exclude from comparison. By default, no label will be excluded.
+|===

@@ -1,3 +1,4 @@
 ¦signature
+¦apoc.schema.node.compareIndexesAndConstraints(config = {} :: MAP?) :: (label :: STRING?, commonProps :: LIST? OF STRING?, onlyIdxProps :: MAP?, onlyConstraintsProps :: MAP?)
 ¦apoc.schema.node.constraintExists(labelName :: STRING?, propertyName :: LIST? OF STRING?) :: (BOOLEAN?)
 ¦apoc.schema.node.indexExists(labelName :: STRING?, propertyName :: LIST? OF STRING?) :: (BOOLEAN?)

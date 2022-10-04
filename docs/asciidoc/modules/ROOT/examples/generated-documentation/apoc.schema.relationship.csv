@@ -1,4 +1,9 @@
 ¦Qualified Name¦Type¦Release
+|xref::overview/apoc.schema.relationship/apoc.schema.adoc[apoc.schema.relationship.compareIndexesAndConstraints icon:book[]]
+
+CALL apoc.schema.relationship.compareIndexesAndConstraints($config) - to compare rel constraints and indexes
+|label:procedure[]
+|label:apoc-full[]
 |xref::overview/apoc.schema.relationship/apoc.schema.adoc[apoc.schema.relationship.constraintExists icon:book[]]
 
 RETURN apoc.schema.relationship.constraintExists(type, propertyNames)

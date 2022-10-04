@@ -4,6 +4,7 @@ import apoc.schema.SchemasExtended;
 import org.junit.Before;
 import org.junit.Rule;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -37,24 +38,18 @@ public class SchemasExtendedTest {
         db.executeTransactionally("CREATE INDEX FOR (n:Person) ON (n.surname)");
         db.executeTransactionally("CREATE CONSTRAINT FOR (n:Person) REQUIRE (n.address) IS UNIQUE");
         db.executeTransactionally("CREATE INDEX FOR (n:Movie) ON (n.name)");
-        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('fullSecondIdx', ['Person', 'Another'], ['weightProp'])");
+        db.executeTransactionally("CREATE FULLTEXT INDEX fullSecondIdx FOR (n:Person|Another) ON EACH [n.weightProp]");
 
         testResult(db, "CALL apoc.schema.node.compareIndexesAndConstraints()", (res) -> {
             Map<String, Object> row = res.next();
-            assertEquals(Map.of(":<any-labels>()", emptyList()), row.get("onlyIdxProps"));
-            assertEquals("<any-labels>", row.get("label"));
-            assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
-            assertEquals(emptyList(), row.get("commonProps"));
+            assertAnyLabels(row);
             row = res.next();
             assertEquals(Map.of(":[Another, Person],(weightProp)", List.of("weightProp")), row.get("onlyIdxProps"));
             assertEquals("Another", row.get("label"));
             assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
             assertEquals(emptyList(), row.get("commonProps"));
             row = res.next();
-            assertEquals(Map.of(":Movie(name)", List.of("name")), row.get("onlyIdxProps"));
-            assertEquals("Movie", row.get("label"));
-            assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
-            assertEquals(emptyList(), row.get("commonProps"));
+            assertMovieLabel(row);
             row = res.next();
             assertEquals(Map.of(":[Another, Person],(weightProp)", List.of("weightProp"), ":Person(surname)", List.of("surname")), row.get("onlyIdxProps"));
             assertEquals("Person", row.get("label"));
@@ -62,6 +57,34 @@ public class SchemasExtendedTest {
             assertEquals(List.of("address"), row.get("commonProps"));
             assertFalse(res.hasNext());
         });
+
+        testResult(db, "CALL apoc.schema.node.compareIndexesAndConstraints({labels: ['Movie', 'NotExistent']})", (res) -> {
+            Map<String, Object> row = res.next();
+            assertMovieLabel(row);
+            assertFalse(res.hasNext());
+        });
+
+        testResult(db, "CALL apoc.schema.node.compareIndexesAndConstraints({excludeLabels: ['Person', 'NotExistent']})", (res) -> {
+            Map<String, Object> row = res.next();
+            assertAnyLabels(row);
+            row = res.next();
+            assertMovieLabel(row);
+            assertFalse(res.hasNext());
+        });
+    }
+
+    private static void assertAnyLabels(Map<String, Object> row) {
+        assertEquals(Map.of(":<any-labels>()", emptyList()), row.get("onlyIdxProps"));
+        assertEquals("<any-labels>", row.get("label"));
+        assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
+        assertEquals(emptyList(), row.get("commonProps"));
+    }
+
+    private static void assertMovieLabel(Map<String, Object> row) {
+        assertEquals(Map.of(":Movie(name)", List.of("name")), row.get("onlyIdxProps"));
+        assertEquals("Movie", row.get("label"));
+        assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
+        assertEquals(emptyList(), row.get("commonProps"));
     }
 
     @Test
@@ -71,26 +94,52 @@ public class SchemasExtendedTest {
 
         testResult(db, "CALL apoc.schema.relationship.compareIndexesAndConstraints()", (res) -> {
             Map<String, Object> row = res.next();
-            assertEquals("<any-types>", row.get("type"));
-            assertEquals(Map.of(":<any-types>()", emptyList()), row.get("onlyIdxProps"));
-            assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
-            assertEquals(emptyList(), row.get("commonProps"));
+            assertAnyTypes(row);
             row = res.next();
-            assertEquals("KNOWS", row.get("type"));
-            assertEquals(Map.of(":KNOWS(since)", List.of("since")), row.get("onlyIdxProps"));
-            assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
-            assertEquals(emptyList(), row.get("commonProps"));
+            assertKnowsType(row);
             row = res.next();
-            assertEquals("TYPE_1", row.get("type"));
-            assertEquals(Map.of(":[TYPE_1, TYPE_2],(alpha,beta)", List.of("alpha", "beta")), row.get("onlyIdxProps"));
-            assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
-            assertEquals(emptyList(), row.get("commonProps"));
-            row = res.next();
-            assertEquals(Map.of(":[TYPE_1, TYPE_2],(alpha,beta)", List.of("alpha", "beta")), row.get("onlyIdxProps"));
-            assertEquals("TYPE_2", row.get("type"));
-            assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
-            assertEquals(emptyList(), row.get("commonProps"));
+            assertType1AndType2(res, row);
             assertFalse(res.hasNext());
         });
+
+        testResult(db, "CALL apoc.schema.relationship.compareIndexesAndConstraints({relationships: ['TYPE_1', 'NOT_EXISTENT']})", (res) -> {
+            Map<String, Object> row = res.next();
+            assertType1AndType2(res, row);
+            assertFalse(res.hasNext());
+        });
+
+        testResult(db, "CALL apoc.schema.relationship.compareIndexesAndConstraints({excludeRelationships: ['TYPE_2', 'NOT_EXISTENT']})", (res) -> {
+            Map<String, Object> row = res.next();
+            assertAnyTypes(row);
+            row = res.next();
+            assertKnowsType(row);
+            assertFalse(res.hasNext());
+        });
+    }
+
+    private static void assertKnowsType(Map<String, Object> row) {
+        assertEquals("KNOWS", row.get("type"));
+        assertEquals(Map.of(":KNOWS(since)", List.of("since")), row.get("onlyIdxProps"));
+        assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
+        assertEquals(emptyList(), row.get("commonProps"));
+    }
+
+    private static void assertAnyTypes(Map<String, Object> row) {
+        assertEquals("<any-types>", row.get("type"));
+        assertEquals(Map.of(":<any-types>()", emptyList()), row.get("onlyIdxProps"));
+        assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
+        assertEquals(emptyList(), row.get("commonProps"));
+    }
+
+    private static void assertType1AndType2(Result res, Map<String, Object> row) {
+        assertEquals(Map.of(":[TYPE_1, TYPE_2],(alpha,beta)", List.of("alpha", "beta")), row.get("onlyIdxProps"));
+        assertEquals("TYPE_1", row.get("type"));
+        assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
+        assertEquals(emptyList(), row.get("commonProps"));
+        row = res.next();
+        assertEquals(Map.of(":[TYPE_1, TYPE_2],(alpha,beta)", List.of("alpha", "beta")), row.get("onlyIdxProps"));
+        assertEquals("TYPE_2", row.get("type"));
+        assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
+        assertEquals(emptyList(), row.get("commonProps"));
     }
 }

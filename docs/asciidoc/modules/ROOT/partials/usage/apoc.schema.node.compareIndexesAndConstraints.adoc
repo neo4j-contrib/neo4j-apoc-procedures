@@ -1,0 +1,72 @@
+The examples in this section are based on a database that has applied the following constraints:
+
+[source,cypher]
+----
+// lookup index
+CREATE LOOKUP INDEX lookupNodeIndex IF NOT EXISTS FOR (n) ON EACH labels(n);
+
+// indexes
+CREATE INDEX person_surname FOR (n:Person) ON (n.surname);
+CREATE FULLTEXT INDEX fullSecondIdx FOR (n:Person|Another) ON EACH [n.weightProp];
+
+// constraints
+CREATE CONSTRAINT foo_bar ON (f:Foo) ASSERT (f.bar,f.foo) IS NODE KEY;
+CREATE CONSTRAINT bar_foobar ON (bar:Bar) ASSERT exists(bar.foobar);
+----
+
+We can compare node indexes and constraints via `apoc.schema.node.compareIndexesAndConstraints($config)`
+and obtain:
+- the list of properties to which both an index and a constraint are associated (column `commonProps`).
+- the maps with key the type of index and value the list of properties that are not associated with any constraint (column `onlyIdxProps`).
+- vice versa, the maps with key the type of constraint and value the list of properties that are not associated with any index (column `onlyConstraintsProps`).
+
+Here is an example:
+
+[source,cypher]
+----
+CALL apoc.schema.node.compareIndexesAndConstraints()
+----
+
+.Results
+[opts="header"]
+|===
+| label	| commonProps	| onlyIdxProps	| onlyConstraintsProps
+| "<any-labels>"	| [] |{":<any-labels>()": []}| {}
+| "Another"	| [] | {":[Another, Person],(weightProp)": ["weightProp"]}| {}
+| "Bar"	| [] | {}| {":Bar(foobar)": ["foobar"]}
+| "Foo"	["bar", "foo"]| {}| {}
+| "Person"	| [] |{":[Another, Person],(weightProp)": ["weightProp"],":Person(surname)": ["surname"]}|{}
+|===
+
+
+We can compare only some labels with the config `labels`, for example:
+
+[source,cypher]
+----
+CALL apoc.schema.node.compareIndexesAndConstraints({labels: ['Bar']})
+----
+
+.Results
+[opts="header"]
+|===
+| label	| commonProps	| onlyIdxProps	| onlyConstraintsProps
+| "Bar"	| [] | {}| {":Bar(foobar)": ["foobar"]}
+|===
+
+
+We can exclude some labels from comparison with the config `excludeLabels`, for example:
+
+[source,cypher]
+----
+CALL apoc.schema.relationship.compareIndexesAndConstraints({excludeRelationships: ['KNOWS']})
+----
+
+.Results
+[opts="header"]
+|===
+| label	| commonProps	| onlyIdxProps	| onlyConstraintsProps
+| "<any-labels>"	| [] |{":<any-labels>()": []}| {}
+| "Another"	| [] | {":[Another, Person],(weightProp)": ["weightProp"]}| {}
+| "Foo"	["bar", "foo"]| {}| {}
+| "Person"	| [] |{":[Another, Person],(weightProp)": ["weightProp"],":Person(surname)": ["surname"]}|{}
+|===

@@ -1,0 +1,9 @@
+The procedure supports the following config parameters:
+
+.Config parameters
+[opts=header, cols="1,1,1,5"]
+|===
+| name | type | default | description
+| relationships | List<String> | Empty List | List of relationship types to include in the comparison. By default, all type will be included.
+| excludeRelationships | List<String> | Empty List | List of relationship types to exclude from comparison. By default, no type will be excluded.
+|===
