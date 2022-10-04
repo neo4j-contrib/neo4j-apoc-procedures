@@ -17,6 +17,11 @@ apoc.custom.removeFunction(name, type) - remove the targeted custom function
 apoc.custom.removeFunction(name :: STRING?) :: VOID
 ----
 
+[WARNING]
+====
+This procedure is not intended to be used in a cluster environment, and may act unpredictably.
+====
+
 == Input parameters
 [.procedures, opts=header]
 |===
