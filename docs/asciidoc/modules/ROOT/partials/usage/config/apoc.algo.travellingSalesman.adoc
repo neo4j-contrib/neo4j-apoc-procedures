@@ -7,7 +7,6 @@ The procedure support the following config parameters:
 | coolingFactor | double | 0.995 | the simulated algo's cooling factor 
 | startTemperature | double | 100000 | the simulated algo's start temperature 
 | endTemperature | double | 0.1 | the simulated algo's end temperature (that is, the algo implementation will be cycled until start temp > end temp )
-| latitudeProp | String | "latitude" | the latitude property name 
-| longitudeProp | String | "longitude" | the longitude property name 
+| pointProp | String | "place" | the point property name 
 | relName | String | "CONNECT_TO" | The virtual rel-type returned into path result
 |===

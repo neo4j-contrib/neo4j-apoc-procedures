@@ -69,7 +69,7 @@ public class TravellingSalesman {
                 throw new RuntimeException("coolingFactor, endTemperature amd startTemperature must be positive");
             }
 
-            EstimateEvaluator<Double> evaluator = CommonEvaluators.geoEstimateEvaluator(config.getLatitudeProp(), config.getLongitudeProp());
+            EstimateEvaluator<Double> evaluator = new PathFinding.GeoEstimateEvaluatorPointCustom(config.getPointProp());
 
             Tour current = new Tour(cities, evaluator);
             Tour best = current.copy();
@@ -127,10 +127,12 @@ public class TravellingSalesman {
     }
 
     public static class Config {
-
+        public static final String POINT_PROP_KEY = "pointProp";
+        
         private final Double coolingFactor;
         private final Double startTemperature;
         private final Double endTemperature;
+        private final String pointProp;
         private final String latitudeProp;
         private final String longitudeProp;
         private final String relName;
@@ -140,6 +142,7 @@ public class TravellingSalesman {
             this.coolingFactor = Util.toDouble(config.getOrDefault("coolingFactor", 0.995));
             this.startTemperature = Util.toDouble(config.getOrDefault("startTemperature", 100000));
             this.endTemperature = Util.toDouble(config.getOrDefault("endTemperature", 0.1));
+            this.pointProp = (String) config.getOrDefault(POINT_PROP_KEY, "place");
             this.latitudeProp = (String) config.getOrDefault("latitudeProp", "latitude");
             this.longitudeProp = (String) config.getOrDefault("longitudeProp", "longitude");
             this.relName = (String) config.getOrDefault("relName", "CONNECT_TO");
@@ -157,12 +160,8 @@ public class TravellingSalesman {
             return endTemperature;
         }
 
-        public String getLatitudeProp() {
-            return latitudeProp;
-        }
-
-        public String getLongitudeProp() {
-            return longitudeProp;
+        public String getPointProp() {
+            return pointProp;
         }
 
         public String getRelName() {
