@@ -27,54 +27,80 @@ public class DateFormatUtil {
         map.put("iso_time", DateTimeFormatter.ISO_TIME);
         map.put("iso_week_date", DateTimeFormatter.ISO_WEEK_DATE);
         map.put("iso_zoned_date_time", DateTimeFormatter.ISO_ZONED_DATE_TIME);
-        map.put("basic_date", DateTimeFormatter.ofPattern("yyyyMMdd"));
-        map.put("basic_date_time", DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss.SSSZ"));
-        map.put("basic_date_time_no_millis", DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmssZ"));
-        map.put("basic_ordinal_date", DateTimeFormatter.ofPattern("yyyyDDD"));
-        map.put("basic_ordinal_date_time", DateTimeFormatter.ofPattern("yyyyDDD'T'HHmmss.SSSZ"));
-        map.put("basic_ordinal_date_time_no_millis", DateTimeFormatter.ofPattern("yyyyDDD'T'HHmmssZ"));
-        map.put("basic_time", DateTimeFormatter.ofPattern("HHmmss.SSSZ"));
-        map.put("basic_time_no_millis", DateTimeFormatter.ofPattern("HHmmssZ"));
-        map.put("basic_t_time", DateTimeFormatter.ofPattern("'T'HHmmss.SSSZ"));
-        map.put("basic_t_time_no_millis", DateTimeFormatter.ofPattern("'T'HHmmssZ"));
-        map.put("basic_week_date", DateTimeFormatter.ofPattern("xxxx'W'wwe"));
-        map.put("basic_week_date_time", DateTimeFormatter.ofPattern("xxxx'W'wwe'T'HHmmss.SSSZ"));
-        map.put("basic_week_date_time_no_millis", DateTimeFormatter.ofPattern("xxxx'W'wwe'T'HHmmssZ"));
-        map.put("date", DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        map.put("date_hour", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH"));
-        map.put("date_hour_minute", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
-        map.put("date_hour_minute_second", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
-        map.put("date_hour_minute_second_fraction", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"));
-        map.put("date_hour_minute_second_millis", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"));
-        map.put("date_time", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ"));
-        map.put("date_time_no_millis", DateTimeFormatter.ofPattern("yyy-MM-dd'T'HH:mm:ssZZ"));
-        map.put("hour", DateTimeFormatter.ofPattern("HH"));
-        map.put("hour_minute", DateTimeFormatter.ofPattern("HH:mm"));
-        map.put("hour_minute_second", DateTimeFormatter.ofPattern("HH:mm:ss"));
-        map.put("hour_minute_second_fraction", DateTimeFormatter.ofPattern("HH:mm:ss.SSS"));
-        map.put("hour_minute_second_millis", DateTimeFormatter.ofPattern("HH:mm:ss.SSS"));
-        map.put("ordinal_date", DateTimeFormatter.ofPattern("yyyy-DDD"));
-        map.put("ordinal_date_time", DateTimeFormatter.ofPattern("yyyy-DDD'T'HH:mm:ss.SSSZZ"));
-        map.put("ordinal_date_time_no_millis", DateTimeFormatter.ofPattern("yyyy-DDD'T'HH:mm:ssZZ"));
-        map.put("time", DateTimeFormatter.ofPattern("HH:mm:ss.SSSZZ"));
-        map.put("time_no_millis", DateTimeFormatter.ofPattern("HH:mm:ssZZ"));
-        map.put("t_time", DateTimeFormatter.ofPattern("'T'HH:mm:ss.SSSZZ"));
-        map.put("t_time_no_millis", DateTimeFormatter.ofPattern("'T'HH:mm:ssZZ"));
-        map.put("week_date", DateTimeFormatter.ofPattern("xxxx-'W'ww-e"));
-        map.put("week_date_time", DateTimeFormatter.ofPattern("xxxx-'W'ww-e'T'HH:mm:ss.SSSZZ"));
-        map.put("week_date_time_no_millis", DateTimeFormatter.ofPattern("xxxx-'W'ww-e'T'HH:mm:ssZZ"));
-        map.put("weekyear", DateTimeFormatter.ofPattern("xxxx"));
-        map.put("weekyear_week", DateTimeFormatter.ofPattern("xxxx-'W'ww"));
-        map.put("weekyear_week_day", DateTimeFormatter.ofPattern("xxxx-'W'ww-e"));
-        map.put("year", DateTimeFormatter.ofPattern("yyyy"));
-        map.put("year_month", DateTimeFormatter.ofPattern("yyyy-MM"));
-        map.put("year_month_day", DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         map.put( "rfc_1123_date_time", DateTimeFormatter.RFC_1123_DATE_TIME );
         ISO_DATE_FORMAT = Collections.unmodifiableMap(map);
     }
 
+    public static Map<String, String> ISO_DURATION_PATTERNS = new HashMap<>() {{
+        //Static default formatters from Java ISO, excluding those with timezone 
+        put("basic_iso_date", "yyyyMMdd");
+        // the letter `I` is used to create nanoseconds in iso format, i.e. with trailing zeros. e.g. '123000' become '123'
+        final String isoDateTime = "yyyy-MM-dd'T'HH:mm:ssI";
+        put("iso_date_time", isoDateTime);
+        put("iso_local_date_time", isoDateTime);
+        final String isoDate = "yyyy-MM-dd";
+        put("iso_date", isoDate);
+        put("iso_local_date", isoDate);
+        final String isoTime = "HH:mm:ssI";
+        put("iso_time", isoTime);
+        put("iso_local_time", isoTime);
+        put("iso_ordinal_date", "yyyy-DDD"); 
+        put("iso_week_date", "YYYY-'W'ww-e");
+    }};
+
+    public static Map<String, String> ELASTIC_PATTERNS = new HashMap<>() {{
+        //Static default formatters from Elasticsearch patterns
+        put("basic_date", "yyyyMMdd");
+        put("basic_date_time", "yyyyMMdd'T'HHmmss.SSSZ");
+        put("basic_date_time_no_millis", "yyyyMMdd'T'HHmmssZ");
+        put("basic_ordinal_date", "yyyyDDD");
+        put("basic_ordinal_date_time", "yyyyDDD'T'HHmmss.SSSZ");
+        put("basic_ordinal_date_time_no_millis", "yyyyDDD'T'HHmmssZ");
+        put("basic_time", "HHmmss.SSSZ");
+        put("basic_time_no_millis", "HHmmssZ");
+        put("basic_t_time", "'T'HHmmss.SSSZ");
+        put("basic_t_time_no_millis", "'T'HHmmssZ");
+        put("basic_week_date", "xxxx'W'wwe");
+        put("basic_week_date_time", "xxxx'W'wwe'T'HHmmss.SSSZ");
+        put("basic_week_date_time_no_millis", "xxxx'W'wwe'T'HHmmssZ");
+        put("date", "yyyy-MM-dd");
+        put("date_hour", "yyyy-MM-dd'T'HH");
+        put("date_hour_minute", "yyyy-MM-dd'T'HH:mm");
+        put("date_hour_minute_second", "yyyy-MM-dd'T'HH:mm:ss");
+        put("date_hour_minute_second_fraction", "yyyy-MM-dd'T'HH:mm:ss.SSS");
+        put("date_hour_minute_second_millis", "yyyy-MM-dd'T'HH:mm:ss.SSS");
+        put("date_time", "yyyy-MM-dd'T'HH:mm:ss.SSSZZ");
+        put("date_time_no_millis", "yyy-MM-dd'T'HH:mm:ssZZ");
+        put("hour", "HH");
+        put("hour_minute", "HH:mm");
+        put("hour_minute_second", "HH:mm:ss");
+        put("hour_minute_second_fraction", "HH:mm:ss.SSS");
+        put("hour_minute_second_millis", "HH:mm:ss.SSS");
+        put("ordinal_date", "yyyy-DDD");
+        put("ordinal_date_time", "yyyy-DDD'T'HH:mm:ss.SSSZZ");
+        put("ordinal_date_time_no_millis", "yyyy-DDD'T'HH:mm:ssZZ");
+        put("time", "HH:mm:ss.SSSZZ");
+        put("time_no_millis", "HH:mm:ssZZ");
+        put("t_time", "'T'HH:mm:ss.SSSZZ");
+        put("t_time_no_millis", "'T'HH:mm:ssZZ");
+        put("week_date", "xxxx-'W'ww-e");
+        put("week_date_time", "xxxx-'W'ww-e'T'HH:mm:ss.SSSZZ");
+        put("week_date_time_no_millis", "xxxx-'W'ww-e'T'HH:mm:ssZZ");
+        put("weekyear", "xxxx");
+        put("weekyear_week", "xxxx-'W'ww");
+        put("weekyear_week_day", "xxxx-'W'ww-e");
+        put("year", "yyyy");
+        put("year_month", "yyyy-MM");
+        put("year_month_day", "yyyy-MM-dd");
+    }};
+
     public static DateTimeFormatter getOrCreate(String format) {
-        return ISO_DATE_FORMAT.containsKey(format.toLowerCase()) ? ISO_DATE_FORMAT.get(format.toLowerCase()) : DateTimeFormatter.ofPattern(format);
+        final String formatLower = format.toLowerCase();
+        
+        if (ISO_DATE_FORMAT.containsKey(formatLower)) {
+            return ISO_DATE_FORMAT.get(formatLower);
+        }
+        return DateTimeFormatter.ofPattern(ELASTIC_PATTERNS.getOrDefault(formatLower, format));
     }
 
     public static Set<String> getTypes() {
