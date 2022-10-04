@@ -375,10 +375,14 @@ public class LoadHtmlTest {
     }
 
     @Test
-    public void testQueryWithFailsSilentlyWithListAndChildren1() {
-        final String file = new File("src/test/resources/wikipedia.html").toURI().toString();
-        checkStatusDetails(db, "CALL apoc.load.html($file, {all: '*'}, {failSilently: 'WITH_LIST', children: true})", 
-                map("file", file));
+    public void testStatusDetails() {
+        // large .html url
+        final String url = "https://en.wikipedia.org/wiki/2022_in_video_games";
+        checkStatusDetails(db, "CALL apoc.load.html($url, {all: '*'}, {children: true})", 
+                map("url", url));
+
+        checkStatusDetails(db, "CALL apoc.load.htmlPlainText($url, {all: '*'}, {children: true})",
+                map("url", url));
     }
 
     @Test

@@ -8,22 +8,27 @@ import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 import org.jsoup.select.NodeTraversor;
 import org.jsoup.select.NodeVisitor;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static apoc.load.LoadHtml.withError;
+import static apoc.util.Util.setKernelStatusMap;
 
 public class PlainText implements HtmlResultInterface {
 
     @Override
-    public String getResult(Document document, String selector, LoadHtmlConfig config, List<String> errorList, Log log) {
+    public String getResult(Document document, String selector, LoadHtmlConfig config, List<String> errorList, Log log, AtomicInteger rows, Transaction tx) {
         LoadHtmlConfig.FailSilently failConfig = config.getFailSilently();
         StringBuilder plainText = new StringBuilder();
         Elements elements = document.select(selector);
         for (Element element : elements) {
             final String result = getResult(config, errorList, log, failConfig, element);
             plainText.append(result);
+            setKernelStatusMap(tx, Map.of("rows", rows.incrementAndGet(), "result", result));
         }
         return plainText.toString();
     }

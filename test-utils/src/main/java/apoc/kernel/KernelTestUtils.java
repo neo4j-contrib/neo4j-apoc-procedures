@@ -25,13 +25,15 @@ public class KernelTestUtils {
         final Future<String> future = executor.submit(() -> db.executeTransactionally(query, params, Result::resultAsString));
 
         assertEventually(() -> TestUtil.<String>singleResultFirstColumn(db,
-                "CALL dbms.listTransactions() yield statusDetails, currentQuery where currentQuery STARTS WITH $startQuery RETURN statusDetails", 
+                "SHOW TRANSACTIONS YIELD statusDetails, currentQuery where currentQuery STARTS WITH $startQuery RETURN statusDetails", 
                 Map.of("startQuery", finalStartQuery)),
                 StringUtils::isNotEmpty, 
-                15L, TimeUnit.SECONDS);
+                20L, TimeUnit.SECONDS);
         
         try {
             future.get();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            System.out.println("ignored = " + ignored);
+        }
     }
 }

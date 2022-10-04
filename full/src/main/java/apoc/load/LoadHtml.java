@@ -26,11 +26,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static apoc.load.LoadHtmlBrowser.getChromeInputStream;
 import static apoc.load.LoadHtmlBrowser.getFirefoxInputStream;
+import static apoc.util.Util.setKernelStatusMap;
 
 @Extended
 public class LoadHtml {
@@ -70,8 +72,9 @@ public class LoadHtml {
             Map<String, Object> output = new HashMap<>();
             List<String> errorList = new ArrayList<>();
 
+            AtomicInteger rows = new AtomicInteger();
             query.keySet().forEach(key -> {
-                final Object value = type.get().getResult(document, query.get(key), config, errorList, log);
+                final Object value = type.get().getResult(document, query.get(key), config, errorList, log, rows, tx);
                 output.put(key, value);
             });
             if (!errorList.isEmpty()) {
@@ -104,10 +107,9 @@ public class LoadHtml {
         }
     }
 
-    public static List<Map<String, Object>> getElements(Elements elements, LoadHtmlConfig conf, List<String> errorList, Log log) {
+    public static List<Map<String, Object>> getElements(Elements elements, LoadHtmlConfig conf, List<String> errorList, Log log, AtomicInteger rows, Transaction tx) {
 
         List<Map<String, Object>> elementList = new ArrayList<>();
-        int rows = 0;
 
         for (Element element : elements) {
             withError(element, errorList, conf.getFailSilently(), log, () -> {
@@ -120,11 +122,12 @@ public class LoadHtml {
                 if (conf.isChildren()) {
                     if(element.hasText()) result.put("text", element.ownText());
 
-                    result.put("children", getElements(element.children(), conf, errorList, log));
+                    result.put("children", getElements(element.children(), conf, errorList, log, rows, tx));
                 }
                 else {
                     if(element.hasText()) result.put("text", element.text());
                 }
+                setKernelStatusMap(tx, Map.of("rows", rows.incrementAndGet(), "result", result));
                 elementList.add(result);
                 return null;
             });
