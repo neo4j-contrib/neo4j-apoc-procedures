@@ -19,9 +19,11 @@
 package apoc.load;
 
 import org.jsoup.nodes.Document;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public interface HtmlResultInterface {
 
@@ -39,5 +41,5 @@ public interface HtmlResultInterface {
         }
     }
 
-    Object getResult(Document document, String selector, LoadHtmlConfig config, List<String> errorList, Log log);
+    Object getResult(Document document, String selector, LoadHtmlConfig config, List<String> errorList, Log log, AtomicInteger rows, Transaction tx);
 }

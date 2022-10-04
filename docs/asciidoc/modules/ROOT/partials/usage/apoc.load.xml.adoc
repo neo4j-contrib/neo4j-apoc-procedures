@@ -539,7 +539,7 @@ This will return the last executed xml result.
 
 [source,cypher]
 ----
-CALL dbms.listTransactions() yield statusDetails, currentQuery WHERE currentQuery STARTS WITH 'CALL apoc.load.xml' RETURN statusDetails
+SHOW TRANSACTIONS YIELD statusDetails, currentQuery WHERE currentQuery STARTS WITH 'CALL apoc.load.xml' RETURN statusDetails
 ----
 
 .Results

@@ -437,7 +437,7 @@ For long running procedures, we can use the `statusDetails` field present in `db
 
 [source,cypher]
 ----
-CALL dbms.listTransactions() yield statusDetails, currentQuery WHERE currentQuery STARTS WITH 'CALL apoc.export.json' RETURN statusDetails
+SHOW TRANSACTIONS YIELD statusDetails, currentQuery WHERE currentQuery STARTS WITH 'CALL apoc.export.json' RETURN statusDetails
 ----
 
 .Results
