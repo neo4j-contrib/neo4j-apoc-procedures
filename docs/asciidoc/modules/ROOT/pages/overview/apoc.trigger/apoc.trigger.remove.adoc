@@ -10,6 +10,11 @@ label:procedure[] label:apoc-core[]
 [.emphasis]
 remove previously added trigger, returns trigger information
 
+[WARNING]
+====
+This procedure is not intended to be used in a cluster environment, and may act unpredictably.
+====
+
 == Signature
 
 [source]
