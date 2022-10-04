@@ -351,11 +351,11 @@ public class Schemas {
      * @return
      */
     private Stream<IndexConstraintNodeInfo> indexesAndConstraintsForNode(Map<String,Object> config) {
-        return indexesAndConstraintsForNode(config, ktx,
+        return indexesAndConstraintsForNode(config, tx, ktx,
                 (constraintNodeInfoStream, indexNodeInfoStream) -> Stream.of(constraintNodeInfoStream, indexNodeInfoStream).flatMap(e -> e));
     }
 
-    public static <T> T indexesAndConstraintsForNode(Map<String,Object> config, KernelTransaction ktx, BiFunction<Stream<IndexConstraintNodeInfo>, Stream<IndexConstraintNodeInfo>, T> function) {
+    public static <T> T indexesAndConstraintsForNode(Map<String,Object> config, Transaction tx, KernelTransaction ktx, BiFunction<Stream<IndexConstraintNodeInfo>, Stream<IndexConstraintNodeInfo>, T> function) {
         Schema schema = tx.schema();
 
         SchemaConfig schemaConfig = new SchemaConfig(config);
@@ -411,7 +411,7 @@ public class Schemas {
 
 
             Stream<IndexConstraintNodeInfo> constraintNodeInfoStream = StreamSupport.stream(constraintsIterator.spliterator(), false)
-                    .map(constraintDescriptor -> nodeInfoFromConstraintDefinition(constraintDescriptor, tokenRead))
+                    .map(constraintDescriptor -> nodeInfoFromConstraintDefinition(constraintDescriptor, tokenRead, ktx))
                     .sorted(Comparator.comparing(i -> i.label.toString()));
 
             Stream<IndexConstraintNodeInfo> indexNodeInfoStream = StreamSupport.stream(indexesIterator.spliterator(), false)
@@ -451,7 +451,7 @@ public class Schemas {
             Iterable<ConstraintDefinition> constraintsIterator;
             Iterable<IndexDescriptor> indexesIterator;
 
-            final Predicate<ConstraintDefinition> isRelConstraint = this::isRelConstraint;
+            final Predicate<ConstraintDefinition> isRelConstraint = Schemas::isRelConstraint;
 
             if(!includeRelationships.isEmpty()) {
                 constraintsIterator = includeRelationships.stream()
@@ -493,7 +493,7 @@ public class Schemas {
         }
     }
 
-    private boolean isRelConstraint(ConstraintDefinition constraintDefinition) {
+    private static boolean isRelConstraint(ConstraintDefinition constraintDefinition) {
         return constraintDefinition.isConstraintType(RELATIONSHIP_PROPERTY_EXISTENCE);
     }
 
@@ -504,7 +504,7 @@ public class Schemas {
      * @param tokens
      * @return
      */
-    private static IndexConstraintNodeInfo nodeInfoFromConstraintDefinition(ConstraintDefinition constraintDefinition, TokenNameLookup tokens) {
+    private static IndexConstraintNodeInfo nodeInfoFromConstraintDefinition(ConstraintDefinition constraintDefinition, TokenNameLookup tokens, KernelTransaction ktx) {
         String labelName = constraintDefinition.getLabel().name();
         List<String> properties = Iterables.asList(constraintDefinition.getPropertyKeys());
         return new IndexConstraintNodeInfo(
@@ -647,7 +647,7 @@ public class Schemas {
         }
     }
 
-    private long getPopulationProgress(IndexDescriptor indexDescriptor, SchemaRead schemaRead) throws IndexNotFoundKernelException {
+    private static long getPopulationProgress(IndexDescriptor indexDescriptor, SchemaRead schemaRead) throws IndexNotFoundKernelException {
         PopulationProgress populationProgress = schemaRead.indexGetPopulationProgress(indexDescriptor);
         // when the index is failed the getTotal() is equal to 0
         long populationTotal = populationProgress.getTotal();

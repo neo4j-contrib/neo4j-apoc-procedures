@@ -1,0 +1,2 @@
+¦signature
+¦apoc.schema.node.compareIndexesAndConstraints(config = {} :: MAP?) :: (label :: STRING?, commonProps :: LIST? OF STRING?, onlyIdxProps :: MAP?, onlyConstraintsProps :: MAP?)

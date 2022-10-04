@@ -36,14 +36,14 @@ public class SchemasExtended {
     public KernelTransaction ktx;
 
     @Procedure(value = "apoc.schema.node.compareIndexesAndConstraints", mode = Mode.SCHEMA)
-    @Description("CALL apoc.schema.node.compareIndexesAndConstraints([config]) - to compare node constraints and indexes")
+    @Description("CALL apoc.schema.node.compareIndexesAndConstraints($config) - to compare node constraints and indexes")
     public Stream<CompareIdxToConsNodes> compareIndexesAndConstraints(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
-        return indexesAndConstraintsForNode(config, ktx,
+        return indexesAndConstraintsForNode(config, tx, ktx,
                 compareConstraintIdxFunction(CompareIdxToConsNodes.class));
     }
 
     @Procedure(value = "apoc.schema.relationship.compareIndexesAndConstraints", mode = Mode.SCHEMA)
-    @Description("CALL apoc.schema.relationship.compareIndexesAndConstraints([config]) - to compare rel constraints and indexes")
+    @Description("CALL apoc.schema.relationship.compareIndexesAndConstraints($config) - to compare rel constraints and indexes")
     public Stream<CompareIdxToConsRels> compareIndexesAndConstraintsForRelationships(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         return indexesAndConstraintsForRelationships(config, tx, ktx, compareConstraintIdxFunction(CompareIdxToConsRels.class));
     }
