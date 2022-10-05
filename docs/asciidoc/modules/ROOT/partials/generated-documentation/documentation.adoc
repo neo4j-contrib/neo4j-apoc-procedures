@@ -1443,17 +1443,17 @@ apoc.graph.validateDocument(\{json}, \{config}) yield row - validates the json, 
 | Qualified Name | Type | Release
 |xref::overview/apoc.hashing/apoc.hashing.fingerprint.adoc[apoc.hashing.fingerprint icon:book[]]
 
-calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.
+calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash. Unsuitable for cryptographic use-cases.
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.hashing/apoc.hashing.fingerprintGraph.adoc[apoc.hashing.fingerprintGraph icon:book[]]
 
-calculate a checksum (md5) over a the full graph. Be aware that this function does use in-memomry datastructures depending on the size of your graph.
+calculate a checksum (md5) over a the full graph. Be aware that this function does use in-memomry datastructures depending on the size of your graph. Unsuitable for cryptographic use-cases.
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.hashing/apoc.hashing.fingerprinting.adoc[apoc.hashing.fingerprinting icon:book[]]
 
-calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.
+calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash. Unsuitable for cryptographic use-cases.
 |label:function[]
 |label:apoc-core[]
 |===
@@ -3437,7 +3437,7 @@ apoc.util.decompress(compressed, \{config}) \| return a string from a compressed
 |label:apoc-core[]
 |xref::overview/apoc.util/apoc.util.md5.adoc[apoc.util.md5 icon:book[]]
 
-apoc.util.md5([values]) \| computes the md5 of the concatenation of all string values of the list
+apoc.util.md5([values]) \| computes the md5 of the concatenation of all string values of the list. Unsuitable for cryptographic use-cases.
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.util/apoc.util.sha1.adoc[apoc.util.sha1 icon:book[]]
