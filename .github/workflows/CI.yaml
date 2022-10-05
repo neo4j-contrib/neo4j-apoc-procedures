@@ -43,7 +43,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Build with Gradle
-        run: chmod +x gradlew && ./gradlew build
+        run: chmod +x gradlew && ./gradlew --init-script init.gradle build
 
       - name: Clean neo4j artifacts
         if: always() # run this step even if previous step failed
@@ -57,9 +57,4 @@ jobs:
         with:
           name: test-results
           path: |
-            common/build/reports/tests/test/
-            core/build/reports/tests/test/
             extended/build/reports/tests/test/
-            processor/build/reports/tests/test/
-            test-startup/build/reports/tests/test/
-            test-utils/build/reports/tests/test/

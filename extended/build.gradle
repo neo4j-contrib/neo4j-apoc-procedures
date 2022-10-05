@@ -43,8 +43,15 @@ shadowJar {
     archiveClassifier.set('extended')
 }
 
+// to init the submodule in case of new submodule or refresh it if exists, every time we compile 
+task gitSubmoduleLoad {
+    def execute = ["bash", "-c", "git submodule status apoc-core | grep -q \"^-\" && rm -r apoc-core && git submodule update --init apoc-core || git submodule update --remote apoc-core"]
+            .execute()
+    execute.waitForProcessOutput(System.out, System.err)
+}
+
 dependencies {
-    apt group: 'org.neo4j.procedure', name: 'apoc-processor', version: '5.0.0'
+    apt project(':processor')
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
 
     antlr "org.antlr:antlr4:4.7.2", {
@@ -65,7 +72,7 @@ dependencies {
     }
 
     // These will be dependencies packaged with the .jar
-    implementation group: 'org.neo4j.procedure', name: 'apoc-common', version: '5.0.0'
+    implementation project(':common')
     implementation group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.14.3'
     implementation group: 'com.opencsv', name: 'opencsv', version: '4.6'
@@ -94,9 +101,8 @@ dependencies {
     compileOnly group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: '1.6.0'
 
     // These dependencies affect the tests only, they will not be packaged in the resulting .jar
-    testImplementation group: 'org.neo4j.procedure', name: 'apoc-common', version: '5.0.0-tests'
-    testImplementation group: 'org.neo4j.procedure', name: 'apoc-test-utils', version: '5.0.0'
-    testImplementation group: 'org.neo4j.procedure', name: 'apoc-core', version: '5.0.0'
+    testImplementation project(':test-utils')
+    testImplementation project(':core')
     testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0'
     testImplementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
     testImplementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
