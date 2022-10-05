@@ -27,6 +27,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXParseException;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -69,6 +70,7 @@ public class Xml {
     private static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();
     static {
         FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
+        FACTORY.setProperty(XMLInputFactory.SUPPORT_DTD, false);
         FACTORY.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
     }
 
@@ -148,6 +150,8 @@ public class Xml {
         catch (Exception e){
             if(!failOnError)
                 return Stream.of(new MapResult(Collections.emptyMap()));
+            else if (e instanceof SAXParseException && e.getMessage().contains("DOCTYPE is disallowed"))
+                throw generateXmlDoctypeException();
             else
                 throw e;
         }
@@ -532,6 +536,9 @@ public class Xml {
             xml.next();
 
             switch (xml.getEventType()) {
+                case XMLStreamConstants.DTD:
+                    throw generateXmlDoctypeException();
+
                 case XMLStreamConstants.START_DOCUMENT:
                     // xmlsteamreader starts off by definition at START_DOCUMENT prior to call next() - so ignore this one
                     break;
@@ -635,4 +642,7 @@ public class Xml {
         }
     }
 
+    private RuntimeException generateXmlDoctypeException() {
+        throw new RuntimeException("XML documents with a DOCTYPE are not allowed.");
+    }
 }
