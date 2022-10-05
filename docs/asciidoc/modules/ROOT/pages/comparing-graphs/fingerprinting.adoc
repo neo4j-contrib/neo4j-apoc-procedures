@@ -20,9 +20,9 @@ This is useful if you store properties (like `created=timestamp()`) that should 
 [opts=header,cols="m,a"]
 |===
 | function name | description
-| `apoc.hashing.fingerprint(object, <list_of_props_to_ignore>)` | calculates a md5 hashsum over the object. It deals gracefully with ordering (in case of maps), scalars, arrays.
-| `apoc.hashing.fingerprinting(object, {conf})` | calculates a md5 hashsum over the object. It deals gracefully with ordering (in case of maps), scalars, arrays. Please check the `Fingerprinting configuration params` table for details
-| `apoc.hashing.graph(<list_of_props_to_ignore>)` | calculates a md5 hashsum over the full graph.
+| `apoc.hashing.fingerprint(object, <list_of_props_to_ignore>)` | calculates a md5 hashsum over the object. It deals gracefully with ordering (in case of maps), scalars, arrays. Unsuitable for cryptographic use-cases.
+| `apoc.hashing.fingerprinting(object, {conf})` | calculates a md5 hashsum over the object. It deals gracefully with ordering (in case of maps), scalars, arrays.  Unsuitable for cryptographic use-cases. Please check the `Fingerprinting configuration params` table for details
+| `apoc.hashing.graph(<list_of_props_to_ignore>)` | calculates a md5 hashsum over the full graph.  Unsuitable for cryptographic use-cases.
 |===
 
 == Configuration parameters

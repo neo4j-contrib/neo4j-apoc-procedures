@@ -9,6 +9,7 @@ label:function[] label:apoc-core[]
 
 [.emphasis]
 calculate a checksum (md5) over a the full graph. Be aware that this function does use in-memomry datastructures depending on the size of your graph.
+MD5 is a weak hashing algorithm which is unsuitable for cryptographic use-cases.
 
 == Signature
 

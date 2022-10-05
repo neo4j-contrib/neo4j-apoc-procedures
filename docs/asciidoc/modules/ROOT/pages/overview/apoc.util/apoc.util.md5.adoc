@@ -9,6 +9,7 @@ label:function[] label:apoc-core[]
 
 [.emphasis]
 apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list
+MD5 is a weak hashing algorithm which is unsuitable for cryptographic use-cases.
 
 == Signature
 
