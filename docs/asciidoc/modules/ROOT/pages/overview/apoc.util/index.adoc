@@ -30,7 +30,7 @@ apoc.util.decompress(compressed, \{config}) \| return a string from a compressed
 |label:apoc-core[]
 |xref::overview/apoc.util/apoc.util.md5.adoc[apoc.util.md5 icon:book[]]
 
-apoc.util.md5([values]) \| computes the md5 of the concatenation of all string values of the list
+apoc.util.md5([values]) \| computes the md5 of the concatenation of all string values of the list. Unsuitable for cryptographic use-cases
 |label:function[]
 |label:apoc-core[]
 |xref::overview/apoc.util/apoc.util.sha1.adoc[apoc.util.sha1 icon:book[]]
