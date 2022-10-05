@@ -141,6 +141,7 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::operational/init-script.adoc[]
     ** xref::operational/warmup.adoc[]
     ** xref::operational/log.adoc[]
+    ** xref::operational/rebind.adoc[]
 
 * xref:misc/index.adoc[]
     ** xref::misc/text-functions.adoc[]
