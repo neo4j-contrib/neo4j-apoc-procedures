@@ -88,7 +88,7 @@ include::example$generated-documentation/apoc.load.jsonArray-lite.csv[]
 [[load-json-available-procedures-apoc.import.json]]
 === `apoc.import.json`
 
-This procedure can be used to import JSON files created by the xref::export/json.adoc[Export JSON] procedures.
+This procedure can be used to import JSON files created by the xref::export/json.adoc[Export JSON] procedures, exported using the config parameter `jsonFormat: 'JSON_LINES'` (default config).
 
 [separator=¦,opts=header,cols="1m"]
 |===
@@ -380,7 +380,8 @@ RETURN status.id, status.text, u.screen_name,
 [[load-json-examples-import-json]]
 === Import JSON file created by Export JSON procedures
 
-The `apoc.import.json` procedure can be used to import JSON files created by the `apoc.export.json.*` procedures.
+The `apoc.import.json` procedure can be used to import JSON files created by the `apoc.export.json.*` procedures, exported using the config parameter `jsonFormat: 'JSON_LINES'` (default config).
+
 This procedure supports the following config parameters:
 
 .Config parameters
