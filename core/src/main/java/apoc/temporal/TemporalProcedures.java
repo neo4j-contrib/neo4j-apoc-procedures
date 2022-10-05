@@ -10,6 +10,8 @@ import java.time.format.DateTimeFormatter;
 
 import static apoc.date.Date.*;
 import static apoc.util.DateFormatUtil.*;
+import static apoc.util.DurationFormatUtil.getDurationFormat;
+import static apoc.util.DurationFormatUtil.getOrCreateDurationPattern;
 
 public class TemporalProcedures
 {
@@ -65,15 +67,13 @@ public class TemporalProcedures
             @Name("input") Object input,
             @Name("format") String format
     ) {
+        DurationValue duration = ((DurationValue) input);
+        
         try {
-            LocalDateTime midnight = LocalDateTime.of(0, 1, 1, 0, 0, 0, 0);
-            LocalDateTime newDuration = midnight.plus( (DurationValue) input );
-
-            DateTimeFormatter formatter = getOrCreate(format);
-
-            return newDuration.format(formatter);
+            String pattern = getOrCreateDurationPattern(format);
+            return getDurationFormat(duration, pattern);
         } catch (Exception e){
-        throw new RuntimeException("Available formats are:\n" +
+            throw new RuntimeException("Available formats are:\n" +
                 String.join("\n", getTypes()) +
                 "\nSee also: https://www.elastic.co/guide/en/elasticsearch/reference/5.5/mapping-date-format.html#built-in-date-formats " +
                 "and https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html");

@@ -1,4 +1,26 @@
-This function formats durations using a https://www.elastic.co/guide/en/elasticsearch/reference/5.5/mapping-date-format.html#built-in-date-formats[list of built-in formats^].
+This function handles a pattern string similar to the one used in https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ofPattern-java.lang.String-[DateTimeFormatter.ofPattern(<pattern>)], but with some differences.
+Below is the conversion table between letters and https://neo4j.com/docs/cypher-manual/current/functions/temporal/duration/#functions-duration[Duration Fields]:
+
+[opts="header"]
+|===
+| letter | field
+| `y` or `Y` or `u`  | year
+| `d` or `D` | days
+| `M` or `L` | months of year
+| `q` or `Q` | quarters of year
+| `w` or `W` | weeks
+| `h` or `H` or `k`or `K` | hours
+| `m` | minutes of hour
+| `s` | seconds of minutes
+| `n` or `S` | nanoseconds of seconds 
+| `A` | milliseconds
+| `N` | nanoseconds
+| `I` | ISO nanoseconds, i.e. with trimmed right zero. e.g. `"12300"` becomes `"123"`
+|===
+
+
+It is also possible to use one of a https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html[Predefined Java formats^] or as https://www.elastic.co/guide/en/elasticsearch/reference/5.5/mapping-date-format.html#built-in-date-formats[elastic formats^],
+except ones which require timezone or weekyear, such as `basic_date_time` or `week_date_time`.
 
 [source,cypher]
 ----
@@ -22,4 +44,18 @@ RETURN apoc.temporal.formatDuration( duration({seconds: 10000}), "hour_minute") 
 |===
 | output
 | "02:46"
+|===
+
+
+[source,cypher]
+----
+WITH duration.between(datetime('2017-06-02T18:40:32.1234560'), datetime('2019-07-13T19:41:33')) AS duration
+RETURN apoc.temporal.formatDuration(duration, "yy 'years' MM 'months' www 'weeks' dd 'days' - HH:mm:ss SSSS") AS output
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| "02 years 01 months 001 weeks 11 days - 01:01:00 8765"
 |===
