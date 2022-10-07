@@ -532,9 +532,9 @@ RETURN value
 |===
 
 
-=== Status details
+==== Status details
 
-For long running procedures, we can use the `statusDetails` field present in `dbms.listTransactions` procedure to check progresses.
+For long running procedures, we can use the `statusDetails` field present in `SHOW TRANSACTIONS` procedure to check progresses.
 This will return the last executed xml result.
 
 [source,cypher]
@@ -552,6 +552,6 @@ SHOW TRANSACTIONS YIELD statusDetails, currentQuery WHERE currentQuery STARTS WI
 - _text: 1951
 |===
 
-The result of `CALL dbms.listTransactions()` will be like below:
+The result of `SHOW TRANSACTIONS` will be like below:
 
 image::apoc.statusDetails.png[width=800]
