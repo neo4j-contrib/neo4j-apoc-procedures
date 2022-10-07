@@ -47,7 +47,7 @@ public class ImportJsonEnterpriseTest {
     }
 
     @Test
-    public void shouldFailsWithExistenceConstraintDueToMissingUniqueConstraint() {
+    public void shouldFailWithExistenceConstraintDueToMissingUniqueConstraint() {
         final byte[] file = fileToBinary(new File(ImportJsonTest.directory, "all.json"), CompressionAlgo.GZIP.name());
 
         session.run("CREATE CONSTRAINT userExistence ON (n:User) assert n.neo4jImportId IS NOT NULL");
@@ -66,7 +66,7 @@ public class ImportJsonEnterpriseTest {
     }
 
     @Test
-    public void shouldFailsWithMultipleNodeKeyDueToMissingUniqueConstraint() {
+    public void shouldFailWithMultipleNodeKeyDueToMissingUniqueConstraint() {
         final byte[] file = fileToBinary(new File(ImportJsonTest.directory, "all.json"), CompressionAlgo.GZIP.name());
 
         session.run("CREATE CONSTRAINT userMultipleKeys ON (n:User) assert (n.neo4jImportId, n.anotherProp) IS NODE KEY");
