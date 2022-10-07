@@ -433,7 +433,7 @@ The contents of `knows-with-node-properties.json` are shown below:
 include::example$data/exportJSON/with_node_properties.json[leveloffset]
 ----
 
-For long running procedures, we can use the `statusDetails` field present in `dbms.listTransactions` procedure to check progresses.
+For long running procedures, we can use the `statusDetails` field present in `SHOW TRANSACTIONS` command to check progresses.
 
 [source,cypher]
 ----
@@ -465,7 +465,7 @@ You can also compress the files to export. xref::overview/apoc.export/compressio
 
 
 
-The result of `CALL dbms.listTransactions()` will be like below:
+The result of `SHOW TRANSACTIONS` will be like below:
 
 image::apoc.statusDetails.png[width=800]
 

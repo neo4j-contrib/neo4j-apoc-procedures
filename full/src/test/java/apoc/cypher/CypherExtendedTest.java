@@ -179,12 +179,6 @@ public class CypherExtendedTest {
 
         testCallCount(db, "MATCH (n:AutoTransaction) RETURN n", Collections.emptyMap(), expectedCount);
     }
-
-    @Test
-    public void testImportExportStatusDetails() {
-            checkStatusDetails(db, "CALL apoc.cypher.runFile('status.nodes.cypher', {statistics: true})", 
-                    Map.of(), "CALL apoc.cypher.runFile");
-    }
     
     @Test
     public void testRunWithPeriodic() throws Exception {

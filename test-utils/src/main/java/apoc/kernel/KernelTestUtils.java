@@ -6,6 +6,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -32,8 +33,9 @@ public class KernelTestUtils {
         
         try {
             future.get();
-        } catch (Exception ignored) {
-            System.out.println("ignored = " + ignored);
+        } catch (Exception e) {
+//        } catch (InterruptedException | ExecutionException e) {
+//            throw new RuntimeException(e);
         }
     }
 }

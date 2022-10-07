@@ -409,12 +409,8 @@ public class LoadHtmlTest {
     @Test
     public void testStatusDetails() {
         // large .html url
-        final String url = "https://en.wikipedia.org/wiki/2022_in_video_games";
         checkStatusDetails(db, "CALL apoc.load.html($url, {all: '*'}, {children: true})", 
-                map("url", url));
-
-        checkStatusDetails(db, "CALL apoc.load.htmlPlainText($url, {all: '*'}, {children: true})",
-                map("url", url));
+                map("url", "https://en.wikipedia.org/wiki/2022_in_video_games"));
     }
 
     @Test
