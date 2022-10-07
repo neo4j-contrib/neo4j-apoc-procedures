@@ -17,6 +17,11 @@ CALL apoc.uuid.remove(label) yield label, installed, properties | remove previou
 apoc.uuid.remove(label :: STRING?) :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)
 ----
 
+[WARNING]
+====
+This procedure is not intended to be used in a cluster environment, and may act unpredictably.
+====
+
 == Input parameters
 [.procedures, opts=header]
 |===
