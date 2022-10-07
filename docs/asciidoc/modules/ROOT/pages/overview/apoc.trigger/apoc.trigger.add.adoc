@@ -10,6 +10,11 @@ label:procedure[] label:apoc-core[]
 [.emphasis]
 add a trigger kernelTransaction under a name, in the kernelTransaction you can use \{createdNodes}, \{deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information. Takes in an optional configuration.
 
+[WARNING]
+====
+This procedure is not intended to be used in a cluster environment, and may act unpredictably.
+====
+
 == Signature
 
 [source]
