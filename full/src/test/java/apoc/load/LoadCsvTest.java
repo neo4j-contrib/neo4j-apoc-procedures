@@ -468,7 +468,7 @@ RETURN m.col_1,m.col_2,m.col_3
     }
 
     @Test public void testLoadCsvTarByUrl() throws Exception {
-        URL url = new URL("https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.tar?raw=true");
+        URL url = new URL("https://github.com/neo4j/apoc/blob/dev/core/src/test/resources/testload.tar?raw=true");
         testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings']})", map("url",url.toString()+"!csv/test.csv"), // 'file:test.csv'
                 (r) -> {
                     assertRow(r,0L,"name","Selma","age","8");
@@ -479,7 +479,7 @@ RETURN m.col_1,m.col_2,m.col_3
     }
 
     @Test public void testLoadCsvTarGzByUrl() throws Exception {
-        URL url = new URL("https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.tar.gz?raw=true");
+        URL url = new URL("https://github.com/neo4j/apoc/blob/dev/core/src/test/resources/testload.tar.gz?raw=true");
         testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings']})", map("url",url.toString()+"!csv/test.csv"), // 'file:test.csv'
                 (r) -> {
                     assertRow(r,0L,"name","Selma","age","8");
@@ -490,7 +490,7 @@ RETURN m.col_1,m.col_2,m.col_3
     }
 
     @Test public void testLoadCsvTgzByUrl() throws Exception {
-        URL url = new URL("https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.tgz?raw=true");
+        URL url = new URL("https://github.com/neo4j/apoc/blob/dev/core/src/test/resources/testload.tgz?raw=true");
         testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings']})", map("url",url.toString()+"!csv/test.csv"), // 'file:test.csv'
                 (r) -> {
                     assertRow(r,0L,"name","Selma","age","8");
