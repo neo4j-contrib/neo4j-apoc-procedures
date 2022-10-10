@@ -185,7 +185,7 @@ public class CypherFormatterUtils {
 
     public static StringBuilder formatProperties(String id, Map<String, Object> properties, boolean jsonStyle) {
         StringBuilder result = new StringBuilder(100);
-        if (properties != null) {
+        if (properties != null && !properties.isEmpty()) {
             List<String> keys = Iterables.asList(properties.keySet());
             Collections.sort(keys);
             for (String prop : keys) {
