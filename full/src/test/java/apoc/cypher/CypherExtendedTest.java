@@ -29,7 +29,6 @@ import java.util.stream.StreamSupport;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
-import static apoc.kernel.KernelTestUtils.checkStatusDetails;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallEmpty;
