@@ -4,7 +4,6 @@ import apoc.result.VirtualNode;
 import apoc.result.VirtualPath;
 import apoc.result.VirtualRelationship;
 import apoc.util.Util;
-import org.neo4j.graphalgo.CommonEvaluators;
 import org.neo4j.graphalgo.EstimateEvaluator;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
