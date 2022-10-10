@@ -109,15 +109,13 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		StringBuilder result = new StringBuilder(1000);
 		result.append("MERGE ");
 		result.append(CypherFormatterUtils.formatNodeLookup("n", node, uniqueConstraints, indexNames));
-		if (node.getPropertyKeys().iterator().hasNext()) {
-			String notUniqueProperties = CypherFormatterUtils.formatNotUniqueProperties("n", node, uniqueConstraints, indexedProperties, false);
-			String notUniqueLabels = CypherFormatterUtils.formatNotUniqueLabels("n", node, uniqueConstraints);
-			if (!"".equals(notUniqueProperties) || !"".equals(notUniqueLabels)) {
-				result.append(cypherFormat.equals(CypherFormat.ADD_STRUCTURE) ? " ON CREATE SET " : " SET ");
-				result.append(notUniqueProperties);
-				result.append(!"".equals(notUniqueProperties) && !"".equals(notUniqueLabels) ? ", " : "");
-				result.append(notUniqueLabels);
-			}
+		String notUniqueProperties = CypherFormatterUtils.formatNotUniqueProperties("n", node, uniqueConstraints, indexedProperties, false);
+		String notUniqueLabels = CypherFormatterUtils.formatNotUniqueLabels("n", node, uniqueConstraints);
+		if (!notUniqueProperties.isEmpty() || !notUniqueLabels.isEmpty()) {
+			result.append(cypherFormat.equals(CypherFormat.ADD_STRUCTURE) ? " ON CREATE SET " : " SET ");
+			result.append(notUniqueProperties);
+			result.append(!"".equals(notUniqueProperties) && !"".equals(notUniqueLabels) ? ", " : "");
+			result.append(notUniqueLabels);
 		}
 		result.append(";");
 		return result.toString();
