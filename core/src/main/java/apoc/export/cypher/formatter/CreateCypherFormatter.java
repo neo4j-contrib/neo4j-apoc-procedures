@@ -26,11 +26,9 @@ public class CreateCypherFormatter extends AbstractCypherFormatter implements Cy
         if (!labels.isEmpty()) {
             result.append(labels);
         }
-        if (node.getPropertyKeys().iterator().hasNext()) {
-            result.append(" {");
-            result.append(CypherFormatterUtils.formatNodeProperties("", node, uniqueConstraints, indexNames, true));
-            result.append("}");
-        }
+        result.append(" {");
+        result.append(CypherFormatterUtils.formatNodeProperties("", node, uniqueConstraints, indexNames, true));
+        result.append("}");
         result.append(");");
         return result.toString();
     }
