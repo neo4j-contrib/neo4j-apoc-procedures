@@ -14,6 +14,7 @@ import static java.util.Arrays.asList;
  * @since 19.01.14
  */
 public class ExportConfig extends CompressionConfig {
+    public static final ExportConfig EMPTY = new ExportConfig(null);
     public static final String RELS_WITH_TYPE_KEY = "multipleRelationshipsWithType";
 
     public static class NodeConfig {

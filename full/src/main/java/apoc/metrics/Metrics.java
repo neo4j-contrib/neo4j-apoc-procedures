@@ -5,6 +5,7 @@ import apoc.export.util.CountingReader;
 import apoc.load.CSVResult;
 import apoc.load.LoadCsv;
 import apoc.load.util.LoadCsvConfig;
+import apoc.util.CompressionAlgo;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.neo4j.logging.Log;
@@ -156,7 +157,8 @@ public class Metrics {
         }
     };
 
-    public Stream<GenericMetric> loadCsvForMetric(String metricName, Map<String,Object> config) {
+    public Stream<GenericMetric> 
+    loadCsvForMetric(String metricName, Map<String,Object> config) {
         // These config parameters are generally true of Neo4j metrics.
         config.put("sep", ",");
         config.put("header", true);
@@ -174,7 +176,7 @@ public class Metrics {
         try {
             reader = FileUtils.SupportedProtocols.file
                     .getStreamConnection(url, null, null)
-                    .toCountingInputStream()
+                    .toCountingInputStream(CompressionAlgo.NONE.name())
                     .asReader();
             return new LoadCsv()
                     .streamCsv(url, new LoadCsvConfig(config), reader)

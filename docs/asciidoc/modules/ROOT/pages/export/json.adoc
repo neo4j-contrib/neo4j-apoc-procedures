@@ -434,5 +434,11 @@ include::example$data/exportJSON/with_node_properties.json[leveloffset]
 ----
 
 
+[NOTE]
+====
+You can also compress the files to export. xref::overview/apoc.export/compression.adoc[See here for more information]
+====
+
+
 
 
