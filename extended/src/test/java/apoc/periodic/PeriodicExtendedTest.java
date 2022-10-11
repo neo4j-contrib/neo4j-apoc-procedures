@@ -21,7 +21,7 @@ public class PeriodicExtendedTest {
 
     @Before
     public void initDb() {
-        TestUtil.registerProcedure(db, PeriodicExtended.class);
+        TestUtil.registerProcedure(db, PeriodicExtended.class, Periodic.class);
     }
 
     @Test
