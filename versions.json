@@ -1,5 +1,23 @@
 [
     {
+        "neo4j": "4.4.12",
+        "neo4jVersion": "4.4.12",
+        "apoc": "4.4.0.9",
+        "version": "4.4.0.9",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.9",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.9",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.9/apoc-4.4.0.9-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.9/apoc-4.4.0.9-all.jar",
+        "sha1": "c859c49e63fbc68a777dd40125413e9559cef3ee",
+        "sha256": "a2af54d5ec2114a48ddff5dc981d819821280ead28786ae0d78ae62c646fbb3d",
+        "md5": "4381431714470c7e8f413fb01fdb807e",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "apoc.*"
+            ]
+        }
+    },
+    {
         "neo4j": "4.4.11",
         "neo4jVersion": "4.4.11",
         "apoc": "4.4.0.9",
