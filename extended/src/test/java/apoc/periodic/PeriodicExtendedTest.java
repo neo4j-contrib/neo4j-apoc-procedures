@@ -42,4 +42,23 @@ public class PeriodicExtendedTest {
             assertEquals(true, row.get("done"));
         });
     }
+
+    @Test
+    public void testSubmitSchemaWithWriteOperation() {
+        testCall(db, "CALL apoc.periodic.submitSchema('subSchema','CREATE (:SchemaLabel)')",
+                (row) -> {
+                    assertEquals("subSchema", row.get("name"));
+                    assertEquals(false, row.get("done"));
+                });
+
+        assertEventually(() -> db.executeTransactionally("MATCH (n:SchemaLabel) RETURN count(n) AS count",
+                        Collections.emptyMap(),
+                        (res) -> res.<Long>columnAs("count").next()),
+                val -> val == 1L, 15L, TimeUnit.SECONDS);
+
+        testCall(db, "CALL apoc.periodic.list()", (row) -> {
+            assertEquals("subSchema", row.get("name"));
+            assertEquals(true, row.get("done"));
+        });
+    }
 }
