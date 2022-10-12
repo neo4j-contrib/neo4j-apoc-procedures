@@ -3,10 +3,9 @@ package apoc.load;
 import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 import org.neo4j.test.rule.DbmsRule;
@@ -27,8 +26,7 @@ import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-@RunWith(Parameterized.class)
-public class LoadHtmlTestParameterized {
+public class LoadHtmlTestParameterizedTest {
     // Tests taken from LoadHtmlTest.java.
     // To check that `browser` configuration preserve the result.
 
@@ -52,6 +50,7 @@ public class LoadHtmlTestParameterized {
 
 
     @Test
+    @Ignore
     public void testQueryAll() {
         Map<String, Object> query = map("metadata", "meta", "h2", "h2");
 
@@ -71,6 +70,7 @@ public class LoadHtmlTestParameterized {
     }
 
     @Test
+    @Ignore
     public void testQueryH2WithConfig() {
         Map<String, Object> query = map("h2", "h2");
         final List<Object> confList = newArrayList("charset", "UTF-8", "baseUri", "");
@@ -87,6 +87,7 @@ public class LoadHtmlTestParameterized {
     }
 
     @Test
+    @Ignore
     public void testQueryWithChildren() {
         Map<String, Object> query = map("toc", ".toc ul");
         final List<Object> confList = newArrayList("children", true);
