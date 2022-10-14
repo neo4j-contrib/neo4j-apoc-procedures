@@ -84,10 +84,12 @@ public class LoadHtmlTest {
         assertWrongConfig(errorInvalidConfig,
                 map("browser", FIREFOX, "architecture", "dunno"));
 
-        assertWrongConfig("Error HTTP 401 executing",
+        // can't force-download the driver from github using a fake token
+        assertWrongConfig("Error HTTP 404 executing",
                 map("browser", FIREFOX,
                         "gitHubToken", "12345",
-                        "forceDownload", true));
+                        "forceDownload", true)
+        );
     }
 
     private void assertWrongConfig(String msgError, Map<String, Object> config) {
