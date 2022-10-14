@@ -27,6 +27,7 @@ import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+// TODO: Reintroduce FIREFOX as a browser https://trello.com/c/X8KM7sFU/1803-fix-flaky-selenium-firefox-tests
 @RunWith(Parameterized.class)
 public class LoadHtmlTestParameterized {
     // Tests taken from LoadHtmlTest.java.
@@ -44,7 +45,7 @@ public class LoadHtmlTestParameterized {
 
     @Parameters
     public static Collection<Object> data() {
-        return List.of("notSet", "NONE", "CHROME", "FIREFOX");
+        return List.of("notSet", "NONE", "CHROME");
     }
 
     @Parameter
