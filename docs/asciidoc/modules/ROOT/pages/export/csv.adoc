@@ -411,6 +411,7 @@ The procedures support the following config parameters:
 
 | useTypes | false | Add type on file header
 | bulkImport | true | create files for Neo4j Admin import
+| timeoutSeconds | 100 | defines the maximun time in seconds the query should take before timing out.
 | separateHeader | false | create two file: one for header and one for data
 | streamStatements | false | to batch results across multiple rows by configuring the `batchSize` config.
 | stream | false | equivalent to `streamStatements` config
