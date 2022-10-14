@@ -50,7 +50,6 @@ public class LoadHtmlTestParameterizedTest {
 
 
     @Test
-    @Ignore
     public void testQueryAll() {
         Map<String, Object> query = map("metadata", "meta", "h2", "h2");
 
@@ -70,7 +69,6 @@ public class LoadHtmlTestParameterizedTest {
     }
 
     @Test
-    @Ignore
     public void testQueryH2WithConfig() {
         Map<String, Object> query = map("h2", "h2");
         final List<Object> confList = newArrayList("charset", "UTF-8", "baseUri", "");
@@ -87,7 +85,6 @@ public class LoadHtmlTestParameterizedTest {
     }
 
     @Test
-    @Ignore
     public void testQueryWithChildren() {
         Map<String, Object> query = map("toc", ".toc ul");
         final List<Object> confList = newArrayList("children", true);
