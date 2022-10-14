@@ -3,9 +3,10 @@ package apoc.load;
 import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 import org.neo4j.test.rule.DbmsRule;
@@ -26,7 +27,9 @@ import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-public class LoadHtmlTestParameterizedTest {
+// TODO: Reintroduce FIREFOX as a browser https://trello.com/c/X8KM7sFU/1803-fix-flaky-selenium-firefox-tests
+@RunWith(Parameterized.class)
+public class LoadHtmlTestParameterized {
     // Tests taken from LoadHtmlTest.java.
     // To check that `browser` configuration preserve the result.
 
@@ -42,7 +45,7 @@ public class LoadHtmlTestParameterizedTest {
 
     @Parameters
     public static Collection<Object> data() {
-        return List.of("notSet", "NONE", "CHROME", "FIREFOX");
+        return List.of("notSet", "NONE", "CHROME");
     }
 
     @Parameter
