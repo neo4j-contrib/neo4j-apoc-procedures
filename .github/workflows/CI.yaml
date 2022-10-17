@@ -9,6 +9,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    # required by CodeQL
+    permissions:
+      security-events: write
+      actions: read
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
