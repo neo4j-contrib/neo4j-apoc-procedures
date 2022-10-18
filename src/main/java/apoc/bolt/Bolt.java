@@ -168,7 +168,7 @@ public class Bolt {
                 end = nodesCache.computeIfAbsent(relationship.endNodeId(), retrieveNode);
             } else {
                 start = nodesCache.getOrDefault(relationship.startNodeId(), new VirtualNode(relationship.startNodeId(), db));
-                end = nodesCache.getOrDefault(relationship.startNodeId(), new VirtualNode(relationship.endNodeId(), db));
+                end = nodesCache.getOrDefault(relationship.endNodeId(), new VirtualNode(relationship.endNodeId(), db));
             }
             return new VirtualRelationship(relationship.id(), start, end, RelationshipType.withName(relationship.type()), relationship.asMap());
         } else {
