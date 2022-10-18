@@ -317,7 +317,7 @@ public class StringsTest {
 
         testCall(db, "RETURN apoc.text.jaroWinklerDistance($a, $b) AS distance",
                 map("a", text1, "b", text2),
-                row -> assertEquals(0.77, (double) row.get("distance"), 0.01));
+                row -> assertEquals(0.22, (double) row.get("distance"), 0.01));
     }
 
     @Test
