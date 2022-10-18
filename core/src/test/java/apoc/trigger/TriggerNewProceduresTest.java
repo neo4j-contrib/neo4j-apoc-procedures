@@ -583,4 +583,18 @@ public class TriggerNewProceduresTest {
                 map("name", UUID.randomUUID().toString()) );
     }
 
+    @Test
+    public void testTriggerInstallWithSchemaOperation() {
+        String query = "CREATE INDEX periodicIdx FOR (n:Bar) ON (n.first_name, n.last_name)";
+        try {
+            testCall(sysDb, "CALL apoc.trigger.install('neo4j', 'triggerSchema', 'CREATE INDEX periodicIdx FOR (n:Bar) ON (n.first_name, n.last_name)', {phase: 'before'})",
+                    Map.of("query", query),
+                    (row) -> fail("Should fail because of unsupported schema operation"));
+        } catch (RuntimeException e) {
+            final String expected = "Failed to invoke procedure `apoc.trigger.install`: " +
+                    "Caused by: java.lang.RuntimeException: Supported query types for the operation are [READ_ONLY, WRITE, READ_WRITE]";
+            assertEquals(expected, e.getMessage());
+        }
+    }
+
 }

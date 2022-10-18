@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
+import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_ONLY;
+import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_WRITE;
+import static org.neo4j.graphdb.QueryExecutionType.QueryType.WRITE;
 
 
 public class TriggerNewProcedures {
@@ -54,7 +57,8 @@ public class TriggerNewProcedures {
 
         // TODO - to be deleted in 5.x, because in a cluster, not all DBMS host all the databases on them,
         // so we have to assume that the leader of the system database doesn't have access to this user database
-        Util.validateQuery(ApocConfig.apocConfig().getDatabase(databaseName), statement);
+        Util.validateQuery(ApocConfig.apocConfig().getDatabase(databaseName), statement,
+                READ_ONLY, WRITE, READ_WRITE);
 
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
         TriggerInfo removed = TriggerHandlerNewProcedures.install(databaseName, name, statement, selector, params);
