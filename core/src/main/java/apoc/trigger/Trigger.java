@@ -2,7 +2,6 @@ package apoc.trigger;
 
 import apoc.ApocConfig;
 import apoc.util.Util;
-import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.api.procedure.SystemProcedure;
 import org.neo4j.logging.Log;
@@ -22,9 +21,6 @@ import java.util.stream.Stream;
  */
 
 public class Trigger {
-    // public for testing purpose
-    public static final String SYS_NON_LEADER_ERROR = "It's not possible to write into a cluster member with a non-LEADER system database.\n";
-
     public static class TriggerInfo {
         public String name;
         public String query;
@@ -57,61 +53,6 @@ public class Trigger {
     
     @Context public Log log;
 
-    private void preprocessDeprecatedProcedures() {
-        final String msgDeprecation = "Please note that the current procedure is deprecated, \n" +
-                "it's recommended to use the `apoc.trigger.install`, `apoc.trigger.drop`, `apoc.trigger.dropAll`, `apoc.trigger.stop`, and `apoc.trigger.start` procedures \n" + 
-                "instead of, respectively, `apoc.trigger.add`, `apoc.trigger.remove`, `apoc.trigger.removeAll`, `apoc.trigger.pause`, and `apoc.trigger.resume`.";
-                
-        log.warn(msgDeprecation);
-        
-        if (!Util.isWriteableInstance(db, GraphDatabaseSettings.SYSTEM_DATABASE_NAME)) {
-            throw new RuntimeException(SYS_NON_LEADER_ERROR + msgDeprecation);
-        }
-    }
-
-    @Deprecated
-    @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.trigger.install")
-    @Description("add a trigger kernelTransaction under a name, in the kernelTransaction you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback/afterAsync'} returns previous and new trigger information. Takes in an optional configuration.")
-    public Stream<TriggerInfo> add(@Name("name") String name, @Name("kernelTransaction") String statement, @Name(value = "selector"/*, defaultValue = "{}"*/)  Map<String,Object> selector, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
-        preprocessDeprecatedProcedures();
-        
-        Util.validateQuery(db, statement);
-        Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
-        Map<String, Object> removed = TriggerUtils.add(db.databaseName(), name, statement, selector, params);
-        // always add transaction listener
-        triggerHandler.reconcileKernelRegistration(true);
-        if (!removed.isEmpty()) {
-            return Stream.of(
-                    new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"), (Map<String, Object>) removed.get("params"),false, false),
-                    new TriggerInfo(name,statement,selector, params,true, false));
-        }
-        return Stream.of(new TriggerInfo(name,statement,selector, params,true, false));
-    }
-
-    @Deprecated
-    @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.trigger.drop")
-    @Description("remove previously added trigger, returns trigger information")
-    public Stream<TriggerInfo> remove(@Name("name")String name) {
-        preprocessDeprecatedProcedures();
-        Map<String, Object> removed = TriggerUtils.remove(db.databaseName(), name);
-        triggerHandler.updateCache();
-        if (removed.isEmpty()) {
-            return Stream.of(new TriggerInfo(name, null, null, false, false));
-        }
-        return Stream.of(new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"), (Map<String, Object>) removed.get("params"),false, false));
-    }
-
-    @Deprecated
-    @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.trigger.dropAll")
-    @Description("removes all previously added trigger, returns trigger information")
-    public Stream<TriggerInfo> removeAll() {
-        preprocessDeprecatedProcedures();
-        Map<String, Object> removed = TriggerUtils.removeAll(db.databaseName());
-        // always remove transaction listener
-        triggerHandler.reconcileKernelRegistration(false);
-        return removed.entrySet().stream().map(this::toTriggerInfo);
-    }
-
     public TriggerInfo toTriggerInfo(Map.Entry<String, Object> e) {
         String name = e.getKey();
         if (e.getValue() instanceof Map) {
@@ -136,32 +77,6 @@ public class Trigger {
                         true,
                         (Boolean) e.getValue().getOrDefault("paused", false))
                 );
-    }
-    
-    @Deprecated
-    @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.trigger.stop")
-    @Description("CALL apoc.trigger.pause(name) | it pauses the trigger")
-    public Stream<TriggerInfo> pause(@Name("name")String name) {
-        preprocessDeprecatedProcedures();
-        Map<String, Object> paused = TriggerUtils.updatePaused(db.databaseName(), name, true);
-
-        return Stream.of(new TriggerInfo(name,
-                (String)paused.get("statement"),
-                (Map<String,Object>) paused.get("selector"),
-                (Map<String,Object>) paused.get("params"),true, true));
-    }
-
-    @Deprecated
-    @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.trigger.start")
-    @Description("CALL apoc.trigger.resume(name) | it resumes the paused trigger")
-    public Stream<TriggerInfo> resume(@Name("name")String name) {
-        preprocessDeprecatedProcedures();
-        Map<String, Object> resume = TriggerUtils.updatePaused(db.databaseName(), name, false);
-
-        return Stream.of(new TriggerInfo(name,
-                (String)resume.get("statement"),
-                (Map<String,Object>) resume.get("selector"),
-                (Map<String,Object>) resume.get("params"),true, false));
     }
 
     // TODO - change with @SystemOnlyProcedure

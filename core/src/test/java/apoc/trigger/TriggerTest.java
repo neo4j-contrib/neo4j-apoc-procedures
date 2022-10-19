@@ -81,7 +81,7 @@ public class TriggerTest {
     @Before
     public void setUp() throws Exception {
         start = System.currentTimeMillis();
-        TestUtil.registerProcedure(db, Trigger.class, Nodes.class);
+        TestUtil.registerProcedure(db, Trigger.class, TriggerDeprecatedProcedures.class, Nodes.class);
     }
 
     @Test

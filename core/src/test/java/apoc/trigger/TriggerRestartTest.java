@@ -29,7 +29,7 @@ public class TriggerRestartTest {
         databaseManagementService = new TestDatabaseManagementServiceBuilder(store_dir.getRoot().toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         ApocConfig.apocConfig().setProperty("apoc.trigger.enabled", "true");
-        TestUtil.registerProcedure(db, Trigger.class);
+        TestUtil.registerProcedure(db, Trigger.class, TriggerDeprecatedProcedures.class);
     }
 
     @After

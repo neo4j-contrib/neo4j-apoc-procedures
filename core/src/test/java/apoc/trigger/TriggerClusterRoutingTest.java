@@ -12,7 +12,7 @@ import org.neo4j.internal.helpers.collection.MapUtil;
 import java.util.Collections;
 import java.util.Map;
 
-import static apoc.trigger.Trigger.SYS_NON_LEADER_ERROR;
+import static apoc.trigger.TriggerDeprecatedProcedures.SYS_NON_LEADER_ERROR;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 

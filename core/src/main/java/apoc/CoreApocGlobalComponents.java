@@ -1,6 +1,7 @@
 package apoc;
 
 import apoc.cypher.CypherInitializer;
+import apoc.trigger.TriggerDeprecatedProcsHandler;
 import apoc.trigger.TriggerHandler;
 import org.neo4j.annotations.service.ServiceProvider;
 import org.neo4j.kernel.availability.AvailabilityListener;
@@ -9,6 +10,7 @@ import org.neo4j.kernel.lifecycle.Lifecycle;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @ServiceProvider
@@ -16,17 +18,25 @@ public class CoreApocGlobalComponents implements ApocGlobalComponents {
 
     @Override
     public Map<String,Lifecycle> getServices(GraphDatabaseAPI db, ApocExtensionFactory.Dependencies dependencies) {
-        return Collections.singletonMap("trigger", new TriggerHandler(db,
-                dependencies.databaseManagementService(),
-                dependencies.log().getUserLog(TriggerHandler.class),
-                dependencies.pools(),
-                dependencies.scheduler())
+        return Map.of("triggerDeprecated", 
+                new TriggerDeprecatedProcsHandler(db, 
+                        dependencies.databaseManagementService(),
+                        dependencies.apocConfig(),
+                        dependencies.log().getUserLog(TriggerDeprecatedProcsHandler.class),
+                        dependencies.pools(),
+                        dependencies.scheduler()),
+                "trigger", 
+                new TriggerHandler(db, 
+                        dependencies.databaseManagementService(),
+                        dependencies.log().getUserLog(TriggerHandler.class),
+                        dependencies.pools(),
+                        dependencies.scheduler())
         );
     }
 
     @Override
     public Collection<Class> getContextClasses() {
-        return Collections.singleton(TriggerHandler.class);
+        return List.of(TriggerDeprecatedProcsHandler.class, TriggerHandler.class);
     }
 
     @Override
