@@ -72,11 +72,7 @@ dependencies {
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.26'
     compile group: 'com.github.seancfoley', name: 'ipaddress', version: '5.3.3'
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
-    compile(group: 'org.apache.commons', name: 'commons-lang3') {
-        version {
-            strictly '3.11'
-        }
-    }
+    compile(group: 'org.apache.commons', name: 'commons-lang3')
     testCompile 'net.sourceforge.jexcelapi:jxl:2.6.12'
 
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
