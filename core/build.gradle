@@ -133,7 +133,8 @@ dependencies {
     // explicit update comomns.io version
     compile group: 'commons-io', name: 'commons-io', version: '2.9.0'
 
-    //compileOnly group: 'org.apache.commons', name: 'commons-text', version: '1.7'
+    compileOnly group: 'org.apache.commons', name: 'commons-text', version: '1.10.0'
+    testCompile group: 'org.apache.commons', name: 'commons-text', version: '1.10.0'
 //    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
 //    jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
 
