@@ -9,7 +9,7 @@ https://community.neo4j.com[image:https://img.shields.io/discourse/users?logo=di
 https://discord.gg/neo4j[image:https://img.shields.io/discord/787399249741479977?logo=discord&logoColor=white[Discord]]
 
 
-= Awesome Procedures for Neo4j {branch}.x
+= Awesome Procedures for Neo4j {branch}.x (Extended)
 
 // tag::readme[]
 
@@ -23,7 +23,11 @@ Neo4j 3.x introduced the concept of user-defined procedures and functions.
 Those are custom implementations of certain functionality, that can't be (easily) expressed in Cypher itself.
 They are implemented in Java and can be easily deployed into your Neo4j instance, and then be called from Cypher directly.
 
-The APOC library consists of many (about 450) procedures and functions to help with many different tasks in areas like data integration, graph algorithms or data conversion.
+As of 5.0 APOC has been split into separate repositories, one being the main, officially supported, https://github.com/neo4j/apoc[APOC Library^]. The
+other belonging to APOC Extended. This repository handles the extended part of APOC.
+
+There are over 150 different procedures and functions in the Extended APOC library. Their purpose is to increase
+functionality in areas such as data integration, graph algorithms and data conversion.
 // end::intro-text[]
 
 === License
@@ -41,17 +45,6 @@ http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board 
 *APOC* also stands for "Awesome Procedures On Cypher"
 // end::name-history-text[]
 // end::name-history[]
-
-
-== Installation: With Neo4j Desktop
-
-// tag::install-desktop[]
-
-APOC Extended can be installed with http://neo4j.com/download[Neo4j Desktop], after creating your database, by going to the `Manage` screen, and then the `Plugins` tab.
-Click `Install` in the APOC box and wait until you see a green check mark near "APOC".
-
-// end::install-desktop[]
-image::{img}/desktop-apoc.jpg[width=800]
 
 == Feedback
 
@@ -116,7 +109,7 @@ And for YIELDing their results, you have to know the output column names and typ
 
 INFO:The signatures are shown in error messages, if you use a procedure incorrectly.
 
-You can see the procedures signature in the output of `CALL apoc.help("name")`
+You can see the procedure's signature in the output of `CALL apoc.help("name")`
 
 [source,cypher]
 ----
@@ -148,11 +141,11 @@ h| Output Return Columns |
 
 // end::signature[]
 
-== Manual Installation: Download latest release
+== Manual Installation: Download the latest release
 
 // tag::install[]
 
-Since APOC relies on Neo4j's internal APIs you need to use the *matching APOC version* for your Neo4j installaton.
+Since APOC relies on Neo4j's internal APIs you need to use the *matching APOC version* for your Neo4j installation.
 Make sure that the *first two version numbers match between Neo4j and APOC*.
 
 Go to http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/{apoc-release}[the latest release] for *Neo4j version {branch}* and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
@@ -191,6 +184,7 @@ The trailing `<apoc>` part of the version number will be incremented with every 
 [opts=header]
 |===
 |apoc version | neo4j version
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.0.0.0[5.0.0.0^] | 5.0.0 (5.0.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.1[4.4.0.1^] | 4.4.0 (4.3.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.4[4.3.0.4^] | 4.3.7 (4.3.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.2.0.9[4.2.0.9^] | 4.2.11 (4.2.x)
@@ -214,37 +208,7 @@ The trailing `<apoc>` part of the version number will be incremented with every 
 
 // tag::docker[]
 
-APOC Extended can be used with the https://hub.docker.com/_/neo4j/[Neo4j Docker image] via the `NEO4JLABS_PLUGINS` environment variable.
-If we use this environment variable, the APOC plugin will be downloaded and configured at runtime.
-
-[NOTE]
-====
-This feature is intended to facilitate using APOC in development environments, but it is not recommended for use in production environments.
-====
-
-.The following runs Neo4j 4.0 in a Docker container with the latest version of the APOC Library
-[source,bash]
-----
-docker run \
-    -p 7474:7474 -p 7687:7687 \
-    -v $PWD/data:/data -v $PWD/plugins:/plugins \
-    --name neo4j-apoc \
-    -e NEO4J_apoc_export_file_enabled=true \
-    -e NEO4J_apoc_import_file_enabled=true \
-    -e NEO4J_apoc_import_file_use__neo4j__config=true \
-    -e NEO4JLABS_PLUGINS=\[\"apoc\"\] \
-    neo4j:4.0
-----
-
-We should see the following two lines in the output after running this command:
-
-[source,text,subs=attributes]
-----
-Fetching versions.json for Plugin 'apoc' from https://neo4j-contrib.github.io/neo4j-apoc-procedures/versions.json
-Installing Plugin 'apoc' from https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/{apoc-release}-extended.jar to /plugins/apoc.jar
-----
-
-In a production environment we should download the APOC release matching our Neo4j version and, copy it to a local folder, and supply it as a data volume mounted at `/plugins`.
+To use APOC with Docker; download the APOC release matching your Neo4j version and copy it to a local folder, supplying it as a data volume mounted at `/plugins`.
 
 .The following downloads the APOC Library into the `plugins` directory and then mounts that folder to the Neo4j Docker container
 [source,bash,subs=attributes]
@@ -276,7 +240,7 @@ docker run \
 === Build & install the current development branch from source
 
 ----
-git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
+git clone https://github.com/neo4j-contrib/neo4j-apoc-procedures
 cd neo4j-apoc-procedures
 ./gradlew shadow
 cp build/extended/libs/apoc-<version>-extended.jar $NEO4J_HOME/plugins/
