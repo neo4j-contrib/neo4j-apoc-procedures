@@ -22,7 +22,6 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.temporal.Temporal;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +29,7 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.load.util.ConversionUtil.FailStrategyDeserializer;
+import static apoc.load.util.ConversionUtil.SilentDeserializer;
 
 /**
  * @author mh
@@ -118,18 +117,16 @@ public class JsonUtil {
     }
     
     public static <T> T parse(String json, String path, Class<T> type, List<String> options) {
-        return parse(json, path, type, options, true,false);
+        return parse(json, path, type, options, false);
     }
     
-    public static <T> T parse(String json, String path, Class<T> type, List<String> options, boolean failOnError) {
-        return parse(json, path, type, options, failOnError, false);
-    }
-    
-    public static <T> T parse(String json, String path, Class<T> type, List<String> options, boolean failOnError, boolean validation) {
+    public static <T> T parse(String json, String path, Class<T> type, List<String> options, /*boolean failOnError,*/ boolean validation) {
         
         if (json==null || json.isEmpty()) return null;
         try {
-            FailStrategyDeserializer deserializer = new FailStrategyDeserializer(validation, null, null);
+            SilentDeserializer deserializer = validation 
+                    ? new SilentDeserializer(null, null)
+                    : null;
             ObjectMapper objectMapper = getObjectMapper(deserializer);
             final String listOpt = Option.ALWAYS_RETURN_LIST.name();
             if (type == Map.class && options != null && options.contains(listOpt)) {
@@ -137,31 +134,30 @@ public class JsonUtil {
             }
             if (path == null || path.isEmpty()) {
                 final T t = (T) objectMapper.readValue(json, Object.class);
-                return getJson(deserializer, t, validation);
+                return getJson(deserializer, t);
             }
             final T jsonParsed = JsonPath.parse(json, getJsonPathConfig(options, objectMapper)).read(path, type);
-            return getJson(deserializer, jsonParsed, validation);
-        } catch (Exception e) {
-            if(!failOnError) {
-                return (T) (type.equals(Map.class) ? Collections.emptyMap() : Collections.emptyList());
-            } else {
-                throw new RuntimeException(e);
-            }
+            return getJson(deserializer, jsonParsed);
+        } catch (IOException e) {
+            throw new RuntimeException("Can't convert " + json + " to "+type.getSimpleName()+" with path "+path, e);
         }
     }
 
-    private static <T> T getJson(FailStrategyDeserializer deserializer, T json, boolean onlyValidation) {
-        List<String> errorList = deserializer.getErrorList();
-        if (onlyValidation) {
-            return (T) errorList;
+    private static <T> T getJson(SilentDeserializer deserializer, T json) {
+        if (deserializer ==null) {
+            return json;
         }
-        return json;
+        return (T) deserializer.getErrorList();
     }
 
-    private static ObjectMapper getObjectMapper(FailStrategyDeserializer deserializer) {
-        SimpleModule module = new SimpleModule("SilentDeserializer")
+    private static ObjectMapper getObjectMapper(SilentDeserializer deserializer) {
+        if (deserializer ==null) {
+            return OBJECT_MAPPER;
+        }
+        SimpleModule module = new SimpleModule("SilentModule")
                 .addDeserializer(Object.class, deserializer);
         return OBJECT_MAPPER.copy().registerModule(module);
+    
     }
 
     public static String writeValueAsString(Object json) {

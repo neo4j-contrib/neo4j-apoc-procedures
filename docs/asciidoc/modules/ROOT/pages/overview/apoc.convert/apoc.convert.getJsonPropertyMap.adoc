@@ -14,7 +14,7 @@ apoc.convert.getJsonPropertyMap(node,key[,'json-path', 'path-options']) - conver
 
 [source]
 ----
-apoc.convert.getJsonPropertyMap(node :: NODE?, key :: STRING?, path =  :: STRING?, pathOptions = null :: LIST? OF STRING?, failOnError = true :: BOOLEAN?) :: (MAP?)
+apoc.convert.getJsonPropertyMap(node :: NODE?, key :: STRING?, path =  :: STRING?, pathOptions = null :: LIST? OF STRING?) :: (MAP?)
 ----
 
 == Input parameters
@@ -24,8 +24,7 @@ apoc.convert.getJsonPropertyMap(node :: NODE?, key :: STRING?, path =  :: STRING
 |node|NODE?|null
 |key|STRING?|null
 |path|STRING?|
-|pathOptions|LIST? OF STRING?|null
-|failOnError|BOOLEAN?|true
+|pathOptions|LIST? OF STRING?|[]
 |===
 
 [[usage-apoc.convert.getJsonPropertyMap]]

@@ -75,5 +75,3 @@ CALL apoc.load.json($url, '$..columns', ['ALWAYS_RETURN_LIST']);
 | Output
 | [ {"col2": { "_id": "772col2" }} ]
 |===
-
-todo - Also, we can pass a `failSilently` parameter

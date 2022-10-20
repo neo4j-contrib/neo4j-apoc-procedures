@@ -64,20 +64,14 @@ MATCH (n:JsonPathNode) RETURN apoc.convert.getJsonProperty(n, 'prop', '$..column
 | [ {"col2": { "_id": "772col2" }} ]
 |===
 
-Also, we can pass a `failOnError` option in the 5th parameter in order to return an empty result if the Json is incorrectly formatted (with false) or to throw an Exception (with true, default value).
-
-For example, with a node CREATE (n:JsonPathNode {prop: '{"foo": [{"baz":  18446744062065078016838}],"baz": 7}'}):
+Also, we could leverage the `apoc.json.validate` procedure (provided with APOC full) to handle incorrectly formatted JSONs by continuing the execution instead of causing it to fail.
+For example, given a node `(:JsonInvalidNode {prop: '{"foo": [{"baz": 18446744062065078016838}],"baz": 7}'})`,
+the following query returns 0 instead of failing due to `InputCoercionException: Numeric value (18446744062065078016838) out of range`:
 
 [source, cypher]
 ----
-MATCH (n:JsonPathNode) RETURN apoc.convert.getJsonProperty(n, 'prop', '$..baz',  [], false) AS output;
+MATCH (n:JsonInvalidNode) WITH n
+CALL { WITH n CALL apoc.json.validate(n.prop) YIELD value RETURN collect(value) AS errs }
+RETURN CASE errs WHEN [] THEN apoc.convert.getJsonProperty(n, 'prop', '$',  []) ELSE 0 END AS value
 ----
 
-.Results
-[opts="header"]
-|===
-| output
-| []
-|===
-
-|===

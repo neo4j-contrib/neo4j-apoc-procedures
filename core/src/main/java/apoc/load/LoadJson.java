@@ -31,7 +31,7 @@ public class LoadJson {
     @Procedure
     @Description("apoc.load.jsonArray('url') YIELD value - load array from JSON URL (e.g. web-api) to import JSON as stream of values")
     public Stream<ObjectResult> jsonArray(@Name("url") String url, @Name(value = "path",defaultValue = "") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
-        return JsonUtil.loadJson(url, null, null, path, (boolean) config.getOrDefault("failOnError", true), (List<String>) config.get("pathOptions"))
+        return JsonUtil.loadJson(url, null, null, path, true, (List<String>) config.get("pathOptions"))
                 .flatMap((value) -> {
                     if (value instanceof List) {
                         List list = (List) value;

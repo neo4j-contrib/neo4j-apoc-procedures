@@ -14,7 +14,7 @@ apoc.json.path('\{json}' [,'json-path' , 'path-options'])
 
 [source]
 ----
-apoc.json.path(json :: STRING?, path = $ :: STRING?, pathOptions = null :: LIST? OF STRING?, failOnError = true :: BOOLEAN?) :: (ANY?)
+apoc.json.path(json :: STRING?, path = $ :: STRING?, pathOptions = null :: LIST? OF STRING?) :: (ANY?)
 ----
 
 == Input parameters
@@ -23,8 +23,7 @@ apoc.json.path(json :: STRING?, path = $ :: STRING?, pathOptions = null :: LIST?
 | Name | Type | Default 
 |json|STRING?|null
 |path|STRING?|$
-|pathOptions|LIST? OF STRING?|null
-|failOnError|BOOLEAN?|true
+|pathOptions|LIST? OF STRING?|[]
 |===
 
 [[usage-apoc.json.path]]

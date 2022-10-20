@@ -1505,7 +1505,7 @@ apoc.import.xml(file,config) - imports graph from provided file
 
 apoc.json.validate('\{json}' [,'json-path' , 'path-options']) - to check if the json is correct (returning an empty result) or not
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.json/apoc.json.path.adoc[apoc.json.path icon:book[]]
 
 apoc.json.path('\{json}' [,'json-path' , 'path-options'])
