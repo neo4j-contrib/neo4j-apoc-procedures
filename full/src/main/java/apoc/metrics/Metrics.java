@@ -13,6 +13,7 @@ import org.neo4j.procedure.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +29,9 @@ import static apoc.util.FileUtils.closeReaderSafely;
  */
 @Extended
 public class Metrics {
+    public static final String OUTSIDE_DIR_ERR_MSG = "The path you are trying to access is outside the metrics directory and " +
+            "this procedure is only permitted to access files in it. " +
+            "This may occur if the path in question is a symlink or other link.";
     @Context
     public Log log;
 
@@ -163,14 +167,21 @@ public class Metrics {
         config.put("header", true);
 
         File metricsDir = FileUtils.getMetricsDirectory();
-
         if (metricsDir == null) {
             throw new RuntimeException("Metrics directory either does not exist or is not readable.  " +
                     "To use this procedure please ensure CSV metrics are configured " +
                     "https://neo4j.com/docs/operations-manual/current/monitoring/metrics/expose/#metrics-csv");
         }
 
-        String url = new File(metricsDir, metricName + ".csv").getAbsolutePath();
+        final File file = new File(metricsDir, metricName + ".csv");
+        try {
+            if (!file.getCanonicalPath().startsWith(metricsDir.getAbsolutePath())) {
+                throw new RuntimeException(OUTSIDE_DIR_ERR_MSG);
+            }
+        } catch (IOException ioe) {
+            throw new RuntimeException("Unable to resolve basic metric file canonical path", ioe);
+        }
+        String url = file.getAbsolutePath();
         CountingReader reader = null;
         try {
             reader = FileUtils.SupportedProtocols.file
