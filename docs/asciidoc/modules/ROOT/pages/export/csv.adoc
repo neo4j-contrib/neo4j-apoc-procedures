@@ -400,18 +400,19 @@ The procedures support the following config parameters:
 [options=header]
 |===
 | param | default | description
-| batchSize | 20000 | define the batch size
-| delim | "," | define the delimiter character
-| arrayDelim | ";" | define the delimiter character for arrays (used in the bulk import)
-| quotes | 'always' | quote-character used for CSV, possible values are:
+| batchSize | 20000 | The batch size.
+| delim | "," | The delimiter character of the CSV file.
+| arrayDelim | ";" | The delimiter character used for arrays (used in the bulk import).
+| quotes | 'always' | Quote-characters used for CSV, possible values are:
 
-* `none`: the same behaviour of the current `false`
-* `always`:  the same behaviour of the current `true`
-* `ifNeeded`: it applies quotes only when it's necessary
+* `none`: No quotes are added.
+* `always`:  Quotes are added around all values.
+* `ifNeeded`: Applies quotes to strings only when necessary.
 
-| useTypes | false | Add type on file header
-| bulkImport | true | create files for Neo4j Admin import
-| separateHeader | false | create two file: one for header and one for data
-| streamStatements | false | to batch results across multiple rows by configuring the `batchSize` config.
-| stream | false | equivalent to `streamStatements` config
+| useTypes | false | Add the types on to the file header.
+| bulkImport | true | Create files for Neo4j Admin import.
+| timeoutSeconds | 100 | The maximum time in seconds the query should run before timing out.
+| separateHeader | false | Create two files: one for the header and one for the data.
+| streamStatements | false | Batch the results across multiple rows by configuring the `batchSize` config.
+| stream | false | Equivalent to the `streamStatements` config.
 |===
