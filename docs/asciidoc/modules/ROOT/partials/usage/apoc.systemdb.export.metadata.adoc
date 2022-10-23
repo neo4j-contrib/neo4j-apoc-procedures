@@ -10,22 +10,22 @@ apoc.export.file.enabled=true
 If we execute in a database `neo4j` the following queries:
 [source,cypher]
 ----
-CALL apoc.trigger.add('trig','RETURN $alpha', {phase: 'after'}, {params: {alpha: 1} });
-CALL apoc.trigger.add('trigTwo','RETURN 1', null);
-CALL apoc.trigger.pause('trigTwo');
+CALL apoc.trigger.install('neo4j', 'trig','RETURN $alpha', {phase: 'after'}, {params: {alpha: 1} });
+CALL apoc.trigger.install('neo4j', 'trigTwo','RETURN 1', null);
+CALL apoc.trigger.stop('neo4j', 'trigTwo');
 CALL apoc.custom.declareFunction('funNameOne(val = 2 :: INTEGER) :: NODE ', 'MATCH (t:Target {value : $val}) RETURN t');
 CALL apoc.custom.declareProcedure('procNameOne(one = 2 ::INTEGER?, two = 3 :: INTEGER?) :: (sum :: INTEGER) ', 'RETURN $one + $two as sum');
 CALL apoc.custom.asProcedure('procName','RETURN $input as answer','read',[['answer','number']],[['input','int','42']], 'Procedure that answer to the Ultimate Question of Life, the Universe, and Everything');
 CALL apoc.custom.asFunction('funName','RETURN $input as answer','long', [['input','number']], false);
 CREATE CONSTRAINT person_cons ON (p:Person) ASSERT p.alpha IS UNIQUE;
 CALL apoc.uuid.install('Person', {addToSetLabels: true, uuidProperty: 'alpha'});
-CALL apoc.dv.catalog.add("dvName", {type: 'CSV', url: 'file://myUrl', query: 'map.name = $name and map.age = $age', desc: "person's details", labels: ['Person']});
+CALL apoc.dv.catalog.install("neo4j", "dvName", {type: 'CSV', url: 'file://myUrl', query: 'map.name = $name and map.age = $age', desc: "person's details", labels: ['Person']});
 ----
 
 and in a database `another`:
 [source,cypher]
 ----
-CALL apoc.trigger.add('trigAnother','RETURN 1', null);
+CALL apoc.trigger.install('another', 'trigAnother','RETURN 1', null);
 ----
 
 
@@ -56,9 +56,9 @@ CALL apoc.dv.catalog.add('dvName', {name:"dvName",url:"file://myUrl",desc:"perso
 .metadata.triggers.neo4j.cypher
 [source,cypher]
 ----
-CALL apoc.trigger.add('trig', 'RETURN $alpha', {phase:"after"},{params: {alpha:1}});
-CALL apoc.trigger.add('trigTwo', 'RETURN 1', null,{params: {}});
-CALL apoc.trigger.pause('trigTwo');
+CALL apoc.trigger.install('neo4j', 'trig', 'RETURN $alpha', {phase:"after"},{params: {alpha:1}});
+CALL apoc.trigger.install('neo4j', 'trigTwo', 'RETURN 1', null,{params: {}});
+CALL apoc.trigger.stop('neo4j', 'trigTwo');
 ----
 
 .metadata.uuids.neo4j.cypher

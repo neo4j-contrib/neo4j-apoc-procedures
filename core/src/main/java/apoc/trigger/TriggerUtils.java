@@ -44,7 +44,7 @@ public class TriggerUtils {
         }
     }
 
-    public static Map<String, Object> add(String databaseName, String triggerName, String statement, Map<String,Object> selector, Map<String,Object> params) {
+    public static Map<String, Object> install(String databaseName, String triggerName, String statement, Map<String,Object> selector, Map<String,Object> params) {
         checkEnabled();
         final HashMap<String, Object> previous = new HashMap<>();
 
@@ -64,7 +64,7 @@ public class TriggerUtils {
         return previous;
     }
 
-    public static Map<String, Object> remove(String databaseName, String triggerName) {
+    public static Map<String, Object> drop(String databaseName, String triggerName) {
         checkEnabled();
         final HashMap<String, Object> previous = new HashMap<>();
 
@@ -103,7 +103,7 @@ public class TriggerUtils {
         return result;
     }
 
-    public static Map<String, Object> removeAll(String databaseName) {
+    public static Map<String, Object> dropAll(String databaseName) {
         checkEnabled();
         HashMap<String, Object> previous = new HashMap<>();
 

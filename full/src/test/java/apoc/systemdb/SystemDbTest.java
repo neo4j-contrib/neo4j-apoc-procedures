@@ -104,10 +104,10 @@ public class SystemDbTest {
     @Test
     public void testExportMetadata() {
         // We test triggers
-        final String triggerOne = "CALL apoc.trigger.add('firstTrigger', 'RETURN $alpha', {phase:\"after\"}, {params: {alpha:1}});";
-        final String triggerTwo = "CALL apoc.trigger.add('beta', 'RETURN 1', {}, {params: {}});";
+        final String triggerOne = "CALL apoc.trigger.install('neo4j', 'firstTrigger', 'RETURN $alpha', {phase:\"after\"}, {params: {alpha:1}});";
+        final String triggerTwo = "CALL apoc.trigger.install('neo4j', 'beta', 'RETURN 1', {}, {params: {}});";
         // In this case we paused to test that it will be exported as paused
-        final String pauseTrigger = "CALL apoc.trigger.pause('beta');";
+        final String pauseTrigger = "CALL apoc.trigger.stop('neo4j', 'beta');";
         db.executeTransactionally(triggerOne);
         db.executeTransactionally(triggerTwo);
         db.executeTransactionally(pauseTrigger);
@@ -159,7 +159,7 @@ public class SystemDbTest {
         });
 
         db.executeTransactionally("CALL apoc.uuid.removeAll");
-        db.executeTransactionally("CALL apoc.trigger.removeAll");
+        db.executeTransactionally("CALL apoc.trigger.dropAll('neo4j')");
 
         assertEquals(Set.of(constraintForUuid), readFileLines("custom.Uuid.schema.neo4j.cypher", directory));
         assertEquals(Set.of(uuidStatement), readFileLines("custom.Uuid.neo4j.cypher", directory));

@@ -87,7 +87,7 @@ public class Trigger {
         Util.validateQuery(ApocConfig.apocConfig().getDatabase(databaseName), statement);
 
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
-        Map<String, Object> removed = TriggerUtils.add(databaseName, name, statement, selector, params);
+        Map<String, Object> removed = TriggerUtils.install(databaseName, name, statement, selector, params);
         // always add transaction listener
         triggerHandler.reconcileKernelRegistration(true);
         if (!removed.isEmpty()) {
@@ -101,10 +101,10 @@ public class Trigger {
 
     // TODO - change with @SystemOnlyProcedure
     @SystemProcedure
-    @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.trigger.stop")
-    @Description("CALL apoc.trigger.stop(databaseName, name) | remove previously added trigger, returns trigger information")
+    @Procedure(mode = Mode.WRITE)
+    @Description("CALL apoc.trigger.drop(databaseName, name) | remove previously added trigger, returns trigger information")
     public Stream<TriggerInfo> drop(@Name("databaseName") String databaseName, @Name("name")String name) {
-        Map<String, Object> removed = TriggerUtils.remove(databaseName, name);
+        Map<String, Object> removed = TriggerUtils.drop(databaseName, name);
         triggerHandler.updateCache();
         if (removed.isEmpty()) {
             return Stream.of(new TriggerInfo(name, null, null, false, false));
@@ -118,7 +118,7 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.trigger.dropAll(databaseName) | removes all previously added trigger, returns trigger information")
     public Stream<TriggerInfo> dropAll(@Name("databaseName") String databaseName) {
-        Map<String, Object> removed = TriggerUtils.removeAll(databaseName);
+        Map<String, Object> removed = TriggerUtils.dropAll(databaseName);
         // always remove transaction listener
         triggerHandler.reconcileKernelRegistration(false);
         return removed.entrySet().stream().map(this::toTriggerInfo);
