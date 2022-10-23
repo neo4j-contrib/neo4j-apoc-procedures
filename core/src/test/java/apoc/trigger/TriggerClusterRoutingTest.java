@@ -10,9 +10,11 @@ import org.neo4j.driver.types.Node;
 import org.neo4j.internal.helpers.collection.MapUtil;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static apoc.trigger.TriggerDeprecatedProcedures.SYS_NON_LEADER_ERROR;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -38,10 +40,12 @@ public class TriggerClusterRoutingTest {
 
     @Test
     public void testTriggerAddAllowedOnlyInLeaderMember() {
-        for (Neo4jContainerExtension container: cluster.getClusterMembers()){
+        final List<Neo4jContainerExtension> members = cluster.getClusterMembers();
+        assertEquals(4, members.size());
+        for (Neo4jContainerExtension container: members){
             // we skip READ_REPLICA members
             final String readReplica = TestcontainersCausalCluster.ClusterInstanceType.READ_REPLICA.toString();
-            if (readReplica.equals(container.getEnvMap().get("NEO4J_dbms_mode"))) {
+            if (readReplica.equals(container.getEnvMap().get("NEO4J_dbms_mode")) || container.getSession() == null) {
                 continue;
             }
             final String systemRole = TestContainerUtil.singleResultFirstColumn(container.getSession(), "CALL dbms.cluster.role('system')");

@@ -6,6 +6,8 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -26,7 +28,17 @@ import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestrict
  * @author mh
  * @since 20.09.16
  */
+@RunWith(Parameterized.class)
 public class TriggerExtendedTest {
+    @Parameterized.Parameters
+    public static List<Object> data() {
+        return List.of("CALL apoc.trigger.add(", 
+                "CALL apoc.trigger.install('neo4j', ");
+    }
+
+    @Parameterized.Parameter
+    public String triggerProc;
+    
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(procedure_unrestricted, List.of("apoc*"))
@@ -37,12 +49,12 @@ public class TriggerExtendedTest {
     @Before
     public void setUp() throws Exception {
         start = System.currentTimeMillis();
-        TestUtil.registerProcedure(db, Trigger.class, TriggerExtended.class, Nodes.class, Create.class);
+        TestUtil.registerProcedure(db, Trigger.class, TriggerDeprecatedProcedures.class, TriggerExtended.class, Nodes.class, Create.class);
     }
 
     @Test
     public void testTimeStampTriggerForUpdatedProperties() throws Exception {
-        db.executeTransactionally("CALL apoc.trigger.add('timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
+        db.executeTransactionally(triggerProc + "'timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
         db.executeTransactionally("CREATE (f:Foo) SET f.foo='bar'");
         TestUtil.testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
             assertEquals(true, ((Node)row.get("f")).hasProperty("ts"));
@@ -52,7 +64,7 @@ public class TriggerExtendedTest {
     @Test
     public void testLowerCaseName() throws Exception {
         db.executeTransactionally("create constraint on (p:Person) assert p.id is unique");
-        db.executeTransactionally("CALL apoc.trigger.add('lowercase','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n.id = toLower(n.name)',{})");
+        db.executeTransactionally(triggerProc + "'lowercase','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n.id = toLower(n.name)',{})");
         db.executeTransactionally("CREATE (f:Person {name:'John Doe'})");
         TestUtil.testCall(db, "MATCH (f:Person) RETURN f", (row) -> {
             assertEquals("john doe", ((Node)row.get("f")).getProperty("id"));
@@ -62,7 +74,7 @@ public class TriggerExtendedTest {
     @Test
     public void testSetLabels() throws Exception {
         db.executeTransactionally("CREATE (f {name:'John Doe'})");
-        db.executeTransactionally("CALL apoc.trigger.add('setlabels','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n:Man',{})");
+        db.executeTransactionally(triggerProc + "'setlabels','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n:Man',{})");
         db.executeTransactionally("MATCH (f) SET f:Person");
         TestUtil.testCall(db, "MATCH (f:Man) RETURN f", (row) -> {
             assertEquals("John Doe", ((Node)row.get("f")).getProperty("name"));
@@ -76,7 +88,7 @@ public class TriggerExtendedTest {
 
     @Test
     public void testTxIdAfterAsync() throws Exception {
-        db.executeTransactionally("CALL apoc.trigger.add('triggerTest','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, \"_executed\") as prop " +
+        db.executeTransactionally(triggerProc + "'triggerTest','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, \"_executed\") as prop " +
                 "	WITH prop.node as n " +
                 "	CREATE (z:SON {father:id(n)}) " +
                 "	CREATE (n)-[:GENERATED]->(z)', " +
@@ -104,7 +116,7 @@ public class TriggerExtendedTest {
                 "CALL apoc.create.addLabels(r, apoc.node.labels(deletedNode)) yield node with node, deletedNode " +
                 "set node+=apoc.any.properties(deletedNode)";
         
-        db.executeTransactionally("call apoc.trigger.add('issue1152', $query , {phase: $phase})",
+        db.executeTransactionally(triggerProc + "'issue1152', $query , {phase: $phase})",
                 Map.of("query", query, "phase", phase));
 
         db.executeTransactionally("MATCH (f:To:Delete) DELETE f");
@@ -145,7 +157,7 @@ public class TriggerExtendedTest {
     }
 
     private void testRetrievePropsDeletedRelationshipCommon(String phase, String triggerQuery, String assertionQuery) {
-        db.executeTransactionally("call apoc.trigger.add('myTrigger', $query , {phase: $phase})",
+        db.executeTransactionally(triggerProc + "'myTrigger', $query , {phase: $phase})",
                 Map.of("name", UUID.randomUUID().toString(), "query", triggerQuery, "phase", phase));
         db.executeTransactionally("MATCH (:Start)-[r:MY_TYPE]->(:End) DELETE r");
 
