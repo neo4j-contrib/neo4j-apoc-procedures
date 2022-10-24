@@ -31,4 +31,16 @@ RETURN count(*) AS count;
 | 110
 |===
 
+
+We can also schedule the task daily starting at a specific date or time, with the 3rd parameter as a `java.time.temporal.Temporal`, for example:
+
+[source,cypher]
+----
+CALL apoc.periodic.repeat(
+  "create-people",
+  "UNWIND range(1,10) AS id CREATE (:Person {uuid: apoc.create.uuid()})",
+  time("11:30")
+);
+----
+
 If we want to cancel this job, we can use the xref::overview/apoc.periodic/apoc.periodic.cancel.adoc[] procedure.
