@@ -1,5 +1,6 @@
 package apoc.periodic;
 
+import apoc.cypher.Cypher;
 import apoc.schema.Schemas;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
@@ -54,7 +55,7 @@ public class PeriodicTest {
 
     @Before
     public void initDb() throws Exception {
-        TestUtil.registerProcedure(db, Periodic.class, Schemas.class);
+        TestUtil.registerProcedure(db, Periodic.class, Schemas.class, Cypher.class);
         db.executeTransactionally("call apoc.periodic.list() yield name call apoc.periodic.cancel(name) yield name as name2 return count(*)");
     }
 
@@ -82,27 +83,36 @@ public class PeriodicTest {
 
     @Test
     public void testSubmitWithCreateIndexSchemaOperation() {
-        try {
-            testCall(db, "CALL apoc.periodic.submit('subSchema','CREATE INDEX periodicIdx FOR (n:Bar) ON (n.first_name, n.last_name)')",
-                    (row) -> fail("Should fail because of unsupported schema operation"));
-        } catch (RuntimeException e) {
-            final String expected = "Failed to invoke procedure `apoc.periodic.submit`: " +
-                    "Caused by: java.lang.RuntimeException: Supported query types for the operation are [READ_ONLY, WRITE, READ_WRITE]";
-            assertEquals(expected, e.getMessage());
-        }
+        String errMessage = "Supported query types for the operation are [READ_ONLY, WRITE, READ_WRITE]";
+        testSchemaOperationCommon("CREATE INDEX periodicIdx FOR (n:Bar) ON (n.first_name, n.last_name)", errMessage);
     }
 
     @Test
-    public void testSubmitWithCreateUniqueConstraintSchemaOperation() {
+    public void testSubmitWithSchemaProcedure() {
+        String errMessage = "Supported inner procedure modes for the operation are [READ, WRITE, DEFAULT]";
+        
+        // built-in neo4j procedure
+        final String createCons = "CALL db.createUniquePropertyConstraint('uniqueConsName', ['Alpha', 'Beta'], ['foo', 'bar'], 'lucene-1.0')";
+        testSchemaOperationCommon(createCons, errMessage);
+        
+        // apoc procedures
+        testSchemaOperationCommon("CALL apoc.schema.assert({}, {})", errMessage);
+        testSchemaOperationCommon("CALL apoc.cypher.runSchema('CREATE CONSTRAINT periodicIdx FOR (n:Bar) REQUIRE n.first_name IS UNIQUE', {})", errMessage);
+        
+        // inner schema procedure
+        final String innerSchema = "CALL { WITH 1 AS one CALL apoc.schema.assert({}, {}) YIELD key RETURN key } " +
+                "IN TRANSACTIONS OF 1000 rows RETURN 1";
+        testSchemaOperationCommon(innerSchema, errMessage);
+    }
+
+    private void testSchemaOperationCommon(String query, String errMessage) {
         try {
-            db.executeTransactionally("CREATE INDEX periodicIdx FOR (n:Bar) ON (n.first_name, n.last_name)");
-            final String createConstraint = "CALL db.createUniquePropertyConstraint('uniqueConsName', ['Alpha', 'Beta'], ['foo', 'bar'], 'lucene-1.0')";
-            testCall(db, "CALL apoc.periodic.submit('subSchema', $createConstraint)",
-                    Map.of("createConstraint", createConstraint),
+            testCall(db, "CALL apoc.periodic.submit('subSchema', $query)",
+                    Map.of("query", query),
                     (row) -> fail("Should fail because of unsupported schema operation"));
         } catch (RuntimeException e) {
             final String expected = "Failed to invoke procedure `apoc.periodic.submit`: " +
-                    "Caused by: java.lang.RuntimeException: Supported query types for the operation are [READ_ONLY, WRITE, READ_WRITE]";
+                    "Caused by: java.lang.RuntimeException: " + errMessage;
             assertEquals(expected, e.getMessage());
         }
     }

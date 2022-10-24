@@ -26,9 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_ONLY;
-import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_WRITE;
-import static org.neo4j.graphdb.QueryExecutionType.QueryType.WRITE;
+import static org.neo4j.graphdb.QueryExecutionType.QueryType;
 import static apoc.periodic.PeriodicUtils.submitJob;
 import static apoc.periodic.PeriodicUtils.submitProc;
 import static apoc.periodic.PeriodicUtils.wrapTask;
@@ -187,8 +185,9 @@ public class Periodic {
     }
 
     private void validateQuery(String statement) {
-        Util.validateQuery(db, statement,
-                READ_ONLY, WRITE, READ_WRITE);
+        Util.validateQuery(db, statement, 
+                Set.of(Mode.WRITE, Mode.READ, Mode.DEFAULT),
+                QueryType.READ_ONLY, QueryType.WRITE, QueryType.READ_WRITE);
     }
 
     @Procedure(mode = Mode.WRITE)

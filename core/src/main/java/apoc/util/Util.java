@@ -31,7 +31,10 @@ import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
+import org.neo4j.graphdb.ExecutionPlanDescription;
+import org.neo4j.graphdb.Result;
 import org.neo4j.logging.NullLog;
+import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.TerminationGuard;
 import org.neo4j.values.storable.CoordinateReferenceSystem;
 import org.neo4j.values.storable.PointValue;
@@ -78,6 +81,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -1005,13 +1009,58 @@ public class Util {
     }
 
     public static void validateQuery(GraphDatabaseService db, String statement, QueryExecutionType.QueryType... supportedQueryTypes) {
-        final boolean isValid = db.executeTransactionally("EXPLAIN " + statement, Collections.emptyMap(), result ->
-                supportedQueryTypes == null || supportedQueryTypes.length == 0 || Stream.of(supportedQueryTypes)
-                        .anyMatch(sqt -> sqt.equals(result.getQueryExecutionType().queryType())));
+        validateQuery(db, statement, Collections.emptySet(), supportedQueryTypes);
+    }
 
-        if (!isValid) {
-            throw new RuntimeException("Supported query types for the operation are " + Arrays.toString(supportedQueryTypes));
+    public static void validateQuery(GraphDatabaseService db, String statement, Set<Mode> supportedModes , QueryExecutionType.QueryType... supportedQueryTypes) {
+        db.executeTransactionally("EXPLAIN " + statement, Collections.emptyMap(), result -> {
+            final boolean isQueryTypeValid = supportedQueryTypes == null || supportedQueryTypes.length == 0 || Stream.of(supportedQueryTypes)
+                    .anyMatch(sqt -> sqt.equals(result.getQueryExecutionType().queryType()));
+            
+            if (!isQueryTypeValid) {
+                throw new RuntimeException("Supported query types for the operation are " + Arrays.toString(supportedQueryTypes));
+            }
+            
+            if (!procsAreValid(db, supportedModes, result)) {
+                throw new RuntimeException("Supported inner procedure modes for the operation are " + new TreeSet<>(supportedModes));
+            }
+            
+            return null;
+        });
+    }
+
+    private static boolean procsAreValid(GraphDatabaseService db, Set<Mode> supportedModes, Result result) {
+        if (supportedModes != null && !supportedModes.isEmpty()) {
+            final ExecutionPlanDescription executionPlanDescription = result.getExecutionPlanDescription();
+            // get procedures used in the query
+            Set<String> queryProcNames = new HashSet<>();
+            getAllQueryProcs(executionPlanDescription, queryProcNames);
+            
+            if (!queryProcNames.isEmpty()) {
+                final Set<String> modes = supportedModes.stream().map(Mode::name).collect(Collectors.toSet());
+                // check if sub-procedures have valid mode 
+                final Set<String> procNames = db.executeTransactionally("SHOW PROCEDURES YIELD name, mode where mode in $modes return name",
+                        Map.of("modes", modes),
+                        r -> Iterators.asSet(r.columnAs("name")));
+
+                return procNames.containsAll(queryProcNames);
+            }
         }
+        
+        return true;
+    }
+
+    public static void getAllQueryProcs(ExecutionPlanDescription executionPlanDescription, Set<String> procs) {
+        executionPlanDescription.getChildren().forEach(i -> {
+            // if executionPlanDescription is a ProcedureCall
+            // we return proc. name from "Details" 
+            // by extracting up to the first `(` char, e.g. apoc.schema.assert(null, null)....
+            if (i.getName().equals("ProcedureCall")) {
+                final String procName = ((String) i.getArguments().get("Details")).split("\\(")[0];
+                procs.add(procName);
+            }
+            getAllQueryProcs(i, procs);
+        });
     }
 
     /**
