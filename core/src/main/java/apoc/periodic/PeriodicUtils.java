@@ -10,6 +10,7 @@ import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,8 @@ import java.util.function.ToLongFunction;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static apoc.periodic.Periodic.JobInfo;
 
 public class PeriodicUtils {
 
@@ -115,6 +118,46 @@ public class PeriodicUtils {
             log.debug("Terminated periodic iteration with id %s with %d executions", periodicId, collector.getCount());
         }
         return Stream.of(collector.getResult());
+    }
+
+    public static Stream<JobInfo> submitProc(String name, String statement, Map<String, Object> config, GraphDatabaseService db, Log log, Pools pools) {
+        Map<String,Object> params = (Map) config.getOrDefault("params", Collections.emptyMap());
+        JobInfo info = submitJob(name, () -> {
+            try {
+                db.executeTransactionally(statement, params);
+            } catch(Exception e) {
+                log.warn("in background task via submit", e);
+                throw new RuntimeException(e);
+            }
+        }, log, pools);
+        return Stream.of(info);
+    }
+
+    /**
+     * Call from a procedure that gets a <code>@Context GraphDatbaseAPI db;</code> injected and provide that db to the runnable.
+     */
+    public static <T> JobInfo submitJob(String name, Runnable task, Log log, Pools pools) {
+        JobInfo info = new JobInfo(name);
+        Future<T> future = pools.getJobList().remove(info);
+        if (future != null && !future.isDone()) future.cancel(false);
+
+        Runnable wrappingTask = wrapTask(name, task, log);
+        Future newFuture = pools.getScheduledExecutorService().submit(wrappingTask);
+        pools.getJobList().put(info,newFuture);
+        return info;
+    }
+
+    public static Runnable wrapTask(String name, Runnable task, Log log) {
+        return () -> {
+            log.debug("Executing task " + name);
+            try {
+                task.run();
+            } catch (Exception e) {
+                log.error("Error while executing task " + name + " because of the following exception (the task will be killed):", e);
+                throw e;
+            }
+            log.debug("Executed task " + name);
+        };
     }
 }
 
