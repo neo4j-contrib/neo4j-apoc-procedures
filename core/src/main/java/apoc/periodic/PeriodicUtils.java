@@ -2,6 +2,7 @@ package apoc.periodic;
 
 import apoc.Pools;
 import apoc.util.Util;
+import org.apache.commons.lang3.time.DateUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Transaction;
@@ -9,12 +10,22 @@ import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiFunction;
@@ -23,11 +34,16 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static apoc.periodic.Periodic.JobInfo;
+
 public class PeriodicUtils {
 
     private PeriodicUtils() {
 
     }
+    public enum ScheduleType { DEFAULT, FIXED_DELAY, FIXED_RATE }
+
+    public static final String ERROR_DATE_BEFORE = "The provided date is before current date";
 
     public static Pair<String,Boolean> prepareInnerStatement(String cypherAction, BatchMode batchMode, List<String> columns, String iteratorVariableName) {
         String names = columns.stream().map(Util::quote).collect(Collectors.joining("|"));
@@ -115,6 +131,106 @@ public class PeriodicUtils {
             log.debug("Terminated periodic iteration with id %s with %d executions", periodicId, collector.getCount());
         }
         return Stream.of(collector.getResult());
+    }
+
+    public static Stream<JobInfo> submitProc(String name, String statement, Map<String, Object> config, GraphDatabaseService db, Log log, Pools pools) {
+        Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
+
+        final Temporal atTime = (Temporal) (config.get("atTime"));
+
+        final Runnable task = () -> {
+            try {
+                db.executeTransactionally(statement, params);
+            } catch (Exception e) {
+                log.warn("in background task via submit", e);
+                throw new RuntimeException(e);
+            }
+        };
+
+        JobInfo info = atTime != null
+                ? getJobInfo(name, atTime, task, log, pools, ScheduleType.DEFAULT)
+                : submitJob(name, task, log, pools);
+
+        return Stream.of(info);
+    }
+
+    public static JobInfo getJobInfo(String name, Temporal atTime, Runnable task, Log log, Pools pools, ScheduleType scheduleType) {
+        if (atTime instanceof LocalDate) {
+            atTime = ((LocalDate) atTime).atStartOfDay();
+        }
+        final boolean isTime = atTime instanceof OffsetTime || atTime instanceof LocalTime;
+        Temporal now = isTime
+                ? LocalTime.now()
+                : LocalDateTime.now();
+
+        final long secPerDay = DateUtils.MILLIS_PER_DAY / 1000L;
+        long delay = now.until(atTime, ChronoUnit.SECONDS);
+        if (isTime && delay < 0) {
+            // we consider the day after
+            delay = delay + secPerDay;
+        }
+        if (delay < 0) {
+            throw new RuntimeException(ERROR_DATE_BEFORE);
+        }
+        return schedule(name, task, delay, secPerDay, log, pools, scheduleType);
+    }
+
+    /**
+     * Call from a procedure that gets a <code>@Context GraphDatbaseAPI db;</code> injected and provide that db to the runnable.
+     */
+    public static <T> JobInfo submitJob(String name, Runnable task, Log log, Pools pools) {
+        JobInfo info = new JobInfo(name);
+        Future<T> future = pools.getJobList().remove(info);
+        if (future != null && !future.isDone()) future.cancel(false);
+
+        Runnable wrappingTask = wrapTask(name, task, log);
+        Future newFuture = pools.getScheduledExecutorService().submit(wrappingTask);
+        pools.getJobList().put(info,newFuture);
+        return info;
+    }
+    
+    public static JobInfo schedule(String name, Runnable task, long delay, long repeat, Log log, Pools pools) {
+        return schedule(name, task, delay, repeat, log, pools, ScheduleType.FIXED_DELAY);
+    }
+
+    /**
+     * Call from a procedure that gets a <code>@Context GraphDatbaseAPI db;</code> injected and provide that db to the runnable.
+     */
+    public static JobInfo schedule(String name, Runnable task, long delay, long repeat, Log log, Pools pools, ScheduleType isFixedDelay) {
+        JobInfo info = new JobInfo(name, delay, isFixedDelay.equals(ScheduleType.DEFAULT) ? 0 : repeat);
+        Future future = pools.getJobList().remove(info);
+        if (future != null && !future.isDone()) future.cancel(false);
+
+        Runnable wrappingTask = wrapTask(name, task, log);
+        ScheduledFuture<?> newFuture = getScheduledFuture(wrappingTask, delay, repeat, pools, isFixedDelay);
+        pools.getJobList().put(info,newFuture);
+        return info;
+    }
+    
+    private static ScheduledFuture<?> getScheduledFuture(Runnable wrappingTask, long delay, long repeat, Pools pools, ScheduleType isFixedDelay) {
+        final ScheduledExecutorService service = pools.getScheduledExecutorService();
+        final TimeUnit timeUnit = TimeUnit.SECONDS;
+        switch (isFixedDelay) {
+            case FIXED_DELAY:
+                return service.scheduleWithFixedDelay(wrappingTask, delay, repeat, timeUnit);
+            case FIXED_RATE:
+                return service.scheduleAtFixedRate(wrappingTask, delay, repeat, timeUnit);
+            default:
+                return service.schedule(wrappingTask, delay, timeUnit);
+        }
+    }
+
+    public static Runnable wrapTask(String name, Runnable task, Log log) {
+        return () -> {
+            log.debug("Executing task " + name);
+            try {
+                task.run();
+            } catch (Exception e) {
+                log.error("Error while executing task " + name + " because of the following exception (the task will be killed):", e);
+                throw e;
+            }
+            log.debug("Executed task " + name);
+        };
     }
 }
 
