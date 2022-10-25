@@ -2,7 +2,7 @@ package apoc;
 
 import apoc.cypher.CypherInitializer;
 import apoc.trigger.TriggerDeprecatedProcsHandler;
-import apoc.trigger.TriggerHandler;
+import apoc.trigger.TriggerHandlerRead;
 import org.neo4j.annotations.service.ServiceProvider;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -26,17 +26,16 @@ public class CoreApocGlobalComponents implements ApocGlobalComponents {
                         dependencies.pools(),
                         dependencies.scheduler()),
                 "trigger", 
-                new TriggerHandler(db, 
+                new TriggerHandlerRead(db, 
                         dependencies.databaseManagementService(),
-                        dependencies.log().getUserLog(TriggerHandler.class),
-                        dependencies.pools(),
-                        dependencies.scheduler())
+                        dependencies.log().getUserLog(TriggerHandlerRead.class),
+                        dependencies.pools())
         );
     }
 
     @Override
     public Collection<Class> getContextClasses() {
-        return List.of(TriggerDeprecatedProcsHandler.class, TriggerHandler.class);
+        return List.of(TriggerDeprecatedProcsHandler.class, TriggerHandlerRead.class);
     }
 
     @Override

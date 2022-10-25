@@ -2,6 +2,7 @@ package apoc.trigger;
 
 import apoc.ApocConfig;
 import apoc.util.Util;
+import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.api.procedure.SystemProcedure;
 import org.neo4j.logging.Log;
@@ -49,9 +50,15 @@ public class Trigger {
 
     @Context public GraphDatabaseService db;
 
-    @Context public TriggerHandler triggerHandler;
+    @Context public TriggerHandlerRead triggerHandlerRead;
     
     @Context public Log log;
+
+    private void checkProcedureRouted() {
+        if (!Util.isWriteableInstance(db, GraphDatabaseSettings.SYSTEM_DATABASE_NAME)) {
+            throw new RuntimeException("The procedure should be routed and executed against a LEADER system database");
+        }
+    }
 
     public TriggerInfo toTriggerInfo(Map.Entry<String, Object> e) {
         String name = e.getKey();
@@ -69,7 +76,7 @@ public class Trigger {
     @Procedure(mode = Mode.READ)
     @Description("list all installed triggers")
     public Stream<TriggerInfo> list() {
-        return triggerHandler.list().entrySet().stream()
+        return triggerHandlerRead.list().entrySet().stream()
                 .map( (e) -> new TriggerInfo(e.getKey(),
                         (String)e.getValue().get("statement"),
                         (Map<String,Object>) e.getValue().get("selector"),
@@ -84,12 +91,13 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.trigger.install(databaseName, name, statement, selector, config) | add a trigger kernelTransaction under a name, in the kernelTransaction you can use $createdNodes, $deletedNodes etc., the selector is {phase:'before/after/rollback/afterAsync'} returns previous and new trigger information. Takes in an optional configuration.")
     public Stream<TriggerInfo> install(@Name("databaseName") String databaseName, @Name("name") String name, @Name("kernelTransaction") String statement, @Name(value = "selector")  Map<String,Object> selector, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
+        checkProcedureRouted();
         Util.validateQuery(ApocConfig.apocConfig().getDatabase(databaseName), statement);
 
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
-        Map<String, Object> removed = TriggerUtils.install(databaseName, name, statement, selector, params);
+        Map<String, Object> removed = TriggerHandlerWrite.install(databaseName, name, statement, selector, params);
         // always add transaction listener
-        triggerHandler.reconcileKernelRegistration(true);
+        triggerHandlerRead.reconcileKernelRegistration(true);
         if (!removed.isEmpty()) {
             return Stream.of(
                     new TriggerInfo( name, (String)removed.get( "statement"), (Map<String, Object>) removed.get( "selector"), (Map<String, Object>) removed.get( "params"), false, false),
@@ -104,8 +112,9 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.trigger.drop(databaseName, name) | remove previously added trigger, returns trigger information")
     public Stream<TriggerInfo> drop(@Name("databaseName") String databaseName, @Name("name")String name) {
-        Map<String, Object> removed = TriggerUtils.drop(databaseName, name);
-        triggerHandler.updateCache();
+        checkProcedureRouted();
+        Map<String, Object> removed = TriggerHandlerWrite.drop(databaseName, name);
+        triggerHandlerRead.reconcileKernelRegistration();
         if (removed.isEmpty()) {
             return Stream.of(new TriggerInfo(name, null, null, false, false));
         }
@@ -118,9 +127,10 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.trigger.dropAll(databaseName) | removes all previously added trigger, returns trigger information")
     public Stream<TriggerInfo> dropAll(@Name("databaseName") String databaseName) {
-        Map<String, Object> removed = TriggerUtils.dropAll(databaseName);
+        checkProcedureRouted();
+        Map<String, Object> removed = TriggerHandlerWrite.dropAll(databaseName);
         // always remove transaction listener
-        triggerHandler.reconcileKernelRegistration(false);
+        triggerHandlerRead.reconcileKernelRegistration(false);
         return removed.entrySet().stream().map(this::toTriggerInfo);
     }
 
@@ -129,7 +139,8 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.trigger.stop(databaseName, name) | it pauses the trigger")
     public Stream<TriggerInfo> stop(@Name("databaseName") String databaseName, @Name("name")String name) {
-        Map<String, Object> paused = TriggerUtils.updatePaused(databaseName, name, true);
+        checkProcedureRouted();
+        Map<String, Object> paused = TriggerHandlerWrite.updatePaused(databaseName, name, true);
 
         return Stream.of(new TriggerInfo(name,
                 (String)paused.get("statement"),
@@ -142,7 +153,8 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.trigger.start(databaseName, name) | it resumes the paused trigger")
     public Stream<TriggerInfo> start(@Name("databaseName") String databaseName, @Name("name")String name) {
-        Map<String, Object> resume = TriggerUtils.updatePaused(databaseName, name, false);
+        checkProcedureRouted();
+        Map<String, Object> resume = TriggerHandlerWrite.updatePaused(databaseName, name, false);
 
         return Stream.of(new TriggerInfo(name,
                 (String)resume.get("statement"),

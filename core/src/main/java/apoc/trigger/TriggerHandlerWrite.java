@@ -16,7 +16,7 @@ import java.util.function.Function;
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 
-public class TriggerUtils {
+public class TriggerHandlerWrite {
     public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
             " Set 'apoc.trigger.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
 
@@ -52,12 +52,11 @@ public class TriggerUtils {
             Node node = Util.mergeNode(tx, SystemLabels.ApocTrigger, null,
                     Pair.of(SystemPropertyKeys.database.name(), databaseName),
                     Pair.of(SystemPropertyKeys.name.name(), triggerName));
-            previous.putAll(TriggerUtils.toTriggerInfo(node));
+            previous.putAll(TriggerHandlerWrite.toTriggerInfo(node));
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
             node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
             node.setProperty(SystemPropertyKeys.params.name(), Util.toJson(params));
             node.setProperty(SystemPropertyKeys.paused.name(), false);
-            setLastUpdate(databaseName, tx);
             return null;
         });
 
@@ -71,11 +70,10 @@ public class TriggerUtils {
         withSystemDb(tx -> {
             getTriggerNodes(databaseName, tx, triggerName)
                     .forEachRemaining(node -> {
-                                previous.putAll(TriggerUtils.toTriggerInfo(node));
+                                previous.putAll(TriggerHandlerWrite.toTriggerInfo(node));
                                 node.delete();
                             }
                     );
-            setLastUpdate(databaseName, tx);
 
             return null;
         });
@@ -91,7 +89,7 @@ public class TriggerUtils {
             getTriggerNodes(databaseName, tx, name)
                     .forEachRemaining(node -> {
                         node.setProperty( SystemPropertyKeys.paused.name(), paused );
-                        result.putAll(TriggerUtils.toTriggerInfo(node));
+                        result.putAll(TriggerHandlerWrite.toTriggerInfo(node));
                     });
             
             // in updatePaused we don't need setLastUpdate because reconcileKernelRegistration() only check trigger existence, 
@@ -111,10 +109,9 @@ public class TriggerUtils {
             getTriggerNodes(databaseName, tx)
                     .forEachRemaining(node -> {
                         String triggerName = (String) node.getProperty(SystemPropertyKeys.name.name());
-                        previous.put(triggerName, TriggerUtils.toTriggerInfo(node));
+                        previous.put(triggerName, TriggerHandlerWrite.toTriggerInfo(node));
                         node.delete();
                     });
-            setLastUpdate(databaseName, tx);
 
             return null;
         });
@@ -142,15 +139,6 @@ public class TriggerUtils {
             tx.commit();
             return result;
         }
-    }
-
-    private static void setLastUpdate(String databaseName, Transaction tx) {
-        Node node = tx.findNode(SystemLabels.ApocTriggerMeta, SystemPropertyKeys.database.name(), databaseName);
-        if (node == null) {
-            node = tx.createNode(SystemLabels.ApocTriggerMeta);
-            node.setProperty(SystemPropertyKeys.database.name(), databaseName);
-        }
-        node.setProperty(SystemPropertyKeys.lastUpdated.name(), System.currentTimeMillis());
     }
     
 }
