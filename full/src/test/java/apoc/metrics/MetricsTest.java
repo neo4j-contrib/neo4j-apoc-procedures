@@ -64,7 +64,6 @@ public class MetricsTest {
     
     @Test
     public void shouldNotGetFileOutsideMetricsDir() {
-        System.out.println("MetricsTest.shouldNotGetFileOutsideMetricsDir1");
         try {
             testCall(session, "CALL apoc.metrics.get('../external')",
                     (r) -> Assert.fail("Should fail because the path is outside the dir "));
