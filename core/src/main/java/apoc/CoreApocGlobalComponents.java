@@ -29,7 +29,8 @@ public class CoreApocGlobalComponents implements ApocGlobalComponents {
                 new TriggerHandlerRead(db, 
                         dependencies.databaseManagementService(),
                         dependencies.log().getUserLog(TriggerHandlerRead.class),
-                        dependencies.pools())
+                        dependencies.pools(),
+                        dependencies.scheduler())
         );
     }
 

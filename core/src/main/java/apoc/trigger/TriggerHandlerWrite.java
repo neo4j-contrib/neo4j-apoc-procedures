@@ -57,6 +57,8 @@ public class TriggerHandlerWrite {
             node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
             node.setProperty(SystemPropertyKeys.params.name(), Util.toJson(params));
             node.setProperty(SystemPropertyKeys.paused.name(), false);
+
+            setLastUpdate(databaseName, tx);
             return null;
         });
 
@@ -72,9 +74,9 @@ public class TriggerHandlerWrite {
                     .forEachRemaining(node -> {
                                 previous.putAll(TriggerHandlerWrite.toTriggerInfo(node));
                                 node.delete();
-                            }
-                    );
-
+                            });
+            
+            setLastUpdate(databaseName, tx);
             return null;
         });
 
@@ -91,10 +93,8 @@ public class TriggerHandlerWrite {
                         node.setProperty( SystemPropertyKeys.paused.name(), paused );
                         result.putAll(TriggerHandlerWrite.toTriggerInfo(node));
                     });
-            
-            // in updatePaused we don't need setLastUpdate because reconcileKernelRegistration() only check trigger existence, 
-            //  not if they are paused or started.
 
+            setLastUpdate(databaseName, tx);
             return null;
         });
 
@@ -112,7 +112,7 @@ public class TriggerHandlerWrite {
                         previous.put(triggerName, TriggerHandlerWrite.toTriggerInfo(node));
                         node.delete();
                     });
-
+            setLastUpdate(databaseName, tx);
             return null;
         });
 
@@ -139,6 +139,15 @@ public class TriggerHandlerWrite {
             tx.commit();
             return result;
         }
+    }
+
+    private static void setLastUpdate(String databaseName, Transaction tx) {
+        Node node = tx.findNode(SystemLabels.ApocTriggerMeta, SystemPropertyKeys.database.name(), databaseName);
+        if (node == null) {
+            node = tx.createNode(SystemLabels.ApocTriggerMeta);
+            node.setProperty(SystemPropertyKeys.database.name(), databaseName);
+        }
+        node.setProperty(SystemPropertyKeys.lastUpdated.name(), System.currentTimeMillis());
     }
     
 }

@@ -95,6 +95,19 @@ public class TriggerDeprecatedProcedures {
         return new TriggerInfo(name, null, null, false, false);
     }
 
+    @Procedure(mode = Mode.READ)
+    @Description("list all installed triggers")
+    public Stream<TriggerInfo> list() {
+        return triggerHandler.list().entrySet().stream()
+                .map( (e) -> new TriggerInfo(e.getKey(),
+                        (String)e.getValue().get("statement"),
+                        (Map<String,Object>) e.getValue().get("selector"),
+                        (Map<String, Object>) e.getValue().get("params"),
+                        true,
+                        (Boolean) e.getValue().getOrDefault("paused", false))
+                );
+    }
+
     @Deprecated
     @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.trigger.start")
     @Description("CALL apoc.trigger.pause(name) | it pauses the trigger")

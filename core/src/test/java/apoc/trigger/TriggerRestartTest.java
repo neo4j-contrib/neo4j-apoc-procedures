@@ -14,6 +14,7 @@ import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.util.Collections;
 
+import static apoc.trigger.TriggerHandlerRead.TRIGGER_RELOAD_DEFAULT_VALUE;
 import static org.junit.Assert.assertTrue;
 
 public class TriggerRestartTest {
@@ -47,17 +48,26 @@ public class TriggerRestartTest {
     @Test
     public void testTriggerRunsAfterRestart() throws Exception {
         final String query = "CALL apoc.trigger.add('myTrigger', 'unwind $createdNodes as n set n.trigger=true', {phase:'before'})";
-        testTriggerRestartCommon(query);
+        testTriggerRestartCommon(query, () -> {});
     }
 
     @Test
-    public void testTriggerViaInstallRunsAfterRestart() {
+    public void testTriggerViaInstallRunsAfterRestart() throws Exception {
         final String query = "CALL apoc.trigger.install('neo4j', 'myTrigger', 'unwind $createdNodes as n set n.trigger=true', {phase:'before'})";
-        testTriggerRestartCommon(query);
+
+        final Runnable awaitTrigger = () -> {
+            try {
+                Thread.sleep(TRIGGER_RELOAD_DEFAULT_VALUE + 200);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        };
+        testTriggerRestartCommon(query, awaitTrigger);
     }
 
-    private void testTriggerRestartCommon(String query) {
+    private void testTriggerRestartCommon(String query, Runnable runnable) {
         TestUtil.testCall(db, query, row -> {});
+        runnable.run();
         
         db.executeTransactionally("CREATE (p:Person{id:1})");
         TestUtil.testCallCount(db, "match (n:Person{trigger:true}) return n", Collections.emptyMap(), 1);

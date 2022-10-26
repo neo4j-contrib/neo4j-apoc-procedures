@@ -75,7 +75,7 @@ public class Trigger {
 
     @Procedure(mode = Mode.READ)
     @Description("list all installed triggers")
-    public Stream<TriggerInfo> list() {
+    public Stream<TriggerInfo> show() {
         return triggerHandlerRead.list().entrySet().stream()
                 .map( (e) -> new TriggerInfo(e.getKey(),
                         (String)e.getValue().get("statement"),

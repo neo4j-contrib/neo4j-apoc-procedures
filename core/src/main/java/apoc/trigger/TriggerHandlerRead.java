@@ -1,45 +1,64 @@
 package apoc.trigger;
 
 import apoc.Pools;
+import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventListener;
 import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
+import org.neo4j.scheduler.Group;
+import org.neo4j.scheduler.JobHandle;
+import org.neo4j.scheduler.JobScheduler;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
+import static apoc.ApocConfig.apocConfig;
 import static apoc.trigger.TriggerHandlerWrite.getTriggerNodes;
 import static apoc.trigger.TriggerHandlerWrite.withSystemDb;
 
 
 public class TriggerHandlerRead extends LifecycleAdapter implements TransactionEventListener<Void> {
 
+    public static final int TRIGGER_RELOAD_DEFAULT_VALUE = 3000;
+    public static final String TRIGGER_RELOAD = "apoc.trigger.reload";
+
     private enum Phase {before, after, rollback, afterAsync}
+    
+    private final ConcurrentHashMap<String, Map<String,Object>> activeTriggers = new ConcurrentHashMap<>();
 
     private final Log log;
     private final GraphDatabaseService db;
     private final DatabaseManagementService databaseManagementService;
     private final Pools pools;
+    
+    private final JobScheduler jobScheduler;
+
+    private long lastUpdate;
+
+    private JobHandle restoreTriggerHandler;
 
     private final AtomicBoolean registeredWithKernel = new AtomicBoolean(false);
 
     public TriggerHandlerRead(GraphDatabaseService db, DatabaseManagementService databaseManagementService,
-                              Log log, Pools pools) {
+                              Log log, Pools pools, JobScheduler jobScheduler) {
         this.db = db;
         this.databaseManagementService = databaseManagementService;
         this.log = log;
         this.pools = pools;
+        this.jobScheduler = jobScheduler;
     }
 
 
@@ -73,21 +92,7 @@ public class TriggerHandlerRead extends LifecycleAdapter implements TransactionE
 
     public Map<String,Map<String,Object>> list() {
         TriggerHandlerWrite.checkEnabled();
-        return getTriggers();
-    }
-
-    private Map<String, Map<String, Object>> getTriggers() {
-        // TODO - in `dev` change StreamSupport.stream with Iterators.stream 
-        //      depends on https://github.com/neo4j/apoc/pull/187/files
-        return withSystemDb(
-                tx -> StreamSupport.stream(
-                        getTriggerNodes(db.databaseName(), tx).stream().spliterator(), 
-                                false)
-                        .collect(Collectors.toMap(
-                                node -> (String) node.getProperty( SystemPropertyKeys.name.name() ),
-                                        TriggerHandlerWrite::toTriggerInfo)
-                        )
-        );
+        return Map.copyOf(activeTriggers);
     }
 
     @Override
@@ -130,7 +135,7 @@ public class TriggerHandlerRead extends LifecycleAdapter implements TransactionE
     }
 
     private boolean hasPhase(Phase phase) {
-        return getTriggers().values().stream()
+        return activeTriggers.values().stream()
                 .map(data -> (Map<String, Object>) data.get("selector"))
                 .anyMatch(selector -> when(selector, phase));
     }
@@ -141,7 +146,7 @@ public class TriggerHandlerRead extends LifecycleAdapter implements TransactionE
 
     private void executeTriggers(Transaction tx, TriggerMetadata triggerMetadata, Phase phase) {
         Map<String,String> exceptions = new LinkedHashMap<>();
-        getTriggers().forEach((name, data) -> {
+        activeTriggers.forEach((name, data) -> {
             Map<String, Object> params = triggerMetadata.toMap();
             if (data.get("params") != null) {
                 params.putAll((Map<String, Object>) data.get("params"));
@@ -170,6 +175,43 @@ public class TriggerHandlerRead extends LifecycleAdapter implements TransactionE
 
     @Override
     public void start() throws Exception {
+        updateCache();
+        long refreshInterval = apocConfig().getInt(TRIGGER_RELOAD, TRIGGER_RELOAD_DEFAULT_VALUE);
+        restoreTriggerHandler = jobScheduler.scheduleRecurring(Group.STORAGE_MAINTENANCE, () -> {
+            if (getLastUpdate() > lastUpdate) {
+                updateCache();
+            }
+        }, refreshInterval, refreshInterval, TimeUnit.MILLISECONDS);
+    }
+
+    private long getLastUpdate() {
+        return withSystemDb(tx -> {
+            Node node = tx.findNode(SystemLabels.ApocTriggerMeta, SystemPropertyKeys.database.name(), db.databaseName());
+            return node == null ? 0L : (long) node.getProperty(SystemPropertyKeys.lastUpdated.name());
+        });
+    }
+    
+    private void updateCache() {
+        activeTriggers.clear();
+
+        lastUpdate = System.currentTimeMillis();
+
+        withSystemDb(tx -> {
+            tx.findNodes(SystemLabels.ApocTrigger,
+                    SystemPropertyKeys.database.name(), db.databaseName()).forEachRemaining(
+                    node -> activeTriggers.put(
+                            (String) node.getProperty(SystemPropertyKeys.name.name()),
+                            MapUtil.map(
+                                    "statement", node.getProperty(SystemPropertyKeys.statement.name()),
+                                    "selector", Util.fromJson((String) node.getProperty(SystemPropertyKeys.selector.name()), Map.class),
+                                    "params", Util.fromJson((String) node.getProperty(SystemPropertyKeys.params.name()), Map.class),
+                                    "paused", node.getProperty(SystemPropertyKeys.paused.name())
+                            )
+                    )
+            );
+            return null;
+        });
+
         reconcileKernelRegistration();
     }
 
@@ -177,6 +219,9 @@ public class TriggerHandlerRead extends LifecycleAdapter implements TransactionE
     public void stop() {
         if(registeredWithKernel.compareAndSet(true, false)) {
             databaseManagementService.unregisterTransactionEventListener(db.databaseName(), this);
+        }
+        if (restoreTriggerHandler != null) {
+            restoreTriggerHandler.cancel();
         }
     }
 
