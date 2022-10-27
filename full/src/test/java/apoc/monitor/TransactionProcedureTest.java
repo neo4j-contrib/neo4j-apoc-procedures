@@ -41,8 +41,8 @@ public class TransactionProcedureTest {
             assertThat(peakTx.get(), isOneOf(1l, 2l));
             assertEquals(3l, lastTxId.addAndGet((long) row.get("lastTxId")));
             assertEquals(1l, row.get("currentOpenedTx"));
-            assertEquals(5l, totalOpenedTx.addAndGet((long) row.get("totalOpenedTx")));
-            assertEquals(4l, totalTx.addAndGet((long )row.get("totalTx")));
+            assertEquals(4l, totalOpenedTx.addAndGet((long) row.get("totalOpenedTx")));
+            assertEquals(3l, totalTx.addAndGet((long )row.get("totalTx")));
         });
 
         db.executeTransactionally("create ()");
