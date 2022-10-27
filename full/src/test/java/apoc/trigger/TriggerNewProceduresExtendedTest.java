@@ -54,7 +54,7 @@ public class TriggerNewProceduresExtendedTest {
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, Trigger.class, TriggerDeprecatedProcedures.class, TriggerExtended.class,
+        TestUtil.registerProcedure(db, TriggerNewProcedures.class, Trigger.class, TriggerExtended.class,
                 Nodes.class, Create.class);
     }
 

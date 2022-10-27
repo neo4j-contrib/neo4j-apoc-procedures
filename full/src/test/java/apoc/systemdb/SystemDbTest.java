@@ -6,7 +6,7 @@ import apoc.cypher.CypherExtended;
 import apoc.dv.DataVirtualizationCatalog;
 import apoc.periodic.Periodic;
 import apoc.systemdb.metadata.ExportMetadata;
-import apoc.trigger.Trigger;
+import apoc.trigger.TriggerNewProcedures;
 import apoc.util.TestUtil;
 import apoc.uuid.Uuid;
 import org.hamcrest.Matchers;
@@ -53,7 +53,7 @@ public class SystemDbTest {
         apocConfig().setProperty(ApocConfig.APOC_EXPORT_FILE_ENABLED, true);
         apocConfig().setProperty(ApocConfig.APOC_UUID_ENABLED, true);
         apocConfig().setProperty(ApocConfig.APOC_TRIGGER_ENABLED, true);
-        TestUtil.registerProcedure(db, SystemDb.class, Trigger.class, CypherProcedures.class, Uuid.class, Periodic.class, DataVirtualizationCatalog.class, CypherExtended.class);
+        TestUtil.registerProcedure(db, SystemDb.class, TriggerNewProcedures.class, CypherProcedures.class, Uuid.class, Periodic.class, DataVirtualizationCatalog.class, CypherExtended.class);
     }
 
     @Test

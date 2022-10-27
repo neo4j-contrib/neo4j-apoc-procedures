@@ -68,7 +68,7 @@ public class TriggerNewProceduresTest {
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, Trigger.class, TriggerDeprecatedProcedures.class, Nodes.class);
+        TestUtil.registerProcedure(db, TriggerNewProcedures.class, Trigger.class, Nodes.class);
     }
 
     private void awaitProcedureUpdated(String name, String query) {

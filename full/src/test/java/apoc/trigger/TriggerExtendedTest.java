@@ -34,7 +34,7 @@ public class TriggerExtendedTest {
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, TriggerDeprecatedProcedures.class, TriggerExtended.class, Nodes.class, Create.class);
+        TestUtil.registerProcedure(db, Trigger.class, TriggerExtended.class, Nodes.class, Create.class);
     }
 
     @Test
