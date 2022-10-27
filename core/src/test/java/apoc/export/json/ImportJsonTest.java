@@ -56,7 +56,7 @@ public class ImportJsonTest {
 
     private static final long NODES_BIG_JSON = 16L;
     private static final long RELS_BIG_JSON = 4L;
-    private static File directory = new File("../docs/asciidoc/modules/ROOT/examples/data/exportJSON");
+    public static File directory = new File("../docs/asciidoc/modules/ROOT/examples/data/exportJSON");
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
@@ -358,7 +358,7 @@ public class ImportJsonTest {
         assertionsAllJsonDbResult();
     }
 
-    private void assertionsAllJsonProgressInfo(Map<String, Object> r, boolean isBinary) {
+    public static void assertionsAllJsonProgressInfo(Map<String, Object> r, boolean isBinary) {
         // then
         Assert.assertEquals(isBinary ? null : "all.json", r.get("file"));
         Assert.assertEquals(isBinary ? "binary" : "file", r.get("source"));
