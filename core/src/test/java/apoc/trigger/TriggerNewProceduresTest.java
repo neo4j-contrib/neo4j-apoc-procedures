@@ -2,6 +2,7 @@ package apoc.trigger;
 
 import apoc.util.TestUtil;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.dbms.api.DatabaseNotFoundException;
@@ -34,6 +35,8 @@ public class TriggerNewProceduresTest {
     }
 
     @Test
+    @Ignore("This should works only with Util.validateQuery(ApocConfig.apocConfig().getDatabase(databaseName), statement)" +
+            "Maybe we can remove it")
     public void testInstallTriggerInWrongDb() {
         try {
             testCall(db, "CALL apoc.trigger.install('notExistent', 'name', 'RETURN 1',{})", 
@@ -44,6 +47,8 @@ public class TriggerNewProceduresTest {
     }
 
     @Test
+    @Ignore("This should works only with Util.validateQuery(ApocConfig.apocConfig().getDatabase(databaseName), statement)" +
+            "Maybe we can remove it")
     public void testInstallTriggerInSystemDb() {
         try {
             testCall(db, "CALL apoc.trigger.install('system', 'name', 'RETURN 1',{})", 
