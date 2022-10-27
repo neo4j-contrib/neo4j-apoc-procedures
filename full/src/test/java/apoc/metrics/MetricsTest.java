@@ -3,6 +3,7 @@ package apoc.metrics;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Session;
@@ -15,6 +16,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static apoc.metrics.Metrics.OUTSIDE_DIR_ERR_MSG;
 import static apoc.util.FileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
@@ -57,6 +59,16 @@ public class MetricsTest {
     public static void afterAll() {
         if (neo4jContainer != null && neo4jContainer.isRunning()) {
             neo4jContainer.close();
+        }
+    }
+    
+    @Test
+    public void shouldNotGetFileOutsideMetricsDir() {
+        try {
+            testCall(session, "CALL apoc.metrics.get('../external')",
+                    (r) -> Assert.fail("Should fail because the path is outside the dir "));
+        } catch (RuntimeException e) {
+            assertEquals("Failed to invoke procedure `apoc.metrics.get`: Caused by: java.lang.RuntimeException: " + OUTSIDE_DIR_ERR_MSG, e.getMessage());
         }
     }
 
