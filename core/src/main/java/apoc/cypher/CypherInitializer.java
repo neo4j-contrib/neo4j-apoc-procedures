@@ -15,10 +15,8 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
 import java.util.Collection;
-import java.util.Collections;
 
 import java.util.ConcurrentModificationException;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -66,13 +64,12 @@ public class CypherInitializer implements AvailabilityListener {
 
                 if (defaultDb.equals(db.databaseName())) {
                     try {
-                        final List<String> versions = db.executeTransactionally("CALL dbms.components", Collections.emptyMap(),
-                                r -> (List<String>) r.next().get("versions"));
+                       String neo4jVersion = org.neo4j.kernel.internal.Version.getNeo4jVersion();
                         final String apocFullVersion = Version.class.getPackage().getImplementationVersion();
-                        if (isVersionDifferent(versions, apocFullVersion)) {
+                        if (isVersionDifferent(neo4jVersion, apocFullVersion)) {
                             userLog.warn("The apoc version (%s) and the Neo4j DBMS versions %s are incompatible. \n" +
                                             "See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to see the correct version",
-                                    apocFullVersion, versions.toString());
+                                    apocFullVersion, neo4jVersion);
                         }
                     } catch (Exception ignored) {
                         userLog.info("Cannot check APOC version compatibility because of a transient error. Retrying your request at a later time may succeed");
@@ -97,15 +94,13 @@ public class CypherInitializer implements AvailabilityListener {
     }
 
     // the visibility is public only for testing purpose, it could be private otherwise
-    public static boolean isVersionDifferent(List<String> versions, String apocVersion) {
+    public static boolean isVersionDifferent(String neo4jVersion, String apocVersion) {
         final String[] apocSplit = splitVersion(apocVersion);
-        return versions.stream()
-                .noneMatch(kernelVersion -> {
-                    final String[] kernelSplit = splitVersion(kernelVersion);
-                    return apocSplit != null && kernelSplit != null
-                            && apocSplit[0].equals(kernelSplit[0])
-                            && apocSplit[1].equals(kernelSplit[1]);
-                });
+        final String[] neo4jSplit = splitVersion(neo4jVersion);
+
+        return !(apocSplit != null && neo4jSplit != null
+                && apocSplit[0].equals(neo4jSplit[0])
+                && apocSplit[1].equals(neo4jSplit[1]));
     }
 
     private static String[] splitVersion(String completeVersion) {
