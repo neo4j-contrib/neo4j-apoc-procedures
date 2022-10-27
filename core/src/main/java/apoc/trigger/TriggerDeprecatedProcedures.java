@@ -23,7 +23,7 @@ public class TriggerDeprecatedProcedures {
     @Context
     public GraphDatabaseService db;
 
-    @Context public TriggerDeprecatedProcsHandler triggerHandler;
+    @Context public TriggerHandler triggerHandler;
 
     @Context public Log log;
 

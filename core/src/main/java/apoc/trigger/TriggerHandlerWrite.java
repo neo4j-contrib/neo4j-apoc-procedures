@@ -45,14 +45,16 @@ public class TriggerHandlerWrite {
     }
 
     public static Map<String, Object> install(String databaseName, String triggerName, String statement, Map<String,Object> selector, Map<String,Object> params) {
-        checkEnabled();
         final HashMap<String, Object> previous = new HashMap<>();
 
         withSystemDb(tx -> {
             Node node = Util.mergeNode(tx, SystemLabels.ApocTrigger, null,
                     Pair.of(SystemPropertyKeys.database.name(), databaseName),
                     Pair.of(SystemPropertyKeys.name.name(), triggerName));
+            
+            // we'll return previous trigger info
             previous.putAll(TriggerHandlerWrite.toTriggerInfo(node));
+            
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
             node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
             node.setProperty(SystemPropertyKeys.params.name(), Util.toJson(params));
@@ -66,7 +68,6 @@ public class TriggerHandlerWrite {
     }
 
     public static Map<String, Object> drop(String databaseName, String triggerName) {
-        checkEnabled();
         final HashMap<String, Object> previous = new HashMap<>();
 
         withSystemDb(tx -> {
@@ -84,13 +85,14 @@ public class TriggerHandlerWrite {
     }
 
     public static Map<String, Object> updatePaused(String databaseName, String name, boolean paused) {
-        checkEnabled();
         HashMap<String, Object> result = new HashMap<>();
 
         withSystemDb(tx -> {
             getTriggerNodes(databaseName, tx, name)
                     .forEachRemaining(node -> {
                         node.setProperty( SystemPropertyKeys.paused.name(), paused );
+
+                        // we'll return previous trigger info
                         result.putAll(TriggerHandlerWrite.toTriggerInfo(node));
                     });
 
@@ -102,13 +104,14 @@ public class TriggerHandlerWrite {
     }
 
     public static Map<String, Object> dropAll(String databaseName) {
-        checkEnabled();
         HashMap<String, Object> previous = new HashMap<>();
 
         withSystemDb(tx -> {
             getTriggerNodes(databaseName, tx)
                     .forEachRemaining(node -> {
                         String triggerName = (String) node.getProperty(SystemPropertyKeys.name.name());
+
+                        // we'll return previous trigger info
                         previous.put(triggerName, TriggerHandlerWrite.toTriggerInfo(node));
                         node.delete();
                     });

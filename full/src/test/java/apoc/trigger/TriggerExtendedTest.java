@@ -4,6 +4,7 @@ import apoc.create.Create;
 import apoc.nodes.Nodes;
 import apoc.util.TestUtil;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,12 +15,15 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 import static apoc.ApocSettings.apoc_trigger_enabled;
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
@@ -30,31 +34,59 @@ import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestrict
  */
 @RunWith(Parameterized.class)
 public class TriggerExtendedTest {
+    private static final String NEW_PROC_ADD = "CALL apoc.trigger.install('neo4j', ";
+    private static final long RELOAD_VALUE = 100;
+    
     @Parameterized.Parameters
     public static List<Object> data() {
-        return List.of("CALL apoc.trigger.add(", 
-                "CALL apoc.trigger.install('neo4j', ");
+        return List.of("CALL apoc.trigger.add(", NEW_PROC_ADD);
     }
 
     @Parameterized.Parameter
     public String triggerProc;
+
+    private static File directory = new File("target/conf");
+
+    static { //noinspection ResultOfMethodCallIgnored
+        directory.mkdirs();
+    }
     
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(procedure_unrestricted, List.of("apoc*"))
             .withSetting(apoc_trigger_enabled, true);  // need to use settings here, apocConfig().setProperty in `setUp` is too late
 
-    private long start;
 
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        // we cannot set via ApocConfig.apocConfig().setProperty(TRIGGER_REFRESH, "100") in `setUp`, because is too late
+        final File conf = new File(directory, "apoc.conf");
+        try (FileWriter writer = new FileWriter(conf)) {
+            writer.write("apoc.trigger.reload=" + RELOAD_VALUE);
+        }
+        System.setProperty(SUN_JAVA_COMMAND, "config-dir=" + directory.getAbsolutePath());
+    }
+    
     @Before
     public void setUp() throws Exception {
-        start = System.currentTimeMillis();
-        TestUtil.registerProcedure(db, Trigger.class, TriggerDeprecatedProcedures.class, TriggerExtended.class, Nodes.class, Create.class);
+        TestUtil.registerProcedure(db, Trigger.class, TriggerDeprecatedProcedures.class, TriggerExtended.class,
+                Nodes.class, Create.class);
+    }
+
+    private void awaitNewProcs() {
+        if (triggerProc.equals(NEW_PROC_ADD)) {
+            try {
+                Thread.sleep(RELOAD_VALUE + 200);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Test
     public void testTimeStampTriggerForUpdatedProperties() throws Exception {
         db.executeTransactionally(triggerProc + "'timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
+        awaitNewProcs();
         db.executeTransactionally("CREATE (f:Foo) SET f.foo='bar'");
         TestUtil.testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
             assertEquals(true, ((Node)row.get("f")).hasProperty("ts"));
@@ -65,6 +97,7 @@ public class TriggerExtendedTest {
     public void testLowerCaseName() throws Exception {
         db.executeTransactionally("create constraint on (p:Person) assert p.id is unique");
         db.executeTransactionally(triggerProc + "'lowercase','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n.id = toLower(n.name)',{})");
+        awaitNewProcs();
         db.executeTransactionally("CREATE (f:Person {name:'John Doe'})");
         TestUtil.testCall(db, "MATCH (f:Person) RETURN f", (row) -> {
             assertEquals("john doe", ((Node)row.get("f")).getProperty("id"));
@@ -75,6 +108,7 @@ public class TriggerExtendedTest {
     public void testSetLabels() throws Exception {
         db.executeTransactionally("CREATE (f {name:'John Doe'})");
         db.executeTransactionally(triggerProc + "'setlabels','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n:Man',{})");
+        awaitNewProcs();
         db.executeTransactionally("MATCH (f) SET f:Person");
         TestUtil.testCall(db, "MATCH (f:Man) RETURN f", (row) -> {
             assertEquals("John Doe", ((Node)row.get("f")).getProperty("name"));
@@ -93,6 +127,7 @@ public class TriggerExtendedTest {
                 "	CREATE (z:SON {father:id(n)}) " +
                 "	CREATE (n)-[:GENERATED]->(z)', " +
                 "{phase:'afterAsync'})");
+        awaitNewProcs();
         db.executeTransactionally("CREATE (:TEST {name:'x', _executed:0})");
         db.executeTransactionally("CREATE (:TEST {name:'y', _executed:0})");
         org.neo4j.test.assertion.Assert.assertEventually(() -> db.executeTransactionally("MATCH p = ()-[r:GENERATED]->() RETURN count(p) AS count",
@@ -118,6 +153,7 @@ public class TriggerExtendedTest {
         
         db.executeTransactionally(triggerProc + "'issue1152', $query , {phase: $phase})",
                 Map.of("query", query, "phase", phase));
+        awaitNewProcs();
 
         db.executeTransactionally("MATCH (f:To:Delete) DELETE f");
 
@@ -159,6 +195,7 @@ public class TriggerExtendedTest {
     private void testRetrievePropsDeletedRelationshipCommon(String phase, String triggerQuery, String assertionQuery) {
         db.executeTransactionally(triggerProc + "'myTrigger', $query , {phase: $phase})",
                 Map.of("name", UUID.randomUUID().toString(), "query", triggerQuery, "phase", phase));
+        awaitNewProcs();
         db.executeTransactionally("MATCH (:Start)-[r:MY_TYPE]->(:End) DELETE r");
 
         TestUtil.testCall(db, assertionQuery, (row) -> {

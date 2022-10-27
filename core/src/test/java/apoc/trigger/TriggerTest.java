@@ -51,15 +51,13 @@ public class TriggerTest {
                         "CALL apoc.trigger.remove(",
                         "CALL apoc.trigger.removeAll()",
                         "CALL apoc.trigger.pause(",
-                        "CALL apoc.trigger.resume(", 
-                        "CALL apoc.trigger.list"},
+                        "CALL apoc.trigger.resume("},
                 // new procedures
                 {NEW_PROC_ADD,
                         "CALL apoc.trigger.drop('neo4j', ",
                         "CALL apoc.trigger.dropAll('neo4j')",
                         "CALL apoc.trigger.stop('neo4j', ",
-                        "CALL apoc.trigger.start('neo4j', ",
-                        "CALL apoc.trigger.show" }
+                        "CALL apoc.trigger.start('neo4j', "}
         });
     }
 
@@ -78,9 +76,11 @@ public class TriggerTest {
     @Parameterized.Parameter(4)
     public String triggerResume;
 
-    @Parameterized.Parameter(5)
-    public String triggerList;
-    
+    private static File directory = new File("target/conf");
+
+    static { //noinspection ResultOfMethodCallIgnored
+        directory.mkdirs();
+    }
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
@@ -92,10 +92,9 @@ public class TriggerTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
         // we cannot set via ApocConfig.apocConfig().setProperty(TRIGGER_REFRESH, "100") in `setUp`, because is too late
-        final File directory = new File("target/import");
         final File conf = new File(directory, "apoc.conf");
         try (FileWriter writer = new FileWriter(conf)) {
-            writer.write("apoc.trigger.reload=" + RELOAD_VALUE);
+            writer.write("apoc.trigger.refresh=" + RELOAD_VALUE);
         }
         System.setProperty(SUN_JAVA_COMMAND, "config-dir=" + directory.getAbsolutePath());
     }
@@ -107,7 +106,6 @@ public class TriggerTest {
     }
     
     private void awaitNewProcs() {
-        // if we use new procedures, e.g. apoc.trigger.install, we await the for the cache update  
         if (triggerAdd.equals(NEW_PROC_ADD)) {
             try {
                 Thread.sleep(RELOAD_VALUE + 200);
@@ -125,7 +123,7 @@ public class TriggerTest {
                 1);
         awaitNewProcs();
         
-        TestUtil.testCall(db, triggerList, (row) -> {
+        TestUtil.testCall(db, "CALL apoc.trigger.list()", (row) -> {
             assertEquals("count-removals", row.get("name"));
             assertEquals(query, row.get("query"));
             assertEquals(true, row.get("installed"));
@@ -174,7 +172,7 @@ public class TriggerTest {
         TestUtil.testCallCount(db, triggerAdd + "'to-be-removed','RETURN 1',{}) YIELD name RETURN name", 1);
         awaitNewProcs();
         
-        TestUtil.testCall(db, triggerList, (row) -> {
+        TestUtil.testCall(db, "CALL apoc.trigger.list()", (row) -> {
             assertEquals("to-be-removed", row.get("name"));
             assertEquals("RETURN 1", row.get("query"));
             assertEquals(true, row.get("installed"));
@@ -186,7 +184,7 @@ public class TriggerTest {
         });
         awaitNewProcs();
 
-        TestUtil.testCallCount(db, triggerList, 0);
+        TestUtil.testCallCount(db, "CALL apoc.trigger.list()", 0);
         TestUtil.testCall(db, triggerRemove + "'to-be-removed')", (row) -> {
             assertEquals("to-be-removed", row.get("name"));
             assertEquals(null, row.get("query"));
@@ -201,7 +199,7 @@ public class TriggerTest {
         TestUtil.testCallCount(db, triggerAdd + "'to-be-removed-1','RETURN 1',{}) YIELD name RETURN name", 1);
         TestUtil.testCallCount(db, triggerAdd + "'to-be-removed-2','RETURN 2',{}) YIELD name RETURN name", 1);
         awaitNewProcs();
-        TestUtil.testCallCount(db, triggerList, 2);
+        TestUtil.testCallCount(db, "CALL apoc.trigger.list()", 2);
         TestUtil.testResult(db, triggerRemoveAll, (res) -> {
             Map<String, Object> row = res.next();
             assertEquals("to-be-removed-1", row.get("name"));
@@ -214,7 +212,7 @@ public class TriggerTest {
             assertFalse(res.hasNext());
         });
         awaitNewProcs();
-        TestUtil.testCallCount(db, triggerList, 0);
+        TestUtil.testCallCount(db, "CALL apoc.trigger.list()", 0);
         TestUtil.testCallCount(db, triggerRemoveAll, 0);
     }
 
@@ -281,7 +279,7 @@ public class TriggerTest {
         awaitNewProcs();
         db.executeTransactionally(triggerPause + "'test')");
         awaitNewProcs();
-        TestUtil.testCall(db, triggerList, (row) -> {
+        TestUtil.testCall(db, "CALL apoc.trigger.list()", (row) -> {
             assertEquals("test", row.get("name"));
             assertEquals(true, row.get("installed"));
             assertEquals(true, row.get("paused"));
