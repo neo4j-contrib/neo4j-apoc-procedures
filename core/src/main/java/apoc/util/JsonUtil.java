@@ -29,6 +29,8 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.load.util.ConversionUtil.SilentDeserializer;
+
 /**
  * @author mh
  * @since 04.05.16
@@ -65,13 +67,13 @@ public class JsonUtil {
         }
     }
 
-    private static Configuration getJsonPathConfig(List<String> options) {
+    private static Configuration getJsonPathConfig(List<String> options, ObjectMapper objectMapper) {
         try {
             Option[] opts = options == null ? defaultJsonPathOptions : options.stream().map(Option::valueOf).toArray(Option[]::new);
             return Configuration.builder()
                     .options(opts)
-                    .jsonProvider(new JacksonJsonProvider(OBJECT_MAPPER))
-                    .mappingProvider(new JacksonMappingProvider(OBJECT_MAPPER))
+                    .jsonProvider(new JacksonJsonProvider(objectMapper))
+                    .mappingProvider(new JacksonMappingProvider(objectMapper))
                     .build();
         } catch (Exception e) {
             throw new RuntimeException(PATH_OPTIONS_ERROR_MESSAGE, e);
@@ -96,7 +98,7 @@ public class JsonUtil {
             JsonParser parser = OBJECT_MAPPER.getFactory().createParser(input);
             MappingIterator<Object> it = OBJECT_MAPPER.readValues(parser, Object.class);
             Stream<Object> stream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(it, 0), false);
-            return StringUtils.isBlank(path) ? stream : stream.map((value) -> JsonPath.parse(value, getJsonPathConfig(options)).read(path));
+            return StringUtils.isBlank(path) ? stream : stream.map((value) -> JsonPath.parse(value, getJsonPathConfig(options, OBJECT_MAPPER)).read(path));
         } catch (IOException e) {
             if(!failOnError) {
                 return Stream.of();
@@ -115,19 +117,47 @@ public class JsonUtil {
     }
     
     public static <T> T parse(String json, String path, Class<T> type, List<String> options) {
+        return parse(json, path, type, options, false);
+    }
+    
+    public static <T> T parse(String json, String path, Class<T> type, List<String> options, /*boolean failOnError,*/ boolean validation) {
+        
         if (json==null || json.isEmpty()) return null;
         try {
+            SilentDeserializer deserializer = validation 
+                    ? new SilentDeserializer(null, null)
+                    : null;
+            ObjectMapper objectMapper = getObjectMapper(deserializer);
             final String listOpt = Option.ALWAYS_RETURN_LIST.name();
             if (type == Map.class && options != null && options.contains(listOpt)) {
                 throw new RuntimeException("It's not possible to use " + listOpt + " option because the conversion should return a Map");
             }
             if (path == null || path.isEmpty()) {
-                return OBJECT_MAPPER.readValue(json, type);
+                final T t = (T) objectMapper.readValue(json, Object.class);
+                return getJson(deserializer, t);
             }
-            return JsonPath.parse(json, getJsonPathConfig(options)).read(path, type);
+            final T jsonParsed = JsonPath.parse(json, getJsonPathConfig(options, objectMapper)).read(path, type);
+            return getJson(deserializer, jsonParsed);
         } catch (IOException e) {
             throw new RuntimeException("Can't convert " + json + " to "+type.getSimpleName()+" with path "+path, e);
         }
+    }
+
+    private static <T> T getJson(SilentDeserializer deserializer, T json) {
+        if (deserializer ==null) {
+            return json;
+        }
+        return (T) deserializer.getErrorList();
+    }
+
+    private static ObjectMapper getObjectMapper(SilentDeserializer deserializer) {
+        if (deserializer ==null) {
+            return OBJECT_MAPPER;
+        }
+        SimpleModule module = new SimpleModule("SilentModule")
+                .addDeserializer(Object.class, deserializer);
+        return OBJECT_MAPPER.copy().registerModule(module);
+    
     }
 
     public static String writeValueAsString(Object json) {

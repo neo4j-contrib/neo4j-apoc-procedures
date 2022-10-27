@@ -58,3 +58,18 @@ RETURN apoc.json.path('{ "columns": {
 | Output
 | [ {"col2": { "_id": "772col2" }} ]
 |===
+
+
+Also, we could leverage the `apoc.json.validate` procedure (provided with APOC full) to handle incorrectly formatted JSONs by continuing the execution instead of causing it to fail.
+For example, the following query returns 0 instead of failing due to `InputCoercionException: Numeric value (18446744062065078016838) out of range`:
+
+[source, cypher]
+----
+WITH '{
+  "foo": ["1", {"bar": 18446744062065078016838}, {"baz":  18446744062065078016838} ],
+  "baz": 7
+}' as json
+CALL { WITH json CALL apoc.json.validate(json) YIELD value RETURN collect(value) AS errs }
+RETURN CASE errs WHEN [] THEN apoc.json.path(json) ELSE 0 END AS value
+
+----

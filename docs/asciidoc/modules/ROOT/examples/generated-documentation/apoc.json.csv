@@ -1,4 +1,9 @@
 ¦Qualified Name¦Type¦Release
+|xref::overview/apoc.json/apoc.json.adoc[apoc.json.validate icon:book[]]
+
+apoc.json.validate('\{json}' [,'json-path' , 'path-options'])
+|label:procedure[]
+|label:apoc-full[]
 |xref::overview/apoc.json/apoc.json.adoc[apoc.json.path icon:book[]]
 
 apoc.json.path('\{json}','json-path')
