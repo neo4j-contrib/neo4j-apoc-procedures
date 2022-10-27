@@ -4,6 +4,7 @@ import apoc.create.Create;
 import apoc.nodes.Nodes;
 import apoc.util.TestUtil;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.Entity;
@@ -12,44 +13,82 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 import static apoc.ApocSettings.apoc_trigger_enabled;
+import static apoc.util.TestUtil.testCallEventually;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
 
-/**
- * @author mh
- * @since 20.09.16
- */
-public class TriggerExtendedTest {
+public class TriggerNewProceduresExtendedTest {
+    private static final long TIMEOUT = 1L;
+
+    private static final File directory = new File("target/conf");
+    static { //noinspection ResultOfMethodCallIgnored
+        directory.mkdirs();
+    }
+
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        // we cannot set via ApocConfig.apocConfig().setProperty("apoc.trigger.refresh", "100") in `setUp`, because is too late
+        final File conf = new File(directory, "apoc.conf");
+        try (FileWriter writer = new FileWriter(conf)) {
+            writer.write("apoc.trigger.refresh=100");
+        }
+        System.setProperty(SUN_JAVA_COMMAND, "config-dir=" + directory.getAbsolutePath());
+    }
+
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(procedure_unrestricted, List.of("apoc*"))
             .withSetting(apoc_trigger_enabled, true);  // need to use settings here, apocConfig().setProperty in `setUp` is too late
 
+
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, TriggerDeprecatedProcedures.class, TriggerExtended.class, Nodes.class, Create.class);
+        TestUtil.registerProcedure(db, Trigger.class, TriggerDeprecatedProcedures.class, TriggerExtended.class,
+                Nodes.class, Create.class);
     }
 
+    private void awaitProcedureUpdated(String name, String query) {
+        testCallEventually(db, "CALL apoc.trigger.list() YIELD name, query WHERE name = $name RETURN query",
+                Map.of("name", name),
+                row -> assertEquals(query, row.get("query")),
+                TIMEOUT);
+    }
+
+    //
+    // test cases taken and adapted from TriggerExtendedTest.java
+    //
+    
     @Test
-    public void testTimeStampTriggerForUpdatedProperties() throws Exception {
-        db.executeTransactionally("CALL apoc.trigger.add('timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
+    public void testTimeStampTriggerForUpdatedProperties() {
+        final String name = "timestamp";
+        final String query = "UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()";
+        db.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {})",
+                Map.of("name", name, "query", query));
+        awaitProcedureUpdated(name, query);
         db.executeTransactionally("CREATE (f:Foo) SET f.foo='bar'");
-        TestUtil.testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
-            assertEquals(true, ((Node)row.get("f")).hasProperty("ts"));
-        });
+        TestUtil.testCall(db, "MATCH (f:Foo) RETURN f",
+                (row) -> assertTrue(((Node) row.get("f")).hasProperty("ts")));
     }
 
     @Test
-    public void testLowerCaseName() throws Exception {
+    public void testLowerCaseName() {
         db.executeTransactionally("create constraint on (p:Person) assert p.id is unique");
-        db.executeTransactionally("CALL apoc.trigger.add('lowercase','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n.id = toLower(n.name)',{})");
+        final String name = "lowercase";
+        final String query = "UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n.id = toLower(n.name)";
+        db.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {})",
+                Map.of("name", name, "query", query));
+        awaitProcedureUpdated(name, query);
         db.executeTransactionally("CREATE (f:Person {name:'John Doe'})");
         TestUtil.testCall(db, "MATCH (f:Person) RETURN f", (row) -> {
             assertEquals("john doe", ((Node)row.get("f")).getProperty("id"));
@@ -57,13 +96,17 @@ public class TriggerExtendedTest {
         });
     }
     @Test
-    public void testSetLabels() throws Exception {
+    public void testSetLabels() {
         db.executeTransactionally("CREATE (f {name:'John Doe'})");
-        db.executeTransactionally("CALL apoc.trigger.add('setlabels','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n:Man',{})");
+        final String name = "setlabels";
+        final String query = "UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n:Man";
+        db.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {})",
+                Map.of("name", name, "query", query));
+        awaitProcedureUpdated(name, query);
         db.executeTransactionally("MATCH (f) SET f:Person");
         TestUtil.testCall(db, "MATCH (f:Man) RETURN f", (row) -> {
             assertEquals("John Doe", ((Node)row.get("f")).getProperty("name"));
-            assertEquals(true, ((Node)row.get("f")).hasLabel(Label.label("Person")));
+            assertTrue(((Node) row.get("f")).hasLabel(Label.label("Person")));
         });
 
         long count = TestUtil.singleResultFirstColumn(db, "MATCH (f:Man) RETURN count(*) as c");
@@ -72,37 +115,42 @@ public class TriggerExtendedTest {
 
 
     @Test
-    public void testTxIdAfterAsync() throws Exception {
-        db.executeTransactionally("CALL apoc.trigger.add('triggerTest','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, \"_executed\") as prop " +
+    public void testTxIdAfterAsync() {
+        final String name = "triggerTest";
+        final String query = "UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, \"_executed\") as prop " +
                 "	WITH prop.node as n " +
                 "	CREATE (z:SON {father:id(n)}) " +
-                "	CREATE (n)-[:GENERATED]->(z)', " +
-                "{phase:'afterAsync'})");
+                "	CREATE (n)-[:GENERATED]->(z)";
+        db.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase:'afterAsync'})",
+                Map.of("name", name, "query", query));
+        awaitProcedureUpdated(name, query);
         db.executeTransactionally("CREATE (:TEST {name:'x', _executed:0})");
         db.executeTransactionally("CREATE (:TEST {name:'y', _executed:0})");
         org.neo4j.test.assertion.Assert.assertEventually(() -> db.executeTransactionally("MATCH p = ()-[r:GENERATED]->() RETURN count(p) AS count",
-                Collections.emptyMap(), (r) -> r.<Long>columnAs("count").next()),
+                        Collections.emptyMap(), (r) -> r.<Long>columnAs("count").next()),
                 (value) -> value == 2L, 30, TimeUnit.SECONDS);
     }
 
     @Test
     public void testIssue1152() {
         db.executeTransactionally("CREATE (n:To:Delete {prop1: 'val1', prop2: 'val2'}) RETURN id(n) as id");
-        
+
         testIssue1152Common("before");
         testIssue1152Common("after");
     }
 
     private void testIssue1152Common(String phase) {
         // we check also that we can execute write operation (through virtualNode functions, e.g. apoc.create.addLabels)
+        final String name = "issue1152";
         final String query = "UNWIND $deletedNodes as deletedNode " +
                 "WITH apoc.trigger.toNode(deletedNode, $removedLabels, $removedNodeProperties) AS deletedNode " +
                 "CREATE (r:Report {id: id(deletedNode)}) WITH r, deletedNode " +
                 "CALL apoc.create.addLabels(r, apoc.node.labels(deletedNode)) yield node with node, deletedNode " +
                 "set node+=apoc.any.properties(deletedNode)";
         
-        db.executeTransactionally("call apoc.trigger.add('issue1152', $query , {phase: $phase})",
-                Map.of("query", query, "phase", phase));
+        db.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query,{phase: $phase})",
+                Map.of("name", name, "query", query, "phase", phase));
+        awaitProcedureUpdated(name, query);
 
         db.executeTransactionally("MATCH (f:To:Delete) DELETE f");
 
@@ -116,7 +164,7 @@ public class TriggerExtendedTest {
     @Test
     public void testRetrievePropsDeletedRelationship() {
         db.executeTransactionally("CREATE (s:Start)-[r:MY_TYPE {prop1: 'val1', prop2: 'val2'}]->(e:End), (s)-[:REMAINING_REL]->(e)");
-        
+
         final String query = "UNWIND $deletedRelationships as deletedRel " +
                 "WITH apoc.trigger.toRelationship(deletedRel, $removedRelationshipProperties) AS deletedRel " +
                 "MATCH (s)-[r:REMAINING_REL]->(e) WITH r, deletedRel " +
@@ -130,7 +178,7 @@ public class TriggerExtendedTest {
     @Test
     public void testRetrievePropsDeletedRelationshipWithQueryCreation() {
         db.executeTransactionally("CREATE (:Start)-[r:MY_TYPE {prop1: 'val1', prop2: 'val2'}]->(:End)");
-        
+
         final String query = "UNWIND $deletedRelationships as deletedRel " +
                 "WITH apoc.trigger.toRelationship(deletedRel, $removedRelationshipProperties) AS deletedRel " +
                 "CREATE (r:Report {type: type(deletedRel)}) WITH r, deletedRel " +
@@ -142,8 +190,10 @@ public class TriggerExtendedTest {
     }
 
     private void testRetrievePropsDeletedRelationshipCommon(String phase, String triggerQuery, String assertionQuery) {
-        db.executeTransactionally("call apoc.trigger.add('myTrigger', $query , {phase: $phase})",
-                Map.of("name", UUID.randomUUID().toString(), "query", triggerQuery, "phase", phase));
+        final String name = UUID.randomUUID().toString();
+        db.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query,{phase: $phase})",
+                Map.of("name", name, "query", triggerQuery, "phase", phase));
+        awaitProcedureUpdated(name, triggerQuery);
         db.executeTransactionally("MATCH (:Start)-[r:MY_TYPE]->(:End) DELETE r");
 
         TestUtil.testCall(db, assertionQuery, (row) -> {

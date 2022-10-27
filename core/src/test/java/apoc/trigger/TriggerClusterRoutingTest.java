@@ -6,8 +6,6 @@ import apoc.util.TestcontainersCausalCluster;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.driver.types.Node;
-import org.neo4j.internal.helpers.collection.MapUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,7 +23,7 @@ public class TriggerClusterRoutingTest {
     @BeforeClass
     public static void setupCluster() {
         cluster = TestContainerUtil
-                .createEnterpriseCluster(3, 1, Collections.emptyMap(), MapUtil.stringMap(
+                .createEnterpriseCluster(3, 1, Collections.emptyMap(), Map.of(
                         "NEO4J_dbms_routing_enabled", "true",
                         "apoc.trigger.enabled", "true"
                 ));
@@ -52,10 +50,6 @@ public class TriggerClusterRoutingTest {
             if ("LEADER".equals(systemRole)) {
                 container.getSession().run("CALL apoc.trigger.add($name, 'UNWIND $createdNodes AS n SET n.ts = timestamp()',{})",
                         Map.of("name", "trigger-" + container.getContainerName()));
-
-                container.getSession().run("CREATE (f:Foo)");
-                TestContainerUtil.testCall(container.getSession(), "MATCH (f:Foo) RETURN f",
-                        (row) -> assertTrue(((Node) row.get("f")).containsKey("ts")));
             } else {
                 try {
                     TestContainerUtil.testCall(container.getSession(), "CALL apoc.trigger.add($name, 'UNWIND $createdNodes AS n SET n.ts = timestamp()',{})",

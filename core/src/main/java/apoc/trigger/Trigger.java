@@ -1,5 +1,6 @@
 package apoc.trigger;
 
+import apoc.ApocConfig;
 import apoc.util.Util;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -78,7 +79,9 @@ public class Trigger {
     @Description("CALL apoc.trigger.install(databaseName, name, statement, selector, config) | add a trigger kernelTransaction under a name, in the kernelTransaction you can use $createdNodes, $deletedNodes etc., the selector is {phase:'before/after/rollback/afterAsync'} returns previous and new trigger information. Takes in an optional configuration.")
     public Stream<TriggerInfo> install(@Name("databaseName") String databaseName, @Name("name") String name, @Name("kernelTransaction") String statement, @Name(value = "selector")  Map<String,Object> selector, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
         checkTriggerEnabledAndProcedureRouted();
-        Util.validateQuery(db, statement);
+        // TODO - to be deleted in 5.x, because in a cluster, not all DBMS host all the databases on them,
+        // so we have to assume that the leader of the system database doesn't have access to this user database
+        Util.validateQuery(ApocConfig.apocConfig().getDatabase(databaseName), statement);
 
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
         Map<String, Object> removed = TriggerHandlerWrite.install(databaseName, name, statement, selector, params);

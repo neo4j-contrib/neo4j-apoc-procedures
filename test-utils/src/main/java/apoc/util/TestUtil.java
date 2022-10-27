@@ -12,6 +12,7 @@ import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.test.assertion.Assert;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,11 +25,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeFalse;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 /**
  * @author mh
@@ -42,15 +45,40 @@ public class TestUtil {
     public static void testCall(GraphDatabaseService db, String call,Map<String,Object> params, Consumer<Map<String, Object>> consumer) {
         testResult(db, call, params, (res) -> {
             try {
-                assertTrue("Should have an element",res.hasNext());
-                Map<String, Object> row = res.next();
-                consumer.accept(row);
-                assertFalse("Should not have a second element",res.hasNext());
+                testCallAssertions(res, consumer);
             } catch(Throwable t) {
                 printFullStackTrace(t);
                 throw t;
             }
         });
+    }
+
+    public static void testCallCountEventually(GraphDatabaseService db, String call, int expected, long timeout) {
+        testCallCountEventually(db, call, Collections.emptyMap(), expected, timeout);
+    }
+
+    public static void testCallCountEventually(GraphDatabaseService db, String call, Map<String,Object> params, int expected, long timeout) {
+        assertEventually(() -> TestUtil.count(db, call, params),
+                (val) -> val == expected,
+                timeout, TimeUnit.SECONDS);
+    }
+
+    public static void testCallEventually(GraphDatabaseService db, String call, Consumer<Map<String, Object>> consumer, long timeout) {
+        testCallEventually(db, call, Collections.emptyMap(), consumer, timeout);
+    }
+
+    public static void testCallEventually(GraphDatabaseService db, String call, Map<String,Object> params, Consumer<Map<String, Object>> consumer, long timeout) {
+        Assert.assertEventually(() -> db.executeTransactionally(call, params, r -> {
+            testCallAssertions(r, consumer);
+            return true;
+        }), (v) -> v, timeout, TimeUnit.SECONDS);
+    }
+
+    public static void testCallAssertions(Result res, Consumer<Map<String, Object>> consumer) {
+        assertTrue("Should have an element", res.hasNext());
+        Map<String, Object> row = res.next();
+        consumer.accept(row);
+        assertFalse("Should not have a second element", res.hasNext());
     }
 
     public static void printFullStackTrace(Throwable e) {
