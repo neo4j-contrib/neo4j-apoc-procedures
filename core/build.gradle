@@ -68,6 +68,7 @@ dependencies {
         exclude group: "org.yaml"
         exclude module: "snakeyaml"
         exclude module: "commons-lang3"
+        exclude module: "commons-text"
     }
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.26'
     compile group: 'com.github.seancfoley', name: 'ipaddress', version: '5.3.3'
