@@ -140,7 +140,7 @@ dependencies {
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
 
-    compile group: 'com.opencsv', name: 'opencsv', version: '4.6'
+    compile group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
     compile group: 'com.github.javafaker', name: 'javafaker', version: '1.0.2'

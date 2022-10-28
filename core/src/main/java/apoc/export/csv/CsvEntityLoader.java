@@ -187,61 +187,64 @@ public class CsvEntityLoader {
                     .collect(Collectors.toList());
 
             final Map<String, Mapping> mapping = getMapping(fields);
+            final var parser = new CSVParserBuilder().withSeparator(clc.getDelimiter()).build();
 
-            final CSVReader csv = new CSVReader(reader, clc.getDelimiter());
-            final String[] loadCsvCompatibleHeader = fields.stream().map(f -> f.getName()).toArray(String[]::new);
+            try (final var csv = new CSVReaderBuilder(reader).withCSVParser(parser).build()) {
 
-            AtomicInteger lineNo = new AtomicInteger();
-            BatchTransaction btx = new BatchTransaction(db, clc.getBatchSize(), reporter);
-            try {
-                csv.forEach(line -> {
-                    lineNo.getAndIncrement();
+                final String[] loadCsvCompatibleHeader = fields.stream().map(f -> f.getName()).toArray(String[]::new);
 
-                    final EnumSet<Results> results = EnumSet.of(Results.map);
-                    final CSVResult result = new CSVResult(
-                            loadCsvCompatibleHeader, line, lineNo.get(), false, mapping, Collections.emptyList(), results
-                    );
+                AtomicInteger lineNo = new AtomicInteger();
+                BatchTransaction btx = new BatchTransaction(db, clc.getBatchSize(), reporter);
+                try {
+                    csv.forEach(line -> {
+                        lineNo.getAndIncrement();
 
-                    final Object startId = result.map.get(CsvLoaderConstants.START_ID_ATTR);
-                    final Object startInternalId = idMapping.get(startIdField.getIdSpace()).get(startId);
-                    if (startInternalId == null) {
-                        throw new IllegalStateException("Node for id space " + endIdField.getIdSpace() + " and id " + startId + " not found");
-                    }
-                    final Node source = btx.getTransaction().getNodeById((long) startInternalId);
+                        final EnumSet<Results> results = EnumSet.of(Results.map);
+                        final CSVResult result = new CSVResult(
+                                loadCsvCompatibleHeader, line, lineNo.get(), false, mapping, Collections.emptyList(), results
+                        );
 
-                    final Object endId = result.map.get(CsvLoaderConstants.END_ID_ATTR);
-                    final Object endInternalId = idMapping.get(endIdField.getIdSpace()).get(endId);
-                    if (endInternalId == null) {
-                        throw new IllegalStateException("Node for id space " + endIdField.getIdSpace() + " and id " + endId + " not found");
-                    }
-                    final Node target = btx.getTransaction().getNodeById((long) endInternalId);
+                        final Object startId = result.map.get(CsvLoaderConstants.START_ID_ATTR);
+                        final Object startInternalId = idMapping.get(startIdField.getIdSpace()).get(startId);
+                        if (startInternalId == null) {
+                            throw new IllegalStateException("Node for id space " + endIdField.getIdSpace() + " and id " + startId + " not found");
+                        }
+                        final Node source = btx.getTransaction().getNodeById((long) startInternalId);
 
-                    final String currentType;
-                    final Object overridingType = result.map.get(CsvLoaderConstants.TYPE_ATTR);
-                    if (overridingType != null && !((String) overridingType).isEmpty()) {
-                        currentType = (String) overridingType;
-                    } else {
-                        currentType = type;
-                    }
-                    final Relationship rel = source.createRelationshipTo(target, RelationshipType.withName(currentType));
+                        final Object endId = result.map.get(CsvLoaderConstants.END_ID_ATTR);
+                        final Object endInternalId = idMapping.get(endIdField.getIdSpace()).get(endId);
+                        if (endInternalId == null) {
+                            throw new IllegalStateException("Node for id space " + endIdField.getIdSpace() + " and id " + endId + " not found");
+                        }
+                        final Node target = btx.getTransaction().getNodeById((long) endInternalId);
 
-                    // add properties
-                    int props = 0;
-                    for (CsvHeaderField field : edgePropertiesFields) {
-                        final String name = field.getName();
-                        Object value = result.map.get(name);
-                        boolean propertyAdded = CsvPropertyConverter.addPropertyToGraphEntity(rel, field, value, clc);
-                        props += propertyAdded ? 1 : 0;
-                    }
-                    btx.increment();
-                    reporter.update(0, 1, props);
-                });
-                btx.commit();
-            } catch (RuntimeException e) {
-                btx.rollback();
-                throw e;
-            } finally {
-                btx.close();
+                        final String currentType;
+                        final Object overridingType = result.map.get(CsvLoaderConstants.TYPE_ATTR);
+                        if (overridingType != null && !((String) overridingType).isEmpty()) {
+                            currentType = (String) overridingType;
+                        } else {
+                            currentType = type;
+                        }
+                        final Relationship rel = source.createRelationshipTo(target, RelationshipType.withName(currentType));
+
+                        // add properties
+                        int props = 0;
+                        for (CsvHeaderField field : edgePropertiesFields) {
+                            final String name = field.getName();
+                            Object value = result.map.get(name);
+                            boolean propertyAdded = CsvPropertyConverter.addPropertyToGraphEntity(rel, field, value, clc);
+                            props += propertyAdded ? 1 : 0;
+                        }
+                        btx.increment();
+                        reporter.update(0, 1, props);
+                    });
+                    btx.commit();
+                } catch (RuntimeException e) {
+                    btx.rollback();
+                    throw e;
+                } finally {
+                    btx.close();
+                }
             }
         }
     }
