@@ -13,11 +13,11 @@
   "license": "ISC",
   "dependencies": {
     "@antora/cli": "^2.3.3",
-    "@antora/site-generator-default": "^2.3.3",
+    "@antora/site-generator-default": "^3.1.1",
     "@neo4j-documentation/macros": "^1.0.0",
     "@neo4j-documentation/remote-include": "^1.0.0",
     "express": "^4.17.1",
-    "npm-watch": "^0.6.0"
+    "npm-watch": "^0.11.0"
   },
   "watch": {
     "build": {
