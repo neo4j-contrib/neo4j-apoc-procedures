@@ -68,6 +68,7 @@ dependencies {
         exclude group: "org.yaml"
         exclude module: "snakeyaml"
         exclude module: "commons-lang3"
+        exclude module: "commons-text"
     }
 
     // This was reported here https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/3048

@@ -84,6 +84,7 @@ dependencies {
         exclude group: "org.yaml"
         exclude module: "snakeyaml"
         exclude module: "commons-lang3"
+        exclude module: "commons-text"
     }
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.32'
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
