@@ -13,4 +13,4 @@ jobs:
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         issue-message: "Hi!👋\nThank you for raising the issue.\nWe hope you like the NEO4J APOC SDK!\nWe will investigate your issue as soon as possible."
-        pr-message: "Hi!👋\nThank you for the Pull Request 💖.\nPlease read [CONTRIBUTING.md](https://medium.com/neo4j/hacktoberfest-at-neo4j-9991ccc98c33) to make a good PR."
+        pr-message: "Hi!👋\nThank you for the Pull Request 💖.\nPlease read [CONTRIBUTING.md](https://medium.com/neo4j/hacktoberfest-at-neo4j-9991ccc98c33  https://github.com/search?l=&o=desc&q=neo4j&s=&type=Repositories)  to make a good PR."
