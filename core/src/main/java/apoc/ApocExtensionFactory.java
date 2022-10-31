@@ -1,6 +1,5 @@
 package apoc;
 
-import apoc.util.ApocUrlStreamHandlerFactory;
 import org.neo4j.annotations.service.ServiceProvider;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -19,7 +18,6 @@ import org.neo4j.logging.internal.LogService;
 import org.neo4j.scheduler.JobScheduler;
 import org.neo4j.service.Services;
 
-import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,13 +33,6 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
 @ServiceProvider
 public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.Dependencies> {
 
-    static {
-        try {
-            URL.setURLStreamHandlerFactory(new ApocUrlStreamHandlerFactory());
-        } catch (Error e) {
-            System.err.println("APOC couln't set a URLStreamHandlerFactory since some other tool already did this (e.g. tomcat). This means you cannot use s3:// or hdfs:// style URLs in APOC. This is caused by a limitation of the JVM which we cannot fix. ");
-        }
-    }
     public ApocExtensionFactory() {
         super(ExtensionType.DATABASE, "APOC");
     }
