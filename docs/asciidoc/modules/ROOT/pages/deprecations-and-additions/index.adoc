@@ -2,6 +2,12 @@
 = Deprecations and additions
 :description: This chapter lists all the features that have been removed, deprecated, added or extended in the recent versions of APOC.
 
+[WARNING]
+====
+This is the page for APOC Extended documentation.
+For APOC Core, go to the https://neo4j.com/docs/apoc/{branch}/deprecations-and-additions/[APOC Core page].
+====
+
 This chapter lists all the features that have been removed, deprecated, added or extended in the recent versions of APOC.
 
 [[apoc-deprecations-additions-removals-5.0]]

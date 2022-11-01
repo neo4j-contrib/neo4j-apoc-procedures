@@ -10,7 +10,11 @@
 :gh-docs: https://neo4j-contrib.github.io/neo4j-apoc-procedures
 :description: This is the user guide for Neo4j APOC {docs-version}, authored by the Neo4j Labs Team.
 
-
+[WARNING]
+====
+This is the page for APOC Extended documentation.
+For APOC Core, go to the https://neo4j.com/docs/apoc/{branch}/[APOC Core page].
+====
 
 The guide covers the following areas:
 
