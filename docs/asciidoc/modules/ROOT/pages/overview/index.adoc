@@ -3,12 +3,10 @@
 :description: This chapter provides a reference of all the procedures and functions in the APOC library.
 
 
-
-
-//[[table-all]]
-//[separator=¦,opts=header]
-//|===
-//include::example$generated-documentation/documentation.csv[]
-//|===
+[NOTE]
+====
+APOC will be split into APOC Core and APOC Extended in version 5.
+To view the new documentation for APOC Core, go to the https://neo4j.com/docs/apoc/current/[APOC Core page].
+====
 
 include::partial$generated-documentation/documentation.adoc[]
