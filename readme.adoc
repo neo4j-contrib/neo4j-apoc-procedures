@@ -49,7 +49,7 @@ https://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board
 == Feedback
 
 // tag::feedback[]
-Please provide feedback and report bugs as https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues[GitHub issues] or join the https://community.neo4j.com/c/neo4j-graph-platform/procedures-apoc[Neo4j Community Forum and ask in the APOC & Procedures category^].
+Please provide feedback and report bugs as https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues[GitHub issues] or join the https://community.neo4j.com/t5/tag/apoc/tg-p[Neo4j Community Forum and ask with the APOC tag^].
 // end::feedback[]
 
 // tag::calling-procedures[]
@@ -148,9 +148,8 @@ h| Output Return Columns |
 Since APOC relies on Neo4j's internal APIs you need to use the *matching APOC version* for your Neo4j installation.
 Make sure that the *first two version numbers match between Neo4j and APOC*.
 
-Go to https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/{apoc-release}[the latest release] for *Neo4j version {branch}* and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
+Go to https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases[here] for all the APOC extended releases and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
 
-You can find https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/[all releases here].
 
 // end::install[]
 
@@ -184,7 +183,6 @@ The trailing `<apoc>` part of the version number will be incremented with every 
 [opts=header]
 |===
 |apoc version | neo4j version
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.0.0.0[5.0.0.0^] | 5.0.0 (5.0.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.1[4.4.0.1^] | 4.4.0 (4.3.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.4[4.3.0.4^] | 4.3.7 (4.3.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.2.0.9[4.2.0.9^] | 4.2.11 (4.2.x)
