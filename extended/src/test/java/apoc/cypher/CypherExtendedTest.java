@@ -4,13 +4,13 @@ import apoc.text.Strings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.Utils;
+import apoc.util.collection.Iterators;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 

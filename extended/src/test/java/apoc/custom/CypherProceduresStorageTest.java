@@ -3,6 +3,7 @@ package apoc.custom;
 import apoc.path.PathExplorer;
 import apoc.util.FileUtils;
 import apoc.util.TestUtil;
+import apoc.util.collection.Iterators;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -12,7 +13,6 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.io.File;

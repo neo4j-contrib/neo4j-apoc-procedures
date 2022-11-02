@@ -5,6 +5,7 @@ import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.util.StatusCodeMatcher;
 import apoc.util.TestUtil;
+import apoc.util.collection.Iterators;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -16,7 +17,6 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 

@@ -109,7 +109,7 @@ public class LoadExtendedSecurityTest {
         @Test
         public void testIllegalFSAccessWithImportEnabled() {
             final String message = apocProcedure + " should throw an exception";
-            final String fileName = SensitivePathGenerator.etcPasswd(db).first();
+            final String fileName = SensitivePathGenerator.etcPasswd(db).getLeft();
             apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, true);
             apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
             apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, false);
@@ -127,7 +127,7 @@ public class LoadExtendedSecurityTest {
         public void testReadSensitiveFileWorks() {
             // as we're defining ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM to true
             // and ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM to false the next call should work
-            final String fileName = SensitivePathGenerator.etcPasswd(db).first();
+            final String fileName = SensitivePathGenerator.etcPasswd(db).getLeft();
             apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, true);
             apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
             apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, true);

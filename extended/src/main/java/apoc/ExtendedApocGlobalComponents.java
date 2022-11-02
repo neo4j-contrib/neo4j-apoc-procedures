@@ -9,7 +9,6 @@ import apoc.uuid.Uuid;
 import apoc.uuid.UuidHandler;
 import org.neo4j.annotations.service.ServiceProvider;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.Lifecycle;
@@ -38,7 +37,7 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
         );
         cypherProcedureHandlers.put(db, cypherProcedureHandler);
 
-        return MapUtil.genericMap(
+        return Map.of(
 
                 "ttl", new TTLLifeCycle(dependencies.scheduler(),
                         db,

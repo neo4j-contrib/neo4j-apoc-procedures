@@ -9,10 +9,10 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.types.Node;
-import org.neo4j.internal.helpers.collection.MapUtil;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -29,7 +29,7 @@ public class TriggerClusterTest {
                 3,
                 1,
                 Collections.emptyMap(),
-                MapUtil.stringMap("apoc.trigger.refresh", "100", "apoc.trigger.enabled", "true"));
+                Map.of("apoc.trigger.refresh", "100", "apoc.trigger.enabled", "true"));
     }
 
     @AfterClass

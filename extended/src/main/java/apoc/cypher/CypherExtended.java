@@ -6,12 +6,12 @@ import apoc.result.MapResult;
 import apoc.util.FileUtils;
 import apoc.util.QueueBasedSpliterator;
 import apoc.util.Util;
+import apoc.util.collection.Iterators;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -313,8 +313,7 @@ public class CypherExtended {
         final String statement = withParamsAndIterator(fragment, params.keySet(), "_");
         tx.execute("EXPLAIN " + statement).close();
         return Util.partitionSubList(data, PARTITIONS,null)
-                .flatMap((partition) -> Iterators.addToCollection(tx.execute(statement, parallelParams(params, "_", partition)),
-                        new ArrayList<>(partition.size())).stream())
+                .flatMap((partition) -> Iterators.asList(tx.execute(statement, parallelParams(params, "_", partition))).stream())
                 .map(MapResult::new);
     }
     @Procedure

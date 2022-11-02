@@ -5,10 +5,10 @@ import apoc.SystemPropertyKeys;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.logging.Log;
 
 import java.util.List;

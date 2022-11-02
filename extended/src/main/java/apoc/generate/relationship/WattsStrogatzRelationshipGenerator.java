@@ -1,7 +1,7 @@
 package apoc.generate.relationship;
 
 import apoc.generate.config.WattsStrogatzConfig;
-import org.neo4j.internal.helpers.collection.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
 
@@ -65,7 +65,7 @@ public class WattsStrogatzRelationshipGenerator extends BaseRelationshipGenerato
         while (iterator.hasNext()) {
             Pair<Integer, Integer> edge = iterator.next();
             if (random.nextDouble() <= beta) {
-                int choice = random.nextDouble() > .5 ? edge.first() : edge.other(); // select first/second at random
+                int choice = random.nextDouble() > .5 ? edge.getLeft() : edge.getRight(); // select first/second at random
 
                 while (true) {
                     int trial = random.nextInt(numberOfNodes - 1);
