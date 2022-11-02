@@ -131,9 +131,7 @@ subprojects {
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
     neo4jVersion = "5.1.0"
-    // This should be removed when the version is stable and released
-    neo4jInDevVersion = (System.env.CI != null) ? neo4jVersion + "-dev" : neo4jVersion + "-SNAPSHOT"
     // instead we apply the override logic here
-    neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jInDevVersion
+    neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.16.2'
 }
