@@ -13,12 +13,14 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static apoc.util.TestUtil.testCall;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class TransactionProcedureTest {
 
@@ -49,8 +51,10 @@ public class TransactionProcedureTest {
             assertThat(peakTx.get(), isOneOf(1l, 2l));
             assertEquals(3l, lastTxId.addAndGet((long) row.get("lastTxId")));
             assertEquals(1l, row.get("currentOpenedTx"));
-            assertEquals(5l, totalOpenedTx.addAndGet((long) row.get("totalOpenedTx")));
-            assertEquals(4l, totalTx.addAndGet((long )row.get("totalTx")));
+            final long totalOpenedTxBefore = totalOpenedTx.addAndGet((long) row.get("totalOpenedTx"));
+            // totalOpenedTx can be either 4 or 5, depend on db.executeTransactionally("CALL dbms.components"...) placed in CypherInitializer
+            assertTrue("Actual totalOpenedTx is " + totalOpenedTxBefore, List.of(4L, 5L).contains(totalOpenedTxBefore));
+            assertEquals(totalOpenedTxBefore - 1L, totalTx.addAndGet((long )row.get("totalTx")));
         });
 
         db.executeTransactionally("create ()");
