@@ -2,8 +2,8 @@ package apoc;
 
 import apoc.load.Jdbc;
 import apoc.util.Util;
+import apoc.util.collection.Iterators;
 import org.neo4j.annotations.service.ServiceProvider;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
 import org.neo4j.kernel.extension.context.ExtensionContext;

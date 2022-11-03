@@ -5,13 +5,13 @@ import apoc.generate.config.BasicGeneratorConfig;
 import apoc.generate.node.SocialNetworkNodeCreator;
 import apoc.generate.relationship.BarabasiAlbertRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
+import apoc.util.collection.Iterables;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 

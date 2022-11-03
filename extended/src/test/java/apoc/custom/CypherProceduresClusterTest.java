@@ -6,7 +6,6 @@ import apoc.util.TestcontainersCausalCluster;
 import org.junit.*;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.DatabaseException;
-import org.neo4j.internal.helpers.collection.MapUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +31,7 @@ public class CypherProceduresClusterTest {
                 3,
                 1,
                 Collections.emptyMap(),
-                MapUtil.stringMap("apoc.custom.procedures.refresh", "100"));
+                Map.of("apoc.custom.procedures.refresh", "100"));
     }
 
     @AfterClass

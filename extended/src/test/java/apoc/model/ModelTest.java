@@ -2,10 +2,10 @@ package apoc.model;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import apoc.util.collection.Iterators;
 import org.junit.*;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.*;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.JdbcDatabaseContainer;

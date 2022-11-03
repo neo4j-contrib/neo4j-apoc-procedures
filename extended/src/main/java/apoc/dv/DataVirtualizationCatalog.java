@@ -6,11 +6,11 @@ import apoc.result.NodeResult;
 import apoc.result.PathResult;
 import apoc.result.VirtualPath;
 import apoc.result.VirtualRelationship;
+import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -67,7 +67,7 @@ public class DataVirtualizationCatalog {
                                     @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         VirtualizedResource vr = new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log).get(name);
         final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params, config);
-        return tx.execute(procedureCallWithParams.first(), procedureCallWithParams.other())
+        return tx.execute(procedureCallWithParams.getLeft(), procedureCallWithParams.getRight())
                 .stream()
                 .map(m -> (Node) m.get(("node")))
                 .map(NodeResult::new);
@@ -83,7 +83,7 @@ public class DataVirtualizationCatalog {
         VirtualizedResource vr = new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), null).get(name);
         final RelationshipType relationshipType = RelationshipType.withName(relName);
         final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params, config);
-        return tx.execute(procedureCallWithParams.first(), procedureCallWithParams.other())
+        return tx.execute(procedureCallWithParams.getLeft(), procedureCallWithParams.getRight())
                 .stream()
                 .map(m -> (Node) m.get(("node")))
                 .map(n -> new VirtualRelationship(node, n, relationshipType))

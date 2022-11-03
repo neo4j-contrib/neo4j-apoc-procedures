@@ -3,7 +3,7 @@ package apoc.ttl;
 import apoc.ApocConfig;
 import apoc.TTLConfig;
 import apoc.util.Util;
-import org.neo4j.internal.helpers.collection.Iterators;
+import apoc.util.collection.Iterators;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;

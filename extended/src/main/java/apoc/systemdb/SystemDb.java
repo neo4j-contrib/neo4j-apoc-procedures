@@ -12,13 +12,13 @@ import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.systemdb.metadata.ExportMetadata;
 import apoc.util.Util;
+import apoc.util.collection.Iterables;
+import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Iterables;
-import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.kernel.impl.coreapi.TransactionImpl;
@@ -84,11 +84,11 @@ public class SystemDb {
                             .map(Optional::get)
                             .flatMap(type -> type.export(node, progressReporter).stream())
                     )
-                    .collect(Collectors.groupingBy(Pair::first, Collectors.toList()))
+                    .collect(Collectors.groupingBy(Pair::getLeft, Collectors.toList()))
                     .forEach((fileNameSuffix, fileContent) -> {
                         try(PrintWriter writer = cypherFileManager.getPrintWriter(fileNameSuffix)) {
                             final String stringStatement = fileContent.stream()
-                                    .map(Pair::other)
+                                    .map(Pair::getRight)
                                     .collect(Collectors.joining("\n"));
                             writer.write(stringStatement);
                         }

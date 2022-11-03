@@ -1,11 +1,11 @@
 package apoc.custom;
 
 import apoc.Extended;
+import apoc.util.collection.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Notification;
 import org.neo4j.graphdb.QueryExecutionType;
 import org.neo4j.graphdb.Result;
-import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
 import org.neo4j.internal.kernel.api.procs.DefaultParameterValue;
 import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
@@ -98,7 +98,9 @@ public class CypherProcedures {
                         signature.mode().toString().toLowerCase(),
                         procedureDescriptor.getStatement(),
                         convertInputSignature(signature.inputSignature()),
-                        Iterables.asList(Iterables.map(f -> Arrays.asList(f.name(), prettyPrintType(f.neo4jType())), signature.outputSignature())),
+                        Iterables.stream(signature.outputSignature())
+                                .map(f -> Arrays.asList(f.name(), prettyPrintType(f.neo4jType())))
+                                        .collect(Collectors.toList()), 
                         null);
             } else {
                 CypherProceduresHandler.UserFunctionDescriptor userFunctionDescriptor = (CypherProceduresHandler.UserFunctionDescriptor) descriptor;
@@ -189,14 +191,15 @@ public class CypherProcedures {
     }
 
     private List<List<String>> convertInputSignature(List<FieldSignature> signatures) {
-        return Iterables.asList(Iterables.map(f -> {
+
+        return Iterables.stream(signatures).map(f -> {
             List<String> list = new ArrayList<>(3);
             list.add(f.name());
             list.add(prettyPrintType(f.neo4jType()));
             final Optional<DefaultParameterValue> defaultParameterValue = f.defaultValue();
             defaultParameterValue.map(DefaultParameterValue::value).ifPresent(v -> list.add(v.toString()));
             return list;
-        }, signatures));
+        }).collect(Collectors.toList());
     }
 
     private String prettyPrintType(Neo4jTypes.AnyType type) {

@@ -3,7 +3,7 @@ package apoc.dv;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.internal.helpers.collection.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
 import java.util.List;

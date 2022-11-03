@@ -6,7 +6,7 @@ import apoc.ExtendedApocConfig;
 import apoc.result.KeyValueResult;
 import apoc.result.ObjectResult;
 import apoc.util.Util;
-import org.neo4j.internal.helpers.collection.Iterators;
+import apoc.util.collection.Iterators;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.*;
 

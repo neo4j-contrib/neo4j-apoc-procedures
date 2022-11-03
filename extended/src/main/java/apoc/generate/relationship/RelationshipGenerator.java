@@ -2,7 +2,7 @@ package apoc.generate.relationship;
 
 import apoc.generate.config.InvalidConfigException;
 import apoc.generate.config.RelationshipGeneratorConfig;
-import org.neo4j.internal.helpers.collection.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 

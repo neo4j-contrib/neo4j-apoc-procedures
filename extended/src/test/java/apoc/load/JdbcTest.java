@@ -1,15 +1,15 @@
 package apoc.load;
 
 import apoc.periodic.Periodic;
+import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import apoc.util.collection.Iterators;
 import org.junit.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 

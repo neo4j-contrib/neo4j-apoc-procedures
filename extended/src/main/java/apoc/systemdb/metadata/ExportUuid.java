@@ -2,8 +2,8 @@ package apoc.systemdb.metadata;
 
 import apoc.SystemPropertyKeys;
 import apoc.export.util.ProgressReporter;
+import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Node;
-import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.HashMap;
 import java.util.List;

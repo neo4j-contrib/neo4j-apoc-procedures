@@ -2,6 +2,7 @@ package apoc.load;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import apoc.util.collection.Iterators;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -11,7 +12,6 @@ import org.junit.jupiter.api.AfterAll;
 
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
