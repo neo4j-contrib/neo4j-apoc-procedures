@@ -9,16 +9,20 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.types.Node;
 import org.neo4j.internal.helpers.collection.MapUtil;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
+import static org.neo4j.driver.SessionConfig.forDatabase;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class TriggerClusterTest {
@@ -37,7 +41,7 @@ public class TriggerClusterTest {
         Assume.assumeNotNull(cluster);
         Assume.assumeTrue(cluster.isRunning());
     }
-
+    
     @AfterClass
     public static void bringDownCluster() {
         if (cluster != null) {
@@ -114,68 +118,93 @@ public class TriggerClusterTest {
 
     @Test
     public void testTimeStampTriggerForUpdatedPropertiesNewProcedures() throws Exception {
-        cluster.getSession().run("CALL apoc.trigger.install('neo4j', 'timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
-        cluster.getSession().run("CREATE (f:Foo) SET f.foo='bar'");
-        TestContainerUtil.testCall(cluster.getSession(), "MATCH (f:Foo) RETURN f", (row) -> {
-            assertTrue(((Node) row.get("f")).containsKey("ts"));
-        });
+        final String name = "timestampUpdate";
+        try (final Session session = cluster.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
+            session.run("CALL apoc.trigger.install('neo4j', $name,'UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})",
+                    Map.of("name", name));    
+        }
+        try (final Session session = cluster.getSession()) {
+            awaitProcedureInstalled(session, "timestampUpdate");
+            session.run("CREATE (f:Foo) SET f.foo='bar'");
+            TestContainerUtil.testCall(session, "MATCH (f:Foo) RETURN f", (row) -> {
+                assertTrue(((Node) row.get("f")).containsKey("ts"));
+            });
+        }
     }
 
     @Test
-    public void testReplicationNewProcedures() {
-        cluster.getSession().run("CALL apoc.trigger.install('neo4j', 'timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
+    public void testReplicationNewProcedures() throws Exception {
+        try (final Session session = cluster.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
+            session.run("CALL apoc.trigger.install('neo4j', 'timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
+        }
         // Test that the trigger is present in another instance
-        awaitProcedureUpdated(cluster.getDriver().session(), "timestamp");
+        awaitProcedureInstalled(cluster.getDriver().session(), "timestamp");
     }
 
     @Test
     public void testLowerCaseNameNewProcedures() {
-        cluster.getSession().run("create constraint on (p:Person) assert p.id is unique");
-        cluster.getSession().run("CALL apoc.trigger.install('neo4j', 'lowercase', 'UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n.id = toLower(n.name)',{})");
+        final String name = "lowercase";
+        try (final Session session = cluster.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
+            session.run("CALL apoc.trigger.install('neo4j', $name, 'UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n.id = toLower(n.name)',{})",
+                    Map.of("name", name));
+        }
+        try (final Session session = cluster.getSession()) {
+            session.run("create constraint on (p:Person) assert p.id is unique");
+            awaitProcedureInstalled(session, name);
 
-        awaitProcedureUpdated(cluster.getSession(), "lowercase");
-
-        cluster.getSession().run("CREATE (f:Person {name:'John Doe'})");
-        TestContainerUtil.testCall(cluster.getSession(), "MATCH (f:Person) RETURN f", (row) -> {
-            assertEquals("john doe", ((Node)row.get("f")).get("id").asString());
-            assertEquals("John Doe", ((Node)row.get("f")).get("name").asString());
-        });
+            session.run("CREATE (f:Person {name:'John Doe'})");
+            TestContainerUtil.testCall(session, "MATCH (f:Person) RETURN f", (row) -> {
+                assertEquals("john doe", ((Node) row.get("f")).get("id").asString());
+                assertEquals("John Doe", ((Node) row.get("f")).get("name").asString());
+            });
+        }
     }
 
     @Test
-    public void testSetLabelsNewProcs() {
-        cluster.getSession().run("CREATE (f:Test {name:'John Doe'})");
-        cluster.getSession().run("CALL apoc.trigger.install('neo4j', 'setlabels','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n:Man',{})");
+    public void testSetLabelsNewProcs() throws Exception {
+        final String name = "testSetLabels";
+        try (final Session session = cluster.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
+            session.run("CALL apoc.trigger.install('neo4j', $name,'UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n:Man',{})",
+                    Map.of("name", name));
+        }
+        try (final Session session = cluster.getSession()) {
+            session.run("CREATE (f:Test {name:'John Doe'})");
 
-        awaitProcedureUpdated(cluster.getSession(), "setlabels");
+            awaitProcedureInstalled(session, name);
 
-        cluster.getSession().run("MATCH (f:Test) SET f:Person");
-        TestContainerUtil.testCall(cluster.getSession(), "MATCH (f:Man) RETURN f", (row) -> {
-            assertEquals("John Doe", ((Node)row.get("f")).get("name").asString());
-            assertTrue(((Node) row.get("f")).hasLabel("Person"));
-        });
+            session.run("MATCH (f:Test) SET f:Person");
+            TestContainerUtil.testCall(session, "MATCH (f:Man) RETURN f", (row) -> {
+                assertEquals("John Doe", ((Node) row.get("f")).get("name").asString());
+                assertTrue(((Node) row.get("f")).hasLabel("Person"));
+            });
 
-        long count = TestContainerUtil.singleResultFirstColumn(cluster.getSession(), "MATCH (f:Man) RETURN count(*) as c");
-        assertEquals(1L, count);
+            long count = TestContainerUtil.singleResultFirstColumn(session, "MATCH (f:Man) RETURN count(*) as c");
+            assertEquals(1L, count);
+        }
     }
 
     @Test
-    public void testTxIdAfterAsyncNewProcedures() {
-        cluster.getSession().run("CALL apoc.trigger.install('neo4j', 'triggerTest','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, \"_executed\") as prop " +
-                "	WITH prop.node as n " +
-                "	CREATE (z:SON {father:id(n)}) " +
-                "	CREATE (n)-[:GENERATED]->(z)', " +
-                "{phase:'afterAsync'})");
+    public void testTxIdAfterAsyncNewProcedures() throws Exception {
+        final String name = "testTxIdAfterAsync";
+        try (final Session session = cluster.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
+            session.run("CALL apoc.trigger.install('neo4j', $name, 'UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, \"_executed\") as prop " +
+                            "	WITH prop.node as n " +
+                            "	CREATE (z:SON {father:id(n)}) " +
+                            "	CREATE (n)-[:GENERATED]->(z)', " +
+                            "{phase:'afterAsync'})",
+                    Map.of("name", name));
+        }
+        try (final Session session = cluster.getSession()) {
+            awaitProcedureInstalled(session, name);
 
-        awaitProcedureUpdated(cluster.getSession(), "triggerTest");
-
-        cluster.getSession().run("CREATE (:TEST {name:'x', _executed:0})");
-        cluster.getSession().run("CREATE (:TEST {name:'y', _executed:0})");
-        assertEventually(() -> TestContainerUtil.<Long>singleResultFirstColumn(cluster.getSession(), "MATCH p = ()-[r:GENERATED]->() RETURN count(p) AS count"),
-                (value) -> value == 2L, 30, TimeUnit.SECONDS);
+            session.run("CREATE (:TEST {name:'x', _executed:0})");
+            session.run("CREATE (:TEST {name:'y', _executed:0})");
+            assertEventually(() -> TestContainerUtil.<Long>singleResultFirstColumn(session, "MATCH p = ()-[r:GENERATED]->() RETURN count(p) AS count"),
+                    (value) -> value == 2L, 30, TimeUnit.SECONDS);
+        }
     }
 
-    private static void awaitProcedureUpdated(Session session, String name) {
+    private static void awaitProcedureInstalled(Session session, String name) {
         assertEventually(() -> session
                         .readTransaction(tx -> tx.run("CALL apoc.trigger.list")
                                 .single().get("name").asString()),

@@ -11,6 +11,7 @@ import org.neo4j.driver.Session;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static apoc.trigger.Trigger.SYS_NON_LEADER_ERROR;
 import static apoc.trigger.TriggerNewProcedures.TRIGGER_NOT_ROUTED_ERROR;
@@ -38,42 +39,64 @@ public class TriggerClusterRoutingTest {
         }
     }
 
+    // TODO: making sure that a session against "system" can install triggers
+
+    // TODO: making sure that a session against "system" can drop triggers
+    
+    // TODO: fabric tests
+
     @Test
-    public void testTriggerAddAndInstallAllowedOnlyInLeaderMember() {
+    public void testTriggerInstallAllowedOnlyInSysLeaderMember() {
+        final String query = "CALL apoc.trigger.install('neo4j', $name, 'RETURN 1',{})";
+        triggerInSysLeaderMemberCommon(query, TRIGGER_NOT_ROUTED_ERROR);
+    }
+
+    @Test
+    public void testTriggerAddAllowedOnlyInSysLeaderMember() {
+        final String query = "CALL apoc.trigger.add($name, 'RETURN 1',{})";
+        triggerInSysLeaderMemberCommon(query, SYS_NON_LEADER_ERROR);
+    }
+
+    @Test
+    public void testTriggerRemoveAllowedOnlyInSysLeaderMember() {
+        final String query = "CALL apoc.trigger.remove('neo4j', $name)";
+        triggerInSysLeaderMemberCommon(query, TRIGGER_NOT_ROUTED_ERROR);
+    }
+
+    @Test
+    public void testTriggerDropAllowedOnlyInSysLeaderMember() {
+        final String query = "CALL apoc.trigger.drop('neo4j', $name)";
+        triggerInSysLeaderMemberCommon(query, SYS_NON_LEADER_ERROR);
+    }
+
+    private static void triggerInSysLeaderMemberCommon(String query, String triggerNotRoutedError) {
         final List<Neo4jContainerExtension> members = cluster.getClusterMembers();
         assertEquals(4, members.size());
-        for (Neo4jContainerExtension container: members){
+        for (Neo4jContainerExtension container: members) {
             // we skip READ_REPLICA members
             final String readReplica = TestcontainersCausalCluster.ClusterInstanceType.READ_REPLICA.toString();
-            final Session session = container.getSession();
-            if (readReplica.equals(container.getEnvMap().get("NEO4J_dbms_mode")) || session == null) {
-                continue;
-            }
-            final String systemRole = TestContainerUtil.singleResultFirstColumn(session, "CALL dbms.cluster.role('system')");
-            if ("LEADER".equals(systemRole)) {
-                session.run("CALL apoc.trigger.add($name, 'RETURN 1',{})",
-                        Map.of("name", "add-" + container.getContainerName()));
-                
-                session.run("CALL apoc.trigger.install('neo4j', $name, 'RETURN 1',{})",
-                        Map.of("name", "install-" + container.getContainerName()));
-            } else {
-                try {
-                    TestContainerUtil.testCall(session, "CALL apoc.trigger.add($name, 'RETURN 1',{})",
-                            Map.of("name", "add-" + container.getContainerName()),
-                            row -> fail("Should fail because of non leader trigger addition"));
-                } catch (RuntimeException e) {
-                    String errorMsg = e.getMessage();
-                    assertTrue("The actual message is: " + errorMsg, errorMsg.contains(SYS_NON_LEADER_ERROR));
+            try (final Session session = container.getSession()) {
+                if (readReplica.equals(container.getEnvMap().get("NEO4J_dbms_mode")) || session == null) {
+                    continue;
                 }
-                try {
-                    TestContainerUtil.testCall(session, "CALL apoc.trigger.install('neo4j', $name, 'RETURN 1',{})",
-                            Map.of("name", "install-" + container.getContainerName()),
-                            row -> fail("Should fail because of non leader trigger addition"));
-                } catch (RuntimeException e) {
-                    String errorMsg = e.getMessage();
-                    assertTrue("The actual message is: " + errorMsg, errorMsg.contains(TRIGGER_NOT_ROUTED_ERROR));
+                if (sysIsLeader(session)) {
+                    session.run(query, Map.of("name", UUID.randomUUID().toString()));
+                } else {
+                    try {
+                        TestContainerUtil.testCall(session, query,
+                                Map.of("name", UUID.randomUUID().toString()),
+                                row -> fail("Should fail because of non leader trigger addition"));
+                    } catch (RuntimeException e) {
+                        String errorMsg = e.getMessage();
+                        assertTrue("The actual message is: " + errorMsg, errorMsg.contains(triggerNotRoutedError));
+                    }
                 }
             }
         }
+    }
+
+    private static boolean sysIsLeader(Session session) {
+        final String systemRole = TestContainerUtil.singleResultFirstColumn(session, "CALL dbms.cluster.role('system')");
+        return "LEADER".equals(systemRole);
     }
 }

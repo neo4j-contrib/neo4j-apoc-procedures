@@ -18,13 +18,12 @@ public class ExportTrigger implements ExportMetadata {
     public List<Pair<String, String>> export(Node node, ProgressReporter progressReporter) {
         final String name = (String) node.getProperty(SystemPropertyKeys.name.name());
         final String query = (String) node.getProperty(SystemPropertyKeys.statement.name());
-        final String dbName = (String) node.getProperty(SystemPropertyKeys.database.name());
         try {
             final String selector = toCypherMap(JsonUtil.OBJECT_MAPPER.readValue((String) node.getProperty(SystemPropertyKeys.selector.name()), Map.class));
             final String params = toCypherMap(JsonUtil.OBJECT_MAPPER.readValue((String) node.getProperty(SystemPropertyKeys.params.name()), Map.class));
-            String statement = String.format("CALL apoc.trigger.install('%s', '%s', '%s', %s, {params: %s});", dbName, name, query, selector, params);
+            String statement = String.format("CALL apoc.trigger.add('%s', '%s', %s, {params: %s});", name, query, selector, params);
             if ((boolean) node.getProperty(SystemPropertyKeys.paused.name())) {
-                statement += String.format("\nCALL apoc.trigger.stop('%s', '%s');", dbName, name);
+                statement += String.format("\nCALL apoc.trigger.pause('%s');", name);
             }
             progressReporter.nextRow();
             return List.of(Pair.of(getFileName(node, Type.Trigger.name()), statement));
