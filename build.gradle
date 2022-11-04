@@ -108,7 +108,7 @@ task versions <<  {
     println(neo4jReleases)
 
     def jsonSlurper = new JsonSlurper()
-    def checksums = jsonSlurper.parse(new File("checksums.json"))
+    def checksums = jsonSlurper.parse(new File(projectDir, "checksums.json"))
 
     def versions = []
     for (neo4jRelease in neo4jReleases) {
@@ -141,14 +141,14 @@ task versions <<  {
         }
     }
 
-    def versionsFile = new File("build/versions.json")
+    def versionsFile = new File(projectDir,"build/versions.json")
 
     versionsFile.write(JsonOutput.prettyPrint(JsonOutput.toJson(versions)))
 };
 
 task checksums <<  {
     def jsonSlurper = new JsonSlurper()
-    def values = jsonSlurper.parse(new File("checksums.json"))
+    def values = jsonSlurper.parse(new File(projectDir, "checksums.json"))
     def apocReleases = apocReleases().releases
 
     for(apocRelease in apocReleases) {
@@ -176,7 +176,7 @@ task checksums <<  {
         values[apocVersion] = [sha1: Checksum.getSha1sum(f), sha256: Checksum.getSha256sum(f), md5: Checksum.getMD5sum(f)]
     }
 
-    def checksumsFile = new File("build/checksums.json")
+    def checksumsFile = new File(projectDir, "build/checksums.json")
     checksumsFile.write(JsonOutput.prettyPrint(JsonOutput.toJson(values)))
 }
 
