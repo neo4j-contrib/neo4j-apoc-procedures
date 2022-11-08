@@ -10,6 +10,7 @@ import apoc.util.FileUtils;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvException;
 import org.neo4j.graphdb.*;
 import org.neo4j.logging.Log;
 
@@ -46,7 +47,7 @@ public class CsvEntityLoader {
      * @throws IOException
      */
     public void loadNodes(final Object fileName, final List<String> labels, final GraphDatabaseService db,
-                          final Map<String, Map<String, Long>> idMapping) throws IOException {
+                          final Map<String, Map<String, Long>> idMapping) throws IOException, CsvException {
         
         try (final CountingReader reader = FileUtils.readerFor(fileName, clc.getCompressionAlgo())) {
             final String header = readFirstLine(reader);
@@ -158,7 +159,7 @@ public class CsvEntityLoader {
             final Object data, 
             final String type,
             final GraphDatabaseService db,
-            final Map<String, Map<String, Long>> idMapping) throws IOException {
+            final Map<String, Map<String, Long>> idMapping) throws IOException, CsvException {
         
         try (final CountingReader reader = FileUtils.readerFor(data, clc.getCompressionAlgo())) {
             final String header = readFirstLine(reader);
@@ -178,52 +179,55 @@ public class CsvEntityLoader {
                     .collect(Collectors.toList());
 
             final Map<String, Mapping> mapping = getMapping(fields);
+            final var parser = new CSVParserBuilder().withSeparator(clc.getDelimiter()).build();
 
-            final CSVReader csv = new CSVReader(reader, clc.getDelimiter());
-            final String[] loadCsvCompatibleHeader = fields.stream().map(f -> f.getName()).toArray(String[]::new);
+            try (final var csv = new CSVReaderBuilder(reader).withCSVParser(parser).build()) {
 
-            int lineNo = 0;
-            try (BatchTransaction btx = new BatchTransaction(db, clc.getBatchSize(), reporter)) {
-                for (String[] line : csv.readAll()) {
-                    lineNo++;
+                final String[] loadCsvCompatibleHeader = fields.stream().map(f -> f.getName()).toArray(String[]::new);
 
-                    final EnumSet<Results> results = EnumSet.of(Results.map);
-                    final CSVResult result = new CSVResult(
-                            loadCsvCompatibleHeader, line, lineNo, false, mapping, Collections.emptyList(), results
-                    );
+                int lineNo = 0;
+                try (BatchTransaction btx = new BatchTransaction(db, clc.getBatchSize(), reporter)) {
+                    for (String[] line : csv.readAll()) {
+                        lineNo++;
 
-                    final Object startId = result.map.get(CsvLoaderConstants.START_ID_ATTR);
-                    final Object startInternalId = idMapping.get(startIdField.getIdSpace()).get(startId);
-                    if (startInternalId == null) {
-                        throw new IllegalStateException("Node for id space " + endIdField.getIdSpace() + " and id " + startId + " not found");
+                        final EnumSet<Results> results = EnumSet.of(Results.map);
+                        final CSVResult result = new CSVResult(
+                                loadCsvCompatibleHeader, line, lineNo, false, mapping, Collections.emptyList(), results
+                        );
+
+                        final Object startId = result.map.get(CsvLoaderConstants.START_ID_ATTR);
+                        final Object startInternalId = idMapping.get(startIdField.getIdSpace()).get(startId);
+                        if (startInternalId == null) {
+                            throw new IllegalStateException("Node for id space " + endIdField.getIdSpace() + " and id " + startId + " not found");
+                        }
+                        final Node source = btx.getTransaction().getNodeById((long) startInternalId);
+
+                        final Object endId = result.map.get(CsvLoaderConstants.END_ID_ATTR);
+                        final Object endInternalId = idMapping.get(endIdField.getIdSpace()).get(endId);
+                        if (endInternalId == null) {
+                            throw new IllegalStateException("Node for id space " + endIdField.getIdSpace() + " and id " + endId + " not found");
+                        }
+                        final Node target = btx.getTransaction().getNodeById((long) endInternalId);
+
+                        final String currentType;
+                        final Object overridingType = result.map.get(CsvLoaderConstants.TYPE_ATTR);
+                        if (overridingType != null && !((String) overridingType).isEmpty()) {
+                            currentType = (String) overridingType;
+                        } else {
+                            currentType = type;
+                        }
+                        final Relationship rel = source.createRelationshipTo(target, RelationshipType.withName(currentType));
+
+                        // add properties
+                        int props = 0;
+                        for (CsvHeaderField field : edgePropertiesFields) {
+                            final String name = field.getName();
+                            Object value = result.map.get(name);
+                            boolean propertyAdded = CsvPropertyConverter.addPropertyToGraphEntity(rel, field, value, clc);
+                            props += propertyAdded ? 1 : 0;
+                        }
+                        reporter.update(0, 1, props);
                     }
-                    final Node source = btx.getTransaction().getNodeById((long) startInternalId);
-
-                    final Object endId = result.map.get(CsvLoaderConstants.END_ID_ATTR);
-                    final Object endInternalId = idMapping.get(endIdField.getIdSpace()).get(endId);
-                    if (endInternalId == null) {
-                        throw new IllegalStateException("Node for id space " + endIdField.getIdSpace() + " and id " + endId + " not found");
-                    }
-                    final Node target = btx.getTransaction().getNodeById((long) endInternalId);
-
-                    final String currentType;
-                    final Object overridingType = result.map.get(CsvLoaderConstants.TYPE_ATTR);
-                    if (overridingType != null && !((String) overridingType).isEmpty()) {
-                        currentType = (String) overridingType;
-                    } else {
-                        currentType = type;
-                    }
-                    final Relationship rel = source.createRelationshipTo(target, RelationshipType.withName(currentType));
-
-                    // add properties
-                    int props = 0;
-                    for (CsvHeaderField field : edgePropertiesFields) {
-                        final String name = field.getName();
-                        Object value = result.map.get(name);
-                        boolean propertyAdded = CsvPropertyConverter.addPropertyToGraphEntity(rel, field, value, clc);
-                        props += propertyAdded ? 1 : 0;
-                    }
-                    reporter.update(0, 1, props);
                 }
             }
         }

@@ -68,6 +68,7 @@ dependencies {
         exclude group: "org.yaml"
         exclude module: "snakeyaml"
         exclude module: "commons-lang3"
+        exclude module: "commons-text"
     }
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.26'
     compile group: 'com.github.seancfoley', name: 'ipaddress', version: '5.3.3'
@@ -113,7 +114,7 @@ dependencies {
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
 
-    compile group: 'com.opencsv', name: 'opencsv', version: '4.6'
+    compile group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
 
