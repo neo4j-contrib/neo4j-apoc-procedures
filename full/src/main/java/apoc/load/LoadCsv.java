@@ -136,6 +136,8 @@ public class LoadCsv {
                 return false;
             } catch (IOException | CsvValidationException e) {
                 throw new RuntimeException("Error reading CSV from " + (url == null ? "binary" : " URL " + cleanUrl(url)) + " at " + lineNo, e);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                throw new RuntimeException("Error reading CSV from " + (url == null ? "binary" : " URL " + cleanUrl(url)) + " at " + lineNo + ". Please check whether you included a delimiter before a column separator or forgot a column separator.");
             }
         }
     }
