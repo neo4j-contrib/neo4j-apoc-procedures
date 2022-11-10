@@ -7,7 +7,6 @@ import apoc.load.LoadCsv;
 import apoc.load.util.LoadCsvConfig;
 import apoc.util.CompressionAlgo;
 import apoc.util.FileUtils;
-import apoc.util.FileUtils.SupportedProtocols;
 import apoc.util.Util;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
