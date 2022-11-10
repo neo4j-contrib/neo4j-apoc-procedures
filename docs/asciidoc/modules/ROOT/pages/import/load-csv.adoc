@@ -151,5 +151,37 @@ YIELD value
 RETURN value["list"], value["map"]
 ----
 
+=== Escaping delimiters behaviour
+
+From 4.3.0.10 onwards, for 4.3 versions, the behaviour is to escape a delimiter and then split the columns. For this input:
+
+.test.csv
+----
+name,age
+Selma\,9
+----
+
+[source, cypher]
+----
+CALL apoc.load.csv('test.csv', {sep: ',', escapeChar: '\'})
+YIELD lineNo, list, map
+RETURN *;
+----
+
+we get an error containing the following message:
+
+[source, cypher]
+----
+Please check whether you included a delimiter before a column separator or forgot a column separator.
+----
+
+The previous behaviour was to split the columns and then escape them. The results yielded by the above query were:
+
+.Results
+[opts="header",cols="1,1,1"]
+|===
+| lineNo | list | map
+| 0      | ["Selma", "9"]     | {name: "Selma", age: "9"}
+|===
 
 
