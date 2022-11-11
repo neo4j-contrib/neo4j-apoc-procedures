@@ -148,7 +148,7 @@ publishing {
     }
     publications {
         shadow(MavenPublication) { publication ->
-            artifactId("apoc")
+            artifactId("apoc-extended")
             project.shadow.component(publication)
             artifact(mySourcesJar)
             artifact(myJavadocJar)
@@ -156,8 +156,8 @@ publishing {
 
             pom.withXml {
                 def root = asNode()
-                root.appendNode("name", "neo4j-apoc-procedure")
-                root.appendNode("description", "A collection of useful Neo4j Procedures")
+                root.appendNode("name", "neo4j-apoc-extended")
+                root.appendNode("description", "Extended package for Neo4j Procedures")
                 root.appendNode("url", "http://github.com/neo4j-contrib/neo4j-apoc-procedures")
 
                 def scmNode = root.appendNode("scm")

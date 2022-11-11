@@ -22,6 +22,7 @@ The version compatibility matrix explains the mapping between Neo4j and APOC ver
 [opts=header]
 |===
 |apoc version | neo4j version
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.2.0[5.2.0^] | 5.2.0 (5.2.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.1.0[5.1.0^]| 5.1.0 (5.1.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.1[4.4.0.1^] | 4.4.0 (4.3.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.4[4.3.0.4^] | 4.3.7 (4.3.x)
@@ -40,6 +41,26 @@ See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to
 == Docker
 
 include::partial$docker.adoc[tags=docker,leveloffset=1]
+
+
+[[mvnrepository]]
+== Maven Repository
+
+In a `pom.xml` of a maven project, you can add these two dependencies from https://mvnrepository.com/artifact/org.neo4j.procedure[Maven Repository]:
+
+[source,subs=attributes]
+----
+&lt;dependency&gt;
+    &lt;groupId&gt;org.neo4j.procedure&lt;/groupId&gt;
+    &lt;artifactId&gt;apoc-extended&lt;/artifactId&gt;
+    &lt;version&gt;{apoc-release}&lt;/version&gt;
+    &lt;classifier&gt;extended&lt;/classifier&gt;
+&lt;/dependency&gt;
+----
+
+Alternatively, you can download the jar https://repo1.maven.org/maven2/org/neo4j/procedure/apoc-extended/{apoc-release}/apoc-extended-{apoc-release}-extended.jar[from here] (if it is not already present via `apoc-core`)
+and put them into `plugin` folder.
+
 
 [[restricted]]
 == Restricted procedures/functions
