@@ -8,13 +8,13 @@ import static apoc.util.TestUtil.testCallEventually;
 import static org.junit.Assert.assertEquals;
 
 public class TriggerTestUtil {
-    public static final long TIMEOUT = 2L;
+    public static final long TIMEOUT = 3L;
 
-    public static void awaitProcedureUpdated(GraphDatabaseService db, String name, String query) {
-        awaitProcedureUpdated(db, name, query, false);
+    public static void awaitTriggerDiscovered(GraphDatabaseService db, String name, String query) {
+        awaitTriggerDiscovered(db, name, query, false);
     }
 
-    public static void awaitProcedureUpdated(GraphDatabaseService db, String name, String query, boolean paused) {
+    public static void awaitTriggerDiscovered(GraphDatabaseService db, String name, String query, boolean paused) {
         testCallEventually(db, "CALL apoc.trigger.list() YIELD name, query, paused WHERE name = $name RETURN query, paused",
                 Map.of("name", name),
                 row -> {

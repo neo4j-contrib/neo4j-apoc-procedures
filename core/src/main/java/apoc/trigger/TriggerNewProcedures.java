@@ -17,10 +17,6 @@ import java.util.stream.Stream;
 
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
-/**
- * @author mh
- * @since 20.09.16
- */
 
 public class TriggerNewProcedures {
     // public for testing purpose

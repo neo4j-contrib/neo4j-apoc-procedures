@@ -3,9 +3,10 @@ package apoc.trigger;
 import apoc.create.Create;
 import apoc.nodes.Nodes;
 import apoc.util.TestUtil;
-import org.junit.Before;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -25,18 +26,26 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
+import static apoc.util.TestUtil.testCallCountEventually;
 import static apoc.util.TestUtil.testCallEventually;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
 
 public class TriggerNewProceduresExtendedTest {
-    private static final long TIMEOUT = 1L;
+    private static final long TIMEOUT = 3L;
 
     private static final File directory = new File("target/conf");
     static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
     }
+
+    @ClassRule
+    public static TemporaryFolder storeDir = new TemporaryFolder();
+
+    private static GraphDatabaseService sysDb;
+    private static GraphDatabaseService db;
+    private static DatabaseManagementService databaseManagementService;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -48,17 +57,8 @@ public class TriggerNewProceduresExtendedTest {
                     "apoc.trigger.enabled=true"));
         }
         System.setProperty(SUN_JAVA_COMMAND, "config-dir=" + directory.getAbsolutePath());
-    }
 
-    @Rule
-    public TemporaryFolder store_dir = new TemporaryFolder();
-
-    private GraphDatabaseService sysDb;
-    private GraphDatabaseService db;
-
-    @Before
-    public void setUp() throws Exception {
-        DatabaseManagementService databaseManagementService = new TestDatabaseManagementServiceBuilder(store_dir.getRoot().toPath())
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(storeDir.getRoot().toPath())
                 .setConfig(procedure_unrestricted, List.of("apoc*"))
                 .build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
@@ -66,6 +66,18 @@ public class TriggerNewProceduresExtendedTest {
         TestUtil.registerProcedure(sysDb, TriggerNewProcedures.class, Trigger.class, TriggerExtended.class,
                 Nodes.class, Create.class);
         TestUtil.registerProcedure(db, Trigger.class);
+    }
+
+    @AfterClass
+    public static void afterClass() throws Exception {
+        databaseManagementService.shutdown();
+    }
+
+    @After
+    public void after() throws Exception {
+        sysDb.executeTransactionally("CALL apoc.trigger.dropAll('neo4j')");
+        testCallCountEventually(db, "CALL apoc.trigger.list", 0, TIMEOUT);
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
 
     private void awaitProcedureUpdated(String name, String query) {
@@ -124,7 +136,6 @@ public class TriggerNewProceduresExtendedTest {
         assertEquals(1L, count);
     }
 
-
     @Test
     public void testTxIdAfterAsync() {
         final String name = "triggerTest";
@@ -143,14 +154,18 @@ public class TriggerNewProceduresExtendedTest {
     }
 
     @Test
-    public void testIssue1152() {
-        db.executeTransactionally("CREATE (n:To:Delete {prop1: 'val1', prop2: 'val2'}) RETURN id(n) as id");
-
+    public void testIssue1152Before() {
         testIssue1152Common("before");
+    }
+
+    @Test
+    public void testIssue1152After() {
         testIssue1152Common("after");
     }
 
     private void testIssue1152Common(String phase) {
+        db.executeTransactionally("CREATE (n:To:Delete {prop1: 'val1', prop2: 'val2'}) RETURN id(n) as id");
+        
         // we check also that we can execute write operation (through virtualNode functions, e.g. apoc.create.addLabels)
         final String name = "issue1152";
         final String query = "UNWIND $deletedNodes as deletedNode " +

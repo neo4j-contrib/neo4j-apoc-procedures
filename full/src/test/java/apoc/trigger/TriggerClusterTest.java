@@ -9,7 +9,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.types.Node;
 import org.neo4j.internal.helpers.collection.MapUtil;
 
@@ -19,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 
 import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
+import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 import static org.neo4j.driver.SessionConfig.forDatabase;
 import static org.neo4j.test.assertion.Assert.assertEventually;
@@ -41,7 +40,7 @@ public class TriggerClusterTest {
         Assume.assumeNotNull(cluster);
         Assume.assumeTrue(cluster.isRunning());
     }
-    
+
     @AfterClass
     public static void bringDownCluster() {
         if (cluster != null) {

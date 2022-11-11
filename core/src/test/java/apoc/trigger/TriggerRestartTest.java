@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
-import static apoc.trigger.TriggerTestUtil.awaitProcedureUpdated;
+import static apoc.trigger.TriggerTestUtil.awaitTriggerDiscovered;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -73,7 +73,7 @@ public class TriggerRestartTest {
         final String innerQuery = "unwind $createdNodes as n set n.trigger = n.trigger + 1";
         final Map<String, Object> params = Map.of("name", name, "query", innerQuery);
         final String triggerQuery = "CALL apoc.trigger.install('neo4j', 'myTrigger', 'unwind $createdNodes as n set n.trigger = n.trigger + 1', {phase:'before'})";
-        testTriggerWorksBeforeAndAfterRestart(sysDb, triggerQuery, params, () -> awaitProcedureUpdated(db, name, innerQuery));
+        testTriggerWorksBeforeAndAfterRestart(sysDb, triggerQuery, params, () -> awaitTriggerDiscovered(db, name, innerQuery));
     }
 
     @Test
@@ -89,7 +89,7 @@ public class TriggerRestartTest {
         final Runnable runnable = () -> {
             sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase:'before'})",
                     params);
-            awaitProcedureUpdated(db, name, innerQuery);
+            awaitTriggerDiscovered(db, name, innerQuery);
         };
         testTriggerWorksBeforeAndAfterRestart(db, triggerQuery, params, runnable);
     }

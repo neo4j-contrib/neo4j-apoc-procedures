@@ -2,9 +2,10 @@ package apoc.trigger;
 
 import apoc.nodes.Nodes;
 import apoc.util.TestUtil;
-import org.junit.Before;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -30,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 import static apoc.trigger.TriggerNewProcedures.TRIGGER_NOT_ROUTED_ERROR;
 import static apoc.trigger.TriggerTestUtil.TIMEOUT;
-import static apoc.trigger.TriggerTestUtil.awaitProcedureUpdated;
+import static apoc.trigger.TriggerTestUtil.awaitTriggerDiscovered;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallCountEventually;
@@ -54,11 +55,12 @@ public class TriggerNewProceduresTest {
         directory.mkdirs();
     }
 
-    @Rule
-    public TemporaryFolder store_dir = new TemporaryFolder();
+    @ClassRule
+    public static TemporaryFolder storeDir = new TemporaryFolder();
     
-    private GraphDatabaseService sysDb;
-    private GraphDatabaseService db;
+    private static GraphDatabaseService sysDb;
+    private static GraphDatabaseService db;
+    private static DatabaseManagementService databaseManagementService;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -69,18 +71,29 @@ public class TriggerNewProceduresTest {
                     "apoc.trigger.refresh=100",
                     "apoc.trigger.enabled=true"));
         }
+
         System.setProperty(SUN_JAVA_COMMAND, "config-dir=" + directory.getAbsolutePath());
-    }
-    
-    @Before
-    public void setUp() throws Exception {
-        DatabaseManagementService databaseManagementService = new TestDatabaseManagementServiceBuilder(store_dir.getRoot().toPath())
+        
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(storeDir.getRoot().toPath())
                 .setConfig(procedure_unrestricted, List.of("apoc*"))
                 .build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
         TestUtil.registerProcedure(sysDb, TriggerNewProcedures.class, Nodes.class);
         TestUtil.registerProcedure(db, Trigger.class, Nodes.class);
+        
+    }
+
+    @AfterClass
+    public static void afterClass() throws Exception {
+        databaseManagementService.shutdown();
+    }
+    
+    @After
+    public void after() throws Exception {
+        sysDb.executeTransactionally("CALL apoc.trigger.dropAll('neo4j')");
+        testCallCountEventually(db, "CALL apoc.trigger.list", 0, TIMEOUT);
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
 
     //
@@ -111,7 +124,7 @@ public class TriggerNewProceduresTest {
         final String query = "MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {})",
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
 
         db.executeTransactionally("MATCH (f:Foo) DELETE f");
         testCallEventually(db, "MATCH (c:Counter) RETURN c.count as count", (row) -> {
@@ -126,7 +139,7 @@ public class TriggerNewProceduresTest {
         final String query = "RETURN 1";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase: 'afterAsync'})",
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
 
         db.executeTransactionally("MATCH (n:ToBeDeleted) DELETE n");
         sysDb.executeTransactionally("CALL apoc.trigger.drop('neo4j', 'myTrig')");
@@ -142,7 +155,7 @@ public class TriggerNewProceduresTest {
         String query = "MATCH (c:Counter) SET c.count = c.count + size($deletedRelationships)";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {})",
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
 
         db.executeTransactionally("MATCH (f:Foo) DETACH DELETE f");
         testCall(db, "MATCH (c:Counter) RETURN c.count as count", (row) -> {
@@ -205,7 +218,7 @@ public class TriggerNewProceduresTest {
         String query = "UNWIND $createdNodes AS n SET n.ts = timestamp()";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {})", 
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
 
         db.executeTransactionally("CREATE (f:Foo)");
         testCall(db, "MATCH (f:Foo) RETURN f", 
@@ -219,7 +232,7 @@ public class TriggerNewProceduresTest {
         String query = "UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase:'after'})", 
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
         
         db.executeTransactionally("CREATE (f:Bar)");
         testCall(db, "MATCH (f:Bar) RETURN f", (row) -> {
@@ -243,7 +256,7 @@ public class TriggerNewProceduresTest {
         String query = "UNWIND $createdNodes AS n SET n += $metaData";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase:$phase})",
                 Map.of("name", name, "query", query, "phase", phase));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
 
         try (Transaction tx = db.beginTx()) {
             KernelTransaction ktx = ((TransactionImpl)tx).kernelTransaction();
@@ -262,7 +275,7 @@ public class TriggerNewProceduresTest {
         String query = "UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase: 'after'})", 
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
         testCall(sysDb, "CALL apoc.trigger.stop('neo4j', 'pausedTest')", (row) -> {
             assertEquals("pausedTest", row.get("name"));
             assertEquals(true, row.get("installed"));
@@ -276,7 +289,7 @@ public class TriggerNewProceduresTest {
         String query = "UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase: 'after'})", 
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
         
         sysDb.executeTransactionally("CALL apoc.trigger.stop('neo4j', 'test')");
         testCallEventually(db, "CALL apoc.trigger.list()", (row) -> {
@@ -292,7 +305,7 @@ public class TriggerNewProceduresTest {
         String query = "UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase: 'after'})",
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
         
         sysDb.executeTransactionally("CALL apoc.trigger.stop('neo4j', 'test')");
         testCallEventually(db, "CALL apoc.trigger.list", 
@@ -314,10 +327,10 @@ public class TriggerNewProceduresTest {
         String query = "UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {})",
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
         
         sysDb.executeTransactionally("CALL apoc.trigger.stop('neo4j', 'test')");
-        awaitProcedureUpdated(db, name, query, true);
+        awaitTriggerDiscovered(db, name, query, true);
 
         db.executeTransactionally("CREATE (f:Foo {name:'Michael'})");
         testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
@@ -333,13 +346,13 @@ public class TriggerNewProceduresTest {
         String query = "UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {})",
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
         
         sysDb.executeTransactionally("CALL apoc.trigger.stop('neo4j', 'test')");
-        awaitProcedureUpdated(db, name, query, true);
+        awaitTriggerDiscovered(db, name, query, true);
 
         sysDb.executeTransactionally("CALL apoc.trigger.start('neo4j', 'test')");
-        awaitProcedureUpdated(db, name, query, false);
+        awaitTriggerDiscovered(db, name, query, false);
 
         db.executeTransactionally("CREATE (f:Foo {name:'Michael'})");
         testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
@@ -366,7 +379,7 @@ public class TriggerNewProceduresTest {
                 "SET r1.triggerAfterAsync = true";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase: 'afterAsync'})",
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
 
         db.executeTransactionally("MATCH (a:A {name: \"A\"})-[:R1]->(z:Z {name: \"Z\"})\n" +
                 "MERGE (a)-[:R2]->(z)");
@@ -387,7 +400,7 @@ public class TriggerNewProceduresTest {
                 "SET a.alpha = apoc.any.property(r, \"alpha\"), r1.triggerAfterAsync = size($deletedRelationships) > 0, r1.size = size($deletedRelationships), r1.deleted = type(r) RETURN *";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase: 'afterAsync'})",
                 map("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
 
         // delete rel
         commonDeleteAfterAsync("MATCH (a:A {name: 'A'})-[r:R2]->(z:Z {name: 'Z'}) DELETE r");
@@ -402,7 +415,7 @@ public class TriggerNewProceduresTest {
                 "SET a.alpha = apoc.any.property(r, \"alpha\"), r1.triggerAfterAsync = size($deletedRelationships) > 0, r1.size = size($deletedRelationships), r1.deleted = type(r) RETURN *";
         db.executeTransactionally("CALL apoc.trigger.add($name, $query, {phase: 'afterAsync'})",
                 map("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
 
         // delete rel
         commonDeleteAfterAsync("MATCH (a:A {name: 'A'})-[r:R2]->(z:Z {name: 'Z'}) DELETE r");
@@ -418,7 +431,7 @@ public class TriggerNewProceduresTest {
 
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', 'trigger-after-async-3', $query, {phase: 'afterAsync'})",
                 map("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
 
         // delete node
         commonDeleteAfterAsync("MATCH (n:R2) DELETE n");
@@ -434,7 +447,7 @@ public class TriggerNewProceduresTest {
 
         db.executeTransactionally("CALL apoc.trigger.add($name, $query, {phase: 'afterAsync'})",
                 map("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
 
         // delete node
         commonDeleteAfterAsync("MATCH (n:R2) DELETE n");
@@ -467,7 +480,7 @@ public class TriggerNewProceduresTest {
                 "SET a.triggerAfter = size($deletedRelationships) = 1, a.deleted = type(r)";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase: 'after'})",
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(db, name, query);
+        awaitTriggerDiscovered(db, name, query);
 
 
         db.executeTransactionally("MATCH (a:A {name: \"A\"})-[r:R2]->(z:Z {name: \"Z\"})\n" +
