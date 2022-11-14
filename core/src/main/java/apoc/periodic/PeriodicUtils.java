@@ -90,9 +90,10 @@ public class PeriodicUtils {
                         retries,
                         retryCount -> collector.incrementRetried(),
                         onComplete -> {
-                            Util.setKernelStatus(tx, 
-                                    "successes", collector.getBatches() - collector.getFailedBatches().get(), 
-                                    "errors", collector.getFailedBatches().get());
+                            // in this case we update statusDetails for each batch, instead of counting rows/lines
+                            Util.setKernelStatusMap(tx, true,
+                                    Map.of("successes", collector.getBatches() - collector.getFailedBatches().get(), 
+                                    "errors", collector.getFailedBatches().get()));
                             collector.incrementBatches();
                             executeBatch.release();
                             activeFutures.decrementAndGet();

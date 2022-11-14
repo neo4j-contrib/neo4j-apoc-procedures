@@ -31,7 +31,7 @@ import static apoc.periodic.PeriodicUtils.submitJob;
 import static apoc.periodic.PeriodicUtils.submitProc;
 import static apoc.periodic.PeriodicUtils.wrapTask;
 import static apoc.util.Util.merge;
-import static apoc.util.Util.setKernelStatus;
+import static apoc.util.Util.setKernelStatusMap;
 
 public class Periodic {
     
@@ -104,8 +104,8 @@ public class Periodic {
                     return 0L;
                 }
             }), commitErrors, failedCommits, 0L);
-            setKernelStatus(tx,
-                    "successes", batches.get() - failedBatches.get(), "errors", failedBatches.get());
+            setKernelStatusMap(tx, true,
+                    Map.of("successes", batches.get() - failedBatches.get(), "errors", failedBatches.get()));
             total += updates;
             if (updates > 0) executions++;
             if (log.isDebugEnabled()) {
@@ -182,7 +182,7 @@ public class Periodic {
         validateQuery(statement);
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
         JobInfo info = schedule(name, () -> {
-            db.executeTransactionally(statement, params);
+            db.executeTransactionally(statement, params, r -> r.resultAsString());
         },0,rate);
         return Stream.of(info);
     }

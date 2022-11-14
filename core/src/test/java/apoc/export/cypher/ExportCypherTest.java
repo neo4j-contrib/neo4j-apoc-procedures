@@ -201,7 +201,7 @@ public class ExportCypherTest {
     
     @Test
     public void testExportWithStatusDetails() {
-        db.executeTransactionally("UNWIND range(0,9999) AS x CREATE (:Status)");
+        db.executeTransactionally("UNWIND range(0,22222) AS x CREATE (:Status)-[:REL]->(:StatusBis)");
         checkStatusDetails(db, "CALL apoc.export.cypher.all('status.cypher', {separateFiles:true})", Map.of());
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }

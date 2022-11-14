@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static apoc.kernel.KernelTestUtils.checkStatusDetails;
 import static apoc.load.LoadHtml.KEY_ERROR;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -372,13 +371,6 @@ public class LoadHtmlTest {
                     assertEquals(2, ((List) value.get(KEY_ERROR)).size());
                     assertFalse(result.hasNext());
                 });
-    }
-
-    @Test
-    public void testStatusDetails() {
-        // large .html url
-        checkStatusDetails(db, "CALL apoc.load.html($url, {all: '*'}, {children: true})", 
-                map("url", "https://en.wikipedia.org/wiki/2022_in_video_games"));
     }
 
     @Test

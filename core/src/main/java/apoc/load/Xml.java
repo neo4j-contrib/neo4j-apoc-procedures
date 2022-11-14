@@ -247,9 +247,10 @@ public class Xml {
         }
 
         if (!elementMap.isEmpty()) {
-            final Map<String, Object> statusMap = map("curr. element", stack.size());
+            final int counter = stack.size();
+            final Map<String, Object> statusMap = map("curr. element", counter);
             statusMap.putAll(elementMap);
-            setKernelStatusMap(tx, statusMap);
+            setKernelStatusMap(tx, counter, statusMap);
             stack.addLast(elementMap);
         }
     }
@@ -460,6 +461,7 @@ public class Xml {
         private final Deque<ParentAndChildPair> parents = new ArrayDeque<>();
         private org.neo4j.graphdb.Node last;
         private org.neo4j.graphdb.Node lastWord;
+        private long counter = 0;
         private int currentCharacterIndex = 0;
         private final Map<String, Long> statusDetail = new HashMap<>();
         private final Transaction tx;
@@ -508,14 +510,14 @@ public class Xml {
             }
             statusDetail.merge("nodes", 1L, Long::sum);
             statusDetail.merge("relationships", 1L, Long::sum);
-            setKernelStatusMap(tx, statusDetail);
+            setKernelStatusMap(tx, ++counter, statusDetail);
             parentAndChildPair.setPreviousChild(thisNode);
             last = thisNode;
         }
         
         public void updateNumTags() {
             statusDetail.merge("elements", 1L, Long::sum);
-            setKernelStatusMap(tx, statusDetail);
+            setKernelStatusMap(tx, counter, statusDetail);
         }
 
         public void addCurrentCharacterIndex(int length) {

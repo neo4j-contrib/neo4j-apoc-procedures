@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -15,6 +16,9 @@ import java.util.concurrent.TimeUnit;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class KernelTestUtils {
+    public static void checkStatusDetails(GraphDatabaseService db, String query) {
+        checkStatusDetails(db, query, Collections.emptyMap(), null);
+    }
 
     public static void checkStatusDetails(GraphDatabaseService db, String query, Map<String, Object> params) {
         checkStatusDetails(db, query, params, null);
@@ -29,13 +33,12 @@ public class KernelTestUtils {
                 "SHOW TRANSACTIONS YIELD statusDetails, currentQuery where currentQuery STARTS WITH $startQuery RETURN statusDetails", 
                 Map.of("startQuery", finalStartQuery)),
                 StringUtils::isNotEmpty, 
-                20L, TimeUnit.SECONDS);
+                30L, TimeUnit.SECONDS);
         
         try {
             future.get();
-        } catch (Exception e) {
-//        } catch (InterruptedException | ExecutionException e) {
-//            throw new RuntimeException(e);
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
         }
     }
 }

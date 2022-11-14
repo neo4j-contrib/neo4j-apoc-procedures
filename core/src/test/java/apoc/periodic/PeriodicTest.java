@@ -320,22 +320,20 @@ public class PeriodicTest {
     
     @Test
     public void testStatusDetailsPeriodicIterate() {
-        db.executeTransactionally("UNWIND range(1,9999) AS x CREATE (:StatusIterate)");
+        db.executeTransactionally("UNWIND range(1,55555) AS x CREATE (:StatusIterate)");
+        
+        // test periodic iterate
         KernelTestUtils.checkStatusDetails(db, 
                 "CALL apoc.periodic.iterate('match (p:StatusIterate) return p', 'SET p.lastname =p.name REMOVE p.name', {batchSize:10,parallel:true})", 
                 Collections.emptyMap(), 
                 "cypher runtime=slotted match (p:StatusIterate)");
-        db.executeTransactionally("MATCH (s:StatusIterate) DELETE s");
-    }
-    
-    @Test
-    public void testStatusDetailsPeriodicCommit() {
-        db.executeTransactionally("UNWIND range(1,9999) AS x CREATE (:StatusIterate)");
 
+        // test periodic commit
         String query = "MATCH (p:StatusIterate) WHERE NOT p:Processed WITH p LIMIT 200 SET p:Processed RETURN count(*)";
-        KernelTestUtils.checkStatusDetails(db, 
-                "CALL apoc.periodic.commit($query, {})", 
+        KernelTestUtils.checkStatusDetails(db,
+                "CALL apoc.periodic.commit($query, {})",
                 map("query", query));
+        
         db.executeTransactionally("MATCH (s:StatusIterate) DELETE s");
     }
 
