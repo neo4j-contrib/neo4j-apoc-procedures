@@ -34,11 +34,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import static apoc.util.CompressionConfig.COMPRESSION;
-import static apoc.util.Util.setKernelStatus;
+import static apoc.util.Util.setKernelStatusMap;
 
 public class LoadJson {
 
@@ -55,11 +55,12 @@ public class LoadJson {
     @Procedure
     @Description("apoc.load.jsonArray('url') YIELD value - load array from JSON URL (e.g. web-api) to import JSON as stream of values")
     public Stream<ObjectResult> jsonArray(@Name("url") String url, @Name(value = "path",defaultValue = "") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
-        AtomicInteger rows = new AtomicInteger();
+        AtomicLong rows = new AtomicLong();
         return JsonUtil.loadJson(url, null, null, path, true, (List<String>) config.get("pathOptions"))
                 .flatMap((value) -> {
                     if (value instanceof List) {
-                        setKernelStatus(tx, "rows", rows.incrementAndGet());
+                        final long counter = rows.incrementAndGet();
+                        setKernelStatusMap(tx, counter, Map.of("rows", counter));
                         List list = (List) value;
                         if (list.isEmpty()) return Stream.empty();
                         if (list.get(0) instanceof Map) return list.stream().map(ObjectResult::new);
@@ -95,14 +96,16 @@ public class LoadJson {
             headers.putAll(Util.extractCredentialsIfNeeded((String) urlOrKeyOrBinary, failOnError));
         }
         Stream<Object> stream = JsonUtil.loadJson(urlOrKeyOrBinary,headers,payload, path, failOnError, compressionAlgo, pathOptions);
-        AtomicInteger rows = new AtomicInteger();
+        AtomicLong rows = new AtomicLong();
         return stream.flatMap((value) -> {
             if (value instanceof Map) {
-                setKernelStatus(tx, "rows", rows.incrementAndGet());
+                final long counter = rows.incrementAndGet();
+                setKernelStatusMap(tx, counter, Map.of("rows", counter));
                 return Stream.of(new MapResult((Map) value));
             }
             if (value instanceof List) {
-                setKernelStatus(tx, "rows", rows.incrementAndGet());
+                final long counter = rows.incrementAndGet();
+                setKernelStatusMap(tx, counter, Map.of("rows", counter));
                 if (((List)value).isEmpty()) return Stream.empty();
                 if (((List) value).get(0) instanceof Map)
                     return ((List) value).stream().map((v) -> new MapResult((Map) v));

@@ -233,7 +233,8 @@ public class CypherExtended {
                                 Map.Entry::getKey,
                                 Map.Entry::getValue,
                                 (v1, v2) -> (long) v1 + (long) v2));
-                setKernelStatusMap(tx, update);
+                // in this case we update statusDetails for each query result instead of count rows/lines
+                setKernelStatusMap(tx, true, update);
                 queue.put(new RowResult(-1, resultMap));
             }
             return row;

@@ -24,6 +24,7 @@ import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Transaction;
 
 import java.io.PrintWriter;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -53,8 +54,6 @@ public class ProgressReporter implements Reporter {
         this.progressInfo = progressInfo;
         this.batchSize = progressInfo.batchSize;
         this.tx = tx;
-        // init status
-        updateStatus();
     }
 
     public ProgressReporter withConsumer(Consumer<ProgressInfo> consumer) {
@@ -79,11 +78,15 @@ public class ProgressReporter implements Reporter {
     }
 
     public void update(long nodes, long relationships, long properties) {
+        update(nodes, relationships, properties, false);
+    }
+    
+    public void update(long nodes, long relationships, long properties, boolean updateCurrent) {
         time = System.currentTimeMillis();
         progressInfo.update(nodes, relationships, properties);
-        updateStatus();
         totalEntities += nodes + relationships;
         acceptBatch();
+        updateStatus(updateCurrent);
     }
 
     public void acceptBatch() {
@@ -99,7 +102,6 @@ public class ProgressReporter implements Reporter {
         lastBatch = Math.max(totalEntities / batchSize,lastBatch);
         progressInfo.batches = lastBatch;
         this.progressInfo.rows = totalEntities;
-        updateStatus();
         this.progressInfo.updateTime(start);
     }
 
@@ -136,14 +138,16 @@ public class ProgressReporter implements Reporter {
 
     public void nextRow() {
         this.progressInfo.nextRow();
-        updateStatus();
         this.totalEntities++;
+        updateStatus(false);
         acceptBatch();
     }
 
-    private void updateStatus() {
-        if (this.tx != null) {
-            setKernelStatusMap(tx, JsonUtil.convertToMap(this.progressInfo));
+    public void updateStatus(boolean updateCurrent) {
+        final Map<String, Object> statusMap = JsonUtil.convertToMap(this.progressInfo);
+        if (updateCurrent) {
+            setKernelStatusMap(tx, true, statusMap);
         }
+        setKernelStatusMap(tx, progressInfo.nodes + progressInfo.relationships + progressInfo.properties, statusMap);
     }
 }

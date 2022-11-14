@@ -22,7 +22,6 @@ import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.MissingDependencyException;
 import apoc.util.FileUtils;
-import apoc.util.Util;
 import java.nio.charset.UnsupportedCharsetException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -147,7 +146,8 @@ public class LoadHtml {
                 else {
                     if(element.hasText()) result.put("text", element.text());
                 }
-                setKernelStatusMap(tx, Map.of("rows", rows.incrementAndGet(), "result", result));
+                final int counter = rows.incrementAndGet();
+                setKernelStatusMap(tx, counter, Map.of("rows", counter, "result", result));
                 elementList.add(result);
                 return null;
             });

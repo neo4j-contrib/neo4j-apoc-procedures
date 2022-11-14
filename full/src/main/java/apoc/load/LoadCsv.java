@@ -158,7 +158,7 @@ public class LoadCsv {
                     final CSVResult result = new CSVResult(header, row, lineNo, ignore, mapping, nullValues, results);
                     action.accept(result);
                     lineNo++;
-                    setKernelStatusMap(tx, JsonUtil.convertToMap(result));
+                    setKernelStatusMap(tx, lineNo, JsonUtil.convertToMap(result));
                     return true;
                 }
                 return false;

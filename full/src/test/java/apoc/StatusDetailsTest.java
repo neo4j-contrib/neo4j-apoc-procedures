@@ -26,6 +26,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import static apoc.kernel.KernelTestUtils.checkStatusDetails;
 import static org.neo4j.configuration.GraphDatabaseSettings.TransactionStateMemoryAllocation.OFF_HEAP;
@@ -73,7 +74,8 @@ public class StatusDetailsTest {
     
     @Before
     public void before() throws Exception {
-        db.executeTransactionally("UNWIND range(0,39999) AS x CREATE (:Status)");
+        IntStream.range(0, 5)
+                .forEach(__-> db.executeTransactionally("UNWIND range(0, 10000) AS x CREATE (:Status)"));
     }
     
     @After
@@ -84,10 +86,6 @@ public class StatusDetailsTest {
     @Parameterized.Parameters
     public static Collection<String[]> data() {
         return Arrays.asList(new String[][] {
-                { "status.graphml" ,
-                        "MATCH (n:Status) WITH collect(n) as nodes CALL apoc.export.graphml.data(nodes, [], $file, {}) yield data RETURN 1",
-                        "CALL apoc.import.graphml($file,{readLabels:true})",
-                        null },
                 { "status.csv",
                         "CALL apoc.export.csv.all($file,null)",
                         "CALL apoc.import.csv([{fileName: $file, labels: ['Status']}], [], {})",
@@ -95,7 +93,11 @@ public class StatusDetailsTest {
                 { "status.json",
                         "CALL apoc.export.json.all($file)",
                         "CALL apoc.import.json($file, null)",
-                        "CALL apoc.load.json($file)" }
+                        "CALL apoc.load.json($file)" },
+                { "status.graphml" ,
+                        "MATCH (n:Status) WITH collect(n) as nodes CALL apoc.export.graphml.data(nodes, [], $file, {}) yield data RETURN 1",
+                        "CALL apoc.import.graphml($file,{readLabels:true})",
+                        null },
         });
     }
 

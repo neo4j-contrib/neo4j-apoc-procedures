@@ -46,7 +46,8 @@ public class PlainText implements HtmlResultInterface {
         for (Element element : elements) {
             final String result = getResult(config, errorList, log, failConfig, element);
             plainText.append(result);
-            setKernelStatusMap(tx, Map.of("rows", rows.incrementAndGet(), "result", result));
+            final int counter = rows.incrementAndGet();
+            setKernelStatusMap(tx, counter, Map.of("rows", counter, "result", result));
         }
         return plainText.toString();
     }
