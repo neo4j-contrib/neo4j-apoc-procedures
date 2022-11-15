@@ -103,7 +103,7 @@ public class SystemDbTest {
     @Test
     public void testWriteStatements() {
         // count exhaust the result - this is important here
-        TestUtil.count(db, "CALL apoc.systemdb.execute([\"CREATE USER dummy SET PASSWORD '123'\"])");
+        TestUtil.count(db, "CALL apoc.systemdb.execute([\"CREATE USER dummy SET PASSWORD '12345678'\"])");
 
         assertEquals(2L, TestUtil.count(db, "CALL apoc.systemdb.execute('SHOW USERS')"));
     }
