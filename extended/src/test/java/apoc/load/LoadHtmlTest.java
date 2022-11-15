@@ -483,7 +483,7 @@ public class LoadHtmlTest {
         try {
             runnable.run();
         } catch (RuntimeException e) {
-            // We don't fail the test if the current chrome/firefox version is incompatible or chrome is not installed
+            // The test don't fail if the current chrome/firefox version is incompatible or if the browser is not installed
             final String msg = e.getMessage();
             if (!msg.contains("cannot find Chrome binary") && !msg.contains("Cannot find firefox binary")) {
                 throw e;
