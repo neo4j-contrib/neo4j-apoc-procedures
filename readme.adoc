@@ -1,7 +1,7 @@
 :readme:
 :branch: 5.1
 :docs: https://neo4j.com/docs/labs/apoc/current
-:apoc-release: 5.1.0.0
+:apoc-release: 5.1.0
 :neo4j-version: 5.1.0
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/images
 
