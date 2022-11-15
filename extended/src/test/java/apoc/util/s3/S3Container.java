@@ -26,7 +26,9 @@ public class S3Container implements AutoCloseable {
 
 
     public S3Container() {
-        localstack = new LocalStackContainer("0.8.10").withServices(S3);
+        localstack = new LocalStackContainer("0.8.10")
+                .withStartupAttempts(3)
+                .withServices(S3);
         localstack.start();
         s3 = AmazonS3ClientBuilder
                 .standard()
