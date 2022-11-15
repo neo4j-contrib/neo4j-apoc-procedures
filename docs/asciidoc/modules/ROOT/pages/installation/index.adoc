@@ -58,8 +58,8 @@ In a `pom.xml` of a maven project, you can add these two dependencies from https
 &lt;/dependency&gt;
 ----
 
-Alternatively, you can download the jar https://repo1.maven.org/maven2/org/neo4j/procedure/apoc-extended/{apoc-release}/apoc-extended-{apoc-release}-extended.jar[from here] (if it is not already present via `apoc-core`)
-and put them into `plugin` folder.
+Alternatively, you can download the jar https://repo1.maven.org/maven2/org/neo4j/procedure/apoc-extended/{apoc-release}/apoc-extended-{apoc-release}-extended.jar[from here]
+and put it into `plugin` folder.
 
 
 [[restricted]]
