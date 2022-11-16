@@ -10,10 +10,14 @@ import org.junit.Test;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static org.junit.Assert.assertEquals;
@@ -23,6 +27,7 @@ import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class TTLMultiDbTest {
 
@@ -56,6 +61,16 @@ public class TTLMultiDbTest {
             session.writeTransaction(tx -> tx.run("CREATE DATABASE " + DB_TEST + ";"));
             session.writeTransaction(tx -> tx.run("CREATE DATABASE " + DB_FOO + ";"));
             session.writeTransaction(tx -> tx.run("CREATE DATABASE " + DB_BAR + ";"));
+        }
+
+        try(Session session = driver.session(SessionConfig.forDatabase("system"))) {
+            assertEventually(() -> {
+                final List<Record> list = session.run("SHOW DATABASES YIELD name, currentStatus")
+                        .list();
+                return list.stream().allMatch(i -> i.get("currentStatus").asString().equals("online"))
+                        && list.stream().map(i -> i.get("name").asString()).collect(Collectors.toList())
+                        .containsAll(List.of(DB_TEST , DB_FOO , DB_BAR));
+            }, value -> value, 30L, TimeUnit.SECONDS);
         }
 
     }
