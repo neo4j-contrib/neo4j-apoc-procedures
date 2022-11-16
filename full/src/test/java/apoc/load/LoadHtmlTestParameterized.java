@@ -19,6 +19,7 @@ import java.util.Map;
 
 import static apoc.load.LoadHtmlTest.RESULT_QUERY_H2;
 import static apoc.load.LoadHtmlTest.RESULT_QUERY_METADATA;
+import static apoc.load.LoadHtmlTest.skipIfBrowserNotPresentOrCompatible;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testResult;
 import static com.google.common.collect.Lists.newArrayList;
@@ -57,18 +58,21 @@ public class LoadHtmlTestParameterized {
         Map<String, Object> query = map("metadata", "meta", "h2", "h2");
 
         Map<String, Object> config = browserSet() ? Map.of("browser", browser) : emptyMap();
-        testResult(db, "CALL apoc.load.html($url,$query, $config)",
-                map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
-                result -> {
-                    Map<String, Object> row = result.next();
-                    Map<String, Object> value = (Map<String, Object>) row.get("value");
 
-                    List<Map<String, Object>> metadata = (List<Map<String, Object>>) value.get("metadata");
-                    List<Map<String, Object>> h2 = (List<Map<String, Object>>) value.get("h2");
-
-                    assertEquals(asList(RESULT_QUERY_METADATA).toString().trim(), metadata.toString().trim());
-                    assertEquals(asList(RESULT_QUERY_H2).toString().trim(), h2.toString().trim());
-                });
+        skipIfBrowserNotPresentOrCompatible(() -> {
+            testResult(db, "CALL apoc.load.html($url,$query, $config)",
+                    map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
+                    result -> {
+                        Map<String, Object> row = result.next();
+                        Map<String, Object> value = (Map<String, Object>) row.get("value");
+    
+                        List<Map<String, Object>> metadata = (List<Map<String, Object>>) value.get("metadata");
+                        List<Map<String, Object>> h2 = (List<Map<String, Object>>) value.get("h2");
+    
+                        assertEquals(asList(RESULT_QUERY_METADATA).toString().trim(), metadata.toString().trim());
+                        assertEquals(asList(RESULT_QUERY_H2).toString().trim(), h2.toString().trim());
+                    });
+        });
     }
 
     @Test
@@ -78,13 +82,15 @@ public class LoadHtmlTestParameterized {
         addBrowserIfSet(confList);
         Map<String, Object> config = map(confList.toArray());
 
-        testResult(db, "CALL apoc.load.html($url, $query, $config)",
-                map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
-                result -> {
-                    Map<String, Object> row = result.next();
-                    assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
-                    assertFalse(result.hasNext());
-                });
+        skipIfBrowserNotPresentOrCompatible(() -> {
+            testResult(db, "CALL apoc.load.html($url, $query, $config)",
+                    map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
+                    result -> {
+                        Map<String, Object> row = result.next();
+                        assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
+                        assertFalse(result.hasNext());
+                    });
+        });
     }
 
     @Test
@@ -94,26 +100,28 @@ public class LoadHtmlTestParameterized {
         addBrowserIfSet(confList);
         Map<String, Object> config = map(confList.toArray());
 
-        testResult(db, "CALL apoc.load.html($url, $query, $config)",
-                map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
-                result -> {
-                    Map<String, Object> row = result.next();
-                    Map<String, Object> value = (Map<String, Object>) row.get("value");
+        skipIfBrowserNotPresentOrCompatible(() -> {
+            testResult(db, "CALL apoc.load.html($url, $query, $config)",
+                    map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
+                    result -> {
+                        Map<String, Object> row = result.next();
+                        Map<String, Object> value = (Map<String, Object>) row.get("value");
 
-                    List<Map<String, Object>> toc = (List) value.get("toc");
-                    Map<String, Object> first = toc.get(0);
+                        List<Map<String, Object>> toc = (List) value.get("toc");
+                        Map<String, Object> first = toc.get(0);
 
-                    // Should be <ul>
-                    assertEquals("ul", first.get("tagName"));
+                        // Should be <ul>
+                        assertEquals("ul", first.get("tagName"));
 
-                    // Should have four children
-                    assertEquals(4, ((List) first.get("children")).size());
+                        // Should have four children
+                        assertEquals(4, ((List) first.get("children")).size());
 
-                    Map<String, Object> firstChild = (Map)((List) first.get("children")).get(0);
+                        Map<String, Object> firstChild = (Map)((List) first.get("children")).get(0);
 
-                    assertEquals("li", firstChild.get("tagName"));
-                    assertEquals(1, ((List) firstChild.get("children")).size());
-                });
+                        assertEquals("li", firstChild.get("tagName"));
+                        assertEquals(1, ((List) firstChild.get("children")).size());
+                    });
+        });
     }
 
     private void addBrowserIfSet(List<Object> confList) {
