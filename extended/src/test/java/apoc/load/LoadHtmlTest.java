@@ -81,22 +81,24 @@ public class LoadHtmlTest {
 
     @Test
     public void testWithWaitUntilAndOneElementNotFound() {
-        testCall(db, "CALL apoc.load.html($url,$query,$config)",
-                map("url",new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString(),
-                        "query", map("elementExistent", "strong", "elementNotExistent", ".asdfgh"),
-                        "config", map("browser", "CHROME", "wait", 5)),
-                result -> {
-                    Map<String, Object> value = (Map<String, Object>) result.get("value");
-                    List<Map<String, Object>> notExistent = (List<Map<String, Object>>) value.get("elementNotExistent");
-                    List<Map<String, Object>> existent = (List<Map<String, Object>>) value.get("elementExistent");
-                    assertTrue(notExistent.isEmpty());
-                    assertEquals(1, existent.size());
-                    final Map<String, Object> tag = existent.get(0);
-                    assertEquals("This is a new text node", tag.get("text"));
-                    assertEquals("strong", tag.get("tagName"));
-                });
+        skipIfBrowserNotPresentOrCompatible(() -> {
+            testCall(db, "CALL apoc.load.html($url,$query,$config)",
+                    map("url", new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString(),
+                            "query", map("elementExistent", "strong", "elementNotExistent", ".asdfgh"),
+                            "config", map("browser", "CHROME", "wait", 5)),
+                    result -> {
+                        Map<String, Object> value = (Map<String, Object>) result.get("value");
+                        List<Map<String, Object>> notExistent = (List<Map<String, Object>>) value.get("elementNotExistent");
+                        List<Map<String, Object>> existent = (List<Map<String, Object>>) value.get("elementExistent");
+                        assertTrue(notExistent.isEmpty());
+                        assertEquals(1, existent.size());
+                        final Map<String, Object> tag = existent.get(0);
+                        assertEquals("This is a new text node", tag.get("text"));
+                        assertEquals("strong", tag.get("tagName"));
+                    });
+        });
     }
-
+    
     @Test
     public void testWithBaseUriConfig() {
         Map<String, Object> query = map("urlTest", ".urlTest");
@@ -152,7 +154,7 @@ public class LoadHtmlTest {
                     assertEquals(expected, actual);
                 });
     }
-    
+
     @Test
     public void shouldEmulateJsoupFunctions() {
         // getElementsByTag
@@ -453,25 +455,39 @@ public class LoadHtmlTest {
     }
 
     private void testCallGeneratedJsWithBrowser(String browser) {
-        testCall(db, "CALL apoc.load.html($url,$query,$config)",
-                map("url",new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString(),
-                        "query", map("td", "td", "strong", "strong"),
-                        "config", map("browser", browser)),
-                result -> {
-                    Map<String, Object> value = (Map<String, Object>) result.get("value");
-                    List<Map<String, Object>> tdList = (List<Map<String, Object>>) value.get("td");
-                    List<Map<String, Object>> strongList = (List<Map<String, Object>>) value.get("strong");
-                    assertEquals(4, tdList.size());
-                    final String templateString = "foo bar - baz";
-                    AtomicInteger integer = new AtomicInteger();
-                    tdList.forEach(tag -> {
-                        assertEquals("td", tag.get("tagName"));
-                        assertEquals(integer.getAndIncrement() + templateString, tag.get("text"));
+        skipIfBrowserNotPresentOrCompatible(() -> {
+            testCall(db, "CALL apoc.load.html($url,$query,$config)",
+                    map("url",new File("src/test/resources/html/wikipediaWithJs.html").toURI().toString(),
+                            "query", map("td", "td", "strong", "strong"),
+                            "config", map("browser", browser)),
+                    result -> {
+                        Map<String, Object> value = (Map<String, Object>) result.get("value");
+                        List<Map<String, Object>> tdList = (List<Map<String, Object>>) value.get("td");
+                        List<Map<String, Object>> strongList = (List<Map<String, Object>>) value.get("strong");
+                        assertEquals(4, tdList.size());
+                        final String templateString = "foo bar - baz";
+                        AtomicInteger integer = new AtomicInteger();
+                        tdList.forEach(tag -> {
+                            assertEquals("td", tag.get("tagName"));
+                            assertEquals(integer.getAndIncrement() + templateString, tag.get("text"));
+                        });
+                        assertEquals(1, strongList.size());
+                        final Map<String, Object> tagStrong = strongList.get(0);
+                        assertEquals("This is a new text node", tagStrong.get("text"));
+                        assertEquals("strong", tagStrong.get("tagName"));
                     });
-                    assertEquals(1, strongList.size());
-                    final Map<String, Object> tagStrong = strongList.get(0);
-                    assertEquals("This is a new text node", tagStrong.get("text"));
-                    assertEquals("strong", tagStrong.get("tagName"));
-                });
+        });
+    }
+
+    public static void skipIfBrowserNotPresentOrCompatible(Runnable runnable) {
+        try {
+            runnable.run();
+        } catch (RuntimeException e) {
+            // The test don't fail if the current chrome/firefox version is incompatible or if the browser is not installed
+            final String msg = e.getMessage();
+            if (!msg.contains("cannot find Chrome binary") && !msg.contains("Cannot find firefox binary")) {
+                throw e;
+            }
+        }
     }
 }
