@@ -70,7 +70,7 @@ dependencies {
         exclude module: "commons-lang3"
         exclude module: "commons-text"
     }
-    compile group: 'org.yaml', name: 'snakeyaml', version: '1.26'
+    compile group: 'org.yaml', name: 'snakeyaml', version: '1.32'
     compile group: 'com.github.seancfoley', name: 'ipaddress', version: '5.3.3'
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
     compile(group: 'org.apache.commons', name: 'commons-lang3')
