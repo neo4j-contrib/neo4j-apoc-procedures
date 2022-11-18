@@ -2,6 +2,7 @@ package apoc.ttl;
 
 import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
+import apoc.util.collection.Iterators;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -11,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 

@@ -3,12 +3,12 @@ package apoc.generate.relationship;
 import apoc.generate.Generate;
 import apoc.generate.config.ErdosRenyiConfig;
 import apoc.util.TestUtil;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
 
-import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 

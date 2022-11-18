@@ -6,6 +6,7 @@ import apoc.result.VirtualRelationship;
 import apoc.util.MissingDependencyException;
 import apoc.util.UriResolver;
 import apoc.util.Util;
+import apoc.util.collection.Iterators;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
@@ -23,7 +24,6 @@ import org.neo4j.driver.types.Relationship;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.internal.helpers.collection.Iterators;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;

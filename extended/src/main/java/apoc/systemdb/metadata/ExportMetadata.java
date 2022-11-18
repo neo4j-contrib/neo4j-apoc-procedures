@@ -5,9 +5,9 @@ import apoc.SystemPropertyKeys;
 import apoc.export.util.ProgressReporter;
 import apoc.systemdb.SystemDbConfig;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
-import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.List;
 import java.util.Optional;

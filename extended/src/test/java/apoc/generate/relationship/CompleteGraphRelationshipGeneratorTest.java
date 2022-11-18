@@ -1,8 +1,8 @@
 package apoc.generate.relationship;
 
 import apoc.generate.config.NumberOfNodesBasedConfig;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
-import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.List;
 

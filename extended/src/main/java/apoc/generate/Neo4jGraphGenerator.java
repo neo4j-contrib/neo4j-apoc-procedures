@@ -2,10 +2,10 @@ package apoc.generate;
 
 import apoc.generate.config.GeneratorConfiguration;
 import apoc.generate.relationship.RelationshipGenerator;
+import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,8 +61,8 @@ public class Neo4jGraphGenerator extends BaseGraphGenerator {
         try {
             int i = 0;
             for (Pair<Integer, Integer> input : relationships) {
-                Node first = tx.getNodeById(nodes.get(input.first()));
-                Node second = tx.getNodeById(nodes.get(input.other()));
+                Node first = tx.getNodeById(nodes.get(input.getLeft()));
+                Node second = tx.getNodeById(nodes.get(input.getRight()));
                 config.getRelationshipCreator().createRelationship(first, second);
 
                 if (++i % config.getBatchSize() == 0) {

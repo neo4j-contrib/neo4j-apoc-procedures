@@ -18,8 +18,9 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static apoc.util.collection.Iterables.count;
+
 import static org.junit.Assert.assertEquals;
-import static org.neo4j.internal.helpers.collection.Iterables.count;
 
 /**
  * Integration test for {@link Neo4jGraphGenerator} with {@link WattsStrogatzRelationshipGenerator}.

@@ -2,7 +2,7 @@ package apoc.generate.relationship;
 
 import apoc.generate.config.BarabasiAlbertConfig;
 import apoc.generate.config.NumberOfNodesBasedConfig;
-import org.neo4j.internal.helpers.collection.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.HashSet;
 import java.util.List;
@@ -50,7 +50,7 @@ public class BarabasiAlbertRelationshipGenerator extends BaseRelationshipGenerat
             for (int edge = 0; edge < edgesPerNewNode; edge++) {
                 while (true) {
                     Pair<Integer, Integer> randomEdge = edges.get(random.nextInt(edges.size()));
-                    int target = random.nextBoolean() ? randomEdge.first() : randomEdge.other();
+                    int target = random.nextBoolean() ? randomEdge.getLeft() : randomEdge.getRight();
 
                     if (omit.contains(target)) {
                         continue;
