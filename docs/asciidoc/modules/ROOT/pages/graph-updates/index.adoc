@@ -4,7 +4,7 @@
 
 
 
-The APOC library adds extra functionality for writing to the database.
+The APOC Extended library adds extra functionality for writing to the database.
 
 For more information on how to use these procedures, see:
 

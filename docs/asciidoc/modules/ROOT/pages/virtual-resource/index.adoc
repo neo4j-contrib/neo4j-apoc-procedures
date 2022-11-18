@@ -13,7 +13,7 @@ This is "time-series data", and you may not want to import it and persist it in 
 accessing that information on-demand at query time and combining it seamlessly with the network topology data in your graph.
 ====
 
-The APOC library supports the definition of a catalog of virtual resources. A virtual resource is an external data source that neo4j can use to query and retrieve data on demand presenting it as virtual nodes enriching the data stored in the graph.
+The APOC Extended library supports the definition of a catalog of virtual resources. A virtual resource is an external data source that neo4j can use to query and retrieve data on demand presenting it as virtual nodes enriching the data stored in the graph.
 The Virtual Resource Catalog feature combines two APOC elements:
 
 * The xref::import/index.adoc[apoc.load.* procedures] that query data from external sources.

@@ -1,6 +1,6 @@
 [[introduction]]
 = Introduction
-:description: This chapter provides an introduction to the APOC library, and instructions for installation and use.
+:description: This chapter provides an introduction to the APOC Extended library, and instructions for installation and use.
 
 
 
@@ -43,4 +43,4 @@ _APOC Extended_ :: contains additional procedures and functions, which is availa
 
 A list of functions and procedures in _APOC Extended_ can be found in xref::overview/index.adoc[].
 
-Starting from Neo4j 5.0.0, APOC core and extended are split into 2 separate repos, with only core being officially supported by Neo4j.
+Starting from Neo4j 5.0.0, APOC Core and Extended are split into 2 separate repos, with only Core being officially supported by Neo4j.
