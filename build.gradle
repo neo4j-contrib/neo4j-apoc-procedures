@@ -20,6 +20,8 @@ allprojects {
 }
 
 apply plugin: 'java-library'
+if (System.env.CI != null)
+    apply from: 'teamcity-repository.gradle'
 
 repositories {
 
@@ -69,8 +71,8 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country' : 'US',
-                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise' : 'neo4j:5.1.0-enterprise',
-                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") : 'neo4j:5.1.0',
+                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise' : 'neo4j:5.3.0-enterprise',
+                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") : 'neo4j:5.3.0',
                 'coreDir': 'apoc-core/core'
 
         maxHeapSize = "8G"
