@@ -71,7 +71,7 @@ dependencies {
     compileOnly "org.apache.poi:poi-ooxml:5.1.0"
     testCompile "org.apache.poi:poi-ooxml:5.1.0"
 
-    compile 'org.jsoup:jsoup:1.14.3'
+    compile 'org.jsoup:jsoup:1.15.3'
 
     // currently we cannot update selenium to the latest version due to guava minimum version required (31.0.1-jre)
     compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59', { exclude group: 'com.google.guava', module: 'guava' }
