@@ -10,10 +10,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      DOCKER_ENTERPRISE_DEV_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
-      DOCKER_COMMUNITY_DEV_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
-      TEAMCITY_DEV_URL: ${{ secrets.TEAMCITY_DEV_URL }}
-      TEAMCITY_FIVE_URL: ${{ secrets.TEAMCITY_FIVE_URL }}
+      DOCKER_ENTERPRISE_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
+      DOCKER_COMMUNITY_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
+      TEAMCITY_URL: ${{ secrets.TEAMCITY_DEV_URL }}
       TEAMCITY_USER: ${{ secrets.TEAMCITY_USER }}
       TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
       ENTERPRISE_TAR: enterprise-docker.tar
@@ -29,8 +28,8 @@ jobs:
 
       - name: Download neo4j dev docker container
         run: |
-          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_DEV_URL} -o ${ENTERPRISE_TAR} &
-          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_DEV_URL} -o ${COMMUNITY_TAR} &
+          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_URL} -o ${ENTERPRISE_TAR} &
+          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_URL} -o ${COMMUNITY_TAR} &
           wait
           docker load --input ${ENTERPRISE_TAR}
           docker load --input ${COMMUNITY_TAR}

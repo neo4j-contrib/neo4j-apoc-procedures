@@ -23,7 +23,7 @@ import org.neo4j.internal.kernel.api.procs.Neo4jTypes;
 import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
 import org.neo4j.internal.kernel.api.procs.QualifiedName;
 import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
-import org.neo4j.kernel.api.ResourceTracker;
+import org.neo4j.kernel.api.ResourceMonitor;
 import org.neo4j.kernel.api.procedure.CallableProcedure;
 import org.neo4j.kernel.api.procedure.CallableUserFunction;
 import org.neo4j.kernel.api.procedure.Context;
@@ -331,7 +331,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             final boolean isStatementNull = statement == null;
             globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
                 @Override
-                public RawIterator<AnyValue[], ProcedureException> apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input, ResourceTracker resourceTracker) throws ProcedureException {
+                public RawIterator<AnyValue[], ProcedureException> apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input, ResourceMonitor resourceMonitor) throws ProcedureException {
                     if (isStatementNull) {
                         final String error = String.format("There is no procedure with the name `%s` registered for this database instance. " +
                                 "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", signature.name());
@@ -340,7 +340,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                         Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
                         Transaction tx = transactionComponentFunction.apply(ctx);
                         Result result = tx.execute(statement, params);
-                        resourceTracker.registerCloseableResource(result);
+                        resourceMonitor.registerCloseableResource(result);
 
                         List<FieldSignature> outputs = signature.outputSignature();
                         String[] names = outputs == null ? null : outputs.stream().map(FieldSignature::name).toArray(String[]::new);
