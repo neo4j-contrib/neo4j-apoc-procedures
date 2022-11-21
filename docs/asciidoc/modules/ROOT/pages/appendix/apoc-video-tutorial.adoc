@@ -1,0 +1,82 @@
+= APOC video tutorial
+
+To learn more about how to use the APOC library, see the following video series produced in 2018 by Michael Hunger, Senior Director of User Innovation at Neo4j.
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/V1DTBjetIfk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/b1Yr2nHNS4M" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/yEN6TCL8WGk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/M1P1IlQdb5M" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/e8UfOHJngQA" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/t1Nr5C5TAYs" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/_Qdhouvx-Qw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/KsAb8QHClNg" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/qgeEbI8gqe4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/e9aoQ9xOmoU" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/x34FuSLt0l8" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/wUMKM-uLNfg" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/HvTvy4G9uJk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
