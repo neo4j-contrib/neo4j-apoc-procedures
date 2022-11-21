@@ -11,7 +11,7 @@ This feature is intended to facilitate using APOC in development environments, b
 
 Download the APOC release matching our Neo4j version and, copy it to a local folder, and supply it as a data volume mounted at `/plugins`.
 
-.The following downloads the APOC Library into the `plugins` directory and then mounts that folder to the Neo4j Docker container
+.The following downloads the APOC Extended library into the `plugins` directory and then mounts that folder to the Neo4j Docker container
 [source,bash,subs=attributes]
 ----
 mkdir plugins

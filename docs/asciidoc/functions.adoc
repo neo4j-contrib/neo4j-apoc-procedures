@@ -1,6 +1,6 @@
 [[user-defined-functions]]
 = User Defined Functions
-:description: This chapter describes gives an overview of user defined features, and summarises the functions in the APOC library.
+:description: This chapter describes gives an overview of user defined features, and summarises the functions in the APOC Extended library.
 
 
 

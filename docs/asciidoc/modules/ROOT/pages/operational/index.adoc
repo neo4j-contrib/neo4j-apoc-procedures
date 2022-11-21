@@ -1,6 +1,6 @@
 [[operational]]
 = Operational
-:description: This chapter describes operational procedures in the APOC library.
+:description: This chapter describes operational procedures in the APOC Extended library.
 
 
 

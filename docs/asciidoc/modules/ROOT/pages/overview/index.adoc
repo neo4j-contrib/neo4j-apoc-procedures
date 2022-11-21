@@ -1,6 +1,6 @@
 [[overview]]
 = Procedures & Functions
-:description: This chapter provides a reference of all the procedures and functions in the APOC library.
+:description: This chapter provides a reference of all the procedures and functions in the APOC Extended library.
 
 
 [WARNING]
