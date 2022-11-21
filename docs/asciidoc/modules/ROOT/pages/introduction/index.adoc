@@ -1,6 +1,6 @@
 [[introduction]]
 = Introduction
-:description: This chapter provides an introduction to the APOC library, and instructions for installation and use.
+:description: This chapter provides an introduction to the APOC Extended library, and instructions for installation and use.
 
 
 
@@ -35,7 +35,7 @@ http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board 
 
 == APOC Editions - Core and Extended
 
-Starting from Neo4j 4.1.1, there are two available versions of the APOC Library:
+Starting from Neo4j 4.1.1, there are two available versions of the APOC library:
 
 _APOC Core_ :: battle hardened procedures and functions that don't have external dependencies or require configuration. This is also the based of the functionality available in https://neo4j.com/aura[Neo4j AuraDB^] which lists the https://neo4j.com/docs/aura/current/getting-started/apoc/[available APOC surface in their docs^].
 _APOC Extended_ :: contains additional procedures and functions, which is available when you self-host the database and add the apoc-extended jar.
@@ -43,4 +43,4 @@ _APOC Extended_ :: contains additional procedures and functions, which is availa
 
 A list of functions and procedures in _APOC Extended_ can be found in xref::overview/index.adoc[].
 
-Starting from Neo4j 5.0.0, APOC core and extended are split into 2 separate repos, with only core being officially supported by Neo4j.
+Starting from Neo4j 5.0.0, APOC Core and Extended are split into 2 separate repos, with only Core being officially supported by Neo4j.
