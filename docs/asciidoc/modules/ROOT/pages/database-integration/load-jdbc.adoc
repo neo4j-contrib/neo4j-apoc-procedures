@@ -10,12 +10,6 @@ Reading data from relational databases to create and augment data models is a ve
 With `apoc.load.jdbc` you can access any database that provides a JDBC driver, and execute queries whose results are turned into streams of rows. 
 Those rows can then be used to update or create graph structures.
 
-ifdef::backend-html5[]
-++++
-<iframe width="560" height="315" src="https://www.youtube.com/embed/e8UfOHJngQA" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-++++
-endif::[]
-
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
 include::example$generated-documentation/apoc.load.csv[lines=1;6..8]
