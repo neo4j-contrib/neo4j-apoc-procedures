@@ -1,6 +1,6 @@
 [[cypher-execution]]
 = Cypher Execution
-:description: This chapter describes Cypher Execution procedures in the APOC library.
+:description: This chapter describes Cypher Execution procedures in the APOC Extended library.
 
 
 
