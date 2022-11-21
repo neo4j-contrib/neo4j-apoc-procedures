@@ -2,15 +2,6 @@
 = Introduction
 :description: This chapter provides an introduction to the APOC library, and instructions for installation and use.
 
-
-
-
-ifdef::backend-html5[]
-++++
-<iframe width="560" height="315" src="https://www.youtube.com/embed/V1DTBjetIfk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-++++
-endif::[]
-
 Neo4j 3.x introduced the concept of user-defined procedures and functions.
 Those are custom implementations of certain functionality, that can't be (easily) expressed in Cypher itself.
 They are implemented in Java and can be easily deployed into your Neo4j instance, and then be called from Cypher directly.
