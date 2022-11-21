@@ -1,6 +1,6 @@
 [[transaction]]
 = List of procedures with its own transaction
-:description: This chapter describes the list of procedures that start their own transaction in the APOC library.
+:description: This chapter describes the list of procedures that start their own transaction in the APOC Extended library.
 
 The list of procedures that start their own transaction:
 
