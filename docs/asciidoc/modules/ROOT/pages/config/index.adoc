@@ -1,6 +1,6 @@
 [[config]]
 = Configuration Options
-:description: This chapter gives an overview of all the configuration options used by the APOC library.
+:description: This chapter gives an overview of all the configuration options used by the APOC Extended library.
 
 
 
@@ -17,7 +17,7 @@ The order of this table matches their config option precedence. E.g. any env set
 
 [NOTE]
 ====
-APOC internally relies on Apache commons-config for resolving config settings.
+APOC Extended internally relies on Apache commons-config for resolving config settings.
 The meta-configuration is located in `src/main/resources/apoc-config.xml`.
 ====
 
