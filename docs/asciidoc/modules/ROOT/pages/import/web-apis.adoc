@@ -37,7 +37,7 @@ include::partial$s3-protocol.adoc[]
 
 == Using hdfs protocol
 
-To use the hdfs protocol we need to download and copy the additional jars not included in the APOC Library.
+To use the hdfs protocol we need to download and copy the additional jars not included in the APOC Extended library.
 We can download it from https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-redis-dependencies-{apoc-release}.jar[this link] or locally downloading the apoc repository:
 ----
 git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures

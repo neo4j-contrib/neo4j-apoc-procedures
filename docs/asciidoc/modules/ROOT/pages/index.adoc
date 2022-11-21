@@ -18,11 +18,11 @@ For the officially supported APOC Core, go to the https://neo4j.com/docs/apoc/{b
 
 The guide covers the following areas:
 
-* xref::introduction/index.adoc[] -- An Introduction to the APOC library.
-* xref::installation/index.adoc[] -- Installation instructions for the library.
+* xref::introduction/index.adoc[] -- An Introduction to the APOC Extended library.
+* xref::installation/index.adoc[] -- Installation instructions for the APOC Extended library.
 * xref::usage/index.adoc[] -- A usage example.
-* xref::overview/index.adoc[] -- A list of all APOC procedures and functions.
-* xref::config/index.adoc[] -- Configuration options used by the library.
+* xref::overview/index.adoc[] -- A list of all APOC Extended procedures and functions.
+* xref::config/index.adoc[] -- Configuration options used by the APOC Extended library.
 * xref::import/index.adoc[] -- A detailed guide to procedures that can be used to import data from different formats including JSON, CSV, and XLS.
 * xref::export/index.adoc[] -- A detailed guide to procedures that can be used to export data to different formats including JSON, CSV, GraphML, and Gephi.
 * xref::database-integration/index.adoc[] -- A detailed guide to procedures that can be used to integrate with other databases including relational databases, MongoDB, Couchbase, and ElasticSearch.

@@ -1,6 +1,6 @@
 [[misc]]
 = Miscellaneous
-:description: This chapter describes miscellaneous functions and procedures in the APOC library.
+:description: This chapter describes miscellaneous functions and procedures in the APOC Extended library.
 
 
 
