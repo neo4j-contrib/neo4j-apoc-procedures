@@ -24,7 +24,7 @@ include::example$generated-documentation/apoc.couchbase.query.adoc[]
 
 (Tested with CB Enterprise 5.5.3)
 
-The Couchbase procedures have dependencies on a client library that is not included in the APOC Extended Library.
+The Couchbase procedures have dependencies on a client library that is not included in the APOC Extended library.
 This dependency is included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-couchbase-dependencies-{apoc-release}.jar[apoc-couchbase-dependencies-{apoc-release}.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
 Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
 
