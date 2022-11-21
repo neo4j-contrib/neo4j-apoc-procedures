@@ -70,3 +70,5 @@ include::partial$generated-documentation/nav.adoc[]
 * xref::transaction/index.adoc[]
 
 * xref::deprecations-and-additions/index.adoc[]
+
+* xref:appendix/index.adoc[]
