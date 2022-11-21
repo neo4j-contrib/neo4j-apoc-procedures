@@ -1,6 +1,6 @@
 [[import]]
 = Import
-:description: This chapter describes procedures in the APOC  Extended library that can be used to import data into Neo4j.
+:description: This chapter describes procedures in the APOC Extended library that can be used to import data into Neo4j.
 
 
 
