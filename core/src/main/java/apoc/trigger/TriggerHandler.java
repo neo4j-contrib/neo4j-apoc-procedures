@@ -6,7 +6,6 @@ import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
 import org.neo4j.dbms.api.DatabaseManagementService;
-import org.neo4j.function.ThrowingFunction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Result;
@@ -16,9 +15,6 @@ import org.neo4j.graphdb.event.TransactionEventListener;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.internal.helpers.collection.Pair;
-import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
-import org.neo4j.kernel.api.procedure.Context;
-import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.scheduler.Group;
@@ -59,16 +55,14 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
 
     public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
             " Set 'apoc.trigger.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
-    private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
 
     public TriggerHandler(GraphDatabaseService db, DatabaseManagementService databaseManagementService,
-                          ApocConfig apocConfig, Log log, GlobalProcedures globalProceduresRegistry,
+                          ApocConfig apocConfig, Log log,
                           Pools pools, JobScheduler jobScheduler) {
         this.db = db;
         this.databaseManagementService = databaseManagementService;
         this.apocConfig = apocConfig;
         this.log = log;
-        transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
         this.pools = pools;
         this.jobScheduler = jobScheduler;
     }

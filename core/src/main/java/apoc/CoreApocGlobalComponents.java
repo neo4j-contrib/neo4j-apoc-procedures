@@ -20,7 +20,6 @@ public class CoreApocGlobalComponents implements ApocGlobalComponents {
                 dependencies.databaseManagementService(),
                 dependencies.apocConfig(),
                 dependencies.log().getUserLog(TriggerHandler.class),
-                dependencies.globalProceduresRegistry(),
                 dependencies.pools(),
                 dependencies.scheduler())
         );

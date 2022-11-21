@@ -32,11 +32,8 @@ public class TriggerExtendedTest {
             .withSetting(procedure_unrestricted, List.of("apoc*"))
             .withSetting(apoc_trigger_enabled, true);  // need to use settings here, apocConfig().setProperty in `setUp` is too late
 
-    private long start;
-
     @Before
     public void setUp() throws Exception {
-        start = System.currentTimeMillis();
         TestUtil.registerProcedure(db, Trigger.class, TriggerExtended.class, Nodes.class, Create.class);
     }
 

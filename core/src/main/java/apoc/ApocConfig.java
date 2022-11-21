@@ -257,6 +257,15 @@ public class ApocConfig extends LifecycleAdapter {
         return systemDb;
     }
 
+    public GraphDatabaseService getDatabase(String databaseName) {
+        try {
+            return databaseManagementService.database(databaseName);
+        } catch (Exception e)
+        {
+            throw new RuntimeException( e );
+        }
+    }
+
     public enum LoggingType {none, safe, raw}
 
     private void initLogging() {
