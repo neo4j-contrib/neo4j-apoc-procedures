@@ -1,12 +1,12 @@
 [[general-considerations]]
 = General considerations
-:description: This chapter describes a list of information to consider using the APOC library.
+:description: This chapter describes a list of information to consider using the APOC Extended library.
 
-To use the APOC library it's necessary to consider the following issues.
+To use the APOC Extended library, it is necessary to consider the following issues.
 
 .Memory tracker
 
-The APOC procedures (and in general, the Neo4j procedures), currently are not detected by Neo4j Memory Tracker.
+The APOC Extended procedures (and in general, the Neo4j procedures), currently are not detected by Neo4j Memory Tracker.
 This means that, for example, the apoc.path.expand procedure
 doesn't stop if `dbms.memory.transaction.database_max_size` is reached, 
 and we cannot use the `SHOW TRANSACTIONS yield currentQuery, estimatedUsedHeapMemory` command to monitor the memory usage of the query.

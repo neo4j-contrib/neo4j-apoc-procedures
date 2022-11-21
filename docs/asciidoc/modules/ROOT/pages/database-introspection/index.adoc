@@ -4,7 +4,7 @@
 
 
 
-The APOC library adds extra tools for introspecting the database.
+The APOC Extended library adds extra tools for introspecting the database.
 
 For more on these procedures, see:
 
