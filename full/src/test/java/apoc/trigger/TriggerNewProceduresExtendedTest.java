@@ -33,7 +33,7 @@ import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
 
 public class TriggerNewProceduresExtendedTest {
-    private static final long TIMEOUT = 10L;
+    private static final long TIMEOUT = 30L;
 
     private static final File directory = new File("target/conf");
     static { //noinspection ResultOfMethodCallIgnored
