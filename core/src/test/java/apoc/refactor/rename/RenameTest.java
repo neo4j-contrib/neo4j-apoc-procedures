@@ -1,26 +1,33 @@
 package apoc.refactor.rename;
 
 
+import apoc.coll.Coll;
+import apoc.lock.Lock;
 import apoc.util.TestUtil;
+import apoc.util.Utils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.neo4j.configuration.GraphDatabaseSettings.lock_acquisition_timeout;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 /**
  * @author AgileLARUS
@@ -30,10 +37,11 @@ import static org.junit.Assert.assertFalse;
 public class RenameTest {
 
 	@Rule
-	public DbmsRule db = new ImpermanentDbmsRule();
+	public DbmsRule db = new ImpermanentDbmsRule()
+			.withSetting(lock_acquisition_timeout, Duration.ofSeconds(5));
 
 	@Before public void setUp() throws Exception {
-		TestUtil.registerProcedure(db, Rename.class);
+		TestUtil.registerProcedure(db, Rename.class, Coll.class, Lock.class, Utils.class);
 	}
 
 	@Test
@@ -331,25 +339,34 @@ public class RenameTest {
 	}
 
 	@Test
-	@Ignore("in 4.3 it should be hard to reproduce")
-	public void testDeadlockException() {
-		String query = "UNWIND RANGE(1, 100) AS ID \n" +
-				"MERGE (account1:Account{ID: ID})\n" +
-				"MERGE (account2:Account{ID: toInteger(rand() * 100)})\n" +
-				"MERGE (account3:Account{ID: toInteger(rand() * 100)})\n" +
-				"MERGE (account1)-[:SIMILAR_TO]->(account2)\n" +
-				"MERGE (account1)-[:SIMILAR_TO]->(account3)\n" +
-				"MERGE (account2)-[:SIMILAR_TO]->(account3)";
+	public void testLockException() {
+		String query = "MERGE (account1:Account{ID: 1})\n" +
+				"MERGE (account2:Account{ID: 2})\n" +
+				"WITH account1, account2\n" +
+				"MERGE (account1)-[:SIMILAR_TO {id: 1}]->(account2)\n" +
+				"MERGE (account1)-[:SIMILAR_TO {id: 2}]->(account2)";
 		db.executeTransactionally(query);
+
+		final String lockQuery = "match (n:Account {ID:1})-[r:SIMILAR_TO {id: 1}]->(:Account) set r.other=123 " +
+				"with r call apoc.util.sleep(20000) return r";
+		new Thread(() -> db.executeTransactionally(lockQuery)).start();
+		
+		// check until the lock query is running
+		assertEventually(() -> db.executeTransactionally("SHOW TRANSACTIONS YIELD currentQuery, status " +
+								"WHERE status = 'Running' RETURN currentQuery",
+						Collections.emptyMap(), 
+						r -> r.<String>columnAs("currentQuery")
+								.stream().anyMatch(curr -> curr.contains(lockQuery))),
+				(v) -> v, 20, TimeUnit.SECONDS);
 
 		String testQuery = "MATCH (:Account)-[r:SIMILAR_TO]->(:Account)\n" +
 				"WITH COLLECT(r) as rs\n" +
-				"CALL apoc.refactor.rename.type('SIMILAR_TO','SIMILAR_TO_'+rand(),rs, {batchSize:10}) YIELD committedOperations, batches, failedBatches, total, errorMessages, batch\n" +
-				"RETURN committedOperations, batches, failedBatches, total, errorMessages, batch";
+				"CALL apoc.refactor.rename.type('SIMILAR_TO','SIMILAR_TO_'+rand(),rs, {batchSize:10}) YIELD batch\n" +
+				"RETURN batch";
 		testResult(db, testQuery, Collections.emptyMap(), (r) -> {
 			final Map<String, Object> batch = r.<Map<String, Object>>columnAs("batch").next();
 			final Map<String, Object> errors = (Map<String, Object>) batch.get("errors");
-			assertFalse(errors.isEmpty());
+			assertTrue(errors.keySet().stream().anyMatch(i->i.contains("Unable to acquire lock")));
 		});
 
 	}
