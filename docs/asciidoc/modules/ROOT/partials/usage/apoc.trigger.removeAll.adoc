@@ -1,3 +1,11 @@
+[NOTE]
+====
+Please note that `apoc.trigger.add`, `apoc.trigger.remove`, `apoc.trigger.removeAll`, `apoc.trigger.pause`, and `apoc.trigger.resume` are deprecated in favor of `apoc.trigger.install`, `apoc.trigger.drop`, `apoc.trigger.dropAll`, `apoc.trigger.stop`, and `apoc.trigger.start` procedures.
+
+xref::background-operations/triggers.adoc[See here for more info].
+
+====
+
 If we want to remove all triggers, including the one created by the example in xref::overview/apoc.trigger/apoc.trigger.add.adoc[], we can run the following query:
 
 [source,cypher]
