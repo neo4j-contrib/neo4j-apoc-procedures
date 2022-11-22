@@ -10,7 +10,6 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
-import org.neo4j.driver.Transaction;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,6 +18,7 @@ import java.util.UUID;
 
 import static apoc.trigger.Trigger.SYS_NON_LEADER_ERROR;
 import static apoc.trigger.TriggerNewProcedures.TRIGGER_NOT_ROUTED_ERROR;
+import static apoc.util.TestContainerUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -84,26 +84,26 @@ public class TriggerClusterRoutingTest {
                 continue;
             }
             Session session = driver.session(SessionConfig.forDatabase(dbName));
-            session.writeTransaction(tx -> {
-                if (sysIsLeader(tx)) {
-                    tx.run(query, Map.of("name", UUID.randomUUID().toString())).consume();
-                } else {
-                    try {
-                        tx.run(query, Map.of("name", UUID.randomUUID().toString())).consume();
-                        fail("Should fail because of non leader trigger addition");
-                    } catch (Exception e) {
-                        String errorMsg = e.getMessage();
-                        assertTrue("The actual message is: " + errorMsg, errorMsg.contains(triggerNotRoutedError));
-                    }
+            if (sysIsLeader(session)) {
+                final String name = UUID.randomUUID().toString();
+                testCall( session, query,
+                        Map.of("name", name),
+                        row -> assertEquals(name, row.get("name")) );
+            } else {
+                try {
+                    testCall(session, query,
+                            Map.of("name", UUID.randomUUID().toString()),
+                            row -> fail("Should fail because of non leader trigger addition"));
+                } catch (Exception e) {
+                    String errorMsg = e.getMessage();
+                    assertTrue("The actual message is: " + errorMsg, errorMsg.contains(triggerNotRoutedError));
                 }
-                return null;
-            });
+            }
         }
     }
 
-    private static boolean sysIsLeader(Transaction tx) {
-        final String systemRole = tx.run("CALL dbms.cluster.role('system')")
-                .single().get("role").asString();
+    private static boolean sysIsLeader(Session session) {
+        final String systemRole = TestContainerUtil.singleResultFirstColumn(session, "CALL dbms.cluster.role('system')");
         return "LEADER".equals(systemRole);
     }
 }
