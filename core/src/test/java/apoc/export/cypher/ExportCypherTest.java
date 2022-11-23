@@ -7,14 +7,11 @@ import apoc.util.CompressionAlgo;
 import apoc.schema.Schemas;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.test.rule.DbmsRule;
@@ -594,7 +591,6 @@ public class ExportCypherTest {
     }
 
     @Test
-    @Ignore("non-deterministic index order")
     public void testExportAllCypherPlainOptimized() throws Exception {
         String fileName = "queryPlainOptimized.cypher";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query('MATCH (f:Foo)-[r:KNOWS]->(b:Bar) return f,r,b', $file,{format:'cypher-shell', useOptimizations: {type: 'unwind_batch'}})",
@@ -609,7 +605,11 @@ public class ExportCypherTest {
                     assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
                 });
         String actual = readFile(fileName);
-        assertTrue("expected generated output",EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED.equals(actual) || EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED2.equals(actual));
+        assertTrue("expected generated output",
+                EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED.equals(actual) ||
+                        EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED2.equals(actual) ||
+                        EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED3.equals(actual) ||
+                        EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED4.equals(actual));
     }
 
     @Test
@@ -697,31 +697,46 @@ public class ExportCypherTest {
                 });
     }
 
-    @Ignore("It doesn't fail anymore because it skips not supported indexes")
-    @Test(expected = QueryExecutionException.class)
-    public void shouldFailExportMultiTokenIndexForRelationship() {
+    @Test
+    public void shouldExportFulltextIndexForRelationship() {
         // given
-        db.executeTransactionally("CREATE (n:TempNode {value:'value'})");
-        db.executeTransactionally("CREATE (n:TempNode2 {value:'value'})");
-        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('MyCoolNodeFulltextIndex',['TempNode', 'TempNode2'],['value'])");
-
-        // TODO: We can't manage full-text rel indexes because of this bug: https://github.com/neo4j/neo4j/issues/12304
         db.executeTransactionally("CREATE (s:TempNode)-[:REL{rel_value: 'the rel value'}]->(e:TempNode2)");
         db.executeTransactionally("CALL db.index.fulltext.createRelationshipIndex('MyCoolRelFulltextIndex',['REL'],['rel_value'])");
-        String query = "MATCH (t:TempNode) return t";
+        String query = "MATCH (t:TempNode)-[r:REL{rel_value: 'the rel value'}]->(e:TempNode2) return t,r";
         String file = null;
         Map<String, Object> config = map("awaitForIndexes", 3000);
 
-        try {
-            // when
-            TestUtil.testCall(db, "CALL apoc.export.cypher.query($query, $file, $config)",
-                    map("query", query, "file", file, "config", config),
-                    (r) -> {});
-        } catch (Exception e) {
-            String expected = "Full-text indexes on relationships are not supported, please delete them in order to complete the process";
-            assertEquals(expected, ExceptionUtils.getRootCause(e).getMessage());
-            throw e;
-        }
+        String expected = String.format(":begin%n" +
+                "CREATE FULLTEXT INDEX MyCoolRelFulltextIndex FOR ()-[rel:REL]-() ON EACH [rel.rel_value];%n" +
+                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                ":commit%n" +
+                "CALL db.awaitIndexes(3000);%n" +
+                ":begin%n" +
+                "UNWIND [{_id:3, properties:{}}] AS row%n" +
+                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:TempNode;%n" +
+                "UNWIND [{_id:4, properties:{}}] AS row%n" +
+                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:TempNode2;%n" +
+                ":commit%n" +
+                ":begin%n" +
+                "UNWIND [{start: {_id:3}, end: {_id:4}, properties:{rel_value:\"the rel value\"}}] AS row%n" +
+                "MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})%n" +
+                "MATCH (end:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.end._id})%n" +
+                "CREATE (start)-[r:REL]->(end) SET r += row.properties;%n" +
+                ":commit%n" +
+                ":begin%n" +
+                "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
+                ":commit%n" +
+                ":begin%n" +
+                "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                ":commit%n");
+
+        // when
+        TestUtil.testCall(db, "CALL apoc.export.cypher.query($query, $file, $config)",
+                map("query", query, "file", file, "config", config),
+                (r) -> {
+                    // then
+                    assertEquals(expected, r.get("cypherStatements"));
+                });
     }
 
     @Test
@@ -1067,8 +1082,6 @@ public class ExportCypherTest {
 
         public static final String EXPECTED_INDEXES_AWAIT = String.format("CALL db.awaitIndexes(300);%n");
 
-        private static final String EXPECTED_INDEXES_AWAIT_QUERY = String.format("CALL db.awaitIndex(300);%n");
-
         static final String EXPECTED_RELATIONSHIPS = String.format("BEGIN%n" +
                 "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:Bar{name:\"bar\"}) CREATE (n1)-[r:KNOWS {since:2016}]->(n2);%n" +
                 "COMMIT%n");
@@ -1278,6 +1291,7 @@ public class ExportCypherTest {
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties;%n" +
                 "COMMIT%n");
 
+        // The order in UNWIND is non-deterministic so we need to check for all 4 combinations of orders
         static final String EXPECTED_QUERY_NODES_OPTIMIZED = String.format("BEGIN%n" +
                 "UNWIND [{_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}, {_id:4, properties:{born:date('2017-09-29'), name:\"foo2\"}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
@@ -1289,6 +1303,20 @@ public class ExportCypherTest {
                 "UNWIND [{_id:4, properties:{born:date('2017-09-29'), name:\"foo2\"}}, {_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
                 "UNWIND [{name:\"bar\", properties:{age:42}}, {name:\"bar2\", properties:{age:44}}] AS row%n" +
+                "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
+                "COMMIT%n");
+
+        static final String EXPECTED_QUERY_NODES_OPTIMIZED3 = String.format("BEGIN%n" +
+                "UNWIND [{_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}, {_id:4, properties:{born:date('2017-09-29'), name:\"foo2\"}}] AS row%n" +
+                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
+                "UNWIND [{name:\"bar2\", properties:{age:44}}, {name:\"bar\", properties:{age:42}}] AS row%n" +
+                "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
+                "COMMIT%n");
+
+        static final String EXPECTED_QUERY_NODES_OPTIMIZED4 = String.format("BEGIN%n" +
+                "UNWIND [{_id:4, properties:{born:date('2017-09-29'), name:\"foo2\"}}, {_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}] AS row%n" +
+                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
+                "UNWIND [{name:\"bar2\", properties:{age:44}}, {name:\"bar\", properties:{age:42}}] AS row%n" +
                 "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
                 "COMMIT%n");
 
@@ -1449,6 +1477,8 @@ public class ExportCypherTest {
 
         static final String EXPECTED_QUERY_NODES =  EXPECTED_SCHEMA_OPTIMIZED + EXPECTED_QUERY_NODES_OPTIMIZED + EXPECTED_RELATIONSHIPS_OPTIMIZED + DROP_UNIQUE_OPTIMIZED;
         static final String EXPECTED_QUERY_NODES2 =  EXPECTED_SCHEMA_OPTIMIZED + EXPECTED_QUERY_NODES_OPTIMIZED2 + EXPECTED_RELATIONSHIPS_OPTIMIZED + DROP_UNIQUE_OPTIMIZED;
+        static final String EXPECTED_QUERY_NODES3 =  EXPECTED_SCHEMA_OPTIMIZED + EXPECTED_QUERY_NODES_OPTIMIZED3 + EXPECTED_RELATIONSHIPS_OPTIMIZED + DROP_UNIQUE_OPTIMIZED;
+        static final String EXPECTED_QUERY_NODES4 =  EXPECTED_SCHEMA_OPTIMIZED + EXPECTED_QUERY_NODES_OPTIMIZED4 + EXPECTED_RELATIONSHIPS_OPTIMIZED + DROP_UNIQUE_OPTIMIZED;
 
         static final String EXPECTED_CYPHER_OPTIMIZED_BATCH_SIZE_UNWIND = EXPECTED_SCHEMA_OPTIMIZED + EXPECTED_NODES_OPTIMIZED_BATCH_SIZE_UNWIND + EXPECTED_RELATIONSHIPS_OPTIMIZED + DROP_UNIQUE_OPTIMIZED_BATCH;
 
@@ -1479,13 +1509,25 @@ public class ExportCypherTest {
         static final String EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED = EXPECTED_QUERY_NODES
                 .replace(NEO4J_SHELL.begin(), CYPHER_SHELL.begin())
                 .replace(NEO4J_SHELL.commit(), CYPHER_SHELL.commit())
-                .replace(NEO4J_SHELL.schemaAwait(), EXPECTED_INDEXES_AWAIT_QUERY)
+                .replace(NEO4J_SHELL.schemaAwait(), EXPECTED_INDEXES_AWAIT)
                 .replace(NEO4J_SHELL.schemaAwait(), CYPHER_SHELL.schemaAwait());
 
         static final String EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED2 = EXPECTED_QUERY_NODES2
                 .replace(NEO4J_SHELL.begin(), CYPHER_SHELL.begin())
                 .replace(NEO4J_SHELL.commit(), CYPHER_SHELL.commit())
-                .replace(NEO4J_SHELL.schemaAwait(), EXPECTED_INDEXES_AWAIT_QUERY)
+                .replace(NEO4J_SHELL.schemaAwait(), EXPECTED_INDEXES_AWAIT)
+                .replace(NEO4J_SHELL.schemaAwait(), CYPHER_SHELL.schemaAwait());
+
+        static final String EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED3 = EXPECTED_QUERY_NODES3
+                .replace(NEO4J_SHELL.begin(), CYPHER_SHELL.begin())
+                .replace(NEO4J_SHELL.commit(), CYPHER_SHELL.commit())
+                .replace(NEO4J_SHELL.schemaAwait(), EXPECTED_INDEXES_AWAIT)
+                .replace(NEO4J_SHELL.schemaAwait(), CYPHER_SHELL.schemaAwait());
+
+        static final String EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED4 = EXPECTED_QUERY_NODES4
+                .replace(NEO4J_SHELL.begin(), CYPHER_SHELL.begin())
+                .replace(NEO4J_SHELL.commit(), CYPHER_SHELL.commit())
+                .replace(NEO4J_SHELL.schemaAwait(), EXPECTED_INDEXES_AWAIT)
                 .replace(NEO4J_SHELL.schemaAwait(), CYPHER_SHELL.schemaAwait());
 
         static final String EXPECTED_CYPHER_SHELL_OPTIMIZED = EXPECTED_NEO4J_SHELL_OPTIMIZED
