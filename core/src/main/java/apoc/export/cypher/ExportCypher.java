@@ -94,12 +94,8 @@ public class ExportCypher {
         if (Util.isNullOrEmpty(fileName)) fileName=null;
         ExportConfig c = new ExportConfig(config);
         Result result = tx.execute(query);
-        SubGraph graph;
-        try {
-            graph = CypherResultSubGraph.from(tx, result, c.getRelsInBetween());
-        } catch (IllegalStateException e) {
-            throw new RuntimeException("Full-text indexes on relationships are not supported, please delete them in order to complete the process");
-        }
+        SubGraph graph = CypherResultSubGraph.from(tx, result, c.getRelsInBetween());
+
         String source = String.format("statement: nodes(%d), rels(%d)",
                 Iterables.count(graph.getNodes()), Iterables.count(graph.getRelationships()));
         return exportCypher(fileName, source, graph, c, false);

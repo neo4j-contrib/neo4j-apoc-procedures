@@ -62,14 +62,28 @@ public class CypherResultSubGraph implements SubGraph
         }
         for ( IndexDefinition def : tx.schema().getIndexes() )
         {
-            if ( def.isNodeIndex() && def.getIndexType() != IndexType.LOOKUP )
+            if ( def.getIndexType() != IndexType.LOOKUP )
             {
-                for ( Label label : def.getLabels() )
+                if ( def.isNodeIndex() )
                 {
-                    if ( graph.getLabels().contains( label ) )
+                    for ( Label label : def.getLabels() )
                     {
-                        graph.addIndex( def );
-                        break;
+                        if ( graph.getLabels().contains( label ) )
+                        {
+                            graph.addIndex( def );
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    for ( RelationshipType type : def.getRelationshipTypes() )
+                    {
+                        if ( graph.getTypes().contains( type ) )
+                        {
+                            graph.addIndex( def );
+                            break;
+                        }
                     }
                 }
             }
@@ -158,6 +172,11 @@ public class CypherResultSubGraph implements SubGraph
     public Collection<Label> getLabels()
     {
         return labels;
+    }
+
+    public Collection<RelationshipType> getTypes()
+    {
+        return types;
     }
 
     void addRel( Long id, Relationship rel )
