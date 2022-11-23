@@ -1,8 +1,10 @@
 allprojects {
     repositories {
+        mavenCentral()
         maven {
             url "https://repo.gradle.org/gradle/libs-releases"
         }
+        mavenLocal()
     }
 }
 
@@ -12,7 +14,7 @@ configure(subprojects) {
 
 
 subprojects {
-    version = '5.0.0.0-rc01'
+    version = '5.2.0'
     group = 'org.neo4j.contrib'
 }
 
