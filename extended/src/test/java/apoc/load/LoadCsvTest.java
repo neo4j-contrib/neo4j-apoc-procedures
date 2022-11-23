@@ -193,12 +193,45 @@ RETURN m.col_1,m.col_2,m.col_3
         testResult(db, "CALL apoc.load.csv($url,$config)",
                 map("url", url.toString(), "config", map("results", results, "escapeChar", "NONE")),
                 (r) -> {
-                    assertRow(r, 0L,"name", "Narut\\o\\", "surname","Uzu\\maki");
+                    assertRow(r, 0L,"name", "Narut\\o", "surname","Uzu\\maki");
                     assertRow(r, 1L,"name", "Minat\\o", "surname","Nami\\kaze");
                     assertFalse(r.hasNext());
                 });
     }
 
+    @Test
+    public void testLoadCsvWithEscapedDelimiters() {
+        String url = "test-escaped-delimiters.csv";
+        final List<String> results = List.of("map", "list", "stringMap", "strings");
+
+        /* In OpenCSV library 5.1 -> 5.2 they corrected a bug: https://sourceforge.net/p/opencsv/bugs/212/
+           Now when we have an escaping character before a delimiter,
+           the delimiter is ignored
+           This means before a line:
+                one\,two
+           with the escaping character '\' and ',' as separator would parse
+           as two columns. As in first it splits, then escapes.
+           Now it looks like the new version of the library first escapes
+           (so the ',' is escaped)
+           and then splits, so it parses as one column.
+        */
+        var e = assertThrows(RuntimeException.class, () -> testResult(db, "CALL apoc.load.csv($url, $config)",
+                map("url", url, "config", map("results", results)),
+                (r) -> {
+                    // Consume the stream so it throws the exception
+                    r.stream().toArray();
+                })
+        );
+        assertTrue(e.getMessage().contains("Please check whether you included a delimiter before a column separator or forgot a column separator."));
+
+        testResult(db, "CALL apoc.load.csv($url,$config)",
+                map("url", url, "config", map("results", results, "escapeChar", "NONE")),
+                (r) -> {
+                    assertRow(r, 0L,"name", "Narut\\o\\", "surname","Uzu\\maki");
+                    assertFalse(r.hasNext());
+                });
+    }
+    
     @Test public void testLoadCsvNoHeader() throws Exception {
         String url = "test-no-header.csv";
         testResult(db, "CALL apoc.load.csv($url,{header:false,results:['map','list','stringMap','strings']})", map("url",url), // 'file:test.csv'
