@@ -75,6 +75,14 @@ public class TestUtil {
         }), (v) -> v, timeout, TimeUnit.SECONDS);
     }
 
+    public static void waitDbsAvailable(GraphDatabaseService ...dbs) {
+        waitDbsAvailable(3000, dbs);
+    }
+    
+    public static void waitDbsAvailable(long timeout, GraphDatabaseService ...dbs) {
+        Stream.of(dbs).forEach(db -> assertTrue(db.isAvailable(timeout)));
+    }
+
     public static void testCallAssertions(Result res, Consumer<Map<String, Object>> consumer) {
         assertTrue("Should have an element", res.hasNext());
         Map<String, Object> row = res.next();
