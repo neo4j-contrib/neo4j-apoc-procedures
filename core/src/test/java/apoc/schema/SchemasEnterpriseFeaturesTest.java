@@ -373,6 +373,7 @@ public class SchemasEnterpriseFeaturesTest {
             Map<String, Object> r = result.next();
             assertEquals("CONSTRAINT ON ()-[liked:LIKED]-() ASSERT (liked.day) IS NOT NULL", r.get("name"));
             assertEquals("RELATIONSHIP_PROPERTY_EXISTENCE", r.get("type"));
+            assertEquals("LIKED", r.get("relationshipType"));
             assertEquals(asList("day"), r.get("properties"));
             assertEquals(StringUtils.EMPTY, r.get("status"));
             assertFalse(result.hasNext());
@@ -397,6 +398,7 @@ public class SchemasEnterpriseFeaturesTest {
             Map<String, Object> r = result.next();
             assertEquals("CONSTRAINT ON ()-[liked:LIKED]-() ASSERT (liked.day) IS NOT NULL", r.get("name"));
             assertEquals("RELATIONSHIP_PROPERTY_EXISTENCE", r.get("type"));
+            assertEquals("LIKED", r.get("relationshipType"));
             assertEquals(asList("day"), r.get("properties"));
             assertEquals(StringUtils.EMPTY, r.get("status"));
             assertFalse(result.hasNext());

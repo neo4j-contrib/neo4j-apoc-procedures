@@ -528,7 +528,7 @@ public class Schemas {
                     labelName,
                     properties,
                     schemaRead.indexGetState(indexDescriptor).toString(),
-                    !indexDescriptor.isUnique() ? "INDEX" : "UNIQUENESS",
+                    getIndexType(indexDescriptor),
                     schemaRead.indexGetState(indexDescriptor).equals(InternalIndexState.FAILED) ? schemaRead.indexGetFailure(indexDescriptor) : "NO FAILURE",
                     schemaRead.indexGetPopulationProgress(indexDescriptor).getCompleted() / schemaRead.indexGetPopulationProgress(indexDescriptor).getTotal() * 100,
                     schemaRead.indexSize(indexDescriptor),
@@ -542,7 +542,7 @@ public class Schemas {
                     labelName,
                     properties,
                     "NOT_FOUND",
-                    !indexDescriptor.isUnique() ? "INDEX" : "UNIQUENESS",
+                    getIndexType(indexDescriptor),
                     "NOT_FOUND",
                     0,0,0,
                     indexDescriptor.userDescription(tokens)
@@ -568,14 +568,15 @@ public class Schemas {
                 .mapToObj(tokens::propertyKeyGetName)
                 .collect(Collectors.toList());
         try {
-            return new IndexConstraintRelationshipInfo(getSchemaInfoName(relName, properties), relName, properties, schemaRead.indexGetState(indexDescriptor).toString());
+            return new IndexConstraintRelationshipInfo(getSchemaInfoName(relName, properties), "INDEX", properties, schemaRead.indexGetState(indexDescriptor).toString(), relName);
         } catch (IndexNotFoundKernelException e) {
             return new IndexConstraintRelationshipInfo(
                     // Pretty print for index name
                     getSchemaInfoName(relName, properties),
-                    relName,
+                    getIndexType(indexDescriptor),
                     properties,
-                    "NOT_FOUND"
+                    "NOT_FOUND",
+                    relName
             );
         }
     }
@@ -591,8 +592,13 @@ public class Schemas {
                 String.format("CONSTRAINT %s", constraintDefinition.toString()),
                 constraintDefinition.getConstraintType().name(),
                 Iterables.asList(constraintDefinition.getPropertyKeys()),
-                ""
+                "",
+                constraintDefinition.getRelationshipType().name()
         );
+    }
+
+    private static String getIndexType(IndexDescriptor indexDescriptor) {
+        return indexDescriptor.isUnique() ? "UNIQUENESS" : "INDEX";
     }
 
     private String getSchemaInfoName(Object labelOrType, List<String> properties) {
