@@ -76,7 +76,7 @@ public class TestUtil {
     }
 
     public static void waitDbsAvailable(GraphDatabaseService ...dbs) {
-        waitDbsAvailable(3000, dbs);
+        waitDbsAvailable(5000, dbs);
     }
     
     public static void waitDbsAvailable(long timeout, GraphDatabaseService ...dbs) {
