@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static apoc.ApocConfig.apocConfig;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
 
@@ -23,6 +24,18 @@ public class TriggerNewProcedures {
     // public for testing purpose
     public static final String TRIGGER_NOT_ROUTED_ERROR = "The procedure should be routed and executed against a LEADER system database";
 
+    public static class TriggerShowInfo extends TriggerInfo {
+        public boolean updated;
+
+        public TriggerShowInfo(String name, String query,
+                               Map<String, Object> selector, Map<String, Object> params,
+                               boolean installed, boolean paused,
+                               boolean updated ) {
+            super(name, query, selector, params, installed, paused);
+            this.updated = updated;
+        }
+    }
+    
     public static class TriggerInfo {
         public String name;
         public String query;
@@ -40,12 +53,8 @@ public class TriggerNewProcedures {
 
         public TriggerInfo( String name, String query, Map<String,Object> selector, Map<String,Object> params, boolean installed, boolean paused )
         {
-            this.name = name;
-            this.query = query;
-            this.selector = selector;
+            this(name, query, selector, installed, paused);
             this.params = params;
-            this.installed = installed;
-            this.paused = paused;
         }
     }
 
@@ -54,7 +63,7 @@ public class TriggerNewProcedures {
     @Context public Log log;
 
     private void checkInSystemLeader() {
-        TriggerHandlerWrite.checkEnabled();
+        TriggerHandlerNewProcedures.checkEnabled();
         // routing check
         if (!db.databaseName().equals(SYSTEM_DATABASE_NAME) || !Util.isWriteableInstance(db, SYSTEM_DATABASE_NAME)) {
             throw new RuntimeException(TRIGGER_NOT_ROUTED_ERROR);
@@ -86,7 +95,7 @@ public class TriggerNewProcedures {
         Util.validateQuery(ApocConfig.apocConfig().getDatabase(databaseName), statement);
 
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
-        Map<String, Object> removed = TriggerHandlerWrite.install(databaseName, name, statement, selector, params);
+        Map<String, Object> removed = TriggerHandlerNewProcedures.install(databaseName, name, statement, selector, params);
         if (!removed.isEmpty()) {
             return Stream.of(
                     new TriggerInfo( name, (String)removed.get( "statement"), (Map<String, Object>) removed.get( "selector"), (Map<String, Object>) removed.get( "params"), false, false),
@@ -103,7 +112,7 @@ public class TriggerNewProcedures {
     @Description("CALL apoc.trigger.drop(databaseName, name) | eventually removes an existing trigger, returns the trigger's information")
     public Stream<TriggerInfo> drop(@Name("databaseName") String databaseName, @Name("name")String name) {
         checkInSystemLeader();
-        Map<String, Object> removed = TriggerHandlerWrite.drop(databaseName, name);
+        Map<String, Object> removed = TriggerHandlerNewProcedures.drop(databaseName, name);
         if (removed.isEmpty()) {
             return Stream.of(new TriggerInfo(name, null, null, false, false));
         }
@@ -118,7 +127,7 @@ public class TriggerNewProcedures {
     @Description("CALL apoc.trigger.dropAll(databaseName) | eventually removes all previously added trigger, returns triggers' information")
     public Stream<TriggerInfo> dropAll(@Name("databaseName") String databaseName) {
         checkInSystemLeader();
-        Map<String, Object> removed = TriggerHandlerWrite.dropAll(databaseName);
+        Map<String, Object> removed = TriggerHandlerNewProcedures.dropAll(databaseName);
         return removed.entrySet().stream().map(this::toTriggerInfo);
     }
 
@@ -129,7 +138,7 @@ public class TriggerNewProcedures {
     @Description("CALL apoc.trigger.stop(databaseName, name) | eventually pauses the trigger")
     public Stream<TriggerInfo> stop(@Name("databaseName") String databaseName, @Name("name")String name) {
         checkInSystemLeader();
-        Map<String, Object> paused = TriggerHandlerWrite.updatePaused(databaseName, name, true);
+        Map<String, Object> paused = TriggerHandlerNewProcedures.updatePaused(databaseName, name, true);
 
         return Stream.of(new TriggerInfo(name,
                 (String)paused.get("statement"),
@@ -144,7 +153,7 @@ public class TriggerNewProcedures {
     @Description("CALL apoc.trigger.start(databaseName, name) | eventually unpauses the paused trigger")
     public Stream<TriggerInfo> start(@Name("databaseName") String databaseName, @Name("name")String name) {
         checkInSystemLeader();
-        Map<String, Object> resume = TriggerHandlerWrite.updatePaused(databaseName, name, false);
+        Map<String, Object> resume = TriggerHandlerNewProcedures.updatePaused(databaseName, name, false);
 
         return Stream.of(new TriggerInfo(name,
                 (String)resume.get("statement"),
@@ -152,4 +161,31 @@ public class TriggerNewProcedures {
                 (Map<String,Object>) resume.get("params"),true, false));
     }
 
+    // TODO - perhaps change with @SystemOnlyProcedure
+    @SystemProcedure
+    @Procedure(mode = Mode.READ)
+    @Description("CALL apoc.trigger.show(databaseName) | it lists all installed triggers")
+    public Stream<TriggerShowInfo> show(@Name("databaseName") String databaseName) {
+        // TODO - perhaps not needed
+        checkInSystemLeader();
+        
+        final long interval = apocConfig().getInt("apoc.trigger.refresh", 60000);
+        final long currTime = System.currentTimeMillis();
+
+        return TriggerHandlerNewProcedures.getTriggerNodes(databaseName)
+                .stream()
+                .map(trigger -> {
+                    final long lastUpdated = currTime - (long) trigger.get("lastUpdated");
+                    return new TriggerShowInfo((String) trigger.get("name"),
+                            (String) trigger.get("statement"),
+                            (Map<String, Object>) trigger.get("selector"),
+                            (Map<String, Object>) trigger.get("params"),
+                            true,
+                            (boolean) trigger.get("paused"),
+                            
+                            // if lastUpdated property is less than apoc.trigger.refresh
+                            lastUpdated > interval
+                            );
+                });
+    }
 }

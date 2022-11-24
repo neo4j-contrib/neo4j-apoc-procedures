@@ -6,21 +6,23 @@ import apoc.util.Util;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 
-public class TriggerHandlerWrite {
+public class TriggerHandlerNewProcedures {
     public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
             " Set 'apoc.trigger.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
 
-    public static Map<String, Object> toTriggerInfo(Node node) {
+    private static Map<String, Object> toTriggerInfo(Node node) {
         return node.getAllProperties()
                 .entrySet().stream()
                 .filter(e -> !List.of(SystemPropertyKeys.name.name(), SystemPropertyKeys.database.name()).contains(e.getKey()))
@@ -53,14 +55,14 @@ public class TriggerHandlerWrite {
                     Pair.of(SystemPropertyKeys.name.name(), triggerName));
             
             // we'll return previous trigger info
-            previous.putAll(TriggerHandlerWrite.toTriggerInfo(node));
+            previous.putAll(toTriggerInfo(node));
             
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
             node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
             node.setProperty(SystemPropertyKeys.params.name(), Util.toJson(params));
             node.setProperty(SystemPropertyKeys.paused.name(), false);
 
-            setLastUpdate(databaseName, tx);
+            setLastUpdate(databaseName, tx, node);
             return null;
         });
 
@@ -71,13 +73,13 @@ public class TriggerHandlerWrite {
         final HashMap<String, Object> previous = new HashMap<>();
 
         withSystemDb(tx -> {
-            getTriggerNodes(databaseName, tx, triggerName)
-                    .forEachRemaining(node -> {
-                                previous.putAll(TriggerHandlerWrite.toTriggerInfo(node));
-                                node.delete();
-                            });
+            // there should be at most one node 
+            final Node node = Iterators.singleOrNull(getTriggerNodes(databaseName, tx, triggerName));
+            previous.putAll(toTriggerInfo(node));
+            node.delete();
             
-            setLastUpdate(databaseName, tx);
+            setLastUpdate(databaseName, tx, node);
+            
             return null;
         });
 
@@ -88,15 +90,14 @@ public class TriggerHandlerWrite {
         HashMap<String, Object> result = new HashMap<>();
 
         withSystemDb(tx -> {
-            getTriggerNodes(databaseName, tx, name)
-                    .forEachRemaining(node -> {
-                        node.setProperty( SystemPropertyKeys.paused.name(), paused );
+            // there should be at most one node 
+            final Node node = Iterators.singleOrNull(getTriggerNodes(databaseName, tx, name));
+            node.setProperty( SystemPropertyKeys.paused.name(), paused );
 
-                        // we'll return previous trigger info
-                        result.putAll(TriggerHandlerWrite.toTriggerInfo(node));
-                    });
-
-            setLastUpdate(databaseName, tx);
+            // we'll return previous trigger info
+            result.putAll(toTriggerInfo(node));
+            
+            setLastUpdate(databaseName, tx, node);
             return null;
         });
 
@@ -112,14 +113,22 @@ public class TriggerHandlerWrite {
                         String triggerName = (String) node.getProperty(SystemPropertyKeys.name.name());
 
                         // we'll return previous trigger info
-                        previous.put(triggerName, TriggerHandlerWrite.toTriggerInfo(node));
+                        previous.put(triggerName, toTriggerInfo(node));
                         node.delete();
                     });
-            setLastUpdate(databaseName, tx);
+            setLastUpdate(databaseName, tx, null);
             return null;
         });
 
         return previous;
+    }
+
+    public static List<Map<String, Object>> getTriggerNodes(String databaseName) {
+        return withSystemDb(tx -> getTriggerNodes(databaseName, tx, null)
+                .stream()
+                .map(TriggerHandlerNewProcedures::toTriggerInfo)
+                .collect(Collectors.toList())
+        );
     }
 
     public static ResourceIterator<Node> getTriggerNodes(String databaseName, Transaction tx) {
@@ -144,13 +153,20 @@ public class TriggerHandlerWrite {
         }
     }
 
-    private static void setLastUpdate(String databaseName, Transaction tx) {
-        Node node = tx.findNode(SystemLabels.ApocTriggerMeta, SystemPropertyKeys.database.name(), databaseName);
-        if (node == null) {
-            node = tx.createNode(SystemLabels.ApocTriggerMeta);
-            node.setProperty(SystemPropertyKeys.database.name(), databaseName);
+    private static void setLastUpdate(String databaseName, Transaction tx, Node triggerNode) {
+        Node metaNode = tx.findNode(SystemLabels.ApocTriggerMeta, SystemPropertyKeys.database.name(), databaseName);
+        if (metaNode == null) {
+            metaNode = tx.createNode(SystemLabels.ApocTriggerMeta);
+            metaNode.setProperty(SystemPropertyKeys.database.name(), databaseName);
         }
-        node.setProperty(SystemPropertyKeys.lastUpdated.name(), System.currentTimeMillis());
+        metaNode.setProperty(SystemPropertyKeys.lastUpdated.name(), System.currentTimeMillis());
+        
+        // we update the lastUpdated in ApocTrigger node as well
+        if (triggerNode != null) {
+            final Object lastUpdated = metaNode.getProperty(SystemPropertyKeys.lastUpdated.name());
+            triggerNode.setProperty(SystemPropertyKeys.lastUpdated.name(), lastUpdated);
+        }
+        
     }
     
 }

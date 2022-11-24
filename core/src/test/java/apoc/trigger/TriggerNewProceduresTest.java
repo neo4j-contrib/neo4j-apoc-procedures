@@ -505,6 +505,24 @@ public class TriggerNewProceduresTest {
     //
     // new test cases
     //
+
+    @Test
+    public void testTriggerShow() throws Exception {
+        String name = "test-show";
+        String query = "MATCH (c:TestShow) SET c.count = 1";
+        
+        testCall(sysDb, "CALL apoc.trigger.install('neo4j', $name, $query,{}) YIELD name",
+                map("query", query, "name", name),
+                r -> assertEquals(name, r.get("name")));
+        // not updated
+        testCall(sysDb, "CALL apoc.trigger.show('neo4j') YIELD updated RETURN updated LIMIT 1",
+                map("query", query, "name", name),
+                r -> assertEquals(false, r.get("updated")));
+        // update
+        testCallEventually(sysDb, "CALL apoc.trigger.show('neo4j') YIELD updated",
+                map("query", query, "name", name),
+                r -> assertEquals(true, r.get("updated")), 5L);
+    }
     
     @Test
     public void testInstallTriggerInUserDb() {
