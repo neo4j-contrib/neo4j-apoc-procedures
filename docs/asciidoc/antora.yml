@@ -1,6 +1,6 @@
 name: apoc
 version: 5.0
-title: APOC Documentation
+title: APOC Extended Documentation
 nav:
   - modules/ROOT/nav.adoc
 asciidoc:
