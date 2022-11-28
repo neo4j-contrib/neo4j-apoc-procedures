@@ -22,21 +22,10 @@ public class GeocodeTest {
 
     @Before
     public void initDb() throws Exception {
-        assumeRunningInCI();
-        apocConfig().setProperty("apoc.spatial.geocode.provider", "opencage");
-        apocConfig().setProperty("apoc.spatial.geocode.opencage.key", "<YOUR_API_KEY>");
-        apocConfig().setProperty("apoc.spatial.geocode.opencage.url", "https://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY");
-        apocConfig().setProperty("apoc.spatial.geocode.opencage.reverse.url", "https://api.opencagedata.com/geocode/v1/json?q=LAT+LNG&key=KEY");
-
-//        List<String> strings = Iterators.asList(apocConfig().getConfig().getKeys("apoc.spatial.geocode.opencage"));
         TestUtil.registerProcedure(db, Geocode.class);
     }
-
-    @Before
-    public void setUp() throws Exception {
-        assumeRunningInCI();
-    }
-
+    
+    // -- with apoc config
     @Test
     public void testGeocodeOSM() throws Exception {
         testGeocodeWithThrottling("osm", false);
@@ -47,36 +36,6 @@ public class GeocodeTest {
         testGeocodeWithThrottling("osm", true);
     }
 
-    @Ignore
-    @Test
-    public void testGeocodeGoogle() throws Exception {
-        testGeocodeWithThrottling("google", false);
-    }
-
-    @Test
-    public void testReverseGeocodeGoogle() throws Exception {
-        testGeocodeWithThrottling("google", true);
-    }
-
-    @Test
-    public void testGeocodeOpenCage() throws Exception {
-        // If the key is not defined the test won't fail
-        String provider = apocConfig().getString(Geocode.PREFIX +"." + Geocode.GEOCODE_PROVIDER_KEY).toLowerCase();
-        Assume.assumeTrue(!"<YOUR_API_KEY>".equals(apocConfig().getString(Geocode.PREFIX +"." + provider + ".key")));
-
-        // We use testGeocode() instead of testGeocodeWithThrottling() because the slow test takes less time than the fast one
-        // The overall execution is strictly tight to the remote service according to quota and request policies
-        testGeocode("openCage",1000, false);
-    }
-
-    @Test
-    public void testReverseGeocodeOpenCage() throws Exception {
-        // If the key is not defined the test won't fail
-        String provider = apocConfig().getString(Geocode.PREFIX +"." + Geocode.GEOCODE_PROVIDER_KEY).toLowerCase();
-        Assume.assumeTrue(!"<YOUR_API_KEY>".equals(apocConfig().getString(Geocode.PREFIX +"." + provider + ".key")));
-        testGeocode("openCage",1000, true);
-    }
-
     private void testGeocodeWithThrottling(String supplier, Boolean reverseGeocode) throws Exception {
         long fast = testGeocode(supplier, 100, reverseGeocode);
         long slow = testGeocode(supplier, 2000, reverseGeocode);
@@ -85,7 +44,6 @@ public class GeocodeTest {
 
     private long testGeocode(String provider, long throttle, boolean reverseGeocode) throws Exception {
         setupSupplier(provider, throttle);
-//        testConfig(provider);
         InputStream is = getClass().getResourceAsStream("/spatial.json");
         Map tests = JsonUtil.OBJECT_MAPPER.readValue(is, Map.class);
         long start = System.currentTimeMillis();
@@ -104,14 +62,22 @@ public class GeocodeTest {
     }
 
     private void testReverseGeocodeAddress(Object latitude, Object longitude) {
+        ignoreQuotaError(() -> {
+            testResult(db, "CALL apoc.spatial.reverseGeocode($latitude, $longitude, false)",
+                    map("latitude", latitude, "longitude", longitude), (row) -> {
+                        assertTrue(row.hasNext());
+                        row.forEachRemaining((r)->{
+                            assertNotNull(r.get("description"));
+                            assertNotNull(r.get("location"));
+                            assertNotNull(r.get("data"));
+                        });
+                    });
+        });
+    }
+    
+    private void ignoreQuotaError(Runnable runnable) {
         try {
-            testResult(db,"CALL apoc.spatial.reverseGeocode($latitude,$longitude)",map("latitude", latitude, "longitude", longitude), (row)->{
-                row.forEachRemaining((r)->{
-                    assertNotNull(r.get("description"));
-                    assertNotNull(r.get("location"));
-                    assertNotNull(r.get("data"));
-                });
-            });
+            runnable.run();
         } catch(Exception e) {
             Assume.assumeNoException("out of quota", e);
         }
@@ -177,18 +143,4 @@ public class GeocodeTest {
                     }
                 });
     }
-
-/*
-    private void testConfig(String provider) {
-        testCall(db, "CALL apoc.spatial.config($config)", map("config", map(GEO_PREFIX + ".test", provider)),
-                (row) -> {
-                    Map<String, String> value = (Map) row.get("value");
-                    assertEquals("Expected provider to be set in '" + GEO_PREFIX + ".test'", provider, value.get(GEO_PREFIX + ".test"));
-                    assertEquals(provider, value.get(Geocode.GEOCODE_PROVIDER_KEY));
-                    String throttleKey = GEO_PREFIX + "." + provider + ".throttle";
-                    assertTrue("Expected a throttle setting", value.containsKey(throttleKey));
-                    assertTrue("Expected a valid throttle setting", Long.parseLong(value.get(throttleKey)) > 0);
-                });
-    }
-*/
 }
