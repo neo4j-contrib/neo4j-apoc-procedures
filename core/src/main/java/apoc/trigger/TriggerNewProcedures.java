@@ -77,7 +77,7 @@ public class TriggerNewProcedures {
     @SystemProcedure
     @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.trigger.install(databaseName, name, statement, selector, config) | eventually adds a trigger for a given database which is invoked when a successful transaction occurs..")
-    public Stream<TriggerInfo> install(@Name("databaseName") String databaseName, @Name("name") String name, @Name("kernelTransaction") String statement, @Name(value = "selector")  Map<String,Object> selector, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
+    public Stream<TriggerInfo> install(@Name("databaseName") String databaseName, @Name("name") String name, @Name("statement") String statement, @Name(value = "selector")  Map<String,Object> selector, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
         checkInSystemLeader();
         // TODO - to be deleted in 5.x, because in a cluster, not all DBMS host all the databases on them,
         // so we have to assume that the leader of the system database doesn't have access to this user database

@@ -15,8 +15,8 @@ by leveraging the cluster routing mechanism.
 
 [WARNING]
 ====
-The listeners are eventually consistent,
-therefore they are not immediately added/updated/removed,
+Installing, updating or removing a trigger is an eventually consistent operation.
+Therefore, they are not immediately added/updated/removed,
 but they have a refresh rate handled by the Apoc configuration `apoc.trigger.refresh=<MILLISECONDS>`, with default 60000 (milliseconds)
 ====
 

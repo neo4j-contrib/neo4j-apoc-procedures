@@ -14,7 +14,7 @@ CALL apoc.trigger.install(databaseName, name, statement, selector, config) | eve
 
 [source]
 ----
-apoc.trigger.install(databaseName :: STRING?, name :: STRING?, kernelTransaction :: STRING?, selector :: MAP?, config = {} :: MAP?) :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)
+apoc.trigger.install(databaseName :: STRING?, name :: STRING?, statement :: STRING?, selector :: MAP?, config = {} :: MAP?) :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)
 ----
 
 == Input parameters
@@ -23,7 +23,7 @@ apoc.trigger.install(databaseName :: STRING?, name :: STRING?, kernelTransaction
 | Name | Type | Default 
 |databaseName|STRING?|null
 |name|STRING?|null
-|kernelTransaction|STRING?|null
+|statement|STRING?|null
 |selector|MAP?|null
 |config|MAP?|{}
 |===
