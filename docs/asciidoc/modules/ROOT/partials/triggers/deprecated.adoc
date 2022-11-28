@@ -1,0 +1,21 @@
+[WARNING]
+====
+Please note that this procedure is deprecated.
+
+Use the following ones instead, which allow for better support in a cluster:
+
+[opts="header"]
+|===
+| deprecated procedure | new procedure
+| `apoc.trigger.add('<name>', '<query>', $phase, $config)` | `apoc.trigger.add('<dbName>', '<name>', '<query>', $phase, $config)`
+| `apoc.trigger.remove('<name>')` | `apoc.trigger.drop('<dbName>', '<name>')`
+| `apoc.trigger.removeAll()` | `apoc.trigger.removeAll('<dbName>')`
+| `apoc.trigger.pause('<name>')` | `apoc.trigger.stop('<dbName>', '<name>')`
+| `apoc.trigger.resume('<name>')` | `apoc.trigger.start('<dbName>', '<name>')`
+|===
+
+where `<dbName>` is the database where we want to execute the triggers.
+
+xref::background-operations/triggers.adoc[See here for more info].
+
+====

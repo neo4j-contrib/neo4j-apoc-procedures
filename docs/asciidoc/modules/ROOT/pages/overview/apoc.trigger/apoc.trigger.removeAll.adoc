@@ -15,6 +15,8 @@ removes all previously added trigger, returns trigger information
 This procedure is not intended to be used in a cluster environment, and may act unpredictably.
 ====
 
+include::partial$triggers/deprecated.adoc
+
 == Signature
 
 [source]
@@ -35,7 +37,7 @@ apoc.trigger.removeAll() :: (name :: STRING?, query :: STRING?, selector :: MAP?
 |===
 
 == Enable Triggers
-include::partial$triggers.adoc[]
+include::partial$triggers/triggersConfig.adoc[]
 
 [[usage-apoc.trigger.removeAll]]
 == Usage Examples

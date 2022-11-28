@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.trigger/apoc.trigger.drop.adoc[apoc.trigger.drop icon:book[]] +
 
-`CALL apoc.trigger.drop(databaseName, name) | remove previously added trigger, returns trigger information`
+`CALL apoc.trigger.drop(databaseName, name) | eventually removes an existing trigger, returns the trigger's information`
 ¦label:procedure[]
 ¦label:apoc-core[]

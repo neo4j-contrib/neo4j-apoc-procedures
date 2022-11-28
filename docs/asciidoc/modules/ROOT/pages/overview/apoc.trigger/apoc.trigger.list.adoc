@@ -35,7 +35,7 @@ apoc.trigger.list() :: (name :: STRING?, query :: STRING?, selector :: MAP?, par
 |===
 
 == Enable Triggers
-include::partial$triggers.adoc[]
+include::partial$triggers/triggersConfig.adoc[]
 
 [[usage-apoc.trigger.list]]
 == Usage Examples

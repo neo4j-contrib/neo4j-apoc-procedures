@@ -3372,17 +3372,17 @@ add a trigger kernelTransaction under a name, in the kernelTransaction you can u
 |label:apoc-core[]
 |xref::overview/apoc.trigger/apoc.trigger.drop.adoc[apoc.trigger.drop icon:book[]]
 
-CALL apoc.trigger.drop(databaseName, name) \| remove previously added trigger, returns trigger information
+CALL apoc.trigger.drop(databaseName, name) \| eventually removes an existing trigger, returns the trigger's information
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.trigger/apoc.trigger.dropAll.adoc[apoc.trigger.dropAll icon:book[]]
 
-CALL apoc.trigger.dropAll(databaseName) \| removes all previously added trigger, returns trigger information
+CALL apoc.trigger.dropAll(databaseName) \| eventually removes all previously added trigger, returns triggers' information`
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.trigger/apoc.trigger.install.adoc[apoc.trigger.install icon:book[]]
 
-CALL apoc.trigger.install(databaseName, name, statement, selector, config) \| add a trigger kernelTransaction under a name, in the kernelTransaction you can use $createdNodes, $deletedNodes etc., the selector is {phase:'before/after/rollback/afterAsync'} returns previous and new trigger information. Takes in an optional configuration.
+CALL apoc.trigger.install(databaseName, name, statement, selector, config) \| eventually adds a trigger for a given database which is invoked when a successful transaction occurs..
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.trigger/apoc.trigger.list.adoc[apoc.trigger.list icon:book[]]
@@ -3412,12 +3412,12 @@ CALL apoc.trigger.resume(name) \| it resumes the paused trigger
 |label:apoc-core[]
 |xref::overview/apoc.trigger/apoc.trigger.start.adoc[apoc.trigger.start icon:book[]]
 
-CALL apoc.trigger.start(databaseName, name) \| it resumes the paused trigger
+CALL apoc.trigger.start(databaseName, name) \| eventually pauses the paused trigger
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.trigger/apoc.trigger.stop.adoc[apoc.trigger.stop icon:book[]]
 
-CALL apoc.trigger.stop(databaseName, name) \| it pauses the trigger
+CALL apoc.trigger.stop(databaseName, name) \| eventually pauses the trigger
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.trigger/apoc.trigger.nodesByLabel.adoc[apoc.trigger.nodesByLabel icon:book[]]

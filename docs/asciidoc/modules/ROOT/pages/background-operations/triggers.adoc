@@ -6,6 +6,13 @@
 Triggers allow the registration of Cypher queries that are called when data in Neo4j is changed (created, updated, deleted).
 You can run them before or after commit.
 
+
+These procedures are implemented to be executed in the system database and accept as first parameter the name of the database towards which we want to install/update/remove the triggers.
+
+We can use these procedures in a cluster environment,
+by leveraging the cluster routing mechanism.
+
+
 [WARNING]
 ====
 The listeners are eventually consistent,
@@ -13,7 +20,7 @@ therefore they are not immediately added/updated/removed,
 but they have a refresh rate handled by the Apoc configuration `apoc.trigger.refresh=<MILLISECONDS>`, with default 60000 (milliseconds)
 ====
 
-include::partial$triggers.adoc[]
+include::partial$triggers/triggersConfig.adoc[]
 
 
 [separator=¦,opts=header,cols="5,1m,1m"]
@@ -59,6 +66,21 @@ You can use these helper functions to extract nodes or relationships by label/re
 | apoc.trigger.propertiesByKey($assignedNodeProperties,'key') | function to filter propertyEntries by property-key, to be used within a trigger statement with $assignedNode/RelationshipProperties and $removedNode/RelationshipProperties. Returns [{old,[new],key,node,relationship}]
 | apoc.trigger.toNode(node, $removedLabels, $removedNodeProperties) | function to rebuild a node as a virtual, to be used in triggers with a not 'afterAsync' phase
 | apoc.trigger.toRelationship(rel, $removedRelationshipProperties) | function to rebuild a relationship as a virtual, to be used in triggers with a not 'afterAsync' phase
+|===
+
+The 3rd parameter of the `apoc.trigger.install()` is a map `{phase: PHASE}`, where `PHASE` is a string which can have one of the following values:
+
+.Trigger Phase Table
+[cols="1m,5"]
+|===
+| PHASE | Description
+| before | The trigger will be activate right `before` the commit. If no phase is specified, it's the default.
+| rollback | The trigger will be activate right after the  `rollback`
+| after | The trigger will be activate right `after` the commit
+| afterAsync | The trigger will be activate right `after` the commit and inside a new transaction and thread that will not
+impact the original one.
+Heavy operations should be processed in this phase without blocking the original transaction.
+Please note that 'after' and 'before' phases can sometimes block transactions, so generally, `afterAsync` phase is preferred
 |===
 
 
@@ -377,19 +399,6 @@ USE system CALL apoc.trigger.install('dbTest', 'lowercase-by-label','UNWIND apoc
 
 // end::trigger[]
 
-.Trigger Phase Table
-.Helper Functions
-[cols="1m,5"]
-|===
-| Phase | Description
-| before | The trigger will be activate right `before` the commit. If no phase is specified, it's the default.
-| rollback | The trigger will be activate right after the  `rollback`
-| after | The trigger will be activate right `after` the commit
-| afterAsync | The trigger will be activate right `after` the commit and inside a new transaction and thread that will not
-impact the original one.
-Heavy operations should be processed in this phase without blocking the original transaction.
-Please note that 'after' and 'before' phases can sometimes block transactions, so generally, `afterAsync` phase is preferred
-|===
 
 == Remove triggers
 
