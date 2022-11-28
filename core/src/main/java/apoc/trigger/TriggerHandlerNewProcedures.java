@@ -25,7 +25,7 @@ public class TriggerHandlerNewProcedures {
     private static Map<String, Object> toTriggerInfo(Node node) {
         return node.getAllProperties()
                 .entrySet().stream()
-                .filter(e -> !List.of(SystemPropertyKeys.name.name(), SystemPropertyKeys.database.name()).contains(e.getKey()))
+                .filter(e -> !SystemPropertyKeys.database.name().equals(e.getKey()))
                 .collect(HashMap::new, // workaround for https://bugs.openjdk.java.net/browse/JDK-8148463
                         (mapAccumulator, e) -> {
                             Object value = List.of(SystemPropertyKeys.selector.name(), SystemPropertyKeys.params.name()).contains(e.getKey()) 

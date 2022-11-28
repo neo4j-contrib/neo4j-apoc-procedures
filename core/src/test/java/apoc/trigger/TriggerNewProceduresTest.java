@@ -40,6 +40,7 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallCountEventually;
 import static apoc.util.TestUtil.testCallEventually;
+import static apoc.util.TestUtil.testResult;
 import static apoc.util.TestUtil.waitDbsAvailable;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -508,20 +509,31 @@ public class TriggerNewProceduresTest {
 
     @Test
     public void testTriggerShow() throws Exception {
-        String name = "test-show";
+        String name = "test-show1";
+        String name2 = "test-show2";
         String query = "MATCH (c:TestShow) SET c.count = 1";
         
         testCall(sysDb, "CALL apoc.trigger.install('neo4j', $name, $query,{}) YIELD name",
                 map("query", query, "name", name),
                 r -> assertEquals(name, r.get("name")));
+        
+        testCall(sysDb, "CALL apoc.trigger.install('neo4j', $name, $query,{}) YIELD name",
+                map("query", query, "name", name2),
+                r -> assertEquals(name2, r.get("name")));
+        
         // not updated
-        testCall(sysDb, "CALL apoc.trigger.show('neo4j') YIELD updated RETURN updated LIMIT 1",
+        testResult(sysDb, "CALL apoc.trigger.show('neo4j') " +
+                        "YIELD name, query RETURN * ORDER BY name",
                 map("query", query, "name", name),
-                r -> assertEquals(false, r.get("updated")));
-        // update
-        testCallEventually(sysDb, "CALL apoc.trigger.show('neo4j') YIELD updated",
-                map("query", query, "name", name),
-                r -> assertEquals(true, r.get("updated")), 5L);
+                res -> {
+                    Map<String, Object> row = res.next();
+                    assertEquals(name, row.get("name"));
+                    assertEquals(query, row.get("query"));
+                    row = res.next();
+                    assertEquals(name2, row.get("name"));
+                    assertEquals(query, row.get("query"));
+                    assertFalse(res.hasNext());
+                });
     }
     
     @Test
