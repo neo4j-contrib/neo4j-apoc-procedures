@@ -6,12 +6,18 @@
 Triggers allow the registration of Cypher queries that are called when data in Neo4j is changed (created, updated, deleted).
 You can run them before or after commit.
 
+[NOTE]
+====
+All these `apoc.trigger.*` procedures are implemented to be executed in the system database,
+therefore they have to be used executing first `:use system` (in cypher-shell or Neo4j Browser), 
+by opening a system db session with a neo4j driver, 
+or by prepending the suffix `USE system` to the cypher statement.
 
-These procedures are implemented to be executed in the system database and accept as first parameter the name of the database towards which we want to install/update/remove the triggers.
+Moreover, they accept as first parameter the name of the database towards which we want to install/update/remove the triggers.
 
-We can use these procedures in a cluster environment,
+Through this implementation, we can use these procedures in a cluster environment,
 by leveraging the cluster routing mechanism.
-
+====
 
 [WARNING]
 ====
@@ -158,7 +164,6 @@ with the current date and the property updated, we can do:
 
 [source,cypher]
 ----
-USE system 
 CALL apoc.trigger.install('neo4j', 'setLastUpdate',
   "UNWIND keys($assignedNodeProperties) AS k
   UNWIND $assignedNodeProperties[k] AS map
@@ -203,7 +208,6 @@ Now we add the trigger using `apoc.trigger.propertiesByKey` on the `surname` pro
 
 [source,cypher]
 ----
-USE system
 CALL apoc.trigger.install('neo4j', 'setAllConnectedNodes','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties,"surname") as prop
 WITH prop.node as n
 MATCH(n)-[]-(a)
@@ -243,7 +247,6 @@ We add a trigger using `apoc.trigger.nodesByLabel` that when the label `Actor` o
 
 [source,cypher]
 ----
-USE system
 CALL apoc.trigger.install('dbTest', 'updateLabels',"UNWIND apoc.trigger.nodesByLabel($removedLabels,'Actor') AS node
 MATCH (n:Actor)
 REMOVE n:Actor SET n:Person SET node:Person", {phase:'before'})
@@ -264,7 +267,7 @@ We can add a trigger that connect every new node with label `Actor` and as  `nam
 
 [source,cypher]
 ----
-USE system CALL apoc.trigger.install('dbTest', 'create-rel-new-node',"UNWIND $createdNodes AS n
+CALL apoc.trigger.install('dbTest', 'create-rel-new-node',"UNWIND $createdNodes AS n
 MATCH (m:Movie {title:'Matrix'})
 WHERE n:Actor AND n.name IN ['Keanu Reeves','Laurence Fishburne','Carrie-Anne Moss']
 CREATE (n)-[:ACT_IN]->(m)", {phase:'before'})
@@ -288,7 +291,7 @@ For example, given this trigger:
 
 [source,cypher]
 ----
-USE system CALL apoc.trigger.install('dbTest', 'lockTriggerTest1','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties,"name") as prop
+CALL apoc.trigger.install('dbTest', 'lockTriggerTest1','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties,"name") as prop
 WITH prop.node as n
 CREATE (z:AnotherNode {myId: id(n)})
 CREATE (n)-[:GENERATED]->(z)',
@@ -325,7 +328,7 @@ For this example, we would like that all the `reference` node properties are of 
 
 [source,cypher]
 ----
-USE system CALL apoc.trigger.install('dbTest', "forceStringType",
+CALL apoc.trigger.install('dbTest', "forceStringType",
 "UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, 'reference') AS prop
 CALL apoc.util.validate(apoc.meta.type(prop) <> 'STRING', 'expected string property type, got %s', [apoc.meta.type(prop)]) RETURN null", {phase:'before'})
 ----
@@ -342,7 +345,7 @@ Neo.ClientError.Transaction.TransactionHookFailed
 We can pass as a 4th parameter, a `{params: {parameterMaps}}` to insert additional parameters.
 [source,cypher]
 ----
-USE system CALL apoc.trigger.install('dbTest', 'timeParams','UNWIND $createdNodes AS n SET n.time = $time', {}, {params: {time: timestamp()}});
+CALL apoc.trigger.install('dbTest', 'timeParams','UNWIND $createdNodes AS n SET n.time = $time', {}, {params: {time: timestamp()}});
 ----
 
 .Handle deleted entities
@@ -373,7 +376,7 @@ Or also, if we want to  create a node `Report` with the same properties (plus th
 
 [source,cypher]
 ----
-USE system CALL apoc.trigger.install('dbTest', 'myTrigger',
+CALL apoc.trigger.install('dbTest', 'myTrigger',
 "UNWIND $deletedRelationships as deletedRel
 WITH apoc.trigger.toRelationship(deletedRel, $removedRelationshipProperties) AS deletedRel
 CREATE (r:Report {id: id(deletedRel), type: apoc.rel.type(deletedRel)})
@@ -390,11 +393,11 @@ because using this one, the rebuild of entities is executed automatically under 
 .Other examples
 [source,cypher]
 ----
-USE system CALL apoc.trigger.install('dbTest', 'timestamp','UNWIND $createdNodes AS n SET n.ts = timestamp()', {});
-USE system CALL apoc.trigger.install('dbTest', 'lowercase','UNWIND $createdNodes AS n SET n.id = toLower(n.name)', {});
-USE system CALL apoc.trigger.install('dbTest', 'txInfo',   'UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime', {phase:'after'});
-USE system CALL apoc.trigger.install('dbTest', 'count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN $deletedRelationships WHERE type(r) = "X"])', {})
-USE system CALL apoc.trigger.install('dbTest', 'lowercase-by-label','UNWIND apoc.trigger.nodesByLabel($assignedLabels,"Person") AS n SET n.id = toLower(n.name)', {})
+CALL apoc.trigger.install('dbTest', 'timestamp','UNWIND $createdNodes AS n SET n.ts = timestamp()', {});
+CALL apoc.trigger.install('dbTest', 'lowercase','UNWIND $createdNodes AS n SET n.id = toLower(n.name)', {});
+CALL apoc.trigger.install('dbTest', 'txInfo',   'UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime', {phase:'after'});
+CALL apoc.trigger.install('dbTest', 'count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN $deletedRelationships WHERE type(r) = "X"])', {})
+CALL apoc.trigger.install('dbTest', 'lowercase-by-label','UNWIND apoc.trigger.nodesByLabel($assignedLabels,"Person") AS n SET n.id = toLower(n.name)', {})
 ----
 
 // end::trigger[]
@@ -407,7 +410,6 @@ we can run the following query:
 
 [source,cypher]
 ----
-USE system
 CALL apoc.trigger.drop('neo4j', 'test')
 ----
 
@@ -415,7 +417,6 @@ If we want to remove all triggers in 'neo4j' db, we can execute
 
 [source,cypher]
 ----
-USE system
 CALL apoc.trigger.dropAll('neo4j')
 ----
 
@@ -426,7 +427,6 @@ If we want to get the list of triggers, for example if we have one trigger creat
 
 [source,cypher]
 ----
-USE system 
 CALL apoc.trigger.install('neo4j', 'count-removals', 
     'MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])', 
     {})
