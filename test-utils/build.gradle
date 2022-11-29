@@ -20,9 +20,9 @@ dependencies {
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
 
-    compile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.2.3', withoutServers
-    compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.2.3', withoutServers
-    compile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.2.3', withoutServers
+    compile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.4', withoutServers
+    compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.4', withoutServers
+    compile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.3.4', withoutServers
 
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.5'
     compile group: 'org.jetbrains', name: 'annotations', version: "17.0.0"
@@ -36,6 +36,6 @@ dependencies {
     compile group: 'org.testcontainers', name: 'postgresql', version: testContainersVersion
     compile group: 'org.testcontainers', name: 'cassandra', version: testContainersVersion
     compile group: 'org.testcontainers', name: 'localstack', version: testContainersVersion
-    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '6.0.0'
-    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '6.0.0'
+    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '10.0.0'
+    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '10.0.0'
 }
