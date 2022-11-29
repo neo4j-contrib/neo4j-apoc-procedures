@@ -4,7 +4,6 @@ import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 
@@ -18,6 +17,7 @@ import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testResult;
 import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
@@ -34,12 +34,9 @@ public class MetaEnterpriseFeaturesTest {
     @BeforeClass
     public static void beforeAll() {
         assumeFalse(isRunningInCI());
-//        executeGradleTasks("clean", "shadow");
-        TestUtil.ignoreException(() -> {
-            // We build the project, the artifact will be placed into ./build/libs
-            neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI());
-            neo4jContainer.start();
-        }, Exception.class);
+        // We build the project, the artifact will be placed into ./build/libs
+        neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI());
+        neo4jContainer.start();
         assumeNotNull(neo4jContainer);
         assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
         session = neo4jContainer.getSession();
@@ -51,21 +48,6 @@ public class MetaEnterpriseFeaturesTest {
             session.close();
             neo4jContainer.close();
         }
-    }
-
-    public static boolean hasRecordMatching(List<Map<String,Object>> records, Map<String,Object> record) {
-        return hasRecordMatching(records, row -> {
-            boolean okSoFar = true;
-
-            for(String k : record.keySet()) {
-                okSoFar = okSoFar && row.containsKey(k) &&
-                        (row.get(k) == null ?
-                                (record.get(k) == null) :
-                                row.get(k).equals(record.get(k)));
-            }
-
-            return okSoFar;
-        });
     }
 
     public static boolean hasRecordMatching(List<Map<String,Object>> records, Predicate<Map<String,Object>> predicate) {
@@ -81,7 +63,6 @@ public class MetaEnterpriseFeaturesTest {
         return rows;
     }
 
-    @Ignore("test fails, ignoring until fixed by upstream author")
     @Test
     public void testNodeTypePropertiesBasic() {
         session.writeTransaction(tx -> {
@@ -96,22 +77,23 @@ public class MetaEnterpriseFeaturesTest {
         });
         testResult(session, "CALL apoc.meta.nodeTypeProperties();", (r) -> {
             List<Map<String,Object>> records = gatherRecords(r);
-            assertEquals(true, hasRecordMatching(records, m ->
+            assertTrue(hasRecordMatching(records, m ->
                         m.get("nodeType").equals(":`Foo`") &&
                                 ((List)m.get("nodeLabels")).get(0).equals("Foo") &&
                                 m.get("propertyName").equals("s") &&
                                 m.get("mandatory").equals(true)));
 
-                    assertEquals(true, hasRecordMatching(records, m ->
-                            m.get("propertyName").equals("s") &&
-                                    ((List)m.get("propertyTypes")).get(0).equals("String")));
+            assertTrue(hasRecordMatching(records, m ->
+                    m.get("propertyName").equals("s") &&
+                            ((List)m.get("propertyTypes")).get(0).equals("String")));
 
-                    assertEquals(true, hasRecordMatching(records, m ->
-                        m.get("nodeType").equals(":`Foo`") &&
-                                ((List)m.get("nodeLabels")).get(0).equals("Foo") &&
-                                m.get("propertyName").equals("dl") &&
-                                m.get("mandatory").equals(false)));
-                    assertEquals(5, records.size());
+            assertTrue(hasRecordMatching(records, m ->
+                    m.get("nodeType").equals(":`Foo`") &&
+                            ((List)m.get("nodeLabels")).get(0).equals("Foo") &&
+                            m.get("propertyName").equals("dl") &&
+                            m.get("mandatory").equals(false)));
+
+            assertEquals(5, records.size());
         });
     }
 }
