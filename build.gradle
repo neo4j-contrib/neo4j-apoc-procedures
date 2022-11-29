@@ -58,7 +58,8 @@ def apocReleases(neo4jReleases) {
     def latestApoc, oldestApoc
     for (release in releases) {
         if (release.prerelease || release.draft) continue;
-        def buildText = new URL("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/" + release.tag_name + "/build.gradle").getText()
+        def tagName = release.tag_name > "5.1.0" ? release.tag_name.split("\\.")[0,1].join(".") : release.tag_name
+        def buildText = new URL("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/" + tagName + "/build.gradle").getText()
         def matcher = pattern.matcher(buildText)
         for (def i = 0; i < matcher.getCount(); i++) {
             def neo4jVersion = matcher[i][1]
