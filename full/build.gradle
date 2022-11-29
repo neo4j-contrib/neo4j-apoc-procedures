@@ -135,7 +135,7 @@ dependencies {
     testCompile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 
     testCompile 'org.mock-server:mockserver-netty:5.13.0'
-    testCompile 'org.mock-server:mockserver-client-java:5.6.0'
+    testCompile 'org.mock-server:mockserver-client-java:5.13.0'
 
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
