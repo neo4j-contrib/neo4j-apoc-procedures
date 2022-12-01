@@ -101,6 +101,7 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties
 import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
+import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
 
 /**
@@ -113,6 +114,7 @@ public class Util {
     public static final String REL_COUNT = "MATCH ()-->() RETURN count(*) as result";
     public static final String COMPILED = "interpreted"; // todo handle enterprise properly
     public static final String ERROR_BYTES_OR_STRING = "Only byte[] or url String allowed";
+    public static final int REDIRECT_LIMIT = 10;
 
     public static String labelString(List<String> labelNames) {
         return labelNames.stream().map(Util::quote).collect(Collectors.joining(":"));
@@ -330,25 +332,27 @@ public class Util {
         URL src = new URL(url);
         URLConnection con = src.openConnection();
         con.setRequestProperty("User-Agent", "APOC Procedures for Neo4j");
-        if (headers != null) {
-            Object method = headers.get("method");
-            if (method != null && con instanceof HttpURLConnection) {
+       if (con instanceof HttpURLConnection) {
                 HttpURLConnection http = (HttpURLConnection) con;
-                http.setRequestMethod(method.toString());
-                http.setChunkedStreamingMode(1024*1024);
-                http.setInstanceFollowRedirects(true);
+                http.setInstanceFollowRedirects(false);
+            if (headers != null) {
+                Object method = headers.get("method");
+                if (method != null) {
+                    http.setRequestMethod(method.toString());
+                    http.setChunkedStreamingMode(1024 * 1024);
+                }
+                headers.forEach((k, v) -> con.setRequestProperty(k, v == null ? "" : v.toString()));
             }
-            headers.forEach((k,v) -> con.setRequestProperty(k, v == null ? "" : v.toString()));
         }
-//        con.setDoInput(true);
+
         con.setConnectTimeout(apocConfig().getInt("apoc.http.timeout.connect",10_000));
         con.setReadTimeout(apocConfig().getInt("apoc.http.timeout.read",60_000));
         return con;
     }
 
     public static boolean isRedirect(HttpURLConnection con) throws IOException {
-        int code = con.getResponseCode();
-        boolean isRedirectCode = code >= 300 && code < 400;
+ int responseCode = con.getResponseCode();
+        boolean isRedirectCode = responseCode >= 300 && responseCode <= 307 && responseCode != 306 && responseCode != HTTP_NOT_MODIFIED;
         if (isRedirectCode) {
             URL location = new URL(con.getHeaderField("Location"));
             String oldProtocol = con.getURL().getProtocol();
@@ -407,7 +411,7 @@ public class Util {
         return new CountingInputStream(stream, sc.getLength());
     }
 
-    private static StreamConnection getStreamConnection(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
+    public static StreamConnection getStreamConnection(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
         return FileUtils.SupportedProtocols
                 .from(urlAddress)
                 .getStreamConnection(urlAddress, headers, payload);
@@ -427,14 +431,17 @@ public class Util {
         return null;
     }
 
-    public static StreamConnection readHttpInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
+    public static StreamConnection readHttpInputStream(String urlAddress, Map<String, Object> headers, String payload, int redirectLimit) throws IOException {
         ApocConfig.apocConfig().checkReadAllowed(urlAddress);
         URLConnection con = openUrlConnection(urlAddress, headers);
         writePayload(con, payload);
         String newUrl = handleRedirect(con, urlAddress);
         if (newUrl != null && !urlAddress.equals(newUrl)) {
             con.getInputStream().close();
-            return readHttpInputStream(newUrl, headers, payload);
+            if (redirectLimit == 0) {
+                throw new IOException("Redirect limit exceeded");
+            }
+            return readHttpInputStream(newUrl, headers, payload, --redirectLimit);
         }
 
         return new StreamConnection.UrlStreamConnection(con);
