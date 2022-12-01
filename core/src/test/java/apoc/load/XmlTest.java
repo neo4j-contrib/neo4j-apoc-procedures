@@ -4,12 +4,16 @@ import apoc.ApocSettings;
 import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
 import apoc.xml.XmlTestUtils;
+import inet.ipaddr.IPAddressString;
+import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.internal.helpers.collection.Iterables;
@@ -41,7 +45,8 @@ public class XmlTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_import_file_enabled, true)
-            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false);
+            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false)
+            .withSetting( GraphDatabaseInternalSettings.cypher_ip_blocklist, List.of(new IPAddressString("127.0.0.0/8")));
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -193,6 +198,18 @@ public class XmlTest {
                     Object value = Iterables.single(r.values());
                     assertEquals(XmlTestUtils.XML_XPATH_AS_NESTED_MAP, value);
                 });
+    }
+
+    @Test
+    public void testLoadXmlWithBlockedIP () {
+        QueryExecutionException e = Assert.assertThrows(QueryExecutionException.class,
+                () -> testCall(db,
+                        "CALL apoc.load.xml('http://127.0.0.0/fake.xml') yield value as result",
+                        map(),
+                        (r) -> {}
+                )
+        );
+        TestCase.assertTrue(e.getMessage().contains("access to /127.0.0.0 is blocked via the configuration property unsupported.dbms.cypher_ip_blocklist"));
     }
 
     @Test

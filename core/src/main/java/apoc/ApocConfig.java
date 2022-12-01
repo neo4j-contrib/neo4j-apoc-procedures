@@ -10,6 +10,7 @@ import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.ex.ConversionException;
 import org.neo4j.configuration.Config;
+import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -128,8 +129,11 @@ public class ApocConfig extends LifecycleAdapter {
     }
 
     // use only for unit tests
-    public ApocConfig() {
-        this.neo4jConfig = null;
+    public ApocConfig(Config neo4jConfig) {
+        this.neo4jConfig = neo4jConfig;
+        if (neo4jConfig != null) {
+            this.blockedIpRanges = neo4jConfig.get( GraphDatabaseInternalSettings.cypher_ip_blocklist);
+        }
         this.log = NullLog.getInstance();
         this.databaseManagementService = null;
         theInstance = this;
