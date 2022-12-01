@@ -32,6 +32,7 @@ import java.util.Optional;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.Util.ERROR_BYTES_OR_STRING;
+import static apoc.util.Util.REDIRECT_LIMIT;
 import static apoc.util.Util.readHttpInputStream;
 
 /**
@@ -71,7 +72,7 @@ public class FileUtils {
                 case http:
                 case https:
                 case gs:
-                    return readHttpInputStream(urlAddress, headers, payload);
+                    return readHttpInputStream(urlAddress, headers, payload, REDIRECT_LIMIT);
                 default:
                     try {
                         return new StreamConnection.FileStreamConnection(URI.create(urlAddress));
