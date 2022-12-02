@@ -26,7 +26,10 @@ import java.io.FileWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.LongStream;
 
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 import static apoc.trigger.TriggerNewProcedures.TRIGGER_NOT_ROUTED_ERROR;
@@ -530,6 +533,36 @@ public class TriggerNewProceduresTest {
         } catch (QueryExecutionException e) {
             assertTrue(e.getMessage().contains("Not a recognised system command or procedure"));
         }
+    }
+
+    @Test
+    public void testEventualConsistency() {
+        long count = 0L;
+        final String name = UUID.randomUUID().toString();
+        final String query = "UNWIND $createdNodes AS n SET n.count = " + count;
+
+        // this does nothing, just to test consistency with multiple triggers
+        sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, 'return 1', {phase: 'after'})",
+                map("name", UUID.randomUUID().toString()) );
+
+        // create trigger
+        sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase: 'after'})",
+                map("name", name, "query", query));
+        awaitTriggerDiscovered(db, name, query);
+        db.executeTransactionally("CREATE (n:Something)");
+
+        // check trigger
+        testCall(db, "MATCH (c:Something) RETURN c.count as count",
+                (row) -> assertEquals(count, row.get("count")));
+
+        // stop trigger
+        sysDb.executeTransactionally("CALL apoc.trigger.stop('neo4j', $name)",
+                map("name", name, "query", query));
+        awaitTriggerDiscovered(db, name, query, true);
+
+        // this does nothing, just to test consistency with multiple triggers
+        sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, 'return 1', {phase: 'after'})",
+                map("name", UUID.randomUUID().toString()) );
     }
 
 }
