@@ -6,62 +6,19 @@ on:
   pull_request:
     branches: [ "dev" ]
 
-env:
-  TEAMCITY_DEV_URL: ${{ secrets.TEAMCITY_DEV_URL }}
-  TEAMCITY_USER: ${{ secrets.TEAMCITY_USER }}
-  TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
-  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
 jobs:
-#  snyk-test:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v2
-#      - uses: snyk/actions/setup@master
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v2
-#        with:
-#          java-version: '17'
-#          distribution: 'adopt'
-#      - name: Snyk test dependencies
-#        run: snyk test --all-projects --severity-threshold=medium --fail-on=all
-#
-#  snyk-monitor:
-#    runs-on: ubuntu-latest
-#    if: github.event_name != 'pull_request'
-#    steps:
-#      - uses: actions/checkout@v2
-#      - uses: snyk/actions/setup@master
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v2
-#        with:
-#          java-version: '17'
-#          distribution: 'adopt'
-#      - name: Snyk monitor dependencies
-#        run: snyk monitor --all-projects --target-reference=${GITHUB_REF}
-
   build:
     runs-on: ubuntu-latest
-
-    # required by CodeQL
-    permissions:
-      security-events: write
-      actions: read
-
     env:
-      DOCKER_ENTERPRISE_DEV_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
-      DOCKER_COMMUNITY_DEV_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
-      ENTERPRISE_TAR: enterprise-docker.tar
+      DOCKER_ENTERPRISE_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
+      DOCKER_COMMUNITY_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
+      TEAMCITY_URL: ${{ secrets.TEAMCITY_DEV_URL }}
+      TEAMCITY_USER: ${{ secrets.TEAMCITY_USER }}
+      TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
+      ENTERPRISE_TAR: enterprise-docker1.tar
       COMMUNITY_TAR: community-docker.tar
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: java
+      - uses: actions/checkout@v2
 
       - name: Set up JDK 17
         uses: actions/setup-java@v2
@@ -71,8 +28,8 @@ jobs:
 
       - name: Download neo4j dev docker container
         run: |
-          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_DEV_URL} -o ${ENTERPRISE_TAR} &
-          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_DEV_URL} -o ${COMMUNITY_TAR} &
+          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_URL} -o ${ENTERPRISE_TAR} &
+          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_URL} -o ${COMMUNITY_TAR} &
           wait
           docker load --input ${ENTERPRISE_TAR}
           docker load --input ${COMMUNITY_TAR}
@@ -85,10 +42,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Build with Gradle
-        run: chmod +x gradlew && ./gradlew build
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        run: chmod +x gradlew && ./gradlew --init-script init.gradle build
 
       - name: Clean neo4j artifacts
         if: always() # run this step even if previous step failed
@@ -102,9 +56,4 @@ jobs:
         with:
           name: test-results
           path: |
-            common/build/reports/tests/test/
-            core/build/reports/tests/test/
             extended/build/reports/tests/test/
-            processor/build/reports/tests/test/
-            test-startup/build/reports/tests/test/
-            test-utils/build/reports/tests/test/
