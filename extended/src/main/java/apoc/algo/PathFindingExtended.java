@@ -27,6 +27,7 @@ public class PathFindingExtended {
     @Context
     public Transaction tx;
 
+    
     @Procedure
     @Description("apoc.algo.aStarWithPoint(startNode, endNode, 'relTypesAndDirs', 'distance','pointProp') - " +
             "equivalent to apoc.algo.aStar but accept a Point type as a pointProperty instead of Number types as latitude and longitude properties")
