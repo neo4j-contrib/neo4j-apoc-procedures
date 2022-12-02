@@ -14,6 +14,12 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    # required by CodeQL
+    permissions:
+      security-events: write
+      actions: read
+
     env:
       DOCKER_ENTERPRISE_DEV_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
       DOCKER_COMMUNITY_DEV_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
