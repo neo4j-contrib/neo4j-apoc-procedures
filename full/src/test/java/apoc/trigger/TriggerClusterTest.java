@@ -18,14 +18,17 @@ import java.util.concurrent.TimeUnit;
 
 import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assert.assertTrue;
+import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 import static org.neo4j.driver.SessionConfig.forDatabase;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class TriggerClusterTest {
 
+    private static final String DB_FOO = "foo";
     private static TestcontainersCausalCluster cluster;
 
     @BeforeClass
@@ -39,6 +42,8 @@ public class TriggerClusterTest {
                 Exception.class);
         Assume.assumeNotNull(cluster);
         Assume.assumeTrue(cluster.isRunning());
+
+        cluster.getSession().run("CREATE DATABASE " + DB_FOO);
     }
 
     @AfterClass
@@ -209,5 +214,24 @@ public class TriggerClusterTest {
                                 .single().get("name").asString()),
                 name::equals,
                 30, TimeUnit.SECONDS);
+    }
+
+    @Test
+    public void testTriggerCreatedInCorrectDatabase() {
+        final String name = "testDatabase";
+        try (final Session session = cluster.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
+            session.run("CALL apoc.trigger.install($dbName, $name, 'RETURN 1', " +
+                            "{phase:'afterAsync'})",
+                    Map.of("dbName", DB_FOO, "name", name));
+        }
+        try (final Session session = cluster.getDriver().session(forDatabase(DB_FOO))) {
+            awaitProcedureInstalled(session, name);
+        }
+        try (final Session session = cluster.getDriver().session(forDatabase(DEFAULT_DATABASE_NAME))) {
+            TestContainerUtil.testResult(session, "CALL apoc.trigger.list() " +
+                            "YIELD name WHERE name = $name RETURN name", 
+                    Map.of("name", name),
+                    res -> assertFalse(res.hasNext()));
+        }
     }
 }

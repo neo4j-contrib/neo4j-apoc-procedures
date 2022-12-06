@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeFalse;
@@ -73,14 +72,6 @@ public class TestUtil {
             testCallAssertions(r, consumer);
             return true;
         }), (v) -> v, timeout, TimeUnit.SECONDS);
-    }
-
-    public static void waitDbsAvailable(GraphDatabaseService ...dbs) {
-        waitDbsAvailable(5000, dbs);
-    }
-    
-    public static void waitDbsAvailable(long timeout, GraphDatabaseService ...dbs) {
-        Stream.of(dbs).forEach(db -> assertTrue(db.isAvailable(timeout)));
     }
 
     public static void testCallAssertions(Result res, Consumer<Map<String, Object>> consumer) {

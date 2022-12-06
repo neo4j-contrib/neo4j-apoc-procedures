@@ -6,7 +6,6 @@ import apoc.util.Util;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.HashMap;
@@ -49,24 +48,22 @@ public class TriggerHandlerNewProcedures {
     public static Map<String, Object> install(String databaseName, String triggerName, String statement, Map<String,Object> selector, Map<String,Object> params) {
         final HashMap<String, Object> previous = new HashMap<>();
 
-        final Node[] node = new Node[1];
         withSystemDb(tx -> {
-            node[0] = Util.mergeNode(tx, SystemLabels.ApocTrigger, null,
+            Node node = Util.mergeNode(tx, SystemLabels.ApocTrigger, null,
                     Pair.of(SystemPropertyKeys.database.name(), databaseName),
                     Pair.of(SystemPropertyKeys.name.name(), triggerName));
             
             // we'll return previous trigger info
-            previous.putAll(toTriggerInfo(node[0]));
+            previous.putAll(toTriggerInfo(node));
             
-            node[0].setProperty(SystemPropertyKeys.statement.name(), statement);
-            node[0].setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
-            node[0].setProperty(SystemPropertyKeys.params.name(), Util.toJson(params));
-            node[0].setProperty(SystemPropertyKeys.paused.name(), false);
+            node.setProperty(SystemPropertyKeys.statement.name(), statement);
+            node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
+            node.setProperty(SystemPropertyKeys.params.name(), Util.toJson(params));
+            node.setProperty(SystemPropertyKeys.paused.name(), false);
 
+            setLastUpdate(databaseName, tx);
             return null;
         });
-
-        setLastUpdate(databaseName, node[0]);
 
         return previous;
     }
@@ -75,17 +72,15 @@ public class TriggerHandlerNewProcedures {
         final HashMap<String, Object> previous = new HashMap<>();
 
         withSystemDb(tx -> {
-            // there should be at most one node 
-            final Node node = Iterators.singleOrNull(getTriggerNodes(databaseName, tx, triggerName));
-            if (node != null) {
-                previous.putAll(toTriggerInfo(node));
-                node.delete();
-            }
+            getTriggerNodes(databaseName, tx, triggerName)
+                    .forEachRemaining(node -> {
+                                previous.putAll(toTriggerInfo(node));
+                                node.delete();
+                            });
             
+            setLastUpdate(databaseName, tx);
             return null;
         });
-
-        setLastUpdate(databaseName, null);
 
         return previous;
     }
@@ -93,20 +88,18 @@ public class TriggerHandlerNewProcedures {
     public static Map<String, Object> updatePaused(String databaseName, String name, boolean paused) {
         HashMap<String, Object> result = new HashMap<>();
 
-        final Node[] node = new Node[1];
         withSystemDb(tx -> {
-            // there should be at most one node 
-            node[0] = Iterators.singleOrNull(getTriggerNodes(databaseName, tx, name));
-            if (node[0] != null) {
-                node[0].setProperty(SystemPropertyKeys.paused.name(), paused);
+            getTriggerNodes(databaseName, tx, name)
+                    .forEachRemaining(node -> {
+                        node.setProperty( SystemPropertyKeys.paused.name(), paused );
 
-                // we'll return previous trigger info
-                result.putAll(toTriggerInfo(node[0]));
-            }
+                        // we'll return previous trigger info
+                        result.putAll(toTriggerInfo(node));
+                    });
+
+            setLastUpdate(databaseName, tx);
             return null;
         });
-
-        if (node[0] != null) setLastUpdate(databaseName, node[0]);
 
         return result;
     }
@@ -123,10 +116,9 @@ public class TriggerHandlerNewProcedures {
                         previous.put(triggerName, toTriggerInfo(node));
                         node.delete();
                     });
+            setLastUpdate(databaseName, tx);
             return null;
         });
-
-        setLastUpdate(databaseName, null);
 
         return previous;
     }
@@ -153,31 +145,21 @@ public class TriggerHandlerNewProcedures {
                 SystemPropertyKeys.name.name(), name);
     }
 
-    private static void setLastUpdate(String databaseName, Node triggerNode) {
-        withSystemDb(tx -> {
-            Node metaNode = tx.findNode(SystemLabels.ApocTriggerMeta, SystemPropertyKeys.database.name(), databaseName);
-            if (metaNode == null) {
-                metaNode = tx.createNode(SystemLabels.ApocTriggerMeta);
-                metaNode.setProperty(SystemPropertyKeys.database.name(), databaseName);
-            }
-            metaNode.setProperty(SystemPropertyKeys.lastUpdated.name(), System.currentTimeMillis());
-
-            // we update the lastUpdated in ApocTrigger node as well
-            if (triggerNode != null) {
-                final Node nodeRebound = Util.rebind(tx, triggerNode);
-                final Object lastUpdated = metaNode.getProperty(SystemPropertyKeys.lastUpdated.name());
-                nodeRebound.setProperty(SystemPropertyKeys.lastUpdated.name(), lastUpdated);
-            }
-            return null;
-        });
-    }
-
     public static <T> T withSystemDb(Function<Transaction, T> action) {
         try (Transaction tx = apocConfig().getSystemDb().beginTx()) {
             T result = action.apply(tx);
             tx.commit();
             return result;
         }
+    }
+
+    private static void setLastUpdate(String databaseName, Transaction tx) {
+        Node node = tx.findNode(SystemLabels.ApocTriggerMeta, SystemPropertyKeys.database.name(), databaseName);
+        if (node == null) {
+            node = tx.createNode(SystemLabels.ApocTriggerMeta);
+            node.setProperty(SystemPropertyKeys.database.name(), databaseName);
+        }
+        node.setProperty(SystemPropertyKeys.lastUpdated.name(), System.currentTimeMillis());
     }
     
 }

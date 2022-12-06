@@ -41,7 +41,6 @@ import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallCountEventually;
 import static apoc.util.TestUtil.testCallEventually;
 import static apoc.util.TestUtil.testResult;
-import static apoc.util.TestUtil.waitDbsAvailable;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -85,7 +84,6 @@ public class TriggerNewProceduresTest {
                 .build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
-        waitDbsAvailable(db, sysDb);
         TestUtil.registerProcedure(sysDb, TriggerNewProcedures.class, Nodes.class);
         TestUtil.registerProcedure(db, Trigger.class, Nodes.class);
         
@@ -508,7 +506,7 @@ public class TriggerNewProceduresTest {
     //
 
     @Test
-    public void testTriggerShow() throws Exception {
+    public void testTriggerShow() {
         String name = "test-show1";
         String name2 = "test-show2";
         String query = "MATCH (c:TestShow) SET c.count = 1";

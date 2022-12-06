@@ -152,12 +152,11 @@ public class TriggerNewProcedures {
         return Stream.of(TriggerInfo.from(resume, true));
     }
 
-    // TODO - perhaps change with @SystemOnlyProcedure
+    // TODO - change with @SystemOnlyProcedure
     @SystemProcedure
     @Procedure(mode = Mode.READ)
     @Description("CALL apoc.trigger.show(databaseName) | it lists all installed triggers")
     public Stream<TriggerInfo> show(@Name("databaseName") String databaseName) {
-        // TODO - perhaps not needed
         checkInSystemLeader();
 
         return TriggerHandlerNewProcedures.getTriggerNodes(databaseName)
