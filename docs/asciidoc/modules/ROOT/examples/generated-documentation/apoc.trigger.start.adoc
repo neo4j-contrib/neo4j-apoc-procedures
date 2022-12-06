@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.trigger/apoc.trigger.start.adoc[apoc.trigger.start icon:book[]] +
 
-`CALL apoc.trigger.start(databaseName, name) | eventually pauses the paused trigger`
+`CALL apoc.trigger.start(databaseName, name) | eventually unpauses the paused trigger`
 ¦label:procedure[]
 ¦label:apoc-core[]

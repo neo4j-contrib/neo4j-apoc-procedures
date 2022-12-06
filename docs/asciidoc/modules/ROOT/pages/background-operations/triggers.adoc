@@ -8,10 +8,11 @@ You can run them before or after commit.
 
 [NOTE]
 ====
-All these `apoc.trigger.*` procedures are implemented to be executed in the system database,
-therefore they have to be used executing first `:use system` (in cypher-shell or Neo4j Browser), 
-by opening a system db session with a neo4j driver, 
-or by prepending the suffix `USE system` to the cypher statement.
+All these `apoc.trigger.*` procedures are intended to be executed in the system database,
+therefore they have to be used executed by opening a system database session. There are several ways of doing this:
+- when using cypher-shell or Neo4j Browser, one can prefix their Cypher query with `:use system`
+- when using fabric, one can prefix their Cypher query with `USE system`
+- when using the drivers, one can open a session directly against the system database
 
 Moreover, they accept as first parameter the name of the database towards which we want to install/update/remove the triggers.
 
@@ -81,8 +82,8 @@ The 3rd parameter of the `apoc.trigger.install()` is a map `{phase: PHASE}`, whe
 |===
 | PHASE | Description
 | before | The trigger will be activate right `before` the commit. If no phase is specified, it's the default.
-| rollback | The trigger will be activate right after the  `rollback`
-| after | The trigger will be activate right `after` the commit
+| rollback | The trigger will be activate right after the `rollback`.
+| after | The trigger will be activate right `after` the commit.
 | afterAsync | The trigger will be activate right `after` the commit and inside a new transaction and thread that will not
 impact the original one.
 Heavy operations should be processed in this phase without blocking the original transaction.
@@ -309,9 +310,9 @@ To solve this, we can use `{phase:'afterAsync'}`
 
 .Pause trigger
 
-We have the possibility to pause a trigger without remove it, if we will need it in the future.
-Note that this procedure and the `apoc.trigger.start` one are eventually consistent,
-so we need to wait a time defined by the configuration `apoc.trigger.refresh`.
+We have the possibility of pausing a trigger without removing it, in case we might need it in the future.
+Note that this procedure and the `apoc.trigger.start` ones are eventually consistent,
+so we need to wait some amount of time for the changes to propagate. This amount of time is defined by the configuration `apoc.trigger.refresh`.
 
 image::apoc.trigger.stop.png[width=800]
 
