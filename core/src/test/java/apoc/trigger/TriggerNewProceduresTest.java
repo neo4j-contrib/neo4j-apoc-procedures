@@ -26,14 +26,13 @@ import java.io.FileWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.LongStream;
 
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 import static apoc.trigger.TriggerNewProcedures.TRIGGER_NOT_ROUTED_ERROR;
 import static apoc.trigger.TriggerTestUtil.TIMEOUT;
+import static apoc.trigger.TriggerTestUtil.TRIGGER_DEFAULT_REFRESH;
 import static apoc.trigger.TriggerTestUtil.awaitTriggerDiscovered;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallCount;
@@ -67,11 +66,11 @@ public class TriggerNewProceduresTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        // we cannot set via ApocConfig.apocConfig().setProperty("apoc.trigger.refresh", "100") in `setUp`, because is too late
+        // we cannot set via ApocConfig.apocConfig().setProperty("apoc.trigger.refresh", "2000") in `setUp`, because is too late
         final File conf = new File(directory, "apoc.conf");
         try (FileWriter writer = new FileWriter(conf)) {
             writer.write(String.join("\n",
-                    "apoc.trigger.refresh=100",
+                    "apoc.trigger.refresh=" + TRIGGER_DEFAULT_REFRESH,
                     "apoc.trigger.enabled=true"));
         }
 
