@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeFalse;
@@ -250,5 +251,13 @@ public class TestUtil {
 
     public static <T> List<T> firstColumn(GraphDatabaseService db, String cypher) {
         return db.executeTransactionally(cypher , Collections.emptyMap(), result -> Iterators.asList(iteratorSingleColumn(result)));
+    }
+    
+    public static void waitDbsAvailable(GraphDatabaseService ...dbs) {
+        waitDbsAvailable(5000, dbs);
+    }
+
+    public static void waitDbsAvailable(long timeout, GraphDatabaseService ...dbs) {
+        Stream.of(dbs).forEach(db -> assertTrue(db.isAvailable(timeout)));
     }
 }

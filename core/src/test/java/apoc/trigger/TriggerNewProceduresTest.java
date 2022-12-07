@@ -26,16 +26,19 @@ import java.io.FileWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 import static apoc.trigger.TriggerNewProcedures.TRIGGER_NOT_ROUTED_ERROR;
 import static apoc.trigger.TriggerTestUtil.TIMEOUT;
+import static apoc.trigger.TriggerTestUtil.TRIGGER_DEFAULT_REFRESH;
 import static apoc.trigger.TriggerTestUtil.awaitTriggerDiscovered;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallCountEventually;
 import static apoc.util.TestUtil.testCallEventually;
+import static apoc.util.TestUtil.waitDbsAvailable;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -64,11 +67,11 @@ public class TriggerNewProceduresTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        // we cannot set via ApocConfig.apocConfig().setProperty("apoc.trigger.refresh", "100") in `setUp`, because is too late
+        // we cannot set via ApocConfig.apocConfig().setProperty("apoc.trigger.refresh", "2000") in `setUp`, because is too late
         final File conf = new File(directory, "apoc.conf");
         try (FileWriter writer = new FileWriter(conf)) {
             writer.write(String.join("\n",
-                    "apoc.trigger.refresh=100",
+                    "apoc.trigger.refresh=" + TRIGGER_DEFAULT_REFRESH,
                     "apoc.trigger.enabled=true"));
         }
 
@@ -79,6 +82,7 @@ public class TriggerNewProceduresTest {
                 .build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
+        waitDbsAvailable(db, sysDb);
         TestUtil.registerProcedure(sysDb, TriggerNewProcedures.class, Nodes.class);
         TestUtil.registerProcedure(db, Trigger.class, Nodes.class);
         
@@ -530,6 +534,36 @@ public class TriggerNewProceduresTest {
         } catch (QueryExecutionException e) {
             assertTrue(e.getMessage().contains("Not a recognised system command or procedure"));
         }
+    }
+
+    @Test
+    public void testEventualConsistency() {
+        long count = 0L;
+        final String name = UUID.randomUUID().toString();
+        final String query = "UNWIND $createdNodes AS n SET n.count = " + count;
+
+        // this does nothing, just to test consistency with multiple triggers
+        sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, 'return 1', {phase: 'after'})",
+                map("name", UUID.randomUUID().toString()) );
+
+        // create trigger
+        sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase: 'after'})",
+                map("name", name, "query", query));
+        awaitTriggerDiscovered(db, name, query);
+        db.executeTransactionally("CREATE (n:Something)");
+
+        // check trigger
+        testCall(db, "MATCH (c:Something) RETURN c.count as count",
+                (row) -> assertEquals(count, row.get("count")));
+
+        // stop trigger
+        sysDb.executeTransactionally("CALL apoc.trigger.stop('neo4j', $name)",
+                map("name", name, "query", query));
+        awaitTriggerDiscovered(db, name, query, true);
+
+        // this does nothing, just to test consistency with multiple triggers
+        sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, 'return 1', {phase: 'after'})",
+                map("name", UUID.randomUUID().toString()) );
     }
 
 }

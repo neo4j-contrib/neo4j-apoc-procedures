@@ -26,15 +26,16 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
+import static apoc.trigger.TriggerTestUtil.TIMEOUT;
+import static apoc.trigger.TriggerTestUtil.TRIGGER_DEFAULT_REFRESH;
+import static apoc.trigger.TriggerTestUtil.awaitTriggerDiscovered;
 import static apoc.util.TestUtil.testCallCountEventually;
-import static apoc.util.TestUtil.testCallEventually;
+import static apoc.util.TestUtil.waitDbsAvailable;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
 
 public class TriggerNewProceduresExtendedTest {
-    private static final long TIMEOUT = 30L;
-
     private static final File directory = new File("target/conf");
     static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
@@ -49,11 +50,11 @@ public class TriggerNewProceduresExtendedTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        // we cannot set via ApocConfig.apocConfig().setProperty("apoc.trigger.refresh", "100") in `setUp`, because is too late
+        // we cannot set via ApocConfig.apocConfig().setProperty("apoc.trigger.refresh", "2000") in `setUp`, because is too late
         final File conf = new File(directory, "apoc.conf");
         try (FileWriter writer = new FileWriter(conf)) {
             writer.write(String.join("\n",
-                    "apoc.trigger.refresh=100",
+                    "apoc.trigger.refresh=" + TRIGGER_DEFAULT_REFRESH,
                     "apoc.trigger.enabled=true"));
         }
         System.setProperty(SUN_JAVA_COMMAND, "config-dir=" + directory.getAbsolutePath());
@@ -63,6 +64,7 @@ public class TriggerNewProceduresExtendedTest {
                 .build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
+        waitDbsAvailable(db, sysDb);
         TestUtil.registerProcedure(sysDb, TriggerNewProcedures.class, Trigger.class, TriggerExtended.class,
                 Nodes.class, Create.class);
         TestUtil.registerProcedure(db, Trigger.class);
@@ -80,13 +82,6 @@ public class TriggerNewProceduresExtendedTest {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
 
-    private void awaitProcedureUpdated(String name, String query) {
-        testCallEventually(db, "CALL apoc.trigger.list() YIELD name, query WHERE name = $name RETURN query",
-                Map.of("name", name),
-                row -> assertEquals(query, row.get("query")),
-                TIMEOUT);
-    }
-
     //
     // test cases taken and adapted from TriggerExtendedTest.java
     //
@@ -97,7 +92,7 @@ public class TriggerNewProceduresExtendedTest {
         final String query = "UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {})",
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(name, query);
+        awaitTriggerDiscovered(db, name, query);
         db.executeTransactionally("CREATE (f:Foo) SET f.foo='bar'");
         TestUtil.testCall(db, "MATCH (f:Foo) RETURN f",
                 (row) -> assertTrue(((Node) row.get("f")).hasProperty("ts")));
@@ -110,7 +105,7 @@ public class TriggerNewProceduresExtendedTest {
         final String query = "UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n.id = toLower(n.name)";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {})",
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(name, query);
+        awaitTriggerDiscovered(db, name, query);
         db.executeTransactionally("CREATE (f:Person {name:'John Doe'})");
         TestUtil.testCall(db, "MATCH (f:Person) RETURN f", (row) -> {
             assertEquals("john doe", ((Node)row.get("f")).getProperty("id"));
@@ -125,7 +120,7 @@ public class TriggerNewProceduresExtendedTest {
         final String query = "UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n:Man";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {})",
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(name, query);
+        awaitTriggerDiscovered(db, name, query);
         db.executeTransactionally("MATCH (f) SET f:Person");
         TestUtil.testCall(db, "MATCH (f:Man) RETURN f", (row) -> {
             assertEquals("John Doe", ((Node)row.get("f")).getProperty("name"));
@@ -145,7 +140,7 @@ public class TriggerNewProceduresExtendedTest {
                 "	CREATE (n)-[:GENERATED]->(z)";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase:'afterAsync'})",
                 Map.of("name", name, "query", query));
-        awaitProcedureUpdated(name, query);
+        awaitTriggerDiscovered(db, name, query);
         db.executeTransactionally("CREATE (:TEST {name:'x', _executed:0})");
         db.executeTransactionally("CREATE (:TEST {name:'y', _executed:0})");
         org.neo4j.test.assertion.Assert.assertEventually(() -> db.executeTransactionally("MATCH p = ()-[r:GENERATED]->() RETURN count(p) AS count",
@@ -176,7 +171,7 @@ public class TriggerNewProceduresExtendedTest {
 
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query,{phase: $phase})",
                 Map.of("name", name, "query", query, "phase", phase));
-        awaitProcedureUpdated(name, query);
+        awaitTriggerDiscovered(db, name, query);
 
         db.executeTransactionally("MATCH (f:To:Delete) DELETE f");
 
@@ -219,7 +214,7 @@ public class TriggerNewProceduresExtendedTest {
         final String name = UUID.randomUUID().toString();
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query,{phase: $phase})",
                 Map.of("name", name, "query", triggerQuery, "phase", phase));
-        awaitProcedureUpdated(name, triggerQuery);
+        awaitTriggerDiscovered(db, name, triggerQuery);
         db.executeTransactionally("MATCH (:Start)-[r:MY_TYPE]->(:End) DELETE r");
 
         TestUtil.testCall(db, assertionQuery, (row) -> {

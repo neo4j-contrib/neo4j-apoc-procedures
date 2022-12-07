@@ -19,9 +19,10 @@ import java.util.Collections;
 import java.util.Map;
 
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
+import static apoc.trigger.TriggerTestUtil.TRIGGER_DEFAULT_REFRESH;
 import static apoc.trigger.TriggerTestUtil.awaitTriggerDiscovered;
+import static apoc.util.TestUtil.waitDbsAvailable;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class TriggerRestartTest {
 
@@ -36,13 +37,14 @@ public class TriggerRestartTest {
     public void setUp() throws IOException {
         final File conf = store_dir.newFile("apoc.conf");
         try (FileWriter writer = new FileWriter(conf)) {
-            writer.write("apoc.trigger.refresh=100");
+            writer.write("apoc.trigger.refresh=" + TRIGGER_DEFAULT_REFRESH);
         }
         System.setProperty(SUN_JAVA_COMMAND, "config-dir=" + store_dir.getRoot().getAbsolutePath());
         
         databaseManagementService = new TestDatabaseManagementServiceBuilder(store_dir.getRoot().toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
+        waitDbsAvailable(db, sysDb);
         ApocConfig.apocConfig().setProperty("apoc.trigger.enabled", "true");
         TestUtil.registerProcedure(db, TriggerNewProcedures.class, Trigger.class);
     }
@@ -57,8 +59,7 @@ public class TriggerRestartTest {
         databaseManagementService = new TestDatabaseManagementServiceBuilder(store_dir.getRoot().toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
-        assertTrue(db.isAvailable(3000));
-        assertTrue(sysDb.isAvailable(3000));
+        waitDbsAvailable(db, sysDb);
     }
 
     @Test
