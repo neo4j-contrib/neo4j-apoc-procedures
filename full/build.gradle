@@ -91,17 +91,16 @@ dependencies {
 
     testCompile 'net.sourceforge.jexcelapi:jxl:2.6.12'
 
-    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
-    testCompile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
+    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.349'
+    testCompile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.349'
 
     testCompile group: 'org.reflections', name: 'reflections', version: '0.9.12'
 
-    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
     testCompile group: 'org.neo4j.test', name: 'neo4j-harness', version: neo4jVersionEffective
     testCompile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.2.22.v20170606'
-    testCompile group: 'org.apache.derby', name: 'derby', version: '10.12.1.1'
+    testCompile group: 'org.apache.derby', name: 'derby', version: '10.14.2.0'
 
-    testCompile group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
+    testCompile group: 'org.postgresql', name: 'postgresql', version: '42.3.3'
 
     def withoutServers = {
         exclude group: 'org.eclipse.jetty'
@@ -135,8 +134,8 @@ dependencies {
     testCompile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2', withoutJacksons
     testCompile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 
-    testCompile 'org.mock-server:mockserver-netty:5.6.0'
-    testCompile 'org.mock-server:mockserver-client-java:5.6.0'
+    testCompile 'org.mock-server:mockserver-netty:5.13.0'
+    testCompile 'org.mock-server:mockserver-client-java:5.13.0'
 
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
@@ -148,7 +147,7 @@ dependencies {
 
     // schemacrawler
     compile group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'
-    testCompile group: 'us.fatehi', name: 'schemacrawler-mysql', version: '15.04.01'
+    testCompile group: 'us.fatehi', name: 'schemacrawler-mysql', version: '16.19.2'
 
     testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
@@ -156,14 +155,15 @@ dependencies {
 
     testCompile group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
     testCompile group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
+    testCompile group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
+    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: '2.2'
 
-
-    testCompile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.13.2'
+    testCompile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.14.0'
     testCompile group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
     testCompile group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
 
-    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.1'
-    testCompile group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.1', {
+    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.2'
+    testCompile group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.6.2', {
         exclude group: 'com.google.guava', module: 'guava'
     }
 
