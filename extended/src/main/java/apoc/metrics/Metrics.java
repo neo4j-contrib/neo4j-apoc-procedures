@@ -6,6 +6,7 @@ import apoc.load.CSVResult;
 import apoc.load.LoadCsv;
 import apoc.load.util.LoadCsvConfig;
 import apoc.util.CompressionAlgo;
+import apoc.util.ExtendedFileUtils;
 import apoc.util.FileUtils;
 import apoc.util.SupportedProtocols;
 import apoc.util.Util;
@@ -21,7 +22,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
-import static apoc.util.FileUtils.closeReaderSafely;
+import static apoc.util.ExtendedFileUtils.closeReaderSafely;
 
 /**
  * @author moxious
@@ -112,7 +113,7 @@ public class Metrics {
     @Procedure(mode=Mode.DBMS)
     @Description("apoc.metrics.list() - get a list of available metrics")
     public Stream<Neo4jMeasuredMetric> list() {
-        File metricsDir = FileUtils.getMetricsDirectory();
+        File metricsDir = ExtendedFileUtils.getMetricsDirectory();
 
         final FilenameFilter filter = (dir, name) -> name.toLowerCase().endsWith(".csv");
         return Arrays.asList(metricsDir.listFiles(filter))
@@ -163,7 +164,7 @@ public class Metrics {
         config.put("sep", ",");
         config.put("header", true);
 
-        File metricsDir = FileUtils.getMetricsDirectory();
+        File metricsDir = ExtendedFileUtils.getMetricsDirectory();
 
         if (metricsDir == null) {
             throw new RuntimeException("Metrics directory either does not exist or is not readable.  " +
@@ -197,15 +198,15 @@ public class Metrics {
         // Permit case-insensitive checks.
         String input = directorySetting == null ? null : directorySetting.toLowerCase();
 
-        boolean validSetting = input == null || FileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.contains(input);
+        boolean validSetting = input == null || ExtendedFileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.contains(input);
 
         if (!validSetting) {
-            String validOptions = String.join(", ", FileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES);
+            String validOptions = String.join(", ", ExtendedFileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES);
             throw new RuntimeException("Invalid directory setting specified.  Valid options are one of: " +
                     validOptions);
         }
 
-        return FileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.stream()
+        return ExtendedFileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.stream()
                 // If user specified a particular one, immediately cut list to just that one.
                 .filter(dirSetting -> (input == null || input.equals(dirSetting)))
                 .map(StoragePair::fromDirectorySetting)

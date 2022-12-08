@@ -10,7 +10,7 @@ import org.neo4j.graphdb.Node;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.Util.toCypherMap;
+import static apoc.util.ExtendedUtil.toCypherMap;
 
 public class ExportTrigger implements ExportMetadata {
 

@@ -27,6 +27,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.DateParseUtil.dateParse;
+import static apoc.util.ExtendedUtil.dateFormat;
+import static apoc.util.ExtendedUtil.durationParse;
 import static apoc.util.Util.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;

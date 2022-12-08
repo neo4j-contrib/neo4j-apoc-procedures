@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.Util.toCypherMap;
+import static apoc.util.ExtendedUtil.toCypherMap;
 
 public class ExportUuid implements ExportMetadata {
 

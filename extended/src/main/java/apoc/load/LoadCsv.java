@@ -3,6 +3,7 @@ package apoc.load;
 import apoc.Extended;
 import apoc.export.util.CountingReader;
 import apoc.load.util.LoadCsvConfig;
+import apoc.util.ExtendedUtil;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import com.opencsv.CSVParserBuilder;
@@ -22,7 +23,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import apoc.load.util.Results;
-import static apoc.util.FileUtils.closeReaderSafely;
+import static apoc.util.ExtendedFileUtils.closeReaderSafely;
 import static apoc.util.Util.cleanUrl;
 import static java.util.Collections.emptyList;
 
@@ -117,7 +118,7 @@ public class LoadCsv {
             this.nullValues = nullValues;
             this.results = results;
             this.ignoreErrors = ignoreErrors;
-            this.limit = Util.isSumOutOfRange(skip, limit) ? Long.MAX_VALUE : (skip + limit);
+            this.limit = ExtendedUtil.isSumOutOfRange(skip, limit) ? Long.MAX_VALUE : (skip + limit);
             lineNo = skip;
             while (skip-- > 0) {
                 csv.readNext();
