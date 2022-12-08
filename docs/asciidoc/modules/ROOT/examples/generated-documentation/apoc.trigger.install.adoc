@@ -1,0 +1,5 @@
+¦xref::overview/apoc.trigger/apoc.trigger.install.adoc[apoc.trigger.install icon:book[]] +
+
+`CALL apoc.trigger.install(databaseName, name, statement, selector, config) | eventually adds a trigger for a given database which is invoked when a successful transaction occurs.`
+¦label:procedure[]
+¦label:apoc-core[]

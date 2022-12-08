@@ -6,32 +6,41 @@
 Triggers allow the registration of Cypher queries that are called when data in Neo4j is changed (created, updated, deleted).
 You can run them before or after commit.
 
+[NOTE]
+====
+All these `apoc.trigger.*` procedures are intended to be executed in the system database,
+therefore they have to be used executed by opening a system database session. There are several ways of doing this:
+- when using cypher-shell or Neo4j Browser, one can prefix their Cypher query with `:use system`
+- when using fabric, one can prefix their Cypher query with `USE system`
+- when using the drivers, one can open a session directly against the system database
 
-include::partial$triggers.adoc[]
+Moreover, they accept as first parameter the name of the database towards which we want to install/update/remove the triggers.
+
+Through this implementation, we can use these procedures in a cluster environment,
+by leveraging the cluster routing mechanism.
+====
+
+[WARNING]
+====
+Installing, updating or removing a trigger is an eventually consistent operation.
+Therefore, they are not immediately added/updated/removed,
+but they have a refresh rate handled by the Apoc configuration `apoc.trigger.refresh=<MILLISECONDS>`, with default 60000 (milliseconds)
+====
+
+include::partial$triggers/triggersConfig.adoc[]
 
 
 [separator=¦,opts=header,cols="5,1m,1m"]
 |===
 ¦Qualified Name¦Type¦Release
-include::example$generated-documentation/apoc.trigger.add.adoc[]
-include::example$generated-documentation/apoc.trigger.remove.adoc[]
-include::example$generated-documentation/apoc.trigger.removeAll.adoc[]
+include::example$generated-documentation/apoc.trigger.install.adoc[]
+include::example$generated-documentation/apoc.trigger.drop.adoc[]
+include::example$generated-documentation/apoc.trigger.dropAll.adoc[]
 include::example$generated-documentation/apoc.trigger.list.adoc[]
-include::example$generated-documentation/apoc.trigger.pause.adoc[]
-include::example$generated-documentation/apoc.trigger.resume.adoc[]
+include::example$generated-documentation/apoc.trigger.stop.adoc[]
+include::example$generated-documentation/apoc.trigger.start.adoc[]
 |===
 
-// [cols="5m,5"]
-// |===
-// | CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed | add a trigger statement under a name,
-// in the statement you can use `$createdNodes`, `$deletedNodes` etc., the selector is `{phase:'before/after/rollback/afterAsync'}`
-// returns previous and new trigger information, please check **Trigger Phase Table** for more details
-// | CALL apoc.trigger.remove(name) yield name, statement, installed | remove previously added trigger, returns trigger information
-// | CALL apoc.trigger.removeAll() yield name, statement, installed | removes all previously added triggers , returns trigger information
-// | CALL apoc.trigger.list() yield name, statement, installed | update and list all installed triggers
-// | CALL apoc.trigger.pause(name) | it pauses the trigger
-// | CALL apoc.trigger.resume(name) | it resumes the paused trigger
-// |===
 
 The transaction data from Neo4j is turned into appropriate data structures to be consumed as parameters to your statement, i.e. `$createdNodes`.
 
@@ -66,6 +75,21 @@ You can use these helper functions to extract nodes or relationships by label/re
 | apoc.trigger.toRelationship(rel, $removedRelationshipProperties) | function to rebuild a relationship as a virtual, to be used in triggers with a not 'afterAsync' phase
 |===
 
+The 3rd parameter of the `apoc.trigger.install()` is a map `{phase: PHASE}`, where `PHASE` is a string which can have one of the following values:
+
+.Trigger Phase Table
+[cols="1m,5"]
+|===
+| PHASE | Description
+| before | The trigger will be activate right `before` the commit. If no phase is specified, it's the default.
+| rollback | The trigger will be activate right after the `rollback`.
+| after | The trigger will be activate right `after` the commit.
+| afterAsync | The trigger will be activate right `after` the commit and inside a new transaction and thread that will not
+impact the original one.
+Heavy operations should be processed in this phase without blocking the original transaction.
+Please note that 'after' and 'before' phases can sometimes block transactions, so generally, `afterAsync` phase is preferred
+|===
+
 
 == Triggers Examples
 
@@ -73,7 +97,7 @@ You can use these helper functions to extract nodes or relationships by label/re
 
 We could add a trigger that when is added a specific property on a node, that property is added to all the nodes connected to this node
 
-Dataset
+Dataset (in default database 'neo4j')
 
 [source,cypher]
 ----
@@ -141,7 +165,7 @@ with the current date and the property updated, we can do:
 
 [source,cypher]
 ----
-CALL apoc.trigger.add('setLastUpdate',
+CALL apoc.trigger.install('neo4j', 'setLastUpdate',
   "UNWIND keys($assignedNodeProperties) AS k
   UNWIND $assignedNodeProperties[k] AS map
   WITH map.node AS node, collect(map.key) AS propList
@@ -151,11 +175,14 @@ CALL apoc.trigger.add('setLastUpdate',
   {phase: 'afterAsync'});
 ----
 
+Note that the `apoc.trigger.install`, as well as the `apoc.trigger.drop`, `apoc.trigger.dropAll`, `apoc.trigger.stop` and `apoc.trigger.start`,
+have to be executed in the system database
+
 In the example above, we put `match (n) where id(n) = id(node)` to demonstrate that the we pull the node by id into parameters.
 Anyway, we can get rid off this one and change last row with `SET node.time = date(),  node.lasts = propList`.
 Note that we have to add the condition `AND NOT 'lasts' IN propList` to prevent an infinite loop as this `SET` will trigger this query again.
 
-Then, we can execute:
+Then, after a time defined by the configuration `apoc.trigger.refresh`, we can execute:
 [source,cypher]
 ----
 MATCH (n:Person {name: 'Daniel'}) set n.age = 123, n.country = 'Italy'
@@ -182,7 +209,7 @@ Now we add the trigger using `apoc.trigger.propertiesByKey` on the `surname` pro
 
 [source,cypher]
 ----
-CALL apoc.trigger.add('setAllConnectedNodes','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties,"surname") as prop
+CALL apoc.trigger.install('neo4j', 'setAllConnectedNodes','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties,"surname") as prop
 WITH prop.node as n
 MATCH(n)-[]-(a)
 SET a.surname = n.surname', {phase:'after'});
@@ -202,7 +229,7 @@ The `surname` property is add/change on all related nodes
 
 .Update labels
 
-Dataset
+Dataset (in a database 'dbTest')
 
 [source,cypher]
 ----
@@ -221,7 +248,7 @@ We add a trigger using `apoc.trigger.nodesByLabel` that when the label `Actor` o
 
 [source,cypher]
 ----
-CALL apoc.trigger.add('updateLabels',"UNWIND apoc.trigger.nodesByLabel($removedLabels,'Actor') AS node
+CALL apoc.trigger.install('dbTest', 'updateLabels',"UNWIND apoc.trigger.nodesByLabel($removedLabels,'Actor') AS node
 MATCH (n:Actor)
 REMOVE n:Actor SET n:Person SET node:Person", {phase:'before'})
 ----
@@ -241,7 +268,7 @@ We can add a trigger that connect every new node with label `Actor` and as  `nam
 
 [source,cypher]
 ----
-CALL apoc.trigger.add('create-rel-new-node',"UNWIND $createdNodes AS n
+CALL apoc.trigger.install('dbTest', 'create-rel-new-node',"UNWIND $createdNodes AS n
 MATCH (m:Movie {title:'Matrix'})
 WHERE n:Actor AND n.name IN ['Keanu Reeves','Laurence Fishburne','Carrie-Anne Moss']
 CREATE (n)-[:ACT_IN]->(m)", {phase:'before'})
@@ -265,7 +292,7 @@ For example, given this trigger:
 
 [source,cypher]
 ----
-CALL apoc.trigger.add('lockTriggerTest1','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties,"name") as prop
+CALL apoc.trigger.install('dbTest', 'lockTriggerTest1','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties,"name") as prop
 WITH prop.node as n
 CREATE (z:AnotherNode {myId: id(n)})
 CREATE (n)-[:GENERATED]->(z)',
@@ -283,16 +310,18 @@ To solve this, we can use `{phase:'afterAsync'}`
 
 .Pause trigger
 
-We have the possibility to pause a trigger without remove it, if we will need it in the future
+We have the possibility of pausing a trigger without removing it, in case we might need it in the future.
+Note that this procedure and the `apoc.trigger.start` ones are eventually consistent,
+so we need to wait some amount of time for the changes to propagate. This amount of time is defined by the configuration `apoc.trigger.refresh`.
 
-image::apoc.trigger.pause.png[width=800]
+image::apoc.trigger.stop.png[width=800]
 
 
 .Resume paused trigger
 
 When you need again of a trigger paused
 
-image::apoc.trigger.resume.png[width=800]
+image::apoc.trigger.start.png[width=800]
 
 .Enforcing property type
 
@@ -300,7 +329,7 @@ For this example, we would like that all the `reference` node properties are of 
 
 [source,cypher]
 ----
-CALL apoc.trigger.add("forceStringType",
+CALL apoc.trigger.install('dbTest', "forceStringType",
 "UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, 'reference') AS prop
 CALL apoc.util.validate(apoc.meta.type(prop) <> 'STRING', 'expected string property type, got %s', [apoc.meta.type(prop)]) RETURN null", {phase:'before'})
 ----
@@ -317,7 +346,7 @@ Neo.ClientError.Transaction.TransactionHookFailed
 We can pass as a 4th parameter, a `{params: {parameterMaps}}` to insert additional parameters.
 [source,cypher]
 ----
-CALL apoc.trigger.add('timeParams','UNWIND $createdNodes AS n SET n.time = $time', {}, {params: {time: timestamp()}});
+CALL apoc.trigger.install('dbTest', 'timeParams','UNWIND $createdNodes AS n SET n.time = $time', {}, {params: {time: timestamp()}});
 ----
 
 .Handle deleted entities
@@ -335,7 +364,7 @@ For example, if we want to create a new node with the same properties (plus the 
 
 [source,cypher]
 ----
-CALL apoc.trigger.add('myTrigger',
+CALL apoc.trigger.install('dbTest', 'myTrigger',
 "UNWIND $deletedNodes as deletedNode
 WITH apoc.trigger.toNode(deletedNode, $removedLabels, $removedNodeProperties) AS deletedNode
 CREATE (r:Report {id: id(deletedNode)}) WITH r, deletedNode
@@ -348,7 +377,7 @@ Or also, if we want to  create a node `Report` with the same properties (plus th
 
 [source,cypher]
 ----
-CALL apoc.trigger.add('myTrigger',
+CALL apoc.trigger.install('dbTest', 'myTrigger',
 "UNWIND $deletedRelationships as deletedRel
 WITH apoc.trigger.toRelationship(deletedRel, $removedRelationshipProperties) AS deletedRel
 CREATE (r:Report {id: id(deletedRel), type: apoc.rel.type(deletedRel)})
@@ -365,27 +394,58 @@ because using this one, the rebuild of entities is executed automatically under 
 .Other examples
 [source,cypher]
 ----
-CALL apoc.trigger.add('timestamp','UNWIND $createdNodes AS n SET n.ts = timestamp()', {});
-CALL apoc.trigger.add('lowercase','UNWIND $createdNodes AS n SET n.id = toLower(n.name)', {});
-CALL apoc.trigger.add('txInfo',   'UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime', {phase:'after'});
-CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN $deletedRelationships WHERE type(r) = "X"])', {})
-CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel($assignedLabels,"Person") AS n SET n.id = toLower(n.name)', {})
+CALL apoc.trigger.install('dbTest', 'timestamp','UNWIND $createdNodes AS n SET n.ts = timestamp()', {});
+CALL apoc.trigger.install('dbTest', 'lowercase','UNWIND $createdNodes AS n SET n.id = toLower(n.name)', {});
+CALL apoc.trigger.install('dbTest', 'txInfo',   'UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime', {phase:'after'});
+CALL apoc.trigger.install('dbTest', 'count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN $deletedRelationships WHERE type(r) = "X"])', {})
+CALL apoc.trigger.install('dbTest', 'lowercase-by-label','UNWIND apoc.trigger.nodesByLabel($assignedLabels,"Person") AS n SET n.id = toLower(n.name)', {})
 ----
 
 // end::trigger[]
 
-.Trigger Phase Table
-.Helper Functions
-[cols="1m,5"]
+
+== Remove triggers
+
+If we want to remove the trigger with name 'test' in 'neo4j' database, 
+we can run the following query:
+
+[source,cypher]
+----
+CALL apoc.trigger.drop('neo4j', 'test')
+----
+
+If we want to remove all triggers in 'neo4j' db, we can execute
+
+[source,cypher]
+----
+CALL apoc.trigger.dropAll('neo4j')
+----
+
+
+== List of triggers
+
+If we want to get the list of triggers, for example if we have one trigger created via:
+
+[source,cypher]
+----
+CALL apoc.trigger.install('neo4j', 'count-removals', 
+    'MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])', 
+    {})
+----
+
+we can execute (also in this case, after a time defined by the configuration `apoc.trigger.refresh`):
+
+[source,cypher]
+----
+CALL apoc.trigger.list
+----
+
+.Results
+[opts="header"]
 |===
-| Phase | Description
-| before | The trigger will be activate right `before` the commit. If no phase is specified, it's the default.
-| rollback | The trigger will be activate right after the  `rollback`
-| after | The trigger will be activate right `after` the commit
-| afterAsync | The trigger will be activate right `after` the commit and inside a new transaction and thread that will not
-impact the original one.
-Heavy operations should be processed in this phase without blocking the original transaction.
-Please note that 'after' and 'before' phases can sometimes block transactions, so generally, `afterAsync` phase is preferred
+| name             | query   | selector | params | installed | paused
+| "count-removals" | "MATCH (c:Counter)
+SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {}       | {}     | TRUE      | FALSE
 |===
 
 === Export metadata

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.trigger/apoc.trigger.stop.adoc[apoc.trigger.stop icon:book[]] +
+
+`CALL apoc.trigger.stop(databaseName, name) | eventually pauses the trigger`
+¦label:procedure[]
+¦label:apoc-core[]

@@ -5,3 +5,4 @@ in the kernelTransaction you can use \{createdNodes}, \{deletedNodes} etc.,
 the selector is {phase:'before/after/rollback'} returns previous and new trigger information. Takes in an optional configuration.`
 ¦label:procedure[]
 ¦label:apoc-core[]
+¦label:deprecated[]
