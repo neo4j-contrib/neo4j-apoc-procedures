@@ -30,6 +30,12 @@ CALL apoc.trigger.install(databaseName, name, statement, selector, config) \| ev
 CALL apoc.trigger.pause(name) \| it pauses the trigger
 |label:procedure[]
 |label:apoc-core[]
+
+|xref::overview/apoc.trigger/apoc.trigger.show.adoc[apoc.trigger.show icon:book[]]
+
+CALL apoc.trigger.show(databaseName) \| it lists all installed triggers
+|label:procedure[]
+|label:apoc-core[]
 |===
 
 == APOC deprecated procedures 

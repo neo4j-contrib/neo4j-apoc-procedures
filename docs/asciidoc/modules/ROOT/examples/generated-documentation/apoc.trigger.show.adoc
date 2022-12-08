@@ -1,0 +1,5 @@
+¦xref::overview/apoc.trigger/apoc.trigger.show.adoc[apoc.trigger.show icon:book[]] +
+
+`CALL apoc.trigger.show(databaseName) | it lists all installed triggers`
+¦label:procedure[]
+¦label:apoc-core[]

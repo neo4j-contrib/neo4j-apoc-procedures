@@ -39,7 +39,7 @@ include::partial$triggers/triggersConfig.adoc[]
 include::example$generated-documentation/apoc.trigger.install.adoc[]
 include::example$generated-documentation/apoc.trigger.drop.adoc[]
 include::example$generated-documentation/apoc.trigger.dropAll.adoc[]
-include::example$generated-documentation/apoc.trigger.list.adoc[]
+include::example$generated-documentation/apoc.trigger.show.adoc[]
 include::example$generated-documentation/apoc.trigger.stop.adoc[]
 include::example$generated-documentation/apoc.trigger.start.adoc[]
 |===
@@ -440,7 +440,7 @@ we can execute (also in this case, after a time defined by the configuration `ap
 
 [source,cypher]
 ----
-CALL apoc.trigger.list
+CALL apoc.trigger.show('neo4j')
 ----
 
 .Results
@@ -450,6 +450,17 @@ CALL apoc.trigger.list
 | "count-removals" | "MATCH (c:Counter)
 SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {}       | {}     | TRUE      | FALSE
 |===
+
+
+[WARNING]
+====
+Please note that, since the trigger operations are eventually consistent (based on `apoc.trigger.refresh` configuration), 
+the `apoc.trigger.show` may return some triggers not yet added/updated/removed.
+
+If you want the list of actually working triggers, 
+you can use the xref::overview/apoc.trigger/apoc.trigger.list.adoc[apoc.trigger.list] against the user database ("neo4j" in the above case)
+====
+
 
 === Export metadata
 
