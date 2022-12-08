@@ -4,6 +4,7 @@ import apoc.ApocConfig;
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.procedure.SystemProcedure;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Admin;
@@ -58,6 +59,8 @@ public class TriggerNewProcedures {
     @Context public GraphDatabaseService db;
     
     @Context public Log log;
+    
+    @Context public Transaction tx;
 
     private void checkInSystemLeader() {
         TriggerHandlerNewProcedures.checkEnabled();
@@ -159,9 +162,9 @@ public class TriggerNewProcedures {
     public Stream<TriggerInfo> show(@Name("databaseName") String databaseName) {
         checkInSystemLeader();
 
-        return TriggerHandlerNewProcedures.getTriggerNodes(databaseName)
+        return TriggerHandlerNewProcedures.getTriggerNodesList(databaseName, tx)
                 .stream()
-                .map(trigger -> TriggerInfo.from( trigger, true)
+                .map(trigger -> TriggerInfo.from(trigger, true)
                 );
     }
 }

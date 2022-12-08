@@ -123,12 +123,11 @@ public class TriggerHandlerNewProcedures {
         return previous;
     }
 
-    public static List<Map<String, Object>> getTriggerNodes(String databaseName) {
-        return withSystemDb(tx -> getTriggerNodes(databaseName, tx, null)
+    public static List<Map<String, Object>> getTriggerNodesList(String databaseName, Transaction tx) {
+        return getTriggerNodes(databaseName, tx)
                 .stream()
                 .map(TriggerHandlerNewProcedures::toTriggerInfo)
-                .collect(Collectors.toList())
-        );
+                .collect(Collectors.toList());
     }
 
     public static ResourceIterator<Node> getTriggerNodes(String databaseName, Transaction tx) {
