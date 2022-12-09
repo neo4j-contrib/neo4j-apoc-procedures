@@ -103,6 +103,7 @@ public class Trigger {
         return new TriggerInfo(name, null, null, false, false);
     }
 
+    @Admin
     @Procedure(mode = Mode.READ)
     @Description("list all installed triggers")
     public Stream<TriggerInfo> list() {

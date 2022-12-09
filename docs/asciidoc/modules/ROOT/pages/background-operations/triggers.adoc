@@ -18,6 +18,11 @@ Moreover, they accept as first parameter the name of the database towards which 
 
 Through this implementation, we can use these procedures in a cluster environment,
 by leveraging the cluster routing mechanism.
+
+Moreover, to use these procedures the user must have the `admin` role, 
+otherwise the procedure throws with an error `permission has not been granted for user 'xxx'`,
+to prevent anyone from adding a trigger that could escalate privileges. 
+For example, a user who doesn't have permissions to delete entities, may create a trigger that does.
 ====
 
 [WARNING]
