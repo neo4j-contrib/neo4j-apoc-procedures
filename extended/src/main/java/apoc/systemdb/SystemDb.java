@@ -5,6 +5,7 @@ import apoc.Description;
 import apoc.Extended;
 import apoc.export.cypher.ExportFileManager;
 import apoc.export.cypher.FileManagerFactory;
+import apoc.export.util.ExportConfig;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
 import apoc.result.RowResult;
@@ -65,7 +66,7 @@ public class SystemDb {
 
         ProgressInfo progressInfo = new ProgressInfo(fileName, null, "cypher");
         ProgressReporter progressReporter = new ProgressReporter(null, null, progressInfo);
-        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName + ".cypher", true);
+        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName + ".cypher", true, ExportConfig.EMPTY);
         withSystemDbTransaction(tx -> {
             tx.getAllNodes()
                     .stream()

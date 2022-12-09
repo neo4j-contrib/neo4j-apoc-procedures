@@ -89,7 +89,8 @@ public class LoadCsv {
         Map<String, Mapping> mappings = config.getMappings();
         for (int i = 0; i < headers.length; i++) {
             String header = headers[i];
-            if (ignore.contains(header) || mappings.getOrDefault(header, Mapping.EMPTY).ignore) {
+            Mapping empty = new Mapping("", Collections.emptyMap(), LoadCsvConfig.DEFAULT_ARRAY_SEP, false);
+            if (ignore.contains(header) || mappings.getOrDefault(header, empty).ignore) {
                 headers[i] = null;
             }
         }
