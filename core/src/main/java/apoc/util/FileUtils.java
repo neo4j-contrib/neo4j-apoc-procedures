@@ -21,7 +21,6 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -230,7 +229,7 @@ public class FileUtils {
         Path urlPath;
         URL toURL = null;
         try {
-            final URI uri = URI.create(url.trim());
+            final URI uri = URI.create(url.trim()).normalize();
             toURL = uri.toURL();
             urlPath = Paths.get(uri);
         } catch (Exception e) {
@@ -245,11 +244,8 @@ public class FileUtils {
 
     private static boolean pathStartsWithOther(Path resolvedPath, Path basePath) throws IOException {
         try {
-            return resolvedPath.toRealPath().startsWith(basePath.toRealPath());
+            return resolvedPath.toFile().getCanonicalFile().toPath().startsWith(basePath.toRealPath());
         } catch (Exception e) {
-            if (e instanceof NoSuchFileException) { // If we're about to creating a file this exception has been thrown
-                return resolvedPath.normalize().startsWith(basePath);
-            }
             return false;
         }
     }
