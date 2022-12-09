@@ -1,5 +1,6 @@
 package apoc.trigger;
 
+import apoc.util.ExtendedTestContainerUtil;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestcontainersCausalCluster;
@@ -23,7 +24,7 @@ public class TriggerClusterTest {
 
     @BeforeClass
     public static void setupCluster() {
-        cluster = TestContainerUtil.createEnterpriseCluster(
+        cluster = ExtendedTestContainerUtil.createEnterpriseCluster(
                 // TODO [Nacho] We cannot build core from here anymore. This needs rethinking
                 List.of(ApocPackage.CORE, ApocPackage.EXTENDED),
                 3,
@@ -86,7 +87,7 @@ public class TriggerClusterTest {
             assertEquals(true, ((Node)row.get("f")).hasLabel("Person"));
         });
 
-        long count = TestContainerUtil.singleResultFirstColumn(cluster.getSession(), "MATCH (f:Man) RETURN count(*) as c");
+        long count = ExtendedTestContainerUtil.singleResultFirstColumn(cluster.getSession(), "MATCH (f:Man) RETURN count(*) as c");
         assertEquals(1L, count);
     }
 
@@ -100,7 +101,7 @@ public class TriggerClusterTest {
                 "{phase:'afterAsync'})");
         cluster.getSession().run("CREATE (:TEST {name:'x', _executed:0})");
         cluster.getSession().run("CREATE (:TEST {name:'y', _executed:0})");
-        org.neo4j.test.assertion.Assert.assertEventually(() -> TestContainerUtil.<Long>singleResultFirstColumn(cluster.getSession(), "MATCH p = ()-[r:GENERATED]->() RETURN count(p) AS count"),
+        org.neo4j.test.assertion.Assert.assertEventually(() -> ExtendedTestContainerUtil.<Long>singleResultFirstColumn(cluster.getSession(), "MATCH p = ()-[r:GENERATED]->() RETURN count(p) AS count"),
                 (value) -> value == 2L, 30, TimeUnit.SECONDS);
     }
 }

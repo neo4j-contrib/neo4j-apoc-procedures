@@ -138,33 +138,33 @@ public class ElasticSearch {
     @Description("apoc.es.stats(host-url-Key) - elastic search statistics")
     public Stream<MapResult> stats(@Name("host") String hostOrKey) {
         String url = getElasticSearchUrl(hostOrKey);
-        return LoadJsonUtils.loadJsonStream(url + "/_stats", null, null);
+        return loadJsonStream(url + "/_stats", null, null);
     }
 
     @Procedure
     @Description("apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a GET operation on elastic search")
     public Stream<MapResult> get(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload) {
-        return LoadJsonUtils.loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("content-type",contentType(payload)), toPayload(payload));
+        return loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("content-type",contentType(payload)), toPayload(payload));
     }
 
     @Procedure
     @Description("apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a SEARCH operation on elastic search")
     public Stream<MapResult> query(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("query") Object query, @Name("payload") Object payload) {
-        return LoadJsonUtils.loadJsonStream(getSearchQueryUrl(hostOrKey, index, type, query), map("content-type",contentType(payload)), toPayload(payload));
+        return loadJsonStream(getSearchQueryUrl(hostOrKey, index, type, query), map("content-type",contentType(payload)), toPayload(payload));
     }
 
     @Procedure
     @Description("apoc.es.getRaw(host-or-port,path,payload-or-null) yield value - perform a raw GET operation on elastic search")
     public Stream<MapResult> getRaw(@Name("host") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload) {
         String url = getElasticSearchUrl(hostOrKey);
-        return LoadJsonUtils.loadJsonStream(url + "/" + suffix, map("content-type",contentType(payload)), toPayload(payload));
+        return loadJsonStream(url + "/" + suffix, map("content-type",contentType(payload)), toPayload(payload));
     }
 
     @Procedure
     @Description("apoc.es.postRaw(host-or-port,path,payload-or-null) yield value - perform a raw POST operation on elastic search")
     public Stream<MapResult> postRaw(@Name("host") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload) {
         String url = getElasticSearchUrl(hostOrKey);
-        return LoadJsonUtils.loadJsonStream(url + "/" + suffix, map("method", "POST","content-type",contentType(payload)), toPayload(payload));
+        return loadJsonStream(url + "/" + suffix, map("method", "POST","content-type",contentType(payload)), toPayload(payload));
     }
 
     @Procedure
@@ -174,7 +174,7 @@ public class ElasticSearch {
         {
             payload = Collections.emptyMap();
         }
-        return LoadJsonUtils.loadJsonStream(getQueryUrl(hostOrKey, index, type, null, query), map("method", "POST","content-type",contentType(payload)), toPayload(payload));
+        return loadJsonStream(getQueryUrl(hostOrKey, index, type, null, query), map("method", "POST","content-type",contentType(payload)), toPayload(payload));
     }
 
     @Procedure
@@ -184,6 +184,10 @@ public class ElasticSearch {
         {
             payload = Collections.emptyMap();
         }
-        return LoadJsonUtils.loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("method", "PUT","content-type",contentType(payload)), toPayload(payload));
+        return loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("method", "PUT","content-type",contentType(payload)), toPayload(payload));
+    }
+
+    private static Stream<MapResult> loadJsonStream(@Name("url") Object url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload) {
+        return LoadJsonUtils.loadJsonStream(url, headers, payload, "", true, null, null);
     }
 }

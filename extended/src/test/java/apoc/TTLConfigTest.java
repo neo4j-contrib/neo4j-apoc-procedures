@@ -44,8 +44,10 @@ public class TTLConfigTest
     @Test
     public void ttlEnabledForOurDatabaseOverridesGlobalSettings() {
         ApocConfig apocConfig = mock(ApocConfig.class);
+        ExtendedApocConfig extendedApocConfig = mock(ExtendedApocConfig.class);
+
         when(apocConfig.getBoolean(ExtendedApocConfig.APOC_TTL_ENABLED)).thenReturn(false);
-        when(apocConfig.getBoolean("apoc.ttl.enabled.foo", false)).thenReturn(true);
+        when(extendedApocConfig.getBoolean("apoc.ttl.enabled.foo", false)).thenReturn(true);
 
         when(apocConfig.getInt(ExtendedApocConfig.APOC_TTL_SCHEDULE, DEFAULT_SCHEDULE)).thenReturn(300);
         when(apocConfig.getInt("apoc.ttl.schedule.foo", 300)).thenReturn(500);
