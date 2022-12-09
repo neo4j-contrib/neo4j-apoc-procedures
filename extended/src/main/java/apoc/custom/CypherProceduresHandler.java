@@ -1,7 +1,8 @@
 package apoc.custom;
 
 import apoc.ApocConfig;
-import apoc.SystemLabels;
+import apoc.ExtendedSystemLabels;
+import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
@@ -140,10 +141,10 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public Stream<ProcedureOrFunctionDescriptor> readSignatures() {
         List<ProcedureOrFunctionDescriptor> descriptors;
         try (Transaction tx = systemDb.beginTx()) {
-             descriptors = tx.findNodes(SystemLabels.ApocCypherProcedures, SystemPropertyKeys.database.name(), api.databaseName()).stream().map(node -> {
-                if (node.hasLabel(SystemLabels.Procedure)) {
+             descriptors = tx.findNodes( ExtendedSystemLabels.ApocCypherProcedures, SystemPropertyKeys.database.name(), api.databaseName()).stream().map(node -> {
+                if (node.hasLabel(ExtendedSystemLabels.Procedure)) {
                     return procedureDescriptor(node);
-                } else if (node.hasLabel(SystemLabels.Function)) {
+                } else if (node.hasLabel(ExtendedSystemLabels.Function)) {
                     return userFunctionDescriptor(node);
                 } else {
                     throw new IllegalStateException("don't know what to do with systemdb node " + node);
@@ -158,18 +159,18 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
 
         String name = (String) node.getProperty(SystemPropertyKeys.name.name());
-        String description = (String) node.getProperty(SystemPropertyKeys.description.name(), null);
-        String[] prefix = (String[]) node.getProperty(SystemPropertyKeys.prefix.name(), new String[]{PREFIX});
+        String description = (String) node.getProperty( ExtendedSystemPropertyKeys.description.name(), null);
+        String[] prefix = (String[]) node.getProperty(ExtendedSystemPropertyKeys.prefix.name(), new String[]{PREFIX});
 
-        String property = (String) node.getProperty(SystemPropertyKeys.inputs.name());
+        String property = (String) node.getProperty(ExtendedSystemPropertyKeys.inputs.name());
         List<FieldSignature> inputs = deserializeSignatures(property);
 
-        List<FieldSignature> outputSignature = deserializeSignatures((String) node.getProperty(SystemPropertyKeys.outputs.name()));
+        List<FieldSignature> outputSignature = deserializeSignatures((String) node.getProperty(ExtendedSystemPropertyKeys.outputs.name()));
         return new ProcedureDescriptor(Signatures.createProcedureSignature(
                 new QualifiedName(prefix, name),
                 inputs,
                 outputSignature,
-                Mode.valueOf((String) node.getProperty(SystemPropertyKeys.mode.name())),
+                Mode.valueOf((String) node.getProperty(ExtendedSystemPropertyKeys.mode.name())),
                 false,
                 null,
                 new String[0],
@@ -186,17 +187,17 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
 
         String name = (String) node.getProperty(SystemPropertyKeys.name.name());
-        String description = (String) node.getProperty(SystemPropertyKeys.description.name(), null);
-        String[] prefix = (String[]) node.getProperty(SystemPropertyKeys.prefix.name(), new String[]{PREFIX});
+        String description = (String) node.getProperty(ExtendedSystemPropertyKeys.description.name(), null);
+        String[] prefix = (String[]) node.getProperty(ExtendedSystemPropertyKeys.prefix.name(), new String[]{PREFIX});
 
-        String property = (String) node.getProperty(SystemPropertyKeys.inputs.name());
+        String property = (String) node.getProperty(ExtendedSystemPropertyKeys.inputs.name());
         List<FieldSignature> inputs = deserializeSignatures(property);
 
-        boolean forceSingle = (boolean) node.getProperty(SystemPropertyKeys.forceSingle.name(), false);
+        boolean forceSingle = (boolean) node.getProperty(ExtendedSystemPropertyKeys.forceSingle.name(), false);
         return new UserFunctionDescriptor(new UserFunctionSignature(
                 new QualifiedName(prefix, name),
                 inputs,
-                typeof((String) node.getProperty(SystemPropertyKeys.output.name())),
+                typeof((String) node.getProperty(ExtendedSystemPropertyKeys.output.name())),
                 null,
                 description,
                 "apoc.custom",
@@ -240,16 +241,16 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public void storeFunction(UserFunctionSignature signature, String statement, boolean forceSingle) {
         withSystemDb(tx -> {
-            Node node = Util.mergeNode(tx, SystemLabels.ApocCypherProcedures, SystemLabels.Function,
+            Node node = Util.mergeNode(tx, ExtendedSystemLabels.ApocCypherProcedures, ExtendedSystemLabels.Function,
                     Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
                     Pair.of(SystemPropertyKeys.name.name(), signature.name().name()),
-                    Pair.of(SystemPropertyKeys.prefix.name(), signature.name().namespace())
+                    Pair.of(ExtendedSystemPropertyKeys.prefix.name(), signature.name().namespace())
             );
-            node.setProperty(SystemPropertyKeys.description.name(), signature.description().orElse(null));
+            node.setProperty(ExtendedSystemPropertyKeys.description.name(), signature.description().orElse(null));
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
-            node.setProperty(SystemPropertyKeys.inputs.name(), serializeSignatures(signature.inputSignature()));
-            node.setProperty(SystemPropertyKeys.output.name(), signature.outputType().toString());
-            node.setProperty(SystemPropertyKeys.forceSingle.name(), forceSingle);
+            node.setProperty(ExtendedSystemPropertyKeys.inputs.name(), serializeSignatures(signature.inputSignature()));
+            node.setProperty(ExtendedSystemPropertyKeys.output.name(), signature.outputType().toString());
+            node.setProperty(ExtendedSystemPropertyKeys.forceSingle.name(), forceSingle);
 
             setLastUpdate(tx);
             registerFunction(signature, statement, forceSingle);
@@ -259,16 +260,16 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public void storeProcedure(ProcedureSignature signature, String statement) {
         withSystemDb(tx -> {
-            Node node = Util.mergeNode(tx, SystemLabels.ApocCypherProcedures, SystemLabels.Procedure,
+            Node node = Util.mergeNode(tx, ExtendedSystemLabels.ApocCypherProcedures, ExtendedSystemLabels.Procedure,
                     Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
                     Pair.of(SystemPropertyKeys.name.name(), signature.name().name()),
-                    Pair.of(SystemPropertyKeys.prefix.name(), signature.name().namespace())
+                    Pair.of(ExtendedSystemPropertyKeys.prefix.name(), signature.name().namespace())
             );
-            node.setProperty(SystemPropertyKeys.description.name(), signature.description().orElse(null));
+            node.setProperty(ExtendedSystemPropertyKeys.description.name(), signature.description().orElse(null));
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
-            node.setProperty(SystemPropertyKeys.inputs.name(), serializeSignatures(signature.inputSignature()));
-            node.setProperty(SystemPropertyKeys.outputs.name(), serializeSignatures(signature.outputSignature()));
-            node.setProperty(SystemPropertyKeys.mode.name(), signature.mode().name());
+            node.setProperty(ExtendedSystemPropertyKeys.inputs.name(), serializeSignatures(signature.inputSignature()));
+            node.setProperty(ExtendedSystemPropertyKeys.outputs.name(), serializeSignatures(signature.outputSignature()));
+            node.setProperty(ExtendedSystemPropertyKeys.mode.name(), signature.mode().name());
             setLastUpdate(tx);
             registerProcedure(signature, statement);
             return null;
@@ -305,9 +306,9 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     }
 
     private void setLastUpdate(Transaction tx) {
-        Node node = tx.findNode(SystemLabels.ApocCypherProceduresMeta, SystemPropertyKeys.database.name(), api.databaseName());
+        Node node = tx.findNode(ExtendedSystemLabels.ApocCypherProceduresMeta, SystemPropertyKeys.database.name(), api.databaseName());
         if (node == null) {
-            node = tx.createNode(SystemLabels.ApocCypherProceduresMeta);
+            node = tx.createNode(ExtendedSystemLabels.ApocCypherProceduresMeta);
             node.setProperty(SystemPropertyKeys.database.name(), api.databaseName());
         }
         node.setProperty(SystemPropertyKeys.lastUpdated.name(), System.currentTimeMillis());
@@ -315,7 +316,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     private long getLastUpdate() {
         return withSystemDb( tx -> {
-            Node node = tx.findNode(SystemLabels.ApocCypherProceduresMeta, SystemPropertyKeys.database.name(), api.databaseName());
+            Node node = tx.findNode(ExtendedSystemLabels.ApocCypherProceduresMeta, SystemPropertyKeys.database.name(), api.databaseName());
             return node == null ? 0L : (long) node.getProperty(SystemPropertyKeys.lastUpdated.name());
         });
     }
@@ -600,11 +601,11 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public void removeProcedure(String name) {
         withSystemDb(tx -> {
             QualifiedName qName = qualifiedName(name);
-            tx.findNodes(SystemLabels.ApocCypherProcedures,
+            tx.findNodes(ExtendedSystemLabels.ApocCypherProcedures,
                     SystemPropertyKeys.database.name(), api.databaseName(),
                     SystemPropertyKeys.name.name(), qName.name(),
-                    SystemPropertyKeys.prefix.name(), qName.namespace()
-            ).stream().filter(n -> n.hasLabel(SystemLabels.Procedure)).forEach(node -> {
+                    ExtendedSystemPropertyKeys.prefix.name(), qName.namespace()
+            ).stream().filter(n -> n.hasLabel(ExtendedSystemLabels.Procedure)).forEach(node -> {
                 ProcedureDescriptor descriptor = procedureDescriptor(node);
                 registerProcedure(descriptor.getSignature(), null);
                 node.delete();
@@ -617,11 +618,11 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public void removeFunction(String name) {
         withSystemDb(tx -> {
             QualifiedName qName = qualifiedName(name);
-            tx.findNodes(SystemLabels.ApocCypherProcedures,
+            tx.findNodes(ExtendedSystemLabels.ApocCypherProcedures,
                     SystemPropertyKeys.database.name(), api.databaseName(),
                     SystemPropertyKeys.name.name(), qName.name(),
-                    SystemPropertyKeys.prefix.name(), qName.namespace()
-            ).stream().filter(n -> n.hasLabel(SystemLabels.Function)).forEach(node -> {
+                    ExtendedSystemPropertyKeys.prefix.name(), qName.namespace()
+            ).stream().filter(n -> n.hasLabel(ExtendedSystemLabels.Function)).forEach(node -> {
                 UserFunctionDescriptor descriptor = userFunctionDescriptor(node);
                 registerFunction(descriptor.getSignature(), null, false);
                 node.delete();
