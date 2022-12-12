@@ -105,7 +105,7 @@ public class Trigger {
 
     @Admin
     @Procedure(mode = Mode.READ)
-    @Description("list all installed triggers")
+    @Description("CALL apoc.trigger.list() | list all currently working triggers for all databases for the session database")
     public Stream<TriggerInfo> list() {
         return triggerHandler.list().entrySet().stream()
                 .map( (e) -> new TriggerInfo(e.getKey(),

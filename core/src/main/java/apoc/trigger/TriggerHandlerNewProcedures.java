@@ -12,18 +12,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 
-public class TriggerHandlerWrite {
+public class TriggerHandlerNewProcedures {
     public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
             " Set 'apoc.trigger.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
 
-    public static Map<String, Object> toTriggerInfo(Node node) {
+    private static Map<String, Object> toTriggerInfo(Node node) {
         return node.getAllProperties()
                 .entrySet().stream()
-                .filter(e -> !List.of(SystemPropertyKeys.name.name(), SystemPropertyKeys.database.name()).contains(e.getKey()))
+                .filter(e -> !SystemPropertyKeys.database.name().equals(e.getKey()))
                 .collect(HashMap::new, // workaround for https://bugs.openjdk.java.net/browse/JDK-8148463
                         (mapAccumulator, e) -> {
                             Object value = List.of(SystemPropertyKeys.selector.name(), SystemPropertyKeys.params.name()).contains(e.getKey()) 
@@ -53,7 +54,7 @@ public class TriggerHandlerWrite {
                     Pair.of(SystemPropertyKeys.name.name(), triggerName));
             
             // we'll return previous trigger info
-            previous.putAll(TriggerHandlerWrite.toTriggerInfo(node));
+            previous.putAll(toTriggerInfo(node));
             
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
             node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
@@ -73,7 +74,7 @@ public class TriggerHandlerWrite {
         withSystemDb(tx -> {
             getTriggerNodes(databaseName, tx, triggerName)
                     .forEachRemaining(node -> {
-                                previous.putAll(TriggerHandlerWrite.toTriggerInfo(node));
+                                previous.putAll(toTriggerInfo(node));
                                 node.delete();
                             });
             
@@ -93,7 +94,7 @@ public class TriggerHandlerWrite {
                         node.setProperty( SystemPropertyKeys.paused.name(), paused );
 
                         // we'll return previous trigger info
-                        result.putAll(TriggerHandlerWrite.toTriggerInfo(node));
+                        result.putAll(toTriggerInfo(node));
                     });
 
             setLastUpdate(databaseName, tx);
@@ -112,7 +113,7 @@ public class TriggerHandlerWrite {
                         String triggerName = (String) node.getProperty(SystemPropertyKeys.name.name());
 
                         // we'll return previous trigger info
-                        previous.put(triggerName, TriggerHandlerWrite.toTriggerInfo(node));
+                        previous.put(triggerName, toTriggerInfo(node));
                         node.delete();
                     });
             setLastUpdate(databaseName, tx);
@@ -120,6 +121,13 @@ public class TriggerHandlerWrite {
         });
 
         return previous;
+    }
+
+    public static List<Map<String, Object>> getTriggerNodesList(String databaseName, Transaction tx) {
+        return getTriggerNodes(databaseName, tx)
+                .stream()
+                .map(TriggerHandlerNewProcedures::toTriggerInfo)
+                .collect(Collectors.toList());
     }
 
     public static ResourceIterator<Node> getTriggerNodes(String databaseName, Transaction tx) {

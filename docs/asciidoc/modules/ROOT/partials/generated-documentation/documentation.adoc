@@ -3387,7 +3387,7 @@ CALL apoc.trigger.install(databaseName, name, statement, selector, config) \| ev
 |label:apoc-core[]
 |xref::overview/apoc.trigger/apoc.trigger.list.adoc[apoc.trigger.list icon:book[]]
 
-list all installed triggers
+CALL apoc.trigger.list() | list all currently working triggers for all databases for the session database
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.trigger/apoc.trigger.pause.adoc[apoc.trigger.pause icon:book[]]
@@ -3408,6 +3408,11 @@ removes all previously added trigger, returns trigger information
 |xref::overview/apoc.trigger/apoc.trigger.resume.adoc[apoc.trigger.resume icon:book[]]
 
 CALL apoc.trigger.resume(name) \| it resumes the paused trigger
+|label:procedure[]
+|label:apoc-core[]
+|xref::overview/apoc.trigger/apoc.trigger.show.adoc[apoc.trigger.show icon:book[]]
+
+CALL apoc.trigger.show(databaseName) \| it lists all eventually installed triggers for a database
 |label:procedure[]
 |label:apoc-core[]
 |xref::overview/apoc.trigger/apoc.trigger.start.adoc[apoc.trigger.start icon:book[]]

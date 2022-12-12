@@ -8,6 +8,7 @@
 ¦apoc.trigger.remove(name :: STRING?) :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)
 ¦apoc.trigger.removeAll() :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)
 ¦apoc.trigger.resume(name :: STRING?) :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)
+¦apoc.trigger.show(databaseName :: STRING?) :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)
 ¦apoc.trigger.start(databaseName :: STRING?, name :: STRING?) :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)
 ¦apoc.trigger.stop(databaseName :: STRING?, name :: STRING?) :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)
 ¦apoc.trigger.nodesByLabel(labelEntries :: ANY?, label :: STRING?) :: (LIST? OF ANY?)
