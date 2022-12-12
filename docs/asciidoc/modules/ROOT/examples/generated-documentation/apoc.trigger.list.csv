@@ -1,2 +1,2 @@
 ¦type¦qualified name¦signature¦description
-¦procedure¦apoc.trigger.list¦apoc.trigger.list() :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)¦list all installed triggers
+¦procedure¦apoc.trigger.list¦apoc.trigger.list() :: (name :: STRING?, query :: STRING?, selector :: MAP?, params :: MAP?, installed :: BOOLEAN?, paused :: BOOLEAN?)¦CALL apoc.trigger.list() | list all currently working triggers for all databases for the session database

@@ -33,7 +33,7 @@ CALL apoc.trigger.pause(name) \| it pauses the trigger
 
 |xref::overview/apoc.trigger/apoc.trigger.show.adoc[apoc.trigger.show icon:book[]]
 
-CALL apoc.trigger.show(databaseName) \| it lists all installed triggers
+CALL apoc.trigger.show(databaseName) \| it lists all eventually installed triggers for a database
 |label:procedure[]
 |label:apoc-core[]
 |===
@@ -50,7 +50,7 @@ add a trigger kernelTransaction under a name, in the kernelTransaction you can u
 |label:apoc-core[]
 |xref::overview/apoc.trigger/apoc.trigger.list.adoc[apoc.trigger.list icon:book[]]
 
-list all installed triggers
+CALL apoc.trigger.list() | list all currently working triggers for all databases for the session database
 |label:procedure[]
 |label:apoc-core[]
 

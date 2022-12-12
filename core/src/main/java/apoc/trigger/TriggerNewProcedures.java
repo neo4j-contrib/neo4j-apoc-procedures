@@ -159,7 +159,7 @@ public class TriggerNewProcedures {
     @SystemProcedure
     @Admin
     @Procedure(mode = Mode.READ)
-    @Description("CALL apoc.trigger.show(databaseName) | it lists all installed triggers")
+    @Description("CALL apoc.trigger.show(databaseName) | it lists all eventually installed triggers for a database")
     public Stream<TriggerInfo> show(@Name("databaseName") String databaseName) {
         checkInSystemLeader();
 
