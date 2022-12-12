@@ -157,6 +157,7 @@ public class TriggerNewProcedures {
 
     // TODO - change with @SystemOnlyProcedure
     @SystemProcedure
+    @Admin
     @Procedure(mode = Mode.READ)
     @Description("CALL apoc.trigger.show(databaseName) | it lists all installed triggers")
     public Stream<TriggerInfo> show(@Name("databaseName") String databaseName) {
