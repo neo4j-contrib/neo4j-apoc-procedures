@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -243,6 +244,9 @@ public class FileUtils {
         try {
             return resolvedPath.toFile().getCanonicalFile().toPath().startsWith(basePath.toRealPath());
         } catch (Exception e) {
+            if (e instanceof NoSuchFileException) { // If we're about to create a file this exception has been thrown
+                return resolvedPath.toFile().getCanonicalFile().toPath().startsWith(basePath);
+            }
             return false;
         }
     }
