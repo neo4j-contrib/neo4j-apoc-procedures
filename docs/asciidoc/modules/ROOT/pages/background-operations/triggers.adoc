@@ -18,6 +18,9 @@ Moreover, they accept as first parameter the name of the database towards which 
 
 Through this implementation, we can use these procedures in a cluster environment,
 by leveraging the cluster routing mechanism.
+
+These procedures are only executable by a user with admin permissions.
+If this is not the case, the procedure throws an exception with the message `permission has not been granted for user 'xxx'`.
 ====
 
 [WARNING]

@@ -4,6 +4,7 @@ import apoc.util.Util;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
+import org.neo4j.procedure.Admin;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Mode;
@@ -43,6 +44,7 @@ public class Trigger {
         }
     }
 
+    @Admin
     @Deprecated
     @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.trigger.install")
     @Description("add a trigger kernelTransaction under a name, in the kernelTransaction you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback/afterAsync'} returns previous and new trigger information. Takes in an optional configuration.")
@@ -60,6 +62,7 @@ public class Trigger {
         return Stream.of(new TriggerInfo(name,statement,selector, params,true, false));
     }
 
+    @Admin
     @Deprecated
     @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.trigger.drop")
     @Description("remove previously added trigger, returns trigger information")
@@ -73,6 +76,7 @@ public class Trigger {
         return Stream.of(new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"), (Map<String, Object>) removed.get("params"),false, false));
     }
 
+    @Admin
     @Deprecated
     @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.trigger.dropAll")
     @Description("removes all previously added trigger, returns trigger information")
@@ -99,6 +103,7 @@ public class Trigger {
         return new TriggerInfo(name, null, null, false, false);
     }
 
+    @Admin
     @Procedure(mode = Mode.READ)
     @Description("list all installed triggers")
     public Stream<TriggerInfo> list() {
@@ -112,6 +117,7 @@ public class Trigger {
                 );
     }
 
+    @Admin
     @Deprecated
     @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.trigger.stop")
     @Description("CALL apoc.trigger.pause(name) | it pauses the trigger")
@@ -126,6 +132,7 @@ public class Trigger {
                 (Map<String,Object>) paused.get("params"),true, true));
     }
 
+    @Admin
     @Deprecated
     @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.trigger.start")
     @Description("CALL apoc.trigger.resume(name) | it resumes the paused trigger")
