@@ -7,6 +7,11 @@ import apoc.result.VirtualGraph;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.util.MapUtil;
+import com.google.common.primitives.Booleans;
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Chars;
+import com.google.common.primitives.Floats;
+import com.google.common.primitives.Shorts;
 import org.apache.commons.collections4.CollectionUtils;
 import org.neo4j.cypher.export.CypherResultSubGraph;
 import org.neo4j.cypher.export.DatabaseSubGraph;
@@ -124,6 +129,27 @@ public class Meta {
                 type.typeOfList = inferType((List<?>) value);
             }
             return type;
+        }
+
+        public static Object[] toObjectArray(Object value) {
+            if (value instanceof int[]) {
+                return  Arrays.stream((int[]) value).boxed().toArray();
+            } else if (value instanceof long[]) {
+                return  Arrays.stream((long[]) value).boxed().toArray();
+            } else if (value instanceof double[]) {
+                return  Arrays.stream((double[]) value).boxed().toArray();
+            } else if (value instanceof boolean[]) {
+                return Booleans.asList((boolean[]) value).toArray();
+            } else if (value instanceof float[]) {
+                return Floats.asList((float[]) value).toArray();
+            } else if (value instanceof byte[]) {
+                return Bytes.asList((byte[]) value).toArray();
+            } else if (value instanceof char[]) {
+                return Chars.asList((char[]) value).toArray();
+            } else if (value instanceof short[]) {
+                return Shorts.asList((short[]) value).toArray();
+            }
+            return value.getClass().isArray() ? (Object[]) value : ((List<Object>) value).toArray();
         }
 
         public static Types of(Class<?> type) {
