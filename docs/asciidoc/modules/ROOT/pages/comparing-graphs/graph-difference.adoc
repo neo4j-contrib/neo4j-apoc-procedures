@@ -1,0 +1,166 @@
+== `apoc.diff.graphs` procedure
+
+The procedure accepts 2 string argument, the `source` and the `dest`, representing 2 queries to compare,
+and an optional `config` map as a 3rd parameter.
+
+The procedure compares the `source` and `dest` two graphs and returns the differences in terms of:
+
+* same node count
+* same count per label
+* same relationship counter
+* same count per rel-type
+
+For each node in the `source` graph with a certain label, find the same node (in the `dest` graph) by keys or internal id in the other graph and if found:
+* compare all labels
+* compare all properties
+
+Please note that the node finding leverage the existing constraint to find an equivalent node. To find a node using the internal id you can use `findById:true` config (see below).
+
+For each relationship in the `source` graph we'll get the two nodes of the relationship and look into the `dest`
+graph if there is a relationship with the same properties and the same start/end node.
+
+
+The procedure support the following `config` parameters:
+
+.config parameters
+[opts=header]
+|===
+| name | type | default | description
+| findById | boolean | false | to find a node by id, instead of using existing constraint
+| relsInBetween | boolean | false | if enabled consider other terminal nodes, in case of query returning relationships and start or end nodes.
+| boltConfig | Map | {} | to provide additional configs to the `apoc.bolt.load` in case of `type:URL` (see `target parameter` table below)
+| source | Map | {} | see below
+| dest | Map | {} | see below
+|===
+
+The `source` and `dest` maps are applied to respectively to the 1st and the 2nd procedure arguments, they can have the following keys:
+
+.source/dest parameters
+[opts=header]
+|===
+| name | type | default | description
+| target | Map | {} | see below
+| params | Map | {} | to pass additional query params
+|===
+
+The `target` param accepts:
+
+.target parameters
+[opts=header]
+|===
+| name | type | default | description
+| type | Enum[URL, DATABASE] | `URL` | to search the `target` query using an external bolt url, leveraging the `apoc.bolt.load` procedure (with `URL`), or another database in the same instance (with `DATABASE`)
+| value | String | {} | in case of config `type: "URL"`, we can pass the bolt url, in case of `type: "DATABASE"` we can pass the target database name
+|===
+
+
+=== Usage examples
+
+Given this dataset in a `neo4j`:
+[source,cypher]
+----
+CREATE CONSTRAINT IF NOT EXISTS FOR (p:Person) REQUIRE p.name IS UNIQUE;
+CREATE (m:Person {name: 'Michael Jordan', age: 54});
+CREATE (q:Person {name: 'Tom Burton', age: 23})
+CREATE (p:Person {name: 'John William', age: 22})
+CREATE (q)-[:KNOWS{since:2016, time:time('125035.556+0100')}]->(p);
+----
+
+
+We can compare 2 set in the same database:
+
+[source,cypher]
+----
+CALL apoc.diff.graphs("MATCH (start:Person) WHERE start.age < $age RETURN start", "MATCH (start:Person) WHERE start.age > $age RETURN start", {source: {params: {age: 25}}, dest: {params: {age: 25}}})
+----
+
+.Results
+[opts="header"]
+|===
+| difference | 	entityType | 	id | 	sourceLabel | 	destLabel | 	source	 | dest
+| "Total count" | 	"Node" | 	null | 	null | 	null | 	2 | 	1 |
+| "Count by Label" | 	"Node" | 	null | 	null | 	null |{"Person": 2 } | {"Person": 1 }
+| "Destination Entity not found" | 	"Node" | 	1 |	"Person" | null | {"name": "Tom Burton" } | null
+| "Destination Entity not found" | 	"Node" | 	2 |	"Person" | null{"name": "John William" } | null
+|===
+
+
+
+If we create another dataset in a new `secondDb` database:
+[source,cypher]
+----
+CREATE CONSTRAINT IF NOT EXISTS FOR (p:Person) REQUIRE p.name IS UNIQUE;
+CREATE (m:Person:Other {name: 'Michael Jordan', age: 54}), 
+    (n:Person {name: 'Tom Burton', age: 47}),
+    (q:Person:Other {name: 'Jerry Burton', age: 23}), 
+    (p:Person {name: 'Jack William', age: 22}), 
+  (q)-[:KNOWS{since:1999, time:time('125035.556+0100')}]->(p);
+----
+
+We can execute, in the `neo4j` database:
+[source,cypher]
+----
+CALL apoc.diff.graphs("MATCH p = (start:Person)-[rel:KNOWS]->(end) RETURN start, rel, end", 
+  "MATCH p = (start)-[rel:KNOWS]->(end) RETURN start, rel, end", 
+  {dest: {target: {type: "DATABASE", value: "secondDb"}}})
+----
+
+.Results
+[opts="header"]
+|===
+| difference | 	entityType | 	id | 	sourceLabel | 	destLabel | 	source	 | dest
+| "Destination Entity not found" | "Node" | 1 | "Person" | null	 | {"name": "Tom Burton" } | null
+| "Destination Entity not found" | "Node" | 2 | "Person" | null	 |{"name": "John William"}| null
+| "Destination Entity not found" | 	"Relationship"	| 0	| "KNOWS" | 	null	 | {"start":{"name":"Tom Burton"},"end":{"name":"John William"},"properties":{"time":"12:50:35.556000000+01:00","since":2016}} | null
+|===
+
+
+Vice versa, we can compare 2 dataset starting from the `secondDb` database:
+
+[source,cypher]
+----
+CALL apoc.diff.graphs("MATCH (node:Person) RETURN node", 
+  "MATCH (node:Person) RETURN node", 
+  {dest: {target: {type: "DATABASE", value: "neo4j"}}})
+----
+
+.Results
+[opts="header"]
+|===
+| difference | 	entityType | 	id | 	sourceLabel | 	destLabel | 	source	 | dest
+| "Total count" | "Node" |	null |	null |	null |	6 |	3 |
+| "Count by Label" |	"Node" |	null |	null |	null |{"Person": 4, "Other": 2 }  | {"Person": 3 }
+| "Different Labels" |	"Node" |	0 |	"Person" |	"Person" |	["Other", "Person"] |	["Person"]
+| "Different Properties" |	"Node" |	1 |	"Person" |	"Person" |{"age": 47 } | {"age": 23 }
+| "Destination Entity not found" |	"Node" |	2 |	"Person" |	null | {"name": "Jerry Burton" }  | null
+| "Destination Entity not found" |	"Node" |	7 |	"Person" |	null | {"name": "Jack William" }  |null
+|===
+
+
+
+If we create another dbms instance with the same dataset as `seconddb` we can compare the 2 graph leveraging the `apoc.bolt.load`:
+
+[source,cypher]
+----
+CALL apoc.diff.graphs("MATCH p = (start:Person)-[rel:KNOWS]->(end) RETURN start, rel, end", "MATCH p = (start)-[rel:KNOWS]->(end) RETURN start, rel, end", {dest: {target: {type: "URL", value: "<MY_BOLT_URL>"}}})
+----
+
+.Results
+[opts="header"]
+|===
+| difference | 	entityType | 	id | 	sourceLabel | 	destLabel | 	source	 | dest
+| "Destination Entity not found" | "Node" | 1 | "Person" | null	 | {"name": "Tom Burton" } | null
+| "Destination Entity not found" | "Node" | 2 | "Person" | null	 |{"name": "John William"}| null
+| "Destination Entity not found" | 	"Relationship"	| 0	| "KNOWS" | 	null	 | {"start":{"name":"Tom Burton"},"end":{"name":"John William"},"properties":{"time":"12:50:35.556000000+01:00","since":2016}} | null
+|===
+
+
+If we want to point to a `secondDestDb` database present in a remote `target` instance, we can pass the `boltConfig` parameter to pass additional parameter to `apoc.bolt.load(url, query, params, <boltConfig>)`.
+In this case we can pass the `databaseName`, that is:
+
+[source,cypher]
+----
+CALL apoc.diff.graphs("MATCH p = (start:Person)-[rel:KNOWS]->(end) RETURN start, rel, end", "MATCH p = (start)-[rel:KNOWS]->(end) RETURN start, rel, end", {boltConfig: {databaseName: "secondDestDb"}, dest: {target: {type: "URL", value: "bolt://neo4j:apoc@localhost:7687"}}})
+----
+
+with the same result as above, if the dataset is the same.

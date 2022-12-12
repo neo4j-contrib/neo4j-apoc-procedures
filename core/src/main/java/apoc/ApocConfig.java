@@ -15,6 +15,7 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.config.Setting;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static apoc.util.FileUtils.isFile;
@@ -250,10 +252,22 @@ public class ApocConfig extends LifecycleAdapter {
         this.rateLimiter = rateLimiter;
     }
 
+    public <T> T withDb(String dbName, Function<Transaction, T> action) {
+        try (Transaction tx = getDb(dbName).beginTx()) {
+            T result = action.apply(tx);
+            tx.commit();
+            return result;
+        }
+    }
+    
+    public GraphDatabaseService getDb(String dbName) {
+        return databaseManagementService.database(dbName);
+    }
+    
     public GraphDatabaseService getSystemDb() {
         if (systemDb == null) {
             try {
-                systemDb = databaseManagementService.database(SYSTEM_DATABASE_NAME);
+                systemDb = getDb(SYSTEM_DATABASE_NAME);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

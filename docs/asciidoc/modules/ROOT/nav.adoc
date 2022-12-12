@@ -103,6 +103,7 @@ include::partial$generated-documentation/nav.adoc[]
 
 * xref:comparing-graphs/index.adoc[]
     ** xref::comparing-graphs/node-difference.adoc[]
+    ** xref::comparing-graphs/graph-difference.adoc[]
     ** xref::comparing-graphs/fingerprinting.adoc[]
 
 * xref:cypher-execution/index.adoc[]

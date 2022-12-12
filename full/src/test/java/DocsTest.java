@@ -129,6 +129,7 @@ public class DocsTest {
         docs.put("apoc.create.v.*|apoc.create.virtual.*", "virtual/virtual-nodes-rels.adoc");
         docs.put("apoc.math.*|apoc.number.romanToArabic|apoc.number.arabicToRoman", "mathematical/math-functions.adoc");
         docs.put("apoc.nodes.*|apoc.node.*|apoc.any.properties|apoc.any.property|apoc.label.exists", "graph-querying/node-querying.adoc");
+        docs.put("apoc.diff.graphs", "comparing-graphs/graph-difference.adoc");
         docs.put("apoc.path.*", "graph-querying/path-querying.adoc");
         docs.put("apoc.util.md5|apoc.util.sha1", "misc/text-functions.adoc#text-functions-hashing");
         docs.put("apoc.mongo.*", "database-integration/mongo.adoc");
