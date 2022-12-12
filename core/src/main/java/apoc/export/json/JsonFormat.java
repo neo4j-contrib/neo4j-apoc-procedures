@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -248,7 +247,7 @@ public class JsonFormat implements Format {
                 } else {
                     jsonGenerator.writeStartArray();
                 }
-                Object[] list = value.getClass().isArray() ? (Object[]) value : ((List<Object>) value).toArray();
+                Object[] list = Meta.Types.toObjectArray(value);
                 for (Object elem : list) {
                     write(reporter, jsonGenerator, config, keyName, elem, false);
                 }
