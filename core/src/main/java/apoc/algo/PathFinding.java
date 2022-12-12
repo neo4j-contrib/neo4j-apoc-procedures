@@ -44,8 +44,8 @@ public class PathFinding {
                     cachedGoalCoordinates[0], cachedGoalCoordinates[1] );
         }
         
-        private static double distance( double latitude1, double longitude1,
-                                        double latitude2, double longitude2 ) {
+        private static double distance( double longitude1, double latitude1,
+                                        double longitude2, double latitude2 ) {
             latitude1 = Math.toRadians( latitude1 );
             longitude1 = Math.toRadians( longitude1 );
             latitude2 = Math.toRadians( latitude2 );
