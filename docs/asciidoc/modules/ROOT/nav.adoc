@@ -53,6 +53,8 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::graph-updates/ttl.adoc[]
     ** xref::graph-updates/graph-generators.adoc[]
 
+* xref:comparing-graphs/index.adoc[]
+    ** xref::comparing-graphs/graph-difference.adoc[]
 
 * xref:cypher-execution/index.adoc[]
     ** xref::cypher-execution/running-cypher.adoc[]
