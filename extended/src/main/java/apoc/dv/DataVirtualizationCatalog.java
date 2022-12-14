@@ -6,12 +6,9 @@ import apoc.result.NodeResult;
 import apoc.result.PathResult;
 import apoc.result.VirtualPath;
 import apoc.result.VirtualRelationship;
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
@@ -90,29 +87,7 @@ public class DataVirtualizationCatalog {
                 .stream()
                 .map(m -> (Node) m.get(("node")))
                 .map(n -> new VirtualRelationship(node, n, relationshipType))
-                .map(r -> new VirtualPathBuilder(r.getStartNode()).push(r).build())
+                .map(r -> new VirtualPath.Builder(r.getStartNode()).push(r).build())
                 .map(PathResult::new);
     }
-
-    private static final class VirtualPathBuilder {
-        private final Node start;
-        private final List<Relationship> relationships = new ArrayList<>();
-
-        public VirtualPathBuilder(Node start) {
-            this.start = start;
-        }
-
-        public VirtualPathBuilder push(Relationship relationship) {
-            this.relationships.add(relationship);
-            return this;
-        }
-
-        public VirtualPath build() {
-            VirtualPath virtualPath = new VirtualPath(start);
-            relationships.forEach(virtualPath::addRel);
-            return virtualPath;
-        }
-
-    }
-
 }

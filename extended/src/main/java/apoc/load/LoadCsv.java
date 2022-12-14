@@ -80,6 +80,8 @@ public class LoadCsv {
                 .onClose(() -> closeReaderSafely(reader));
     }
 
+    private static final Mapping EMPTY = new Mapping("", Collections.emptyMap(), LoadCsvConfig.DEFAULT_ARRAY_SEP, false);
+
     private String[] getHeader(CSVReader csv, LoadCsvConfig config) throws IOException, CsvValidationException {
         if (!config.isHasHeader()) return null;
         String[] headers = csv.readNext();
@@ -89,8 +91,7 @@ public class LoadCsv {
         Map<String, Mapping> mappings = config.getMappings();
         for (int i = 0; i < headers.length; i++) {
             String header = headers[i];
-            Mapping empty = new Mapping("", Collections.emptyMap(), LoadCsvConfig.DEFAULT_ARRAY_SEP, false);
-            if (ignore.contains(header) || mappings.getOrDefault(header, empty).ignore) {
+            if (ignore.contains(header) || mappings.getOrDefault(header, EMPTY).ignore) {
                 headers[i] = null;
             }
         }
