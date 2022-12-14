@@ -75,7 +75,7 @@ dependencies {
     implementation project(':common')
     implementation group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.14.3'
-    implementation group: 'com.opencsv', name: 'opencsv', version: '4.6'
+    implementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
     implementation group: 'com.github.javafaker', name: 'javafaker', version: '1.0.2'
     implementation group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'
 
