@@ -1,6 +1,6 @@
 package apoc.load;
 
-import apoc.util.MySQLContainerExtension;
+import apoc.util.s3.MySQLContainerExtension;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.AfterClass;

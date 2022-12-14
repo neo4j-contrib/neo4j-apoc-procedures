@@ -1,6 +1,6 @@
 package apoc.load;
 
-import apoc.util.GoogleCloudStorageContainerExtension;
+import apoc.util.s3.GoogleCloudStorageContainerExtension;
 import apoc.util.TestUtil;
 import org.junit.*;
 
