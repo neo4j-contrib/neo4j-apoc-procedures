@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadHtml.KEY_ERROR;
+import static apoc.load.LoadHtmlConfig.FailSilently.WITH_LIST;
+import static apoc.load.LoadHtmlConfig.FailSilently.WITH_LOG;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -62,6 +64,7 @@ public class LoadHtmlTest {
             "<p class='thirdClass'>My third paragraph. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p> " +
             "<ul><li>Coffee</li><li>Tea</li><li>Milk</li></ul>  " +
             "</body> </html>";
+    private static final String INVALID_CONFIG_ERR = "Invalid config";
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
@@ -85,11 +88,10 @@ public class LoadHtmlTest {
 
     @Test
     public void testParseGeneratedJsWrongConfigs() {
-        String errorInvalidConfig = "Invalid config";
-        assertWrongConfig(errorInvalidConfig,
+        assertWrongConfig(INVALID_CONFIG_ERR,
                 map("browser", CHROME, "operatingSystem", "dunno"));
 
-        assertWrongConfig(errorInvalidConfig,
+        assertWrongConfig(INVALID_CONFIG_ERR,
                 map("browser", FIREFOX, "architecture", "dunno"));
 
         assertWrongConfig("Error HTTP 401 executing",
@@ -431,19 +433,22 @@ public class LoadHtmlTest {
         testIncorrectUrl("CALL apoc.load.html('" + INVALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LIST'})");
     }
 
-    @Test(expected = QueryExecutionException.class)
+    @Test
     public void testQueryWithExceptionIfIncorrectCharset() {
-        testIncorrectCharset("CALL apoc.load.html('" + VALID_PATH + "',{a:'a'}, {charset: '" + INVALID_CHARSET + "'})");
+        assertWrongConfig(INVALID_CONFIG_ERR,
+                Map.of("charset", INVALID_CHARSET));
     }
 
-    @Test(expected = QueryExecutionException.class)
+    @Test
     public void testQueryWithFailsSilentlyWithLogWithExceptionIfIncorrectCharset() {
-        testIncorrectCharset("CALL apoc.load.html('" + VALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LOG', charset: '" + INVALID_CHARSET + "'})");
+        assertWrongConfig(INVALID_CONFIG_ERR,
+                Map.of("failSilently", WITH_LOG.name(), "charset", INVALID_CHARSET));
     }
 
-    @Test(expected = QueryExecutionException.class)
+    @Test
     public void testQueryWithFailsSilentlyWithListWithExceptionIfIncorrectCharset() {
-        testIncorrectCharset("CALL apoc.load.html('" + VALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LIST', charset: '" + INVALID_CHARSET + "'})");
+        assertWrongConfig(INVALID_CONFIG_ERR,
+                Map.of("failSilently", WITH_LIST.name(), "charset", INVALID_CHARSET));
     }
 
     @Test(expected = QueryExecutionException.class)
@@ -455,17 +460,6 @@ public class LoadHtmlTest {
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             String expectedMessage = "No enum constant " + LoadHtmlConfig.Browser.class.getCanonicalName() + "." + invalidValue;
-            assertEquals(expectedMessage, except.getMessage());
-            throw e;
-        }
-    }
-
-    private void testIncorrectCharset(String query) {
-        try {
-            testCall(db, query, (r) -> {});
-        } catch (Exception e) {
-            Throwable except = ExceptionUtils.getRootCause(e);
-            String expectedMessage = "Unsupported charset: " + INVALID_CHARSET;
             assertEquals(expectedMessage, except.getMessage());
             throw e;
         }
