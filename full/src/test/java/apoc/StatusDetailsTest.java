@@ -1,14 +1,13 @@
 package apoc;
 
-import apoc.cypher.CypherExtended;
 import apoc.export.csv.ExportCSV;
 import apoc.export.csv.ImportCsv;
-import apoc.export.cypher.ExportCypher;
 import apoc.export.graphml.ExportGraphML;
 import apoc.export.json.ExportJson;
 import apoc.export.json.ImportJson;
 import apoc.load.LoadCsv;
 import apoc.load.LoadJson;
+import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -61,10 +60,10 @@ public class StatusDetailsTest {
     @BeforeClass
     public static void setUp() throws Exception {
         db.executeTransactionally("CREATE CONSTRAINT ON (n:Status) assert n.neo4jImportId IS UNIQUE");
-        TestUtil.registerProcedure(db, ExportJson.class, ImportJson.class, LoadJson.class, 
+        TestUtil.registerProcedure(db, Periodic.class,
+                ExportJson.class, ImportJson.class, LoadJson.class, 
                 ExportCSV.class, ImportCsv.class, LoadCsv.class, 
-                ExportGraphML.class, 
-                ExportCypher.class, CypherExtended.class);
+                ExportGraphML.class);
     }
 
     @AfterClass
@@ -74,30 +73,30 @@ public class StatusDetailsTest {
     
     @Before
     public void before() throws Exception {
-        IntStream.range(0, 5)
+        IntStream.range(0, 10)
                 .forEach(__-> db.executeTransactionally("UNWIND range(0, 10000) AS x CREATE (:Status)"));
     }
     
     @After
     public void after() throws Exception {
-        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+        db.executeTransactionally("CALL apoc.periodic.truncate");
     }
 
     @Parameterized.Parameters
     public static Collection<String[]> data() {
         return Arrays.asList(new String[][] {
                 { "status.csv",
-                        "CALL apoc.export.csv.all($file,null)",
-                        "CALL apoc.import.csv([{fileName: $file, labels: ['Status']}], [], {})",
+                        "CALL apoc.export.csv.all($file, {})",
+                        "CALL apoc.import.csv([{fileName: $file, labels: ['Status']}], [], {batchSize: 500})",
                         "CALL apoc.load.csv($file,null)" },
                 { "status.json",
-                        "CALL apoc.export.json.all($file)",
-                        "CALL apoc.import.json($file, null)",
+                        "CALL apoc.export.json.all($file, {})",
+                        "CALL apoc.import.json($file, {batchSize: 500})",
                         "CALL apoc.load.json($file)" },
                 { "status.graphml" ,
                         "MATCH (n:Status) WITH collect(n) as nodes CALL apoc.export.graphml.data(nodes, [], $file, {}) yield data RETURN 1",
-                        "CALL apoc.import.graphml($file,{readLabels:true})",
-                        null },
+                        "CALL apoc.import.graphml($file,{readLabels:true, batchSize: 500})",
+                        null }
         });
     }
 

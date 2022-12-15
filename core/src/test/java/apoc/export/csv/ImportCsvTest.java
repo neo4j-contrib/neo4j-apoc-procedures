@@ -255,7 +255,7 @@ public class ImportCsvTest {
     public void testNodesAndRelsWithMultiTypes() {
         TestUtil.testCall(db,
                 "CALL apoc.import.csv([{fileName: $nodeFile, labels: ['Person']}], [{fileName: $relFile, type: 'KNOWS'}], $config)",
-                map("nodeFile", "nodesMultiTypes.csv", 
+                map("nodeFile", "file:/nodesMultiTypes.csv", 
                         "relFile", "file:/relMultiTypes.csv",
                         "config", map("delimiter", '|')),
                 (r) -> {
