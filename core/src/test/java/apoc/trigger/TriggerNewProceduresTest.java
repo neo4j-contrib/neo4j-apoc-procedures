@@ -30,20 +30,13 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
+import static apoc.trigger.TriggerNewProcedures.TRIGGER_BAD_TARGET_ERROR;
 import static apoc.trigger.TriggerNewProcedures.TRIGGER_NOT_ROUTED_ERROR;
 import static apoc.trigger.TriggerTestUtil.TIMEOUT;
 import static apoc.trigger.TriggerTestUtil.TRIGGER_DEFAULT_REFRESH;
 import static apoc.trigger.TriggerTestUtil.awaitTriggerDiscovered;
-import static apoc.util.TestUtil.testCall;
-import static apoc.util.TestUtil.testCallCount;
-import static apoc.util.TestUtil.testCallCountEventually;
-import static apoc.util.TestUtil.testCallEventually;
-import static apoc.util.TestUtil.testResult;
-import static apoc.util.TestUtil.waitDbsAvailable;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static apoc.util.TestUtil.*;
+import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
 import static org.neo4j.internal.helpers.collection.MapUtil.map;
@@ -555,14 +548,12 @@ public class TriggerNewProceduresTest {
         }
     }
 
-    // TODO - it should be removed/ignored in 5.x, due to Util.validateQuery(..) removal
     @Test
     public void testInstallTriggerInSystemDb() {
         try {
-            testCall(sysDb, "CALL apoc.trigger.install('system', 'name', 'RETURN 1',{})", 
-                    r -> fail("Should fail because of unrecognised system procedure"));
-        } catch (QueryExecutionException e) {
-            assertTrue(e.getMessage().contains("Not a recognised system command or procedure"));
+            testCall(sysDb, "CALL apoc.trigger.install('system', 'name', 'SHOW DATABASES', {})", r -> fail(""));
+        } catch (RuntimeException e) {
+            assertTrue(e.getMessage().contains(TRIGGER_BAD_TARGET_ERROR));
         }
     }
 
