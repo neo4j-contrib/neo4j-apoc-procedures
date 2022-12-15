@@ -23,8 +23,8 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
 
 public class TriggerNewProcedures {
     // public for testing purpose
-    public static final String TRIGGER_NOT_ROUTED_ERROR = "The procedure should be routed and executed against a LEADER system database";
     
+    public static final String TRIGGER_NOT_ROUTED_ERROR = "The procedure should be routed and executed against the LEADER system database";
     public static class TriggerInfo {
         public String name;
         public String query;
