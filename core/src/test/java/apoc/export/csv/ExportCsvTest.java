@@ -114,8 +114,9 @@ public class ExportCsvTest {
             ",,,,,,,,0,1,KNOWS%n" +
             ",,,,,,,,3,4,NEXT_DELIVERY%n");
 
-    private static File directory = new File("target/import");
-    static { //noinspection ResultOfMethodCallIgnored
+    private static final File directory = new File("target/import");
+    static {
+        //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
     }
 
