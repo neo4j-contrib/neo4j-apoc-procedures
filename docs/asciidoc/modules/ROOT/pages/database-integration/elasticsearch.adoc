@@ -95,15 +95,70 @@ call apoc.es.post(host-or-port,index-or-null,type-or-null,id-or-null,query-or-nu
 
 === host or port parameter
 
-The parameter can be a direct host or url, or an entry to be lookup up in apoc.conf
+The parameter can be:
 
 * host
 * host:port
+* username:password@host:port
 * http://host:port
-* lookup via key to apoc.es.<key>.url
-* lookup via key apoc.es.<key>.host
+* http://username:password@host:port
+
+For example, by using the `apoc.es.stats`, we can execute:
+[source, cypher]
+----
+CALL apoc.es.stats('http://username:password@host:port')
+----
+
+Moreover, it can be an entry to be lookup up in `apoc.conf`:
+
 * lookup apoc.es.url
 * lookup apoc.es.host
+
+This takes precedence over the direct string host or url as the first parameter, as above.
+
+For example, with a `apoc.conf` like this:
+```
+apoc.es.url=http://username:password@host:port
+```
+
+or like this :
+```
+apoc.es.host=username:password@host:port
+```
+
+we can connect to elastic by putting null as the first parameter. 
+
+For example, by using the `apoc.es.stats`, we can execute:
+[source, cypher]
+----
+CALL apoc.es.stats(null)
+----
+
+Furthermore, it can be an entry to be lookup up in `apoc.conf`, 
+where `<key>` have be placed in the first parameter:
+
+* lookup via key to apoc.es.<key>.url
+* lookup via key apoc.es.<key>.host
+
+
+For example, with a `apoc.conf` like this:
+```
+apoc.es.custom.url=http://username:password@host:port
+```
+
+or like this:
+```
+apoc.es.custom.host=username:password@host:port
+```
+
+we can connect to elastic by putting null as the first parameter.
+
+For example, by using the `apoc.es.stats`, we can execute:
+[source, cypher]
+----
+CALL apoc.es.stats('custom')
+----
+
 
 === index parameter
 
