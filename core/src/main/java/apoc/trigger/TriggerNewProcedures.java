@@ -23,8 +23,9 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
 
 public class TriggerNewProcedures {
     // public for testing purpose
-    public static final String TRIGGER_NOT_ROUTED_ERROR = "The procedure should be routed and executed against a LEADER system database";
-    
+    public static final String TRIGGER_NOT_ROUTED_ERROR = "The procedure should be routed and executed against the LEADER system database";
+    public static final String TRIGGER_BAD_TARGET_ERROR = "Triggers can only be installed on user databases.";
+
     public static class TriggerInfo {
         public String name;
         public String query;
@@ -70,6 +71,12 @@ public class TriggerNewProcedures {
         }
     }
 
+    private void checkTargetDatabase(String databaseName) {
+        if (databaseName.equals(SYSTEM_DATABASE_NAME)) {
+            throw new RuntimeException(TRIGGER_BAD_TARGET_ERROR);
+        }
+    }
+
     public TriggerInfo toTriggerInfo(Map.Entry<String, Object> e) {
         String name = e.getKey();
         if (e.getValue() instanceof Map) {
@@ -90,6 +97,8 @@ public class TriggerNewProcedures {
     @Description("CALL apoc.trigger.install(databaseName, name, statement, selector, config) | eventually adds a trigger for a given database which is invoked when a successful transaction occurs.")
     public Stream<TriggerInfo> install(@Name("databaseName") String databaseName, @Name("name") String name, @Name("statement") String statement, @Name(value = "selector")  Map<String,Object> selector, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
         checkInSystemLeader();
+        checkTargetDatabase(databaseName);
+
         // TODO - to be deleted in 5.x, because in a cluster, not all DBMS host all the databases on them,
         // so we have to assume that the leader of the system database doesn't have access to this user database
         Util.validateQuery(ApocConfig.apocConfig().getDatabase(databaseName), statement);
