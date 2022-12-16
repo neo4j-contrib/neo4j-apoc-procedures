@@ -296,7 +296,7 @@ public class CollTest {
 
     @Test
     public void testIN2() throws Exception {
-        int elements = 1_000_000;
+        int elements = 1_000;
         ArrayList<Long> list = new ArrayList<>(elements);
         for (long i = 0; i < elements; i++) {
             list.add(i);
