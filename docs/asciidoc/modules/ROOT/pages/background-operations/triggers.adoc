@@ -10,6 +10,7 @@ You can run them before or after commit.
 ====
 All these `apoc.trigger.*` procedures are intended to be executed in the system database,
 therefore they have to be used executed by opening a system database session. There are several ways of doing this:
+
 - when using cypher-shell or Neo4j Browser, one can prefix their Cypher query with `:use system`
 - when using fabric, one can prefix their Cypher query with `USE system`
 - when using the drivers, one can open a session directly against the system database
@@ -39,9 +40,10 @@ include::partial$triggers/triggersConfig.adoc[]
 include::example$generated-documentation/apoc.trigger.install.adoc[]
 include::example$generated-documentation/apoc.trigger.drop.adoc[]
 include::example$generated-documentation/apoc.trigger.dropAll.adoc[]
-include::example$generated-documentation/apoc.trigger.show.adoc[]
 include::example$generated-documentation/apoc.trigger.stop.adoc[]
 include::example$generated-documentation/apoc.trigger.start.adoc[]
+include::example$generated-documentation/apoc.trigger.show.adoc[]
+include::example$generated-documentation/apoc.trigger.list.adoc[]
 |===
 
 

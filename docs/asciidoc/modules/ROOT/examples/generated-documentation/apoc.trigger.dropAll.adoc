@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.trigger/apoc.trigger.dropAll.adoc[apoc.trigger.dropAll icon:book[]] +
 
-`CALL apoc.trigger.dropAll(databaseName) | eventually removes all previously added trigger, returns triggers' information
+`CALL apoc.trigger.dropAll(databaseName) | eventually removes all previously added trigger, returns triggers' information`
 ¦label:procedure[]
 ¦label:apoc-core[]
