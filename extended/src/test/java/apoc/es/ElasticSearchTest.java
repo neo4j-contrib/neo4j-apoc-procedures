@@ -16,7 +16,9 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 
+import static apoc.ApocConfig.apocConfig;
 import static org.junit.Assert.*;
 
 /**
@@ -25,6 +27,11 @@ import static org.junit.Assert.*;
  */
 public class ElasticSearchTest {
 
+    private static final String URL_CONF = "apoc.es.url";
+    private static final String HOST_CONF = "apoc.es.host";
+    private static String HTTP_HOST_ADDRESS;
+    private static String HTTP_URL_ADDRESS;
+    
     public static ElasticsearchContainer elastic;
 
     private final static String ES_INDEX = "test-index";
@@ -48,9 +55,20 @@ public class ElasticSearchTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        elastic = new ElasticsearchContainer();
+        final String password = "myPassword";
+        elastic = new ElasticsearchContainer()
+                .withPassword(password);
         elastic.start();
-        defaultParams.put("host", elastic.getHttpHostAddress());
+
+        HTTP_HOST_ADDRESS = String.format("elastic:%s@%s", 
+                password,
+                elastic.getHttpHostAddress());
+        
+        HTTP_URL_ADDRESS = "http://" + HTTP_HOST_ADDRESS;
+
+        defaultParams.put("host", HTTP_HOST_ADDRESS);
+        defaultParams.put("url", HTTP_URL_ADDRESS);
+        
         TestUtil.registerProcedure(db, ElasticSearch.class);
         insertDocuments();
     }
@@ -107,12 +125,8 @@ public class ElasticSearchTest {
 
     @Test
     public void testStats() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.stats($host)", defaultParams, r -> {
-            assertNotNull(r.get("value"));
-
-            Object numOfDocs = extractValueFromResponse(r, "$._all.total.docs.count");
-            assertNotEquals(0, numOfDocs);
-        });
+        TestUtil.testCall(db, "CALL apoc.es.stats($host)", defaultParams, 
+                commonEsStatsConsumer());
     }
 
     /**
@@ -123,10 +137,55 @@ public class ElasticSearchTest {
      */
     @Test
     public void testGetWithQueryNull() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,null,null) yield value", defaultParams, r -> {
-            Object name = extractValueFromResponse(r, "$._source.name");
-            assertEquals("Neo4j", name);
-        });
+        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,null,null) yield value", defaultParams, 
+                commonEsGetConsumer());
+    }
+
+    @Test
+    public void testProceduresWithUrl() {
+        TestUtil.testCall(db, "CALL apoc.es.stats($url)", defaultParams, 
+                commonEsStatsConsumer());
+        
+        TestUtil.testCall(db, "CALL apoc.es.get($url,$index,$type,$id,null,null) yield value", defaultParams, 
+                commonEsGetConsumer());
+    }
+
+    @Test
+    public void testProceduresWithUrlKeyConfOverridingGenericUrlConf() {
+        apocConfig().setProperty("apoc.es.customKey.url", HTTP_URL_ADDRESS);
+        apocConfig().setProperty(URL_CONF, "wrongUrl");
+
+        TestUtil.testCall(db, "CALL apoc.es.stats('customKey')", 
+                commonEsStatsConsumer());
+
+        TestUtil.testCall(db, "CALL apoc.es.get('customKey',$index,$type,$id,null,null) yield value", defaultParams, 
+                commonEsGetConsumer());
+
+        apocConfig().getConfig().clearProperty(URL_CONF);
+    }
+
+    @Test
+    public void testProceduresWithUrlKeyConf() {
+        apocConfig().setProperty("apoc.es.myUrlKey.url", HTTP_URL_ADDRESS);
+        
+        TestUtil.testCall(db, "CALL apoc.es.stats('myUrlKey')", 
+                commonEsStatsConsumer());
+
+        TestUtil.testCall(db, "CALL apoc.es.get('myUrlKey',$index,$type,$id,null,null) yield value", defaultParams, 
+                commonEsGetConsumer());
+        
+    }
+
+    @Test
+    public void testProceduresWithHostKeyConf() {
+        apocConfig().setProperty("apoc.es.myHostKey.host", HTTP_HOST_ADDRESS);
+
+        TestUtil.testCall(db, "CALL apoc.es.stats('myHostKey')",
+                commonEsStatsConsumer());
+
+        TestUtil.testCall(db, "CALL apoc.es.get('myHostKey',$index,$type,$id,null,null) yield value", defaultParams,
+                commonEsGetConsumer());
+        
     }
 
     /**
@@ -137,10 +196,8 @@ public class ElasticSearchTest {
      */
     @Test
     public void testGetWithQueryAsMapMultipleParams() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,{_source_includes:'name',_source_excludes:'description'},null) yield value", defaultParams, r -> {
-            Object name = extractValueFromResponse(r, "$._source.name");
-            assertEquals("Neo4j", name);
-        });
+        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,{_source_includes:'name',_source_excludes:'description'},null) yield value", defaultParams,
+                commonEsGetConsumer());
     }
 
     /**
@@ -151,10 +208,8 @@ public class ElasticSearchTest {
      */
     @Test
     public void testGetWithQueryAsMapSingleParam() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,{_source_includes:'name'},null) yield value", defaultParams, r -> {
-            Object name = extractValueFromResponse(r, "$._source.name");
-            assertEquals("Neo4j", name);
-        });
+        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,{_source_includes:'name'},null) yield value", defaultParams,
+                commonEsGetConsumer());
     }
 
     /**
@@ -165,10 +220,8 @@ public class ElasticSearchTest {
      */
     @Test
     public void testGetWithQueryAsStringMultipleParams() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name&_source_excludes=description',null) yield value", defaultParams, r -> {
-            Object name = extractValueFromResponse(r, "$._source.name");
-            assertEquals("Neo4j", name);
-        });
+        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name&_source_excludes=description',null) yield value", defaultParams,
+                commonEsGetConsumer());
     }
 
     /**
@@ -179,10 +232,8 @@ public class ElasticSearchTest {
      */
     @Test
     public void testGetWithQueryAsStringSingleParam() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name',null) yield value", defaultParams, r -> {
-            Object name = extractValueFromResponse(r, "$._source.name");
-            assertEquals("Neo4j", name);
-        });
+        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name',null) yield value", defaultParams,
+                commonEsGetConsumer());
     }
 
     /**
@@ -337,5 +388,21 @@ public class ElasticSearchTest {
         // First we test the older version against the newest one
         assertNotEquals(queryUrl, es.getQueryUrl(host, index, type, id, new HashMap<String, String>()));
         assertTrue(!es.getQueryUrl(host, index, type, id, new HashMap<String, String>()).endsWith("?"));
+    }
+
+    private static Consumer<Map<String, Object>> commonEsGetConsumer() {
+        return r -> {
+            Object name = extractValueFromResponse(r, "$._source.name");
+            assertEquals("Neo4j", name);
+        };
+    }
+
+    private static Consumer<Map<String, Object>> commonEsStatsConsumer() {
+        return r -> {
+            assertNotNull(r.get("value"));
+
+            Object numOfDocs = extractValueFromResponse(r, "$._all.total.docs.count");
+            assertEquals(3, numOfDocs);
+        };
     }
 }
