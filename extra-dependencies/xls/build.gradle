@@ -33,4 +33,7 @@ dependencies {
     }
     implementation group: 'com.github.virtuald', name: 'curvesapi', version: '1.06'
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+    implementation group: 'commons-io', name: 'commons-io', version: '2.11.0', {
+        exclude group: 'org.apache.commons', module: 'commons-lang3'
+    }
 }
